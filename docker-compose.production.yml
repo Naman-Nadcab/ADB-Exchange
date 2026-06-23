@@ -45,7 +45,10 @@ services:
     restart: unless-stopped
 
   nats:
-    image: nats:2.10-alpine
+    build:
+      context: ./infra/nats
+      dockerfile: Dockerfile
+    image: exchange-nats:2.10-alpine
     container_name: exchange-nats
     command: ["-js", "-m", "8222"]
     healthcheck:
@@ -196,6 +199,7 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-}
+        ADMIN_BASE_PATH: /admin
     container_name: exchange-admin
     environment:
       NODE_ENV: production
@@ -203,7 +207,7 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/admin/login"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -264,6 +268,7 @@ services:
     container_name: exchange-seed-admin
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-exchange}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-exchange}?sslmode=disable
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?ENCRYPTION_KEY required for admin 2FA bootstrap}
     depends_on:
       postgres:
         condition: service_healthy

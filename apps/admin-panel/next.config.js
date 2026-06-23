@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
+const adminBasePath = process.env.ADMIN_BASE_PATH || '/admin';
+
 const nextConfig = {
+  basePath: adminBasePath,
   reactStrictMode: true,
   eslint: {
     ignoreDuringBuilds: true,
