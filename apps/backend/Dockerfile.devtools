@@ -1,0 +1,7 @@
+# One-shot admin seed for production bootstrap (tools profile only).
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --omit=dev && npm install tsx
+COPY seed-admin.ts ./
+CMD ["npx", "tsx", "seed-admin.ts"]

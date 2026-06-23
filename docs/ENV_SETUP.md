@@ -2,12 +2,21 @@
 
 **Generated:** 2026-06-23
 
-## Quick start (VPS)
+## Quick start (VPS IP — no domain)
+
+```bash
+cp .env.production.example .env
+# Edit .env — all CHANGE_ME values + VPS_PUBLIC_IP
+bash scripts/vps-first-boot.sh
+```
+
+See `docs/VPS_FIRST_BOOT_REPORT.md` for the full checklist.
+
+## Quick start (domain ready)
 
 ```bash
 cp .env.production.example .env
 # Edit .env — all CHANGE_ME values
-cp backups/provider-secrets.template.json backups/provider-secrets.json  # optional local backup
 docker compose -f docker-compose.production.yml up -d --build
 ```
 

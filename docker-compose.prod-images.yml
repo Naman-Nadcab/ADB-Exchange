@@ -3,6 +3,8 @@
 #   export IMAGE_PREFIX=ghcr.io/Naman-Nadcab/exchange
 #   export IMAGE_TAG=latest
 #   docker compose -f docker-compose.production.yml -f docker-compose.prod-images.yml up -d
+#
+# env_file, healthchecks, and tools profile come from docker-compose.production.yml
 
 services:
   backend:

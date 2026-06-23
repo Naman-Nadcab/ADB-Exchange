@@ -1,9 +1,16 @@
 # Production stack: infra + matching engine + API workers + frontends + TLS proxy
-# Usage:
-#   cp .env.production.example .env   # fill secrets
-#   docker compose -f docker-compose.production.yml up -d --build
 #
-# Requires TLS certs in nginx/ssl/ (fullchain.pem, privkey.pem) or use HTTP-only profile.
+# First boot (VPS IP, no domain yet):
+#   cp .env.production.example .env   # fill secrets + VPS_PUBLIC_URL
+#   bash scripts/generate-self-signed-tls.sh   # optional; or HTTP-only until certs exist
+#   bash scripts/vps-first-boot.sh
+#
+# TLS: place fullchain.pem + privkey.pem in nginx/ssl/ OR run generate-self-signed-tls.sh
+# Without certs nginx starts in HTTP-only mode on port 80.
+
+x-app-env: &app-env
+  env_file:
+    - .env
 
 services:
   postgres:
@@ -15,6 +22,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-exchange}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-exchange} -d ${POSTGRES_DB:-exchange}"]
       interval: 10s
@@ -39,6 +48,12 @@ services:
     image: nats:2.10-alpine
     container_name: exchange-nats
     command: ["-js", "-m", "8222"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8222/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     restart: unless-stopped
 
   rabbitmq:
@@ -58,6 +73,7 @@ services:
     restart: unless-stopped
 
   indexer:
+    <<: *app-env
     build:
       context: ./apps/indexer
       dockerfile: Dockerfile
@@ -69,9 +85,16 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null --tries=1 http://127.0.0.1:4001/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     restart: unless-stopped
 
   matching-engine:
+    <<: *app-env
     build:
       context: ./matching-engine
       dockerfile: Dockerfile
@@ -82,16 +105,18 @@ services:
       USE_EVENT_STREAM: ${USE_EVENT_STREAM:-true}
       ENGINE_TIER1_WAL_REQUIRED: ${ENGINE_TIER1_WAL_REQUIRED:-true}
       ENGINE_MATCH_WAL_PATH: /data/wal/match_events.jsonl
-      MATCHING_ENGINE_PORT: 7101
+      ENGINE_HTTP_PORT: "7101"
+      ENGINE_HTTP_BIND: "0.0.0.0"
       ENGINE_HMAC_SECRET: ${ENGINE_HMAC_SECRET:?ENGINE_HMAC_SECRET required}
       ENGINE_HMAC_SECRET_ACTIVE: ${ENGINE_HMAC_SECRET_ACTIVE:-${ENGINE_HMAC_SECRET}}
+      MATCH_EVENTS_PARTITIONS: ${MATCH_EVENTS_PARTITION_COUNT:-1}
     volumes:
       - engine_wal:/data/wal
     depends_on:
       redis:
         condition: service_healthy
       nats:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://127.0.0.1:7101/health"]
       interval: 15s
@@ -101,6 +126,7 @@ services:
     restart: unless-stopped
 
   backend:
+    <<: *app-env
     build:
       context: ./apps/backend
       dockerfile: Dockerfile
@@ -108,22 +134,18 @@ services:
     environment:
       NODE_ENV: production
       RUN_MODE: all
-      PORT: 4000
-      STRICT_DEPENDENCY_STARTUP: "true"
-      REQUIRE_MATCHING_ENGINE: "true"
-      DATABASE_URL: postgresql://${POSTGRES_USER:-exchange}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-exchange}
+      PORT: "4000"
+      TIER1_LAUNCH: ${TIER1_LAUNCH:-true}
+      STRICT_DEPENDENCY_STARTUP: ${STRICT_DEPENDENCY_STARTUP:-true}
+      HEALTH_REQUIRE_MATCHING_ENGINE: ${HEALTH_REQUIRE_MATCHING_ENGINE:-true}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-exchange}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-exchange}?sslmode=disable
       REDIS_URL: redis://redis:6379
       NATS_URL: nats://nats:4222
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-exchange}:${RABBITMQ_PASSWORD}@rabbitmq:5672
       MATCHING_ENGINE_URL: http://matching-engine:7101
       USE_RUST_MATCHING_ENGINE: "true"
+      USE_EVENT_STREAM: ${USE_EVENT_STREAM:-true}
       KMS_TYPE: ${KMS_TYPE:-aws}
-      AWS_KMS_KEY_ID: ${AWS_KMS_KEY_ID:-}
-      AWS_REGION: ${AWS_REGION:-}
-      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET required}
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?ENCRYPTION_KEY required}
-      ADMIN_IP_WHITELIST: ${ADMIN_IP_WHITELIST:-}
       KMS_STARTUP_PROBE: ${KMS_STARTUP_PROBE:-1}
     depends_on:
       postgres:
@@ -133,42 +155,59 @@ services:
       rabbitmq:
         condition: service_healthy
       nats:
-        condition: service_started
+        condition: service_healthy
       matching-engine:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/health/live"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 45s
+      start_period: 90s
     restart: unless-stopped
 
   frontend:
+    <<: *app-env
     build:
       context: ./apps/frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-}
+        NEXT_PUBLIC_WS_URL: ${PUBLIC_WS_URL:-}
+        NEXT_PUBLIC_ADMIN_PANEL_URL: ${PUBLIC_ADMIN_URL:-}
     container_name: exchange-frontend
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-https://api.example.com}
-      NEXT_PUBLIC_WS_URL: ${PUBLIC_WS_URL:-wss://api.example.com}
     depends_on:
       backend:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
   admin-panel:
+    <<: *app-env
     build:
       context: ./apps/admin-panel
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-}
     container_name: exchange-admin
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-https://api.example.com}
     depends_on:
       backend:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
   nginx:
@@ -178,13 +217,57 @@ services:
       - "${HTTP_PORT:-80}:80"
       - "${HTTPS_PORT:-443}:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/docker-entrypoint.sh:/docker-entrypoint.sh:ro
+      - ./nginx/nginx.tls.conf:/etc/nginx/nginx.tls.conf:ro
+      - ./nginx/nginx.http-only.conf:/etc/nginx/nginx.http-only.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
+    entrypoint: ["/docker-entrypoint.sh"]
     depends_on:
-      - frontend
-      - admin-panel
-      - backend
+      frontend:
+        condition: service_started
+      admin-panel:
+        condition: service_started
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
+
+  # One-shot DB migration (production image — compiled migrate.js)
+  migrate:
+    profiles: [tools]
+    <<: *app-env
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: exchange-migrate
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-exchange}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-exchange}?sslmode=disable
+    command: ["node", "dist/database/migrate.js"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  # One-shot admin seed (devtools image with tsx)
+  seed-admin:
+    profiles: [tools]
+    <<: *app-env
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile.devtools
+    container_name: exchange-seed-admin
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-exchange}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-exchange}?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
 
 volumes:
   postgres_data:
