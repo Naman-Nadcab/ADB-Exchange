@@ -1,0 +1,721 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { useAuthStore } from '@/store/auth';
+import Link from 'next/link';
+import {
+  Copy,
+  Check,
+  Edit3,
+  User,
+  Users,
+  Shield,
+  Monitor,
+  Activity,
+  Trash2,
+  ChevronRight,
+  ShieldAlert,
+  Camera,
+  Verified,
+  AlertTriangle,
+  Settings,
+  Link2,
+  Smartphone,
+  Building2,
+  Loader2,
+  CheckCircle,
+  Clock,
+  X,
+} from 'lucide-react';
+import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { walletPath } from '@/lib/routes';
+import { toast } from '@/components/ui/toaster';
+
+interface UserProfile {
+  id: string;
+  email: string;
+  phone: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  totp_enabled: boolean;
+  sms_auth_enabled: boolean;
+  passkeys_enabled: boolean;
+  has_fund_password: boolean;
+  kycStatus: string;
+  kycLevel: number;
+  passkeysCount: number;
+  activeDevices: number;
+  last_login_at: string | null;
+  created_at: string;
+}
+
+export default function AccountInfoPage() {
+  const { user, accessToken, _hasHydrated, updateUser } = useAuthStore();
+  const [copiedUID, setCopiedUID] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const [profileData, setProfileData] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [delete2fa, setDelete2fa] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deletionScheduledAt, setDeletionScheduledAt] = useState<string | null>(null);
+  const [cancellingDeletion, setCancellingDeletion] = useState(false);
+  const [linkedProviders, setLinkedProviders] = useState<string[]>([]);
+  const [linking, setLinking] = useState(false);
+
+  const apiUrl = getApiBaseUrl();
+
+  // Fetch comprehensive profile data
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!_hasHydrated || !accessToken) return;
+      
+      try {
+        const response = await fetch(`${apiUrl}/api/v1/auth/profile`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const result = await response.json();
+        if (result.success) {
+          setProfileData(result.data.user);
+        }
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProfile();
+  }, [accessToken, _hasHydrated]);
+
+  useEffect(() => {
+    const fetchDeletionStatus = async () => {
+      if (!_hasHydrated || !accessToken) return;
+      try {
+        const res = await fetch(`${apiUrl}/api/v1/auth/account/deletion-status`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const json = await res.json();
+        if (json.success && json.data?.requested) {
+          setDeletionScheduledAt(json.data.scheduledAt || null);
+        } else {
+          setDeletionScheduledAt(null);
+        }
+      } catch {
+        /* non-blocking */
+      }
+    };
+    fetchDeletionStatus();
+  }, [accessToken, _hasHydrated]);
+
+  const fetchLinkedProviders = async () => {
+    if (!accessToken) return;
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/auth/account/linked-providers`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const json = await res.json();
+      if (json.success) {
+        setLinkedProviders((json.data?.providers || []).map((p: { provider: string }) => p.provider));
+      }
+    } catch {
+      /* non-blocking */
+    }
+  };
+
+  useEffect(() => {
+    if (!_hasHydrated || !accessToken) return;
+    fetchLinkedProviders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken, _hasHydrated]);
+
+  const googleLinked = linkedProviders.includes('google');
+
+  const startGoogleLink = async () => {
+    if (linking || !accessToken) return;
+    setLinking(true);
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/auth/oauth/google/link-url`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const json = await res.json();
+      if (json.success && json.data?.url) {
+        window.location.href = json.data.url;
+      } else {
+        toast({ title: 'Cannot link', description: json.error?.message || 'Google sign-in is not configured.', variant: 'destructive' });
+        setLinking(false);
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Failed to start Google linking.', variant: 'destructive' });
+      setLinking(false);
+    }
+  };
+
+  const unlinkGoogle = async () => {
+    if (!accessToken) return;
+    setLinking(true);
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/auth/account/unlink`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ provider: 'google' }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast({ title: 'Google unlinked', variant: 'success' });
+        await fetchLinkedProviders();
+      } else {
+        toast({ title: 'Cannot unlink', description: json.error?.message || 'Failed to unlink.', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Failed to unlink Google.', variant: 'destructive' });
+    } finally {
+      setLinking(false);
+    }
+  };
+
+  const submitAccountDeletion = async () => {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/auth/account/deletion-request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ password: deletePassword, twoFactorCode: delete2fa || undefined }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setDeletionScheduledAt(json.data?.scheduledAt || null);
+        setShowDeleteModal(false);
+        setDeletePassword('');
+        setDelete2fa('');
+        toast({
+          title: 'Account scheduled for deletion',
+          description: 'You can cancel any time during the 7-day grace period.',
+          variant: 'default',
+        });
+      } else {
+        toast({ title: 'Could not request deletion', description: json.error?.message || 'Please try again.', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Failed to request account deletion.', variant: 'destructive' });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const cancelAccountDeletion = async () => {
+    if (cancellingDeletion) return;
+    setCancellingDeletion(true);
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/auth/account/deletion-request/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      });
+      const json = await res.json();
+      if (json.success) {
+        setDeletionScheduledAt(null);
+        toast({ title: 'Deletion cancelled', description: 'Your account will not be deleted.', variant: 'success' });
+      } else {
+        toast({ title: 'Error', description: json.error?.message || 'Failed to cancel.', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Failed to cancel deletion.', variant: 'destructive' });
+    } finally {
+      setCancellingDeletion(false);
+    }
+  };
+
+  // Calculate security level based on actual settings
+  const calculateSecurityLevel = () => {
+    if (!profileData) return { score: 0, status: 'Low', color: 'orange' };
+    
+    let score = 0;
+    if (profileData.email) score += 15; // Email verified
+    if (profileData.phone) score += 15; // Phone linked
+    if (profileData.sms_auth_enabled) score += 10; // SMS auth enabled
+    if (profileData.totp_enabled) score += 25; // 2FA enabled
+    if (profileData.passkeysCount > 0) score += 15; // Passkeys enabled
+    if (profileData.has_fund_password) score += 10; // Fund password set
+    if (profileData.kycStatus === 'approved') score += 10; // KYC verified
+    
+    if (score >= 80) return { score, status: 'High', color: 'green' };
+    if (score >= 50) return { score, status: 'Medium', color: 'yellow' };
+    return { score, status: 'Low', color: 'orange' };
+  };
+
+  const security = calculateSecurityLevel();
+
+  const getKycStatusDisplay = () => {
+    if (!profileData) return { text: 'Loading...', color: 'gray', icon: Clock };
+    switch (profileData.kycStatus) {
+      case 'approved':
+        return { text: 'Verified', color: 'green', icon: CheckCircle };
+      case 'pending':
+        return { text: 'Pending Review', color: 'yellow', icon: Clock };
+      case 'rejected':
+        return { text: 'Rejected', color: 'red', icon: AlertTriangle };
+      default:
+        return { text: 'Unverified', color: 'gray', icon: AlertTriangle };
+    }
+  };
+
+  const kycDisplay = getKycStatusDisplay();
+
+  const maskEmail = (email: string) => {
+    if (!email) return '***@****';
+    const [local, domain] = email.split('@');
+    if (!domain) return '***@****';
+    const maskedLocal = local.slice(0, 3) + '***';
+    return `${maskedLocal}@${domain}`;
+  };
+
+  const copyUID = () => {
+    if (user?.id) {
+      navigator.clipboard.writeText(user.id);
+      setCopiedUID(true);
+      setTimeout(() => setCopiedUID(false), 2000);
+    }
+  };
+
+  const formatDate = (date?: string | null) => {
+    if (!date) return '-';
+    return new Date(date).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const handleAvatarSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) e.target.value = '';
+    if (!file || !accessToken) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: 'Image too large', description: 'Please choose an image under 2MB.', variant: 'destructive' });
+      return;
+    }
+    setUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`${apiUrl}/api/v1/user/avatar`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: formData,
+      });
+      const json = await res.json();
+      if (json.success && json.data?.avatarUrl) {
+        updateUser({ avatarUrl: json.data.avatarUrl });
+        toast({ title: 'Profile picture updated', variant: 'success' });
+      } else {
+        toast({ title: 'Upload failed', description: json.error?.message || 'Could not update profile picture.', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Failed to upload profile picture.', variant: 'destructive' });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const SettingRow = ({ icon: Icon, title, description, status, statusColor, action, actionLabel, actionVariant = 'default', badge }: {
+    icon: React.ElementType;
+    title: string;
+    description?: string;
+    status?: string;
+    statusColor?: string;
+    action?: () => void;
+    actionLabel: string;
+    actionVariant?: 'default' | 'primary' | 'success';
+    badge?: string;
+  }) => (
+    <div className="flex items-center justify-between p-5 hover:bg-accent/30 transition-colors">
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center">
+          <Icon className="w-6 h-6 text-muted-foreground" />
+        </div>
+        <div>
+          <h3 className="font-medium text-foreground">{title}</h3>
+          {description && (
+            <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        {badge && (
+          <span className="px-2 py-0.5 bg-muted text-muted-foreground text-xs font-medium rounded-md">{badge}</span>
+        )}
+        {status && (
+          <span className={`flex items-center gap-1.5 text-sm font-medium ${statusColor}`}>
+            <span className={`w-2 h-2 rounded-full ${statusColor?.includes('text-buy') ? 'bg-buy' : statusColor?.includes('text-warning') ? 'bg-warning' : 'bg-muted-foreground'}`}></span>
+            {status}
+          </span>
+        )}
+        <button
+          onClick={action}
+          className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-all ${
+            actionVariant === 'primary'
+              ? 'bg-primary hover:bg-primary/85 text-primary-foreground shadow-lg shadow-blue-500/25'
+              : actionVariant === 'success'
+              ? 'bg-buy hover:bg-buy-hover text-primary-foreground shadow-lg shadow-buy/25'
+              : 'bg-accent hover:bg-accent text-foreground/80'
+          }`}
+        >
+          {actionLabel}
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="p-4 lg:p-8 bg-background min-h-full">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-xl font-semibold text-foreground">Account Info</h1>
+          <p className="text-muted-foreground mt-2">Manage your profile and account settings</p>
+        </div>
+
+        {/* User Profile Card */}
+        <div className="bg-card rounded-xl border border-border overflow-hidden mb-6">
+          <div className="p-6 lg:p-8">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+              {/* Left: Avatar and Info */}
+              <div className="flex items-start gap-5">
+                {/* Avatar */}
+                <div className="relative group">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+                    {user?.avatarUrl ? (
+                      <img src={user.avatarUrl} alt="Avatar" className="w-full h-full rounded-xl object-cover" />
+                    ) : (
+                      <User className="w-10 h-10 text-primary-foreground" />
+                    )}
+                  </div>
+                  <button
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                    aria-label="Change profile picture"
+                    className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary hover:bg-primary/85 rounded-xl flex items-center justify-center transition-colors shadow-lg disabled:opacity-60"
+                  >
+                    {uploadingAvatar ? (
+                      <Loader2 className="w-4 h-4 text-primary-foreground animate-spin" />
+                    ) : (
+                      <Camera className="w-4 h-4 text-primary-foreground" />
+                    )}
+                  </button>
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={handleAvatarSelected}
+                  />
+                </div>
+
+                {/* User Details */}
+                <div>
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-xl font-bold text-foreground">
+                      {maskEmail(user?.email || '')}
+                    </span>
+                    <button className="p-1.5 hover:bg-accent rounded-lg transition-colors">
+                      <Edit3 className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-6">
+                    {/* UID */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">UID:</span>
+                      <span className="font-mono font-medium text-foreground bg-accent px-2 py-1 rounded-lg text-sm">
+                        {user?.id?.slice(0, 9) || '********'}
+                      </span>
+                      <button
+                        onClick={copyUID}
+                        className="p-1 hover:bg-accent rounded-lg transition-colors"
+                      >
+                        {copiedUID ? (
+                          <Check className="w-4 h-4 text-buy" />
+                        ) : (
+                          <Copy className="w-4 h-4 text-muted-foreground" />
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Last Login */}
+                    <div className="flex items-center gap-2">
+                      <Monitor className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Last login:</span>
+                      <span className="text-sm text-foreground">
+                        {loading ? 'Loading...' : formatDate(profileData?.last_login_at)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Security Alert - Dynamic based on security level */}
+              {security.status !== 'High' ? (
+                <div className="flex items-start gap-4 p-4 bg-warning-light border border-warning/30 rounded-xl max-w-sm">
+                  <div className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center flex-shrink-0">
+                    <ShieldAlert className="w-6 h-6 text-warning" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground mb-1">Security Alert</p>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {security.status === 'Low' 
+                        ? 'Your account security level is low.' 
+                        : 'Improve your account security.'}
+                    </p>
+                    <Link 
+                      href="/dashboard/security"
+                      className="text-sm text-primary hover:text-primary/85 font-medium flex items-center gap-1"
+                    >
+                      {!profileData?.totp_enabled ? 'Set up 2FA' : 'Improve Security'} <ChevronRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start gap-4 p-4 bg-buy-light border border-buy/20 rounded-xl max-w-sm">
+                  <div className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-6 h-6 text-buy" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground mb-1">Account Secured</p>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Your account has strong security measures enabled.
+                    </p>
+                    <Link 
+                      href="/dashboard/security"
+                      className="text-sm text-buy hover:text-buy/90 font-medium flex items-center gap-1"
+                    >
+                      View Settings <ChevronRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Security Level Bar */}
+          <div className="px-6 lg:px-8 py-4 bg-muted border-t border-border">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-foreground/80">Security Level</span>
+              <span className={`text-sm font-semibold ${
+                security.color === 'green' ? 'text-buy' : 
+                security.color === 'yellow' ? 'text-warning' : 'text-warning'
+              }`}>{security.status}</span>
+            </div>
+            <div className="w-full bg-accent rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full transition-all duration-500 ${
+                  security.color === 'green' ? 'bg-gradient-to-r from-buy to-buy/80' : 
+                  security.color === 'yellow' ? 'bg-gradient-to-r from-warning to-warning/80' : 
+                  'bg-gradient-to-r from-warning to-warning/70'
+                }`} 
+                style={{ width: `${security.score}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Profile Settings */}
+        <div className="bg-card rounded-xl border border-border overflow-hidden mb-6">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="text-lg font-semibold text-foreground">Profile Settings</h2>
+          </div>
+          <div className="divide-y divide-border">
+            <SettingRow
+              icon={Camera}
+              title="Profile Picture"
+              description="Personalize your account with a custom avatar"
+              status={user?.avatarUrl ? 'Set' : 'Not set'}
+              statusColor={user?.avatarUrl ? 'text-buy' : 'text-muted-foreground'}
+              actionLabel={uploadingAvatar ? 'Uploading…' : 'Upload'}
+              actionVariant="primary"
+              action={() => avatarInputRef.current?.click()}
+            />
+            <SettingRow
+              icon={Users}
+              title="Join an Affiliate's Community"
+              description="Connect with top traders and earn rewards"
+              actionLabel="Join"
+              actionVariant="success"
+            />
+            <SettingRow
+              icon={Shield}
+              title="Identity Verification"
+              description="Complete KYC to increase withdrawal limits"
+              status={kycDisplay.text}
+              statusColor={
+                kycDisplay.color === 'green' ? 'text-buy' : 
+                kycDisplay.color === 'yellow' ? 'text-warning' : 
+                kycDisplay.color === 'red' ? 'text-sell' : 'text-muted-foreground'
+              }
+              actionLabel={profileData?.kycStatus === 'approved' ? 'View' : 'Verify Now'}
+              actionVariant={profileData?.kycStatus === 'approved' ? 'default' : 'primary'}
+              action={() => window.location.href = '/dashboard/identity'}
+            />
+            <SettingRow
+              icon={Building2}
+              title="Bank accounts & UPI"
+              description="Save accounts for INR withdrawal and P2P"
+              actionLabel="Manage"
+              actionVariant="primary"
+              action={() => { window.location.href = walletPath.paymentMethods; }}
+            />
+          </div>
+        </div>
+
+        {/* Account Integrations */}
+        <div className="bg-card rounded-xl border border-border overflow-hidden mb-6">
+          <div className="px-6 py-4 border-b border-border flex items-center gap-3">
+            <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center">
+              <Link2 className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Account Integrations</h2>
+              <p className="text-sm text-muted-foreground">Connect third-party services</p>
+            </div>
+          </div>
+          <div className="divide-y divide-border">
+            <SettingRow
+              icon={Smartphone}
+              title="Link Google Account"
+              description="Connect your Google account for quick login"
+              status={googleLinked ? 'Linked' : 'Not Linked'}
+              statusColor={googleLinked ? 'text-buy' : 'text-muted-foreground'}
+              actionLabel={linking ? 'Please wait…' : googleLinked ? 'Unlink' : 'Link'}
+              actionVariant={googleLinked ? 'default' : 'primary'}
+              action={() => (googleLinked ? void unlinkGoogle() : void startGoogleLink())}
+            />
+          </div>
+        </div>
+
+        {/* Account Activities */}
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="px-6 py-4 border-b border-border flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+              <Activity className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Account Activities</h2>
+              <p className="text-sm text-muted-foreground">Manage devices and account history</p>
+            </div>
+          </div>
+          <div className="divide-y divide-border">
+            <SettingRow
+              icon={Monitor}
+              title="Trusted Devices"
+              description={loading ? 'Loading...' : `${profileData?.activeDevices || 1} device${(profileData?.activeDevices || 1) > 1 ? 's' : ''} currently logged in`}
+              actionLabel="Manage"
+              action={() => { window.location.href = '/dashboard/security/sessions'; }}
+            />
+            <SettingRow
+              icon={Activity}
+              title="Login History"
+              description="View recent account activity"
+              actionLabel="View"
+              action={() => { window.location.href = '/dashboard/account/login-history'; }}
+            />
+            <div className="flex items-center justify-between p-5 hover:bg-accent/30 transition-colors">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-sell-light rounded-xl flex items-center justify-center">
+                  <Trash2 className="w-6 h-6 text-sell" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-foreground">Delete Account</h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    {deletionScheduledAt
+                      ? `Scheduled for deletion on ${formatDate(deletionScheduledAt)}`
+                      : 'Permanently delete your account and data'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                {deletionScheduledAt ? (
+                  <button
+                    onClick={() => void cancelAccountDeletion()}
+                    disabled={cancellingDeletion}
+                    className="px-5 py-2.5 text-sm font-medium rounded-xl bg-accent hover:bg-accent/70 text-foreground transition-colors inline-flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {cancellingDeletion && <Loader2 className="w-4 h-4 animate-spin" />}
+                    Cancel deletion
+                  </button>
+                ) : (
+                  <button onClick={() => setShowDeleteModal(true)} className="px-5 py-2.5 text-sm font-medium rounded-xl bg-sell-light hover:bg-sell/20 text-destructive transition-colors">
+                    Delete
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Delete Account Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-xl w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h2 className="text-lg font-bold text-foreground">Delete Account</h2>
+              <button onClick={() => setShowDeleteModal(false)} className="p-2 hover:bg-accent rounded-xl transition-colors">
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex items-start gap-3 p-4 bg-sell-light border border-sell/30 rounded-xl">
+                <AlertTriangle className="w-5 h-5 text-sell flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-foreground/90">
+                  Your account will be scheduled for permanent deletion after a <strong>7-day grace period</strong>. You can cancel any time before then by logging in. All balances must be withdrawn and orders closed first.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Account password</label>
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-sell"
+                  placeholder="Enter your password"
+                  autoComplete="current-password"
+                />
+              </div>
+              {profileData?.totp_enabled && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">2FA code</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={delete2fa}
+                    onChange={(e) => setDelete2fa(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-sell tracking-widest"
+                    placeholder="6-digit code"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-border">
+              <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2.5 text-sm font-medium rounded-lg border border-border text-muted-foreground hover:bg-accent">
+                Cancel
+              </button>
+              <button
+                onClick={() => void submitAccountDeletion()}
+                disabled={deleting || !deletePassword || (profileData?.totp_enabled && delete2fa.length !== 6)}
+                className="px-5 py-2.5 text-sm font-semibold rounded-lg bg-sell hover:bg-sell/85 text-white disabled:opacity-50 inline-flex items-center gap-2"
+              >
+                {deleting && <Loader2 className="w-4 h-4 animate-spin" />}
+                Schedule deletion
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

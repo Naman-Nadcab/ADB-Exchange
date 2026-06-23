@@ -1,0 +1,26 @@
+# Optional overlay — use pre-built images from GHCR (CI pipeline)
+# Usage:
+#   export IMAGE_PREFIX=ghcr.io/Naman-Nadcab/exchange
+#   export IMAGE_TAG=latest
+#   docker compose -f docker-compose.production.yml -f docker-compose.prod-images.yml up -d
+
+services:
+  backend:
+    image: ${IMAGE_PREFIX:-ghcr.io/owner/exchange}-backend:${IMAGE_TAG:-latest}
+    build: !reset null
+
+  frontend:
+    image: ${IMAGE_PREFIX:-ghcr.io/owner/exchange}-frontend:${IMAGE_TAG:-latest}
+    build: !reset null
+
+  admin-panel:
+    image: ${IMAGE_PREFIX:-ghcr.io/owner/exchange}-admin-panel:${IMAGE_TAG:-latest}
+    build: !reset null
+
+  indexer:
+    image: ${IMAGE_PREFIX:-ghcr.io/owner/exchange}-indexer:${IMAGE_TAG:-latest}
+    build: !reset null
+
+  matching-engine:
+    image: ${IMAGE_PREFIX:-ghcr.io/owner/exchange}-matching-engine:${IMAGE_TAG:-latest}
+    build: !reset null

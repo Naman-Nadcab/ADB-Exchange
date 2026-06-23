@@ -1,0 +1,541 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Spot terminal rails: left(orderbook) + right(markets/trades); keep in sync with SpotTradingGridTerminal overlays */
+    --spot-terminal-left-width: clamp(224px, 19vw, 300px);
+    --spot-terminal-right-width: clamp(280px, 26vw, 392px);
+    --spot-terminal-rail-width: var(--spot-terminal-left-width);
+
+    /* Softer buy/sell for less visual fatigue (still clearly distinct) */
+    --exchange-buy: 160 68% 36%;
+    --exchange-sell: 352 76% 50%;
+    --price-up: 160 68% 36%;
+    --price-down: 352 76% 50%;
+    --panel: 0 0% 98%;
+
+    --background: 0 0% 98%;
+    --foreground: 220 20% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 14%;
+    --primary: 47 96% 60%;
+    --primary-foreground: 0 0% 7%;
+    --secondary: 220 13% 95%;
+    --secondary-foreground: 220 20% 14%;
+    --muted: 220 13% 95%;
+    --muted-foreground: 218 11% 53%;
+    --accent: 220 13% 95%;
+    --accent-foreground: 220 20% 14%;
+    --destructive: 353 91% 53%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 93%;
+    --input: 220 13% 93%;
+    --ring: 47 96% 60%;
+    --radius: 0.5rem;
+    --dashboard-page-x: 1rem;
+    --dashboard-page-y: 1.5rem;
+    --dashboard-section-gap: 1.25rem;
+    --dashboard-card-radius: 0.75rem;
+    --dashboard-card-pad: 1rem;
+    --dashboard-title-size: 1.625rem;
+    --dashboard-muted-size: 0.875rem;
+  }
+
+  /* Binance-adjacent dark terminal: deeper shell, elevated panels, readable muted labels */
+  .dark {
+    --exchange-buy: 158 64% 46%;
+    --exchange-sell: 352 72% 58%;
+    --price-up: 158 64% 46%;
+    --price-down: 352 72% 58%;
+    --panel: 218 11% 12%;
+
+    --background: 216 14% 7%;
+    --foreground: 210 20% 96%;
+    --card: 218 11% 11%;
+    --card-foreground: 210 20% 96%;
+    --popover: 218 11% 14%;
+    --popover-foreground: 210 20% 96%;
+    --primary: 45 93% 48%;
+    --primary-foreground: 0 0% 7%;
+    --secondary: 218 10% 16%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 218 10% 15%;
+    --muted-foreground: 215 10% 54%;
+    --accent: 218 10% 17%;
+    --accent-foreground: 210 20% 96%;
+    --destructive: 352 88% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 218 10% 19%;
+    --input: 218 10% 16%;
+    --ring: 45 93% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html,
+  body {
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer utilities {
+  /** Monospace + tabular figures for prices, balances, order book (spot terminal) */
+  .numeric {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+  }
+  .dashboard-page-wrap {
+    padding-inline: var(--dashboard-page-x);
+    padding-block: var(--dashboard-page-y);
+  }
+  .dashboard-stack {
+    display: grid;
+    gap: var(--dashboard-section-gap);
+  }
+  .dashboard-card {
+    border-radius: var(--dashboard-card-radius);
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+    padding: var(--dashboard-card-pad);
+  }
+  .dashboard-title {
+    font-size: var(--dashboard-title-size);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+  }
+  .dashboard-muted {
+    font-size: var(--dashboard-muted-size);
+    line-height: 1.45;
+    color: hsl(var(--muted-foreground));
+  }
+  .state-surface {
+    border-radius: 0.75rem;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card) / 0.9);
+    padding: 1.25rem;
+  }
+  .state-empty {
+    border-color: hsl(var(--border));
+    background: hsl(var(--muted) / 0.35);
+  }
+  .state-error {
+    border-color: hsl(var(--destructive) / 0.35);
+    background: hsl(var(--destructive) / 0.08);
+  }
+  .state-loading {
+    border-color: hsl(var(--border));
+    background: hsl(var(--muted) / 0.25);
+  }
+  /* Terminal depth layers */
+  .terminal-shell {
+    background: radial-gradient(130% 120% at 50% 0%, hsl(var(--card) / 0.32) 0%, hsl(var(--background)) 58%);
+  }
+  .terminal-panel {
+    border: 1px solid hsl(var(--border) / 0.9);
+    background: linear-gradient(180deg, hsl(var(--card) / 0.96) 0%, hsl(var(--card) / 0.92) 100%);
+    box-shadow: inset 0 1px 0 hsl(var(--foreground) / 0.03);
+  }
+  .terminal-panel-elevated {
+    border: 1px solid hsl(var(--border) / 0.9);
+    background: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.94) 100%);
+    box-shadow:
+      0 8px 22px hsl(220 50% 2% / 0.28),
+      inset 0 1px 0 hsl(var(--foreground) / 0.04);
+  }
+  .terminal-focus {
+    box-shadow:
+      0 0 0 1px hsl(var(--primary) / 0.35),
+      0 8px 26px hsl(220 50% 2% / 0.28);
+  }
+  .terminal-trust-pill {
+    border: 1px solid hsl(var(--border) / 0.95);
+    background: hsl(var(--muted) / 0.38);
+    color: hsl(var(--muted-foreground));
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .table-density-compact td,
+  .table-density-compact th {
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+}
+
+/**
+ * Spot terminal right rail (markets list, trades, movers): thinner scrollbar than global 8px
+ * so “Last / 24h% / Vol” stay legible next to the gutter.
+ */
+.spot-rail-scroll {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.28) transparent;
+}
+
+.spot-rail-scroll::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.spot-rail-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.spot-rail-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 9999px;
+}
+
+.spot-rail-scroll::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.48);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Trading specific styles */
+.orderbook-row {
+  @apply transition-colors duration-150;
+}
+
+.orderbook-row:hover {
+  @apply bg-muted/50;
+}
+
+.price-up {
+  @apply text-buy;
+}
+
+.price-down {
+  @apply text-sell;
+}
+
+/* Use raw hsl — Tailwind @apply cannot resolve bg-buy/12 on nested color tokens */
+.depth-bar-buy {
+  background-color: hsl(var(--exchange-buy) / 0.14);
+}
+
+.depth-bar-sell {
+  background-color: hsl(var(--exchange-sell) / 0.14);
+}
+
+/* Chart container */
+.chart-container {
+  @apply relative w-full h-full min-h-[400px];
+}
+
+/* Number input without spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Loading states */
+.skeleton {
+  @apply animate-pulse bg-muted rounded;
+}
+
+/* Trading panel layout */
+.trading-layout {
+  display: grid;
+  grid-template-columns: var(--spot-terminal-rail-width) 1fr var(--spot-terminal-rail-width);
+  grid-template-rows: auto 1fr auto;
+  gap: 1px;
+  height: calc(100vh - 64px);
+  background: hsl(var(--border));
+}
+
+@media (max-width: 1200px) {
+  .trading-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    height: auto;
+  }
+}
+
+/* Responsive rail widths: shrink rails as viewport narrows */
+@media (max-width: 1400px) {
+  :root {
+    --spot-terminal-left-width: clamp(192px, 18vw, 252px);
+    --spot-terminal-right-width: clamp(244px, 23vw, 320px);
+    --spot-terminal-rail-width: var(--spot-terminal-left-width);
+  }
+}
+
+@media (max-width: 1100px) {
+  :root {
+    --spot-terminal-left-width: clamp(172px, 17vw, 214px);
+    --spot-terminal-right-width: clamp(210px, 21vw, 266px);
+    --spot-terminal-rail-width: var(--spot-terminal-left-width);
+  }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --spot-terminal-left-width: 0px;
+    --spot-terminal-right-width: 0px;
+    --spot-terminal-rail-width: 0px;
+  }
+
+  .terminal-shell {
+    overflow-x: hidden;
+  }
+
+  .spot-terminal-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 60px auto minmax(0, 1fr) 52px !important;
+  }
+
+  .spot-terminal-header {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+  }
+
+  .spot-terminal-pair-header {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+  }
+
+  .spot-terminal-orderbook,
+  .spot-terminal-center,
+  .spot-terminal-markets {
+    grid-column: 1 / -1 !important;
+    grid-row: 3 !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    pointer-events: auto !important;
+    overflow: hidden !important;
+  }
+
+  .spot-terminal-mobile-tabs {
+    grid-column: 1 / -1 !important;
+    grid-row: 4 !important;
+  }
+
+  .spot-terminal-grid[data-mobile-tab='chart'] .spot-terminal-orderbook,
+  .spot-terminal-grid[data-mobile-tab='chart'] .spot-terminal-markets,
+  .spot-terminal-grid[data-mobile-tab='chart'] .spot-terminal-trade-pane,
+  .spot-terminal-grid[data-mobile-tab='chart'] .spot-terminal-split-bar,
+  .spot-terminal-grid[data-mobile-tab='book'] .spot-terminal-center,
+  .spot-terminal-grid[data-mobile-tab='book'] .spot-terminal-markets,
+  .spot-terminal-grid[data-mobile-tab='trade'] .spot-terminal-orderbook,
+  .spot-terminal-grid[data-mobile-tab='trade'] .spot-terminal-markets,
+  .spot-terminal-grid[data-mobile-tab='trade'] .spot-terminal-chart-pane,
+  .spot-terminal-grid[data-mobile-tab='trade'] .spot-terminal-split-bar,
+  .spot-terminal-grid[data-mobile-tab='markets'] .spot-terminal-orderbook,
+  .spot-terminal-grid[data-mobile-tab='markets'] .spot-terminal-center {
+    display: none !important;
+  }
+
+  .spot-terminal-grid[data-mobile-tab='chart'] .spot-terminal-center,
+  .spot-terminal-grid[data-mobile-tab='trade'] .spot-terminal-center {
+    display: flex !important;
+  }
+
+  .spot-terminal-grid[data-mobile-tab='chart'] .spot-terminal-chart-pane {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    border-bottom: none !important;
+  }
+
+  .spot-terminal-grid[data-mobile-tab='trade'] .spot-terminal-trade-pane {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+  }
+
+  [data-spot-rail] {
+    overflow: hidden !important;
+    pointer-events: auto !important;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --dashboard-page-x: 0.75rem;
+    --dashboard-page-y: 1rem;
+    --dashboard-section-gap: 0.875rem;
+    --dashboard-card-pad: 0.875rem;
+    --dashboard-title-size: 1.35rem;
+    --dashboard-muted-size: 0.8125rem;
+  }
+}
+
+/* Animations */
+@keyframes flash-green {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(14, 203, 129, 0.3); }
+}
+
+@keyframes flash-red {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(246, 70, 93, 0.3); }
+}
+
+.flash-green {
+  animation: flash-green 0.3s ease-out;
+}
+
+.flash-red {
+  animation: flash-red 0.3s ease-out;
+}
+
+/* Responsive table */
+.responsive-table {
+  @apply w-full overflow-x-auto;
+}
+
+.responsive-table table {
+  @apply min-w-full;
+}
+
+/* Focus styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
+}
+
+/* ========== Homepage: rich & futuristic ========== */
+@keyframes home-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* App-grade touch & shell utilities (must live OUTSIDE @keyframes to apply). */
+.tap-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+.mobile-app-shell {
+  min-height: 100dvh;
+}
+.mobile-app-topbar {
+  backdrop-filter: saturate(1.1) blur(12px);
+}
+.mobile-app-bottom-nav {
+  backdrop-filter: saturate(1.1) blur(14px);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --dashboard-page-x: 0.75rem;
+    --dashboard-page-y: 0.9rem;
+    --dashboard-section-gap: 0.8rem;
+    --dashboard-card-radius: 0.95rem;
+    --dashboard-card-pad: 0.85rem;
+  }
+  #main-content {
+    scroll-padding-top: calc(3.5rem + env(safe-area-inset-top, 0px));
+  }
+  .dashboard-page-wrap {
+    padding-top: 0.75rem;
+    padding-bottom: calc(5.2rem + env(safe-area-inset-bottom, 0px));
+  }
+  button,
+  [role='button'],
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+  a[class],
+  button,
+  [role='button'],
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+  }
+}
+
+@keyframes home-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.02); }
+}
+
+@keyframes home-glow-pulse {
+  0%, 100% { opacity: 0.4; filter: blur(80px); }
+  50% { opacity: 0.7; filter: blur(100px); }
+}
+
+@keyframes home-gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes home-shine {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+@keyframes home-scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes home-line-draw {
+  from { stroke-dashoffset: 200; }
+  to { stroke-dashoffset: 0; }
+}
+
+.home-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.home-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}

@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "maxBatchSize": 15,
+  "batches": [
+    {
+      "id": "wallet-1",
+      "priority": 1,
+      "label": "Wallet — core user routes",
+      "entries": [
+        { "app": "frontend", "route": "/wallet", "auth": "kyc" },
+        { "app": "frontend", "route": "/wallet/deposit/crypto", "auth": "kyc" },
+        { "app": "frontend", "route": "/wallet/deposit", "auth": "kyc" },
+        { "app": "frontend", "route": "/wallet/withdraw/crypto", "auth": "kyc" },
+        { "app": "frontend", "route": "/wallet/withdraw", "auth": "kyc" },
+        { "app": "frontend", "route": "/wallet/withdraw/fiat", "auth": "kyc" },
+        { "app": "frontend", "route": "/wallet/history", "auth": "kyc" },
+        { "app": "frontend", "route": "/wallet/transfer", "auth": "kyc" },
+        { "app": "frontend", "route": "/wallet/funding", "auth": "kyc" },
+        { "app": "frontend", "route": "/wallet/convert", "auth": "kyc" },
+        { "app": "frontend", "route": "/wallet/unified", "auth": "kyc" },
+        { "app": "frontend", "route": "/wallet/pnl", "auth": "kyc" },
+        { "app": "frontend", "route": "/wallet/BTC_USDT", "auth": "kyc" }
+      ]
+    },
+    {
+      "id": "wallet-2",
+      "priority": 1,
+      "label": "Wallet — dashboard paths",
+      "entries": [
+        { "app": "frontend", "route": "/dashboard/deposit/crypto", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/wallet/spot", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/wallet/BTC_USDT", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/withdraw/crypto", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/withdraw/fiat", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/withdraw", "auth": "kyc" }
+      ]
+    },
+    {
+      "id": "spot-1",
+      "priority": 2,
+      "label": "Spot trading routes",
+      "entries": [
+        { "app": "frontend", "route": "/trade/spot", "auth": "kyc" },
+        { "app": "frontend", "route": "/trade/spot?symbol=BTC_USDT", "auth": "kyc" },
+        { "app": "frontend", "route": "/spot", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/trade/spot", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/spot", "auth": "kyc" },
+        { "app": "frontend", "route": "/orders/spot", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/orders/spot", "auth": "kyc" }
+      ]
+    },
+    {
+      "id": "orders-1",
+      "priority": 3,
+      "label": "Orders routes",
+      "entries": [
+        { "app": "frontend", "route": "/orders", "auth": "kyc" },
+        { "app": "frontend", "route": "/orders/spot", "auth": "kyc" },
+        { "app": "frontend", "route": "/orders/trades", "auth": "kyc" },
+        { "app": "frontend", "route": "/orders/history", "auth": "kyc" },
+        { "app": "frontend", "route": "/orders/p2p", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/orders", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/orders/spot", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/orders/trades", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/orders/p2p", "auth": "kyc" }
+      ]
+    },
+    {
+      "id": "p2p-1",
+      "priority": 4,
+      "label": "P2P — hub and trade flow",
+      "entries": [
+        { "app": "frontend", "route": "/p2p", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p-v2", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/p2p", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p/buy/USDT/INR", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/p2p/buy/USDT/INR", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/p2p/buy/USDT/INR/create", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p/orders", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p/orders/00000000-0000-4000-8000-000000000002", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/p2p/orders/00000000-0000-4000-8000-000000000002", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p/payment-methods", "auth": "kyc" },
+        { "app": "frontend", "route": "/dashboard/p2p/payment-methods", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p/my-ads", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p/create-ad", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p/merchant-dashboard", "auth": "kyc" }
+      ]
+    },
+    {
+      "id": "p2p-2",
+      "priority": 4,
+      "label": "P2P — v2 and profiles",
+      "entries": [
+        { "app": "frontend", "route": "/p2p-v2/my-ads", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p-v2/create-ad", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p-v2/merchant-dashboard", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p-v2/payment-methods", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p-v2/orders", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p-v2/orders/00000000-0000-4000-8000-000000000001", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p/profile/00000000-0000-4000-8000-000000000003", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p/merchant/00000000-0000-4000-8000-000000000001", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p/disputes/00000000-0000-4000-8000-000000000001", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p-v2/disputes/00000000-0000-4000-8000-000000000001", "auth": "kyc" },
+        { "app": "frontend", "route": "/p2p-v2/merchant/00000000-0000-4000-8000-000000000001", "auth": "kyc" }
+      ]
+    },
+    {
+      "id": "admin-treasury-1",
+      "priority": 5,
+      "label": "Admin treasury routes",
+      "entries": [
+        { "app": "admin-panel", "route": "/treasury", "auth": "admin" },
+        { "app": "admin-panel", "route": "/treasury/settings", "auth": "admin" }
+      ]
+    },
+    {
+      "id": "admin-mm-1",
+      "priority": 6,
+      "label": "Admin market-maker routes",
+      "entries": [
+        { "app": "admin-panel", "route": "/admin/mm-control", "auth": "admin" }
+      ]
+    }
+  ]
+}

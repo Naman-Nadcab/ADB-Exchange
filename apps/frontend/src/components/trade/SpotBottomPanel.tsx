@@ -1,0 +1,609 @@
+'use client';
+
+import Link from 'next/link';
+import { Loader2, X, RefreshCw, Trash2, Download } from 'lucide-react';
+import { CoinIcon } from '@/components/ui/CoinIcon';
+import { ordersToCsv, tradesToCsv, downloadCsv } from '@/lib/exportCsv';
+import { useSpotBottomPanel, type Order } from './useSpotBottomPanel';
+import { useBalancesByAccount } from '@/lib/balances';
+import { ROUTES, SPOT_TRADE_HREF, walletPath } from '@/lib/routes';
+import { useMemo, useState, useEffect, useRef } from 'react';
+import { formatFixedTrim, formatValueFixedTrim } from './terminalFormat';
+
+/** Per-symbol decimals from exchange metadata (tier-1 formatting). */
+export type SpotMarketMeta = {
+  symbol: string;
+  price_precision?: number;
+  qty_precision?: number;
+};
+
+interface SpotBottomPanelProps {
+  symbol: string;
+  isAuth: boolean;
+  ordersVersion?: number;
+  tradesVersion?: number;
+  markets?: SpotMarketMeta[];
+  promptCancelAllConfirmation?: boolean;
+}
+
+function precisionForMarket(markets: SpotMarketMeta[] | undefined, marketSymbol: string | null | undefined) {
+  const clamp = (n: number | undefined, fallback: number) =>
+    typeof n === 'number' && Number.isFinite(n) ? Math.min(12, Math.max(0, Math.floor(n))) : fallback;
+  if (!markets?.length || !marketSymbol) return { price: 8, qty: 8 };
+  const m = markets.find((x) => x.symbol === marketSymbol);
+  return {
+    price: clamp(m?.price_precision, 8),
+    qty: clamp(m?.qty_precision, 8),
+  };
+}
+
+function formatOrderPrice(value: string | null | undefined, decimals: number): string {
+  if (value == null || value === '') return '—';
+  const n = Number(value);
+  if (!Number.isFinite(n)) return value;
+  return formatValueFixedTrim(value, decimals);
+}
+
+function displayStatus(s: string): string {
+  if (s === 'OPEN' || s === 'NEW') return 'Open';
+  if (s === 'PENDING_TRIGGER') return 'Pending Trigger';
+  if (s === 'PARTIALLY_FILLED') return 'Partially Filled';
+  if (s === 'REJECTED') return 'Rejected';
+  if (s === 'CANCELLED') return 'Cancelled';
+  if (s === 'FILLED') return 'Filled';
+  return s || 'Unknown';
+}
+
+function executionStatusPill(status: string) {
+  const u = (status || '').toUpperCase();
+  const base =
+    'inline-flex items-center rounded-full px-2 py-0.5 text-label font-bold uppercase tracking-wide transition-colors duration-300';
+  if (u === 'OPEN' || u === 'NEW') {
+    return (
+      <span
+        className={`${base} bg-sky-500/15 text-sky-800 dark:bg-sky-500/20 dark:text-sky-200`}
+        title="Working order"
+      >
+        Open
+      </span>
+    );
+  }
+  if (u === 'PARTIALLY_FILLED') {
+    return (
+      <span
+        className={`${base} bg-amber-500/18 text-amber-900 dark:bg-amber-500/22 dark:text-amber-100`}
+        title="Partially filled"
+      >
+        Partial
+      </span>
+    );
+  }
+  if (u === 'FILLED') {
+    return (
+      <span className={`${base} bg-emerald-500/15 text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-200`} title="Filled">
+        Filled
+      </span>
+    );
+  }
+  if (u === 'PENDING_TRIGGER') {
+    return <span className={`${base} bg-violet-500/15 text-violet-900 dark:bg-violet-400/20 dark:text-violet-100`}>Trigger</span>;
+  }
+  if (u === 'CANCELLED' || u === 'REJECTED') {
+    return (
+      <span className={`${base} bg-accent/90 text-foreground/80 dark:bg-accent/40 dark:text-foreground/80`}>{displayStatus(status)}</span>
+    );
+  }
+  return <span className={`${base} bg-accent/80 text-foreground/80 dark:bg-accent/30 dark:text-foreground/90`}>{displayStatus(status)}</span>;
+}
+
+function OpenOrderRow({
+  o,
+  onCancel,
+  cancellingId,
+  priceDecimals,
+  qtyDecimals,
+}: {
+  o: Order;
+  onCancel: (id: string) => void;
+  cancellingId: string | null | undefined;
+  priceDecimals: number;
+  qtyDecimals: number;
+}) {
+  const [pulse, setPulse] = useState(false);
+  const prev = useRef({ status: o.status, filled: o.filled_quantity });
+  useEffect(() => {
+    if (prev.current.status !== o.status || prev.current.filled !== o.filled_quantity) {
+      setPulse(true);
+      prev.current = { status: o.status, filled: o.filled_quantity };
+      const t = window.setTimeout(() => setPulse(false), 700);
+      return () => window.clearTimeout(t);
+    }
+  }, [o.status, o.filled_quantity]);
+
+  const canCancel = ['OPEN', 'PARTIALLY_FILLED', 'PENDING_TRIGGER'].includes(o.status);
+  const filled = parseFloat(o.filled_quantity ?? '0') || 0;
+  const qty = parseFloat(o.quantity ?? '0') || 0;
+  const filledQtyStr =
+    filled > 0 && qty > 0
+      ? `${formatFixedTrim(filled, qtyDecimals)}/${formatFixedTrim(qty, qtyDecimals)}`
+      : (o.quantity ?? '—');
+  return (
+    <tr
+      className={`min-h-[36px] border-b border-border/60 transition-[background-color,box-shadow] duration-500 ease-out hover:bg-muted/50 sm:min-h-[30px] ${
+        pulse ? 'bg-primary/10 shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.25)]' : ''
+      }`}
+    >
+      <td className="py-1.5 px-2 align-middle">
+        <div className="flex items-center gap-1">
+          <CoinIcon symbol={o.market?.split('_')[0] || ''} size={14} />
+          <span className="numeric text-label text-foreground">{o.market}</span>
+        </div>
+      </td>
+      <td className="py-1.5 px-2 align-middle">
+        <span className="text-label text-muted-foreground">{displayOrderType(o.type)}</span>
+      </td>
+      <td className="py-1.5 px-2 align-middle">
+        <span className={o.side === 'buy' ? 'text-buy' : 'text-sell'}>{o.side}</span>
+      </td>
+      <td className="numeric py-1.5 px-2 align-middle text-label text-muted-foreground">
+        {formatOrderPrice(o.price ?? null, priceDecimals)}
+      </td>
+      <td className="numeric py-1.5 px-2 align-middle text-label text-muted-foreground">
+        {formatOrderPrice(o.stop_price ?? null, priceDecimals)}
+      </td>
+      <td className="numeric py-1.5 px-2 align-middle text-label text-muted-foreground">{filledQtyStr}</td>
+      <td className="py-1.5 px-2 align-middle">{executionStatusPill(o.status)}</td>
+      <td className="py-1.5 px-2 align-middle">
+        {canCancel && (
+          <button
+            type="button"
+            disabled={!!cancellingId}
+            onClick={() => onCancel(o.id)}
+            className="min-h-[32px] touch-manipulation rounded px-2 py-1 text-label text-destructive hover:underline disabled:opacity-50"
+          >
+            {cancellingId === o.id ? <Loader2 className="w-3 h-3 animate-spin inline" /> : 'Cancel'}
+          </button>
+        )}
+      </td>
+    </tr>
+  );
+}
+
+function displayOrderType(t: string | undefined): string {
+  if (!t) return '—';
+  const map: Record<string, string> = {
+    limit: 'Limit',
+    market: 'Market',
+    stop_loss: 'Stop',
+    stop_limit: 'Stop Limit',
+    trailing_stop_market: 'Trailing',
+    oco: 'Bracket',
+  };
+  return map[t] ?? t;
+}
+
+export function SpotBottomPanel(props: SpotBottomPanelProps) {
+  const {
+    symbol,
+    isAuth,
+    ordersVersion = 0,
+    tradesVersion = 0,
+    markets,
+    promptCancelAllConfirmation = true,
+  } = props;
+  const data = useSpotBottomPanel({
+    symbol,
+    isAuth,
+    ordersVersion,
+    tradesVersion,
+    promptCancelAllConfirmation,
+  });
+  const { data: balancesByAccount = [] } = useBalancesByAccount(isAuth);
+  const allTradingBalances = useMemo(
+    () => balancesByAccount.filter((b) => parseFloat(b.trading ?? '0') > 0).slice(0, 24),
+    [balancesByAccount]
+  );
+  const [hideSmallBalances, setHideSmallBalances] = useState(false);
+  const [showAllMarkets, setShowAllMarkets] = useState(false);
+  const tradingBalances = useMemo(() => {
+    if (!hideSmallBalances) return allTradingBalances;
+    const min = 0.0001;
+    return allTradingBalances.filter((b) => parseFloat(b.trading ?? '0') >= min);
+  }, [allTradingBalances, hideSmallBalances]);
+  const [sortKey, setSortKey] = useState<string>('created_at');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const toggleSort = (key: string) => {
+    if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
+  };
+
+  const compare = (av: unknown, bv: unknown, key: string, dir: number) => {
+    if (key.endsWith('_at')) {
+      const at = av ? new Date(String(av)).getTime() : 0;
+      const bt = bv ? new Date(String(bv)).getTime() : 0;
+      return (at - bt) * dir;
+    }
+    if (key === 'price' || key === 'quantity' || key === 'filled_quantity' || key === 'fee') {
+      return (Number(av ?? 0) - Number(bv ?? 0)) * dir;
+    }
+    return String(av ?? '').localeCompare(String(bv ?? '')) * dir;
+  };
+
+  const displayOpenOrders = useMemo(() => {
+    const list = showAllMarkets ? data.openOrders : (data.openOrdersForMarket ?? data.openOrders.filter((o) => o.market === symbol));
+    return list;
+  }, [data.openOrders, data.openOrdersForMarket, symbol, showAllMarkets]);
+
+  const getField = (obj: Record<string, unknown>, key: string): unknown => obj[key as keyof typeof obj];
+
+  const sortedOpenOrders = useMemo(() => {
+    const list = [...displayOpenOrders];
+    const dir = sortDir === 'asc' ? 1 : -1;
+    list.sort((a, b) => compare(getField(a, sortKey), getField(b, sortKey), sortKey, dir));
+    return list;
+  }, [displayOpenOrders, sortKey, sortDir]);
+
+  const displayOrderHistory = useMemo(() => {
+    if (showAllMarkets) return data.orderHistory;
+    return data.orderHistory.filter((o) => !symbol || o.market === symbol);
+  }, [data.orderHistory, symbol, showAllMarkets]);
+
+  const sortedOrderHistory = useMemo(() => {
+    const list = [...displayOrderHistory];
+    const dir = sortDir === 'asc' ? 1 : -1;
+    list.sort((a, b) => compare(getField(a, sortKey), getField(b, sortKey), sortKey, dir));
+    return list;
+  }, [displayOrderHistory, sortKey, sortDir]);
+
+  const displayTrades = useMemo(() => {
+    if (showAllMarkets) return data.trades;
+    return data.trades.filter((t) => !symbol || t.market === symbol);
+  }, [data.trades, symbol, showAllMarkets]);
+
+  const sortedTrades = useMemo(() => {
+    const list = [...displayTrades];
+    const dir = sortDir === 'asc' ? 1 : -1;
+    list.sort((a, b) => compare(getField(a, sortKey), getField(b, sortKey), sortKey, dir));
+    return list;
+  }, [displayTrades, sortKey, sortDir]);
+
+  const sortGlyph = (key: string) => {
+    if (sortKey !== key) return '';
+    return sortDir === 'asc' ? ' ↑' : ' ↓';
+  };
+
+  if (!isAuth) {
+    return (
+      <div className="flex min-h-[320px] w-full flex-col bg-card">
+        <div className="flex min-h-10 items-center gap-1 border-b border-border bg-muted/35 px-2">
+          {['Open Orders', 'Order History', 'Trade History', 'Assets', 'Positions'].map((label) => (
+            <span
+              key={label}
+              className="inline-flex min-h-[36px] items-center rounded border border-border/70 bg-muted/40 px-2.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-muted-foreground"
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+        <div className="grid flex-1 gap-2 p-3 sm:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-lg border border-border/80 bg-muted/25 p-3">
+              <div className="mb-2 h-3 w-24 rounded bg-muted" />
+              <div className="space-y-1.5">
+                <div className="h-2.5 w-full rounded bg-muted/80" />
+                <div className="h-2.5 w-[85%] rounded bg-muted/70" />
+                <div className="h-2.5 w-[70%] rounded bg-muted/60" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-border px-4 py-3 text-center text-[12px] text-muted-foreground">
+          Sign in to unlock live orders, trade history, assets, and position tracking.
+        </div>
+      </div>
+    );
+  }
+
+  const openOrdersForMarket = symbol ? data.openOrders.filter((o) => o.market === symbol) : [];
+  const canCancelAll = symbol && openOrdersForMarket.length > 0 && !data.cancellingAll;
+
+  const tabBtn = (active: boolean) =>
+    `min-h-[40px] flex touch-manipulation items-center border-b-2 px-3 py-2 text-label font-semibold transition-colors duration-150 -mb-px sm:px-4 ${
+      active
+        ? 'border-primary text-foreground'
+        : 'border-transparent text-muted-foreground hover:text-foreground'
+    }`;
+
+  return (
+    <div className="flex h-[min(50vh,560px)] min-h-[320px] w-full flex-col bg-card">
+      <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/40 px-1">
+        <div className="flex flex-wrap items-center gap-0.5 sm:gap-1">
+          <button type="button" onClick={() => data.setTab('open')} className={tabBtn(data.tab === 'open')}>Open ({data.openOrders.length})</button>
+          <button type="button" onClick={() => data.setTab('orders')} className={tabBtn(data.tab === 'orders')}>History</button>
+          <button type="button" onClick={() => data.setTab('trades')} className={tabBtn(data.tab === 'trades')}>Trades</button>
+          <button type="button" onClick={() => data.setTab('assets')} className={tabBtn(data.tab === 'assets')}>Assets</button>
+          <button type="button" onClick={() => data.setTab('positions')} className={tabBtn(data.tab === 'positions')}>Positions</button>
+        </div>
+        <div className="flex items-center gap-2 pr-2">
+          {(data.tab === 'open' || data.tab === 'orders' || data.tab === 'trades') && (
+            <button type="button" onClick={() => setShowAllMarkets((v) => !v)} className="min-h-[36px] touch-manipulation rounded border border-border px-3 py-1.5 text-label text-muted-foreground hover:text-foreground" title={showAllMarkets ? 'Show current pair only' : 'Show all markets'}>
+              {showAllMarkets ? 'All' : 'Pair'}
+            </button>
+          )}
+          {data.tab === 'open' && canCancelAll && (
+            <button type="button" onClick={() => data.handleCancelAll?.()} disabled={data.cancellingAll} className="flex min-h-[36px] touch-manipulation items-center gap-1 rounded border border-destructive/30 px-3 py-1.5 text-label text-destructive hover:bg-destructive/10 disabled:opacity-50" title="Cancel all open orders for this pair">
+              {data.cancellingAll ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+              {data.cancelAllArmed ? 'Confirm All' : 'Cancel All'}
+            </button>
+          )}
+          {data.tab === 'orders' && data.orderHistory.length > 0 && (
+            <button type="button" onClick={() => { const csv = ordersToCsv(data.orderHistory); downloadCsv(`spot-orders-${new Date().toISOString().slice(0,10)}.csv`, csv); }} className="flex min-h-[36px] touch-manipulation items-center gap-1 rounded border border-border px-3 py-1.5 text-label text-muted-foreground hover:text-foreground" title="Export Order History as CSV">
+              <Download className="w-3 h-3" /> Export
+            </button>
+          )}
+          {data.tab === 'trades' && data.trades.length > 0 && (
+            <button type="button" onClick={() => { const csv = tradesToCsv(data.trades); downloadCsv(`spot-trades-${new Date().toISOString().slice(0,10)}.csv`, csv); }} className="flex min-h-[36px] touch-manipulation items-center gap-1 rounded border border-border px-3 py-1.5 text-label text-muted-foreground hover:text-foreground" title="Export Trade History as CSV">
+              <Download className="w-3 h-3" /> Export
+            </button>
+          )}
+          <button type="button" onClick={() => { data.tab === 'open' && data.fetchOpen?.(); data.tab === 'orders' && data.fetchOrderHistory?.(null, false); data.tab === 'trades' && data.fetchTrades?.(1, false); }} className="flex min-h-[36px] min-w-[36px] touch-manipulation items-center justify-center rounded text-muted-foreground hover:text-foreground" title="Refresh">
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+      {data.cancelError && (
+        <div className="px-3 py-1.5 flex items-center justify-between bg-destructive/10 text-destructive text-xs">
+          <span>{data.cancelError}</span>
+          <button type="button" onClick={() => data.setCancelError(null)} aria-label="Dismiss"><X className="w-3 h-3" /></button>
+        </div>
+      )}
+      <div className="flex-1 min-h-0 overflow-auto">
+        {data.tab === 'open' && (
+          data.openLoading ? (
+            <div className="p-4 flex items-center justify-center"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+          ) : data.openOrders.length === 0 ? (
+            <div className="p-4 text-center text-muted-foreground text-xs">No open orders</div>
+          ) : (
+            <table className="w-full table-fixed text-label">
+              <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm">
+                <tr className="border-b border-border text-left font-medium text-muted-foreground">
+                  <th className="py-2 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('market')}>Market{sortGlyph('market')}</th>
+                  <th className="py-2 px-2 font-medium cursor-pointer w-16" onClick={() => toggleSort('type')}>Type{sortGlyph('type')}</th>
+                  <th className="py-2 px-2 font-medium cursor-pointer w-12" onClick={() => toggleSort('side')}>Side{sortGlyph('side')}</th>
+                  <th className="py-2 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('price')}>Price{sortGlyph('price')}</th>
+                  <th className="py-2 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('stop_price')}>Trigger{sortGlyph('stop_price')}</th>
+                  <th className="py-2 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('quantity')}>Filled/Qty{sortGlyph('quantity')}</th>
+                  <th className="py-2 px-2 font-medium cursor-pointer" onClick={() => toggleSort('status')}>Status{sortGlyph('status')}</th>
+                  <th className="py-2 px-2 font-medium w-16">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedOpenOrders.map((o) => {
+                  const pq = precisionForMarket(markets, o.market);
+                  return (
+                    <OpenOrderRow
+                      key={o.id}
+                      o={o}
+                      onCancel={(id) => data.handleCancel(id)}
+                      cancellingId={data.cancellingId}
+                      priceDecimals={pq.price}
+                      qtyDecimals={pq.qty}
+                    />
+                  );
+                })}
+              </tbody>
+            </table>
+          )
+        )}
+        {data.tab === 'orders' && (
+          data.orderHistoryLoading ? (
+            <div className="p-4 flex items-center justify-center"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+          ) : data.orderHistory.length === 0 ? (
+            <div className="p-4 text-center text-muted-foreground text-xs">No order history</div>
+          ) : (
+            <table className="w-full table-fixed text-label">
+              <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm">
+                <tr className="border-b border-border text-left text-muted-foreground">
+                  <th className="py-2 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('market')}>Market{sortGlyph('market')}</th>
+                  <th className="py-2 px-2 font-medium cursor-pointer w-16" onClick={() => toggleSort('type')}>Type{sortGlyph('type')}</th>
+                  <th className="py-2 px-2 font-medium cursor-pointer w-12" onClick={() => toggleSort('side')}>Side{sortGlyph('side')}</th>
+                  <th className="py-2 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('price')}>Price{sortGlyph('price')}</th>
+                  <th className="py-2 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('stop_price')}>Trigger{sortGlyph('stop_price')}</th>
+                  <th className="py-2 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('quantity')}>Filled/Qty{sortGlyph('quantity')}</th>
+                  <th className="py-2 px-2 font-medium cursor-pointer" onClick={() => toggleSort('status')}>Status{sortGlyph('status')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedOrderHistory.map((o) => {
+                  const filled = parseFloat(o.filled_quantity ?? '0') || 0;
+                  const qty = parseFloat(o.quantity ?? '0') || 0;
+                  const pq = precisionForMarket(markets, o.market);
+                  const filledQtyStr =
+                    filled > 0 || o.status === 'FILLED'
+                      ? `${formatFixedTrim(filled, pq.qty)}/${formatFixedTrim(qty, pq.qty)}`
+                      : (o.quantity ?? '—');
+                  return (
+                    <tr key={o.id} className="min-h-[36px] border-b border-border/60 transition-colors duration-150 hover:bg-muted/50 sm:min-h-[30px]">
+                      <td className="py-1.5 px-2 align-middle">
+                        <div className="flex items-center gap-1">
+                          <CoinIcon symbol={o.market?.split('_')[0] || ''} size={14} />
+                          <span className="numeric text-foreground">{o.market}</span>
+                        </div>
+                      </td>
+                      <td className="py-1.5 px-2 align-middle text-muted-foreground">{displayOrderType(o.type)}</td>
+                      <td className="py-1.5 px-2 align-middle">
+                        <span className={o.side === 'buy' ? 'text-buy' : 'text-sell'}>{o.side}</span>
+                      </td>
+                      <td className="numeric py-1.5 px-2 align-middle text-muted-foreground">
+                        {formatOrderPrice(o.price ?? null, pq.price)}
+                      </td>
+                      <td className="numeric py-1.5 px-2 align-middle text-muted-foreground">
+                        {formatOrderPrice(o.stop_price ?? null, pq.price)}
+                      </td>
+                      <td className="numeric py-1.5 px-2 align-middle text-muted-foreground">{filledQtyStr}</td>
+                      <td className="py-1.5 px-2 align-middle">{executionStatusPill(o.status)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )
+        )}
+        {data.tab === 'assets' && (
+          <div className="p-2">
+            <label className="mb-2 flex cursor-pointer items-center gap-2 text-label text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={hideSmallBalances}
+                onChange={(e) => setHideSmallBalances(e.target.checked)}
+                className="rounded border-border"
+              />
+              Hide small balances
+            </label>
+            {tradingBalances.length === 0 ? (
+              <div className="p-4 text-center text-muted-foreground text-xs">No trading balance</div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
+                {tradingBalances.map((b) => (
+                  <Link key={b.symbol} href={`/wallet/${b.symbol}`} className="flex items-center justify-between rounded px-2 py-1.5 text-label hover:bg-muted">
+                    <div className="flex items-center gap-1.5">
+                      <CoinIcon symbol={b.symbol} size={16} />
+                      <span className="text-foreground">{b.symbol}</span>
+                    </div>
+                    <span className="numeric text-muted-foreground">
+                      {formatValueFixedTrim(b.trading ?? '0', 8)}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
+            <Link href={walletPath.overview} className="mt-2 block text-center text-label font-medium text-primary hover:underline dark:text-primary">
+              View all assets →
+            </Link>
+          </div>
+        )}
+        {data.tab === 'positions' && (
+          <div className="p-3">
+            <div className="mb-2 rounded-md border border-border/70 bg-muted/25 px-3 py-2 text-[12px] text-muted-foreground">
+              Spot is a non-leveraged market. Your active asset exposure appears in balances and fills.
+            </div>
+            {tradingBalances.length === 0 ? (
+              <div className="rounded-md border border-border/70 bg-card px-3 py-6 text-center text-xs text-muted-foreground">
+                No active spot exposure yet.
+              </div>
+            ) : (
+              <table className="w-full table-fixed text-label">
+                <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm">
+                  <tr className="border-b border-border text-left text-muted-foreground">
+                    <th className="py-2 px-2 font-medium">Asset</th>
+                    <th className="py-2 px-2 text-right font-medium">Trading Balance</th>
+                    <th className="py-2 px-2 text-right font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tradingBalances.map((b) => (
+                    <tr key={b.symbol} className="border-b border-border/60 hover:bg-muted/40">
+                      <td className="py-2 px-2">
+                        <div className="flex items-center gap-1.5">
+                          <CoinIcon symbol={b.symbol} size={14} />
+                          <span className="font-medium text-foreground">{b.symbol}</span>
+                        </div>
+                      </td>
+                      <td className="numeric py-2 px-2 text-right text-foreground">
+                        {formatValueFixedTrim(b.trading ?? '0', 8)}
+                      </td>
+                      <td className="py-2 px-2 text-right text-muted-foreground">
+                        {parseFloat(b.trading ?? '0') > 0 ? 'Active' : 'Idle'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+        {data.tab === 'trades' && (
+          data.tradesLoading ? (
+            <div className="p-4 flex items-center justify-center"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+          ) : data.trades.length === 0 ? (
+            <div className="p-4 flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs text-center px-3">
+              <p className="font-medium text-foreground/90">No trades yet — start trading</p>
+              <p className="max-w-[16rem] text-label">Fills and executions will show here. Place an order from the panel on the right.</p>
+              <Link
+                href={SPOT_TRADE_HREF}
+                className="mt-1 inline-flex min-h-10 items-center justify-center rounded-md bg-primary px-4 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                Open Spot
+              </Link>
+            </div>
+          ) : (
+            <>
+              <table className="w-full table-fixed text-label">
+                <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm">
+                  <tr className="border-b border-border text-left text-muted-foreground">
+                    <th className="py-2 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('market')}>Market{sortGlyph('market')}</th>
+                    <th className="py-2 px-2 font-medium cursor-pointer w-12" onClick={() => toggleSort('side')}>Side{sortGlyph('side')}</th>
+                    <th className="py-2 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('price')}>Price{sortGlyph('price')}</th>
+                    <th className="py-2 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('quantity')}>Qty{sortGlyph('quantity')}</th>
+                    <th className="py-2 px-2 font-medium cursor-pointer w-16" onClick={() => toggleSort('fee')}>Fee{sortGlyph('fee')}</th>
+                    <th className="py-2 px-2 font-medium cursor-pointer" onClick={() => toggleSort('created_at')}>Time{sortGlyph('created_at')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedTrades.map((t) => {
+                    const pq = precisionForMarket(markets, t.market);
+                    const feeNum = t.fee != null && t.fee !== '' ? Number(t.fee) : NaN;
+                    const feeDisplay =
+                      t.fee != null && t.fee !== ''
+                        ? `${Number.isFinite(feeNum) ? formatValueFixedTrim(t.fee, 8) : t.fee}${t.fee_asset ? ` ${t.fee_asset}` : ''}`
+                        : '—';
+                    return (
+                    <tr key={t.id} className="min-h-[36px] border-b border-border/60 transition-colors duration-150 hover:bg-muted/50 sm:min-h-[30px]">
+                      <td className="py-1.5 px-2 align-middle">
+                        <div className="flex items-center gap-1">
+                          <CoinIcon symbol={t.market?.split('_')[0] || ''} size={14} />
+                          <span className="numeric text-foreground">{t.market}</span>
+                        </div>
+                      </td>
+                      <td className="py-1.5 px-2 align-middle">
+                        <span className={t.side === 'buy' ? 'text-buy' : 'text-sell'}>{t.side}</span>
+                      </td>
+                      <td className="numeric py-1.5 px-2 align-middle text-muted-foreground">
+                        {formatValueFixedTrim(t.price, pq.price)}
+                      </td>
+                      <td className="numeric py-1.5 px-2 align-middle text-muted-foreground">
+                        {formatValueFixedTrim(t.quantity, pq.qty)}
+                      </td>
+                      <td className="numeric py-1.5 px-2 align-middle text-muted-foreground">{feeDisplay}</td>
+                      <td className="numeric py-1.5 px-2 align-middle text-muted-foreground">
+                        {t.created_at ? new Date(t.created_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '—'}
+                      </td>
+                    </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              {data.tradesPage < data.tradesTotalPages && (
+                <div className="p-2 border-t border-border">
+                  <button
+                    type="button"
+                    disabled={!!data.tradesLoadMore}
+                    onClick={data.loadMoreTrades}
+                    className="w-full py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {data.tradesLoadMore ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    Load more
+                  </button>
+                </div>
+              )}
+            </>
+          )
+        )}
+      </div>
+    </div>
+  );
+}

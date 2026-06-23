@@ -1,0 +1,106 @@
+{
+  "timestamp": "2026-06-22T18:05:53.916Z",
+  "routes": [
+    {
+      "route": "/trade/spot?symbol=BTC_USDT",
+      "viewport": "desktop",
+      "issues": [],
+      "bodyLen": 4145,
+      "screenshot": "audit/screenshots/trade-spot-desktop.png"
+    },
+    {
+      "route": "/trade/spot?symbol=BTC_USDT",
+      "viewport": "tablet",
+      "issues": [],
+      "bodyLen": 1211,
+      "screenshot": "audit/screenshots/trade-spot-tablet.png"
+    },
+    {
+      "route": "/trade/spot?symbol=BTC_USDT",
+      "viewport": "mobile",
+      "issues": [],
+      "bodyLen": 1181,
+      "screenshot": "audit/screenshots/trade-spot-mobile.png"
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "viewport": "desktop",
+      "issues": [],
+      "bodyLen": 42,
+      "screenshot": "audit/screenshots/wallet-deposit-crypto-desktop.png"
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "viewport": "tablet",
+      "issues": [],
+      "bodyLen": 194,
+      "screenshot": "audit/screenshots/wallet-deposit-crypto-tablet.png"
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "viewport": "mobile",
+      "issues": [],
+      "bodyLen": 194,
+      "screenshot": "audit/screenshots/wallet-deposit-crypto-mobile.png"
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "viewport": "desktop",
+      "issues": [],
+      "bodyLen": 417,
+      "screenshot": "audit/screenshots/wallet-withdraw-crypto-desktop.png"
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "viewport": "tablet",
+      "issues": [],
+      "bodyLen": 194,
+      "screenshot": "audit/screenshots/wallet-withdraw-crypto-tablet.png"
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "viewport": "mobile",
+      "issues": [],
+      "bodyLen": 194,
+      "screenshot": "audit/screenshots/wallet-withdraw-crypto-mobile.png"
+    },
+    {
+      "route": "/wallet",
+      "viewport": "desktop",
+      "issues": [],
+      "bodyLen": 30,
+      "screenshot": "audit/screenshots/wallet-desktop.png"
+    },
+    {
+      "route": "/wallet",
+      "viewport": "tablet",
+      "issues": [],
+      "bodyLen": 194,
+      "screenshot": "audit/screenshots/wallet-tablet.png"
+    },
+    {
+      "route": "/wallet",
+      "viewport": "mobile",
+      "issues": [],
+      "bodyLen": 194,
+      "screenshot": "audit/screenshots/wallet-mobile.png"
+    }
+  ],
+  "spot": {
+    "mobileTabs": 4,
+    "tabLabels": [
+      "Chart",
+      "Book",
+      "Trade",
+      "Markets"
+    ],
+    "bookTabAccessible": true,
+    "tifControls": true,
+    "advancedOrderButtons": true
+  },
+  "adminLogs": {
+    "route": "/logs",
+    "loads": true,
+    "hasTitle": false
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "generated_at": "2026-06-22T16:30:25.241Z",
+  "strict_mode": false,
+  "pass": true,
+  "checks": [
+    {
+      "name": "AML_LARGE_FIAT_INR_THRESHOLD",
+      "pass": true,
+      "details": "value=1000000"
+    },
+    {
+      "name": "AML_LARGE_CRYPTO_WITHDRAWAL_THRESHOLD",
+      "pass": true,
+      "details": "value=10000"
+    },
+    {
+      "name": "AML_VELOCITY_WITHDRAWAL_COUNT",
+      "pass": true,
+      "details": "value=10"
+    },
+    {
+      "name": "AML_VELOCITY_WINDOW_HOURS",
+      "pass": true,
+      "details": "value=24"
+    },
+    {
+      "name": "WITHDRAWAL_APPROVAL_THRESHOLD",
+      "pass": true,
+      "details": "value=5000"
+    },
+    {
+      "name": "alert-routing-webhook",
+      "pass": true,
+      "details": "Require at least one alert webhook target"
+    },
+    {
+      "name": "sanctions-provider-configured",
+      "pass": true,
+      "details": "provider=chainalysis_stub"
+    },
+    {
+      "name": "geo-blocked-countries-configured",
+      "pass": true,
+      "details": "value=KP,IR,SY,CU"
+    },
+    {
+      "name": "aml-high-risk-countries-configured",
+      "pass": true,
+      "details": "value=IR,KP,SY,CU"
+    },
+    {
+      "name": "legal-signoff-id",
+      "pass": true,
+      "details": "value=LEGAL-2026-05-28"
+    },
+    {
+      "name": "fiu-officer-assigned",
+      "pass": true,
+      "details": "value=fiu.officer@exchange.local"
+    },
+    {
+      "name": "audit-retention-days",
+      "pass": true,
+      "details": "value=365"
+    },
+    {
+      "name": "tier1-fiu-readiness-script",
+      "pass": true,
+      "details": "pass"
+    }
+  ],
+  "warnings": [],
+  "manual_tasks_pending": [
+    "Legal signoff for KYC/AML policy",
+    "FIU reporting officer assignment",
+    "Audit log retention policy acknowledgement"
+  ],
+  "fiu_script_output_tail": "[fiu] aml tables: aml_alerts, aml_transaction_logs, aml_str_ctr_logs\n[fiu] audit: audit_logs_immutable\n[fiu] kyc: kyc_applications + kyc_records\n[fiu] trading_balance_mismatch_count 0\n[fiu] settlement_ledger_chain_breaks 0\n[fiu] settlement_events_pending 0\n[fiu] str_reports_pending 0\n[fiu] aml_alerts_open_or_reviewing 6\n2026-06-22 22:00:25 [\u001b[32minfo\u001b[39m]: Database pool closed {\"service\":\"exchange-api\",\"shard_id\":0}\n[fiu] readiness_score 100 /100 (technical only; not legal sign-off)\nTIER1_FIU_READINESS_OK\n\n⚠️ WARNING: 2FA DISABLED (DEV MODE ONLY)"
+}

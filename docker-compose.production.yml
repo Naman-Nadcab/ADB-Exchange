@@ -1,0 +1,198 @@
+# Production stack: infra + matching engine + API workers + frontends + TLS proxy
+# Usage:
+#   cp .env.production.example .env   # fill secrets
+#   docker compose -f docker-compose.production.yml up -d --build
+#
+# Requires TLS certs in nginx/ssl/ (fullchain.pem, privkey.pem) or use HTTP-only profile.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: exchange-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-exchange}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      POSTGRES_DB: ${POSTGRES_DB:-exchange}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-exchange} -d ${POSTGRES_DB:-exchange}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: exchange-redis
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: exchange-nats
+    command: ["-js", "-m", "8222"]
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: exchange-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-exchange}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD required}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+
+  indexer:
+    build:
+      context: ./apps/indexer
+      dockerfile: Dockerfile
+    container_name: exchange-indexer
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-exchange}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-exchange}
+      INDEXER_API_PORT: 4001
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  matching-engine:
+    build:
+      context: ./matching-engine
+      dockerfile: Dockerfile
+    container_name: exchange-matching-engine
+    environment:
+      NATS_URL: nats://nats:4222
+      REDIS_URL: redis://redis:6379
+      USE_EVENT_STREAM: ${USE_EVENT_STREAM:-true}
+      ENGINE_TIER1_WAL_REQUIRED: ${ENGINE_TIER1_WAL_REQUIRED:-true}
+      ENGINE_MATCH_WAL_PATH: /data/wal/match_events.jsonl
+      MATCHING_ENGINE_PORT: 7101
+      ENGINE_HMAC_SECRET: ${ENGINE_HMAC_SECRET:?ENGINE_HMAC_SECRET required}
+      ENGINE_HMAC_SECRET_ACTIVE: ${ENGINE_HMAC_SECRET_ACTIVE:-${ENGINE_HMAC_SECRET}}
+    volumes:
+      - engine_wal:/data/wal
+    depends_on:
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:7101/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: exchange-backend
+    environment:
+      NODE_ENV: production
+      RUN_MODE: all
+      PORT: 4000
+      STRICT_DEPENDENCY_STARTUP: "true"
+      REQUIRE_MATCHING_ENGINE: "true"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-exchange}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-exchange}
+      REDIS_URL: redis://redis:6379
+      NATS_URL: nats://nats:4222
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-exchange}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      MATCHING_ENGINE_URL: http://matching-engine:7101
+      USE_RUST_MATCHING_ENGINE: "true"
+      KMS_TYPE: ${KMS_TYPE:-aws}
+      AWS_KMS_KEY_ID: ${AWS_KMS_KEY_ID:-}
+      AWS_REGION: ${AWS_REGION:-}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET required}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?ENCRYPTION_KEY required}
+      ADMIN_IP_WHITELIST: ${ADMIN_IP_WHITELIST:-}
+      KMS_STARTUP_PROBE: ${KMS_STARTUP_PROBE:-1}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      nats:
+        condition: service_started
+      matching-engine:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    container_name: exchange-frontend
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-https://api.example.com}
+      NEXT_PUBLIC_WS_URL: ${PUBLIC_WS_URL:-wss://api.example.com}
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  admin-panel:
+    build:
+      context: ./apps/admin-panel
+      dockerfile: Dockerfile
+    container_name: exchange-admin
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-https://api.example.com}
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: exchange-nginx
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - admin-panel
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  engine_wal:
+
+networks:
+  default:
+    name: exchange-production
+    driver: bridge

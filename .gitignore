@@ -1,0 +1,103 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Environment files (NEVER commit these)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# Encryption keys and secrets
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+keys/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# E2E provisioned credentials (generated locally)
+e2e/.e2e-credentials.json
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# Turbo
+.turbo/
+
+# Database
+*.sqlite
+*.db
+
+# Temporary files
+tmp/
+temp/
+.cache/
+
+# P2P payment proofs (Tier-1 secure storage; never commit)
+apps/backend/data/p2p-payment-proofs/
+data/p2p-payment-proofs/
+
+# Docker
+docker-compose.override.yml
+
+# OS files
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+
+# Rust
+target/
+
+# Added 2026-04-18 (pre-launch hardening)
+.env.pre_launch_backup_*
+.env.*.backup
+.env.backup_*
+apps/*/tmp_*.ts
+apps/backend/tmp_*.ts
+/tmp_*.ts
+
+# Audit / QA artifacts (not shipped to production)
+audit/**/screenshots/
+audit-artifacts/
+backups/
+*.sql.gz
+provider-secrets.json
+backups/provider-secrets.json
+
+# Interactive / forensic audit runtime data
+audit/interactive/data/
+audit/ui-forensic/data/
+scripts/interactive-*.mjs
+scripts/ui-forensic-*.mjs
+scripts/go-live-validation.mjs
+
+# Local machine paths
+.exchange/

@@ -1,0 +1,506 @@
+import type { ChainableCommander, RedisOptions } from 'ioredis';
+import { createRequire } from 'module';
+import { config } from '../config/index.js';
+import { logger } from './logger.js';
+import { withTimeout } from './async-timeout.js';
+
+const require = createRequire(import.meta.url);
+const RedisConstructor = require('ioredis') as typeof import('ioredis').default;
+type RedisInstance = InstanceType<typeof RedisConstructor>;
+
+function createRedisClient(first: string | RedisOptions, second?: RedisOptions): RedisInstance {
+  // Runtime: ioredis accepts new Redis(url, options). Typings only expose single-arg overload via require().
+  const R = RedisConstructor as unknown as {
+    new (path: string, options: RedisOptions): RedisInstance;
+    new (options: RedisOptions): RedisInstance;
+  };
+  return typeof first === 'string' && second !== undefined ? new R(first, second) : new R(first as RedisOptions);
+}
+
+class RedisClient {
+  private client: InstanceType<typeof RedisConstructor>;
+  private subscriber: InstanceType<typeof RedisConstructor>;
+  private publisher: InstanceType<typeof RedisConstructor>;
+  private static instance: RedisClient;
+
+  private constructor() {
+    const baseOptions: RedisOptions = {
+      maxRetriesPerRequest: 1,
+      retryStrategy(times) {
+        const persistent = config.redis.retryMode === 'persistent';
+        if (!persistent && times > 20) return null;
+        return Math.min(Math.pow(2, Math.min(times, 14)) * 50, 30_000);
+      },
+      connectTimeout: 2_000,
+      commandTimeout: 2_000,
+      enableOfflineQueue: false,
+      ...(config.redis.password && { password: config.redis.password }),
+    };
+
+    // Redis Sentinel (HA): when REDIS_SENTINELS + REDIS_SENTINEL_MASTER set
+    const sentinels = config.redis.sentinels && config.redis.sentinels.length > 0;
+    const master = config.redis.sentinelMaster;
+    const sentinelOpts: RedisOptions =
+      sentinels && master
+        ? {
+            ...baseOptions,
+            sentinels: config.redis.sentinels!,
+            name: master,
+          }
+        : {};
+
+    const useSentinel = sentinels && master;
+    const useUrl = !useSentinel && config.redis.url?.startsWith('redis://');
+    const options: RedisOptions = useSentinel
+      ? sentinelOpts
+      : { ...baseOptions, host: '127.0.0.1', port: 6379 };
+
+    // URL mode must pass options as 2nd arg; `new Redis(url)` alone drops connect/command timeouts.
+    if (useUrl && config.redis.url) {
+      const url = config.redis.url;
+      this.client = createRedisClient(url, baseOptions);
+      this.subscriber = createRedisClient(url, baseOptions);
+      this.publisher = createRedisClient(url, baseOptions);
+    } else {
+      this.client = createRedisClient(options);
+      this.subscriber = createRedisClient(options);
+      this.publisher = createRedisClient(options);
+    }
+
+    this.setupEventHandlers(this.client, 'main');
+    this.setupEventHandlers(this.subscriber, 'subscriber');
+    this.setupEventHandlers(this.publisher, 'publisher');
+  }
+
+  private setupEventHandlers(
+    client: InstanceType<typeof RedisConstructor>,
+    name: string
+  ): void {
+    client.on('connect', () => {
+      logger.info(`Redis ${name} client connected`);
+    });
+
+    client.on('error', (err: Error) => {
+      logger.error(`Redis ${name} client error`, { error: err.message });
+    });
+
+    client.on('close', () => {
+      logger.warn(`Redis ${name} client connection closed`);
+    });
+  }
+
+  public static getInstance(): RedisClient {
+    if (!RedisClient.instance) {
+      RedisClient.instance = new RedisClient();
+    }
+    return RedisClient.instance;
+  }
+
+  async connect(): Promise<void> {
+    const REDIS_CONNECT_TIMEOUT_MS = 20_000;
+    const waitReady = (
+      name: string,
+      client: InstanceType<typeof RedisConstructor>
+    ): Promise<void> =>
+      new Promise<void>((resolve, reject) => {
+        if (client.status === 'ready') {
+          logger.info(`Redis ${name} already ready`);
+          resolve();
+          return;
+        }
+        const to = setTimeout(() => {
+          client.removeListener('ready', onReady);
+          client.removeListener('error', onErr);
+          reject(new Error(`Redis ${name} connect timeout after ${REDIS_CONNECT_TIMEOUT_MS}ms (check REDIS_URL and that redis is running: docker compose up -d redis)`));
+        }, REDIS_CONNECT_TIMEOUT_MS);
+        const onReady = () => {
+          clearTimeout(to);
+          client.removeListener('error', onErr);
+          logger.info(`Redis ${name} connected`);
+          resolve();
+        };
+        const onErr = (err: Error) => {
+          clearTimeout(to);
+          client.removeListener('ready', onReady);
+          reject(err);
+        };
+        client.once('ready', onReady);
+        client.once('error', onErr);
+      });
+
+    await Promise.all([
+      waitReady('main', this.client),
+      waitReady('subscriber', this.subscriber),
+      waitReady('publisher', this.publisher),
+    ]);
+    logger.info('✓ Redis all clients ready (persistent retry mode for reconnects)');
+  }
+
+  private static readonly OP_TIMEOUT_MS = 3_000;
+
+  private safeExec<T>(fn: () => Promise<T>, label: string): Promise<T> {
+    const status = this.client.status;
+    if (status !== 'ready') {
+      return Promise.reject(new Error(`Redis unavailable (status: ${status}) for ${label}`));
+    }
+    return withTimeout(fn(), RedisClient.OP_TIMEOUT_MS, `redis:${label}`);
+  }
+
+  // Basic operations
+  async get(key: string): Promise<string | null> {
+    return this.safeExec(() => this.client.get(key), 'get');
+  }
+
+  async set(key: string, value: string, ttlSeconds?: number): Promise<void> {
+    await this.safeExec(async () => {
+      if (ttlSeconds) await this.client.setex(key, ttlSeconds, value);
+      else await this.client.set(key, value);
+    }, 'set');
+  }
+
+  /**
+   * Set key only if not exists, with expiry (atomic SET NX EX).
+   * Returns true if the key was set, false if key already existed.
+   */
+  async setNxEx(key: string, value: string, exSeconds: number): Promise<boolean> {
+    return this.safeExec(async () => {
+      const result = await this.client.set(key, value, 'EX', exSeconds, 'NX');
+      return result === 'OK';
+    }, 'setNxEx');
+  }
+
+  async del(key: string): Promise<void> {
+    await this.safeExec(() => this.client.del(key).then(() => {}), 'del');
+  }
+
+  /** Atomic get+delete (Redis 6.2+ GETDEL); fallback if server or client lacks command. */
+  async getDel(key: string): Promise<string | null> {
+    return this.safeExec(async () => {
+      try {
+        return (await this.client.call('GETDEL', key)) as string | null;
+      } catch {
+        const v = await this.client.get(key);
+        if (v != null) await this.client.del(key);
+        return v;
+      }
+    }, 'getDel');
+  }
+
+  async getDelJson<T>(key: string): Promise<T | null> {
+    const raw = await this.getDel(key);
+    if (raw == null) return null;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return null;
+    }
+  }
+
+  async exists(key: string): Promise<boolean> {
+    return this.safeExec(async () => {
+      const result = await this.client.exists(key);
+      return result === 1;
+    }, 'exists');
+  }
+
+  /** Return keys matching pattern (e.g. 'monitoring:*'). Use sparingly; prefer SCAN in production. */
+  async keys(pattern: string): Promise<string[]> {
+    return this.safeExec(() => this.client.keys(pattern), 'keys');
+  }
+
+  async incr(key: string): Promise<number> {
+    return this.safeExec(() => this.client.incr(key), 'incr');
+  }
+
+  async expire(key: string, seconds: number): Promise<void> {
+    await this.safeExec(() => this.client.expire(key, seconds).then(() => {}), 'expire');
+  }
+
+  async ttl(key: string): Promise<number> {
+    return this.safeExec(() => this.client.ttl(key), 'ttl');
+  }
+
+  // JSON operations
+  async getJson<T>(key: string): Promise<T | null> {
+    return this.safeExec(async () => {
+      const value = await this.client.get(key);
+      if (!value) return null;
+      try {
+        return JSON.parse(value) as T;
+      } catch {
+        return null;
+      }
+    }, 'getJson');
+  }
+
+  async setJson<T>(key: string, value: T, ttlSeconds?: number): Promise<void> {
+    await this.set(key, JSON.stringify(value), ttlSeconds);
+  }
+
+  // Hash operations
+  async hget(key: string, field: string): Promise<string | null> {
+    return this.safeExec(() => this.client.hget(key, field), 'hget');
+  }
+
+  async hset(key: string, field: string, value: string): Promise<void> {
+    await this.safeExec(() => this.client.hset(key, field, value).then(() => {}), 'hset');
+  }
+
+  async hgetall(key: string): Promise<Record<string, string>> {
+    return this.safeExec(() => this.client.hgetall(key), 'hgetall');
+  }
+
+  async hdel(key: string, field: string): Promise<void> {
+    await this.safeExec(() => this.client.hdel(key, field).then(() => {}), 'hdel');
+  }
+
+  async hincrby(key: string, field: string, increment: number): Promise<number> {
+    return this.client.hincrby(key, field, increment);
+  }
+
+  // Sorted set operations (for orderbook)
+  async zadd(key: string, score: number, member: string): Promise<void> {
+    await this.client.zadd(key, score, member);
+  }
+
+  async zrem(key: string, member: string): Promise<void> {
+    await this.client.zrem(key, member);
+  }
+
+  async zrange(key: string, start: number, stop: number): Promise<string[]> {
+    return this.client.zrange(key, start, stop);
+  }
+
+  async zrangeWithScores(
+    key: string,
+    start: number,
+    stop: number
+  ): Promise<Array<{ value: string; score: number }>> {
+    const result = await this.client.zrange(key, start, stop, 'WITHSCORES');
+    const items: Array<{ value: string; score: number }> = [];
+    for (let i = 0; i < result.length; i += 2) {
+      items.push({
+        value: result[i]!,
+        score: parseFloat(result[i + 1]!),
+      });
+    }
+    return items;
+  }
+
+  async zrevrange(key: string, start: number, stop: number): Promise<string[]> {
+    return this.client.zrevrange(key, start, stop);
+  }
+
+  async zrevrangeWithScores(
+    key: string,
+    start: number,
+    stop: number
+  ): Promise<Array<{ value: string; score: number }>> {
+    const result = await this.client.zrevrange(key, start, stop, 'WITHSCORES');
+    const items: Array<{ value: string; score: number }> = [];
+    for (let i = 0; i < result.length; i += 2) {
+      items.push({
+        value: result[i]!,
+        score: parseFloat(result[i + 1]!),
+      });
+    }
+    return items;
+  }
+
+  async zrangebyscore(key: string, min: number, max: number): Promise<string[]> {
+    return this.client.zrangebyscore(key, min, max);
+  }
+
+  async zcard(key: string): Promise<number> {
+    return this.client.zcard(key);
+  }
+
+  // List operations
+  async lpush(key: string, value: string): Promise<void> {
+    await this.client.lpush(key, value);
+  }
+
+  async rpush(key: string, value: string): Promise<void> {
+    await this.client.rpush(key, value);
+  }
+
+  async lpop(key: string): Promise<string | null> {
+    return this.client.lpop(key);
+  }
+
+  async rpop(key: string): Promise<string | null> {
+    return this.client.rpop(key);
+  }
+
+  async lrange(key: string, start: number, stop: number): Promise<string[]> {
+    return this.client.lrange(key, start, stop);
+  }
+
+  async llen(key: string): Promise<number> {
+    return this.client.llen(key);
+  }
+
+  // Rate limiting
+  async rateLimit(
+    key: string,
+    limit: number,
+    windowSeconds: number
+  ): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
+    return this.safeExec(async () => {
+      const now = Date.now();
+      const windowStart = now - windowSeconds * 1000;
+
+      const multi = this.client.multi();
+      multi.zremrangebyscore(key, 0, windowStart);
+      multi.zadd(key, now, `${now}-${Math.random()}`);
+      multi.zcard(key);
+      multi.expire(key, windowSeconds);
+
+      const results = await multi.exec();
+      const count = results?.[2]?.[1] as number;
+
+      return {
+        allowed: count <= limit,
+        remaining: Math.max(0, limit - count),
+        resetAt: now + windowSeconds * 1000,
+      };
+    }, 'rateLimit');
+  }
+
+  // Pub/Sub
+  async publish(channel: string, message: string): Promise<void> {
+    await this.publisher.publish(channel, message);
+  }
+
+  async subscribe(
+    channel: string,
+    callback: (message: string) => void
+  ): Promise<void> {
+    await this.subscriber.subscribe(channel);
+    this.subscriber.on('message', (ch: string, message: string) => {
+      if (ch === channel) {
+        callback(message);
+      }
+    });
+  }
+
+  /**
+   * Pattern subscribe (PSUBSCRIBE) for wildcards e.g. "orderbook:*".
+   * Callback receives (matchedChannel, message).
+   */
+  async psubscribe(
+    pattern: string,
+    callback: (channel: string, message: string) => void
+  ): Promise<void> {
+    await this.subscriber.psubscribe(pattern);
+    this.subscriber.on('pmessage', (pat: string, ch: string, message: string) => {
+      if (pat === pattern) {
+        callback(ch, message);
+      }
+    });
+  }
+
+  async unsubscribe(channel: string): Promise<void> {
+    await this.subscriber.unsubscribe(channel);
+  }
+
+  // Lock operations (distributed locking)
+  async acquireLock(
+    key: string,
+    ttlMs: number,
+    retryCount = 3,
+    retryDelayMs = 100
+  ): Promise<string | null> {
+    const lockKey = `lock:${key}`;
+    const lockValue = `${Date.now()}-${Math.random()}`;
+
+    for (let i = 0; i < retryCount; i++) {
+      const result = await this.client.set(lockKey, lockValue, 'PX', ttlMs, 'NX');
+      if (result === 'OK') {
+        return lockValue;
+      }
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+    }
+    return null;
+  }
+
+  async releaseLock(key: string, lockValue: string): Promise<boolean> {
+    const lockKey = `lock:${key}`;
+    const script = `
+      if redis.call("get", KEYS[1]) == ARGV[1] then
+        return redis.call("del", KEYS[1])
+      else
+        return 0
+      end
+    `;
+    const result = await this.client.eval(script, 1, lockKey, lockValue);
+    return result === 1;
+  }
+
+  // Atomic increment with limit
+  async incrementWithLimit(
+    key: string,
+    limit: number,
+    ttlSeconds?: number
+  ): Promise<{ success: boolean; current: number }> {
+    const script = `
+      local current = redis.call("INCR", KEYS[1])
+      if ARGV[2] and current == 1 then
+        redis.call("EXPIRE", KEYS[1], ARGV[2])
+      end
+      if current > tonumber(ARGV[1]) then
+        redis.call("DECR", KEYS[1])
+        return {0, current - 1}
+      end
+      return {1, current}
+    `;
+    const result = (await this.client.eval(
+      script,
+      1,
+      key,
+      limit,
+      ttlSeconds || ''
+    )) as [number, number];
+    return {
+      success: result[0] === 1,
+      current: result[1],
+    };
+  }
+
+  // Pipeline for batch operations
+  pipeline(): ChainableCommander {
+    return this.client.pipeline();
+  }
+
+  // Health check
+  async healthCheck(): Promise<boolean> {
+    try {
+      const pong = await this.client.ping();
+      return pong === 'PONG';
+    } catch {
+      return false;
+    }
+  }
+
+  // Simple ping (bounded — health must not hang if server wedged)
+  async ping(): Promise<string> {
+    return withTimeout(this.client.ping(), 3_000, 'redis.ping');
+  }
+
+  // Graceful shutdown
+  async close(): Promise<void> {
+    await Promise.all([
+      this.client.quit(),
+      this.subscriber.quit(),
+      this.publisher.quit(),
+    ]);
+    logger.info('Redis connections closed');
+  }
+
+  // Get raw client for advanced operations
+  getClient(): InstanceType<typeof RedisConstructor> {
+    return this.client;
+  }
+}
+
+export const redis = RedisClient.getInstance();

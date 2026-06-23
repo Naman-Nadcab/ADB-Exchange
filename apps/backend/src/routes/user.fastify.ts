@@ -1,0 +1,705 @@
+import { Decimal } from '../lib/decimal.js';
+import { FastifyInstance } from 'fastify';
+import { db } from '../lib/database.js';
+import { logger } from '../lib/logger.js';
+import { getAllActiveCooldowns } from '../services/security-cooldown.service.js';
+import { getFeeTierDisplay } from '../services/volume-fee-tier.service.js';
+import { claimReferralEarnings, getClaimableReferralEarnings } from '../services/referral-claim.service.js';
+import { saveAvatarFromMultipart, deleteAvatarFile } from '../lib/avatar-storage.js';
+
+export default async function userRoutes(app: FastifyInstance) {
+  
+  /**
+   * GET /user/profile
+   * Get user profile
+   */
+  app.get('/profile', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { id: userId } = request.user!;
+
+      const result = await db.query(`
+        SELECT 
+          u.id, u.email, u.phone, u.username,
+          u.first_name, u.last_name, u.avatar_url,
+          u.status,
+          u.email_verified, u.phone_verified,
+          (COALESCE(u.totp_enabled, FALSE) OR COALESCE(u.two_factor_enabled, FALSE)) AS two_fa_enabled,
+          u.tier_level,
+          u.daily_withdrawal_limit, u.monthly_withdrawal_limit,
+          u.created_at, u.last_login_at,
+          rc.code as referral_code,
+          pms.total_orders as p2p_total_orders,
+          pms.completion_rate as p2p_completion_rate,
+          pms.average_rating as p2p_rating,
+          pms.is_merchant
+        FROM users u
+        LEFT JOIN referral_codes rc ON u.id = rc.user_id AND rc.is_active = TRUE
+        LEFT JOIN p2p_merchant_stats pms ON u.id = pms.user_id
+        WHERE u.id = $1 AND u.deleted_at IS NULL
+      `, [userId]);
+
+      if (result.rows.length === 0) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: 'USER_NOT_FOUND', message: 'User not found' },
+        });
+      }
+
+      return reply.send({
+        success: true,
+        data: result.rows[0],
+      });
+    } catch (error) {
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to fetch profile' },
+      });
+    }
+  });
+
+  /**
+   * PATCH /user/profile
+   * Update user profile
+   */
+  app.patch<{
+    Body: {
+      username?: string;
+      firstName?: string;
+      lastName?: string;
+      timezone?: string;
+      language?: string;
+      defaultFiatCurrency?: string;
+    };
+  }>('/profile', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { id: userId } = request.user!;
+      const { username, firstName, lastName, timezone, language, defaultFiatCurrency } = request.body;
+
+      const updates: string[] = [];
+      const params: any[] = [];
+      let paramIndex = 1;
+
+      if (username !== undefined) {
+        // Check username availability
+        const existing = await db.query(
+          'SELECT id FROM users WHERE username = $1 AND id != $2',
+          [username, userId]
+        );
+        if (existing.rows.length > 0) {
+          return reply.status(400).send({
+            success: false,
+            error: { code: 'USERNAME_TAKEN', message: 'Username is already taken' },
+          });
+        }
+        updates.push(`username = $${paramIndex++}`);
+        params.push(username);
+      }
+
+      if (firstName !== undefined) {
+        updates.push(`first_name = $${paramIndex++}`);
+        params.push(firstName);
+      }
+
+      if (lastName !== undefined) {
+        updates.push(`last_name = $${paramIndex++}`);
+        params.push(lastName);
+      }
+
+      if (timezone !== undefined) {
+        updates.push(`timezone = $${paramIndex++}`);
+        params.push(timezone);
+      }
+
+      if (language !== undefined) {
+        updates.push(`language = $${paramIndex++}`);
+        params.push(language);
+      }
+
+      if (defaultFiatCurrency !== undefined) {
+        updates.push(`default_fiat_currency = $${paramIndex++}`);
+        params.push(defaultFiatCurrency.toUpperCase());
+      }
+
+      if (updates.length === 0) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'NO_UPDATES', message: 'No fields to update' },
+        });
+      }
+
+      updates.push(`updated_at = NOW()`);
+      params.push(userId);
+
+      const result = await db.query(
+        `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+        params
+      );
+
+      return reply.send({
+        success: true,
+        data: result.rows[0],
+      });
+    } catch (error) {
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'UPDATE_FAILED', message: 'Failed to update profile' },
+      });
+    }
+  });
+
+  /**
+   * POST /user/avatar
+   * Upload a profile picture (PNG/JPEG/WebP, max 2MB). Stored locally and served statically.
+   */
+  app.post('/avatar', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { id: userId } = request.user!;
+      const file = await request.file();
+      if (!file) {
+        return reply.status(400).send({ success: false, error: { code: 'NO_FILE', message: 'No image file provided' } });
+      }
+
+      let saved: { avatarUrl: string };
+      try {
+        saved = await saveAvatarFromMultipart(userId, file);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'INVALID_IMAGE';
+        const map: Record<string, string> = {
+          INVALID_IMAGE_TYPE: 'Only PNG, JPEG or WebP images are allowed',
+          FILE_TOO_LARGE: 'Image must be 2MB or smaller',
+          EMPTY_FILE: 'The uploaded file is empty',
+          INVALID_IMAGE_CONTENT: 'The uploaded file is not a valid image',
+        };
+        return reply.status(400).send({ success: false, error: { code: msg, message: map[msg] || 'Invalid image' } });
+      }
+
+      // Replace previous avatar file (best-effort) and persist the new URL.
+      const prev = await db.query<{ avatar_url: string | null }>(
+        `SELECT avatar_url FROM users WHERE id = $1`,
+        [userId]
+      );
+      const result = await db.query(
+        `UPDATE users SET avatar_url = $1, updated_at = NOW() WHERE id = $2 RETURNING avatar_url`,
+        [saved.avatarUrl, userId]
+      );
+      const prevUrl = prev.rows[0]?.avatar_url;
+      if (prevUrl && prevUrl !== saved.avatarUrl) {
+        await deleteAvatarFile(prevUrl);
+      }
+
+      return reply.send({ success: true, data: { avatarUrl: result.rows[0]?.avatar_url } });
+    } catch (error) {
+      logger.error('Avatar upload error', { error: error instanceof Error ? error.message : 'Unknown' });
+      return reply.status(500).send({ success: false, error: { code: 'UPLOAD_FAILED', message: 'Failed to upload avatar' } });
+    }
+  });
+
+  /**
+   * DELETE /user/avatar
+   * Remove the current profile picture.
+   */
+  app.delete('/avatar', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { id: userId } = request.user!;
+      const prev = await db.query<{ avatar_url: string | null }>(
+        `SELECT avatar_url FROM users WHERE id = $1`,
+        [userId]
+      );
+      await db.query(`UPDATE users SET avatar_url = NULL, updated_at = NOW() WHERE id = $1`, [userId]);
+      await deleteAvatarFile(prev.rows[0]?.avatar_url);
+      return reply.send({ success: true, data: { message: 'Profile picture removed' } });
+    } catch (error) {
+      logger.error('Avatar delete error', { error: error instanceof Error ? error.message : 'Unknown' });
+      return reply.status(500).send({ success: false, error: { code: 'DELETE_FAILED', message: 'Failed to remove avatar' } });
+    }
+  });
+
+  /**
+   * GET /user/sessions
+   * Get active sessions
+   */
+  app.get('/sessions', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { id: userId, sessionId: currentSessionId } = request.user!;
+
+      const result = await db.query(`
+        SELECT 
+          id, device_type, ip_address, user_agent, device_id,
+          created_at, expires_at,
+          CASE WHEN id = $2 THEN TRUE ELSE FALSE END as is_current
+        FROM user_sessions
+        WHERE user_id = $1 AND is_active = TRUE AND expires_at > NOW()
+        ORDER BY created_at DESC
+      `, [userId, currentSessionId]);
+
+      return reply.send({
+        success: true,
+        data: result.rows,
+      });
+    } catch (error) {
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to fetch sessions' },
+      });
+    }
+  });
+
+  /**
+   * GET /user/activity
+   * Get activity logs
+   */
+  app.get('/activity', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { id: userId } = request.user!;
+      const { limit = 50, offset = 0 } = request.query as any;
+
+      const result = await db.query(`
+        SELECT 
+          activity_type, activity_details,
+          ip_address, created_at
+        FROM user_activity_logs
+        WHERE user_id = $1
+        ORDER BY created_at DESC
+        LIMIT $2 OFFSET $3
+      `, [userId, parseInt(limit), parseInt(offset)]);
+
+      return reply.send({
+        success: true,
+        data: result.rows,
+      });
+    } catch (error) {
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to fetch activity' },
+      });
+    }
+  });
+
+  /**
+   * GET /user/announcements
+   * List published system announcements (public – no auth). Used by dashboard and landing.
+   */
+  app.get('/announcements', async (request, reply) => {
+    try {
+      const { limit = 20, type } = request.query as { limit?: string; type?: string };
+      let query = `
+        SELECT id, title, body, summary, type, is_pinned, published_at, expires_at, created_at
+        FROM system_announcements
+        WHERE is_published = TRUE
+          AND (expires_at IS NULL OR expires_at > NOW())
+      `;
+      const params: any[] = [];
+      if (type && type.trim()) {
+        params.push(type.trim());
+        query += ` AND type = $${params.length}`;
+      }
+      query += ` ORDER BY is_pinned DESC, published_at DESC NULLS LAST LIMIT $${params.length + 1}`;
+      params.push(String(Math.min(parseInt(String(limit || '20')) || 20, 100)));
+      const result = await db.query(query, params);
+      return reply.send({ success: true, data: { announcements: result.rows } });
+    } catch (error) {
+      logger.error('Get announcements error', { error: error instanceof Error ? error.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to fetch announcements' },
+      });
+    }
+  });
+
+  /**
+   * GET /user/announcements/:id
+   * Get single announcement by id (public).
+   */
+  app.get('/announcements/:id', async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string };
+      const result = await db.query(`
+        SELECT id, title, body, summary, type, is_pinned, published_at, expires_at, created_at
+        FROM system_announcements
+        WHERE id = $1 AND is_published = TRUE AND (expires_at IS NULL OR expires_at > NOW())
+      `, [id]);
+      if (result.rows.length === 0) {
+        return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Announcement not found' } });
+      }
+      return reply.send({ success: true, data: { announcement: result.rows[0] } });
+    } catch (error) {
+      logger.error('Get announcement error', { error: error instanceof Error ? error.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to fetch announcement' },
+      });
+    }
+  });
+
+  /**
+   * GET /user/notifications
+   * Get notifications
+   */
+  app.get('/notifications', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { id: userId } = request.user!;
+      const { unreadOnly, limit = 50 } = request.query as any;
+
+      let query = `
+        SELECT id, notification_type, title, message, data, is_read, created_at
+        FROM user_notifications
+        WHERE user_id = $1
+      `;
+      const params: any[] = [userId];
+
+      if (unreadOnly === 'true') {
+        query += ` AND is_read = FALSE`;
+      }
+
+      query += ` ORDER BY created_at DESC LIMIT $2`;
+      params.push(parseInt(limit));
+
+      const result = await db.query(query, params);
+
+      // Get unread count
+      const countResult = await db.query(
+        'SELECT COUNT(*) as count FROM user_notifications WHERE user_id = $1 AND is_read = FALSE',
+        [userId]
+      );
+
+      return reply.send({
+        success: true,
+        data: {
+          notifications: result.rows,
+          unreadCount: parseInt((countResult.rows[0] as { count: string })?.count ?? '0'),
+        },
+      });
+    } catch (error) {
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to fetch notifications' },
+      });
+    }
+  });
+
+  /**
+   * PATCH /user/notifications/:id/read
+   * Mark a notification as read
+   */
+  app.patch('/notifications/:id/read', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { id: userId } = request.user!;
+      const { id } = request.params as { id: string };
+      await db.query(
+        'UPDATE user_notifications SET is_read = TRUE, read_at = NOW() WHERE id = $1 AND user_id = $2',
+        [id, userId]
+      );
+      return reply.send({ success: true, data: { read: true } });
+    } catch (error) {
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'UPDATE_FAILED', message: 'Failed to mark as read' },
+      });
+    }
+  });
+
+  /**
+   * POST /user/notifications/read-all
+   * Mark all notifications as read
+   */
+  app.post('/notifications/read-all', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { id: userId } = request.user!;
+      await db.query(
+        'UPDATE user_notifications SET is_read = TRUE, read_at = NOW() WHERE user_id = $1 AND is_read = FALSE',
+        [userId]
+      );
+      return reply.send({ success: true, data: { read: true } });
+    } catch (error) {
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'UPDATE_FAILED', message: 'Failed to mark all as read' },
+      });
+    }
+  });
+
+  /**
+   * GET /user/fee-tier
+   * Current spot fee tier, 30d volume, and next tier threshold for UI (progress to next tier).
+   */
+  app.get('/fee-tier', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { id: userId } = request.user!;
+      const data = await getFeeTierDisplay(userId);
+      return reply.send({ success: true, data });
+    } catch (error) {
+      logger.error('Fee tier fetch error', { error: error instanceof Error ? error.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to fetch fee tier' },
+      });
+    }
+  });
+
+  /**
+   * GET /user/referrals
+   * Get referral stats. Creates a referral code for the user if none exists.
+   */
+  app.get('/referrals', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { id: userId } = request.user!;
+
+      // Get referral code (create if missing so every user has one)
+      let codeResult = await db.query(`
+        SELECT code, current_referrals, total_earnings, referrer_commission_rate
+        FROM referral_codes
+        WHERE user_id = $1 AND is_active = TRUE
+        LIMIT 1
+      `, [userId]);
+
+      if (codeResult.rows.length === 0) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let code = '';
+        for (let i = 0; i < 8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+        try {
+          await db.query(
+            `INSERT INTO referral_codes (user_id, code) VALUES ($1, $2) ON CONFLICT (code) DO NOTHING`,
+            [userId, code]
+          );
+        } catch {
+          // retry with new code if conflict
+          code = '';
+          for (let i = 0; i < 8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+          await db.query(`INSERT INTO referral_codes (user_id, code) VALUES ($1, $2)`, [userId, code]);
+        }
+        codeResult = await db.query(`
+          SELECT code, current_referrals, total_earnings, referrer_commission_rate
+          FROM referral_codes WHERE user_id = $1 LIMIT 1
+        `, [userId]);
+      }
+
+      // Get referred users
+      const referralsResult = await db.query(`
+        SELECT 
+          rr.status, rr.total_commission_earned, rr.created_at,
+          u.username, u.email
+        FROM referral_relationships rr
+        JOIN users u ON rr.referee_id = u.id
+        WHERE rr.referrer_id = $1
+        ORDER BY rr.created_at DESC
+        LIMIT 50
+      `, [userId]);
+
+      // Get recent commissions
+      const commissionsResult = await db.query(`
+        SELECT 
+          commission_amount, commission_currency, source_type, created_at
+        FROM referral_commissions
+        WHERE referrer_id = $1
+        ORDER BY created_at DESC
+        LIMIT 20
+      `, [userId]);
+
+      // Claimable (pending) earnings the user can move to their funding balance
+      const claimable = await getClaimableReferralEarnings(userId);
+
+      return reply.send({
+        success: true,
+        data: {
+          referralCode: codeResult.rows[0] || null,
+          referrals: referralsResult.rows,
+          recentCommissions: commissionsResult.rows,
+          claimable,
+        },
+      });
+    } catch (error) {
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to fetch referral data' },
+      });
+    }
+  });
+
+  /**
+   * POST /user/referrals/claim
+   * Move pending referral commissions into the user's funding balance (per currency).
+   * Atomic + double-claim-safe (see referral-claim.service).
+   */
+  app.post('/referrals/claim', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { id: userId } = request.user!;
+      const result = await claimReferralEarnings(userId);
+
+      if (result.commissionsCredited === 0) {
+        return reply.status(400).send({
+          success: false,
+          error: {
+            code: 'NO_CLAIMABLE_EARNINGS',
+            message: result.skippedCurrencies.length > 0
+              ? `No claimable earnings could be credited (unsupported currencies: ${result.skippedCurrencies.join(', ')}).`
+              : 'You have no claimable referral earnings.',
+          },
+        });
+      }
+
+      return reply.send({
+        success: true,
+        data: {
+          claimed: result.claimed,
+          commissionsCredited: result.commissionsCredited,
+          ...(result.skippedCurrencies.length > 0 ? { skippedCurrencies: result.skippedCurrencies } : {}),
+          message: 'Referral earnings credited to your funding balance',
+        },
+      });
+    } catch (error) {
+      logger.error('Referral claim error', { error: error instanceof Error ? error.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'CLAIM_FAILED', message: 'Failed to claim referral earnings' },
+      });
+    }
+  });
+
+  /**
+   * GET /user/risk-status
+   * Read-only visibility: KYC, withdrawal limits (used), active cooldowns, risk flags.
+   */
+  app.get('/risk-status', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { id: userId } = request.user!;
+
+      let kyc_level = 0;
+      let kyc_status = 'not_submitted';
+      try {
+        const kycRes = await db.query<{ kyc_level: number; status: string }>(`
+          SELECT kyc_level, status FROM kyc_applications
+          WHERE user_id = $1
+          ORDER BY created_at DESC
+          LIMIT 1
+        `, [userId]);
+        if (kycRes.rows[0]) {
+          kyc_level = Number(kycRes.rows[0].kyc_level) || 0;
+          kyc_status = kycRes.rows[0].status || 'not_submitted';
+        }
+      } catch {
+        // table may not exist
+      }
+
+      let dailyLimit: string = '1000000';
+      let monthlyLimit: string = '10000000';
+      let used_today: string = '0';
+      let used_month: string = '0';
+      try {
+        const uRes = await db.query<{ daily_withdrawal_limit: string; monthly_withdrawal_limit: string }>(`
+          SELECT COALESCE(daily_withdrawal_limit, 1000000)::text as daily_withdrawal_limit,
+                 COALESCE(monthly_withdrawal_limit, 10000000)::text as monthly_withdrawal_limit
+          FROM users WHERE id = $1
+        `, [userId]);
+        const ROUND_DOWN = 1;
+        const PREC = 8;
+        if (uRes.rows[0]) {
+          dailyLimit = new Decimal(uRes.rows[0].daily_withdrawal_limit || '1000000').toDecimalPlaces(PREC, ROUND_DOWN).toString();
+          monthlyLimit = new Decimal(uRes.rows[0].monthly_withdrawal_limit || '10000000').toDecimalPlaces(PREC, ROUND_DOWN).toString();
+        }
+        const todayRes = await db.query<{ total: string }>(`
+          SELECT COALESCE(SUM(w.amount), 0)::text as total FROM withdrawals w
+          WHERE w.user_id = $1 AND w.status IN ('pending', 'processing', 'completed')
+            AND w.created_at >= CURRENT_DATE
+        `, [userId]);
+        const monthRes = await db.query<{ total: string }>(`
+          SELECT COALESCE(SUM(w.amount), 0)::text as total FROM withdrawals w
+          WHERE w.user_id = $1 AND w.status IN ('pending', 'processing', 'completed')
+            AND w.created_at >= DATE_TRUNC('month', CURRENT_DATE)
+        `, [userId]);
+        used_today = new Decimal(todayRes.rows[0]?.total || '0').toDecimalPlaces(PREC, ROUND_DOWN).toString();
+        used_month = new Decimal(monthRes.rows[0]?.total || '0').toDecimalPlaces(PREC, ROUND_DOWN).toString();
+      } catch {
+        // ignore
+      }
+
+      const active_cooldowns = await getAllActiveCooldowns({ userId });
+      const risk_flags: string[] = [];
+
+      return reply.send({
+        success: true,
+        data: {
+          kyc_level,
+          kyc_status,
+          withdrawal_limits: {
+            daily: dailyLimit,
+            monthly: monthlyLimit,
+            used_today,
+            used_month,
+          },
+          active_cooldowns: active_cooldowns.map((c) => ({
+            type: c.type,
+            reason: c.reason,
+            cooldown_until: c.cooldown_until.toISOString(),
+          })),
+          risk_flags,
+        },
+      });
+    } catch (error) {
+      logger.error('Get risk-status failed', { error: error instanceof Error ? error.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to fetch risk status' },
+      });
+    }
+  });
+
+  /**
+   * GET /user/kyc
+   * Get KYC status
+   */
+  app.get('/kyc', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { id: userId } = request.user!;
+
+      const result = await db.query(`
+        SELECT 
+          id, kyc_level, status, 
+          legal_first_name, legal_last_name,
+          submitted_at, reviewed_at,
+          rejection_reason, expires_at
+        FROM kyc_applications
+        WHERE user_id = $1
+        ORDER BY created_at DESC
+        LIMIT 1
+      `, [userId]);
+
+      return reply.send({
+        success: true,
+        data: result.rows[0] || null,
+      });
+    } catch (error) {
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to fetch KYC status' },
+      });
+    }
+  });
+}
