@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useAuthStore, type User } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { COOKIE_SESSION_MARKER, isCookieSessionMarker } from '@/lib/authSession';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -70,25 +71,29 @@ function mapMeResponseToUser(data: Record<string, unknown>): User {
   };
 }
 
-async function tryRefreshFromStorage(): Promise<string | null> {
-  const refreshToken = getStoredRefreshToken();
-  if (!refreshToken) return null;
+async function tryRefreshSession(): Promise<boolean> {
   const apiUrl = getApiBaseUrl();
+  const storedRefresh = getStoredRefreshToken();
   try {
     const res = await fetch(`${apiUrl}/api/v1/auth/refresh`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
+      ...(storedRefresh ? { body: JSON.stringify({ refreshToken: storedRefresh }) } : {}),
     });
-    if (!res.ok) return null;
+    if (!res.ok) return false;
     const data = await res.json();
-    if (data?.success && data?.data?.accessToken) {
+    if (data?.success) {
       const { setTokens } = useAuthStore.getState();
-      setTokens(data.data.accessToken, data.data.refreshToken ?? refreshToken);
-      return data.data.accessToken;
+      if (data?.data?.accessToken) {
+        setTokens(data.data.accessToken, data.data.refreshToken ?? COOKIE_SESSION_MARKER);
+      } else {
+        setTokens(COOKIE_SESSION_MARKER, COOKIE_SESSION_MARKER);
+      }
+      return true;
     }
   } catch (_) {}
-  return null;
+  return false;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -175,35 +180,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const stored = getStoredAccessToken();
       const fromStore = useAuthStore.getState().accessToken;
       let token = (typeof stored === 'string' && stored.length > 0) ? stored : (typeof fromStore === 'string' && fromStore.length > 0 ? fromStore : null);
-
-      // No token and no refresh token → not logged in; resolve immediately without calling /me (avoids 401 and long wait)
-      if (!token && !getStoredRefreshToken()) {
-        clearTimeout(timeoutId);
-        clearTimeout(fallbackId);
-        safeSet(() => {
-          setAuthResolved(true);
-          setAuthFlags(0);
-          setUnauthenticated();
-        });
-        return;
-      }
+      if (isCookieSessionMarker(token)) token = null;
 
       try {
         let res = await fetch(`${apiUrl}/api/v1/auth/me`, {
           signal: controller.signal,
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
             ...(token && { Authorization: `Bearer ${token}` }),
           },
         });
-        if (res.status === 401 && token) {
-          const newToken = await tryRefreshFromStorage();
-          const freshToken = newToken ?? getStoredAccessToken();
-          if (freshToken) {
-            token = freshToken;
+        if (res.status === 401) {
+          const refreshed = await tryRefreshSession();
+          if (refreshed) {
+            const retryToken = useAuthStore.getState().accessToken;
+            const bearer = isCookieSessionMarker(retryToken) ? undefined : retryToken;
             res = await fetch(`${apiUrl}/api/v1/auth/me`, {
               signal: controller.signal,
-              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(bearer && { Authorization: `Bearer ${bearer}` }),
+              },
             });
           }
         }
@@ -237,6 +236,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUserState(u);
             setStatus('authenticated');
             setAuthFlags(typeof json.data.auth_flags === 'number' ? json.data.auth_flags : 1);
+            if (!useAuthStore.getState().accessToken) {
+              useAuthStore.getState().setTokens(COOKIE_SESSION_MARKER, COOKIE_SESSION_MARKER);
+            }
           } else {
             setAuthFlags(0);
             setUnauthenticated();

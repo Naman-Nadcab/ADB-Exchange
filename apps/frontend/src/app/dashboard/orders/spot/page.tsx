@@ -18,6 +18,8 @@ export default function SpotOrdersViewPage() {
   const [ordersTab, setOrdersTab] = useState<'open' | 'history'>('open');
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [historyError, setHistoryError] = useState<string | null>(null);
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
@@ -28,8 +30,10 @@ export default function SpotOrdersViewPage() {
   const fetchOpenOrders = useCallback(async () => {
     if (!accessToken) return;
     setOrdersLoading(true);
+    setOrdersError(null);
     try {
       const res = await fetch(`${getApiBaseUrl()}/api/v1/spot/orders?status=OPEN&limit=100`, {
+        credentials: 'include',
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       const json = await res.json().catch(() => ({}));
@@ -37,9 +41,11 @@ export default function SpotOrdersViewPage() {
         setOrders(json.data.orders);
       } else {
         setOrders([]);
+        setOrdersError(json.error?.message || 'Failed to load open orders');
       }
     } catch {
       setOrders([]);
+      setOrdersError('Network error while loading open orders');
     } finally {
       setOrdersLoading(false);
     }
@@ -48,13 +54,19 @@ export default function SpotOrdersViewPage() {
   const fetchHistoryOrders = useCallback(async (cursor: string | null, append: boolean) => {
     if (!accessToken) return;
     if (append) setHistoryLoadMore(true);
-    else setHistoryLoading(true);
+    else {
+      setHistoryLoading(true);
+      setHistoryError(null);
+    }
     try {
       const url = new URL(`${getApiBaseUrl()}/api/v1/spot/orders`);
       url.searchParams.set('status', 'HISTORY');
       url.searchParams.set('limit', '50');
       if (cursor) url.searchParams.set('cursor', cursor);
-      const res = await fetch(url.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
+      const res = await fetch(url.toString(), {
+        credentials: 'include',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const json = await res.json().catch(() => ({}));
       if (json.success && json.data?.orders) {
         const list = json.data.orders as Order[];
@@ -63,11 +75,13 @@ export default function SpotOrdersViewPage() {
       } else if (!append) {
         setHistoryOrders([]);
         setHistoryNextCursor(null);
+        setHistoryError(json.error?.message || 'Failed to load order history');
       }
     } catch {
       if (!append) {
         setHistoryOrders([]);
         setHistoryNextCursor(null);
+        setHistoryError('Network error while loading order history');
       }
     } finally {
       if (append) setHistoryLoadMore(false);
@@ -142,6 +156,12 @@ export default function SpotOrdersViewPage() {
               <div className="px-4 py-2 bg-red-500/10 text-destructive text-sm flex items-center justify-between">
                 <span>{cancelError}</span>
                 <button type="button" onClick={() => setCancelError(null)} className="underline">Dismiss</button>
+              </div>
+            )}
+            {ordersError && (
+              <div className="px-4 py-3 bg-amber-500/10 text-amber-800 dark:text-amber-200 text-sm flex items-center justify-between border-b border-border">
+                <span>{ordersError}</span>
+                <button type="button" onClick={() => void fetchOpenOrders()} className="text-primary hover:underline">Retry</button>
               </div>
             )}
             <table className="w-full text-xs">
@@ -225,6 +245,12 @@ export default function SpotOrdersViewPage() {
             <div className="px-4 py-2 border-b border-border flex items-center justify-between">
               <span className="text-xs text-muted-foreground">CANCELLED and FILLED. Read-only.</span>
             </div>
+            {historyError && (
+              <div className="px-4 py-3 bg-amber-500/10 text-amber-800 dark:text-amber-200 text-sm flex items-center justify-between border-b border-border">
+                <span>{historyError}</span>
+                <button type="button" onClick={() => void fetchHistoryOrders(null, false)} className="text-primary hover:underline">Retry</button>
+              </div>
+            )}
             <table className="w-full text-xs">
               <thead>
                 <tr className="text-left text-muted-foreground border-b border-border">

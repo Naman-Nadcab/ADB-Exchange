@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { useAuthStore } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { toast } from '@/components/ui/toaster';
@@ -302,10 +303,15 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
                 rows={5}
                 className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none font-mono text-sm"
               />
-              <button className="mt-3 text-primary hover:text-primary/85 text-sm font-medium flex items-center gap-1">
+              <Link
+                href={process.env.NEXT_PUBLIC_API_DOCS_URL || '/dashboard/help'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 text-primary hover:text-primary/85 text-sm font-medium flex items-center gap-1"
+              >
                 <Info className="w-4 h-4" />
                 How to create RSA public and private keys →
-              </button>
+              </Link>
             </div>
           )}
 

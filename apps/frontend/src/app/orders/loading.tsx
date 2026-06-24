@@ -1,5 +1,5 @@
-import { PageSkeleton } from '@/components/PageSkeleton';
+import { BrandLoading } from '@/components/brand/BrandLoading';
 
 export default function OrdersLoading() {
-  return <PageSkeleton rows={10} metrics={0} />;
+  return <BrandLoading label="Loading orders" />;
 }

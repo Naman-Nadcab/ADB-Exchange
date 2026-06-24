@@ -28,12 +28,12 @@ import { toast } from '@/components/ui/toaster';
 
 interface TransferHistory {
   id: string;
-  from_account: string;
-  to_account: string;
+  fromAccount: string;
+  toAccount: string;
   symbol: string;
   amount: string;
   status: string;
-  created_at: string;
+  createdAt: string;
 }
 
 export default function TransferPage() {
@@ -55,14 +55,14 @@ export default function TransferPage() {
   const [showCoinDropdown, setShowCoinDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: tokensData = [], isLoading: loading } = useTransferBalances(fromAccount, !!_hasHydrated && !!accessToken);
+  const { data: tokensData = [], isLoading: loading, isError: balancesError, error: balancesFetchError, refetch: refetchBalances } = useTransferBalances(fromAccount, !!_hasHydrated && !!accessToken);
   const tokens = tokensData;
 
   useEffect(() => {
     if (_hasHydrated && accessToken) {
       fetchTransferHistory();
     }
-  }, [_hasHydrated, accessToken, fromAccount]);
+  }, [_hasHydrated, accessToken]);
 
   const fetchTransferHistory = async () => {
     setHistoryLoading(true);
@@ -90,6 +90,7 @@ export default function TransferPage() {
     const temp = fromAccount;
     setFromAccount(toAccount);
     setToAccount(temp);
+    setSelectedToken(null);
     setAmount('');
     setError('');
   };
@@ -361,6 +362,13 @@ export default function TransferPage() {
                               <Loader2 className="w-5 h-5 animate-spin text-primary" />
                               <span className="text-sm text-muted-foreground">Loading...</span>
                             </div>
+                          ) : balancesError ? (
+                            <div className="p-8 text-center">
+                              <p className="text-sm text-destructive">{balancesFetchError instanceof Error ? balancesFetchError.message : 'Could not load balances'}</p>
+                              <button type="button" onClick={() => refetchBalances()} className="mt-3 text-sm font-medium text-primary hover:underline">
+                                Retry
+                              </button>
+                            </div>
                           ) : filteredTokens.length === 0 ? (
                             <div className="p-8 text-center text-sm text-muted-foreground">No coins found</div>
                           ) : (
@@ -606,14 +614,14 @@ export default function TransferPage() {
                         <CoinIcon symbol={transfer.symbol} size={24} />
                         <span className="font-medium text-foreground">{transfer.symbol}</span>
                       </div>
-                      <span className="text-muted-foreground">{transfer.from_account}</span>
-                      <span className="text-muted-foreground">{transfer.to_account}</span>
+                      <span className="text-muted-foreground">{transfer.fromAccount}</span>
+                      <span className="text-muted-foreground">{transfer.toAccount}</span>
                       <span className="font-medium text-foreground">{parseFloat(transfer.amount).toFixed(6)}</span>
                       <span className="px-2 py-1 rounded-full text-xs font-medium bg-buy-light text-buy w-fit">
                         {transfer.status}
                       </span>
                       <span className="text-muted-foreground text-xs">
-                        {new Date(transfer.created_at).toLocaleDateString()}
+                        {new Date(transfer.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   ))}

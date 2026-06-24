@@ -14,6 +14,7 @@ export type MarketRow = {
   last_price?: string | null;
   change_24h?: number | null;
   volume_24h?: string | null;
+  base_volume_24h?: string | null;
   /** Exchange instrument price decimals — tier-1 list display per pair */
   price_precision?: number;
 };
@@ -204,7 +205,7 @@ export function MarketsSidebar({
           {(
             [
               ['all', 'All'],
-              ['top_volume', 'Top Vol'],
+              ['top_volume', 'Top Ref. Vol'],
               ['gainers', 'Gainers'],
               ['losers', 'Losers'],
             ] as const
@@ -277,7 +278,9 @@ export function MarketsSidebar({
                 </button>
               </th>
               {!isTerminal && (
-                <th className="px-2 py-2 text-right whitespace-nowrap">Vol</th>
+                <th className="px-2 py-2 text-right whitespace-nowrap" title="Reference market volume from external OHLCV when no exchange trades">
+                  Ref. Vol
+                </th>
               )}
             </tr>
           </thead>

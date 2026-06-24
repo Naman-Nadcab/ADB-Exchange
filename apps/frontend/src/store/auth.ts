@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
+import { COOKIE_SESSION_MARKER } from '@/lib/authSession';
+import { getApiBaseUrl } from '@/lib/getApiUrl';
 
 /** SSR-safe storage: noop on server, localStorage on client. Prevents logout-on-refresh. */
 const safeStorage: StateStorage = {
@@ -91,14 +93,25 @@ export const useAuthStore = create<AuthState>()(
         isLoading: false,
       }),
 
-      logout: () => set({
-        user: null,
-        accessToken: null,
-        refreshToken: null,
-        isAuthenticated: false,
-        authFlags: 0,
-        authResolved: true,
-      }),
+      logout: () => {
+        if (typeof window !== 'undefined') {
+          const apiUrl = getApiBaseUrl();
+          if (apiUrl) {
+            void fetch(`${apiUrl}/api/v1/auth/logout`, {
+              method: 'POST',
+              credentials: 'include',
+            }).catch(() => {});
+          }
+        }
+        set({
+          user: null,
+          accessToken: null,
+          refreshToken: null,
+          isAuthenticated: false,
+          authFlags: 0,
+          authResolved: true,
+        });
+      },
 
       setLoading: (isLoading) => set({ isLoading }),
 
@@ -115,8 +128,6 @@ export const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => safeStorage),
       partialize: (state) => ({
         user: state.user,
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
       skipHydration: true,

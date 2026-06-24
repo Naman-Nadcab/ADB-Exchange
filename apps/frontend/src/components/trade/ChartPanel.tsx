@@ -17,7 +17,9 @@ import {
   TOOLTIP_24H_LOW,
   TOOLTIP_QUOTE_VOLUME_24H,
   TOOLTIP_BASE_VOLUME_24H,
+  TOOLTIP_REFERENCE_VOLUME_24H,
 } from '@/lib/marketDataUxCopy';
+import { classifyTickerVolumeSource } from '@/lib/volumeMetrics';
 import type { SpotWsStreamPhase } from '@/hooks/useSpotWs';
 import type { OverlayStudyId } from './chart/indicators';
 import type { ChartExtensionsConfig, DrawingToolMode, SerializedDrawing } from './chart/extension/types';
@@ -162,6 +164,17 @@ function ChartPanelInner({
   const [utcNow, setUtcNow] = useState(() => new Date().toISOString().slice(11, 19));
   const [barEta, setBarEta] = useState('—');
   const [nowSec, setNowSec] = useState(() => Math.floor(Date.now() / 1000));
+
+  const turnoverSource = useMemo(
+    () =>
+      classifyTickerVolumeSource({
+        volume_24h: turnoverQuote24h,
+        base_volume_24h: volume24h,
+      }),
+    [turnoverQuote24h, volume24h]
+  );
+  const turnoverTooltip =
+    turnoverSource === 'reference' ? TOOLTIP_REFERENCE_VOLUME_24H : TOOLTIP_QUOTE_VOLUME_24H;
 
   /** Phase 2–4 modular extensions (EMA stack, extra VWAP, volume visibility). */
   const [extConfig, setExtConfig] = useState<ChartExtensionsConfig>({
@@ -394,7 +407,7 @@ function ChartPanelInner({
   const pendingLivePriceRef = useRef<string | null>(null);
   const lastTradeAppliedTsRef = useRef<number>(0);
   useEffect(() => {
-    if (viewMode !== 'chart' || chartLoading || chartError) return;
+    if (viewMode !== 'chart' || chartLoading || chartError || chartEmpty) return;
     if (!livePrice) return;
     pendingLivePriceRef.current = livePrice;
     if (livePriceRafRef.current != null) return;
@@ -418,7 +431,7 @@ function ChartPanelInner({
         livePriceRafRef.current = null;
       }
     };
-  }, [livePrice, adapterRef, viewMode, chartLoading, chartError]);
+  }, [livePrice, adapterRef, viewMode, chartLoading, chartError, chartEmpty]);
 
   useEffect(() => {
     const ad = adapterRef.current;
@@ -606,9 +619,11 @@ function ChartPanelInner({
                 </div>
                 <div
                   className="hidden min-w-0 max-w-[6rem] items-baseline gap-1 lg:flex"
-                  title={TOOLTIP_QUOTE_VOLUME_24H}
+                  title={turnoverTooltip}
                 >
-                  <span className="shrink-0 text-muted-foreground">Turn.</span>
+                  <span className="shrink-0 text-muted-foreground">
+                    {turnoverSource === 'reference' ? 'Ref.' : 'Turn.'}
+                  </span>
                   <span className="numeric min-w-0 truncate font-semibold text-foreground">
                     {(() => {
                       const s = formatCompactNumber(turnoverQuote24h);

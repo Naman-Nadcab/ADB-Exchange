@@ -1,13 +1,23 @@
 #!/usr/bin/env bash
+# Incident recovery drill — restart infra services and verify health recovers.
+#
+# Usage:
+#   BASE_URL=http://109.123.254.30 bash scripts/incident-drill.sh
+#   BASE_URL=http://127.0.0.1:4000 DRILL_SERVICES="redis nats" bash scripts/incident-drill.sh
 set -euo pipefail
 
-BASE_URL="${BASE_URL:-http://127.0.0.1:4000}"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+COMPOSE=(docker compose -f docker-compose.production.yml)
+BASE_URL="${BASE_URL:-http://127.0.0.1}"
 TIMEOUT_SEC="${DRILL_TIMEOUT_SEC:-90}"
 STACK_SERVICES="${DRILL_SERVICES:-redis nats rabbitmq}"
 
 echo "== Incident drill start =="
 echo "base_url=${BASE_URL}"
 echo "services=${STACK_SERVICES}"
+echo "compose=${COMPOSE[*]}"
 
 curl -fsS "${BASE_URL}/health/live" >/dev/null
 echo "[ok] baseline live health"
@@ -27,7 +37,7 @@ wait_for_live() {
 for svc in ${STACK_SERVICES}; do
   echo
   echo "== drill: restart ${svc} =="
-  docker compose restart "${svc}" >/dev/null
+  "${COMPOSE[@]}" restart "${svc}" >/dev/null
   if wait_for_live; then
     echo "[ok] ${svc} restart recovered within ${TIMEOUT_SEC}s"
   else

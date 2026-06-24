@@ -417,7 +417,7 @@ export default function AssetSymbolPage() {
       <div className="rounded-xl border border-border bg-card p-5 space-y-4">
         <div className="flex items-center gap-2">
           <BarChart3 className="w-4 h-4 text-muted-foreground" />
-          <h2 className="text-sm font-semibold text-foreground">Market Info</h2>
+          <h2 className="text-sm font-semibold text-foreground">Market Info (External)</h2>
           {coinInfo?.homepage && (
             <a
               href={coinInfo.homepage}
@@ -438,7 +438,7 @@ export default function AssetSymbolPage() {
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               <StatBox label="Market Cap" value={formatDisplay(coinInfo.market_cap)} />
-              <StatBox label="24h Volume" value={formatDisplay(coinInfo.total_volume)} />
+              <StatBox label="External Market Volume" value={formatDisplay(coinInfo.total_volume)} />
               <StatBox label="Circulating Supply" value={`${fmtSupply(coinInfo.circulating_supply)} ${symbol}`} />
               <StatBox label="Total Supply" value={coinInfo.total_supply ? `${fmtSupply(coinInfo.total_supply)} ${symbol}` : '—'} />
               <StatBox label="All-Time High" value={coinInfo.ath != null ? formatDisplay(coinInfo.ath) : '—'} />

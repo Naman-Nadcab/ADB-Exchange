@@ -539,3 +539,72 @@ input[type="number"] {
 .animate-marquee {
   animation: marquee 30s linear infinite;
 }
+
+/** Brand loading — subtle opacity pulse only (no rotation). */
+@keyframes brand-loading-pulse {
+  0%, 100% { opacity: 0.72; }
+  50% { opacity: 1; }
+}
+.brand-loading-pulse {
+  animation: brand-loading-pulse 2.4s ease-in-out infinite;
+}
+
+/** Brand logos — never apply container fill; assets are transparent PNG. */
+.brand-logo-img {
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+/*
+ * Logo dimensions live in CSS (not Tailwind-only) so Next/Image width/height attrs
+ * cannot blow up to the PNG intrinsic size (816×186). Tailwind classes in brand.ts
+ * are not scanned by content paths — see brand-logo--* modifiers below.
+ */
+.brand-logo-img.brand-logo--header {
+  height: 26px;
+  width: auto;
+  max-height: 26px;
+}
+
+@media (min-width: 640px) {
+  .brand-logo-img.brand-logo--header {
+    height: 40px;
+    max-height: 40px;
+  }
+}
+
+.brand-logo-img.brand-logo--footer {
+  width: 120px;
+  height: auto;
+  max-width: 120px;
+}
+
+.brand-logo-img.brand-logo--marketing {
+  width: 100%;
+  max-width: 160px;
+  height: auto;
+}
+
+@media (min-width: 1024px) {
+  .brand-logo-img.brand-logo--marketing {
+    max-width: 180px;
+  }
+}
+
+.brand-logo-img.brand-logo--icon {
+  height: 40px;
+  width: 40px;
+  max-height: 40px;
+  max-width: 40px;
+}
+
+@media (min-width: 1024px) {
+  .brand-logo-img.brand-logo--icon {
+    height: 48px;
+    width: 48px;
+    max-height: 48px;
+    max-width: 48px;
+  }
+}

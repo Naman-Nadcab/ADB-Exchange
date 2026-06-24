@@ -45,16 +45,25 @@ export default function OrdersHubPage() {
   const fetchOpen = useCallback(async () => {
     if (!accessToken) return;
     setOpenLoading(true);
+    setError(null);
     try {
       const json = await api.get<{ orders: SpotOrder[] }>('/api/v1/spot/orders?status=OPEN&limit=100', { notifyOnError: false });
-      setOpenOrders(json.success && json.data?.orders ? json.data.orders : []);
-    } catch { setOpenOrders([]); }
-    finally { setOpenLoading(false); }
+      if (json.success && json.data?.orders) {
+        setOpenOrders(json.data.orders);
+      } else {
+        setOpenOrders([]);
+        setError(json.error?.message ?? 'Failed to load open orders');
+      }
+    } catch {
+      setOpenOrders([]);
+      setError('Network error while loading open orders');
+    } finally { setOpenLoading(false); }
   }, [accessToken]);
 
   const fetchHistory = useCallback(async (cursor: string | null, append: boolean) => {
     if (!accessToken) return;
     append ? setHistoryLoadingMore(true) : setHistoryLoading(true);
+    if (!append) setError(null);
     try {
       const params = new URLSearchParams({ status: 'HISTORY', limit: '50' });
       if (cursor) params.set('cursor', cursor);
@@ -62,9 +71,18 @@ export default function OrdersHubPage() {
       if (json.success && json.data?.orders) {
         setHistoryOrders(prev => append ? [...prev, ...json.data!.orders] : json.data!.orders);
         setHistoryCursor(json.data.next_cursor ?? null);
-      } else if (!append) { setHistoryOrders([]); setHistoryCursor(null); }
-    } catch { if (!append) { setHistoryOrders([]); setHistoryCursor(null); } }
-    finally { append ? setHistoryLoadingMore(false) : setHistoryLoading(false); }
+      } else if (!append) {
+        setHistoryOrders([]);
+        setHistoryCursor(null);
+        setError(json.error?.message ?? 'Failed to load order history');
+      }
+    } catch {
+      if (!append) {
+        setHistoryOrders([]);
+        setHistoryCursor(null);
+        setError('Network error while loading order history');
+      }
+    } finally { append ? setHistoryLoadingMore(false) : setHistoryLoading(false); }
   }, [accessToken]);
 
   const fetchP2P = useCallback(async () => {

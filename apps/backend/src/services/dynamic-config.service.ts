@@ -190,14 +190,14 @@ class DynamicConfigService {
           user: row.api_key,
           pass: row.api_secret || '',
           fromEmail: extra.from_email || extra.from || config.email.from,
-          fromName: extra.from_name || 'CryptoExchange',
+          fromName: extra.from_name || 'Metherium',
         };
       }
     }
 
     if (config.email.user && (config.email.password || process.env.SMTP_PASS)) {
       let fromEmail = config.email.from;
-      let fromName = 'CryptoExchange';
+      let fromName = 'Metherium';
       const angleMatch = fromEmail.match(/<([^>]+)>/);
       if (angleMatch) {
         fromName = fromEmail.replace(/<[^>]+>/, '').replace(/^["'\s]+|["'\s]+$/g, '').trim() || fromName;

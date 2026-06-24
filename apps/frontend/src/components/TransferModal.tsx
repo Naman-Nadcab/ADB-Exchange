@@ -99,6 +99,7 @@ export default function TransferModal({
     const temp = fromAccount;
     setFromAccount(toAccount);
     setToAccount(temp);
+    setSelectedToken(null);
     setAmount('');
     setError('');
   };
@@ -131,6 +132,7 @@ export default function TransferModal({
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
+          'Idempotency-Key': crypto.randomUUID(),
         },
         body: JSON.stringify({
           fromAccount,
@@ -250,6 +252,8 @@ export default function TransferModal({
                         onClick={() => {
                           if (account !== toAccount) {
                             setFromAccount(account as 'funding' | 'trading');
+                            setSelectedToken(null);
+                            setAmount('');
                           }
                           setShowFromDropdown(false);
                         }}

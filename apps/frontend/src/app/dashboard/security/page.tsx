@@ -1327,7 +1327,13 @@ export default function SecurityPage() {
                 description={
                   <>
                     For login, withdrawal, and security verification.{' '}
-                    <span className="cursor-pointer text-primary hover:underline">Unlink</span>
+                    <button
+                      type="button"
+                      onClick={() => router.push('/dashboard/support')}
+                      className="cursor-pointer text-primary hover:underline"
+                    >
+                      Unlink
+                    </button>
                   </>
                 }
                 status="Verified"

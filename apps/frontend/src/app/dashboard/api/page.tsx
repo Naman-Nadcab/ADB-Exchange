@@ -200,7 +200,7 @@ export default function ApiPage() {
                 <span className="text-2xl">🚀</span>
               </div>
               <div>
-                <h3 className="text-primary-foreground font-semibold">Methereum OpenAPI V5</h3>
+                <h3 className="text-primary-foreground font-semibold">Metherium OpenAPI V5</h3>
                 <p className="text-primary-foreground/80 text-sm">Transition from legacy versions to our latest API with enhanced features</p>
               </div>
             </div>
@@ -279,8 +279,22 @@ export default function ApiPage() {
               </div>
             </div>
             <div className="flex gap-2 mt-2">
-              <button className="text-xs text-primary hover:text-primary/85">English Group →</button>
-              <button className="text-xs text-primary hover:text-primary/85">中文群组 →</button>
+              <a
+                href={process.env.NEXT_PUBLIC_TELEGRAM_EN_URL || 'https://t.me/metherium'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-primary hover:text-primary/85"
+              >
+                English Group →
+              </a>
+              <a
+                href={process.env.NEXT_PUBLIC_TELEGRAM_ZH_URL || process.env.NEXT_PUBLIC_TELEGRAM_EN_URL || 'https://t.me/metherium'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-primary hover:text-primary/85"
+              >
+                中文群组 →
+              </a>
             </div>
           </div>
         </div>

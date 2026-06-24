@@ -319,7 +319,7 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
     }`;
 
   return (
-    <div className="flex h-[min(50vh,560px)] min-h-[320px] w-full flex-col bg-card">
+    <div id="spot-terminal-activity" className="flex h-[min(50vh,560px)] min-h-[320px] w-full flex-col bg-card">
       <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/40 px-1">
         <div className="flex flex-wrap items-center gap-0.5 sm:gap-1">
           <button type="button" onClick={() => data.setTab('open')} className={tabBtn(data.tab === 'open')}>Open ({data.openOrders.length})</button>

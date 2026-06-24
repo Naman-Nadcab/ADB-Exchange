@@ -1,5 +1,5 @@
 # Multi-stage build for Rust matching engine (Tier-1 spot matcher)
-FROM rust:1.83-bookworm AS builder
+FROM rust:1.88-bookworm AS builder
 WORKDIR /build
 COPY Cargo.toml Cargo.lock ./
 COPY src ./src

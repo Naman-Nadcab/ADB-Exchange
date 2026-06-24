@@ -8,6 +8,7 @@ import { ROUTES, SPOT_TRADE_HREF, WALLET_HREF, ORDERS_HREF } from '@/lib/routes'
 import { useAuthStore } from '@/store/auth';
 import { useAuth } from '@/context/AuthContext';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { BrandLogo } from '@/components/brand/BrandLogo';
 
 /**
  * Global top header for public-viewable feature routes (markets, earn, p2p, trade).
@@ -54,10 +55,11 @@ export function PublicHeader() {
   return (
     <header className="mobile-app-topbar sticky top-0 z-50 border-b border-[#F5B8001F] bg-[#05070B]/90 backdrop-blur">
       <div className="mx-auto flex max-w-[1320px] items-center justify-between px-3 py-3.5 sm:px-6 lg:px-8">
-        <Link href={authed ? ROUTES.dashboard.root : ROUTES.home} prefetch className="flex items-center gap-3">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#F5B800] font-bold text-[#05070B]">M</span>
-          <span className="text-lg font-semibold tracking-wide">Methereum</span>
-        </Link>
+        <BrandLogo
+          variant="horizontal-gold"
+          size="header"
+          href={authed ? ROUTES.dashboard.root : ROUTES.home}
+        />
 
         <nav className="hidden items-center gap-6 text-sm text-[#9CA3AF] lg:flex">
           <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center transition hover:text-white">Markets</Link>

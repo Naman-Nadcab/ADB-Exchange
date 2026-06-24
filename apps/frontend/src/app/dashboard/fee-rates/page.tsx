@@ -500,7 +500,7 @@ export default function FeeRatesPage() {
             <Link href="/dashboard/help" className="hover:text-foreground dark:hover:text-white">
               Help Center
             </Link>
-            <span>© 2026 Methereum</span>
+            <span>© 2026 Metherium</span>
           </div>
         </div>
       </div>

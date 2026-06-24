@@ -10,6 +10,7 @@ import { useSidebarState } from './SidebarContext';
 import { buildSidebarSections, isSidebarNavActive } from '@/lib/admin/nav-sections';
 import { prefetchRouteData } from '@/lib/route-prefetch';
 import { useAdminAuthStore } from '@/store/auth';
+import { AdminBrandLogo } from '@/components/brand/AdminBrandLogo';
 
 export function UnifiedSidebar() {
   const pathname = usePathname() ?? '';
@@ -54,9 +55,7 @@ export function UnifiedSidebar() {
             collapsed && 'lg:justify-center lg:px-2'
           )}
         >
-          <span className={cn('text-sm font-bold text-admin-text truncate', collapsed && 'lg:hidden')}>
-            Exchange Admin
-          </span>
+          <AdminBrandLogo collapsed={collapsed} href="/dashboard" />
           {/* Desktop collapse toggle */}
           <button
             type="button"

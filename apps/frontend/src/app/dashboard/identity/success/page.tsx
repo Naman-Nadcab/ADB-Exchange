@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { BrandLogo } from '@/components/brand/BrandLogo';
 import { Check, ArrowRight, Shield, Gift, Wallet, LayoutDashboard, ListOrdered, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -42,10 +43,7 @@ export default function IdentityVerificationSuccessPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex items-center justify-between border-b border-border px-6 py-4">
-        <Link href="/dashboard" className="text-2xl font-bold text-foreground">
-          <span className="mr-1 rounded bg-primary px-2 py-1 text-primary-foreground">M</span>
-          Methereum
-        </Link>
+        <BrandLogo variant="horizontal-gold" size="header" href="/dashboard" />
       </header>
 
       <main className="flex flex-1 items-center justify-center p-6">
@@ -147,7 +145,7 @@ export default function IdentityVerificationSuccessPage() {
       </main>
 
       <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>© 2018-2026 Methereum.com. All rights reserved.</p>
+        <p>© 2018-2026 Metherium.com. All rights reserved.</p>
       </footer>
     </div>
   );

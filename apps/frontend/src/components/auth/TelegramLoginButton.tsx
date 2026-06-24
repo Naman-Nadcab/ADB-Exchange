@@ -32,7 +32,7 @@ interface TelegramUser {
 }
 
 export default function TelegramLoginButton({ 
-  botName = 'Methereumbot',
+  botName = 'Metheriumbot',
   onError 
 }: TelegramLoginButtonProps) {
   const router = useRouter();

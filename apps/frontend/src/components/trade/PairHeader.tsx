@@ -13,7 +13,9 @@ import {
   TOOLTIP_24H_LOW,
   TOOLTIP_BASE_VOLUME_24H,
   TOOLTIP_QUOTE_VOLUME_24H,
+  TOOLTIP_REFERENCE_VOLUME_24H,
 } from '@/lib/marketDataUxCopy';
+import { classifyTickerVolumeSource, turnoverLabelForSource } from '@/lib/volumeMetrics';
 import type { SpotWsStreamPhase } from '@/hooks/useSpotWs';
 import { formatCompactNumber, formatValueFixedTrim } from './terminalFormat';
 import { CoinIcon } from '@/components/ui/CoinIcon';
@@ -106,6 +108,13 @@ export function PairHeader({
   const sym = symbol ?? 'BTC_USDT';
   const base = baseAsset ?? 'BTC';
   const quote = quoteAsset ?? 'USDT';
+  const turnoverSource = classifyTickerVolumeSource({
+    volume_24h: turnover24h,
+    base_volume_24h: volume24h,
+  });
+  const turnoverLabel = turnoverLabelForSource(turnoverSource, quote);
+  const turnoverTooltip =
+    turnoverSource === 'reference' ? TOOLTIP_REFERENCE_VOLUME_24H : TOOLTIP_QUOTE_VOLUME_24H;
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
   const mkt = markets ?? [];
   const pairLabel = base && quote ? `${base}/${quote}` : sym;
@@ -318,7 +327,7 @@ export function PairHeader({
             })()}
           </span>
         </MiniStat>
-        <MiniStat label={`Turnover (${quote.slice(0, 4)})`} title={TOOLTIP_QUOTE_VOLUME_24H} valueClassName="text-[11px]">
+        <MiniStat label={turnoverLabel} title={turnoverTooltip} valueClassName="text-[11px]">
           <span className="max-w-[3rem] truncate sm:max-w-none">
             {(() => {
               const s = formatCompactNumber(turnover24h);

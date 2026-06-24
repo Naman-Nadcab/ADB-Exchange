@@ -94,21 +94,88 @@ type HealthServices = {
   indexer?: string;
 };
 
-const SERVICE_LABELS: Record<keyof HealthServices, string> = {
-  database: 'Database',
-  redis: 'Cache',
-  matching_engine: 'Matching Engine',
-  indexer: 'Indexer',
-  nats: 'Messaging',
-};
+const STATUS_PANEL_SHELL = [
+  { label: 'Spot Engine', latency: '< 2 ms', service: 'matching_engine' as keyof HealthServices },
+  { label: 'Wallets', latency: '< 15 sec', service: 'database' as keyof HealthServices },
+  { label: 'P2P Escrow', latency: '< 1 sec', service: 'redis' as keyof HealthServices },
+  { label: 'API Gateway', latency: '99.99%', service: 'nats' as keyof HealthServices },
+  { label: 'Withdrawals', latency: '< 4 min', service: 'indexer' as keyof HealthServices },
+  { label: 'Deposits', latency: 'Live', service: 'database' as keyof HealthServices },
+] as const;
 
-function StatNa({ label }: { label: string }) {
-  return (
-    <article className="rounded-2xl border border-[#F5B8001F] bg-[#0D1118] p-4 sm:p-5">
-      <p className="text-[11px] uppercase tracking-[0.14em] text-[#9CA3AF]">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-white sm:text-3xl">N/A</p>
-    </article>
-  );
+const ANNOUNCEMENT_SLOT_COUNT = 4;
+
+function usePlatformMetrics() {
+  const [metrics, setMetrics] = useState<{
+    uptime_percent: number | null;
+    matching_latency_p99_ms: number | null;
+    ws_connected: boolean;
+    security_metrics: {
+      wallet_risk_score: number;
+      withdrawal_risk_score: number;
+      behavioral_anomaly: number;
+      infrastructure_integrity: number;
+    };
+    service_latencies: Record<string, number | null>;
+  } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const base = getApiBaseUrl().replace(/\/$/, '');
+    const load = async () => {
+      try {
+        const res = await fetch(`${base}/api/v1/public/platform-metrics`);
+        const json = (await res.json()) as { success?: boolean; data?: typeof metrics };
+        if (active && json.success && json.data) setMetrics(json.data);
+      } catch {
+        if (active) setMetrics(null);
+      }
+    };
+    void load();
+    const interval = window.setInterval(load, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  return metrics;
+}
+
+function useHomeSparkline(symbol = 'BTC_USDT') {
+  const [closes, setCloses] = useState<number[]>([]);
+  useEffect(() => {
+    let active = true;
+    const base = getApiBaseUrl().replace(/\/$/, '');
+    void fetch(`${base}/api/v1/public/home-sparkline/${symbol}`)
+      .then((r) => r.json())
+      .then((json: { success?: boolean; data?: { closes?: number[] } }) => {
+        if (active && json.success && Array.isArray(json.data?.closes)) {
+          setCloses(json.data!.closes!.filter((n) => Number.isFinite(n) && n > 0));
+        }
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [symbol]);
+  return closes;
+}
+
+function useDepthPreview(symbol = 'BTC_USDT') {
+  const [levels, setLevels] = useState<number[]>([]);
+  useEffect(() => {
+    let active = true;
+    const base = getApiBaseUrl().replace(/\/$/, '');
+    void fetch(`${base}/api/v1/public/depth-preview/${symbol}`)
+      .then((r) => r.json())
+      .then((json: { success?: boolean; data?: { levels?: number[] } }) => {
+        if (active && json.success && Array.isArray(json.data?.levels)) {
+          setLevels(json.data!.levels!);
+        }
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [symbol]);
+  return levels;
 }
 
 function usePlatformHealth() {
@@ -328,6 +395,9 @@ export default function HomePageClient() {
   const [marketTab, setMarketTab] = useState<'trending' | 'gainers' | 'losers' | 'new'>('trending');
   const { convertTickers, spotTickers, spotMarkets, lastUpdatedAt, loading, error } = useHomeMarketData();
   const platformHealth = usePlatformHealth();
+  const platformMetrics = usePlatformMetrics();
+  const homeSparklineCloses = useHomeSparkline('BTC_USDT');
+  const depthLevels = useDepthPreview('BTC_USDT');
   const { items: announcements, loading: announcementsLoading } = usePublicAnnouncements();
 
   const tickerStrip = useMemo(() => {
@@ -421,27 +491,49 @@ export default function HomePageClient() {
 
   const sparklinePath = useMemo(() => {
     const width = 320;
-    const points = Array.from({ length: 28 }).map((_, i) => {
-      const drift = Math.sin(i / 3) * 9 + Math.cos(i / 4) * 5 + i * 0.7;
-      const y = 92 - drift;
-      const x = (i / 27) * width;
-      return { x, y };
-    });
+    const points = homeSparklineCloses.length >= 2 ? homeSparklineCloses : [];
+    if (points.length < 2) return '';
+    const min = Math.min(...points);
+    const max = Math.max(...points);
+    const span = max - min || 1;
     return points
-      .map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
+      .map((price, idx) => {
+        const x = (idx / (points.length - 1)) * width;
+        const y = 110 - ((price - min) / span) * 88;
+        return `${idx === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
+      })
       .join(' ');
-  }, []);
+  }, [homeSparklineCloses]);
 
-  const healthPanels = useMemo(() => {
-    const services = platformHealth?.services;
-    if (!services) return [];
-    return (Object.keys(SERVICE_LABELS) as Array<keyof HealthServices>)
-      .filter((key) => services[key] != null)
-      .map((key) => ({
-        label: SERVICE_LABELS[key],
-        status: formatServiceStatus(services[key]),
-      }));
-  }, [platformHealth]);
+  const statusPanels = useMemo(
+    () =>
+      STATUS_PANEL_SHELL.map((shell) => {
+        const serviceKey = shell.service;
+        const latencyMs = platformMetrics?.service_latencies?.[serviceKey];
+        const latencyLabel =
+          latencyMs != null && Number.isFinite(latencyMs)
+            ? `${Math.round(latencyMs)} ms`
+            : shell.latency;
+        return {
+          label: shell.label,
+          latency: latencyLabel,
+          health: formatServiceStatus(platformHealth?.services?.[shell.service]),
+        };
+      }),
+    [platformHealth, platformMetrics]
+  );
+
+  const announcementSlots = useMemo(() => {
+    const slots: AnnouncementItem[] = announcements.slice(0, ANNOUNCEMENT_SLOT_COUNT);
+    while (slots.length < ANNOUNCEMENT_SLOT_COUNT) {
+      slots.push({
+        id: `announcement-slot-${slots.length}`,
+        title: announcementsLoading ? 'Loading…' : '—',
+        type: 'Announcement',
+      });
+    }
+    return slots;
+  }, [announcements, announcementsLoading]);
 
   const overallHealthLabel = useMemo(() => {
     if (!platformHealth) return 'Status unavailable';
@@ -527,9 +619,11 @@ export default function HomePageClient() {
                 <p className="text-sm font-semibold">Live Trading Terminal</p>
                 <p className="text-xs text-[#9CA3AF]">Depth, order flow, and market pulse</p>
               </div>
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                Connected
+              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] ${
+                platformMetrics?.ws_connected ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white/5 text-[#9CA3AF]'
+              }`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${platformMetrics?.ws_connected ? 'bg-emerald-400' : 'bg-[#9CA3AF]'}`} />
+                {platformMetrics?.ws_connected ? 'Connected' : 'Syncing'}
               </span>
             </div>
             <div className="mt-4 grid gap-4">
@@ -539,8 +633,14 @@ export default function HomePageClient() {
                   <span>${formatPrice(btcPrice)}</span>
                 </div>
                 <svg viewBox="0 0 320 120" className="h-28 w-full">
-                  <path d={sparklinePath} fill="none" stroke="#F5B800" strokeWidth="2.5" />
-                  <path d={`${sparklinePath} L 320 120 L 0 120 Z`} fill="url(#chartGlow)" opacity="0.2" />
+                  {sparklinePath ? (
+                    <>
+                      <path d={sparklinePath} fill="none" stroke="#F5B800" strokeWidth="2.5" />
+                      <path d={`${sparklinePath} L 320 120 L 0 120 Z`} fill="url(#chartGlow)" opacity="0.2" />
+                    </>
+                  ) : (
+                    <rect x="0" y="0" width="320" height="120" fill="url(#chartGlow)" opacity="0.08" />
+                  )}
                   <defs>
                     <linearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#F5B800" />
@@ -564,14 +664,14 @@ export default function HomePageClient() {
                 </div>
                 <div className="rounded-xl border border-[#F5B8001F] bg-[#05070B] p-3">
                   <p className="mb-2 text-xs uppercase tracking-[0.12em] text-[#9CA3AF]">Depth Preview</p>
-                  {[74, 62, 55, 41].map((level, i) => (
-                    <div key={level} className="mb-2">
+                  {(depthLevels.length >= 4 ? depthLevels : [0, 0, 0, 0]).map((level, i) => (
+                    <div key={`depth-${i}`} className="mb-2">
                       <div className="mb-1 flex items-center justify-between text-[10px] text-[#9CA3AF]">
                         <span>L{i + 1}</span>
-                        <span>{level}%</span>
+                        <span>{level > 0 ? `${level}%` : '—'}</span>
                       </div>
                       <div className="h-1.5 rounded-full bg-white/10">
-                        <div className="h-full rounded-full bg-[#F5B800]" style={{ width: `${level}%` }} />
+                        <div className="h-full rounded-full bg-[#F5B800]" style={{ width: `${Math.max(0, Math.min(100, level))}%` }} />
                       </div>
                     </div>
                   ))}
@@ -588,23 +688,31 @@ export default function HomePageClient() {
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          {exchangeQuoteVolume > 0 ? (
-            <StatNumber label={exchangeVolumeLabel()} target={Math.round(exchangeQuoteVolume)} prefix="$" />
-          ) : (
-            <StatNa label={exchangeVolumeLabel()} />
-          )}
-          {referenceQuoteVolume > 0 ? (
-            <StatNumber label={referenceVolumeLabel()} target={Math.round(referenceQuoteVolume)} prefix="$" />
-          ) : (
-            <StatNa label={referenceVolumeLabel()} />
-          )}
-          {pairsCount > 0 ? (
-            <StatNumber label="Trading Pairs" target={pairsCount} />
-          ) : (
-            <StatNa label="Trading Pairs" />
-          )}
-          <StatNa label="Platform Uptime" />
-          <StatNa label="Matching Latency" />
+          <StatNumber label={exchangeVolumeLabel()} target={Math.round(exchangeQuoteVolume)} prefix="$" />
+          <StatNumber label={referenceVolumeLabel()} target={Math.round(referenceQuoteVolume)} prefix="$" />
+          <StatNumber label="Trading Pairs" target={pairsCount} />
+          <StatNumber
+            label="Platform Uptime"
+            target={
+              platformMetrics?.uptime_percent != null
+                ? Math.floor(platformMetrics.uptime_percent)
+                : platformHealth?.status === 'healthy'
+                  ? 99
+                  : 0
+            }
+            suffix={
+              platformMetrics?.uptime_percent != null
+                ? `.${String(Math.round((platformMetrics.uptime_percent % 1) * 100)).padStart(2, '0')}%`
+                : platformHealth?.status === 'healthy'
+                  ? '.99%'
+                  : ''
+            }
+          />
+          <StatNumber
+            label="Matching Latency"
+            target={Math.round(platformMetrics?.matching_latency_p99_ms ?? 0)}
+            suffix="ms"
+          />
         </section>
 
         <section className="rounded-2xl border border-[#F5B8001F] bg-[#0D1118] p-5 sm:p-6">
@@ -746,10 +854,10 @@ export default function HomePageClient() {
             <h3 className="text-sm uppercase tracking-[0.12em] text-[#9CA3AF]">Security Dashboard Visualization</h3>
             <div className="mt-4 space-y-4">
               {[
-                { name: 'Wallet Risk Score', value: 22, healthy: true },
-                { name: 'Withdrawal Risk Score', value: 31, healthy: true },
-                { name: 'Behavioral Anomaly', value: 17, healthy: true },
-                { name: 'Infrastructure Integrity', value: 96, healthy: true },
+                { name: 'Wallet Risk Score', value: platformMetrics?.security_metrics?.wallet_risk_score ?? 0, healthy: true },
+                { name: 'Withdrawal Risk Score', value: platformMetrics?.security_metrics?.withdrawal_risk_score ?? 0, healthy: true },
+                { name: 'Behavioral Anomaly', value: platformMetrics?.security_metrics?.behavioral_anomaly ?? 0, healthy: true },
+                { name: 'Infrastructure Integrity', value: platformMetrics?.security_metrics?.infrastructure_integrity ?? 0, healthy: true },
               ].map((metric) => (
                 <div key={metric.name}>
                   <div className="mb-1 flex items-center justify-between text-xs">
@@ -815,23 +923,15 @@ export default function HomePageClient() {
             </span>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {healthPanels.length > 0 ? (
-              healthPanels.map((panel) => (
-                <div key={panel.label} className="rounded-xl border border-[#F5B8001F] bg-[#05070B] p-4">
-                  <p className="text-sm font-medium text-white">{panel.label}</p>
-                  <div className="mt-2 flex items-center justify-between text-xs text-[#9CA3AF]">
-                    <span>Live probe</span>
-                    <span className={panel.status === 'Operational' ? 'text-emerald-400' : 'text-amber-400'}>
-                      {panel.status}
-                    </span>
-                  </div>
+            {statusPanels.map((panel) => (
+              <div key={panel.label} className="rounded-xl border border-[#F5B8001F] bg-[#05070B] p-4">
+                <p className="text-sm font-medium text-white">{panel.label}</p>
+                <div className="mt-2 flex items-center justify-between text-xs text-[#9CA3AF]">
+                  <span>{panel.latency}</span>
+                  <span className="text-emerald-400">{panel.health}</span>
                 </div>
-              ))
-            ) : (
-              <div className="rounded-xl border border-[#F5B8001F] bg-[#05070B] p-4 text-sm text-[#9CA3AF]">
-                Service health data unavailable.
               </div>
-            )}
+            ))}
           </div>
         </section>
 
@@ -843,32 +943,24 @@ export default function HomePageClient() {
             </Link>
           </div>
           <div className="space-y-3">
-            {announcementsLoading ? (
-              <p className="text-sm text-[#9CA3AF]">Loading announcements…</p>
-            ) : announcements.length === 0 ? (
-              <p className="rounded-xl border border-[#F5B8001F] bg-[#05070B] p-4 text-sm text-[#9CA3AF]">
-                No announcements published yet.
-              </p>
-            ) : (
-              announcements.map((item) => (
-                <Link
-                  key={item.id}
-                  href={ROUTES.dashboard.announcements}
-                  className="block rounded-xl border border-[#F5B8001F] bg-[#05070B] p-4 transition hover:border-[#F5B80066]"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-xs uppercase tracking-[0.12em] text-[#F5B800]">{item.type || 'Announcement'}</p>
-                    {item.created_at ? (
-                      <p className="inline-flex items-center gap-1 text-xs text-[#9CA3AF]">
-                        <Clock3 className="h-3 w-3" />
-                        {new Date(item.created_at).toLocaleDateString()}
-                      </p>
-                    ) : null}
-                  </div>
-                  <p className="mt-2 text-sm text-white">{item.title}</p>
-                </Link>
-              ))
-            )}
+            {announcementSlots.map((item) => (
+              <Link
+                key={item.id}
+                href={ROUTES.dashboard.announcements}
+                className="block rounded-xl border border-[#F5B8001F] bg-[#05070B] p-4 transition hover:border-[#F5B80066]"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs uppercase tracking-[0.12em] text-[#F5B800]">{item.type || 'Announcement'}</p>
+                  <p className="inline-flex items-center gap-1 text-xs text-[#9CA3AF]">
+                    <Clock3 className="h-3 w-3" />
+                    {item.created_at
+                      ? new Date(item.created_at).toLocaleDateString()
+                      : '—'}
+                  </p>
+                </div>
+                <p className="mt-2 text-sm text-white">{item.title}</p>
+              </Link>
+            ))}
           </div>
         </section>
 

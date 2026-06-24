@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import Link from 'next/link';
+import { BrandLogo } from '@/components/brand/BrandLogo';
 import {
   Globe,
   ChevronDown,
@@ -171,10 +172,7 @@ export default function IdentityVerificationPage() {
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-2xl font-bold text-foreground">
-              <span className="bg-primary text-primary-foreground px-2 py-1 rounded mr-1">M</span>
-              Methereum
-            </Link>
+            <BrandLogo variant="horizontal-gold" size="header" href="/dashboard" />
             <span className="text-muted-foreground">|</span>
             <h1 className="text-xl font-semibold text-foreground">Identity Verification</h1>
           </div>
@@ -225,7 +223,7 @@ export default function IdentityVerificationPage() {
 
         {/* Footer */}
         <footer className="py-6 text-center text-sm text-muted-foreground">
-          <p>© 2018-2026 Methereum.com. All rights reserved.</p>
+          <p>© 2018-2026 Metherium.com. All rights reserved.</p>
         </footer>
       </div>
     );
@@ -237,10 +235,7 @@ export default function IdentityVerificationPage() {
       <div className="min-h-screen bg-card">
         <header className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-2xl font-bold text-foreground">
-              <span className="bg-primary text-primary-foreground px-2 py-1 rounded mr-1">M</span>
-              Methereum
-            </Link>
+            <BrandLogo variant="horizontal-gold" size="header" href="/dashboard" />
             <span className="text-muted-foreground">|</span>
             <h1 className="text-xl font-semibold text-foreground">Identity Verification</h1>
           </div>
@@ -278,27 +273,24 @@ export default function IdentityVerificationPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-border">
         <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="text-2xl font-bold text-foreground">
-            <span className="bg-primary text-primary-foreground px-2 py-1 rounded mr-1">M</span>
-            Methereum
-          </Link>
+          <BrandLogo variant="horizontal-gold" size="header" href="/dashboard" />
           <span className="text-muted-foreground">|</span>
           <h1 className="text-xl font-semibold text-foreground">Identity Verification</h1>
         </div>
         <div className="flex items-center gap-4">
           <Link
-            href="/dashboard/help#business"
+            href="/dashboard/help"
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
           >
             <Building2 className="w-4 h-4" />
             Business Verification
           </Link>
-          <button className="p-2 text-muted-foreground hover:text-foreground">
+          <Link href="/dashboard/support" className="p-2 text-muted-foreground hover:text-foreground" aria-label="Help">
             <HelpCircle className="w-5 h-5" />
-          </button>
-          <button className="p-2 text-muted-foreground hover:text-foreground">
+          </Link>
+          <Link href="/dashboard/account" className="p-2 text-muted-foreground hover:text-foreground" aria-label="Account settings">
             <Globe className="w-5 h-5" />
-          </button>
+          </Link>
         </div>
       </header>
 
@@ -441,7 +433,7 @@ export default function IdentityVerificationPage() {
             <p className="text-muted-foreground">
               You can also continue on{' '}
               <Link href="/dashboard/help" className="text-foreground font-medium hover:underline inline-flex items-center gap-1">
-                📱 Methereum App
+                📱 Metherium App
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </p>
@@ -451,7 +443,7 @@ export default function IdentityVerificationPage() {
 
       {/* Footer */}
       <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>© 2018-2026 Methereum.com. All rights reserved.</p>
+        <p>© 2018-2026 Metherium.com. All rights reserved.</p>
         <div className="mt-2 flex items-center justify-center gap-4">
           <Link href="/terms" className="hover:text-foreground">Terms of Service</Link>
           <Link href="/privacy" className="hover:text-foreground">Privacy Policy</Link>
@@ -495,7 +487,7 @@ export default function IdentityVerificationPage() {
                 </div>
 
                 <p className="text-muted-foreground text-sm mb-4">
-                  Please provide your consent to share the following with <strong>Methereum</strong>:
+                  Please provide your consent to share the following with <strong>Metherium</strong>:
                 </p>
 
                 {/* Documents List */}
@@ -505,7 +497,13 @@ export default function IdentityVerificationPage() {
                       <ChevronDown className="w-4 h-4 text-muted-foreground" />
                       <span className="text-foreground/80 font-medium">Issued Documents (3)</span>
                     </div>
-                    <button className="text-primary text-sm font-medium">Select all</button>
+                    <button
+                      type="button"
+                      onClick={() => setDigiLockerConsent({ aadhaar: true, drivingLicense: true, pan: true })}
+                      className="text-primary text-sm font-medium"
+                    >
+                      Select all
+                    </button>
                   </div>
                   
                   <div className="divide-y divide-border">
@@ -557,9 +555,13 @@ export default function IdentityVerificationPage() {
       )}
 
       {/* Help Button */}
-      <button className="fixed bottom-6 right-6 w-12 h-12 bg-primary hover:bg-primary/85 text-primary-foreground rounded-full shadow-lg flex items-center justify-center transition-colors z-40">
+      <Link
+        href="/dashboard/support"
+        className="fixed bottom-6 right-6 w-12 h-12 bg-primary hover:bg-primary/85 text-primary-foreground rounded-full shadow-lg flex items-center justify-center transition-colors z-40"
+        aria-label="Get help"
+      >
         <HelpCircle className="w-6 h-6" />
-      </button>
+      </Link>
     </div>
   );
 }

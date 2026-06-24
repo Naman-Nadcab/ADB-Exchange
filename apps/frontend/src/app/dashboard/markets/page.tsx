@@ -102,15 +102,30 @@ const SECTOR_ICON: Record<Sector, LucideIcon> = {
   DePIN: Factory,
 };
 
-const MARKET_NEWS = [
-  { title: 'Risk-off rotation eases as BTC stabilizes above key liquidity zone.', badge: 'Macro', source: 'CoinDesk', ago: '4m' },
-  { title: 'AI basket outperforms broad alt index for second consecutive session.', badge: 'Sector', source: 'Decrypt', ago: '8m' },
-  { title: 'Exchange inflows decline; spot positioning remains constructive.', badge: 'On-chain', source: 'CoinGecko', ago: '12m' },
-  { title: 'Market makers tighten spreads on high-volume USDT pairs.', badge: 'Liquidity', source: 'CryptoPanic', ago: '16m' },
-] as const;
-
-const MARKET_INTEL_FEEDS = ['CoinDesk', 'Cointelegraph', 'Decrypt', 'CoinGecko', 'CryptoPanic'] as const;
 const MARKET_INTEL_CACHE_HINT = 'Server cache 300s';
+
+type MarketIntelligenceSymbol = {
+  symbol: string;
+  asset: string;
+  change_7d_pct: number | null;
+  market_cap: number | null;
+  liquidity_score: number | null;
+  sparkline: number[];
+};
+
+type MarketIntelligencePayload = {
+  symbols: Record<string, MarketIntelligenceSymbol>;
+  sentiment: { fear_greed_index: number; fear_greed_label: string; source: string };
+};
+
+type AnnouncementRow = {
+  id?: string;
+  title: string;
+  type?: string;
+  summary?: string;
+  published_at?: string;
+  created_at?: string;
+};
 
 const fmtUsd = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -134,22 +149,15 @@ function hashSeed(symbol: string): number {
   return h || 1;
 }
 
-function derived7d(change24h: number, symbol: string): number {
-  const seed = hashSeed(symbol) % 17;
-  const multiplier = 2.4 + seed / 10;
-  const drift = ((seed % 7) - 3) * 0.55;
-  return change24h * multiplier + drift;
-}
-
-function syntheticMarketCap(price: number, volume24h: number, symbol: string): number {
-  const seed = hashSeed(symbol) % 13;
-  const factor = 24 + seed * 2.3;
-  return Math.max(0, volume24h * factor + price * 2_000_000);
-}
-
-function syntheticLiquidity(volume24h: number, marketCap: number): number {
-  const ratio = marketCap > 0 ? volume24h / marketCap : 0;
-  return Math.max(0, Math.min(100, ratio * 4200));
+function formatAgo(iso?: string): string {
+  if (!iso) return '—';
+  const ms = Date.now() - Date.parse(iso);
+  if (!Number.isFinite(ms) || ms < 0) return '—';
+  const mins = Math.floor(ms / 60000);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 48) return `${hrs}h`;
+  return `${Math.floor(hrs / 24)}d`;
 }
 
 function pctClass(v: number): string {
@@ -164,23 +172,27 @@ function fmtPrice(v: number): string {
   return '$' + v.toLocaleString('en-US', { maximumFractionDigits: 6 });
 }
 
-function SparklineMini({ value, symbol }: { value: number; symbol: string }) {
+function SparklineMini({ closes, value }: { closes: number[]; value: number }) {
   const path = useMemo(() => {
-    const points = 18;
+    const points = closes.length >= 2 ? closes : [];
+    if (points.length < 2) return '';
     const width = 96;
     const height = 34;
-    const seed = hashSeed(symbol);
+    const min = Math.min(...points);
+    const max = Math.max(...points);
+    const span = max - min || 1;
     let d = '';
-    for (let i = 0; i < points; i++) {
-      const x = (i / (points - 1)) * width;
-      const t = i / (points - 1);
-      const wave = Math.sin((i + seed % 9) * 0.8) * 4.8;
-      const trend = t * (value >= 0 ? -9 : 9);
-      const y = height / 2 + wave + trend;
+    for (let i = 0; i < points.length; i++) {
+      const x = (i / (points.length - 1)) * width;
+      const y = height - ((points[i]! - min) / span) * (height - 4) - 2;
       d += `${i === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)} `;
     }
     return d.trim();
-  }, [symbol, value]);
+  }, [closes]);
+
+  if (!path) {
+    return <div className="h-9 w-24 rounded bg-white/5" aria-hidden />;
+  }
 
   return (
     <svg viewBox="0 0 96 34" className="h-9 w-24">
@@ -225,6 +237,8 @@ function SortButton({
 export default function MarketsPage() {
   const [markets, setMarkets] = useState<Market[]>([]);
   const [tickers, setTickers] = useState<Map<string, SpotTickerRow>>(new Map());
+  const [intelligence, setIntelligence] = useState<MarketIntelligencePayload | null>(null);
+  const [announcements, setAnnouncements] = useState<AnnouncementRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [moversTab, setMoversTab] = useState<MoversTab>('trending');
@@ -244,9 +258,11 @@ export default function MarketsPage() {
     setLoading(true);
     setError(null);
     try {
-      const [mRes, tRes] = await Promise.all([
+      const [mRes, tRes, iRes, aRes] = await Promise.all([
         api.get<Market[]>('/api/v1/spot/markets', { skipAuth: true, notifyOnError: false }),
         api.get<SpotTickerRow[]>('/api/v1/spot/tickers', { skipAuth: true, notifyOnError: false }),
+        api.get<MarketIntelligencePayload>('/api/v1/spot/markets/intelligence', { skipAuth: true, notifyOnError: false }),
+        api.get<{ announcements?: AnnouncementRow[] }>('/api/v1/user/announcements?limit=8', { skipAuth: true, notifyOnError: false }),
       ]);
       if (!mRes.success || !Array.isArray(mRes.data)) {
         setError(mRes.error?.message ?? 'Failed to load market list');
@@ -256,6 +272,12 @@ export default function MarketsPage() {
       }
       if (tRes.success && Array.isArray(tRes.data)) {
         setTickers(new Map(tRes.data.map((row) => [row.symbol, row])));
+      }
+      if (iRes.success && iRes.data) {
+        setIntelligence(iRes.data);
+      }
+      if (aRes.success && aRes.data?.announcements) {
+        setAnnouncements(aRes.data.announcements);
       }
     } catch {
       setError('Network error while loading markets');
@@ -297,9 +319,10 @@ export default function MarketsPage() {
             t?.price_change_percent_24h
         );
         const volume24h = n(t?.volume_24h);
-        const change7d = derived7d(change24h, m.symbol);
-        const marketCap = syntheticMarketCap(price, volume24h, m.symbol);
-        const liquidity = syntheticLiquidity(volume24h, marketCap);
+        const intel = intelligence?.symbols?.[m.symbol.toUpperCase()];
+        const change7d = intel?.change_7d_pct ?? 0;
+        const marketCap = intel?.market_cap ?? 0;
+        const liquidity = intel?.liquidity_score ?? 0;
         const listedTs = Date.parse(m.listed_at ?? m.created_at ?? '1970-01-01');
 
         return {
@@ -320,7 +343,7 @@ export default function MarketsPage() {
 
     const sortedByCap = [...merged].sort((a, b) => b.marketCap - a.marketCap);
     return sortedByCap.map((row, i) => ({ ...row, rank: i + 1 }));
-  }, [markets, tickers]);
+  }, [markets, tickers, intelligence]);
 
   const quoteOptions = useMemo(
     () => ['ALL', ...Array.from(new Set(rows.map((r) => r.quote))).sort()],
@@ -332,9 +355,7 @@ export default function MarketsPage() {
     const totalVol = rows.reduce((acc, row) => acc + row.volume24h, 0);
     const btcCap = rows.find((r) => r.asset === 'BTC')?.marketCap ?? 0;
     const btcDominance = totalCap > 0 ? (btcCap / totalCap) * 100 : 0;
-    const gainers = rows.filter((r) => r.change24h > 0).length;
-    const losers = rows.filter((r) => r.change24h < 0).length;
-    const fearGreed = Math.max(0, Math.min(100, 50 + (gainers - losers) * 2.5));
+    const fearGreed = intelligence?.sentiment?.fear_greed_index ?? 50;
     return {
       marketCap: totalCap,
       volume24h: totalVol,
@@ -342,9 +363,33 @@ export default function MarketsPage() {
       fearGreed,
       assetsListed: rows.length,
     };
-  }, [rows]);
+  }, [rows, intelligence?.sentiment?.fear_greed_index]);
 
+  const announcementCards = useMemo(
+    () =>
+      announcements.slice(0, 6).map((item) => ({
+        title: item.title,
+        badge: item.type || 'Announcement',
+        ago: formatAgo(item.published_at ?? item.created_at),
+      })),
+    [announcements]
+  );
+
+  const exchangeAnnouncements = useMemo(
+    () =>
+      announcements.slice(0, 4).map((item) => ({
+        title: item.title,
+        priority: item.type || 'Announcement',
+        ago: formatAgo(item.published_at ?? item.created_at),
+      })),
+    [announcements]
+  );
   const trendingCards = useMemo(
+    () => [...rows].sort((a, b) => b.volume24h - a.volume24h).slice(0, 8),
+    [rows]
+  );
+
+  const activePairs = useMemo(
     () => [...rows].sort((a, b) => b.volume24h - a.volume24h).slice(0, 8),
     [rows]
   );
@@ -472,34 +517,6 @@ export default function MarketsPage() {
     [rows]
   );
 
-  const activePairs = useMemo(
-    () => [...rows].sort((a, b) => b.volume24h - a.volume24h).slice(0, 8),
-    [rows]
-  );
-
-  const exchangeAnnouncements = useMemo(
-    () => [
-      { title: 'Liquidity engine spread optimization deployed for major USDT books.', priority: 'System', ago: '7m' },
-      { title: 'Institutional API throughput window expanded for peak volatility.', priority: 'API', ago: '19m' },
-      { title: 'Monitoring policy update: tighter risk checks for fast-moving sectors.', priority: 'Risk', ago: '34m' },
-    ],
-    []
-  );
-
-  const newsListingIntel = useMemo(
-    () =>
-      [...newListings]
-        .sort((a, b) => b.listedTs - a.listedTs)
-        .slice(0, 4)
-        .map((row) => ({
-          symbol: row.symbol,
-          asset: row.asset,
-          change24h: row.change24h,
-          volume24h: row.volume24h,
-        })),
-    [newListings]
-  );
-
   const bullishPct = useMemo(() => {
     if (!rows.length) return 0;
     return (rows.filter((r) => r.change24h > 0).length / rows.length) * 100;
@@ -619,7 +636,10 @@ export default function MarketsPage() {
                       <p className="text-xs text-[#AEB6C4]">{row.symbol.replace('_', '/')}</p>
                     </div>
                   </div>
-                  <SparklineMini value={row.change24h} symbol={row.symbol} />
+                  <SparklineMini
+                    value={row.change24h}
+                    closes={intelligence?.symbols?.[row.symbol.toUpperCase()]?.sparkline ?? []}
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <p className="text-[#AEB6C4]">Price</p>
@@ -1103,11 +1123,11 @@ export default function MarketsPage() {
 
             <div className="min-h-[250px] space-y-2">
               {newsPanel === 'latest' &&
-                MARKET_NEWS.map((item) => (
+                (announcementCards.length ? announcementCards : [{ title: 'No announcements yet.', badge: '—', ago: '—' }]).map((item) => (
                   <article key={item.title} className="rounded-lg border border-[#F5B80012] bg-[#05070B] px-3 py-2.5 transition hover:border-[#F5B80036] hover:bg-[#0B1016]">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-[11px] uppercase tracking-[0.1em] text-[#F5B800]">{item.badge}</p>
-                      <p className="text-[11px] text-[#AEB6C4]">{item.source} · {item.ago}</p>
+                      <p className="text-[11px] text-[#AEB6C4]">Metherium · {item.ago}</p>
                     </div>
                     <p className="mt-1 text-sm leading-6 text-[#d8dde7]">{item.title}</p>
                   </article>
@@ -1125,7 +1145,7 @@ export default function MarketsPage() {
                 ))}
 
               {newsPanel === 'listings' &&
-                newsListingIntel.map((row) => (
+                newListings.map((row) => (
                   <Link
                     key={`intel-listing-${row.symbol}`}
                     href={tradeSpotWithSymbol(row.symbol)}
@@ -1179,7 +1199,7 @@ export default function MarketsPage() {
             </div>
 
             <div className="mt-3 rounded-lg border border-[#F5B80010] bg-[#05070B] px-2.5 py-2 text-[11px] text-[#AEB6C4]">
-              <span className="font-semibold text-[#F5B800]">Feed-ready:</span> {MARKET_INTEL_FEEDS.join(', ')} · {MARKET_INTEL_CACHE_HINT}
+              <span className="font-semibold text-[#F5B800]">Data sources:</span> Alternative.me, CoinGecko, live orderbooks · {MARKET_INTEL_CACHE_HINT}
             </div>
           </div>
         </section>

@@ -11,6 +11,7 @@ import jwt from '@fastify/jwt';
 import multipart from '@fastify/multipart';
 import websocket from '@fastify/websocket';
 import { config } from './config/index.js';
+import { ACCESS_COOKIE } from './lib/auth-cookies.js';
 import { db } from './lib/database.js';
 import { redis } from './lib/redis.js';
 import { logger } from './lib/logger.js';
@@ -75,6 +76,7 @@ import adminHybridRoutes from './routes/admin-hybrid.fastify.js';
 import observabilityRoutes from './routes/observability.fastify.js';
 import pushRoutes from './routes/push.fastify.js';
 import supportUserRoutes from './routes/support-user.fastify.js';
+import publicRoutes from './routes/public.fastify.js';
 import internalEngineRoutes from './routes/internal-engine.fastify.js';
 import latencyTracePlugin from './plugins/latencyTrace.plugin.js';
 import authDecisionPlugin from './plugins/authDecision.plugin.js';
@@ -188,6 +190,13 @@ export async function buildServer(): Promise<FastifyInstance> {
   app.addHook('onRequest', async (request) => {
     const id = (request.headers['x-request-id'] as string)?.trim() || crypto.randomUUID();
     request.requestId = id;
+    // Promote httpOnly access cookie to Authorization for JWT decorators (CSRF mitigated via SameSite=Lax + CORS allow-list).
+    if (!request.headers.authorization?.startsWith('Bearer ')) {
+      const cookieToken = request.cookies?.[ACCESS_COOKIE];
+      if (typeof cookieToken === 'string' && cookieToken.length > 0) {
+        request.headers.authorization = `Bearer ${cookieToken}`;
+      }
+    }
   });
 
   ipRulesMiddleware(app);
@@ -898,6 +907,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(observabilityRoutes, { prefix: '/api/v1/observability' });
   await app.register(pushRoutes, { prefix: '/api/v1/push' });
   await app.register(supportUserRoutes, { prefix: '/api/v1/support' });
+  await app.register(publicRoutes, { prefix: '/api/v1/public' });
   await app.register(
     async (scope) => {
       const { internalEngineSecurityPreHandler } = await import(

@@ -25,6 +25,7 @@ import { rateLimitByIp, rateLimitByIdentifier } from '../lib/rate-limit-fastify.
 import { getClientIp } from '../lib/client-ip.js';
 import { config } from '../config/index.js';
 import { isSessionValid } from '../services/session.service.js';
+import { setAuthCookies, clearAuthCookies, getRefreshTokenFromRequest } from '../lib/auth-cookies.js';
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -61,7 +62,7 @@ function sanitizePreferencesInput(updates: Record<string, unknown>): { ok: true;
 }
 
 // WebAuthn configuration
-const RP_NAME = process.env.WEBAUTHN_RP_NAME || 'Methereum Exchange';
+const RP_NAME = process.env.WEBAUTHN_RP_NAME || 'Metherium Exchange';
 const RP_ID = process.env.WEBAUTHN_RP_ID || 'localhost';
 const ORIGIN = process.env.WEBAUTHN_ORIGIN || 'http://localhost:3000';
 const CHALLENGE_TTL = 300; // 5 minutes
@@ -176,6 +177,19 @@ function generateTokens(app: FastifyInstance, payload: {
     { expiresIn: '7d' }
   );
   return { accessToken, refreshToken };
+}
+
+function respondWithAuthTokens(
+  reply: FastifyReply,
+  data: Record<string, unknown>,
+  accessToken: string,
+  refreshToken: string,
+) {
+  setAuthCookies(reply, accessToken, refreshToken);
+  return reply.send({
+    success: true,
+    data: { ...data, accessToken, refreshToken },
+  });
 }
 
 export default async function authRoutes(app: FastifyInstance) {
@@ -574,9 +588,7 @@ export default async function authRoutes(app: FastifyInstance) {
         deviceId,
       }).catch(() => {});
 
-      return reply.send({
-        success: true,
-        data: {
+      return respondWithAuthTokens(reply, {
           user: {
             id: user.id,
             email: user.email,
@@ -587,11 +599,8 @@ export default async function authRoutes(app: FastifyInstance) {
             phoneVerified: user.phone_verified,
             tierLevel: user.tier_level,
           },
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
           isNewUser,
-        },
-      });
+        }, tokens.accessToken, tokens.refreshToken);
 
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
@@ -618,9 +627,9 @@ export default async function authRoutes(app: FastifyInstance) {
    * POST /auth/refresh
    * Refresh access token
    */
-  app.post<{ Body: { refreshToken: string } }>('/refresh', async (request, reply) => {
+  app.post<{ Body: { refreshToken?: string } }>('/refresh', async (request, reply) => {
     try {
-      const { refreshToken } = request.body;
+      const refreshToken = getRefreshTokenFromRequest(request);
 
       if (!refreshToken) {
         return reply.status(400).send({
@@ -687,10 +696,7 @@ export default async function authRoutes(app: FastifyInstance) {
         sessionId: newSession.sessionId,
       });
 
-      return reply.send({
-        success: true,
-        data: tokens,
-      });
+      return respondWithAuthTokens(reply, {}, tokens.accessToken, tokens.refreshToken);
 
     } catch (error) {
       return reply.status(401).send({
@@ -720,6 +726,7 @@ export default async function authRoutes(app: FastifyInstance) {
         deviceId: getDeviceIdFromRequest(request.headers as Record<string, string | undefined>),
       });
 
+      clearAuthCookies(reply);
       return reply.send({
         success: true,
         data: { message: 'Logged out successfully' },
@@ -1184,9 +1191,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
       logger.info('New user signed up', { userId: user.id, type });
 
-      return reply.send({
-        success: true,
-        data: {
+      return respondWithAuthTokens(reply, {
           user: {
             id: user.id,
             email: user.email,
@@ -1197,10 +1202,7 @@ export default async function authRoutes(app: FastifyInstance) {
             phoneVerified: user.phone_verified,
             tierLevel: user.tier_level,
           },
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
-        },
-      });
+        }, tokens.accessToken, tokens.refreshToken);
 
     } catch (error) {
       logger.error('Signup error', {
@@ -1382,9 +1384,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
       logger.info('User logged in with password', { userId: user.id });
 
-      return reply.send({
-        success: true,
-        data: {
+      return respondWithAuthTokens(reply, {
           user: {
             id: user.id,
             email: user.email,
@@ -1395,10 +1395,7 @@ export default async function authRoutes(app: FastifyInstance) {
             phoneVerified: user.phone_verified,
             tierLevel: user.tier_level,
           },
-          accessToken,
-          refreshToken,
-        },
-      });
+        }, accessToken, refreshToken);
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       logger.error('Password login error', { message: err.message, stack: err.stack });
@@ -1702,9 +1699,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
       logger.info('User logged in (no additional verification)', { userId: user.id });
 
-      return reply.send({
-        success: true,
-        data: {
+      return respondWithAuthTokens(reply, {
           requiresVerification: false,
           user: {
             id: user.id,
@@ -1716,10 +1711,7 @@ export default async function authRoutes(app: FastifyInstance) {
             phoneVerified: user.phone_verified,
             tierLevel: user.tier_level,
           },
-          accessToken,
-          refreshToken,
-        },
-      });
+        }, accessToken, refreshToken);
 
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
@@ -1854,7 +1846,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
           const OTPAuth = await import('otpauth');
           const totp = new OTPAuth.TOTP({
-            issuer: 'Methereum',
+            issuer: 'Metherium',
             label: 'user',
             algorithm: 'SHA1',
             digits: 6,
@@ -1986,9 +1978,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
       logger.info('Multi-step login completed', { userId: user.id });
 
-      return reply.send({
-        success: true,
-        data: {
+      return respondWithAuthTokens(reply, {
           stepCompleted: step,
           allStepsCompleted: true,
           user: {
@@ -2001,10 +1991,7 @@ export default async function authRoutes(app: FastifyInstance) {
             phoneVerified: user.phone_verified,
             tierLevel: user.tier_level,
           },
-          accessToken,
-          refreshToken,
-        },
-      });
+        }, accessToken, refreshToken);
 
     } catch (error) {
       logger.error('Login verification step error', {
@@ -2832,11 +2819,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
       logger.info('Passkey authentication successful', { userId: user.id });
 
-      return reply.send({
-        success: true,
-        data: {
-          accessToken,
-          refreshToken,
+      return respondWithAuthTokens(reply, {
           user: {
             id: user.id,
             email: user.email,
@@ -2844,8 +2827,7 @@ export default async function authRoutes(app: FastifyInstance) {
             username: user.username,
             tierLevel: user.tier_level,
           },
-        },
-      });
+        }, accessToken, refreshToken);
 
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : 'Unknown';
@@ -2901,6 +2883,45 @@ export default async function authRoutes(app: FastifyInstance) {
       return reply.status(500).send({
         success: false,
         error: { code: 'INTERNAL_ERROR', message: 'Failed to get passkeys' },
+      });
+    }
+  });
+
+  // ===============================
+  // RENAME PASSKEY
+  // ===============================
+  app.post('/passkeys/:passkeyId/rename', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      if (!(await jwtVerifyWithSession(request, reply))) return;
+      const userId = (request.user?.userId ?? request.user?.id)!;
+      const { passkeyId } = request.params as { passkeyId: string };
+      const { name } = request.body as { name?: string };
+      const deviceName = (name ?? '').trim();
+      if (!deviceName || deviceName.length > 50) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'INVALID_NAME', message: 'Device name must be 1–50 characters' },
+        });
+      }
+      const result = await db.query(
+        `UPDATE user_passkeys
+         SET device_name = $1
+         WHERE id = $2 AND user_id = $3 AND deleted_at IS NULL
+         RETURNING id, device_name, created_at, last_used_at`,
+        [deviceName, passkeyId, userId]
+      );
+      if (result.rows.length === 0) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: 'PASSKEY_NOT_FOUND', message: 'Passkey not found' },
+        });
+      }
+      return reply.send({ success: true, data: { passkey: result.rows[0] } });
+    } catch (error) {
+      logger.error('Rename passkey error', { error: error instanceof Error ? error.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'INTERNAL_ERROR', message: 'Failed to rename passkey' },
       });
     }
   });
@@ -3840,7 +3861,7 @@ export default async function authRoutes(app: FastifyInstance) {
       const totpSecret = new OTPAuth.Secret({ size: 20 });
 
       const totp = new OTPAuth.TOTP({
-        issuer: 'Methereum',
+        issuer: 'Metherium',
         label: user.email,
         algorithm: 'SHA1',
         digits: 6,
@@ -3924,7 +3945,7 @@ export default async function authRoutes(app: FastifyInstance) {
       const OTPAuth = await import('otpauth');
       
       const totp = new OTPAuth.TOTP({
-        issuer: 'Methereum',
+        issuer: 'Metherium',
         label: 'user',
         algorithm: 'SHA1',
         digits: 6,
@@ -4052,7 +4073,7 @@ export default async function authRoutes(app: FastifyInstance) {
       // Verify code
       const OTPAuth = await import('otpauth');
       const totp = new OTPAuth.TOTP({
-        issuer: 'Methereum',
+        issuer: 'Metherium',
         label: 'user',
         algorithm: 'SHA1',
         digits: 6,
@@ -4159,7 +4180,7 @@ export default async function authRoutes(app: FastifyInstance) {
       // Verify 2FA code
       const OTPAuth = await import('otpauth');
       const totp = new OTPAuth.TOTP({
-        issuer: 'Methereum',
+        issuer: 'Metherium',
         label: 'user',
         algorithm: 'SHA1',
         digits: 6,
@@ -5399,6 +5420,46 @@ export default async function authRoutes(app: FastifyInstance) {
       return reply.status(500).send({
         success: false,
         error: { code: 'INTERNAL_ERROR', message: 'Failed to add address' },
+      });
+    }
+  });
+
+  // ===============================
+  // WITHDRAWAL ADDRESSES - Update
+  // ===============================
+  app.patch('/withdrawal-addresses/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      if (!(await jwtVerifyWithSession(request, reply))) return;
+      const userId = (request.user?.userId ?? request.user?.id)!;
+      const { id } = request.params as { id: string };
+      const { note, memo, network } = request.body as { note?: string; memo?: string; network?: string };
+
+      const result = await db.query(
+        `UPDATE withdrawal_addresses
+         SET note = COALESCE($3, note),
+             memo = COALESCE($4, memo),
+             network = COALESCE($5, network)
+         WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL
+         RETURNING id, asset, network, note, address, memo, created_at as last_updated`,
+        [id, userId, note ?? null, memo ?? null, network ?? null]
+      );
+
+      if (result.rows.length === 0) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: 'NOT_FOUND', message: 'Address not found' },
+        });
+      }
+
+      return reply.send({
+        success: true,
+        data: { address: result.rows[0] },
+      });
+    } catch (error) {
+      logger.error('Update withdrawal address error', { error: error instanceof Error ? error.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'INTERNAL_ERROR', message: 'Failed to update address' },
       });
     }
   });

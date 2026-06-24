@@ -1,5 +1,5 @@
-import { PageSkeleton } from '@/components/PageSkeleton';
+import { BrandLoading } from '@/components/brand/BrandLoading';
 
 export default function DashboardLoading() {
-  return <PageSkeleton rows={8} />;
+  return <BrandLoading label="Loading dashboard" />;
 }

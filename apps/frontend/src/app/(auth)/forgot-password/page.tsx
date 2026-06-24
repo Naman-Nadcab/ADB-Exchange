@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Loader2, Mail, ArrowLeft } from 'lucide-react';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { ROUTES } from '@/lib/routes';
+import { BrandLogo } from '@/components/brand/BrandLogo';
 
 type Step = 'request' | 'reset';
 
@@ -159,6 +161,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-background via-background to-muted/30">
       <div className="w-full max-w-md">
+        <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} className="mb-8" />
         <Link href="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="w-4 h-4" />
           Back to login

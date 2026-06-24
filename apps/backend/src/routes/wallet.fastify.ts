@@ -13,6 +13,7 @@ import { logger, auditLog } from '../lib/logger.js';
 import { logWithdrawalLifecycle } from '../lib/withdrawal-audit.js';
 import { ChainId } from '../types/index.js';
 import { evaluateAndLogRisk } from '../services/risk-engine.service.js';
+import { getBtcUsdtPrice } from '../services/btc-price.service.js';
 import { getDeviceIdFromRequest, logUserActivity } from '../services/activity-monitor.service.js';
 import { isAddressAllowed } from '../services/withdrawal-whitelist.service.js';
 import { hasActiveCooldown } from '../services/security-cooldown.service.js';
@@ -3292,25 +3293,29 @@ export default async function walletRoutes(app: FastifyInstance) {
       }
       const fundingTotal = toUsd(fundingRowsForTotal).plus(toUsd(spotRowsForTotal)).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN);
       const tradingTotal = toUsd(tradingRows).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN);
-      const btcPrice = new Decimal(82000);
+      const btcPriceLive = await getBtcUsdtPrice();
+      const btcPrice = btcPriceLive && btcPriceLive.gt(0) ? btcPriceLive : null;
+      const toBtcStr = (usd: DecimalInstance) =>
+        btcPrice ? usd.div(btcPrice).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN).toString() : '0';
       return reply.send({
         success: true,
         data: {
           funding: {
             type: 'funding',
             totalUsd: fundingTotal.toString(),
-            totalBtc: fundingTotal.div(btcPrice).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN).toString()
+            totalBtc: toBtcStr(fundingTotal),
           },
           trading: {
             type: 'trading',
             totalUsd: tradingTotal.toString(),
-            totalBtc: tradingTotal.div(btcPrice).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN).toString()
+            totalBtc: toBtcStr(tradingTotal),
           },
           total: {
             totalUsd: fundingTotal.plus(tradingTotal).toString(),
-            totalBtc: fundingTotal.plus(tradingTotal).div(btcPrice).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN).toString()
-          }
-        }
+            totalBtc: toBtcStr(fundingTotal.plus(tradingTotal)),
+          },
+          ...(btcPrice ? { btc_usd_price: btcPrice.toString() } : {}),
+        },
       });
     } catch (error) {
       request.log.error(error);
@@ -3332,7 +3337,8 @@ export default async function walletRoutes(app: FastifyInstance) {
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const userId = request.user!.id;
-      const btcPrice = new Decimal(97500);
+      const btcPriceLive = await getBtcUsdtPrice();
+      const btcPrice = btcPriceLive && btcPriceLive.gt(0) ? btcPriceLive : null;
       const priceMap: Record<string, string> = { 'USDT': '1', 'USDC': '1' };
 
       // Repair: apply balance for completed deposits that were never applied (atomic per deposit, no double-credit)
@@ -3456,7 +3462,9 @@ export default async function walletRoutes(app: FastifyInstance) {
           total_balance: total.toString(),
           available_balance: agg.available.toString(),
           locked_balance: agg.locked.toString(),
-          btc_value: usdValue.div(btcPrice).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN).toString(),
+          btc_value: btcPrice
+            ? usdValue.div(btcPrice).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN).toString()
+            : '0',
           usd_value: usdValue.toDecimalPlaces(2, ROUND_DOWN).toString()
         };
       });
@@ -3484,14 +3492,18 @@ export default async function walletRoutes(app: FastifyInstance) {
         return sum.plus(new Decimal(b.locked_balance).times(price)).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN);
       }, new Decimal(0));
 
+      const btcEquity = (usd: DecimalInstance) =>
+        btcPrice ? usd.div(btcPrice).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN).toString() : '0';
+
       return reply.send({
         success: true,
         data: {
           balances,
-          totalEquity: { usd: totalUsd.toString(), btc: totalUsd.div(btcPrice).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN).toString() },
-          availableBalance: { usd: availableUsd.toString(), btc: availableUsd.div(btcPrice).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN).toString() },
-          inUse: { usd: lockedUsd.toString(), btc: lockedUsd.div(btcPrice).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN).toString() }
-        }
+          totalEquity: { usd: totalUsd.toString(), btc: btcEquity(totalUsd) },
+          availableBalance: { usd: availableUsd.toString(), btc: btcEquity(availableUsd) },
+          inUse: { usd: lockedUsd.toString(), btc: btcEquity(lockedUsd) },
+          ...(btcPrice ? { btc_usd_price: btcPrice.toString() } : {}),
+        },
       });
     } catch (error) {
       logger.error('Failed to get funding balances', {

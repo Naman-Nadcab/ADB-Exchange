@@ -24,6 +24,7 @@ const INTERVALS: { interval: string; intervalMs: number }[] = [
   { interval: '1m', intervalMs: 60 * 1000 },
   { interval: '5m', intervalMs: 5 * 60 * 1000 },
   { interval: '15m', intervalMs: 15 * 60 * 1000 },
+  { interval: '30m', intervalMs: 30 * 60 * 1000 },
   { interval: '1h', intervalMs: 60 * 60 * 1000 },
   { interval: '4h', intervalMs: 4 * 60 * 60 * 1000 },
   { interval: '1d', intervalMs: 24 * 60 * 60 * 1000 },

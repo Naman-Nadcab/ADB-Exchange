@@ -34,6 +34,8 @@ import {
 import { broadcastPublicSpotFeeds } from '../services/spot-live-ws-fanout.service.js';
 import { addLiquidity, removeLiquidity, snapshotTop } from '../services/spot-in-memory-orderbook.service.js';
 import { getMarketsCached, invalidateMarketsCache } from '../services/spot-markets-cache.service.js';
+import { getMarketIntelligence } from '../services/market-intelligence.service.js';
+import { computeOrderbookDepthPct } from '../services/orderbook-depth.service.js';
 import { resolveSpotLastPrice } from '../lib/spot-ticker-price-resolve.js';
 import { markCircuitTripped } from '../services/spot-circuit-auto-recover.service.js';
 import { ensureMemoryBookHydrated } from '../services/spot-memory-hydrate.service.js';
@@ -429,6 +431,25 @@ export default async function spotRoutes(app: FastifyInstance) {
       }
       logger.error('Spot markets failed', { error: error instanceof Error ? error.message : 'Unknown' });
       return reply.status(500).send({ success: false, error: { code: 'FETCH_FAILED', message: 'Failed to fetch markets' } });
+    }
+  });
+
+  // GET /spot/markets/intelligence — real 7d change, market cap, liquidity, sentiment (public)
+  app.get('/markets/intelligence', async (_request, reply) => {
+    try {
+      const markets = (await getMarketsCached()) as Array<{ symbol?: string; base_asset?: string }>;
+      const symbols = markets
+        .filter((m) => m.symbol && m.base_asset)
+        .map((m) => ({ symbol: String(m.symbol), asset: String(m.base_asset) }));
+      const data = await getMarketIntelligence(symbols);
+      reply.header('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
+      return reply.send({ success: true, data });
+    } catch (error) {
+      logger.error('markets/intelligence failed', { error: error instanceof Error ? error.message : String(error) });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to fetch market intelligence' },
+      });
     }
   });
 
@@ -972,7 +993,8 @@ export default async function spotRoutes(app: FastifyInstance) {
         12_000,
         `GET /spot/orderbook/${symbol}`
       );
-      const safeData = sanitizeOrderbookPayload(data);
+      const depth_pct = computeOrderbookDepthPct(data, 4);
+      const safeData = { ...sanitizeOrderbookPayload(data), depth_pct };
       orderbookLastGoodSnapshot.set(symbol, { generatedAt: Date.now(), payload: safeData });
       return reply.send({ success: true, data: safeData });
     } catch (error) {

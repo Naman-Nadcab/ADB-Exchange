@@ -20,7 +20,7 @@ export class EmailService {
     this.smtpPort = parseInt(process.env.SMTP_PORT || '587');
     this.smtpUser = process.env.SMTP_USER || '';
     this.smtpPass = process.env.SMTP_PASS || '';
-    this.fromEmail = process.env.FROM_EMAIL || 'noreply@methereum.com';
+    this.fromEmail = process.env.FROM_EMAIL || 'noreply@metherium.com';
   }
 
   async sendDepositDetectedEmail(userId: string, data: {
@@ -67,7 +67,7 @@ export class EmailService {
     </div>
     <div class="content">
       <p>Hi ${userName},</p>
-      <p>We've detected a deposit to your Methereum account!</p>
+      <p>We've detected a deposit to your Metherium account!</p>
       
       <div class="amount-box">
         <div class="amount">${data.amount}</div>
@@ -95,8 +95,8 @@ export class EmailService {
       ${data.explorerUrl ? `<a href="${data.explorerUrl}" class="btn">View on Explorer</a>` : ''}
     </div>
     <div class="footer">
-      <p>This is an automated notification from Methereum.</p>
-      <p>© 2026 Methereum. All rights reserved.</p>
+      <p>This is an automated notification from Metherium.</p>
+      <p>© 2026 Metherium. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -182,11 +182,11 @@ export class EmailService {
         Your funds are now available in your Funding Account. You can now trade, transfer, or withdraw them.
       </p>
       
-      <a href="https://methereum.com/dashboard/assets/funding" class="btn">View Balance</a>
+      <a href="https://metherium.com/dashboard/assets/funding" class="btn">View Balance</a>
     </div>
     <div class="footer">
-      <p>This is an automated notification from Methereum.</p>
-      <p>© 2026 Methereum. All rights reserved.</p>
+      <p>This is an automated notification from Metherium.</p>
+      <p>© 2026 Metherium. All rights reserved.</p>
     </div>
   </div>
 </body>

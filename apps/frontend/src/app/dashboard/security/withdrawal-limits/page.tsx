@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuthStore } from '@/store/auth';
 import { ChevronRight, Loader2, X, CheckSquare, Square } from 'lucide-react';
 import { SkeletonCard } from '@/components/ui/Skeleton';
@@ -391,7 +392,11 @@ export default function WithdrawalLimitsPage() {
                   </button>
                 </div>
                 <div>
-                  <button className="text-primary hover:text-primary/85 text-sm">
+                  <button
+                    type="button"
+                    onClick={() => router.push('/dashboard/support')}
+                    className="text-primary hover:text-primary/85 text-sm"
+                  >
                     Apply for VIP
                   </button>
                 </div>
@@ -403,7 +408,11 @@ export default function WithdrawalLimitsPage() {
               </p>
 
               {/* View More Link */}
-              <button className="text-primary hover:text-primary/85 text-sm flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => router.push('/dashboard/help')}
+                className="text-primary hover:text-primary/85 text-sm flex items-center gap-1"
+              >
                 View More
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -510,9 +519,9 @@ export default function WithdrawalLimitsPage() {
 
               {/* Help Link */}
               <div className="text-center">
-                <button className="text-primary hover:text-primary/85 text-sm">
+                <Link href="/dashboard/support" className="text-primary hover:text-primary/85 text-sm">
                   Having problems with verification?
-                </button>
+                </Link>
               </div>
             </div>
           </div>

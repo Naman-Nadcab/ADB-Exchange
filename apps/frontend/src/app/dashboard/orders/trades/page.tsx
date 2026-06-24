@@ -68,6 +68,7 @@ export default function TradeHistoryPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [pairFilter, setPairFilter] = useState('');
   const [sideFilter, setSideFilter] = useState<'' | 'buy' | 'sell'>('');
@@ -78,6 +79,7 @@ export default function TradeHistoryPage() {
     async (nextPage: number, append: boolean) => {
       if (!accessToken) return;
       append ? setLoadingMore(true) : setLoading(true);
+      if (!append) setFetchError(null);
       try {
         const market = normalizeMarketFilter(pairFilter);
         const baseQs = new URLSearchParams({ limit: '50', page: String(nextPage) });
@@ -86,6 +88,16 @@ export default function TradeHistoryPage() {
         let raw: unknown = await api.get<unknown>(`/api/v1/spot/trade-history?${baseQs}`, { notifyOnError: false });
         if (!(raw as { success?: boolean }).success) {
           raw = await api.get<unknown>(`/api/v1/spot/trades?${baseQs}`, { notifyOnError: false });
+        }
+        const parsed = raw as { success?: boolean; error?: { message?: string } };
+        if (!parsed.success) {
+          if (!append) {
+            setTrades([]);
+            setTotalPages(1);
+            setPage(1);
+            setFetchError(parsed.error?.message || 'Failed to load trade history');
+          }
+          return;
         }
         const { trades: rows, pagination } = parseTradesResponse(raw);
 
@@ -102,6 +114,7 @@ export default function TradeHistoryPage() {
           setTrades([]);
           setTotalPages(1);
           setPage(1);
+          setFetchError('Network error while loading trade history');
         }
       } finally {
         append ? setLoadingMore(false) : setLoading(false);
@@ -197,6 +210,13 @@ export default function TradeHistoryPage() {
           </button>
         </div>
       </div>
+
+      {fetchError && (
+        <div className="mb-4 rounded-lg border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3 flex items-center justify-between text-sm">
+          <span className="text-amber-800 dark:text-amber-200">{fetchError}</span>
+          <button type="button" onClick={() => void fetchPage(1, false)} className="text-primary hover:underline">Retry</button>
+        </div>
+      )}
 
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="px-4 py-2.5 border-b border-border flex flex-wrap items-center gap-3">

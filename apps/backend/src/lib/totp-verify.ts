@@ -31,7 +31,7 @@ export async function verifyUser2FA(userId: string, code: string): Promise<boole
     decryptedSecret += decipher.final('utf8');
     const OTPAuth = await import('otpauth');
     const totp = new OTPAuth.TOTP({
-      issuer: 'Exchange',
+      issuer: 'Metherium',
       label: 'user',
       algorithm: 'SHA1',
       digits: 6,

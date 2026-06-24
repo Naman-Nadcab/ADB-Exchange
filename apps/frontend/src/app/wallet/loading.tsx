@@ -1,5 +1,5 @@
-import { PageSkeleton } from '@/components/PageSkeleton';
+import { BrandLoading } from '@/components/brand/BrandLoading';
 
 export default function WalletLoading() {
-  return <PageSkeleton rows={6} />;
+  return <BrandLoading label="Loading wallet" />;
 }

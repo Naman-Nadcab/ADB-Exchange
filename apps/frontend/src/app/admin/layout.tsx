@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Admin Panel - CryptoExchange',
-  description: 'CryptoExchange Admin Dashboard',
+  title: 'Metherium Admin',
+  description: 'Metherium Exchange Admin Dashboard',
 };
 
 export default function AdminRootLayout({

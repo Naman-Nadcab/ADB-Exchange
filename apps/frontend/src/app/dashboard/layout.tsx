@@ -37,6 +37,7 @@ import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { useBalancesSummary, useBalancesByAccount } from '@/lib/balances';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { UserRouteWarmup } from '@/components/performance/UserRouteWarmup';
+import { BrandLogo } from '@/components/brand/BrandLogo';
 import { SPOT_TRADE_HREF } from '@/lib/tier1-canonical-routes';
 import {
   MARKETS_HREF,
@@ -92,7 +93,7 @@ function isNavItemActive(pathname: string | null, href: string): boolean {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, accessToken, _hasHydrated } = useAuthStore();
+  const { user, accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
   const { setUnauthenticated } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -107,8 +108,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [kycLoading, setKycLoading] = useState(true);
   const [kycBannerDismissed, setKycBannerDismissed] = useState(false);
 
-  const { data: balanceSummary } = useBalancesSummary(!!_hasHydrated && !!accessToken);
-  const { data: balancesByAccount } = useBalancesByAccount(!!_hasHydrated && !!accessToken);
+  const { data: balanceSummary } = useBalancesSummary(!!_hasHydrated && isAuthenticated);
+  const { data: balancesByAccount } = useBalancesByAccount(!!_hasHydrated && isAuthenticated);
   const totalEquityUsd = (balanceSummary?.fundingBalance?.totalUsd ?? 0) + (balanceSummary?.tradingBalance?.totalUsd ?? 0);
   const totalEquityBtc = (balanceSummary?.fundingBalance?.totalBtc ?? 0) + (balanceSummary?.tradingBalance?.totalBtc ?? 0);
   const previewBalances = Array.isArray(balancesByAccount) ? balancesByAccount.slice(0, 6) : [];
@@ -119,7 +120,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, []);
 
   useEffect(() => {
-    if (!_hasHydrated || !accessToken) {
+    if (!_hasHydrated || !isAuthenticated) {
       setKycVerified(false);
       setKycLoading(false);
       return;
@@ -127,7 +128,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     (async () => {
       setKycLoading(true);
       try {
-        const res = await fetch(`${getApiBaseUrl()}/api/v1/wallet/kyc-status`, { headers: { Authorization: `Bearer ${accessToken}` } });
+        const res = await fetch(`${getApiBaseUrl()}/api/v1/wallet/kyc-status`, {
+          credentials: 'include',
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        });
         if (res.ok) {
           const data = await res.json();
           if (data.success) setKycVerified(Boolean(data.data.verified));
@@ -136,16 +140,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         setKycVerified(false);
       } finally { setKycLoading(false); }
     })();
-  }, [_hasHydrated, accessToken]);
+  }, [_hasHydrated, isAuthenticated, accessToken]);
 
   const toggleDropdown = (name: string) => setActiveDropdown((d) => (d === name ? null : name));
 
   const fetchNotifications = async () => {
-    if (!accessToken) return;
+    if (!isAuthenticated) return;
     setNotificationsLoading(true);
     setNotificationsError(null);
     try {
-      const res = await fetch(`${getApiBaseUrl()}/api/v1/user/notifications?limit=20`, { headers: { Authorization: `Bearer ${accessToken}` } });
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/user/notifications?limit=20`, {
+        credentials: 'include',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      });
       if (!res.ok) {
         throw new Error(`Notifications request failed (${res.status})`);
       }
@@ -165,10 +172,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const markAllRead = async () => {
-    if (!accessToken) return;
+    if (!isAuthenticated) return;
     setMarkingNotificationsRead(true);
     try {
-      const res = await fetch(`${getApiBaseUrl()}/api/v1/user/notifications/read-all`, { method: 'POST', headers: { Authorization: `Bearer ${accessToken}` } });
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/user/notifications/read-all`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      });
       if (!res.ok) {
         throw new Error(`Mark read failed (${res.status})`);
       }
@@ -268,12 +279,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
 
-              <Link href={ROUTES.home} prefetch className="flex items-center gap-2">
-                <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-sm">M</span>
-                </div>
-                <span className="text-lg font-bold text-foreground hidden sm:block">Methereum</span>
-              </Link>
+              <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} />
 
               <nav className="hidden lg:flex items-center gap-1" aria-label="Primary">
                 {navItems.map((item) => {

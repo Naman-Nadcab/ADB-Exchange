@@ -682,9 +682,9 @@ export default function PasskeysPage() {
                 </div>
               </div>
 
-              <p className="text-center text-sm text-primary hover:underline cursor-pointer mb-6">
+              <Link href="/dashboard/support" className="text-center text-sm text-primary hover:underline cursor-pointer mb-6 block">
                 Having problems with verification?
-              </p>
+              </Link>
 
               <button
                 onClick={verify2faAndCreatePasskey}
@@ -873,9 +873,9 @@ export default function PasskeysPage() {
                 )}
               </button>
 
-              <p className="text-center text-sm text-primary hover:underline cursor-pointer mt-4">
+              <Link href="/dashboard/support" className="text-center text-sm text-primary hover:underline cursor-pointer mt-4 block">
                 Having problems with verification?
-              </p>
+              </Link>
             </div>
           </div>
         </div>

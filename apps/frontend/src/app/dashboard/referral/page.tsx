@@ -48,7 +48,7 @@ interface ReferralStats {
 }
 
 export default function ReferralProgramPage() {
-  const { user, accessToken, _hasHydrated } = useAuthStore();
+  const { user, accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [activeCard, setActiveCard] = useState<ActiveCard>('earnings');
@@ -59,20 +59,48 @@ export default function ReferralProgramPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<ReferralStats | null>(null);
+  const [analytics, setAnalytics] = useState<{
+    dailyEarnings: Array<{ date: string; amount: number; currency: string }>;
+    funnel: { signups: number; verified_users: number; active_traders: number; link_clicks: number };
+  } | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [leaderboard, setLeaderboard] = useState<Array<{ rank: number; user: string; totalEarnings: number }>>([]);
   
   const apiUrl = getApiBaseUrl();
   const appOrigin = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
 
   const fetchReferralData = useCallback(async () => {
-    if (!_hasHydrated || !accessToken) return;
+    if (!_hasHydrated || !isAuthenticated) return;
     setFetchError(null);
     setLoading(true);
     try {
-      const response = await fetch(`${apiUrl}/api/v1/user/referrals`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
+      const [response, analyticsRes, leaderboardRes] = await Promise.all([
+        fetch(`${apiUrl}/api/v1/user/referrals`, {
+          credentials: 'include',
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }),
+        fetch(`${apiUrl}/api/v1/user/referrals/analytics?days=30`, {
+          credentials: 'include',
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }),
+        fetch(`${apiUrl}/api/v1/user/referrals/leaderboard?limit=20`, {
+          credentials: 'include',
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }),
+      ]);
       const result = await response.json();
+      const analyticsJson = await analyticsRes.json();
+      const leaderboardJson = await leaderboardRes.json();
+
+      if (leaderboardJson.success && leaderboardJson.data?.entries) {
+        setLeaderboard(leaderboardJson.data.entries);
+      } else {
+        setLeaderboard([]);
+      }
+
+      if (analyticsJson.success && analyticsJson.data) {
+        setAnalytics(analyticsJson.data);
+      }
 
       if (result.success && result.data) {
         const refCode = result.data.referralCode;
@@ -99,7 +127,7 @@ export default function ReferralProgramPage() {
     } finally {
       setLoading(false);
     }
-  }, [_hasHydrated, accessToken, apiUrl, user?.id]);
+  }, [_hasHydrated, isAuthenticated, accessToken, apiUrl, user?.id]);
 
   // Fetch referral data from user referrals API (same data admin can monitor)
   useEffect(() => {
@@ -399,24 +427,25 @@ export default function ReferralProgramPage() {
           <p className="text-muted-foreground text-sm mb-6">Track referral performance and conversion</p>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <ReferralEarningsChart
-              data={stats ? [
-                { date: new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10), earnings: 0 },
-                { date: new Date(Date.now() - 5 * 86400000).toISOString().slice(0, 10), earnings: Math.round(stats.totalEarnings * 0.05 * 100) / 100 },
-                { date: new Date(Date.now() - 4 * 86400000).toISOString().slice(0, 10), earnings: Math.round(stats.totalEarnings * 0.15 * 100) / 100 },
-                { date: new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10), earnings: Math.round(stats.totalEarnings * 0.25 * 100) / 100 },
-                { date: new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10), earnings: Math.round(stats.totalEarnings * 0.45 * 100) / 100 },
-                { date: new Date(Date.now() - 86400000).toISOString().slice(0, 10), earnings: Math.round(stats.totalEarnings * 0.7 * 100) / 100 },
-                { date: new Date().toISOString().slice(0, 10), earnings: stats.totalEarnings },
-              ] : undefined}
+              data={analytics?.dailyEarnings?.map((d) => ({
+                date: d.date,
+                earnings: d.amount,
+              }))}
               loading={loading}
             />
             <ReferralFunnel
-              metrics={stats ? { linkClicks: 0, signups: stats.totalReferrals, verifiedUsers: stats.totalReferrals, activeTraders: 0, revenue: stats.totalEarnings } : undefined}
+              metrics={analytics?.funnel ? {
+                linkClicks: analytics.funnel.link_clicks,
+                signups: analytics.funnel.signups,
+                verifiedUsers: analytics.funnel.verified_users,
+                activeTraders: analytics.funnel.active_traders,
+                revenue: stats?.totalEarnings ?? 0,
+              } : undefined}
               loading={loading}
             />
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <ReferralLeaderboard entries={[]} loading={loading} />
+            <ReferralLeaderboard entries={leaderboard} loading={loading} />
             <ReferralBannerGenerator referralCode={referralCode} referralLink={referralLink} />
           </div>
         </div>
@@ -473,9 +502,9 @@ export default function ReferralProgramPage() {
                 </div>
               </div>
               
-              <button className="mt-4 text-sm text-blue-200 hover:text-white flex items-center gap-1">
+              <Link href="/dashboard/help" className="mt-4 text-sm text-blue-200 hover:text-white flex items-center gap-1">
                 Learn more <ArrowRight className="w-4 h-4" />
-              </button>
+              </Link>
             </div>
 
             {/* Tiered Commissions Card */}

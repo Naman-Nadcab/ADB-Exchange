@@ -39,7 +39,7 @@ export default function TermsOfServicePage() {
                 1. Acceptance of Terms
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                By accessing or using the Exchange platform ("Platform"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, please do not use the Platform. These Terms constitute a legally binding agreement between you and Exchange.
+                By accessing or using the Metherium platform ("Platform"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, please do not use the Platform. These Terms constitute a legally binding agreement between you and Metherium.
               </p>
             </section>
 
@@ -81,7 +81,7 @@ export default function TermsOfServicePage() {
                 4. Platform Services
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                Exchange provides the following services:
+                Metherium provides the following services:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
                 <li><strong>Spot Trading:</strong> Buy and sell cryptocurrencies at current market prices</li>
@@ -113,7 +113,7 @@ export default function TermsOfServicePage() {
                 6. Fees and Payments
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                Exchange charges fees for certain services, including trading fees, withdrawal fees, and other applicable charges. All fees are clearly displayed before you confirm any transaction. We reserve the right to modify our fee structure with advance notice to users. You are responsible for any taxes applicable to your transactions.
+                Metherium charges fees for certain services, including trading fees, withdrawal fees, and other applicable charges. All fees are clearly displayed before you confirm any transaction. We reserve the right to modify our fee structure with advance notice to users. You are responsible for any taxes applicable to your transactions.
               </p>
             </section>
 
@@ -152,7 +152,7 @@ export default function TermsOfServicePage() {
                 9. Limitation of Liability
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                To the maximum extent permitted by law, Exchange shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or other intangible losses, resulting from your use of or inability to use the Platform.
+                To the maximum extent permitted by law, Metherium shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or other intangible losses, resulting from your use of or inability to use the Platform.
               </p>
             </section>
 
@@ -161,7 +161,7 @@ export default function TermsOfServicePage() {
                 10. Intellectual Property
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                All content on the Platform, including but not limited to text, graphics, logos, images, and software, is the property of Exchange or its licensors and is protected by intellectual property laws. You may not reproduce, distribute, or create derivative works without our prior written consent.
+                All content on the Platform, including but not limited to text, graphics, logos, images, and software, is the property of Metherium or its licensors and is protected by intellectual property laws. You may not reproduce, distribute, or create derivative works without our prior written consent.
               </p>
             </section>
 
@@ -179,7 +179,7 @@ export default function TermsOfServicePage() {
                 12. Governing Law
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which Exchange is incorporated, without regard to its conflict of law provisions.
+                These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which Metherium is incorporated, without regard to its conflict of law provisions.
               </p>
             </section>
 
@@ -201,10 +201,10 @@ export default function TermsOfServicePage() {
               </p>
               <div className="mt-4 p-4 bg-muted rounded-xl">
                 <p className="text-muted-foreground">
-                  Email: <a href="mailto:legal@exchange.com" className="text-primary hover:underline">legal@exchange.com</a>
+                  Email: <a href="mailto:legal@metherium.com" className="text-primary hover:underline">legal@metherium.com</a>
                 </p>
                 <p className="text-muted-foreground mt-2">
-                  Support: <a href="mailto:support@exchange.com" className="text-primary hover:underline">support@exchange.com</a>
+                  Support: <a href="mailto:support@metherium.com" className="text-primary hover:underline">support@metherium.com</a>
                 </p>
               </div>
             </section>

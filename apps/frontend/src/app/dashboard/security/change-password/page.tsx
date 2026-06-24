@@ -158,7 +158,7 @@ export default function ChangePasswordPage() {
           <div className="flex gap-3 p-4 mb-6 rounded-lg border border-border bg-muted">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             <p className="text-sm text-foreground">
-              For account security, please be aware that after changing your password, on-chain withdrawals, internal transfers, fiat withdrawals, Methereum Card transactions, P2P Trading, and advertising will be suspended for 24 hours.
+              For account security, please be aware that after changing your password, on-chain withdrawals, internal transfers, fiat withdrawals, Metherium Card transactions, P2P Trading, and advertising will be suspended for 24 hours.
             </p>
           </div>
 

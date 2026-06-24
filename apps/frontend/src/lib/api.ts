@@ -7,6 +7,7 @@
 import { useAuthStore } from '@/store/auth';
 import { notifyError } from './notifyError';
 import { getApiBaseUrl } from './getApiUrl';
+import { COOKIE_SESSION_MARKER, isCookieSessionMarker } from './authSession';
 
 interface ApiResponse<T = unknown> {
   success: boolean;
@@ -30,6 +31,7 @@ interface RequestOptions extends Omit<RequestInit, 'body'> {
  */
 function getAccessToken(): string | null {
   const storeToken = useAuthStore.getState().accessToken;
+  if (isCookieSessionMarker(storeToken)) return null;
   if (storeToken) return storeToken;
   if (typeof window === 'undefined') return null;
   try {
@@ -37,6 +39,7 @@ function getAccessToken(): string | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as { state?: { accessToken?: string | null } };
     const token = parsed?.state?.accessToken;
+    if (isCookieSessionMarker(token)) return null;
     return typeof token === 'string' && token.length > 0 ? token : null;
   } catch {
     return null;
@@ -55,27 +58,31 @@ function getRefreshToken(): string | null {
  */
 async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = getRefreshToken();
-  if (!refreshToken) return null;
+  const useCookieOnly = isCookieSessionMarker(refreshToken) || !refreshToken;
 
   try {
     const apiUrl = getApiBaseUrl();
     const response = await fetch(`${apiUrl}/api/v1/auth/refresh`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ refreshToken }),
+      body: useCookieOnly ? undefined : JSON.stringify({ refreshToken }),
     });
 
     if (response.ok) {
       const data = await response.json();
       if (data.success && data.data?.accessToken) {
-        // Update tokens in store
         useAuthStore.getState().setTokens(
           data.data.accessToken,
-          data.data.refreshToken || refreshToken
+          data.data.refreshToken || refreshToken || COOKIE_SESSION_MARKER
         );
         return data.data.accessToken;
+      }
+      if (data.success) {
+        useAuthStore.getState().setTokens(COOKIE_SESSION_MARKER, COOKIE_SESSION_MARKER);
+        return COOKIE_SESSION_MARKER;
       }
     }
     // Only treat definitive auth failure (4xx) as session invalid; do not logout on 5xx/network.
@@ -105,22 +112,24 @@ export async function apiRequest<T = unknown>(
     ...(fetchOptions.headers as Record<string, string>),
   };
 
-  // Add auth token if not skipped
+  // Add auth token if not skipped (httpOnly cookie session uses credentials only)
   if (!skipAuth) {
     const token = getAccessToken();
-    if (!token) {
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    } else if (!useAuthStore.getState().isAuthenticated && !isCookieSessionMarker(useAuthStore.getState().accessToken)) {
       const err = { code: 'UNAUTHORIZED', message: 'Please log in' };
       if (notifyOnError && typeof window !== 'undefined') {
         notifyError(err.message);
       }
       return { success: false, error: err } as ApiResponse<T>;
     }
-    headers['Authorization'] = `Bearer ${token}`;
   }
 
   // Build fetch options
   const config: RequestInit = {
     ...fetchOptions,
+    credentials: 'include',
     headers,
   };
 
@@ -138,9 +147,13 @@ export async function apiRequest<T = unknown>(
     if (response.status === 401 && !skipAuth) {
       const newToken = await refreshAccessToken();
       if (newToken) {
-        // Retry with new token
-        headers['Authorization'] = `Bearer ${newToken}`;
-        config.headers = headers;
+        if (!isCookieSessionMarker(newToken)) {
+          headers['Authorization'] = `Bearer ${newToken}`;
+          config.headers = headers;
+        } else {
+          delete (headers as Record<string, string>)['Authorization'];
+          config.headers = headers;
+        }
         response = await fetch(url, config);
       }
     }

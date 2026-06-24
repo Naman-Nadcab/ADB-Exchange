@@ -22,9 +22,10 @@ export interface BalancesSummaryResult {
 }
 
 async function fetchBalancesSummary(): Promise<BalancesSummaryResult> {
-  const data = await api.get<{ funding?: { totalUsd?: string }; trading?: { totalUsd?: string } }>(
-    '/api/v1/wallet/balances/summary'
-  );
+  const data = await api.get<{
+    funding?: { totalUsd?: string; totalBtc?: string };
+    trading?: { totalUsd?: string; totalBtc?: string };
+  }>('/api/v1/wallet/balances/summary');
   if (!data.success) {
     const msg = data.error?.message || data.error?.code || 'Could not load balance.';
     return {
@@ -36,13 +37,15 @@ async function fetchBalancesSummary(): Promise<BalancesSummaryResult> {
       lastUpdated: '',
     };
   }
-  const funding = data.data?.funding ?? { totalUsd: '0' };
-  const trading = data.data?.trading ?? { totalUsd: '0' };
+  const funding = data.data?.funding ?? { totalUsd: '0', totalBtc: '0' };
+  const trading = data.data?.trading ?? { totalUsd: '0', totalBtc: '0' };
   const fundingUsd = Number(funding.totalUsd) || 0;
   const tradingUsd = Number(trading.totalUsd) || 0;
+  const fundingBtc = Number(funding.totalBtc) || 0;
+  const tradingBtc = Number(trading.totalBtc) || 0;
   return {
-    fundingBalance: { type: 'funding', totalUsd: fundingUsd, totalBtc: fundingUsd / 82000 },
-    tradingBalance: { type: 'trading', totalUsd: tradingUsd, totalBtc: tradingUsd / 82000 },
+    fundingBalance: { type: 'funding', totalUsd: fundingUsd, totalBtc: fundingBtc },
+    tradingBalance: { type: 'trading', totalUsd: tradingUsd, totalBtc: tradingBtc },
     balanceError: null,
     lastUpdated: new Date().toISOString(),
   };
@@ -141,12 +144,12 @@ export interface ByAccountRow {
 }
 
 async function fetchBalancesByAccount(): Promise<ByAccountRow[]> {
-  const res = await api.get<ByAccountRow[]>('/api/v1/wallet/balances/by-account');
+  const res = await api.get<ByAccountRow[]>('/api/v1/wallet/balances/by-account', { notifyOnError: false });
   if (res.success && Array.isArray(res.data)) return res.data;
   if (res.error?.code === 'UNAUTHORIZED' || res.error?.code === 'SESSION_INVALID' || res.error?.code === 'INVALID_TOKEN') {
     return [];
   }
-  return [];
+  throw new Error(res.error?.message ?? 'Failed to load balances');
 }
 
 export function useBalancesByAccount(enabled: boolean) {
@@ -263,12 +266,12 @@ export interface TransferTokenRow {
 }
 
 async function fetchTransferBalances(fromAccount: 'funding' | 'trading'): Promise<TransferTokenRow[]> {
-  const res = await api.get<TransferTokenRow[]>(`/api/v1/wallet/transfer/balances?from=${fromAccount}`);
+  const res = await api.get<TransferTokenRow[]>(`/api/v1/wallet/transfer/balances?from=${fromAccount}`, { notifyOnError: false });
   if (res.success && Array.isArray(res.data)) return res.data;
   if (res.error?.code === 'UNAUTHORIZED' || res.error?.code === 'SESSION_INVALID' || res.error?.code === 'INVALID_TOKEN') {
     return [];
   }
-  return [];
+  throw new Error(res.error?.message ?? 'Failed to load transfer balances');
 }
 
 export function useTransferBalances(fromAccount: 'funding' | 'trading', enabled: boolean) {

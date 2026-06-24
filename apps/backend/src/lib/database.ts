@@ -78,10 +78,21 @@ class Database {
     };
   }
 
+  /** Honor ?sslmode=disable in DATABASE_URL; Docker internal postgres has no TLS. */
+  private static resolveSslConfig(
+    url: string,
+    sslRejectUnauthorized: boolean
+  ): false | { rejectUnauthorized: boolean } {
+    if (/[?&]sslmode=disable\b/i.test(url)) return false;
+    if (url.includes('localhost') || url.includes('127.0.0.1')) return false;
+    return { rejectUnauthorized: sslRejectUnauthorized };
+  }
+
   private constructor() {
-    const sslConfig = config.database.url.includes('localhost') || config.database.url.includes('127.0.0.1')
-      ? false
-      : { rejectUnauthorized: config.database.sslRejectUnauthorized };
+    const sslConfig = Database.resolveSslConfig(
+      config.database.url,
+      config.database.sslRejectUnauthorized
+    );
     // Parse connection string to handle IPv6 literals correctly (pg library issue: brackets leak into getaddrinfo).
     const poolConfig = Database.parseConnectionString(config.database.url);
     this.pool = new Pool({
@@ -106,9 +117,10 @@ class Database {
     });
 
     if (config.database.readReplicaUrl) {
-      const readSsl = config.database.readReplicaUrl.includes('localhost') || config.database.readReplicaUrl.includes('127.0.0.1')
-        ? false
-        : { rejectUnauthorized: config.database.sslRejectUnauthorized };
+      const readSsl = Database.resolveSslConfig(
+        config.database.readReplicaUrl,
+        config.database.sslRejectUnauthorized
+      );
       const readCfg = Database.parseConnectionString(config.database.readReplicaUrl);
       this.readPool = new Pool({
         ...readCfg,

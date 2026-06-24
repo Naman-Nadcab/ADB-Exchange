@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuthStore } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { toast } from '@/components/ui/toaster';
@@ -83,6 +84,7 @@ export default function AddressBookPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [addingAddress, setAddingAddress] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
   const [addModalTab, setAddModalTab] = useState<'onchain' | 'internal'>('onchain');
   const [walletAddressType, setWalletAddressType] = useState('regular');
   const [saveAsUniversal, setSaveAsUniversal] = useState(false);
@@ -409,6 +411,32 @@ export default function AddressBookPage() {
 
     setAddingAddress(true);
     try {
+      if (editingAddressId) {
+        const response = await fetch(`${apiUrl}/api/v1/auth/withdrawal-addresses/${editingAddressId}`, {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            note: newAddress.note,
+            memo: newAddress.memo,
+            network: newAddress.network,
+          }),
+        });
+        const result = await response.json();
+        if (result.success) {
+          setShowAddModal(false);
+          resetAddForm();
+          fetchAddresses();
+          toast({ title: 'Updated', description: 'Address updated successfully.' });
+        } else {
+          toast({ title: 'Error', description: result.error?.message || 'Failed to update address', variant: 'destructive' });
+        }
+        return;
+      }
+
       // For mobile, prepend country code to recipient account
       let finalRecipientAccount = newAddress.recipientAccount;
       if (addModalTab === 'internal' && recipientType === 'mobile' && newAddress.recipientAccount) {
@@ -428,6 +456,7 @@ export default function AddressBookPage() {
 
       const response = await fetch(`${apiUrl}/api/v1/auth/withdrawal-addresses`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`
@@ -452,6 +481,7 @@ export default function AddressBookPage() {
   };
 
   const resetAddForm = () => {
+    setEditingAddressId(null);
     setNewAddress({
       asset: '',
       network: '',
@@ -469,6 +499,22 @@ export default function AddressBookPage() {
     setRecipientType('email');
     setSelectedCountryCode('+91');
     setShowCountryDropdown(false);
+  };
+
+  const handleStartEdit = (addr: WithdrawalAddress) => {
+    setEditingAddressId(addr.id);
+    setNewAddress({
+      asset: addr.asset,
+      network: addr.network,
+      address: addr.address,
+      note: addr.note || '',
+      memo: addr.memo || '',
+      type: 'onchain',
+      recipientAccount: '',
+      walletType: 'regular',
+    });
+    setAddModalTab('onchain');
+    setShowAddModal(true);
   };
 
   const handleDeleteAddress = async (id: string) => {
@@ -837,7 +883,13 @@ export default function AddressBookPage() {
                     <td className="py-4 px-6 text-muted-foreground text-sm">{formatDate(addr.last_updated)}</td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <button className="text-primary hover:text-primary/85 text-sm font-medium">Edit</button>
+                        <button
+                          type="button"
+                          onClick={() => handleStartEdit(addr)}
+                          className="text-primary hover:text-primary/85 text-sm font-medium"
+                        >
+                          Edit
+                        </button>
                         {deleteConfirmId === addr.id ? (
                           <>
                             <button
@@ -952,7 +1004,7 @@ export default function AddressBookPage() {
 
               {/* Help Link */}
               <p className="text-center text-sm text-primary hover:underline cursor-pointer mt-4">
-                Having problems with verification?
+                <Link href="/dashboard/support">Having problems with verification?</Link>
               </p>
             </div>
           </div>
@@ -966,7 +1018,7 @@ export default function AddressBookPage() {
             <div className="p-6">
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-foreground">Add</h2>
+                <h2 className="text-xl font-semibold text-foreground">{editingAddressId ? 'Edit' : 'Add'}</h2>
                 <button 
                   onClick={() => {
                     setShowAddModal(false);
@@ -1260,6 +1312,8 @@ export default function AddressBookPage() {
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Adding...
                   </>
+                ) : editingAddressId ? (
+                  'Save changes'
                 ) : (
                   'Confirm'
                 )}

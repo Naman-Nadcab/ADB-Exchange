@@ -135,13 +135,13 @@ export function useChartAdapter(
       return;
     }
     lastCandlesRef.current = null;
-    adapterRef.current?.setIntervalSeconds(intervalSeconds);
     try {
       adapterRef.current?.setCandles([]);
     } catch {
       /* ignore */
     }
     adapterRef.current?.clearRealtimeState();
+    adapterRef.current?.setIntervalSeconds(intervalSeconds);
     setChartLoading(true);
     setDataError(null);
     setInitError(null);

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '@/store/auth';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Copy,
   Check,
@@ -51,6 +52,7 @@ interface UserProfile {
 }
 
 export default function AccountInfoPage() {
+  const router = useRouter();
   const { user, accessToken, _hasHydrated, updateUser } = useAuthStore();
   const [copiedUID, setCopiedUID] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -358,7 +360,10 @@ export default function AccountInfoPage() {
         )}
         <button
           onClick={action}
+          disabled={!action}
           className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-all ${
+            !action ? 'opacity-50 cursor-not-allowed ' : ''
+          }${
             actionVariant === 'primary'
               ? 'bg-primary hover:bg-primary/85 text-primary-foreground shadow-lg shadow-blue-500/25'
               : actionVariant === 'success'
@@ -423,7 +428,12 @@ export default function AccountInfoPage() {
                     <span className="text-xl font-bold text-foreground">
                       {maskEmail(user?.email || '')}
                     </span>
-                    <button className="p-1.5 hover:bg-accent rounded-lg transition-colors">
+                    <button
+                      type="button"
+                      onClick={() => router.push('/dashboard/security')}
+                      className="p-1.5 hover:bg-accent rounded-lg transition-colors"
+                      aria-label="Change email"
+                    >
                       <Edit3 className="w-4 h-4 text-muted-foreground" />
                     </button>
                   </div>
@@ -546,6 +556,7 @@ export default function AccountInfoPage() {
               description="Connect with top traders and earn rewards"
               actionLabel="Join"
               actionVariant="success"
+              action={() => router.push('/dashboard/referral')}
             />
             <SettingRow
               icon={Shield}

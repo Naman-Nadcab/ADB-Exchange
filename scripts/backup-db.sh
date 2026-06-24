@@ -2,6 +2,8 @@
 # PostgreSQL backup script for Exchange database
 # Usage: ./scripts/backup-db.sh [output_dir]
 # Requires: DATABASE_URL in .env or as env var
+#
+# VPS production (Docker Postgres): use scripts/vps-backup-db.sh instead.
 
 set -e
 OUTPUT_DIR="${1:-./backups}"

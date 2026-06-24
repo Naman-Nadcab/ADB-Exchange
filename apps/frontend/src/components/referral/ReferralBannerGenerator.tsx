@@ -20,7 +20,7 @@ export interface ReferralBannerGeneratorProps {
 export function ReferralBannerGenerator({
   referralCode,
   referralLink,
-  appName = 'Methereum',
+  appName = 'Metherium',
 }: ReferralBannerGeneratorProps) {
   const drawBanner = useCallback(
     (format: BannerFormat) => {

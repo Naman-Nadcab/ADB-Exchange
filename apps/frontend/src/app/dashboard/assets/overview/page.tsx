@@ -547,6 +547,7 @@ export default function AssetsOverviewPage() {
   };
 
   const isLoading = summaryLoading || fundingLoading;
+  const balanceErrorMsg = summary?.balanceError ?? null;
   const mask = (v: string) => (showBalance ? v : '••••••');
   const fmtUsd = (n: number) => formatFromUsdt(n, 2);
   const fmtBtc = (n: number) => n.toFixed(8);
@@ -590,6 +591,15 @@ export default function AssetsOverviewPage() {
             </Link>
           </div>
         </div>
+
+        {balanceErrorMsg ? (
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+            <span>{balanceErrorMsg}</span>
+            <button type="button" onClick={() => void refetchSummary()} className="font-medium text-primary hover:underline">
+              Retry
+            </button>
+          </div>
+        ) : null}
 
         {/* ── Balance Card ── */}
         <div className="mb-8 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">

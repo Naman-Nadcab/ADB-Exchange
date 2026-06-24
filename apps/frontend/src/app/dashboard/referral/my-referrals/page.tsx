@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { BrandLogo } from '@/components/brand/BrandLogo';
 import Link from 'next/link';
 import { MARKETS_HREF } from '@/lib/routes';
 import { useAuthStore } from '@/store/auth';
@@ -544,12 +545,7 @@ export default function MyReferralsPage() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
             {/* Logo and Social */}
             <div className="col-span-2 md:col-span-1">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold">M</span>
-                </div>
-                <span className="text-xl font-bold text-foreground">Methereum</span>
-              </div>
+              <BrandLogo variant="horizontal-white" size="footer" className="mb-4" />
               <div className="flex flex-wrap gap-2">
                 {[
                   { key: 'x', label: '𝕏', href: 'https://twitter.com' },
@@ -573,7 +569,7 @@ export default function MyReferralsPage() {
             <div>
               <h4 className="font-semibold mb-3 text-foreground">About</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/dashboard/help" className="hover:text-foreground">About Methereum</Link></li>
+                <li><Link href="/dashboard/help" className="hover:text-foreground">About Metherium</Link></li>
                 <li><Link href="/dashboard/announcements" className="hover:text-foreground">Announcements</Link></li>
                 <li><Link href="/dashboard/fee-rates" className="hover:text-foreground">Fees & Transactions Overview</Link></li>
               </ul>
@@ -611,7 +607,7 @@ export default function MyReferralsPage() {
 
           {/* Copyright */}
           <div className="pt-6 border-t border-border flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
-            <span>© 2018-2026 Methereum.com. All rights reserved.</span>
+            <span>© 2018-2026 Metherium.com. All rights reserved.</span>
             <Link href="/terms" className="hover:text-foreground">Terms of Service</Link>
             <Link href="/privacy" className="hover:text-foreground">Privacy Terms</Link>
           </div>

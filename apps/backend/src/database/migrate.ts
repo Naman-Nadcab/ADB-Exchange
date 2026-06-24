@@ -121,6 +121,14 @@ const migrations = [
   );`,
   `CREATE INDEX IF NOT EXISTS idx_referral_rel_referrer ON referral_relationships(referrer_id);`,
   `CREATE INDEX IF NOT EXISTS idx_referral_rel_referee ON referral_relationships(referee_id);`,
+  `CREATE TABLE IF NOT EXISTS referral_link_events (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    referrer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    referral_code VARCHAR(32),
+    source VARCHAR(64),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_referral_link_events_referrer ON referral_link_events(referrer_id, created_at DESC);`,
   `CREATE TABLE IF NOT EXISTS referral_commissions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     relationship_id UUID REFERENCES referral_relationships(id),
@@ -161,58 +169,6 @@ const migrations = [
   );`,
   `CREATE INDEX IF NOT EXISTS idx_campaign_code ON referral_campaigns(campaign_code);`,
   `CREATE INDEX IF NOT EXISTS idx_campaign_active ON referral_campaigns(is_active, start_date, end_date);`,
-  // Withdrawal-fee admin (/fees/withdrawal) edits these on `tokens`; they were
-  // missing so the page 500'd. Idempotent add with sane defaults.
-  `ALTER TABLE tokens ADD COLUMN IF NOT EXISTS withdrawal_fee_type VARCHAR(20) DEFAULT 'fixed';`,
-  `ALTER TABLE tokens ADD COLUMN IF NOT EXISTS withdrawal_enabled BOOLEAN DEFAULT TRUE;`,
-  // Currency-management admin (/settings/currencies, quote-assets, p2p-assets)
-  // reads a richer config from `currencies` than the minimal table had, causing
-  // 500s. Add the expected columns idempotently with sane defaults.
-  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS deposit_enabled BOOLEAN DEFAULT TRUE;`,
-  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS withdrawal_enabled BOOLEAN DEFAULT TRUE;`,
-  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS trade_enabled BOOLEAN DEFAULT TRUE;`,
-  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS min_deposit DECIMAL(30,8) DEFAULT 0;`,
-  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS min_withdrawal DECIMAL(30,8) DEFAULT 0;`,
-  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS withdrawal_fee DECIMAL(30,8) DEFAULT 0;`,
-  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS withdrawal_fee_type VARCHAR(20) DEFAULT 'fixed';`,
-  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS display_decimals INT DEFAULT 8;`,
-  // Trading-pair admin orders by sort_order; column was missing (500).
-  `ALTER TABLE trading_pairs ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0;`,
-  // Quote-asset config (/settings/quote-assets) — table never created.
-  `CREATE TABLE IF NOT EXISTS quote_assets (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE CASCADE,
-    display_order INT NOT NULL DEFAULT 0,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    min_price_increment DECIMAL(30,8) NOT NULL DEFAULT 0.00000001,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(currency_id)
-  );`,
-  // P2P-asset config (/settings/p2p-assets) — table never created.
-  `CREATE TABLE IF NOT EXISTS p2p_assets (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE CASCADE,
-    min_amount DECIMAL(30,8) NOT NULL DEFAULT 0,
-    max_amount DECIMAL(30,8) NOT NULL DEFAULT 999999999,
-    price_precision INT NOT NULL DEFAULT 2,
-    amount_precision INT NOT NULL DEFAULT 8,
-    maker_fee DECIMAL(10,6) NOT NULL DEFAULT 0,
-    taker_fee DECIMAL(10,6) NOT NULL DEFAULT 0,
-    display_order INT NOT NULL DEFAULT 0,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(currency_id)
-  );`,
-  // Feature-toggle admin (/settings/features) reads category/feature_name and
-  // extra metadata that the base feature_toggles table lacked (500).
-  `ALTER TABLE feature_toggles ADD COLUMN IF NOT EXISTS category VARCHAR(50) NOT NULL DEFAULT 'general';`,
-  `ALTER TABLE feature_toggles ADD COLUMN IF NOT EXISTS feature_name VARCHAR(150);`,
-  `ALTER TABLE feature_toggles ADD COLUMN IF NOT EXISTS is_critical BOOLEAN NOT NULL DEFAULT FALSE;`,
-  `ALTER TABLE feature_toggles ADD COLUMN IF NOT EXISTS depends_on JSONB DEFAULT '[]'::jsonb;`,
-  `ALTER TABLE feature_toggles ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb;`,
-  `UPDATE feature_toggles SET feature_name = COALESCE(feature_name, name) WHERE feature_name IS NULL;`,
 
   // ============================================
   // AUTH PROVIDERS TABLE
@@ -517,6 +473,10 @@ const migrations = [
     END IF;
   END $$;`,
 
+  // Withdrawal-fee admin (/fees/withdrawal) — after tokens table exists
+  `ALTER TABLE tokens ADD COLUMN IF NOT EXISTS withdrawal_fee_type VARCHAR(20) DEFAULT 'fixed';`,
+  `ALTER TABLE tokens ADD COLUMN IF NOT EXISTS withdrawal_enabled BOOLEAN DEFAULT TRUE;`,
+
   // ============================================
   // USER MASTER KEYS TABLE (for HD wallet derivation)
   // ============================================
@@ -656,6 +616,9 @@ const migrations = [
       CREATE INDEX IF NOT EXISTS idx_trading_pairs_symbol ON trading_pairs(symbol) WHERE is_active = TRUE;
     END IF;
   END $$;`,
+
+  // Trading-pair admin orders by sort_order; column was missing (500).
+  `ALTER TABLE trading_pairs ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0;`,
 
   // ============================================
   // ORDERS TABLE
@@ -917,6 +880,41 @@ const migrations = [
   `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;`,
   /** Required by convert routes (`/market-prices`, `/currencies`) — incremental bootstrap omitted this vs full-schema. */
   `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS logo_url TEXT;`,
+
+  // Currency-management admin (/settings/currencies, quote-assets, p2p-assets)
+  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS deposit_enabled BOOLEAN DEFAULT TRUE;`,
+  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS withdrawal_enabled BOOLEAN DEFAULT TRUE;`,
+  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS trade_enabled BOOLEAN DEFAULT TRUE;`,
+  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS min_deposit DECIMAL(30,8) DEFAULT 0;`,
+  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS min_withdrawal DECIMAL(30,8) DEFAULT 0;`,
+  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS withdrawal_fee DECIMAL(30,8) DEFAULT 0;`,
+  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS withdrawal_fee_type VARCHAR(20) DEFAULT 'fixed';`,
+  `ALTER TABLE currencies ADD COLUMN IF NOT EXISTS display_decimals INT DEFAULT 8;`,
+  `CREATE TABLE IF NOT EXISTS quote_assets (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE CASCADE,
+    display_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    min_price_increment DECIMAL(30,8) NOT NULL DEFAULT 0.00000001,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(currency_id)
+  );`,
+  `CREATE TABLE IF NOT EXISTS p2p_assets (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE CASCADE,
+    min_amount DECIMAL(30,8) NOT NULL DEFAULT 0,
+    max_amount DECIMAL(30,8) NOT NULL DEFAULT 999999999,
+    price_precision INT NOT NULL DEFAULT 2,
+    amount_precision INT NOT NULL DEFAULT 8,
+    maker_fee DECIMAL(10,6) NOT NULL DEFAULT 0,
+    taker_fee DECIMAL(10,6) NOT NULL DEFAULT 0,
+    display_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(currency_id)
+  );`,
 
   // On-chain deposits (indexer + deposit-credit). Must run after currencies + wallets exist.
   `DO $$
@@ -1804,7 +1802,7 @@ const migrations = [
   `INSERT INTO api_settings (category, provider, name, is_active, is_default, additional_config) VALUES ('sms', 'fast2sms', 'Fast2SMS', FALSE, TRUE, '{"sender_id":"INRXPE","message_id":"181649","route":"dlt"}') ON CONFLICT (category, provider) DO NOTHING;`,
   `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('sms', 'twilio', 'Twilio SMS', FALSE, FALSE) ON CONFLICT (category, provider) DO NOTHING;`,
   `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('sms', 'msg91', 'MSG91', FALSE, FALSE) ON CONFLICT (category, provider) DO NOTHING;`,
-  `INSERT INTO api_settings (category, provider, name, is_active, is_default, additional_config) VALUES ('email', 'smtp', 'SMTP Email', FALSE, TRUE, '{"host":"","port":"465","secure":"true","from_email":"noreply@exchange.com","from_name":"CryptoExchange"}') ON CONFLICT (category, provider) DO NOTHING;`,
+  `INSERT INTO api_settings (category, provider, name, is_active, is_default, additional_config) VALUES ('email', 'smtp', 'SMTP Email', FALSE, TRUE, '{"host":"","port":"465","secure":"true","from_email":"noreply@exchange.com","from_name":"Metherium"}') ON CONFLICT (category, provider) DO NOTHING;`,
   `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('email', 'resend', 'Resend', FALSE, FALSE) ON CONFLICT (category, provider) DO NOTHING;`,
   `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('email', 'sendgrid', 'SendGrid', FALSE, FALSE) ON CONFLICT (category, provider) DO NOTHING;`,
   `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('kyc', 'hyperverge', 'HyperVerge', FALSE, TRUE) ON CONFLICT (category, provider) DO NOTHING;`,
@@ -1836,6 +1834,14 @@ const migrations = [
   );`,
 
   `CREATE INDEX IF NOT EXISTS idx_feature_toggles_key ON feature_toggles(feature_key);`,
+
+  // Feature-toggle admin (/settings/features) metadata columns
+  `ALTER TABLE feature_toggles ADD COLUMN IF NOT EXISTS category VARCHAR(50) NOT NULL DEFAULT 'general';`,
+  `ALTER TABLE feature_toggles ADD COLUMN IF NOT EXISTS feature_name VARCHAR(150);`,
+  `ALTER TABLE feature_toggles ADD COLUMN IF NOT EXISTS is_critical BOOLEAN NOT NULL DEFAULT FALSE;`,
+  `ALTER TABLE feature_toggles ADD COLUMN IF NOT EXISTS depends_on JSONB DEFAULT '[]'::jsonb;`,
+  `ALTER TABLE feature_toggles ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb;`,
+  `UPDATE feature_toggles SET feature_name = COALESCE(feature_name, name) WHERE feature_name IS NULL;`,
 
   // Backfill currencies so deposits.currency_id exists (avoids user_balances_currency_id_fkey)
   `DO $$

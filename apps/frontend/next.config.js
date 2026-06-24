@@ -81,8 +81,6 @@ const nextConfig = {
         source: '/api/v1/:path*',
         destination: `${apiBase.replace(/\/$/, '')}/api/v1/:path*`,
       },
-      { source: '/favicon.ico', destination: '/icon.svg' },
-      /* /spot is served by app/spot/page.tsx when present; rewrite applies if no file matches */
       { source: '/spot', destination: '/trade/spot' },
       { source: '/dashboard/trade', destination: '/trade/spot' },
       { source: '/dashboard/trade/spot', destination: '/trade/spot' },
@@ -92,7 +90,7 @@ const nextConfig = {
     /** Keep security headers on HTML routes; omit from Next static/image (same idea as middleware matcher). */
     const rows = [
       {
-        source: '/((?!_next/static|_next/image|favicon.ico|icon.svg).*)',
+        source: '/((?!_next/static|_next/image|favicon.ico|favicon-16x16.png|favicon-32x32.png|apple-touch-icon.png|android-chrome-192x192.png|android-chrome-512x512.png|site.webmanifest|brand/).*)',
         headers: [
           {
             key: 'X-Frame-Options',

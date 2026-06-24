@@ -5,6 +5,8 @@ import { logger } from '../lib/logger.js';
 import { getAllActiveCooldowns } from '../services/security-cooldown.service.js';
 import { getFeeTierDisplay } from '../services/volume-fee-tier.service.js';
 import { claimReferralEarnings, getClaimableReferralEarnings } from '../services/referral-claim.service.js';
+import { getReferralAnalytics } from '../services/referral-analytics.service.js';
+import { getReferralLeaderboard } from '../services/referral-leaderboard.service.js';
 import { saveAvatarFromMultipart, deleteAvatarFile } from '../lib/avatar-storage.js';
 
 export default async function userRoutes(app: FastifyInstance) {
@@ -533,6 +535,87 @@ export default async function userRoutes(app: FastifyInstance) {
       return reply.status(500).send({
         success: false,
         error: { code: 'FETCH_FAILED', message: 'Failed to fetch referral data' },
+      });
+    }
+  });
+
+  /**
+   * GET /user/referrals/analytics
+   * Time-series earnings and funnel stats (no fabricated interpolation).
+   */
+  app.get('/referrals/analytics', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { id: userId } = request.user!;
+      const { days } = request.query as { days?: string };
+      const period = parseInt(String(days ?? '30'), 10) || 30;
+      const analytics = await getReferralAnalytics(userId, period);
+      return reply.send({ success: true, data: analytics });
+    } catch (error) {
+      logger.error('Referral analytics error', { error: error instanceof Error ? error.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to fetch referral analytics' },
+      });
+    }
+  });
+
+  /**
+   * GET /user/referrals/leaderboard
+   * Top referrers by total earnings (masked usernames).
+   */
+  app.get('/referrals/leaderboard', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    try {
+      const { limit } = request.query as { limit?: string };
+      const capped = parseInt(String(limit ?? '20'), 10) || 20;
+      const entries = await getReferralLeaderboard(capped);
+      return reply.send({ success: true, data: { entries } });
+    } catch (error) {
+      logger.error('Referral leaderboard error', { error: error instanceof Error ? error.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to fetch referral leaderboard' },
+      });
+    }
+  });
+
+  /**
+   * POST /user/referrals/track-click
+   * Record referral link click (public — rate limited by IP).
+   */
+  app.post('/referrals/track-click', async (request, reply) => {
+    try {
+      const { code, source } = request.body as { code?: string; source?: string };
+      const referralCode = (code ?? '').trim().toUpperCase();
+      if (!referralCode || referralCode.length > 32) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'INVALID_CODE', message: 'Referral code required' },
+        });
+      }
+      const codeRow = await db.query<{ user_id: string }>(
+        `SELECT user_id FROM referral_codes WHERE UPPER(code) = $1 AND is_active = TRUE LIMIT 1`,
+        [referralCode]
+      );
+      if (codeRow.rows.length === 0) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: 'CODE_NOT_FOUND', message: 'Referral code not found' },
+        });
+      }
+      await db.query(
+        `INSERT INTO referral_link_events (referrer_id, referral_code, source) VALUES ($1, $2, $3)`,
+        [codeRow.rows[0]!.user_id, referralCode, (source ?? 'share').slice(0, 64)]
+      );
+      return reply.send({ success: true, data: { tracked: true } });
+    } catch (error) {
+      logger.error('Referral track-click error', { error: error instanceof Error ? error.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'TRACK_FAILED', message: 'Failed to track referral click' },
       });
     }
   });

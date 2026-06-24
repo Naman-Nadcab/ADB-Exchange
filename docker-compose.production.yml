@@ -161,8 +161,11 @@ services:
         condition: service_healthy
       matching-engine:
         condition: service_healthy
+    ports:
+      # Localhost-only: Prometheus/metrics scrape and emergency curl without exposing via nginx
+      - "127.0.0.1:4000:4000"
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/health/live"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:4000/health/live"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -185,7 +188,7 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -207,7 +210,7 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/admin/login"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3001/login"]
       interval: 30s
       timeout: 10s
       retries: 5

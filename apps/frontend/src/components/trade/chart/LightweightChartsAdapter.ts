@@ -203,7 +203,6 @@ export class LightweightChartsAdapter implements ChartAdapter {
   clearRealtimeState(): void {
     this.lastBar = null;
     this.nextCandleTime = 0;
-    this.intervalSeconds = 60;
     this.lastSeriesTime = this.allCandles.length > 0 ? this.allCandles[this.allCandles.length - 1]!.time : -1;
     try {
       this.series?.setMarkers([]);

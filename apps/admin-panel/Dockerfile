@@ -17,7 +17,7 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
+RUN mkdir -p ./public
 COPY --from=builder /app/node_modules ./node_modules
 USER nextjs
 ENV PORT=3001
@@ -25,5 +25,5 @@ ENV HOSTNAME=0.0.0.0
 ENV NODE_ENV=production
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/ || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3001/login || exit 1
 CMD ["npm", "run", "start"]

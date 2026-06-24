@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ExternalLink, Eye, EyeOff, Fingerprint, Loader2 } from 'lucide-react';
 import { useAuthStore, type User } from '@/store/auth';
+import { COOKIE_SESSION_MARKER } from '@/lib/authSession';
 import { useAuth } from '@/context/AuthContext';
 import { getPasskeyAssertion, isPlatformAuthenticatorAvailable, isWebAuthnSupported } from '@/lib/webauthn';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
@@ -121,6 +122,7 @@ export default function LoginPage() {
     try {
       const res = await fetch(`${API}/api/v1/auth/login/password`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
@@ -130,8 +132,12 @@ export default function LoginPage() {
         setError(errMsg ?? `Login failed (${res.status})`);
         return;
       }
-      if (data?.success && data?.data?.user && data?.data?.accessToken && data?.data?.refreshToken) {
-        completeLogin(data.data.user, data.data.accessToken, data.data.refreshToken);
+      if (data?.success && data?.data?.user) {
+        completeLogin(
+          data.data.user,
+          data.data.accessToken ?? COOKIE_SESSION_MARKER,
+          data.data.refreshToken ?? COOKIE_SESSION_MARKER,
+        );
       } else {
         setError('Login failed');
       }
@@ -200,6 +206,7 @@ export default function LoginPage() {
 
       const verifyRes = await fetch(`${API}/api/v1/auth/passkey/authenticate/verify`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ credential: result.credential, challenge: optData.data.challenge }),
       });
@@ -210,8 +217,8 @@ export default function LoginPage() {
       }
 
       const { user: u, accessToken, refreshToken } = verifyData.data;
-      if (u && accessToken && refreshToken) {
-        completeLogin(u, accessToken, refreshToken);
+      if (u) {
+        completeLogin(u, accessToken ?? COOKIE_SESSION_MARKER, refreshToken ?? COOKIE_SESSION_MARKER);
       }
     } catch (e) {
       setError(err(e));
@@ -226,6 +233,7 @@ export default function LoginPage() {
     try {
       const res = await fetch(`${API}/api/v1/auth/verify-otp`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier, otp: code, type, purpose: 'login' }),
       });
@@ -235,8 +243,12 @@ export default function LoginPage() {
         setError(errMsg ?? `Verification failed (${res.status})`);
         return;
       }
-      if (data?.success && data?.data?.user && data?.data?.accessToken && data?.data?.refreshToken) {
-        completeLogin(data.data.user, data.data.accessToken, data.data.refreshToken);
+      if (data?.success && data?.data?.user) {
+        completeLogin(
+          data.data.user,
+          data.data.accessToken ?? COOKIE_SESSION_MARKER,
+          data.data.refreshToken ?? COOKIE_SESSION_MARKER,
+        );
       } else setError('Verification failed');
     } catch (e) {
       setError(err(e));
@@ -299,7 +311,7 @@ export default function LoginPage() {
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   return (
-    <AuthSplitLayout>
+    <AuthSplitLayout showMarketingLogo>
       {searchParams.get('reset') === 'success' && (
         <div className="p-3 mb-5 rounded-xl bg-primary/10 border border-primary/30 text-foreground text-sm">
           Password reset successful. Log in with your new password.

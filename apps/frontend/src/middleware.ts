@@ -14,6 +14,19 @@ import {
   mapLegacyP2pPathToCanonical,
 } from '@/lib/tier1-shell-routes';
 
+const ACCESS_COOKIE = 'mlive_at';
+
+const PROTECTED_PREFIXES = [
+  '/dashboard',
+  '/wallet',
+  '/orders',
+  '/trade',
+  '/p2p',
+  '/earn',
+];
+
+const AUTH_ROUTES = ['/login', '/signup', '/register', '/forgot-password', '/reset-password'];
+
 /**
  * Canonical redirects are ON by default for Tier-1 URL consistency.
  * Set NEXT_PUBLIC_CANONICAL_ROUTES=false to opt out explicitly.
@@ -37,8 +50,30 @@ const EXACT_REDIRECT_MAP: Map<string, { to: string; note?: string }> = (() => {
   return m;
 })();
 
+function applyAuthGate(request: NextRequest, pathname: string, search: string): NextResponse | null {
+  const sessionCookie = request.cookies.get(ACCESS_COOKIE)?.value;
+  const isProtected = PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const isAuthPage = AUTH_ROUTES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  if (isProtected && !sessionCookie) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.searchParams.set('returnUrl', pathname + search);
+    return NextResponse.redirect(url, 307);
+  }
+  if (isAuthPage && sessionCookie) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/dashboard';
+    url.search = '';
+    return NextResponse.redirect(url, 307);
+  }
+  return null;
+}
+
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+
+  const authRedirect = applyAuthGate(request, pathname, search);
+  if (authRedirect) return authRedirect;
 
   /**
    * Fast-path: if canonical rewrites are disabled AND deprecated logging is
@@ -132,6 +167,6 @@ export function middleware(request: NextRequest) {
  */
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|icon.svg|robots.txt|sitemap.xml).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|favicon-16x16.png|favicon-32x32.png|apple-touch-icon.png|android-chrome-192x192.png|android-chrome-512x512.png|site.webmanifest|brand/|robots.txt|sitemap.xml).*)',
   ],
 };

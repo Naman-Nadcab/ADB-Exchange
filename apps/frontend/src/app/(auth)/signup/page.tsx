@@ -184,7 +184,7 @@ export default function SignupPage() {
   const stepIndex = steps.indexOf(step);
 
   return (
-    <AuthSplitLayout>
+    <AuthSplitLayout showMarketingLogo>
       {/* Step progress */}
       <div className="flex gap-2 mb-6">
         {steps.map((s, i) => (

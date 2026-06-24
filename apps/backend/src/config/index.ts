@@ -306,7 +306,7 @@ const envSchema = z.object({
   ADMIN_BLOCK_LOGIN_NEW_IP: z.string().transform((v) => v === 'true' || v === '1').default('false'),
   /**
    * When set: forces admin 2FA on login (true/false/1/0/yes/no). Unset + NODE_ENV=development → 2FA not required for login.
-   * NODE_ENV=production always enforces 2FA regardless of this value.
+   * Unset + NODE_ENV=production → 2FA required. Explicit false disables login 2FA even in production.
    */
   ADMIN_2FA_MANDATORY: z.string().optional(),
 
@@ -809,15 +809,13 @@ function parseAdmin2faMandatoryEnv(raw: string | undefined): boolean | null {
 
 const admin2faEnv = parseAdmin2faMandatoryEnv(parsed.data.ADMIN_2FA_MANDATORY);
 const admin2faMandatory =
-  parsed.data.NODE_ENV === 'production'
-    ? true
-    : admin2faEnv !== null
-      ? admin2faEnv
-      : parsed.data.NODE_ENV === 'development'
-        ? false
-        : true;
-if (parsed.data.NODE_ENV !== 'production' && !admin2faMandatory) {
-  console.warn('⚠️ WARNING: 2FA DISABLED (DEV MODE ONLY)');
+  admin2faEnv !== null
+    ? admin2faEnv
+    : parsed.data.NODE_ENV === 'development'
+      ? false
+      : true;
+if (!admin2faMandatory) {
+  console.warn(`⚠️ WARNING: Admin login 2FA is DISABLED (ADMIN_2FA_MANDATORY=${parsed.data.ADMIN_2FA_MANDATORY ?? 'unset'})`);
 }
 
 export const config = {
