@@ -20,7 +20,6 @@ const PROTECTED_PREFIXES = [
   '/dashboard',
   '/wallet',
   '/orders',
-  '/trade',
   '/p2p',
   '/earn',
 ];

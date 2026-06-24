@@ -3469,11 +3469,6 @@ export default async function walletRoutes(app: FastifyInstance) {
         };
       });
 
-      if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') {
-        console.log('Funding raw balances:', balances);
-        console.log('Funding byCurrency:', byCurrency);
-      }
-
       balances.sort((a, b) => {
         const aHasBalance = new Decimal(a.total_balance).gt(0);
         const bHasBalance = new Decimal(b.total_balance).gt(0);
@@ -4412,6 +4407,40 @@ export default async function walletRoutes(app: FastifyInstance) {
     }
   });
 
+  // Static deposit sub-routes must register before /deposit/:txHash.
+  app.get('/deposit/tokens', async (_request, reply) => {
+    try {
+      const cacheKey = 'tokens:unique:active';
+      const cached = await redis.getJson<TokenDB[]>(cacheKey).catch(() => null);
+      if (cached) {
+        reply.header('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
+        return { success: true, data: cached };
+      }
+      const result = await db.query<TokenDB>(`
+        SELECT DISTINCT ON (UPPER(t.symbol))
+               t.id, t.symbol,
+               CASE
+                 WHEN t.name LIKE '%(%' THEN SPLIT_PART(t.name, ' (', 1)
+                 ELSE t.name
+               END as name,
+               t.decimals, t.is_active, COALESCE(t.is_native, false) as is_native,
+               LOWER(t.symbol) as icon
+        FROM tokens t
+        WHERE t.is_active = TRUE
+        ORDER BY UPPER(t.symbol), t.name ASC
+      `);
+      await redis.setJson(cacheKey, result.rows, 300).catch(() => {});
+      reply.header('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
+      return { success: true, data: result.rows };
+    } catch (error) {
+      logger.error('Failed to get tokens', { error: error instanceof Error ? error.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch tokens' }
+      });
+    }
+  });
+
   // Get single deposit details with real-time confirmation update
   app.get<{ Params: { txHash: string } }>('/deposit/:txHash', {
     preHandler: [app.authenticate]
@@ -4419,6 +4448,14 @@ export default async function walletRoutes(app: FastifyInstance) {
     try {
       const userId = request.user!.id;
       const { txHash } = request.params;
+      const reserved = new Set(['tokens', 'history', 'address', 'chains']);
+      if (reserved.has(txHash.toLowerCase())) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: 'NOT_FOUND', message: 'Deposit not found' },
+        });
+      }
+
 
       const result = await db.query(`
         SELECT 

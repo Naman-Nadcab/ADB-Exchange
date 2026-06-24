@@ -310,10 +310,24 @@ export default async function authRoutes(app: FastifyInstance) {
         return;
       }
 
-      // Queue OTP for async delivery (RabbitMQ) or direct send fallback; API returns immediately
-      queueOtpSend(type === 'phone' ? 'sms' : 'email', cleanIdentifier, otp).catch((err) =>
-        logger.warn('[send-otp] OTP delivery failed', { error: err instanceof Error ? err.message : String(err), identifier: cleanIdentifier })
-      );
+      // Email: await delivery so SMTP failures surface to the client (signup/login blocker).
+      // SMS: keep async queue/direct path to avoid blocking on carrier latency.
+      if (type === 'email') {
+        const sent = await otpService.sendEmailOTP(cleanIdentifier, otp);
+        if (!sent) {
+          return reply.status(503).send({
+            success: false,
+            error: {
+              code: 'OTP_DELIVERY_FAILED',
+              message: 'Could not send verification email. Please try again in a moment.',
+            },
+          });
+        }
+      } else {
+        queueOtpSend('sms', cleanIdentifier, otp).catch((err) =>
+          logger.warn('[send-otp] OTP delivery failed', { error: err instanceof Error ? err.message : String(err), identifier: cleanIdentifier })
+        );
+      }
 
       if (!reply.sent) {
         return reply.send({

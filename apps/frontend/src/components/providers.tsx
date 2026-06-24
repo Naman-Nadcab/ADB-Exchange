@@ -47,10 +47,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   useEffect(() => {
-    console.log('[Providers] mounted — full provider tree active (fail-open)');
-  }, []);
-
-  useEffect(() => {
     const timer = setTimeout(() => {
       if (!warnedHydration.current && typeof window !== 'undefined') {
         warnedHydration.current = true;

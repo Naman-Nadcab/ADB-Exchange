@@ -3969,6 +3969,15 @@ const migrations = [
      FROM infrastructure_providers
      WHERE provider_name IS NOT NULL
      ON CONFLICT (category, provider) DO NOTHING;`,
+
+  // user_passkeys — soft-delete + WebAuthn metadata (used by auth routes)
+  `ALTER TABLE user_passkeys ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE;`,
+  `ALTER TABLE user_passkeys ADD COLUMN IF NOT EXISTS transports TEXT;`,
+  `ALTER TABLE user_passkeys ADD COLUMN IF NOT EXISTS aaguid VARCHAR(36);`,
+  `ALTER TABLE user_passkeys ADD COLUMN IF NOT EXISTS backup_eligible BOOLEAN DEFAULT FALSE;`,
+  `ALTER TABLE user_passkeys ADD COLUMN IF NOT EXISTS backup_state BOOLEAN DEFAULT FALSE;`,
+  `ALTER TABLE user_passkeys ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`,
+  `CREATE INDEX IF NOT EXISTS idx_user_passkeys_user_alive ON user_passkeys(user_id) WHERE deleted_at IS NULL;`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

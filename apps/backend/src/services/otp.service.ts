@@ -103,7 +103,8 @@ class OTPService {
 
     const emailCtx = await this.getEmailTransporter();
     if (!emailCtx) {
-      return true;
+      logger.error('SMTP not configured; OTP email not sent', { email });
+      return false;
     }
 
     try {
@@ -141,11 +142,11 @@ class OTPService {
       return true;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown';
-      logger.warn('SMTP send failed', { error: errorMessage, email });
+      logger.error('SMTP send failed; OTP email not delivered', { error: errorMessage, email });
       if (process.env.NODE_ENV !== 'production') {
         logger.info(`[OTP FALLBACK] Email OTP for ${email}: ${otp} (use this code to login)`);
       }
-      return true;
+      return false;
     }
   }
 

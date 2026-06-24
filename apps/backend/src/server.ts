@@ -102,6 +102,20 @@ export async function buildServer(): Promise<FastifyInstance> {
     trustProxy: true,
   });
 
+  // Accept empty JSON body (cookie-only /auth/refresh from browsers sends Content-Type without body).
+  app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
+    const raw = typeof body === 'string' ? body.trim() : '';
+    if (!raw) {
+      done(null, {});
+      return;
+    }
+    try {
+      done(null, JSON.parse(raw));
+    } catch (err) {
+      done(err as Error, undefined);
+    }
+  });
+
   // EARLIEST: Log incoming requests to trace pre-handler failures (runs before body parsing)
   app.addHook('onRequest', async (request) => {
     const path = (request.url as string)?.split('?')[0] ?? '';

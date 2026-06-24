@@ -294,8 +294,8 @@ export default function ReferralProgramPage() {
     if (navigator.share) {
       try {
         await navigator.share({ title: shareTitle, text: shareText, url: referralLink });
-      } catch (err) {
-        console.log('Share cancelled');
+      } catch {
+        /* user dismissed share sheet */
       }
     } else {
       navigator.clipboard.writeText(shareText);
