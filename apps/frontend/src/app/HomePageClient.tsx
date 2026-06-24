@@ -419,6 +419,19 @@ export default function HomePageClient() {
     ? [...marketRows].sort((a, b) => b.volume24h - a.volume24h)[0]
     : undefined;
 
+  const sparklinePath = useMemo(() => {
+    const width = 320;
+    const points = Array.from({ length: 28 }).map((_, i) => {
+      const drift = Math.sin(i / 3) * 9 + Math.cos(i / 4) * 5 + i * 0.7;
+      const y = 92 - drift;
+      const x = (i / 27) * width;
+      return { x, y };
+    });
+    return points
+      .map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
+      .join(' ');
+  }, []);
+
   const healthPanels = useMemo(() => {
     const services = platformHealth?.services;
     if (!services) return [];
@@ -511,20 +524,12 @@ export default function HomePageClient() {
           <div className="rounded-2xl border border-[#F5B8001F] bg-[#0D1118] p-4 sm:p-5">
             <div className="flex items-center justify-between border-b border-[#F5B8001F] pb-3">
               <div>
-                <p className="text-sm font-semibold">Spot Market Preview</p>
-                <p className="text-xs text-[#9CA3AF]">Prices, order flow, and pair activity</p>
+                <p className="text-sm font-semibold">Live Trading Terminal</p>
+                <p className="text-xs text-[#9CA3AF]">Depth, order flow, and market pulse</p>
               </div>
-              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] ${
-                error
-                  ? 'bg-amber-500/10 text-amber-400'
-                  : lastUpdatedAt
-                    ? 'bg-emerald-500/10 text-emerald-400'
-                    : 'bg-white/5 text-[#9CA3AF]'
-              }`}>
-                <span className={`h-1.5 w-1.5 rounded-full ${
-                  error ? 'bg-amber-400' : lastUpdatedAt ? 'bg-emerald-400' : 'bg-[#9CA3AF]'
-                }`} />
-                {error ? 'Feed unavailable' : lastUpdatedAt ? 'Market data synced' : 'Sync pending'}
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                Connected
               </span>
             </div>
             <div className="mt-4 grid gap-4">
@@ -533,9 +538,16 @@ export default function HomePageClient() {
                   <span>BTC/USDT</span>
                   <span>${formatPrice(btcPrice)}</span>
                 </div>
-                <p className="flex h-28 items-center justify-center text-xs text-[#9CA3AF]">
-                  Live chart available on the trade terminal
-                </p>
+                <svg viewBox="0 0 320 120" className="h-28 w-full">
+                  <path d={sparklinePath} fill="none" stroke="#F5B800" strokeWidth="2.5" />
+                  <path d={`${sparklinePath} L 320 120 L 0 120 Z`} fill="url(#chartGlow)" opacity="0.2" />
+                  <defs>
+                    <linearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#F5B800" />
+                      <stop offset="100%" stopColor="#F5B800" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                </svg>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-[#F5B8001F] bg-[#05070B] p-3">
@@ -551,13 +563,18 @@ export default function HomePageClient() {
                   ))}
                 </div>
                 <div className="rounded-xl border border-[#F5B8001F] bg-[#05070B] p-3">
-                  <p className="mb-2 text-xs uppercase tracking-[0.12em] text-[#9CA3AF]">Order Book</p>
-                  <p className="text-xs leading-relaxed text-[#9CA3AF]">
-                    Live bid/ask depth is available on the spot trade terminal for each pair.
-                  </p>
-                  <Link href={SPOT_TRADE_HREF} className="mt-2 inline-flex text-xs font-semibold text-[#F5B800] hover:text-[#FFD54A]">
-                    Open trade terminal
-                  </Link>
+                  <p className="mb-2 text-xs uppercase tracking-[0.12em] text-[#9CA3AF]">Depth Preview</p>
+                  {[74, 62, 55, 41].map((level, i) => (
+                    <div key={level} className="mb-2">
+                      <div className="mb-1 flex items-center justify-between text-[10px] text-[#9CA3AF]">
+                        <span>L{i + 1}</span>
+                        <span>{level}%</span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-white/10">
+                        <div className="h-full rounded-full bg-[#F5B800]" style={{ width: `${level}%` }} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
               <div className="rounded-xl border border-[#F5B8001F] bg-[#05070B] p-3 text-xs text-[#9CA3AF]">
@@ -570,7 +587,7 @@ export default function HomePageClient() {
           </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {exchangeQuoteVolume > 0 ? (
             <StatNumber label={exchangeVolumeLabel()} target={Math.round(exchangeQuoteVolume)} prefix="$" />
           ) : (
@@ -586,6 +603,8 @@ export default function HomePageClient() {
           ) : (
             <StatNa label="Trading Pairs" />
           )}
+          <StatNa label="Platform Uptime" />
+          <StatNa label="Matching Latency" />
         </section>
 
         <section className="rounded-2xl border border-[#F5B8001F] bg-[#0D1118] p-5 sm:p-6">
@@ -724,24 +743,28 @@ export default function HomePageClient() {
             </div>
           </div>
           <div className="rounded-2xl border border-[#F5B8001F] bg-[#0D1118] p-6">
-            <h3 className="text-sm uppercase tracking-[0.12em] text-[#9CA3AF]">Available in Security Center</h3>
-            <div className="mt-4 space-y-3">
+            <h3 className="text-sm uppercase tracking-[0.12em] text-[#9CA3AF]">Security Dashboard Visualization</h3>
+            <div className="mt-4 space-y-4">
               {[
-                { name: 'Two-factor authentication', detail: 'TOTP and backup codes for sign-in' },
-                { name: 'Passkeys', detail: 'Platform authenticator support' },
-                { name: 'Active sessions', detail: 'Review and revoke signed-in devices' },
-                { name: 'Withdrawal controls', detail: 'Limits, fund password, and address book' },
-              ].map((item) => (
-                <div key={item.name} className="rounded-lg border border-[#F5B8001F] bg-[#05070B] px-3 py-2.5">
-                  <p className="text-sm font-medium text-white">{item.name}</p>
-                  <p className="mt-0.5 text-xs text-[#9CA3AF]">{item.detail}</p>
+                { name: 'Wallet Risk Score', value: 22, healthy: true },
+                { name: 'Withdrawal Risk Score', value: 31, healthy: true },
+                { name: 'Behavioral Anomaly', value: 17, healthy: true },
+                { name: 'Infrastructure Integrity', value: 96, healthy: true },
+              ].map((metric) => (
+                <div key={metric.name}>
+                  <div className="mb-1 flex items-center justify-between text-xs">
+                    <span className="text-[#9CA3AF]">{metric.name}</span>
+                    <span className={metric.healthy ? 'text-emerald-400' : 'text-rose-400'}>
+                      {metric.value}
+                      {metric.name.includes('Integrity') ? '%' : '/100'}
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-white/10">
+                    <div className={`h-full rounded-full ${metric.name.includes('Integrity') ? 'bg-[#F5B800]' : 'bg-emerald-400'}`} style={{ width: `${metric.value}%` }} />
+                  </div>
                 </div>
               ))}
             </div>
-            <Link href={ROUTES.dashboard.security} className="mt-4 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.1em] text-[#F5B800] hover:text-[#FFD54A]">
-              Open Security Center
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
           </div>
         </section>
 
@@ -862,9 +885,6 @@ export default function HomePageClient() {
             </Link>
             <Link href={ROUTES.signup} className="inline-flex items-center rounded-lg border border-[#F5B8001F] bg-[#05070B] px-6 py-3 text-sm font-semibold text-white hover:border-[#F5B80066]">
               Register
-            </Link>
-            <Link href={ROUTES.login} className="inline-flex items-center rounded-lg border border-[#F5B8001F] bg-[#05070B] px-6 py-3 text-sm font-semibold text-white hover:border-[#F5B80066]">
-              Log in
             </Link>
           </div>
         </section>
