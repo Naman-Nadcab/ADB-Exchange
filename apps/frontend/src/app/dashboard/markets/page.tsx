@@ -8,6 +8,13 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { CoinIcon } from '@/components/ui/CoinIcon';
 import {
+  classifyTickerVolumeSource,
+  exchangeVolumeLabel,
+  referenceVolumeLabel,
+  splitAggregateVolumes,
+  type VolumeSource,
+} from '@/lib/volumeMetrics';
+import {
   Activity,
   ArrowDown,
   ArrowUp,
@@ -44,6 +51,7 @@ type SpotTickerRow = {
   high_24h: string | null;
   low_24h: string | null;
   volume_24h: string;
+  base_volume_24h?: string;
   change_pct?: number | null;
   change_24h_percent?: number | null;
   price_change_percent_24h?: string | number | null;
@@ -56,10 +64,8 @@ type EnrichedMarket = {
   quote: string;
   price: number;
   change24h: number;
-  change7d: number;
   volume24h: number;
-  marketCap: number;
-  liquidity: number;
+  volumeSource: VolumeSource | null;
   listedTs: number;
 };
 
@@ -71,10 +77,7 @@ type TableSort =
   | 'asset'
   | 'price'
   | 'change24h'
-  | 'change7d'
-  | 'volume24h'
-  | 'marketCap'
-  | 'liquidity';
+  | 'volume24h';
 type SortDir = 'asc' | 'desc';
 
 const HEATMAP_LIMIT = 18;
@@ -102,15 +105,7 @@ const SECTOR_ICON: Record<Sector, LucideIcon> = {
   DePIN: Factory,
 };
 
-const MARKET_NEWS = [
-  { title: 'Risk-off rotation eases as BTC stabilizes above key liquidity zone.', badge: 'Macro', source: 'CoinDesk', ago: '4m' },
-  { title: 'AI basket outperforms broad alt index for second consecutive session.', badge: 'Sector', source: 'Decrypt', ago: '8m' },
-  { title: 'Exchange inflows decline; spot positioning remains constructive.', badge: 'On-chain', source: 'CoinGecko', ago: '12m' },
-  { title: 'Market makers tighten spreads on high-volume USDT pairs.', badge: 'Liquidity', source: 'CryptoPanic', ago: '16m' },
-] as const;
-
 const MARKET_INTEL_FEEDS = ['CoinDesk', 'Cointelegraph', 'Decrypt', 'CoinGecko', 'CryptoPanic'] as const;
-const MARKET_INTEL_CACHE_HINT = 'Server cache 300s';
 
 const fmtUsd = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -128,28 +123,15 @@ function n(v: unknown): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function hashSeed(symbol: string): number {
-  let h = 0;
-  for (let i = 0; i < symbol.length; i++) h = (h * 31 + symbol.charCodeAt(i)) >>> 0;
-  return h || 1;
-}
-
-function derived7d(change24h: number, symbol: string): number {
-  const seed = hashSeed(symbol) % 17;
-  const multiplier = 2.4 + seed / 10;
-  const drift = ((seed % 7) - 3) * 0.55;
-  return change24h * multiplier + drift;
-}
-
-function syntheticMarketCap(price: number, volume24h: number, symbol: string): number {
-  const seed = hashSeed(symbol) % 13;
-  const factor = 24 + seed * 2.3;
-  return Math.max(0, volume24h * factor + price * 2_000_000);
-}
-
-function syntheticLiquidity(volume24h: number, marketCap: number): number {
-  const ratio = marketCap > 0 ? volume24h / marketCap : 0;
-  return Math.max(0, Math.min(100, ratio * 4200));
+function ChangeIndicator({ value }: { value: number }) {
+  return (
+    <span className={`inline-flex h-8 w-14 items-center justify-center rounded-md text-xs font-semibold ${
+      value >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
+    }`}>
+      {value >= 0 ? '+' : ''}
+      {value.toFixed(1)}%
+    </span>
+  );
 }
 
 function pctClass(v: number): string {
@@ -164,35 +146,8 @@ function fmtPrice(v: number): string {
   return '$' + v.toLocaleString('en-US', { maximumFractionDigits: 6 });
 }
 
-function SparklineMini({ value, symbol }: { value: number; symbol: string }) {
-  const path = useMemo(() => {
-    const points = 18;
-    const width = 96;
-    const height = 34;
-    const seed = hashSeed(symbol);
-    let d = '';
-    for (let i = 0; i < points; i++) {
-      const x = (i / (points - 1)) * width;
-      const t = i / (points - 1);
-      const wave = Math.sin((i + seed % 9) * 0.8) * 4.8;
-      const trend = t * (value >= 0 ? -9 : 9);
-      const y = height / 2 + wave + trend;
-      d += `${i === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)} `;
-    }
-    return d.trim();
-  }, [symbol, value]);
-
-  return (
-    <svg viewBox="0 0 96 34" className="h-9 w-24">
-      <path
-        d={path}
-        fill="none"
-        stroke={value >= 0 ? '#22C55E' : '#F43F5E'}
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
+function SparklineMini({ value }: { value: number }) {
+  return <ChangeIndicator value={value} />;
 }
 
 function SortButton({
@@ -235,10 +190,27 @@ export default function MarketsPage() {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [changeSide, setChangeSide] = useState<'all' | 'positive' | 'negative'>('all');
-  const [sortKey, setSortKey] = useState<TableSort>('marketCap');
+  const [sortKey, setSortKey] = useState<TableSort>('volume24h');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [scrollTop, setScrollTop] = useState(0);
+  const [announcements, setAnnouncements] = useState<Array<{ id: string; title: string; type?: string; created_at?: string }>>([]);
   const tableRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await api.get<{ announcements?: Array<{ id: string; title: string; type?: string; created_at?: string }> }>(
+          '/api/v1/user/announcements?limit=5',
+          { skipAuth: true, notifyOnError: false }
+        );
+        if (res.success && Array.isArray(res.data?.announcements)) {
+          setAnnouncements(res.data!.announcements!);
+        }
+      } catch {
+        setAnnouncements([]);
+      }
+    })();
+  }, []);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -297,9 +269,7 @@ export default function MarketsPage() {
             t?.price_change_percent_24h
         );
         const volume24h = n(t?.volume_24h);
-        const change7d = derived7d(change24h, m.symbol);
-        const marketCap = syntheticMarketCap(price, volume24h, m.symbol);
-        const liquidity = syntheticLiquidity(volume24h, marketCap);
+        const volumeSource = t ? classifyTickerVolumeSource(t) : null;
         const listedTs = Date.parse(m.listed_at ?? m.created_at ?? '1970-01-01');
 
         return {
@@ -309,17 +279,15 @@ export default function MarketsPage() {
           quote: m.quote_asset,
           price,
           change24h,
-          change7d,
           volume24h,
-          marketCap,
-          liquidity,
+          volumeSource,
           listedTs: Number.isFinite(listedTs) ? listedTs : 0,
         };
       })
       .filter((row) => row.price > 0);
 
-    const sortedByCap = [...merged].sort((a, b) => b.marketCap - a.marketCap);
-    return sortedByCap.map((row, i) => ({ ...row, rank: i + 1 }));
+    const sortedByVolume = [...merged].sort((a, b) => b.volume24h - a.volume24h);
+    return sortedByVolume.map((row, i) => ({ ...row, rank: i + 1 }));
   }, [markets, tickers]);
 
   const quoteOptions = useMemo(
@@ -328,20 +296,20 @@ export default function MarketsPage() {
   );
 
   const globalMetrics = useMemo(() => {
-    const totalCap = rows.reduce((acc, row) => acc + row.marketCap, 0);
-    const totalVol = rows.reduce((acc, row) => acc + row.volume24h, 0);
-    const btcCap = rows.find((r) => r.asset === 'BTC')?.marketCap ?? 0;
-    const btcDominance = totalCap > 0 ? (btcCap / totalCap) * 100 : 0;
-    const gainers = rows.filter((r) => r.change24h > 0).length;
-    const losers = rows.filter((r) => r.change24h < 0).length;
-    const fearGreed = Math.max(0, Math.min(100, 50 + (gainers - losers) * 2.5));
+    const tickerList = Array.from(tickers.values());
+    const { exchangeQuoteVolume, referenceQuoteVolume } = splitAggregateVolumes(tickerList);
     return {
-      marketCap: totalCap,
-      volume24h: totalVol,
-      btcDominance,
-      fearGreed,
+      exchangeVolume24h: exchangeQuoteVolume,
+      referenceVolume24h: referenceQuoteVolume,
       assetsListed: rows.length,
     };
+  }, [rows, tickers]);
+
+  const tableVolumeHeader = useMemo(() => {
+    const sources = new Set(rows.map((r) => r.volumeSource).filter(Boolean));
+    if (sources.size === 1 && sources.has('reference')) return 'Ref. Volume';
+    if (sources.size === 1 && sources.has('exchange')) return 'Meth. Volume';
+    return 'Volume';
   }, [rows]);
 
   const trendingCards = useMemo(
@@ -360,7 +328,7 @@ export default function MarketsPage() {
   }, [rows, moversTab]);
 
   const heatmapRows = useMemo(
-    () => [...rows].sort((a, b) => b.marketCap - a.marketCap).slice(0, HEATMAP_LIMIT),
+    () => [...rows].sort((a, b) => b.volume24h - a.volume24h).slice(0, HEATMAP_LIMIT),
     [rows]
   );
 
@@ -477,14 +445,6 @@ export default function MarketsPage() {
     [rows]
   );
 
-  const exchangeAnnouncements = useMemo(
-    () => [
-      { title: 'Liquidity engine spread optimization deployed for major USDT books.', priority: 'System', ago: '7m' },
-      { title: 'Institutional API throughput window expanded for peak volatility.', priority: 'API', ago: '19m' },
-      { title: 'Monitoring policy update: tighter risk checks for fast-moving sectors.', priority: 'Risk', ago: '34m' },
-    ],
-    []
-  );
 
   const newsListingIntel = useMemo(
     () =>
@@ -567,21 +527,27 @@ export default function MarketsPage() {
         <div className="flex flex-col gap-2.5">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Markets</h1>
           <p className="max-w-3xl text-sm leading-6 text-[#AEB6C4] sm:text-base">
-            Institutional market discovery with liquidity, momentum, and sector intelligence.
+            Browse live spot prices, 24h change, and volume across all listed trading pairs.
           </p>
         </div>
 
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[
-            { label: 'Market Cap', value: '$' + fmtCompact.format(globalMetrics.marketCap), icon: Globe2 },
-            { label: '24H Volume', value: '$' + fmtCompact.format(globalMetrics.volume24h), icon: Activity },
-            { label: 'BTC Dominance', value: `${globalMetrics.btcDominance.toFixed(1)}%`, icon: Gem },
             {
-              label: 'Fear & Greed',
-              value: `${Math.round(globalMetrics.fearGreed)}/100`,
-              icon: globalMetrics.fearGreed >= 50 ? TrendingUp : TrendingDown,
+              label: exchangeVolumeLabel(),
+              value: globalMetrics.exchangeVolume24h > 0 ? '$' + fmtCompact.format(globalMetrics.exchangeVolume24h) : 'N/A',
+              icon: Activity,
             },
-            { label: 'Assets Listed', value: globalMetrics.assetsListed.toLocaleString('en-US'), icon: Layers },
+            {
+              label: referenceVolumeLabel(),
+              value: globalMetrics.referenceVolume24h > 0 ? '$' + fmtCompact.format(globalMetrics.referenceVolume24h) : 'N/A',
+              icon: Radar,
+            },
+            {
+              label: 'Assets Listed',
+              value: globalMetrics.assetsListed > 0 ? globalMetrics.assetsListed.toLocaleString('en-US') : 'N/A',
+              icon: Layers,
+            },
           ].map((metric) => (
             <article key={metric.label} className="rounded-xl border border-[#F5B8001A] bg-[#0D1118] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-[#F5B80030]">
               <div className="flex items-center justify-between">
@@ -619,7 +585,7 @@ export default function MarketsPage() {
                       <p className="text-xs text-[#AEB6C4]">{row.symbol.replace('_', '/')}</p>
                     </div>
                   </div>
-                  <SparklineMini value={row.change24h} symbol={row.symbol} />
+                  <SparklineMini value={row.change24h} />
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <p className="text-[#AEB6C4]">Price</p>
@@ -630,10 +596,8 @@ export default function MarketsPage() {
                     {row.change24h >= 0 ? '+' : ''}
                     {row.change24h.toFixed(2)}%
                   </p>
-                  <p className="text-[#AEB6C4]">Volume</p>
+                  <p className="text-[#AEB6C4]">Ref. Vol</p>
                   <p className="text-right tabular-nums">${fmtCompact.format(row.volume24h)}</p>
-                  <p className="text-[#AEB6C4]">Mkt Cap</p>
-                  <p className="text-right tabular-nums">${fmtCompact.format(row.marketCap)}</p>
                 </div>
               </Link>
             ))}
@@ -648,7 +612,7 @@ export default function MarketsPage() {
                 { id: 'trending', label: 'Trending' },
                 { id: 'gainers', label: 'Gainers' },
                 { id: 'losers', label: 'Losers' },
-                { id: 'volume', label: 'Volume Leaders' },
+                { id: 'volume', label: 'Ref. Vol Leaders' },
                 { id: 'new', label: 'New Listings' },
               ].map((tab) => (
                 <button
@@ -683,7 +647,7 @@ export default function MarketsPage() {
                 </div>
                 <p className="text-xs text-[#AEB6C4]">{row.symbol.replace('_', '/')}</p>
                 <p className="mt-2 text-xs tabular-nums text-[#AEB6C4]">
-                  Vol ${fmtCompact.format(row.volume24h)}
+                  Ref. Vol ${fmtCompact.format(row.volume24h)}
                 </p>
               </Link>
             ))}
@@ -725,7 +689,7 @@ export default function MarketsPage() {
                     : `linear-gradient(100deg, rgba(2,6,23,0.82) 0%, rgba(127,29,29,${0.36 + intensity * 0.24}) 72%, rgba(244,63,94,${0.26 + intensity * 0.22}) 100%)`;
                   const capShare = Math.max(
                     20,
-                    Math.min(100, (row.marketCap / Math.max(1, heatmapRows[0]?.marketCap || 1)) * 100),
+                    Math.min(100, (row.volume24h / Math.max(1, heatmapRows[0]?.volume24h || 1)) * 100),
                   );
                   const activity = Math.max(12, Math.min(100, 15 + changeAbs * 14));
                   return (
@@ -757,12 +721,11 @@ export default function MarketsPage() {
                             </span>
                             <p className="truncate text-[13px] font-semibold tracking-[0.01em]">{row.asset}</p>
                             <p className="truncate text-[10px] text-[#d5d9e2]">{row.symbol.replace('_', '/')}</p>
-                            {idx < 3 ? <span className="rounded bg-black/25 px-1 py-0.5 text-[9px] text-[#d5d9e2]">L-CAP</span> : null}
+                            {idx < 3 ? <span className="rounded bg-black/25 px-1 py-0.5 text-[9px] text-[#d5d9e2]">TOP VOL</span> : null}
                           </div>
                           <div className="mt-1 flex items-center gap-2.5 text-[9px] text-[#d5d9e2] sm:text-[10px]">
-                            <span>Vol ${fmtCompact.format(row.volume24h)}</span>
-                            <span>Liq ${fmtCompact.format(row.liquidity)}</span>
-                            <span className="hidden sm:inline">MCap ${fmtCompact.format(row.marketCap)}</span>
+                            <span>Ref. Vol ${fmtCompact.format(row.volume24h)}</span>
+                            <span>24H {row.change24h >= 0 ? '+' : ''}{row.change24h.toFixed(2)}%</span>
                           </div>
                         </div>
                         <div className="text-right">
@@ -872,7 +835,7 @@ export default function MarketsPage() {
                         </span>
                       </div>
                       <p className="mt-1 text-[11px] text-[#AEB6C4]">
-                        {leader.symbol.replace('_', '/')} · Vol ${fmtCompact.format(leader.volume24h)}
+                        {leader.symbol.replace('_', '/')} · Ref. Vol ${fmtCompact.format(leader.volume24h)}
                       </p>
                     </Link>
                   ))}
@@ -892,7 +855,7 @@ export default function MarketsPage() {
                         <div className="h-full rounded-full bg-[#F5B800]/80" style={{ width: `${Math.min(100, row.share)}%` }} />
                       </div>
                       <p className="mt-1 text-[11px] text-[#AEB6C4]">
-                        {row.count} assets · Vol ${fmtCompact.format(row.volume)}
+                        {row.count} assets · Ref. Vol ${fmtCompact.format(row.volume)}
                       </p>
                     </div>
                   ))}
@@ -970,16 +933,13 @@ export default function MarketsPage() {
             <p className="text-xs text-[#AEB6C4]">{tableRows.length.toLocaleString('en-US')} assets · virtualized rendering</p>
           </div>
           <div className="overflow-x-auto">
-            <div className="min-w-[1120px] rounded-lg border border-[#F5B8001A] bg-[#05070B]">
-              <div className="sticky top-0 z-20 grid grid-cols-[60px_170px_130px_100px_100px_140px_150px_90px_110px] items-center border-b border-[#F5B8001A] bg-[#0A0F16]/95 px-3 py-2 backdrop-blur">
+            <div className="min-w-[860px] rounded-lg border border-[#F5B8001A] bg-[#05070B]">
+              <div className="sticky top-0 z-20 grid grid-cols-[60px_170px_130px_100px_140px_110px] items-center border-b border-[#F5B8001A] bg-[#0A0F16]/95 px-3 py-2 backdrop-blur">
                 <SortButton label="Rank" active={sortKey === 'rank'} dir={sortDir} onClick={() => onSort('rank')} />
                 <SortButton label="Asset" active={sortKey === 'asset'} dir={sortDir} onClick={() => onSort('asset')} />
                 <SortButton label="Price" active={sortKey === 'price'} dir={sortDir} onClick={() => onSort('price')} />
                 <SortButton label="24H" active={sortKey === 'change24h'} dir={sortDir} onClick={() => onSort('change24h')} />
-                <SortButton label="7D" active={sortKey === 'change7d'} dir={sortDir} onClick={() => onSort('change7d')} />
-                <SortButton label="Volume" active={sortKey === 'volume24h'} dir={sortDir} onClick={() => onSort('volume24h')} />
-                <SortButton label="Mkt Cap" active={sortKey === 'marketCap'} dir={sortDir} onClick={() => onSort('marketCap')} />
-                <SortButton label="Liq." active={sortKey === 'liquidity'} dir={sortDir} onClick={() => onSort('liquidity')} />
+                <SortButton label={tableVolumeHeader} active={sortKey === 'volume24h'} dir={sortDir} onClick={() => onSort('volume24h')} />
                 <span className="text-right text-[11px] font-medium uppercase tracking-[0.1em] text-[#9CA3AF]">Action</span>
               </div>
               {tableRows.length === 0 ? (
@@ -1001,7 +961,7 @@ export default function MarketsPage() {
                   {visibleRows.map((row) => (
                     <div
                       key={`table-${row.symbol}`}
-                      className="grid grid-cols-[60px_170px_130px_100px_100px_140px_150px_90px_110px] items-center border-b border-[#F5B80010] px-3 transition-colors hover:bg-[#0B1119]"
+                      className="grid grid-cols-[60px_170px_130px_100px_140px_110px] items-center border-b border-[#F5B80010] px-3 transition-colors hover:bg-[#0B1119]"
                       style={{ height: ROW_HEIGHT }}
                     >
                       <span className="text-sm tabular-nums text-[#AEB6C4]">{row.rank}</span>
@@ -1018,14 +978,7 @@ export default function MarketsPage() {
                         {row.change24h >= 0 ? '+' : ''}
                         {row.change24h.toFixed(2)}%
                       </span>
-                      <span className={`inline-flex items-center gap-1 text-sm tabular-nums ${pctClass(row.change7d)}`}>
-                        {row.change7d >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                        {row.change7d >= 0 ? '+' : ''}
-                        {row.change7d.toFixed(2)}%
-                      </span>
                       <span className="text-sm tabular-nums text-[#AEB6C4]">${fmtCompact.format(row.volume24h)}</span>
-                      <span className="text-sm tabular-nums text-[#AEB6C4]">${fmtCompact.format(row.marketCap)}</span>
-                      <span className="text-sm tabular-nums text-[#AEB6C4]">{row.liquidity.toFixed(1)}</span>
                       <div className="text-right">
                         <Link
                           href={tradeSpotWithSymbol(row.symbol)}
@@ -1102,26 +1055,29 @@ export default function MarketsPage() {
             </div>
 
             <div className="min-h-[250px] space-y-2">
-              {newsPanel === 'latest' &&
-                MARKET_NEWS.map((item) => (
-                  <article key={item.title} className="rounded-lg border border-[#F5B80012] bg-[#05070B] px-3 py-2.5 transition hover:border-[#F5B80036] hover:bg-[#0B1016]">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-[11px] uppercase tracking-[0.1em] text-[#F5B800]">{item.badge}</p>
-                      <p className="text-[11px] text-[#AEB6C4]">{item.source} · {item.ago}</p>
-                    </div>
-                    <p className="mt-1 text-sm leading-6 text-[#d8dde7]">{item.title}</p>
-                  </article>
-                ))}
+              {newsPanel === 'latest' && (
+                <p className="rounded-lg border border-[#F5B80012] bg-[#05070B] px-3 py-4 text-sm text-[#AEB6C4]">
+                  External market news feed — Coming Soon
+                </p>
+              )}
 
               {newsPanel === 'announcements' &&
-                exchangeAnnouncements.map((item) => (
-                  <article key={item.title} className="rounded-lg border border-[#F5B80012] bg-[#05070B] px-3 py-2.5 transition hover:border-[#F5B80036] hover:bg-[#0B1016]">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-[11px] uppercase tracking-[0.1em] text-[#F5B800]">{item.priority}</p>
-                      <p className="text-[11px] text-[#AEB6C4]">{item.ago}</p>
-                    </div>
-                    <p className="mt-1 text-sm leading-6 text-[#d8dde7]">{item.title}</p>
-                  </article>
+                (announcements.length > 0 ? (
+                  announcements.map((item) => (
+                    <article key={item.id} className="rounded-lg border border-[#F5B80012] bg-[#05070B] px-3 py-2.5 transition hover:border-[#F5B80036] hover:bg-[#0B1016]">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-[11px] uppercase tracking-[0.1em] text-[#F5B800]">{item.type || 'Announcement'}</p>
+                        {item.created_at ? (
+                          <p className="text-[11px] text-[#AEB6C4]">{new Date(item.created_at).toLocaleDateString()}</p>
+                        ) : null}
+                      </div>
+                      <p className="mt-1 text-sm leading-6 text-[#d8dde7]">{item.title}</p>
+                    </article>
+                  ))
+                ) : (
+                  <p className="rounded-lg border border-[#F5B80012] bg-[#05070B] px-3 py-4 text-sm text-[#AEB6C4]">
+                    No exchange announcements published yet.
+                  </p>
                 ))}
 
               {newsPanel === 'listings' &&
@@ -1140,7 +1096,7 @@ export default function MarketsPage() {
                       </p>
                     </div>
                     <p className="mt-1 text-xs text-[#AEB6C4]">
-                      {row.asset} · Vol ${fmtCompact.format(row.volume24h)}
+                      {row.asset} · Ref. Vol ${fmtCompact.format(row.volume24h)}
                     </p>
                   </Link>
                 ))}
@@ -1155,13 +1111,6 @@ export default function MarketsPage() {
                     <div className="rounded-lg border border-[#F5B80012] bg-[#05070B] p-2.5">
                       <p className="text-[11px] uppercase tracking-[0.1em] text-[#AEB6C4]">Bearish Assets</p>
                       <p className="mt-1 text-lg font-semibold text-rose-400">{bearishPct.toFixed(1)}%</p>
-                    </div>
-                  </div>
-                  <div className="rounded-lg border border-[#F5B80012] bg-[#05070B] p-2.5">
-                    <p className="text-[11px] uppercase tracking-[0.1em] text-[#AEB6C4]">Fear & Greed Score</p>
-                    <p className="mt-1 text-lg font-semibold">{Math.round(globalMetrics.fearGreed)}/100</p>
-                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-black/30">
-                      <div className="h-full rounded-full bg-[#F5B800]" style={{ width: `${Math.round(globalMetrics.fearGreed)}%` }} />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -1179,7 +1128,7 @@ export default function MarketsPage() {
             </div>
 
             <div className="mt-3 rounded-lg border border-[#F5B80010] bg-[#05070B] px-2.5 py-2 text-[11px] text-[#AEB6C4]">
-              <span className="font-semibold text-[#F5B800]">Feed-ready:</span> {MARKET_INTEL_FEEDS.join(', ')} · {MARKET_INTEL_CACHE_HINT}
+              <span className="font-semibold text-[#F5B800]">Planned feeds:</span> {MARKET_INTEL_FEEDS.join(', ')}
             </div>
           </div>
         </section>
@@ -1197,7 +1146,7 @@ export default function MarketsPage() {
                   <span className="text-sm font-semibold">{row.symbol.replace('_', '/')}</span>
                   <Activity className="h-3.5 w-3.5 text-[#F5B800]" />
                 </div>
-                <p className="text-xs text-[#9CA3AF]">Vol ${fmtCompact.format(row.volume24h)}</p>
+                <p className="text-xs text-[#9CA3AF]">Ref. Vol ${fmtCompact.format(row.volume24h)}</p>
                 <p className={`mt-1 inline-flex items-center gap-0.5 text-xs font-semibold ${pctClass(row.change24h)}`}>
                   {row.change24h >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
                   {row.change24h >= 0 ? '+' : ''}

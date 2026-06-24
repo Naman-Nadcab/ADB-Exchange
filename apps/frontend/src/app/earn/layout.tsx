@@ -1,7 +1,9 @@
-'use client';
+import type { Metadata } from 'next';
+import { PAGE_METADATA } from '@/lib/seo/pageMetadata';
+import EarnPublicShell from './EarnPublicShell';
 
-import { PublicLayout } from '@/components/layout/PublicLayout';
+export const metadata: Metadata = PAGE_METADATA.earn;
 
-export default function EarnPublicLayout({ children }: { children: React.ReactNode }) {
-  return <PublicLayout>{children}</PublicLayout>;
+export default function EarnLayout({ children }: { children: React.ReactNode }) {
+  return <EarnPublicShell>{children}</EarnPublicShell>;
 }

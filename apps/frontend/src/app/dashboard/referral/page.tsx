@@ -35,6 +35,7 @@ import { ReferralEarningsChart } from '@/components/referral/ReferralEarningsCha
 import { ReferralFunnel } from '@/components/referral/ReferralFunnel';
 import { ReferralLeaderboard } from '@/components/referral/ReferralLeaderboard';
 import { ReferralBannerGenerator } from '@/components/referral/ReferralBannerGenerator';
+import { BrandLogo } from '@/components/brand/BrandLogo';
 
 type ActiveCard = 'earnings' | 'commissions';
 
@@ -108,7 +109,7 @@ export default function ReferralProgramPage() {
   const referralCode = stats?.referralCode || user?.id?.slice(0, 8).toUpperCase() || 'LOADING...';
   const referralLink = `${appOrigin}/signup?ref=${referralCode}`;
 
-  const customText = `Sign up for a Methereum account and claim exclusive rewards from the Methereum referral program! Plus, claim up to 6,135 USDT bonus at ${referralLink}`;
+  const customText = `Join Metherium with my referral link and participate in the referral program when eligible rewards are available: ${referralLink}`;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -148,8 +149,8 @@ export default function ReferralProgramPage() {
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % 4);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + 4) % 4);
 
-  const shareTitle = 'Join Methereum and earn crypto rewards!';
-  const shareText = `Sign up for a Methereum account and claim exclusive rewards from the Methereum referral program! Plus, claim up to 6,135 USDT bonus at ${referralLink}`;
+  const shareTitle = 'Join Metherium and earn crypto rewards!';
+  const shareText = `Join Metherium with my referral link and participate in the referral program when eligible rewards are available: ${referralLink}`;
 
   const saveImage = async () => {
     const canvas = document.createElement('canvas');
@@ -184,7 +185,7 @@ export default function ReferralProgramPage() {
       
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 24px Arial';
-      ctx.fillText('Methereum', 115, 85);
+      ctx.fillText('Metherium', 115, 85);
       
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 32px Arial';
@@ -192,8 +193,8 @@ export default function ReferralProgramPage() {
       
       ctx.fillStyle = '#93c5fd';
       ctx.font = '18px Arial';
-      ctx.fillText('New users can receive sign up rewards,', 50, 230);
-      ctx.fillText('up to 6,135 USDT.', 50, 260);
+      ctx.fillText('Refer friends to Metherium', 50, 230);
+      ctx.fillText('and earn eligible commissions.', 50, 260);
       
       ctx.font = '120px Arial';
       ctx.fillText('🏆', 300, 500);
@@ -205,7 +206,7 @@ export default function ReferralProgramPage() {
       
       ctx.fillStyle = '#93c5fd';
       ctx.font = '16px Arial';
-      ctx.fillText('Scan QR code and join me at Methereum!', 70, 800);
+      ctx.fillText('Scan QR code and join me at Metherium!', 70, 800);
       
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 20px Arial';
@@ -221,7 +222,7 @@ export default function ReferralProgramPage() {
       ctx.fill();
       
       const link = document.createElement('a');
-      link.download = `methereum-referral-${referralCode}.png`;
+      link.download = `metherium-referral-${referralCode}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     }
@@ -535,7 +536,7 @@ export default function ReferralProgramPage() {
                   <Coins className="w-8 h-8 text-white" />
                 </div>
               </div>
-              <p className="text-muted-foreground">Invite a friend to Methereum Earn</p>
+              <p className="text-muted-foreground">Invite a friend to Metherium Earn</p>
             </div>
 
             {/* Card 2 */}
@@ -550,7 +551,7 @@ export default function ReferralProgramPage() {
                   <CreditCard className="w-8 h-8 text-white" />
                 </div>
               </div>
-              <p className="text-muted-foreground">Refer a friend to Methereum Card</p>
+              <p className="text-muted-foreground">Refer a friend to Metherium Card</p>
             </div>
 
             {/* Card 3 */}
@@ -715,16 +716,11 @@ export default function ReferralProgramPage() {
                     </div>
 
                     <div className="relative z-10">
-                      <div className="flex items-center gap-2 mb-6">
-                        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-white font-bold text-lg">M</span>
-                        </div>
-                        <span className="text-white font-bold text-xl">Methereum</span>
-                      </div>
+                      <BrandLogo variant="horizontal-white" size="header" className="mb-6" />
 
                       <h3 className="text-2xl font-bold text-white mb-2">Join & Earn Rewards!</h3>
                       <p className="text-blue-200">
-                        New users receive up to <span className="text-white font-bold">6,135 USDT</span> in bonuses.
+                        Refer friends and earn commissions when they trade eligible products on Metherium.
                       </p>
                     </div>
 

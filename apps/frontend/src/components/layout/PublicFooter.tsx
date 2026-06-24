@@ -2,20 +2,18 @@
 
 import Link from 'next/link';
 import { ROUTES, SPOT_TRADE_HREF, walletPath } from '@/lib/routes';
+import { BrandLogo } from '@/components/brand/BrandLogo';
 
 export function PublicFooter() {
   return (
     <footer className="border-t border-[#F5B8001A] bg-[#05070B]">
       <div className="mx-auto grid max-w-[1320px] gap-8 px-4 py-11 sm:px-6 lg:grid-cols-[1.2fr_1fr_1fr_1fr_1fr_1fr] lg:gap-9 lg:px-8">
         <div>
-          <div className="flex items-center gap-3">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[#F5B800] font-bold text-[#05070B]">M</span>
-            <span className="text-base font-semibold tracking-[0.01em]">Methereum Exchange</span>
-          </div>
+          <BrandLogo variant="horizontal-white" size="footer" className="mb-1" />
           <p className="mt-3 max-w-sm text-sm leading-6 text-[#AEB6C4]">
-            Institutional-grade crypto infrastructure for secure trading and capital operations.
+            Spot and P2P crypto exchange with wallet, API access, and account security controls.
           </p>
-          <p className="mt-4 text-xs uppercase tracking-[0.1em] text-[#F5B800]">24/7 monitored infrastructure</p>
+          <p className="mt-4 text-xs uppercase tracking-[0.1em] text-[#F5B800]">Service health monitored continuously</p>
         </div>
 
         {[
@@ -33,7 +31,7 @@ export function PublicFooter() {
             links: [
               { label: 'Help Center', href: ROUTES.dashboard.help },
               { label: 'Announcements', href: ROUTES.dashboard.announcements },
-              { label: 'System Status', href: ROUTES.dashboard.help },
+              { label: 'Service Health', href: `${ROUTES.home}#system-status` },
             ],
           },
           {
@@ -80,7 +78,7 @@ export function PublicFooter() {
         ))}
       </div>
       <div className="border-t border-[#F5B80014] py-4 text-center text-xs text-[#AEB6C4]">
-        © {new Date().getFullYear()} Methereum. Institutional infrastructure, continuously monitored.
+        © {new Date().getFullYear()} Metherium. Spot, P2P, and wallet services on a monitored exchange platform.
       </div>
     </footer>
   );

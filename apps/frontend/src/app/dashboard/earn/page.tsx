@@ -30,7 +30,7 @@ export default function EarnPage() {
               <WalletCards className="h-4 w-4 text-primary" />
               Flexible vaults
             </div>
-            <p className="text-xs text-muted-foreground">Instant redemption with dynamic APY bands.</p>
+            <p className="text-xs text-muted-foreground">Flexible vaults planned with disclosed rates at launch.</p>
           </div>
           <div className="rounded-xl border border-border bg-background p-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">

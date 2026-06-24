@@ -28,12 +28,25 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'CryptoExchange - Trade Crypto with Confidence',
-  description: 'Secure and fast cryptocurrency exchange for spot trading and P2P transactions',
-  keywords: ['crypto', 'exchange', 'bitcoin', 'ethereum', 'trading'],
-  icons: {
-    icon: '/icon.svg',
+  title: 'Metherium — Spot & P2P Crypto Exchange',
+  description: 'Metherium — spot and P2P crypto exchange with wallet, API access, and account security controls.',
+  keywords: ['Metherium', 'crypto', 'exchange', 'bitcoin', 'ethereum', 'trading'],
+  applicationName: 'Metherium',
+  openGraph: {
+    title: 'Metherium — Spot & P2P Crypto Exchange',
+    description: 'Trade spot and P2P markets on Metherium with wallet management and account security controls.',
+    siteName: 'Metherium',
+    type: 'website',
   },
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/site.webmanifest',
 };
 
 export default function RootLayout({

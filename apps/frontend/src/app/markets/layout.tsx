@@ -1,7 +1,9 @@
-'use client';
+import type { Metadata } from 'next';
+import { PAGE_METADATA } from '@/lib/seo/pageMetadata';
+import MarketsPublicShell from './MarketsPublicShell';
 
-import { PublicLayout } from '@/components/layout/PublicLayout';
+export const metadata: Metadata = PAGE_METADATA.markets;
 
-export default function MarketsPublicLayout({ children }: { children: React.ReactNode }) {
-  return <PublicLayout contentClassName="min-h-[calc(100vh-3.5rem)]">{children}</PublicLayout>;
+export default function MarketsLayout({ children }: { children: React.ReactNode }) {
+  return <MarketsPublicShell>{children}</MarketsPublicShell>;
 }
