@@ -10,7 +10,8 @@
  */
 
 import { Decimal } from '../lib/decimal.js';
-import { Wallet, JsonRpcProvider, Contract } from 'ethers';
+import { Wallet } from 'ethers';
+import { getHotWalletNativeBalanceByChainId, getHotWalletNativeBalanceWei, getTokenBalancesForHolder, invalidateNativeBalanceCache } from '../lib/blockchain-state.service.js';
 import { db } from '../lib/database.js';
 import { encryption } from '../lib/encryption.js';
 import { logger } from '../lib/logger.js';
@@ -775,8 +776,6 @@ export async function migrateAllHotWalletsToEnvelope(): Promise<{ migrated: numb
   return { migrated, skipped };
 }
 
-const RPC_BALANCE_TIMEOUT_MS = 15_000;
-
 /**
  * PHASE-16: Read-only live balance fetch. Does NOT update balance_cache.
  * Use for authority validation and drift detection. On RPC failure or non-EVM returns null (fail closed).
@@ -792,14 +791,9 @@ export async function getLiveBalanceReadOnly(chainId: string): Promise<{ balance
   if (chainRow.rows.length === 0) return null;
   if (chainRow.rows[0]!.type !== 'evm') return null;
   const address = walletRow.rows[0]!.address;
-  const rpcUrl = chainRow.rows[0]!.rpc_url;
   try {
-    const provider = new JsonRpcProvider(rpcUrl);
-    const balancePromise = provider.getBalance(address);
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('RPC timeout')), RPC_BALANCE_TIMEOUT_MS)
-    );
-    const balance = await Promise.race([balancePromise, timeoutPromise]);
+    const balance = await getHotWalletNativeBalanceWei(chainId, address, { category: 'wallet_reconcile' });
+    if (balance == null) return null;
     try { const { recordRpcCall } = await import('./rpc-metrics.service.js'); await recordRpcCall(chainId, true); } catch { /* best-effort */ }
     return { balanceWei: balance.toString() };
   } catch (e) {
@@ -833,14 +827,15 @@ export async function refreshBalanceCache(
     return { balance: walletRow.rows[0]!.balance_cache || '0', updated: false };
   }
   const rpcUrl = chainRow.rows[0]!.rpc_url;
-  const provider = new JsonRpcProvider(rpcUrl);
   let balanceStr: string;
   try {
-    const balancePromise = provider.getBalance(address);
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('RPC timeout. Check chain RPC URL and network.')), RPC_BALANCE_TIMEOUT_MS)
-    );
-    const balance = await Promise.race([balancePromise, timeoutPromise]);
+    const balance = await getHotWalletNativeBalanceWei(chainId, address, {
+      forceRefresh: true,
+      category: 'admin_read',
+    });
+    if (balance == null) {
+      throw new HotWalletServiceError(HotWalletErrors.RPC_REFRESH_FAILED, 'Balance fetch failed.');
+    }
     balanceStr = balance.toString();
     try { const { recordRpcCall } = await import('./rpc-metrics.service.js'); await recordRpcCall(chainId, true); } catch { /* best-effort */ }
   } catch (err) {
@@ -864,6 +859,7 @@ export async function refreshBalanceCache(
     );
   }
   await updateBalanceCache(chainId, balanceStr);
+  await invalidateNativeBalanceCache(rpcUrl, address);
   if (actorId) {
     await logHotWalletAudit({
       actorId,
@@ -876,9 +872,6 @@ export async function refreshBalanceCache(
   }
   return { balance: balanceStr, updated: true };
 }
-
-// ERC20 balanceOf ABI (minimal)
-const ERC20_ABI = ['function balanceOf(address account) view returns (uint256)'] as const;
 
 export interface TokenBalanceItem {
   symbol: string;
@@ -918,36 +911,25 @@ export async function getHotWalletBalancesForChains(
        FROM tokens WHERE chain_id = $1 AND is_active = TRUE ORDER BY is_native DESC, symbol`,
       [chainId]
     );
-    const provider = new JsonRpcProvider(chain.rpc_url);
-    const balances: TokenBalanceItem[] = [];
 
-    const timeout = (ms: number) => new Promise<never>((_, rej) => setTimeout(() => rej(new Error('RPC timeout')), ms));
-
-    for (const t of tokens.rows) {
-      let balanceStr: string;
-      try {
-        if (t.is_native || !t.contract_address) {
-          const bal = await Promise.race([provider.getBalance(address), timeout(RPC_BALANCE_TIMEOUT_MS)]);
-          balanceStr = bal != null ? String(bal) : '0';
-        } else {
-          const contract = new Contract(t.contract_address, ERC20_ABI, provider);
-          const balanceOf = contract.balanceOf;
-          const bal = balanceOf
-            ? await Promise.race([balanceOf(address), timeout(RPC_BALANCE_TIMEOUT_MS)])
-            : 0n;
-          balanceStr = bal != null ? String(bal) : '0';
-        }
-      } catch {
-        balanceStr = '0';
-      }
-      balances.push({
-        symbol: t.symbol,
-        name: t.name,
-        balance: balanceStr,
-        decimals: t.decimals,
-        isNative: t.is_native ?? false,
-      });
-    }
+    const tokenInputs = tokens.rows.map((t) => ({
+      contractAddress: t.contract_address,
+      isNative: t.is_native ?? false,
+    }));
+    const balanceStrs = await getTokenBalancesForHolder(
+      chainId,
+      address,
+      tokenInputs,
+      'admin_read'
+    );
+    if (balanceStrs == null) continue;
+    const balances: TokenBalanceItem[] = tokens.rows.map((t, idx) => ({
+      symbol: t.symbol,
+      name: t.name,
+      balance: balanceStrs[idx] ?? '0',
+      decimals: t.decimals,
+      isNative: t.is_native ?? false,
+    }));
     result.push({ chainId: chain.id, chainName: chain.name, chainType: chain.type, balances });
   }
   return result;

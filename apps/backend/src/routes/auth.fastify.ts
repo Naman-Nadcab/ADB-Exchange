@@ -25,7 +25,7 @@ import { rateLimitByIp, rateLimitByIdentifier } from '../lib/rate-limit-fastify.
 import { getClientIp } from '../lib/client-ip.js';
 import { config } from '../config/index.js';
 import { isSessionValid } from '../services/session.service.js';
-import { setAuthCookies, clearAuthCookies, getRefreshTokenFromRequest } from '../lib/auth-cookies.js';
+import { setAuthCookies, clearAuthCookies, getRefreshTokenFromRequest, getAccessTokenFromRequest } from '../lib/auth-cookies.js';
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -722,31 +722,41 @@ export default async function authRoutes(app: FastifyInstance) {
 
   /**
    * POST /auth/logout
-   * Logout current session
+   * Logout current session (Bearer or httpOnly cookie). Always clears auth cookies.
    */
-  app.post('/logout', {
-    preHandler: [app.authenticate],
-  }, async (request, reply) => {
+  app.post('/logout', async (request, reply) => {
     try {
-      const { sessionId, id: userId } = request.user!;
-
-      await revokeSession(sessionId);
-      await logUserActivity({
-        userId,
-        action: 'logout',
-        sessionId,
-        ipAddress: getClientIp(request),
-        userAgent: request.headers['user-agent'],
-        deviceId: getDeviceIdFromRequest(request.headers as Record<string, string | undefined>),
-      });
+      const token = getAccessTokenFromRequest(request);
+      if (token && token.includes('.')) {
+        try {
+          const decoded = app.jwt.verify<{
+            userId: string;
+            sessionId: string;
+            type?: string;
+          }>(token);
+          if (decoded.type !== 'refresh' && decoded.sessionId) {
+            await revokeSession(decoded.sessionId);
+            await logUserActivity({
+              userId: decoded.userId,
+              action: 'logout',
+              sessionId: decoded.sessionId,
+              ipAddress: getClientIp(request),
+              userAgent: request.headers['user-agent'],
+              deviceId: getDeviceIdFromRequest(request.headers as Record<string, string | undefined>),
+            });
+          }
+        } catch {
+          /* invalid/expired token — still clear client cookies */
+        }
+      }
 
       clearAuthCookies(reply);
       return reply.send({
         success: true,
         data: { message: 'Logged out successfully' },
       });
-
     } catch (error) {
+      clearAuthCookies(reply);
       return reply.status(500).send({
         success: false,
         error: { code: 'LOGOUT_FAILED', message: 'Logout failed' },

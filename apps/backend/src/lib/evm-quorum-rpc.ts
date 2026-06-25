@@ -1,8 +1,12 @@
 /**
  * Multi-RPC quorum: require ≥2 matching reads (or single RPC fallback).
  */
-import { Contract, JsonRpcProvider } from 'ethers';
+import { Contract } from 'ethers';
 import { logger } from './logger.js';
+import { getCachedNativeBalance, getCachedTxReceipt, getEvmRpcProvider } from './evm-rpc-pool.js';
+
+/** Must match blockchain-state.service AUTHORITATIVE_NATIVE_BALANCE_TTL_SEC */
+const NATIVE_BALANCE_TTL = 60;
 
 const ERC20_BAL_ABI = ['function balanceOf(address) view returns (uint256)'] as const;
 
@@ -34,7 +38,7 @@ export async function erc20BalanceQuorum(
   const urls = [...new Set(rpcUrls.map((u) => u.trim()).filter(Boolean))];
   if (urls.length === 0) throw new Error('EVM_QUORUM_NO_RPC');
   if (urls.length === 1) {
-    const p = new JsonRpcProvider(urls[0]!);
+    const p = getEvmRpcProvider(urls[0]!);
     const c = new Contract(contractAddress, ERC20_BAL_ABI, p);
     const fn = c.getFunction('balanceOf');
     if (!fn) throw new Error('EVM_QUORUM_NO_BALANCEOF');
@@ -43,7 +47,7 @@ export async function erc20BalanceQuorum(
   const bals: bigint[] = [];
   for (const url of urls) {
     try {
-      const p = new JsonRpcProvider(url);
+      const p = getEvmRpcProvider(url);
       const c = new Contract(contractAddress, ERC20_BAL_ABI, p);
       const fn = c.getFunction('balanceOf');
       if (!fn) continue;
@@ -62,15 +66,13 @@ export async function evmNativeBalanceQuorum(address: string, rpcUrls: string[],
   const urls = [...new Set(rpcUrls.map((u) => u.trim()).filter(Boolean))];
   if (urls.length === 0) throw new Error('EVM_QUORUM_NO_RPC');
   if (urls.length === 1) {
-    const p = new JsonRpcProvider(urls[0]!);
-    return p.getBalance(address);
+    return getCachedNativeBalance(urls[0]!, address, undefined, NATIVE_BALANCE_TTL, 'treasury_reconcile');
   }
 
   const results: { url: string; bal: bigint; err?: string }[] = [];
   for (const url of urls) {
     try {
-      const p = new JsonRpcProvider(url);
-      const bal = await p.getBalance(address);
+      const bal = await getCachedNativeBalance(url, address, undefined, NATIVE_BALANCE_TTL, 'treasury_reconcile');
       results.push({ url, bal });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -94,16 +96,14 @@ export async function evmTxReceiptStatusQuorum(txHash: string, rpcUrls: string[]
   const urls = [...new Set(rpcUrls.map((u) => u.trim()).filter(Boolean))];
   if (urls.length === 0) throw new Error('EVM_QUORUM_NO_RPC');
   if (urls.length === 1) {
-    const p = new JsonRpcProvider(urls[0]!);
-    const r = await p.getTransactionReceipt(txHash);
+    const r = await getCachedTxReceipt(urls[0]!, txHash);
     return r?.status ?? null;
   }
 
   const statuses: (number | null)[] = [];
   for (const url of urls) {
     try {
-      const p = new JsonRpcProvider(url);
-      const r = await p.getTransactionReceipt(txHash);
+      const r = await getCachedTxReceipt(url, txHash);
       statuses.push(r?.status ?? null);
     } catch {
       statuses.push(null);

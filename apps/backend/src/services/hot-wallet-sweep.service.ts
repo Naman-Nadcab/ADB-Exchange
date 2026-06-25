@@ -5,7 +5,9 @@
  * - Logged and replay-safe (we refresh balance, then send one tx per chain).
  */
 
-import { JsonRpcProvider } from 'ethers';
+import { getHotWalletNativeBalanceWei } from '../lib/blockchain-state.service.js';
+import { getEvmRpcProvider } from '../lib/evm-rpc-pool.js';
+import { isNonCriticalRpcPaused } from '../lib/rpc-budget-manager.js';
 import { db } from '../lib/database.js';
 import { redis } from '../lib/redis.js';
 import { logger } from '../lib/logger.js';
@@ -18,6 +20,7 @@ const GAS_RESERVE_WEI = 21000n * 50n * 10n ** 9n;
 const HOT_SWEEP_LOCK_TTL_MS = 300_000;
 
 export async function runAutoSweep(): Promise<void> {
+  if (await isNonCriticalRpcPaused()) return;
   const rows = await db.query<{
     chain_id: string;
     address: string;
@@ -56,13 +59,8 @@ async function sweepOneChain(
 ): Promise<void> {
   const chainRow = await db.query<{ rpc_url: string }>('SELECT rpc_url FROM chains WHERE id = $1', [chainId]);
   if (chainRow.rows.length === 0) return;
-  const provider = new JsonRpcProvider(chainRow.rows[0]!.rpc_url);
-  const walletRow = await db.query<{ address: string }>(
-    'SELECT address FROM hot_wallets WHERE chain_id = $1 AND is_active = TRUE',
-    [chainId]
-  );
-  if (walletRow.rows.length === 0) return;
-  const currentBalance = await provider.getBalance(walletRow.rows[0]!.address);
+  const currentBalance = await getHotWalletNativeBalanceWei(chainId, _address, { category: 'auto_sweep' });
+  if (currentBalance == null) return;
   const minWei = BigInt(minHotBalance);
   const sweepAmount = currentBalance - minWei - GAS_RESERVE_WEI;
   if (sweepAmount <= 0n) return;
@@ -94,6 +92,7 @@ async function sweepOneChain(
 
   let txHash: string;
   try {
+    const provider = getEvmRpcProvider(chainRow.rows[0]!.rpc_url);
     const tx = await provider.broadcastTransaction(signedTx);
     txHash = tx.hash;
   } catch (err) {

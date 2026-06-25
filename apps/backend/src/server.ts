@@ -1101,7 +1101,9 @@ async function start() {
     await getSpotOrdersUseMarket();
     const { loadSpotTradesShape } = await import('./lib/spot-trades-shape.js');
     await loadSpotTradesShape();
-    logger.info('✓ Spot schema cache initialized (orders + trades shape)');
+    const { loadTradingPairsJoinMode } = await import('./lib/trading-pairs-schema-cache.js');
+    await loadTradingPairsJoinMode();
+    logger.info('✓ Spot schema cache initialized (orders + trades + trading_pairs shape)');
 
     {
       const { startAuditLogExportJob } = await import('./services/audit-log-export.service.js');

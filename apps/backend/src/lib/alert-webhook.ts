@@ -51,7 +51,10 @@ async function getAlertWebhookUrlFromSettings(): Promise<string | null> {
 export async function sendAlertWebhook(payload: AlertPayload): Promise<void> {
   let url = config.monitoring?.alertWebhookUrl ?? process.env.ALERT_WEBHOOK_URL?.trim();
   if (!url) url = await getAlertWebhookUrlFromSettings() ?? '';
-  if (!url) return;
+  if (!url) {
+    logger.warn('Alert webhook not configured; alert logged only', { alert: alertText(payload), type: payload.type });
+    return;
+  }
 
   const body = JSON.stringify({
     text: alertText(payload),

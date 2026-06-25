@@ -4,12 +4,25 @@ import { config } from '../config/index.js';
 export const ACCESS_COOKIE = 'mlive_at';
 export const REFRESH_COOKIE = 'mlive_rt';
 
-const isProd = config.env === 'production';
+/** Browsers ignore Secure cookies on plain HTTP — honor proxy proto / explicit env override. */
+function resolveCookieSecure(request?: FastifyRequest): boolean {
+  const envOverride = process.env.AUTH_COOKIE_SECURE?.trim().toLowerCase();
+  if (envOverride === 'false' || envOverride === '0') return false;
+  if (envOverride === 'true' || envOverride === '1') return true;
 
-function baseCookieOptions() {
+  const raw = request?.headers['x-forwarded-proto'];
+  if (typeof raw === 'string') {
+    const proto = raw.split(',')[0]?.trim().toLowerCase();
+    if (proto === 'https') return true;
+    if (proto === 'http') return false;
+  }
+  return config.env === 'production';
+}
+
+function baseCookieOptions(request?: FastifyRequest) {
   return {
     httpOnly: true,
-    secure: isProd,
+    secure: resolveCookieSecure(request),
     sameSite: 'lax' as const,
     path: '/',
   };
@@ -21,12 +34,13 @@ function accessCookieMaxAgeSec(): number {
 }
 
 export function setAuthCookies(reply: FastifyReply, accessToken: string, refreshToken: string): void {
+  const request = reply.request;
   reply.setCookie(ACCESS_COOKIE, accessToken, {
-    ...baseCookieOptions(),
+    ...baseCookieOptions(request),
     maxAge: accessCookieMaxAgeSec(),
   });
   reply.setCookie(REFRESH_COOKIE, refreshToken, {
-    ...baseCookieOptions(),
+    ...baseCookieOptions(request),
     maxAge: 7 * 24 * 60 * 60,
   });
 }

@@ -4,6 +4,7 @@
 import { db } from '../../lib/database.js';
 import { logger, securityLog } from '../../lib/logger.js';
 import { treasuryOnchainMismatchTotal } from '../../lib/prometheus-metrics.js';
+import { isNonCriticalRpcPaused } from '../../lib/rpc-budget-manager.js';
 import { evmNativeBalanceQuorum } from '../../lib/evm-quorum-rpc.js';
 import { logTreasuryAudit } from './treasury-audit.service.js';
 import { sendOpsAlert } from '../ops-alert.service.js';
@@ -11,6 +12,7 @@ import { sendOpsAlert } from '../ops-alert.service.js';
 const TOLERANCE_WEI = 10n ** 15n;
 
 export async function runTreasuryHotWalletOnchainReconcileOnce(): Promise<{ checked: number; mismatches: number }> {
+  if (await isNonCriticalRpcPaused()) return { checked: 0, mismatches: 0 };
   const rows = await db.query<{
     chain_id: string;
     address: string;

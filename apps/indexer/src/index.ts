@@ -134,6 +134,32 @@ class IndexerManager {
         END $$;
       `);
 
+      // Unknown ERC-20 deposits queue: persisted when token/currency is not yet registered (never silent drop).
+      await query(`
+        CREATE TABLE IF NOT EXISTS indexer_pending_token_deposits (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          chain_id VARCHAR(50) NOT NULL,
+          tx_hash VARCHAR(255) NOT NULL,
+          token_address VARCHAR(255) NOT NULL,
+          from_address VARCHAR(255),
+          to_address VARCHAR(255) NOT NULL,
+          amount NUMERIC(36,18) NOT NULL,
+          symbol VARCHAR(64),
+          decimals INT,
+          block_number BIGINT NOT NULL,
+          block_timestamp TIMESTAMPTZ,
+          user_id UUID,
+          wallet_id UUID,
+          status VARCHAR(32) NOT NULL DEFAULT 'pending_review',
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          CONSTRAINT indexer_pending_token_deposits_unique UNIQUE (chain_id, tx_hash, to_address)
+        )
+      `);
+      await query(`
+        CREATE INDEX IF NOT EXISTS idx_indexer_pending_token_deposits_status
+        ON indexer_pending_token_deposits(status, created_at DESC)
+      `);
+
       logger.info('Database tables initialized');
     } catch (error) {
       logger.error('Failed to initialize database tables', { error });

@@ -141,14 +141,22 @@ async function main() {
       }
 
       if (has2faCols) {
-        const tfa = generateBootstrap2FA(admin.email);
-        await client.query(
-          `UPDATE admin_users
-           SET two_factor_enabled = TRUE, two_factor_secret = $2, two_factor_backup_codes = $3
-           WHERE id = $1`,
-          [adminId, tfa.encryptedSecret, tfa.backupHashes]
-        );
-        bootstrapSecrets.push({ email: admin.email, base32: tfa.base32, qrHint: tfa.qrHint });
+        const admin2faMandatory = (() => {
+          const raw = process.env.ADMIN_2FA_MANDATORY?.trim().toLowerCase();
+          if (raw && ['false', '0', 'no', 'off'].includes(raw)) return false;
+          if (raw && ['true', '1', 'yes', 'on'].includes(raw)) return true;
+          return process.env.NODE_ENV === 'production';
+        })();
+        if (admin2faMandatory) {
+          const tfa = generateBootstrap2FA(admin.email);
+          await client.query(
+            `UPDATE admin_users
+             SET two_factor_enabled = TRUE, two_factor_secret = $2, two_factor_backup_codes = $3
+             WHERE id = $1`,
+            [adminId, tfa.encryptedSecret, tfa.backupHashes]
+          );
+          bootstrapSecrets.push({ email: admin.email, base32: tfa.base32, qrHint: tfa.qrHint });
+        }
       }
 
       console.log('Created:', admin.email, `(${admin.role})`);

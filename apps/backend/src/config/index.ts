@@ -796,6 +796,8 @@ if (parsed.data.NODE_ENV === 'production') {
   }
   if (!process.env.SANCTIONS_PROVIDER?.trim()) {
     console.warn('⚠️  SANCTIONS_PROVIDER not set — sanctions screening is no-op. Integrate a provider for compliance.');
+  } else if (process.env.SANCTIONS_PROVIDER.trim().toLowerCase() === 'noop') {
+    console.warn('⚠️  SANCTIONS_PROVIDER=noop — withdrawals allowed without external screening (pre-launch only).');
   }
 }
 
@@ -1037,7 +1039,7 @@ export const config = {
     breakGlassAllowedIps: parsed.data.ADMIN_BREAK_GLASS_ALLOWED_IPS
       ? parsed.data.ADMIN_BREAK_GLASS_ALLOWED_IPS.split(',').map((s) => s.trim()).filter(Boolean)
       : [],
-    /** Admin login requires 2FA to be enabled on the account. Always true when NODE_ENV=production. */
+    /** When true, admin login and step-up actions require TOTP. Set ADMIN_2FA_MANDATORY=false to disable entirely. */
     admin2faMandatory,
     /**
      * API keys on POST /api/v1/spot/* (place/cancel) must send HMAC headers when true.

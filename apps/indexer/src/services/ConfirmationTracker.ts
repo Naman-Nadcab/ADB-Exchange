@@ -3,6 +3,7 @@ import { CHAIN_CONFIGS } from '../config/chains';
 import { query, getClient } from '../config/database';
 import { logger } from '../utils/logger';
 import { emailService } from './EmailService';
+import { getCachedBlockNumber, getCachedTxReceiptStatus, getEvmRpcProvider } from '../lib/evm-rpc-pool.js';
 
 interface PendingDeposit {
   id: string;
@@ -23,9 +24,8 @@ export class ConfirmationTracker {
   private checkInterval: NodeJS.Timeout | null = null;
 
   constructor() {
-    // Initialize providers for all chains
     for (const [chainKey, config] of Object.entries(CHAIN_CONFIGS)) {
-      this.providers.set(chainKey, new JsonRpcProvider(config.rpcUrl));
+      this.providers.set(chainKey, getEvmRpcProvider(config.rpcUrl, config.id));
     }
   }
 
@@ -83,11 +83,11 @@ export class ConfirmationTracker {
         chainDeposits.push({
           ...deposit,
           chain_key: chainKey,
+          block_number: Number(deposit.block_number) || 0,
         });
         depositsByChain.set(chainKey, chainDeposits);
       }
 
-      // Process each chain
       for (const [chainKey, deposits] of depositsByChain) {
         await this.processChainDeposits(chainKey, deposits);
       }
@@ -98,25 +98,25 @@ export class ConfirmationTracker {
 
   private async processChainDeposits(chainId: string, deposits: PendingDeposit[]): Promise<void> {
     const provider = this.providers.get(chainId);
-    if (!provider) {
+    const chainConfig = CHAIN_CONFIGS[chainId];
+    if (!provider || !chainConfig) {
       logger.warn(`No provider for chain ${chainId}`);
       return;
     }
 
     try {
-      const currentBlock = await provider.getBlockNumber();
+      // Always use live chain head — never indexer_state.last_block (processed height trails tip).
+      const currentBlock = await getCachedBlockNumber(chainConfig.rpcUrl, chainConfig.id);
 
       for (const deposit of deposits) {
         const confirmations = currentBlock - deposit.block_number;
         
-        // Update confirmation count
         await query(`
           UPDATE deposits SET confirmations = $1, updated_at = NOW() WHERE id = $2
         `, [confirmations, deposit.id]);
 
-        // Check if fully confirmed
         if (confirmations >= deposit.required_confirmations) {
-          await this.confirmDeposit(deposit);
+          await this.confirmDeposit(deposit, chainConfig.rpcUrl, chainConfig.id);
         }
       }
     } catch (error) {
@@ -124,7 +124,11 @@ export class ConfirmationTracker {
     }
   }
 
-  private async confirmDeposit(deposit: PendingDeposit): Promise<void> {
+  private async confirmDeposit(
+    deposit: PendingDeposit,
+    rpcUrl: string,
+    chainId: number
+  ): Promise<void> {
     try {
       logger.info(`Confirming deposit`, {
         id: deposit.id,
@@ -134,20 +138,16 @@ export class ConfirmationTracker {
         amount: deposit.amount,
       });
 
-      // CRITICAL: First verify the transaction on blockchain before confirming
-      const provider = this.providers.get(deposit.chain_key);
-      if (provider && deposit.tx_hash) {
+      if (deposit.tx_hash) {
         try {
-          const receipt = await provider.getTransactionReceipt(deposit.tx_hash);
+          const status = await getCachedTxReceiptStatus(rpcUrl, deposit.tx_hash, chainId);
           
-          if (!receipt) {
-            // Transaction not found - keep as pending, don't mark failed
+          if (status == null) {
             logger.warn(`Transaction receipt not found, keeping as pending`, { txHash: deposit.tx_hash });
             return;
           }
           
-          if (receipt.status === 0) {
-            // Transaction actually failed on blockchain - only then mark as failed
+          if (status === 0) {
             logger.warn(`Transaction failed on blockchain`, { txHash: deposit.tx_hash });
             await query(`
               UPDATE deposits SET status = 'failed', updated_at = NOW() WHERE id = $1
@@ -155,22 +155,17 @@ export class ConfirmationTracker {
             return;
           }
           
-          // Transaction is successful on blockchain (status === 1)
-          logger.info(`Transaction verified on blockchain`, { txHash: deposit.tx_hash, status: receipt.status });
+          logger.info(`Transaction verified on blockchain`, { txHash: deposit.tx_hash, status });
         } catch (rpcError) {
-          // RPC error - don't mark as failed, just skip and retry later
           logger.warn(`RPC error verifying transaction, will retry`, { txHash: deposit.tx_hash, error: rpcError });
           return;
         }
       }
 
-      // PHASE-15: Use a single DB client so BEGIN/COMMIT form a real transaction. Prevents double-credit
-      // if we crash between crediting user_balances and setting balance_applied_at (pool.query auto-commits each call).
       const client = await getClient();
       let committed = false;
       try {
         await client.query('BEGIN');
-        // Atomic: set completed + credited_at + balance_applied_at only if not already applied; then credit balance.
         const updateDepositResult = await client.query(
           `UPDATE deposits SET status = 'completed', credited_at = NOW(), balance_applied_at = NOW(), updated_at = NOW()
            WHERE id = $1 AND balance_applied_at IS NULL
@@ -287,9 +282,7 @@ export class ConfirmationTracker {
         });
       }
     } catch (error) {
-      // General error - DON'T mark as failed unless we verified blockchain status
       logger.error(`Error processing deposit confirmation, keeping as pending`, { deposit, error });
-      // DO NOT automatically mark as failed - this prevents valid deposits from being lost
     }
   }
 }

@@ -42,6 +42,9 @@ async function requireRecentAdminStepUp(
   reply: FastifyReply,
   adminId: string
 ): Promise<boolean> {
+  const { config } = await import('../config/index.js');
+  if (!config.security.admin2faMandatory) return true;
+
   const cacheKey = `admin:stepup:${adminId}`;
   try {
     const hit = await redis.getClient().get(cacheKey);

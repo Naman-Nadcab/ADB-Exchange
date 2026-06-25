@@ -7,7 +7,8 @@
  */
 
 import { Decimal } from '../lib/decimal.js';
-import { JsonRpcProvider, Transaction } from 'ethers';
+import { Transaction, type JsonRpcProvider } from 'ethers';
+import { getEvmRpcProvider } from '../lib/evm-rpc-pool.js';
 import { db } from '../lib/database.js';
 import { logger } from '../lib/logger.js';
 import { logHotWalletAudit } from '../lib/hot-wallet-audit.js';
@@ -530,7 +531,7 @@ async function processSigningQueueClaimed(claimed: {
     await db.query(`UPDATE withdrawals SET treasury_stage = 'signed', updated_at = NOW() WHERE id = $1`, [withdrawalId]);
   }
 
-  const provider = new JsonRpcProvider(rpcUrl);
+  const provider = getEvmRpcProvider(rpcUrl);
   let txHash: string;
   try {
     const tx = await provider.broadcastTransaction(signedTx);

@@ -8,6 +8,7 @@ import { Decimal } from '../../lib/decimal.js';
 import { db } from '../../lib/database.js';
 import { redis } from '../../lib/redis.js';
 import { logger } from '../../lib/logger.js';
+import { isNonCriticalRpcPaused } from '../../lib/rpc-budget-manager.js';
 import { getLiveBalanceReadOnly } from '../hot-wallet.service.js';
 import { recordWalletCacheDivergence } from '../exchange-monitoring.service.js';
 import {
@@ -28,6 +29,7 @@ let schedulerIntervalId: ReturnType<typeof setInterval> | null = null;
  * On any error: log, release lock, return (fail closed).
  */
 async function runReconciliationCycle(): Promise<void> {
+  if (await isNonCriticalRpcPaused()) return;
   const lockValue = await redis.acquireLock(LOCK_KEY, LOCK_TTL_MS, 1, 0);
   if (lockValue == null) {
     return; // another instance holds the lock

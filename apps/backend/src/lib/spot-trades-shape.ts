@@ -52,3 +52,15 @@ export function getSpotTradesShapeSync(): SpotTradesShape | null {
 export function resetSpotTradesShapeCache(): void {
   cached = null;
 }
+
+/** Subquery for admin user list: 30d spot volume (schema-adaptive). */
+export function spotTradesVolume30dSubquery(userRef = 'u.id'): string {
+  const shape = getSpotTradesShapeSync();
+  if (shape?.hasMakerUserId && shape?.hasTakerUserId) {
+    return `(SELECT COALESCE(SUM(st.price * st.quantity), 0)::text FROM spot_trades st WHERE (st.maker_user_id = ${userRef} OR st.taker_user_id = ${userRef}) AND st.created_at > NOW() - INTERVAL '30 days')`;
+  }
+  if (shape?.hasUserId) {
+    return `(SELECT COALESCE(SUM(st.price * st.quantity), 0)::text FROM spot_trades st WHERE st.user_id = ${userRef} AND st.created_at > NOW() - INTERVAL '30 days')`;
+  }
+  return `'0'`;
+}

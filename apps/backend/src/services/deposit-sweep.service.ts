@@ -5,7 +5,9 @@
  * - Post-sweep: update hot_wallet.balance_cache, audit deposit_sweep_completed.
  */
 
-import { JsonRpcProvider, Wallet } from 'ethers';
+import { Wallet } from 'ethers';
+import { getHotWalletNativeBalanceWei } from '../lib/blockchain-state.service.js';
+import { getEvmRpcProvider } from '../lib/evm-rpc-pool.js';
 import { db } from '../lib/database.js';
 import { redis } from '../lib/redis.js';
 import { logger } from '../lib/logger.js';
@@ -130,16 +132,21 @@ export async function listSweepableAddresses(): Promise<{ sweepable: SweepableAd
     if (chainRow.rows[0]!.type !== 'evm') continue;
 
     const rpcUrl = chainRow.rows[0]!.rpc_url;
-    let provider: JsonRpcProvider;
-    try {
-      provider = new JsonRpcProvider(rpcUrl);
-    } catch {
-      continue;
-    }
 
+    const walletQuery =
+      creditedAddresses.size > 0
+        ? `SELECT address, user_id, encrypted_private_key FROM wallets
+           WHERE chain_id = $1 AND is_active = TRUE AND encrypted_private_key IS NOT NULL AND encrypted_private_key != ''
+           AND LOWER(TRIM(address)) = ANY($2::text[])`
+        : `SELECT address, user_id, encrypted_private_key FROM wallets
+           WHERE chain_id = $1 AND is_active = TRUE AND encrypted_private_key IS NOT NULL AND encrypted_private_key != ''`;
+    const walletParams =
+      creditedAddresses.size > 0
+        ? [chainId, [...creditedAddresses]]
+        : [chainId];
     const walletRows = await db.query<{ address: string; user_id: string; encrypted_private_key: string }>(
-      `SELECT address, user_id, encrypted_private_key FROM wallets WHERE chain_id = $1 AND is_active = TRUE AND encrypted_private_key IS NOT NULL AND encrypted_private_key != ''`,
-      [chainId]
+      walletQuery,
+      walletParams
     );
     const completed = await db.query<{ from_address: string }>(
       `SELECT from_address FROM deposit_sweeps WHERE chain_id = $1 AND status = 'completed'`,
@@ -159,9 +166,13 @@ export async function listSweepableAddresses(): Promise<{ sweepable: SweepableAd
       }
       try {
         const balance = await Promise.race([
-          provider.getBalance(w.address),
+          getHotWalletNativeBalanceWei(chainId, w.address, { category: 'deposit_sweep_scan' }),
           new Promise<never>((_, rej) => setTimeout(() => rej(new Error('RPC timeout')), RPC_TIMEOUT_MS)),
         ]);
+        if (balance == null) {
+          skipReasons.push({ chainId, address: w.address, reason: 'balance_check_unavailable' });
+          continue;
+        }
         if (balance < minWei) {
           skipReasons.push({
             chainId,
@@ -304,7 +315,7 @@ export async function executeOneSweep(item: SweepableAddress): Promise<ExecuteSw
       return { success: false, error: 'Chain not found' };
     }
 
-    const provider = new JsonRpcProvider(chainRow.rows[0]!.rpc_url);
+    const provider = getEvmRpcProvider(chainRow.rows[0]!.rpc_url);
     const signer = new Wallet(privateKey, provider);
 
     let txHash: string;

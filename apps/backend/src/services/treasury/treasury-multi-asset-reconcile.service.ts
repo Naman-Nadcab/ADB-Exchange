@@ -1,16 +1,68 @@
 /**
- * Per-token (ERC-20) hot wallet balance vs cached row; chain-specific RPC + contract balanceOf.
+ * Per-token (ERC-20) hot wallet balance vs cached row; Multicall batch + quorum when secondary RPC configured.
  */
 import { db } from '../../lib/database.js';
 import { logger, securityLog } from '../../lib/logger.js';
 import { treasuryTokenMismatchTotal } from '../../lib/prometheus-metrics.js';
-import { erc20BalanceQuorum } from '../../lib/evm-quorum-rpc.js';
+import { batchErc20BalancesForHolder } from '../../lib/evm-rpc-pool.js';
+import { isNonCriticalRpcPaused } from '../../lib/rpc-budget-manager.js';
 import { sendOpsAlert } from '../ops-alert.service.js';
 import { logTreasuryAudit } from './treasury-audit.service.js';
 
 const TOLERANCE_UNITS = 1n; // 1 base unit slack
 
+function tallyMajority(bals: bigint[], minAgree: number): bigint {
+  const counts = new Map<string, { bal: bigint; n: number }>();
+  for (const b of bals) {
+    const k = b.toString();
+    const cur = counts.get(k);
+    if (cur) cur.n++;
+    else counts.set(k, { bal: b, n: 1 });
+  }
+  let best: { bal: bigint; n: number } | null = null;
+  for (const v of counts.values()) {
+    if (!best || v.n > best.n) best = v;
+  }
+  if (!best || best.n < minAgree) {
+    throw new Error(`EVM_QUORUM_MISMATCH: need ${minAgree} agreeing reads`);
+  }
+  return best.bal;
+}
+
+type ReconcileRow = {
+  hot_wallet_id: string;
+  chain_id: string;
+  address: string;
+  rpc_url: string;
+  rpc_secondary: string | null;
+  token_id: string;
+  symbol: string;
+  contract_address: string;
+  decimals: number;
+  balance_raw: string | null;
+};
+
+async function onchainBalanceQuorum(
+  contractAddress: string,
+  rpcUrls: string[],
+  minAgree: number,
+  batchCache: Map<string, Map<string, bigint>>
+): Promise<bigint> {
+  const contractKey = contractAddress.toLowerCase();
+  const bals: bigint[] = [];
+  for (const url of rpcUrls) {
+    const batch = batchCache.get(url);
+    if (!batch?.has(contractKey)) continue;
+    bals.push(batch.get(contractKey)!);
+  }
+  if (bals.length < minAgree) {
+    throw new Error(`EVM_QUORUM_INSUFFICIENT_RPC: ${bals.length}/${rpcUrls.length}`);
+  }
+  return tallyMajority(bals, minAgree);
+}
+
 export async function runTreasuryTokenReconcileOnce(): Promise<{ checked: number; mismatches: number }> {
+  if (await isNonCriticalRpcPaused()) return { checked: 0, mismatches: 0 };
   const rows = await db.query<{
     hot_wallet_id: string;
     chain_id: string;
@@ -38,11 +90,37 @@ export async function runTreasuryTokenReconcileOnce(): Promise<{ checked: number
 
   let mismatches = 0;
 
+  const byWallet = new Map<string, ReconcileRow[]>();
   for (const row of rows.rows) {
-    try {
-      const rpcUrls = [row.rpc_url, row.rpc_secondary ?? ''].map((u) => u.trim()).filter(Boolean);
-      const minAgree = rpcUrls.length >= 2 ? 2 : 1;
-      const onchain = await erc20BalanceQuorum(row.contract_address, row.address, rpcUrls, minAgree);
+    const list = byWallet.get(row.hot_wallet_id) ?? [];
+    list.push(row);
+    byWallet.set(row.hot_wallet_id, list);
+  }
+
+  for (const walletRows of byWallet.values()) {
+    const first = walletRows[0]!;
+    const rpcUrls = [first.rpc_url, first.rpc_secondary ?? ''].map((u) => u.trim()).filter(Boolean);
+    if (rpcUrls.length === 0) continue;
+    const minAgree = rpcUrls.length >= 2 ? 2 : 1;
+    const contracts = [...new Set(walletRows.map((r) => r.contract_address))];
+    const batchCache = new Map<string, Map<string, bigint>>();
+
+    for (const url of rpcUrls) {
+      try {
+        const batch = await batchErc20BalancesForHolder(url, first.address, contracts, undefined, 'treasury_reconcile');
+        batchCache.set(url, batch);
+      } catch (e) {
+        logger.warn('treasury_token_reconcile: batch rpc failed', {
+          chain_id: first.chain_id,
+          url: url.slice(0, 40),
+          error: e instanceof Error ? e.message : String(e),
+        });
+      }
+    }
+
+    for (const row of walletRows) {
+      try {
+        const onchain = await onchainBalanceQuorum(row.contract_address, rpcUrls, minAgree, batchCache);
       const cached = row.balance_raw != null && row.balance_raw !== '' ? BigInt(row.balance_raw.split('.')[0] || '0') : null;
 
       if (cached === null) {
@@ -98,6 +176,7 @@ export async function runTreasuryTokenReconcileOnce(): Promise<{ checked: number
         token: row.symbol,
         error: e instanceof Error ? e.message : String(e),
       });
+    }
     }
   }
 

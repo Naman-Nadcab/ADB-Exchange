@@ -136,6 +136,10 @@ export async function checkSanctions(params: SanctionsCheckParams): Promise<Sanc
   const { provider, apiUrl, apiKey } = await getSanctionsConfig();
   const isProduction = config.isProduction;
 
+  if (provider === 'noop' || provider === 'disabled') {
+    return { allowed: true, provider: 'noop' };
+  }
+
   if (!provider || provider === 'none' || !apiUrl || !apiKey) {
     if (isProduction) {
       logger.warn('Sanctions check in production without provider — blocking', { userId: params.userId });

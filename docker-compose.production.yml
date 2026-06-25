@@ -203,6 +203,7 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-}
         ADMIN_BASE_PATH: /admin
+        NEXT_PUBLIC_ADMIN_2FA_REQUIRED: ${ADMIN_2FA_MANDATORY:-false}
     container_name: exchange-admin
     environment:
       NODE_ENV: production

@@ -5,7 +5,7 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { db } from '../lib/database.js';
 import { logger } from '../lib/logger.js';
-import { getAdminWithPermission } from './admin.fastify.js';
+import { buildAdminInternalProbeHeaders, getAdminWithPermission } from './admin.fastify.js';
 import { getSettlementCircuitOpen, getTradingHalted, setSettlementCircuitOpen, setTradingHalt } from '../lib/trading-halt.js';
 import { getMmCircuitState, setMmCircuitState } from '../services/mm-circuit-breaker.service.js';
 import { getSpotMetrics } from '../services/spot-metrics.service.js';
@@ -435,6 +435,9 @@ export default async function adminControlRoutes(app: FastifyInstance) {
     | 'resume_market_making';
 
   async function verifyGlobalAction2fa(request: FastifyRequest, adminId: string, twofa: string | undefined): Promise<boolean> {
+    const { config } = await import('../config/index.js');
+    if (!config.security.admin2faMandatory) return true;
+
     const { admin2FAService } = await import('../services/admin-2fa.service.js');
     const st = await admin2FAService.get2FAStatus(adminId);
     if (!st.enabled) return true;
@@ -750,26 +753,27 @@ export default async function adminControlRoutes(app: FastifyInstance) {
   app.get('/system/page-audit', async (request, reply) => {
     const admin = await getAdminWithPermission(app, request, reply, 'monitoring:view');
     if (!admin) return;
-    const auth = request.headers.authorization ?? '';
-    const port = config.port;
-    const base = `http://127.0.0.1:${port}/api/v1/admin`;
+    const probeHeaders = await buildAdminInternalProbeHeaders(app, request);
 
     const probes: { page: string; path: string; minDataKeys?: string[] }[] = [
       { page: 'Dashboard', path: '/dashboard-summary', minDataKeys: ['stats'] },
       { page: 'Control', path: '/control/overview', minDataKeys: ['tradingHalted'] },
       { page: 'System health', path: '/system-health', minDataKeys: ['database'] },
       { page: 'Tier-1 health', path: '/control/exchange-health-tier1', minDataKeys: ['overall'] },
-      { page: 'Users', path: '/users?limit=1', minDataKeys: [] },
+      { page: 'Users', path: '/users?limit=1', minDataKeys: ['users'] },
       { page: 'Withdrawals', path: '/withdrawals?limit=1', minDataKeys: [] },
       { page: 'Deposits', path: '/deposits?limit=1', minDataKeys: [] },
       { page: 'Spot markets', path: '/spot/markets', minDataKeys: [] },
       { page: 'Security dashboard', path: '/security/dashboard', minDataKeys: [] },
-      { page: 'Treasury stats', path: '/treasury/stats', minDataKeys: [] },
+      { page: 'Treasury stats', path: '/treasury', minDataKeys: [] },
       { page: 'Treasury health', path: '/treasury/health', minDataKeys: [] },
       { page: 'Treasury hot wallets', path: '/treasury/hot-wallets', minDataKeys: [] },
-      { page: 'Orders', path: '/orders?limit=1', minDataKeys: [] },
+      { page: 'Orders', path: '/trading/orders?limit=1', minDataKeys: [] },
       { page: 'P2P overview', path: '/p2p', minDataKeys: [] },
-      { page: 'MM status', path: '/control/mm-control/status', minDataKeys: [] },
+      { page: 'MM status', path: '/mm-control/status', minDataKeys: [] },
+      { page: 'Trading engine', path: '/trading', minDataKeys: ['pairs'] },
+      { page: 'Audit activity', path: '/audit/activity?limit=1', minDataKeys: [] },
+      { page: 'Backups', path: '/operational/backups', minDataKeys: [] },
     ];
 
     const results: {
@@ -784,16 +788,16 @@ export default async function adminControlRoutes(app: FastifyInstance) {
     for (const p of probes) {
       const t0 = Date.now();
       try {
-        const url = `${base}${p.path.startsWith('/') ? p.path : `/${p.path}`}`;
-        const ctrl = new AbortController();
-        const to = setTimeout(() => ctrl.abort(), 8000);
-        const res = await fetch(url, { headers: { Authorization: auth }, signal: ctrl.signal });
-        clearTimeout(to);
-        const json = (await res.json().catch(() => ({}))) as { success?: boolean; data?: Record<string, unknown> };
+        const res = await app.inject({
+          method: 'GET',
+          url: `/api/v1/admin${p.path.startsWith('/') ? p.path : `/${p.path}`}`,
+          headers: probeHeaders,
+        });
+        const json = JSON.parse(res.payload) as { success?: boolean; data?: Record<string, unknown> };
         let status: 'WORKING' | 'PARTIAL' | 'BROKEN' = 'BROKEN';
         let detail: string | undefined;
-        if (!res.ok) {
-          detail = `HTTP ${res.status}`;
+        if (res.statusCode >= 400) {
+          detail = `HTTP ${res.statusCode}`;
         } else if (json.success === false) {
           detail = (json as { error?: { message?: string } }).error?.message ?? 'success_false';
           status = 'PARTIAL';
@@ -809,13 +813,13 @@ export default async function adminControlRoutes(app: FastifyInstance) {
               status = 'WORKING';
             }
           } else if ((p.minDataKeys ?? []).length === 0) {
-            status = res.ok ? 'WORKING' : 'BROKEN';
+            status = res.statusCode < 400 ? 'WORKING' : 'BROKEN';
           } else {
             status = 'PARTIAL';
             detail = 'No data object';
           }
         }
-        results.push({ page: p.page, path: p.path, status, httpStatus: res.status, responseTimeMs: Date.now() - t0, detail });
+        results.push({ page: p.page, path: p.path, status, httpStatus: res.statusCode, responseTimeMs: Date.now() - t0, detail });
       } catch (e) {
         results.push({
           page: p.page,
