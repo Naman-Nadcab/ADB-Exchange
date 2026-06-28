@@ -15,6 +15,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { SettlementOpsPanel } from '@/components/ops/SettlementOpsPanel';
 import Link from 'next/link';
 
 function sumLedgerTotals(funds: Record<string, unknown> | undefined): number {
@@ -384,6 +385,8 @@ export default function ReconciliationPage() {
           </CardContent>
         </Card>
       )}
+
+      <SettlementOpsPanel />
     </AdminPageFrame>
   );
 }

@@ -7,6 +7,7 @@ import { adminFetch, formatAdminError } from '@/lib/api';
 import { useAdminAuthStore } from '@/store/auth';
 import { cn } from '@/lib/cn';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { RiskRulesPanel } from '@/components/ops/RiskRulesPanel';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Modal, ModalFooter, TableSkeleton } from '@/components/ui';
 
 const REFETCH_MS = 30_000;
@@ -732,6 +733,9 @@ export default function SecurityPage() {
           </Modal>
         );
       })()}
+      <div className="mt-6">
+        <RiskRulesPanel />
+      </div>
     </AdminPageFrame>
   );
 }

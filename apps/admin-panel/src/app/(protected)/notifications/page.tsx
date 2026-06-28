@@ -9,6 +9,7 @@ import { cn } from '@/lib/cn';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
+import { NotificationTemplatesPanel } from '@/components/ops/NotificationTemplatesPanel';
 
 /* ── constants ─────────────────────────────────────────────────────── */
 const EVENT_TYPES = [
@@ -272,6 +273,8 @@ export default function NotificationsPage() {
           </div>
         </>
       )}
+
+      <NotificationTemplatesPanel />
       <ActionAuthModal
         open={pendingSaveAuth}
         onClose={() => setPendingSaveAuth(false)}

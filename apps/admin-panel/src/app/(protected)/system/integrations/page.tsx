@@ -27,14 +27,17 @@ interface ApiSettingRow {
   environment?: string | null;
   health_status?: string | null;
   last_check_at?: string | null;
+  last_success_at?: string | null;
+  last_failure_at?: string | null;
   last_error?: string | null;
   last_latency_ms?: number | null;
+  failover_provider_id?: string | null;
 }
 
 /** Group taxonomy → the api_settings categories that belong to each group. */
 const GROUPS: { key: string; label: string; categories: string[] }[] = [
   { key: 'auth', label: 'Authentication', categories: ['social_login'] },
-  { key: 'comms', label: 'Communication', categories: ['email', 'sms', 'push', 'web_push'] },
+  { key: 'comms', label: 'Communication', categories: ['email', 'sms', 'push', 'web_push', 'alert'] },
   { key: 'compliance', label: 'Compliance', categories: ['kyc', 'aml', 'travel_rule'] },
   { key: 'blockchain', label: 'Blockchain', categories: ['rpc', 'custody'] },
   { key: 'storage', label: 'Storage', categories: ['storage'] },
@@ -46,7 +49,7 @@ const GROUPS: { key: string; label: string; categories: string[] }[] = [
 ];
 
 const CATEGORY_LABEL: Record<string, string> = {
-  social_login: 'OAuth', email: 'Email', sms: 'SMS', push: 'Push (FCM)', web_push: 'Web Push',
+  social_login: 'OAuth', email: 'Email', sms: 'SMS', push: 'Push (FCM)', web_push: 'Web Push', alert: 'Alerts',
   kyc: 'KYC', aml: 'AML', travel_rule: 'Travel Rule', rpc: 'RPC', custody: 'Custody',
   storage: 'Storage', captcha: 'CAPTCHA', recaptcha: 'reCAPTCHA', market_data: 'Market Data',
   chart: 'Chart Data', analytics: 'Analytics', monitoring: 'Monitoring', ai: 'AI', support: 'Support',
@@ -62,28 +65,62 @@ function healthVariant(h?: string | null): 'success' | 'danger' | 'warning' | 'd
   return 'default';
 }
 
-function ProviderCard({ row, token, onChanged }: { row: ApiSettingRow; token: string | null; onChanged: () => void }) {
+function ProviderCard({ row, token, onChanged, allRows }: { row: ApiSettingRow; token: string | null; onChanged: () => void; allRows: ApiSettingRow[] }) {
   const [apiKey, setApiKey] = useState(row.api_key ?? '');
   const [apiSecret, setApiSecret] = useState('');
   const [apiUrl, setApiUrl] = useState(row.api_url ?? '');
   const [priority, setPriority] = useState(String(row.priority ?? 100));
   const [environment, setEnvironment] = useState(row.environment ?? 'production');
   const [isActive, setIsActive] = useState(row.is_active);
+  const [failoverId, setFailoverId] = useState(row.failover_provider_id ?? '');
+  const [extraConfig, setExtraConfig] = useState(() => JSON.stringify(row.additional_config ?? {}, null, 2));
+  const [showHealth, setShowHealth] = useState(false);
   const [testMsg, setTestMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [extraError, setExtraError] = useState<string | null>(null);
+
+  const failoverOptions = allRows.filter((r) => r.category === row.category && r.id !== row.id);
 
   const save = useMutation({
-    mutationFn: () => adminFetch('/settings/api/' + row.id, {
-      method: 'PUT', token,
-      body: {
-        api_key: apiKey.trim() || undefined,
-        api_secret: apiSecret.trim() || undefined,
-        api_url: apiUrl.trim() || undefined,
-        priority: Number(priority) || 100,
-        environment,
-        is_active: isActive,
-      },
-    }),
+    mutationFn: () => {
+      let parsedExtra: Record<string, string> | undefined;
+      try {
+        parsedExtra = extraConfig.trim() ? JSON.parse(extraConfig) as Record<string, string> : {};
+        setExtraError(null);
+      } catch {
+        setExtraError('Invalid JSON in additional config');
+        throw new Error('Invalid additional_config JSON');
+      }
+      return adminFetch('/settings/api/' + row.id, {
+        method: 'PUT', token,
+        body: {
+          api_key: apiKey.trim() || undefined,
+          api_secret: apiSecret.trim() || undefined,
+          api_url: apiUrl.trim() || undefined,
+          priority: Number(priority) || 100,
+          environment,
+          is_active: isActive,
+          additional_config: parsedExtra,
+          failover_provider_id: failoverId || null,
+        },
+      });
+    },
     onSuccess: () => { setApiSecret(''); onChanged(); },
+  });
+
+  const rotate = useMutation({
+    mutationFn: () => {
+      if (!apiSecret.trim()) throw new Error('Enter new secret to rotate');
+      return adminFetch('/settings/api/' + row.id + '/rotate', { method: 'POST', token, body: { api_secret: apiSecret.trim() } });
+    },
+    onSuccess: () => { setApiSecret(''); onChanged(); },
+  });
+
+  const healthQuery = useQuery({
+    queryKey: ['admin', 'integration-health', row.id, token],
+    queryFn: () => adminFetch<{ checks: Array<{ success: boolean; latency_ms: number; message: string; created_at: string }> }>(
+      '/settings/api/' + row.id + '/health', { token },
+    ),
+    enabled: !!token && showHealth,
   });
 
   const test = useMutation({
@@ -139,7 +176,29 @@ function ProviderCard({ row, token, onChanged }: { row: ApiSettingRow; token: st
             <option value="sandbox">Sandbox</option>
           </select>
         </div>
+        <div className="sm:col-span-2">
+          <label className={labelCls}>Fallback provider</label>
+          <select className={inputCls} value={failoverId} onChange={(e) => setFailoverId(e.target.value)}>
+            <option value="">None</option>
+            {failoverOptions.map((o) => (
+              <option key={o.id} value={o.id}>{o.name} ({o.provider})</option>
+            ))}
+          </select>
+        </div>
+        <div className="sm:col-span-2">
+          <label className={labelCls}>Additional config (JSON) — host, port, bucket, callback_url, DSN…</label>
+          <textarea className={inputCls + ' font-mono text-xs min-h-[80px]'} value={extraConfig} onChange={(e) => setExtraConfig(e.target.value)} />
+          {extraError && <p className="mt-1 text-xs text-red-400">{extraError}</p>}
+        </div>
       </div>
+
+      {(row.last_success_at || row.last_failure_at) && (
+        <p className="mt-2 text-[11px] text-admin-muted">
+          {row.last_success_at && <span className="text-emerald-400/80">Last OK: {new Date(row.last_success_at).toLocaleString()} </span>}
+          {row.last_failure_at && <span className="text-red-400/80">Last fail: {new Date(row.last_failure_at).toLocaleString()}</span>}
+          {row.last_latency_ms != null && <span> · {row.last_latency_ms}ms</span>}
+        </p>
+      )}
 
       {row.last_error && !row.health_status?.includes('healthy') && (
         <p className="mt-2 text-xs text-red-400 truncate" title={row.last_error}>Last error: {row.last_error}</p>
@@ -160,6 +219,14 @@ function ProviderCard({ row, token, onChanged }: { row: ApiSettingRow; token: st
           {test.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Activity className="h-3.5 w-3.5" />}
           <span className="ml-1">Test</span>
         </Button>
+        <Button variant="ghost" size="sm" onClick={() => setShowHealth((v) => !v)}>
+          History
+        </Button>
+        {apiSecret.trim() && (
+          <Button variant="ghost" size="sm" onClick={() => rotate.mutate()} disabled={rotate.isPending}>
+            Rotate secret
+          </Button>
+        )}
         <Button size="sm" onClick={() => save.mutate()} disabled={save.isPending}>
           {save.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
           <span className={save.isPending ? 'ml-1' : ''}>Save &amp; activate</span>
@@ -167,6 +234,19 @@ function ProviderCard({ row, token, onChanged }: { row: ApiSettingRow; token: st
         {save.isSuccess && <span className="text-xs text-emerald-400">Saved</span>}
         {save.isError && <span className="text-xs text-red-400">Save failed</span>}
       </div>
+      {showHealth && (
+        <div className="mt-3 rounded border border-admin-border bg-admin-surface/50 p-2 text-xs">
+          {healthQuery.isLoading ? 'Loading health history…' : (
+            (healthQuery.data?.data?.checks ?? []).length === 0
+              ? <span className="text-admin-muted">No tests yet — click Test.</span>
+              : (healthQuery.data?.data?.checks ?? []).map((c, i) => (
+                <div key={i} className={c.success ? 'text-emerald-400' : 'text-red-400'}>
+                  {new Date(c.created_at).toLocaleString()} — {c.message} ({c.latency_ms}ms)
+                </div>
+              ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -272,7 +352,7 @@ export default function IntegrationsCenterPage() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {filtered.map((row) => (
-                <ProviderCard key={row.id} row={row} token={token} onChanged={onChanged} />
+                <ProviderCard key={row.id} row={row} token={token} onChanged={onChanged} allRows={all} />
               ))}
             </div>
           )}

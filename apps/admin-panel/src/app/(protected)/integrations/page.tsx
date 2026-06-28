@@ -270,7 +270,16 @@ export default function IntegrationsPage() {
   });
 
   const rotateKeyMutation = useMutation({
-    mutationFn: (id: string) => adminFetch(`/integrations/${id}/rotate-key`, { method: 'POST', token, body: {} }),
+    mutationFn: (id: string) => {
+      const secret = typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID().replace(/-/g, '')
+        : `wh_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      return adminFetch(`/integrations/${id}`, {
+        method: 'PATCH',
+        token,
+        body: { webhook_secret: secret },
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'integrations'] });
       setRotateTarget(null);

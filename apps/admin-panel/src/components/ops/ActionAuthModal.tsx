@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Input, Modal, ModalFooter, Textarea } from '@/components/ui';
+import { ADMIN_LOGIN_2FA_REQUIRED } from '@/lib/admin-security';
 
 export type ActionAuthPayload = {
   reason: string;
@@ -34,7 +35,7 @@ export function ActionAuthModal({
   externalError,
   isPending = false,
   requireReason = true,
-  twofaRequired = true,
+  twofaRequired = ADMIN_LOGIN_2FA_REQUIRED,
   confirmationPhrase,
   confirmLabel = 'Confirm',
   confirmVariant = 'primary',
@@ -109,14 +110,16 @@ export function ActionAuthModal({
             placeholder={confirmationPhrase}
           />
         ) : null}
-        <Input
-          label={twofaRequired ? '2FA Code (required)' : '2FA Code (optional)'}
-          value={twofaCode}
-          onChange={(e) => setTwofaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-          placeholder="000000"
-          className="text-center font-mono tracking-widest"
-          autoComplete="one-time-code"
-        />
+        {twofaRequired ? (
+          <Input
+            label="2FA Code (required)"
+            value={twofaCode}
+            onChange={(e) => setTwofaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            placeholder="000000"
+            className="text-center font-mono tracking-widest"
+            autoComplete="one-time-code"
+          />
+        ) : null}
         {localError ? <p className="text-sm text-admin-danger">{localError}</p> : null}
         {externalError ? <p className="text-sm text-admin-danger">{externalError}</p> : null}
       </div>

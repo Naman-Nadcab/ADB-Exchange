@@ -201,3 +201,29 @@ export function patchOperationalWalletStatus(
     body: { ...body, reason: opts?.reason, twofa_code: opts?.twofa_code },
   });
 }
+
+export interface OperationalBackupRow {
+  id: string;
+  type: string;
+  sizeBytes: number | null;
+  status: string;
+  createdAt: string;
+}
+
+export function getOperationalBackups(token: string | null) {
+  return adminFetch<{ backups: OperationalBackupRow[]; message?: string }>('/operational/backups', { token });
+}
+
+export function createOperationalBackup(token: string | null) {
+  return adminFetch<{ id: string; status: string; sizeBytes?: number; path?: string; message?: string }>(
+    '/operational/backups/create',
+    { method: 'POST', token }
+  );
+}
+
+export function requestOperationalBackupRestore(token: string | null, backupId: string) {
+  return adminFetch<{ message: string }>(`/operational/backups/${encodeURIComponent(backupId)}/restore`, {
+    method: 'POST',
+    token,
+  });
+}

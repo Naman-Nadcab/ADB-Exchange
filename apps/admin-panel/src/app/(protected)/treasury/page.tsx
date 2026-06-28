@@ -31,6 +31,7 @@ import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { useAdminWs } from '@/hooks/useAdminWs';
 import { Wallet, Flame, Snowflake, Clock, Play, Settings, Activity, Server, Zap, AlertTriangle } from 'lucide-react';
 import { AdminPageFrame, type AdminPageStatus } from '@/components/admin-shell/AdminPageFrame';
+import { DepositSweepsPanel } from '@/components/ops/DepositSweepsPanel';
 
 function formatReserves(n: number): string {
   if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
@@ -495,6 +496,8 @@ export default function TreasuryPage() {
           )}
         </CardContent>
       </Card>
+
+      <DepositSweepsPanel />
 
         </>
       )}

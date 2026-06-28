@@ -116,7 +116,8 @@ const HUB_SECTIONS: {
     title: 'Infrastructure',
     items: [
       { href: '/admin/mm-control', title: 'MM Desk', desc: 'Market-making runtime, per-pair controls, inventory and execution visibility.', icon: SlidersHorizontal, accent: 'from-cyan-500/20 to-cyan-600/5 border-cyan-500/20 text-cyan-400' },
-      { href: '/integrations', title: 'Integrations', desc: 'Third-party connectors, webhooks, credential rotation, failure budgets.', icon: Cable, accent: 'from-pink-500/20 to-pink-600/5 border-pink-500/20 text-pink-400' },
+      { href: '/system/health', title: 'System Health Center', desc: 'Unified infrastructure, provider health, and diagnostics.', icon: Activity, accent: 'from-teal-500/20 to-teal-600/5 border-teal-500/20 text-teal-400' },
+      { href: '/system/integrations', title: 'Integrations Center', desc: 'Single source of truth for every external provider — credentials, tests, failover.', icon: Cable, accent: 'from-pink-500/20 to-pink-600/5 border-pink-500/20 text-pink-400' },
       { href: '/settings/infrastructure', title: 'Infrastructure', desc: 'Nodes, deployment targets, providers, and platform configuration.', icon: Server, accent: 'from-indigo-500/20 to-indigo-600/5 border-indigo-500/20 text-indigo-400' },
     ],
   },

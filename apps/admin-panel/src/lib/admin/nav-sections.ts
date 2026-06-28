@@ -75,6 +75,7 @@ export function buildSidebarSections(): NavSection[] {
         { label: 'Control Center', href: '/control-center', icon: LayoutGrid },
         { label: 'Exchange Controls', href: '/admin-control', icon: Gauge },
         { label: 'Monitoring', href: '/monitoring', icon: Activity },
+        { label: 'System Health', href: '/system/health', icon: Activity },
         { label: 'Alert Rules', href: '/monitoring/alert-rules', icon: Bell },
         ...incidentsItem,
         { label: 'Operations Hub', href: '/operations', icon: Blocks },
