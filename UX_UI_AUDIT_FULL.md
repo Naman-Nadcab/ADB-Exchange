@@ -31,7 +31,7 @@
 - **Root:** Landing (`/`) with tickers, CTA to Trade/P2P/Markets; footer links.
 - **Auth:** `/login`, `/signup`, `/forgot-password`; OTP and passkey support.
 - **Dashboard:** Single layout with top header + optional sidebar.
-  - **Top bar:** Logo (Methereum), desktop nav (Spot, P2P, Orders, Assets, History), Deposit dropdown, Assets dropdown, Orders dropdown, Notifications, Theme toggle, User menu.
+  - **Top bar:** Logo (Metherium), desktop nav (Spot, P2P, Orders, Assets, History), Deposit dropdown, Assets dropdown, Orders dropdown, Notifications, Theme toggle, User menu.
   - **Sidebar (collapsible):** Overview, Spot, P2P (Trading + Payment Methods), Orders, Assets (Overview, Funding, Unified, Convert, History, P&L), History, Account (Info, Identity, Security, Data Export), Referral, Preferences, API, Fee Rates, Progress Tracker, Spot Wallet.
 - **Spot:** `/dashboard/spot` (main grid); `/dashboard/trade/spot` (alternate form); `/dashboard/orders/spot` (open + history).
 - **P2P:** `/dashboard/p2p` (landing); `/dashboard/p2p/[type]/[crypto]/[fiat]` (ads); `/dashboard/orders/p2p` (my orders); order detail with chat.
@@ -135,7 +135,7 @@
 - KYC banner when not verified (steps + link to Identity).
 - Markets: tabs (Favorites, Hot, Gainers, Losers); table with skeleton while loading; 401 handled without breaking layout.
 - Announcements: list; 401 handled.
-- Trending events, rewards, sidebar (My Rewards, New to Crypto, Methereum Card).
+- Trending events, rewards, sidebar (My Rewards, New to Crypto, Metherium Card).
 - **Strengths:** Skeleton for markets; 401-safe; clear CTAs.
 - **Gaps:** Ticker table could link to spot with symbol param; some cards are static (rewards).
 

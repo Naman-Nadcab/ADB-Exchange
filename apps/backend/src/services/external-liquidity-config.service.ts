@@ -188,11 +188,11 @@ class ExternalLiquidityConfigService {
          p.last_health_ok_at::text, p.consecutive_failures, p.created_at::text, p.updated_at::text,
          p.api_key_ciphertext, p.api_secret_ciphertext,
          (
-           SELECT hj.updated_at::text
+           SELECT hj.created_at::text
            FROM hedge_jobs hj
            WHERE hj.provider_id = p.id::uuid
              AND LOWER(hj.status) = 'completed'
-           ORDER BY hj.updated_at DESC NULLS LAST, hj.created_at DESC
+           ORDER BY hj.created_at DESC
            LIMIT 1
          ) AS last_successful_execution_at,
          (
@@ -200,7 +200,7 @@ class ExternalLiquidityConfigService {
            FROM hedge_jobs hj
            WHERE hj.provider_id = p.id::uuid
              AND hj.last_error IS NOT NULL
-           ORDER BY hj.updated_at DESC NULLS LAST, hj.created_at DESC
+           ORDER BY hj.created_at DESC
            LIMIT 1
          ) AS last_failure_reason,
          (

@@ -11,6 +11,8 @@ import {
   CheckCircle2, AlertTriangle, Info, Zap,
 } from 'lucide-react';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { cn } from '@/lib/cn';
 
 /* ── rule card ─────────────────────────────────────────────────────── */
@@ -105,6 +107,7 @@ function RuleCard({
 export default function RiskAutomationPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [autoFreeze,      setAutoFreeze]      = useState(0);
   const [autoWithdrawal,  setAutoWithdrawal]  = useState(0);
   const [autoCancelRate,  setAutoCancelRate]  = useState(0);
@@ -132,8 +135,9 @@ export default function RiskAutomationPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'risk'] });
       setSaveState('saved');
       setTimeout(() => setSaveState('idle'), 2500);
+      toast.success('Automation rules saved.');
     },
-    onError: () => { setSaveState('error'); setTimeout(() => setSaveState('idle'), 3000); },
+    onError: (e) => { setSaveState('error'); setTimeout(() => setSaveState('idle'), 3000); toast.error(formatSaveError(e, 'Failed to save automation rules.')); },
   });
 
   const handleSubmit = (e: React.FormEvent) => {

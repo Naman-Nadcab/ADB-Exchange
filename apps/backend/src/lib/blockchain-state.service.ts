@@ -18,7 +18,10 @@ import {
 import { isNonCriticalRpcPaused, recordRpc429, type RpcBudgetCategory } from './rpc-budget-manager.js';
 
 /** Unified TTL for hot-wallet native balance — shared across treasury, recon, sweep. */
-export const AUTHORITATIVE_NATIVE_BALANCE_TTL_SEC = 60;
+export const AUTHORITATIVE_NATIVE_BALANCE_TTL_SEC = parseInt(
+  process.env.RPC_NATIVE_BALANCE_CACHE_TTL_SEC || '120',
+  10
+);
 
 type ChainRpcRow = { id: string; rpc_url: string; type: string };
 
@@ -45,7 +48,7 @@ export async function getLatestBlockNumber(
 ): Promise<number | null> {
   const chain = await chainRpc(chainId);
   if (!chain || chain.type !== 'evm') return null;
-  return getCachedBlockNumber(chain.rpc_url, numericChainId, 5, category);
+  return getCachedBlockNumber(chain.rpc_url, numericChainId, 10, category);
 }
 
 export async function getHotWalletNativeBalanceWei(

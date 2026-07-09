@@ -185,3 +185,34 @@ export async function notifySpotPrivateChannelsAfterSettlement(params: {
     });
   }
 }
+
+/** After a rust match, wait for settlement_events.processed then push private WS (REST place path). */
+export async function notifyPrivateWsAfterSettlementForOrder(
+  symbol: string,
+  orderId: string,
+  timeoutMs = 30_000
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const r = await db.query<{ payload: Record<string, string> }>(
+      `SELECT payload FROM settlement_events
+       WHERE LOWER(TRIM(status::text)) = 'processed'
+         AND (payload->>'taker_order_id' = $1 OR payload->>'maker_order_id' = $1)
+       ORDER BY id DESC LIMIT 1`,
+      [orderId]
+    );
+    const p = r.rows[0]?.payload;
+    if (p?.taker_order_id && p?.maker_order_id && p?.taker_user_id && p?.maker_user_id) {
+      await notifySpotPrivateChannelsAfterSettlement({
+        symbol,
+        takerOrderId: p.taker_order_id,
+        makerOrderId: p.maker_order_id,
+        takerUserId: p.taker_user_id,
+        makerUserId: p.maker_user_id,
+      });
+      return;
+    }
+    await new Promise((res) => setTimeout(res, 100));
+  }
+  logger.warn('notifyPrivateWsAfterSettlementForOrder timed out', { symbol, orderId, timeoutMs });
+}

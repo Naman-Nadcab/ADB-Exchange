@@ -79,7 +79,8 @@ export function p2pOrderPath(orderId: string): string {
 }
 
 export function loginWithRedirect(redirectPath: string): string {
-  return `${ROUTES.login}?redirect=${encodeURIComponent(redirectPath)}`;
+  const params = new URLSearchParams({ returnUrl: redirectPath, redirect: redirectPath });
+  return `${ROUTES.login}?${params.toString()}`;
 }
 
 export function dashboardAnnouncementPath(id: string): string {

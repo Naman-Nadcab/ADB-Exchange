@@ -14,6 +14,8 @@ import {
   RefreshCw, Check, X, Info, Download, ShieldAlert,
 } from 'lucide-react';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { cn } from '@/lib/cn';
 
 /* ── types ────────────────────────────────────────────────────────── */
@@ -145,6 +147,7 @@ export default function ApprovalsPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const admin = useAdminAuthStore((s) => s.admin);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
 
   const [tab,         setTab]         = useState<TabId>('pending');
   const [page, setPage] = useState(1);
@@ -194,7 +197,9 @@ export default function ApprovalsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'approval-requests'] });
       setActionModal(null);
+      toast.success('Approval request approved.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to approve request.')),
   });
 
   const rejectMutation = useMutation({
@@ -205,7 +210,9 @@ export default function ApprovalsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'approval-requests'] });
       setActionModal(null);
+      toast.success('Approval request rejected.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to reject request.')),
   });
 
   const retryMutation = useMutation({
@@ -220,7 +227,9 @@ export default function ApprovalsPage() {
       void detailImpactQ.refetch();
       void detailForensicsQ.refetch();
       setRetryReason('');
+      toast.success('Execution retry submitted.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to retry execution.')),
   });
 
   const breakGlassMutation = useMutation({
@@ -236,7 +245,9 @@ export default function ApprovalsPage() {
       void detailForensicsQ.refetch();
       setBgReason('');
       setBgTicketId('');
+      toast.success('Break-glass execution completed.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Break-glass execution failed.')),
   });
 
   const allRequests   = data?.data?.requests ?? [];

@@ -33,6 +33,39 @@ export async function defaultWalletOutflowDebitProvider(_asset: string, _wallet_
   return new Decimal('0');
 }
 
+/**
+ * Hot-wallet outflow: completed on-chain withdrawals + hot-to-cold sweeps for a chain/asset domain.
+ */
+export function createHotWalletOutflowDebitProvider(chainId: string, asset: string): WalletOutflowDebitProvider {
+  return async (a: string, wallet_type: string) => {
+    if (wallet_type !== 'hot' || a.toUpperCase() !== asset.toUpperCase()) {
+      return new Decimal('0');
+    }
+    const withdrawalSum = await db.query<{ sum: string }>(
+      `SELECT COALESCE(SUM(w.amount + w.fee), 0)::text AS sum
+       FROM withdrawals w
+       LEFT JOIN tokens t ON t.id = w.token_id
+       LEFT JOIN currencies c ON c.id = t.currency_id
+       WHERE w.chain_id = $1
+         AND w.status = 'completed'
+         AND w.tx_hash IS NOT NULL
+         AND (
+           UPPER(TRIM(COALESCE(t.symbol, ''))) = UPPER(TRIM($2))
+           OR UPPER(TRIM(COALESCE(c.symbol, ''))) = UPPER(TRIM($2))
+         )`,
+      [chainId, asset],
+    );
+    const sweepSum = await db.query<{ sum: string }>(
+      `SELECT COALESCE(SUM(NULLIF(amount, '')::numeric), 0)::text AS sum
+       FROM audit_logs
+       WHERE action = 'hot_wallet_sweep'
+         AND chain_id = $1`,
+      [chainId],
+    );
+    return new Decimal(withdrawalSum.rows[0]?.sum ?? '0').plus(new Decimal(sweepSum.rows[0]?.sum ?? '0'));
+  };
+}
+
 export interface WalletReconciliationOptions {
   asset: string;
   wallet_type: string;

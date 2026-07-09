@@ -7,6 +7,8 @@ import { OperatorSection } from '@/components/admin-shell/OperatorSection';
 import { Button } from '@/components/ui/Button';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { useState } from 'react';
 import {
   getDepositSweepEligibility,
@@ -17,6 +19,7 @@ import {
 export function DepositSweepsPanel() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [runOpen, setRunOpen] = useState(false);
 
   const eligQ = useQuery({
@@ -38,7 +41,9 @@ export function DepositSweepsPanel() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'deposit-sweeps'] });
       setRunOpen(false);
+      toast.success('Deposit sweep started.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Deposit sweep failed.')),
   });
 
   const sweeps = (sweepsQ.data?.data as { sweeps?: unknown[] } | undefined)?.sweeps ?? [];

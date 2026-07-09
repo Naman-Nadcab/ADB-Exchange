@@ -32,7 +32,10 @@ import { getTradingOrderbook, getTradingMarkets } from '@/lib/trading-api';
 import { useAdminAuthStore } from '@/store/auth';
 import { useAdminWs } from '@/hooks/useAdminWs';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { AdminSaveBanner, useAdminToast } from '@/components/admin-shell/AdminToast';
 import { ActionAuthModal, type ActionAuthPayload as ModalActionAuthPayload } from '@/components/ops/ActionAuthModal';
+import { ADMIN_LOGIN_2FA_REQUIRED } from '@/lib/admin-security';
+import { formatSaveError, refetchAdminQueries } from '@/lib/admin-save-feedback';
 import {
   createExternalLiquidityProvider,
   createHybridMarketRow,
@@ -139,7 +142,7 @@ const HYBRID_BAND_POLICIES = ['internal_only', 'prefer_internal', 'prefer_hedge'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-type ActionAuthPayload = { reason: string; twofa: string };
+type ActionAuthPayload = { reason: string; twofa?: string };
 
 function RemoveHybridRowButton({
   rowId,
@@ -158,6 +161,7 @@ function RemoveHybridRowButton({
   onRemoved: () => void;
   requestActionAuth: (actionLabel: string) => Promise<ActionAuthPayload>;
 }) {
+  const toast = useAdminToast();
   const del = useMutation({
     mutationFn: async () => {
       setHedgeUiError(null);
@@ -168,9 +172,12 @@ function RemoveHybridRowButton({
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'hybrid'] });
       onRemoved();
+      toast.success(`Hybrid override for ${market} removed.`);
     },
     onError: (e) => {
-      setHedgeUiError(formatAdminError(e, 'Failed to remove hybrid row'));
+      const msg = formatSaveError(e, 'Failed to remove hybrid row');
+      setHedgeUiError(msg);
+      toast.error(msg);
     },
   });
   return (
@@ -204,7 +211,9 @@ function HybridExecutionRowCard({
   onSaved: () => void;
   requestActionAuth: (actionLabel: string) => Promise<ActionAuthPayload>;
 }) {
+  const toast = useAdminToast();
   const [dirty, setDirty] = useState(false);
+  const [saveNotice, setSaveNotice] = useState<{ kind: 'success' | 'error'; message: string } | null>(null);
   const [enabled, setEnabled] = useState(row.enabled);
   const [hedgeEnabled, setHedgeEnabled] = useState(row.hedge_enabled);
   const [fallbackInternal, setFallbackInternal] = useState(row.fallback_to_internal);
@@ -260,13 +269,19 @@ function HybridExecutionRowCard({
         system_counterparty_user_id: cp === '' ? null : cp,
       }, auth.reason, auth.twofa);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       setDirty(false);
-      void queryClient.invalidateQueries({ queryKey: ['admin', 'hybrid'] });
+      await refetchAdminQueries(queryClient, ['admin', 'hybrid', 'config']);
+      const msg = `${row.market == null ? 'Global hybrid defaults' : row.market} saved successfully.`;
+      setSaveNotice({ kind: 'success', message: msg });
+      toast.success(msg);
       onSaved();
     },
     onError: (e) => {
-      setHedgeUiError(formatAdminError(e, 'Failed to save hybrid config'));
+      const msg = formatSaveError(e, 'Failed to save hybrid config');
+      setSaveNotice({ kind: 'error', message: msg });
+      setHedgeUiError(msg);
+      toast.error(msg);
     },
   });
 
@@ -429,16 +444,27 @@ function HybridExecutionRowCard({
         </label>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 pt-1">
+      <div className="flex flex-col gap-2 pt-1">
+        {saveNotice ? <AdminSaveBanner kind={saveNotice.kind} message={saveNotice.message} /> : null}
+        <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          disabled={saveMutation.isPending || !token}
-          onClick={() => saveMutation.mutate()}
+          disabled={saveMutation.isPending || !token || !dirty}
+          title={!dirty ? 'Edit a field first, then save' : undefined}
+          onClick={() => {
+            setSaveNotice(null);
+            saveMutation.mutate();
+          }}
           className="inline-flex items-center gap-2 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-3 py-2 text-xs font-semibold text-indigo-300 hover:bg-indigo-500/18 disabled:opacity-40"
         >
           {saveMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
           Save row
         </button>
+        {!dirty ? (
+          <span className="text-[10px] text-admin-muted">Edit a value to enable save</span>
+        ) : (
+          <span className="text-[10px] text-amber-400">Unsaved — click Save row, then confirm in popup</span>
+        )}
         {row.market != null ? (
           <RemoveHybridRowButton
             rowId={row.id}
@@ -451,6 +477,10 @@ function HybridExecutionRowCard({
           />
         ) : null}
         <span className="text-[10px] text-admin-muted">Requires markets:manage · Redis healthy for writes</span>
+        </div>
+        <p className="text-[10px] text-amber-400/90">
+          After Save row, a confirmation popup opens — enter reason (8+ characters) and confirm. Without that step, nothing is saved to the database.
+        </p>
       </div>
     </div>
   );
@@ -461,6 +491,7 @@ function HybridExecutionRowCard({
 const BOT_SYMBOLS_FALLBACK = ['BTC_USDT', 'ETH_USDT', 'SOL_USDT', 'XRP_USDT', 'BNB_USDT'];
 
 export default function LiquidityPage() {
+  const toast = useAdminToast();
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
   const [historyMarket, setHistoryMarket] = useState('BTC_USDT');
@@ -568,6 +599,9 @@ export default function LiquidityPage() {
   const [provApiSecret, setProvApiSecret] = useState('');
   const [provTestnet, setProvTestnet] = useState(false);
   const [provPriority, setProvPriority] = useState('10');
+  const [editProviderId, setEditProviderId] = useState<string | null>(null);
+  const [editApiKey, setEditApiKey] = useState('');
+  const [editApiSecret, setEditApiSecret] = useState('');
   const [newHybridMarket, setNewHybridMarket] = useState('');
   const [actionAuthOpen, setActionAuthOpen] = useState(false);
   const [actionAuthLabel, setActionAuthLabel] = useState('');
@@ -607,7 +641,7 @@ export default function LiquidityPage() {
     setActionAuthOpen(false);
     setActionAuthLabel('');
     setActionAuthError(null);
-    if (!payload.twofa_code) {
+    if (ADMIN_LOGIN_2FA_REQUIRED && !payload.twofa_code) {
       pending?.reject(new AdminApiError('Valid 6-digit 2FA code is required.', 'STEP_UP_REQUIRED'));
       return;
     }
@@ -635,9 +669,12 @@ export default function LiquidityPage() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'hybrid'] });
       void hedgeRiskQ.refetch();
+      toast.success('Hedge emergency stop updated.');
     },
     onError: (e) => {
-      setHedgeUiError(formatAdminError(e, 'Emergency stop request failed'));
+      const msg = formatSaveError(e, 'Emergency stop request failed');
+      setHedgeUiError(msg);
+      toast.error(msg);
     },
   });
 
@@ -651,9 +688,12 @@ export default function LiquidityPage() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'hybrid'] });
       void hedgeRiskQ.refetch();
+      toast.success('Global hedge flag updated.');
     },
     onError: (e) => {
-      setHedgeUiError(formatAdminError(e, 'Failed to change global hedge flag'));
+      const msg = formatSaveError(e, 'Failed to change global hedge flag');
+      setHedgeUiError(msg);
+      toast.error(msg);
     },
   });
 
@@ -669,9 +709,12 @@ export default function LiquidityPage() {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'external-liquidity'] });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'hybrid'] });
       void extProvidersQ.refetch();
+      toast.success('Provider circuit reset.');
     },
     onError: (e) => {
-      setHedgeUiError(formatAdminError(e, 'Circuit reset failed'));
+      const msg = formatSaveError(e, 'Circuit reset failed');
+      setHedgeUiError(msg);
+      toast.error(msg);
     },
   });
 
@@ -691,13 +734,17 @@ export default function LiquidityPage() {
     },
     onSuccess: (res) => {
       const data = res.data as { to_provider_name?: string } | undefined;
-      setProviderActionMsg(`Manual failover completed${data?.to_provider_name ? ` -> ${data.to_provider_name}` : ''}.`);
+      const msg = `Manual failover completed${data?.to_provider_name ? ` -> ${data.to_provider_name}` : ''}.`;
+      setProviderActionMsg(msg);
+      toast.success(msg);
       void queryClient.invalidateQueries({ queryKey: ['admin', 'external-liquidity'] });
       void extProvidersQ.refetch();
       void failoverHistoryQ.refetch();
     },
     onError: (e) => {
-      setHedgeUiError(formatAdminError(e, 'Manual failover failed'));
+      const msg = formatSaveError(e, 'Manual failover failed');
+      setHedgeUiError(msg);
+      toast.error(msg);
     },
   });
 
@@ -723,14 +770,18 @@ export default function LiquidityPage() {
       }, auth.reason, auth.twofa);
     },
     onSuccess: () => {
-      setProviderActionMsg('Provider created.');
+      const msg = `Provider "${provName.trim() || 'saved'}" created successfully.`;
+      setProviderActionMsg(msg);
+      toast.success(msg);
       setProvApiKey('');
       setProvApiSecret('');
       void queryClient.invalidateQueries({ queryKey: ['admin', 'external-liquidity'] });
       void extProvidersQ.refetch();
     },
     onError: (e) => {
-      setHedgeUiError(formatAdminError(e, 'Create provider failed'));
+      const msg = formatSaveError(e, 'Create provider failed');
+      setHedgeUiError(msg);
+      toast.error(msg);
     },
   });
 
@@ -742,11 +793,15 @@ export default function LiquidityPage() {
     },
     onSuccess: (res) => {
       const d = res.data as { summary?: string } | undefined;
-      setProviderActionMsg(d?.summary ? `Test: ${d.summary}` : 'Test succeeded.');
+      const msg = d?.summary ? `Test: ${d.summary}` : 'Provider test succeeded.';
+      setProviderActionMsg(msg);
+      toast.success(msg);
       void extProvidersQ.refetch();
     },
     onError: (e) => {
-      setHedgeUiError(formatAdminError(e, 'Provider test failed'));
+      const msg = formatAdminError(e, 'Provider test failed');
+      setHedgeUiError(msg);
+      toast.error(msg);
     },
   });
 
@@ -763,12 +818,57 @@ export default function LiquidityPage() {
         auth.twofa
       );
     },
+    onSuccess: (_, { enabled }) => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'external-liquidity'] });
+      void extProvidersQ.refetch();
+      toast.success(`External provider ${enabled ? 'enabled' : 'disabled'}.`);
+    },
+    onError: (e) => {
+      const msg = formatSaveError(e, 'Update provider failed');
+      setHedgeUiError(msg);
+      toast.error(msg);
+    },
+  });
+
+  const updateProviderKeysMutation = useMutation({
+    mutationFn: async () => {
+      setProviderActionMsg(null);
+      setHedgeUiError(null);
+      if (!editProviderId) throw new AdminApiError('Select a provider to update', 'VALIDATION');
+      const key = editApiKey.trim();
+      const secret = editApiSecret.trim();
+      if (!key && !secret) {
+        throw new AdminApiError('Enter a new API key and/or secret', 'VALIDATION');
+      }
+      const provider = extProvidersQ.data?.success
+        ? extProvidersQ.data.data?.find((p) => p.id === editProviderId)
+        : undefined;
+      const auth = await requestActionAuth(`Update ${provider?.provider_name ?? 'provider'} API credentials`);
+      return patchExternalLiquidityProvider(
+        token,
+        editProviderId,
+        {
+          ...(key ? { api_key: key } : {}),
+          ...(secret ? { api_secret: secret } : {}),
+        },
+        auth.reason,
+        auth.twofa
+      );
+    },
     onSuccess: () => {
+      const msg = 'Provider API credentials updated.';
+      setProviderActionMsg(msg);
+      toast.success(msg);
+      setEditApiKey('');
+      setEditApiSecret('');
+      setEditProviderId(null);
       void queryClient.invalidateQueries({ queryKey: ['admin', 'external-liquidity'] });
       void extProvidersQ.refetch();
     },
     onError: (e) => {
-      setHedgeUiError(formatAdminError(e, 'Update provider failed'));
+      const msg = formatSaveError(e, 'Failed to update provider credentials');
+      setHedgeUiError(msg);
+      toast.error(msg);
     },
   });
 
@@ -783,14 +883,18 @@ export default function LiquidityPage() {
       return sym;
     },
     onSuccess: (sym) => {
-      setProviderActionMsg(`Hybrid row added for ${sym} (copied from global).`);
+      const msg = `Hybrid row added for ${sym} (copied from global).`;
+      setProviderActionMsg(msg);
+      toast.success(msg);
       setNewHybridMarket('');
       void queryClient.invalidateQueries({ queryKey: ['admin', 'hybrid'] });
       void hybridCfgQ.refetch();
       void hedgeRiskQ.refetch();
     },
     onError: (e) => {
-      setHedgeUiError(formatAdminError(e, 'Could not add hybrid row'));
+      const msg = formatSaveError(e, 'Could not add hybrid row');
+      setHedgeUiError(msg);
+      toast.error(msg);
     },
   });
 
@@ -1171,7 +1275,7 @@ export default function LiquidityPage() {
               <div className="space-y-3 max-h-[min(70vh,720px)] overflow-y-auto pr-1">
                 {hybridRows.map((r) => (
                   <HybridExecutionRowCard
-                    key={r.id}
+                    key={`${r.id}-${r.updated_at}`}
                     row={r}
                     token={token}
                     queryClient={queryClient}
@@ -1192,6 +1296,14 @@ export default function LiquidityPage() {
               </p>
             </div>
             {providerActionMsg ? <p className="text-xs text-indigo-300">{providerActionMsg}</p> : null}
+            {extProvidersQ.isError ? (
+              <p className="text-xs text-red-300">
+                Could not load providers: {formatAdminError(extProvidersQ.error, 'List request failed')}. Try Refresh above.
+              </p>
+            ) : null}
+            {extProvidersQ.isLoading && extProviders == null ? (
+              <p className="text-xs text-admin-muted">Loading configured providers…</p>
+            ) : null}
             {extProviders != null && extProviders.length === 0 ? (
               <p className="text-xs text-amber-400/90">No providers configured — hedge worker has nowhere to route.</p>
             ) : null}
@@ -1259,6 +1371,11 @@ export default function LiquidityPage() {
                   {createProviderMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
                   Add provider
                 </button>
+                {extProviders != null && extProviders.length > 0 ? (
+                  <p className="text-[10px] text-amber-400/90">
+                    Provider already exists? Use <span className="font-semibold">Update credentials</span> on the right — Add provider only creates a new row.
+                  </p>
+                ) : null}
               </div>
 
               {extProviders != null && extProviders.length > 0 ? (
@@ -1334,6 +1451,18 @@ export default function LiquidityPage() {
                                 </button>
                                 <button
                                   type="button"
+                                  disabled={!token}
+                                  onClick={() => {
+                                    setEditProviderId(p.id);
+                                    setEditApiKey('');
+                                    setEditApiSecret('');
+                                  }}
+                                  className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold text-emerald-300 hover:bg-emerald-500/18 disabled:opacity-40"
+                                >
+                                  Update keys
+                                </button>
+                                <button
+                                  type="button"
                                   disabled={manualFailoverMutation.isPending || !token}
                                   onClick={() => {
                                     setFailoverTargetId(p.id);
@@ -1350,6 +1479,58 @@ export default function LiquidityPage() {
                       </tbody>
                     </table>
                   </div>
+                  {editProviderId ? (
+                    <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-3 space-y-2">
+                      <p className="text-[10px] font-semibold uppercase text-emerald-300">
+                        Update credentials — {extProviders.find((x) => x.id === editProviderId)?.provider_name ?? 'provider'}
+                      </p>
+                      <label className="block space-y-1">
+                        <span className="text-[10px] text-admin-muted">New API key (leave blank to keep current)</span>
+                        <input
+                          type="password"
+                          autoComplete="off"
+                          value={editApiKey}
+                          onChange={(e) => setEditApiKey(e.target.value)}
+                          className="w-full rounded-lg border border-admin-border bg-admin-surface px-2 py-1.5 font-mono text-xs text-admin-text"
+                        />
+                      </label>
+                      <label className="block space-y-1">
+                        <span className="text-[10px] text-admin-muted">New API secret (leave blank to keep current)</span>
+                        <input
+                          type="password"
+                          autoComplete="off"
+                          value={editApiSecret}
+                          onChange={(e) => setEditApiSecret(e.target.value)}
+                          className="w-full rounded-lg border border-admin-border bg-admin-surface px-2 py-1.5 font-mono text-xs text-admin-text"
+                        />
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={updateProviderKeysMutation.isPending || !token}
+                          onClick={() => updateProviderKeysMutation.mutate()}
+                          className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/18 disabled:opacity-40"
+                        >
+                          {updateProviderKeysMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                          Save credentials
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditProviderId(null);
+                            setEditApiKey('');
+                            setEditApiSecret('');
+                          }}
+                          className="rounded-lg border border-admin-border px-3 py-2 text-xs text-admin-muted hover:bg-white/[0.04]"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-amber-400/90">
+                        Popup will ask for reason (8+ chars). Then click Test to verify Binance auth.
+                      </p>
+                    </div>
+                  ) : null}
                   <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
                     <div className="flex flex-wrap items-end gap-3">
                       <label className="flex flex-col gap-1 min-w-[220px]">
@@ -1682,7 +1863,6 @@ export default function LiquidityPage() {
         title="Authorize Sensitive Action"
         actionLabel={actionAuthLabel}
         externalError={actionAuthError}
-        twofaRequired
       />
     </AdminPageFrame>
   );

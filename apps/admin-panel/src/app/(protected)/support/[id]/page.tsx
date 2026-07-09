@@ -15,6 +15,8 @@ import {
   CheckCircle, Clock, AlertTriangle,
 } from 'lucide-react';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
 interface Ticket {
   id: string;
@@ -72,6 +74,7 @@ export default function TicketDetailPage() {
   const ticketId = params.id;
   const router = useRouter();
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const token = useAdminAuthStore((s) => s.accessToken);
   const admin = useAdminAuthStore((s) => s.admin);
 
@@ -104,8 +107,13 @@ export default function TicketDetailPage() {
       setReplyText('');
       setReplyError('');
       queryClient.invalidateQueries({ queryKey });
+      toast.success('Reply sent.');
     },
-    onError: (e: unknown) => setReplyError((e as { message?: string })?.message ?? 'Failed to send reply. Please try again.'),
+    onError: (e: unknown) => {
+      const msg = (e as { message?: string })?.message ?? 'Failed to send reply. Please try again.';
+      setReplyError(msg);
+      toast.error(formatSaveError(e, 'Failed to send reply.'));
+    },
   });
 
   const updateMutation = useMutation({
@@ -119,8 +127,13 @@ export default function TicketDetailPage() {
       setUpdateError('');
       queryClient.invalidateQueries({ queryKey });
       queryClient.invalidateQueries({ queryKey: ['admin', 'support-stats'] });
+      toast.success('Ticket updated.');
     },
-    onError: (e: unknown) => setUpdateError((e as { message?: string })?.message ?? 'Update failed. Please try again.'),
+    onError: (e: unknown) => {
+      const msg = (e as { message?: string })?.message ?? 'Update failed. Please try again.';
+      setUpdateError(msg);
+      toast.error(formatSaveError(e, 'Failed to update ticket.'));
+    },
   });
 
   function handleAssignToMe() {

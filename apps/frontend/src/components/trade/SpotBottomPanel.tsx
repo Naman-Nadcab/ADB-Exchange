@@ -9,6 +9,7 @@ import { useBalancesByAccount } from '@/lib/balances';
 import { ROUTES, SPOT_TRADE_HREF, walletPath } from '@/lib/routes';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { formatFixedTrim, formatValueFixedTrim } from './terminalFormat';
+import { TerminalEmptyState, TerminalLoadingRows } from './TerminalEmptyState';
 
 /** Per-symbol decimals from exchange metadata (tier-1 formatting). */
 export type SpotMarketMeta = {
@@ -61,7 +62,7 @@ function executionStatusPill(status: string) {
   if (u === 'OPEN' || u === 'NEW') {
     return (
       <span
-        className={`${base} bg-sky-500/15 text-sky-800 dark:bg-sky-500/20 dark:text-sky-200`}
+        className={`${base} bg-buy/15 text-buy`}
         title="Working order"
       >
         Open
@@ -71,7 +72,7 @@ function executionStatusPill(status: string) {
   if (u === 'PARTIALLY_FILLED') {
     return (
       <span
-        className={`${base} bg-amber-500/18 text-amber-900 dark:bg-amber-500/22 dark:text-amber-100`}
+        className={`${base} bg-primary/12 text-foreground`}
         title="Partially filled"
       >
         Partial
@@ -80,20 +81,20 @@ function executionStatusPill(status: string) {
   }
   if (u === 'FILLED') {
     return (
-      <span className={`${base} bg-emerald-500/15 text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-200`} title="Filled">
+      <span className={`${base} bg-buy/15 text-buy`} title="Filled">
         Filled
       </span>
     );
   }
   if (u === 'PENDING_TRIGGER') {
-    return <span className={`${base} bg-violet-500/15 text-violet-900 dark:bg-violet-400/20 dark:text-violet-100`}>Trigger</span>;
+    return <span className={`${base} bg-muted/60 text-muted-foreground`}>Trigger</span>;
   }
   if (u === 'CANCELLED' || u === 'REJECTED') {
     return (
-      <span className={`${base} bg-accent/90 text-foreground/80 dark:bg-accent/40 dark:text-foreground/80`}>{displayStatus(status)}</span>
+      <span className={`${base} bg-muted/60 text-muted-foreground`}>{displayStatus(status)}</span>
     );
   }
-  return <span className={`${base} bg-accent/80 text-foreground/80 dark:bg-accent/30 dark:text-foreground/90`}>{displayStatus(status)}</span>;
+  return <span className={`${base} bg-muted/50 text-muted-foreground`}>{displayStatus(status)}</span>;
 }
 
 function OpenOrderRow({
@@ -129,20 +130,20 @@ function OpenOrderRow({
       : (o.quantity ?? '—');
   return (
     <tr
-      className={`min-h-[36px] border-b border-border/60 transition-[background-color,box-shadow] duration-500 ease-out hover:bg-muted/50 sm:min-h-[30px] ${
+      className={`min-h-8 border-b border-border/80 transition-[background-color,box-shadow] duration-500 ease-out hover:bg-muted/50 ${
         pulse ? 'bg-primary/10 shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.25)]' : ''
       }`}
     >
-      <td className="py-1.5 px-2 align-middle">
+      <td className="py-1 px-2 align-middle">
         <div className="flex items-center gap-1">
           <CoinIcon symbol={o.market?.split('_')[0] || ''} size={14} />
           <span className="numeric text-label text-foreground">{o.market}</span>
         </div>
       </td>
-      <td className="py-1.5 px-2 align-middle">
+      <td className="py-1 px-2 align-middle">
         <span className="text-label text-muted-foreground">{displayOrderType(o.type)}</span>
       </td>
-      <td className="py-1.5 px-2 align-middle">
+      <td className="py-1 px-2 align-middle">
         <span className={o.side === 'buy' ? 'text-buy' : 'text-sell'}>{o.side}</span>
       </td>
       <td className="numeric py-1.5 px-2 align-middle text-label text-muted-foreground">
@@ -152,8 +153,8 @@ function OpenOrderRow({
         {formatOrderPrice(o.stop_price ?? null, priceDecimals)}
       </td>
       <td className="numeric py-1.5 px-2 align-middle text-label text-muted-foreground">{filledQtyStr}</td>
-      <td className="py-1.5 px-2 align-middle">{executionStatusPill(o.status)}</td>
-      <td className="py-1.5 px-2 align-middle">
+      <td className="py-1 px-2 align-middle">{executionStatusPill(o.status)}</td>
+      <td className="py-1 px-2 align-middle">
         {canCancel && (
           <button
             type="button"
@@ -283,7 +284,7 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
           {['Open Orders', 'Order History', 'Trade History', 'Assets', 'Positions'].map((label) => (
             <span
               key={label}
-              className="inline-flex min-h-[36px] items-center rounded border border-border/70 bg-muted/40 px-2.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-muted-foreground"
+              className="inline-flex min-h-[36px] items-center rounded border border-border/70 bg-muted/40 px-2.5 terminal-text-label font-semibold uppercase tracking-[0.04em] text-muted-foreground"
             >
               {label}
             </span>
@@ -312,7 +313,7 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
   const canCancelAll = symbol && openOrdersForMarket.length > 0 && !data.cancellingAll;
 
   const tabBtn = (active: boolean) =>
-    `min-h-[40px] flex touch-manipulation items-center border-b-2 px-3 py-2 text-label font-semibold transition-colors duration-150 -mb-px sm:px-4 ${
+    `min-h-9 flex touch-manipulation items-center border-b-2 px-2 py-1 terminal-text-secondary font-semibold leading-none transition-colors duration-150 -mb-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 sm:px-3 ${
       active
         ? 'border-primary text-foreground'
         : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -320,7 +321,7 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
 
   return (
     <div id="spot-terminal-activity" className="flex h-[min(50vh,560px)] min-h-[320px] w-full flex-col bg-card">
-      <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/40 px-1">
+      <div className="flex min-h-9 flex-wrap items-center justify-between gap-1 border-b border-border bg-muted/40 px-1">
         <div className="flex flex-wrap items-center gap-0.5 sm:gap-1">
           <button type="button" onClick={() => data.setTab('open')} className={tabBtn(data.tab === 'open')}>Open ({data.openOrders.length})</button>
           <button type="button" onClick={() => data.setTab('orders')} className={tabBtn(data.tab === 'orders')}>History</button>
@@ -330,27 +331,27 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
         </div>
         <div className="flex items-center gap-2 pr-2">
           {(data.tab === 'open' || data.tab === 'orders' || data.tab === 'trades') && (
-            <button type="button" onClick={() => setShowAllMarkets((v) => !v)} className="min-h-[36px] touch-manipulation rounded border border-border px-3 py-1.5 text-label text-muted-foreground hover:text-foreground" title={showAllMarkets ? 'Show current pair only' : 'Show all markets'}>
+            <button type="button" onClick={() => setShowAllMarkets((v) => !v)} className="min-h-8 touch-manipulation rounded border border-border px-2 py-1 text-label leading-none text-muted-foreground hover:text-foreground" title={showAllMarkets ? 'Show current pair only' : 'Show all markets'}>
               {showAllMarkets ? 'All' : 'Pair'}
             </button>
           )}
           {data.tab === 'open' && canCancelAll && (
-            <button type="button" onClick={() => data.handleCancelAll?.()} disabled={data.cancellingAll} className="flex min-h-[36px] touch-manipulation items-center gap-1 rounded border border-destructive/30 px-3 py-1.5 text-label text-destructive hover:bg-destructive/10 disabled:opacity-50" title="Cancel all open orders for this pair">
+            <button type="button" onClick={() => data.handleCancelAll?.()} disabled={data.cancellingAll} className="flex min-h-8 touch-manipulation items-center gap-1 rounded border border-destructive/30 px-2 py-1 text-label leading-none text-destructive hover:bg-destructive/10 disabled:opacity-50" title="Cancel all open orders for this pair">
               {data.cancellingAll ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
               {data.cancelAllArmed ? 'Confirm All' : 'Cancel All'}
             </button>
           )}
           {data.tab === 'orders' && data.orderHistory.length > 0 && (
-            <button type="button" onClick={() => { const csv = ordersToCsv(data.orderHistory); downloadCsv(`spot-orders-${new Date().toISOString().slice(0,10)}.csv`, csv); }} className="flex min-h-[36px] touch-manipulation items-center gap-1 rounded border border-border px-3 py-1.5 text-label text-muted-foreground hover:text-foreground" title="Export Order History as CSV">
+            <button type="button" onClick={() => { const csv = ordersToCsv(data.orderHistory); downloadCsv(`spot-orders-${new Date().toISOString().slice(0,10)}.csv`, csv); }} className="flex min-h-8 touch-manipulation items-center gap-1 rounded border border-border px-2 py-1 text-label leading-none text-muted-foreground hover:text-foreground" title="Export Order History as CSV">
               <Download className="w-3 h-3" /> Export
             </button>
           )}
           {data.tab === 'trades' && data.trades.length > 0 && (
-            <button type="button" onClick={() => { const csv = tradesToCsv(data.trades); downloadCsv(`spot-trades-${new Date().toISOString().slice(0,10)}.csv`, csv); }} className="flex min-h-[36px] touch-manipulation items-center gap-1 rounded border border-border px-3 py-1.5 text-label text-muted-foreground hover:text-foreground" title="Export Trade History as CSV">
+            <button type="button" onClick={() => { const csv = tradesToCsv(data.trades); downloadCsv(`spot-trades-${new Date().toISOString().slice(0,10)}.csv`, csv); }} className="flex min-h-8 touch-manipulation items-center gap-1 rounded border border-border px-2 py-1 text-label leading-none text-muted-foreground hover:text-foreground" title="Export Trade History as CSV">
               <Download className="w-3 h-3" /> Export
             </button>
           )}
-          <button type="button" onClick={() => { data.tab === 'open' && data.fetchOpen?.(); data.tab === 'orders' && data.fetchOrderHistory?.(null, false); data.tab === 'trades' && data.fetchTrades?.(1, false); }} className="flex min-h-[36px] min-w-[36px] touch-manipulation items-center justify-center rounded text-muted-foreground hover:text-foreground" title="Refresh">
+          <button type="button" onClick={() => { data.tab === 'open' && data.fetchOpen?.(); data.tab === 'orders' && data.fetchOrderHistory?.(null, false); data.tab === 'trades' && data.fetchTrades?.(1, false); }} className="flex min-h-8 min-w-8 touch-manipulation items-center justify-center rounded text-muted-foreground hover:text-foreground" title="Refresh">
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -364,21 +365,21 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
       <div className="flex-1 min-h-0 overflow-auto">
         {data.tab === 'open' && (
           data.openLoading ? (
-            <div className="p-4 flex items-center justify-center"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+            <TerminalLoadingRows rows={6} />
           ) : data.openOrders.length === 0 ? (
-            <div className="p-4 text-center text-muted-foreground text-xs">No open orders</div>
+            <TerminalEmptyState kind="orders" title="No open orders" description="Active limit and stop orders will appear here." compact />
           ) : (
             <table className="w-full table-fixed text-label">
               <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm">
                 <tr className="border-b border-border text-left font-medium text-muted-foreground">
-                  <th className="py-2 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('market')}>Market{sortGlyph('market')}</th>
-                  <th className="py-2 px-2 font-medium cursor-pointer w-16" onClick={() => toggleSort('type')}>Type{sortGlyph('type')}</th>
-                  <th className="py-2 px-2 font-medium cursor-pointer w-12" onClick={() => toggleSort('side')}>Side{sortGlyph('side')}</th>
-                  <th className="py-2 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('price')}>Price{sortGlyph('price')}</th>
-                  <th className="py-2 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('stop_price')}>Trigger{sortGlyph('stop_price')}</th>
-                  <th className="py-2 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('quantity')}>Filled/Qty{sortGlyph('quantity')}</th>
-                  <th className="py-2 px-2 font-medium cursor-pointer" onClick={() => toggleSort('status')}>Status{sortGlyph('status')}</th>
-                  <th className="py-2 px-2 font-medium w-16">Action</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('market')}>Market{sortGlyph('market')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-16" onClick={() => toggleSort('type')}>Type{sortGlyph('type')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-12" onClick={() => toggleSort('side')}>Side{sortGlyph('side')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('price')}>Price{sortGlyph('price')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('stop_price')}>Trigger{sortGlyph('stop_price')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('quantity')}>Filled/Qty{sortGlyph('quantity')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer" onClick={() => toggleSort('status')}>Status{sortGlyph('status')}</th>
+                  <th className="py-1 px-2 font-medium w-16">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -401,20 +402,20 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
         )}
         {data.tab === 'orders' && (
           data.orderHistoryLoading ? (
-            <div className="p-4 flex items-center justify-center"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+            <TerminalLoadingRows rows={6} />
           ) : data.orderHistory.length === 0 ? (
-            <div className="p-4 text-center text-muted-foreground text-xs">No order history</div>
+            <TerminalEmptyState kind="orders" title="No order history" description="Your filled and cancelled orders will show here." compact />
           ) : (
             <table className="w-full table-fixed text-label">
               <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm">
                 <tr className="border-b border-border text-left text-muted-foreground">
-                  <th className="py-2 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('market')}>Market{sortGlyph('market')}</th>
-                  <th className="py-2 px-2 font-medium cursor-pointer w-16" onClick={() => toggleSort('type')}>Type{sortGlyph('type')}</th>
-                  <th className="py-2 px-2 font-medium cursor-pointer w-12" onClick={() => toggleSort('side')}>Side{sortGlyph('side')}</th>
-                  <th className="py-2 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('price')}>Price{sortGlyph('price')}</th>
-                  <th className="py-2 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('stop_price')}>Trigger{sortGlyph('stop_price')}</th>
-                  <th className="py-2 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('quantity')}>Filled/Qty{sortGlyph('quantity')}</th>
-                  <th className="py-2 px-2 font-medium cursor-pointer" onClick={() => toggleSort('status')}>Status{sortGlyph('status')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('market')}>Market{sortGlyph('market')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-16" onClick={() => toggleSort('type')}>Type{sortGlyph('type')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-12" onClick={() => toggleSort('side')}>Side{sortGlyph('side')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('price')}>Price{sortGlyph('price')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('stop_price')}>Trigger{sortGlyph('stop_price')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('quantity')}>Filled/Qty{sortGlyph('quantity')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer" onClick={() => toggleSort('status')}>Status{sortGlyph('status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -427,25 +428,25 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
                       ? `${formatFixedTrim(filled, pq.qty)}/${formatFixedTrim(qty, pq.qty)}`
                       : (o.quantity ?? '—');
                   return (
-                    <tr key={o.id} className="min-h-[36px] border-b border-border/60 transition-colors duration-150 hover:bg-muted/50 sm:min-h-[30px]">
-                      <td className="py-1.5 px-2 align-middle">
+                    <tr key={o.id} className="min-h-8 border-b border-border/80 transition-colors duration-150 hover:bg-muted/50">
+                      <td className="py-1 px-2 align-middle">
                         <div className="flex items-center gap-1">
                           <CoinIcon symbol={o.market?.split('_')[0] || ''} size={14} />
                           <span className="numeric text-foreground">{o.market}</span>
                         </div>
                       </td>
-                      <td className="py-1.5 px-2 align-middle text-muted-foreground">{displayOrderType(o.type)}</td>
-                      <td className="py-1.5 px-2 align-middle">
+                      <td className="py-1 px-2 align-middle text-muted-foreground">{displayOrderType(o.type)}</td>
+                      <td className="py-1 px-2 align-middle">
                         <span className={o.side === 'buy' ? 'text-buy' : 'text-sell'}>{o.side}</span>
                       </td>
-                      <td className="numeric py-1.5 px-2 align-middle text-muted-foreground">
+                      <td className="numeric py-1 px-2 align-middle text-muted-foreground">
                         {formatOrderPrice(o.price ?? null, pq.price)}
                       </td>
-                      <td className="numeric py-1.5 px-2 align-middle text-muted-foreground">
+                      <td className="numeric py-1 px-2 align-middle text-muted-foreground">
                         {formatOrderPrice(o.stop_price ?? null, pq.price)}
                       </td>
-                      <td className="numeric py-1.5 px-2 align-middle text-muted-foreground">{filledQtyStr}</td>
-                      <td className="py-1.5 px-2 align-middle">{executionStatusPill(o.status)}</td>
+                      <td className="numeric py-1 px-2 align-middle text-muted-foreground">{filledQtyStr}</td>
+                      <td className="py-1 px-2 align-middle">{executionStatusPill(o.status)}</td>
                     </tr>
                   );
                 })}
@@ -465,7 +466,7 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
               Hide small balances
             </label>
             {tradingBalances.length === 0 ? (
-              <div className="p-4 text-center text-muted-foreground text-xs">No trading balance</div>
+              <TerminalEmptyState kind="generic" title="No trading balance" description="Deposit funds to start spot trading." compact />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
                 {tradingBalances.map((b) => (
@@ -492,31 +493,29 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
               Spot is a non-leveraged market. Your active asset exposure appears in balances and fills.
             </div>
             {tradingBalances.length === 0 ? (
-              <div className="rounded-md border border-border/70 bg-card px-3 py-6 text-center text-xs text-muted-foreground">
-                No active spot exposure yet.
-              </div>
+              <TerminalEmptyState kind="generic" title="No positions" description="Spot balances with active exposure will appear here." compact />
             ) : (
               <table className="w-full table-fixed text-label">
                 <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm">
                   <tr className="border-b border-border text-left text-muted-foreground">
-                    <th className="py-2 px-2 font-medium">Asset</th>
-                    <th className="py-2 px-2 text-right font-medium">Trading Balance</th>
-                    <th className="py-2 px-2 text-right font-medium">Status</th>
+                    <th className="py-1 px-2 font-medium">Asset</th>
+                    <th className="py-1 px-2 text-right font-medium">Trading Balance</th>
+                    <th className="py-1 px-2 text-right font-medium">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {tradingBalances.map((b) => (
-                    <tr key={b.symbol} className="border-b border-border/60 hover:bg-muted/40">
-                      <td className="py-2 px-2">
+                    <tr key={b.symbol} className="border-b border-border/80 hover:bg-muted/40">
+                      <td className="py-1 px-2">
                         <div className="flex items-center gap-1.5">
                           <CoinIcon symbol={b.symbol} size={14} />
                           <span className="font-medium text-foreground">{b.symbol}</span>
                         </div>
                       </td>
-                      <td className="numeric py-2 px-2 text-right text-foreground">
+                      <td className="numeric py-1 px-2 text-right text-foreground">
                         {formatValueFixedTrim(b.trading ?? '0', 8)}
                       </td>
-                      <td className="py-2 px-2 text-right text-muted-foreground">
+                      <td className="py-1 px-2 text-right text-muted-foreground">
                         {parseFloat(b.trading ?? '0') > 0 ? 'Active' : 'Idle'}
                       </td>
                     </tr>
@@ -528,14 +527,18 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
         )}
         {data.tab === 'trades' && (
           data.tradesLoading ? (
-            <div className="p-4 flex items-center justify-center"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+            <TerminalLoadingRows rows={6} />
           ) : data.trades.length === 0 ? (
-            <div className="p-4 flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs text-center px-3">
-              <p className="font-medium text-foreground/90">No trades yet — start trading</p>
-              <p className="max-w-[16rem] text-label">Fills and executions will show here. Place an order from the panel on the right.</p>
+            <div className="flex flex-col items-center px-3 py-4">
+              <TerminalEmptyState
+                kind="trades"
+                title="No recent trades"
+                description="Fills and executions will appear here after you trade."
+                compact
+              />
               <Link
                 href={SPOT_TRADE_HREF}
-                className="mt-1 inline-flex min-h-10 items-center justify-center rounded-md bg-primary px-4 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                className="mt-2 inline-flex min-h-10 items-center justify-center rounded-lg bg-primary px-4 terminal-text-label font-semibold text-primary-foreground transition-opacity duration-150 hover:opacity-90"
               >
                 Open Spot
               </Link>
@@ -545,12 +548,12 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
               <table className="w-full table-fixed text-label">
                 <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm">
                   <tr className="border-b border-border text-left text-muted-foreground">
-                    <th className="py-2 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('market')}>Market{sortGlyph('market')}</th>
-                    <th className="py-2 px-2 font-medium cursor-pointer w-12" onClick={() => toggleSort('side')}>Side{sortGlyph('side')}</th>
-                    <th className="py-2 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('price')}>Price{sortGlyph('price')}</th>
-                    <th className="py-2 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('quantity')}>Qty{sortGlyph('quantity')}</th>
-                    <th className="py-2 px-2 font-medium cursor-pointer w-16" onClick={() => toggleSort('fee')}>Fee{sortGlyph('fee')}</th>
-                    <th className="py-2 px-2 font-medium cursor-pointer" onClick={() => toggleSort('created_at')}>Time{sortGlyph('created_at')}</th>
+                    <th className="py-1 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('market')}>Market{sortGlyph('market')}</th>
+                    <th className="py-1 px-2 font-medium cursor-pointer w-12" onClick={() => toggleSort('side')}>Side{sortGlyph('side')}</th>
+                    <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('price')}>Price{sortGlyph('price')}</th>
+                    <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('quantity')}>Qty{sortGlyph('quantity')}</th>
+                    <th className="py-1 px-2 font-medium cursor-pointer w-16" onClick={() => toggleSort('fee')}>Fee{sortGlyph('fee')}</th>
+                    <th className="py-1 px-2 font-medium cursor-pointer" onClick={() => toggleSort('created_at')}>Time{sortGlyph('created_at')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -562,24 +565,24 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
                         ? `${Number.isFinite(feeNum) ? formatValueFixedTrim(t.fee, 8) : t.fee}${t.fee_asset ? ` ${t.fee_asset}` : ''}`
                         : '—';
                     return (
-                    <tr key={t.id} className="min-h-[36px] border-b border-border/60 transition-colors duration-150 hover:bg-muted/50 sm:min-h-[30px]">
-                      <td className="py-1.5 px-2 align-middle">
+                    <tr key={t.id} className="min-h-8 border-b border-border/80 transition-colors duration-150 hover:bg-muted/50">
+                      <td className="py-1 px-2 align-middle">
                         <div className="flex items-center gap-1">
                           <CoinIcon symbol={t.market?.split('_')[0] || ''} size={14} />
                           <span className="numeric text-foreground">{t.market}</span>
                         </div>
                       </td>
-                      <td className="py-1.5 px-2 align-middle">
+                      <td className="py-1 px-2 align-middle">
                         <span className={t.side === 'buy' ? 'text-buy' : 'text-sell'}>{t.side}</span>
                       </td>
-                      <td className="numeric py-1.5 px-2 align-middle text-muted-foreground">
+                      <td className="numeric py-1 px-2 align-middle text-muted-foreground">
                         {formatValueFixedTrim(t.price, pq.price)}
                       </td>
-                      <td className="numeric py-1.5 px-2 align-middle text-muted-foreground">
+                      <td className="numeric py-1 px-2 align-middle text-muted-foreground">
                         {formatValueFixedTrim(t.quantity, pq.qty)}
                       </td>
-                      <td className="numeric py-1.5 px-2 align-middle text-muted-foreground">{feeDisplay}</td>
-                      <td className="numeric py-1.5 px-2 align-middle text-muted-foreground">
+                      <td className="numeric py-1 px-2 align-middle text-muted-foreground">{feeDisplay}</td>
+                      <td className="numeric py-1 px-2 align-middle text-muted-foreground">
                         {t.created_at ? new Date(t.created_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '—'}
                       </td>
                     </tr>

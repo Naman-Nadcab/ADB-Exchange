@@ -56,6 +56,7 @@ import {
   BarChart2,
   KeyRound,
   Plug,
+  Server,
 } from 'lucide-react';
 import { ADMIN_FEATURE_FLAGS } from '@/lib/admin/featureFlags';
 
@@ -75,6 +76,9 @@ export function buildSidebarSections(): NavSection[] {
         { label: 'Control Center', href: '/control-center', icon: LayoutGrid },
         { label: 'Exchange Controls', href: '/admin-control', icon: Gauge },
         { label: 'Monitoring', href: '/monitoring', icon: Activity },
+        { label: 'Infrastructure', href: '/monitoring/infrastructure', icon: Server },
+        { label: 'Alert Center', href: '/alerts', icon: BellRing },
+        { label: 'Alert Providers', href: '/settings/alert-providers', icon: Megaphone },
         { label: 'System Health', href: '/system/health', icon: Activity },
         { label: 'Alert Rules', href: '/monitoring/alert-rules', icon: Bell },
         ...incidentsItem,
@@ -122,7 +126,8 @@ export function buildSidebarSections(): NavSection[] {
         { label: 'Risk Automation', href: '/risk/automation', icon: Wrench },
         { label: 'Risk Settings', href: '/risk/settings', icon: FolderCog },
         { label: 'Severity Levels', href: '/risk/severity-settings', icon: Layers },
-        { label: 'Compliance', href: '/compliance', icon: FileText },
+        { label: 'Compliance Reports', href: '/compliance', icon: FileText },
+        { label: 'Compliance Policy', href: '/compliance-policy', icon: Shield },
         { label: 'Approvals', href: '/approvals', icon: CheckSquare },
       ],
     },

@@ -9,6 +9,8 @@ import { useAdminAuthStore } from '@/store/auth';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Modal, ModalFooter } from '@/components/ui';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
 type StakingProduct = {
   id: string;
@@ -29,6 +31,7 @@ type EditForm = { apyPct: string; lockPeriodDays: string; minStake: string };
 export default function StakingPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const adminToast = useAdminToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<StakingProduct | null>(null);
   const [editForm, setEditForm] = useState<EditForm>({ apyPct: '', lockPeriodDays: '', minStake: '' });
@@ -53,17 +56,25 @@ export default function StakingPage() {
       setModalOpen(false);
       setForm(emptyForm);
       setToastMsg({type: 'success', text: 'Product created.'});
+      adminToast.success('Product created.');
     },
-    onError: () => setToastMsg({type: 'error', text: 'Failed to create product.'}),
+    onError: (e) => {
+      setToastMsg({type: 'error', text: 'Failed to create product.'});
+      adminToast.error(formatSaveError(e, 'Failed to create product.'));
+    },
   });
 
   const toggleMut = useMutation({
     mutationFn: ({ id, enabled }: { id: string; enabled: boolean }) =>
       adminFetch(`/staking/products/${id}`, { method: 'PATCH', body: { enabled }, token }),
-    onSuccess: () => {
+    onSuccess: (_, { enabled }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'staking-products'] });
+      adminToast.success(`Product ${enabled ? 'enabled' : 'disabled'}.`);
     },
-    onError: () => setToastMsg({type: 'error', text: 'Failed to update product status.'}),
+    onError: (e) => {
+      setToastMsg({type: 'error', text: 'Failed to update product status.'});
+      adminToast.error(formatSaveError(e, 'Failed to update product status.'));
+    },
   });
 
   const editMut = useMutation({
@@ -73,8 +84,12 @@ export default function StakingPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'staking-products'] });
       setEditTarget(null);
       setToastMsg({type: 'success', text: 'Product updated.'});
+      adminToast.success('Product updated.');
     },
-    onError: () => setToastMsg({type: 'error', text: 'Failed to update product.'}),
+    onError: (e) => {
+      setToastMsg({type: 'error', text: 'Failed to update product.'});
+      adminToast.error(formatSaveError(e, 'Failed to update product.'));
+    },
   });
 
   function openEdit(p: StakingProduct) {

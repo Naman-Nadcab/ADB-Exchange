@@ -7,6 +7,8 @@ import { adminFetch, formatAdminError } from '@/lib/api';
 import { useAdminAuthStore } from '@/store/auth';
 import { cn } from '@/lib/cn';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { RiskRulesPanel } from '@/components/ops/RiskRulesPanel';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Modal, ModalFooter, TableSkeleton } from '@/components/ui';
 
@@ -86,6 +88,7 @@ function KpiCard({ label, value, loading }: { label: string; value: string | num
 function TwoFactorCard() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [setupModal, setSetupModal] = useState(false);
   const [verifyCode, setVerifyCode] = useState('');
   const [disableCode, setDisableCode] = useState('');
@@ -102,6 +105,8 @@ function TwoFactorCard() {
 
   const setupMut = useMutation({
     mutationFn: () => adminFetch('/auth/2fa/setup', { method: 'POST', token }),
+    onSuccess: () => toast.success('2FA setup initiated.'),
+    onError: (e) => toast.error(formatSaveError(e, '2FA setup failed.')),
   });
 
   const verifyMut = useMutation({
@@ -110,7 +115,9 @@ function TwoFactorCard() {
       queryClient.invalidateQueries({ queryKey: ['admin', '2fa-status'] });
       setSetupModal(false);
       setVerifyCode('');
+      toast.success('2FA enabled.');
     },
+    onError: (e) => toast.error(formatSaveError(e, '2FA verification failed.')),
   });
 
   const disableMut = useMutation({
@@ -119,7 +126,9 @@ function TwoFactorCard() {
       queryClient.invalidateQueries({ queryKey: ['admin', '2fa-status'] });
       setDisableModal(false);
       setDisableCode('');
+      toast.success('2FA disabled.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to disable 2FA.')),
   });
 
   const setupData = setupMut.data?.data as { qrCode?: string; secret?: string } | undefined;
@@ -213,6 +222,7 @@ function TwoFactorCard() {
 export default function SecurityPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [logsPage, setLogsPage] = useState(1);
 
   const dashboardQ = useQuery({
@@ -270,7 +280,9 @@ export default function SecurityPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'security', 'sessions'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'security', 'sessions-active-total'] });
+      toast.success('Session terminated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to terminate session.')),
   });
 
   const killSession = (id: string | undefined) => {
@@ -303,7 +315,9 @@ export default function SecurityPage() {
       setAddIpModal(false);
       setNewIp('');
       setNewLabel('');
+      toast.success('IP rule added.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to add IP rule.')),
   });
 
   const toggleIpRuleMut = useMutation({
@@ -311,7 +325,9 @@ export default function SecurityPage() {
       adminFetch(`/security/ip-rules/${id}`, { method: 'PATCH', body: { enabled }, token }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'security', 'ip-rules'] });
+      toast.success('IP rule updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update IP rule.')),
   });
 
   const deleteIpRuleMut = useMutation({
@@ -319,7 +335,9 @@ export default function SecurityPage() {
       adminFetch(`/security/ip-rules/${id}`, { method: 'DELETE', token, body: {} }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'security', 'ip-rules'] });
+      toast.success('IP rule deleted.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to delete IP rule.')),
   });
 
   const handleAddIpRule = useCallback(() => {

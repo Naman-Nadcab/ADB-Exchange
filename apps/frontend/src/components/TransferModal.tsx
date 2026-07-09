@@ -5,7 +5,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { X, ArrowLeftRight, ChevronDown, AlertCircle, CheckCircle2, Loader2, Search, Wallet, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { CoinIcon } from '@/components/ui/CoinIcon';
-import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { api } from '@/lib/api';
+import { newIdempotencyKey } from '@/lib/idempotency';
 
 interface Token {
   tokenId: string;
@@ -35,7 +36,7 @@ export default function TransferModal({
   onSuccess,
 }: TransferModalProps) {
   const queryClient = useQueryClient();
-  const { accessToken: storeAccessToken } = useAuthStore();
+  const { accessToken: storeAccessToken, isAuthenticated, _hasHydrated } = useAuthStore();
   const accessToken = propAccessToken || storeAccessToken;
   
   const [fromAccount, setFromAccount] = useState<'funding' | 'trading'>(defaultFromAccount);
@@ -52,13 +53,11 @@ export default function TransferModal({
   const [showCoinDropdown, setShowCoinDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const API_URL = getApiBaseUrl();
-
   useEffect(() => {
-    if (isOpen && accessToken) {
+    if (isOpen && _hasHydrated && isAuthenticated) {
       fetchTransferableBalances();
     }
-  }, [isOpen, accessToken, fromAccount]);
+  }, [isOpen, _hasHydrated, isAuthenticated, fromAccount]);
 
   useEffect(() => {
     if (isOpen) {
@@ -75,20 +74,17 @@ export default function TransferModal({
     try {
       setLoading(true);
       setError('');
-      
-      const res = await fetch(`${API_URL}/api/v1/wallet/transfer/balances?from=${fromAccount}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+
+      const data = await api.get<Token[]>(`/api/v1/wallet/transfer/balances?from=${fromAccount}`, {
+        notifyOnError: false,
       });
-      
-      const data = await res.json();
-      
-      if (res.ok && data.success) {
+
+      if (data.success && data.data) {
         setTokens(data.data || []);
-        // Don't auto-select a token - let user choose
       } else {
         setError(data.error?.message || 'Failed to load balances. Please try again.');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load balances. Please try again.');
     } finally {
       setLoading(false);
@@ -127,22 +123,15 @@ export default function TransferModal({
       setSubmitting(true);
       setError('');
 
-      const res = await fetch(`${API_URL}/api/v1/wallet/transfer`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-          'Idempotency-Key': crypto.randomUUID(),
-        },
-        body: JSON.stringify({
-          fromAccount,
-          toAccount,
-          tokenId: selectedToken.tokenId,
-          amount: amount,
-        }),
+      const data = await api.post('/api/v1/wallet/transfer', {
+        fromAccount,
+        toAccount,
+        tokenId: selectedToken.tokenId,
+        amount: amount,
+      }, {
+        headers: { 'Idempotency-Key': newIdempotencyKey() },
+        notifyOnError: false,
       });
-
-      const data = await res.json();
 
       if (data.success) {
         setSuccess(true);

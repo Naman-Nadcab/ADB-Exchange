@@ -9,6 +9,8 @@ import { OperatorSection, SettingHint } from '@/components/admin-shell/OperatorS
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import {
   getIndexerStatus,
   getOracleStatus,
@@ -19,6 +21,7 @@ import {
 export function InfrastructureOpsPanel() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [oracleProvider, setOracleProvider] = useState('');
   const [oracleInterval, setOracleInterval] = useState('60');
 
@@ -49,7 +52,11 @@ export function InfrastructureOpsPanel() {
         provider: oracleProvider.trim() || undefined,
         updateIntervalSec: Number(oracleInterval) || undefined,
       }),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['admin', 'oracle-status'] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'oracle-status'] });
+      toast.success('Oracle settings saved.');
+    },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to save oracle settings.')),
   });
 
   const chains = indexerQ.data?.data?.chains ?? [];

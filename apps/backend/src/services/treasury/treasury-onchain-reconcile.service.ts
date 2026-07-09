@@ -22,10 +22,13 @@ export async function runTreasuryHotWalletOnchainReconcileOnce(): Promise<{ chec
   }>(
     `SELECT hw.chain_id, hw.address, hw.balance_cache::text,
             COALESCE(c.rpc_url, '') AS rpc_url,
-            NULLIF(TRIM(COALESCE(c.rpc_url_secondary, '')), '') AS rpc_secondary
+            NULLIF(TRIM(COALESCE(c.rpc_url_secondary, '')), '') AS rpc_secondary,
+            COALESCE(c.type, 'evm') AS chain_type
      FROM hot_wallets hw
      LEFT JOIN chains c ON c.id = hw.chain_id
-     WHERE hw.is_active = TRUE AND COALESCE(c.rpc_url, '') <> ''`
+     WHERE hw.is_active = TRUE
+       AND COALESCE(c.type, 'evm') = 'evm'
+       AND COALESCE(c.rpc_url, '') <> ''`
   );
   let mismatches = 0;
   for (const row of rows.rows) {

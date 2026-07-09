@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
 import { COOKIE_SESSION_MARKER } from '@/lib/authSession';
-import { getApiBaseUrl } from '@/lib/getApiUrl';
 
 /** SSR-safe storage: noop on server, localStorage on client. Prevents logout-on-refresh. */
 const safeStorage: StateStorage = {
@@ -62,6 +61,8 @@ interface AuthState {
   setUser: (user: User | null) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
   login: (user: User, accessToken: string, refreshToken: string) => void;
+  /** Clear client auth state only (no API). */
+  clearAuthState: () => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
   updateUser: (updates: Partial<User>) => void;
@@ -93,24 +94,17 @@ export const useAuthStore = create<AuthState>()(
         isLoading: false,
       }),
 
+      clearAuthState: () => set({
+        user: null,
+        accessToken: null,
+        refreshToken: null,
+        isAuthenticated: false,
+        authFlags: 0,
+        authResolved: true,
+      }),
+
       logout: () => {
-        if (typeof window !== 'undefined') {
-          const apiUrl = getApiBaseUrl();
-          if (apiUrl) {
-            void fetch(`${apiUrl}/api/v1/auth/logout`, {
-              method: 'POST',
-              credentials: 'include',
-            }).catch(() => {});
-          }
-        }
-        set({
-          user: null,
-          accessToken: null,
-          refreshToken: null,
-          isAuthenticated: false,
-          authFlags: 0,
-          authResolved: true,
-        });
+        get().clearAuthState();
       },
 
       setLoading: (isLoading) => set({ isLoading }),

@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { ArrowLeft, CheckCircle2, AlertTriangle, KeyRound, Bell, Loader2, RefreshCw } from 'lucide-react';
 
 interface ApiSettingRow {
@@ -39,6 +41,7 @@ function SaveState({ m }: { m: { isSuccess: boolean; isError: boolean; isPending
 export default function AuthNotificationsSettingsPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'settings', 'auth-notifications', token],
@@ -112,7 +115,8 @@ export default function AuthNotificationsSettingsPage() {
         });
       }
     },
-    onSuccess: () => { setGClientSecret(''); invalidate(); },
+    onSuccess: () => { setGClientSecret(''); invalidate(); toast.success('Google OAuth settings saved.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to save Google OAuth settings.')),
   });
 
   const saveVapid = useMutation({
@@ -146,7 +150,8 @@ export default function AuthNotificationsSettingsPage() {
         });
       }
     },
-    onSuccess: () => { setVPrivate(''); invalidate(); },
+    onSuccess: () => { setVPrivate(''); invalidate(); toast.success('Web Push settings saved.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to save Web Push settings.')),
   });
 
   const generateVapid = useMutation({
@@ -156,7 +161,9 @@ export default function AuthNotificationsSettingsPage() {
         setVPublic(res.data.publicKey);
         setVPrivate(res.data.privateKey);
       }
+      toast.success('VAPID keys generated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to generate VAPID keys.')),
   });
 
   return (

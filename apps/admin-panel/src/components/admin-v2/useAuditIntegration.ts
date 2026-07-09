@@ -17,6 +17,9 @@ import { useAdminIncidentStore } from '@/store/adminIncidents';
 import { ADMIN_FEATURE_FLAGS } from '@/lib/admin/featureFlags';
 
 export function useAuditIntegration() {
+  // Production: immutable audit trail lives in Postgres (/audit/activity), not session storage.
+  if (ADMIN_FEATURE_FLAGS.ADMIN_PRODUCTION_HARDENING) return;
+
   const logAction = useAdminAuditLog((s) => s.logAction);
   const trackPageVisit = useAdminAuditLog((s) => s.trackPageVisit);
   const pathname = usePathname();

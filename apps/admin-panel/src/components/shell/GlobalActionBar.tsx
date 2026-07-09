@@ -9,6 +9,8 @@ import { Button } from '@/components/ui';
 import { TIER1_QUERY_KEY } from '@/components/admin-shell/ExchangeHealthTier1Banner';
 import { cn } from '@/lib/cn';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
 type ActionKey =
   | 'halt_trading'
@@ -40,6 +42,7 @@ export function GlobalActionBar() {
   const [pending, setPending] = useState<ActionKey | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const toast = useAdminToast();
 
   const mut = useMutation({
     mutationFn: async ({
@@ -80,9 +83,12 @@ export function GlobalActionBar() {
         queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard-summary'] }),
         queryClient.invalidateQueries({ queryKey: ['admin', 'treasury'] }),
       ]);
+      toast.success(queued ? `Action ${vars.action} queued for maker-checker approval.` : `Action ${vars.action} executed.`);
     },
     onError: (e: Error) => {
-      setErr(e.message || 'Request failed');
+      const msg = formatSaveError(e, 'Request failed');
+      setErr(msg);
+      toast.error(msg);
     },
   });
 

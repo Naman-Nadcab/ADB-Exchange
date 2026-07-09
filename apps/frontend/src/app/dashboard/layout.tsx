@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
-import { useAuth } from '@/context/AuthContext';
 import RequireAuth from '@/components/RequireAuth';
 import Link from 'next/link';
 import {
@@ -33,6 +32,7 @@ import {
 import SessionManager from '@/components/SessionManager';
 import ThemeToggle from '@/components/ThemeToggle';
 import { toast } from '@/components/ui/toaster';
+import { performLogout } from '@/lib/authLogout';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { useBalancesSummary, useBalancesByAccount } from '@/lib/balances';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
@@ -91,11 +91,9 @@ function isNavItemActive(pathname: string | null, href: string): boolean {
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const pathname = usePathname();
   const { user, accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
-  const { setUnauthenticated } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<{ id: string; title: string; message: string; is_read: boolean; created_at: string; notification_type: string }[]>([]);
@@ -107,6 +105,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [kycVerified, setKycVerified] = useState(false);
   const [kycLoading, setKycLoading] = useState(true);
   const [kycBannerDismissed, setKycBannerDismissed] = useState(false);
+  const [kycEnforcementRequired, setKycEnforcementRequired] = useState(false);
 
   const { data: balanceSummary } = useBalancesSummary(!!_hasHydrated && isAuthenticated);
   const { data: balancesByAccount } = useBalancesByAccount(!!_hasHydrated && isAuthenticated);
@@ -117,6 +116,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (typeof window === 'undefined') return;
     setKycBannerDismissed(window.sessionStorage.getItem('kyc_banner_dismissed') === '1');
+  }, []);
+
+  useEffect(() => {
+    void fetch(`${getApiBaseUrl()}/api/v1/public/compliance-policy`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const kyc = data?.data?.kyc as Record<string, string> | undefined;
+        if (!kyc) {
+          setKycEnforcementRequired(true);
+          return;
+        }
+        const anyRequired = Object.values(kyc).some((mode) => mode === 'required');
+        setKycEnforcementRequired(anyRequired);
+      })
+      .catch(() => setKycEnforcementRequired(true));
   }, []);
 
   useEffect(() => {
@@ -197,13 +211,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const handleLogout = async () => {
-    const token = useAuthStore.getState().accessToken;
-    const apiUrl = getApiBaseUrl();
-    if (token && apiUrl !== undefined) {
-      try { await fetch(`${apiUrl}/api/v1/auth/logout`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }); } catch { /* best effort */ }
-    }
-    setUnauthenticated();
-    router.replace('/login');
+    await performLogout('/login');
   };
 
   const maskEmail = (email: string) => {
@@ -518,7 +526,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </div>
 
-          {!kycLoading && !kycVerified && !kycBannerDismissed && (
+          {!kycLoading && !kycVerified && kycEnforcementRequired && !kycBannerDismissed && (
             <div className="flex items-center justify-between px-4 py-2 bg-primary/5 border-t border-border">
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-muted-foreground">Complete Identity Verification to continue using platform services.</span>

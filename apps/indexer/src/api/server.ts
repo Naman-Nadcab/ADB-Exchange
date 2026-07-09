@@ -91,6 +91,20 @@ export function startApiServer(indexerManager: any): http.Server {
         return;
       }
 
+      // POST /scan/user/:userId - On-demand recent deposit scan for one user
+      if (path.startsWith('/scan/user/') && req.method === 'POST') {
+        const userId = path.split('/')[3];
+        if (!userId) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ success: false, error: 'userId is required' }));
+          return;
+        }
+        const stats = await indexerManager.scanUserDeposits(userId);
+        res.writeHead(200);
+        res.end(JSON.stringify({ success: true, data: { scanned: stats } }));
+        return;
+      }
+
       // POST /watch - Add address to watch list
       if (path === '/watch' && req.method === 'POST') {
         const body = await getRequestBody(req);

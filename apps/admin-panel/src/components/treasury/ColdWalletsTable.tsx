@@ -10,6 +10,8 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, Star, Trash2, Pencil, ToggleLeft, ToggleRight } from 'lucide-react';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
 function truncateAddress(addr: string | null, head = 10, tail = 6): string {
   if (!addr) return '—';
@@ -25,8 +27,14 @@ export function ColdWalletsTable() {
   const [modal, setModal] = useState<null | 'add' | { edit: ColdWalletFull } | { del: ColdWalletFull }>(null);
   const [form, setForm] = useState({ chain: '', address: '', label: '', is_primary: false });
   const [toast, setToast] = useState<{ t: 'success' | 'error'; m: string } | null>(null);
+  const adminToast = useAdminToast();
 
-  const show = (t: 'success' | 'error', m: string) => { setToast({ t, m }); setTimeout(() => setToast(null), 3000); };
+  const show = (t: 'success' | 'error', m: string) => {
+    setToast({ t, m });
+    setTimeout(() => setToast(null), 3000);
+    if (t === 'success') adminToast.success(m);
+    else adminToast.error(m);
+  };
   const inv = () => qc.invalidateQueries({ queryKey: ['admin', 'cold-wallets'] });
 
   const { data, isLoading } = useQuery({
@@ -39,17 +47,17 @@ export function ColdWalletsTable() {
   const createMut = useMutation({
     mutationFn: () => createColdWallet(token, form),
     onSuccess: () => { inv(); setModal(null); show('success', 'Cold wallet added'); },
-    onError: () => show('error', 'Failed to add wallet'),
+    onError: (e) => show('error', formatSaveError(e, 'Failed to add wallet')),
   });
   const patchMut = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) => patchColdWallet(token, id, body),
     onSuccess: () => { inv(); setModal(null); show('success', 'Updated'); },
-    onError: () => show('error', 'Failed to update'),
+    onError: (e) => show('error', formatSaveError(e, 'Failed to update')),
   });
   const deleteMut = useMutation({
     mutationFn: (id: string) => deleteColdWallet(token, id),
     onSuccess: () => { inv(); setModal(null); show('success', 'Deleted'); },
-    onError: () => show('error', 'Failed to delete'),
+    onError: (e) => show('error', formatSaveError(e, 'Failed to delete')),
   });
 
   return (

@@ -17,7 +17,10 @@ import {
   computeMmHealthSnapshot,
   recordLiquidityBotCycleOutcome,
   markMmQuotesFresh,
+  resetBotErrorWindow,
 } from './mm-health.service.js';
+import { ensureLiquidityBotTradingActive } from './liquidity-bot-user.service.js';
+import { reconcileUserSpotLocks } from './spot-lock-reconcile.service.js';
 import { getRealizedVolatilityBps, volatilitySpreadMultiplier } from './mm-volatility.service.js';
 import { getInventoryRiskAdjust, getMmPositionGuard } from './mm-inventory-risk.service.js';
 import {
@@ -349,7 +352,7 @@ async function placeLimit(
   price: string,
   quantity: string,
   clientOrderId: string
-): Promise<boolean> {
+): Promise<{ ok: boolean; code?: string }> {
   const res = await fetch(`${baseUrl}/spot/order`, {
     method: 'POST',
     headers,
@@ -362,7 +365,13 @@ async function placeLimit(
       client_order_id: clientOrderId.slice(0, 64),
     }),
   });
-  return res.ok;
+  if (res.ok) return { ok: true };
+  try {
+    const body = (await res.json()) as { error?: { code?: string } };
+    return { ok: false, code: body?.error?.code };
+  } catch {
+    return { ok: false, code: `HTTP_${res.status}` };
+  }
 }
 
 /**
@@ -391,6 +400,11 @@ export async function runLiquidityBotCycle(): Promise<{ placed: number; errors: 
     return { placed: 0, errors: [], skipped: 0 };
   }
 
+  const unsuspend = await ensureLiquidityBotTradingActive();
+  if (unsuspend.unsuspended) {
+    resetBotErrorWindow();
+  }
+
   const mmGlobal = getGlobalMMConfig();
   if (!mmGlobal.enabled) {
     recordLiquidityBotCycleOutcome(false);
@@ -403,6 +417,9 @@ export async function runLiquidityBotCycle(): Promise<{ placed: number; errors: 
   if (health.pauseBot) {
     recordLiquidityBotCycleOutcome(false);
     liquidityBotRunsTotal.inc({ result: 'skipped' });
+    if (health.reasons.length === 1 && health.reasons[0] === 'bot_error_rate_critical') {
+      resetBotErrorWindow();
+    }
     logger.warn('Liquidity bot paused (MM health critical)', { reasons: health.reasons });
     return { placed: 0, errors: ['mm_health_pause:' + health.reasons.join(',')], skipped: symbols.length };
   }
@@ -423,6 +440,8 @@ export async function runLiquidityBotCycle(): Promise<{ placed: number; errors: 
     recordLiquidityBotCycleOutcome(true);
     return { placed: 0, errors: ['liquidity bot: API key has no user_id'], skipped: 0 };
   }
+
+  void reconcileUserSpotLocks(userId).catch(() => undefined);
 
   if (await isUserMmEmergencyStopped(userId)) {
     recordLiquidityBotCycleOutcome(false);
@@ -766,10 +785,14 @@ export async function runLiquidityBotCycle(): Promise<{ placed: number; errors: 
         const ts = Date.now();
         if (bidAllowPlace && bidNeeds && !posGuard.skipBidPlacement) {
           const cid = `mm:${symbol}:buy:l${i}:${ts}`;
-          const ok = await placeLimit(baseUrl, headers, symbol, 'buy', bidPrice.toString(), bidQtyStr, cid);
-          if (!ok) {
-            errors.push(`${symbol}: place bid L${i} failed`);
-            liquidityBotErrorsTotal.inc({ reason: 'place_bid_failed' });
+          const placedBid = await placeLimit(baseUrl, headers, symbol, 'buy', bidPrice.toString(), bidQtyStr, cid);
+          if (!placedBid.ok) {
+            if (placedBid.code === 'SPOT_TRADING_SUSPENDED') {
+              logger.error('Liquidity bot user spot trading suspended — attempting auto-unsuspend next cycle', { symbol, level: i });
+            } else {
+              errors.push(`${symbol}: place bid L${i} failed`);
+              liquidityBotErrorsTotal.inc({ reason: 'place_bid_failed' });
+            }
           } else {
             placed++;
             anyAction = true;
@@ -778,10 +801,14 @@ export async function runLiquidityBotCycle(): Promise<{ placed: number; errors: 
 
         if (askAllowPlace && askNeeds && !posGuard.skipAskPlacement) {
           const cid = `mm:${symbol}:sell:l${i}:${ts}`;
-          const ok = await placeLimit(baseUrl, headers, symbol, 'sell', askPrice.toString(), askQtyStr, cid);
-          if (!ok) {
-            errors.push(`${symbol}: place ask L${i} failed`);
-            liquidityBotErrorsTotal.inc({ reason: 'place_ask_failed' });
+          const placedAsk = await placeLimit(baseUrl, headers, symbol, 'sell', askPrice.toString(), askQtyStr, cid);
+          if (!placedAsk.ok) {
+            if (placedAsk.code === 'SPOT_TRADING_SUSPENDED') {
+              logger.error('Liquidity bot user spot trading suspended — attempting auto-unsuspend next cycle', { symbol, level: i });
+            } else {
+              errors.push(`${symbol}: place ask L${i} failed`);
+              liquidityBotErrorsTotal.inc({ reason: 'place_ask_failed' });
+            }
           } else {
             placed++;
             anyAction = true;

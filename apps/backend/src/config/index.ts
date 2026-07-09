@@ -290,7 +290,7 @@ const envSchema = z.object({
   CHAOS_SCHEDULE_ENABLED: z.string().transform((v) => v === 'true' || v === '1').default('false'),
   CHAOS_SCHEDULE_INTERVAL_MS: z.coerce.number().min(60_000).max(86_400_000).default(3_600_000),
   CHAOS_REPORT_DIR: z.string().optional().transform((v) => (v ?? '').trim()),
-  TREASURY_ONCHAIN_RECONCILE_INTERVAL_MS: z.coerce.number().min(60_000).max(86_400_000).default(600_000),
+  TREASURY_ONCHAIN_RECONCILE_INTERVAL_MS: z.coerce.number().min(60_000).max(86_400_000).default(900_000),
   TREASURY_HOT_MONITOR_INTERVAL_MS: z.coerce.number().min(30_000).max(3_600_000).default(120_000),
   /** Extra quote locked for buy-side stop_loss / trailing_stop_market (slippage buffer, bps). */
   STOP_ORDER_BUY_SLIPPAGE_BPS: z.coerce.number().min(0).max(10_000).default(500),
@@ -541,7 +541,7 @@ const envSchema = z.object({
   PUBLIC_API_REDIS_RATE_TOKEN_MAX: z.coerce.number().min(1).max(50_000).default(200),
   PUBLIC_API_REDIS_RATE_TOKEN_WINDOW_SEC: z.coerce.number().min(1).max(3600).default(60),
 
-  TREASURY_TOKEN_RECONCILE_INTERVAL_MS: z.coerce.number().min(60_000).max(86_400_000).default(900_000),
+  TREASURY_TOKEN_RECONCILE_INTERVAL_MS: z.coerce.number().min(60_000).max(86_400_000).default(1_800_000),
 
   // Deposit consolidation: sweep user deposit addresses to hot wallet
   DEPOSIT_SWEEP_ENABLED: z.string().transform(v => v === 'true').default('true'),
@@ -1009,7 +1009,7 @@ export const config = {
     adminLoginWindowSec: parsed.data.ADMIN_LOGIN_RATE_LIMIT_WINDOW_SEC ?? 300,
     adminApiMax:
       parsed.data.ADMIN_API_RATE_LIMIT_MAX ??
-      (parsed.data.NODE_ENV === 'development' ? 1200 : 240),
+      (parsed.data.NODE_ENV === 'development' ? 1200 : 1200),
     adminApiWindowSec: parsed.data.ADMIN_API_RATE_LIMIT_WINDOW_SEC ?? 60,
   },
 

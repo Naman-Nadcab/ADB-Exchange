@@ -21,6 +21,7 @@ export const ADMIN_IMPLICIT_ROLE_PERMISSIONS: Record<string, string[]> = {
   super_admin: ['all'],
   risk_manager: [
     'monitoring:view',
+    'monitoring:control',
     'aml:view',
     'aml:escalate',
     'users:view',
@@ -44,7 +45,7 @@ export const ADMIN_IMPLICIT_ROLE_PERMISSIONS: Record<string, string[]> = {
     'audit:view',
   ],
   support: ['users:view', 'users:edit', 'deposits:view', 'withdrawals:view', 'p2p:disputes', 'monitoring:view'],
-  compliance: ['kyc:review', 'aml:view', 'aml:escalate', 'audit:view', 'monitoring:view', 'users:view'],
+  compliance: ['kyc:review', 'aml:view', 'aml:escalate', 'audit:view', 'monitoring:view', 'users:view', 'settings:edit'],
   auditor: [
     'audit:view',
     'monitoring:view',
@@ -83,6 +84,8 @@ export function getImplicitRolePermissions(normalizedRole: string): string[] {
 
 /** URL pathname under /api/v1/admin (leading slash, no query). */
 const ADMIN_ROUTE_RULES: Array<{ pattern: RegExp; read: string; write: string }> = [
+  { pattern: /^\/monitoring\/actions\b/, read: 'monitoring:view', write: 'monitoring:control' },
+  { pattern: /^\/settings\/api\/[^/]+\/send-test-alert\b/, read: 'settings:view', write: 'settings:edit' },
   { pattern: /^\/compliance\b/, read: 'aml:view', write: 'aml:escalate' },
   { pattern: /^\/(indexer|oracle)\b/, read: 'monitoring:view', write: 'settings:edit' },
   { pattern: /^\/(users|search|kyc)\b/, read: 'users:view', write: 'users:edit' },

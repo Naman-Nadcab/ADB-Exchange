@@ -72,7 +72,31 @@ function defaultDisplayPricePrecision(pricePrecision: number): number {
 
 /** Price (left); qty & total — numeric columns right-aligned, monospace */
 const COL_GRID =
-  'grid grid-cols-[minmax(0,1.1fr)_minmax(0,0.95fr)_minmax(0,0.95fr)] gap-x-1';
+  'grid grid-cols-[minmax(3rem,1.12fr)_minmax(2.4rem,0.92fr)_minmax(2.4rem,0.92fr)] gap-x-2';
+
+function OrderbookColumnHeaders({
+  quoteAsset,
+  baseAsset,
+  leftLabel = 'Price',
+}: {
+  quoteAsset: string;
+  baseAsset: string;
+  leftLabel?: string;
+}) {
+  return (
+    <>
+      <span className="min-w-0 truncate text-left text-[10px] leading-none" title={`Price (${quoteAsset})`}>
+        {leftLabel}
+      </span>
+      <span className="min-w-0 truncate text-right text-[10px] leading-none" title={`Amount (${baseAsset})`}>
+        Qty
+      </span>
+      <span className="min-w-0 truncate text-right text-[10px] leading-none" title={`Total (${quoteAsset})`}>
+        Total
+      </span>
+    </>
+  );
+}
 
 function padAskSlots(ascRows: OrderbookLevel[], minRows: number): (OrderbookLevel | null)[] {
   const rev = [...ascRows].reverse();
@@ -104,7 +128,7 @@ function formatTradeTime(iso: string): string {
 }
 
 const BOOK_ROW =
-  'relative flex min-h-6 w-full items-center overflow-hidden px-2 py-1 text-[13px] numeric leading-snug';
+  'relative flex min-h-[22px] w-full items-center overflow-hidden px-1.5 py-0.5 terminal-text-table numeric leading-none';
 
 const depthGradientStyle = (side: 'buy' | 'sell', w: number, variant: 'book' | 'ladder'): React.CSSProperties => {
   const token = side === 'buy' ? 'var(--exchange-buy)' : 'var(--exchange-sell)';
@@ -155,7 +179,7 @@ const LevelRow = memo(function LevelRow({
       onClick={onRowSelect ? handleClick : undefined}
       title={tip}
       data-orderbook-row
-      className={`group/level border-b border-border/50 text-left transition-colors duration-75 hover:bg-muted/65 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary/40 dark:border-border/40 ${
+      className={`group/level orderbook-row border-b border-border/50 text-left transition-colors duration-150 hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary/40 dark:border-border/40 ${
         variant === 'book'
           ? `${BOOK_ROW} cursor-pointer`
           : `relative ${rowSize} w-full cursor-pointer px-2`
@@ -189,13 +213,13 @@ const LevelRow = memo(function LevelRow({
 const EmptyBookRow = memo(function EmptyBookRow() {
   return (
     <div
-      className={`${BOOK_ROW} border-b border-border/50 text-muted-foreground`}
+      className={`${BOOK_ROW} terminal-book-empty-row border-b border-border/40`}
       aria-hidden
     >
-      <span className={`${COL_GRID} w-full items-center`}>
-        <span className="text-left">—</span>
-        <span className="text-right">—</span>
-        <span className="text-right">—</span>
+      <span className={`${COL_GRID} w-full items-center gap-2`}>
+        <span className="text-left" />
+        <span className="ml-auto w-10 text-right" />
+        <span className="ml-auto w-10 text-right" />
       </span>
     </div>
   );
@@ -238,44 +262,38 @@ function SentimentFooter({
   ].join('\n');
 
   return (
-      <div className="space-y-2">
-      <div className="flex justify-between text-label text-muted-foreground">
-        <span className="font-medium">B / S ratio</span>
+      <div className="space-y-1">
+      <div className="flex justify-between text-label leading-none text-muted-foreground">
+        <span className="font-medium">B / S</span>
         <span className="numeric font-semibold">
           <span className="text-buy">{b.toFixed(1)}%</span>
-          <span className="text-muted-foreground/60"> · </span>
+          <span className="text-muted-foreground/60"> / </span>
           <span className="text-sell">{s.toFixed(1)}%</span>
         </span>
       </div>
       <Tooltip delayDuration={220}>
         <TooltipTrigger asChild>
           <div
-            className="flex h-6 w-full min-w-0 cursor-help overflow-hidden rounded-sm text-[12px] font-semibold numeric tracking-wide"
+            className="flex h-4 w-full min-w-0 cursor-help overflow-hidden rounded-sm text-label font-semibold numeric leading-none"
             aria-label={`Bid depth ${b.toFixed(1)} percent, Ask depth ${s.toFixed(1)} percent`}
           >
             <div
-              className="relative flex h-full min-w-0 items-center gap-1 bg-buy/35 pl-2 text-buy dark:bg-buy/25"
+              className="relative flex h-full min-w-0 items-center bg-buy/35 pl-1.5 text-buy dark:bg-buy/25"
               style={{
                 width: `${wBuy}%`,
                 clipPath: `polygon(0 0, 100% 0, calc(100% - ${skew}px) 100%, 0 100%)`,
               }}
             >
-              <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-sm bg-foreground/10 text-label font-bold leading-none text-buy">
-                B
-              </span>
               <span>{b.toFixed(0)}%</span>
             </div>
             <div
-              className="flex h-full min-w-0 flex-1 items-center justify-end gap-1 bg-sell/35 pr-2 text-sell dark:bg-sell/25"
+              className="flex h-full min-w-0 flex-1 items-center justify-end bg-sell/35 pr-1.5 text-sell dark:bg-sell/25"
               style={{
                 marginLeft: `-${skew}px`,
                 paddingLeft: `${skew + 4}px`,
               }}
             >
               <span>{s.toFixed(0)}%</span>
-              <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-sm bg-foreground/10 text-label font-bold leading-none text-sell">
-                S
-              </span>
             </div>
           </div>
         </TooltipTrigger>
@@ -309,47 +327,37 @@ function OrderbookIntelligenceRow({
   quoteAsset: string;
   pricePrecision: number;
 }) {
+  const bidWallLabel = largestBidWall
+    ? `${formatCompactNumber(largestBidWall.notional)} @ ${formatValueFixedTrim(largestBidWall.price, pricePrecision)}`
+    : '—';
+  const askWallLabel = largestAskWall
+    ? `${formatCompactNumber(largestAskWall.notional)} @ ${formatValueFixedTrim(largestAskWall.price, pricePrecision)}`
+    : '—';
+  const detailTitle = [
+    `Spread: ${spreadAbs > 0 ? formatFixedTrim(spreadAbs, Math.min(6, pricePrecision)) : '—'}${spreadBps > 0 ? ` (${spreadBps.toFixed(1)} bps)` : ''}`,
+    `Dominance: ${dominanceLabel}`,
+    `Imbalance: ${imbalancePct >= 0 ? '+' : ''}${imbalancePct.toFixed(1)}%`,
+    `Largest bid wall: ${bidWallLabel} ${quoteAsset}`,
+    `Largest ask wall: ${askWallLabel} ${quoteAsset}`,
+  ].join('\n');
+
   return (
-    <div className="grid grid-cols-1 gap-1 border-b border-border/70 px-2 py-1 text-[11px] text-muted-foreground">
-      <div className="flex flex-wrap items-center gap-2">
-        <span>
-          Spread:{' '}
-          <span className="numeric text-foreground">
-            {spreadAbs > 0 ? formatFixedTrim(spreadAbs, Math.min(6, pricePrecision)) : '—'}
-            {spreadBps > 0 ? ` (${spreadBps.toFixed(1)} bps)` : ''}
-          </span>
-        </span>
-        <span>
-          Dominance: <span className="numeric text-foreground">{dominanceLabel}</span>
-        </span>
-        <span>
-          Imbalance: <span className="numeric text-foreground">{imbalancePct >= 0 ? '+' : ''}{imbalancePct.toFixed(1)}%</span>
-        </span>
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <span>
-          Largest Bid Wall:{' '}
-          <span className="numeric text-foreground">
-            {largestBidWall
-              ? `${formatCompactNumber(largestBidWall.notional)} ${quoteAsset} @ ${formatValueFixedTrim(
-                  largestBidWall.price,
-                  pricePrecision
-                )}`
-              : '—'}
-          </span>
-        </span>
-        <span>
-          Largest Ask Wall:{' '}
-          <span className="numeric text-foreground">
-            {largestAskWall
-              ? `${formatCompactNumber(largestAskWall.notional)} ${quoteAsset} @ ${formatValueFixedTrim(
-                  largestAskWall.price,
-                  pricePrecision
-                )}`
-              : '—'}
-          </span>
-        </span>
-      </div>
+    <div
+      className="truncate border-b border-border/80 px-1.5 py-0.5 text-label leading-none text-muted-foreground"
+      title={detailTitle}
+    >
+      <span className="numeric text-foreground">
+        {spreadAbs > 0 ? formatFixedTrim(spreadAbs, Math.min(6, pricePrecision)) : '—'}
+        {spreadBps > 0 ? ` (${spreadBps.toFixed(1)}bp)` : ''}
+      </span>
+      <span className="mx-1 text-muted-foreground/50">·</span>
+      <span>{dominanceLabel}</span>
+      <span className="mx-1 text-muted-foreground/50">·</span>
+      <span className="numeric">{imbalancePct >= 0 ? '+' : ''}{imbalancePct.toFixed(1)}%</span>
+      <span className="mx-1 text-muted-foreground/50">·</span>
+      <span>Bid {bidWallLabel}</span>
+      <span className="mx-1 text-muted-foreground/50">·</span>
+      <span>Ask {askWallLabel}</span>
     </div>
   );
 }
@@ -505,14 +513,14 @@ export function SpotOrderbookPanel({
     p === 2 ? '0.01' : p === 4 ? '0.0001' : p === 6 ? '0.000001' : '0.00000001';
 
   const tabBtn = (active: boolean) =>
-    `min-h-8 flex-1 px-1.5 py-2 text-label font-semibold tracking-wide transition-colors ${
+    `min-h-7 flex-1 px-1 py-1 text-label font-semibold leading-none transition-colors ${
       active
         ? 'border-b-2 border-primary text-foreground'
         : 'border-b-2 border-transparent text-muted-foreground hover:text-foreground'
     }`;
 
   const iconToggle = (active: boolean) =>
-    `flex h-7 w-7 shrink-0 items-center justify-center rounded border transition-colors ${
+    `flex h-6 w-6 shrink-0 items-center justify-center rounded border transition-colors ${
       active
         ? 'border-primary/50 bg-primary/10 text-primary'
         : 'border-border bg-muted text-muted-foreground hover:text-foreground'
@@ -530,6 +538,19 @@ export function SpotOrderbookPanel({
       onPriceClick?.(p, q);
     },
     [onPriceClick]
+  );
+
+  const bookIsEmpty = !loading && bidRows.length === 0 && askRows.length === 0;
+
+  const emptyBookMessage = (
+    <div className="flex flex-1 flex-col items-center justify-center px-3 py-5 text-center">
+      <p className="terminal-text-label font-semibold text-foreground">No executable liquidity</p>
+      <p className="mt-1.5 max-w-[15rem] text-label leading-snug text-muted-foreground">
+        {lastDisplay
+          ? `Reference ${formatValueFixedTrim(lastDisplay, effectivePricePrecision)} ${quoteAsset}. Limit orders rest on the book; market orders need a matching quote.`
+          : 'Limit orders rest on the internal book. Market orders require a matching quote on the book.'}
+      </p>
+    </div>
   );
 
   const renderLadderAsks = (variant: 'ladder') =>
@@ -560,20 +581,20 @@ export function SpotOrderbookPanel({
   const midContent = (
     <div className="flex flex-col items-center gap-0.5 py-0.5">
       <div
-        className={`flex items-center justify-center gap-1 text-lg font-bold leading-tight tracking-tight numeric sm:text-xl ${midPriceClass}`}
+        className={`flex items-center justify-center gap-1 text-base font-bold leading-tight tracking-tight numeric ${midPriceClass}`}
       >
         {lastMove === 'up' && <ChevronUp className="h-4 w-4 shrink-0 text-buy" strokeWidth={2.5} aria-hidden />}
         {lastMove === 'down' && <ChevronDown className="h-4 w-4 shrink-0 text-sell" strokeWidth={2.5} aria-hidden />}
         <span>{formatValueFixedTrim(lastDisplay, effectivePricePrecision)}</span>
-        <span className="text-sm font-semibold text-muted-foreground sm:text-base">{quoteAsset}</span>
+        <span className="text-label font-semibold text-muted-foreground">{quoteAsset}</span>
       </div>
       {(spreadAbs > 0 || spreadBps > 0) && (
-        <p className="text-center text-[11px] leading-tight numeric text-muted-foreground sm:text-label">
-          <span className="font-medium text-muted-foreground/85">Spread</span>{' '}
-          <span className="font-semibold text-foreground/85">
+        <p className="text-center terminal-text-label leading-none numeric text-muted-foreground">
+          <span className="text-muted-foreground/80">Spr </span>
+          <span className="font-semibold text-foreground">
             {spreadAbs > 0 ? formatFixedTrim(spreadAbs, Math.min(6, effectivePricePrecision)) : '—'}
             {spreadPctMid > 0 ? ` · ${spreadPctMid >= 0.0001 ? spreadPctMid.toFixed(3) : '<0.001'}%` : ''}
-            {spreadBps >= 0.01 ? ` · ${spreadBps.toFixed(1)} bps` : ''}
+            {spreadBps >= 0.01 ? ` · ${spreadBps.toFixed(1)}bp` : ''}
           </span>
         </p>
       )}
@@ -581,7 +602,7 @@ export function SpotOrderbookPanel({
   );
 
   const renderMid = () => (
-    <div className="shrink-0 border-y border-solid border-border bg-muted/80 px-2 py-1 dark:bg-muted/55">
+    <div className="shrink-0 border-y border-solid border-border bg-muted/60 px-1.5 py-1 dark:bg-muted/45">
       {onPriceClick && lastDisplay ? (
         <button
           type="button"
@@ -670,14 +691,14 @@ export function SpotOrderbookPanel({
 
   const asksScrollPane = (
     <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain spot-rail-scroll [scrollbar-gutter:stable]">
         {loading ? (
           <div className="flex flex-col">
             {Array.from({ length: MIN_ORDERBOOK_ROWS }).map((_, i) => (
               <SkeletonRow key={`ask-sk-${i}`} />
             ))}
           </div>
-        ) : (
+        ) : bookIsEmpty ? null : (
           renderBookAskRows()
         )}
       </div>
@@ -686,14 +707,14 @@ export function SpotOrderbookPanel({
 
   const bidsScrollPane = (
     <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain spot-rail-scroll [scrollbar-gutter:stable]">
         {loading ? (
           <div className="flex flex-col">
             {Array.from({ length: MIN_ORDERBOOK_ROWS }).map((_, i) => (
               <SkeletonRow key={`bid-sk-${i}`} />
             ))}
           </div>
-        ) : (
+        ) : bookIsEmpty ? null : (
           renderBookBidRows()
         )}
       </div>
@@ -701,7 +722,14 @@ export function SpotOrderbookPanel({
   );
 
   let orderBookGrid: ReactNode;
-  if (bookView === 'asks') {
+  if (bookIsEmpty) {
+    orderBookGrid = (
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        {renderMid()}
+        {emptyBookMessage}
+      </div>
+    );
+  } else if (bookView === 'asks') {
     orderBookGrid = (
       <div className="grid min-h-0 min-w-0 flex-1 grid-rows-[minmax(0,1fr)_auto] overflow-hidden">
         {asksScrollPane}
@@ -748,7 +776,7 @@ export function SpotOrderbookPanel({
   );
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-card text-[12px] text-foreground">
+    <div className="flex h-full min-h-0 flex-col bg-card text-label text-foreground">
       <div className="flex flex-shrink-0 border-b border-border">
         <button type="button" onClick={() => setTab('orderbook')} className={tabBtn(tab === 'orderbook')}>
           Order Book
@@ -770,7 +798,7 @@ export function SpotOrderbookPanel({
             value={depthLimit}
             onChange={(e) => setDepthLimit(Number(e.target.value) as (typeof DEPTH_OPTIONS)[number])}
             title="Rows per side"
-            className="h-7 min-w-[3rem] cursor-pointer rounded border border-border bg-muted px-1.5 text-label font-bold text-foreground"
+            className="h-6 min-w-[3rem] cursor-pointer rounded border border-border bg-muted px-1 text-label font-bold text-foreground"
           >
             {DEPTH_OPTIONS.map((d) => (
               <option key={d} value={d}>
@@ -782,7 +810,7 @@ export function SpotOrderbookPanel({
       )}
 
       {tab === 'orderbook' && (
-        <div className="flex flex-shrink-0 items-center gap-2 border-b border-border px-2 py-2">
+        <div className="flex flex-shrink-0 items-center gap-1 border-b border-border px-1.5 py-1">
           <div className="flex items-center gap-1" role="group" aria-label="Order book view">
             <button
               type="button"
@@ -822,7 +850,7 @@ export function SpotOrderbookPanel({
               value={effectivePricePrecision}
               onChange={(e) => setDisplayPricePrecision(Number(e.target.value))}
               title="Price grouping"
-              className="h-7 min-w-[5rem] cursor-pointer rounded border border-border bg-muted px-1.5 text-label font-mono font-semibold text-foreground"
+              className="h-6 min-w-[5rem] cursor-pointer rounded border border-border bg-muted px-1 text-label font-mono font-semibold text-foreground"
             >
               {tickOptions.map((p) => (
                 <option key={p} value={p}>
@@ -834,7 +862,7 @@ export function SpotOrderbookPanel({
               value={depthLimit}
               onChange={(e) => setDepthLimit(Number(e.target.value) as (typeof DEPTH_OPTIONS)[number])}
               title="Rows per side"
-              className="h-7 min-w-[3rem] cursor-pointer rounded border border-border bg-muted px-1.5 text-label font-bold text-foreground"
+              className="h-6 min-w-[3rem] cursor-pointer rounded border border-border bg-muted px-1 text-label font-bold text-foreground"
             >
               {DEPTH_OPTIONS.map((d) => (
                 <option key={d} value={d}>
@@ -848,14 +876,12 @@ export function SpotOrderbookPanel({
 
       {tab === 'ladder' ? (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="border-b border-border bg-muted/60 px-2 py-2 dark:bg-muted/40">
-            <div className={`${COL_GRID} numeric text-[11px] font-bold uppercase tracking-wide text-muted-foreground sm:text-label`}>
-              <span className="text-left">Asks ↑ · Price({quoteAsset})</span>
-              <span className="text-right">Amount({baseAsset})</span>
-              <span className="text-right">Σ {quoteAsset}</span>
+          <div className="border-b border-border bg-muted/50 px-1.5 py-1 dark:bg-muted/35">
+            <div className={`${COL_GRID} items-center numeric terminal-text-label font-semibold uppercase leading-none text-muted-foreground`}>
+              <OrderbookColumnHeaders quoteAsset={quoteAsset} baseAsset={baseAsset} leftLabel="Asks · Price" />
             </div>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain spot-rail-scroll [scrollbar-gutter:stable]">
             {loading ? (
             <div className="space-y-px p-2">
                 {Array.from({ length: 10 }).map((_, i) => (
@@ -864,9 +890,13 @@ export function SpotOrderbookPanel({
               </div>
             ) : (
               <>
-                {ladderBody}
-                {bidRows.length === 0 && askRows.length === 0 && !loading && (
-                  <p className="px-4 py-10 text-center text-label text-muted-foreground">No order book data</p>
+                {bookIsEmpty ? (
+                  <>
+                    {renderMid()}
+                    {emptyBookMessage}
+                  </>
+                ) : (
+                  ladderBody
                 )}
               </>
             )}
@@ -874,16 +904,21 @@ export function SpotOrderbookPanel({
         </div>
       ) : tab === 'trades' ? (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="border-b border-border bg-muted/60 px-2 py-2 dark:bg-muted/40">
-            <div className={`${COL_GRID} numeric text-[11px] font-bold uppercase tracking-wide text-muted-foreground sm:text-label`}>
-              <span className="text-left">Price({quoteAsset})</span>
-              <span className="text-right">Amount({baseAsset})</span>
-              <span className="text-right">Time</span>
+          <div className="border-b border-border bg-muted/50 px-1.5 py-1 dark:bg-muted/35">
+            <div className={`${COL_GRID} items-center numeric terminal-text-label font-semibold uppercase leading-none text-muted-foreground`}>
+              <OrderbookColumnHeaders quoteAsset={quoteAsset} baseAsset={baseAsset} />
             </div>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain spot-rail-scroll [scrollbar-gutter:stable]">
             {recentTrades.length === 0 ? (
-              <p className="px-3 py-8 text-center text-label text-muted-foreground">No recent trades</p>
+              <div className="px-3 py-8 text-center">
+                <p className="text-label font-semibold text-muted-foreground">No public trades yet</p>
+                <p className="mx-auto mt-1.5 max-w-[14rem] text-label leading-snug text-muted-foreground/80">
+                  {lastDisplay
+                    ? `Reference ${formatValueFixedTrim(lastDisplay, effectivePricePrecision)} ${quoteAsset}. Matches appear here when they occur.`
+                    : 'Internal matches appear here when they occur.'}
+                </p>
+              </div>
             ) : (
               recentTrades.slice(0, 48).map((t) => {
                 const px = parseFloat(t.price) || 0;
@@ -925,10 +960,8 @@ export function SpotOrderbookPanel({
       ) : (
         <>
           <div className="border-b border-border bg-muted/60 px-2 py-2 dark:bg-muted/40">
-            <div className={`${COL_GRID} items-center numeric text-[11px] font-bold uppercase tracking-wide text-muted-foreground sm:text-label`}>
-              <span className="text-left">Price({quoteAsset})</span>
-              <span className="text-right">Amount({baseAsset})</span>
-              <span className="text-right">Total({quoteAsset})</span>
+            <div className={`${COL_GRID} items-center numeric terminal-text-label font-bold uppercase tracking-wide text-muted-foreground`}>
+              <OrderbookColumnHeaders quoteAsset={quoteAsset} baseAsset={baseAsset} />
             </div>
           </div>
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -943,7 +976,7 @@ export function SpotOrderbookPanel({
               quoteAsset={quoteAsset}
               pricePrecision={effectivePricePrecision}
             />
-            <div className="shrink-0 border-t border-solid border-border px-2 py-2">
+            <div className="shrink-0 border-t border-solid border-border px-1.5 py-1">
               <SentimentFooter
                 buyPct={buyPct}
                 sellPct={sellPct}

@@ -107,6 +107,24 @@ export async function sendOpsAlert(p: OpsAlertPayload): Promise<void> {
   };
 
   const urls = [config.monitoring.alertWebhookUrl, config.monitoring.opsAlertWebhookUrl].filter(Boolean) as string[];
+  try {
+    const { deliverAlertToAllProviders } = await import('./alert-delivery.service.js');
+    const sent = await deliverAlertToAllProviders(p);
+    if (sent > 0) {
+      logger.debug('ops_alert: delivered via DB providers', { count: sent });
+    }
+  } catch {
+    /* DB optional at startup */
+  }
+  // Legacy env URLs (backward compat)
+  try {
+    const { dynamicConfig } = await import('./dynamic-config.service.js');
+    const dyn = await dynamicConfig.getAlertChannelsConfig();
+    if (dyn.webhookUrl && !urls.includes(dyn.webhookUrl)) urls.push(dyn.webhookUrl);
+    if (dyn.slackWebhookUrl && !urls.includes(dyn.slackWebhookUrl)) urls.push(dyn.slackWebhookUrl);
+  } catch {
+    /* DB optional at startup */
+  }
   for (const u of urls) {
     try {
       await postJson(u, slackPayload);
@@ -127,6 +145,25 @@ export async function sendOpsAlert(p: OpsAlertPayload): Promise<void> {
     } catch (e) {
       logger.warn('ops_alert: email webhook failed', { error: e instanceof Error ? e.message : String(e) });
     }
+  }
+
+  try {
+    const { upsertInfrastructureAlert, recordMonitoringEvent } = await import('./monitoring-snapshot.service.js');
+    const infraSeverity =
+      p.severity === 'critical' ? 'critical' : p.severity === 'warning' ? 'warning' : 'info';
+    await upsertInfrastructureAlert({
+      system: type,
+      severity: infraSeverity as 'critical' | 'warning' | 'info',
+      message: `${p.title}: ${p.body.slice(0, 500)}`,
+      dedupeKey: `ops:${key}`,
+      suggestedAction: 'Review Operations Hub and related service logs',
+      skipExternalDelivery: true,
+    });
+    await recordMonitoringEvent('ops_alert', `${LEVEL_LABEL[p.severity]} [${type}] ${p.title}`);
+  } catch (e) {
+    logger.debug('ops_alert: infrastructure alert persist skipped', {
+      error: e instanceof Error ? e.message : String(e),
+    });
   }
 }
 

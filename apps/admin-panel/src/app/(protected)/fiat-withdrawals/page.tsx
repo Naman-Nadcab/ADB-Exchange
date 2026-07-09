@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAdminAuthStore } from '@/store/auth';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { cn } from '@/lib/cn';
 import {
   getFiatWithdrawals,
@@ -45,6 +47,7 @@ function bankSummary(row: FiatWithdrawalRow): string {
 export default function FiatWithdrawalsPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [status, setStatus] = useState<string>('pending');
   const [creditOpen, setCreditOpen] = useState(false);
   const [creditUserId, setCreditUserId] = useState('');
@@ -62,14 +65,16 @@ export default function FiatWithdrawalsPage() {
 
   const approveMut = useMutation({
     mutationFn: (id: string) => approveFiatWithdrawal(token, id),
-    onSuccess: invalidate,
+    onSuccess: () => { invalidate(); toast.success('Fiat withdrawal approved.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to approve fiat withdrawal.')),
   });
   const completeMut = useMutation({
     mutationFn: (id: string) => {
       const ref = window.prompt('Bank/UTR reference number (optional):') ?? undefined;
       return completeFiatWithdrawal(token, id, ref || undefined);
     },
-    onSuccess: invalidate,
+    onSuccess: () => { invalidate(); toast.success('Fiat withdrawal marked complete.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to complete fiat withdrawal.')),
   });
   const rejectMut = useMutation({
     mutationFn: (id: string) => {
@@ -77,7 +82,8 @@ export default function FiatWithdrawalsPage() {
       if (!reason || !reason.trim()) throw new Error('Reason required');
       return rejectFiatWithdrawal(token, id, reason.trim());
     },
-    onSuccess: invalidate,
+    onSuccess: () => { invalidate(); toast.success('Fiat withdrawal rejected.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to reject fiat withdrawal.')),
   });
   const creditMut = useMutation({
     mutationFn: () => creditFiatBalance(token, { userId: creditUserId.trim(), amount: creditAmount.trim(), notes: creditNotes.trim() || undefined }),
@@ -87,7 +93,9 @@ export default function FiatWithdrawalsPage() {
       setCreditAmount('');
       setCreditNotes('');
       invalidate();
+      toast.success('Fiat balance credited.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to credit fiat balance.')),
   });
 
   const pendingCount = rows.filter((r) => r.status === 'pending').length;

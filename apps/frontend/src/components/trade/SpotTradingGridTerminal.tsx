@@ -23,6 +23,10 @@ import { ChartPanel } from './ChartPanel';
 import { ChartErrorBoundary } from './chart/ChartErrorBoundary';
 import { SpotOrderbookPanel } from './SpotOrderbookPanel';
 import { SpotBottomPanel } from './SpotBottomPanel';
+import { TerminalEmptyState, TerminalLoadingRows } from './TerminalEmptyState';
+import { formatMoverChangePct, moverChangeTone } from './terminalUiFormat';
+import { SpotTerminalStatusRow } from './SpotTerminalStatusRow';
+import { TerminalStatusChip } from './TerminalStatusChip';
 import { MarketsSidebar, type MarketRow } from '@/components/trading/MarketsSidebar';
 import { formatFixedTrim, formatValueFixedTrim } from './terminalFormat';
 import {
@@ -31,6 +35,11 @@ import {
   useSpotMarketTrades,
   useSpotMarketStream,
 } from './SpotMarketDataContext';
+import {
+  filterTradesForDisplay,
+  resolveSpotDisplayLastPrice,
+  resolveStreamFreshnessSec,
+} from '@/lib/spotPriceDisplay';
 
 class PanelErrorBoundary extends Component<
   { children: ReactNode; name: string; resetKey?: string },
@@ -211,15 +220,24 @@ function SpotChartSection({
   const { streamPhase, lastRttMs } = useSpotMarketStream();
   const dayChangePct24h = useDayChangePct24h(ticker);
 
-  const tapeLast = recentTrades[0]?.price?.trim() || null;
-  const displayLastPrice = tapeLast || ticker?.last_price || null;
-  const latestTradeAgeSec = useMemo(() => {
-    const raw = recentTrades[0]?.time;
-    if (!raw) return null;
-    const tsMs = Date.parse(raw);
-    if (!Number.isFinite(tsMs) || tsMs <= 0) return null;
-    return Math.max(0, Math.floor((Date.now() - tsMs) / 1000));
-  }, [recentTrades]);
+  const displayLastPrice = resolveSpotDisplayLastPrice({
+    tickerLast: ticker?.last_price,
+    orderbook,
+    recentTrades,
+  });
+  const displayTrades = useMemo(
+    () => filterTradesForDisplay(recentTrades, displayLastPrice),
+    [recentTrades, displayLastPrice]
+  );
+  const latestTradeAgeSec = useMemo(
+    () =>
+      resolveStreamFreshnessSec({
+        recentTrades: displayTrades,
+        streamPhase,
+        tickerLast: ticker?.last_price,
+      }),
+    [displayTrades, streamPhase, ticker?.last_price]
+  );
 
   return (
     <ChartErrorBoundary resetKey={`${symbol}-${chartIntervalSeconds}-${chartViewMode}`}>
@@ -240,7 +258,7 @@ function SpotChartSection({
         dayChangePct24h={dayChangePct24h}
         onIntervalSecondsChange={onIntervalSecondsChange}
         livePrice={displayLastPrice}
-        liveTrades={recentTrades}
+        liveTrades={displayTrades}
         viewMode={chartViewMode}
         onViewModeChange={onViewModeChange}
         depthBids={orderbook?.bids ?? []}
@@ -285,14 +303,11 @@ function SpotPairHeaderSection({
   const { streamPhase, lastRttMs } = useSpotMarketStream();
   const dayChangePct24h = useDayChangePct24h(ticker);
 
-  /** Prefer public tape (same as chart trade marks); then WS ticker; then book mid — avoids stale oracle vs candle close. */
-  const tapeLast = recentTrades[0]?.price?.trim() || null;
-  const lastPrice =
-    tapeLast ||
-    (ticker?.last_price ??
-      (orderbook?.bids?.[0] && orderbook?.asks?.[0]
-        ? String((parseFloat(orderbook.bids[0].price) + parseFloat(orderbook.asks[0].price)) / 2)
-        : orderbook?.asks?.[0]?.price ?? orderbook?.bids?.[0]?.price ?? null));
+  const lastPrice = resolveSpotDisplayLastPrice({
+    tickerLast: ticker?.last_price,
+    orderbook,
+    recentTrades,
+  });
 
   return (
     <PairHeader
@@ -338,6 +353,16 @@ const SpotOrderbookSection = memo(function SpotOrderbookSection({
   const { ticker } = useSpotMarketTicker();
   const { recentTrades } = useSpotMarketTrades();
 
+  const displayLastPrice = resolveSpotDisplayLastPrice({
+    tickerLast: ticker?.last_price,
+    orderbook,
+    recentTrades,
+  });
+  const displayTrades = useMemo(
+    () => filterTradesForDisplay(recentTrades, displayLastPrice),
+    [recentTrades, displayLastPrice]
+  );
+
   return (
     <SpotOrderbookPanel
       bids={orderbook?.bids ?? []}
@@ -347,8 +372,8 @@ const SpotOrderbookSection = memo(function SpotOrderbookSection({
       onPriceClick={onPriceClick}
       onTradePriceClick={onPriceClick}
       loading={orderbookLoading}
-      recentTrades={recentTrades}
-      lastPrice={ticker?.last_price ?? null}
+      recentTrades={displayTrades}
+      lastPrice={displayLastPrice}
       pricePrecision={pricePrecision}
       qtyPrecision={qtyPrecision}
     />
@@ -367,41 +392,48 @@ const RecentTradesPanel = memo(function RecentTradesPanel({
   qtyPrecision: number;
 }) {
   const { recentTrades } = useSpotMarketTrades();
+  const { ticker } = useSpotMarketTicker();
+  const { orderbook } = useSpotMarketOrderbook();
   const { streamPhase } = useSpotMarketStream();
 
-  const trades = recentTrades ?? [];
+  const displayLastPrice = resolveSpotDisplayLastPrice({
+    tickerLast: ticker?.last_price,
+    orderbook,
+    recentTrades,
+  });
+  const trades = useMemo(
+    () => filterTradesForDisplay(recentTrades ?? [], displayLastPrice),
+    [recentTrades, displayLastPrice]
+  );
   const topTrades = trades.slice(0, 30);
   const isInitialLoading = topTrades.length === 0 && streamPhase !== 'live';
 
   return (
     <div className="exchange-ui flex h-full min-h-0 flex-col overflow-hidden antialiased">
-      <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-2">
-        <span className="text-label font-semibold tracking-tight text-foreground">Market Trades</span>
+      <div className="flex shrink-0 items-center border-b border-border px-2 py-1">
+        <span className="terminal-text-label font-semibold leading-none tracking-tight text-foreground">Market Trades</span>
       </div>
-      <div className="flex shrink-0 items-center border-b border-border/90 px-3 py-2">
-        <span className="flex-1 text-label font-semibold uppercase tracking-wider text-muted-foreground">
-          Price({quoteAsset})
+      <div className="flex shrink-0 items-center border-b border-border px-2 py-1 terminal-text-label font-semibold uppercase leading-none text-muted-foreground">
+        <span className="min-w-0 flex-1 truncate" title={`Price (${quoteAsset})`}>
+          Price
         </span>
-        <span className="flex-1 text-right text-label font-semibold uppercase tracking-wider text-muted-foreground">
-          Amount({baseAsset})
+        <span className="min-w-0 flex-1 truncate text-right" title={`Amount (${baseAsset})`}>
+          Qty
         </span>
-        <span className="w-[52px] shrink-0 text-right text-label font-semibold uppercase tracking-wider text-muted-foreground">
+        <span className="w-[52px] shrink-0 truncate text-right" title="Time">
           Time
         </span>
       </div>
       <div className="spot-rail-scroll flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden pr-0.5">
         {isInitialLoading ? (
-          Array.from({ length: 12 }).map((_, i) => (
-            <div key={`sk-${i}`} className="flex shrink-0 items-center px-3 py-2">
-              <span className="h-2.5 flex-1 rounded bg-muted" />
-              <span className="ml-2 h-2.5 w-14 rounded bg-muted" />
-              <span className="ml-2 h-2.5 w-10 rounded bg-muted" />
-            </div>
-          ))
+          <TerminalLoadingRows rows={12} />
         ) : topTrades.length === 0 ? (
-          <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-3 py-6 text-center text-label leading-relaxed text-muted-foreground">
-            No trades yet
-          </div>
+          <TerminalEmptyState
+            kind="trades"
+            title="Waiting for market activity"
+            description="Recent trades will appear here as the market updates."
+            compact
+          />
         ) : (
           topTrades.map((t, i) => {
             const isBuy = t.side === 'buy';
@@ -416,7 +448,7 @@ const RecentTradesPanel = memo(function RecentTradesPanel({
             return (
               <div
                 key={`${t.id || t.time || 'trade'}-${i}`}
-                className="flex shrink-0 items-center px-3 py-2 text-label numeric hover:bg-muted/50"
+                className="orderbook-row flex shrink-0 items-center px-2 py-1 terminal-text-table numeric leading-none"
               >
                 <span className={`min-w-0 flex-1 truncate font-semibold ${isBuy ? 'text-buy' : 'text-sell'}`}>
                   {formatValueFixedTrim(t.price, pricePrecision)}
@@ -526,16 +558,16 @@ function TopMoversSection({
   const top = movers[0];
 
   const renderRow = (m: (typeof movers)[0], compact: boolean) => {
-    const isUp = m.change != null && m.change >= 0;
+    const tone = moverChangeTone(m.change);
     const isActive = m.symbol === symbol;
     return (
       <button
         key={m.symbol}
         type="button"
         onClick={() => onSymbolChange(m.symbol)}
-        className={`flex w-full items-center justify-between gap-2 px-3 text-left text-label transition-colors hover:bg-muted/50 ${
-          compact ? 'py-1.5' : 'py-2'
-        } ${isActive ? 'bg-muted/45' : ''}`}
+        className={`orderbook-row flex w-full items-center justify-between gap-2 px-2 text-left terminal-text-table leading-none transition-colors ${
+          compact ? 'py-1' : 'py-1.5'
+        } ${isActive ? 'bg-muted/50 shadow-[inset_2px_0_0_hsl(var(--primary))]' : ''}`}
       >
         <div className="flex min-w-0 items-center gap-1.5">
           <CoinIcon symbol={m.base} size={compact ? 13 : 14} />
@@ -543,11 +575,11 @@ function TopMoversSection({
           <span className="shrink-0 font-medium text-muted-foreground">/{m.quote}</span>
         </div>
         <span
-          className={`shrink-0 numeric text-label font-semibold ${
-            m.change != null ? (isUp ? 'text-buy' : 'text-sell') : 'text-muted-foreground'
+          className={`shrink-0 numeric font-semibold ${
+            tone === 'buy' ? 'text-buy' : tone === 'sell' ? 'text-sell' : 'text-muted-foreground'
           }`}
         >
-          {m.change != null ? `${m.change >= 0 ? '+' : ''}${m.change.toFixed(2)}%` : '—'}
+          {formatMoverChangePct(m.change)}
         </span>
       </button>
     );
@@ -561,11 +593,11 @@ function TopMoversSection({
         aria-expanded={expanded}
         aria-controls="spot-top-movers-list"
         id="spot-top-movers-heading"
-        className="flex w-full shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-2 text-left transition-colors hover:bg-muted/35"
+        className="flex w-full shrink-0 items-center justify-between gap-2 border-b border-border px-2 py-1 text-left transition-colors duration-150 hover:bg-muted/35"
       >
         <span className="flex min-w-0 items-center gap-2">
           <TrendingUp className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
-          <span className="text-label font-semibold uppercase tracking-wider text-muted-foreground">Top movers</span>
+          <span className="terminal-text-label font-semibold uppercase tracking-wider text-muted-foreground">Top movers</span>
         </span>
         {expanded ? (
           <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -581,7 +613,12 @@ function TopMoversSection({
           className="spot-rail-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-0.5"
         >
           {movers.length === 0 ? (
-            <div className="px-3 py-2 text-label text-muted-foreground">No data</div>
+            <TerminalEmptyState
+              kind="markets"
+              title="No movers yet"
+              description="Top 24h movers will appear when market data is available."
+              compact
+            />
           ) : (
             movers.map((m) => renderRow(m, false))
           )}
@@ -591,7 +628,7 @@ function TopMoversSection({
           {top ? (
             renderRow(top, true)
           ) : (
-            <div className="px-3 py-2 text-label text-muted-foreground">No data</div>
+            <TerminalEmptyState kind="markets" title="No movers yet" compact />
           )}
         </div>
       )}
@@ -611,10 +648,10 @@ const SLIDER_PCTS = [0, 25, 50, 75, 100];
 
 function BinanceInsetField({ label, suffix, children }: { label: string; suffix: string; children: React.ReactNode }) {
   return (
-    <div className="flex min-h-[2.625rem] items-center gap-2 rounded-lg border border-border/90 bg-muted/45 px-3 py-2.5 transition-colors hover:border-primary/35 hover:bg-muted/55 dark:border-border dark:bg-card/85 dark:hover:bg-muted/45">
-      <span className="shrink-0 text-label font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
+    <div className="flex min-h-9 items-center gap-1.5 rounded-md border border-border bg-muted/45 px-2 py-1.5 transition-[border-color,background-color,box-shadow] duration-150 hover:border-primary/35 hover:bg-muted/55 focus-within:border-primary/45 focus-within:ring-1 focus-within:ring-primary/20 dark:border-border dark:bg-card/85 dark:hover:bg-muted/45">
+      <span className="shrink-0 terminal-text-label font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
       <div className="flex min-w-0 flex-1 items-center justify-end gap-2">{children}</div>
-      <span className="shrink-0 pl-0.5 text-label font-semibold text-muted-foreground">{suffix}</span>
+      <span className="shrink-0 pl-0.5 terminal-text-label font-semibold text-muted-foreground">{suffix}</span>
     </div>
   );
 }
@@ -626,7 +663,7 @@ function BinanceOrderEntrySection({
   isAuth, submitting, handleSubmit, handleSideChange, setQuantity, selectedMarket,
   availableBalance, quoteBalance, baseBalance, side,
   requireOrderConfirmation, tradingEnabled,
-  marketStatus,
+  marketStatus: _marketStatus,
 }: {
   orderType: 'limit' | 'market' | 'stop_loss' | 'stop_limit' | 'trailing_stop_market';
   setOrderType: (t: 'limit' | 'market' | 'stop_loss' | 'stop_limit' | 'trailing_stop_market') => void;
@@ -660,6 +697,7 @@ function BinanceOrderEntrySection({
 }) {
   const { orderbook } = useSpotMarketOrderbook();
   const { ticker } = useSpotMarketTicker();
+  const { recentTrades } = useSpotMarketTrades();
   const [buyQty, setBuyQty] = useState('');
   const [sellQty, setSellQty] = useState('');
   const [buySlider, setBuySlider] = useState(0);
@@ -667,11 +705,11 @@ function BinanceOrderEntrySection({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingOrder, setPendingOrder] = useState<{ side: 'buy' | 'sell'; qty: string } | null>(null);
 
-  const lastPrice =
-    ticker?.last_price ??
-    (orderbook?.bids?.[0] && orderbook?.asks?.[0]
-      ? String((parseFloat(orderbook.bids[0].price) + parseFloat(orderbook.asks[0].price)) / 2)
-      : null);
+  const lastPrice = resolveSpotDisplayLastPrice({
+    tickerLast: ticker?.last_price,
+    orderbook,
+    recentTrades,
+  });
 
   const parsedInputPrice = parseFloat(price);
   const liveRefPrice = lastPrice ? parseFloat(lastPrice) : 0;
@@ -703,7 +741,7 @@ function BinanceOrderEntrySection({
   const baseBal = parseFloat(baseBalance) || 0;
 
   const inputCls =
-    'numeric min-w-0 flex-1 border-0 bg-transparent p-0 text-right text-[14px] font-semibold tabular-nums tracking-tight text-foreground outline-none focus:ring-0 placeholder:text-muted-foreground/50';
+    'numeric min-w-0 flex-1 border-0 bg-transparent p-0 text-right terminal-text-primary font-semibold tabular-nums tracking-tight text-foreground outline-none focus:ring-0 placeholder:text-muted-foreground/50';
   const normalizeFeeRate = (raw?: string): number => {
     const n = Number(raw ?? '');
     if (!Number.isFinite(n) || n <= 0) return 0;
@@ -718,7 +756,6 @@ function BinanceOrderEntrySection({
   const sellFeeQuote = sellNotional > 0 ? sellNotional * estimatedFeeRate : 0;
   const buyNetBase = buyQtyNum > 0 ? buyQtyNum * Math.max(0, 1 - estimatedFeeRate) : 0;
   const sellNetQuote = sellNotional > 0 ? sellNotional - sellFeeQuote : 0;
-  const normalizedMarketStatus = String(marketStatus ?? 'ACTIVE').toUpperCase();
   const executionMode = orderType === 'limit' && postOnly ? 'Maker' : 'Taker';
   const executionHint =
     orderType === 'market'
@@ -800,16 +837,18 @@ function BinanceOrderEntrySection({
       id="spot-order-entry-panel"
       className="exchange-ui flex h-full min-h-0 flex-col overflow-hidden antialiased text-foreground"
     >
-      {/* Product + order type — Binance-style underline on active */}
-      <div className="flex h-10 shrink-0 items-end gap-0 border-b border-border px-3">
-        <span className="mr-2 pb-2.5 text-label font-bold tracking-wide text-primary">Spot</span>
-        <span className="mb-2.5 h-3 w-px shrink-0 bg-border" aria-hidden />
+      {/* Product + order type + execution meta — compact single chrome stack */}
+      <div className="flex h-8 shrink-0 items-end gap-0 border-b border-border px-2">
+        <span className="mr-1.5 pb-2 terminal-text-label font-semibold uppercase leading-none tracking-wide text-muted-foreground">Order Entry</span>
+        <span className="mb-2 h-2.5 w-px shrink-0 bg-border" aria-hidden />
+        <span className="mr-1.5 pb-2 text-label font-bold leading-none tracking-wide text-primary">Spot</span>
+        <span className="mb-2 h-2.5 w-px shrink-0 bg-border" aria-hidden />
         {(['limit', 'market'] as const).map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => setOrderType(t)}
-            className={`relative px-2.5 pb-2.5 pt-1.5 text-label font-semibold transition-colors ${
+            className={`relative px-2 pb-2 pt-1 text-label font-semibold leading-none transition-colors ${
               orderType === t
                 ? 'text-foreground after:absolute after:bottom-0 after:left-1 after:right-1 after:h-0.5 after:rounded-sm after:bg-primary'
                 : 'text-muted-foreground hover:text-foreground'
@@ -823,7 +862,7 @@ function BinanceOrderEntrySection({
             key={t}
             type="button"
             onClick={() => setOrderType(t)}
-            className={`relative px-2 pb-2.5 pt-1.5 text-label font-semibold transition-colors ${
+            className={`relative px-1.5 pb-2 pt-1 text-label font-semibold leading-none transition-colors ${
               orderType === t
                 ? 'text-foreground after:absolute after:bottom-0 after:left-1 after:right-1 after:h-0.5 after:rounded-sm after:bg-primary'
                 : 'text-muted-foreground hover:text-foreground'
@@ -833,67 +872,60 @@ function BinanceOrderEntrySection({
           </button>
         ))}
       </div>
-      {showTifControls && (
-        <div className="flex flex-wrap items-center gap-2 border-b border-border/80 bg-muted/20 px-3 py-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">TIF</span>
-          {(['gtc', 'ioc', 'fok'] as const).map((tif) => (
-            <button
-              key={tif}
-              type="button"
-              onClick={() => setTimeInForce(tif)}
-              className={`rounded-md px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide transition-colors ${
-                timeInForce === tif
-                  ? 'bg-primary/15 text-primary'
-                  : 'bg-muted/60 text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {tif}
-            </button>
-          ))}
-          {showPostOnly && (
-            <label className="ml-auto flex cursor-pointer items-center gap-2 text-[11px] font-medium text-foreground">
-              <input
-                type="checkbox"
-                checked={postOnly}
-                onChange={(e) => setPostOnly(e.target.checked)}
-                className="h-3.5 w-3.5 rounded border-border accent-primary"
-              />
-              Post Only
-            </label>
-          )}
-        </div>
-      )}
-      <div className="flex items-center justify-between gap-2 border-b border-border/80 bg-muted/25 px-3 py-2">
-        <span className="terminal-trust-pill inline-flex h-5 items-center rounded px-1.5">
-          Realtime Feed
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-border bg-muted/20 px-2 py-1">
+        {showTifControls && (
+          <>
+            <span className="terminal-text-label font-semibold uppercase leading-none text-muted-foreground">TIF</span>
+            {(['gtc', 'ioc', 'fok'] as const).map((tif) => (
+              <button
+                key={tif}
+                type="button"
+                onClick={() => setTimeInForce(tif)}
+                className={`rounded px-2 py-0.5 terminal-text-label font-semibold uppercase leading-none transition-colors duration-150 ${
+                  timeInForce === tif
+                    ? 'bg-primary/15 text-primary'
+                    : 'bg-muted/60 text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {tif}
+              </button>
+            ))}
+            {showPostOnly && (
+              <label className="flex cursor-pointer items-center gap-1.5 terminal-text-label font-medium leading-none text-foreground">
+                <input
+                  type="checkbox"
+                  checked={postOnly}
+                  onChange={(e) => setPostOnly(e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-border accent-primary"
+                />
+                Post Only
+              </label>
+            )}
+            <span className="hidden h-3 w-px bg-border sm:inline-block" aria-hidden />
+          </>
+        )}
+        <TerminalStatusChip
+          label={tradingEnabled ? 'Orders ready' : 'Feed syncing'}
+          tone={tradingEnabled ? 'live' : 'sync'}
+          pulse={!tradingEnabled}
+          title={tradingEnabled ? 'Market stream live — orders enabled' : 'Waiting for live market stream'}
+        />
+        <span className={`terminal-text-meta leading-none text-muted-foreground ${showTifControls ? '' : 'ml-auto'}`}>
+          Fee <span className="numeric font-medium text-foreground">{(estimatedFeeRate * 100).toFixed(3)}%</span>
         </span>
-        <span className="terminal-trust-pill inline-flex h-5 items-center rounded px-1.5">
-          Secure Orders
-        </span>
-        <span className={`terminal-trust-pill inline-flex h-5 items-center rounded px-1.5 ${tradingEnabled ? 'text-buy' : 'text-amber-300'}`}>
-          {tradingEnabled ? 'Market Open' : 'Feed Syncing'}
-        </span>
-      </div>
-      <div className="flex items-center justify-between gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px]">
-        <span className="text-muted-foreground">
-          Execution: <span className="numeric text-foreground">{executionMode}</span>
-        </span>
-        <span className="text-muted-foreground">
-          Fee Basis: <span className="numeric text-foreground">{(estimatedFeeRate * 100).toFixed(3)}%</span>
-        </span>
-        <span className="text-muted-foreground">
-          Market: <span className="numeric text-foreground">{normalizedMarketStatus}</span>
+        <span className="terminal-text-meta leading-none text-muted-foreground">
+          Mode <span className="numeric font-medium text-foreground">{executionMode}</span>
         </span>
       </div>
 
       {/* Side-by-side Buy / Sell */}
-      <div className="grid min-h-0 flex-1 grid-cols-2 gap-4 overflow-y-auto p-4 sm:gap-4 sm:px-4 sm:py-4">
+      <div className="spot-order-entry-scroll grid min-h-0 flex-1 grid-cols-2 gap-2 overflow-y-auto p-2">
         {/* BUY */}
-        <div className="rounded-lg border border-buy/20 bg-buy/[0.045] p-3 shadow-[inset_0_1px_0_hsl(var(--exchange-buy)/0.08)]">
-          <div className="flex flex-col gap-3">
+        <div className="rounded-md border border-buy/35 bg-buy/[0.05] p-2 shadow-[inset_0_1px_0_hsl(var(--exchange-buy)/0.08)] transition-colors duration-150">
+          <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[14px] font-semibold tracking-tight text-foreground">Buy {baseAsset}</span>
-            <span className="numeric text-label text-muted-foreground">
+            <span className="terminal-text-primary font-semibold tracking-tight text-foreground">Buy {baseAsset}</span>
+            <span className="numeric terminal-text-secondary text-muted-foreground">
               {formatValueFixedTrim(quoteBalance, quoteFormDisplayDp)} {quoteAsset}
             </span>
           </div>
@@ -919,8 +951,8 @@ function BinanceOrderEntrySection({
                 key={p}
                 type="button"
                 onClick={() => handleBuySlider(p)}
-                className={`flex-1 rounded-md py-2 text-center text-[12px] font-medium tracking-wide transition-colors active:scale-[0.98] ${
-                  buySlider >= p ? 'bg-buy/12 text-buy' : 'bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground'
+                className={`flex-1 rounded py-1.5 text-center terminal-text-label font-medium leading-none transition-all duration-150 active:scale-[0.98] ${
+                  buySlider >= p ? 'bg-buy/15 text-buy ring-1 ring-buy/25' : 'bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
               >
                 {p}%
@@ -930,7 +962,7 @@ function BinanceOrderEntrySection({
           <BinanceInsetField label="Total" suffix={quoteAsset}>
             <span className={`${inputCls} ${buyTotal ? 'text-foreground' : 'text-muted-foreground'}`}>{buyTotal || '—'}</span>
           </BinanceInsetField>
-          <div className="grid grid-cols-2 gap-2 rounded-md border border-border/70 bg-muted/30 px-3 py-2 text-[11px]">
+          <div className="grid grid-cols-2 gap-1.5 rounded-md border border-border bg-muted/30 px-2 py-1.5 terminal-text-meta leading-snug">
             <span className="text-muted-foreground">You Pay</span>
             <span className="numeric text-right text-foreground">
               {buyNotional > 0 ? `${formatFixedTrim(buyNotional, quoteFormDisplayDp)} ${quoteAsset}` : '—'}
@@ -975,11 +1007,11 @@ function BinanceOrderEntrySection({
         </div>
 
         {/* SELL */}
-        <div className="rounded-lg border border-sell/20 bg-sell/[0.04] p-3 shadow-[inset_0_1px_0_hsl(var(--exchange-sell)/0.08)]">
-          <div className="flex flex-col gap-3">
+        <div className="rounded-md border border-sell/35 bg-sell/[0.045] p-2 shadow-[inset_0_1px_0_hsl(var(--exchange-sell)/0.08)] transition-colors duration-150">
+          <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[14px] font-semibold tracking-tight text-foreground">Sell {baseAsset}</span>
-            <span className="numeric text-label text-muted-foreground">
+            <span className="terminal-text-primary font-semibold tracking-tight text-foreground">Sell {baseAsset}</span>
+            <span className="numeric terminal-text-secondary text-muted-foreground">
               {formatValueFixedTrim(baseBalance, qtyPrecision)} {baseAsset}
             </span>
           </div>
@@ -1013,8 +1045,8 @@ function BinanceOrderEntrySection({
                 key={p}
                 type="button"
                 onClick={() => handleSellSlider(p)}
-                className={`flex-1 rounded-md py-2 text-center text-[12px] font-semibold tracking-wide transition-colors active:scale-[0.98] ${
-                  sellSlider >= p ? 'bg-sell/14 text-sell' : 'bg-muted/85 text-muted-foreground hover:bg-muted hover:text-foreground'
+                className={`flex-1 rounded py-1.5 text-center terminal-text-label font-medium leading-none transition-all duration-150 active:scale-[0.98] ${
+                  sellSlider >= p ? 'bg-sell/15 text-sell ring-1 ring-sell/25' : 'bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
               >
                 {p}%
@@ -1024,7 +1056,7 @@ function BinanceOrderEntrySection({
           <BinanceInsetField label="Total" suffix={quoteAsset}>
             <span className={`${inputCls} ${sellTotal ? 'text-foreground' : 'text-muted-foreground'}`}>{sellTotal || '—'}</span>
           </BinanceInsetField>
-          <div className="grid grid-cols-2 gap-2 rounded-md border border-border/70 bg-muted/30 px-3 py-2 text-[11px]">
+          <div className="grid grid-cols-2 gap-1.5 rounded-md border border-border bg-muted/30 px-2 py-1.5 terminal-text-meta leading-snug">
             <span className="text-muted-foreground">You Pay</span>
             <span className="numeric text-right text-foreground">
               {sellQtyNum > 0 ? `${formatFixedTrim(sellQtyNum, qtyPrecision)} ${baseAsset}` : '—'}
@@ -1069,7 +1101,7 @@ function BinanceOrderEntrySection({
         </div>
       </div>
       {!tradingEnabled && (
-        <div className="border-t border-amber-500/20 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-300">
+        <div className="border-t border-amber-500/20 bg-amber-500/10 px-3 py-2 terminal-text-label text-amber-300">
           Live market feed is unavailable. Order placement is paused to prevent stale execution.
         </div>
       )}
@@ -1371,57 +1403,27 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
               isFavorite={isFavorite} onToggleFavorite={toggleFavorite} tierLevel={userTierLevel}
               marketStatus={effectiveMarketStatus}
             />
-            <div className="flex h-5 items-center gap-1 border-t border-border/70 bg-muted/25 px-2">
-              <span className="terminal-trust-pill inline-flex h-4 items-center rounded px-1">
-                Realtime Feed
-              </span>
-              <span className="terminal-trust-pill inline-flex h-4 items-center rounded px-1">
-                {streamPhase === 'live' ? 'Connected' : 'Syncing'}
-              </span>
-              <span
-                className={`terminal-trust-pill inline-flex h-4 items-center rounded px-1 ${
-                  streamPhase === 'live' && !liteMode ? 'text-buy' : 'text-amber-300'
-                }`}
-                title={liteMode ? liteHint : 'Full-rate market stream'}
-              >
-                {liteMode ? 'Adaptive Stream' : 'Full Stream'}
-              </span>
-              <span className="terminal-trust-pill inline-flex h-4 items-center rounded px-1">
-                {marketTradingOpen ? 'Market Open' : `Status ${effectiveMarketStatus}`}
-              </span>
-              <span className="terminal-trust-pill inline-flex h-4 items-center rounded px-1">
-                Latency {lastRttMs != null && lastRttMs >= 0 ? `${lastRttMs}ms` : '—'}
-              </span>
-              {marketContext && (
-                <>
-                  <span className="ml-auto text-muted-foreground">
-                    24H Pos: <span className="numeric text-foreground">{marketContext.positionPct.toFixed(1)}%</span>
-                  </span>
-                  <span className="text-muted-foreground">
-                    H:{' '}
-                    <span className="numeric text-foreground">
-                      {Number.isFinite(marketContext.distFromHighPct) ? `${marketContext.distFromHighPct.toFixed(2)}%` : '—'}
-                    </span>
-                  </span>
-                  <span className="text-muted-foreground">
-                    L:{' '}
-                    <span className="numeric text-foreground">
-                      {Number.isFinite(marketContext.distFromLowPct) ? `${marketContext.distFromLowPct.toFixed(2)}%` : '—'}
-                    </span>
-                  </span>
-                </>
-              )}
-              <span className="text-muted-foreground">
-                Pulse <span className="numeric text-foreground">{marketPulse.momentum}</span>/
-                <span className="numeric text-foreground">{marketPulse.liquidity}</span>
-              </span>
-            </div>
+            <SpotTerminalStatusRow
+              streamPhase={streamPhase}
+              lastRttMs={lastRttMs}
+              liteMode={liteMode}
+              liteHint={liteHint}
+              marketTradingOpen={marketTradingOpen}
+              effectiveMarketStatus={effectiveMarketStatus}
+              isAuth={isAuth}
+              privateChannelsReady={privateChannelsReady}
+              preferencesSyncIssue={preferencesSyncIssue}
+              bootstrapIssue={bootstrapIssue}
+              reconnectAttempt={reconnectAttempt}
+              marketContext={marketContext}
+              marketPulse={marketPulse}
+            />
           </div>
 
           {/* RIGHT SIDEBAR: Binance-style row split — market list / trades / movers (no outer scroll) */}
           <div
             data-spot-rail
-            className="spot-terminal-markets terminal-panel grid min-h-0 min-w-0 overflow-hidden border-b border-l border-solid border-border bg-card"
+            className="spot-terminal-markets terminal-panel-subtle grid min-h-0 min-w-0 overflow-hidden border-b border-l border-solid border-border bg-card"
             style={{
               gridColumn: '3',
               gridRow: '2 / 4',
@@ -1453,7 +1455,7 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
           {/* ORDERBOOK */}
           <div
             data-spot-rail
-            className="spot-terminal-orderbook terminal-panel flex min-w-0 flex-col overflow-hidden border-r border-solid border-border bg-card"
+            className="spot-terminal-orderbook terminal-panel-subtle flex min-w-0 flex-col overflow-hidden border-r border-solid border-border bg-card"
             style={{ gridColumn: '1', gridRow: '3' }}
           >
             <PanelErrorBoundary name="Order Book" resetKey={symbol}>
@@ -1486,7 +1488,7 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
               role="separator"
               aria-orientation="horizontal"
               aria-label="Resize chart and order form"
-              className="spot-terminal-split-bar relative z-[1] h-2 shrink-0 cursor-row-resize touch-none border-y border-border bg-muted/40 transition-colors hover:bg-muted/70"
+              className="spot-terminal-split-bar relative z-[1] h-2 shrink-0 cursor-row-resize touch-none border-y border-border bg-muted/40 transition-colors hover:border-primary/20 hover:bg-muted/70"
               {...splitBarProps}
             />
             <div
@@ -1527,11 +1529,7 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
                 role="tab"
                 aria-selected={mobileTab === tab.id}
                 onClick={() => setMobileTab(tab.id)}
-                className={`flex flex-1 items-center justify-center py-3 text-xs font-semibold transition-colors ${
-                  mobileTab === tab.id
-                    ? 'border-t-2 border-primary text-primary'
-                    : 'border-t-2 border-transparent text-muted-foreground hover:text-foreground'
-                }`}
+                className={`terminal-tab ${mobileTab === tab.id ? 'terminal-tab--active' : ''}`}
               >
                 {tab.label}
               </button>
@@ -1539,37 +1537,7 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
           </nav>
         </div>
 
-        {/* Stream status — anchored to above-fold chart band */}
-        {streamPhase !== 'live' && (
-          <div
-            className={`pointer-events-none absolute left-[var(--spot-terminal-left-width)] right-[var(--spot-terminal-right-width)] top-[calc(60px+2.75rem)] z-10 flex items-center gap-2 px-3 py-1 text-label font-medium ${
-            streamPhase === 'disconnected' ? 'bg-red-950/90 text-red-200' : 'bg-amber-950/90 text-amber-200'
-          }`}>
-            <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${streamPhase === 'disconnected' ? 'bg-sell' : 'animate-pulse bg-amber-500'}`} />
-            {streamPhase === 'connecting' && 'Connecting…'}
-            {streamPhase === 'reconnecting' && `Reconnecting${reconnectAttempt > 0 ? ` (${reconnectAttempt})` : ''}…`}
-            {streamPhase === 'disconnected' && 'Stream unavailable'}
-          </div>
-        )}
-
-        {streamPhase === 'live' && isAuth && !privateChannelsReady && (
-          <div className="pointer-events-none absolute left-[var(--spot-terminal-left-width)] right-[var(--spot-terminal-right-width)] top-[calc(60px+2.75rem)] z-10 flex items-center gap-2 bg-amber-950/90 px-3 py-1 text-label font-medium text-amber-200">
-            <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-amber-500" />
-            Account updates are reconnecting. Order/trade status may lag briefly.
-          </div>
-        )}
-        {streamPhase === 'live' && isAuth && preferencesSyncIssue && privateChannelsReady && (
-          <div className="pointer-events-none absolute left-[var(--spot-terminal-left-width)] right-[var(--spot-terminal-right-width)] top-[calc(60px+2.75rem)] z-10 flex items-center gap-2 bg-blue-950/90 px-3 py-1 text-label font-medium text-blue-200">
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-blue-400" />
-            Preference sync delayed. Default confirmation rules are active for now.
-          </div>
-        )}
-        {streamPhase === 'live' && bootstrapIssue && privateChannelsReady && !preferencesSyncIssue && (
-          <div className="pointer-events-none absolute left-[var(--spot-terminal-left-width)] right-[var(--spot-terminal-right-width)] top-[calc(60px+2.75rem)] z-10 flex items-center gap-2 bg-violet-950/90 px-3 py-1 text-label font-medium text-violet-200">
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-violet-400" />
-            {bootstrapIssue}
-          </div>
-        )}
+        {/* Stream status shown via SpotTerminalStatusRow — no overlay banners */}
 
         {/* Error banner — bottom of above-fold main area */}
         {submitError && (

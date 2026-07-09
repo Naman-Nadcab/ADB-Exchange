@@ -9,6 +9,8 @@ import {
 import { adminFetch } from '@/lib/api';
 import { useAdminAuthStore } from '@/store/auth';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { InfrastructureOpsPanel } from '@/components/ops/InfrastructureOpsPanel';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -71,6 +73,7 @@ function ServiceCard({
 
 export default function SystemHealthCenterPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
+  const toast = useAdminToast();
 
   const health = useQuery({
     queryKey: ['admin', 'system-health-center', token],
@@ -92,7 +95,9 @@ export default function SystemHealthCenterPage() {
     mutationFn: () => adminFetch('/system/diagnostics/run', { method: 'POST', token }),
     onSuccess: () => {
       void integrations.refetch();
+      toast.success('Diagnostics run completed.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Diagnostics run failed.')),
   });
 
   const h = health.data?.data;

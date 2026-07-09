@@ -28,10 +28,10 @@ export async function fetchRecentTradesForMm(symbol: string, windowSec: number, 
       const r = await db.query<{ side: string; qty: string; price: string; created_at: Date }>(
         `SELECT lower(side::text) AS side, quantity::text AS qty, price::text AS price, created_at
          FROM spot_trades
-         WHERE market = $1 AND created_at > NOW() - ($2::text || ' seconds')::interval
+         WHERE market = $1 AND created_at > NOW() - make_interval(secs => $2::int)
          ORDER BY created_at DESC
          LIMIT $3`,
-        [symbol, String(w), lim]
+        [symbol, w, lim]
       );
       return r.rows
         .map((row) => {
@@ -48,7 +48,7 @@ export async function fetchRecentTradesForMm(symbol: string, windowSec: number, 
       `SELECT lower(st.side::text) AS side, st.quantity::text AS qty, st.price::text AS price, st.created_at
        FROM spot_trades st
        INNER JOIN trading_pairs tp ON tp.id = st.trading_pair_id
-       WHERE tp.symbol = $1 AND st.created_at > NOW() - ($2::text || ' seconds')::interval
+       WHERE tp.symbol = $1 AND st.created_at > NOW() - make_interval(secs => $2::int)
        ORDER BY st.created_at DESC
        LIMIT $3`,
       [symbol, String(w), lim]

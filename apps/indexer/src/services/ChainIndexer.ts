@@ -17,6 +17,10 @@ export class ChainIndexer {
   private isRunning: boolean = false;
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 10;
+  /** Prevents parallel connectWebSocket / reconnect timer storms that block the HTTP health server. */
+  private wsConnectInFlight = false;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private wsDisabled = false;
   private lastProcessedBlock: number = 0;
   /** HTTP polling fallback: drives block processing + heartbeat when WebSocket is unavailable. */
   private pollTimer: NodeJS.Timeout | null = null;
@@ -30,6 +34,8 @@ export class ChainIndexer {
   /** Back off all block fetches after provider rate-limits (429 / CU exceeded). */
   private rateLimitedUntil = 0;
   private static readonly MAX_BLOCKS_PER_HTTP_TICK = 3;
+  private static readonly MAX_BLOCKS_PER_HTTP_TICK_CATCHUP = 120;
+  private static readonly LAG_CATCHUP_THRESHOLD = 400;
   private static readonly RATE_LIMIT_BACKOFF_MS = 60_000;
   private static readonly WATCH_RELOAD_MS = 60_000;
 
@@ -46,7 +52,7 @@ export class ChainIndexer {
   }
 
   private markWsHealthy(): void {
-    this.wsHealthyUntil = Date.now() + 45_000;
+    this.wsHealthyUntil = Date.now() + 60_000;
   }
 
   private isWsHealthy(): boolean {
@@ -56,7 +62,14 @@ export class ChainIndexer {
   private isRateLimitError(error: unknown): boolean {
     const s = error instanceof Error ? `${error.message} ${(error as { code?: string }).code ?? ''}` : String(error);
     const blob = s + JSON.stringify(error);
-    return /429|rate limit|compute units|too many requests|exceeded.*capacity/i.test(blob);
+    return /429|rate limit|compute units|too many requests|exceeded.*capacity|limit exceeded|-32005/i.test(blob);
+  }
+
+  /** Archive / range RPC errors — skip block or batch without stalling the whole chain. */
+  private isSkippableRpcError(error: unknown): boolean {
+    const s = error instanceof Error ? error.message : String(error);
+    const blob = s + JSON.stringify(error);
+    return /archive requests require|403 forbidden|-32602|header not found|invalid block range|block not found/i.test(blob);
   }
 
   async start(): Promise<void> {
@@ -71,6 +84,9 @@ export class ChainIndexer {
       
       // Get last processed block
       await this.loadLastProcessedBlock();
+
+      // If RPC was down for a long time, batch-scan missed ERC-20 deposits before live polling.
+      await this.catchUpIfLagging();
       
       // Connect WebSocket (best-effort: some RPCs block WS on free tier).
       try {
@@ -98,61 +114,81 @@ export class ChainIndexer {
     }
   }
 
+  private clearReconnectTimer(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+  }
+
   private async connectWebSocket(): Promise<void> {
+    if (this.wsDisabled || !this.isRunning || this.wsConnectInFlight) return;
+    this.wsConnectInFlight = true;
     try {
-      if (this.wsProvider) {
-        this.wsProvider.removeAllListeners();
-        await this.wsProvider.destroy().catch(() => {});
-        this.wsProvider = null;
+      const prev = this.wsProvider;
+      this.wsProvider = null;
+      if (prev) {
+        prev.removeAllListeners();
+        await prev.destroy().catch(() => {});
       }
-      this.wsProvider = new WebSocketProvider(this.config.wssUrl);
-      
-      // Handle new blocks (queued — never run processBlock concurrently)
-      this.wsProvider.on('block', (blockNumber: number) => {
+
+      const provider = new WebSocketProvider(this.config.wssUrl);
+
+      provider.on('block', (blockNumber: number) => {
         this.markWsHealthy();
-        void this.scheduleProcessBlock(Number(blockNumber));
+        void this.scheduleProcessBlock(Number(blockNumber)).catch((err) => {
+          logger.warn(`Block handler error for ${this.config.name}`, {
+            error: err instanceof Error ? err.message : String(err),
+          });
+        });
       });
 
-      // Handle WebSocket errors (WebSocketLike may not have .on in types; cast for Node ws)
-      const ws = this.wsProvider.websocket as unknown as { on?: (ev: string, cb: (e?: Error) => void) => void };
-      if (typeof ws?.on === 'function') {
-        ws.on('error', (error?: Error) => {
+      let disconnectHandled = false;
+      const onDisconnect = (kind: 'error' | 'close', error?: Error) => {
+        if (disconnectHandled || !this.isRunning) return;
+        disconnectHandled = true;
+        if (kind === 'error') {
           logger.error(`WebSocket error on ${this.config.name}`, { error: error?.message });
-          this.handleDisconnect();
-        });
-        ws.on('close', () => {
+        } else {
           logger.warn(`WebSocket closed for ${this.config.name}`);
-          this.handleDisconnect();
-        });
+        }
+        this.scheduleReconnect();
+      };
+
+      const ws = provider.websocket as unknown as { on?: (ev: string, cb: (e?: Error) => void) => void };
+      if (typeof ws?.on === 'function') {
+        ws.on('error', (error?: Error) => onDisconnect('error', error));
+        ws.on('close', () => onDisconnect('close'));
       }
 
+      this.wsProvider = provider;
       this.reconnectAttempts = 0;
       logger.info(`WebSocket connected for ${this.config.name}`);
     } catch (error) {
       logger.error(`Failed to connect WebSocket for ${this.config.name}`, { error });
-      this.handleDisconnect();
+      this.scheduleReconnect();
+    } finally {
+      this.wsConnectInFlight = false;
     }
   }
 
-  private async handleDisconnect(): Promise<void> {
-    if (!this.isRunning) return;
-    
+  private scheduleReconnect(): void {
+    if (!this.isRunning || this.wsDisabled) return;
+    if (this.reconnectTimer) return;
+
     this.reconnectAttempts++;
-    
     if (this.reconnectAttempts > this.maxReconnectAttempts) {
-      logger.error(`Max reconnect attempts reached for ${this.config.name}`);
+      this.wsDisabled = true;
+      logger.warn(`WebSocket disabled for ${this.config.name} after max reconnect attempts; HTTP polling only`);
       return;
     }
 
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30_000);
     logger.info(`Reconnecting to ${this.config.name} in ${delay}ms (attempt ${this.reconnectAttempts})`);
-    
-    setTimeout(async () => {
-      try {
-        await this.connectWebSocket();
-      } catch (error) {
-        logger.error(`Reconnect failed for ${this.config.name}`, { error });
-      }
+
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      void this.connectWebSocket();
     }, delay);
   }
 
@@ -294,6 +330,82 @@ export class ChainIndexer {
     }
   }
 
+  /** When far behind chain head, scan ERC-20 transfers in chunks via getLogs (deposit-safe). */
+  private async catchUpIfLagging(): Promise<void> {
+    if (this.watchedAddresses.size === 0) return;
+    try {
+      const head = await getCachedBlockNumber(this.config.rpcUrl, this.config.id);
+      const target = Math.max(0, head - this.config.confirmations);
+      const lag = target - this.lastProcessedBlock;
+      if (lag <= ChainIndexer.LAG_CATCHUP_THRESHOLD) return;
+
+      logger.warn(`Indexer ${this.config.name} lagging ${lag} blocks — batch ERC-20 catch-up`, {
+        from: this.lastProcessedBlock + 1,
+        to: target,
+      });
+
+      const chunkEnv = parseInt(process.env.INDEXER_CATCHUP_CHUNK || '500', 10);
+      const CHUNK = Math.min(Number.isFinite(chunkEnv) && chunkEnv > 0 ? chunkEnv : 500, 1500);
+      let from = this.lastProcessedBlock + 1;
+      while (from <= target && this.isRunning) {
+        if (Date.now() < this.rateLimitedUntil) break;
+        const to = Math.min(from + CHUNK - 1, target);
+        const ok = await this.processTokenTransfersRange(from, to);
+        if (!ok) break;
+        // Advance through empty ranges; deposits are idempotent (ON CONFLICT DO NOTHING).
+        this.lastProcessedBlock = to;
+        await this.updateLastProcessedBlock(to);
+        from = to + 1;
+        await new Promise((r) => setTimeout(r, 250));
+      }
+      logger.info(`Indexer ${this.config.name} catch-up complete`, { lastBlock: this.lastProcessedBlock, target });
+    } catch (error) {
+      if (this.isRateLimitError(error)) {
+        this.rateLimitedUntil = Date.now() + ChainIndexer.RATE_LIMIT_BACKOFF_MS;
+      }
+      logger.warn(`Catch-up failed for ${this.config.name}`, {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  private async processTokenTransfersRange(fromBlock: number, toBlock: number): Promise<boolean> {
+    if (this.watchedAddresses.size === 0) return true;
+    try {
+      const toTopics = this.watchedAddressTopics();
+      if (toTopics.length === 0) return true;
+      const logs = await this.httpProvider.getLogs({
+        fromBlock,
+        toBlock,
+        topics: [ERC20_TRANSFER_TOPIC, null, toTopics.length === 1 ? toTopics[0]! : toTopics],
+      });
+      for (const log of logs) {
+        const blockNumber = Number(log.blockNumber);
+        let blockTimestamp = Math.floor(Date.now() / 1000);
+        try {
+          const block = await this.httpProvider.getBlock(blockNumber);
+          if (block?.timestamp) blockTimestamp = block.timestamp;
+        } catch {
+          /* use now */
+        }
+        await this.processTransferLog(log, blockNumber, blockTimestamp);
+      }
+      return true;
+    } catch (error) {
+      if (this.isRateLimitError(error)) throw error;
+      if (this.isSkippableRpcError(error)) {
+        logger.warn(`Token range scan skipped ${fromBlock}-${toBlock} on ${this.config.name}`, {
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return true;
+      }
+      logger.warn(`Token range scan failed ${fromBlock}-${toBlock} on ${this.config.name}`, {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return false;
+    }
+  }
+
   private async processNativeTransfers(block: Block): Promise<void> {
     if (this.watchedAddresses.size === 0) return;
     if (!block.prefetchedTransactions) return;
@@ -348,6 +460,12 @@ export class ChainIndexer {
       return true;
     } catch (error) {
       if (this.isRateLimitError(error)) throw error;
+      if (this.isSkippableRpcError(error)) {
+        logger.warn(`Skipping token transfers for block ${blockNumber} (RPC limit/archive)`, {
+          chain: this.config.name,
+        });
+        return true;
+      }
       logger.error(`Error processing token transfers for block ${blockNumber}`, { error });
       return false;
     }
@@ -694,6 +812,8 @@ export class ChainIndexer {
 
   async stop(): Promise<void> {
     this.isRunning = false;
+    this.wsDisabled = true;
+    this.clearReconnectTimer();
 
     if (this.watchReloadTimer) {
       clearInterval(this.watchReloadTimer);
@@ -746,13 +866,22 @@ export class ChainIndexer {
         );
 
         // When WS is healthy it owns live blocks; HTTP poll avoids duplicate RPC load.
-        if (this.isWsHealthy()) return;
-
+        // Still batch catch-up when far behind — WS only delivers new heads, not historical gap.
         const head = await getCachedBlockNumber(this.config.rpcUrl, this.config.id);
         const target = Math.max(0, head - this.config.confirmations);
+        const lag = target - this.lastProcessedBlock;
+        if (lag > ChainIndexer.LAG_CATCHUP_THRESHOLD) {
+          await this.catchUpIfLagging();
+        }
+        if (this.isWsHealthy()) return;
+
+        const maxPerTick =
+          lag > ChainIndexer.LAG_CATCHUP_THRESHOLD
+            ? ChainIndexer.MAX_BLOCKS_PER_HTTP_TICK_CATCHUP
+            : ChainIndexer.MAX_BLOCKS_PER_HTTP_TICK;
 
         let processed = 0;
-        while (this.lastProcessedBlock < target && processed < ChainIndexer.MAX_BLOCKS_PER_HTTP_TICK) {
+        while (this.lastProcessedBlock < target && processed < maxPerTick) {
           const ok = await this.processBlockOnce(this.lastProcessedBlock + 1);
           if (!ok) break;
           processed += 1;
@@ -769,6 +898,106 @@ export class ChainIndexer {
     // Fire once immediately so heartbeat updates on startup, then on interval.
     tick().catch(() => { /* logged inside */ });
     this.pollTimer = setInterval(tick, this.pollIntervalMs);
+  }
+
+  /** Scan chain head for ERC-20 deposits — works even when sequential indexer is far behind. */
+  async scanRecentDeposits(windowBlocks?: number): Promise<number> {
+    const win = windowBlocks ?? ChainIndexer.recentScanWindowBlocks();
+    return this.scanRecentDepositsForAddresses([...this.watchedAddresses], win);
+  }
+
+  static recentScanWindowBlocks(): number {
+    const n = parseInt(process.env.INDEXER_RECENT_SCAN_BLOCKS || '2000', 10);
+    return Number.isFinite(n) && n > 0 ? Math.min(n, 9000) : 2000;
+  }
+
+  async scanRecentDepositsForAddresses(addresses: string[], windowBlocks?: number): Promise<number> {
+    const win = windowBlocks ?? ChainIndexer.recentScanWindowBlocks();
+    if (!this.isRunning || addresses.length === 0) return 0;
+    if (Date.now() < this.rateLimitedUntil) return 0;
+
+    const addressSet = new Set(addresses.map((a) => a.toLowerCase()));
+    const toTopics = [...addressSet].map((a) => zeroPadValue(getAddress(a), 32));
+    if (toTopics.length === 0) return 0;
+
+    let processed = 0;
+    try {
+      const head = await getCachedBlockNumber(this.config.rpcUrl, this.config.id);
+      const from = Math.max(1, head - win);
+      const to = head;
+      const contracts = [...this.tokenContracts.keys()];
+
+      if (contracts.length === 0) {
+        const logs = await this.httpProvider.getLogs({
+          fromBlock: from,
+          toBlock: to,
+          topics: [ERC20_TRANSFER_TOPIC, null, toTopics.length === 1 ? toTopics[0]! : toTopics],
+        });
+        for (const log of logs) {
+          await this.ingestLogFromScan(log, addressSet);
+          processed += 1;
+        }
+        return processed;
+      }
+
+      const TOPIC_BATCH = 8;
+      for (const tokenAddr of contracts) {
+        for (let i = 0; i < toTopics.length; i += TOPIC_BATCH) {
+          const batch = toTopics.slice(i, i + TOPIC_BATCH);
+          try {
+            const logs = await this.httpProvider.getLogs({
+              address: tokenAddr,
+              fromBlock: from,
+              toBlock: to,
+              topics: [ERC20_TRANSFER_TOPIC, null, batch.length === 1 ? batch[0]! : batch],
+            });
+            for (const log of logs) {
+              await this.ingestLogFromScan(log, addressSet);
+              processed += 1;
+            }
+          } catch (error) {
+            if (this.isRateLimitError(error)) {
+              this.rateLimitedUntil = Date.now() + ChainIndexer.RATE_LIMIT_BACKOFF_MS;
+              return processed;
+            }
+            if (!this.isSkippableRpcError(error)) {
+              logger.warn(`Recent scan batch failed on ${this.config.name}`, {
+                tokenAddr,
+                error: error instanceof Error ? error.message : String(error),
+              });
+            }
+          }
+          await new Promise((r) => setTimeout(r, 80));
+        }
+      }
+
+      if (processed > 0) {
+        logger.info(`Recent deposit scan on ${this.config.name}`, { processed, from, to });
+      }
+    } catch (error) {
+      if (this.isRateLimitError(error)) {
+        this.rateLimitedUntil = Date.now() + ChainIndexer.RATE_LIMIT_BACKOFF_MS;
+      }
+      logger.warn(`Recent deposit scan failed on ${this.config.name}`, {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    return processed;
+  }
+
+  private async ingestLogFromScan(log: Log, allowedRecipients: Set<string>): Promise<void> {
+    if (log.topics.length < 3) return;
+    const toAddress = ('0x' + log.topics[2].slice(26)).toLowerCase();
+    if (!allowedRecipients.has(toAddress)) return;
+    const blockNumber = Number(log.blockNumber);
+    let blockTimestamp = Math.floor(Date.now() / 1000);
+    try {
+      const block = await this.httpProvider.getBlock(blockNumber);
+      if (block?.timestamp) blockTimestamp = block.timestamp;
+    } catch {
+      /* use now */
+    }
+    await this.processTransferLog(log, blockNumber, blockTimestamp);
   }
 
   getStats(): object {

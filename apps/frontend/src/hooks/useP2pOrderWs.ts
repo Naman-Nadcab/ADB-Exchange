@@ -1,24 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { getSpotWsUrl } from '@/lib/getApiUrl';
 import { useAuthStore } from '@/store/auth';
 
-const WS_PATH = '/api/v1/spot/ws';
 const INITIAL_BACKOFF_MS = 1500;
 const MAX_BACKOFF_MS = 30_000;
-
-function buildWsUrl(): string {
-  let base = getApiBaseUrl();
-  if (!base && typeof window !== 'undefined') {
-    const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL;
-    base = envUrl?.trim() ? envUrl.trim().replace(/\/$/, '') : 'http://localhost:4000';
-  }
-  if (!base) base = 'http://localhost:4000';
-  base = base.replace(/\/$/, '').replace(/^http/, 'ws');
-  const url = new URL(WS_PATH, base);
-  return url.toString();
-}
 
 export type P2pOrderWsEvent = {
   type: string;
@@ -81,7 +68,7 @@ export function useP2pOrderWs({ orderId, enabled, onEvent }: UseP2pOrderWsOption
       if (stopped) return;
       clearTimers();
       try {
-        const ws = new WebSocket(buildWsUrl());
+        const ws = new WebSocket(getSpotWsUrl());
         wsRef.current = ws;
         const tok = accessToken.trim();
 

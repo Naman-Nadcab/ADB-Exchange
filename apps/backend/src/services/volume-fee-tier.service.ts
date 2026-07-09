@@ -2,6 +2,7 @@
  * Volume-based fee tiers. Returns maker/taker fee rates for a user based on 30-day spot volume.
  */
 import { db } from '../lib/database.js';
+import { loadSpotTradesShape } from '../lib/spot-trades-shape.js';
 
 export interface FeeRates {
   maker: string;
@@ -16,14 +17,21 @@ const DEFAULT_TAKER = '0.001';
  * Get 30-day spot trading volume (quote amount) for a user.
  */
 export async function getUser30dVolume(userId: string): Promise<string> {
-  // spot_trades stores both sides: sum volume where user was maker or taker.
-  const r = await db.query<{ volume: string }>(
-    `SELECT COALESCE(SUM(price::numeric * quantity::numeric), 0)::text as volume
-     FROM spot_trades
-     WHERE (maker_user_id = $1 OR taker_user_id = $1)
-       AND created_at >= NOW() - INTERVAL '30 days'`,
-    [userId]
-  );
+  const shape = await loadSpotTradesShape();
+  const sql =
+    shape.hasMakerUserId && shape.hasTakerUserId
+      ? `SELECT COALESCE(SUM(price::numeric * quantity::numeric), 0)::text AS volume
+         FROM spot_trades
+         WHERE (maker_user_id = $1 OR taker_user_id = $1)
+           AND created_at >= NOW() - INTERVAL '30 days'`
+      : shape.hasUserId
+        ? `SELECT COALESCE(SUM(price::numeric * quantity::numeric), 0)::text AS volume
+           FROM spot_trades
+           WHERE user_id = $1
+             AND created_at >= NOW() - INTERVAL '30 days'`
+        : null;
+  if (!sql) return '0';
+  const r = await db.query<{ volume: string }>(sql, [userId]);
   return r.rows[0]?.volume ?? '0';
 }
 

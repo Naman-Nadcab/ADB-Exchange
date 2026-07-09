@@ -12,6 +12,8 @@ import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
 import { BulkActionResultPanel } from '@/components/ops/BulkActionResultPanel';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { cn } from '@/lib/cn';
 import {
   Users, UserCheck, UserX, TrendingUp, Search, Download, Eye,
@@ -165,6 +167,7 @@ export default function UsersPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [search,       setSearch]       = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [kycFilter,    setKycFilter]    = useState('all');
@@ -212,7 +215,9 @@ export default function UsersPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard-stats'] });
       setConfirmModal(null);
+      toast.success('User status updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update user status.')),
   });
   const bulkStatus = useMutation({
     mutationFn: ({ status, reason }: { status: 'active' | 'suspended' | 'locked'; reason?: string }) =>
@@ -223,7 +228,9 @@ export default function UsersPage() {
       setSelectedUserIds([]);
       setBulkAction(null);
       setBulkResult({ action: vars.status, updated: Number(res.data?.updated ?? 0) });
+      toast.success(`Bulk status update completed (${Number(res.data?.updated ?? 0)} users).`);
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Bulk status update failed.')),
   });
 
   const users      = data?.data?.users ?? [];

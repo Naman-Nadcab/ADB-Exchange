@@ -4,6 +4,7 @@ import { redis } from '../lib/redis.js';
 import { logger } from '../lib/logger.js';
 import { rateLimitByIp } from '../lib/rate-limit-fastify.js';
 import { config } from '../config/index.js';
+import { tradingPairsAssetJoin } from '../lib/trading-pairs-schema-cache.js';
 
 type CandleApiRow = { time: number; open: string; high: string; low: string; close: string; volume: string };
 type CandlePayload = { success: true; data: CandleApiRow[] };
@@ -64,26 +65,25 @@ export default async function tradingRoutes(app: FastifyInstance) {
    */
   app.get('/pairs', async (request, reply) => {
     try {
+      const j = tradingPairsAssetJoin('tp');
       const result = await db.query(`
         SELECT 
           tp.id,
           tp.symbol,
-          tp.status,
+          tp.is_active AS status,
           tp.maker_fee,
           tp.taker_fee,
-          tp.min_quantity,
-          tp.max_quantity,
+          tp.min_order_size AS min_quantity,
+          tp.max_order_size AS max_quantity,
           tp.tick_size,
-          tp.price_precision,
-          tp.quantity_precision,
-          bc.symbol as base_symbol,
-          bc.name as base_name,
-          qc.symbol as quote_symbol,
-          qc.name as quote_name
+          tp.step_size AS quantity_precision,
+          ${j.baseSymbol} AS base_symbol,
+          ${j.baseName} AS base_name,
+          ${j.quoteSymbol} AS quote_symbol,
+          ${j.quoteName} AS quote_name
         FROM trading_pairs tp
-        JOIN currencies bc ON tp.base_currency_id = bc.id
-        JOIN currencies qc ON tp.quote_currency_id = qc.id
-        WHERE tp.trading_enabled = TRUE
+        ${j.joinSql}
+        WHERE tp.is_active = TRUE
         ORDER BY tp.sort_order, tp.symbol
       `);
 

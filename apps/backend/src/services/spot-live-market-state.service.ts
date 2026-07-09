@@ -83,11 +83,11 @@ export function hydrateTickerFromDb(
   if (row.last_price != null && row.last_price !== '') t.last_price = row.last_price;
   if (row.bid != null && row.bid !== '') t.bid = row.bid;
   if (row.ask != null && row.ask !== '') t.ask = row.ask;
-  if (row.high_24h != null && row.high_24h !== '') t.high_24h = row.high_24h;
-  if (row.low_24h != null && row.low_24h !== '') t.low_24h = row.low_24h;
+  if ('high_24h' in row) t.high_24h = row.high_24h != null && row.high_24h !== '' ? row.high_24h : null;
+  if ('low_24h' in row) t.low_24h = row.low_24h != null && row.low_24h !== '' ? row.low_24h : null;
+  if ('open_24h' in row) t.open_24h = row.open_24h != null && row.open_24h !== '' ? row.open_24h : null;
   if (row.volume_24h != null && row.volume_24h !== '') t.volume_24h = row.volume_24h;
   if (row.base_volume_24h != null && row.base_volume_24h !== '') t.base_volume_24h = row.base_volume_24h;
-  if (row.open_24h != null && row.open_24h !== '') t.open_24h = row.open_24h;
   recomputePriceChangePct24h(t);
 }
 

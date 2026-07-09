@@ -32,6 +32,7 @@ import {
   type LiveWsTradeRow,
 } from '../services/spot-live-market-state.service.js';
 import { broadcastPublicSpotFeeds } from '../services/spot-live-ws-fanout.service.js';
+import { notifyPrivateWsAfterSettlementForOrder } from '../services/spot-settlement-private-ws.service.js';
 import { addLiquidity, removeLiquidity, snapshotTop } from '../services/spot-in-memory-orderbook.service.js';
 import { getMarketsCached, invalidateMarketsCache } from '../services/spot-markets-cache.service.js';
 import { getMarketIntelligence } from '../services/market-intelligence.service.js';
@@ -47,6 +48,7 @@ import {
 import * as spotWs from '../services/spot-ws.service.js';
 import * as spotMetrics from '../services/spot-metrics.service.js';
 import { validateSpotOrderRiskUserBalances, checkOrderVelocity, checkLargeOrder, checkMaxOpenNotional } from '../services/spot-risk.service.js';
+import { finalizeMarketOrderAfterPlace } from '../services/spot-market-order-finalize.service.js';
 import { TAKER_FEE_RATE } from '../services/settlement/decimal-utils.js';
 import {
   lockAmountQuote,
@@ -250,7 +252,7 @@ function displayStatus(status: string): string {
 export default async function spotRoutes(app: FastifyInstance) {
   const MARKETS_QUERY_TIMEOUT_MS = 6_000;
   const MARKETS_SNAPSHOT_THRESHOLD_MS = Number(process.env.SPOT_MARKETS_SNAPSHOT_THRESHOLD_MS || 2_200);
-  const TICKERS_QUERY_TIMEOUT_MS = 4_000;
+  const TICKERS_QUERY_TIMEOUT_MS = Number(process.env.SPOT_TICKERS_QUERY_TIMEOUT_MS || 8_000);
   const TICKERS_SNAPSHOT_THRESHOLD_MS = Number(process.env.SPOT_TICKERS_SNAPSHOT_THRESHOLD_MS || 1_800);
   const MARKETS_LOCAL_TTL_MS = 2_500;
   let marketsLocalCache: { expiresAt: number; payload: unknown[] } | null = null;
@@ -467,6 +469,43 @@ export default async function spotRoutes(app: FastifyInstance) {
   let tickersLocalCache: { expiresAt: number; payload: { success: true; data: unknown[] } } | null = null;
   let tickersInFlight: Promise<{ success: true; data: unknown[] }> | null = null;
   let tickersLastGoodSnapshot: { generatedAt: number; payload: { success: true; data: unknown[] } } | null = null;
+
+  /** Fast cold-start fallback when the full ticker aggregation query exceeds the DB budget. */
+  async function fetchLiteSpotTickers(): Promise<{ success: true; data: unknown[] }> {
+    const r = await db.query<{
+      symbol: string;
+      base_asset: string;
+      quote_asset: string;
+      last_price: string | null;
+    }>(
+      `SELECT m.symbol, m.base_asset, m.quote_asset, mp.price::text AS last_price
+       FROM spot_markets m
+       LEFT JOIN LATERAL (
+         SELECT mp2.price FROM market_prices mp2
+         WHERE mp2.base_currency_id = m.base_currency_id AND mp2.quote_currency_id = m.quote_currency_id
+         LIMIT 1
+       ) mp ON TRUE
+       WHERE m.status IN ('active', 'maintenance')
+       ORDER BY m.symbol`
+    );
+    const data = r.rows.map((row) => ({
+      symbol: row.symbol,
+      base_asset: row.base_asset,
+      quote_asset: row.quote_asset,
+      last_price: row.last_price ?? '0',
+      open_24h: row.last_price ?? '0',
+      high_24h: row.last_price ?? '0',
+      low_24h: row.last_price ?? '0',
+      volume_24h: '0',
+      base_volume_24h: '0',
+      change_pct: 0,
+      last_price_source: row.last_price ? 'oracle' : 'none',
+      last_price_age_ms: null,
+      last_price_stale: false,
+    }));
+    return { success: true, data };
+  }
+
   const tickerBySymbolLastGoodSnapshot = new Map<string, { generatedAt: number; payload: unknown }>();
   const tickerBySymbolLocalCache = new Map<string, { expiresAt: number; generatedAt: number; payload: unknown }>();
   const tickerBySymbolInFlight = new Map<string, Promise<{ success: true; data: Record<string, unknown> }>>();
@@ -776,6 +815,22 @@ export default async function spotRoutes(app: FastifyInstance) {
         return reply.send(tickersLastGoodSnapshot.payload);
       }
       if (error instanceof AsyncTimeoutError) {
+        try {
+          const lite = await fetchLiteSpotTickers();
+          tickersLastGoodSnapshot = { generatedAt: Date.now(), payload: lite };
+          tickersLocalCache = { expiresAt: Date.now() + TICKERS_LOCAL_TTL_MS, payload: lite };
+          await redis.setJson(TICKERS_CACHE_KEY, lite, TICKERS_CACHE_TTL_SEC).catch(() => {});
+          logger.warn('Spot tickers full query timed out; served lite oracle snapshot', {
+            endpoint: '/api/v1/spot/tickers',
+            markets: lite.data.length,
+          });
+          reply.header('Cache-Control', 'public, max-age=2, stale-while-revalidate=8');
+          return reply.send(lite);
+        } catch (liteErr) {
+          logger.error('Spot tickers lite fallback failed', {
+            error: liteErr instanceof Error ? liteErr.message : String(liteErr),
+          });
+        }
         logger.error('Spot tickers timed out', {
           endpoint: '/api/v1/spot/tickers',
           duration_ms: TICKERS_QUERY_TIMEOUT_MS,
@@ -1057,7 +1112,16 @@ export default async function spotRoutes(app: FastifyInstance) {
             ? row.created_at.toISOString()
             : String(row.created_at ?? ''),
       }));
-      return reply.send({ success: true, data: rows });
+      let displayRows = rows;
+      try {
+        const { loadSpotTickerDbStats } = await import('../lib/spot-ticker-db-load.js');
+        const { filterTradesNearReferencePrice } = await import('../lib/spot-trade-display-filter.js');
+        const stats = await loadSpotTickerDbStats(symbol);
+        displayRows = filterTradesNearReferencePrice(rows, stats.last_price, 0.2);
+      } catch {
+        /* best-effort — return unfiltered tape on stats failure */
+      }
+      return reply.send({ success: true, data: displayRows });
     } catch (error) {
       logger.error('Spot recent-trades failed', { error: error instanceof Error ? error.message : 'Unknown' });
       return reply.status(500).send({ success: false, error: { code: 'FETCH_FAILED', message: 'Failed to fetch trades' } });
@@ -1084,6 +1148,16 @@ export default async function spotRoutes(app: FastifyInstance) {
     }
     const userId = request.user!.id;
     const marketSymbol = (request.body?.market || '').toUpperCase().replace(/-/g, '_');
+    try {
+      const { enforceCompliancePolicy, ComplianceBlockedError: CBE } = await import('../services/compliance-policy.service.js');
+      await enforceCompliancePolicy({ userId, operation: 'spot_trading', aml: { asset: marketSymbol.split('_')[0], amount: request.body?.quantity } });
+    } catch (err) {
+      const { ComplianceBlockedError: CBE } = await import('../services/compliance-policy.service.js');
+      if (err instanceof CBE) {
+        return reply.status(403).send({ success: false, error: { code: err.code, message: err.message } });
+      }
+      throw err;
+    }
     const { redisBlocksSpotOrderPlacement } = await import('../services/redis-health.service.js');
     if (redisBlocksSpotOrderPlacement()) {
       return reply.status(503).send({
@@ -1489,7 +1563,16 @@ export default async function spotRoutes(app: FastifyInstance) {
       } else {
         lockCurrencyId = baseCurrencyId;
         lockAmount = lockAmountBase(qtyRounded.toString(), qtyPrecision);
-        priceForRisk = priceDec != null ? priceDec.toString() : (stopPriceDec != null ? stopPriceDec.toString() : '0');
+        if (type === 'market') {
+          const bestBidStr = await getBestBid(marketSymbol);
+          const bestBidDec = new Decimal(bestBidStr).toDecimalPlaces(precision, ROUND_DOWN);
+          if (bestBidDec.lte(0) || !bestBidDec.isFinite()) {
+            throw new Error('NO_LIQUIDITY');
+          }
+          priceForRisk = bestBidDec.toString();
+        } else {
+          priceForRisk = priceDec != null ? priceDec.toString() : (stopPriceDec != null ? stopPriceDec.toString() : '0');
+        }
       }
 
       // Buy-side stop / trailing-stop: extra quote lock for market slippage (M6)
@@ -1837,6 +1920,45 @@ export default async function spotRoutes(app: FastifyInstance) {
         bookAndFeedsAlreadyPublished = true;
       }
 
+      if (type === 'market' && !isStopOrder) {
+        const engineProducedMatch =
+          executedTrades.length > 0 ||
+          (rustInlineEvents?.some((e) => e.taker_order_id === o.id || e.maker_order_id === o.id) ?? false);
+        const marketFinalize = await finalizeMarketOrderAfterPlace(o.id, userId, marketSymbol, {
+          engineProducedMatch,
+        });
+        if (marketFinalize.action === 'rejected') {
+          return reply.status(400).send({
+            success: false,
+            error: {
+              code: 'NO_LIQUIDITY',
+              message: 'No matching liquidity available for this market order. Your balance was not used.',
+            },
+          });
+        }
+        if (marketFinalize.action === 'partial_cancelled') {
+          Object.assign(o, marketFinalize.order);
+        } else if (engineProducedMatch) {
+          const refreshed = await db.query<{
+            id: string;
+            market: string;
+            side: string;
+            type: string;
+            price: string | null;
+            quantity: string;
+            filled_quantity: string;
+            status: string;
+            created_at: Date;
+            client_order_id: string | null;
+          }>(
+            `SELECT id, market, side, type, price::text, quantity::text, filled_quantity::text, status, created_at, client_order_id
+             FROM spot_orders WHERE id = $1::uuid LIMIT 1`,
+            [o.id]
+          );
+          if (refreshed.rows[0]) Object.assign(o, refreshed.rows[0]);
+        }
+      }
+
       for (const t of executedTrades) {
         recordAndEvaluate({ userId: t.buyerId, txnType: 'trade', asset: t.quoteAsset, amount: t.quoteValue, fiatAmount: null, fiatCurrency: null, countryCode: null }).catch((e) =>
           logger.warn('AML trade (buyer) failed (best-effort)', { userId: t.buyerId, error: e instanceof Error ? e.message : String(e) })
@@ -1896,6 +2018,16 @@ export default async function spotRoutes(app: FastifyInstance) {
         });
       } catch (e) {
         logger.warn('Spot push updates failed', { error: e instanceof Error ? e.message : 'Unknown' });
+      }
+
+      if (usedRust && config.rustMatchingEngine.enabled && o.side === 'buy') {
+        void notifyPrivateWsAfterSettlementForOrder(marketSymbol, o.id, 20_000).catch((e) => {
+          logger.warn('Spot private WS notify after match failed (best-effort)', {
+            error: e instanceof Error ? e.message : String(e),
+            orderId: o.id,
+            market: marketSymbol,
+          });
+        });
       }
 
       try {

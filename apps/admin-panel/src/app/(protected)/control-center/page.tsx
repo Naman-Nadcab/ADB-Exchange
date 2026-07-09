@@ -30,6 +30,8 @@ import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/Action
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { ExchangeHealthTier1Banner } from '@/components/admin-shell/ExchangeHealthTier1Banner';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
 /* ────────────────────────────────────────────────────── */
 /*  Chain icon color map                                  */
@@ -164,8 +166,14 @@ export default function ControlCenterPage() {
     | null
   >(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+  const adminToast = useAdminToast();
 
-  const showToast = (type: 'success' | 'error', msg: string) => { setToast({ type, msg }); setTimeout(() => setToast(null), 3000); };
+  const showToast = (type: 'success' | 'error', msg: string) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 3000);
+    if (type === 'success') adminToast.success(msg);
+    else adminToast.error(msg);
+  };
   const inv = useCallback((keys: string[][]) => keys.forEach(k => qc.invalidateQueries({ queryKey: k })), [qc]);
 
   /* ── Queries ── */
@@ -204,7 +212,7 @@ export default function ControlCenterPage() {
       setHaltAuthOpen(false);
     },
     onError: (error: unknown) => {
-      const message = error instanceof Error ? error.message : 'Failed to update trading state';
+      const message = formatSaveError(error, 'Failed to update trading state');
       showToast('error', message);
     },
   });
@@ -216,11 +224,13 @@ export default function ControlCenterPage() {
         { reason: b.reason, twofa_code: b.twofa_code }
       ),
     onSuccess: () => { inv([['admin', 'operational', 'wallet-status', token!]]); showToast('success', 'Wallet status updated'); },
+    onError: (e) => showToast('error', formatSaveError(e, 'Failed to update wallet status')),
   });
   const emergencyMut = useMutation({
     mutationFn: ({ action, enabled, reason, twofa_code }: { action: string; enabled: boolean; reason?: string; twofa_code?: string }) =>
       postEmergencyAction(token, action, enabled, { reason, twofa_code }),
     onSuccess: () => { inv([['admin', 'system', 'settings', token!]]); showToast('success', 'Emergency action applied'); },
+    onError: (e) => showToast('error', formatSaveError(e, 'Emergency action failed')),
   });
   const safeModeMut = useMutation({
     mutationFn: ({ enabled, reason, twofa_code }: { enabled: boolean; reason?: string; twofa_code?: string }) =>
@@ -230,6 +240,7 @@ export default function ControlCenterPage() {
       showToast('success', `Safe mode ${!safeMode ? 'enabled' : 'disabled'}`);
       setSafeModeAuthTarget(null);
     },
+    onError: (e) => showToast('error', formatSaveError(e, 'Failed to update safe mode')),
   });
   const featureMut = useMutation({
     mutationFn: (b: { id?: string; feature_key?: string; status?: string; reason?: string; twofa_code?: string }) => patchSystemFeature(token, b),
@@ -238,10 +249,23 @@ export default function ControlCenterPage() {
       showToast('success', 'Feature flag updated');
       setFeatureAuthTarget(null);
     },
+    onError: (e) => showToast('error', formatSaveError(e, 'Failed to update feature flag')),
   });
-  const riskMut = useMutation({ mutationFn: (b: Record<string, unknown>) => patchRiskSettings(token, b), onSuccess: () => { inv([['admin', 'risk', 'settings', token!]]); showToast('success', 'Risk settings updated'); } });
-  const settingsMut = useMutation({ mutationFn: (b: Record<string, string>) => patchSystemSettings(token, b), onSuccess: () => { inv([['admin', 'system', 'settings', token!]]); showToast('success', 'Settings updated'); } });
-  const twofaMut = useMutation({ mutationFn: (b: Record<string, boolean>) => adminFetch('/settings/2fa-enforcement', { method: 'PATCH', token, body: b }), onSuccess: () => { inv([['admin', '2fa-policy', token!]]); showToast('success', '2FA policy updated'); } });
+  const riskMut = useMutation({
+    mutationFn: (b: Record<string, unknown>) => patchRiskSettings(token, b),
+    onSuccess: () => { inv([['admin', 'risk', 'settings', token!]]); showToast('success', 'Risk settings updated'); },
+    onError: (e) => showToast('error', formatSaveError(e, 'Failed to update risk settings')),
+  });
+  const settingsMut = useMutation({
+    mutationFn: (b: Record<string, string>) => patchSystemSettings(token, b),
+    onSuccess: () => { inv([['admin', 'system', 'settings', token!]]); showToast('success', 'Settings updated'); },
+    onError: (e) => showToast('error', formatSaveError(e, 'Failed to update settings')),
+  });
+  const twofaMut = useMutation({
+    mutationFn: (b: Record<string, boolean>) => adminFetch('/settings/2fa-enforcement', { method: 'PATCH', token, body: b }),
+    onSuccess: () => { inv([['admin', '2fa-policy', token!]]); showToast('success', '2FA policy updated'); },
+    onError: (e) => showToast('error', formatSaveError(e, 'Failed to update 2FA policy')),
+  });
 
   const withConfirm = (title: string, message: string, action: () => void, danger = true) => setConfirm({ title, message, danger, action });
 

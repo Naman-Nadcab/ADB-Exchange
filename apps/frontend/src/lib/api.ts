@@ -186,7 +186,15 @@ export async function apiRequest<T = unknown>(
 
     return data as ApiResponse<T>;
   } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
+    const aborted =
+      fetchOptions.signal?.aborted ||
+      (error instanceof DOMException && error.name === 'AbortError') ||
+      (error instanceof Error &&
+        error.name === 'AbortError') ||
+      (error instanceof TypeError &&
+        error.message === 'Failed to fetch' &&
+        fetchOptions.signal?.aborted);
+    if (aborted) {
       return { success: false, error: { code: 'ABORTED', message: 'Request aborted' } };
     }
     if (notifyOnError) {

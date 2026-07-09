@@ -180,6 +180,19 @@ export function recordOperationalEvent(params: {
       violation: params.violation,
       message: 'Settlement circuit breaker opened. No further settlements until investigation.',
     });
+    void import('./monitoring-snapshot.service.js').then((m) =>
+      m.upsertInfrastructureAlert({
+        system: 'Settlement',
+        severity: 'critical',
+        message: 'Settlement circuit breaker opened',
+        dedupeKey: 'settlement_circuit_open',
+        rootCause: params.violation ?? 'Invariant or safety violation',
+        suggestedAction: 'Investigate settlement_events failures; reset circuit after root cause fixed',
+      })
+    );
+    void import('./monitoring-snapshot.service.js').then((m) =>
+      m.recordMonitoringEvent('circuit_breaker_triggered', params.violation ?? 'Settlement circuit opened')
+    );
   }
 }
 

@@ -32,6 +32,8 @@ import { cn } from '@/lib/cn';
 import { TableSkeleton } from '@/components/ui';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 
 function relativeTime(iso: string) {
@@ -137,6 +139,7 @@ function WebhookDeliveriesTable({
 
 export default function IntegrationsPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
+  const toast = useAdminToast();
   const queryClient = useQueryClient();
   const [category, setCategory] = useState<IntegrationCategory>('blockchain_nodes');
   const [modal, setModal] = useState<{ type: 'add' | 'edit'; row?: IntegrationRow | null } | null>(null);
@@ -223,7 +226,9 @@ export default function IntegrationsPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'integrations'] });
       setModal(null);
       resetForm();
+      toast.success('Integration created successfully.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to create integration.')),
   });
 
   const updateMutation = useMutation({
@@ -232,7 +237,9 @@ export default function IntegrationsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'integrations'] });
       setModal(null);
+      toast.success('Integration updated successfully.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update integration.')),
   });
 
   const testMutation = useMutation({
@@ -242,7 +249,9 @@ export default function IntegrationsPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'integrations'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'integrations', 'health'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'integrations', 'event-logs'] });
+      toast.success('Connection test completed.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Connection test failed.')),
   });
 
   const priorityMutation = useMutation({
@@ -250,7 +259,9 @@ export default function IntegrationsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'integrations'] });
       setPriorityModal(null);
+      toast.success('Failover priority updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update priority.')),
   });
 
   const switchMutation = useMutation({
@@ -258,7 +269,9 @@ export default function IntegrationsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'integrations'] });
       setSwitchModal(null);
+      toast.success('Active provider switched.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to switch provider.')),
   });
 
   const retryMutation = useMutation({
@@ -266,7 +279,9 @@ export default function IntegrationsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'integrations', 'webhook-deliveries'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'integrations', 'health'] });
+      toast.success('Webhook delivery retry queued.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Webhook retry failed.')),
   });
 
   const rotateKeyMutation = useMutation({
@@ -283,7 +298,9 @@ export default function IntegrationsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'integrations'] });
       setRotateTarget(null);
+      toast.success('Webhook secret rotated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to rotate webhook secret.')),
   });
 
   const health = healthData?.data;

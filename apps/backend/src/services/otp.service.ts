@@ -101,6 +101,48 @@ class OTPService {
       logger.info(`[DEV] Email OTP for ${email}: ${otp}`);
     }
 
+    const providers = await dynamicConfig.getProviders('email');
+    if (providers.length > 0) {
+      try {
+        await dynamicConfig.withProviderFallback('email', async (p) => {
+          const smtp = dynamicConfig.smtpFromResolved(p);
+          if (!smtp) throw new Error(`Incomplete SMTP config for ${p.provider}`);
+          const transporter = this.buildSmtpTransporter(smtp);
+          const fromAddress = `"${smtp.fromName}" <${smtp.fromEmail}>`;
+          await transporter.sendMail({
+            from: fromAddress,
+            to: email,
+            subject: 'Your Verification Code - Metherium',
+            html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; text-align: center;">
+              <h1 style="color: white; margin: 0;">Metherium</h1>
+            </div>
+            <div style="padding: 30px; background: #f9f9f9;">
+              <h2 style="color: #333;">Verification Code</h2>
+              <p style="color: #666; font-size: 16px;">Your verification code is:</p>
+              <div style="background: white; border: 2px dashed #667eea; padding: 20px; text-align: center; margin: 20px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #667eea;">${otp}</span>
+              </div>
+              <p style="color: #999; font-size: 14px;">This code expires in 10 minutes. Do not share it with anyone.</p>
+            </div>
+          </div>
+        `,
+          });
+          transporter.close();
+          logger.info(`Email OTP sent to ${email} via ${p.provider}`);
+          return true;
+        });
+        return true;
+      } catch (error) {
+        logger.error('Failed to send email OTP (all providers)', {
+          error: error instanceof Error ? error.message : 'Unknown',
+          email,
+        });
+        return false;
+      }
+    }
+
     const emailCtx = await this.getEmailTransporter();
     if (!emailCtx) {
       logger.error('SMTP not configured; OTP email not sent', { email });
@@ -154,6 +196,47 @@ class OTPService {
    * Send OTP via SMS — reads config dynamically from DB (api_settings) with env fallback.
    */
   async sendSMSOTP(phone: string, otp: string): Promise<boolean> {
+    const message = `Your Metherium verification code is: ${otp}. Valid for 10 minutes.`;
+    const providers = await dynamicConfig.getProviders('sms');
+
+    if (providers.length > 0) {
+      try {
+        await dynamicConfig.withProviderFallback('sms', async (p) => {
+          const smsConfig = dynamicConfig.smsFromResolved(p);
+          if (!smsConfig) throw new Error(`Incomplete SMS config for ${p.provider}`);
+          switch (smsConfig.provider) {
+            case 'twilio':
+              await this.sendViaTwilio(phone, message, smsConfig);
+              break;
+            case 'msg91':
+              await this.sendViaMSG91(phone, otp, smsConfig);
+              break;
+            case 'textlocal':
+              await this.sendViaTextLocal(phone, message, smsConfig);
+              break;
+            case 'fast2sms':
+              await this.sendViaFast2SMS(phone, otp, smsConfig);
+              break;
+            default:
+              throw new Error(`Unknown SMS provider: ${smsConfig.provider}`);
+          }
+          logger.info(`SMS OTP sent to ${phone} via ${p.provider}`);
+          return true;
+        });
+        return true;
+      } catch (error) {
+        logger.error('Failed to send SMS OTP (all providers)', {
+          error: error instanceof Error ? error.message : 'Unknown',
+          phone,
+        });
+        if (process.env.NODE_ENV !== 'production') {
+          logger.info(`[DEV FALLBACK] SMS OTP for ${phone}: ${otp}`);
+          return true;
+        }
+        return false;
+      }
+    }
+
     const smsConfig = await dynamicConfig.getSmsConfig();
 
     if (!smsConfig) {

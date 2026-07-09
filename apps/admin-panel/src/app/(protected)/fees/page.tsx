@@ -25,6 +25,8 @@ import {
 import { getRevenueBreakdown } from '@/lib/admin/analytics';
 import { adminFetch } from '@/lib/api';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
 type TabId = 'trading' | 'withdrawal';
 
@@ -328,6 +330,7 @@ function DeleteConfirmModal({
 export default function FeesManagementPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const qc = useQueryClient();
+  const toast = useAdminToast();
   const [tab, setTab] = useState<TabId>('trading');
 
   const [tierModal, setTierModal] = useState<{ open: boolean; tier: FeeTierRow | null }>({ open: false, tier: null });
@@ -349,7 +352,11 @@ export default function FeesManagementPage() {
   const wdLimitsMut = useMutation({
     mutationFn: (tiers: Array<{ tier: number; dailyLimit: string; monthlyLimit: string }>) =>
       adminFetch('/withdrawals/limits', { method: 'PATCH', token, body: { tiers } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'withdrawals', 'limits'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'withdrawals', 'limits'] });
+      toast.success('Withdrawal limits saved.');
+    },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to save withdrawal limits.')),
   });
   // Sync form when data arrives (useEffect to avoid setState-during-render React warning)
   useEffect(() => {
@@ -415,7 +422,9 @@ export default function FeesManagementPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'fees', 'tiers'] });
       setTierModal({ open: false, tier: null });
+      toast.success('Fee tier created.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to create fee tier.')),
   });
 
   const updateTierMut = useMutation({
@@ -427,7 +436,9 @@ export default function FeesManagementPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'fees', 'tiers'] });
       setTierModal({ open: false, tier: null });
+      toast.success('Fee tier updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update fee tier.')),
   });
 
   /* -- Promotion mutations -- */
@@ -439,7 +450,9 @@ export default function FeesManagementPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'fees', 'promotions'] });
       setPromoModal({ open: false, promo: null });
+      toast.success('Fee promotion created.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to create promotion.')),
   });
 
   const updatePromoMut = useMutation({
@@ -451,7 +464,9 @@ export default function FeesManagementPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'fees', 'promotions'] });
       setPromoModal({ open: false, promo: null });
+      toast.success('Fee promotion updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update promotion.')),
   });
 
   const deletePromoMut = useMutation({
@@ -462,7 +477,9 @@ export default function FeesManagementPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'fees', 'promotions'] });
       setDeletePromo(null);
+      toast.success('Fee promotion deleted.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to delete promotion.')),
   });
 
   /* -- Withdrawal fee edit -- */
@@ -472,7 +489,9 @@ export default function FeesManagementPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'fees', 'withdrawal'] });
       setWdEditTarget(null);
+      toast.success('Withdrawal fee updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update withdrawal fee.')),
   });
 
   function openWdEdit(c: WithdrawalRow) {

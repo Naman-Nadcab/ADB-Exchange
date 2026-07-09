@@ -123,6 +123,11 @@ export async function persistEngineMatchEvents(
           reassignedEngineEventId: reassignedId,
           source,
         });
+      } else {
+        matchEventsPersistFailedTotal.inc({ source });
+        throw new MatchEventPersistenceError(
+          `settlement_event_id_collision: could not persist event ${ev.event_id} for engine ${mid} after reassignment attempts (payload mismatch with existing row)`
+        );
       }
     }
     if (inserted > 0) {

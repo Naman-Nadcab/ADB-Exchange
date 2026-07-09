@@ -4,9 +4,10 @@
 import { Contract } from 'ethers';
 import { logger } from './logger.js';
 import { getCachedNativeBalance, getCachedTxReceipt, getEvmRpcProvider } from './evm-rpc-pool.js';
+import { AUTHORITATIVE_NATIVE_BALANCE_TTL_SEC } from './blockchain-state.service.js';
 
 /** Must match blockchain-state.service AUTHORITATIVE_NATIVE_BALANCE_TTL_SEC */
-const NATIVE_BALANCE_TTL = 60;
+const NATIVE_BALANCE_TTL = AUTHORITATIVE_NATIVE_BALANCE_TTL_SEC;
 
 const ERC20_BAL_ABI = ['function balanceOf(address) view returns (uint256)'] as const;
 

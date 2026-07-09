@@ -45,6 +45,17 @@ function sanitizeTopOfBook(
   return { bid, ask };
 }
 
+function formatTickerStatPrice(value: string | null, refPrice: string | null): string | null {
+  if (value == null || value === '') return null;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  const ref = refPrice != null && refPrice !== '' ? refPrice : value;
+  const dot = ref.indexOf('.');
+  const dec = dot >= 0 ? Math.min(8, Math.max(2, ref.length - dot - 1)) : 2;
+  const raw = n.toFixed(dec);
+  return raw.replace(/\.?0+$/, '') || raw;
+}
+
 async function fallbackPrice(symbol: string): Promise<{ price: string | null; candleOpenTimeMs: number | null }> {
   /** Match default chart interval (GET /trading/candles … interval=60 → 1m) so ticker/header align with candle series. */
   const m1 = await db.query<{ close_price: string; open_time: string }>(
@@ -98,8 +109,12 @@ async function fallbackOraclePrice(symbol: string): Promise<{ price: string | nu
 }
 
 async function fallback24hStats(
-  symbol: string
+  symbol: string,
+  referencePrice: number | null = null
 ): Promise<{ high: string | null; low: string | null; open: string | null; volume: string | null; candleOpenTimeMs: number | null }> {
+  const rolling = await fallback24hFrom1mCandles(symbol, referencePrice);
+  if (rolling.open != null) return rolling;
+
   const r = await db.query<{ open_price: string; high_price: string; low_price: string; volume: string; open_time: string }>(
     `SELECT oc.open_price::text, oc.high_price::text, oc.low_price::text, oc.volume::text, oc.open_time::text
      FROM ohlcv_candles oc JOIN trading_pairs tp ON tp.id = oc.trading_pair_id
@@ -115,6 +130,60 @@ async function fallback24hStats(
     low: row.low_price,
     open: row.open_price,
     volume: row.volume,
+    candleOpenTimeMs: Number.isFinite(openTimeMs) ? openTimeMs : null,
+  };
+}
+
+async function fallback24hFrom1mCandles(
+  symbol: string,
+  referencePrice: number | null
+): Promise<{ high: string | null; low: string | null; open: string | null; volume: string | null; candleOpenTimeMs: number | null }> {
+  const r = await db.query<{ open_price: string; high_price: string; low_price: string; close_price: string; volume: string; open_time: string }>(
+    `SELECT oc.open_price::text, oc.high_price::text, oc.low_price::text, oc.close_price::text, oc.volume::text, oc.open_time::text
+     FROM ohlcv_candles oc
+     JOIN trading_pairs tp ON tp.id = oc.trading_pair_id
+     WHERE tp.symbol = $1
+       AND oc.interval_type = '1m'
+       AND oc.open_time >= NOW() - INTERVAL '24 hours'
+     ORDER BY oc.open_time ASC`,
+    [symbol]
+  );
+  if (!r.rows.length) return { high: null, low: null, open: null, volume: null, candleOpenTimeMs: null };
+
+  const closes = r.rows.map((row) => Number(row.close_price)).filter((n) => Number.isFinite(n) && n > 0);
+  const ref =
+    referencePrice != null && Number.isFinite(referencePrice) && referencePrice > 0
+      ? referencePrice
+      : closes.length
+        ? closes[Math.floor(closes.length / 2)]!
+        : null;
+
+  const sane = (n: number) =>
+    ref == null || !Number.isFinite(ref) || ref <= 0 || (Math.abs(n - ref) / ref <= 0.25 && n > 0);
+
+  const openRow = r.rows[0]!;
+  const openTimeMs = Date.parse(String(openRow.open_time));
+  let high = -Infinity;
+  let low = Infinity;
+  let vol = 0;
+  for (const row of r.rows) {
+    const h = Number(row.high_price);
+    const l = Number(row.low_price);
+    const v = Number(row.volume);
+    if (Number.isFinite(h) && sane(h)) high = Math.max(high, h);
+    if (Number.isFinite(l) && sane(l)) low = Math.min(low, l);
+    if (Number.isFinite(v) && v > 0) vol += v;
+  }
+
+  if (!Number.isFinite(high) || !Number.isFinite(low)) {
+    return { high: null, low: null, open: null, volume: null, candleOpenTimeMs: null };
+  }
+
+  return {
+    high: String(high),
+    low: String(low),
+    open: openRow.open_price,
+    volume: vol > 0 ? String(vol) : null,
     candleOpenTimeMs: Number.isFinite(openTimeMs) ? openTimeMs : null,
   };
 }
@@ -260,31 +329,43 @@ export async function loadSpotTickerDbStats(symbol: string): Promise<SpotTickerD
   const lastPrice = resolved.last_price;
   const lastPriceSource = resolved.last_price_source;
 
-  // Keep 24h fields from the same family as last_price when trades are stale.
-  // If trade tape is stale, prefer candle-derived stats for consistency.
-  let highPrice = tradeFresh && s?.high && s.high !== '0' ? s.high : null;
-  let lowPrice = tradeFresh && s?.low && s.low !== '0' ? s.low : null;
-  let openPrice = tradeFresh ? (s?.open_24h ?? null) : null;
-  let volPrice = tradeFresh ? (s?.quote_volume ?? '0') : '0';
-  let baseVol = tradeFresh ? (s?.base_volume ?? '0') : '0';
+  // Keep 24h fields aligned with resolved last price — ignore internal trade tape when oracle/candle drives last.
+  let highPrice: string | null = null;
+  let lowPrice: string | null = null;
+  let openPrice: string | null = null;
+  let volPrice = '0';
+  let baseVol = '0';
 
-  if (!highPrice || !openPrice || volPrice === '0' || baseVol === '0') {
-    const fb = await fallback24hStats(symbol);
+  const lastNumForRef = Number(lastPrice ?? '');
+  const refFor24h = Number.isFinite(lastNumForRef) && lastNumForRef > 0 ? lastNumForRef : null;
+
+  const applyReference24h = (fb: Awaited<ReturnType<typeof fallback24hStats>>) => {
     const candleFresh = fb.candleOpenTimeMs != null && Date.now() - fb.candleOpenTimeMs <= CANDLE_1D_STALE_CUTOFF_MS;
-    if (candleFresh) {
-      if (!highPrice && fb.high) highPrice = fb.high;
-      if (!lowPrice && fb.low) lowPrice = fb.low;
-      if (!openPrice && fb.open) openPrice = fb.open;
-      if (fb.volume) {
-        const base = parseFloat(fb.volume);
-        const px = parseFloat(lastPrice ?? '');
-        if (Number.isFinite(base) && base > 0) {
-          baseVol = fb.volume;
-          if (volPrice === '0') {
-            volPrice = Number.isFinite(px) && px > 0 ? String(base * px) : fb.volume;
-          }
-        }
+    if (!candleFresh) return;
+    if (fb.high) highPrice = fb.high;
+    if (fb.low) lowPrice = fb.low;
+    if (fb.open) openPrice = fb.open;
+    if (fb.volume) {
+      const base = parseFloat(fb.volume);
+      const px = parseFloat(lastPrice ?? '');
+      if (Number.isFinite(base) && base > 0) {
+        baseVol = fb.volume;
+        volPrice = Number.isFinite(px) && px > 0 ? String(base * px) : fb.volume;
       }
+    }
+  };
+
+  const oracleDrivenLast = lastPriceSource === 'oracle' || lastPriceSource === 'candle';
+  if (oracleDrivenLast) {
+    applyReference24h(await fallback24hStats(symbol, refFor24h));
+  } else {
+    highPrice = tradeFresh && s?.high && s.high !== '0' ? s.high : null;
+    lowPrice = tradeFresh && s?.low && s.low !== '0' ? s.low : null;
+    openPrice = tradeFresh ? (s?.open_24h ?? null) : null;
+    volPrice = tradeFresh ? (s?.quote_volume ?? '0') : '0';
+    baseVol = tradeFresh ? (s?.base_volume ?? '0') : '0';
+    if (!highPrice || !openPrice || volPrice === '0' || baseVol === '0') {
+      applyReference24h(await fallback24hStats(symbol, refFor24h));
     }
   }
 
@@ -316,11 +397,11 @@ export async function loadSpotTickerDbStats(symbol: string): Promise<SpotTickerD
     last_price: lastPrice,
     bid: sanitizedBook.bid,
     ask: sanitizedBook.ask,
-    high_24h: highPrice,
-    low_24h: lowPrice,
+    high_24h: formatTickerStatPrice(highPrice, lastPrice),
+    low_24h: formatTickerStatPrice(lowPrice, lastPrice),
     volume_24h: volPrice,
     base_volume_24h: baseVol,
-    open_24h: openPrice,
+    open_24h: formatTickerStatPrice(openPrice, lastPrice),
     last_trade_created_at: lr?.created_at ? String(lr.created_at) : null,
     last_price_source: lastPriceSource,
     last_price_age_ms: resolved.last_price_age_ms ?? lastPriceAgeMs,

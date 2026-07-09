@@ -16,7 +16,11 @@ export type MetricsEventType =
   | 'deposit_confirmed'
   | 'withdrawal_requested'
   | 'p2p_order_created'
-  | 'aml_alert_triggered';
+  | 'aml_alert_triggered'
+  | 'system_alert'
+  | 'rpc_timeout'
+  | 'queue_overflow'
+  | 'node_failure';
 
 export type ControlEventType =
   | 'connected'
@@ -26,7 +30,8 @@ export type ControlEventType =
   | 'service_restarted'
   | 'liquidity_kill_activated'
   | 'health_score_updated'
-  | 'timeline_event';
+  | 'timeline_event'
+  | 'infrastructure_action';
 
 export type RealtimeEventType = MetricsEventType | ControlEventType;
 
@@ -54,6 +59,11 @@ const HEARTBEAT_TIMEOUT = 10000;
 const MIN_RECONNECT_MS = 1000;
 const MAX_RECONNECT_MS = 30000;
 const BACKOFF_FACTOR = 1.5;
+
+function getApiBaseUrl(): string {
+  if (typeof window === 'undefined') return '';
+  return (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000').replace(/\/$/, '');
+}
 
 function getWsBaseUrl(): string {
   if (typeof window === 'undefined') return '';
@@ -90,8 +100,13 @@ class RealtimeClient {
     this.token = token;
     this._destroyed = false;
     this._shouldFallbackToPoll = false;
-    this.connectChannel('metrics', '/api/v1/admin/ws/metrics');
-    this.connectChannel('control', '/api/v1/admin/ws/events');
+    void this.connectAllChannels();
+  }
+
+  private async connectAllChannels(): Promise<void> {
+    await this.connectChannel('metrics', '/api/v1/admin/ws/metrics');
+    if (this._destroyed) return;
+    await this.connectChannel('control', '/api/v1/admin/ws/events');
   }
 
   /**
@@ -141,7 +156,21 @@ class RealtimeClient {
 
   /* ---- Private ---- */
 
-  private connectChannel(name: 'metrics' | 'control', path: string): void {
+  private async fetchWsTicket(): Promise<string | null> {
+    if (!this.token) return null;
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/admin/auth/ws-ticket`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${this.token}`, 'Content-Type': 'application/json' },
+      });
+      const json = (await res.json()) as { success?: boolean; data?: { ticket?: string } };
+      return json.success && json.data?.ticket ? json.data.ticket : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async connectChannel(name: 'metrics' | 'control', path: string): Promise<void> {
     const ch = this.channels[name];
     if (ch.ws) return;
     if (!this.token) return;
@@ -149,11 +178,14 @@ class RealtimeClient {
     const base = getWsBaseUrl();
     if (!base) return;
 
-    const url = `${base}${path}?token=${encodeURIComponent(this.token)}`;
+    const ticket = await this.fetchWsTicket();
+    if (!ticket || this._destroyed) return;
+
+    const url = `${base}${path}`;
     this.setChannelState(name, 'connecting');
 
     try {
-      const ws = new WebSocket(url);
+      const ws = new WebSocket(url, [`ticket.${ticket}`]);
       ch.ws = ws;
 
       ws.onopen = () => {
@@ -172,6 +204,11 @@ class RealtimeClient {
           // Handle pong
           if (raw.type === 'pong' || raw.event === 'pong') {
             ch.lastPong = Date.now();
+            return;
+          }
+
+          if (raw.type === 'error' || raw.event === 'error') {
+            this._shouldFallbackToPoll = true;
             return;
           }
 
@@ -240,7 +277,7 @@ class RealtimeClient {
     ch.reconnectTimer = setTimeout(() => {
       ch.reconnectTimer = null;
       if (!this._destroyed) {
-        this.connectChannel(name, path);
+        void this.connectChannel(name, path);
       }
     }, delay);
   }

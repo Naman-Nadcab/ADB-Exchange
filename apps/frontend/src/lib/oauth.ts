@@ -113,6 +113,29 @@ function validateRedirectPath(path: string | null): string | null {
   return null;
 }
 
+const POST_LOGIN_PREFIXES = [
+  '/dashboard',
+  '/trade',
+  '/markets',
+  '/wallet',
+  '/p2p',
+  '/orders',
+  '/earn',
+];
+
+/** Resolve first allowed post-login path from query params / stored redirect. */
+export function resolvePostLoginRedirect(...candidates: (string | null | undefined)[]): string {
+  for (const raw of candidates) {
+    if (!raw || !raw.startsWith('/') || raw.startsWith('//')) continue;
+    const pathOnly = raw.split('?')[0] ?? raw;
+    const allowed = POST_LOGIN_PREFIXES.some(
+      (p) => pathOnly === p || pathOnly.startsWith(`${p}/`),
+    );
+    if (allowed) return raw;
+  }
+  return '/dashboard';
+}
+
 /** Get redirect target from sessionStorage or fallback. Does NOT consume. Use after login. */
 export function getStoredRedirect(): string | null {
   if (typeof sessionStorage === 'undefined') return null;

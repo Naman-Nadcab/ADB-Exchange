@@ -7,6 +7,7 @@ import { redis } from '../lib/redis.js';
 import { logger } from '../lib/logger.js';
 import { config } from '../config/index.js';
 import { getClientIp } from '../lib/client-ip.js';
+import { resolveProviderSecret } from '../lib/provider-secret.js';
 
 interface GoogleTokenResponse {
   access_token: string;
@@ -277,16 +278,18 @@ async function getOAuthSettings(provider: 'google' | 'apple' | 'telegram'): Prom
       api_url: string | null;
       additional_config: Record<string, any>;
       is_active: boolean;
+      secret_encrypted: boolean | null;
     }>(
-      'SELECT api_key, api_secret, api_url, additional_config, is_active FROM api_settings WHERE category = $1 AND provider = $2',
+      'SELECT api_key, api_secret, api_url, additional_config, is_active, secret_encrypted FROM api_settings WHERE category = $1 AND provider = $2',
       ['social_login', provider]
     );
 
     if (result.rows.length > 0 && result.rows[0]!.is_active) {
       const setting = result.rows[0]!;
+      const decryptedSecret = resolveProviderSecret(setting.api_secret, setting.secret_encrypted) || undefined;
       return {
         clientId: setting.api_key || undefined,
-        clientSecret: setting.api_secret || undefined,
+        clientSecret: decryptedSecret,
         callbackUrl: setting.additional_config?.callback_url || undefined,
         botToken: provider === 'telegram' ? setting.api_key : undefined,
         additionalConfig: setting.additional_config,

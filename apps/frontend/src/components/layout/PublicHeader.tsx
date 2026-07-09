@@ -2,12 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Menu, Wallet, ClipboardList, User as UserIcon, LogOut, LayoutDashboard, Shield, ChevronDown } from 'lucide-react';
 import { ROUTES, SPOT_TRADE_HREF, WALLET_HREF, ORDERS_HREF } from '@/lib/routes';
 import { useAuthStore } from '@/store/auth';
-import { useAuth } from '@/context/AuthContext';
-import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { performLogout } from '@/lib/authLogout';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 
 /**
@@ -20,10 +18,8 @@ export function PublicHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
-  const router = useRouter();
-  const { user, accessToken, _hasHydrated } = useAuthStore();
-  const { setUnauthenticated } = useAuth();
-  const authed = _hasHydrated && !!accessToken;
+  const { user, _hasHydrated, isAuthenticated } = useAuthStore();
+  const authed = _hasHydrated && isAuthenticated;
 
   useEffect(() => {
     if (!userOpen) return;
@@ -35,14 +31,8 @@ export function PublicHeader() {
   }, [userOpen]);
 
   const handleLogout = async () => {
-    const token = useAuthStore.getState().accessToken;
-    const apiUrl = getApiBaseUrl();
-    if (token && apiUrl !== undefined) {
-      try { await fetch(`${apiUrl}/api/v1/auth/logout`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }); } catch { /* best effort */ }
-    }
-    setUnauthenticated();
     setUserOpen(false);
-    router.replace('/login');
+    await performLogout('/login');
   };
 
   const maskEmail = (email: string) => {
@@ -58,7 +48,7 @@ export function PublicHeader() {
         <BrandLogo
           variant="horizontal-gold"
           size="header"
-          href={authed ? ROUTES.dashboard.root : ROUTES.home}
+          href={ROUTES.home}
         />
 
         <nav className="hidden items-center gap-6 text-sm text-[#9CA3AF] lg:flex">

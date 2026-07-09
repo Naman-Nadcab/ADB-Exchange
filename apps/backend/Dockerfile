@@ -18,9 +18,14 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Create non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 exchange
+# Docker CLI for infrastructure control actions (compose restart via mounted socket)
+RUN apk add --no-cache docker-cli docker-cli-compose
+
+# Create non-root user; add to docker group for socket access (GID must match host via compose group_add)
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser --system --uid 1001 exchange \
+ && addgroup -S -g 999 docker 2>/dev/null || addgroup -S docker \
+ && adduser exchange docker 2>/dev/null || true
 
 # Copy built application
 COPY --from=builder /app/dist ./dist

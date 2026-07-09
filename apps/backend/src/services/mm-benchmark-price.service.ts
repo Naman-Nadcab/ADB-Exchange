@@ -41,7 +41,7 @@ async function trimmedVwapSql(symbol: string, windowSec: number, outlierMaxBps: 
         SELECT price::numeric AS p, quantity::numeric AS q
         FROM spot_trades
         WHERE market = $1
-          AND created_at > NOW() - ($2::text || ' seconds')::interval
+          AND created_at > NOW() - make_interval(secs => $2::int)
       ),
       med AS (
         SELECT percentile_disc(0.5) WITHIN GROUP (ORDER BY p) AS m FROM t
@@ -58,7 +58,7 @@ async function trimmedVwapSql(symbol: string, windowSec: number, outlierMaxBps: 
         FROM spot_trades st
         INNER JOIN trading_pairs tp ON tp.id = st.trading_pair_id
         WHERE tp.symbol = $1
-          AND st.created_at > NOW() - ($2::text || ' seconds')::interval
+          AND st.created_at > NOW() - make_interval(secs => $2::int)
       ),
       med AS (
         SELECT percentile_disc(0.5) WITHIN GROUP (ORDER BY p) AS m FROM t
@@ -69,7 +69,7 @@ async function trimmedVwapSql(symbol: string, windowSec: number, outlierMaxBps: 
       CROSS JOIN med
       WHERE med.m > 0
         AND ABS(f.p - med.m) / med.m * 10000 <= $3::numeric`;
-    const r = await db.query<{ vwap: string | null }>(sql, [symbol, String(w), String(bps)]);
+    const r = await db.query<{ vwap: string | null }>(sql, [symbol, w, String(bps)]);
     const v = r.rows[0]?.vwap;
     if (v == null || v === '') return null;
     const n = parseFloat(v);
@@ -88,8 +88,8 @@ async function rawVwap(symbol: string, windowSec: number): Promise<number | null
         `SELECT COALESCE(SUM(price::numeric * quantity::numeric), 0)::text AS pq,
                 COALESCE(SUM(quantity::numeric), 0)::text AS q
          FROM spot_trades
-         WHERE market = $1 AND created_at > NOW() - ($2::text || ' seconds')::interval`,
-        [symbol, String(w)]
+         WHERE market = $1 AND created_at > NOW() - make_interval(secs => $2::int)`,
+        [symbol, w]
       );
       const pq = parseFloat(r.rows[0]?.pq ?? '0') || 0;
       const q = parseFloat(r.rows[0]?.q ?? '0') || 0;
@@ -100,8 +100,8 @@ async function rawVwap(symbol: string, windowSec: number): Promise<number | null
               COALESCE(SUM(st.quantity::numeric), 0)::text AS q
        FROM spot_trades st
        INNER JOIN trading_pairs tp ON tp.id = st.trading_pair_id
-       WHERE tp.symbol = $1 AND st.created_at > NOW() - ($2::text || ' seconds')::interval`,
-      [symbol, String(w)]
+       WHERE tp.symbol = $1 AND st.created_at > NOW() - make_interval(secs => $2::int)`,
+      [symbol, w]
     );
     const pq = parseFloat(r.rows[0]?.pq ?? '0') || 0;
     const q = parseFloat(r.rows[0]?.q ?? '0') || 0;

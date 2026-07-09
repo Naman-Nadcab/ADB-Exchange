@@ -1,21 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { getSpotWsUrl } from '@/lib/getApiUrl';
 import { useAuthStore } from '@/store/auth';
 import type { OrderbookDeltaPayload } from '@/lib/orderbookDelta';
-
-const getWsUrl = (): string => {
-  let base = getApiBaseUrl();
-  if (!base && typeof window !== 'undefined') {
-    const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL;
-    base = envUrl && envUrl.trim() ? envUrl.trim().replace(/\/$/, '') : 'http://localhost:4000';
-  }
-  if (!base) base = 'http://localhost:4000';
-  base = base.replace(/\/$/, '').replace(/^http/, 'ws');
-  const url = new URL('/api/v1/spot/ws', base);
-  return url.toString();
-};
 
 function isPrivateSpotChannel(channel: string): boolean {
   return (
@@ -288,7 +276,7 @@ export function useSpotWs(callbacks: UseSpotWsCallbacks = {}, options: UseSpotWs
     setStreamPhase((p) => (p === 'live' ? p : 'connecting'));
 
     const connect = () => {
-      const url = getWsUrl();
+      const url = getSpotWsUrl();
       const ws = new WebSocket(url);
       const tok = token?.trim() || null;
       let closedByCleanup = false;

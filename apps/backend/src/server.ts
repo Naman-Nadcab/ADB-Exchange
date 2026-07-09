@@ -145,6 +145,7 @@ export async function buildServer(): Promise<FastifyInstance> {
       return cb(null, false);
     },
     credentials: true,
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
   await app.register(compress, { global: true });
@@ -813,7 +814,12 @@ export async function buildServer(): Promise<FastifyInstance> {
           request.method === 'POST' &&
           rawPath.startsWith('/api/v1/spot/') &&
           (rawPath.includes('/spot/order') || rawPath.includes('/spot/orders'));
-        const forceTradeHmac = config.security.apiKeyRequireHmacForTrade && isSpotApiKeyTradeMutation;
+        const isInternalLiquidityBotKey =
+          Boolean(config.liquidityBot.apiKey) && keyToUse === config.liquidityBot.apiKey;
+        const forceTradeHmac =
+          config.security.apiKeyRequireHmacForTrade &&
+          isSpotApiKeyTradeMutation &&
+          !isInternalLiquidityBotKey;
         const needHmac = hasHmacHeaders(request) || forceTradeHmac;
         // Omit users.role: some production DBs predate the column; API-key auth defaults to end-user role.
         const selectCols = needHmac
@@ -964,15 +970,26 @@ export async function buildServer(): Promise<FastifyInstance> {
   return app;
 }
 
-// Sentry init (optional, when SENTRY_DSN is set)
+// Sentry init — Admin monitoring/sentry DSN first, env bootstrap fallback
 async function initSentry(): Promise<void> {
-  const dsn = process.env.SENTRY_DSN?.trim();
+  let dsn = process.env.SENTRY_DSN?.trim() ?? '';
+  let environment = process.env.NODE_ENV || 'development';
+  try {
+    const { dynamicConfig } = await import('./services/dynamic-config.service.js');
+    const cfg = await dynamicConfig.getSentryConfig();
+    if (cfg?.dsn) {
+      dsn = cfg.dsn;
+      environment = cfg.environment;
+    }
+  } catch {
+    /* DB may not be ready yet at cold start */
+  }
   if (!dsn) return;
   try {
     const Sentry = await import('@sentry/node');
     Sentry.init({
       dsn,
-      environment: process.env.NODE_ENV || 'development',
+      environment,
       tracesSampleRate: 0.1,
       beforeSend(event) {
         // Redact PII from error reports
@@ -993,7 +1010,6 @@ function sleep(ms: number): Promise<void> {
 // Start server
 async function start() {
   try {
-    await initSentry();
     const runMode = config.runMode ?? 'all';
     logger.info(`Starting Crypto Exchange Backend (RUN_MODE=${runMode})...`);
 
@@ -1084,6 +1100,7 @@ async function start() {
       process.exit(1);
     }
     logger.info('✓ Database connected', { latency_ms: dbStart.latency_ms, attempts: dbStart.attempts });
+    await initSentry();
     try {
       const du = new URL(config.database.url);
       logger.info('[SRE] DATABASE_URL target (worker + API)', {
@@ -1203,12 +1220,17 @@ async function start() {
       logger.info(`🚀 API running on port ${port}`);
       logger.info(`   Base URL: http://localhost:${port}`);
       void import('./lib/liquidity-bot-rate-limit.js').then((m) => m.warmLiquidityBotUserCache());
+      void import('./services/liquidity-bot-user.service.js').then((m) => m.ensureLiquidityBotTradingActive());
       // Prime Postgres cache for hot admin read tables so the first admin page
       // load after a deploy isn't paying the cold-cache cost (1–4s → ~ms).
       void import('./services/admin-warmup.service.js').then((m) => m.warmAdminReadPaths());
       startPortfolioSnapshotCron();
       void import('./services/scheduled-reports-worker.js').then((m) => m.startScheduledReportsWorker());
       void import('./services/spot-circuit-auto-recover.service.js').then((m) => m.startSpotCircuitAutoRecover());
+      void import('./services/settlement/settlement-circuit-auto-recover.service.js').then((m) =>
+        m.startSettlementCircuitAutoRecover()
+      );
+      void import('./services/exchange-startup-reconcile.service.js').then((m) => m.runExchangeStartupReconcile());
       void import('./services/settlement-pipeline-health.service.js').then(async (m) => {
         const backlog = await m.refreshSettlementBacklogSnapshot().catch(() => ({ pendingCount: 0, oldestPendingAgeSeconds: 0 }));
         const { settlementPendingGauge, settlementOldestPendingAgeSeconds, settlementLagSeconds } = await import('./lib/prometheus-metrics.js');
@@ -1252,8 +1274,21 @@ async function start() {
           // ignore; do not crash server
         }
       }, 5000);
+      const monitoringSnapshotMs = parseInt(process.env.MONITORING_SNAPSHOT_INTERVAL_MS || '60000', 10);
+      void import('./services/monitoring-snapshot.service.js').then((m) =>
+        m.startMonitoringSnapshotLoop(monitoringSnapshotMs)
+      );
     } else {
       logger.info('Workers-only mode: HTTP server not started');
+      const workersHeartbeatMs = parseInt(process.env.MONITORING_SNAPSHOT_INTERVAL_MS || '60000', 10);
+      setInterval(async () => {
+        try {
+          const { upsertWorkerHeartbeat } = await import('./services/monitoring-snapshot.service.js');
+          await upsertWorkerHeartbeat(`workers-${config.nodeId}`, 'running');
+        } catch {
+          /* ignore */
+        }
+      }, workersHeartbeatMs);
     }
 
     logger.info(`   Environment: ${config.env}`);
@@ -1266,8 +1301,9 @@ async function start() {
       logger.info('Signing queue worker disabled (DISABLE_SIGNING_QUEUE=true)');
     }
     if (runWorkers) {
-    setInterval(() => runAutoSweep().catch((err) => logger.error('Auto-sweep error', { error: err instanceof Error ? err.message : 'Unknown' })), 60_000);
-    const depositSweepIntervalMs = 120_000;
+    const autoSweepIntervalMs = parseInt(process.env.AUTO_SWEEP_INTERVAL_MS || '120000', 10);
+    setInterval(() => runAutoSweep().catch((err) => logger.error('Auto-sweep error', { error: err instanceof Error ? err.message : 'Unknown' })), autoSweepIntervalMs);
+    const depositSweepIntervalMs = parseInt(process.env.DEPOSIT_SWEEP_INTERVAL_MS || '300000', 10);
     if (!config.workers.disableDepositSweep) {
       setInterval(async () => {
         try {

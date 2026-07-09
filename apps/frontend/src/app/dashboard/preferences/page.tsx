@@ -681,7 +681,7 @@ export default function PreferencesPage() {
                   <div className="p-6 space-y-4">
                     {!pushStatus.supported && (
                       <p className="text-sm text-muted-foreground">
-                        This browser doesn't support web push notifications. Use a recent Chrome, Edge, Firefox, or Safari 16+.
+                        This browser doesn&apos;t support web push notifications. Use a recent Chrome, Edge, Firefox, or Safari 16+.
                       </p>
                     )}
                     {pushStatus.supported && pushStatus.permission === 'denied' && (

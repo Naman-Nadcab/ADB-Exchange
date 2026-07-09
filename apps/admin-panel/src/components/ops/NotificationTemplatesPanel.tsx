@@ -9,10 +9,13 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { listEmailTemplates, pushBroadcast } from '@/lib/notifications-api';
 
 export function NotificationTemplatesPanel() {
   const token = useAdminAuthStore((s) => s.accessToken);
+  const toast = useAdminToast();
   const [broadcastOpen, setBroadcastOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
@@ -31,7 +34,9 @@ export function NotificationTemplatesPanel() {
       setBroadcastOpen(false);
       setTitle('');
       setMessage('');
+      toast.success('Broadcast sent.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Broadcast failed.')),
   });
 
   const templates = templatesQ.data?.data?.templates ?? [];

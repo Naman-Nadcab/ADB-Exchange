@@ -4,6 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import { useAuthStore, type User } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { COOKIE_SESSION_MARKER, isCookieSessionMarker } from '@/lib/authSession';
+import { revokeServerSession } from '@/lib/authLogout';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -71,6 +72,18 @@ function mapMeResponseToUser(data: Record<string, unknown>): User {
   };
 }
 
+/** Skip /me when there is no cookie or stored bearer — guest pages render immediately. */
+function hasLikelySession(): boolean {
+  if (typeof document === 'undefined') return false;
+  if (document.cookie.split(';').some((c) => c.trim().startsWith('mlive_at='))) return true;
+  const stored = getStoredAccessToken();
+  if (stored && !isCookieSessionMarker(stored)) return true;
+  const fromStore = useAuthStore.getState().accessToken;
+  if (fromStore && !isCookieSessionMarker(fromStore)) return true;
+  if (useAuthStore.getState().isAuthenticated && useAuthStore.getState().user) return true;
+  return false;
+}
+
 async function tryRefreshSession(): Promise<boolean> {
   const apiUrl = getApiBaseUrl();
   const storedRefresh = getStoredRefreshToken();
@@ -99,7 +112,6 @@ async function tryRefreshSession(): Promise<boolean> {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [user, setUserState] = useState<User | null>(null);
-  const logout = useAuthStore((s) => s.logout);
   const setAuthResolved = useAuthStore((s) => s.setAuthResolved);
   const setAuthFlags = useAuthStore((s) => s.setAuthFlags);
   const setUser = useAuthStore((s) => s.setUser);
@@ -117,11 +129,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [setAuthResolved, setAuthFlags]);
 
   const setUnauthenticated = useCallback(() => {
+    void revokeServerSession();
     setAuthFlags(0);
-    logout();
+    useAuthStore.getState().clearAuthState();
     setUserState(null);
     setStatus('unauthenticated');
-  }, [logout, setAuthFlags]);
+  }, [setAuthFlags]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -171,6 +184,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, FALLBACK_RESOLVE_MS);
 
     const apiUrl = getApiBaseUrl();
+
+    if (!hasLikelySession()) {
+      clearTimeout(timeoutId);
+      clearTimeout(fallbackId);
+      setAuthResolved(true);
+      setAuthFlags(0);
+      setUnauthenticated();
+      return () => {
+        isMountedRef.current = false;
+        clearTimeout(timeoutId);
+        clearTimeout(fallbackId);
+        meCalled.current = false;
+      };
+    }
 
     const runMe = async () => {
       const clearAuthTimeout = () => clearTimeout(timeoutId);

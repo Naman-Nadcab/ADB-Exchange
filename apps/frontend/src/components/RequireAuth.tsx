@@ -1,53 +1,45 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { revokeServerSession } from '@/lib/authLogout';
 import { useAuthStore } from '@/store/auth';
 
 /**
  * Protected layout wrapper: never full-screen infinite spinner.
- * Unauthenticated users are redirected to login; unresolved session shows visible fallback + link.
+ * Unauthenticated users: clear stale cookies, then redirect to login (no manual fallback).
  */
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const pathname = usePathname();
+  const router = useRouter();
   const { authResolved, isAuthenticated } = useAuth();
   const user = useAuthStore((s) => s.user);
   const status = user?.status;
   const redirectDone = useRef(false);
+  const [redirecting, setRedirecting] = useState(false);
 
-  const loginHref = pathname ? `/login?redirect=${encodeURIComponent(pathname)}` : '/login';
+  const loginHref = pathname ? `/login?returnUrl=${encodeURIComponent(pathname)}` : '/login';
 
   useEffect(() => {
     if (!authResolved || isAuthenticated) return;
     if (redirectDone.current) return;
     redirectDone.current = true;
-    router.replace(loginHref);
-  }, [authResolved, isAuthenticated, router, loginHref]);
+    setRedirecting(true);
+    void (async () => {
+      await revokeServerSession();
+      useAuthStore.getState().clearAuthState();
+      router.replace(loginHref);
+    })();
+  }, [authResolved, isAuthenticated, loginHref, router]);
 
-  if (!authResolved) {
+  if (!authResolved || redirecting || !isAuthenticated) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 bg-muted/40 p-6 text-center dark:bg-background">
         <div className="flex items-center gap-3 rounded-xl border border-border bg-card/70 px-4 py-3 text-sm text-muted-foreground shadow-sm backdrop-blur-[1px]">
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" aria-hidden />
-          Checking your session…
+          {!authResolved ? 'Checking your session…' : 'Redirecting to sign in…'}
         </div>
-        <Link href={loginHref} className="text-sm font-medium text-primary underline dark:text-blue-400">
-          Sign in
-        </Link>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-2 bg-muted/40 p-6 text-center text-sm text-muted-foreground dark:bg-background dark:text-muted-foreground">
-        <p>Redirecting to sign in…</p>
-        <Link href={loginHref} className="font-medium text-primary underline dark:text-blue-400">
-          Continue to login
-        </Link>
       </div>
     );
   }
@@ -61,12 +53,12 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
           Contact support if you believe this is a mistake.
         </p>
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/support" className="text-sm font-medium text-primary underline dark:text-blue-400">
+          <a href="/dashboard/support" className="text-sm font-medium text-primary underline dark:text-blue-400">
             Contact support
-          </Link>
-          <Link href="/login" className="text-sm font-medium text-primary underline dark:text-blue-400">
+          </a>
+          <a href="/login" className="text-sm font-medium text-primary underline dark:text-blue-400">
             Sign in with another account
-          </Link>
+          </a>
         </div>
       </div>
     );

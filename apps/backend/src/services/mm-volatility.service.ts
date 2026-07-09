@@ -35,14 +35,14 @@ export async function getRealizedVolatilityBps(symbol: string): Promise<number> 
     const r = useMarket
       ? await db.query<{ price: string }>(
           `SELECT price::text AS price FROM spot_trades
-           WHERE market = $1 AND created_at > NOW() - INTERVAL '1 minute' * $2
+           WHERE market = $1 AND created_at > NOW() - make_interval(mins => $2::int)
            ORDER BY created_at ASC`,
           [symbol, windowMin]
         )
       : await db.query<{ price: string }>(
           `SELECT st.price::text AS price FROM spot_trades st
            JOIN trading_pairs tp ON tp.id = st.trading_pair_id
-           WHERE tp.symbol = $1 AND st.created_at > NOW() - INTERVAL '1 minute' * $2
+           WHERE tp.symbol = $1 AND st.created_at > NOW() - make_interval(mins => $2::int)
            ORDER BY st.created_at ASC`,
           [symbol, windowMin]
         );

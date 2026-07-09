@@ -5,6 +5,7 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { rateLimitByIp } from '../lib/rate-limit-fastify.js';
 import { config } from '../config/index.js';
 import { getPlatformPublicMetrics } from '../services/platform-public-metrics.service.js';
+import { getCompliancePolicy, publicComplianceSnapshot } from '../services/compliance-policy.service.js';
 import { resolvePublicOrderbookSnapshot } from '../services/spot-orderbook-public.service.js';
 import { computeOrderbookDepthPct } from '../services/orderbook-depth.service.js';
 import { db } from '../lib/database.js';
@@ -75,6 +76,23 @@ export default async function publicRoutes(app: FastifyInstance) {
       return reply.status(500).send({
         success: false,
         error: { code: 'INTERNAL_ERROR', message: 'Failed to load sparkline' },
+      });
+    }
+  });
+
+  /** GET /public/compliance-policy — runtime KYC/AML modes for frontend (no auth). */
+  app.get('/compliance-policy', {
+    preHandler: [rateLimitByIp('public:compliance-policy', 120, 60, { failClosed: config.rateLimit.failClosed })],
+  }, async (_request, reply) => {
+    try {
+      const policy = await getCompliancePolicy();
+      reply.header('Cache-Control', 'public, max-age=10, stale-while-revalidate=20');
+      return reply.send({ success: true, data: publicComplianceSnapshot(policy) });
+    } catch (error) {
+      logger.error('compliance-policy public error', { error: error instanceof Error ? error.message : String(error) });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'INTERNAL_ERROR', message: 'Failed to load compliance policy' },
       });
     }
   });

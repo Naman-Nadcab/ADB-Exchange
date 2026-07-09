@@ -20,6 +20,8 @@ import {
   Clock,
 } from 'lucide-react';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { cn } from '@/lib/cn';
 
 function isValidWei(v: string): boolean {
@@ -108,6 +110,7 @@ export default function TreasurySettingsPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const admin = useAdminAuthStore((s) => s.admin);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const canEdit = hasAdminPermission(admin, 'treasury:manage') || hasAdminPermission(admin, 'settings:edit');
 
   const [autoSweep, setAutoSweep] = useState(true);
@@ -138,7 +141,9 @@ export default function TreasurySettingsPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'treasury'] });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
+      toast.success('Treasury settings saved.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to save treasury settings.')),
   });
 
   const intervalValid = Number.isFinite(sweepInterval) && sweepInterval >= 60;

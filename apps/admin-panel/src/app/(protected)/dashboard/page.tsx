@@ -35,6 +35,8 @@ import { Button, SafeActionModal } from '@/components/ui';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { ADMIN_FEATURE_FLAGS } from '@/lib/admin/featureFlags';
 import { cn } from '@/lib/cn';
+import { getControlHealthScore } from '@/lib/control-api';
+import { displayMetric, metricOrNull } from '@/lib/format-metric';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
 
 /* ────────────────────── constants ────────────────────── */
@@ -219,6 +221,30 @@ export default function DashboardPage() {
     refetchInterval: refetchWhenVisible(60_000),
   });
 
+  const { data: smartAlertsRes } = useResilientQuery({
+    queryKey: ['admin', 'dashboard-smart-alerts'],
+    queryFn: ({ signal }) => adminFetch<{ summary?: { amlOpen?: number } }>('/operations/smart-alerts', { token, signal }),
+    enabled: !!token,
+    staleTime: 60_000,
+    refetchInterval: refetchWhenVisible(60_000),
+  });
+
+  const { data: securityDashRes } = useResilientQuery({
+    queryKey: ['admin', 'security-dashboard'],
+    queryFn: ({ signal }) => adminFetch<{ accounts?: { loginFailedLast24h?: number; usersCurrentlyLocked?: number } }>('/security/dashboard', { token, signal }),
+    enabled: !!token,
+    staleTime: 60_000,
+    refetchInterval: refetchWhenVisible(60_000),
+  });
+
+  const { data: backendHealthScoreRes } = useResilientQuery({
+    queryKey: ['admin', 'control', 'health-score'],
+    queryFn: () => getControlHealthScore(token),
+    enabled: !!token && ADMIN_FEATURE_FLAGS.ADMIN_PRODUCTION_HARDENING,
+    refetchInterval: refetchWhenVisible(Math.min(globalRefresh, 30_000)),
+    staleTime: 15_000,
+  });
+
   const summary = summaryRes?.data;
   const users = summary?.stats?.users;
   const p2p = summary?.stats?.p2p;
@@ -246,52 +272,75 @@ export default function DashboardPage() {
     return (revenue7dData.buckets as any[]).reduce((sum: number, b: any) => sum + (parseFloat(b.revenue ?? '0') || 0), 0);
   }, [revenue7dData]);
 
-  const dbLatency = health?.database?.latency_ms ?? health?.database?.latencyMs ?? 0;
-  const redisLatency = health?.redis?.latency_ms ?? health?.redis?.latencyMs ?? 0;
-  const wsConnections = health?.websocket?.connections ?? 0;
-  const apiLatency = health?.api_latency_ms ?? 0;
-  const memoryMb = health?.node?.memory_heap_mb ?? 0;
-  const uptime = health?.node?.uptime_sec ?? 0;
-  const settlementPending = health?.queue?.settlement_pending ?? 0;
-  const withdrawalQueueTotal = health?.queue?.total_withdrawal_queue ?? pendingWithdrawals;
+  const dbLatency = metricOrNull(
+    health?.database?.latency_ms ?? health?.database?.latencyMs,
+    !!healthRes?.data,
+  );
+  const redisLatency = metricOrNull(
+    health?.redis?.latency_ms ?? health?.redis?.latencyMs,
+    !!healthRes?.data,
+  );
+  const wsConnections = metricOrNull(health?.websocket?.connections, !!healthRes?.data);
+  const apiLatency = metricOrNull(health?.api_latency_ms, !!healthRes?.data);
+  const apiErrorRate = metricOrNull(health?.api_error_rate_pct, !!healthRes?.data);
+  const memoryMb = metricOrNull(health?.node?.memory_heap_mb, !!healthRes?.data);
+  const uptime = metricOrNull(health?.node?.uptime_sec, !!healthRes?.data);
+  const settlementPending = metricOrNull(health?.queue?.settlement_pending, !!healthRes?.data);
+  const withdrawalQueueTotal = metricOrNull(
+    health?.queue?.total_withdrawal_queue ?? pendingWithdrawals,
+    !!healthRes?.data || !!summary,
+  );
 
-  const p50Latency = control?.spotMetrics?.orderLatencyP50Ms ?? 0;
-  const p99Latency = control?.spotMetrics?.orderLatencyP99Ms ?? 0;
-  const ordersPerSec = control?.spotMetrics?.ordersPerSecond ?? 0;
+  const p50Latency = metricOrNull(control?.spotMetrics?.orderLatencyP50Ms, !!controlRes?.data);
+  const p99Latency = metricOrNull(control?.spotMetrics?.orderLatencyP99Ms, !!controlRes?.data);
+  const ordersPerSec = metricOrNull(control?.spotMetrics?.ordersPerSecond, !!controlRes?.data);
 
   const exchangeMetrics = useMemo<ExchangeMetrics>(() => ({
-    engineLatencyMs: p50Latency, p99LatencyMs: p99Latency, apiLatencyMs: apiLatency,
-    apiErrorRate: 0, withdrawalQueue: withdrawalQueueTotal, settlementPending,
-    amlAlertsOpen: 0, amlHighSeverity: 0,
-    failedLogins24h: 0, lockedAccounts: 0,
-    tradingHalted: halted, dbLatencyMs: dbLatency, redisLatencyMs: redisLatency,
-    memoryMb, wsConnections,
-  }), [p50Latency, p99Latency, apiLatency, withdrawalQueueTotal, settlementPending, halted, dbLatency, redisLatency, memoryMb, wsConnections]);
+    engineLatencyMs: p50Latency ?? 0, p99LatencyMs: p99Latency ?? 0, apiLatencyMs: apiLatency ?? 0,
+    apiErrorRate: apiErrorRate ?? 0, withdrawalQueue: withdrawalQueueTotal ?? 0, settlementPending: settlementPending ?? 0,
+    amlAlertsOpen: smartAlertsRes?.data?.summary?.amlOpen ?? 0,
+    amlHighSeverity: 0,
+    failedLogins24h: securityDashRes?.data?.accounts?.loginFailedLast24h ?? 0,
+    lockedAccounts: securityDashRes?.data?.accounts?.usersCurrentlyLocked ?? 0,
+    tradingHalted: halted, dbLatencyMs: dbLatency ?? 0, redisLatencyMs: redisLatency ?? 0,
+    memoryMb: memoryMb ?? 0, wsConnections: wsConnections ?? 0,
+  }), [p50Latency, p99Latency, apiLatency, apiErrorRate, withdrawalQueueTotal, settlementPending, smartAlertsRes, securityDashRes, halted, dbLatency, redisLatency, memoryMb, wsConnections]);
 
+  const backendHealthScore = backendHealthScoreRes?.data?.score;
   const computedHealthScore = useMemo(() => computeHealthScore(exchangeMetrics), [exchangeMetrics]);
-  const healthScore = useMemo(
-    () => Math.min(computedHealthScore, tier1ScoreCap(tier1Overall)),
-    [computedHealthScore, tier1Overall],
-  );
-  const orderAnomaly = useMemo(() => detectAnomaly('orders-sec', ordersPerSec), [detectAnomaly, ordersPerSec]);
-  const latencyAnomaly = useMemo(() => detectAnomaly('latency-p50', p50Latency), [detectAnomaly, p50Latency]);
+  const healthScore = useMemo(() => {
+    if (ADMIN_FEATURE_FLAGS.ADMIN_PRODUCTION_HARDENING) {
+      if (backendHealthScore == null || !Number.isFinite(backendHealthScore)) return null;
+      return Math.min(backendHealthScore, tier1ScoreCap(tier1Overall));
+    }
+    return Math.min(computedHealthScore, tier1ScoreCap(tier1Overall));
+  }, [backendHealthScore, computedHealthScore, tier1Overall]);
+  const orderAnomaly = useMemo(() => detectAnomaly('orders-sec', ordersPerSec ?? 0), [detectAnomaly, ordersPerSec]);
+  const latencyAnomaly = useMemo(() => detectAnomaly('latency-p50', p50Latency ?? 0), [detectAnomaly, p50Latency]);
   const volumeAnomaly = useMemo(() => detectAnomaly('volume-24h', volume24h), [detectAnomaly, volume24h]);
 
   /* sparkline histories */
   const volumeHist = useSparklineHistory(volume24h);
-  const ordersHist = useSparklineHistory(ordersPerSec);
-  const latencyHist = useSparklineHistory(apiLatency);
+  const ordersHist = useSparklineHistory(ordersPerSec ?? 0);
+  const latencyHist = useSparklineHistory(apiLatency ?? 0);
 
   const lastMetricsKeyRef = useRef('');
 
   useEffect(() => {
+    if (!ADMIN_FEATURE_FLAGS.ADMIN_PRODUCTION_HARDENING) return;
     if (!health && !control) return;
+    // Backend infrastructure_alerts are synced via useAlertCenterSync — no client-side alert generation.
+  }, [health, control]);
+
+  /* legacy client alert path disabled under production hardening */
+  useEffect(() => {
+    if (ADMIN_FEATURE_FLAGS.ADMIN_PRODUCTION_HARDENING || ADMIN_FEATURE_FLAGS.ADMIN_AI_OPS) return;
     const timeout = setTimeout(() => {
       const metricsKey = `${exchangeMetrics.engineLatencyMs}:${exchangeMetrics.p99LatencyMs}:${exchangeMetrics.apiErrorRate}:${exchangeMetrics.withdrawalQueue}:${exchangeMetrics.memoryMb}:${volume24h}`;
       if (metricsKey === lastMetricsKeyRef.current) return;
       lastMetricsKeyRef.current = metricsKey;
 
-      const alerts = evaluateAlerts(exchangeMetrics);
+      const alerts = ADMIN_FEATURE_FLAGS.ADMIN_PRODUCTION_HARDENING ? [] : evaluateAlerts(exchangeMetrics);
       if (alerts.length > 0) {
         addAlertsRef.current(alerts);
         if (ADMIN_FEATURE_FLAGS.ADMIN_INCIDENT_MANAGEMENT) {
@@ -332,13 +381,16 @@ export default function DashboardPage() {
   }, [halted, token, queryClient]);
 
   const heatmapData = useMemo(() => ({
-    trades: ordersPerSec, withdrawals: withdrawalQueueTotal, alerts: storeAlertCount,
+    trades: ordersPerSec ?? 0, withdrawals: withdrawalQueueTotal ?? 0, alerts: storeAlertCount,
   }), [ordersPerSec, withdrawalQueueTotal, storeAlertCount]);
 
   const statsBootstrapping = statsLoading && !summary;
 
   /* health sub-scores for breakdown */
   const infraScores = useMemo(() => {
+    if (p50Latency == null || dbLatency == null || redisLatency == null || apiLatency == null || memoryMb == null) {
+      return null;
+    }
     const latencyEngine = p50Latency < 50 ? 100 : p50Latency < 150 ? 70 : 40;
     const tier1Engine = tier1EngineBarScore(tier1Reasons);
     const engineFromTier1 = tier1Components?.matching_engine?.ok === false ? 18 : tier1Engine;
@@ -354,10 +406,14 @@ export default function DashboardPage() {
   const healthLevel = useMemo(() => {
     if (tier1Overall === 'RED') return 'critical' as const;
     if (tier1Overall === 'YELLOW') return 'degraded' as const;
+    if (healthScore == null) return 'degraded' as const;
     if (healthScore >= 90) return 'healthy' as const;
     if (healthScore >= 70) return 'degraded' as const;
     return 'critical' as const;
   }, [tier1Overall, healthScore]);
+
+  const animatedHealthScore = useAnimatedNumber(healthScore ?? 0);
+  const healthScoreLabel = healthScore == null ? 'NO DATA' : String(Math.round(healthScore));
 
   const lastUpdatedLabel = useMemo(() => {
     const ts = Math.max(
@@ -375,9 +431,8 @@ export default function DashboardPage() {
 
   const pageStatus = tier1Overall === 'RED' ? 'risk' : tier1Overall === 'YELLOW' ? 'warning' : 'active';
   const isRefreshing = Boolean(summaryFetching || healthFetching || controlFetching || tier1Fetching);
-  const animatedHealthScore = useAnimatedNumber(healthScore);
   const animatedPendingWithdrawals = useAnimatedNumber(pendingWithdrawals);
-  const animatedOrdersPerSec = useAnimatedNumber(ordersPerSec);
+  const animatedOrdersPerSec = useAnimatedNumber(ordersPerSec ?? 0);
   const animatedTotalUsers = useAnimatedNumber(totalUsers);
   const pageError =
     (summaryIsError && (summaryError instanceof Error ? summaryError.message : 'Failed to load dashboard summary.')) ||
@@ -567,16 +622,26 @@ export default function DashboardPage() {
                   : 'Critical — Action Required'}
             </p>
             <p className="text-[10px] text-admin-muted/70">
-              Uptime: {formatUptime(uptime)}
+              Score: {healthScoreLabel}
+              {ADMIN_FEATURE_FLAGS.ADMIN_PRODUCTION_HARDENING ? ' · backend /control/health-score' : ' · client composite'}
+            </p>
+            <p className="text-[10px] text-admin-muted/70">
+              Uptime: {uptime == null ? 'NO DATA' : formatUptime(uptime)}
             </p>
           </div>
           {/* Component breakdown */}
           <div className="w-full space-y-2.5 relative z-10 border-t border-admin-border/50 pt-3">
-            <HealthBreakdownRow label="Database" score={infraScores.db} />
-            <HealthBreakdownRow label="Redis" score={infraScores.redis} />
-            <HealthBreakdownRow label="Engine" score={infraScores.engine} />
-            <HealthBreakdownRow label="API" score={infraScores.api} />
-            <HealthBreakdownRow label="Memory" score={infraScores.memory} />
+            {infraScores ? (
+              <>
+                <HealthBreakdownRow label="Database" score={infraScores.db} />
+                <HealthBreakdownRow label="Redis" score={infraScores.redis} />
+                <HealthBreakdownRow label="Engine" score={infraScores.engine} />
+                <HealthBreakdownRow label="API" score={infraScores.api} />
+                <HealthBreakdownRow label="Memory" score={infraScores.memory} />
+              </>
+            ) : (
+              <p className="text-[10px] text-admin-muted text-center py-2">Component breakdown: NO DATA</p>
+            )}
           </div>
         </div>
 
@@ -644,11 +709,11 @@ export default function DashboardPage() {
       <section className="dash-rise-in" style={{ animationDelay: '120ms' }}>
         <SectionHeader label="Engine Performance" icon={<Cpu className="h-3.5 w-3.5" />} live />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <EngineMetric label="Orders / sec" value={animatedOrdersPerSec} sparkline={ordersHist} sparkColor="green" anomaly={orderAnomaly} />
-          <EngineMetric label="Latency P50" value={p50Latency} unit="ms" threshold={{ warn: 50, crit: 100 }} anomaly={latencyAnomaly} />
-          <EngineMetric label="Latency P99" value={p99Latency || '—'} unit="ms" threshold={{ warn: 200, crit: 1000 }} />
-          <EngineMetric label="API Latency" value={apiLatency} unit="ms" threshold={{ warn: 100, crit: 500 }} sparkline={latencyHist} sparkColor="amber" />
-          <EngineMetric label="Heap Memory" value={Math.round(memoryMb)} unit="MB" threshold={{ warn: 512, crit: 1024 }} />
+          <EngineMetric label="Orders / sec" value={ordersPerSec == null ? 'NO DATA' : animatedOrdersPerSec} sparkline={ordersHist} sparkColor="green" anomaly={orderAnomaly} />
+          <EngineMetric label="Latency P50" value={p50Latency == null ? 'NO DATA' : p50Latency} unit="ms" threshold={{ warn: 50, crit: 100 }} anomaly={latencyAnomaly} />
+          <EngineMetric label="Latency P99" value={p99Latency == null ? 'NO DATA' : p99Latency} unit="ms" threshold={{ warn: 200, crit: 1000 }} />
+          <EngineMetric label="API Latency" value={apiLatency == null ? 'NO DATA' : apiLatency} unit="ms" threshold={{ warn: 100, crit: 500 }} sparkline={latencyHist} sparkColor="amber" />
+          <EngineMetric label="Heap Memory" value={memoryMb == null ? 'NO DATA' : Math.round(memoryMb)} unit="MB" threshold={{ warn: 512, crit: 1024 }} />
         </div>
       </section>
 
@@ -670,8 +735,8 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="p-4 space-y-0.5">
-            <InfraRow icon={Database} label="Database" latency={`${dbLatency}ms`} status={tier1Components?.database?.ok === false ? 'down' : health?.database?.status} maxLatency={500} currentLatency={dbLatency} />
-            <InfraRow icon={Zap} label="Redis" latency={`${redisLatency}ms`} status={tier1Components?.redis?.ok === false ? 'down' : health?.redis?.status} maxLatency={50} currentLatency={redisLatency} />
+            <InfraRow icon={Database} label="Database" latency={dbLatency == null ? 'NO DATA' : `${dbLatency}ms`} status={tier1Components?.database?.ok === false ? 'down' : health?.database?.status} maxLatency={500} currentLatency={dbLatency ?? undefined} />
+            <InfraRow icon={Zap} label="Redis" latency={redisLatency == null ? 'NO DATA' : `${redisLatency}ms`} status={tier1Components?.redis?.ok === false ? 'down' : health?.redis?.status} maxLatency={50} currentLatency={redisLatency ?? undefined} />
             <InfraRow
               icon={Cpu}
               label="Matching Engine"
@@ -679,9 +744,9 @@ export default function DashboardPage() {
               status={tier1Components?.matching_engine?.ok === false || tier1Reasons.some((r) => r.startsWith('matching_engine')) ? 'down' : 'healthy'}
               href="/monitoring"
             />
-            <InfraRow icon={Globe} label="WebSocket" latency={`${wsConnections} conn`} status={health?.websocket?.status} />
-            <InfraRow icon={Clock} label="Uptime" latency={formatUptime(uptime)} status="healthy" />
-            <InfraRow icon={Activity} label="Settlement" latency={`${settlementPending} pending`} status={settlementPending > 50 ? 'degraded' : 'healthy'} />
+            <InfraRow icon={Globe} label="WebSocket" latency={wsConnections == null ? 'NO DATA' : `${wsConnections} conn`} status={health?.websocket?.status} />
+            <InfraRow icon={Clock} label="Uptime" latency={uptime == null ? 'NO DATA' : formatUptime(uptime)} status="healthy" />
+            <InfraRow icon={Activity} label="Settlement" latency={settlementPending == null ? 'NO DATA' : `${settlementPending} pending`} status={settlementPending != null && settlementPending > 50 ? 'degraded' : 'healthy'} />
           </div>
         </div>
 
@@ -927,11 +992,12 @@ const EngineMetric = memo(function EngineMetric({ label, value, unit, threshold,
   sparkColor?: 'green' | 'blue' | 'amber' | 'red';
 }) {
   const numVal = typeof value === 'number' ? value : 0;
-  const status = threshold
+  const noData = value === 'NO DATA';
+  const status = noData ? 'normal' : threshold
     ? numVal >= threshold.crit ? 'critical' : numVal >= threshold.warn ? 'warning' : 'normal'
     : 'normal';
   const dir = anomaly ? anomalyDirection(anomaly) : 'stable';
-  const statusLabel = status === 'critical' ? 'CRIT' : status === 'warning' ? 'WARN' : 'OK';
+  const statusLabel = noData ? 'N/A' : status === 'critical' ? 'CRIT' : status === 'warning' ? 'WARN' : 'OK';
   const statusClass = status === 'critical' ? 'text-red-400 bg-red-500/10' : status === 'warning' ? 'text-amber-400 bg-amber-500/10' : 'text-emerald-400 bg-emerald-500/10';
 
   return (

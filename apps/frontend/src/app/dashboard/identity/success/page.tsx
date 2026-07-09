@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { BrandLogo } from '@/components/brand/BrandLogo';
+import { ROUTES } from '@/lib/routes';
 import { Check, ArrowRight, Shield, Gift, Wallet, LayoutDashboard, ListOrdered, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -43,7 +44,7 @@ export default function IdentityVerificationSuccessPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex items-center justify-between border-b border-border px-6 py-4">
-        <BrandLogo variant="horizontal-gold" size="header" href="/dashboard" />
+        <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} />
       </header>
 
       <main className="flex flex-1 items-center justify-center p-6">

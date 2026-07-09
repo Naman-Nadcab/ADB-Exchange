@@ -27,8 +27,8 @@ export async function countMarketTrades(symbol: string, windowSec: number): Prom
     if (useMarket) {
       const r = await db.query<{ c: string }>(
         `SELECT COUNT(*)::text AS c FROM spot_trades
-         WHERE market = $1 AND created_at > NOW() - ($2::text || ' seconds')::interval`,
-        [symbol, String(w)]
+         WHERE market = $1 AND created_at > NOW() - make_interval(secs => $2::int)`,
+        [symbol, w]
       );
       return parseInt(r.rows[0]?.c ?? '0', 10) || 0;
     }
@@ -36,8 +36,8 @@ export async function countMarketTrades(symbol: string, windowSec: number): Prom
       `SELECT COUNT(*)::text AS c
        FROM spot_trades st
        INNER JOIN trading_pairs tp ON tp.id = st.trading_pair_id
-       WHERE tp.symbol = $1 AND st.created_at > NOW() - ($2::text || ' seconds')::interval`,
-      [symbol, String(w)]
+       WHERE tp.symbol = $1 AND st.created_at > NOW() - make_interval(secs => $2::int)`,
+      [symbol, w]
     );
     return parseInt(r.rows[0]?.c ?? '0', 10) || 0;
   } catch {
@@ -84,19 +84,19 @@ export async function getAdverseSelectionCostBps(
           `SELECT price::text, created_at, side::text
            FROM spot_trades
            WHERE market = $1 AND user_id = $2::uuid
-             AND created_at > NOW() - ($3::text || ' seconds')::interval
+             AND created_at > NOW() - make_interval(secs => $3::int)
            ORDER BY created_at ASC
            LIMIT 400`,
-          [symbol, userId, String(w)]
+          [symbol, userId, w]
         ),
         db.query<{ price: string; created_at: Date }>(
           `SELECT price::text, created_at
            FROM spot_trades
            WHERE market = $1
-             AND created_at > NOW() - ($3::text || ' seconds')::interval
+             AND created_at > NOW() - make_interval(secs => $2::int)
            ORDER BY created_at ASC
            LIMIT 5000`,
-          [symbol, String(w + 120)]
+          [symbol, w + 120]
         ),
       ]);
       mmRows = mm.rows;
@@ -114,20 +114,20 @@ export async function getAdverseSelectionCostBps(
            FROM spot_trades st
            INNER JOIN trading_pairs tp ON tp.id = st.trading_pair_id
            WHERE tp.symbol = $1 AND ${userFilter}
-             AND st.created_at > NOW() - ($3::text || ' seconds')::interval
+             AND st.created_at > NOW() - make_interval(secs => $3::int)
            ORDER BY st.created_at ASC
            LIMIT 400`,
-          [symbol, userId, String(w)]
+          [symbol, userId, w]
         ),
         db.query<{ price: string; created_at: Date }>(
           `SELECT st.price::text, st.created_at
            FROM spot_trades st
            INNER JOIN trading_pairs tp ON tp.id = st.trading_pair_id
            WHERE tp.symbol = $1
-             AND st.created_at > NOW() - ($3::text || ' seconds')::interval
+             AND st.created_at > NOW() - make_interval(secs => $2::int)
            ORDER BY st.created_at ASC
            LIMIT 5000`,
-          [symbol, String(w + 120)]
+          [symbol, w + 120]
         ),
       ]);
       mmRows = mm.rows;

@@ -25,9 +25,12 @@ import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/Action
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { BarChart3, Layers, PauseCircle, Percent, Plus } from 'lucide-react';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
 export default function MarketsPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
+  const toast = useAdminToast();
   const queryClient = useQueryClient();
   const [controlModal, setControlModal] = useState<{ action: MarketControlAction; market: MarketRow | null } | null>(null);
   const [editFeesMarket, setEditFeesMarket] = useState<MarketRow | null>(null);
@@ -53,7 +56,9 @@ export default function MarketsPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'markets'] });
       setControlModal(null);
       setEditFeesMarket(null);
+      toast.success('Market updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update market.')),
   });
 
   const haltMutation = useMutation({
@@ -75,7 +80,9 @@ export default function MarketsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'markets'] });
       setControlModal(null);
+      toast.success('Market halt status updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update market halt.')),
   });
 
   const createMutation = useMutation({
@@ -87,7 +94,9 @@ export default function MarketsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'markets'] });
       setShowCreateModal(false);
+      toast.success('Trading pair created.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to create trading pair.')),
   });
 
   const toggleMutation = useMutation({
@@ -99,7 +108,11 @@ export default function MarketsPage() {
       return res;
     },
     onSettled: () => setTogglingId(null),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'markets'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'markets'] });
+      toast.success('Trading pair status toggled.');
+    },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to toggle trading pair.')),
   });
 
   const deleteMutation = useMutation({
@@ -112,7 +125,9 @@ export default function MarketsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'markets'] });
       setDeleteTarget(null);
+      toast.success('Trading pair deleted.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to delete trading pair.')),
   });
 
   useAdminWs({

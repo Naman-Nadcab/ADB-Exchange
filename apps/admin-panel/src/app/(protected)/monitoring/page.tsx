@@ -8,19 +8,23 @@ import {
   getMonitoringHealth, getMonitoringRpcProviders, getMonitoringQueues,
   getMonitoringResources, getMonitoringAlerts, getMonitoringHistory,
   getMonitoringIncidents, getMonitoringWorkers, getMonitoringTimeline,
-  triggerMonitoringAction, updateRpcProviderPriority,
+  triggerMonitoringAction, updateRpcProviderPriority, patchMonitoringAlert,
   type RpcProviderRow, type InfrastructureAlertRow, type IncidentRow,
   type WorkerRow, type TimelineEventRow,
 } from '@/lib/monitoring-api';
-import { getSystemHealth } from '@/lib/api';
-import { computeHealthScore, type ExchangeMetrics } from '@/components/admin-v2/alert-engine';
+import type { InfrastructureAction } from '@/lib/infrastructure-actions';
+import { getSystemHealth, adminFetch, getControlOverview } from '@/lib/api';
+import { getControlHealthScore } from '@/lib/control-api';
+import { displayMs } from '@/lib/format-metric';
 import { useAnomalyDetector } from '@/components/admin-v2/useAnomalyDetector';
 import { SmartTooltip } from '@/components/admin-v2/SmartTooltip';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/dashboard/StatusBadge';
-import { InfrastructureControlModal, type InfrastructureAction } from '@/components/monitoring/InfrastructureControlModal';
+import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
 import { RpcPriorityModal } from '@/components/monitoring/RpcPriorityModal';
 import { useAdminWs } from '@/hooks/useAdminWs';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import dynamic from 'next/dynamic';
 import {
   Activity, Server, Radio, Boxes, Cpu,
@@ -31,7 +35,6 @@ import {
 import { cn } from '@/lib/cn';
 import { TableSkeleton } from '@/components/ui';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
-import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
 
 type MonitoringTab = 'overview' | 'history';
 type RefreshRate = 5000 | 10000 | 15000 | 30000;
@@ -53,6 +56,54 @@ function Tip({ content, danger }: { content: string; danger?: string }) {
     <SmartTooltip content={content} danger={danger}>
       <Info className="h-3 w-3 text-admin-muted/60 cursor-help shrink-0" />
     </SmartTooltip>
+  );
+}
+
+function ConfirmModal({
+  open,
+  title,
+  message,
+  danger,
+  onClose,
+  onConfirm,
+  loading,
+}: {
+  open: boolean;
+  title: string;
+  message: string;
+  danger?: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  loading?: boolean;
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="w-full max-w-md rounded-xl border border-admin-border bg-admin-card p-6 shadow-modal animate-scale-in"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-start gap-3">
+          {danger ? (
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10">
+              <AlertTriangle className="h-5 w-5 text-red-400" />
+            </div>
+          ) : null}
+          <div>
+            <h3 className={cn('text-base font-bold', danger ? 'text-red-400' : 'text-admin-text')}>{title}</h3>
+            <p className="mt-1 text-sm leading-relaxed text-admin-muted">{message}</p>
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 border-t border-admin-border pt-2">
+          <Button variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button variant={danger ? 'danger' : 'primary'} onClick={onConfirm} disabled={loading}>
+            {loading ? 'Processing…' : 'Confirm'}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -131,9 +182,15 @@ function EmptyState({
 export default function MonitoringPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [activeTab, setActiveTab] = useState<MonitoringTab>('overview');
   const [controlModal, setControlModal] = useState<InfrastructureAction | null>(null);
   const [rpcPriorityModal, setRpcPriorityModal] = useState<RpcProviderRow | null>(null);
+  const [alertConfirm, setAlertConfirm] = useState<{
+    id: string;
+    status: 'acknowledged' | 'resolved';
+    system: string;
+  } | null>(null);
   const [alertsPage, setAlertsPage] = useState(1);
   const [refreshRate, setRefreshRate] = useState<RefreshRate>(10000);
   const [refreshDropdownOpen, setRefreshDropdownOpen] = useState(false);
@@ -171,30 +228,35 @@ export default function MonitoringPage() {
     staleTime: 30_000,
     queryFn: () => getMonitoringAlerts(token, { limit: 20, offset: (alertsPage - 1) * 20 }),
     enabled: !!token,
+    refetchInterval: refreshRate,
   });
   const { data: historyApi } = useQuery({
     queryKey: ['admin', 'monitoring', 'history', 'api_latency', token],
     staleTime: 30_000,
     queryFn: () => getMonitoringHistory(token, 'api_latency'),
     enabled: !!token && activeTab === 'history',
+    refetchInterval: activeTab === 'history' ? refreshRate : false,
   });
   const { data: historyDb } = useQuery({
     queryKey: ['admin', 'monitoring', 'history', 'db_latency', token],
     staleTime: 30_000,
     queryFn: () => getMonitoringHistory(token, 'db_latency'),
     enabled: !!token && activeTab === 'history',
+    refetchInterval: activeTab === 'history' ? refreshRate : false,
   });
   const { data: historyRedis } = useQuery({
     queryKey: ['admin', 'monitoring', 'history', 'redis_latency', token],
     staleTime: 30_000,
     queryFn: () => getMonitoringHistory(token, 'redis_latency'),
     enabled: !!token && activeTab === 'history',
+    refetchInterval: activeTab === 'history' ? refreshRate : false,
   });
   const { data: historyQueue } = useQuery({
     queryKey: ['admin', 'monitoring', 'history', 'queue_size', token],
     staleTime: 30_000,
     queryFn: () => getMonitoringHistory(token, 'queue_size'),
     enabled: !!token && activeTab === 'history',
+    refetchInterval: activeTab === 'history' ? refreshRate : false,
   });
   const { data: incidentsData, isError: incidentsIsError, error: incidentsError, refetch: refetchIncidents } = useQuery({
     queryKey: ['admin', 'monitoring', 'incidents', token],
@@ -208,23 +270,59 @@ export default function MonitoringPage() {
     queryFn: () => getMonitoringWorkers(token),
     enabled: !!token,
   });
+  const { data: smartAlertsRes } = useQuery({
+    queryKey: ['admin', 'monitoring-smart-alerts', token],
+    queryFn: () => adminFetch<{ summary?: { amlOpen?: number } }>('/operations/smart-alerts', { token }),
+    enabled: !!token,
+    staleTime: 30_000,
+    refetchInterval: refreshRate,
+  });
+  const { data: controlRes } = useQuery({
+    queryKey: ['admin', 'control', token],
+    queryFn: () => getControlOverview(token),
+    enabled: !!token,
+    staleTime: 30_000,
+    refetchInterval: refreshRate,
+  });
+  const { data: securityDashRes } = useQuery({
+    queryKey: ['admin', 'security-dashboard', token],
+    queryFn: () => adminFetch<{ accounts?: { loginFailedLast24h?: number; usersCurrentlyLocked?: number } }>('/security/dashboard', { token }),
+    enabled: !!token,
+    staleTime: 30_000,
+    refetchInterval: refreshRate,
+  });
   const { data: timelineData } = useQuery({
     queryKey: ['admin', 'monitoring', 'timeline', token],
     staleTime: 30_000,
     queryFn: () => getMonitoringTimeline(token, 15),
     enabled: !!token,
+    refetchInterval: refreshRate,
   });
 
   const priorityMutation = useMutation({
     mutationFn: ({ id, priority }: { id: string; priority: number }) =>
       updateRpcProviderPriority(token, id, priority),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'monitoring', 'rpc'] }); setRpcPriorityModal(null); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'monitoring', 'rpc'] });
+      setRpcPriorityModal(null);
+      toast.success('RPC provider priority updated.');
+    },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update RPC priority.')),
   });
 
   useAdminWs({
     onEvent: (ev) => {
       const t = (ev?.type as string) ?? '';
-      if (['system_alert', 'rpc_timeout', 'queue_overflow', 'node_failure'].includes(t)) {
+      if (
+        [
+          'system_alert',
+          'rpc_timeout',
+          'queue_overflow',
+          'node_failure',
+          'infrastructure_action',
+          'timeline_event',
+        ].includes(t)
+      ) {
         queryClient.invalidateQueries({ queryKey: ['admin', 'monitoring'] });
       }
     },
@@ -233,7 +331,49 @@ export default function MonitoringPage() {
   const actionMutation = useMutation({
     mutationFn: ({ action, reason, twofa_code }: { action: string; reason?: string; twofa_code?: string }) =>
       triggerMonitoringAction(token, action, { reason, twofa_code }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'monitoring'] }); setControlModal(null); },
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'monitoring'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'monitoring', 'timeline'] });
+      setControlModal(null);
+      const data = res?.data;
+      if (data?.executed) {
+        toast.success(data.message || 'Monitoring action completed.');
+      } else {
+        toast.warning(data?.message || 'Action logged but not executed.');
+      }
+    },
+    onError: (e) => toast.error(formatSaveError(e, 'Monitoring action failed.')),
+  });
+
+  const alertPatchMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: 'acknowledged' | 'resolved' }) =>
+      patchMonitoringAlert(token, id, { status }),
+    onMutate: async ({ id, status }) => {
+      const key = ['admin', 'monitoring', 'alerts', token, alertsPage] as const;
+      await queryClient.cancelQueries({ queryKey: key });
+      const prev = queryClient.getQueryData(key);
+      queryClient.setQueryData(key, (old: { data?: { alerts?: InfrastructureAlertRow[]; total?: number } } | undefined) => {
+        if (!old?.data?.alerts) return old;
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            alerts: old.data.alerts.map((a) => (a.id === id ? { ...a, status } : a)),
+          },
+        };
+      });
+      return { prev, key };
+    },
+    onError: (e, _vars, ctx) => {
+      if (ctx?.prev && ctx.key) queryClient.setQueryData(ctx.key, ctx.prev);
+      toast.error(formatSaveError(e, 'Failed to update alert.'));
+    },
+    onSuccess: (_data, { status }) => {
+      setAlertConfirm(null);
+      queryClient.invalidateQueries({ queryKey: ['admin', 'monitoring'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'monitoring', 'timeline'] });
+      toast.success(status === 'resolved' ? 'Alert resolved.' : 'Alert acknowledged.');
+    },
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -250,6 +390,7 @@ export default function MonitoringPage() {
   const timelineEvents = (timelineData?.data?.events ?? []) as TimelineEventRow[];
 
   const apiLatency = health?.api_latency_ms ?? 0;
+  const apiErrorRate = sys?.api_error_rate_pct ?? 0;
   const dbLatency = sys?.database?.latency_ms ?? sys?.database?.latencyMs ?? 0;
   const redisLatency = sys?.redis?.latency_ms ?? sys?.redis?.latencyMs ?? 0;
   const wsConns = sys?.websocket?.connections ?? health?.ws_connections ?? 0;
@@ -263,17 +404,19 @@ export default function MonitoringPage() {
   const apiAnomaly = useMemo(() => detectAnomaly('mon-api-lat', apiLatency), [detectAnomaly, apiLatency]);
   const dbAnomaly = useMemo(() => detectAnomaly('mon-db-lat', dbLatency), [detectAnomaly, dbLatency]);
 
-  const healthScore = useMemo<number>(() => {
-    const metrics: ExchangeMetrics = {
-      engineLatencyMs: 0, p99LatencyMs: 0, apiLatencyMs: apiLatency,
-      apiErrorRate: 0, withdrawalQueue: queues?.withdrawal_pending ?? 0,
-      settlementPending: queues?.settlement_pending ?? 0,
-      amlAlertsOpen: 0, amlHighSeverity: 0, failedLogins24h: 0, lockedAccounts: 0,
-      tradingHalted: false, dbLatencyMs: dbLatency, redisLatencyMs: redisLatency,
-      memoryMb, wsConnections: wsConns,
-    };
-    return computeHealthScore(metrics);
-  }, [apiLatency, dbLatency, redisLatency, queues, memoryMb, wsConns]);
+  const p50Latency = (controlRes?.data as { spotMetrics?: { orderLatencyP50Ms?: number } } | undefined)?.spotMetrics?.orderLatencyP50Ms ?? 0;
+  const p99Latency = (controlRes?.data as { spotMetrics?: { orderLatencyP99Ms?: number } } | undefined)?.spotMetrics?.orderLatencyP99Ms ?? 0;
+
+  const { data: backendHealthScoreRes } = useQuery({
+    queryKey: ['admin', 'control', 'health-score', token],
+    queryFn: () => getControlHealthScore(token),
+    enabled: !!token,
+    staleTime: 15_000,
+    refetchInterval: refreshRate,
+  });
+
+  const healthScore = backendHealthScoreRes?.data?.score ?? null;
+  const healthScoreLabel = healthScore == null ? 'NO DATA' : String(Math.round(healthScore));
 
   const handleRefreshAll = useCallback(() => {
     queryClient.invalidateQueries({ predicate: (q) => ((q.queryKey[0] as string) === 'admin') });
@@ -285,7 +428,7 @@ export default function MonitoringPage() {
   };
 
   const hasCriticalResource = (cpuPct !== null && cpuPct > 90) || (memPct !== null && memPct > 90);
-  const healthLevel = healthScore >= 90 ? 'healthy' : healthScore >= 70 ? 'degraded' : 'critical';
+  const healthLevel = healthScore == null ? 'degraded' : healthScore >= 90 ? 'healthy' : healthScore >= 70 ? 'degraded' : 'critical';
   const pageError =
     (healthIsError && (healthError instanceof Error ? healthError.message : 'Failed to load monitoring health.')) ||
     (systemHealthIsError && (systemHealthError instanceof Error ? systemHealthError.message : 'Failed to load system health.')) ||
@@ -395,7 +538,7 @@ export default function MonitoringPage() {
                 healthLevel === 'critical' && 'border-red-500/50 text-red-400',
               )}
             >
-              <span className="text-xl font-black tabular-nums">{healthScore}</span>
+              <span className="text-xl font-black tabular-nums">{healthScoreLabel}</span>
             </div>
             <div className="min-w-0">
               <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-admin-muted">
@@ -575,27 +718,17 @@ export default function MonitoringPage() {
               <MonitorPanel
                 icon={Gauge}
                 title="Rate limits"
-                description="Gateway enforcement (reference)"
+                description="Gateway enforcement"
                 iconTint="bg-amber-500/10 text-amber-400"
                 className="min-h-[320px]"
               >
-                <div className="space-y-2">
-                  {[
-                    { label: 'Public API', limit: '100 / min · IP' },
-                    { label: 'Authenticated', limit: '300 / min · user' },
-                    { label: 'WebSocket', limit: '5 conn · 100 msg/s' },
-                    { label: 'Admin API', limit: '200 / min · admin' },
-                  ].map(({ label, limit }) => (
-                    <div
-                      key={label}
-                      className="flex items-center justify-between gap-2 rounded-lg border border-admin-border/60 bg-white/[0.02] px-3 py-2"
-                    >
-                      <span className="text-xs text-admin-text">{label}</span>
-                      <span className="text-[10px] font-mono text-admin-muted">{limit}</span>
-                    </div>
-                  ))}
-                </div>
-                <p className="mt-auto pt-3 text-[10px] text-admin-muted/70">Tuned in API gateway / edge config.</p>
+                <EmptyState
+                  icon={Gauge}
+                  title="No live rate-limit telemetry"
+                  hint="Rate limits are enforced at the API gateway. This panel does not expose live counters — configure limits in infrastructure settings."
+                  href="/settings/infrastructure"
+                  hrefLabel="Infrastructure settings"
+                />
               </MonitorPanel>
             </div>
 
@@ -735,12 +868,13 @@ export default function MonitoringPage() {
                         <th className="px-3 py-2.5">Message</th>
                         <th className="px-3 py-2.5">Created</th>
                         <th className="px-3 py-2.5">Status</th>
+                        <th className="px-3 py-2.5">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {alertsLoading ? (
                         <tr>
-                          <td colSpan={5} className="p-0">
+                          <td colSpan={6} className="p-0">
                             <TableSkeleton rows={3} cols={4} />
                           </td>
                         </tr>
@@ -763,6 +897,34 @@ export default function MonitoringPage() {
                             <td className="px-3 py-2.5 text-admin-muted">{row.created_at ? formatTimeAgo(row.created_at) : '—'}</td>
                             <td className="px-3 py-2.5">
                               <StatusBadge status={row.status} />
+                            </td>
+                            <td className="px-3 py-2.5">
+                              <div className="flex flex-wrap gap-1.5">
+                                {(row.status === 'open' || row.status === 'Open') && (
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    disabled={alertPatchMutation.isPending}
+                                    onClick={() =>
+                                      setAlertConfirm({ id: row.id, status: 'acknowledged', system: row.system })
+                                    }
+                                  >
+                                    Acknowledge
+                                  </Button>
+                                )}
+                                {row.status !== 'resolved' && row.status !== 'Resolved' && (
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    disabled={alertPatchMutation.isPending}
+                                    onClick={() =>
+                                      setAlertConfirm({ id: row.id, status: 'resolved', system: row.system })
+                                    }
+                                  >
+                                    Resolve
+                                  </Button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -796,13 +958,6 @@ export default function MonitoringPage() {
         )}
       </div>
 
-      <InfrastructureControlModal
-        open={false}
-        action={null}
-        onClose={() => setControlModal(null)}
-        onConfirm={() => {}}
-        isLoading={actionMutation.isPending}
-      />
       <ActionAuthModal
         open={!!controlModal}
         onClose={() => setControlModal(null)}
@@ -817,6 +972,22 @@ export default function MonitoringPage() {
         isPending={actionMutation.isPending}
         confirmLabel={actionMutation.isPending ? 'Executing…' : 'Execute action'}
         confirmVariant="danger"
+      />
+      <ConfirmModal
+        open={!!alertConfirm}
+        title={alertConfirm?.status === 'resolved' ? 'Resolve alert' : 'Acknowledge alert'}
+        message={
+          alertConfirm
+            ? `${alertConfirm.status === 'resolved' ? 'Resolve' : 'Acknowledge'} infrastructure alert for ${alertConfirm.system}? This is audit-logged.`
+            : ''
+        }
+        danger={alertConfirm?.status === 'resolved'}
+        onClose={() => setAlertConfirm(null)}
+        onConfirm={() => {
+          if (!alertConfirm) return;
+          alertPatchMutation.mutate({ id: alertConfirm.id, status: alertConfirm.status });
+        }}
+        loading={alertPatchMutation.isPending}
       />
       <RpcPriorityModal
         open={!!rpcPriorityModal}

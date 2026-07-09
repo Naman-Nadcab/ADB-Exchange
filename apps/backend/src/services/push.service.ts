@@ -11,6 +11,7 @@ import webpush from 'web-push';
 import { db } from '../lib/database.js';
 import { logger } from '../lib/logger.js';
 import { config } from '../config/index.js';
+import { resolveProviderSecret } from '../lib/provider-secret.js';
 
 interface EffectiveVapid {
   subject: string;
@@ -45,8 +46,9 @@ async function loadEffectiveVapid(): Promise<EffectiveVapid | null> {
       api_key: string | null;
       api_secret: string | null;
       additional_config: Record<string, string> | null;
+      secret_encrypted: boolean | null;
     }>(
-      `SELECT api_key, api_secret, additional_config
+      `SELECT api_key, api_secret, additional_config, secret_encrypted
          FROM api_settings
         WHERE category = 'web_push' AND is_active = TRUE
         ORDER BY is_default DESC, updated_at DESC
@@ -54,11 +56,14 @@ async function loadEffectiveVapid(): Promise<EffectiveVapid | null> {
     );
     const row = r.rows[0];
     if (row?.api_key && row?.api_secret) {
-      resolved = {
-        subject: row.additional_config?.subject || config.webPush.subject || 'mailto:admin@example.com',
-        publicKey: row.api_key,
-        privateKey: row.api_secret,
-      };
+      const privateKey = resolveProviderSecret(row.api_secret, row.secret_encrypted);
+      if (privateKey) {
+        resolved = {
+          subject: row.additional_config?.subject || config.webPush.subject || 'mailto:admin@example.com',
+          publicKey: row.api_key,
+          privateKey,
+        };
+      }
     }
   } catch (err) {
     // Table may not exist yet in early boot — fall back to env silently.

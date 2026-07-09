@@ -33,10 +33,11 @@ export class ConfirmationTracker {
     this.isRunning = true;
     logger.info('Confirmation tracker started');
     
-    // Check confirmations every 30 seconds
+    // Check confirmations every 60s (was 30s) — live head cached 10s; halves eth_blockNumber when pending.
+    const checkIntervalMs = parseInt(process.env.CONFIRMATION_CHECK_INTERVAL_MS || '60000', 10);
     this.checkInterval = setInterval(() => {
       this.checkPendingDeposits();
-    }, 30000);
+    }, checkIntervalMs);
     
     // Initial check
     await this.checkPendingDeposits();
@@ -231,12 +232,12 @@ export class ConfirmationTracker {
         }
 
         await client.query(
-          `INSERT INTO user_activity_logs (id, user_id, activity_type, description, metadata, ip_address, user_agent, created_at)
-           VALUES (gen_random_uuid(), $1, 'deposit_confirmed', $2, $3, '0.0.0.0', 'indexer', NOW())`,
+          `INSERT INTO user_activity_logs (user_id, activity_type, ip_address, user_agent, details, created_at)
+           VALUES ($1, 'deposit_confirmed', '0.0.0.0', 'indexer', $2, NOW())`,
           [
             deposit.user_id,
-            `Deposit of ${deposit.amount} ${deposit.symbol} confirmed`,
             JSON.stringify({
+              message: `Deposit of ${deposit.amount} ${deposit.symbol} confirmed`,
               chain: deposit.chain_key,
               txHash: deposit.tx_hash,
               amount: deposit.amount,

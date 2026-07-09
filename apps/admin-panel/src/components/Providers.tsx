@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider, keepPreviousData } from '@tanstack/react-query';
 import { useState } from 'react';
+import { AdminToastProvider } from '@/components/admin-shell/AdminToast';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -9,10 +10,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            /** 5 min fresh + 30 min cache: covers typical cross-page navigation without re-fetching. */
-            staleTime: 5 * 60_000,
+            /** Shorter stale window so saved settings show fresh data after refetch/revisit. */
+            staleTime: 30_000,
             gcTime: 30 * 60_000,
-            refetchOnMount: false,
+            refetchOnMount: true,
             refetchOnWindowFocus: false,
             refetchOnReconnect: true,
             retry: 1,
@@ -27,6 +28,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
       })
   );
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <AdminToastProvider>{children}</AdminToastProvider>
+    </QueryClientProvider>
   );
 }

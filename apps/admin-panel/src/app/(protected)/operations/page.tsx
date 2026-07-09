@@ -15,6 +15,8 @@ import { useAdminAuthStore } from '@/store/auth';
 import { cn } from '@/lib/cn';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -131,6 +133,7 @@ const HUB_SECTIONS: {
 export default function OperationsPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [recoveryReason, setRecoveryReason] = useState('');
   const [configReason, setConfigReason] = useState('');
   const [rollbackReason, setRollbackReason] = useState('');
@@ -282,7 +285,9 @@ export default function OperationsPage() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'operations-jobs-health'] });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'operations-action-center'] });
+      toast.success('Job recovery action completed.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Job recovery failed.')),
   });
 
   const createSnapshotMutation = useMutation({
@@ -298,7 +303,9 @@ export default function OperationsPage() {
     onSuccess: () => {
       setConfigReason('');
       void queryClient.invalidateQueries({ queryKey: ['admin', 'operations-config-snapshots'] });
+      toast.success('Config snapshot created.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to create config snapshot.')),
   });
 
   const rollbackSnapshotMutation = useMutation({
@@ -315,7 +322,9 @@ export default function OperationsPage() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'operations-config-snapshots'] });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'operations-action-center'] });
+      toast.success('Config rollback completed.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Config rollback failed.')),
   });
 
   const simulateMutation = useMutation({
@@ -334,6 +343,8 @@ export default function OperationsPage() {
               : { action: 'trading_halt' },
       });
     },
+    onSuccess: () => toast.success('Simulation completed.'),
+    onError: (e) => toast.error(formatSaveError(e, 'Simulation failed.')),
   });
 
   const saveApprovalPoliciesMutation = useMutation({
@@ -350,7 +361,9 @@ export default function OperationsPage() {
       setPolicyReason('');
       void queryClient.invalidateQueries({ queryKey: ['admin', 'operations-approval-policies'] });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'approval-requests'] });
+      toast.success('Approval policies saved.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to save approval policies.')),
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -569,7 +582,7 @@ function HealthStrip({ loading, systemOk, dbUp, redisUp, apiLatencyMs, wsConnect
     { label: 'Database', ok: !!dbUp, icon: Database },
     { label: 'Redis', ok: !!redisUp, icon: HardDrive },
     { label: 'API', ok: apiLatencyMs != null && apiLatencyMs < 500, value: apiLatencyMs != null ? `${apiLatencyMs}ms` : undefined, icon: Wifi },
-    { label: 'WebSocket', ok: true, value: wsConnections != null ? String(wsConnections) : undefined, icon: Radio },
+    { label: 'WebSocket', ok: wsConnections != null, value: wsConnections != null ? String(wsConnections) : 'No data', icon: Radio },
     { label: 'Memory', ok: memoryMb != null && memoryMb < 512, value: memoryMb != null ? `${memoryMb}MB` : undefined, icon: Cpu },
   ];
 

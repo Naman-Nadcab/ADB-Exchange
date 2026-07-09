@@ -8,6 +8,8 @@ import { getRiskSettings, patchRiskSettings, type RiskSettings } from '@/lib/ris
 import { FormSkeleton } from '@/components/ui';
 import { ArrowLeft, DollarSign, Fish, XCircle, Clock, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { cn } from '@/lib/cn';
 
 /* ── shared primitives ─────────────────────────────────────────────── */
@@ -80,6 +82,7 @@ function InfoBox({ children }: { children: React.ReactNode }) {
 export default function RiskSettingsPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [largeWithdrawal, setLargeWithdrawal] = useState(10000);
   const [whaleTrade,      setWhaleTrade]      = useState(100000);
   const [cancelRate,      setCancelRate]      = useState(80);
@@ -109,8 +112,9 @@ export default function RiskSettingsPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'risk'] });
       setSaveState('saved');
       setTimeout(() => setSaveState('idle'), 2500);
+      toast.success('Risk settings saved.');
     },
-    onError: () => { setSaveState('error'); setTimeout(() => setSaveState('idle'), 3000); },
+    onError: (e) => { setSaveState('error'); setTimeout(() => setSaveState('idle'), 3000); toast.error(formatSaveError(e, 'Failed to save risk settings.')); },
   });
 
   const handleSubmit = (e: React.FormEvent) => {

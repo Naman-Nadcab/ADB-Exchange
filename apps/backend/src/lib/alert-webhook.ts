@@ -48,25 +48,74 @@ async function getAlertWebhookUrlFromSettings(): Promise<string | null> {
   }
 }
 
+/** When no webhook URL is configured, deliver critical alerts via SMTP (Resend/etc.). */
+async function sendAlertEmailFallback(text: string, payload: AlertPayload): Promise<void> {
+  const to = process.env.OPS_ALERT_EMAIL?.trim();
+  if (!to) return;
+  try {
+    const { dynamicConfig } = await import('../services/dynamic-config.service.js');
+    const smtp = await dynamicConfig.getSmtpConfig();
+    if (!smtp?.host || !smtp.user || !smtp.pass) return;
+    const nodemailer = await import('nodemailer');
+    const transporter = nodemailer.default.createTransport({
+      host: smtp.host,
+      port: smtp.port,
+      secure: smtp.secure,
+      auth: { user: smtp.user, pass: smtp.pass },
+    });
+    await transporter.sendMail({
+      from: `${smtp.fromName} <${smtp.fromEmail}>`,
+      to,
+      subject: `[EXCHANGE ALERT] ${payload.type}`,
+      text,
+    });
+    transporter.close();
+  } catch (err) {
+    logger.warn('Alert email fallback failed', { error: err instanceof Error ? err.message : String(err) });
+  }
+}
+
 export async function sendAlertWebhook(payload: AlertPayload): Promise<void> {
+  const text = alertText(payload);
   let url = config.monitoring?.alertWebhookUrl ?? process.env.ALERT_WEBHOOK_URL?.trim();
   if (!url) url = await getAlertWebhookUrlFromSettings() ?? '';
+
+  try {
+    const { dynamicConfig } = await import('../services/dynamic-config.service.js');
+    const channels = await dynamicConfig.getAlertChannelsConfig();
+    if (!url && channels.webhookUrl) url = channels.webhookUrl;
+    if (channels.slackWebhookUrl) {
+      await postJson(channels.slackWebhookUrl, { text });
+    }
+    if (channels.pagerdutyKey) {
+      await postJson('https://events.pagerduty.com/v2/enqueue', {
+        routing_key: channels.pagerdutyKey,
+        event_action: 'trigger',
+        payload: { summary: text, severity: 'critical', source: 'exchange' },
+      });
+    }
+  } catch {
+    /* best-effort dynamic channels */
+  }
+
   if (!url) {
-    logger.warn('Alert webhook not configured; alert logged only', { alert: alertText(payload), type: payload.type });
+    await sendAlertEmailFallback(text, payload);
+    logger.warn('Alert webhook not configured; alert logged' + (process.env.OPS_ALERT_EMAIL?.trim() ? ' and emailed' : ' only'), {
+      alert: text,
+      type: payload.type,
+    });
     return;
   }
 
-  const body = JSON.stringify({
-    text: alertText(payload),
-    ...payload,
-    timestamp: new Date().toISOString(),
-  });
+  await postJson(url, { text, ...payload, timestamp: new Date().toISOString() });
+}
 
+async function postJson(url: string, body: Record<string, unknown>): Promise<void> {
   try {
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body,
+      body: JSON.stringify(body),
       signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) {

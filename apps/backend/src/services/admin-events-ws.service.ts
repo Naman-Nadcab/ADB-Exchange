@@ -19,6 +19,7 @@ export type AdminControlEventType =
   | 'liquidity_kill_activated'
   | 'health_score_updated'
   | 'timeline_event'
+  | 'infrastructure_action'
   | 'mm_circuit_changed'
   | 'admin_session_terminated';
 
@@ -85,6 +86,7 @@ const ALWAYS_BROADCAST: Set<AdminControlEventType> = new Set([
   'emergency_level_changed',
   'liquidity_kill_activated',
   'service_restarted',
+  'infrastructure_action',
   'mm_circuit_changed',
   'admin_session_terminated',
 ]);

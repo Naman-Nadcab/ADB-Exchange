@@ -73,7 +73,7 @@ export default function EventsPage() {
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">No active events right now</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">We're preparing exciting events for you. Enable notifications to be the first to know.</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">We&apos;re preparing exciting events for you. Enable notifications to be the first to know.</p>
           </div>
         </div>
         <button

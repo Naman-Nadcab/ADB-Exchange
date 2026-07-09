@@ -25,7 +25,7 @@ async function fetchBalancesSummary(): Promise<BalancesSummaryResult> {
   const data = await api.get<{
     funding?: { totalUsd?: string; totalBtc?: string };
     trading?: { totalUsd?: string; totalBtc?: string };
-  }>('/api/v1/wallet/balances/summary');
+  }>('/api/v1/wallet/balances/summary', { notifyOnError: false });
   if (!data.success) {
     const msg = data.error?.message || data.error?.code || 'Could not load balance.';
     return {
@@ -92,7 +92,7 @@ async function fetchBalancesFunding(): Promise<BalancesFundingResult> {
     totalEquity: { usd: string; btc: string };
     availableBalance: { usd: string; btc: string };
     inUse: { usd: string; btc: string };
-  }>('/api/v1/wallet/balances/funding');
+  }>('/api/v1/wallet/balances/funding', { notifyOnError: false });
 
   const errCode = response.error?.code;
   if (!response.success && (errCode === 'UNAUTHORIZED' || errCode === 'SESSION_INVALID' || errCode === 'TOKEN_EXPIRED' || errCode === 'INVALID_TOKEN')) {
@@ -176,7 +176,7 @@ export interface SpotBalanceRow {
 }
 
 async function fetchBalancesSpot(): Promise<SpotBalanceRow[]> {
-  const res = await api.get<SpotBalanceRow[]>('/api/v1/wallet/balances/spot');
+  const res = await api.get<SpotBalanceRow[]>('/api/v1/wallet/balances/spot', { notifyOnError: false });
   if (res.success && Array.isArray(res.data)) return res.data;
   if (res.error?.code === 'UNAUTHORIZED' || res.error?.code === 'SESSION_INVALID' || res.error?.code === 'INVALID_TOKEN') {
     return [];
@@ -223,7 +223,7 @@ async function fetchBalancesTrading(): Promise<BalancesTradingResult> {
     totalEquity?: { usd?: number };
     availableBalance?: { usd?: number };
     unrealizedPnl?: { usd?: number };
-  }>('/api/v1/wallet/balances/trading');
+  }>('/api/v1/wallet/balances/trading', { notifyOnError: false });
   if (res.success && res.data) {
     const te = res.data.totalEquity;
     const ab = res.data.availableBalance;

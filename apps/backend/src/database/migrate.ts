@@ -1818,6 +1818,13 @@ const migrations = [
   `INSERT INTO api_settings (category, provider, name, is_active, is_default, additional_config) VALUES ('social_login', 'google', 'Google', FALSE, TRUE, '{"callback_url":""}') ON CONFLICT (category, provider) DO NOTHING;`,
   // Web Push (VAPID) — admin generates a keypair in the panel and toggles is_active = true.
   `INSERT INTO api_settings (category, provider, name, is_active, is_default, additional_config) VALUES ('web_push', 'vapid', 'Web Push (VAPID)', FALSE, TRUE, '{"subject":"mailto:admin@example.com"}') ON CONFLICT (category, provider) DO NOTHING;`,
+  // Alert channels (Integrations Center — replaces .env alert URLs when active)
+  `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('alert', 'webhook', 'Generic Webhook', FALSE, TRUE) ON CONFLICT (category, provider) DO NOTHING;`,
+  `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('alert', 'slack', 'Slack Webhook', FALSE, FALSE) ON CONFLICT (category, provider) DO NOTHING;`,
+  `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('alert', 'pagerduty', 'PagerDuty', FALSE, FALSE) ON CONFLICT (category, provider) DO NOTHING;`,
+  `INSERT INTO api_settings (category, provider, name, is_active, is_default, additional_config) VALUES ('alert', 'email', 'Email Fallback', FALSE, FALSE, '{"to":""}') ON CONFLICT (category, provider) DO NOTHING;`,
+  `INSERT INTO api_settings (category, provider, name, is_active, is_default, additional_config) VALUES ('alert', 'telegram', 'Telegram Bot', FALSE, FALSE, '{"chat_id":""}') ON CONFLICT (category, provider) DO NOTHING;`,
+  `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('alert', 'discord', 'Discord Webhook', FALSE, FALSE) ON CONFLICT (category, provider) DO NOTHING;`,
 
   // ============================================
   // FEATURE TOGGLES TABLE
@@ -3978,6 +3985,82 @@ const migrations = [
   `ALTER TABLE user_passkeys ADD COLUMN IF NOT EXISTS backup_state BOOLEAN DEFAULT FALSE;`,
   `ALTER TABLE user_passkeys ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`,
   `CREATE INDEX IF NOT EXISTS idx_user_passkeys_user_alive ON user_passkeys(user_id) WHERE deleted_at IS NULL;`,
+
+  // internal_transfers — wallet history for funding↔trading moves (wallet.fastify.ts)
+  `CREATE TABLE IF NOT EXISTS internal_transfers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    from_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    to_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    currency_id UUID NOT NULL REFERENCES currencies(id),
+    amount DECIMAL(30,8) NOT NULL,
+    transfer_type VARCHAR(32) NOT NULL DEFAULT 'internal',
+    status VARCHAR(32) NOT NULL DEFAULT 'completed',
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_internal_transfers_from ON internal_transfers(from_user_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_internal_transfers_to ON internal_transfers(to_user_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_internal_transfers_created ON internal_transfers(created_at DESC);`,
+
+  // tier1-fixes-2026-04 (idempotent schema drift patch)
+  `DO $$
+  BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='escrows' AND column_name='p2p_order_id') THEN
+      ALTER TABLE escrows ADD COLUMN p2p_order_id UUID;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='escrows' AND column_name='currency_id') THEN
+      ALTER TABLE escrows ADD COLUMN currency_id UUID;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='escrows' AND column_name='created_at') THEN
+      ALTER TABLE escrows ADD COLUMN created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+    END IF;
+  END $$;`,
+  `CREATE INDEX IF NOT EXISTS idx_escrows_order ON escrows(p2p_order_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_escrows_user_status ON escrows(user_id, status);`,
+  `DO $$
+  BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='p2p_orders' AND column_name='escrow_id') THEN
+      ALTER TABLE p2p_orders ADD COLUMN escrow_id UUID;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='p2p_orders' AND column_name='token_id') THEN
+      ALTER TABLE p2p_orders ADD COLUMN token_id UUID;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='p2p_orders' AND column_name='quantity') THEN
+      ALTER TABLE p2p_orders ADD COLUMN quantity DECIMAL(30,8);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='p2p_orders' AND column_name='expires_at') THEN
+      ALTER TABLE p2p_orders ADD COLUMN expires_at TIMESTAMPTZ;
+    END IF;
+  END $$;`,
+  `CREATE INDEX IF NOT EXISTS idx_p2p_orders_expires_status ON p2p_orders(expires_at) WHERE expires_at IS NOT NULL;`,
+  `CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);`,
+  `DO $$
+  BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='settlement_events' AND column_name='updated_at') THEN
+      ALTER TABLE settlement_events ADD COLUMN updated_at TIMESTAMPTZ DEFAULT NOW();
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='settlement_events' AND column_name='error_message') THEN
+      ALTER TABLE settlement_events ADD COLUMN error_message TEXT;
+    END IF;
+  END $$;`,
+
+  // RC-003: settlement quarantine metadata (additive only; status remains TEXT)
+  `ALTER TABLE settlement_events ADD COLUMN IF NOT EXISTS prior_status TEXT;`,
+  `ALTER TABLE settlement_events ADD COLUMN IF NOT EXISTS quarantined_at TIMESTAMPTZ;`,
+  `ALTER TABLE settlement_events ADD COLUMN IF NOT EXISTS quarantine_reason TEXT;`,
+  `ALTER TABLE settlement_events ADD COLUMN IF NOT EXISTS quarantined_by TEXT;`,
+  `CREATE INDEX IF NOT EXISTS idx_settlement_events_quarantined_at ON settlement_events(quarantined_at) WHERE quarantined_at IS NOT NULL;`,
+  `CREATE TABLE IF NOT EXISTS settlement_quarantine_log (
+    id BIGSERIAL PRIMARY KEY,
+    batch_id TEXT NOT NULL,
+    actor_id TEXT NOT NULL,
+    classification TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    event_ids JSONB NOT NULL DEFAULT '[]'::jsonb,
+    quarantined_count INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_settlement_quarantine_log_created ON settlement_quarantine_log(created_at DESC);`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

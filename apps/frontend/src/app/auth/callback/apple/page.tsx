@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-import { handleAppleCallback, consumeOAuthRedirect } from '@/lib/oauth';
-import { useAuthStore } from '@/store/auth';
+import { handleAppleCallback, consumeOAuthRedirect, resolvePostLoginRedirect } from '@/lib/oauth';
+import { useAuthStore, type User } from '@/store/auth';
 import { useAuth } from '@/context/AuthContext';
+import { COOKIE_SESSION_MARKER } from '@/lib/authSession';
 
 export default function AppleCallbackPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuthStore();
   const { setAuthenticated } = useAuth();
@@ -23,44 +23,46 @@ export default function AppleCallbackPage() {
 
     if (errorParam) {
       setError('Apple login was cancelled or failed');
-      setTimeout(() => router.push('/login'), 3000);
+      setTimeout(() => { window.location.assign('/login'); }, 3000);
       return;
     }
 
     if (!code || !state) {
       setError('Invalid callback parameters');
-      setTimeout(() => router.push('/login'), 3000);
+      setTimeout(() => { window.location.assign('/login'); }, 3000);
       return;
     }
 
     handleAppleCallback(code, idToken || '', state, user || undefined)
       .then((result) => {
         if (result.success && result.data) {
-          // Map API response to store format
-          const userData = {
+          const userData: User = {
             id: result.data.user.id,
             email: result.data.user.email,
             phone: result.data.user.phone,
             username: result.data.user.username,
-            status: result.data.user.status as 'pending' | 'active' | 'suspended' | 'banned' | 'deleted',
+            status: result.data.user.status as User['status'],
             emailVerified: result.data.user.emailVerified,
             phoneVerified: result.data.user.phoneVerified,
             tierLevel: result.data.user.tierLevel,
           };
-          login(userData, result.data.accessToken, result.data.refreshToken);
+          login(
+            userData,
+            result.data.accessToken ?? COOKIE_SESSION_MARKER,
+            result.data.refreshToken ?? COOKIE_SESSION_MARKER,
+          );
           setAuthenticated(userData);
-          const redirect = consumeOAuthRedirect();
-          router.push(redirect || '/dashboard');
+          window.location.assign(resolvePostLoginRedirect(consumeOAuthRedirect()));
         } else {
           setError(result.error?.message || 'Apple login failed');
-          setTimeout(() => router.push('/login'), 3000);
+          setTimeout(() => { window.location.assign('/login'); }, 3000);
         }
       })
-      .catch((err) => {
+      .catch(() => {
         setError('An error occurred during login');
-        setTimeout(() => router.push('/login'), 3000);
+        setTimeout(() => { window.location.assign('/login'); }, 3000);
       });
-  }, [searchParams, router, login, setAuthenticated]);
+  }, [searchParams, login, setAuthenticated]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">

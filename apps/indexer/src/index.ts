@@ -7,6 +7,7 @@ import { CHAIN_CONFIGS, loadChainRpcOverridesFromDb } from './config/chains';
 import { query } from './config/database';
 import { ChainIndexer } from './services/ChainIndexer';
 import { ConfirmationTracker } from './services/ConfirmationTracker';
+import { RecentDepositScanner } from './services/RecentDepositScanner';
 import { BitcoinIndexer } from './services/BitcoinIndexer';
 import { TronIndexer } from './services/TronIndexer';
 import { startApiServer } from './api/server';
@@ -18,6 +19,7 @@ class IndexerManager {
   private indexers: Map<string, ChainIndexer> = new Map();
   private nonEvmIndexers: Map<string, NonEvmIndexer> = new Map();
   private confirmationTracker: ConfirmationTracker;
+  private recentDepositScanner: RecentDepositScanner | null = null;
   private isShuttingDown: boolean = false;
 
   constructor() {
@@ -36,8 +38,14 @@ class IndexerManager {
     // Expose /health before chain WebSockets (confirmation tracker can be slow; Docker healthcheck needs HTTP early).
     startApiServer(this);
 
-    // Initialize indexers for all chains
+    const activeEvmChainIds = await this.loadActiveEvmChainIds();
+
+    // Initialize indexers only for active EVM chains (same gate as Bitcoin/Tron indexers).
     for (const [chainKey, config] of Object.entries(CHAIN_CONFIGS)) {
+      if (activeEvmChainIds != null && !this.isEvmChainActive(chainKey, activeEvmChainIds)) {
+        logger.info(`Skipping ${config.name} indexer — chain not active in DB`, { chainKey });
+        continue;
+      }
       const indexer = new ChainIndexer(chainKey, config);
       this.indexers.set(chainKey, indexer);
     }
@@ -54,6 +62,10 @@ class IndexerManager {
 
     await Promise.all(startPromises);
 
+    // Live head scanner — detects deposits within ~1 min even when block lag is large.
+    this.recentDepositScanner = new RecentDepositScanner(this.indexers);
+    this.recentDepositScanner.start();
+
     // Start non-EVM indexers (Bitcoin / Tron). These are gated internally by
     // presence of BLOCKCYPHER_TOKEN / TRON_API_KEY + active chain row in DB.
     await this.startNonEvmIndexers();
@@ -63,6 +75,27 @@ class IndexerManager {
 
     logger.info('🎉 All indexers started successfully!');
     this.printStatus();
+  }
+
+  /** When DB is reachable, only chains with is_active=TRUE are indexed. null = fail-open (start all). */
+  private async loadActiveEvmChainIds(): Promise<Set<string> | null> {
+    try {
+      const res = await query(
+        `SELECT id FROM chains WHERE is_active = TRUE AND type = 'evm'`
+      );
+      return new Set(res.rows.map((r: { id: string }) => String(r.id).toLowerCase()));
+    } catch (error) {
+      logger.warn('Failed to load active EVM chains; starting all configured indexers', { error });
+      return null;
+    }
+  }
+
+  private isEvmChainActive(chainKey: string, activeIds: Set<string>): boolean {
+    const k = chainKey.toLowerCase();
+    if (activeIds.has(k)) return true;
+    // DB seed may use legacy id "eth" while indexer key is "ethereum".
+    if (k === 'ethereum' && activeIds.has('eth')) return true;
+    return false;
   }
 
   private async startNonEvmIndexers(): Promise<void> {
@@ -202,6 +235,8 @@ class IndexerManager {
     this.isShuttingDown = true;
     
     logger.info('Shutting down indexers...');
+
+    this.recentDepositScanner?.stop();
     
     // Stop confirmation tracker
     await this.confirmationTracker.stop();
@@ -244,6 +279,11 @@ class IndexerManager {
     }
 
     return stats;
+  }
+
+  async scanUserDeposits(userId: string): Promise<Record<string, number>> {
+    if (!this.recentDepositScanner) return {};
+    return this.recentDepositScanner.scanUser(userId);
   }
 }
 

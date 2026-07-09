@@ -6,6 +6,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAdminAuthStore } from '@/store/auth';
 import { getUsers, updateUserStatus, type AdminUserRow } from '@/lib/users-api';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { cn } from '@/lib/cn';
 import {
   Ban, ShieldOff, Users, Search, RefreshCw, Eye, Check,
@@ -93,6 +95,7 @@ export default function RestrictionsPage() {
   const token        = useAdminAuthStore((s) => s.accessToken);
   const router       = useRouter();
   const queryClient  = useQueryClient();
+  const toast        = useAdminToast();
   const [tab,    setTab]    = useState<Tab>('locked');
   const [search, setSearch] = useState('');
   const [suspPage, setSuspPage] = useState(1);
@@ -122,7 +125,9 @@ export default function RestrictionsPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'restrictions'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard-stats'] });
+      toast.success('User reactivated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to reactivate user.')),
   });
 
   const suspTotal   = suspQ.data?.data?.pagination?.total ?? 0;

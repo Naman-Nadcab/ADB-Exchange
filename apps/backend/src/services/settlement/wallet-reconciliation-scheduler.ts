@@ -13,13 +13,13 @@ import { getLiveBalanceReadOnly } from '../hot-wallet.service.js';
 import { recordWalletCacheDivergence } from '../exchange-monitoring.service.js';
 import {
   runWalletReconciliation,
-  defaultWalletOutflowDebitProvider,
+  createHotWalletOutflowDebitProvider,
   type WalletBalanceProvider,
 } from './wallet-reconciliation.service.js';
 
 const LOCK_KEY = 'wallet_reconciliation:run';
 const LOCK_TTL_MS = 4 * 60 * 1000; // 4 min; runner must finish before this
-const RECONCILIATION_INTERVAL_MS = 5 * 60 * 1000; // 5 min
+const RECONCILIATION_INTERVAL_MS = parseInt(process.env.WALLET_RECONCILIATION_INTERVAL_MS || '600000', 10); // 10 min default
 
 let schedulerIntervalId: ReturnType<typeof setInterval> | null = null;
 
@@ -95,7 +95,7 @@ async function runReconciliationCycle(): Promise<void> {
           wallet_type: 'hot',
           chainIdForSweeps: chainId,
           getOnchainBalance,
-          getWalletOutflowDebit: defaultWalletOutflowDebitProvider,
+          getWalletOutflowDebit: createHotWalletOutflowDebitProvider(chainId, asset),
         });
       } catch (err) {
         logger.error('Wallet reconciliation run failed (fail closed)', {

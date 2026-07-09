@@ -13,6 +13,7 @@ import { logger } from '../../lib/logger.js';
 import { tradeValue, takerFee, makerFee, toNumeric } from './decimal-utils.js';
 import { getTradingHalted, getSettlementCircuitOpen } from '../../lib/trading-halt.js';
 import { isTradingHalted, setTradingHalted, triggerCircuitIfViolation } from './settlement-circuit.js';
+import { isTerminalSettlementStatus } from './settlement-status.js';
 import { LEDGER_ENTRY_DOMAIN, SETTLEMENT_EVENT_DOMAIN } from './settlement-hash-constants.js';
 import { assertNonNegative, assertValidDecimal } from '../../lib/monetary-invariants.js';
 import {
@@ -28,6 +29,40 @@ import { notifySpotPrivateChannelsAfterSettlement } from '../spot-settlement-pri
 import { getSpotTradesShapeSync, loadSpotTradesShape } from '../../lib/spot-trades-shape.js';
 import { insertSpotTradesAfterMatch, updateSpotOrdersFilledAfterMatch } from './spot-settlement-order-writes.js';
 import { computeSettlementLedgerDeltasFromPayload } from './settlement-ledger-deltas.js';
+
+function buildLiveNotifyFromPayload(row: SettlementRow, p: EnginePayload): EngineLiveNotifyPayload {
+  return {
+    matchEngineId: row.match_engine_id || p.match_engine_id || 'default',
+    engineEventId: row.engine_event_id,
+    symbol: p.symbol,
+    price: p.price,
+    qty: p.qty,
+    taker_side: p.taker_side as 'buy' | 'sell',
+    taker_user_id: p.taker_user_id,
+    maker_user_id: p.maker_user_id,
+    taker_order_id: p.taker_order_id,
+    maker_order_id: p.maker_order_id,
+    base: '',
+    quote: '',
+    quoteValue: '',
+  };
+}
+
+export async function notifyPrivateWsAfterSettlement(liveNotify: EngineLiveNotifyPayload): Promise<void> {
+  try {
+    await notifySpotPrivateChannelsAfterSettlement({
+      symbol: liveNotify.symbol,
+      takerOrderId: liveNotify.taker_order_id,
+      makerOrderId: liveNotify.maker_order_id,
+      takerUserId: liveNotify.taker_user_id,
+      makerUserId: liveNotify.maker_user_id,
+    });
+  } catch (wsErr) {
+    logger.warn('Settlement private WS notify failed (best-effort)', {
+      error: wsErr instanceof Error ? wsErr.message : String(wsErr),
+    });
+  }
+}
 import { insertBalanceLedger } from '../../lib/balance-ledger.js';
 import { settlementEventsDlqTotal } from '../../lib/prometheus-metrics.js';
 
@@ -251,7 +286,7 @@ export async function processSettlementEventRow(
       settlementEventId: row.id,
       engineEventId: row.engine_event_id,
     });
-    return undefined;
+    return buildLiveNotifyFromPayload(row, p);
   }
 
   const p = row.payload as EnginePayload;
@@ -342,13 +377,44 @@ export async function processSettlementEventRow(
     };
   };
 
+  const promoteAvailableToLocked = async (userId: string, asset: string, needLocked: DecimalInstance) => {
+    const currencyId = assetToCurrency[asset];
+    if (!currencyId) return;
+    const row = lockResult.rows.find((r) => r.user_id === userId && r.currency_id === currencyId);
+    if (!row) return;
+    const locked = new Decimal(row.locked_balance ?? '0');
+    if (locked.gte(needLocked)) return;
+    const shortfall = needLocked.minus(locked);
+    const avail = new Decimal(row.available_balance ?? '0');
+    if (avail.lt(shortfall)) return;
+    const rel = await client.query<{ available_balance: string; locked_balance: string }>(
+      `UPDATE user_balances
+         SET available_balance = available_balance - $1::numeric,
+             locked_balance = locked_balance + $1::numeric,
+             updated_at = NOW()
+       WHERE user_id = $2::uuid AND currency_id = $3::uuid
+         AND COALESCE(chain_id, '') = $4 AND account_type::text = $5
+         AND available_balance >= $1::numeric
+       RETURNING available_balance::text, locked_balance::text`,
+      [toNumeric(shortfall), userId, currencyId, CHAIN_ID_GLOBAL, SETTLEMENT_ACCOUNT_TYPE]
+    );
+    if ((rel.rowCount ?? 0) > 0 && rel.rows[0]) {
+      row.available_balance = rel.rows[0].available_balance;
+      row.locked_balance = rel.rows[0].locked_balance;
+    }
+  };
+
   if (p.taker_side === 'buy') {
+    await promoteAvailableToLocked(takerId, quote, tradeVal);
+    await promoteAvailableToLocked(makerId, base, qty);
     const takerQuoteLocked = getBal(takerId, quote).locked;
     const makerBaseLocked = getBal(makerId, base).locked;
     if (takerQuoteLocked.lt(tradeVal) || makerBaseLocked.lt(qty)) {
       throw new Error('INSUFFICIENT_LOCKED_FUNDS');
     }
   } else {
+    await promoteAvailableToLocked(takerId, base, qty);
+    await promoteAvailableToLocked(makerId, quote, tradeVal);
     const takerBaseLocked = getBal(takerId, base).locked;
     const makerQuoteLocked = getBal(makerId, quote).locked;
     if (takerBaseLocked.lt(qty) || makerQuoteLocked.lt(tradeVal)) {
@@ -838,8 +904,8 @@ export async function ingestAndSettleMatchEventFromJetStream(
       if (ex.rows.length === 0) {
         throw new Error('STREAM_MATCH_EVENT_ROW_MISSING');
       }
-      const st = (ex.rows[0]!.status || '').toLowerCase();
-      if (st === 'processed' || st === 'failed') {
+      const st = ex.rows[0]!.status || '';
+      if (isTerminalSettlementStatus(st)) {
         await client.query('COMMIT');
         return { outcome: 'already_done' };
       }
@@ -858,8 +924,8 @@ export async function ingestAndSettleMatchEventFromJetStream(
       [rowId]
     );
     const lr = locked.rows[0]!;
-    const st2 = (lr.status || '').toLowerCase();
-    if (st2 === 'processed' || st2 === 'failed') {
+    const st2 = lr.status || '';
+    if (isTerminalSettlementStatus(st2)) {
       await client.query('COMMIT');
       return { outcome: 'already_done' };
     }
@@ -981,19 +1047,7 @@ async function processOneEvent(): Promise<boolean> {
             stack: errStack(liveErr),
           });
         }
-        try {
-          await notifySpotPrivateChannelsAfterSettlement({
-            symbol: liveNotify.symbol,
-            takerOrderId: liveNotify.taker_order_id,
-            makerOrderId: liveNotify.maker_order_id,
-            takerUserId: liveNotify.taker_user_id,
-            makerUserId: liveNotify.maker_user_id,
-          });
-        } catch (wsErr) {
-          logger.warn('Settlement private WS notify failed (best-effort)', {
-            error: wsErr instanceof Error ? wsErr.message : String(wsErr),
-          });
-        }
+        await notifyPrivateWsAfterSettlement(liveNotify);
       }
       return true;
     } catch (err) {

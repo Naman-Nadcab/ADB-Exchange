@@ -10,6 +10,8 @@ import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
 import { NotificationTemplatesPanel } from '@/components/ops/NotificationTemplatesPanel';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
 /* ── constants ─────────────────────────────────────────────────────── */
 const EVENT_TYPES = [
@@ -67,6 +69,7 @@ function normalizePrefs(raw: unknown): Prefs {
 export default function NotificationsPage() {
   const token        = useAdminAuthStore((s) => s.accessToken);
   const queryClient  = useQueryClient();
+  const toast        = useAdminToast();
   const [saved,       setSaved]       = useState(false);
   const [saveError,   setSaveError]   = useState('');
   const [testingCh,   setTestingCh]   = useState<ChannelKey | null>(null);
@@ -92,8 +95,13 @@ export default function NotificationsPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'notification-prefs'] });
       setSaved(true); setLocalPrefs(null); setSaveError('');
       setTimeout(() => setSaved(false), 3000);
+      toast.success('Notification preferences saved.');
     },
-    onError: (e: unknown) => setSaveError((e as { message?: string })?.message ?? 'Failed to save preferences.'),
+    onError: (e: unknown) => {
+      const msg = (e as { message?: string })?.message ?? 'Failed to save preferences.';
+      setSaveError(msg);
+      toast.error(formatSaveError(e, 'Failed to save preferences.'));
+    },
   });
 
   const toggle = useCallback((channel: ChannelKey, event: EventKey) => {

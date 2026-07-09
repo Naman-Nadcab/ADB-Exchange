@@ -10,10 +10,13 @@ import { useAdminAuthStore } from '@/store/auth';
 import { getSystemSettings, patchSystemSettings } from '@/lib/system-api';
 import { Server, ShieldCheck, Cable, Settings, Globe, CheckCircle2, AlertTriangle, KeyRound } from 'lucide-react';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
 export default function SettingsPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const { data: settingsData } = useQuery({
     queryKey: ['admin', 'system', 'settings', token],
     queryFn: () => getSystemSettings(token),
@@ -53,7 +56,9 @@ export default function SettingsPage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'settings'] });
+      toast.success('Geo settings saved.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to save geo settings.')),
   });
 
   return (

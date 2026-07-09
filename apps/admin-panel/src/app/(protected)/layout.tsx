@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAdminAuthStore } from '@/store/auth';
 import { useRealtime } from '@/hooks/useRealtime';
+import { useAlertCenterSync } from '@/hooks/useAlertCenterSync';
 import { AppShell } from '@/components/shell';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 
@@ -39,6 +40,7 @@ export default function ProtectedLayout({
   useEffect(() => setMounted(true), []);
 
   useRealtime();
+  useAlertCenterSync();
 
   useEffect(() => {
     if (!hasHydrated) return; // wait for persist to finish

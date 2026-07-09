@@ -37,6 +37,8 @@ import { ArrowLeft, Power, PowerOff, AlertTriangle, History, RotateCcw, GitCompa
 import { cn } from '@/lib/cn';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { AdminSaveBanner, useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
 const TRADING_KEYS = ['default_maker_fee', 'default_taker_fee', 'min_order_size'];
 const LIMIT_KEYS = ['api_rate_limit', 'max_withdrawal_per_day', 'max_orders_per_minute', 'max_login_attempts'];
@@ -150,6 +152,7 @@ type SystemTab = 'configuration' | 'version-history';
 export default function SystemSettingsPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const adminToast = useAdminToast();
   const [activeTab, setActiveTab] = useState<SystemTab>('configuration');
   const [emergencyModal, setEmergencyModal] = useState<{ action: string; label: string; enabled: boolean } | null>(null);
   const [safeModeAuthTarget, setSafeModeAuthTarget] = useState<boolean | null>(null);
@@ -372,18 +375,46 @@ export default function SystemSettingsPage() {
 
   const patchSettingsMutation = useMutation({
     mutationFn: (body: Record<string, string>) => patchSystemSettings(token, body),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'settings'] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'settings', 'history'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'settings'] });
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'settings', 'history'] });
+      const msg = 'System settings saved successfully.';
+      setToast({ type: 'success', message: msg });
+      adminToast.success(msg);
+    },
+    onError: (e) => {
+      const msg = 'Failed to save system settings.';
+      setToast({ type: 'error', message: msg });
+      adminToast.error(formatSaveError(e, msg));
     },
   });
   const patchFeatureMutation = useMutation({
     mutationFn: (body: { id?: string; feature_key?: string; status?: string; rollout?: string }) => patchSystemFeature(token, body),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'features'] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'features'] });
+      const msg = 'Feature flag updated.';
+      setToast({ type: 'success', message: msg });
+      adminToast.success(msg);
+    },
+    onError: (e) => {
+      const msg = 'Failed to update feature flag.';
+      setToast({ type: 'error', message: msg });
+      adminToast.error(formatSaveError(e, msg));
+    },
   });
   const patchRiskMutation = useMutation({
     mutationFn: (body: Partial<RiskSettings>) => patchRiskSettings(token, body),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'risk', 'settings'] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'risk', 'settings'] });
+      const msg = 'Risk settings saved successfully.';
+      setToast({ type: 'success', message: msg });
+      adminToast.success(msg);
+    },
+    onError: (e) => {
+      const msg = 'Failed to save risk settings.';
+      setToast({ type: 'error', message: msg });
+      adminToast.error(formatSaveError(e, msg));
+    },
   });
   const haltMutation = useMutation({
     mutationFn: ({ halted, reason, twofa_code }: { halted: boolean; reason?: string; twofa_code?: string }) =>
@@ -393,20 +424,40 @@ export default function SystemSettingsPage() {
       const queued = Boolean((res?.data as { queued_for_approval?: boolean } | undefined)?.queued_for_approval);
       if (queued) {
         queryClient.invalidateQueries({ queryKey: ['admin', 'approval-requests'] });
+        const msg = 'Trading halt queued for approval.';
+        setToast({ type: 'success', message: msg });
+        adminToast.success(msg);
+      } else {
+        const msg = 'Trading halt updated successfully.';
+        setToast({ type: 'success', message: msg });
+        adminToast.success(msg);
       }
       setTradingPauseModalOpen(false);
+    },
+    onError: (e) => {
+      const msg = 'Failed to update trading halt.';
+      setToast({ type: 'error', message: msg });
+      adminToast.error(formatSaveError(e, msg));
     },
   });
   const emergencyMutation = useMutation({
     mutationFn: ({ action, enabled, reason, twofa_code }: { action: string; enabled: boolean; reason?: string; twofa_code?: string }) =>
       postEmergencyAction(token, action, enabled, { reason, twofa_code }),
-    onSuccess: (_, { action }) => {
+    onSuccess: (_, { action, enabled }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'settings'] });
       if (action === 'pause_trading') queryClient.invalidateQueries({ queryKey: ['admin', 'trading-halt'] });
       if (action === 'disable_withdrawals' || action === 'disable_deposits') {
         queryClient.invalidateQueries({ queryKey: ['admin', 'operational', 'wallet-status'] });
       }
       setEmergencyModal(null);
+      const msg = `Emergency action "${action}" ${enabled ? 'enabled' : 'disabled'}.`;
+      setToast({ type: 'success', message: msg });
+      adminToast.success(msg);
+    },
+    onError: (e) => {
+      const msg = 'Emergency action failed.';
+      setToast({ type: 'error', message: msg });
+      adminToast.error(formatSaveError(e, msg));
     },
   });
   const rollbackMutation = useMutation({
@@ -415,21 +466,45 @@ export default function SystemSettingsPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'settings'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'settings', 'history'] });
       setRollbackModal(null);
+      const msg = 'Settings rolled back successfully.';
+      setToast({ type: 'success', message: msg });
+      adminToast.success(msg);
+    },
+    onError: (e) => {
+      const msg = 'Settings rollback failed.';
+      setToast({ type: 'error', message: msg });
+      adminToast.error(formatSaveError(e, msg));
     },
   });
   const applyProfileMutation = useMutation({
     mutationFn: (profile: string) => postSystemApplyProfile(token, profile),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'settings'] });
+    onSuccess: (_, profile) => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'settings'] });
+      const msg = `Profile "${profile}" applied successfully.`;
+      setToast({ type: 'success', message: msg });
+      adminToast.success(msg);
+    },
+    onError: (e) => {
+      const msg = 'Failed to apply profile.';
+      setToast({ type: 'error', message: msg });
+      adminToast.error(formatSaveError(e, msg));
     },
   });
   const safeModeMutation = useMutation({
     mutationFn: ({ enabled, reason, twofa_code }: { enabled: boolean; reason?: string; twofa_code?: string }) =>
       postSystemSafeMode(token, enabled, { reason, twofa_code }),
-    onSuccess: () => {
+    onSuccess: (_, { enabled }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'safe-mode'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'settings'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'trading-halt'] });
+      const msg = `Safe mode ${enabled ? 'enabled' : 'disabled'}.`;
+      setToast({ type: 'success', message: msg });
+      adminToast.success(msg);
+    },
+    onError: (e) => {
+      const msg = 'Failed to update safe mode.';
+      setToast({ type: 'error', message: msg });
+      adminToast.error(formatSaveError(e, msg));
     },
   });
   const walletStatusMutation = useMutation({
@@ -441,6 +516,14 @@ export default function SystemSettingsPage() {
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'operational', 'wallet-status'] });
+      const msg = 'Wallet service status updated.';
+      setToast({ type: 'success', message: msg });
+      adminToast.success(msg);
+    },
+    onError: (e) => {
+      const msg = 'Failed to update wallet service status.';
+      setToast({ type: 'error', message: msg });
+      adminToast.error(formatSaveError(e, msg));
     },
   });
   const importSettingsMutation = useMutation({
@@ -449,6 +532,14 @@ export default function SystemSettingsPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'settings'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'settings', 'history'] });
       setImportPreview(null);
+      const msg = 'Imported settings applied successfully.';
+      setToast({ type: 'success', message: msg });
+      adminToast.success(msg);
+    },
+    onError: (e) => {
+      const msg = 'Failed to import settings.';
+      setToast({ type: 'error', message: msg });
+      adminToast.error(formatSaveError(e, msg));
     },
   });
   const postDependencyMutation = useMutation({
@@ -460,9 +551,15 @@ export default function SystemSettingsPage() {
       setDependencyModal(null);
       setDependencySaveConfirm(false);
       setDependencyForm({ feature_key: '', requires_feature_key: '', behaviour: 'auto_disable' });
-      setToast({ type: 'success', message: 'Dependency rule saved.' });
+      const msg = 'Dependency rule saved.';
+      setToast({ type: 'success', message: msg });
+      adminToast.success(msg);
     },
-    onError: () => setToast({ type: 'error', message: 'Failed to save dependency.' }),
+    onError: (e) => {
+      const msg = 'Failed to save dependency.';
+      setToast({ type: 'error', message: msg });
+      adminToast.error(formatSaveError(e, msg));
+    },
   });
   const patchDependencyMutation = useMutation({
     mutationFn: (body: { feature_key: string; requires_feature_key: string; behaviour: string }) =>
@@ -473,9 +570,15 @@ export default function SystemSettingsPage() {
       setDependencyModal(null);
       setDependencySaveConfirm(false);
       setDependencyForm({ feature_key: '', requires_feature_key: '', behaviour: 'auto_disable' });
-      setToast({ type: 'success', message: 'Dependency rule updated.' });
+      const msg = 'Dependency rule updated.';
+      setToast({ type: 'success', message: msg });
+      adminToast.success(msg);
     },
-    onError: () => setToast({ type: 'error', message: 'Failed to update dependency.' }),
+    onError: (e) => {
+      const msg = 'Failed to update dependency.';
+      setToast({ type: 'error', message: msg });
+      adminToast.error(formatSaveError(e, msg));
+    },
   });
   const deleteDependencyMutation = useMutation({
     mutationFn: (params: { feature_key: string; requires_feature_key: string }) =>
@@ -484,9 +587,15 @@ export default function SystemSettingsPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'features', 'dependencies'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'system', 'features'] });
       setDeleteDependencyTarget(null);
-      setToast({ type: 'success', message: 'Dependency rule deleted.' });
+      const msg = 'Dependency rule deleted.';
+      setToast({ type: 'success', message: msg });
+      adminToast.success(msg);
     },
-    onError: () => setToast({ type: 'error', message: 'Failed to delete dependency.' }),
+    onError: (e) => {
+      const msg = 'Failed to delete dependency.';
+      setToast({ type: 'error', message: msg });
+      adminToast.error(formatSaveError(e, msg));
+    },
   });
 
   const versions = (historyData?.data?.versions ?? []) as ConfigVersionRow[];
@@ -609,6 +718,10 @@ export default function SystemSettingsPage() {
         confirmLabel={haltMutation.isPending ? 'Pausing…' : 'Pause trading'}
         confirmVariant="danger"
       />
+
+      {toast ? (
+        <AdminSaveBanner kind={toast.type} message={toast.message} />
+      ) : null}
 
       <div className="border-b border-admin-border">
         <nav className="flex gap-1">

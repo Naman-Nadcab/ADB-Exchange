@@ -9,7 +9,7 @@ import { COOKIE_SESSION_MARKER } from '@/lib/authSession';
 import { useAuth } from '@/context/AuthContext';
 import { getPasskeyAssertion, isPlatformAuthenticatorAvailable, isWebAuthnSupported } from '@/lib/webauthn';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
-import { consumeOAuthRedirect, getStoredRedirect } from '@/lib/oauth';
+import { consumeOAuthRedirect, getStoredRedirect, resolvePostLoginRedirect } from '@/lib/oauth';
 import AuthSplitLayout from '@/components/auth/AuthSplitLayout';
 
 type Step = 'identifier' | 'otp';
@@ -56,7 +56,7 @@ export default function LoginPage() {
   const lastSubmitted = useRef('');
 
   useEffect(() => {
-    const r = searchParams.get('redirect');
+    const r = searchParams.get('redirect') || searchParams.get('returnUrl');
     if (r?.startsWith('/') && typeof sessionStorage !== 'undefined') sessionStorage.setItem('oauth_redirect', r);
   }, [searchParams]);
 
@@ -111,7 +111,12 @@ export default function LoginPage() {
     const user = toUser(userData);
     login(user, accessToken, refreshToken);
     setAuthenticated(user);
-    router.replace(consumeOAuthRedirect() || '/dashboard');
+    const target = resolvePostLoginRedirect(
+      consumeOAuthRedirect(),
+      searchParams.get('returnUrl'),
+      searchParams.get('redirect'),
+    );
+    window.location.assign(target);
   };
 
   const passwordLogin = async () => {

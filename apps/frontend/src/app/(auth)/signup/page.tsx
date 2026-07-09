@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ExternalLink, Loader2, Mail, Smartphone } from 'lucide-react';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { COOKIE_SESSION_MARKER } from '@/lib/authSession';
+import { resolvePostLoginRedirect } from '@/lib/oauth';
 import { useAuthStore, type User } from '@/store/auth';
 import { useAuth } from '@/context/AuthContext';
 import AuthSplitLayout from '@/components/auth/AuthSplitLayout';
@@ -105,6 +107,7 @@ export default function SignupPage() {
     try {
       const res = await fetch(`${API}/api/v1/auth/signup`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           [idType]: identifier,
@@ -117,11 +120,19 @@ export default function SignupPage() {
         setError(data?.error?.message ?? 'Signup failed');
         return;
       }
-      if (data?.success && data?.data?.user && data?.data?.accessToken && data?.data?.refreshToken) {
+      if (data?.success && data?.data?.user) {
         const user = data.data.user as User;
-        login(user, data.data.accessToken, data.data.refreshToken);
+        login(
+          user,
+          data.data.accessToken ?? COOKIE_SESSION_MARKER,
+          data.data.refreshToken ?? COOKIE_SESSION_MARKER,
+        );
         setAuthenticated(user);
-        router.replace('/dashboard');
+        const target = resolvePostLoginRedirect(
+          searchParams.get('returnUrl'),
+          searchParams.get('redirect'),
+        );
+        window.location.assign(target);
       } else setError('Signup failed');
     } catch {
       setError('Network error');

@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import Link from 'next/link';
 import { BrandLogo } from '@/components/brand/BrandLogo';
+import { ROUTES } from '@/lib/routes';
 import {
   Globe,
   ChevronDown,
@@ -141,8 +142,7 @@ export default function IdentityVerificationPage() {
       const data = await response.json();
 
       if (data.success) {
-        // For demo, mark KYC as approved
-        router.push('/dashboard/identity/success');
+        router.push('/dashboard/identity/upload');
       } else {
         setError(data.error?.message || 'Verification failed');
       }
@@ -172,7 +172,7 @@ export default function IdentityVerificationPage() {
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div className="flex items-center gap-4">
-            <BrandLogo variant="horizontal-gold" size="header" href="/dashboard" />
+            <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} />
             <span className="text-muted-foreground">|</span>
             <h1 className="text-xl font-semibold text-foreground">Identity Verification</h1>
           </div>
@@ -235,7 +235,7 @@ export default function IdentityVerificationPage() {
       <div className="min-h-screen bg-card">
         <header className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div className="flex items-center gap-4">
-            <BrandLogo variant="horizontal-gold" size="header" href="/dashboard" />
+            <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} />
             <span className="text-muted-foreground">|</span>
             <h1 className="text-xl font-semibold text-foreground">Identity Verification</h1>
           </div>
@@ -273,7 +273,7 @@ export default function IdentityVerificationPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-border">
         <div className="flex items-center gap-4">
-          <BrandLogo variant="horizontal-gold" size="header" href="/dashboard" />
+          <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} />
           <span className="text-muted-foreground">|</span>
           <h1 className="text-xl font-semibold text-foreground">Identity Verification</h1>
         </div>

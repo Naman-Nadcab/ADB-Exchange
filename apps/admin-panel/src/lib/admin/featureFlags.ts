@@ -5,10 +5,13 @@
 
 export const ADMIN_FEATURE_FLAGS = {
   ADMIN_NEW_DASHBOARD: true,
-  ADMIN_NEW_DASHBOARD_V2_INTELLIGENCE: true,
-  ADMIN_INCIDENT_MANAGEMENT: true,
-  ADMIN_INCIDENT_SYSTEM: true,
-  ADMIN_AI_OPS: true,
+  ADMIN_NEW_DASHBOARD_V2_INTELLIGENCE: false,
+  /** Session Zustand incident banner/prompt — disabled; backend /monitoring/incidents is sole source. */
+  ADMIN_INCIDENT_MANAGEMENT: false,
+  /** Session Zustand incident workspace — disabled under production hardening. */
+  ADMIN_INCIDENT_SYSTEM: false,
+  /** Client-side predictive alerts — disabled; backend monitoring is sole source of truth. */
+  ADMIN_AI_OPS: false,
   ADMIN_PRODUCTION_HARDENING: true,
 } as const;
 

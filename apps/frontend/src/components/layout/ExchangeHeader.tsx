@@ -12,16 +12,16 @@ import { NotificationCenter } from '@/components/layout/NotificationCenter';
 import { GlobalSearch } from '@/components/layout/GlobalSearch';
 import { useAuthStore } from '@/store/auth';
 import { useAuth } from '@/context/AuthContext';
+import { isClientAuthed } from '@/lib/authSession';
 import { SPOT_TRADE_HREF, isSpotTradePath } from '@/lib/tier1-canonical-routes';
 import { MARKETS_HREF, ORDERS_HREF, WALLET_HREF, P2P_HREF, ROUTES, LEGACY_PATH_PREFIXES } from '@/lib/routes';
-import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { performLogout } from '@/lib/authLogout';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 
 const MAIN_NAV = [
   { label: 'Markets', href: MARKETS_HREF },
   { label: 'Trade', href: SPOT_TRADE_HREF },
   { label: 'P2P', href: P2P_HREF },
-  { label: 'Earn', href: ROUTES.earn },
 ];
 
 const USER_MENU = [
@@ -67,8 +67,9 @@ export function ExchangeHeader({
 }: ExchangeHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { accessToken, user } = useAuthStore();
-  const { setUnauthenticated } = useAuth();
+  const { accessToken, user, _hasHydrated, isAuthenticated: storeAuthed } = useAuthStore();
+  const { authResolved, isAuthenticated: ctxAuthed } = useAuth();
+  const isAuthed = isClientAuthed(_hasHydrated, ctxAuthed || storeAuthed, authResolved);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -101,14 +102,8 @@ export function ExchangeHeader({
 
   const handleLogout = useCallback(async () => {
     setUserMenuOpen(false);
-    const token = useAuthStore.getState().accessToken;
-    const apiUrl = getApiBaseUrl();
-    if (token && apiUrl !== undefined) {
-      try { await fetch(`${apiUrl}/api/v1/auth/logout`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }); } catch { /* best effort */ }
-    }
-    setUnauthenticated();
-    router.replace('/login');
-  }, [setUnauthenticated, router]);
+    await performLogout('/login');
+  }, []);
 
   const copyUID = useCallback(() => {
     if (user?.id) {
@@ -119,11 +114,11 @@ export function ExchangeHeader({
   }, [user?.id]);
 
   return (
-    <header className="mobile-app-topbar sticky top-0 z-40 flex h-14 flex-shrink-0 items-center justify-between gap-3 border-b border-[#2b2f36] bg-[#181a20]/95 px-3">
+    <header className="mobile-app-topbar sticky top-0 z-40 flex h-14 flex-shrink-0 items-center justify-between gap-3 border-b border-border bg-card/95 px-3 backdrop-blur-sm">
       <div className="flex min-w-0 items-center gap-3 sm:gap-4">
         <button
           type="button"
-          className="tap-target rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground lg:hidden"
+          className="tap-target rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 lg:hidden"
           onClick={() => setMobileMenuOpen((o) => !o)}
           aria-label="Menu"
         >
@@ -151,7 +146,7 @@ export function ExchangeHeader({
         <div className="hidden max-w-[420px] flex-1 md:block">
           <div className="relative">
             <div
-              className="flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-[#2b2f36] bg-[#2b2f36]/50 px-3 transition-colors hover:border-[#f0b90b]/40"
+              className="flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
               onClick={() => setSearchOpen(true)}
               role="button"
               tabIndex={0}
@@ -203,12 +198,12 @@ export function ExchangeHeader({
           <div className="hidden sm:block"><GlobalSearch accessToken={accessToken} /></div>
         )}
         <ThemeToggle variant="icon" size="sm" />
-        {accessToken ? (
+        {isAuthed ? (
           <>
-            <Link href={ORDERS_HREF} className="tap-target rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground" aria-label="Orders" title="Orders">
+            <Link href={ORDERS_HREF} className="tap-target rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1" aria-label="Orders" title="Orders">
               <FileText className="h-[18px] w-[18px]" />
             </Link>
-            <Link href={WALLET_HREF} className="tap-target rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground" aria-label="Wallet" title="Wallet">
+            <Link href={WALLET_HREF} className="tap-target rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1" aria-label="Wallet" title="Wallet">
               <Wallet className="h-[18px] w-[18px]" />
             </Link>
             <NotificationCenter accessToken={accessToken} />
@@ -218,7 +213,7 @@ export function ExchangeHeader({
               <button
                 type="button"
                 onClick={() => setUserMenuOpen((o) => !o)}
-                className="tap-target rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                className="tap-target rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                 aria-label="User menu"
               >
                 <User className="h-[18px] w-[18px]" />

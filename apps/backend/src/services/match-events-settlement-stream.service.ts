@@ -235,20 +235,8 @@ async function handleSettlementJsMessage(m: JsMsg, partition: number, consumerNa
           error: e instanceof Error ? e.message : String(e),
         });
       }
-      try {
-        const { notifySpotPrivateChannelsAfterSettlement } = await import('./spot-settlement-private-ws.service.js');
-        await notifySpotPrivateChannelsAfterSettlement({
-          symbol: r.liveNotify.symbol,
-          takerOrderId: r.liveNotify.taker_order_id,
-          makerOrderId: r.liveNotify.maker_order_id,
-          takerUserId: r.liveNotify.taker_user_id,
-          makerUserId: r.liveNotify.maker_user_id,
-        });
-      } catch (e) {
-        logger.warn('Stream settlement private WS notify failed (best-effort)', {
-          error: e instanceof Error ? e.message : String(e),
-        });
-      }
+      const { notifyPrivateWsAfterSettlement } = await import('./settlement/settlement-worker.js');
+      await notifyPrivateWsAfterSettlement(r.liveNotify);
     }
     settlementMatchStreamAckTotal.inc();
     m.ack();

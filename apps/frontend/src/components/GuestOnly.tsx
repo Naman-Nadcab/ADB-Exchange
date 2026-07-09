@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { resolvePostLoginRedirect } from '@/lib/oauth';
 
 export default function GuestOnly({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { authResolved, isAuthenticated } = useAuth();
   const redirectDone = useRef(false);
@@ -14,19 +14,12 @@ export default function GuestOnly({ children }: { children: React.ReactNode }) {
     if (!authResolved || !isAuthenticated) return;
     if (redirectDone.current) return;
     redirectDone.current = true;
-    const redirect = searchParams.get('redirect');
-    const allowed =
-      redirect &&
-      (redirect.startsWith('/dashboard') ||
-        redirect.startsWith('/trade') ||
-        redirect.startsWith('/markets') ||
-        redirect.startsWith('/wallet') ||
-        redirect.startsWith('/p2p') ||
-        redirect.startsWith('/orders') ||
-        redirect.startsWith('/earn'));
-    const target = allowed ? redirect! : '/dashboard';
-    router.replace(target);
-  }, [authResolved, isAuthenticated, router, searchParams]);
+    const target = resolvePostLoginRedirect(
+      searchParams.get('returnUrl'),
+      searchParams.get('redirect'),
+    );
+    window.location.assign(target);
+  }, [authResolved, isAuthenticated, searchParams]);
 
   if (!authResolved) {
     return (

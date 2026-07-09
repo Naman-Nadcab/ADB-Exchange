@@ -35,6 +35,8 @@ import {
 import { cn } from '@/lib/cn';
 import { useAdminWs } from '@/hooks/useAdminWs';
 import { AdminPageFrame, type AdminPageStatus } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
 
@@ -261,6 +263,7 @@ export default function P2pManagementPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const admin = useAdminAuthStore((s) => s.admin);
   const qc = useQueryClient();
+  const toast = useAdminToast();
 
   useAdminWs({
     onEvent: (event) => {
@@ -399,7 +402,8 @@ export default function P2pManagementPage() {
       if (!r.success) throw new Error(r.error?.message ?? 'Resolve failed');
       return r;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'p2p'] }); setResolveTarget(null); setResolveNotes(''); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'p2p'] }); setResolveTarget(null); setResolveNotes(''); toast.success('Dispute resolved.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to resolve dispute.')),
   });
   const reviewMu = useMutation({
     mutationFn: async (p: { id: string; status: 'approved' | 'rejected'; note: string }) => {
@@ -407,7 +411,8 @@ export default function P2pManagementPage() {
       if (!r.success) throw new Error(r.error?.message ?? 'Review failed');
       return r;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'p2p'] }); setReviewTarget(null); setReviewNote(''); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'p2p'] }); setReviewTarget(null); setReviewNote(''); toast.success('Merchant review submitted.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Merchant review failed.')),
   });
   const escrowMu = useMutation({
     mutationFn: async (p: { id: string; action: 'freeze' | 'unfreeze'; reason?: string }) => {
@@ -415,7 +420,8 @@ export default function P2pManagementPage() {
       if (!r.success) throw new Error(r.error?.message ?? `${p.action} failed`);
       return r;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'p2p'] }); setEscrowAction(null); setEscrowReason(''); },
+    onSuccess: (_, p) => { qc.invalidateQueries({ queryKey: ['admin', 'p2p'] }); setEscrowAction(null); setEscrowReason(''); toast.success(`Escrow ${p.action === 'freeze' ? 'frozen' : 'unfrozen'}.`); },
+    onError: (e) => toast.error(formatSaveError(e, 'Escrow action failed.')),
   });
   const freezeUserMu = useMutation({
     mutationFn: async (p: { userId: string; reason: string }) => {
@@ -423,7 +429,8 @@ export default function P2pManagementPage() {
       if (!r.success) throw new Error(r.error?.message ?? 'Freeze failed');
       return r;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'p2p'] }); setFreezeTarget(null); setFreezeReason(''); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'p2p'] }); setFreezeTarget(null); setFreezeReason(''); toast.success('P2P user frozen.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to freeze P2P user.')),
   });
 
   // ── Derived data ───────────────────────────────────────────────────────────

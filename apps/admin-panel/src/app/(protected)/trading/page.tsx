@@ -24,6 +24,8 @@ import { OrderbookSnapshotPanel } from '@/components/trading/OrderbookSnapshotPa
 import { useAdminWs } from '@/hooks/useAdminWs';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
 import {
   TrendingUp,
@@ -45,6 +47,7 @@ const DEFAULT_MARKETS = ['BTC_USDT', 'ETH_USDT', 'BTCUSDT', 'ETHUSDT'];
 export default function TradingPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [controlModal, setControlModal] = useState<ControlAction | null>(null);
   const [orderbookMarket, setOrderbookMarket] = useState('BTC_USDT');
   const [marketHaltMarket, setMarketHaltMarket] = useState('BTC_USDT');
@@ -119,7 +122,9 @@ export default function TradingPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'trading'] });
       setControlModal(null);
+      toast.success('Trading halt updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update trading halt.')),
   });
 
   const circuitMutation = useMutation({
@@ -127,7 +132,9 @@ export default function TradingPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'trading'] });
       setControlModal(null);
+      toast.success('Trading circuit updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update trading circuit.')),
   });
 
   const marketHaltMutation = useMutation({
@@ -135,7 +142,9 @@ export default function TradingPage() {
       postMarketHalt(token, market, halted, halted ? { reason } : undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'trading'] });
+      toast.success('Market halt updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update market halt.')),
   });
 
   const handleControlConfirm = useCallback(

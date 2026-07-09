@@ -10,14 +10,49 @@ export function getApiBaseUrl(): string {
   const base = (envUrl && typeof envUrl === 'string' ? envUrl : '').trim().replace(/\/$/, '');
 
   if (typeof window !== 'undefined') {
-    const isLocalhost =
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1';
-    if (isLocalhost) {
-      return base || 'http://localhost:4000';
+    const { hostname, origin } = window.location;
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    // Same-origin: nginx proxies /api/ — avoids mixed-content when env URL is http but page is https.
+    if (!base || base === origin) {
+      return '';
     }
-    return base || '';
+    try {
+      const apiHost = new URL(base).hostname;
+      if (apiHost === hostname) {
+        return '';
+      }
+      if (isLocalhost && apiHost !== hostname) {
+        return '';
+      }
+    } catch {
+      if (isLocalhost) {
+        return '';
+      }
+    }
+    return base;
   }
 
   return base || 'http://localhost:4000';
+}
+
+const SPOT_WS_PATH = '/api/v1/spot/ws';
+
+/** WebSocket URL for spot market stream — always matches page protocol (ws/wss) when same-origin. */
+export function getSpotWsUrl(): string {
+  if (typeof window !== 'undefined') {
+    const apiBase = getApiBaseUrl();
+    const httpBase = apiBase || window.location.origin;
+    const wsBase = httpBase.replace(/\/$/, '').replace(/^http/, 'ws');
+    return new URL(SPOT_WS_PATH, wsBase).toString();
+  }
+
+  const envWs = process.env.NEXT_PUBLIC_WS_URL;
+  if (envWs && typeof envWs === 'string' && envWs.trim()) {
+    const ws = envWs.trim().replace(/\/$/, '');
+    const normalized = /^wss?:\/\//.test(ws) ? ws : ws.replace(/^http/, 'ws');
+    return new URL(SPOT_WS_PATH, normalized).toString();
+  }
+
+  const apiBase = getApiBaseUrl().replace(/\/$/, '').replace(/^http/, 'ws') || 'ws://localhost:4000';
+  return new URL(SPOT_WS_PATH, apiBase).toString();
 }

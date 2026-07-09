@@ -574,6 +574,8 @@ export default async function adminOperationsRoutes(app: FastifyInstance) {
              SELECT id
              FROM settlement_events
              WHERE status = 'failed'
+               AND COALESCE(status::text, '') <> 'quarantined'
+               AND prior_status IS DISTINCT FROM 'quarantined'
              ORDER BY created_at ASC
              LIMIT $1
            )
@@ -582,6 +584,7 @@ export default async function adminOperationsRoutes(app: FastifyInstance) {
                processed_at = NULL
            FROM picked
            WHERE s.id = picked.id
+             AND s.status = 'failed'
            RETURNING s.id::text`,
           [limit]
         );

@@ -40,6 +40,7 @@ import { buildDeskAlerts, type DeskAlertFixId } from '@/lib/mm-desk-signals';
 import { parseEliteSymbolMetrics } from '@/lib/mm-desk-elite-parse';
 import { getMmEliteProfitability, getMmCircuitState, postAdminCancelAllOrders } from '@/lib/mm-desk-extra-api';
 import { adminFetch } from '@/lib/api';
+import { postControlCommand } from '@/lib/control-api';
 import { getTradingMarkets } from '@/lib/trading-api';
 import {
   MmDeskStatusBar,
@@ -65,6 +66,8 @@ import {
   SafeActionModal,
 } from '@/components/ui';
 import { AdminPageFrame, type AdminPageStatus } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { cn } from '@/lib/cn';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
@@ -564,7 +567,13 @@ function RemovePairModal({
 export default function MmControlPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
-  const { toast, show: showToast, dismiss: dismissToast } = useToast();
+  const adminToast = useAdminToast();
+  const { toast, show: showLocalToast, dismiss: dismissToast } = useToast();
+  const showToast = useCallback((type: 'success' | 'error', msg: string) => {
+    showLocalToast(type, msg);
+    if (type === 'success') adminToast.success(msg);
+    else adminToast.error(msg);
+  }, [showLocalToast, adminToast]);
 
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
   const [sparkHistory, setSparkHistory] = useState<PairSparkHistory>({});
@@ -658,27 +667,27 @@ export default function MmControlPage() {
   const saveGlobalM = useMutation({
     mutationFn: (body: Partial<MMGlobalRuntimeConfig>) => postMmControlGlobal(token, body),
     onSuccess: () => { invalidateMm(); showToast('success', 'Global config saved.'); },
-    onError: () => showToast('error', 'Failed to save global config.'),
+    onError: (e) => showToast('error', formatSaveError(e, 'Failed to save global config.')),
   });
 
   const savePairM = useMutation({
     mutationFn: ({ sym, body }: { sym: string; body: Partial<MMPairRuntimeConfig> }) =>
       postMmControlPair(token, sym, body),
     onSuccess: () => { invalidateMm(); showToast('success', `${savePairM.variables?.sym ?? 'Pair'} config saved.`); },
-    onError: () => showToast('error', 'Failed to save pair config.'),
+    onError: (e) => showToast('error', formatSaveError(e, 'Failed to save pair config.')),
   });
 
   const pairQuickM = useMutation({
     mutationFn: ({ sym, body }: { sym: string; body: Partial<MMPairRuntimeConfig> }) =>
       postMmControlPair(token, sym, body),
     onSuccess: (_, vars) => { invalidateMm(); showToast('success', `${vars.sym} updated.`); },
-    onError: () => showToast('error', 'Quick update failed.'),
+    onError: (e) => showToast('error', formatSaveError(e, 'Quick update failed.')),
   });
 
   const requoteM = useMutation({
     mutationFn: (sym: string) => postMmControlPair(token, sym, { refresh_mode: 'fast' }),
     onSuccess: (_, sym) => { invalidateMm(); showToast('success', `Force re-quote sent for ${sym}.`); },
-    onError: () => showToast('error', 'Re-quote failed.'),
+    onError: (e) => showToast('error', formatSaveError(e, 'Re-quote failed.')),
   });
 
   const cancelAllM = useMutation({
@@ -689,18 +698,21 @@ export default function MmControlPage() {
       setCancelMarket(null);
       showToast('success', `All orders on ${sym} cancelled.`);
     },
-    onError: () => { setCancelMarket(null); showToast('error', 'Cancel orders failed.'); },
+    onError: (e) => { setCancelMarket(null); showToast('error', formatSaveError(e, 'Cancel orders failed.')); },
   });
 
   const restartBotM = useMutation({
-    mutationFn: () =>
-      adminFetch<{ command: string; triggered: boolean }>('/control/commands', {
-        method: 'POST',
-        body: { command: 'restart_liquidity_bot' },
-        token,
-      }),
-    onSuccess: () => { invalidateMm(); showToast('success', 'Liquidity bot restart triggered.'); },
-    onError: () => showToast('error', 'Bot restart failed — check permissions.'),
+    mutationFn: () => postControlCommand(token, 'restart_liquidity_bot'),
+    onSuccess: (res) => {
+      invalidateMm();
+      const data = res?.data;
+      if (data?.executed) {
+        showToast('success', data.message || 'Liquidity bot restarted.');
+      } else {
+        showToast('error', data?.message || 'Restart logged but not executed.');
+      }
+    },
+    onError: (e) => showToast('error', formatSaveError(e, 'Bot restart failed — check permissions.')),
   });
 
   // ── Add / Remove pair ─────────────────────────────────────────────────────
@@ -716,7 +728,7 @@ export default function MmControlPage() {
       showToast('success', `Market making started for ${vars.sym}.`);
       setSelectedSymbol(vars.sym);
     },
-    onError: () => showToast('error', 'Failed to add pair. Check that the market exists.'),
+    onError: (e) => showToast('error', formatSaveError(e, 'Failed to add pair. Check that the market exists.')),
   });
 
   const removePairM = useMutation({
@@ -728,7 +740,7 @@ export default function MmControlPage() {
       showToast('success', note);
       if (selectedSymbol === sym) setSelectedSymbol(null);
     },
-    onError: () => { setRemovePairTarget(null); showToast('error', 'Failed to remove pair.'); },
+    onError: (e) => { setRemovePairTarget(null); showToast('error', formatSaveError(e, 'Failed to remove pair.')); },
   });
 
   // Env symbols (from backend status - these are defined in LIQUIDITY_BOT_SYMBOLS)

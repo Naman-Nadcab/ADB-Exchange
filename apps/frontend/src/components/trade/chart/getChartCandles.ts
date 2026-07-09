@@ -44,6 +44,7 @@ export async function getChartCandles(
   const res = await api.get<RawCandle[]>(`${CANDLES_ENDPOINT}/${encodeURIComponent(pairId)}?${qs.toString()}`, {
     skipAuth: true,
     signal: opts?.signal,
+    notifyOnError: false,
   });
   if (!res.success || res.data === undefined) {
     throw new Error(res.error?.message ?? 'Failed to fetch candles');

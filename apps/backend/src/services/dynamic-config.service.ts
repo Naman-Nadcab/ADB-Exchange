@@ -8,26 +8,10 @@ import { db } from '../lib/database.js';
 import { redis } from '../lib/redis.js';
 import { logger } from '../lib/logger.js';
 import { config } from '../config/index.js';
-import { decryptProviderSecret } from '../lib/hybrid-credentials-crypto.js';
+import { resolveProviderSecret } from '../lib/provider-secret.js';
 
 const CACHE_PREFIX = 'dynconf:';
 const DEFAULT_TTL_SEC = 60; // 1 minute cache — balance between freshness and DB load
-
-/**
- * Dual-read secret resolver. New rows store AES-256-GCM ciphertext with
- * secret_encrypted = TRUE; legacy rows hold plaintext. During the encryption
- * migration we tolerate both so no reader breaks.
- */
-function resolveSecret(secret: string | null, encrypted: boolean | null | undefined): string | null {
-  if (!secret) return null;
-  if (!encrypted) return secret;
-  try {
-    return decryptProviderSecret(secret);
-  } catch (e) {
-    logger.warn('api_settings secret decrypt failed; treating as plaintext', { error: e instanceof Error ? e.message : String(e) });
-    return secret;
-  }
-}
 
 export interface SmtpConfig {
   host: string;
@@ -120,7 +104,7 @@ class DynamicConfigService {
   }
 
   async flushAll(): Promise<void> {
-    const categories = ['email', 'sms', 'kyc', 'rpc', 'chart', 'market_data', 'push', 'oauth', 'recaptcha', 'social_login', 'web_push'];
+    const categories = ['email', 'sms', 'kyc', 'rpc', 'chart', 'market_data', 'push', 'oauth', 'recaptcha', 'social_login', 'web_push', 'aml', 'alert', 'captcha', 'monitoring', 'analytics', 'storage', 'ai', 'travel_rule', 'custody', 'support'];
     await Promise.all(categories.map(c => this.flushCategory(c)));
   }
 
@@ -145,7 +129,7 @@ class DynamicConfigService {
         return [];
       }
     }
-    return rows.map((r) => ({ ...r, api_secret: resolveSecret(r.api_secret, r.secret_encrypted) }));
+    return rows.map((r) => ({ ...r, api_secret: resolveProviderSecret(r.api_secret, r.secret_encrypted) }));
   }
 
   /**
@@ -177,22 +161,41 @@ class DynamicConfigService {
       }));
   }
 
+  /** Load a single provider by id (includes inactive — for admin test/send). */
+  async getProviderById(id: string): Promise<ResolvedProvider | null> {
+    try {
+      const result = await db.query<ApiSettingRow>(
+        `SELECT id, category, provider, name, api_key, api_secret, api_url, additional_config,
+                is_active, is_default, secret_encrypted, priority, environment
+         FROM api_settings WHERE id = $1`,
+        [id],
+      );
+      const r = result.rows[0];
+      if (!r) return null;
+      const secret = resolveProviderSecret(r.api_secret, r.secret_encrypted);
+      return {
+        id: r.id,
+        category: r.category,
+        provider: r.provider,
+        name: r.name,
+        apiKey: r.api_key,
+        apiSecret: secret,
+        apiUrl: r.api_url,
+        config: r.additional_config || {},
+        priority: r.priority ?? 100,
+        environment: r.environment ?? 'production',
+        isDefault: r.is_default,
+      };
+    } catch {
+      return null;
+    }
+  }
+
   async getSmtpConfig(): Promise<SmtpConfig | null> {
     const rows = await this.getActiveSettings('email');
     if (rows.length > 0) {
-      const row = rows[0]!;
-      const extra = row.additional_config || {};
-      if (row.api_key && (extra.host || row.api_url)) {
-        return {
-          host: extra.host || row.api_url || '',
-          port: parseInt(extra.port || '465', 10),
-          secure: extra.secure === 'true' || parseInt(extra.port || '465', 10) === 465,
-          user: row.api_key,
-          pass: row.api_secret || '',
-          fromEmail: extra.from_email || extra.from || config.email.from,
-          fromName: extra.from_name || 'Metherium',
-        };
-      }
+      const built = this.smtpFromRow(rows[0]!);
+      if (built) return built;
     }
 
     if (config.email.user && (config.email.password || process.env.SMTP_PASS)) {
@@ -313,7 +316,7 @@ class DynamicConfigService {
       const host = extra.host || row.api_url;
       const port = parseInt(extra.port || '465', 10);
       const user = row.api_key;
-      const pass = resolveSecret(row.api_secret, row.secret_encrypted);
+      const pass = resolveProviderSecret(row.api_secret, row.secret_encrypted);
 
       if (!host || !user || !pass) {
         return { success: false, message: 'Missing SMTP credentials (host, user, or password)', latencyMs: Date.now() - start };
@@ -346,7 +349,7 @@ class DynamicConfigService {
 
       const row = result.rows[0]!;
       if (!row.api_key) return { success: false, message: 'API key is missing', latencyMs: Date.now() - start };
-      const smsSecret = resolveSecret(row.api_secret, row.secret_encrypted);
+      const smsSecret = resolveProviderSecret(row.api_secret, row.secret_encrypted);
 
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10_000);
@@ -455,7 +458,7 @@ class DynamicConfigService {
 
       const healthUrl = baseUrl.replace(/\/$/, '') + '/api/v1/health';
       const res = await fetch(healthUrl, {
-        headers: { 'appId': row.api_key, 'appKey': resolveSecret(row.api_secret, row.secret_encrypted) || '' },
+        headers: { 'appId': row.api_key, 'appKey': resolveProviderSecret(row.api_secret, row.secret_encrypted) || '' },
         signal: controller.signal,
       });
       clearTimeout(timeout);
@@ -467,6 +470,217 @@ class DynamicConfigService {
     } catch (error) {
       return { success: false, message: error instanceof Error ? error.message : 'Unknown error', latencyMs: Date.now() - start };
     }
+  }
+
+  /** Alert channels from api_settings (category alert) with legacy system_settings fallback. */
+  async getAlertChannelsConfig(): Promise<{
+    webhookUrl: string;
+    slackWebhookUrl: string;
+    pagerdutyKey: string;
+    opsAlertEmail: string;
+  }> {
+    const providers = await this.getProviders('alert');
+    let webhookUrl = '';
+    let slackWebhookUrl = '';
+    let pagerdutyKey = '';
+    for (const p of providers) {
+      const url = p.apiUrl || p.apiKey || '';
+      if (p.provider === 'webhook' && url) webhookUrl = url;
+      if (p.provider === 'slack' && url) slackWebhookUrl = url;
+      if (p.provider === 'pagerduty' && (p.apiSecret || p.apiKey)) pagerdutyKey = p.apiSecret || p.apiKey || '';
+    }
+    if (!webhookUrl || !slackWebhookUrl || !pagerdutyKey) {
+      try {
+        const rows = await db.query<{ key: string; value: unknown }>(
+          `SELECT key, value FROM system_settings WHERE key = ANY($1::text[])`,
+          [['alert_webhook_url', 'alert_slack_webhook_url', 'alert_pagerduty_key']],
+        );
+        for (const r of rows.rows ?? []) {
+          const v = typeof r.value === 'string' ? r.value : String(r.value ?? '').replace(/^"|"$/g, '');
+          if (r.key === 'alert_webhook_url' && !webhookUrl) webhookUrl = v;
+          if (r.key === 'alert_slack_webhook_url' && !slackWebhookUrl) slackWebhookUrl = v;
+          if (r.key === 'alert_pagerduty_key' && !pagerdutyKey) pagerdutyKey = v;
+        }
+      } catch { /* best-effort legacy */ }
+    }
+    return {
+      webhookUrl,
+      slackWebhookUrl,
+      pagerdutyKey,
+      opsAlertEmail: process.env.OPS_ALERT_EMAIL?.trim() || '',
+    };
+  }
+
+  /** Active CAPTCHA provider (turnstile, hcaptcha, google recaptcha). */
+  async getCaptchaConfig(): Promise<{
+    provider: string;
+    siteKey: string;
+    secretKey: string;
+  } | null> {
+    for (const cat of ['captcha', 'recaptcha'] as const) {
+      const p = await this.getProvider(cat);
+      if (p?.apiKey && p.apiSecret) {
+        return { provider: p.provider, siteKey: p.apiKey, secretKey: p.apiSecret };
+      }
+    }
+    return null;
+  }
+
+  /** Sentry DSN from monitoring/sentry row. */
+  async getSentryConfig(): Promise<{ dsn: string; environment: string } | null> {
+    const p = await this.getProvider('monitoring');
+    if (!p || p.provider !== 'sentry') {
+      const rows = await this.getActiveSettings('monitoring');
+      const sentry = rows.find((r) => r.provider === 'sentry');
+      if (!sentry) return null;
+      const extra = sentry.additional_config || {};
+      const dsn = extra.dsn || sentry.api_url || sentry.api_key || '';
+      if (!dsn.trim()) return null;
+      return { dsn: dsn.trim(), environment: sentry.environment ?? 'production' };
+    }
+    const dsn = p.config.dsn || p.apiUrl || p.apiKey || '';
+    if (!dsn.trim()) return null;
+    return { dsn: dsn.trim(), environment: p.environment };
+  }
+
+  /** External price feed sources from chart/market_data providers. */
+  async getPriceFeedBaseUrls(): Promise<string[]> {
+    const chart = await this.getProviders('chart');
+    const market = await this.getProviders('market_data');
+    const urls: string[] = [];
+    for (const p of [...chart, ...market]) {
+      const u = (p.apiUrl || p.config.base_url || '').trim();
+      if (u) urls.push(u.replace(/\/$/, ''));
+    }
+    if (urls.length > 0) return urls;
+    if (config.externalPriceFeed.sourceBaseUrls.length > 0) {
+      return config.externalPriceFeed.sourceBaseUrls;
+    }
+    const b = config.externalPriceFeed.baseUrl?.trim();
+    return [b || 'https://api.binance.com'];
+  }
+
+  async isPriceFeedEnabled(): Promise<boolean> {
+    const active = await this.getProviders('chart');
+    if (active.some((p) => p.apiUrl || p.apiKey)) return true;
+    return config.externalPriceFeed.enabled;
+  }
+
+  /** Object storage config for KYC uploads etc. */
+  async getStorageConfig(): Promise<{
+    provider: string;
+    accessKey: string;
+    secretKey: string;
+    bucket: string;
+    region: string;
+    endpoint: string;
+  } | null> {
+    const p = await this.getProvider('storage');
+    if (!p?.apiKey || !p.apiSecret) return null;
+    const extra = p.config;
+    const bucket = extra.bucket?.trim();
+    if (!bucket) return null;
+    return {
+      provider: p.provider,
+      accessKey: p.apiKey,
+      secretKey: p.apiSecret,
+      bucket,
+      region: extra.region?.trim() || 'us-east-1',
+      endpoint: p.apiUrl?.trim() || '',
+    };
+  }
+
+  /** AML / sanctions config from api_settings (primary) — syncs legacy system_settings when found. */
+  async getSanctionsProviderConfig(): Promise<{
+    provider: string;
+    apiUrl: string;
+    apiKey: string;
+  } | null> {
+    const rows = await this.getActiveSettings('aml');
+    const row = rows[0];
+    if (!row) return null;
+    const key = resolveProviderSecret(row.api_secret, row.secret_encrypted) || row.api_key?.trim() || '';
+    if (!key && row.provider !== 'noop') return null;
+    return {
+      provider: row.provider,
+      apiUrl: row.api_url?.trim() || '',
+      apiKey: key,
+    };
+  }
+
+  /** Build SMS config from a resolved provider row (for failover sends). */
+  smsFromResolved(p: ResolvedProvider): SmsConfig | null {
+    const extra = p.config || {};
+    if (!p.apiKey) return null;
+    return {
+      provider: p.provider as SmsConfig['provider'],
+      apiKey: p.apiKey,
+      apiSecret: p.apiSecret ?? extra.api_secret ?? undefined,
+      senderId: extra.sender_id || 'INRXPE',
+      messageId: extra.message_id || '181649',
+      route: extra.route || 'dlt',
+    };
+  }
+
+  /** Build SMTP config from a resolved provider row (for failover sends). */
+  smtpFromResolved(p: ResolvedProvider): SmtpConfig | null {
+    const extra = p.config || {};
+    const pass = p.apiSecret || '';
+    if (!p.apiKey || !(extra.host || p.apiUrl)) return null;
+    return {
+      host: extra.host || p.apiUrl || '',
+      port: parseInt(extra.port || '465', 10),
+      secure: extra.secure === 'true' || parseInt(extra.port || '465', 10) === 465,
+      user: p.apiKey,
+      pass,
+      fromEmail: extra.from_email || extra.from || config.email.from,
+      fromName: extra.from_name || 'Metherium',
+    };
+  }
+
+  private smtpFromRow(row: ApiSettingRow): SmtpConfig | null {
+    const extra = row.additional_config || {};
+    const pass = resolveProviderSecret(row.api_secret, row.secret_encrypted) || '';
+    if (!row.api_key || !(extra.host || row.api_url)) return null;
+    return {
+      host: extra.host || row.api_url || '',
+      port: parseInt(extra.port || '465', 10),
+      secure: extra.secure === 'true' || parseInt(extra.port || '465', 10) === 465,
+      user: row.api_key,
+      pass,
+      fromEmail: extra.from_email || extra.from || config.email.from,
+      fromName: extra.from_name || 'Metherium',
+    };
+  }
+
+  /** Try providers in priority order; invoke fn until one succeeds (email/SMS fallback). */
+  async withProviderFallback<T>(
+    category: string,
+    fn: (provider: ResolvedProvider) => Promise<T>,
+  ): Promise<T> {
+    const list = await this.getProviders(category);
+    if (list.length === 0) throw new Error(`No active ${category} provider configured`);
+    let lastError: unknown;
+    for (const p of list) {
+      try {
+        return await fn(p);
+      } catch (e) {
+        lastError = e;
+        logger.warn(`Provider ${category}/${p.provider} failed; trying next`, {
+          error: e instanceof Error ? e.message : String(e),
+        });
+        if (p.id) {
+          try {
+            await db.query(
+              `UPDATE api_settings SET last_failure_at = NOW(), last_error = $2,
+               health_status = 'degraded' WHERE id = $1`,
+              [p.id, e instanceof Error ? e.message : String(e)],
+            );
+          } catch { /* best-effort */ }
+        }
+      }
+    }
+    throw lastError instanceof Error ? lastError : new Error(String(lastError));
   }
 }
 

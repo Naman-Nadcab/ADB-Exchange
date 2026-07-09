@@ -655,6 +655,11 @@ function ChartPanelInner({
           >
             <span className="font-semibold text-foreground">{pairLabel}</span>
             <span className="text-muted-foreground"> · Spot · {intervalLabel}</span>
+            {turnoverSource === 'reference' && (
+              <span className="ml-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground" title="Chart and 24h volume use reference market data until exchange volume builds">
+                Ref. data
+              </span>
+            )}
             <span className="text-muted-foreground"> · Bar {barEta}</span>
             <span className="text-muted-foreground"> · </span>
             <span className="numeric font-medium text-foreground/95">{ohlcLegend || '—'}</span>
@@ -664,7 +669,7 @@ function ChartPanelInner({
       )}
 
       {/* Single scroll row + fixed actions (Option A); studies row only when expanded */}
-      <div className="flex h-10 flex-shrink-0 flex-col border-b border-border bg-card">
+      <div className="flex h-9 flex-shrink-0 flex-col border-b border-border bg-card px-1">
         <div className="flex h-full w-full min-w-0 flex-row items-center gap-1 px-2">
         <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto overflow-y-hidden [-ms-overflow-style:none] [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1">
           {hideDuplicatePairSummary && viewMode === 'chart' && (
@@ -688,7 +693,7 @@ function ChartPanelInner({
                 type="button"
                 onClick={() => onViewModeChange('chart')}
                 aria-pressed={viewMode === 'chart'}
-                className={`inline-flex min-h-[40px] touch-manipulation items-center gap-1 px-2.5 py-1.5 text-price font-bold transition-colors sm:px-2 sm:py-1 ${
+                className={`inline-flex min-h-8 touch-manipulation items-center gap-1 px-2.5 py-1.5 text-price font-bold transition-colors ${
                   viewMode === 'chart' ? TB_SEG_ON : TB_SEG_OFF
                 } ${TB_FOCUS}`}
               >
@@ -699,7 +704,7 @@ function ChartPanelInner({
                 type="button"
                 onClick={() => onViewModeChange('depth')}
                 aria-pressed={viewMode === 'depth'}
-                className={`inline-flex min-h-[40px] touch-manipulation items-center gap-1 border-l border-border px-2.5 py-1.5 text-price font-bold transition-colors sm:px-2 sm:py-1 ${
+                className={`inline-flex min-h-[40px] touch-manipulation items-center gap-1 border-l border-border px-2.5 py-1.5 text-price font-bold transition-colors ${
                   viewMode === 'depth' ? TB_SEG_ON : TB_SEG_OFF
                 } ${TB_FOCUS}`}
               >
@@ -727,7 +732,7 @@ function ChartPanelInner({
                     onClick={() => setChartPriceScale(id)}
                     aria-pressed={chartPriceScale === id}
                     aria-label={`Price scale ${label}`}
-                    className={`numeric min-h-[40px] touch-manipulation px-2 py-1.5 text-price font-bold sm:px-1.5 sm:py-1 ${
+                    className={`numeric min-h-8 touch-manipulation px-2 py-1.5 text-price font-bold ${
                       i > 0 ? 'border-l border-border' : ''
                     } ${chartPriceScale === id ? TB_SEG_ON : TB_SEG_OFF}`}
                   >
@@ -738,7 +743,7 @@ function ChartPanelInner({
               <select
                 value={overlayStudy}
                 onChange={(e) => setOverlayStudy(e.target.value as OverlayStudyId)}
-                className={`max-w-[11rem] shrink-0 cursor-pointer rounded-md border border-border bg-card px-2 py-1.5 text-price font-semibold text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring sm:px-1.5 sm:py-1 ${TB_FOCUS}`}
+                className={`max-w-[11rem] shrink-0 cursor-pointer rounded-md border border-border bg-card px-2 py-1.5 text-price font-semibold text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring ${TB_FOCUS}`}
                 title="Price overlay (SMA, EMA, VWAP, Bollinger)"
               >
                 {OVERLAY_OPTIONS.map(({ id, label }) => (
@@ -751,7 +756,7 @@ function ChartPanelInner({
                 type="button"
                 aria-pressed={showVolumeMa}
                 onClick={() => setShowVolumeMa((v) => !v)}
-                className={`shrink-0 rounded-md border px-2 py-1.5 text-price font-semibold transition-colors sm:py-0.5 ${
+                className={`shrink-0 rounded-md border px-2 py-1.5 text-price font-semibold transition-colors ${
                   showVolumeMa ? TB_TOGGLE_ON : TB_TOGGLE_OFF
                 } ${TB_FOCUS}`}
                 title="Volume pane SMA(9)"
@@ -762,7 +767,7 @@ function ChartPanelInner({
                 type="button"
                 aria-pressed={showRsi}
                 onClick={() => setShowRsi((v) => !v)}
-                className={`shrink-0 rounded-md border px-2 py-1.5 text-price font-semibold transition-colors sm:py-0.5 ${
+                className={`shrink-0 rounded-md border px-2 py-1.5 text-price font-semibold transition-colors ${
                   showRsi ? TB_TOGGLE_ON : TB_TOGGLE_OFF
                 } ${TB_FOCUS}`}
                 title="RSI(14) pane"
@@ -781,7 +786,7 @@ function ChartPanelInner({
                   onClick={() => onIntervalSecondsChange(seconds)}
                   aria-pressed={intervalSeconds === seconds}
                   aria-label={`Timeframe ${label}`}
-                  className={`numeric shrink-0 rounded px-2.5 py-1.5 text-price font-bold transition-colors sm:px-2 sm:py-1 ${
+                  className={`numeric shrink-0 rounded px-2.5 py-1.5 text-price font-bold transition-colors ${
                     intervalSeconds === seconds ? TB_SEG_ON : TB_SEG_OFF
                   } ${TB_FOCUS}`}
                 >
@@ -798,7 +803,7 @@ function ChartPanelInner({
               onClick={() => setExtStackOpen((v) => !v)}
               aria-pressed={extStackOpen}
               aria-expanded={extStackOpen}
-              className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold transition-colors sm:px-1.5 sm:py-1 ${
+              className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold transition-colors ${
                 extStackOpen ? TB_SEG_ON : TB_SEG_OFF
               } ${TB_FOCUS}`}
               title={
@@ -815,7 +820,7 @@ function ChartPanelInner({
             type="button"
             onClick={handleReset}
             aria-label="Reset chart viewport"
-            className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold text-muted-foreground hover:bg-accent/80 dark:text-muted-foreground dark:hover:bg-accent sm:px-1.5 sm:py-1 ${TB_FOCUS}`}
+            className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold text-muted-foreground hover:bg-accent/80 dark:text-muted-foreground dark:hover:bg-accent ${TB_FOCUS}`}
             title="Fit content"
           >
             <RefreshCw className="h-3.5 w-3.5" />
@@ -825,7 +830,7 @@ function ChartPanelInner({
             type="button"
             onClick={handleFullscreen}
             aria-label={isFullscreen ? 'Exit fullscreen chart' : 'Enter fullscreen chart'}
-            className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold text-muted-foreground hover:bg-accent/80 dark:text-muted-foreground dark:hover:bg-accent sm:px-1.5 sm:py-1 ${TB_FOCUS}`}
+            className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold text-muted-foreground hover:bg-accent/80 dark:text-muted-foreground dark:hover:bg-accent ${TB_FOCUS}`}
             title="Fullscreen"
             aria-pressed={isFullscreen}
           >
@@ -835,7 +840,7 @@ function ChartPanelInner({
             type="button"
             onClick={handleScreenshot}
             aria-label="Download chart screenshot"
-            className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold text-muted-foreground hover:bg-accent/80 dark:text-muted-foreground dark:hover:bg-accent sm:px-1.5 sm:py-1 ${TB_FOCUS}`}
+            className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold text-muted-foreground hover:bg-accent/80 dark:text-muted-foreground dark:hover:bg-accent ${TB_FOCUS}`}
             title="Download chart as PNG"
           >
             <Camera className="h-3.5 w-3.5" aria-hidden />

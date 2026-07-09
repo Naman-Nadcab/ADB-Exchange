@@ -9,6 +9,8 @@ import { downloadRiskExport } from '@/lib/risk-api';
 import { useAdminAuthStore } from '@/store/auth';
 import { cn } from '@/lib/cn';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { StatusBadge } from '@/components/dashboard/StatusBadge';
 import { TableSkeleton } from '@/components/ui';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
@@ -85,6 +87,7 @@ function ExportBtn({
 export default function CompliancePage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [exporting, setExporting] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [strPage, setStrPage] = useState(1);
@@ -148,7 +151,9 @@ export default function CompliancePage() {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'aml'] });
       setStrAction(null);
       setActionNote('');
+      toast.success('STR status updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update STR status.')),
   });
 
   const runExport = async (key: string, fn: () => Promise<void>) => {

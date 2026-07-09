@@ -44,7 +44,7 @@ async function analyticsRoutes(app: FastifyInstance) {
     const period = (request.query.period ?? '7d') as Period;
     const hours = PERIOD_HOURS[period] ?? 168;
     try {
-      const [r, todayRes, activeRes] = await Promise.all([
+      const [r, todayRes, activeRes, retentionRes] = await Promise.all([
         db.query<{ bucket: Date; count: string }>(
           `SELECT date_trunc('day', created_at) AS bucket, COUNT(*)::text AS count
            FROM users WHERE deleted_at IS NULL AND created_at > NOW() - ($1::text || ' hours')::interval
@@ -57,6 +57,19 @@ async function analyticsRoutes(app: FastifyInstance) {
         db.query<{ c: string }>(
           `SELECT COUNT(DISTINCT user_id)::text AS c FROM user_sessions WHERE is_active = true AND expires_at > NOW()`
         ).catch(() => ({ rows: [{ c: '0' }] })),
+        db.query<{ pct: string | null }>(`
+          WITH cohort AS (
+            SELECT COUNT(*)::int AS total FROM users WHERE deleted_at IS NULL AND created_at < NOW() - INTERVAL '7 days'
+          ),
+          retained AS (
+            SELECT COUNT(DISTINCT u.id)::int AS n
+            FROM users u
+            INNER JOIN user_sessions s ON s.user_id = u.id AND s.is_active = TRUE AND s.expires_at > NOW()
+            WHERE u.deleted_at IS NULL AND u.created_at < NOW() - INTERVAL '7 days'
+          )
+          SELECT CASE WHEN cohort.total > 0 THEN ROUND((retained.n::numeric / cohort.total) * 100, 2) ELSE NULL END::text AS pct
+          FROM cohort, retained
+        `).catch(() => ({ rows: [{ pct: null }] })),
       ]);
       const rows = r.rows ?? [];
       const newUsersPerDay = rows.map((row) => ({
@@ -65,6 +78,8 @@ async function analyticsRoutes(app: FastifyInstance) {
       }));
       const newUsersToday = parseInt(todayRes.rows[0]?.c ?? '0', 10) || 0;
       const activeUsers = parseInt(activeRes.rows[0]?.c ?? '0', 10) || 0;
+      const retentionRaw = retentionRes.rows[0]?.pct;
+      const retentionRate = retentionRaw != null && retentionRaw !== '' ? parseFloat(retentionRaw) : null;
       return reply.send({
         success: true,
         data: {
@@ -72,7 +87,7 @@ async function analyticsRoutes(app: FastifyInstance) {
           new_users_per_day: newUsersPerDay,
           new_users_today: newUsersToday,
           active_users: activeUsers,
-          retention_rate_percent: 0,
+          retention_rate_percent: retentionRate,
         },
       });
     } catch (e) {
@@ -84,7 +99,7 @@ async function analyticsRoutes(app: FastifyInstance) {
           new_users_per_day: [],
           new_users_today: 0,
           active_users: 0,
-          retention_rate_percent: 0,
+          retention_rate_percent: null,
         },
       });
     }

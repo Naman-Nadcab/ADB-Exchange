@@ -15,10 +15,21 @@ function normalizeBaseUrl(u: string): string {
 }
 
 export function getExternalPriceSourceBaseUrls(): string[] {
+  // Sync read uses config; async callers should use getExternalPriceSourceBaseUrlsAsync().
   const urls = config.externalPriceFeed.sourceBaseUrls;
   if (urls.length > 0) return urls.map(normalizeBaseUrl);
   const b = config.externalPriceFeed.baseUrl?.trim();
   return [normalizeBaseUrl(b || 'https://api.binance.com')];
+}
+
+/** Admin-configured price sources (chart/market_data api_settings) with env fallback. */
+export async function getExternalPriceSourceBaseUrlsAsync(): Promise<string[]> {
+  try {
+    const { dynamicConfig } = await import('./dynamic-config.service.js');
+    return await dynamicConfig.getPriceFeedBaseUrls();
+  } catch {
+    return getExternalPriceSourceBaseUrls();
+  }
 }
 
 export type ExternalPriceSample = {
@@ -126,10 +137,12 @@ export async function aggregateExternalMidPrice(symbol: string): Promise<{
   avgLatencyMs: number | null;
   aggregation: 'median' | 'mean' | 'latency_weighted';
 }> {
-  if (!config.externalPriceFeed.enabled) {
+  const { dynamicConfig } = await import('./dynamic-config.service.js');
+  const enabled = await dynamicConfig.isPriceFeedEnabled();
+  if (!enabled && !config.externalPriceFeed.enabled) {
     return { mid: null, validSources: 0, samples: [], droppedOutliers: 0, avgLatencyMs: null, aggregation: 'median' };
   }
-  const bases = getExternalPriceSourceBaseUrls();
+  const bases = await getExternalPriceSourceBaseUrlsAsync();
   const raw = await Promise.all(bases.map((b, i) => fetchBinanceMidPriceFromBaseTimed(symbol, b, i)));
   const collected = raw.filter((x): x is ExternalPriceSample => x != null && Number.isFinite(x.price) && x.price > 0);
   if (collected.length === 0) {

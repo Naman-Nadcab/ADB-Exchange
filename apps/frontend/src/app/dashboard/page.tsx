@@ -162,9 +162,9 @@ function RailCardPreviewSkeleton() {
 }
 
 export default function DashboardPage() {
-  const { user, accessToken, _hasHydrated } = useAuthStore();
+  const { user, accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
-  const { data: balanceData } = useBalancesSummary(!!_hasHydrated && !!accessToken);
+  const { data: balanceData } = useBalancesSummary(!!_hasHydrated && isAuthenticated);
   const totalUsd = (balanceData?.fundingBalance?.totalUsd ?? 0) + (balanceData?.tradingBalance?.totalUsd ?? 0);
   const fundingUsd = balanceData?.fundingBalance?.totalUsd ?? 0;
   const tradingUsd = balanceData?.tradingBalance?.totalUsd ?? 0;
@@ -289,7 +289,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!deferSecondaryLoads) return;
-    if (!accessToken) return;
+    if (!isAuthenticated) return;
     fetch(`${getApiBaseUrl()}/api/v1/wallet/kyc-status`, { headers: { Authorization: `Bearer ${accessToken}` } })
       .then((res) => res.json())
       .then((data) => {
@@ -303,7 +303,7 @@ export default function DashboardPage() {
     if (!deferSecondaryLoads) return;
     if (!_hasHydrated) return;
 
-    if (!accessToken) {
+    if (!isAuthenticated) {
       setRailPreviewsLoading(false);
       setReferralPreview(null);
       setFeePreview(null);
@@ -1186,7 +1186,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="space-y-4 p-4 sm:p-5">
-                {accessToken && p2pPreview != null ? (
+                {isAuthenticated && p2pPreview != null ? (
                   <div className="rounded-lg border border-border bg-muted/30 px-3 py-2.5">
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">P2P snapshot</p>
                     <p className="mt-1 text-sm text-foreground">
@@ -1235,7 +1235,7 @@ export default function DashboardPage() {
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </Link>
                 </div>
-                {!accessToken ? (
+                {!isAuthenticated ? (
                   <p className="text-center text-xs text-muted-foreground">Sign in to see P2P order counts on the dashboard.</p>
                 ) : null}
               </div>

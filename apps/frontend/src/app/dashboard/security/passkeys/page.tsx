@@ -627,7 +627,7 @@ export default function PasskeysPage() {
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                   <div>
-                    <h3 className="font-medium text-foreground text-sm">Ensure Your Account's Security</h3>
+                    <h3 className="font-medium text-foreground text-sm">Ensure Your Account&apos;s Security</h3>
                     <p className="text-sm text-muted-foreground">
                       Passkeys provide state-of-the-art phishing protection.
                     </p>

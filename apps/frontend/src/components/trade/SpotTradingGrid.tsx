@@ -109,7 +109,7 @@ export function SpotTradingGrid() {
   const { accessToken, user } = useAuthStore();
   const { authResolved, isAuthenticated } = useAuth();
   const { resolvedTheme } = useThemeStore();
-  const isAuth = authResolved && isAuthenticated && Boolean(accessToken);
+  const isAuth = authResolved && isAuthenticated;
   const chartTheme = resolvedTheme === 'dark' ? 'dark' : 'light';
   const [chartIntervalSeconds, setChartIntervalSeconds] = useState(() => {
     if (typeof window === 'undefined') return 60;
@@ -628,7 +628,7 @@ export function SpotTradingGrid() {
             <code className="rounded bg-accent px-1 dark:bg-accent">spot_markets</code> is empty.
           </p>
           {typeof window !== 'undefined' && (
-            <p className="mt-1 text-[11px] text-muted-foreground">
+            <p className="mt-1 terminal-text-label text-muted-foreground">
               API base: <span className="font-mono">{getApiBaseUrl() || '(same origin)'}</span>
               {' · '}
               Override with <span className="font-mono">NEXT_PUBLIC_API_BASE_URL</span>

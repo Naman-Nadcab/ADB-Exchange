@@ -5,14 +5,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAdminAuthStore } from '@/store/auth';
 import {
   getMonitoringIncidents,
+  createMonitoringIncident,
+  patchMonitoringIncident,
   type IncidentRow,
 } from '@/lib/monitoring-api';
-import {
-  createControlIncident,
-  acknowledgeControlIncident,
-  resolveControlIncident,
-} from '@/lib/control-api';
 import { TableSkeleton } from '@/components/ui/Skeleton';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import {
   Siren, Eye, CheckCircle2, Search, Plus, X,
   Clock, AlertTriangle, ChevronDown, ChevronRight,
@@ -119,13 +118,13 @@ export function MonitoringIncidentsPanel() {
   }, [queryClient]);
 
   const ackMutation = useMutation({
-    mutationFn: (id: string) => acknowledgeControlIncident(token, id),
+    mutationFn: (id: string) => patchMonitoringIncident(token, id, { status: 'acknowledged' }),
     onSuccess: () => { invalidate(); showToast('success', 'Incident acknowledged'); },
     onError: () => showToast('error', 'Failed to acknowledge'),
   });
 
   const resolveMutation = useMutation({
-    mutationFn: (id: string) => resolveControlIncident(token, id),
+    mutationFn: (id: string) => patchMonitoringIncident(token, id, { status: 'resolved' }),
     onSuccess: () => { invalidate(); showToast('success', 'Incident resolved'); },
     onError: () => showToast('error', 'Failed to resolve'),
   });
@@ -394,11 +393,24 @@ function CreateIncidentModal({
   const [type, setType] = useState('');
   const [severity, setSeverity] = useState('warning');
   const [description, setDescription] = useState('');
+  const toast = useAdminToast();
 
   const mutation = useMutation({
-    mutationFn: () => createControlIncident(token, { type, severity, description: description || undefined }),
-    onSuccess: onCreated,
-    onError: onError,
+    mutationFn: () =>
+      createMonitoringIncident(token, {
+        service: type,
+        severity,
+        title: description || `${type} incident`,
+        notes: description || undefined,
+      }),
+    onSuccess: () => {
+      toast.success('Incident created.');
+      onCreated();
+    },
+    onError: (e) => {
+      toast.error(formatSaveError(e, 'Failed to create incident.'));
+      onError();
+    },
   });
 
   return (

@@ -3,6 +3,8 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Star, Search } from 'lucide-react';
 import { formatValueFixedTrim, formatCompactNumber } from '@/components/trade/terminalFormat';
+import { formatMoverChangePct, moverChangeTone } from '@/components/trade/terminalUiFormat';
+import { TerminalEmptyState } from '@/components/trade/TerminalEmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { CoinIcon } from '@/components/ui/CoinIcon';
 import { useDisplayCurrency } from '@/context/DisplayCurrencyProvider';
@@ -108,7 +110,10 @@ export function MarketsSidebar({
       setSortDir(next === 'pair' ? 'asc' : 'desc');
     }
   };
-  const sortGlyph = (next: 'pair' | 'last' | 'change') => (sortBy === next ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '');
+  const sortGlyph = (next: 'pair' | 'last' | 'change') =>
+    sortBy === next ? (
+      <span className="ml-0.5 inline-block text-[10px] leading-none">{sortDir === 'asc' ? '↑' : '↓'}</span>
+    ) : null;
 
   const isTerminal = variant === 'terminal';
 
@@ -152,7 +157,7 @@ export function MarketsSidebar({
             : 'shrink-0 border-b border-border'
         }
       >
-        <div className={isTerminal ? 'flex px-0.5 pt-0.5' : 'flex'}>
+        <div className={isTerminal ? 'flex px-0.5' : 'flex'}>
           {tabs.map((t) => (
             <button
               key={t.id}
@@ -160,7 +165,7 @@ export function MarketsSidebar({
               onClick={() => setTab(t.id)}
               className={
                 isTerminal
-                  ? `flex-1 py-2 text-[12px] font-semibold tracking-wide transition-colors ${
+                  ? `flex-1 py-1.5 text-label font-semibold leading-none transition-colors ${
                       tab === t.id
                         ? 'border-b-2 border-primary text-foreground'
                         : 'border-b-2 border-transparent text-muted-foreground hover:text-foreground'
@@ -174,10 +179,10 @@ export function MarketsSidebar({
             </button>
           ))}
         </div>
-        <div className={isTerminal ? 'border-t border-border/80 px-3 py-2' : 'border-b border-border p-2'}>
+        <div className={isTerminal ? 'border-t border-border/80 px-2 py-1' : 'border-b border-border p-2'}>
           <div className="relative">
             <Search
-              className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground ${isTerminal ? 'left-2.5 h-3.5 w-3.5' : 'left-2.5 h-4 w-4'}`}
+              className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground ${isTerminal ? 'left-2 h-3 w-3' : 'left-2.5 h-4 w-4'}`}
             />
             <input
               ref={searchInputRef}
@@ -187,7 +192,7 @@ export function MarketsSidebar({
               onChange={(e) => setSearch(e.target.value)}
               className={
                 isTerminal
-                  ? 'h-9 w-full rounded-md border border-border/90 bg-muted/40 pl-8 pr-3 text-[12px] leading-snug text-foreground placeholder:text-muted-foreground/60 transition-colors focus:border-primary/50 focus:bg-muted/55 focus:outline-none focus:ring-0'
+                  ? 'h-7 w-full rounded-md border border-border bg-muted/40 pl-7 pr-2 text-label leading-none text-foreground placeholder:text-muted-foreground/60 transition-colors focus:border-primary/50 focus:bg-muted/55 focus:outline-none focus:ring-0'
                   : 'h-8 w-full rounded border border-border bg-background pl-8 pr-3 text-foreground text-small placeholder:text-muted-foreground/60 focus:border-border focus:outline-none focus:ring-1 focus:ring-buy/25'
               }
             />
@@ -195,13 +200,7 @@ export function MarketsSidebar({
         </div>
       </div>
       {isTerminal && (
-        <div className="flex items-center justify-between border-t border-border/70 bg-muted/20 px-3 py-2 text-[11px]">
-          <span className="font-semibold uppercase tracking-[0.04em] text-muted-foreground">Markets</span>
-          <span className="numeric text-muted-foreground">Live 24h</span>
-        </div>
-      )}
-      {isTerminal && (
-        <div className="flex items-center gap-1 border-t border-border/70 bg-card px-2 py-2">
+        <div className="flex items-center gap-0.5 border-t border-border/80 bg-card px-1.5 py-1">
           {(
             [
               ['all', 'All'],
@@ -214,7 +213,7 @@ export function MarketsSidebar({
               key={id}
               type="button"
               onClick={() => setScanMode(id)}
-              className={`rounded px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.03em] ${
+              className={`rounded px-1.5 py-0.5 text-label font-semibold uppercase leading-none ${
                 scanMode === id ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -233,15 +232,15 @@ export function MarketsSidebar({
         <table
           className={
             isTerminal
-              ? 'w-full table-fixed border-separate border-spacing-0 text-[13px] text-foreground'
+              ? 'w-full table-fixed border-separate border-spacing-0 terminal-text-table text-foreground'
               : 'w-full text-small'
           }
         >
           {isTerminal ? (
             <colgroup>
-              <col />
-              <col className="w-[5.4rem]" />
-              <col className="w-[4.7rem]" />
+              <col className="w-[44%]" />
+              <col className="w-[33%]" />
+              <col className="w-[23%]" />
             </colgroup>
           ) : null}
           <thead
@@ -254,26 +253,28 @@ export function MarketsSidebar({
             <tr
               className={
                 isTerminal
-                  ? 'text-[11px] font-semibold uppercase tracking-[0.04em] text-muted-foreground'
+                  ? 'text-label font-semibold uppercase leading-none text-muted-foreground'
                   : 'font-medium text-muted-foreground'
               }
             >
-              <th className={`text-left ${isTerminal ? 'px-3 py-2' : 'px-2 py-2'}`}>
-                <button type="button" className="w-full text-left" onClick={() => toggleSort('pair')}>
-                  Pair{sortGlyph('pair')}
+              <th className={`text-left ${isTerminal ? 'px-2 py-1.5' : 'px-2 py-2'}`}>
+                <button type="button" className="inline-flex items-center gap-0.5" onClick={() => toggleSort('pair')}>
+                  <span>Pair</span>
+                  {sortGlyph('pair')}
                 </button>
               </th>
-              <th className={`text-right whitespace-nowrap ${isTerminal ? 'px-1 py-2 pr-2' : 'px-2 py-2'}`}>
-                <button type="button" className="w-full text-right" onClick={() => toggleSort('last')}>
-                  Last{sortGlyph('last')}
+              <th className={`text-right whitespace-nowrap ${isTerminal ? 'px-1.5 py-1.5' : 'px-2 py-2'}`}>
+                <button type="button" className="inline-flex w-full items-center justify-end gap-0.5" onClick={() => toggleSort('last')}>
+                  <span>Last</span>
+                  {sortGlyph('last')}
                 </button>
               </th>
               <th
-                className={`text-right whitespace-nowrap ${isTerminal ? 'px-1 py-2' : 'px-2 py-2'}`}
+                className={`text-right whitespace-nowrap ${isTerminal ? 'px-1.5 py-1.5' : 'px-2 py-2'}`}
                 title="24 hour change"
               >
-                <button type="button" className="w-full text-right" onClick={() => toggleSort('change')}>
-                  {isTerminal ? 'Change' : '24h%'}
+                <button type="button" className="inline-flex w-full items-center justify-end gap-0.5" onClick={() => toggleSort('change')}>
+                  <span>{isTerminal ? 'Chg' : '24h%'}</span>
                   {sortGlyph('change')}
                 </button>
               </th>
@@ -287,7 +288,7 @@ export function MarketsSidebar({
           <tbody>
             {loading ? (
               Array.from({ length: 10 }).map((_, i) => (
-                <tr key={i} className="border-b border-border/50">
+                <tr key={i} className="border-b border-border/80">
                   <td className={isTerminal ? 'px-3 py-2' : 'px-2 py-1.5'}>
                     <Skeleton className="h-4 w-20 bg-accent" />
                   </td>
@@ -325,35 +326,43 @@ export function MarketsSidebar({
                   colSpan={isTerminal ? 3 : 4}
                   className={
                     isTerminal
-                      ? 'px-3 py-8 text-center text-label leading-relaxed text-muted-foreground'
+                      ? 'px-3 py-6'
                       : 'px-3 py-8 text-center text-sm text-muted-foreground'
                   }
                 >
-                  No markets match your filters.
+                  {isTerminal ? (
+                    <TerminalEmptyState
+                      kind="markets"
+                      title="No markets match"
+                      description="Try a different search or filter."
+                      compact
+                    />
+                  ) : (
+                    'No markets match your filters.'
+                  )}
                 </td>
               </tr>
             ) : (
               filtered.map((m, idx) => {
                 const isSelected = m.symbol === selectedSymbol;
                 const change = m.change_24h;
-                const isUp = change != null && change >= 0;
-                const rowBorder = 'border-b border-border/55';
-                const rowHover = isTerminal ? 'hover:bg-muted/40' : 'hover:bg-muted/30';
-                const cellY = isTerminal ? 'py-2' : 'py-2';
-                const pxPair = isTerminal ? 'px-3' : 'px-2';
-                const pxMid = isTerminal ? 'px-1 pr-2' : 'px-2';
+                const rowBorder = 'border-b border-border/80';
+                const rowHover = isTerminal ? 'hover:bg-muted/45' : 'hover:bg-muted/30';
+                const cellY = isTerminal ? 'py-1' : 'py-2';
+                const pxPair = isTerminal ? 'px-2' : 'px-2';
+                const pxMid = isTerminal ? 'px-1 pr-1.5' : 'px-2';
                 const starHover = 'hover:text-primary';
                 const listPricePrecision = Math.min(6, Math.max(2, Math.floor(m.price_precision ?? 6)));
                 const changeToneClass =
-                  change == null || !Number.isFinite(change)
-                    ? 'text-muted-foreground'
-                    : isUp
-                      ? 'text-buy'
-                      : 'text-sell';
+                  moverChangeTone(change) === 'buy'
+                    ? 'text-buy'
+                    : moverChangeTone(change) === 'sell'
+                      ? 'text-sell'
+                      : 'text-muted-foreground';
                 return (
                   <tr
                     key={m.symbol}
-                    className={`cursor-pointer border-l-2 transition-colors duration-100 ${rowBorder} ${rowHover} ${
+                    className={`cursor-pointer border-l-2 transition-colors duration-150 ${rowBorder} ${rowHover} ${
                       isSelected
                         ? isTerminal
                           ? 'border-l-primary bg-muted/55 shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.16)]'
@@ -364,7 +373,7 @@ export function MarketsSidebar({
                     onMouseEnter={() => setKbdIndex(idx)}
                   >
                     <td className={`min-w-0 ${pxPair} ${cellY}`}>
-                      <div className="flex min-w-0 items-center gap-1">
+                      <div className="flex min-w-0 items-center gap-1.5">
                         {onToggleFavorite && (
                           <button
                             type="button"
@@ -380,35 +389,39 @@ export function MarketsSidebar({
                             />
                           </button>
                         )}
-                        <CoinIcon symbol={m.base_asset} size={isTerminal ? 15 : 18} className="shrink-0" />
-                        <div className="min-w-0 leading-tight" title={`${m.base_asset}/${m.quote_asset}`}>
-                          <div className="whitespace-normal text-[13px] font-semibold tracking-tight text-foreground [overflow-wrap:anywhere]">
-                            {m.base_asset}
-                          </div>
-                          <div className="whitespace-normal text-[11px] font-medium text-muted-foreground [overflow-wrap:anywhere]">
-                            /{m.quote_asset}
-                          </div>
-                        </div>
+                        <CoinIcon symbol={m.base_asset} size={16} className="shrink-0" />
+                        <span
+                          className="min-w-0 truncate terminal-text-table font-semibold tracking-tight text-foreground"
+                          title={`${m.base_asset}/${m.quote_asset}`}
+                        >
+                          {m.base_asset}
+                          <span className="font-medium text-muted-foreground">/{m.quote_asset}</span>
+                        </span>
                       </div>
                     </td>
                     <td
                       className={`numeric whitespace-nowrap text-right font-medium ${cellY} ${pxMid} text-foreground ${isTerminal ? 'text-price' : 'text-label'}`}
                     >
-                      {m.last_price != null
-                        ? m.quote_asset === 'USDT'
-                          ? formatFromUsdt(Number(m.last_price), listPricePrecision)
-                          : formatValueFixedTrim(m.last_price, listPricePrecision)
-                        : '—'}
+                      {m.last_price != null ? (
+                        <>
+                          <span>{formatValueFixedTrim(m.last_price, listPricePrecision)}</span>
+                          {m.quote_asset === 'USDT' ? (
+                            <span className="ml-0.5 text-label font-medium text-muted-foreground">USDT</span>
+                          ) : null}
+                        </>
+                      ) : (
+                        '—'
+                      )}
                       {m.last_price != null && m.quote_asset === 'USDT' && displayCurrency === 'INR' ? (
-                        <div className="text-[10px] font-medium text-muted-foreground">
-                          ≈ {formatValueFixedTrim(m.last_price, listPricePrecision)} USDT
+                        <div className="text-label font-medium text-muted-foreground">
+                          {formatFromUsdt(Number(m.last_price), listPricePrecision)}
                         </div>
                       ) : null}
                     </td>
                     <td
                       className={`numeric whitespace-nowrap text-right font-semibold ${cellY} ${isTerminal ? 'px-1 text-price' : 'px-2 text-label'} ${changeToneClass}`}
                     >
-                      {change != null && Number.isFinite(change) ? `${change >= 0 ? '+' : ''}${change.toFixed(2)}%` : '—'}
+                      {formatMoverChangePct(change)}
                     </td>
                     {!isTerminal && (
                       <td className="numeric whitespace-nowrap py-1.5 px-2 text-right font-medium text-label text-muted-foreground">

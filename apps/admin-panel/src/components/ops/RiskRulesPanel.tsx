@@ -9,6 +9,8 @@ import { OperatorSection } from '@/components/admin-shell/OperatorSection';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
 interface RiskRule {
   id: string;
@@ -23,6 +25,7 @@ interface RiskRule {
 export function RiskRulesPanel() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ name: '', scope: 'withdrawal', decision: 'challenge', min_score: '50' });
 
@@ -52,7 +55,9 @@ export function RiskRulesPanel() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'security', 'risk-rules'] });
       setShowCreate(false);
+      toast.success('Risk rule created.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to create risk rule.')),
   });
 
   const toggleMut = useMutation({
@@ -62,7 +67,11 @@ export function RiskRulesPanel() {
         token,
         body: {},
       }),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['admin', 'security', 'risk-rules'] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'security', 'risk-rules'] });
+      toast.success('Risk rule updated.');
+    },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update risk rule.')),
   });
 
   const rules = rulesQ.data?.data?.rules ?? [];

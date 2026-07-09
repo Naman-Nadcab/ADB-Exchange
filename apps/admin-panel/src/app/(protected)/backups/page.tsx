@@ -16,6 +16,8 @@ import {
   requestOperationalBackupRestore,
 } from '@/lib/system-api';
 import { useState } from 'react';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
 function fmtBytes(n: number | null | undefined): string {
   if (n == null || !Number.isFinite(n)) return '—';
@@ -27,6 +29,7 @@ function fmtBytes(n: number | null | undefined): string {
 export default function BackupsPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [createOpen, setCreateOpen] = useState(false);
   const [restoreId, setRestoreId] = useState<string | null>(null);
 
@@ -42,7 +45,9 @@ export default function BackupsPage() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'operational-backups'] });
       setCreateOpen(false);
+      toast.success('Backup created.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to create backup.')),
   });
 
   const restoreMut = useMutation({
@@ -50,7 +55,9 @@ export default function BackupsPage() {
       requestOperationalBackupRestore(token, restoreId!),
     onSuccess: () => {
       setRestoreId(null);
+      toast.success('Backup restore requested.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Backup restore failed.')),
   });
 
   const backups = backupsQ.data?.data?.backups ?? [];

@@ -5,7 +5,7 @@ import { JsonRpcProvider } from 'ethers';
 
 const providers = new Map<string, JsonRpcProvider>();
 const blockCache = new Map<string, { n: number; at: number }>();
-const BLOCK_CACHE_MS = 5_000;
+const BLOCK_CACHE_MS = parseInt(process.env.INDEXER_BLOCK_CACHE_MS || '10000', 10);
 const receiptCache = new Map<string, { status: number | null; at: number }>();
 const RECEIPT_CACHE_MS = 86_400_000;
 const inflight = new Map<string, Promise<unknown>>();

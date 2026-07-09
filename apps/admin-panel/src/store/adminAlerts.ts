@@ -1,12 +1,17 @@
 import { create } from 'zustand';
 import type { SystemAlert } from '@/components/admin-v2/alert-engine';
+import type { InfrastructureAlertRow, MonitoringAlertSummary } from '@/lib/monitoring-api';
 
 const MAX_ALERTS = 100;
 const DEDUP_WINDOW_MS = 30_000;
 
 interface AdminAlertState {
+  /** Client-side metric advisories (alert-engine). */
   alerts: SystemAlert[];
   predictiveAlerts: SystemAlert[];
+  /** DB-backed infrastructure alerts (Alert Center). */
+  infrastructureAlerts: InfrastructureAlertRow[];
+  alertSummary: MonitoringAlertSummary | null;
   unreadCount: number;
   drawerOpen: boolean;
 
@@ -14,6 +19,7 @@ interface AdminAlertState {
   addAlerts: (incoming: SystemAlert[]) => void;
   addPredictiveAlerts: (incoming: SystemAlert[]) => void;
   clearPredictiveAlerts: () => void;
+  syncFromBackend: (alerts: InfrastructureAlertRow[], summary: MonitoringAlertSummary) => void;
   markAllRead: () => void;
   clearAlerts: () => void;
   dismissAlert: (id: string) => void;
@@ -24,6 +30,8 @@ interface AdminAlertState {
 export const useAdminAlertStore = create<AdminAlertState>((set, get) => ({
   alerts: [],
   predictiveAlerts: [],
+  infrastructureAlerts: [],
+  alertSummary: null,
   unreadCount: 0,
   drawerOpen: false,
 
@@ -85,6 +93,13 @@ export const useAdminAlertStore = create<AdminAlertState>((set, get) => ({
   },
 
   clearPredictiveAlerts: () => set({ predictiveAlerts: [] }),
+
+  syncFromBackend: (infrastructureAlerts, alertSummary) =>
+    set({
+      infrastructureAlerts,
+      alertSummary,
+      unreadCount: alertSummary.open,
+    }),
 
   markAllRead: () => set({ unreadCount: 0 }),
 

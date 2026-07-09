@@ -24,6 +24,8 @@ import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
 import { cn } from '@/lib/cn';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
 import { BulkActionResultPanel } from '@/components/ops/BulkActionResultPanel';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
 /* ── tiny helpers ────────────────────────────────────── */
 function fmtMoney(n: number | undefined): string {
@@ -100,6 +102,7 @@ function KpiCard({ label, value, sub, icon, accent, ring, alert, loading }: KpiP
 export default function WithdrawalsPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const searchParams = useSearchParams();
 
   const [page, setPage]               = useState(1);
@@ -151,13 +154,15 @@ export default function WithdrawalsPage() {
   const approveMutation = useMutation({
     mutationFn: ({ id, adminNote }: { id: string; adminNote?: string }) =>
       approveWithdrawal(token, id, { admin_note: adminNote }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'withdrawals'] }); setApproveModal(null); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'withdrawals'] }); setApproveModal(null); toast.success('Withdrawal approved.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to approve withdrawal.')),
   });
 
   const rejectMutation = useMutation({
     mutationFn: ({ id, reason, adminNote }: { id: string; reason: string; adminNote?: string }) =>
       rejectWithdrawal(token, id, { reason, admin_note: adminNote }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'withdrawals'] }); setRejectModal(null); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'withdrawals'] }); setRejectModal(null); toast.success('Withdrawal rejected.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to reject withdrawal.')),
   });
   const bulkMutation = useMutation({
     mutationFn: async ({ action, reason }: { action: 'approve' | 'reject'; reason: string }) => {
@@ -183,7 +188,9 @@ export default function WithdrawalsPage() {
       setSelectedWithdrawalIds([]);
       setBulkAction(null);
       setBulkResult(result ?? null);
+      toast.success(`Bulk ${result?.action ?? 'action'} completed (${result?.successCount ?? 0} updated).`);
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Bulk withdrawal action failed.')),
   });
 
   const handleApprove = useCallback(

@@ -31,6 +31,8 @@ import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { useAdminWs } from '@/hooks/useAdminWs';
 import { Wallet, Flame, Snowflake, Clock, Play, Settings, Activity, Server, Zap, AlertTriangle } from 'lucide-react';
 import { AdminPageFrame, type AdminPageStatus } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { DepositSweepsPanel } from '@/components/ops/DepositSweepsPanel';
 
 function formatReserves(n: number): string {
@@ -45,6 +47,7 @@ type TreasuryTab = 'overview' | 'transactions';
 export default function TreasuryPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [sweepModal, setSweepModal] = useState<{ action: SweepActionType; sweep?: SweepRow | null } | null>(null);
   const [sweepsPage, setSweepsPage] = useState(1);
   const [activeTab, setActiveTab] = useState<TreasuryTab>('overview');
@@ -124,7 +127,9 @@ export default function TreasuryPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'treasury'] });
       setSweepModal(null);
+      toast.success('Treasury sweep started.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to run treasury sweep.')),
   });
 
   const retrySweepMutation = useMutation({
@@ -132,7 +137,9 @@ export default function TreasuryPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'treasury'] });
       setSweepModal(null);
+      toast.success('Sweep retry submitted.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to retry sweep.')),
   });
 
   useAdminWs({

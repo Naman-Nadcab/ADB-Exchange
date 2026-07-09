@@ -11,6 +11,8 @@ import { adminFetch } from '@/lib/api';
 import { useAdminAuthStore } from '@/store/auth';
 import { cn } from '@/lib/cn';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
 import { StatusBadge } from '@/components/dashboard/StatusBadge';
 
@@ -122,6 +124,7 @@ function FieldSelect({ value, onChange, children }: { value: string; onChange: (
 export default function AdminUsersPage() {
   const token        = useAdminAuthStore((s) => s.accessToken);
   const queryClient  = useQueryClient();
+  const toast        = useAdminToast();
 
   const [search,       setSearch]       = useState('');
   const [roleFilter,   setRoleFilter]   = useState('all');
@@ -185,8 +188,12 @@ export default function AdminUsersPage() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'admins'] });
       setAddOpen(false); setFormName(''); setFormEmail(''); setFormRole('SUPPORT_AGENT'); setFormPassword('');
+      toast.success('Admin account created.');
     },
-    onError: () => setCreateError('Failed to create admin. Email may already be in use.'),
+    onError: (e) => {
+      setCreateError('Failed to create admin. Email may already be in use.');
+      toast.error(formatSaveError(e, 'Failed to create admin.'));
+    },
   });
 
   const updateMutation = useMutation({
@@ -194,16 +201,22 @@ export default function AdminUsersPage() {
       adminFetch(`/admins/${id}`, { method: 'PATCH', body, token }),
     onSuccess: (res) => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'admins'] });
-      if (res.success) { setEditOpen(false); setEditingId(null); setEditError(''); setActionTarget(null); }
+      if (res.success) { setEditOpen(false); setEditingId(null); setEditError(''); setActionTarget(null); toast.success('Admin account updated.'); }
       else setEditError(res.error?.message ?? 'Update failed');
     },
-    onError: () => setEditError('Failed to update. Please try again.'),
+    onError: (e) => {
+      setEditError('Failed to update. Please try again.');
+      toast.error(formatSaveError(e, 'Failed to update admin account.'));
+    },
   });
   const resetPwMutation = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
       adminFetch(`/admins/${id}/reset-password`, { method: 'POST', token, body: { reason } }),
-    onSuccess: () => setActionTarget(null),
-    onError: () => setEditError('Failed to send password reset email.'),
+    onSuccess: () => { setActionTarget(null); toast.success('Password reset email sent.'); },
+    onError: (e) => {
+      setEditError('Failed to send password reset email.');
+      toast.error(formatSaveError(e, 'Failed to send password reset email.'));
+    },
   });
 
   const openEditRole = (row: AdminAccountRow) => {

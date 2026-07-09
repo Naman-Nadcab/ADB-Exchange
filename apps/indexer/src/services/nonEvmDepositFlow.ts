@@ -250,14 +250,12 @@ export async function creditConfirmedDeposit(params: {
     );
 
     await client.query(
-      `INSERT INTO user_activity_logs (
-         id, user_id, activity_type, description, metadata,
-         ip_address, user_agent, created_at
-       ) VALUES (gen_random_uuid(), $1, 'deposit_confirmed', $2, $3, '0.0.0.0', 'indexer', NOW())`,
+      `INSERT INTO user_activity_logs (user_id, activity_type, ip_address, user_agent, details, created_at)
+       VALUES ($1, 'deposit_confirmed', '0.0.0.0', 'indexer', $2, NOW())`,
       [
         params.userId,
-        `Deposit of ${params.amount} ${params.symbol} confirmed`,
         JSON.stringify({
+          message: `Deposit of ${params.amount} ${params.symbol} confirmed`,
           chain: params.chainId,
           txHash: params.txHash,
           amount: params.amount,

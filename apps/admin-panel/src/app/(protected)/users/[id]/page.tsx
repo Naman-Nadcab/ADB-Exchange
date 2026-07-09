@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
 type TabId = 'overview' | 'wallets' | 'orders' | 'trades' | 'deposits' | 'withdrawals' | 'p2p' | 'activity' | 'security' | 'api-keys' | 'risk-timeline';
 
@@ -66,6 +68,7 @@ export default function UserDetailPage() {
   const id = typeof params?.id === 'string' ? params.id : '';
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [copied, setCopied] = useState(false);
   const [showBalanceAdjust, setShowBalanceAdjust] = useState(false);
@@ -166,7 +169,8 @@ export default function UserDetailPage() {
   const saveAnnotations = useMutation({
     mutationFn: (payload: { tags: string[]; note: string }) =>
       adminFetch<{ tags: string[]; note: string }>(`/users/${id}/annotations`, { method: 'PUT', token, body: payload }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'user-annotations', id] }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'user-annotations', id] }); toast.success('Annotations saved.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to save annotations.')),
   });
 
   const toggleTag = useCallback((tag: string) => {
@@ -180,7 +184,8 @@ export default function UserDetailPage() {
   const updateStatus = useMutation({
     mutationFn: ({ status }: { status: 'active' | 'suspended' | 'locked' }) =>
       updateUserStatus(token, id, { status, reason: `Admin action: ${status}` }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'user', id] }); queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'user', id] }); queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }); toast.success('User status updated.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update user status.')),
   });
 
   const balanceAdjust = useMutation({
@@ -195,10 +200,12 @@ export default function UserDetailPage() {
       setAdjType('credit');
       setAdjReason('');
       setAdjError('');
+      toast.success('Balance adjusted.');
     },
     onError: (err: unknown) => {
       const msg = (err as { message?: string })?.message || 'Balance adjustment failed';
       setAdjError(msg);
+      toast.error(formatSaveError(err, 'Balance adjustment failed'));
     },
   });
 

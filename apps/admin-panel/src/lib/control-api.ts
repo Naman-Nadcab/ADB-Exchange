@@ -107,7 +107,7 @@ export function createControlIncident(
 }
 
 export function postControlCommand(token: string | null, command: string) {
-  return adminFetch<{ command: string; triggered: boolean }>('/control/commands', {
+  return adminFetch<{ command: string; triggered: boolean; executed: boolean; message: string }>('/control/commands', {
     method: 'POST',
     token,
     body: { command },

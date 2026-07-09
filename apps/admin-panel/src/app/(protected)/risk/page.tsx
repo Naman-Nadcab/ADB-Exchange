@@ -31,6 +31,8 @@ import { SanctionsTable } from '@/components/risk/SanctionsTable';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { useAdminWs } from '@/hooks/useAdminWs';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { cn } from '@/lib/cn';
 import {
   AlertTriangle, Users, Activity, FileText,
@@ -116,6 +118,7 @@ function Pager({ page, total, onChange }: { page: number; total: number; onChang
 export default function RiskPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
 
   const [alertsPage,    setAlertsPage]    = useState(1);
   const [alertsStatus,  setAlertsStatus]  = useState('all');
@@ -221,18 +224,21 @@ export default function RiskPage() {
   const updateStatusMutation = useMutation({
     mutationFn: ({ alertId, status, note }: { alertId: string; status: string; note?: string }) =>
       updateAmlAlertStatus(token, alertId, { status, note }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'risk'] }); setAlertModal(null); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'risk'] }); setAlertModal(null); toast.success('Alert status updated.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update alert status.')),
   });
 
   const escalateMutation = useMutation({
     mutationFn: (alertId: string) => escalateAmlAlertToStr(token, alertId),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'risk'] }); setAlertModal(null); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'risk'] }); setAlertModal(null); toast.success('Alert escalated to STR.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to escalate alert.')),
   });
 
   const freezeMutation = useMutation({
     mutationFn: ({ alertId, reason }: { alertId: string; reason?: string }) =>
       freezeAccountFromAlert(token, alertId, { reason }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'risk'] }); setAlertModal(null); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'risk'] }); setAlertModal(null); toast.success('Account frozen from alert.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to freeze account.')),
   });
 
   const handleAlertActionConfirm = (payload: { note?: string; reason?: string }) => {

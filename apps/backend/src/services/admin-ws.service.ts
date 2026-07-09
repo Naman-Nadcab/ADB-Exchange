@@ -28,7 +28,13 @@ export type AdminMetricsEventType =
   | 'kyc_rejected'
   | 'sweep_completed'
   | 'sweep_failed'
-  | 'wallet_balance_updated';
+  | 'wallet_balance_updated'
+  | 'system_alert'
+  | 'rpc_timeout'
+  | 'queue_overflow'
+  | 'node_failure'
+  | 'wallet_health_alert'
+  | 'metrics_snapshot';
 
 export interface AdminMetricsEvent {
   type: AdminMetricsEventType;
@@ -171,4 +177,17 @@ export function publishSweepFailed(sweep: { chain_id?: string; from_address?: st
 
 export function getAdminMetricsConnectionCount(): number {
   return connections.size;
+}
+
+/** Infrastructure / ops alert for admin monitoring dashboard */
+export function publishSystemAlert(alert: {
+  id?: string;
+  system?: string;
+  severity?: string;
+  message?: string;
+  suggested_action?: string;
+  root_cause?: string;
+}): void {
+  broadcastAdminMetrics('system_alert', alert);
+  eventBus.publish('alert:new', { ...alert, action: 'system_alert' }, 'metrics');
 }

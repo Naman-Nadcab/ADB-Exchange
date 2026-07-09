@@ -5,6 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAdminAuthStore } from '@/store/auth';
 import { adminFetch } from '@/lib/api';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import {
@@ -66,6 +68,7 @@ function healthVariant(h?: string | null): 'success' | 'danger' | 'warning' | 'd
 }
 
 function ProviderCard({ row, token, onChanged, allRows }: { row: ApiSettingRow; token: string | null; onChanged: () => void; allRows: ApiSettingRow[] }) {
+  const toast = useAdminToast();
   const [apiKey, setApiKey] = useState(row.api_key ?? '');
   const [apiSecret, setApiSecret] = useState('');
   const [apiUrl, setApiUrl] = useState(row.api_url ?? '');
@@ -104,7 +107,8 @@ function ProviderCard({ row, token, onChanged, allRows }: { row: ApiSettingRow; 
         },
       });
     },
-    onSuccess: () => { setApiSecret(''); onChanged(); },
+    onSuccess: () => { setApiSecret(''); onChanged(); toast.success('Provider settings saved.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to save provider settings.')),
   });
 
   const rotate = useMutation({
@@ -112,7 +116,8 @@ function ProviderCard({ row, token, onChanged, allRows }: { row: ApiSettingRow; 
       if (!apiSecret.trim()) throw new Error('Enter new secret to rotate');
       return adminFetch('/settings/api/' + row.id + '/rotate', { method: 'POST', token, body: { api_secret: apiSecret.trim() } });
     },
-    onSuccess: () => { setApiSecret(''); onChanged(); },
+    onSuccess: () => { setApiSecret(''); onChanged(); toast.success('API secret rotated.'); },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to rotate API secret.')),
   });
 
   const healthQuery = useQuery({
@@ -129,8 +134,12 @@ function ProviderCard({ row, token, onChanged, allRows }: { row: ApiSettingRow; 
       const d = res.data as { success?: boolean; message?: string } | undefined;
       setTestMsg({ ok: Boolean(d?.success), text: d?.message ?? 'Tested' });
       onChanged();
+      toast.success(d?.message ?? 'Connection test completed.');
     },
-    onError: () => setTestMsg({ ok: false, text: 'Test request failed' }),
+    onError: (e) => {
+      setTestMsg({ ok: false, text: 'Test request failed' });
+      toast.error(formatSaveError(e, 'Test request failed'));
+    },
   });
 
   return (

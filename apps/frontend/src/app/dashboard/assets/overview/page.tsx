@@ -339,6 +339,7 @@ export default function AssetsOverviewPage() {
     if (!accessToken) return;
     try {
       setRecentTxError(null);
+      await api.post('/api/v1/wallet/deposits/sync', {}, { notifyOnError: false });
       const r = await api.get<{ success: boolean; data?: unknown[] }>(
         '/api/v1/wallet/transactions/all?limit=8',
         { notifyOnError: false }

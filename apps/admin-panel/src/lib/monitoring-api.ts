@@ -30,6 +30,26 @@ export interface AlertRules {
   rpc_failure_rate_threshold: number;
 }
 
+export interface AlertRuleValue {
+  threshold: number;
+  enabled: boolean;
+  cooldown_sec: number;
+  severity: 'critical' | 'warning' | 'info';
+}
+
+export interface AlertRuleDefinition {
+  key: string;
+  label: string;
+  unit: string;
+  system: string;
+  description: string;
+  defaultThreshold: number;
+  min: number;
+  max: number;
+  defaultSeverity: string;
+  defaultCooldownSec: number;
+}
+
 export interface IncidentRow {
   id: string;
   service: string;
@@ -77,6 +97,20 @@ export interface InfrastructureAlertRow {
   message: string;
   status: string;
   created_at: string;
+  root_cause?: string | null;
+  suggested_action?: string | null;
+  acknowledged_at?: string | null;
+  resolved_at?: string | null;
+  assigned_admin_id?: string | null;
+}
+
+export interface MonitoringAlertSummary {
+  open: number;
+  acknowledged: number;
+  resolved: number;
+  open_critical: number;
+  open_high: number;
+  total: number;
 }
 
 export interface InfrastructureProviderRow {
@@ -106,11 +140,27 @@ export function getMonitoringResources(token: string | null) {
 
 export function getMonitoringAlerts(
   token: string | null,
-  params?: { limit?: number; offset?: number; status?: string }
+  params?: { limit?: number; offset?: number; status?: string; severity?: string }
 ) {
   return adminFetch<{ alerts: InfrastructureAlertRow[]; total: number }>('/monitoring/alerts', {
     token,
     params: params as Record<string, string | number | undefined>,
+  });
+}
+
+export function getMonitoringAlertSummary(token: string | null) {
+  return adminFetch<MonitoringAlertSummary>('/monitoring/alerts/summary', { token });
+}
+
+export function patchMonitoringAlert(
+  token: string | null,
+  id: string,
+  body: { status: 'acknowledged' | 'resolved' | 'open'; assigned_admin_id?: string }
+) {
+  return adminFetch<{ id: string; status: string }>(`/monitoring/alerts/${id}`, {
+    method: 'PATCH',
+    token,
+    body,
   });
 }
 
@@ -119,7 +169,7 @@ export function triggerMonitoringAction(
   action: string,
   opts?: { reason?: string; twofa_code?: string }
 ) {
-  return adminFetch<{ action: string; triggered: boolean }>('/monitoring/actions', {
+  return adminFetch<{ action: string; triggered: boolean; executed: boolean; message: string }>('/monitoring/actions', {
     method: 'POST',
     token,
     body: { action, reason: opts?.reason, twofa_code: opts?.twofa_code },
@@ -145,11 +195,40 @@ export function updateRpcProviderPriority(token: string | null, id: string, fail
 }
 
 export function getMonitoringAlertRules(token: string | null) {
-  return adminFetch<AlertRules>('/monitoring/alert-rules', { token });
+  return adminFetch<{ rules: Record<string, AlertRuleValue>; definitions: AlertRuleDefinition[] }>('/monitoring/alert-rules', { token });
 }
 
-export function patchMonitoringAlertRules(token: string | null, body: Partial<AlertRules>) {
-  return adminFetch<AlertRules>('/monitoring/alert-rules', { method: 'PATCH', token, body });
+export function patchMonitoringAlertRules(token: string | null, body: Record<string, AlertRuleValue | number>) {
+  return adminFetch<{ rules: Record<string, AlertRuleValue> }>('/monitoring/alert-rules', { method: 'PATCH', token, body });
+}
+
+export function createMonitoringIncident(
+  token: string | null,
+  body: { service: string; severity?: string; title?: string; related_alert_id?: string; notes?: string },
+) {
+  return adminFetch<{ id: string }>('/monitoring/incidents', { method: 'POST', token, body });
+}
+
+export function patchMonitoringIncident(
+  token: string | null,
+  id: string,
+  body: { status?: string; assigned_admin_id?: string; notes?: string; severity?: string },
+) {
+  return adminFetch<{ id: string; status?: string }>(`/monitoring/incidents/${id}`, { method: 'PATCH', token, body });
+}
+
+export function getMonitoringContainers(token: string | null) {
+  return adminFetch<{ containers: Array<{ name: string; service: string; status: string; state: string; health: string | null; restart_count: number }>; docker_available: boolean }>(
+    '/monitoring/containers',
+    { token },
+  );
+}
+
+export function getMonitoringContainerLogs(token: string | null, name: string, tail?: number) {
+  return adminFetch<{ logs: string; container: string }>(`/monitoring/containers/${encodeURIComponent(name)}/logs`, {
+    token,
+    params: tail != null ? { tail } : undefined,
+  });
 }
 
 export function getMonitoringIncidents(

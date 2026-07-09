@@ -6,8 +6,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAdminAuthStore } from '@/store/auth';
 import {
   getMonitoringAlertRules, patchMonitoringAlertRules,
-  getMonitoringHealth, getMonitoringQueues, getMonitoringAlerts,
-  type AlertRules, type InfrastructureAlertRow,
+  getMonitoringHealth, getMonitoringQueues, getMonitoringAlerts, getMonitoringResources,
+  type AlertRuleValue, type AlertRuleDefinition, type InfrastructureAlertRow,
 } from '@/lib/monitoring-api';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/dashboard/StatusBadge';
@@ -19,54 +19,25 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 
-/* ─────────────── Rule definitions ─────────────── */
+/* ─────────────── Rule UI helpers ─────────────── */
 
-interface RuleDef {
-  key: keyof AlertRules;
-  label: string;
-  unit: string;
-  icon: React.ElementType;
-  description: string;
-  min: number;
-  max: number;
-  step: number;
-  severity: 'critical' | 'warning' | 'info';
-  presets: { label: string; value: number }[];
-}
-
-const RULES: RuleDef[] = [
-  {
-    key: 'api_latency_threshold_ms',
-    label: 'API Latency',
-    unit: 'ms',
-    icon: Activity,
-    description: 'Trigger when API response time exceeds this threshold. High latency degrades UX and may signal backend overload.',
-    min: 50, max: 10000, step: 50,
-    severity: 'critical',
-    presets: [{ label: 'Strict', value: 200 }, { label: 'Normal', value: 500 }, { label: 'Relaxed', value: 1000 }],
-  },
-  {
-    key: 'queue_size_threshold',
-    label: 'Queue Backlog',
-    unit: 'items',
-    icon: Layers,
-    description: 'Trigger when pending withdrawal + settlement queue exceeds this count. Growing queues indicate processing bottlenecks.',
-    min: 1, max: 10000, step: 10,
-    severity: 'warning',
-    presets: [{ label: 'Strict', value: 50 }, { label: 'Normal', value: 100 }, { label: 'Relaxed', value: 500 }],
-  },
-  {
-    key: 'rpc_failure_rate_threshold',
-    label: 'RPC Failure Rate',
-    unit: '%',
-    icon: Radio,
-    description: 'Trigger when blockchain RPC provider error rate exceeds this percentage. High failure rates block deposits/withdrawals.',
-    min: 0, max: 100, step: 1,
-    severity: 'critical',
-    presets: [{ label: 'Strict', value: 2 }, { label: 'Normal', value: 5 }, { label: 'Relaxed', value: 15 }],
-  },
-];
+const RULE_ICONS: Record<string, React.ElementType> = {
+  api_latency_threshold_ms: Activity,
+  api_error_rate_threshold_pct: Activity,
+  queue_size_threshold: Layers,
+  settlement_lag_threshold_sec: Clock,
+  rpc_failure_rate_threshold: Radio,
+  cpu_percent_threshold: Activity,
+  memory_percent_threshold: Activity,
+  disk_percent_threshold: Activity,
+  db_latency_threshold_ms: Activity,
+  redis_latency_threshold_ms: Activity,
+  ws_disconnect_rate_threshold: Radio,
+  matching_engine_latency_threshold_ms: Activity,
+};
 
 const SEVERITY_STYLES = {
   critical: { bg: 'bg-red-500/10', border: 'border-red-500/20', text: 'text-red-400', dot: 'bg-red-400' },
@@ -113,12 +84,10 @@ function ThresholdBar({ current, threshold, max, unit }: { current: number; thre
 export default function MonitoringAlertRulesPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const adminToast = useAdminToast();
 
-  const [form, setForm] = useState<AlertRules>({
-    api_latency_threshold_ms: 500,
-    queue_size_threshold: 100,
-    rpc_failure_rate_threshold: 5,
-  });
+  const [form, setForm] = useState<Record<string, AlertRuleValue>>({});
+  const [definitions, setDefinitions] = useState<AlertRuleDefinition[]>([]);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -156,10 +125,18 @@ export default function MonitoringAlertRulesPage() {
     refetchInterval: 30_000,
   });
 
+  const { data: resourcesData } = useQuery({
+    queryKey: ['admin', 'monitoring', 'resources-live', token],
+    queryFn: () => getMonitoringResources(token),
+    enabled: !!token,
+    refetchInterval: 10_000,
+  });
+
   /* ── Sync form from server ── */
   useEffect(() => {
-    if (rulesData?.data) {
-      setForm(rulesData.data);
+    if (rulesData?.data?.rules) {
+      setForm(rulesData.data.rules);
+      setDefinitions(rulesData.data.definitions ?? []);
       setHasChanges(false);
     }
   }, [rulesData]);
@@ -167,37 +144,55 @@ export default function MonitoringAlertRulesPage() {
   /* ── Derived ── */
   const health = healthData?.data;
   const queues = queuesData?.data;
+  const resources = resourcesData?.data;
   const alerts = (alertsData?.data?.alerts ?? []) as InfrastructureAlertRow[];
 
-  const liveValues: Record<keyof AlertRules, number> = useMemo(() => ({
+  const liveValues: Record<string, number> = useMemo(() => ({
     api_latency_threshold_ms: health?.api_latency_ms ?? 0,
-    queue_size_threshold: (queues?.withdrawal_pending ?? 0) + (queues?.settlement_pending ?? 0),
+    api_error_rate_threshold_pct: 0,
+    queue_size_threshold: (queues?.withdrawal_pending ?? 0) + (queues?.settlement_pending ?? 0) + (queues?.matching_engine_pending ?? 0),
+    settlement_lag_threshold_sec: queues?.settlement_lag_sec ?? 0,
     rpc_failure_rate_threshold: 0,
-  }), [health, queues]);
+    cpu_percent_threshold: resources?.cpu_percent ?? 0,
+    memory_percent_threshold: resources?.memory_percent ?? 0,
+    disk_percent_threshold: resources?.disk_percent ?? 0,
+    db_latency_threshold_ms: 0,
+    redis_latency_threshold_ms: 0,
+    ws_disconnect_rate_threshold: 0,
+    matching_engine_latency_threshold_ms: 0,
+  }), [health, queues, resources]);
 
-  const breachedCount = RULES.filter(r => liveValues[r.key] > form[r.key]).length;
+  const ruleList = definitions.length > 0 ? definitions : [];
+  const breachedCount = ruleList.filter((r) => (liveValues[r.key] ?? 0) > (form[r.key]?.threshold ?? r.defaultThreshold)).length;
 
   /* ── Mutations ── */
   const patchMutation = useMutation({
-    mutationFn: (body: Partial<AlertRules>) => patchMonitoringAlertRules(token, body),
+    mutationFn: (body: Record<string, AlertRuleValue>) => patchMonitoringAlertRules(token, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'monitoring'] });
-      setToast({ type: 'success', msg: 'Alert rules saved successfully.' });
+      const msg = 'Alert rules saved successfully.';
+      setToast({ type: 'success', msg });
+      adminToast.success(msg);
       setHasChanges(false);
     },
-    onError: () => {
-      setToast({ type: 'error', msg: 'Failed to save alert rules.' });
+    onError: (e) => {
+      const msg = 'Failed to save alert rules.';
+      setToast({ type: 'error', msg });
+      adminToast.error(formatSaveError(e, msg));
     },
   });
 
-  const updateField = (key: keyof AlertRules, value: number) => {
-    setForm(f => ({ ...f, [key]: value }));
+  const updateField = (key: string, patch: Partial<AlertRuleValue>) => {
+    setForm((f) => ({
+      ...f,
+      [key]: { ...(f[key] ?? { threshold: 0, enabled: true, cooldown_sec: 900, severity: 'warning' as const }), ...patch },
+    }));
     setHasChanges(true);
   };
 
   const handleReset = () => {
-    if (rulesData?.data) {
-      setForm(rulesData.data);
+    if (rulesData?.data?.rules) {
+      setForm(rulesData.data.rules);
       setHasChanges(false);
     }
   };
@@ -234,7 +229,7 @@ export default function MonitoringAlertRulesPage() {
         <div className="flex items-center gap-2">
           <Bell className="h-3.5 w-3.5 text-admin-muted" />
           <span className="text-xs font-medium text-admin-muted">Active rules</span>
-          <span className="text-xs font-bold text-admin-text">{RULES.length}</span>
+          <span className="text-xs font-bold text-admin-text">{ruleList.length}</span>
         </div>
         <div className="h-4 w-px bg-admin-border" />
         <div className="flex items-center gap-2">
@@ -266,12 +261,20 @@ export default function MonitoringAlertRulesPage() {
         <FormSkeleton fields={6} />
       ) : (
         <div className="space-y-4">
-          {RULES.map((rule) => {
-            const Icon = rule.icon;
-            const sev = SEVERITY_STYLES[rule.severity];
-            const currentVal = liveValues[rule.key];
-            const threshold = form[rule.key];
-            const breached = currentVal > threshold;
+          {ruleList.map((rule) => {
+            const Icon = RULE_ICONS[rule.key] ?? Activity;
+            const ruleVal = form[rule.key] ?? { threshold: rule.defaultThreshold, enabled: true, cooldown_sec: rule.defaultCooldownSec, severity: rule.defaultSeverity as 'critical' | 'warning' | 'info' };
+            const sevKey = (ruleVal.severity ?? rule.defaultSeverity) as keyof typeof SEVERITY_STYLES;
+            const sev = SEVERITY_STYLES[sevKey] ?? SEVERITY_STYLES.warning;
+            const currentVal = liveValues[rule.key] ?? 0;
+            const threshold = ruleVal.threshold;
+            const breached = ruleVal.enabled && currentVal > threshold;
+            const step = rule.unit === '%' ? 1 : rule.max > 1000 ? 50 : 10;
+            const presets = [
+              { label: 'Strict', value: Math.round(rule.defaultThreshold * 0.5) },
+              { label: 'Normal', value: rule.defaultThreshold },
+              { label: 'Relaxed', value: Math.round(rule.defaultThreshold * 2) },
+            ];
 
             return (
               <div
@@ -279,20 +282,25 @@ export default function MonitoringAlertRulesPage() {
                 className={cn(
                   'rounded-xl border overflow-hidden transition-all',
                   breached ? 'border-red-500/30 bg-red-500/[0.02]' : 'border-admin-border bg-admin-card',
+                  !ruleVal.enabled && 'opacity-60',
                 )}
               >
-                {/* Header */}
                 <div className="flex items-center justify-between gap-4 px-5 py-3.5 border-b border-admin-border/50 bg-white/[0.02]">
                   <div className="flex items-center gap-3">
                     <div className={cn('flex h-9 w-9 items-center justify-center rounded-lg', sev.bg)}>
                       <Icon className={cn('h-4 w-4', sev.text)} />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="text-sm font-bold text-admin-text">{rule.label}</h3>
+                        <span className="text-[10px] text-admin-muted">{rule.system}</span>
                         <span className={cn('rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider', sev.bg, sev.text)}>
-                          {rule.severity}
+                          {ruleVal.severity}
                         </span>
+                        <label className="flex items-center gap-1 text-[10px] text-admin-muted ml-2">
+                          <input type="checkbox" checked={ruleVal.enabled} onChange={(e) => updateField(rule.key, { enabled: e.target.checked })} />
+                          Enabled
+                        </label>
                       </div>
                       <p className="text-[11px] text-admin-muted mt-0.5 max-w-xl leading-relaxed">{rule.description}</p>
                     </div>
@@ -312,59 +320,34 @@ export default function MonitoringAlertRulesPage() {
                   </div>
                 </div>
 
-                {/* Body */}
                 <div className="px-5 py-4 space-y-4">
-                  {/* Live bar */}
-                  <ThresholdBar
-                    current={currentVal}
-                    threshold={threshold}
-                    max={rule.max}
-                    unit={rule.unit === '%' ? '%' : ` ${rule.unit}`}
-                  />
-
-                  {/* Threshold input + presets */}
+                  <ThresholdBar current={currentVal} threshold={threshold} max={rule.max} unit={rule.unit === '%' ? '%' : ` ${rule.unit}`} />
                   <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-1 space-y-2">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-admin-muted">
-                        Threshold value ({rule.unit})
-                      </label>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-admin-muted">Threshold ({rule.unit})</label>
                       <div className="flex items-center gap-3">
-                        <input
-                          type="range"
-                          min={rule.min}
-                          max={rule.max}
-                          step={rule.step}
-                          value={threshold}
-                          onChange={(e) => updateField(rule.key, Number(e.target.value))}
-                          className="flex-1 accent-admin-primary h-1.5 cursor-pointer"
-                        />
-                        <input
-                          type="number"
-                          min={rule.min}
-                          max={rule.max}
-                          step={rule.step}
-                          value={threshold}
-                          onChange={(e) => updateField(rule.key, Number(e.target.value) || rule.min)}
-                          className="w-24 rounded-lg border border-admin-border bg-white/[0.02] px-3 py-1.5 text-sm font-mono tabular-nums text-admin-text text-center outline-none focus:border-admin-primary/50"
-                        />
+                        <input type="range" min={rule.min} max={rule.max} step={step} value={threshold}
+                          onChange={(e) => updateField(rule.key, { threshold: Number(e.target.value) })}
+                          className="flex-1 accent-admin-primary h-1.5 cursor-pointer" />
+                        <input type="number" min={rule.min} max={rule.max} step={step} value={threshold}
+                          onChange={(e) => updateField(rule.key, { threshold: Number(e.target.value) || rule.min })}
+                          className="w-24 rounded-lg border border-admin-border bg-white/[0.02] px-3 py-1.5 text-sm font-mono tabular-nums text-admin-text text-center outline-none focus:border-admin-primary/50" />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-admin-muted">Quick presets</label>
-                      <div className="flex gap-1.5">
-                        {rule.presets.map((p) => (
-                          <button
-                            key={p.label}
-                            type="button"
-                            onClick={() => updateField(rule.key, p.value)}
-                            className={cn(
-                              'rounded-md border px-3 py-1.5 text-xs font-medium transition-all',
-                              threshold === p.value
-                                ? 'border-admin-primary bg-admin-primary/10 text-admin-primary'
-                                : 'border-admin-border bg-transparent text-admin-muted hover:bg-white/[0.04] hover:text-admin-text',
-                            )}
-                          >
-                            {p.label} ({p.value}{rule.unit === '%' ? '%' : ''})
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-admin-muted">Cooldown (sec)</label>
+                      <input type="number" min={60} max={7200} value={ruleVal.cooldown_sec}
+                        onChange={(e) => updateField(rule.key, { cooldown_sec: Number(e.target.value) || 900 })}
+                        className="w-full rounded-lg border border-admin-border bg-white/[0.02] px-3 py-1.5 text-sm text-admin-text" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-admin-muted">Presets</label>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {presets.map((p) => (
+                          <button key={p.label} type="button" onClick={() => updateField(rule.key, { threshold: p.value })}
+                            className={cn('rounded-md border px-3 py-1.5 text-xs font-medium transition-all',
+                              threshold === p.value ? 'border-admin-primary bg-admin-primary/10 text-admin-primary' : 'border-admin-border text-admin-muted hover:bg-white/[0.04]')}>
+                            {p.label}
                           </button>
                         ))}
                       </div>

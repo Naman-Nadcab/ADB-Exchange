@@ -8,6 +8,7 @@ import { recordOperationalEvent } from '../services/exchange-monitoring.service.
 
 const HALT_KEY = 'trading_halt:global';
 const CIRCUIT_KEY = 'settlement_circuit:open';
+const CIRCUIT_OPENED_AT_KEY = 'settlement_circuit:opened_at';
 
 /** Few retries absorb transient ioredis command timeouts without widening fail-open windows globally. */
 const REDIS_STATE_READ_ATTEMPTS = 4;
@@ -64,7 +65,9 @@ export async function getSettlementCircuitOpen(): Promise<boolean> {
 export async function setSettlementCircuitOpen(open: boolean): Promise<void> {
   if (open) {
     await redis.set(CIRCUIT_KEY, '1');
+    await redis.set(CIRCUIT_OPENED_AT_KEY, String(Date.now()));
   } else {
     await redis.del(CIRCUIT_KEY);
+    await redis.del(CIRCUIT_OPENED_AT_KEY);
   }
 }

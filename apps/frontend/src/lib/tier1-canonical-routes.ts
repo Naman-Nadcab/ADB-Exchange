@@ -17,7 +17,10 @@ export const CANONICAL_REDIRECTS_EXACT: CanonicalRedirect[] = [
   { from: '/dashboard/trade/spot', to: ROUTES.tradeSpot, note: 'Legacy simple spot UI → terminal' },
   { from: '/dashboard/trade', to: ROUTES.tradeSpot, note: 'Alias' },
   { from: '/dashboard/spot', to: ROUTES.tradeSpot, note: 'Spot terminal' },
+  { from: '/trade', to: ROUTES.tradeSpot, note: 'Alias → canonical spot terminal (HTTP 308, avoids client redirect race)' },
   { from: ROUTES.spotLegacy, to: ROUTES.tradeSpot, note: 'Legacy /spot → canonical terminal' },
+  { from: ROUTES.earn, to: ROUTES.markets, note: 'Earn not launched — markets hub' },
+  { from: '/dashboard/earn', to: ROUTES.markets, note: 'Earn not launched — markets hub' },
 ];
 
 export const DEPRECATED_ROUTE_PREFIXES = [

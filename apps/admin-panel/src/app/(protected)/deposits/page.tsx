@@ -26,6 +26,8 @@ import {
   Download,
 } from 'lucide-react';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { cn } from '@/lib/cn';
 
 function fmtVolume(v: string | number | undefined): string {
@@ -100,6 +102,7 @@ export default function DepositsPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const admin = useAdminAuthStore((s) => s.admin);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [asset, setAsset] = useState('');
@@ -164,9 +167,11 @@ export default function DepositsPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'deposits'] });
       setManualCreditDeposit(null);
       setManualCreditError(null);
+      toast.success('Manual credit applied.');
     },
     onError: (err: { message?: string }) => {
       setManualCreditError(err?.message ?? 'Manual credit failed.');
+      toast.error(formatSaveError(err, 'Manual credit failed.'));
     },
   });
 

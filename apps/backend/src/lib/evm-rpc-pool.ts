@@ -56,7 +56,7 @@ export function getEvmRpcProvider(rpcUrl: string, chainId?: number): JsonRpcProv
 export async function getCachedBlockNumber(
   rpcUrl: string,
   chainId?: number,
-  ttlSec = 5,
+  ttlSec = 10,
   category: RpcBudgetCategory = 'other'
 ): Promise<number> {
   const cacheKey = rpcCacheKey('block', rpcUrl, 'latest');

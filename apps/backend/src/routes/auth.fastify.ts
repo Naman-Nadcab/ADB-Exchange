@@ -24,6 +24,7 @@ import {
 import { rateLimitByIp, rateLimitByIdentifier } from '../lib/rate-limit-fastify.js';
 import { getClientIp } from '../lib/client-ip.js';
 import { config } from '../config/index.js';
+import { getFeeTierDisplay } from '../services/volume-fee-tier.service.js';
 import { isSessionValid } from '../services/session.service.js';
 import { setAuthCookies, clearAuthCookies, getRefreshTokenFromRequest, getAccessTokenFromRequest } from '../lib/auth-cookies.js';
 import {
@@ -209,6 +210,29 @@ export default async function authRoutes(app: FastifyInstance) {
   });
 
   /**
+   * GET /auth/captcha-config
+   * Public CAPTCHA site key when Admin has activated a provider.
+   */
+  app.get('/captcha-config', async (_request, reply) => {
+    try {
+      const { getCaptchaSiteKey } = await import('../services/captcha-verify.service.js');
+      const { dynamicConfig } = await import('../services/dynamic-config.service.js');
+      const cfg = await dynamicConfig.getCaptchaConfig();
+      const siteKey = await getCaptchaSiteKey();
+      return reply.send({
+        success: true,
+        data: {
+          enabled: Boolean(siteKey),
+          siteKey: siteKey ?? null,
+          provider: cfg?.provider ?? null,
+        },
+      });
+    } catch {
+      return reply.send({ success: true, data: { enabled: false, siteKey: null, provider: null } });
+    }
+  });
+
+  /**
    * POST /auth/send-otp
    * Send OTP to email or phone
    * FIX #4: Rate limit 3/min per IP via preHandler (before handler/DB).
@@ -247,6 +271,24 @@ export default async function authRoutes(app: FastifyInstance) {
         success: false,
         error: { code: 'INVALID_IDENTIFIER', message: 'Please enter a valid email or phone number' },
       });
+    }
+
+    const captchaToken = (body as { captchaToken?: string }).captchaToken;
+    try {
+      const { verifyCaptchaToken, getCaptchaSiteKey } = await import('../services/captcha-verify.service.js');
+      const siteKey = await getCaptchaSiteKey();
+      if (siteKey) {
+        const ip = getClientIp(request);
+        const ok = await verifyCaptchaToken(captchaToken || '', ip);
+        if (!ok) {
+          return reply.status(400).send({
+            success: false,
+            error: { code: 'CAPTCHA_FAILED', message: 'CAPTCHA verification failed. Please try again.' },
+          });
+        }
+      }
+    } catch {
+      /* captcha service optional */
     }
 
     try {
@@ -5861,62 +5903,8 @@ export default async function authRoutes(app: FastifyInstance) {
       if (!(await jwtVerifyWithSession(request, reply))) return;
       const userId = (request.user?.userId ?? request.user?.id)!;
 
-      // Get user's fee data
-      const userResult = await db.query<{
-        vip_level: number;
-        mnt_discount_enabled: boolean;
-        trading_volume_30d: string;
-        total_equity: string;
-        avg_equity_30d: string;
-      }>(
-        `SELECT 
-          COALESCE(vip_level, 0) as vip_level,
-          COALESCE(mnt_discount_enabled, false) as mnt_discount_enabled,
-          COALESCE(trading_volume_30d, 0) as trading_volume_30d,
-          COALESCE(total_equity, 0) as total_equity,
-          COALESCE(avg_equity_30d, 0) as avg_equity_30d
-         FROM users WHERE id = $1 AND deleted_at IS NULL`,
-        [userId]
-      );
-
-      if (userResult.rows.length === 0) {
-        return reply.status(404).send({
-          success: false,
-          error: { code: 'USER_NOT_FOUND', message: 'User not found' },
-        });
-      }
-
-      const userData = userResult.rows[0];
-
-      // Get fee rates based on VIP level from system settings or use defaults
-      const feeResult = await db.query<{
-        spot_maker_fee: string;
-        spot_taker_fee: string;
-        fiat_maker_fee: string;
-        fiat_taker_fee: string;
-      }>(
-        `SELECT 
-          COALESCE(
-            (SELECT value::jsonb->>'spot_maker_fee' FROM system_settings WHERE key = 'fee_rates_vip_' || $1),
-            '0.1'
-          ) as spot_maker_fee,
-          COALESCE(
-            (SELECT value::jsonb->>'spot_taker_fee' FROM system_settings WHERE key = 'fee_rates_vip_' || $1),
-            '0.1'
-          ) as spot_taker_fee,
-          COALESCE(
-            (SELECT value::jsonb->>'fiat_maker_fee' FROM system_settings WHERE key = 'fee_rates_vip_' || $1),
-            '0.15'
-          ) as fiat_maker_fee,
-          COALESCE(
-            (SELECT value::jsonb->>'fiat_taker_fee' FROM system_settings WHERE key = 'fee_rates_vip_' || $1),
-            '0.2'
-          ) as fiat_taker_fee`,
-        [userData?.vip_level ?? 0]
-      );
-
-      // VIP level names
-      const vipLevelNames: { [key: number]: string } = {
+      const tier = await getFeeTierDisplay(userId);
+      const vipLevelNames: Record<number, string> = {
         0: 'Regular User',
         1: 'VIP 1',
         2: 'VIP 2',
@@ -5925,37 +5913,23 @@ export default async function authRoutes(app: FastifyInstance) {
         5: 'VIP 5',
       };
 
-      // Default fee rates per VIP level
-      const defaultFeeRates: { [key: number]: { maker: number; taker: number; fiatMaker: number; fiatTaker: number } } = {
-        0: { maker: 0.1, taker: 0.1, fiatMaker: 0.15, fiatTaker: 0.2 },
-        1: { maker: 0.08, taker: 0.09, fiatMaker: 0.12, fiatTaker: 0.16 },
-        2: { maker: 0.06, taker: 0.07, fiatMaker: 0.09, fiatTaker: 0.12 },
-        3: { maker: 0.04, taker: 0.05, fiatMaker: 0.06, fiatTaker: 0.08 },
-        4: { maker: 0.02, taker: 0.03, fiatMaker: 0.03, fiatTaker: 0.04 },
-        5: { maker: 0.01, taker: 0.02, fiatMaker: 0.015, fiatTaker: 0.02 },
-      };
-
-      const vipLevel = userData?.vip_level ?? 0;
-      const defaultFees = defaultFeeRates[vipLevel] ?? defaultFeeRates[0]!;
-
       return reply.send({
         success: true,
         data: {
-          vipLevel: vipLevel,
-          vipLevelName: vipLevelNames[vipLevel] || 'Regular User',
+          vipLevel: tier.tierLevel,
+          vipLevelName: tier.tierName ?? vipLevelNames[tier.tierLevel] ?? 'Regular User',
           spotFees: {
-            maker: feeResult.rows[0] ? new Decimal(feeResult.rows[0]!.spot_maker_fee).toString() : String(defaultFees.maker),
-            taker: feeResult.rows[0] ? new Decimal(feeResult.rows[0]!.spot_taker_fee).toString() : String(defaultFees.taker),
-            fiatMaker: feeResult.rows[0] ? new Decimal(feeResult.rows[0]!.fiat_maker_fee).toString() : String(defaultFees.fiatMaker),
-            fiatTaker: feeResult.rows[0] ? new Decimal(feeResult.rows[0]!.fiat_taker_fee).toString() : String(defaultFees.fiatTaker),
+            maker: tier.maker,
+            taker: tier.taker,
+            fiatMaker: '0.15',
+            fiatTaker: '0.2',
           },
-          mntDiscount: userData?.mnt_discount_enabled ?? false,
-          tradingVolume30d: new Decimal(userData?.trading_volume_30d ?? '0').toString(),
-          totalEquity: new Decimal(userData?.total_equity ?? '0').toString(),
-          avgEquity30d: new Decimal(userData?.avg_equity_30d ?? '0').toString(),
+          mntDiscount: false,
+          tradingVolume30d: tier.volume30d,
+          totalEquity: '0',
+          avgEquity30d: '0',
         },
       });
-
     } catch (error) {
       logger.error('Fee rates fetch error', { error: error instanceof Error ? error.message : 'Unknown' });
       return reply.status(500).send({

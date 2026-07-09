@@ -69,6 +69,7 @@ const nextConfig = {
     const raw = process.env.NEXT_PUBLIC_ADMIN_PANEL_URL || 'http://localhost:3001';
     const adminOrigin = raw.replace(/\/$/, '');
     return [
+      { source: '/reset-password', destination: '/forgot-password', permanent: true },
       { source: '/admin/login', destination: `${adminOrigin}/login`, permanent: false },
       { source: '/admin', destination: `${adminOrigin}/dashboard`, permanent: false },
       { source: '/admin/:path+', destination: `${adminOrigin}/:path+`, permanent: false },

@@ -20,6 +20,8 @@ import {
 } from '@/components/ui';
 import { cn } from '@/lib/cn';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { useAdminWs } from '@/hooks/useAdminWs';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
@@ -99,6 +101,7 @@ const TABS: { id: StatusTab; label: string }[] = [
 export default function KycManagementPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   useAdminWs({
     onEvent: (event) => {
       const type = (event?.type as string) ?? '';
@@ -215,8 +218,9 @@ export default function KycManagementPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'kyc-list'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'kyc-pending'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'kyc-dashboard-stats'] });
+      toast.success('KYC review submitted.');
     },
-    onError: (e: Error) => setActionError(e.message),
+    onError: (e: Error) => { setActionError(e.message); toast.error(formatSaveError(e, 'KYC review failed.')); },
   });
   const bulkReviewMutation = useMutation({
     mutationFn: ({ action, reason }: { action: 'approve' | 'reject'; reason?: string }) =>
@@ -234,8 +238,9 @@ export default function KycManagementPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'kyc-list'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'kyc-pending'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'kyc-dashboard-stats'] });
+      toast.success(`Bulk KYC ${vars.action} completed (${Number(resultData?.updated ?? 0)} updated).`);
     },
-    onError: (e: Error) => setActionError(e.message),
+    onError: (e: Error) => { setActionError(e.message); toast.error(formatSaveError(e, 'Bulk KYC review failed.')); },
   });
 
   const canAct = (row: KycApplicationRow) => {

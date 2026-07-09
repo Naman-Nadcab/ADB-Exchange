@@ -43,6 +43,7 @@ export type AdminWsEventType =
   | 'liquidity_kill_activated'
   | 'health_score_updated'
   | 'timeline_event'
+  | 'infrastructure_action'
   | 'mm_circuit_changed'
   | 'admin_session_terminated';
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth';
+import { isClientAuthed } from '@/lib/authSession';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { api } from '@/lib/api';
 import Link from 'next/link';
@@ -93,7 +94,8 @@ export default function DepositCryptoPage() {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const coinParam = searchParams.get('coin');
-  const { accessToken, _hasHydrated } = useAuthStore();
+  const { accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
+  const sessionReady = isClientAuthed(_hasHydrated, isAuthenticated);
   const [tokens, setTokens] = useState<Token[]>([]);
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);
   const [initialCoinSet, setInitialCoinSet] = useState(false);
@@ -149,11 +151,20 @@ export default function DepositCryptoPage() {
   // 1) Load assets (tokens) on mount
   useEffect(() => {
     fetchTokens();
-    if (_hasHydrated && accessToken) {
+    if (sessionReady) {
       fetchKycStatus();
       fetchRecentDeposits();
     }
-  }, [_hasHydrated, accessToken]);
+  }, [sessionReady]);
+
+  // Poll deposit history while on page (pending → completed)
+  useEffect(() => {
+    if (!sessionReady) return;
+    const id = window.setInterval(() => {
+      void fetchRecentDeposits();
+    }, 12_000);
+    return () => window.clearInterval(id);
+  }, [sessionReady]);
 
   // Auto-select coin from URL parameter
   useEffect(() => {
@@ -289,9 +300,10 @@ export default function DepositCryptoPage() {
   };
 
   const fetchRecentDeposits = async () => {
-    if (!accessToken) return;
+    if (!sessionReady) return;
     setRecentDepositsLoading(true);
     try {
+      await api.post('/api/v1/wallet/deposits/sync', {}, { notifyOnError: false });
       const result = await api.get<Array<{
         id: string;
         symbol?: string;
@@ -807,11 +819,18 @@ export default function DepositCryptoPage() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-16">
+              <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
                 <div className="w-20 h-20 mb-4 flex items-center justify-center">
                   <div className="text-6xl">📋</div>
                 </div>
-                <p className="text-muted-foreground">No records found</p>
+                <p className="text-muted-foreground font-medium">No on-chain deposits yet</p>
+                <p className="mt-2 text-sm text-muted-foreground max-w-md">
+                  After you send crypto to your deposit address, it appears here automatically (usually within 1–3 minutes).
+                  Transfers between Funding and Trading show under Overview → Recent Activity, not here.
+                </p>
+                <Link href="/dashboard/assets/history?tab=deposit" className="mt-4 text-sm text-primary hover:underline">
+                  View full deposit history
+                </Link>
               </div>
             )}
           </div>

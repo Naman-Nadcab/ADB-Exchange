@@ -117,8 +117,8 @@ export default function IncidentsPage() {
       {/* Main DB incidents panel (with create, acknowledge, resolve) */}
       <MonitoringIncidentsPanel />
 
-      {/* Session-based incident tools (Zustand powered) */}
-      {ADMIN_FEATURE_FLAGS.ADMIN_INCIDENT_SYSTEM && (
+      {/* Session Zustand workspace disabled under production hardening — DB panel above is sole source. */}
+      {ADMIN_FEATURE_FLAGS.ADMIN_INCIDENT_SYSTEM && !ADMIN_FEATURE_FLAGS.ADMIN_PRODUCTION_HARDENING && (
         <SessionWorkspaceSection />
       )}
 
@@ -160,15 +160,27 @@ function StatusStrip({ health, openCount, criticalCount }: {
   openCount: number;
   criticalCount: number;
 }) {
-  const items = [
+  const items: Array<{ label: string; ok: boolean | null; value: string }> = [
     {
       label: 'API',
-      ok: health ? health.api_latency_ms < 500 : true,
-      value: health ? `${health.api_latency_ms}ms` : '—',
+      ok: health != null ? health.api_latency_ms < 500 : null,
+      value: health != null ? `${health.api_latency_ms}ms` : 'NO DATA',
     },
-    { label: 'DB', ok: health?.db_health === 'ok', value: health?.db_health ?? '—' },
-    { label: 'Redis', ok: health?.redis_health === 'ok', value: health?.redis_health ?? '—' },
-    { label: 'WS', ok: true, value: health ? `${health.ws_connections}` : '—' },
+    {
+      label: 'DB',
+      ok: health != null ? health.db_health === 'ok' : null,
+      value: health?.db_health ?? 'NO DATA',
+    },
+    {
+      label: 'Redis',
+      ok: health != null ? health.redis_health === 'ok' : null,
+      value: health?.redis_health ?? 'NO DATA',
+    },
+    {
+      label: 'WS',
+      ok: health != null ? health.ws_connections >= 0 : null,
+      value: health != null ? `${health.ws_connections}` : 'NO DATA',
+    },
     { label: 'Open', ok: openCount === 0, value: String(openCount) },
     { label: 'Critical', ok: criticalCount === 0, value: String(criticalCount) },
   ];
@@ -179,9 +191,15 @@ function StatusStrip({ health, openCount, criticalCount }: {
       <span className="text-[10px] font-semibold uppercase tracking-wider text-admin-muted mr-2">System Health</span>
       {items.map((item) => (
         <div key={item.label} className="flex items-center gap-1.5">
-          <div className={cn('h-1.5 w-1.5 rounded-full', item.ok ? 'bg-emerald-400' : 'bg-red-400 animate-pulse')} />
+          <div className={cn(
+            'h-1.5 w-1.5 rounded-full',
+            item.ok === null ? 'bg-zinc-500' : item.ok ? 'bg-emerald-400' : 'bg-red-400 animate-pulse',
+          )} />
           <span className="text-[10px] text-admin-muted">{item.label}</span>
-          <span className={cn('text-[10px] font-bold tabular-nums', item.ok ? 'text-admin-text' : 'text-red-400')}>
+          <span className={cn(
+            'text-[10px] font-bold tabular-nums',
+            item.ok === null ? 'text-admin-muted' : item.ok ? 'text-admin-text' : 'text-red-400',
+          )}>
             {item.value}
           </span>
         </div>

@@ -69,6 +69,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
 
 const CIRCUIT_ACTIONS = [
@@ -250,6 +252,7 @@ export default function AdminControlPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const admin = useAdminAuthStore((s) => s.admin);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const canExecuteCommands = hasAdminPermission(admin, 'control:commands');
 
   type TimelinePrependItem = TimelineItem & { id: string; isNew?: boolean };
@@ -570,7 +573,9 @@ export default function AdminControlPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'control', 'status'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'control', 'circuit-history'] });
       setConfirmCircuit(null);
+      toast.success('Circuit breaker updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Circuit breaker action failed.')),
   });
   const assetFreezeMutation = useMutation({
     mutationFn: (body: { asset: string; deposits_frozen?: boolean; withdrawals_frozen?: boolean; trading_frozen?: boolean }) =>
@@ -578,14 +583,18 @@ export default function AdminControlPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'control', 'asset-freeze'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'control', 'asset-freeze-history'] });
+      toast.success('Asset freeze settings updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update asset freeze.')),
   });
   const liquidityKillMutation = useMutation({
     mutationFn: (enabled: boolean) => postControlLiquidityKill(token, enabled),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'control', 'status'] });
       setConfirmLiquidityKill(null);
+      toast.success('Liquidity kill switch updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Liquidity kill switch failed.')),
   });
   const emergencyModeMutation = useMutation({
     mutationFn: (enabled: boolean) => postControlEmergencyMode(token, enabled),
@@ -593,11 +602,17 @@ export default function AdminControlPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'control', 'status'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'control', 'circuit-history'] });
       setConfirmEmergencyMode(null);
+      toast.success('Emergency mode updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Emergency mode action failed.')),
   });
   const resolveIncidentMutation = useMutation({
     mutationFn: (id: string) => resolveControlIncident(token, id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'control', 'incidents'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'control', 'incidents'] });
+      toast.success('Incident resolved.');
+    },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to resolve incident.')),
   });
   const createIncidentMutation = useMutation({
     mutationFn: (body: { type: string; severity: string; description?: string }) => createControlIncident(token, body),
@@ -606,18 +621,27 @@ export default function AdminControlPage() {
       setCreateIncidentOpen(false);
       setCreateIncidentForm({ type: '', severity: 'warning', description: '' });
       setIncidentToast({ message: 'Incident created successfully.', type: 'success' });
+      toast.success('Incident created successfully.');
     },
-    onError: () => {
+    onError: (e) => {
       setIncidentToast({ message: 'Failed to create incident.', type: 'error' });
+      toast.error(formatSaveError(e, 'Failed to create incident.'));
     },
   });
   const commandMutation = useMutation({
     mutationFn: (command: string) => postControlCommand(token, command),
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'control', 'events'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'control', 'commands', 'history'] });
       setConfirmCommand(null);
+      const data = res?.data;
+      if (data?.executed) {
+        toast.success(data.message || 'Control command executed.');
+      } else {
+        toast.warning(data?.message || 'Command logged but not executed (Docker unavailable).');
+      }
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Control command failed.')),
   });
   const emergencyLevelMutation = useMutation({
     mutationFn: (level: number) => postControlEmergencyLevel(token, level),
@@ -626,12 +650,18 @@ export default function AdminControlPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'control', 'status'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'control', 'circuit-history'] });
       setConfirmEmergencyLevel(null);
+      toast.success('Emergency level updated.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update emergency level.')),
   });
   const safetyTriggersMutation = useMutation({
     mutationFn: (triggers: Array<{ trigger_type: string; threshold_value: number; action: string; enabled: boolean }>) =>
       patchControlSafetyTriggers(token, triggers),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'control', 'safety-triggers'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'control', 'safety-triggers'] });
+      toast.success('Safety triggers saved.');
+    },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to save safety triggers.')),
   });
 
   const globalActionMutation = useMutation({
@@ -645,10 +675,12 @@ export default function AdminControlPage() {
       setCardActionReason('');
       setCardActionTwofa('');
       setCardActionToast({ message: 'Action executed successfully.', type: 'success' });
+      toast.success('Action executed successfully.');
     },
     onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : 'Action failed';
+      const msg = formatSaveError(err, 'Action failed');
       setCardActionToast({ message: msg, type: 'error' });
+      toast.error(msg);
     },
   });
 

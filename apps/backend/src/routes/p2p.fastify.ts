@@ -8,7 +8,7 @@ import { logger } from '../lib/logger.js';
 import { p2pService } from '../services/p2p.service.js';
 import { evaluateP2PRisk } from '../services/abuse-resilience.service.js';
 import { recordAndEvaluate } from '../services/aml-transaction-monitor.service.js';
-import { assertKycAllowed, KycRequiredError, KycPendingError } from '../services/kyc-enforcement.service.js';
+import { KycPendingError } from '../services/kyc-enforcement.service.js';
 import { checkSanctions } from '../services/sanctions-screening.service.js';
 import { getCurrencyIdBySymbol, getTokenIdsByCurrencyId } from '../lib/currency-resolver.js';
 import { rateLimitByUser } from '../lib/rate-limit-fastify.js';
@@ -864,11 +864,20 @@ export default async function p2pRoutes(app: FastifyInstance) {
       });
     }
 
-    // Tier-1: KYC required for P2P selling — only approved users can create sell ads
-    if (type === 'sell') {
+    // Compliance policy: P2P (KYC when required by runtime policy)
+    if (type === 'sell' || type === 'buy') {
       try {
-        await assertKycAllowed({ userId, action: 'p2p_sell' });
+        const { enforceCompliancePolicy, ComplianceBlockedError } = await import('../services/compliance-policy.service.js');
+        await enforceCompliancePolicy({
+          userId,
+          operation: 'p2p',
+          aml: { asset: currency, amount: availableAmount || maxAmount },
+        });
       } catch (err) {
+        const { ComplianceBlockedError: CBE } = await import('../services/compliance-policy.service.js');
+        if (err instanceof CBE) {
+          return reply.status(403).send({ success: false, error: { code: err.code, message: err.message } });
+        }
         if (err instanceof KycPendingError) {
           return reply.status(403).send({
             success: false,
@@ -880,6 +889,8 @@ export default async function p2pRoutes(app: FastifyInstance) {
           error: { code: 'KYC_REQUIRED', message: 'KYC verification is required for selling crypto. Please complete identity verification.' },
         });
       }
+    }
+    if (type === 'sell') {
       const sellerSanctions = await checkSanctions({
         userId,
         amount: availableAmount || maxAmount,
@@ -2180,10 +2191,15 @@ export default async function p2pRoutes(app: FastifyInstance) {
       });
     }
 
-    // Tier-1: KYC required for P2P seller (releaser); sanctions check for both parties before escrow release
+    // Compliance policy: P2P seller release
     try {
-      await assertKycAllowed({ userId, action: 'p2p_sell' });
+      const { enforceCompliancePolicy, ComplianceBlockedError } = await import('../services/compliance-policy.service.js');
+      await enforceCompliancePolicy({ userId, operation: 'p2p' });
     } catch (err) {
+      const { ComplianceBlockedError: CBE } = await import('../services/compliance-policy.service.js');
+      if (err instanceof CBE) {
+        return reply.status(403).send({ success: false, error: { code: err.code, message: err.message } });
+      }
       if (err instanceof KycPendingError) {
         return reply.status(403).send({
           success: false,

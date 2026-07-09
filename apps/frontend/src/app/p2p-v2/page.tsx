@@ -174,8 +174,8 @@ function TakeOrderModal({
    ═══════════════════════════════════════════════════════ */
 export default function P2PV2MarketplacePage() {
   const queryClient = useQueryClient();
-  const { accessToken, _hasHydrated } = useAuthStore();
-  const authed = _hasHydrated && !!accessToken;
+  const { _hasHydrated, isAuthenticated } = useAuthStore();
+  const authed = _hasHydrated && isAuthenticated;
 
   /* ── Filters state ── */
   const [filters, setFilters] = useState<P2PFiltersValue>({

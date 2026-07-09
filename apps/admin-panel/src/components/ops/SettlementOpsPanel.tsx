@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import {
   listSettlementEvents,
   getSettlementLedgerDiscrepancy,
@@ -19,6 +21,7 @@ import {
 export function SettlementOpsPanel() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [resetOpen, setResetOpen] = useState(false);
 
   const eventsQ = useQuery({
@@ -41,7 +44,9 @@ export function SettlementOpsPanel() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'settlement-events'] });
       setResetOpen(false);
+      toast.success('Settlement circuit reset.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Settlement circuit reset failed.')),
   });
 
   const events = (eventsQ.data?.data as { events?: Array<Record<string, unknown>> } | undefined)?.events

@@ -30,6 +30,25 @@ export async function runTreasuryHotWalletMonitorOnce(): Promise<{ low: number }
           resourceId: r.chain_id,
           details: { chain_id: r.chain_id, balance_wei: bal.toString(), min_wei: min.toString() },
         });
+        try {
+          const { upsertInfrastructureAlert } = await import('../monitoring-snapshot.service.js');
+          await upsertInfrastructureAlert({
+            system: 'Treasury',
+            severity: 'critical',
+            message: `Hot wallet below minimum on ${r.chain_id}: balance ${bal.toString()} wei < min ${min.toString()} wei`,
+            dedupeKey: `treasury_low:${r.chain_id}`,
+            rootCause: 'Hot wallet balance dropped below configured min_hot_balance',
+            suggestedAction: 'Review /treasury — initiate cold→hot transfer or pause withdrawals',
+          });
+          const { sendOpsAlert } = await import('../ops-alert.service.js');
+          void sendOpsAlert({
+            severity: 'critical',
+            alertType: 'treasury',
+            title: `Hot wallet low: ${r.chain_id}`,
+            body: `Balance ${bal.toString()} wei below min ${min.toString()} wei`,
+            dedupeKey: `treasury_low_ops:${r.chain_id}`,
+          });
+        } catch { /* optional */ }
       }
     } catch {
       /* ignore row */

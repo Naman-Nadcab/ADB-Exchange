@@ -28,6 +28,8 @@ import { assertWithdrawalAllowedForTreasuryPolicy } from '../services/treasury/t
 import { assessWithdrawalTreasuryRisk } from '../services/treasury/withdrawal-treasury-risk.service.js';
 
 const ROUND_DOWN = 1;
+
+const INDEXER_API_URL = (process.env.INDEXER_API_URL || process.env.INDEXER_URL || 'http://indexer:4001').replace(/\/$/, '');
 const AMOUNT_PRECISION = 8;
 const WITHDRAWAL_IDEMPOTENCY_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 const WITHDRAWAL_IDEMPOTENCY_LOCK_TTL_SECONDS = 30;
@@ -397,27 +399,23 @@ export default async function walletRoutes(app: FastifyInstance) {
         });
       }
 
-      // Step 1: KYC (support both kyc_applications and kyc_records)
-      let isKycVerified = false;
+      // Runtime compliance policy (admin Compliance Policy page — deposit KYC on/off)
       try {
-        try {
-          const kycCheck = await db.query(`SELECT status FROM kyc_applications WHERE user_id = $1 AND status = 'approved' LIMIT 1`, [userId]);
-          isKycVerified = kycCheck.rows.length > 0;
-        } catch {
-          const kycRecords = await db.query(`SELECT status FROM kyc_records WHERE user_id = $1 AND status = 'approved' LIMIT 1`, [userId]);
-          isKycVerified = kycRecords.rows.length > 0;
+        const { enforceCompliancePolicy, ComplianceBlockedError } = await import('../services/compliance-policy.service.js');
+        await enforceCompliancePolicy({ userId, operation: 'deposit' });
+      } catch (err) {
+        const { ComplianceBlockedError: CBE } = await import('../services/compliance-policy.service.js');
+        if (err instanceof CBE) {
+          return reply.status(403).send({
+            success: false,
+            error: {
+              code: err.code,
+              message: err.message,
+              ...(err.code === 'KYC_REQUIRED' || err.code === 'KYC_PENDING' ? { kycRequired: true } : {}),
+            },
+          });
         }
-      } catch (kycError) {
-        const msg = kycError instanceof Error ? kycError.message : 'Unknown';
-        logger.warn('KYC check failed', { error: msg });
-        isKycVerified = false;
-      }
-
-      if (!isKycVerified) {
-        return reply.status(403).send({
-          success: false,
-          error: { code: 'KYC_REQUIRED', message: 'Identity verification required to deposit', kycRequired: true }
-        });
+        throw err;
       }
 
       // Step 2: Chain lookup
@@ -559,6 +557,56 @@ export default async function walletRoutes(app: FastifyInstance) {
     }
   });
 
+  // Trigger on-chain deposit scan for current user (indexer recent-head scanner).
+  app.post('/deposits/sync', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const userId = request.user!.id;
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8_000);
+      try {
+        const res = await fetch(`${INDEXER_API_URL}/scan/user/${userId}`, {
+          method: 'POST',
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          logger.warn('Indexer deposit sync returned non-OK', { userId, status: res.status, body: text.slice(0, 200) });
+        }
+      } finally {
+        clearTimeout(timer);
+      }
+    } catch (error) {
+      logger.warn('Indexer deposit sync unreachable', {
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    let credited = 0;
+    try {
+      const pending = await creditOverdueDepositsForUser(userId);
+      credited += pending.credited;
+    } catch {
+      /* ignore */
+    }
+    try {
+      const unapplied = await db.query<{ id: string }>(
+        `SELECT id FROM deposits
+         WHERE user_id = $1 AND status = 'completed' AND credited_at IS NOT NULL AND balance_applied_at IS NULL
+           AND (amount IS NULL OR amount::numeric > 0)`,
+        [userId]
+      );
+      for (const row of unapplied.rows) {
+        const res = await applyBalanceForOneCompletedDeposit(row.id);
+        if (res.credited) credited++;
+      }
+    } catch {
+      /* ignore */
+    }
+    return reply.send({ success: true, data: { credited } });
+  });
+
   // Get recent deposits (authenticated)
   app.get<{ Querystring: { page?: string; limit?: string; status?: string } }>('/deposits', {
     preHandler: [app.authenticate]
@@ -571,11 +619,24 @@ export default async function walletRoutes(app: FastifyInstance) {
       const status = request.query.status;
 
       let query = `
-        SELECT d.*, t.symbol, t.name as token_name, c.name as chain_name
-        FROM transactions d
-        JOIN tokens t ON d.token_id = t.id
-        JOIN chains c ON d.chain_id = c.id
-        WHERE d.user_id = $1 AND d.type = 'deposit'
+        SELECT 
+          d.id,
+          d.tx_hash,
+          d.from_address,
+          d.to_address,
+          d.amount::text,
+          d.confirmations,
+          d.required_confirmations,
+          d.status,
+          d.credited_at,
+          d.created_at,
+          c.symbol,
+          c.name as token_name,
+          ch.name as chain_name
+        FROM deposits d
+        JOIN currencies c ON d.currency_id = c.id
+        LEFT JOIN chains ch ON d.chain_id = ch.id
+        WHERE d.user_id = $1
       `;
       const params: unknown[] = [userId];
 
@@ -587,11 +648,10 @@ export default async function walletRoutes(app: FastifyInstance) {
       query += ` ORDER BY d.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
       params.push(limit, offset);
 
-      const result = await db.query<DepositDB & { symbol: string; token_name: string; chain_name: string }>(query, params);
+      const result = await db.query(query, params);
 
-      // Get total count
       const countResult = await db.query<{ count: string }>(
-        `SELECT COUNT(*) as count FROM transactions WHERE user_id = $1 AND type = 'deposit'`,
+        `SELECT COUNT(*) as count FROM deposits WHERE user_id = $1`,
         [userId]
       );
 
@@ -2431,38 +2491,16 @@ export default async function walletRoutes(app: FastifyInstance) {
         });
       }
 
-      // 3. KYC enforcement (when system_settings.kyc_required_for_withdrawal is true)
-      let kycRequired = true;
+      // 3. Compliance policy (KYC + AML runtime)
       try {
-        const kycSetting = await db.query<{ value: unknown }>(
-          `SELECT value FROM system_settings WHERE key = 'kyc_required_for_withdrawal' LIMIT 1`
-        );
-        if (kycSetting.rows.length > 0) {
-          const v = kycSetting.rows[0]!.value;
-          kycRequired = v === true || v === 'true' || (typeof v === 'string' && v.toLowerCase() === 'true');
+        const { enforceCompliancePolicy, ComplianceBlockedError } = await import('../services/compliance-policy.service.js');
+        await enforceCompliancePolicy({ userId, operation: 'withdrawal', aml: { asset: token.symbol, amount: withdrawAmountDec.toString(), fiatCurrency: 'INR' } });
+      } catch (err) {
+        const { ComplianceBlockedError: CBE } = await import('../services/compliance-policy.service.js');
+        if (err instanceof CBE) {
+          return reply.status(403).send({ success: false, error: { code: err.code, message: err.message } });
         }
-      } catch {
-        // Fail closed: if settings table missing, require KYC
-      }
-      if (kycRequired) {
-        const { assertKycAllowed, KycRequiredError, KycPendingError } = await import('../services/kyc-enforcement.service.js');
-        try {
-          await assertKycAllowed({ userId, action: 'withdrawal' });
-        } catch (err) {
-          if (err instanceof KycPendingError) {
-            return reply.status(403).send({
-              success: false,
-              error: { code: 'KYC_PENDING', message: err.message },
-            });
-          }
-          if (err instanceof KycRequiredError) {
-            return reply.status(403).send({
-              success: false,
-              error: { code: 'KYC_REQUIRED', message: err.message },
-            });
-          }
-          throw err;
-        }
+        throw err;
       }
 
       // 4. Withdrawal address whitelist & timelock (24h default) — required unless WITHDRAWAL_WHITELIST_RELAXED (non-prod only).
@@ -3600,15 +3638,26 @@ export default async function walletRoutes(app: FastifyInstance) {
           b.id as chain_id,
           b.chain_name
         FROM currencies c
-        LEFT JOIN blockchains b ON c.blockchain_id = b.id
+        LEFT JOIN blockchains b ON c.blockchain_id::text = b.id
         WHERE c.is_active = TRUE
       `);
+      const tokenIdByCurrency = Object.fromEntries(
+        (await db.query<{ currency_id: string; token_id: string }>(`
+          SELECT DISTINCT ON (c.id) c.id AS currency_id, t.id AS token_id
+          FROM currencies c
+          JOIN tokens t ON UPPER(TRIM(c.symbol)) = UPPER(TRIM(t.symbol)) AND t.is_active = TRUE
+          WHERE c.is_active = TRUE
+          ORDER BY c.id, t.is_native DESC NULLS LAST
+        `)).rows.map((r) => [r.currency_id, r.token_id])
+      );
       const byId = Object.fromEntries(currenciesResult.rows.map((r) => [(r as { id: string }).id, r]));
-      const data = rows.map(r => {
+      const data = rows.flatMap((r) => {
+        const tokenId = tokenIdByCurrency[r.currency_id];
+        if (!tokenId) return [];
         const cur = byId[r.currency_id];
         const available = new Decimal(r.available_balance || '0').plus(r.locked_balance || '0').toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN).toString();
-        return {
-          tokenId: r.currency_id,
+        return [{
+          tokenId,
           symbol: r.symbol,
           name: cur?.name ?? r.symbol,
           iconUrl: `/assets/upload/currency-logo/${r.symbol?.toLowerCase?.() ?? ''}.svg`,
@@ -3616,7 +3665,7 @@ export default async function walletRoutes(app: FastifyInstance) {
           chainId: cur?.chain_id ?? null,
           chainName: cur?.chain_name ?? null,
           availableBalance: available
-        };
+        }];
       });
       data.sort((a, b) => new Decimal(b.availableBalance).comparedTo(a.availableBalance));
       return { success: true, data };
@@ -3698,6 +3747,23 @@ export default async function walletRoutes(app: FastifyInstance) {
         });
       }
 
+      const transferOp =
+        fromAccount === 'funding' && toAccount === 'trading'
+          ? 'funding_transfer'
+          : fromAccount === 'trading' && toAccount === 'funding'
+            ? 'trading_transfer'
+            : 'internal_transfer';
+      try {
+        const { enforceCompliancePolicy, ComplianceBlockedError } = await import('../services/compliance-policy.service.js');
+        await enforceCompliancePolicy({ userId, operation: transferOp as import('../types/compliance-policy.js').ComplianceOperation, aml: { amount } });
+      } catch (err) {
+        const { ComplianceBlockedError: CBE } = await import('../services/compliance-policy.service.js');
+        if (err instanceof CBE) {
+          return reply.status(403).send({ success: false, error: { code: err.code, message: err.message } });
+        }
+        throw err;
+      }
+
       let transferAmountDec: DecimalInstance;
       try {
         transferAmountDec = new Decimal(amount).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN);
@@ -3775,6 +3841,12 @@ export default async function walletRoutes(app: FastifyInstance) {
 
         await walletService.debitAvailableBalance(userId, currencyId, fromAccount, amountStr, client);
         await walletService.creditBalanceForAccount(userId, currencyId, toAccount, amountStr, client);
+
+        await client.query(
+          `INSERT INTO internal_transfers (from_user_id, to_user_id, currency_id, amount, transfer_type, status, notes)
+           VALUES ($1, $1, $2, $3, 'internal', 'completed', $4)`,
+          [userId, currencyId, amountStr, `Transfer from ${fromAccount} to ${toAccount}`]
+        );
       });
 
       auditLog(userId, 'internal_transfer', {
@@ -3784,15 +3856,6 @@ export default async function walletRoutes(app: FastifyInstance) {
         symbol: token.symbol,
         amount: amountStr
       });
-
-      try {
-        await db.query(`
-          INSERT INTO internal_transfers (from_user_id, to_user_id, currency_id, amount, transfer_type, status, notes)
-          VALUES ($1, $1, $2, $3, 'internal', 'completed', $4)
-        `, [userId, currencyId, amountStr, `Transfer from ${fromAccount} to ${toAccount}`]);
-      } catch {
-        logger.debug('internal_transfers table not available, skipping record');
-      }
 
       logger.info('Internal transfer completed', {
         userId,
@@ -3959,22 +4022,27 @@ export default async function walletRoutes(app: FastifyInstance) {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      // Get trading history for P&L calculation (period-scoped spot fills)
+      // Period-scoped spot fills (spot_trades is the live execution table)
+      const marketFilter =
+        symbol !== 'all'
+          ? `AND (UPPER(st.market) = UPPER($3) OR UPPER(REPLACE(st.market, '_', '')) = UPPER(REPLACE($3::text, '_', '')))`
+          : '';
       const tradesResult = await db.query(`
         SELECT 
-          t.symbol,
-          SUM(CASE WHEN o.side = 'buy' THEN o.filled_amount * o.price ELSE 0 END) as buy_value,
-          SUM(CASE WHEN o.side = 'sell' THEN o.filled_amount * o.price ELSE 0 END) as sell_value,
-          SUM(CASE WHEN o.side = 'buy' THEN o.filled_amount ELSE 0 END) as buy_qty,
-          SUM(CASE WHEN o.side = 'sell' THEN o.filled_amount ELSE 0 END) as sell_qty
-        FROM orders o
-        JOIN tokens t ON o.token_id = t.id
-        WHERE o.user_id = $1 
-          AND o.status = 'filled'
-          AND o.created_at >= $2
-          ${symbol !== 'all' ? 'AND UPPER(t.symbol) = UPPER($3)' : ''}
-        GROUP BY t.symbol
-        ORDER BY (SUM(CASE WHEN o.side = 'sell' THEN o.filled_amount * o.price ELSE 0 END) - SUM(CASE WHEN o.side = 'buy' THEN o.filled_amount * o.price ELSE 0 END)) DESC
+          st.market AS symbol,
+          SUM(CASE WHEN st.side = 'buy' THEN st.price * st.quantity ELSE 0 END) AS buy_value,
+          SUM(CASE WHEN st.side = 'sell' THEN st.price * st.quantity ELSE 0 END) AS sell_value,
+          SUM(CASE WHEN st.side = 'buy' THEN st.quantity ELSE 0 END) AS buy_qty,
+          SUM(CASE WHEN st.side = 'sell' THEN st.quantity ELSE 0 END) AS sell_qty
+        FROM spot_trades st
+        WHERE st.user_id = $1
+          AND st.created_at >= $2
+          ${marketFilter}
+        GROUP BY st.market
+        ORDER BY (
+          SUM(CASE WHEN st.side = 'sell' THEN st.price * st.quantity ELSE 0 END)
+          - SUM(CASE WHEN st.side = 'buy' THEN st.price * st.quantity ELSE 0 END)
+        ) DESC
       `, symbol !== 'all' ? [userId, startDate, symbol] : [userId, startDate]);
 
       type PnlRow = {
@@ -4097,12 +4165,12 @@ export default async function walletRoutes(app: FastifyInstance) {
             c.symbol,
             c.name as currency_name,
             c.logo_url,
-            b.chain_name,
-            b.chain_symbol,
-            b.chain_id as chain_numeric_id
+            ch.name as chain_name,
+            ch.native_currency as chain_symbol,
+            ch.id as chain_numeric_id
           FROM deposits d
           LEFT JOIN currencies c ON d.currency_id = c.id
-          LEFT JOIN blockchains b ON d.blockchain_id = b.id
+          LEFT JOIN chains ch ON d.chain_id = ch.id
           WHERE ${whereClause}
           ORDER BY d.created_at DESC
           LIMIT $${params.length + 1} OFFSET $${params.length + 2}
@@ -4221,10 +4289,10 @@ export default async function walletRoutes(app: FastifyInstance) {
             c.symbol,
             c.name as currency_name,
             c.logo_url,
-            b.chain_name
+            ch.name as chain_name
           FROM deposits d
           LEFT JOIN currencies c ON d.currency_id = c.id
-          LEFT JOIN blockchains b ON d.blockchain_id = b.id
+          LEFT JOIN chains ch ON d.chain_id = ch.id
           WHERE d.user_id = $1 AND (d.amount IS NULL OR d.amount::numeric > 0)
         `;
         const depositParams: any[] = [userId];
@@ -4463,11 +4531,11 @@ export default async function walletRoutes(app: FastifyInstance) {
           c.symbol,
           c.name as currency_name,
           c.logo_url,
-          b.chain_name,
-          b.chain_symbol
+          ch.name as chain_name,
+          ch.native_currency as chain_symbol
         FROM deposits d
         LEFT JOIN currencies c ON d.currency_id = c.id
-        LEFT JOIN blockchains b ON d.blockchain_id = b.id
+        LEFT JOIN chains ch ON d.chain_id = ch.id
         WHERE d.tx_hash = $1 AND d.user_id = $2
       `, [txHash, userId]);
 

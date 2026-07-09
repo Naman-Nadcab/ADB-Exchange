@@ -1,4 +1,4 @@
-# CryptoExchange - Enterprise-Grade Cryptocurrency Exchange
+# Metherium - Enterprise-Grade Cryptocurrency Exchange
 
 A complete, production-ready cryptocurrency exchange platform featuring spot trading, P2P marketplace, multi-chain wallet support, and enterprise-grade security.
 
@@ -274,4 +274,4 @@ This project is proprietary software. All rights reserved.
 
 ## Support
 
-For enterprise support, contact: support@cryptoexchange.com
+For enterprise support, contact: support@metherium.com

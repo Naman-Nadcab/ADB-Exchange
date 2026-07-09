@@ -41,6 +41,11 @@ export function recordLiquidityBotCycleOutcome(hadErrors: boolean): void {
   while (botHadErrorsWindow.length > w) botHadErrorsWindow.shift();
 }
 
+/** Clear in-memory bot error window (e.g. after ops fix or health-pause recovery). */
+export function resetBotErrorWindow(): void {
+  botHadErrorsWindow.length = 0;
+}
+
 function computeBotErrorRate(): number {
   if (botHadErrorsWindow.length === 0) return 0;
   return botHadErrorsWindow.filter(Boolean).length / botHadErrorsWindow.length;

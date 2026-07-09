@@ -6,6 +6,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth';
 import { useBalancesByAccount, type ByAccountRow } from '@/lib/balances';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { api } from '@/lib/api';
+import { newIdempotencyKey } from '@/lib/idempotency';
 import Link from 'next/link';
 import Image from 'next/image';
 import { CoinIcon } from '@/components/ui/CoinIcon';
@@ -505,16 +507,14 @@ export default function WithdrawCryptoPage() {
       }
       if (twoFactorCode.trim()) body.twoFactorCode = twoFactorCode.trim();
       if (fundPassword) body.fund_password = fundPassword;
-      const res = await fetch(`${API_URL}/api/v1/wallet/withdrawals`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-          'Idempotency-Key': crypto.randomUUID(),
-        },
-        body: JSON.stringify(body),
+      const data = await api.post<{
+        id?: string;
+        status?: string;
+        type?: string;
+      }>('/api/v1/wallet/withdrawals', body, {
+        notifyOnError: false,
+        headers: { 'Idempotency-Key': newIdempotencyKey() },
       });
-      const data = await res.json();
       if (data.success) {
         setShowConfirmStep(false);
         setAmount('');
@@ -544,12 +544,23 @@ export default function WithdrawCryptoPage() {
           setError('Fund password is required for withdrawal. Enter your fund password above.');
         } else if (code === 'INVALID_2FA' || code === 'INVALID_FUND_PASSWORD') {
           setError(data.error?.message || 'Invalid code or password. Please try again.');
+        } else if (code === 'BELOW_MINIMUM') {
+          setError(data.error?.message || 'Amount is below the minimum withdrawal for this coin.');
+        } else if (code === 'INSUFFICIENT_BALANCE' || code === 'INSUFFICIENT_FUNDS') {
+          setError(data.error?.message || 'Insufficient balance in the selected account.');
+        } else if (code === 'NETWORK_ERROR') {
+          setError('Connection issue. Your request may not have reached the server. Safe to try again.');
         } else {
           setError(data.error?.message || 'Withdrawal could not be submitted. Check amount, address, and limits, then try again.');
         }
       }
-    } catch {
-      setError('Connection issue. Your request may not have reached the server. Safe to try again.');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      setError(
+        msg.includes('JSON') || msg.includes('fetch')
+          ? 'Connection issue. Your request may not have reached the server. Safe to try again.'
+          : msg || 'Connection issue. Your request may not have reached the server. Safe to try again.'
+      );
     } finally {
       setSubmitting(false);
     }

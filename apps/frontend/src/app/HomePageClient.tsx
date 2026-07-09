@@ -47,6 +47,7 @@ type SpotTicker = {
   last_price?: string;
   volume_24h?: string;
   base_volume_24h?: string;
+  change_pct?: string | number | null;
   price_change_percent_24h?: string;
   price_change_pct_24h?: string;
 };
@@ -372,19 +373,35 @@ function StatNumber({
   target,
   prefix = '',
   suffix = '',
+  compact: useCompact = false,
 }: {
   label: string;
   target: number;
   prefix?: string;
   suffix?: string;
+  /** Abbreviate large values (e.g. $253.33M) so they stay inside the card. */
+  compact?: boolean;
 }) {
   const value = useCountUp(target);
+  const formatted = useCompact
+    ? value <= 0
+      ? '0'
+      : new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 2 }).format(value)
+    : value.toLocaleString('en-US');
+  const fullLabel =
+    useCompact && target > 0
+      ? `${prefix}${target.toLocaleString('en-US')}${suffix}`
+      : undefined;
+
   return (
-    <article className="rounded-2xl border border-[#F5B8001F] bg-[#0D1118] p-4 sm:p-5">
+    <article className="min-w-0 rounded-2xl border border-[#F5B8001F] bg-[#0D1118] p-4 sm:p-5">
       <p className="text-[11px] uppercase tracking-[0.14em] text-[#9CA3AF]">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-white sm:text-3xl">
+      <p
+        className="mt-2 truncate text-2xl font-semibold text-white sm:text-3xl"
+        title={fullLabel}
+      >
         {prefix}
-        {value.toLocaleString('en-US')}
+        {formatted}
         {suffix}
       </p>
     </article>
@@ -416,7 +433,7 @@ export default function HomePageClient() {
         price: num(row?.price) || num(spotRow?.last_price),
         change:
           num(row?.change_24h_percent) ||
-          num(spotRow?.price_change_percent_24h ?? spotRow?.price_change_pct_24h),
+          num(spotRow?.change_pct ?? spotRow?.price_change_percent_24h ?? spotRow?.price_change_pct_24h),
       };
     });
   }, [convertTickers, spotTickers]);
@@ -440,7 +457,8 @@ export default function HomePageClient() {
       .map((row) => {
         const base = row.symbol?.split('_')?.[0] ?? row.symbol;
         const change = num(
-          row.price_change_percent_24h ??
+          row.change_pct ??
+            row.price_change_percent_24h ??
             row.price_change_pct_24h ??
             0
         );
@@ -688,8 +706,8 @@ export default function HomePageClient() {
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <StatNumber label={exchangeVolumeLabel()} target={Math.round(exchangeQuoteVolume)} prefix="$" />
-          <StatNumber label={referenceVolumeLabel()} target={Math.round(referenceQuoteVolume)} prefix="$" />
+          <StatNumber label={exchangeVolumeLabel()} target={Math.round(exchangeQuoteVolume)} prefix="$" compact />
+          <StatNumber label={referenceVolumeLabel()} target={Math.round(referenceQuoteVolume)} prefix="$" compact />
           <StatNumber label="Trading Pairs" target={pairsCount} />
           <StatNumber
             label="Platform Uptime"

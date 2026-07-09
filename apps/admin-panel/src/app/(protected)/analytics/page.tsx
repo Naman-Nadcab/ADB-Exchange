@@ -244,7 +244,7 @@ export default function AnalyticsPage() {
             <KpiCard label="Total Revenue (24h)" value={revenue != null ? fmtUsd(revenue.total_revenue_24h) : '—'} icon={DollarSign} accent="indigo" />
             <KpiCard label="Trading Volume (24h)" value={totalVolume24h > 0 ? fmtUsd(totalVolume24h, true) : '—'} icon={Activity} accent="emerald" />
             <KpiCard label="Active Users" value={userGrowth?.active_users ?? '—'} icon={Users} accent="blue" sub={userGrowth ? `+${userGrowth.new_users_today} today` : undefined} />
-            <KpiCard label="Retention Rate" value={userGrowth != null ? `${userGrowth.retention_rate_percent}%` : '—'} icon={TrendingUp} accent="amber" />
+            <KpiCard label="Retention Rate" value={userGrowth?.retention_rate_percent != null ? `${userGrowth.retention_rate_percent}%` : 'No data'} icon={TrendingUp} accent="amber" />
           </section>
 
           {/* Revenue Breakdown */}
@@ -410,7 +410,7 @@ export default function AnalyticsPage() {
           <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <KpiCard label="New Users Today" value={userGrowth?.new_users_today ?? '—'} icon={Users} accent="indigo" />
             <KpiCard label="Active Users" value={userGrowth?.active_users ?? '—'} icon={Users} accent="emerald" />
-            <KpiCard label="Retention Rate" value={userGrowth != null ? `${userGrowth.retention_rate_percent}%` : '—'} icon={TrendingUp} accent="amber" />
+            <KpiCard label="Retention Rate" value={userGrowth?.retention_rate_percent != null ? `${userGrowth.retention_rate_percent}%` : 'No data'} icon={TrendingUp} accent="amber" />
           </section>
           <ChartCard title="New Users Per Day" height={300}>
             {(userGrowth?.new_users_per_day ?? []).length === 0 ? <EmptyChart message="No user growth data" /> : (

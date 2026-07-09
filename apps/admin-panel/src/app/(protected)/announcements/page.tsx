@@ -8,6 +8,8 @@ import { adminFetch } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { ActionAuthModal, type ActionAuthPayload } from '@/components/ops/ActionAuthModal';
 
 /* ── types ──────────────────────────────────────────────────────────── */
@@ -83,6 +85,7 @@ function FieldTextarea({ value, onChange, placeholder, rows = 4 }: { value: stri
 export default function AnnouncementsPage() {
   const token       = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
 
   const [form,       setForm]       = useState<FormState>(BLANK_FORM);
   const [editId,     setEditId]     = useState<string | null>(null);
@@ -115,8 +118,13 @@ export default function AnnouncementsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'announcements'] });
       setForm(BLANK_FORM); setFormOpen(false); setFormError('');
+      toast.success('Announcement created.');
     },
-    onError: (e: unknown) => setFormError((e as { message?: string })?.message ?? 'Failed to create announcement.'),
+    onError: (e: unknown) => {
+      const msg = formatSaveError(e, 'Failed to create announcement.');
+      setFormError(msg);
+      toast.error(msg);
+    },
   });
 
   const updateMut = useMutation({
@@ -125,8 +133,13 @@ export default function AnnouncementsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'announcements'] });
       setEditId(null); setForm(BLANK_FORM); setFormOpen(false); setFormError('');
+      toast.success('Announcement updated.');
     },
-    onError: (e: unknown) => setFormError((e as { message?: string })?.message ?? 'Failed to update.'),
+    onError: (e: unknown) => {
+      const msg = formatSaveError(e, 'Failed to update announcement.');
+      setFormError(msg);
+      toast.error(msg);
+    },
   });
 
   const deleteMut = useMutation({
@@ -135,13 +148,19 @@ export default function AnnouncementsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'announcements'] });
       setDeleteTarget(null);
+      toast.success('Announcement deleted.');
     },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to delete announcement.')),
   });
 
   const togglePublishMut = useMutation({
     mutationFn: ({ id, is_published }: { id: string; is_published: boolean }) =>
       adminFetch(`/notifications/announcements/${id}`, { method: 'PATCH', body: { is_published }, token }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'announcements'] }); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'announcements'] });
+      toast.success('Announcement publish status updated.');
+    },
+    onError: (e) => toast.error(formatSaveError(e, 'Failed to update publish status.')),
   });
 
   const handleSubmit = useCallback((publish: boolean) => {

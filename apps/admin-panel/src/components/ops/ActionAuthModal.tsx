@@ -35,11 +35,12 @@ export function ActionAuthModal({
   externalError,
   isPending = false,
   requireReason = true,
-  twofaRequired = ADMIN_LOGIN_2FA_REQUIRED,
+  twofaRequired: twofaRequiredProp = ADMIN_LOGIN_2FA_REQUIRED,
   confirmationPhrase,
   confirmLabel = 'Confirm',
   confirmVariant = 'primary',
 }: ActionAuthModalProps) {
+  const twofaRequired = ADMIN_LOGIN_2FA_REQUIRED && twofaRequiredProp;
   const [reason, setReason] = useState('');
   const [twofaCode, setTwofaCode] = useState('');
   const [confirmText, setConfirmText] = useState('');
@@ -94,13 +95,18 @@ export function ActionAuthModal({
         </p>
         {description ? <p className="text-xs text-admin-muted">{description}</p> : null}
         {requireReason ? (
-          <Textarea
+          <>
+            <p className="text-xs text-amber-400/90">
+              Enter a reason (minimum 8 characters) and confirm — otherwise your change is not saved.
+            </p>
+            <Textarea
             label="Reason (minimum 8 characters)"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             rows={3}
             placeholder="Why this change is necessary"
           />
+          </>
         ) : null}
         {confirmationPhrase ? (
           <Input

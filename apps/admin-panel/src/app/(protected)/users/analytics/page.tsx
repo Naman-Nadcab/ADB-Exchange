@@ -122,7 +122,7 @@ export default function UserAnalyticsPage() {
       title="User Analytics"
       description="DAU/MAU trends, retention, top traders, and geographic distribution."
       status="active"
-      error={isError ? 'User analytics endpoint not available — some charts will show placeholder data.' : null}
+      error={isError ? 'User analytics endpoint not available — charts will show empty states until data loads.' : null}
       onRetry={() => void refetch()}
       quickActions={
         <div className="flex items-center gap-2">

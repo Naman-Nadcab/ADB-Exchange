@@ -45,7 +45,7 @@ Every item below is either **DONE by the agent** or **requires a human** (hardwa
 | `WITHDRAWAL_ADDRESS_COOLING_HOURS` | — | `24` |
 | `AML_LARGE_FIAT_INR_THRESHOLD` | — | `1000000` |
 | `AML_LARGE_CRYPTO_WITHDRAWAL_THRESHOLD` | — | `10000` |
-| `EMAIL_FROM` | — | `CryptoExchange <noreply@nadcab.com>` |
+| `EMAIL_FROM` | — | `Metherium <noreply@nadcab.com>` |
 | `SMTP_PASSWORD` | — | mirrored from `SMTP_PASS` (code reads both) |
 
 Full `.env` vs `.env.example` gap is now **0 / 128 keys missing** (was 49).

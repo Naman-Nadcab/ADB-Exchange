@@ -15,7 +15,7 @@ import { logAuditFromRequest } from '../services/audit-log.service.js';
 import { logAdminActivity, getDeviceIdFromRequest } from '../services/activity-monitor.service.js';
 import { refreshMatchEventsCache } from '../services/matchingEngine.js';
 import { p2pService } from '../services/p2p.service.js';
-import { getClientIp } from '../lib/client-ip.js';
+import { getClientIp, getClientIpFromIncomingMessage } from '../lib/client-ip.js';
 import { assertUrlIsSafeForEgress, SsrfError, parseHostAllowlist } from '../lib/ssrf-guard.js';
 import { isIpInWhitelist } from '../lib/admin-ip-whitelist.js';
 import { isBreakGlassClientIpAllowed } from '../lib/break-glass-access.js';
@@ -364,16 +364,20 @@ export async function getAdminFromRequest(
     return null;
   }
   // Admin pages fan out many parallel API requests. Keep guardrails, but avoid false 429s
-  // during normal dashboard navigation and data refresh. Use config defaults with stricter
-  // write budget while preserving comfortable read capacity.
+  // during normal dashboard navigation and data refresh. Reads and writes use SEPARATE
+  // Redis buckets — otherwise heavy GET polling consumes the write budget and PATCH/POST
+  // fail with "Too many requests" even for a single save.
   const isReadRequest = (request.method || 'GET').toUpperCase() === 'GET';
   const baseLimit = config.rateLimit.adminApiMax;
-  const methodAwareLimit = isReadRequest ? baseLimit : Math.max(Math.floor(baseLimit / 5), 60);
+  const readLimit = baseLimit;
+  const writeLimit = Math.max(Math.floor(baseLimit / 5), 60);
+  const rateScope = isReadRequest ? 'admin:read' : 'admin:write';
+  const methodAwareLimit = isReadRequest ? readLimit : writeLimit;
   const allowed = await enforceAdminRateLimit(
     request,
     reply,
     session.adminId,
-    'admin',
+    rateScope,
     methodAwareLimit,
     config.rateLimit.adminApiWindowSec
   );
@@ -519,24 +523,6 @@ export async function getAdminForWithdrawalApproval(
     return null;
   }
   return admin;
-}
-
-function clientIpFromWsReq(req: {
-  headers: Record<string, string | string[] | undefined>;
-  socket?: { remoteAddress?: string };
-}): string {
-  const h = req.headers;
-  const cf = h['cf-connecting-ip'];
-  if (typeof cf === 'string' && cf.trim()) return cf.trim();
-  const xri = h['x-real-ip'];
-  if (typeof xri === 'string' && xri.trim()) return xri.trim();
-  const xff = h['x-forwarded-for'];
-  if (typeof xff === 'string') {
-    const first = xff.split(',')[0]?.trim();
-    if (first) return first;
-  }
-  const ra = req.socket?.remoteAddress || '0.0.0.0';
-  return ra.replace(/^::ffff:/, '');
 }
 
 function extractWsTicketFromProtocol(req: {
@@ -865,7 +851,7 @@ export default async function adminRoutes(app: FastifyInstance) {
       closeUnauthorized('Missing ticket (use Sec-WebSocket-Protocol: ticket.<id>)');
       return;
     }
-    const clientIp = clientIpFromWsReq(req);
+    const clientIp = getClientIpFromIncomingMessage(req.raw);
     void (async () => {
       const consumed = await consumeWsTicket(ticket, clientIp, 'admin');
       if (!consumed.ok || !consumed.adminId || !consumed.sessionId) {
@@ -910,7 +896,7 @@ export default async function adminRoutes(app: FastifyInstance) {
       closeUnauthorized('Missing ticket (use Sec-WebSocket-Protocol: ticket.<id>)');
       return;
     }
-    const clientIp = clientIpFromWsReq(req);
+    const clientIp = getClientIpFromIncomingMessage(req.raw);
     void (async () => {
       const consumed = await consumeWsTicket(ticket, clientIp, 'admin');
       if (!consumed.ok || !consumed.adminId || !consumed.sessionId) {
@@ -3476,19 +3462,33 @@ export default async function adminRoutes(app: FastifyInstance) {
           created_at TIMESTAMPTZ DEFAULT NOW()
         )
       `);
+      let execResult: { executed: boolean; message: string } = { executed: false, message: 'Not executed' };
+      try {
+        const { executeInfrastructureAction } = await import('../services/infrastructure-executor.service.js');
+        execResult = await executeInfrastructureAction(command);
+      } catch (e) {
+        execResult = { executed: false, message: e instanceof Error ? e.message : 'Executor failed' };
+      }
+      const cmdStatus = execResult.executed ? 'success' : 'audit_only';
       await db.query(
         'INSERT INTO control_command_history (command, triggered_by, status) VALUES ($1, $2, $3)',
-        [command, admin.adminId, 'success']
+        [command, admin.adminId, cmdStatus]
       );
-      broadcastAdminControlEvent('service_restarted', { command });
+      const eventLabel2 = execResult.executed
+        ? `Service restarted: ${command.replace(/_/g, ' ')}`
+        : `Control command logged (not executed): ${command.replace(/_/g, ' ')} — ${execResult.message.slice(0, 200)}`;
+      broadcastAdminControlEvent('service_restarted', { command, executed: execResult.executed, message: execResult.message });
       broadcastAdminControlEvent('timeline_event', {
-        event: `Service restarted: ${command.replace(/_/g, ' ')}`,
+        event: eventLabel2,
         timestamp: new Date().toISOString(),
         triggered_by: admin.adminId,
         service: 'control',
-        severity: 'info',
+        severity: execResult.executed ? 'info' : 'warning',
       });
-      return reply.send({ success: true, data: { command, triggered: true } });
+      return reply.send({
+        success: true,
+        data: { command, triggered: true, executed: execResult.executed, message: execResult.message },
+      });
     } catch (e) {
       logger.error('Control command error', { error: e instanceof Error ? e.message : 'Unknown' });
       return reply.status(500).send({ success: false, error: { code: 'ACTION_FAILED', message: 'Failed to run command' } });
@@ -3588,24 +3588,20 @@ export default async function adminRoutes(app: FastifyInstance) {
       const rows = await db.query<{ worker_name: string; status: string; uptime_seconds: number; last_restart_at: string | null }>(
         'SELECT worker_name, status, uptime_seconds, last_restart_at::text FROM monitoring_workers ORDER BY worker_name'
       );
-      const defaults = [
-        { worker_name: 'Matching Engine', status: 'running', uptime_seconds: 86400, last_restart_at: null },
-        { worker_name: 'Settlement Worker', status: 'running', uptime_seconds: 10800, last_restart_at: null },
-        { worker_name: 'WebSocket Server', status: 'running', uptime_seconds: 7200, last_restart_at: null },
-        { worker_name: 'Deposit Indexer', status: 'running', uptime_seconds: 3600, last_restart_at: null },
-        { worker_name: 'Risk Engine', status: 'running', uptime_seconds: 172800, last_restart_at: null },
-      ];
-      const byName = new Map(rows.rows.map((r) => [r.worker_name, r]));
-      const services = defaults.map((d) => {
-        const r = byName.get(d.worker_name);
-        return {
-          service: d.worker_name,
-          status: r?.status ?? d.status,
-          uptime: formatUptime(r?.uptime_seconds ?? d.uptime_seconds),
-          last_restart: r?.last_restart_at ? formatRelative(r.last_restart_at) : null,
-        };
+      const services = rows.rows.map((r) => ({
+        service: r.worker_name,
+        status: r.status,
+        uptime: formatUptime(r.uptime_seconds),
+        last_restart: r.last_restart_at ? formatRelative(r.last_restart_at) : null,
+      }));
+      return reply.send({
+        success: true,
+        data: {
+          services,
+          data_available: services.length > 0,
+          message: services.length === 0 ? 'No worker heartbeats recorded yet.' : undefined,
+        },
       });
-      return reply.send({ success: true, data: { services } });
     } catch (e) {
       logger.error('Control services error', { error: e instanceof Error ? e.message : 'Unknown' });
       return reply.status(500).send({ success: false, error: { code: 'FETCH_FAILED', message: 'Failed to get services' } });
@@ -3658,14 +3654,7 @@ export default async function adminRoutes(app: FastifyInstance) {
       [workerName]
     ).then((r) => r.rows[0]);
     if (!row) {
-      await db.query(
-        'INSERT INTO monitoring_workers (worker_name, status, uptime_seconds) VALUES ($1, $2, $3) ON CONFLICT (worker_name) DO NOTHING',
-        [workerName, 'running', 0]
-      );
-      row = await db.query<{ status: string; uptime_seconds: number; last_restart_at: string | null }>(
-        'SELECT status, uptime_seconds, last_restart_at::text FROM monitoring_workers WHERE worker_name = $1',
-        [workerName]
-      ).then((r) => r.rows[0]);
+      return { status: 'down' as const, uptime: 0, last_restart: null };
     }
     const status = normalizeHealthStatus(row?.status ?? 'unknown');
     const uptime = row?.uptime_seconds ?? 0;
@@ -4290,9 +4279,18 @@ export default async function adminRoutes(app: FastifyInstance) {
         /* optional */
       }
 
+      let apiErrorRatePct = 0;
+      try {
+        const raw = await redis.get('monitoring:api_error_rate_pct');
+        apiErrorRatePct = raw ? parseFloat(raw) || 0 : 0;
+      } catch {
+        /* optional */
+      }
+
       return {
         timestamp: new Date().toISOString(),
         api_latency_ms: apiLatencyMs,
+        api_error_rate_pct: apiErrorRatePct,
         database: {
           status: dbOk ? 'up' : 'down',
           latency_ms: dbLatencyMs,
@@ -4322,6 +4320,95 @@ export default async function adminRoutes(app: FastifyInstance) {
         },
       };
   }
+
+  /**
+   * GET /admin/system-health/integrations
+   * Provider health summary for System Health Center.
+   */
+  app.get('/system-health/integrations', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    try {
+      const rows = await db.query<{
+        id: string; category: string; provider: string; name: string;
+        is_active: boolean; health_status: string; last_success_at: string | null;
+        last_failure_at: string | null; last_error: string | null; last_latency_ms: number | null;
+      }>(
+        `SELECT id, category, provider, name, is_active, health_status,
+                last_success_at::text, last_failure_at::text, last_error, last_latency_ms
+         FROM api_settings ORDER BY category, priority ASC, name ASC`,
+      );
+      const active = rows.rows.filter((r) => r.is_active);
+      const unhealthy = active.filter((r) => r.health_status === 'down' || r.health_status === 'degraded');
+      return reply.send({
+        success: true,
+        data: {
+          total: rows.rows.length,
+          active: active.length,
+          unhealthy: unhealthy.length,
+          providers: rows.rows,
+        },
+      });
+    } catch (e) {
+      return reply.status(500).send({ success: false, error: { code: 'FETCH_FAILED', message: 'Failed to fetch integration health' } });
+    }
+  });
+
+  /**
+   * POST /admin/system/diagnostics/run
+   * Run real diagnostics on all active providers (Phase 7).
+   */
+  app.post('/system/diagnostics/run', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'settings:edit');
+    if (!admin) return;
+    try {
+      const { providerDiagnostics } = await import('../services/provider-diagnostics.service.js');
+      const results = await providerDiagnostics.runAllDiagnostics();
+      for (const r of results) {
+        try {
+          await db.query(
+            `UPDATE api_settings SET
+               health_status = $2,
+               last_check_at = NOW(),
+               last_success_at = CASE WHEN $3 THEN NOW() ELSE last_success_at END,
+               last_failure_at = CASE WHEN $3 THEN last_failure_at ELSE NOW() END,
+               last_error = CASE WHEN $3 THEN NULL ELSE $4 END,
+               last_latency_ms = $5
+             WHERE id = $1`,
+            [r.id, r.success ? 'healthy' : 'down', r.success, r.message, r.latencyMs],
+          );
+        } catch { /* best-effort */ }
+      }
+      return reply.send({ success: true, data: { results, ran_at: new Date().toISOString() } });
+    } catch (e) {
+      logger.error('System diagnostics failed', { error: e instanceof Error ? e.message : String(e) });
+      return reply.status(500).send({ success: false, error: { code: 'DIAGNOSTICS_FAILED', message: 'Diagnostics run failed' } });
+    }
+  });
+
+  /**
+   * POST /admin/system/diagnostics/:id
+   * Run diagnostic on a single provider.
+   */
+  app.post('/system/diagnostics/:id', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    try {
+      const { id } = request.params as { id: string };
+      const { providerDiagnostics } = await import('../services/provider-diagnostics.service.js');
+      const testResult = await providerDiagnostics.testSetting(id);
+      await db.query(
+        `UPDATE api_settings SET health_status = $2, last_check_at = NOW(),
+         last_success_at = CASE WHEN $3 THEN NOW() ELSE last_success_at END,
+         last_failure_at = CASE WHEN $3 THEN last_failure_at ELSE NOW() END,
+         last_error = CASE WHEN $3 THEN NULL ELSE $4 END, last_latency_ms = $5 WHERE id = $1`,
+        [id, testResult.success ? 'healthy' : 'down', testResult.success, testResult.message, testResult.latencyMs],
+      );
+      return reply.send({ success: true, data: testResult });
+    } catch (e) {
+      return reply.status(500).send({ success: false, error: { code: 'DIAGNOSTICS_FAILED', message: 'Single diagnostic failed' } });
+    }
+  });
 
   /**
    * GET /admin/monitoring/counters
@@ -4608,6 +4695,49 @@ export default async function adminRoutes(app: FastifyInstance) {
   });
 
   /**
+   * GET /admin/monitoring/alerts/summary
+   * Counts by status and severity for Alert Center badge and filters.
+   */
+  app.get('/monitoring/alerts/summary', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    try {
+      const res = await db.query<{
+        open: string;
+        acknowledged: string;
+        resolved: string;
+        open_critical: string;
+        open_high: string;
+        total: string;
+      }>(`
+        SELECT
+          COUNT(*) FILTER (WHERE status = 'open')::text AS open,
+          COUNT(*) FILTER (WHERE status = 'acknowledged')::text AS acknowledged,
+          COUNT(*) FILTER (WHERE status = 'resolved')::text AS resolved,
+          COUNT(*) FILTER (WHERE status = 'open' AND LOWER(severity) IN ('critical', 'high'))::text AS open_critical,
+          COUNT(*) FILTER (WHERE status = 'open' AND LOWER(severity) = 'high')::text AS open_high,
+          COUNT(*)::text AS total
+        FROM infrastructure_alerts
+      `);
+      const row = res.rows[0];
+      return reply.send({
+        success: true,
+        data: {
+          open: parseInt(row?.open ?? '0', 10),
+          acknowledged: parseInt(row?.acknowledged ?? '0', 10),
+          resolved: parseInt(row?.resolved ?? '0', 10),
+          open_critical: parseInt(row?.open_critical ?? '0', 10),
+          open_high: parseInt(row?.open_high ?? '0', 10),
+          total: parseInt(row?.total ?? '0', 10),
+        },
+      });
+    } catch (e) {
+      logger.error('Monitoring alerts summary error', { error: e instanceof Error ? e.message : 'Unknown' });
+      return reply.status(500).send({ success: false, error: { code: 'FETCH_FAILED', message: 'Failed to get alert summary' } });
+    }
+  });
+
+  /**
    * GET /admin/monitoring/alerts
    * Infrastructure alerts table. Uses infrastructure_alerts table (created on first use).
    */
@@ -4625,7 +4755,18 @@ export default async function adminRoutes(app: FastifyInstance) {
           created_at TIMESTAMPTZ DEFAULT NOW()
         )
       `);
-      const q = request.query as { limit?: string; offset?: string; status?: string };
+      await db.query(`
+        DO $$ BEGIN
+          ALTER TABLE infrastructure_alerts ADD COLUMN IF NOT EXISTS root_cause TEXT;
+          ALTER TABLE infrastructure_alerts ADD COLUMN IF NOT EXISTS suggested_action TEXT;
+          ALTER TABLE infrastructure_alerts ADD COLUMN IF NOT EXISTS dedupe_key TEXT;
+          ALTER TABLE infrastructure_alerts ADD COLUMN IF NOT EXISTS acknowledged_at TIMESTAMPTZ;
+          ALTER TABLE infrastructure_alerts ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMPTZ;
+          ALTER TABLE infrastructure_alerts ADD COLUMN IF NOT EXISTS assigned_admin_id TEXT;
+        EXCEPTION WHEN others THEN NULL;
+        END $$;
+      `);
+      const q = request.query as { limit?: string; offset?: string; status?: string; severity?: string };
       const limit = Math.min(100, Math.max(1, parseInt(q.limit ?? '50', 10) || 50));
       const offset = Math.max(0, parseInt(q.offset ?? '0', 10) || 0);
       const conditions: string[] = ['1=1'];
@@ -4635,12 +4776,31 @@ export default async function adminRoutes(app: FastifyInstance) {
         conditions.push(`status = $${i++}`);
         params.push(q.status);
       }
+      if (q.severity?.trim()) {
+        conditions.push(`LOWER(severity) = LOWER($${i++})`);
+        params.push(q.severity.trim());
+      }
       const where = conditions.join(' AND ');
       const countRes = await db.query<{ count: string }>(`SELECT COUNT(*)::text AS count FROM infrastructure_alerts WHERE ${where}`, params);
       const total = parseInt(countRes.rows[0]?.count ?? '0', 10);
       params.push(limit, offset);
-      const listRes = await db.query<{ id: string; system: string; severity: string; message: string; status: string; created_at: string }>(
-        `SELECT id::text, system, severity, message, status, created_at::text FROM infrastructure_alerts WHERE ${where} ORDER BY created_at DESC LIMIT $${i} OFFSET $${i + 1}`,
+      const listRes = await db.query<{
+        id: string;
+        system: string;
+        severity: string;
+        message: string;
+        status: string;
+        created_at: string;
+        root_cause: string | null;
+        suggested_action: string | null;
+        acknowledged_at: string | null;
+        resolved_at: string | null;
+        assigned_admin_id: string | null;
+      }>(
+        `SELECT id::text, system, severity, message, status, created_at::text,
+                root_cause, suggested_action,
+                acknowledged_at::text, resolved_at::text, assigned_admin_id
+         FROM infrastructure_alerts WHERE ${where} ORDER BY created_at DESC LIMIT $${i} OFFSET $${i + 1}`,
         params
       );
       return reply.send({ success: true, data: { alerts: listRes.rows, total } });
@@ -4651,13 +4811,70 @@ export default async function adminRoutes(app: FastifyInstance) {
   });
 
   /**
+   * PATCH /admin/monitoring/alerts/:id
+   * Acknowledge or resolve an infrastructure alert.
+   */
+  app.patch<{ Params: { id: string }; Body: { status?: string; assigned_admin_id?: string } }>(
+    '/monitoring/alerts/:id',
+    async (request, reply) => {
+      const admin = await getAdminFromRequest(app, request, reply, false);
+      if (!admin) return;
+      const id = request.params.id;
+      const body = (request.body || {}) as { status?: string; assigned_admin_id?: string };
+      const status = body.status?.trim();
+      if (!status || !['acknowledged', 'resolved', 'open'].includes(status)) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'INVALID_STATUS', message: 'status must be acknowledged, resolved, or open' },
+        });
+      }
+      try {
+        const tsCol = status === 'resolved' ? ', resolved_at = NOW()' : status === 'acknowledged' ? ', acknowledged_at = NOW()' : '';
+        const assignSql = body.assigned_admin_id ? `, assigned_admin_id = $3` : '';
+        const params: string[] = [status, id];
+        if (body.assigned_admin_id) params.push(body.assigned_admin_id);
+        await db.query(
+          `UPDATE infrastructure_alerts SET status = $1${tsCol}${assignSql} WHERE id = $2::uuid`,
+          params
+        );
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'monitoring_alert_updated',
+          resourceType: 'infrastructure_alert',
+          resourceId: id,
+          newValue: { status, assigned_admin_id: body.assigned_admin_id },
+        });
+        const { recordMonitoringEvent } = await import('../services/monitoring-snapshot.service.js');
+        await recordMonitoringEvent('alert_status_changed', `Alert ${id} → ${status}`);
+        broadcastAdminControlEvent('timeline_event', {
+          event: `Alert ${status}: ${id}`,
+          timestamp: new Date().toISOString(),
+          service: 'monitoring',
+          severity: status === 'resolved' ? 'info' : 'warning',
+        });
+        broadcastAdminControlEvent('infrastructure_action', {
+          action: 'alert_status_changed',
+          alert_id: id,
+          status,
+        });
+        return reply.send({ success: true, data: { id, status } });
+      } catch (e) {
+        logger.error('Monitoring alert patch error', { error: e instanceof Error ? e.message : 'Unknown' });
+        return reply.status(500).send({ success: false, error: { code: 'UPDATE_FAILED', message: 'Failed to update alert' } });
+      }
+    }
+  );
+
+  /**
    * POST /admin/monitoring/actions
    * Infrastructure control. Audit logged. Includes: restart_settlement_worker, restart_matching_engine, restart_websocket_service.
    */
-  app.post<{ Body: { action: string } }>('/monitoring/actions', async (request, reply) => {
+  app.post<{ Body: { action: string; reason?: string; twofa_code?: string } }>('/monitoring/actions', async (request, reply) => {
     const admin = await getAdminFromRequest(app, request, reply, false);
     if (!admin) return;
-    const action = (request.body as { action?: string })?.action;
+    const body = (request.body || {}) as { action?: string; reason?: string; twofa_code?: string };
+    const action = body.action;
     const allowed = [
       'restart_worker', 'flush_queue', 'reset_circuit_breaker', 'restart_liquidity_bot',
       'restart_settlement_worker', 'restart_matching_engine', 'restart_websocket_service',
@@ -4666,15 +4883,45 @@ export default async function adminRoutes(app: FastifyInstance) {
       return reply.status(400).send({ success: false, error: { code: 'INVALID_ACTION', message: 'action must be one of: ' + allowed.join(', ') } });
     }
     try {
+      const reason = typeof body.reason === 'string' ? body.reason.trim().slice(0, 2000) : undefined;
       await logAuditFromRequest(request, {
         actorType: 'admin',
         actorId: admin.adminId,
         action: 'infrastructure_control',
         resourceType: 'monitoring',
-        resourceId: action,
-        newValue: { action },
+        resourceId: null,
+        newValue: { action, reason: reason ?? null },
       });
-      return reply.send({ success: true, data: { action, triggered: true } });
+      const eventMessage = reason ? `Admin triggered: ${action} — ${reason}` : `Admin triggered: ${action}`;
+      try {
+        const { recordMonitoringEvent } = await import('../services/monitoring-snapshot.service.js');
+        await recordMonitoringEvent('infrastructure_action', eventMessage);
+      } catch {
+        /* optional */
+      }
+      broadcastAdminControlEvent('infrastructure_action', {
+        action,
+        reason: reason ?? null,
+        triggered_by: admin.adminId,
+        message: eventMessage,
+      });
+      broadcastAdminControlEvent('timeline_event', {
+        event: eventMessage,
+        timestamp: new Date().toISOString(),
+        service: 'monitoring',
+        severity: 'info',
+      });
+      let execResult: { executed: boolean; message: string } = { executed: false, message: 'Not executed' };
+      try {
+        const { executeInfrastructureAction } = await import('../services/infrastructure-executor.service.js');
+        execResult = await executeInfrastructureAction(action);
+      } catch (e) {
+        execResult = { executed: false, message: e instanceof Error ? e.message : 'Executor failed' };
+      }
+      return reply.send({
+        success: true,
+        data: { action, triggered: true, executed: execResult.executed, message: execResult.message },
+      });
     } catch (e) {
       logger.error('Monitoring action error', { error: e instanceof Error ? e.message : 'Unknown' });
       return reply.status(500).send({ success: false, error: { code: 'ACTION_FAILED', message: 'Failed to trigger action' } });
@@ -4703,15 +4950,15 @@ export default async function adminRoutes(app: FastifyInstance) {
           points = [];
         }
       }
-      if (points.length === 0) {
-        const now = Date.now();
-        const hour = 60 * 60 * 1000;
-        for (let i = 23; i >= 0; i--) {
-          const t = new Date(now - i * hour);
-          points.push({ timestamp: t.toISOString(), value: 0 });
-        }
-      }
-      return reply.send({ success: true, data: { metric, points } });
+      return reply.send({
+        success: true,
+        data: {
+          metric,
+          points,
+          data_available: points.length > 0,
+          message: points.length === 0 ? 'No historical samples stored for this metric yet.' : undefined,
+        },
+      });
     } catch (e) {
       logger.error('Monitoring history error', { error: e instanceof Error ? e.message : 'Unknown' });
       return reply.status(500).send({ success: false, error: { code: 'FETCH_FAILED', message: 'Failed to get history' } });
@@ -4751,29 +4998,21 @@ export default async function adminRoutes(app: FastifyInstance) {
     const admin = await getAdminFromRequest(app, request, reply, false);
     if (!admin) return;
     try {
+      const { ALERT_RULE_DEFINITIONS, rulesRecordFromRows } = await import('../lib/monitoring-alert-rules.js');
       await db.query(`
         CREATE TABLE IF NOT EXISTS monitoring_alert_rules (
           key TEXT PRIMARY KEY,
           value_json TEXT NOT NULL DEFAULT '{}'
         )
       `);
-      const rows = await db.query<{ key: string; value_json: string }>('SELECT key, value_json FROM monitoring_alert_rules WHERE key IN ($1, $2, $3)', ['api_latency_threshold_ms', 'queue_size_threshold', 'rpc_failure_rate_threshold']);
-      const map: Record<string, number> = {};
-      for (const r of rows.rows) {
-        try {
-          const v = JSON.parse(r.value_json) as number;
-          if (typeof v === 'number') map[r.key] = v;
-        } catch {
-          //
-        }
-      }
+      const keys = ALERT_RULE_DEFINITIONS.map((d) => d.key);
+      const rows = await db.query<{ key: string; value_json: string }>(
+        'SELECT key, value_json FROM monitoring_alert_rules WHERE key = ANY($1::text[])',
+        [keys],
+      );
       return reply.send({
         success: true,
-        data: {
-          api_latency_threshold_ms: map.api_latency_threshold_ms ?? 500,
-          queue_size_threshold: map.queue_size_threshold ?? 100,
-          rpc_failure_rate_threshold: map.rpc_failure_rate_threshold ?? 5,
-        },
+        data: { rules: rulesRecordFromRows(rows.rows), definitions: ALERT_RULE_DEFINITIONS },
       });
     } catch (e) {
       logger.error('Get alert rules error', { error: e instanceof Error ? e.message : 'Unknown' });
@@ -4784,44 +5023,53 @@ export default async function adminRoutes(app: FastifyInstance) {
   /**
    * PATCH /admin/monitoring/alert-rules
    */
-  app.patch<{ Body: { api_latency_threshold_ms?: number; queue_size_threshold?: number; rpc_failure_rate_threshold?: number } }>('/monitoring/alert-rules', async (request, reply) => {
+  app.patch<{ Body: Record<string, { threshold?: number; enabled?: boolean; cooldown_sec?: number; severity?: string } | number> }>('/monitoring/alert-rules', async (request, reply) => {
     const admin = await getAdminFromRequest(app, request, reply, false);
     if (!admin) return;
     const body = request.body || {};
     try {
+      const { ALERT_RULE_DEFINITIONS, parseRuleValue, rulesRecordFromRows } = await import('../lib/monitoring-alert-rules.js');
       await db.query(`
         CREATE TABLE IF NOT EXISTS monitoring_alert_rules (
           key TEXT PRIMARY KEY,
           value_json TEXT NOT NULL DEFAULT '{}'
         )
       `);
-      const updates: Array<{ key: string; value: number }> = [];
-      if (typeof body.api_latency_threshold_ms === 'number') updates.push({ key: 'api_latency_threshold_ms', value: body.api_latency_threshold_ms });
-      if (typeof body.queue_size_threshold === 'number') updates.push({ key: 'queue_size_threshold', value: body.queue_size_threshold });
-      if (typeof body.rpc_failure_rate_threshold === 'number') updates.push({ key: 'rpc_failure_rate_threshold', value: body.rpc_failure_rate_threshold });
-      for (const u of updates) {
+      for (const def of ALERT_RULE_DEFINITIONS) {
+        const incoming = body[def.key];
+        if (incoming === undefined) continue;
+        const existing = await db.query<{ value_json: string }>('SELECT value_json FROM monitoring_alert_rules WHERE key = $1', [def.key]);
+        const current = parseRuleValue(existing.rows[0]?.value_json, def);
+        let next = current;
+        if (typeof incoming === 'number') {
+          next = { ...current, threshold: incoming };
+        } else {
+          next = {
+            threshold: typeof incoming.threshold === 'number' ? incoming.threshold : current.threshold,
+            enabled: incoming.enabled !== undefined ? Boolean(incoming.enabled) : current.enabled,
+            cooldown_sec: typeof incoming.cooldown_sec === 'number' ? incoming.cooldown_sec : current.cooldown_sec,
+            severity: (['critical', 'warning', 'info'].includes(String(incoming.severity)) ? incoming.severity : current.severity) as typeof current.severity,
+          };
+        }
         await db.query(
           'INSERT INTO monitoring_alert_rules (key, value_json) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value_json = $2',
-          [u.key, JSON.stringify(u.value)]
+          [def.key, JSON.stringify(next)],
         );
       }
-      const rows = await db.query<{ key: string; value_json: string }>('SELECT key, value_json FROM monitoring_alert_rules WHERE key IN ($1, $2, $3)', ['api_latency_threshold_ms', 'queue_size_threshold', 'rpc_failure_rate_threshold']);
-      const map: Record<string, number> = {};
-      for (const r of rows.rows) {
-        try {
-          map[r.key] = JSON.parse(r.value_json) as number;
-        } catch {
-          //
-        }
-      }
-      return reply.send({
-        success: true,
-        data: {
-          api_latency_threshold_ms: map.api_latency_threshold_ms ?? 500,
-          queue_size_threshold: map.queue_size_threshold ?? 100,
-          rpc_failure_rate_threshold: map.rpc_failure_rate_threshold ?? 5,
-        },
+      await logAuditFromRequest(request, {
+        actorType: 'admin',
+        actorId: admin.adminId,
+        action: 'monitoring_alert_rules_updated',
+        resourceType: 'monitoring_alert_rules',
+        resourceId: null,
+        newValue: body,
       });
+      const keys = ALERT_RULE_DEFINITIONS.map((d) => d.key);
+      const rows = await db.query<{ key: string; value_json: string }>(
+        'SELECT key, value_json FROM monitoring_alert_rules WHERE key = ANY($1::text[])',
+        [keys],
+      );
+      return reply.send({ success: true, data: { rules: rulesRecordFromRows(rows.rows) } });
     } catch (e) {
       logger.error('Patch alert rules error', { error: e instanceof Error ? e.message : 'Unknown' });
       return reply.status(500).send({ success: false, error: { code: 'UPDATE_FAILED', message: 'Failed to update' } });
@@ -4871,6 +5119,167 @@ export default async function adminRoutes(app: FastifyInstance) {
   });
 
   /**
+   * POST /admin/monitoring/incidents — create incident (optionally from alert)
+   */
+  app.post<{ Body: { service: string; severity?: string; title?: string; related_alert_id?: string; assigned_admin_id?: string; notes?: string } }>('/monitoring/incidents', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    const body = request.body || {};
+    const service = body.service?.trim();
+    if (!service) {
+      return reply.status(400).send({ success: false, error: { code: 'VALIDATION_ERROR', message: 'service is required' } });
+    }
+    try {
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS monitoring_incidents (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          service TEXT NOT NULL,
+          severity TEXT NOT NULL DEFAULT 'medium',
+          status TEXT NOT NULL DEFAULT 'open',
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          resolved_at TIMESTAMPTZ
+        )
+      `);
+      await db.query(`
+        DO $$ BEGIN
+          ALTER TABLE monitoring_incidents ADD COLUMN IF NOT EXISTS title TEXT;
+          ALTER TABLE monitoring_incidents ADD COLUMN IF NOT EXISTS notes TEXT;
+          ALTER TABLE monitoring_incidents ADD COLUMN IF NOT EXISTS assigned_admin_id TEXT;
+          ALTER TABLE monitoring_incidents ADD COLUMN IF NOT EXISTS related_alert_id UUID;
+          ALTER TABLE monitoring_incidents ADD COLUMN IF NOT EXISTS acknowledged_at TIMESTAMPTZ;
+        EXCEPTION WHEN others THEN NULL;
+        END $$;
+      `);
+      let severity = body.severity?.trim() || 'medium';
+      let title = body.title?.trim() || null;
+      let serviceName = service;
+      if (body.related_alert_id) {
+        const alertRow = await db.query<{ system: string; severity: string; message: string }>(
+          'SELECT system, severity, message FROM infrastructure_alerts WHERE id = $1::uuid',
+          [body.related_alert_id],
+        );
+        if (alertRow.rows[0]) {
+          severity = alertRow.rows[0].severity || severity;
+          title = title || alertRow.rows[0].message.slice(0, 500);
+          serviceName = serviceName || alertRow.rows[0].system;
+        }
+      }
+      const ins = await db.query<{ id: string }>(
+        `INSERT INTO monitoring_incidents (service, severity, status, title, notes, assigned_admin_id, related_alert_id)
+         VALUES ($1, $2, 'open', $3, $4, $5, $6::uuid)
+         RETURNING id::text`,
+        [serviceName, severity, title, body.notes?.slice(0, 5000) ?? null, body.assigned_admin_id ?? admin.adminId, body.related_alert_id ?? null],
+      );
+      const id = ins.rows[0]?.id;
+      await logAuditFromRequest(request, {
+        actorType: 'admin', actorId: admin.adminId, action: 'incident_created',
+        resourceType: 'monitoring_incident', resourceId: id ?? null,
+        newValue: { service, severity, related_alert_id: body.related_alert_id },
+      });
+      const { recordMonitoringEvent } = await import('../services/monitoring-snapshot.service.js');
+      await recordMonitoringEvent('incident_created', `Incident opened: ${service} — ${title ?? service}`);
+      broadcastAdminControlEvent('timeline_event', {
+        event: `Incident created: ${service}`,
+        timestamp: new Date().toISOString(),
+        service,
+        severity,
+      });
+      return reply.send({ success: true, data: { id } });
+    } catch (e) {
+      logger.error('Create incident error', { error: e instanceof Error ? e.message : 'Unknown' });
+      return reply.status(500).send({ success: false, error: { code: 'CREATE_FAILED', message: 'Failed to create incident' } });
+    }
+  });
+
+  /**
+   * PATCH /admin/monitoring/incidents/:id
+   */
+  app.patch<{ Params: { id: string }; Body: { status?: string; assigned_admin_id?: string; notes?: string; severity?: string } }>('/monitoring/incidents/:id', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    const { id } = request.params;
+    const body = request.body || {};
+    const status = body.status?.trim();
+    if (status && !['open', 'acknowledged', 'resolved'].includes(status)) {
+      return reply.status(400).send({ success: false, error: { code: 'INVALID_STATUS', message: 'Invalid status' } });
+    }
+    try {
+      const sets: string[] = [];
+      const params: string[] = [];
+      let i = 1;
+      if (status) {
+        sets.push(`status = $${i++}`);
+        params.push(status);
+        if (status === 'resolved') sets.push('resolved_at = NOW()');
+        if (status === 'acknowledged') sets.push('acknowledged_at = NOW()');
+      }
+      if (body.assigned_admin_id !== undefined) {
+        sets.push(`assigned_admin_id = $${i++}`);
+        params.push(body.assigned_admin_id);
+      }
+      if (body.notes !== undefined) {
+        sets.push(`notes = $${i++}`);
+        params.push(body.notes.slice(0, 5000));
+      }
+      if (body.severity) {
+        sets.push(`severity = $${i++}`);
+        params.push(body.severity);
+      }
+      if (sets.length === 0) {
+        return reply.status(400).send({ success: false, error: { code: 'VALIDATION_ERROR', message: 'No fields to update' } });
+      }
+      params.push(id);
+      await db.query(`UPDATE monitoring_incidents SET ${sets.join(', ')} WHERE id = $${i}::uuid`, params);
+      await logAuditFromRequest(request, {
+        actorType: 'admin', actorId: admin.adminId, action: 'incident_updated',
+        resourceType: 'monitoring_incident', resourceId: id, newValue: body,
+      });
+      return reply.send({ success: true, data: { id, status } });
+    } catch (e) {
+      return reply.status(500).send({ success: false, error: { code: 'UPDATE_FAILED', message: 'Failed to update incident' } });
+    }
+  });
+
+  /**
+   * GET /admin/monitoring/containers — Docker container status (Infrastructure Center)
+   */
+  app.get('/monitoring/containers', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    try {
+      const { listDockerContainers, isDockerAvailable } = await import('../services/infrastructure-executor.service.js');
+      const containers = listDockerContainers();
+      const dockerAvailable = isDockerAvailable();
+      return reply.send({
+        success: true,
+        data: {
+          containers,
+          docker_available: dockerAvailable,
+          message: !dockerAvailable ? 'Docker socket not available in backend container' : containers.length === 0 ? 'Docker available but no containers listed' : undefined,
+        },
+      });
+    } catch (e) {
+      return reply.status(500).send({ success: false, error: { code: 'FETCH_FAILED', message: 'Failed to list containers' } });
+    }
+  });
+
+  /**
+   * GET /admin/monitoring/containers/:name/logs
+   */
+  app.get<{ Params: { name: string }; Querystring: { tail?: string } }>('/monitoring/containers/:name/logs', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    const tail = Math.min(500, parseInt((request.query as { tail?: string }).tail ?? '100', 10) || 100);
+    try {
+      const { getContainerLogs } = await import('../services/infrastructure-executor.service.js');
+      const logs = getContainerLogs(request.params.name, tail);
+      return reply.send({ success: true, data: { logs, container: request.params.name } });
+    } catch (e) {
+      return reply.status(500).send({ success: false, error: { code: 'FETCH_FAILED', message: 'Failed to fetch logs' } });
+    }
+  });
+
+  /**
    * GET /admin/monitoring/workers
    * Worker processes: name, status, uptime_seconds, last_restart_at.
    */
@@ -4890,24 +5299,14 @@ export default async function adminRoutes(app: FastifyInstance) {
       const rows = await db.query<{ id: string; worker_name: string; status: string; uptime_seconds: number; last_restart_at: string | null }>(
         'SELECT id::text, worker_name, status, uptime_seconds, last_restart_at::text FROM monitoring_workers ORDER BY worker_name'
       );
-      if (rows.rows.length === 0) {
-        const defaults = [
-          { worker_name: 'Settlement Worker', status: 'running', uptime_seconds: 10800, last_restart_at: new Date(Date.now() - 600000).toISOString() },
-          { worker_name: 'Matching Engine', status: 'running', uptime_seconds: 86400, last_restart_at: new Date(Date.now() - 86400000).toISOString() },
-          { worker_name: 'WebSocket Service', status: 'running', uptime_seconds: 7200, last_restart_at: new Date(Date.now() - 300000).toISOString() },
-        ];
-        for (const d of defaults) {
-          await db.query(
-            'INSERT INTO monitoring_workers (worker_name, status, uptime_seconds, last_restart_at) VALUES ($1, $2, $3, $4) ON CONFLICT (worker_name) DO NOTHING',
-            [d.worker_name, d.status, d.uptime_seconds, d.last_restart_at]
-          );
-        }
-        const again = await db.query<{ id: string; worker_name: string; status: string; uptime_seconds: number; last_restart_at: string | null }>(
-          'SELECT id::text, worker_name, status, uptime_seconds, last_restart_at::text FROM monitoring_workers ORDER BY worker_name'
-        );
-        return reply.send({ success: true, data: { workers: again.rows } });
-      }
-      return reply.send({ success: true, data: { workers: rows.rows } });
+      return reply.send({
+        success: true,
+        data: {
+          workers: rows.rows,
+          data_available: rows.rows.length > 0,
+          message: rows.rows.length === 0 ? 'No worker heartbeats recorded yet.' : undefined,
+        },
+      });
     } catch (e) {
       logger.error('Monitoring workers error', { error: e instanceof Error ? e.message : 'Unknown' });
       return reply.status(500).send({ success: false, error: { code: 'FETCH_FAILED', message: 'Failed to list workers' } });
@@ -5178,6 +5577,156 @@ export default async function adminRoutes(app: FastifyInstance) {
     } catch (e) {
       logger.error('Circuit reset failed', { error: e instanceof Error ? e.message : 'Unknown' });
       return reply.status(500).send({ success: false, error: { code: 'CIRCUIT_RESET_FAILED', message: 'Failed to reset circuit' } });
+    }
+  });
+
+  /** GET /admin/settlement/quarantine/eligible — read-only synthetic quarantine candidate count */
+  app.get('/settlement/quarantine/eligible', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    try {
+      const { countSyntheticQuarantineEligible } = await import(
+        '../services/settlement/settlement-quarantine.service.js'
+      );
+      const eligible = await countSyntheticQuarantineEligible();
+      const [pending, failed, quarantined, zombie] = await Promise.all([
+        db.query<{ n: string }>(`SELECT COUNT(*)::text AS n FROM settlement_events WHERE status = 'pending'`),
+        db.query<{ n: string }>(`SELECT COUNT(*)::text AS n FROM settlement_events WHERE status = 'failed'`),
+        db.query<{ n: string }>(`SELECT COUNT(*)::text AS n FROM settlement_events WHERE status = 'quarantined'`),
+        db.query<{ n: string }>(
+          `SELECT COUNT(*)::text AS n FROM settlement_events se
+           WHERE se.status = 'processed'
+             AND NOT EXISTS (SELECT 1 FROM settlement_ledger_entries sle WHERE sle.settlement_event_id = se.id)`
+        ),
+      ]);
+      return reply.send({
+        success: true,
+        data: {
+          synthetic_eligible: eligible,
+          pending: parseInt(pending.rows[0]?.n ?? '0', 10) || 0,
+          failed: parseInt(failed.rows[0]?.n ?? '0', 10) || 0,
+          quarantined: parseInt(quarantined.rows[0]?.n ?? '0', 10) || 0,
+          zombie_processed: parseInt(zombie.rows[0]?.n ?? '0', 10) || 0,
+        },
+      });
+    } catch (e) {
+      logger.error('Settlement quarantine eligible count failed', { error: e instanceof Error ? e.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to count quarantine-eligible events' },
+      });
+    }
+  });
+
+  /** POST /admin/settlement/quarantine — audited batch quarantine (RC-003) */
+  app.post('/settlement/quarantine', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, true);
+    if (!admin) return;
+    const body = (request.body as {
+      confirm?: boolean;
+      reason?: string;
+      limit?: number;
+      classification?: string;
+      event_ids?: number[];
+    }) ?? {};
+    if (config.security.adminRequireDestructiveConfirm && body.confirm !== true) {
+      return reply.status(400).send({
+        success: false,
+        error: {
+          code: 'CONFIRMATION_REQUIRED',
+          message: 'Set JSON body { "confirm": true, "reason": "..." } to quarantine settlement events.',
+        },
+      });
+    }
+    const reason = String(body.reason ?? '').trim();
+    if (reason.length < 8) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'REASON_REQUIRED', message: 'Quarantine requires reason (min 8 chars)' },
+      });
+    }
+    const classification =
+      body.classification === 'explicit_ids' ? 'explicit_ids' : 'synthetic_load_test';
+    const limitRaw = parseInt(String(body.limit ?? '50'), 10);
+    const limit = Number.isFinite(limitRaw) ? Math.min(1000, Math.max(1, limitRaw)) : 50;
+    try {
+      const { quarantineSettlementBatch } = await import('../services/settlement/settlement-quarantine.service.js');
+      const result = await quarantineSettlementBatch({
+        classification,
+        eventIds: body.event_ids,
+        limit,
+        reason,
+        actorId: admin.adminId,
+      });
+      await logAuditFromRequest(request, {
+        actorType: 'admin',
+        actorId: admin.adminId,
+        action: 'admin_settlement_quarantine',
+        resourceType: 'settlement_events',
+        resourceId: result.batchId,
+        newValue: result,
+      });
+      return reply.send({ success: true, data: result });
+    } catch (e) {
+      logger.error('Settlement quarantine failed', { error: e instanceof Error ? e.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'QUARANTINE_FAILED', message: 'Failed to quarantine settlement events' },
+      });
+    }
+  });
+
+  /** POST /admin/settlement/quarantine/rollback — restore prior_status for quarantined ids */
+  app.post('/settlement/quarantine/rollback', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, true);
+    if (!admin) return;
+    const body = (request.body as { confirm?: boolean; reason?: string; event_ids?: number[] }) ?? {};
+    if (config.security.adminRequireDestructiveConfirm && body.confirm !== true) {
+      return reply.status(400).send({
+        success: false,
+        error: {
+          code: 'CONFIRMATION_REQUIRED',
+          message: 'Set JSON body { "confirm": true, "event_ids": [...], "reason": "..." }',
+        },
+      });
+    }
+    const reason = String(body.reason ?? '').trim();
+    if (reason.length < 8) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'REASON_REQUIRED', message: 'Rollback requires reason (min 8 chars)' },
+      });
+    }
+    const eventIds = Array.isArray(body.event_ids)
+      ? body.event_ids.map((id) => parseInt(String(id), 10)).filter((n) => n > 0)
+      : [];
+    if (eventIds.length === 0) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'EVENT_IDS_REQUIRED', message: 'event_ids array required' },
+      });
+    }
+    try {
+      const { rollbackQuarantineBatch } = await import('../services/settlement/settlement-quarantine.service.js');
+      const result = await rollbackQuarantineBatch({
+        eventIds,
+        reason,
+        actorId: admin.adminId,
+      });
+      await logAuditFromRequest(request, {
+        actorType: 'admin',
+        actorId: admin.adminId,
+        action: 'admin_settlement_quarantine_rollback',
+        resourceType: 'settlement_events',
+        newValue: result,
+      });
+      return reply.send({ success: true, data: result });
+    } catch (e) {
+      logger.error('Settlement quarantine rollback failed', { error: e instanceof Error ? e.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'ROLLBACK_FAILED', message: 'Failed to rollback quarantine' },
+      });
     }
   });
 
@@ -7235,7 +7784,7 @@ export default async function adminRoutes(app: FastifyInstance) {
         data: {
           ledger_totals: [],
           on_chain_totals: { user_deposit_addresses: null, hot_wallets: [], cold_wallets: [] },
-          reconciliation: { status: 'MATCH' as const },
+          reconciliation: { status: 'UNKNOWN' as const, message: 'Ledger data unavailable' },
           users_with_balance: '0',
         },
       });
@@ -8269,13 +8818,17 @@ export default async function adminRoutes(app: FastifyInstance) {
       const safeRows = <T>(sql: string): Promise<T[]> =>
         db.query<any>(sql).then(r => r.rows as T[]).catch(() => [] as T[]);
 
+      const idMode = await getHotWalletsIdModeCached();
+      const chainGroupSql =
+        idMode === 'blockchain_id'
+          ? `SELECT blockchain_id::text AS chain_id, COALESCE(SUM(balance_cache::numeric), 0)::text AS balance FROM hot_wallets WHERE is_active = TRUE GROUP BY blockchain_id`
+          : `SELECT chain_id, COALESCE(SUM(balance_cache::numeric), 0)::text AS balance FROM hot_wallets WHERE is_active = TRUE GROUP BY chain_id`;
+
       const [hotRow, pendingRow, failedRow, chainGroupRows, chainsRows, blkRows] = await Promise.all([
         safeQ<{ balance_cache: string }>('SELECT COALESCE(SUM(balance_cache::numeric), 0)::text AS balance_cache FROM hot_wallets WHERE is_active = TRUE', { balance_cache: '0' }),
         safeQ<{ count: string }>(`SELECT COUNT(*)::text AS count FROM deposit_sweeps WHERE status = 'pending'`, { count: '0' }),
         safeQ<{ count: string }>(`SELECT COUNT(*)::text AS count FROM deposit_sweeps WHERE status = 'failed' AND created_at > NOW() - INTERVAL '24 hours'`, { count: '0' }),
-        safeRows<{ chain_id: string; balance: string }>(
-          `SELECT COALESCE(chain_id, blockchain_id::text) AS chain_id, COALESCE(SUM(balance_cache::numeric), 0)::text AS balance FROM hot_wallets WHERE is_active = TRUE GROUP BY COALESCE(chain_id, blockchain_id::text)`
-        ),
+        safeRows<{ chain_id: string; balance: string }>(chainGroupSql),
         safeRows<{ id: string; name: string }>('SELECT id, name FROM chains WHERE is_active = TRUE'),
         safeRows<{ id: string; chain_name: string }>('SELECT id::text AS id, chain_name FROM blockchains WHERE is_active = TRUE'),
       ]);
@@ -8344,7 +8897,7 @@ export default async function adminRoutes(app: FastifyInstance) {
     if (!admin) return;
     try {
       let hotWalletHealth = 'Healthy';
-      let rpcNodeStatus = 'Healthy';
+      let rpcNodeStatus = 'Unknown';
       let sweepEngineStatus = 'Healthy';
       try {
         const hotRes = await db.query<{ balance_cache: string; min_balance_alert: string }>(
@@ -8355,6 +8908,20 @@ export default async function adminRoutes(app: FastifyInstance) {
         if (minAlert > 0 && total < minAlert) hotWalletHealth = 'Low Balance';
       } catch {
         //
+      }
+      try {
+        const rpcRes = await db.query<{ total: string; inactive: string }>(
+          `SELECT COUNT(*)::text AS total,
+                  COUNT(*) FILTER (WHERE COALESCE(status, 'active') NOT IN ('active', 'healthy', 'ok'))::text AS inactive
+           FROM node_providers`
+        );
+        const total = parseInt(rpcRes.rows[0]?.total ?? '0', 10) || 0;
+        const inactive = parseInt(rpcRes.rows[0]?.inactive ?? '0', 10) || 0;
+        if (total === 0) rpcNodeStatus = 'Unknown';
+        else if (inactive > 0) rpcNodeStatus = 'Degraded';
+        else rpcNodeStatus = 'Healthy';
+      } catch {
+        rpcNodeStatus = 'Unknown';
       }
       try {
         const { config } = await import('../config/index.js');
@@ -12050,8 +12617,8 @@ export default async function adminRoutes(app: FastifyInstance) {
         SELECT 
           COUNT(*) as total_ads,
           COUNT(*) FILTER (WHERE status = 'active') as active_ads,
-          COUNT(*) FILTER (WHERE ad_type = 'buy') as buy_ads,
-          COUNT(*) FILTER (WHERE ad_type = 'sell') as sell_ads
+          COUNT(*) FILTER (WHERE type = 'buy') as buy_ads,
+          COUNT(*) FILTER (WHERE type = 'sell') as sell_ads
         FROM p2p_ads
       `);
 
@@ -12122,7 +12689,7 @@ export default async function adminRoutes(app: FastifyInstance) {
           c.symbol as crypto_symbol
         FROM p2p_ads a
         JOIN users u ON a.user_id = u.id
-        JOIN currencies c ON a.crypto_currency_id = c.id
+        JOIN tokens c ON a.token_id = c.id
         WHERE 1=1
       `;
       const params: any[] = [];
@@ -12134,7 +12701,7 @@ export default async function adminRoutes(app: FastifyInstance) {
       }
 
       if (type && type !== 'all') {
-        query += ` AND a.ad_type = $${paramIndex++}`;
+        query += ` AND a.type = $${paramIndex++}`;
         params.push(type);
       }
 
@@ -12209,7 +12776,7 @@ export default async function adminRoutes(app: FastifyInstance) {
         FROM p2p_orders o
         JOIN users buyer ON o.buyer_id = buyer.id
         JOIN users seller ON o.seller_id = seller.id
-        JOIN currencies c ON o.crypto_currency_id = c.id
+        JOIN tokens c ON o.token_id = c.id
         WHERE ${whereClause}
         ORDER BY o.created_at DESC
         LIMIT $${paramIndex++} OFFSET $${paramIndex}
@@ -16925,6 +17492,65 @@ export default async function adminRoutes(app: FastifyInstance) {
         } catch (e) { logger.warn('RPC→chains bridge sync failed', { error: e instanceof Error ? e.message : 'unknown' }); }
       }
 
+      // AML → legacy system_settings bridge (sanctions runtime reads both)
+      if (updatedCategory === 'aml') {
+        try {
+          const row = result.rows[0] as { provider: string; api_url: string | null; api_key: string | null; api_secret: string | null; secret_encrypted: boolean | null };
+          const { resolveProviderSecret } = await import('../lib/provider-secret.js');
+          const key = resolveProviderSecret(row.api_secret, row.secret_encrypted) || row.api_key || '';
+          await db.query(
+            `INSERT INTO system_settings (key, value, updated_at) VALUES ('SANCTIONS_PROVIDER', $1::jsonb, NOW())
+             ON CONFLICT (key) DO UPDATE SET value = $1::jsonb, updated_at = NOW()`,
+            [JSON.stringify(row.provider)],
+          );
+          if (row.api_url) {
+            await db.query(
+              `INSERT INTO system_settings (key, value, updated_at) VALUES ('SANCTIONS_API_URL', $1::jsonb, NOW())
+               ON CONFLICT (key) DO UPDATE SET value = $1::jsonb, updated_at = NOW()`,
+              [JSON.stringify(row.api_url)],
+            );
+          }
+          if (key) {
+            await db.query(
+              `INSERT INTO system_settings (key, value, updated_at) VALUES ('SANCTIONS_API_KEY', $1::jsonb, NOW())
+               ON CONFLICT (key) DO UPDATE SET value = $1::jsonb, updated_at = NOW()`,
+              [JSON.stringify(key)],
+            );
+          }
+        } catch (e) { logger.warn('AML→system_settings bridge failed', { error: e instanceof Error ? e.message : 'unknown' }); }
+      }
+
+      // Alert channels → legacy system_settings bridge
+      if (updatedCategory === 'alert') {
+        try {
+          const row = result.rows[0] as { provider: string; api_url: string | null; api_key: string | null; api_secret: string | null; secret_encrypted: boolean | null };
+          const { resolveProviderSecret } = await import('../lib/provider-secret.js');
+          const url = row.api_url || row.api_key || '';
+          const secret = resolveProviderSecret(row.api_secret, row.secret_encrypted) || '';
+          if (row.provider === 'webhook' && url) {
+            await db.query(
+              `INSERT INTO system_settings (key, value, updated_at) VALUES ('alert_webhook_url', $1::jsonb, NOW())
+               ON CONFLICT (key) DO UPDATE SET value = $1::jsonb, updated_at = NOW()`,
+              [JSON.stringify(url)],
+            );
+          }
+          if (row.provider === 'slack' && url) {
+            await db.query(
+              `INSERT INTO system_settings (key, value, updated_at) VALUES ('alert_slack_webhook_url', $1::jsonb, NOW())
+               ON CONFLICT (key) DO UPDATE SET value = $1::jsonb, updated_at = NOW()`,
+              [JSON.stringify(url)],
+            );
+          }
+          if (row.provider === 'pagerduty' && secret) {
+            await db.query(
+              `INSERT INTO system_settings (key, value, updated_at) VALUES ('alert_pagerduty_key', $1::jsonb, NOW())
+               ON CONFLICT (key) DO UPDATE SET value = $1::jsonb, updated_at = NOW()`,
+              [JSON.stringify(secret)],
+            );
+          }
+        } catch (e) { logger.warn('Alert→system_settings bridge failed', { error: e instanceof Error ? e.message : 'unknown' }); }
+      }
+
       try {
         await logAuditFromRequest(request, {
           actorType: 'admin', actorId: admin.adminId,
@@ -17057,8 +17683,10 @@ export default async function adminRoutes(app: FastifyInstance) {
         case 'kyc':
           testResult = await dynamicConfig.testKyc(id);
           break;
-        default:
-          testResult = { success: true, message: `No specific test for category '${category}'. Credentials saved.`, latencyMs: 0 };
+        default: {
+          const { providerDiagnostics } = await import('../services/provider-diagnostics.service.js');
+          testResult = await providerDiagnostics.testSetting(id);
+        }
       }
 
       // Persist health on the provider row + append to history.
@@ -17088,6 +17716,43 @@ export default async function adminRoutes(app: FastifyInstance) {
       return reply.status(500).send({
         success: false,
         error: { code: 'TEST_FAILED', message: 'Failed to test API connection' },
+      });
+    }
+  });
+
+  /**
+   * POST /admin/settings/api/:id/send-test-alert
+   * Delivers a real test ops alert through the configured alert provider.
+   */
+  app.post('/settings/api/:id/send-test-alert', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    try {
+      const { id } = request.params as { id: string };
+      const { buildTestAlertPayload, sendAlertToProviderById } = await import('../services/alert-delivery.service.js');
+      const payload = buildTestAlertPayload();
+      const result = await sendAlertToProviderById(id, payload);
+      try {
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'alert_provider_test_sent',
+          resourceType: 'api_settings',
+          resourceId: id,
+          newValue: { success: result.success, provider: result.provider, message: result.message },
+        });
+      } catch { /* best-effort */ }
+      if (!result.success) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'SEND_FAILED', message: result.message },
+        });
+      }
+      return reply.send({ success: true, data: result });
+    } catch (error) {
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'SEND_FAILED', message: 'Failed to send test alert' },
       });
     }
   });

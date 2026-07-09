@@ -15,8 +15,9 @@ import {
   Download, RefreshCw, UserSearch, SearchCode, Eye,
 } from 'lucide-react';
 import { useAdminAuthStore } from '@/store/auth';
-import { useAdminIncidentStore } from '@/store/adminIncidents';
 import { adminFetch } from '@/lib/admin/apiClient';
+import { createMonitoringIncident } from '@/lib/monitoring-api';
+import { getAuditActivityLogs } from '@/lib/api';
 import {
   searchCommands, groupCommands,
   type CommandEntry, type CommandCategory,
@@ -99,8 +100,6 @@ function GlobalCommandPaletteInner() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const token = useAdminAuthStore((s) => s.accessToken);
-  const createIncident = useAdminIncidentStore((s) => s.createIncident);
-
   _openPalette = useCallback(() => setOpen(true), []);
 
   useKeyboardShortcuts([
@@ -183,15 +182,18 @@ function GlobalCommandPaletteInner() {
           await adminFetch('/control/emergency', { method: 'POST', body: { activate: true }, token });
           break;
         case 'act-create-incident':
-          createIncident({
-            title: 'Manual Incident',
+          await createMonitoringIncident(token, {
+            service: 'operator',
             severity: 'warning',
-            triggeringAlertIds: [],
+            title: 'Manual incident (command palette)',
+            notes: 'Created via admin command palette',
           });
+          queryClient.invalidateQueries({ queryKey: ['admin', 'monitoring-incidents'] });
           router.push('/incidents');
           break;
         case 'act-trigger-audit': {
-          const blob = new Blob([JSON.stringify({ exported: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+          const res = await getAuditActivityLogs(token, { limit: 500 });
+          const blob = new Blob([JSON.stringify(res?.data ?? res, null, 2)], { type: 'application/json' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
@@ -209,7 +211,7 @@ function GlobalCommandPaletteInner() {
       setOpen(false);
       setConfirmAction(null);
     }
-  }, [token, queryClient, router, createIncident]);
+  }, [token, queryClient, router]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {

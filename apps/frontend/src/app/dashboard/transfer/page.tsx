@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { WalletOperationsShell } from '@/components/wallet/WalletOperationsShell';
 import { api } from '@/lib/api';
+import { newIdempotencyKey } from '@/lib/idempotency';
 import { toast } from '@/components/ui/toaster';
 
 interface TransferHistory {
@@ -122,7 +123,7 @@ export default function TransferPage() {
         tokenId: selectedToken.tokenId,
         amount: amount,
       }, {
-        headers: { 'Idempotency-Key': crypto.randomUUID() },
+        headers: { 'Idempotency-Key': newIdempotencyKey() },
         notifyOnError: false,
       });
 
@@ -135,8 +136,9 @@ export default function TransferPage() {
       } else {
         setError(data.error?.message || 'Transfer failed');
       }
-    } catch {
-      setError('Connection issue. Your request may not have reached the server. Safe to try again.');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      setError(msg || 'Connection issue. Your request may not have reached the server. Safe to try again.');
     } finally {
       setSubmitting(false);
     }

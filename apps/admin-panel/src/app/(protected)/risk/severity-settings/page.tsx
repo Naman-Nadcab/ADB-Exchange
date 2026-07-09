@@ -8,6 +8,8 @@ import { getRiskSeveritySettings, patchRiskSeveritySettings, type RiskSeveritySe
 import { FormSkeleton } from '@/components/ui';
 import { ArrowLeft, Fish, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import { cn } from '@/lib/cn';
 
 const SEVERITY_OPTIONS = ['low', 'medium', 'high'] as const;
@@ -69,6 +71,7 @@ function SeverityPicker({
 export default function RiskSeveritySettingsPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
+  const toast = useAdminToast();
   const [whale100k, setWhale100k] = useState<Severity>('medium');
   const [whale500k, setWhale500k] = useState<Severity>('high');
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -93,8 +96,9 @@ export default function RiskSeveritySettingsPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'risk'] });
       setSaveState('saved');
       setTimeout(() => setSaveState('idle'), 2500);
+      toast.success('Severity settings saved.');
     },
-    onError: () => { setSaveState('error'); setTimeout(() => setSaveState('idle'), 3000); },
+    onError: (e) => { setSaveState('error'); setTimeout(() => setSaveState('idle'), 3000); toast.error(formatSaveError(e, 'Failed to save severity settings.')); },
   });
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { Star } from 'lucide-react';
+import { Star, ChevronDown } from 'lucide-react';
 import {
   NO_TRADES_ACTIONABLE,
   NO_ACTIVITY_24H,
@@ -68,11 +68,11 @@ function MiniStat({
       className={`flex min-w-0 max-w-full flex-col items-center justify-center gap-0 px-0.5 py-0 ${className}`}
       title={titleAttr}
     >
-      <span className="w-full truncate text-center text-[9px] font-semibold uppercase leading-none tracking-[0.04em] text-muted-foreground">
+      <span className="w-full truncate text-center terminal-text-label font-semibold uppercase leading-none tracking-[0.04em] text-muted-foreground">
         {label}
       </span>
       <div
-        className={`numeric w-full min-w-0 truncate text-center text-[11px] font-semibold leading-tight text-foreground ${valueClassName}`}
+        className={`numeric w-full min-w-0 truncate text-center terminal-text-table font-semibold leading-tight text-foreground ${valueClassName}`}
       >
         {children}
       </div>
@@ -96,14 +96,14 @@ export function PairHeader({
   turnover24h,
   markets,
   onSymbolChange,
-  wsConnected,
-  wsStreamPhase,
-  wsLastRttMs,
+  wsConnected: _wsConnected,
+  wsStreamPhase: _wsStreamPhase,
+  wsLastRttMs: _wsLastRttMs,
   isFavorite,
   onToggleFavorite,
   tierLevel,
   embedded = false,
-  marketStatus,
+  marketStatus: _marketStatus,
 }: PairHeaderProps) {
   const sym = symbol ?? 'BTC_USDT';
   const base = baseAsset ?? 'BTC';
@@ -161,13 +161,13 @@ export function PairHeader({
   const lastDisplay = !hasLastTrade
     ? NO_TRADES_ACTIONABLE
     : quote === 'USDT'
-      ? formatFromUsdt(Number(lastPrice), pricePrecision)
+      ? `${formatValueFixedTrim(lastPrice, pricePrecision)} USDT`
       : formatValueFixedTrim(lastPrice, pricePrecision);
 
   const lastSub = (() => {
     if (quote === 'USDT') {
       if (displayCurrency === 'INR' && hasLastTrade) {
-        return `≈ ${formatValueFixedTrim(lastPrice, pricePrecision)} USDT`;
+        return formatFromUsdt(Number(lastPrice), pricePrecision);
       }
       return undefined;
     }
@@ -190,152 +190,110 @@ export function PairHeader({
         ? 'text-sell'
         : 'text-foreground';
 
-  const streamPhaseResolved: SpotWsStreamPhase | null =
-    wsStreamPhase ?? (wsConnected === true ? 'live' : wsConnected === false ? 'reconnecting' : null);
-  const showStreamBadge = streamPhaseResolved != null || wsConnected !== undefined;
-  const phaseForBadge: SpotWsStreamPhase =
-    streamPhaseResolved ?? (wsConnected === false ? 'reconnecting' : 'connecting');
-  const streamDotClass =
-    phaseForBadge === 'live'
-      ? 'bg-buy'
-      : phaseForBadge === 'disconnected'
-        ? 'bg-sell'
-        : 'animate-pulse bg-amber-500';
-  const streamLabel =
-    phaseForBadge === 'live' ? 'Live' : phaseForBadge === 'disconnected' ? 'Off' : phaseForBadge === 'reconnecting' ? 'Sync' : '…';
-  const rttSuffix =
-    phaseForBadge === 'live' && wsLastRttMs != null && wsLastRttMs >= 0 ? `${wsLastRttMs}ms` : null;
-  const streamTitle =
-    phaseForBadge === 'live'
-      ? rttSuffix
-        ? `Stream connected · RTT ~${rttSuffix}`
-        : 'Stream connected'
-      : phaseForBadge === 'disconnected'
-        ? 'Stream disconnected'
-        : phaseForBadge === 'reconnecting'
-          ? 'Reconnecting to market stream'
-          : 'Connecting to market stream';
-  const normalizedStatus = String(marketStatus ?? 'ACTIVE').toUpperCase();
-  const marketStatusLabel = normalizedStatus === 'ACTIVE' ? 'Market Open' : `Status: ${normalizedStatus}`;
-
   return (
     <header
-      className={`flex h-full min-h-11 w-full min-w-0 shrink-0 border-b border-border bg-card ${
+      className={`flex h-full min-h-9 w-full min-w-0 shrink-0 border-b border-border bg-card ${
         embedded ? 'rounded-t-lg' : ''
       }`}
     >
-      <div className="flex h-full shrink-0 items-center gap-1 border-r border-border bg-muted/35 px-1.5 dark:bg-muted/30 sm:gap-1 sm:px-1.5">
-        <CoinIcon symbol={base} size={22} />
+      <div className="flex h-full shrink-0 items-center gap-1.5 border-r border-border bg-muted/30 px-2 dark:bg-muted/25">
+        <CoinIcon symbol={base} size={18} className="shrink-0" />
         {mkt.length > 1 ? (
-          <select
-            value={sym}
-            onChange={(e) => onChange(e.target.value)}
-            className="numeric h-6 max-w-[8rem] min-w-0 shrink cursor-pointer truncate rounded border border-border bg-card py-0 pl-1.5 pr-6 text-book font-bold leading-6 text-foreground shadow-sm outline-none focus:ring-1 focus:ring-primary/30 sm:h-6 sm:max-w-[8.75rem] sm:pl-1.5 sm:pr-6 sm:leading-6"
-          >
-            {mkt.map((m) => (
-              <option key={m.symbol} value={m.symbol}>
-                {m.base_asset}/{m.quote_asset}
-              </option>
-            ))}
-          </select>
+          <div className="relative min-w-0">
+            <select
+              value={sym}
+              onChange={(e) => onChange(e.target.value)}
+              className="numeric h-7 max-w-[9.5rem] min-w-[6.5rem] shrink cursor-pointer appearance-none truncate rounded-md border border-border bg-card py-0 pl-2 pr-7 text-book font-bold leading-7 text-foreground outline-none transition-colors hover:border-primary/35 focus:border-primary/50 focus:ring-1 focus:ring-primary/25 sm:max-w-[10.5rem]"
+            >
+              {mkt.map((m) => (
+                <option key={m.symbol} value={m.symbol}>
+                  {m.base_asset}/{m.quote_asset}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              className="pointer-events-none absolute top-1/2 right-1.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
+          </div>
         ) : (
-          <span className="numeric max-w-[7.5rem] truncate text-book font-bold leading-tight tracking-tight text-foreground sm:max-w-[9.5rem]">
+          <span className="numeric max-w-[9.5rem] truncate text-book font-bold leading-tight tracking-tight text-foreground">
             {pairLabel}
           </span>
         )}
-        <span className="inline-flex h-4 shrink-0 items-center rounded border border-border bg-muted px-1 text-[10px] font-bold uppercase text-muted-foreground sm:h-4 sm:px-1">
+        <span className="inline-flex h-[18px] shrink-0 items-center rounded border border-border bg-muted/80 px-1.5 terminal-text-label font-semibold uppercase leading-none text-muted-foreground">
           Spot
         </span>
         {onToggleFavorite && sym && (
           <button
             type="button"
             onClick={() => onToggleFavorite(sym)}
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-primary sm:h-6 sm:w-6"
+            className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-primary"
             title={isFavorite?.(sym) ? 'Remove from favorites' : 'Add to favorites'}
             aria-label="Toggle favorite"
           >
-            <Star className={`h-3.5 w-3.5 ${isFavorite?.(sym) ? 'fill-amber-400 text-amber-400' : ''}`} />
+            <Star className={`h-3 w-3 ${isFavorite?.(sym) ? 'fill-primary text-primary' : ''}`} />
           </button>
         )}
         {tierLevel != null && tierLevel > 0 && (
           <span
-            className="hidden h-5 shrink-0 items-center rounded border border-primary/30 bg-primary/10 px-1 text-label font-bold text-primary sm:inline-flex"
+            className="hidden h-4 shrink-0 items-center rounded border border-primary/30 bg-primary/10 px-1 text-label font-bold text-primary sm:inline-flex"
             title="Withdrawal tier"
           >
             T{tierLevel}
           </span>
         )}
-        {showStreamBadge && (
-          <span
-            className="inline-flex h-4 shrink-0 items-center gap-1 rounded border border-border bg-muted px-1 text-[9px] font-bold uppercase text-muted-foreground sm:h-4 sm:px-1"
-            title={streamTitle}
-          >
-            <span className={`h-1 w-1 shrink-0 rounded-full ${streamDotClass}`} aria-hidden />
-            <span className="hidden sm:inline">
-              {streamLabel}
-              {rttSuffix ? (
-                <span className="numeric ml-0.5 normal-case opacity-80">{rttSuffix}</span>
-              ) : null}
-            </span>
-          </span>
-        )}
-        <span className="terminal-trust-pill inline-flex h-4 shrink-0 items-center rounded px-1" title="Secure trading environment">
-          Secure
-        </span>
-        <span className="terminal-trust-pill hidden h-4 shrink-0 items-center rounded px-1 lg:inline-flex" title="Market status">
-          {marketStatusLabel}
-        </span>
       </div>
 
       {/* Content-sized columns, centered; dividers only between stats */}
-      <div className="flex min-w-0 flex-1 items-stretch justify-evenly divide-x divide-border px-0.5">
-        <MiniStat label="Last Price" title={lastSub ?? TOOLTIP_LAST_PRICE} valueClassName="text-[20px] font-bold leading-none tracking-tight">
+      <div className="flex min-w-0 flex-1 items-stretch justify-evenly divide-x divide-border px-1">
+        <MiniStat label="Last Price" title={lastSub ?? TOOLTIP_LAST_PRICE} valueClassName="text-[22px] sm:text-[26px] font-bold leading-none tracking-tight">
           <span className={`font-bold ${hasLastTrade ? lastColor : 'text-muted-foreground'}`}>{lastDisplay}</span>
         </MiniStat>
         <MiniStat
           label="24h Change"
           title={officialChangePct != null ? TOOLTIP_24H_CHANGE : TOOLTIP_CHANGE_UNAVAILABLE}
-          valueClassName="text-[13px] font-semibold"
+          valueClassName="terminal-text-secondary font-semibold"
         >
-          <span className={`${changeColor} max-w-[4.5rem] truncate sm:max-w-none`}>
+          <span className={`${changeColor} min-w-0 truncate`}>
             {officialChangePct != null
               ? `${officialChangePct > 0 ? '+' : ''}${officialChangePct.toFixed(2)}%`
               : '—'}
           </span>
         </MiniStat>
-        <MiniStat label="24h High" title={TOOLTIP_24H_HIGH} valueClassName="text-[11px]">
-          <span className="max-w-[3.5rem] truncate sm:max-w-none">
+        <MiniStat label="24h High" title={TOOLTIP_24H_HIGH} valueClassName="terminal-text-table">
+          <span className="min-w-0 truncate">
             {(() => {
               const s = formatValueFixedTrim(high24h, pricePrecision);
               return s === '—' ? (hasLastTrade ? NO_ACTIVITY_24H : NO_TRADES_ACTIONABLE) : s;
             })()}
           </span>
         </MiniStat>
-        <MiniStat label="24h Low" title={TOOLTIP_24H_LOW} valueClassName="text-[11px]">
-          <span className="max-w-[3.5rem] truncate sm:max-w-none">
+        <MiniStat label="24h Low" title={TOOLTIP_24H_LOW} valueClassName="terminal-text-table">
+          <span className="min-w-0 truncate">
             {(() => {
               const s = formatValueFixedTrim(low24h, pricePrecision);
               return s === '—' ? (hasLastTrade ? NO_ACTIVITY_24H : NO_TRADES_ACTIONABLE) : s;
             })()}
           </span>
         </MiniStat>
-        <MiniStat label={`Volume (${base.slice(0, 4)})`} title={TOOLTIP_BASE_VOLUME_24H} valueClassName="text-[11px]">
-          <span className="max-w-[3rem] truncate sm:max-w-none">
+        <MiniStat label={`Volume (${base.slice(0, 4)})`} title={TOOLTIP_BASE_VOLUME_24H} valueClassName="terminal-text-table">
+          <span className="min-w-0 truncate">
             {(() => {
               const s = formatCompactNumber(volume24h);
               return s === '—' ? (hasLastTrade ? NO_ACTIVITY_24H : NO_TRADES_ACTIONABLE) : s;
             })()}
           </span>
         </MiniStat>
-        <MiniStat label={turnoverLabel} title={turnoverTooltip} valueClassName="text-[11px]">
-          <span className="max-w-[3rem] truncate sm:max-w-none">
+        <MiniStat label={turnoverLabel} title={turnoverTooltip} valueClassName="terminal-text-table">
+          <span className="min-w-0 truncate">
             {(() => {
               const s = formatCompactNumber(turnover24h);
               return s === '—' ? (hasLastTrade ? NO_ACTIVITY_24H : NO_TRADES_ACTIONABLE) : s;
             })()}
           </span>
         </MiniStat>
-        <MiniStat label="Bid / Ask" title={spreadTooltip} className="max-w-[min(100%,8.5rem)]" valueClassName="text-[11px]">
+        <MiniStat label="Bid / Ask" title={spreadTooltip} className="max-w-[min(100%,8.5rem)]" valueClassName="terminal-text-table">
           <div className="min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-center">
             <span className="text-buy">{formatValueFixedTrim(bid, pricePrecision)}</span>
             <span className="text-muted-foreground">/</span>

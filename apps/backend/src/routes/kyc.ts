@@ -6,6 +6,7 @@ import { pipeline } from 'stream/promises';
 import { db } from '../lib/database.js';
 import { logger } from '../lib/logger.js';
 import { config } from '../config/index.js';
+import { dynamicConfig } from '../services/dynamic-config.service.js';
 
 const KYC_UPLOAD_DIR = process.env.KYC_UPLOAD_DIR || path.join(process.cwd(), 'uploads', 'kyc');
 const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
@@ -114,8 +115,12 @@ export default async function kycRoutes(app: FastifyInstance) {
         }
       }
 
+      // Resolve KYC provider from Admin (api_settings) with env fallback via dynamicConfig
+      const kycCfg = await dynamicConfig.getKycConfig();
+      const effectiveProvider = provider || kycCfg?.provider || 'manual';
+
       // For DigiLocker (India), auto-approve ONLY when explicitly enabled (dev/demo). Default false for production.
-      if (provider === 'digilocker' && country === 'IN' && config.kyc.digilockerDemoAutoApprove) {
+      if (effectiveProvider === 'digilocker' && country === 'IN' && config.kyc.digilockerDemoAutoApprove) {
         // Create approved KYC record
         const result = await db.query(`
           INSERT INTO kyc_applications (
@@ -124,7 +129,7 @@ export default async function kycRoutes(app: FastifyInstance) {
           )
           VALUES ($1, 1, 'approved', $2, $3, $4, NOW(), NOW())
           RETURNING id
-        `, [userId, country, documentType, provider]);
+        `, [userId, country, documentType, effectiveProvider]);
 
         const row = result.rows[0];
         if (!row) throw new Error('Invariant violation: row missing');
@@ -138,15 +143,15 @@ export default async function kycRoutes(app: FastifyInstance) {
         };
       }
 
-      // Create pending KYC record for manual verification
+      // Create pending KYC record — third_party_provider from Admin config when available
       const result = await db.query(`
         INSERT INTO kyc_applications (
           user_id, kyc_level, status, country, document_type,
-          submitted_at
+          third_party_provider, submitted_at
         )
-        VALUES ($1, 1, 'pending', $2, $3, NOW())
+        VALUES ($1, 1, 'pending', $2, $3, $4, NOW())
         RETURNING id
-      `, [userId, country, documentType]);
+      `, [userId, country, documentType, kycCfg?.provider ?? effectiveProvider]);
 
       const row = result.rows[0];
       if (!row) throw new Error('Invariant violation: row missing');
