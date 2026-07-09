@@ -20,8 +20,13 @@ export const config = {
 
 export function getAuthHeaders(): Record<string, string> {
   const h: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (config.jwt) h['Authorization'] = `Bearer ${config.jwt}`;
-  if (config.apiKey) h['X-API-Key'] = config.apiKey;
+  const jwt = process.env.E2E_JWT?.trim() || config.jwt;
+  if (jwt) {
+    h['Authorization'] = `Bearer ${jwt}`;
+    return h;
+  }
+  const apiKey = process.env.E2E_API_KEY?.trim() || config.apiKey;
+  if (apiKey) h['X-API-Key'] = apiKey;
   return h;
 }
 

@@ -1,0 +1,45 @@
+{
+  "phase": "Phase 2 — Alert Center",
+  "timestamp": "2026-07-02T08:12:04.822Z",
+  "base": "http://109.123.254.30/admin",
+  "pass": 7,
+  "total": 8,
+  "allPass": false,
+  "results": [
+    {
+      "test": "Alert Center page loads",
+      "pass": true
+    },
+    {
+      "test": "KPI cards visible",
+      "pass": true
+    },
+    {
+      "test": "Status filters visible",
+      "pass": true
+    },
+    {
+      "test": "Alert table has rows",
+      "pass": true,
+      "detail": "1 rows"
+    },
+    {
+      "test": "Alert drawer opens with infrastructure section",
+      "pass": true
+    },
+    {
+      "test": "Acknowledge → Confirm → audit log",
+      "pass": false,
+      "detail": "No Ack button"
+    },
+    {
+      "test": "GET /monitoring/alerts/summary",
+      "pass": true,
+      "detail": "{\"open\":14,\"acknowledged\":4,\"resolved\":119,\"open_critical\":3,\"open_high\":0,\"total\":137}"
+    },
+    {
+      "test": "Severity filter (Critical) works",
+      "pass": true
+    }
+  ]
+}

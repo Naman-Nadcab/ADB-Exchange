@@ -1,0 +1,50 @@
+{
+  "phase": "Phase 1 — Matching Engine Durability",
+  "timestamp": "2026-07-02T08:35:33.600Z",
+  "pass": 7,
+  "total": 8,
+  "allPass": false,
+  "verdict": "FAIL",
+  "results": [
+    {
+      "test": "Engine health buffer metrics",
+      "pass": true,
+      "detail": "{\"len\":1041,\"max\":5000000,\"accepting\":true,\"overflow_total\":0,\"rejected_orders\":0,\"wal\":true,\"stream\":\"async_partitioned\"}"
+    },
+    {
+      "test": "Tier-1 durable path active",
+      "pass": true,
+      "detail": "wal=true stream=async_partitioned"
+    },
+    {
+      "test": "Ring buffer silent drop removed",
+      "pass": true,
+      "detail": "no drain(0..to_remove) in engine.rs"
+    },
+    {
+      "test": "Backpressure instrumentation present",
+      "pass": true,
+      "detail": "reject/overflow counters"
+    },
+    {
+      "test": "Settlement events idempotency index",
+      "pass": true,
+      "detail": "6"
+    },
+    {
+      "test": "Settlement pending backlog",
+      "pass": false,
+      "detail": "387 pending rows"
+    },
+    {
+      "test": "Collision silent drop fixed",
+      "pass": true,
+      "detail": "throws MatchEventPersistenceError"
+    },
+    {
+      "test": "No negative user balances",
+      "pass": true,
+      "detail": "0 rows"
+    }
+  ]
+}

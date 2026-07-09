@@ -53,7 +53,11 @@ function getPhaseFilter(): number[] | null {
 
 async function main() {
   const filter = getPhaseFilter();
-  const toRun = filter?.length ? phases.filter((_, i) => filter.includes(i + 1)) : phases;
+  const toRun = filter?.length
+    ? filter
+        .map((n) => phases.find((_, i) => i + 1 === n))
+        .filter((p): p is (typeof phases)[number] => Boolean(p))
+    : phases;
   console.log('E2E Test Runner');
   console.log('BASE_URL:', process.env.E2E_BASE_URL || 'http://localhost:4000');
   console.log('Phases:', toRun.map((p) => p.name).join(', '));

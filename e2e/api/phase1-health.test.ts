@@ -98,14 +98,18 @@ export async function runPhase1(): Promise<{ passed: number; failed: number; res
   // 1.5 GET /api/v1/observability/slo
   try {
     const res = await fetchOk('/api/v1/observability/slo');
-    const body = await res.json().catch(() => ({})) as { status?: string; slo?: Record<string, unknown> };
-    const ok = res.ok && body && ['ok', 'degraded', 'critical'].includes(body.status || '');
-    if (ok) {
-      results.push('PASS: GET /observability/slo returns SLO payload');
-      passed++;
+    const body = await res.json().catch(() => ({})) as { status?: string; slo?: Record<string, unknown>; error?: string };
+    if (res.status === 403 && body?.error === 'FORBIDDEN') {
+      results.push('SKIP: GET /observability/slo IP-restricted (SLO_IP_WHITELIST)');
     } else {
-      results.push(`FAIL: GET /observability/slo status=${res.status} body=${JSON.stringify(body).slice(0, 150)}`);
-      failed++;
+      const ok = res.ok && body && ['ok', 'degraded', 'critical'].includes(body.status || '');
+      if (ok) {
+        results.push('PASS: GET /observability/slo returns SLO payload');
+        passed++;
+      } else {
+        results.push(`FAIL: GET /observability/slo status=${res.status} body=${JSON.stringify(body).slice(0, 150)}`);
+        failed++;
+      }
     }
   } catch (e) {
     results.push(`FAIL: GET /observability/slo ${e instanceof Error ? e.message : String(e)}`);

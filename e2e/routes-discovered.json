@@ -1,0 +1,898 @@
+{
+  "generatedAt": "2026-06-27T18:52:42.202Z",
+  "userRoutes": [
+    {
+      "app": "frontend",
+      "path": "/admin",
+      "fullPath": "/admin"
+    },
+    {
+      "app": "frontend",
+      "path": "/api",
+      "fullPath": "/api"
+    },
+    {
+      "app": "frontend",
+      "path": "/assets",
+      "fullPath": "/assets"
+    },
+    {
+      "app": "frontend",
+      "path": "/auth/callback/apple",
+      "fullPath": "/auth/callback/apple"
+    },
+    {
+      "app": "frontend",
+      "path": "/auth/callback/google",
+      "fullPath": "/auth/callback/google"
+    },
+    {
+      "app": "frontend",
+      "path": "/cookies",
+      "fullPath": "/cookies"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard",
+      "fullPath": "/dashboard"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/account",
+      "fullPath": "/dashboard/account"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/account/link/google",
+      "fullPath": "/dashboard/account/link/google"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/account/login-history",
+      "fullPath": "/dashboard/account/login-history"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/address-book",
+      "fullPath": "/dashboard/address-book"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/address-book/add-batches",
+      "fullPath": "/dashboard/address-book/add-batches"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/announcements",
+      "fullPath": "/dashboard/announcements"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/announcements/a0000000-0000-4000-8000-000000000001",
+      "fullPath": "/dashboard/announcements/a0000000-0000-4000-8000-000000000001"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/api",
+      "fullPath": "/dashboard/api"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/api/create",
+      "fullPath": "/dashboard/api/create"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/assets",
+      "fullPath": "/dashboard/assets"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/assets/BTC_USDT",
+      "fullPath": "/dashboard/assets/BTC_USDT"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/assets/convert",
+      "fullPath": "/dashboard/assets/convert"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/assets/funding",
+      "fullPath": "/dashboard/assets/funding"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/assets/history",
+      "fullPath": "/dashboard/assets/history"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/assets/overview",
+      "fullPath": "/dashboard/assets/overview"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/assets/pnl",
+      "fullPath": "/dashboard/assets/pnl"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/assets/unified",
+      "fullPath": "/dashboard/assets/unified"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/convert",
+      "fullPath": "/dashboard/convert"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/data-export",
+      "fullPath": "/dashboard/data-export"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/deposit/crypto",
+      "fullPath": "/dashboard/deposit/crypto"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/earn",
+      "fullPath": "/dashboard/earn"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/events",
+      "fullPath": "/dashboard/events"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/fee-rates",
+      "fullPath": "/dashboard/fee-rates"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/help",
+      "fullPath": "/dashboard/help"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/identity",
+      "fullPath": "/dashboard/identity"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/identity/success",
+      "fullPath": "/dashboard/identity/success"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/identity/upload",
+      "fullPath": "/dashboard/identity/upload"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/markets",
+      "fullPath": "/dashboard/markets"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/orders",
+      "fullPath": "/dashboard/orders"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/orders/p2p",
+      "fullPath": "/dashboard/orders/p2p"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/orders/spot",
+      "fullPath": "/dashboard/orders/spot"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/orders/trades",
+      "fullPath": "/dashboard/orders/trades"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/p2p",
+      "fullPath": "/dashboard/p2p"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/p2p/buy/BTC/USD",
+      "fullPath": "/dashboard/p2p/buy/BTC/USD"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/p2p/buy/BTC/USD/create",
+      "fullPath": "/dashboard/p2p/buy/BTC/USD/create"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/p2p/orders/a0000000-0000-4000-8000-000000000002",
+      "fullPath": "/dashboard/p2p/orders/a0000000-0000-4000-8000-000000000002"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/p2p/payment-methods",
+      "fullPath": "/dashboard/p2p/payment-methods"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/preferences",
+      "fullPath": "/dashboard/preferences"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/progress",
+      "fullPath": "/dashboard/progress"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/referral",
+      "fullPath": "/dashboard/referral"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/referral/my-referrals",
+      "fullPath": "/dashboard/referral/my-referrals"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/security",
+      "fullPath": "/dashboard/security"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/security/2fa",
+      "fullPath": "/dashboard/security/2fa"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/security/anti-phishing",
+      "fullPath": "/dashboard/security/anti-phishing"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/security/change-password",
+      "fullPath": "/dashboard/security/change-password"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/security/fund-password",
+      "fullPath": "/dashboard/security/fund-password"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/security/passkeys",
+      "fullPath": "/dashboard/security/passkeys"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/security/sessions",
+      "fullPath": "/dashboard/security/sessions"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/security/withdrawal-limits",
+      "fullPath": "/dashboard/security/withdrawal-limits"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/spot",
+      "fullPath": "/dashboard/spot"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/support",
+      "fullPath": "/dashboard/support"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/trade",
+      "fullPath": "/dashboard/trade"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/trade/spot",
+      "fullPath": "/dashboard/trade/spot"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/transfer",
+      "fullPath": "/dashboard/transfer"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/wallet/BTC_USDT",
+      "fullPath": "/dashboard/wallet/BTC_USDT"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/wallet/spot",
+      "fullPath": "/dashboard/wallet/spot"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/withdraw",
+      "fullPath": "/dashboard/withdraw"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/withdraw/crypto",
+      "fullPath": "/dashboard/withdraw/crypto"
+    },
+    {
+      "app": "frontend",
+      "path": "/dashboard/withdraw/fiat",
+      "fullPath": "/dashboard/withdraw/fiat"
+    },
+    {
+      "app": "frontend",
+      "path": "/earn",
+      "fullPath": "/earn"
+    },
+    {
+      "app": "frontend",
+      "path": "/forgot-password",
+      "fullPath": "/forgot-password"
+    },
+    {
+      "app": "frontend",
+      "path": "/history",
+      "fullPath": "/history"
+    },
+    {
+      "app": "frontend",
+      "path": "/login",
+      "fullPath": "/login"
+    },
+    {
+      "app": "frontend",
+      "path": "/markets",
+      "fullPath": "/markets"
+    },
+    {
+      "app": "frontend",
+      "path": "/orders",
+      "fullPath": "/orders"
+    },
+    {
+      "app": "frontend",
+      "path": "/orders/history",
+      "fullPath": "/orders/history"
+    },
+    {
+      "app": "frontend",
+      "path": "/orders/p2p",
+      "fullPath": "/orders/p2p"
+    },
+    {
+      "app": "frontend",
+      "path": "/orders/spot",
+      "fullPath": "/orders/spot"
+    },
+    {
+      "app": "frontend",
+      "path": "/orders/trades",
+      "fullPath": "/orders/trades"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p",
+      "fullPath": "/p2p"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p-v2",
+      "fullPath": "/p2p-v2"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p-v2/create-ad",
+      "fullPath": "/p2p-v2/create-ad"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p-v2/disputes/a0000000-0000-4000-8000-000000000001",
+      "fullPath": "/p2p-v2/disputes/a0000000-0000-4000-8000-000000000001"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p-v2/merchant-dashboard",
+      "fullPath": "/p2p-v2/merchant-dashboard"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p-v2/merchant/a0000000-0000-4000-8000-000000000001",
+      "fullPath": "/p2p-v2/merchant/a0000000-0000-4000-8000-000000000001"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p-v2/my-ads",
+      "fullPath": "/p2p-v2/my-ads"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p-v2/orders",
+      "fullPath": "/p2p-v2/orders"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p-v2/orders/a0000000-0000-4000-8000-000000000001",
+      "fullPath": "/p2p-v2/orders/a0000000-0000-4000-8000-000000000001"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p-v2/payment-methods",
+      "fullPath": "/p2p-v2/payment-methods"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p/buy/BTC/USD",
+      "fullPath": "/p2p/buy/BTC/USD"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p/create-ad",
+      "fullPath": "/p2p/create-ad"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p/disputes/a0000000-0000-4000-8000-000000000001",
+      "fullPath": "/p2p/disputes/a0000000-0000-4000-8000-000000000001"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p/merchant-dashboard",
+      "fullPath": "/p2p/merchant-dashboard"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p/merchant/a0000000-0000-4000-8000-000000000001",
+      "fullPath": "/p2p/merchant/a0000000-0000-4000-8000-000000000001"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p/my-ads",
+      "fullPath": "/p2p/my-ads"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p/orders",
+      "fullPath": "/p2p/orders"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p/orders/a0000000-0000-4000-8000-000000000002",
+      "fullPath": "/p2p/orders/a0000000-0000-4000-8000-000000000002"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p/payment-methods",
+      "fullPath": "/p2p/payment-methods"
+    },
+    {
+      "app": "frontend",
+      "path": "/p2p/profile/a0000000-0000-4000-8000-000000000003",
+      "fullPath": "/p2p/profile/a0000000-0000-4000-8000-000000000003"
+    },
+    {
+      "app": "frontend",
+      "path": "/privacy",
+      "fullPath": "/privacy"
+    },
+    {
+      "app": "frontend",
+      "path": "/register",
+      "fullPath": "/register"
+    },
+    {
+      "app": "frontend",
+      "path": "/signup",
+      "fullPath": "/signup"
+    },
+    {
+      "app": "frontend",
+      "path": "/spot",
+      "fullPath": "/spot"
+    },
+    {
+      "app": "frontend",
+      "path": "/terms",
+      "fullPath": "/terms"
+    },
+    {
+      "app": "frontend",
+      "path": "/trade",
+      "fullPath": "/trade"
+    },
+    {
+      "app": "frontend",
+      "path": "/trade/spot",
+      "fullPath": "/trade/spot"
+    },
+    {
+      "app": "frontend",
+      "path": "/wallet",
+      "fullPath": "/wallet"
+    },
+    {
+      "app": "frontend",
+      "path": "/wallet/BTC_USDT",
+      "fullPath": "/wallet/BTC_USDT"
+    },
+    {
+      "app": "frontend",
+      "path": "/wallet/convert",
+      "fullPath": "/wallet/convert"
+    },
+    {
+      "app": "frontend",
+      "path": "/wallet/deposit",
+      "fullPath": "/wallet/deposit"
+    },
+    {
+      "app": "frontend",
+      "path": "/wallet/deposit/crypto",
+      "fullPath": "/wallet/deposit/crypto"
+    },
+    {
+      "app": "frontend",
+      "path": "/wallet/funding",
+      "fullPath": "/wallet/funding"
+    },
+    {
+      "app": "frontend",
+      "path": "/wallet/history",
+      "fullPath": "/wallet/history"
+    },
+    {
+      "app": "frontend",
+      "path": "/wallet/pnl",
+      "fullPath": "/wallet/pnl"
+    },
+    {
+      "app": "frontend",
+      "path": "/wallet/transfer",
+      "fullPath": "/wallet/transfer"
+    },
+    {
+      "app": "frontend",
+      "path": "/wallet/unified",
+      "fullPath": "/wallet/unified"
+    },
+    {
+      "app": "frontend",
+      "path": "/wallet/withdraw",
+      "fullPath": "/wallet/withdraw"
+    },
+    {
+      "app": "frontend",
+      "path": "/wallet/withdraw/crypto",
+      "fullPath": "/wallet/withdraw/crypto"
+    },
+    {
+      "app": "frontend",
+      "path": "/wallet/withdraw/fiat",
+      "fullPath": "/wallet/withdraw/fiat"
+    }
+  ],
+  "adminRoutes": [
+    {
+      "app": "admin-panel",
+      "path": "/admin/admin-control",
+      "fullPath": "/admin-control"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/admin-users",
+      "fullPath": "/admin-users"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/admin/mm-control",
+      "fullPath": "/admin/mm-control"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/analytics",
+      "fullPath": "/analytics"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/analytics/scheduled-reports",
+      "fullPath": "/analytics/scheduled-reports"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/announcements",
+      "fullPath": "/announcements"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/approvals",
+      "fullPath": "/approvals"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/audit",
+      "fullPath": "/audit"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/audit/config",
+      "fullPath": "/audit/config"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/backups",
+      "fullPath": "/backups"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/compliance",
+      "fullPath": "/compliance"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/control-center",
+      "fullPath": "/control-center"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/dashboard",
+      "fullPath": "/dashboard"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/deposits",
+      "fullPath": "/deposits"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/deposits/a0000000-0000-4000-8000-000000000001",
+      "fullPath": "/deposits/a0000000-0000-4000-8000-000000000001"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/fees",
+      "fullPath": "/fees"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/fiat-withdrawals",
+      "fullPath": "/fiat-withdrawals"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/incidents",
+      "fullPath": "/incidents"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/integrations",
+      "fullPath": "/integrations"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/kyc",
+      "fullPath": "/kyc"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/liquidity",
+      "fullPath": "/liquidity"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/login",
+      "fullPath": "/login"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/logs",
+      "fullPath": "/logs"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/markets",
+      "fullPath": "/markets"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/markets/BTC_USDT",
+      "fullPath": "/markets/BTC_USDT"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/monitoring",
+      "fullPath": "/monitoring"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/monitoring/alert-rules",
+      "fullPath": "/monitoring/alert-rules"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/notifications",
+      "fullPath": "/notifications"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/operations",
+      "fullPath": "/operations"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/orders",
+      "fullPath": "/orders"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/p2p",
+      "fullPath": "/p2p"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/reconciliation",
+      "fullPath": "/reconciliation"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/risk",
+      "fullPath": "/risk"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/risk/automation",
+      "fullPath": "/risk/automation"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/risk/settings",
+      "fullPath": "/risk/settings"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/risk/severity-settings",
+      "fullPath": "/risk/severity-settings"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/security",
+      "fullPath": "/security"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/settings",
+      "fullPath": "/settings"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/settings/auth-notifications",
+      "fullPath": "/settings/auth-notifications"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/settings/infrastructure",
+      "fullPath": "/settings/infrastructure"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/settings/integrations",
+      "fullPath": "/settings/integrations"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/settings/nodes",
+      "fullPath": "/settings/nodes"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/settings/system",
+      "fullPath": "/settings/system"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/staking",
+      "fullPath": "/staking"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/support",
+      "fullPath": "/support"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/support/a0000000-0000-4000-8000-000000000001",
+      "fullPath": "/support/a0000000-0000-4000-8000-000000000001"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/system/health",
+      "fullPath": "/system/health"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/system/integrations",
+      "fullPath": "/system/integrations"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/system/page-audit",
+      "fullPath": "/system/page-audit"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/trades",
+      "fullPath": "/trades"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/trading",
+      "fullPath": "/trading"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/treasury",
+      "fullPath": "/treasury"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/treasury/settings",
+      "fullPath": "/treasury/settings"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/triage",
+      "fullPath": "/triage"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/users",
+      "fullPath": "/users"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/users/a0000000-0000-4000-8000-000000000001",
+      "fullPath": "/users/a0000000-0000-4000-8000-000000000001"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/users/analytics",
+      "fullPath": "/users/analytics"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/users/referrals",
+      "fullPath": "/users/referrals"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/users/restrictions",
+      "fullPath": "/users/restrictions"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/wallets",
+      "fullPath": "/wallets"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/withdrawals",
+      "fullPath": "/withdrawals"
+    },
+    {
+      "app": "admin-panel",
+      "path": "/admin/withdrawals/a0000000-0000-4000-8000-000000000001",
+      "fullPath": "/withdrawals/a0000000-0000-4000-8000-000000000001"
+    }
+  ],
+  "total": 178
+}

@@ -1,0 +1,24 @@
+{
+  "generatedAt": "2026-07-02T08:11:30.748Z",
+  "checks": [
+    {
+      "name": "Multi-tab pages load",
+      "pass": true,
+      "detail": "http://109.123.254.30/admin/monitoring",
+      "verdict": "PASS"
+    },
+    {
+      "name": "WS reconnect after navigation",
+      "pass": true,
+      "detail": "frames=0",
+      "verdict": "PASS"
+    },
+    {
+      "name": "Monitoring KPI visible (API or WS)",
+      "pass": true,
+      "detail": "true",
+      "verdict": "PASS"
+    }
+  ],
+  "verdict": "PASS"
+}

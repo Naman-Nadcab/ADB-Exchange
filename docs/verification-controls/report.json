@@ -1,0 +1,1004 @@
+{
+  "generatedAt": "2026-07-01T09:24:52.604Z",
+  "results": [
+    {
+      "control": "Restart worker",
+      "action": "restart_worker",
+      "buttonExists": true,
+      "modalOpens": true,
+      "confirmationWorks": true,
+      "apiExecutes": true,
+      "toastAppears": true,
+      "timelineDbUpdates": true,
+      "timelineUiUpdates": true,
+      "websocketUpdates": true,
+      "auditLogUpdates": true,
+      "noPageRefresh": true,
+      "pass": true,
+      "screenshot": "1-restart_worker-done.png",
+      "network": [
+        {
+          "url": "http://109.123.254.30/api/v1/admin/monitoring/actions",
+          "status": 200,
+          "body": {
+            "success": true,
+            "data": {
+              "action": "restart_worker",
+              "triggered": true
+            }
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "control": "Flush queue",
+      "action": "flush_queue",
+      "buttonExists": true,
+      "modalOpens": true,
+      "confirmationWorks": true,
+      "apiExecutes": true,
+      "toastAppears": true,
+      "timelineDbUpdates": true,
+      "timelineUiUpdates": true,
+      "websocketUpdates": true,
+      "auditLogUpdates": true,
+      "noPageRefresh": true,
+      "pass": true,
+      "screenshot": "2-flush_queue-done.png",
+      "network": [
+        {
+          "url": "http://109.123.254.30/api/v1/admin/monitoring/actions",
+          "status": 200,
+          "body": {
+            "success": true,
+            "data": {
+              "action": "flush_queue",
+              "triggered": true
+            }
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "control": "Reset breaker",
+      "action": "reset_circuit_breaker",
+      "buttonExists": true,
+      "modalOpens": true,
+      "confirmationWorks": true,
+      "apiExecutes": true,
+      "toastAppears": true,
+      "timelineDbUpdates": true,
+      "timelineUiUpdates": true,
+      "websocketUpdates": true,
+      "auditLogUpdates": true,
+      "noPageRefresh": true,
+      "pass": true,
+      "screenshot": "3-reset_circuit_breaker-done.png",
+      "network": [
+        {
+          "url": "http://109.123.254.30/api/v1/admin/monitoring/actions",
+          "status": 200,
+          "body": {
+            "success": true,
+            "data": {
+              "action": "reset_circuit_breaker",
+              "triggered": true
+            }
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "control": "Liquidity bot",
+      "action": "restart_liquidity_bot",
+      "buttonExists": true,
+      "modalOpens": true,
+      "confirmationWorks": true,
+      "apiExecutes": true,
+      "toastAppears": true,
+      "timelineDbUpdates": true,
+      "timelineUiUpdates": true,
+      "websocketUpdates": true,
+      "auditLogUpdates": true,
+      "noPageRefresh": true,
+      "pass": true,
+      "screenshot": "4-restart_liquidity_bot-done.png",
+      "network": [
+        {
+          "url": "http://109.123.254.30/api/v1/admin/monitoring/actions",
+          "status": 200,
+          "body": {
+            "success": true,
+            "data": {
+              "action": "restart_liquidity_bot",
+              "triggered": true
+            }
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "control": "Settlement",
+      "action": "restart_settlement_worker",
+      "buttonExists": true,
+      "modalOpens": true,
+      "confirmationWorks": true,
+      "apiExecutes": true,
+      "toastAppears": true,
+      "timelineDbUpdates": true,
+      "timelineUiUpdates": true,
+      "websocketUpdates": true,
+      "auditLogUpdates": true,
+      "noPageRefresh": true,
+      "pass": true,
+      "screenshot": "5-restart_settlement_worker-done.png",
+      "network": [
+        {
+          "url": "http://109.123.254.30/api/v1/admin/monitoring/actions",
+          "status": 200,
+          "body": {
+            "success": true,
+            "data": {
+              "action": "restart_settlement_worker",
+              "triggered": true
+            }
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "control": "Matching engine",
+      "action": "restart_matching_engine",
+      "buttonExists": true,
+      "modalOpens": true,
+      "confirmationWorks": true,
+      "apiExecutes": true,
+      "toastAppears": true,
+      "timelineDbUpdates": true,
+      "timelineUiUpdates": true,
+      "websocketUpdates": true,
+      "auditLogUpdates": true,
+      "noPageRefresh": true,
+      "pass": true,
+      "screenshot": "6-restart_matching_engine-done.png",
+      "network": [
+        {
+          "url": "http://109.123.254.30/api/v1/admin/monitoring/actions",
+          "status": 200,
+          "body": {
+            "success": true,
+            "data": {
+              "action": "restart_matching_engine",
+              "triggered": true
+            }
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "control": "WebSocket",
+      "action": "restart_websocket_service",
+      "buttonExists": true,
+      "modalOpens": true,
+      "confirmationWorks": true,
+      "apiExecutes": true,
+      "toastAppears": true,
+      "timelineDbUpdates": true,
+      "timelineUiUpdates": true,
+      "websocketUpdates": true,
+      "auditLogUpdates": true,
+      "noPageRefresh": true,
+      "pass": true,
+      "screenshot": "7-restart_websocket_service-done.png",
+      "network": [
+        {
+          "url": "http://109.123.254.30/api/v1/admin/monitoring/actions",
+          "status": 200,
+          "body": {
+            "success": true,
+            "data": {
+              "action": "restart_websocket_service",
+              "triggered": true
+            }
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "control": "Alert acknowledge/resolve",
+      "action": "patch_monitoring_alert",
+      "buttonExists": true,
+      "modalOpens": true,
+      "confirmationWorks": true,
+      "apiExecutes": true,
+      "toastAppears": true,
+      "timelineDbUpdates": false,
+      "timelineUiUpdates": true,
+      "websocketUpdates": true,
+      "auditLogUpdates": true,
+      "noPageRefresh": true,
+      "pass": true,
+      "screenshot": "alert-controls-done.png",
+      "network": [
+        {
+          "url": "http://109.123.254.30/api/v1/admin/monitoring/alerts/7c358f41-eeed-4cd2-9c3b-cf708ead4379",
+          "status": 200
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "passFailMatrix": [
+    {
+      "control": "Restart worker",
+      "pass": "PASS",
+      "button": true,
+      "modal": true,
+      "confirm": true,
+      "api": true,
+      "toast": true,
+      "audit": true,
+      "timelineDb": true,
+      "timelineUi": true,
+      "websocket": true,
+      "spa": true,
+      "errors": []
+    },
+    {
+      "control": "Flush queue",
+      "pass": "PASS",
+      "button": true,
+      "modal": true,
+      "confirm": true,
+      "api": true,
+      "toast": true,
+      "audit": true,
+      "timelineDb": true,
+      "timelineUi": true,
+      "websocket": true,
+      "spa": true,
+      "errors": []
+    },
+    {
+      "control": "Reset breaker",
+      "pass": "PASS",
+      "button": true,
+      "modal": true,
+      "confirm": true,
+      "api": true,
+      "toast": true,
+      "audit": true,
+      "timelineDb": true,
+      "timelineUi": true,
+      "websocket": true,
+      "spa": true,
+      "errors": []
+    },
+    {
+      "control": "Liquidity bot",
+      "pass": "PASS",
+      "button": true,
+      "modal": true,
+      "confirm": true,
+      "api": true,
+      "toast": true,
+      "audit": true,
+      "timelineDb": true,
+      "timelineUi": true,
+      "websocket": true,
+      "spa": true,
+      "errors": []
+    },
+    {
+      "control": "Settlement",
+      "pass": "PASS",
+      "button": true,
+      "modal": true,
+      "confirm": true,
+      "api": true,
+      "toast": true,
+      "audit": true,
+      "timelineDb": true,
+      "timelineUi": true,
+      "websocket": true,
+      "spa": true,
+      "errors": []
+    },
+    {
+      "control": "Matching engine",
+      "pass": "PASS",
+      "button": true,
+      "modal": true,
+      "confirm": true,
+      "api": true,
+      "toast": true,
+      "audit": true,
+      "timelineDb": true,
+      "timelineUi": true,
+      "websocket": true,
+      "spa": true,
+      "errors": []
+    },
+    {
+      "control": "WebSocket",
+      "pass": "PASS",
+      "button": true,
+      "modal": true,
+      "confirm": true,
+      "api": true,
+      "toast": true,
+      "audit": true,
+      "timelineDb": true,
+      "timelineUi": true,
+      "websocket": true,
+      "spa": true,
+      "errors": []
+    },
+    {
+      "control": "Alert acknowledge/resolve",
+      "pass": "PASS",
+      "button": true,
+      "modal": true,
+      "confirm": true,
+      "api": true,
+      "toast": true,
+      "audit": true,
+      "timelineDb": false,
+      "timelineUi": true,
+      "websocket": true,
+      "spa": true,
+      "errors": []
+    }
+  ],
+  "networkLogSample": [
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/rpc-providers",
+      "ts": 1782897887367
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/queues",
+      "ts": 1782897887367
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/resources",
+      "ts": 1782897887367
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/alerts?limit=20&offset=0",
+      "ts": 1782897887367
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/incidents?limit=20",
+      "ts": 1782897887367
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/workers",
+      "ts": 1782897887367
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/timeline?limit=15",
+      "ts": 1782897887367
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/timeline?limit=15",
+      "ts": 1782897887367
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/health",
+      "ts": 1782897887367
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/rpc-providers",
+      "ts": 1782897887368
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/queues",
+      "ts": 1782897887368
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/resources",
+      "ts": 1782897887368
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/alerts?limit=20&offset=0",
+      "ts": 1782897887368
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/incidents?limit=20",
+      "ts": 1782897887368
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/workers",
+      "ts": 1782897887368
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/timeline?limit=15",
+      "ts": 1782897887368
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/health",
+      "ts": 1782897887368
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/rpc-providers",
+      "ts": 1782897887368
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/queues",
+      "ts": 1782897887368
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/resources",
+      "ts": 1782897887372
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/alerts?limit=20&offset=0",
+      "ts": 1782897887374
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/incidents?limit=20",
+      "ts": 1782897887374
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/workers",
+      "ts": 1782897887374
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/timeline?limit=15",
+      "ts": 1782897887374
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/timeline?limit=15",
+      "ts": 1782897887374
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/health",
+      "ts": 1782897887374
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/rpc-providers",
+      "ts": 1782897887374
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/queues",
+      "ts": 1782897887374
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/resources",
+      "ts": 1782897887381
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/alerts?limit=20&offset=0",
+      "ts": 1782897887381
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/incidents?limit=20",
+      "ts": 1782897887381
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/workers",
+      "ts": 1782897887381
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/timeline?limit=15",
+      "ts": 1782897887381
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/timeline?limit=15",
+      "ts": 1782897887381
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/queues",
+      "ts": 1782897887387
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/health",
+      "ts": 1782897887388
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/rpc-providers",
+      "ts": 1782897887399
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/resources",
+      "ts": 1782897887543
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/incidents?limit=20",
+      "ts": 1782897887554
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/workers",
+      "ts": 1782897887607
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/alerts?limit=20&offset=0",
+      "ts": 1782897887624
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/timeline?limit=15",
+      "ts": 1782897887625
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/health",
+      "ts": 1782897887755
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/queues",
+      "ts": 1782897887801
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/resources",
+      "ts": 1782897887801
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/incidents?limit=20",
+      "ts": 1782897887817
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/workers",
+      "ts": 1782897887818
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/rpc-providers",
+      "ts": 1782897887846
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/alerts?limit=20&offset=0",
+      "ts": 1782897887919
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/resources",
+      "ts": 1782897887930
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/health",
+      "ts": 1782897887946
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/timeline?limit=15",
+      "ts": 1782897887960
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/incidents?limit=20",
+      "ts": 1782897888078
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/queues",
+      "ts": 1782897888078
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/resources",
+      "ts": 1782897888220
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/rpc-providers",
+      "ts": 1782897888235
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/health",
+      "ts": 1782897888242
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/workers",
+      "ts": 1782897888271
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/timeline?limit=15",
+      "ts": 1782897888275
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/alerts?limit=20&offset=0",
+      "ts": 1782897888292
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/incidents?limit=20",
+      "ts": 1782897888460
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/system-health",
+      "ts": 1782897888559
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/resources",
+      "ts": 1782897888787
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/queues",
+      "ts": 1782897888833
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/rpc-providers",
+      "ts": 1782897888906
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/security/dashboard",
+      "ts": 1782897888926
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/health",
+      "ts": 1782897888941
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://109.123.254.30/api/v1/admin/operations/smart-alerts",
+      "ts": 1782897888941
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/workers",
+      "ts": 1782897888957
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/alerts?limit=20&offset=0",
+      "ts": 1782897889040
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/incidents?limit=20",
+      "ts": 1782897889042
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/queues",
+      "ts": 1782897889055
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/timeline?limit=15",
+      "ts": 1782897889101
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/rpc-providers",
+      "ts": 1782897889106
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/workers",
+      "ts": 1782897889106
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/alerts?limit=20&offset=0",
+      "ts": 1782897889259
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/timeline?limit=15",
+      "ts": 1782897889266
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/timeline?limit=15",
+      "ts": 1782897889435
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/timeline?limit=15",
+      "ts": 1782897889765
+    },
+    {
+      "type": "response",
+      "status": 200,
+      "url": "http://109.123.254.30/api/v1/admin/monitoring/timeline?limit=15",
+      "ts": 1782897889917
+    }
+  ],
+  "wsEventsSample": [
+    {
+      "ts": 1782897842431,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/metrics",
+      "payload": "{\"type\":\"order_cancelled\",\"data\":{\"id\":\"da850efd-6190-4df0-9be0-ed9caff3608a\",\"market\":\"BTC_USDT\",\"side\":\"sell\",\"user_id\":\"a0000000-0000-4000-8000-00000000aa01\"},\"timestamp\":1782897842249}"
+    },
+    {
+      "ts": 1782897844194,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"health_score_updated\",\"payload\":{\"score\":80,\"metrics\":{\"api_latency\":100,\"matching_latency\":100,\"rpc_health\":0,\"queue_backlog\":100}},\"timestamp\":1782897844152}"
+    },
+    {
+      "ts": 1782897844875,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"infrastructure_action\",\"payload\":{\"action\":\"restart_settlement_worker\",\"reason\":\"Phase1 visual verification control test reason\",\"triggered_by\":\"dd063b73-baca-4393-99a2-947ac7d05913\",\"message\":\"Admin triggered: restart_settlement_worker — Phase1 visual verification control test reason\"},\"timestamp\":1782897844493}"
+    },
+    {
+      "ts": 1782897845042,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"timeline_event\",\"payload\":{\"event\":\"Admin triggered: restart_settlement_worker — Phase1 visual verification control test reason\",\"timestamp\":\"2026-07-01T09:24:04.493Z\",\"service\":\"monitoring\",\"severity\":\"info\"},\"timestamp\":1782897844493}"
+    },
+    {
+      "ts": 1782897850810,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/metrics",
+      "payload": "{\"type\":\"order_created\",\"data\":{\"id\":\"83bc42fd-daba-4bd6-b5aa-b0c1067ef883\",\"market\":\"BTC_USDT\",\"side\":\"buy\",\"type\":\"limit\",\"user_id\":\"a0000000-0000-4000-8000-00000000aa01\"},\"timestamp\":1782897850227}"
+    },
+    {
+      "ts": 1782897851634,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/metrics",
+      "payload": "{\"type\":\"order_created\",\"data\":{\"id\":\"16e1d3a6-5ac4-4f7e-8e75-924ff4ec35f7\",\"market\":\"BTC_USDT\",\"side\":\"sell\",\"type\":\"limit\",\"user_id\":\"a0000000-0000-4000-8000-00000000aa01\"},\"timestamp\":1782897851620}"
+    },
+    {
+      "ts": 1782897851730,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/metrics",
+      "payload": "{\"type\":\"order_cancelled\",\"data\":{\"id\":\"94070ec2-166f-42cb-a087-a276ca01672c\",\"market\":\"BTC_USDT\",\"side\":\"buy\",\"user_id\":\"a0000000-0000-4000-8000-00000000aa01\"},\"timestamp\":1782897851705}"
+    },
+    {
+      "ts": 1782897851847,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/metrics",
+      "payload": "{\"type\":\"order_cancelled\",\"data\":{\"id\":\"054b0942-7ba2-40e7-99f2-f68f5c888f73\",\"market\":\"BTC_USDT\",\"side\":\"sell\",\"user_id\":\"a0000000-0000-4000-8000-00000000aa01\"},\"timestamp\":1782897851825}"
+    },
+    {
+      "ts": 1782897854147,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"health_score_updated\",\"payload\":{\"score\":80,\"metrics\":{\"api_latency\":100,\"matching_latency\":100,\"rpc_health\":0,\"queue_backlog\":100}},\"timestamp\":1782897854138}"
+    },
+    {
+      "ts": 1782897857126,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"infrastructure_action\",\"payload\":{\"action\":\"restart_matching_engine\",\"reason\":\"Phase1 visual verification control test reason\",\"triggered_by\":\"dd063b73-baca-4393-99a2-947ac7d05913\",\"message\":\"Admin triggered: restart_matching_engine — Phase1 visual verification control test reason\"},\"timestamp\":1782897856984}"
+    },
+    {
+      "ts": 1782897857157,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/metrics",
+      "payload": "{\"type\":\"order_created\",\"data\":{\"id\":\"726c6644-219d-485c-92d4-ccff77c0af42\",\"market\":\"BTC_USDT\",\"side\":\"buy\",\"type\":\"limit\",\"user_id\":\"a0000000-0000-4000-8000-00000000aa01\"},\"timestamp\":1782897857089}"
+    },
+    {
+      "ts": 1782897857175,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"timeline_event\",\"payload\":{\"event\":\"Admin triggered: restart_matching_engine — Phase1 visual verification control test reason\",\"timestamp\":\"2026-07-01T09:24:16.984Z\",\"service\":\"monitoring\",\"severity\":\"info\"},\"timestamp\":1782897856984}"
+    },
+    {
+      "ts": 1782897858603,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/metrics",
+      "payload": "{\"type\":\"order_created\",\"data\":{\"id\":\"12f99d49-56d1-4de9-9d46-e9e6c685ffd9\",\"market\":\"BTC_USDT\",\"side\":\"sell\",\"type\":\"limit\",\"user_id\":\"a0000000-0000-4000-8000-00000000aa01\"},\"timestamp\":1782897858554}"
+    },
+    {
+      "ts": 1782897858724,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/metrics",
+      "payload": "{\"type\":\"order_cancelled\",\"data\":{\"id\":\"b8620d4c-771e-460a-aeeb-87a851e91049\",\"market\":\"BTC_USDT\",\"side\":\"buy\",\"user_id\":\"a0000000-0000-4000-8000-00000000aa01\"},\"timestamp\":1782897858719}"
+    },
+    {
+      "ts": 1782897858795,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/metrics",
+      "payload": "{\"type\":\"order_cancelled\",\"data\":{\"id\":\"2651070d-82f7-4e8b-9e98-6460d046ba64\",\"market\":\"BTC_USDT\",\"side\":\"sell\",\"user_id\":\"a0000000-0000-4000-8000-00000000aa01\"},\"timestamp\":1782897858774}"
+    },
+    {
+      "ts": 1782897859179,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"health_score_updated\",\"payload\":{\"score\":80,\"metrics\":{\"api_latency\":100,\"matching_latency\":100,\"rpc_health\":0,\"queue_backlog\":100}},\"timestamp\":1782897859159}"
+    },
+    {
+      "ts": 1782897863613,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/metrics",
+      "payload": "{\"type\":\"order_created\",\"data\":{\"id\":\"2bf644d4-0f7a-4e9a-a4c0-1579a793f62c\",\"market\":\"BTC_USDT\",\"side\":\"buy\",\"type\":\"limit\",\"user_id\":\"a0000000-0000-4000-8000-00000000aa01\"},\"timestamp\":1782897863586}"
+    },
+    {
+      "ts": 1782897864971,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"health_score_updated\",\"payload\":{\"score\":80,\"metrics\":{\"api_latency\":100,\"matching_latency\":100,\"rpc_health\":0,\"queue_backlog\":100}},\"timestamp\":1782897864161}"
+    },
+    {
+      "ts": 1782897864971,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/metrics",
+      "payload": "{\"type\":\"pong\",\"timestamp\":1782897864641}"
+    },
+    {
+      "ts": 1782897864971,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"pong\",\"payload\":{},\"timestamp\":1782897864735}"
+    },
+    {
+      "ts": 1782897865073,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/metrics",
+      "payload": "{\"type\":\"order_created\",\"data\":{\"id\":\"a7a4597b-8f08-4c85-aff8-fb4902a4a010\",\"market\":\"BTC_USDT\",\"side\":\"sell\",\"type\":\"limit\",\"user_id\":\"a0000000-0000-4000-8000-00000000aa01\"},\"timestamp\":1782897865054}"
+    },
+    {
+      "ts": 1782897868270,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"infrastructure_action\",\"payload\":{\"action\":\"restart_websocket_service\",\"reason\":\"Phase1 visual verification control test reason\",\"triggered_by\":\"dd063b73-baca-4393-99a2-947ac7d05913\",\"message\":\"Admin triggered: restart_websocket_service — Phase1 visual verification control test reason\"},\"timestamp\":1782897868163}"
+    },
+    {
+      "ts": 1782897868530,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"timeline_event\",\"payload\":{\"event\":\"Admin triggered: restart_websocket_service — Phase1 visual verification control test reason\",\"timestamp\":\"2026-07-01T09:24:28.173Z\",\"service\":\"monitoring\",\"severity\":\"info\"},\"timestamp\":1782897868173}"
+    },
+    {
+      "ts": 1782897869234,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"health_score_updated\",\"payload\":{\"score\":80,\"metrics\":{\"api_latency\":100,\"matching_latency\":100,\"rpc_health\":0,\"queue_backlog\":100}},\"timestamp\":1782897869187}"
+    },
+    {
+      "ts": 1782897879169,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/metrics",
+      "payload": "{\"type\":\"connected\",\"data\":{\"clientId\":\"admin-1782897878881-qbemtrp\",\"adminId\":\"dd063b73-baca-4393-99a2-947ac7d05913\"},\"timestamp\":1782897878881}"
+    },
+    {
+      "ts": 1782897879262,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"connected\",\"payload\":{\"clientId\":\"admin-events-1782897879140-luzkmye\"},\"timestamp\":1782897879140}"
+    },
+    {
+      "ts": 1782897879268,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"health_score_updated\",\"payload\":{\"score\":80,\"metrics\":{\"api_latency\":100,\"matching_latency\":100,\"rpc_health\":0,\"queue_backlog\":100}},\"timestamp\":1782897879159}"
+    },
+    {
+      "ts": 1782897884247,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"health_score_updated\",\"payload\":{\"score\":80,\"metrics\":{\"api_latency\":100,\"matching_latency\":100,\"rpc_health\":0,\"queue_backlog\":100}},\"timestamp\":1782897884223}"
+    },
+    {
+      "ts": 1782897887261,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"timeline_event\",\"payload\":{\"event\":\"Alert acknowledged: 7c358f41-eeed-4cd2-9c3b-cf708ead4379\",\"timestamp\":\"2026-07-01T09:24:47.075Z\",\"service\":\"monitoring\",\"severity\":\"warning\"},\"timestamp\":1782897887075}"
+    },
+    {
+      "ts": 1782897887367,
+      "url": "ws://109.123.254.30/api/v1/admin/ws/events",
+      "payload": "{\"event\":\"infrastructure_action\",\"payload\":{\"action\":\"alert_status_changed\",\"alert_id\":\"7c358f41-eeed-4cd2-9c3b-cf708ead4379\",\"status\":\"acknowledged\"},\"timestamp\":1782897887085}"
+    }
+  ],
+  "dbAssertions": {
+    "infrastructure_control_audits": 43,
+    "monitoring_alert_updated_audits": 35,
+    "monitoring_events": 17917
+  },
+  "summary": {
+    "pass": 8,
+    "fail": 0,
+    "overall": "PASS"
+  }
+}

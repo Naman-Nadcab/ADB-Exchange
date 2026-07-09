@@ -159,7 +159,7 @@ export async function runPhase3(): Promise<{ passed: number; failed: number; res
   let passed = 0;
   let failed = 0;
   const headers = getAuthHeaders();
-  const cpHeaders = counterpartyHeaders();
+  const cpHeaders = getCounterpartyRestHeaders();
   const matchPrice = (process.env.E2E_MATCH_PRICE || (await resolveDefaultMatchPrice('BTC_USDT'))).trim();
   const crossQty = '0.0001';
 
@@ -198,7 +198,7 @@ export async function runPhase3(): Promise<{ passed: number; failed: number; res
   }
 
   const hasAuth = Boolean(headers['Authorization'] || headers['X-API-Key']);
-  const hasCp = Boolean(cpHeaders['X-API-Key']);
+  const hasCp = Boolean(cpHeaders['Authorization'] || cpHeaders['X-API-Key']);
 
   // 3.3–3.6 Cross-trade path (two distinct users)
   if (hasAuth && hasCp) {

@@ -1,0 +1,66 @@
+{
+  "generatedAt": "2026-07-02T08:33:25.668Z",
+  "overall": "NO-GO",
+  "releaseTag": null,
+  "commitAllowed": false,
+  "summary": {
+    "pass": 4,
+    "warning": 1,
+    "fail": 1,
+    "blocker": 2
+  },
+  "suites": [
+    {
+      "name": "Playwright Admin Sweep",
+      "verdict": "FAIL",
+      "classification": "BLOCKER",
+      "evidence": "/work/docs/verification-admin-sweep"
+    },
+    {
+      "name": "Matching Engine Durability",
+      "verdict": "FAIL",
+      "classification": "BLOCKER",
+      "evidence": "/work/docs/verification-match-engine"
+    },
+    {
+      "name": "Matching Engine Load Test",
+      "verdict": "PASS",
+      "classification": "PASS",
+      "evidence": "/work/docs/verification-match-load"
+    },
+    {
+      "name": "Financial Integrity",
+      "verdict": "PASS",
+      "classification": "PASS",
+      "evidence": "/work/docs/verification-financial"
+    },
+    {
+      "name": "Infrastructure",
+      "verdict": "WARNING",
+      "classification": "WARNING",
+      "evidence": "/work/docs/verification-infrastructure"
+    },
+    {
+      "name": "Realtime Verification",
+      "verdict": "PASS",
+      "classification": "PASS",
+      "evidence": "/work/docs/verification-realtime"
+    },
+    {
+      "name": "Alert Center",
+      "verdict": "FAIL",
+      "classification": "FAIL",
+      "evidence": "/work/docs/verification-alerts"
+    },
+    {
+      "name": "Monitoring Controls",
+      "verdict": "PASS",
+      "classification": "PASS",
+      "evidence": "/work/docs/verification-controls"
+    }
+  ],
+  "gitDirty": false,
+  "gitStatusPreview": [
+    ""
+  ]
+}

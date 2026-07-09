@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://109.123.254.30",
+      "localStorage": [
+        {
+          "name": "admin-auth",
+          "value": "{\"state\":{\"accessToken\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbklkIjoiZGQwNjNiNzMtYmFjYS00MzkzLTk5YTItOTQ3YWM3ZDA1OTEzIiwiZW1haWwiOiJhZG1pbkBleGFtcGxlLmNvbSIsInJvbGUiOiJzdXBlcl9hZG1pbiIsInNlc3Npb25JZCI6IjE3NTA1MWFmLTgxYjktNGI2OC04Y2I1LTkwYzRkMjdiYWE2MyIsInR5cGUiOiJhZG1pbiIsImlhdCI6MTc4Mjk3OTg0NCwiZXhwIjoxNzgyOTk0MjQ0fQ.DE4t7c8zPp8FqwFrYs_bBwJwNv2BMRGHAYLiQnZUEBo\",\"admin\":{\"id\":\"dd063b73-baca-4393-99a2-947ac7d05913\",\"email\":\"admin@example.com\",\"name\":\"Super Admin\",\"role\":\"super_admin\",\"permissions\":[\"all\"]}},\"version\":0}"
+        }
+      ]
+    }
+  ]
+}

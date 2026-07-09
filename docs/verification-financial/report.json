@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-07-02T08:09:03.928Z",
+  "checks": [
+    {
+      "name": "Negative user_balances",
+      "value": 0,
+      "pass": true,
+      "verdict": "PASS"
+    },
+    {
+      "name": "Settlement pending stuck >1h",
+      "value": 0,
+      "pass": true,
+      "verdict": "PASS"
+    },
+    {
+      "name": "Duplicate spot trade ids",
+      "value": 0,
+      "pass": true,
+      "verdict": "PASS"
+    },
+    {
+      "name": "Open settlement pending total",
+      "value": 0,
+      "pass": true,
+      "verdict": "PASS"
+    }
+  ],
+  "passed": 4,
+  "skipped": 0,
+  "total": 4,
+  "verdict": "PASS"
+}

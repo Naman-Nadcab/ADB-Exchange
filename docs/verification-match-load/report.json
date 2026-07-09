@@ -1,0 +1,59 @@
+{
+  "generatedAt": "2026-07-02T08:01:45.001Z",
+  "market": "BTC_USDT",
+  "engineUrl": "http://matching-engine:7101",
+  "tiers": [
+    {
+      "ordersRequested": 500,
+      "placed": 500,
+      "rejected": 0,
+      "errors": 0,
+      "successRate": 1,
+      "elapsedMs": 4215,
+      "throughputPerSec": 118.6,
+      "latencyMs": {
+        "p50": 7,
+        "p99": 43
+      },
+      "peakBuffer": 115,
+      "rejectTotal": 0,
+      "overflowTotal": 0,
+      "acceptingOrders": true,
+      "tradesDelta": 0,
+      "settlementPending": 159,
+      "settlementPendingDelta": 159,
+      "duplicateTradeIds": 0,
+      "walEnabled": true,
+      "streamMode": "async_partitioned",
+      "pass": true,
+      "verdict": "PASS"
+    },
+    {
+      "ordersRequested": 2000,
+      "placed": 2000,
+      "rejected": 0,
+      "errors": 0,
+      "successRate": 1,
+      "elapsedMs": 13721,
+      "throughputPerSec": 145.8,
+      "latencyMs": {
+        "p50": 6,
+        "p99": 25
+      },
+      "peakBuffer": 115,
+      "rejectTotal": 0,
+      "overflowTotal": 0,
+      "acceptingOrders": true,
+      "tradesDelta": 0,
+      "settlementPending": 159,
+      "settlementPendingDelta": 0,
+      "duplicateTradeIds": 0,
+      "walEnabled": true,
+      "streamMode": "async_partitioned",
+      "pass": true,
+      "verdict": "PASS"
+    }
+  ],
+  "verdict": "PASS",
+  "note": "Direct /engine/place with HMAC v2. Scale to 100K–1M via ORDER_TIERS when hardware/time permits."
+}
