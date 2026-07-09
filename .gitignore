@@ -103,3 +103,13 @@ scripts/go-live-validation.mjs
 
 # Local machine paths
 .exchange/
+
+# Phase-A recovery — never commit runtime artifacts
+.audit-screenshots/
+uat-evidence/
+e2e/.auth/
+e2e/.journey-creds-*.json
+e2e/.cert-*.png
+e2e/reports/
+docs/verification-screenshots/
+.deploy-rev.prev
