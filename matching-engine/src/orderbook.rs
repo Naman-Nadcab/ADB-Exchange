@@ -1,4 +1,4 @@
-use crate::types::{MatchEvent, Order, Price, Quantity, Side};
+use crate::types::{MatchEvent, Order, OrderType, Price, Quantity, Side};
 use rust_decimal::Decimal;
 use std::cmp::Reverse;
 use std::collections::BTreeMap;
@@ -292,7 +292,10 @@ impl OrderBook {
         }
 
         if incoming.remaining > Decimal::ZERO {
-            self.insert(incoming);
+            // Market orders must never rest on the book — unfilled remainder is rejected by the API layer.
+            if incoming.order_type != OrderType::Market {
+                self.insert(incoming);
+            }
         }
 
         events
@@ -393,6 +396,29 @@ mod match_tests {
             remaining: q,
             created_at: 1,
         }
+    }
+
+    #[test]
+    fn market_buy_with_no_asks_does_not_rest() {
+        let mut book = OrderBook::new();
+        let uid = Uuid::new_v4();
+        let oid = Uuid::new_v4();
+        let q: rust_decimal::Decimal = "0.0001".parse().unwrap();
+        let order = Order {
+            id: oid,
+            user_id: uid,
+            market: "BTC_USDT".into(),
+            side: Side::Buy,
+            order_type: OrderType::Market,
+            price: None,
+            quantity: q,
+            remaining: q,
+            created_at: 1,
+        };
+        book.insert(order);
+        let ev = book.match_orders("BTC_USDT", oid);
+        assert!(ev.is_empty());
+        assert!(book.bids.is_empty() && book.asks.is_empty());
     }
 
     #[test]

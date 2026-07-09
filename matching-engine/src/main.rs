@@ -706,6 +706,11 @@ async fn health(State(state): State<AppState>) -> impl IntoResponse {
         "match_wal_enabled": state.wal.is_some(),
         "tier1_wal_mandatory_configured": tier1_wal_mandatory(),
         "replication_role": replication_role,
+        "match_buffer_len": state.engine.match_buffer_len(),
+        "match_buffer_max": crate::engine::MAX_EVENTS,
+        "match_buffer_accepting_orders": state.engine.is_accepting_orders(),
+        "match_buffer_overflow_total": crate::engine::MATCH_BUFFER_OVERFLOW_TOTAL.load(std::sync::atomic::Ordering::Relaxed),
+        "match_buffer_rejected_orders": crate::engine::MATCH_BUFFER_REJECTED_ORDERS.load(std::sync::atomic::Ordering::Relaxed),
     }))
 }
 
@@ -720,10 +725,29 @@ async fn place(State(state): State<AppState>, Json(order): Json<Order>) -> impl 
             .into_response();
     }
 
+    if !state.engine.is_accepting_orders() {
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(place_fail_response(
+                "match event buffer at capacity — settlement backlog must drain before new orders",
+            )),
+        )
+            .into_response();
+    }
+
     if state.jetstream.is_none() {
         let engine = state.engine.clone();
         let pairs = match tokio::task::spawn_blocking(move || engine.place_order(order)).await {
-            Ok(p) => p,
+            Ok(Ok(p)) => p,
+            Ok(Err(_)) => {
+                return (
+                    StatusCode::SERVICE_UNAVAILABLE,
+                    Json(place_fail_response(
+                        "match event buffer at capacity — settlement backlog must drain before new orders",
+                    )),
+                )
+                    .into_response();
+            }
             Err(_) => {
                 return (
                     StatusCode::INTERNAL_SERVER_ERROR,
@@ -837,7 +861,12 @@ async fn place(State(state): State<AppState>, Json(order): Json<Order>) -> impl 
         })
         .await
     } else {
-        tokio::task::spawn_blocking(move || Ok::<_, String>(engine.place_order(order))).await
+        tokio::task::spawn_blocking(move || {
+            engine
+                .place_order(order)
+                .map_err(|_| "match event buffer at capacity".to_string())
+        })
+        .await
     };
 
     let pairs = match pairs_result {

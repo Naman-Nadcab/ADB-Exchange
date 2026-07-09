@@ -3,11 +3,21 @@ use crate::types::{MatchEvent, Order, OrderId, Market};
 use dashmap::DashMap;
 use parking_lot::{Mutex, RwLock};
 use std::collections::{HashMap, HashSet};
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 
 /// In-memory tail for GET /engine/matches only. **Authoritative log is Postgres `settlement_events`** (API persists inline + poller).
 /// Large buffer reduces risk if poller lags; monitor memory in production.
 pub const MAX_EVENTS: usize = 5_000_000;
+/// Hard headroom for in-flight events after WAL commit (never drop oldest — that silently loses poller fallback data).
+const MAX_EVENTS_HARD: usize = MAX_EVENTS + 10_000;
+
+/// Events that could not be buffered because hard limit reached (WAL/JetStream may still be durable).
+pub static MATCH_BUFFER_OVERFLOW_TOTAL: AtomicU64 = AtomicU64::new(0);
+/// Orders rejected because soft buffer cap reached (backpressure).
+pub static MATCH_BUFFER_REJECTED_ORDERS: AtomicU64 = AtomicU64::new(0);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MatchBufferFull;
 
 /// Per-market `OrderBook` mutex: **BTC/USDT matching does not block ETH/USDT** (Phase 1 scaling).
 /// Global `match_events` + `next_event_id` preserve monotonic event IDs in a single process.
@@ -65,17 +75,42 @@ impl Engine {
 
     fn insert_match_event_sorted(&self, event_id: usize, ev: MatchEvent) {
         let mut w = self.match_events.write();
+        if w.len() >= MAX_EVENTS_HARD {
+            MATCH_BUFFER_OVERFLOW_TOTAL.fetch_add(1, Ordering::Relaxed);
+            eprintln!(
+                "matching-engine CRITICAL: match event buffer hard limit {} — event {} not buffered (Tier-1: check WAL/JetStream; never dropping oldest events)",
+                w.len(),
+                event_id
+            );
+            return;
+        }
+        if w.len() >= MAX_EVENTS {
+            MATCH_BUFFER_OVERFLOW_TOTAL.fetch_add(1, Ordering::Relaxed);
+            eprintln!(
+                "matching-engine WARNING: match event buffer soft cap exceeded ({})",
+                w.len()
+            );
+        }
         match w.binary_search_by_key(&event_id, |(id, _)| *id) {
             Ok(_) => return,
             Err(i) => w.insert(i, (event_id, ev)),
         }
-        let to_remove = w.len().saturating_sub(MAX_EVENTS);
-        if to_remove > 0 {
-            eprintln!(
-                "matching-engine CRITICAL: match event ring buffer overflow, dropping {} oldest events",
-                to_remove
-            );
-            w.drain(0..to_remove);
+    }
+
+    pub fn match_buffer_len(&self) -> usize {
+        self.match_events.read().len()
+    }
+
+    pub fn is_accepting_orders(&self) -> bool {
+        self.match_events.read().len() < MAX_EVENTS
+    }
+
+    fn ensure_buffer_capacity(&self) -> Result<(), MatchBufferFull> {
+        if self.is_accepting_orders() {
+            Ok(())
+        } else {
+            MATCH_BUFFER_REJECTED_ORDERS.fetch_add(1, Ordering::Relaxed);
+            Err(MatchBufferFull)
         }
     }
 
@@ -140,7 +175,8 @@ impl Engine {
 
     /// Place an order: lock **only this market's** book, match, then append to global event buffer.
     /// Returns `(event_id, match)` pairs for optional JetStream publish (same ids as `/engine/matches`).
-    pub fn place_order(&self, order: Order) -> Vec<(usize, MatchEvent)> {
+    pub fn place_order(&self, order: Order) -> Result<Vec<(usize, MatchEvent)>, MatchBufferFull> {
+        self.ensure_buffer_capacity()?;
         let market = order.market.clone();
         let events = {
             let book_mutex = self
@@ -167,7 +203,7 @@ impl Engine {
         self.record_book_applied_for_event_ids(
             &published.iter().map(|(id, _)| *id).collect::<Vec<_>>(),
         );
-        published
+        Ok(published)
     }
 
     /**

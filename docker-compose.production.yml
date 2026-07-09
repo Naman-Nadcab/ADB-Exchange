@@ -85,6 +85,7 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-exchange}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-exchange}
       INDEXER_API_PORT: 4001
+      INDEXER_RECENT_SCAN_BLOCKS: ${INDEXER_RECENT_SCAN_BLOCKS:-8000}
     depends_on:
       postgres:
         condition: service_healthy
@@ -134,6 +135,11 @@ services:
       context: ./apps/backend
       dockerfile: Dockerfile
     container_name: exchange-backend
+    group_add:
+      - "${DOCKER_GID:-999}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${COMPOSE_PROJECT_DIR:-.}:/opt/m-live:ro
     environment:
       NODE_ENV: production
       RUN_MODE: all
@@ -146,10 +152,14 @@ services:
       NATS_URL: nats://nats:4222
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-exchange}:${RABBITMQ_PASSWORD}@rabbitmq:5672
       MATCHING_ENGINE_URL: http://matching-engine:7101
+      INDEXER_API_URL: http://indexer:4001
       USE_RUST_MATCHING_ENGINE: "true"
       USE_EVENT_STREAM: ${USE_EVENT_STREAM:-true}
       KMS_TYPE: ${KMS_TYPE:-aws}
       KMS_STARTUP_PROBE: ${KMS_STARTUP_PROBE:-1}
+      COMPOSE_PROJECT_DIR: /opt/m-live
+      COMPOSE_FILE: docker-compose.production.yml
+      INFRA_ACTIONS_ENABLED: ${INFRA_ACTIONS_ENABLED:-true}
     depends_on:
       postgres:
         condition: service_healthy
