@@ -3,12 +3,50 @@
  * Requires: E2E_JWT + E2E_COUNTERPARTY_JWT (Bearer for WS auth + REST).
  * Optional: E2E_COUNTERPARTY_API_KEY if counterparty uses API key for REST only — still need CP JWT for WS.
  *
- * Env: E2E_SPOT_SYMBOL (default BTC_USDT), E2E_MATCH_PRICE, E2E_PRIVATE_WS_MAX_MS,
+ * Env: E2E_SPOT_SYMBOL (default ETH_USDT — isolated ask book for cross), E2E_MATCH_PRICE, E2E_PRIVATE_WS_MAX_MS,
  *      E2E_PRIVATE_WS_EVENT_MS (wait for fill WS events after taker place; defaults to max(15s, E2E_SPOT_TRADE_SETTLEMENT_MS))
  *      E2E_WS_MAX_LATENCY_MS — fail if any sampled WS latency exceeds this (default 500). Separate from event wait budget.
  */
 import { config, getAuthHeaders, getCounterpartyRestHeaders } from '../config.js';
+import { resolveCrossMatchPrice } from '../utils/cross-match-price.js';
 import { getSpotWebSocketClass, SpotWsSession, type SpotWsInbound } from '../utils/spot-ws-helpers.js';
+
+async function adminCancelAllOpenForMarket(market: string): Promise<void> {
+  const email = config.adminEmail?.trim() || process.env.E2E_ADMIN_EMAIL?.trim();
+  const password = config.adminPassword?.trim() || process.env.E2E_ADMIN_PASSWORD?.trim();
+  if (!email || !password) return;
+  try {
+    const loginRes = await fetch(`${BASE}/api/v1/admin/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+      signal: AbortSignal.timeout(TIMEOUT),
+    });
+    const loginBody = (await loginRes.json().catch(() => ({}))) as { data?: { accessToken?: string } };
+    const token = loginBody.data?.accessToken?.trim();
+    if (!token) return;
+    await fetch(`${BASE}/api/v1/admin/control/orders/cancel-all`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ market }),
+      signal: AbortSignal.timeout(TIMEOUT),
+    });
+    await fetch(`${BASE}/api/v1/admin/control/orders/cancel-all`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+      signal: AbortSignal.timeout(TIMEOUT),
+    });
+    await fetch(`${BASE}/api/v1/admin/mm-control/global`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: false }),
+      signal: AbortSignal.timeout(TIMEOUT),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
 
 const BASE = config.baseUrl;
 const TIMEOUT = config.timeoutMs;
@@ -91,8 +129,9 @@ export async function runPhase14(): Promise<{
   };
 
   const symbol = (process.env.E2E_SPOT_SYMBOL || 'BTC_USDT').trim();
-  const matchPrice = (process.env.E2E_MATCH_PRICE || '876543.21').trim();
-  const crossQty = '0.0001';
+  const crossQty =
+    process.env.E2E_CROSS_QTY?.trim() ||
+    (symbol.startsWith('ETH') ? '0.0005' : '0.0001');
   const maxWsLatencyMs = Math.max(50, Number(process.env.E2E_WS_MAX_LATENCY_MS ?? 500));
   const settlementBudgetMs = Number(process.env.E2E_SPOT_TRADE_SETTLEMENT_MS || 45_000);
   const maxEventMs = Math.max(
@@ -177,9 +216,33 @@ export async function runPhase14(): Promise<{
   };
 
   const makerHeaders = getAuthHeaders();
+  await adminCancelAllOpenForMarket(symbol);
   await cancelAllOpenSpotForMarket(makerHeaders, symbol);
   await cancelAllOpenSpotForMarket(getCounterpartyRestHeaders(), symbol);
-  await new Promise((r) => setTimeout(r, 400));
+  await new Promise((r) => setTimeout(r, 800));
+  const matchPrice = await resolveCrossMatchPrice(BASE, symbol, TIMEOUT);
+
+  try {
+    const obRes = await fetch(`${BASE}/api/v1/spot/orderbook/${encodeURIComponent(symbol)}?limit=50`, {
+      signal: AbortSignal.timeout(TIMEOUT),
+    });
+    const obData = (await obRes.json().catch(() => ({}))) as { data?: { asks?: Array<{ price?: string }> } };
+    const foreignAsks = (obData.data?.asks ?? []).filter((row) => {
+      const p = Number(row?.price);
+      const m = Number(matchPrice);
+      return Number.isFinite(p) && Number.isFinite(m) && p <= m;
+    });
+    if (foreignAsks.length > 0) {
+      results.push(
+        `FAIL: orderbook not isolated for cross (${foreignAsks.length} foreign ask(s) at/below ${matchPrice}); cancel MM orders or set E2E_MATCH_PRICE on a clean book`
+      );
+      maker.close();
+      taker.close();
+      return { passed, failed: failed + 1, results, metrics };
+    }
+  } catch {
+    /* proceed — cross may still work */
+  }
   let sellOrderId: string | null = null;
   let sellPostEnd = Date.now();
   try {

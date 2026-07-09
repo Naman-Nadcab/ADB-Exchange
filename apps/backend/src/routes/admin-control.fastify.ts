@@ -198,15 +198,16 @@ export default async function adminControlRoutes(app: FastifyInstance) {
        * live lowercase values and the legacy uppercase ones (if any historical
        * rows still exist) and set status using the correct casing.
        */
-      let conditions = "status IN ('new', 'partially_filled')";
-      const params: string[] = [];
+      const openStatuses = ['OPEN', 'PARTIALLY_FILLED', 'PENDING_TRIGGER', 'new', 'partially_filled', 'pending_cancel'];
+      let conditions = `status::text IN (${openStatuses.map((_, i) => `$${i + 1}`).join(', ')})`;
+      const params: string[] = [...openStatuses];
       if (market) {
-        conditions += ' AND market = $1';
+        conditions += ` AND market = $${params.length + 1}`;
         params.push(market);
       }
       const updateRes = await db.query(
-        `UPDATE spot_orders SET status = 'cancelled', updated_at = NOW() WHERE ${conditions}`,
-        params.length ? params : undefined
+        `UPDATE spot_orders SET status = 'CANCELLED', updated_at = NOW() WHERE ${conditions}`,
+        params
       );
       const cancelled = (updateRes as { rowCount?: number }).rowCount ?? 0;
       logger.info('Admin cancel-all-orders', { market: market ?? 'all', cancelled });

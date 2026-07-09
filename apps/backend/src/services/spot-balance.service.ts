@@ -21,10 +21,11 @@ export async function lockTradingBalance(
   currencyId: string,
   amount: string,
   client?: PoolClient,
-  ledgerRef?: { referenceType: LedgerReferenceType; referenceId: string }
+  ledgerRef?: { referenceType: LedgerReferenceType; referenceId: string; descriptionSuffix?: string }
 ): Promise<boolean> {
   const refType = ledgerRef?.referenceType ?? 'adjustment';
   const refId = ledgerRef?.referenceId ?? crypto.randomUUID();
+  const descSuffix = ledgerRef?.descriptionSuffix;
   const run = async (q: PoolClient) => {
     await ensureUserBalanceRow(userId, currencyId, CHAIN_ID_GLOBAL, ACCOUNT_TYPE, q);
     const lockSel = await q.query<{ available_balance: string; locked_balance: string }>(
@@ -59,6 +60,7 @@ export async function lockTradingBalance(
       referenceType: refType,
       referenceId: refId,
       balanceType: 'available',
+      descriptionSuffix: descSuffix,
     });
     await insertBalanceLedger({
       client: q,
@@ -72,6 +74,7 @@ export async function lockTradingBalance(
       referenceType: refType,
       referenceId: refId,
       balanceType: 'locked',
+      descriptionSuffix: descSuffix,
     });
     return true;
   };
