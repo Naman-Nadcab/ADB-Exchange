@@ -11,6 +11,7 @@ import { getTierLimitsFromSettings, updateTierLimits } from '../services/withdra
 import { generateSTR, generateCTR, markReportSubmitted } from '../services/aml-reporting.service.js';
 import { checkSanctions } from '../services/sanctions-screening.service.js';
 import { logger } from '../lib/logger.js';
+import { COMPLIANCE_POLICY_DB_KEY } from '../types/compliance-policy.js';
 
 const SANCTIONS_KEYS = ['SANCTIONS_PROVIDER', 'SANCTIONS_API_URL', 'SANCTIONS_API_KEY'] as const;
 const ALERT_KEYS = ['alert_webhook_url', 'alert_slack_webhook_url', 'alert_pagerduty_key'] as const;
@@ -25,6 +26,91 @@ export default async function adminPhase1ComplianceRoutes(app: FastifyInstance) 
       isRead ? 'monitoring:view' : 'settings:edit'
     );
     if (!admin) return;
+  });
+
+  // ----- Compliance Policy Engine (runtime KYC + AML) -----
+  app.get('/compliance/policy', async (_request, reply) => {
+    try {
+      const { getCompliancePolicy } = await import('../services/compliance-policy.service.js');
+      const policy = await getCompliancePolicy();
+      return reply.send({ success: true, data: policy });
+    } catch (e) {
+      logger.warn('Compliance policy fetch error', { error: e instanceof Error ? e.message : 'Unknown' });
+      return reply.status(500).send({ success: false, error: { code: 'FETCH_FAILED', message: 'Failed to fetch compliance policy' } });
+    }
+  });
+
+  app.patch<{ Body: Record<string, unknown> }>('/compliance/policy', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'settings:edit');
+    if (!admin) return;
+    const body = request.body ?? {};
+    const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
+    if (reason.length < 8) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'REASON_REQUIRED', message: 'Reason (min 8 characters) is required for compliance policy changes.' },
+      });
+    }
+    try {
+      const { getCompliancePolicy, saveCompliancePolicy } = await import('../services/compliance-policy.service.js');
+      const before = await getCompliancePolicy();
+      const patch = {
+        activePreset: body.activePreset as import('../types/compliance-policy.js').CompliancePresetId | 'custom' | undefined,
+        environmentLabel: typeof body.environmentLabel === 'string' ? body.environmentLabel : undefined,
+        kyc: body.kyc && typeof body.kyc === 'object' ? (body.kyc as Record<string, import('../types/compliance-policy.js').KycPolicyMode>) : undefined,
+        aml: body.aml && typeof body.aml === 'object' ? (body.aml as Record<string, import('../types/compliance-policy.js').AmlPolicyMode>) : undefined,
+      };
+      const after = await saveCompliancePolicy(patch, admin.adminId);
+      const { logAuditFromRequest } = await import('../services/audit-log.service.js');
+      await logAuditFromRequest(request, {
+        actorType: 'admin',
+        actorId: admin.adminId,
+        action: 'compliance_policy_updated',
+        resourceType: 'compliance_policy',
+        resourceId: COMPLIANCE_POLICY_DB_KEY,
+        oldValue: { policy: before, reason },
+        newValue: { policy: after, reason },
+      });
+      return reply.send({ success: true, data: after });
+    } catch (e) {
+      logger.warn('Compliance policy update error', { error: e instanceof Error ? e.message : 'Unknown' });
+      return reply.status(500).send({ success: false, error: { code: 'UPDATE_FAILED', message: 'Failed to update compliance policy' } });
+    }
+  });
+
+  app.post<{ Body: { preset?: string; reason?: string } }>('/compliance/policy/apply-preset', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'settings:edit');
+    if (!admin) return;
+    const preset = (request.body?.preset ?? '').trim() as import('../types/compliance-policy.js').CompliancePresetId;
+    const reason = (request.body?.reason ?? '').trim();
+    if (!['internal_qa', 'closed_beta', 'soft_launch', 'production'].includes(preset)) {
+      return reply.status(400).send({ success: false, error: { code: 'INVALID_PRESET', message: 'Invalid preset' } });
+    }
+    if (reason.length < 8) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'REASON_REQUIRED', message: 'Reason (min 8 characters) is required.' },
+      });
+    }
+    try {
+      const { getCompliancePolicy, applyCompliancePreset } = await import('../services/compliance-policy.service.js');
+      const before = await getCompliancePolicy();
+      const after = await applyCompliancePreset(preset, admin.adminId);
+      const { logAuditFromRequest } = await import('../services/audit-log.service.js');
+      await logAuditFromRequest(request, {
+        actorType: 'admin',
+        actorId: admin.adminId,
+        action: 'compliance_policy_preset_applied',
+        resourceType: 'compliance_policy',
+        resourceId: preset,
+        oldValue: { policy: before, reason },
+        newValue: { policy: after, preset, reason },
+      });
+      return reply.send({ success: true, data: after });
+    } catch (e) {
+      logger.warn('Compliance preset apply error', { error: e instanceof Error ? e.message : 'Unknown' });
+      return reply.status(500).send({ success: false, error: { code: 'APPLY_FAILED', message: 'Failed to apply preset' } });
+    }
   });
 
   // ----- Sanctions provider configuration -----
