@@ -1,0 +1,7 @@
+appId: metheorium-mobile
+---
+- launchApp
+- tapOn: "Markets"
+- assertVisible: "S-200"
+- tapOn: "Search"
+- assertVisible: "S-201"
