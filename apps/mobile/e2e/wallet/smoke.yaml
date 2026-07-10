@@ -1,0 +1,5 @@
+appId: metheorium-mobile
+---
+- launchApp
+- tapOn: "Wallet"
+- assertVisible: "S-500"
