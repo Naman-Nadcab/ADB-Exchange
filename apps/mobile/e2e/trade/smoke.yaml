@@ -1,0 +1,5 @@
+appId: metheorium-mobile
+---
+- launchApp
+- tapOn: "Trade"
+- assertVisible: "S-300"
