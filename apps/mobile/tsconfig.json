@@ -1,0 +1,17 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@app/*": ["app/*"],
+      "@core/*": ["core/*"],
+      "@shared/*": ["shared/*"],
+      "@features/*": ["features/*"],
+      "@exchange/mobile-types": ["../../packages/mobile-types/src/index.ts"]
+    },
+    "types": ["jest"]
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js"]
+}

@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "METHErium",
+    "slug": "metheorium-mobile",
+    "scheme": "metheorium",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.metheorium.mobile"
+    },
+    "android": {
+      "package": "com.metheorium.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#121212"
+      }
+    },
+    "plugins": ["expo-secure-store", "expo-local-authentication"]
+  }
+}

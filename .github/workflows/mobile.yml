@@ -1,0 +1,32 @@
+name: Mobile CI
+
+on:
+  pull_request:
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/mobile-types/**'
+      - '.github/workflows/mobile.yml'
+  push:
+    branches: [develop, main]
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/mobile-types/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/mobile/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test -- --ci
+      - run: npm run validate:architecture
+      - run: npm run lint

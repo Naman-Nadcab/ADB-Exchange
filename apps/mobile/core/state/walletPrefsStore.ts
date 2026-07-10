@@ -1,0 +1,71 @@
+import { create } from 'zustand';
+import { mmkvStorage } from '@core/storage/mmkvStorage';
+import type { AssetSort } from '@core/domain/wallet/portfolio';
+
+const HIDE_ZERO_KEY = 'wallet.hideZero';
+const HIDDEN_KEY = 'wallet.hidden';
+const FAVORITES_KEY = 'wallet.favorites';
+const SORT_KEY = 'wallet.sort';
+
+function loadSet(key: string): Set<string> {
+  const raw = mmkvStorage.getString(key);
+  if (!raw) return new Set();
+  try {
+    return new Set(JSON.parse(raw) as string[]);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveSet(key: string, set: Set<string>) {
+  mmkvStorage.set(key, JSON.stringify([...set]));
+}
+
+type WalletPrefsStore = {
+  hideZero: boolean;
+  hidden: Set<string>;
+  favorites: Set<string>;
+  sort: AssetSort;
+  hydrate: () => void;
+  setHideZero: (v: boolean) => void;
+  toggleHidden: (symbol: string) => void;
+  toggleFavorite: (symbol: string) => void;
+  setSort: (sort: AssetSort) => void;
+};
+
+export const useWalletPrefsStore = create<WalletPrefsStore>((set, get) => ({
+  hideZero: true,
+  hidden: new Set(),
+  favorites: new Set(),
+  sort: 'value',
+  hydrate: () => {
+    set({
+      hideZero: mmkvStorage.getString(HIDE_ZERO_KEY) !== 'false',
+      hidden: loadSet(HIDDEN_KEY),
+      favorites: loadSet(FAVORITES_KEY),
+      sort: (mmkvStorage.getString(SORT_KEY) as AssetSort) ?? 'value',
+    });
+  },
+  setHideZero: (hideZero) => {
+    mmkvStorage.set(HIDE_ZERO_KEY, String(hideZero));
+    set({ hideZero });
+  },
+  toggleHidden: (symbol) => {
+    const hidden = new Set(get().hidden);
+    if (hidden.has(symbol)) hidden.delete(symbol);
+    else hidden.add(symbol);
+    saveSet(HIDDEN_KEY, hidden);
+    set({ hidden });
+  },
+  toggleFavorite: (symbol) => {
+    const favorites = new Set(get().favorites);
+    if (favorites.has(symbol)) favorites.delete(symbol);
+    else favorites.add(symbol);
+    saveSet(FAVORITES_KEY, favorites);
+    set({ favorites });
+  },
+  setSort: (sort) => {
+    mmkvStorage.set(SORT_KEY, sort);
+    set({ sort });
+  },
+}));
