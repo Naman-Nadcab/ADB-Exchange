@@ -1,0 +1,6 @@
+appId: metheorium-mobile
+---
+- launchApp
+- assertVisible: "METHErium"
+- tapOn: "Log In"
+- assertVisible: "S-101"
