@@ -68,7 +68,7 @@ The METHErium mobile implementation that existed only as untracked workspace fil
 
 Base commit: `00988649da52031923e2d62bf4f9c2fdc384f479`  
 Branch: `release/exchange-production-baseline`  
-Local HEAD: `4b24417763ff88abc66b52a3124909fc31d0d612`
+Local HEAD: `97bad63195f293191162b5eeee31f7804b57ff07`
 
 | # | SHA (short) | Message | Files |
 |---|-------------|---------|-------|
@@ -81,11 +81,12 @@ Local HEAD: `4b24417763ff88abc66b52a3124909fc31d0d612`
 | 7 | `c1bf491` | feat(mobile): add account ecosystem module | 43 |
 | 8 | `69a5fd6` | chore(mobile): add production hardening and developer onboarding docs | 1 |
 | 9 | `f5312d5` | docs(mobile): add architecture certificates and sprint reports | 64 |
-| 10 | `4b24417` | docs(mobile): add Git recovery report and Mac sync instructions | 1 |
+| 10 | `b141877` | docs(mobile): add Git recovery report and Mac sync instructions | 1 |
+| 11 | `97bad63` | chore(docs): align recovery report with final HEAD SHA | 1 |
 
-**Total:** 401 files, 34,946 insertions across 10 commits (not squashed).
+**Total:** 401 files across 11 commits (9 feature + 2 documentation; not squashed).
 
-`deployment/vps-first-boot` has been fast-forwarded locally to the same HEAD (`4b24417`).
+`deployment/vps-first-boot` has been fast-forwarded locally to the same HEAD (`97bad63`).
 
 ---
 
@@ -127,7 +128,7 @@ git push origin deployment/vps-first-boot   # optional: sync deployment branch
 | `packages/mobile-types` | **absent** | **11 files** |
 | `.github/workflows/mobile.yml` | **absent** | **present** |
 | `docs/mobile-product-architecture/` | **absent** | **64 files** |
-| HEAD SHA | `00988649da52031923e2d62bf4f9c2fdc384f479` | `4b24417763ff88abc66b52a3124909fc31d0d612` |
+| HEAD SHA | `00988649da52031923e2d62bf4f9c2fdc384f479` | `97bad63195f293191162b5eeee31f7804b57ff07` |
 
 ### Post-push verification commands
 
@@ -175,7 +176,7 @@ npm run validate:architecture
 npm run lint
 ```
 
-**No tarball recovery required** once `git pull` returns `apps/mobile/` at commit `4b24417` or later.
+**No tarball recovery required** once `git pull` returns `apps/mobile/` at commit `97bad63` or later.
 
 ---
 
@@ -219,7 +220,7 @@ npm run lint
 | No backend / API modified | **PASS** |
 | No force push | **PASS** |
 | No history rewritten | **PASS** |
-| Logical multi-commit history | **PASS** (10 commits) |
+| Logical multi-commit history | **PASS** (11 commits) |
 
 ---
 
@@ -227,4 +228,4 @@ npm run lint
 
 **B. Mobile source committed locally — push required to complete GitHub recovery.**
 
-Once `git push origin release/exchange-production-baseline` succeeds, success criterion **A** (full Git + GitHub recovery) is satisfied and the Mac can obtain the mobile app via normal `git pull` at SHA `4b24417763ff88abc66b52a3124909fc31d0d612`.
+Once `git push origin release/exchange-production-baseline` succeeds, success criterion **A** (full Git + GitHub recovery) is satisfied and the Mac can obtain the mobile app via normal `git pull` at SHA `97bad63195f293191162b5eeee31f7804b57ff07`.
