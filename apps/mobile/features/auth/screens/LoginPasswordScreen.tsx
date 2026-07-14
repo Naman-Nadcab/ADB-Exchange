@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { PrimaryButton, TextField, PasswordInput, ErrorBanner, SecondaryButton } from '@shared/ui';
+import { PrimaryButton, TextField, PasswordInput, ErrorBanner } from '@shared/ui';
 import type { AuthStackParamList } from '@app/navigation/types';
 import { useLoginPassword } from '../hooks/useLogin';
 import { useAuthActions } from '../hooks/useAuthActions';
-import { AuthScreenShell } from '../components/AuthScreenShell';
+import { AuthSplitLayout } from '../components/AuthSplitLayout';
+import { AuthFormHeading } from '../components/AuthFormHeading';
+import { Pressable, Text } from 'react-native';
+import { useTheme } from '@shared/theme';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'LoginPassword'>;
 
 export function LoginPasswordScreen({ navigation }: Props) {
+  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -29,12 +33,23 @@ export function LoginPasswordScreen({ navigation }: Props) {
   };
 
   return (
-    <AuthScreenShell testID="S-103" title="Password" subtitle="Sign in with your credentials" onBack={() => navigation.goBack()}>
-      <TextField label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" leftIcon="mail-outline" />
-      <PasswordInput label="Password" value={password} onChangeText={setPassword} />
+    <AuthSplitLayout testID="S-103" showMarketingLogo onBack={() => navigation.goBack()}>
+      <AuthFormHeading title="Welcome back" subtitle="Sign in with your email and password." />
+      <TextField
+        placeholder="Email address"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+      <PasswordInput placeholder="Password" value={password} onChangeText={setPassword} />
+      <Pressable onPress={() => navigation.navigate('ForgotPasswordRequest')} style={{ alignSelf: 'flex-end', marginBottom: theme.spacing[4] }}>
+        <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansMedium }]}>
+          Forgot password?
+        </Text>
+      </Pressable>
       {error ? <ErrorBanner message={error} /> : null}
-      <PrimaryButton title="Log in" loading={login.isPending} onPress={() => void submit()} />
-      <SecondaryButton title="Forgot password?" onPress={() => navigation.navigate('ForgotPasswordRequest')} />
-    </AuthScreenShell>
+      <PrimaryButton title="Sign in" size="xl" loading={login.isPending} onPress={() => void submit()} />
+    </AuthSplitLayout>
   );
 }

@@ -5,7 +5,9 @@ import { PrimaryButton, OTPInput, ErrorBanner } from '@shared/ui';
 import type { AuthStackParamList } from '@app/navigation/types';
 import { getAuthRepository } from '@core/repositories/AuthRepository';
 import { useAuthActions } from '../hooks/useAuthActions';
-import { AuthScreenShell } from '../components/AuthScreenShell';
+import { AuthSplitLayout } from '../components/AuthSplitLayout';
+import { AuthFormHeading } from '../components/AuthFormHeading';
+import { AuthProgressBar } from '../components/AuthProgressBar';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'LoginOtp'>;
 
@@ -49,12 +51,17 @@ export function LoginOtpScreen({ route, navigation }: Props) {
   };
 
   return (
-    <AuthScreenShell testID="S-104" title="Verify code" subtitle={`Sent to ${identifier}`} onBack={() => navigation.goBack()}>
+    <AuthSplitLayout testID="S-104" showMarketingLogo onBack={() => navigation.goBack()}>
+      <AuthProgressBar steps={2} currentIndex={1} />
+      <AuthFormHeading
+        title="Enter verification code"
+        subtitle={`We sent a 6-digit code to ${identifier}`}
+      />
       <View style={{ alignItems: 'center', marginVertical: 24 }}>
         <OTPInput value={otp} onChange={setOtp} error={!!error} />
       </View>
       {error ? <ErrorBanner message={error} /> : null}
-      <PrimaryButton title="Verify" loading={loading} onPress={() => void submit()} />
-    </AuthScreenShell>
+      <PrimaryButton title="Verify & continue" size="xl" loading={loading} onPress={() => void submit()} />
+    </AuthSplitLayout>
   );
 }

@@ -5,7 +5,8 @@ import { PrimaryButton, OTPInput, ErrorBanner } from '@shared/ui';
 import type { AuthStackParamList } from '@app/navigation/types';
 import { getAuthRepository } from '@core/repositories/AuthRepository';
 import { useAuthActions } from '../hooks/useAuthActions';
-import { AuthScreenShell } from '../components/AuthScreenShell';
+import { AuthSplitLayout } from '../components/AuthSplitLayout';
+import { AuthFormHeading } from '../components/AuthFormHeading';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'LoginVerifyStep'>;
 
@@ -33,12 +34,13 @@ export function LoginVerifyStepScreen({ route, navigation }: Props) {
   };
 
   return (
-    <AuthScreenShell testID="S-104-verify" title="Additional verification" subtitle="Enter your 2FA code" onBack={() => navigation.goBack()}>
+    <AuthSplitLayout testID="S-104-verify" showMarketingLogo onBack={() => navigation.goBack()}>
+      <AuthFormHeading title="Additional verification" subtitle="Enter your 2FA code" />
       <View style={{ alignItems: 'center', marginVertical: 24 }}>
         <OTPInput value={code} onChange={setCode} length={6} error={!!error} />
       </View>
       {error ? <ErrorBanner message={error} /> : null}
-      <PrimaryButton title="Continue" loading={loading} onPress={() => void submit()} />
-    </AuthScreenShell>
+      <PrimaryButton title="Continue" size="xl" loading={loading} onPress={() => void submit()} />
+    </AuthSplitLayout>
   );
 }

@@ -4,7 +4,8 @@ import { PrimaryButton, TextField, ErrorBanner } from '@shared/ui';
 import type { AuthStackParamList } from '@app/navigation/types';
 import { getAuthRepository } from '@core/repositories/AuthRepository';
 import { useAuthActions } from '../hooks/useAuthActions';
-import { AuthScreenShell } from '../components/AuthScreenShell';
+import { AuthSplitLayout } from '../components/AuthSplitLayout';
+import { AuthFormHeading } from '../components/AuthFormHeading';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'LoginPasskey'>;
 
@@ -17,14 +18,14 @@ export function LoginPasskeyScreen({ navigation }: Props) {
   const submit = async () => {
     setError(null);
     if (!email.trim()) {
-      setError('Enter email');
+      setError('Enter your email first');
       return;
     }
     setLoading(true);
     try {
       const { available } = await getAuthRepository().passkeyAvailable({ email: email.trim() });
       if (!available) {
-        setError('Passkeys not available for this account');
+        setError('Passkey not available for this account');
         return;
       }
       const options = await getAuthRepository().passkeyAuthenticateOptions({ email: email.trim() });
@@ -43,10 +44,11 @@ export function LoginPasskeyScreen({ navigation }: Props) {
   };
 
   return (
-    <AuthScreenShell testID="S-105" title="Passkey" subtitle="Sign in with your device biometrics" onBack={() => navigation.goBack()}>
-      <TextField label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" leftIcon="finger-print-outline" />
+    <AuthSplitLayout testID="S-105" showMarketingLogo onBack={() => navigation.goBack()}>
+      <AuthFormHeading title="Login with Passkey" subtitle="Sign in with your device biometrics" />
+      <TextField placeholder="Email address" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
       {error ? <ErrorBanner message={error} /> : null}
-      <PrimaryButton title="Continue with Passkey" loading={loading} onPress={() => void submit()} />
-    </AuthScreenShell>
+      <PrimaryButton title="Login with Passkey" size="xl" loading={loading} onPress={() => void submit()} />
+    </AuthSplitLayout>
   );
 }

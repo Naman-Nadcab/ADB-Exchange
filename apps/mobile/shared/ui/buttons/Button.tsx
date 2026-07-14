@@ -48,7 +48,14 @@ export function Button({
   const { theme } = useTheme();
   const c = theme.colors;
   const palette = getVariantColors(variant, c);
-  const height = size === 'sm' ? theme.sizes.buttonSm : size === 'md' ? theme.sizes.buttonMd : size === 'xl' ? theme.sizes.buttonXl : theme.sizes.buttonLg;
+  const height =
+    size === 'sm'
+      ? theme.sizes.buttonSm
+      : size === 'md'
+        ? theme.sizes.buttonMd
+        : size === 'xl'
+          ? theme.sizes.buttonXl
+          : theme.sizes.inputHeight;
 
   return (
     <Pressable
@@ -67,7 +74,7 @@ export function Button({
           borderColor: palette.border,
           borderWidth: palette.borderWidth,
           opacity: disabled ? 0.5 : pressed ? 0.88 : 1,
-          borderRadius: theme.radius.md,
+          borderRadius: theme.radius.lg,
           width: fullWidth ? '100%' : undefined,
           paddingHorizontal: theme.spacing[4],
         },

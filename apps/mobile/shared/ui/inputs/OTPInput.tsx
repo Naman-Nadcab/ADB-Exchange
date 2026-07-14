@@ -20,7 +20,7 @@ export function OTPInput({ length = 6, value, onChange, testID, error }: Props) 
   }, [value, length]);
 
   return (
-    <Pressable testID={testID} onPress={() => ref.current?.focus()} style={[styles.row, { gap: theme.spacing[2] }]}>
+    <Pressable testID={testID} onPress={() => ref.current?.focus()} style={[styles.row, { gap: 6 }]}>
       <TextInput
         ref={ref}
         value={value}
@@ -43,11 +43,18 @@ export function OTPInput({ length = 6, value, onChange, testID, error }: Props) 
                 : i === value.length
                   ? `hsl(${theme.colors.ring})`
                   : `hsl(${theme.colors.borderDefault})`,
-              backgroundColor: `hsl(${theme.colors.inputBackground})`,
+              backgroundColor: `hsl(${theme.colors.backgroundElevated} / 0.55)`,
             },
           ]}
         >
-          <Text style={[theme.typography.headingMd, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>{digit}</Text>
+          <Text
+            style={[
+              theme.typography.headingMd,
+              { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+            ]}
+          >
+            {digit}
+          </Text>
         </View>
       ))}
     </Pressable>
@@ -58,9 +65,9 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'center' },
   hidden: { position: 'absolute', opacity: 0, width: 1, height: 1 },
   cell: {
-    width: 48,
+    width: 44,
     height: 56,
-    borderWidth: 1.5,
+    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },

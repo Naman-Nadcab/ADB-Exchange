@@ -12,7 +12,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-na
 import { useTheme } from '@shared/theme';
 
 type Props = Omit<TextInputProps, 'style'> & {
-  label: string;
+  label?: string;
   value: string;
   onChangeText: (v: string) => void;
   error?: string;
@@ -48,22 +48,29 @@ export function TextField({
       error != null && error.length > 0
         ? `hsl(${theme.colors.statusError})`
         : focused.value
-          ? `hsl(${theme.colors.ring} / 0.55)`
+          ? `hsl(${theme.colors.ring})`
           : `hsl(${theme.colors.borderDefault})`,
   }));
 
   return (
-    <View style={[styles.wrap, { marginBottom: theme.spacing[4] }]}>
-      <Text style={[theme.typography.labelMd, { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[1.5] }]}>
-        {label}
-      </Text>
+    <View style={{ marginBottom: theme.spacing[4] }}>
+      {label ? (
+        <Text
+          style={[
+            theme.typography.labelMd,
+            { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[1.5] },
+          ]}
+        >
+          {label}
+        </Text>
+      ) : null}
       <Animated.View
         style={[
           styles.inputRow,
           {
             minHeight: theme.sizes.inputHeight,
-            borderRadius: theme.radius.md,
-            backgroundColor: `hsl(${theme.colors.inputBackground})`,
+            borderRadius: theme.radius.lg,
+            backgroundColor: `hsl(${theme.colors.backgroundElevated} / 0.55)`,
             borderWidth: 1,
           },
           ringStyle,
@@ -74,7 +81,7 @@ export function TextField({
             name={leftIcon}
             size={18}
             color={`hsl(${theme.colors.foregroundSecondary})`}
-            style={{ marginLeft: theme.spacing[3] }}
+            style={{ marginLeft: theme.spacing[4] }}
           />
         ) : null}
         <TextInput
@@ -97,24 +104,41 @@ export function TextField({
             theme.typography.bodyLg,
             {
               color: `hsl(${theme.colors.foregroundPrimary})`,
-              paddingHorizontal: leftIcon ? theme.spacing[2] : theme.spacing[3],
+              paddingHorizontal: leftIcon ? theme.spacing[2] : theme.spacing[4],
             },
           ]}
           placeholderTextColor={`hsl(${theme.colors.foregroundSecondary})`}
           {...rest}
         />
         {rightIcon ? (
-          <Pressable onPress={onRightIconPress} hitSlop={8} style={{ paddingRight: theme.spacing[3] }}>
-            <Ionicons name={rightIcon} size={18} color={`hsl(${theme.colors.foregroundSecondary})`} />
+          <Pressable onPress={onRightIconPress} hitSlop={8} style={{ paddingRight: theme.spacing[4] }}>
+            <Ionicons name={rightIcon} size={20} color={`hsl(${theme.colors.foregroundSecondary})`} />
           </Pressable>
         ) : null}
       </Animated.View>
       {error ? (
-        <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.statusError})`, marginTop: theme.spacing[1] }]}>
+        <Text
+          style={[
+            theme.typography.bodySm,
+            {
+              color: `hsl(${theme.colors.statusError})`,
+              marginTop: theme.spacing[1],
+              backgroundColor: `hsl(${theme.colors.statusError} / 0.1)`,
+              paddingHorizontal: theme.spacing[3],
+              paddingVertical: theme.spacing[1.5],
+              borderRadius: theme.radius.md,
+            },
+          ]}
+        >
           {error}
         </Text>
       ) : hint ? (
-        <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[1] }]}>
+        <Text
+          style={[
+            theme.typography.bodySm,
+            { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[1] },
+          ]}
+        >
           {hint}
         </Text>
       ) : null}
@@ -123,7 +147,6 @@ export function TextField({
 }
 
 const styles = StyleSheet.create({
-  wrap: {},
   inputRow: { flexDirection: 'row', alignItems: 'center' },
-  input: { flex: 1, paddingVertical: 12 },
+  input: { flex: 1, paddingVertical: 14 },
 });

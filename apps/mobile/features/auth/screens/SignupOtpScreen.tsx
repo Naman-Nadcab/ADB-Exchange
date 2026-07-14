@@ -5,7 +5,9 @@ import { PrimaryButton, OTPInput, ErrorBanner } from '@shared/ui';
 import type { AuthStackParamList } from '@app/navigation/types';
 import { getAuthRepository } from '@core/repositories/AuthRepository';
 import { useAuthActions } from '../hooks/useAuthActions';
-import { AuthScreenShell } from '../components/AuthScreenShell';
+import { AuthSplitLayout } from '../components/AuthSplitLayout';
+import { AuthFormHeading } from '../components/AuthFormHeading';
+import { AuthProgressBar } from '../components/AuthProgressBar';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignupOtp'>;
 
@@ -18,16 +20,20 @@ export function SignupOtpScreen({ route, navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { handleAuthError } = useAuthActions();
+  const idType = detectType(route.params.identifier);
 
   const submit = async () => {
     setError(null);
+    if (otp.length !== 6) {
+      setError('Enter 6-digit code');
+      return;
+    }
     setLoading(true);
     try {
-      const type = detectType(route.params.identifier);
       await getAuthRepository().verifyOtp({
         identifier: route.params.identifier,
         otp,
-        type,
+        type: idType,
         purpose: 'signup',
       });
       navigation.navigate('SignupPassword', {
@@ -42,12 +48,17 @@ export function SignupOtpScreen({ route, navigation }: Props) {
   };
 
   return (
-    <AuthScreenShell testID="S-107" title="Verify OTP" subtitle={`Code sent to ${route.params.identifier}`} onBack={() => navigation.goBack()}>
+    <AuthSplitLayout testID="S-107" showMarketingLogo onBack={() => navigation.goBack()}>
+      <AuthProgressBar steps={4} currentIndex={2} />
+      <AuthFormHeading
+        title={`Verify your ${idType}`}
+        subtitle={`Code sent to ${route.params.identifier}`}
+      />
       <View style={{ alignItems: 'center', marginVertical: 24 }}>
         <OTPInput value={otp} onChange={setOtp} error={!!error} />
       </View>
       {error ? <ErrorBanner message={error} /> : null}
-      <PrimaryButton title="Verify" loading={loading} onPress={() => void submit()} />
-    </AuthScreenShell>
+      <PrimaryButton title="Verify" size="xl" loading={loading} onPress={() => void submit()} />
+    </AuthSplitLayout>
   );
 }

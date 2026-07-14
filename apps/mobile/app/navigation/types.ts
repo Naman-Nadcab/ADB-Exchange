@@ -9,7 +9,7 @@ export type AuthStackParamList = {
     nextStep: 'sms' | 'email' | '2fa';
   };
   LoginPasskey: undefined;
-  SignupIdentifier: { referralCode?: string } | undefined;
+  SignupIdentifier: { referralCode?: string; idType?: 'email' | 'phone' } | undefined;
   SignupOtp: { identifier: string; referralCode?: string };
   SignupPassword: { identifier: string; referralCode?: string };
   SignupReferral: { identifier: string; password: string };

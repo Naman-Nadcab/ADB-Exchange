@@ -4,7 +4,8 @@ import { PrimaryButton, TextField, ErrorBanner } from '@shared/ui';
 import type { AuthStackParamList } from '@app/navigation/types';
 import { useSignup } from '../hooks/useSignup';
 import { useAuthActions } from '../hooks/useAuthActions';
-import { AuthScreenShell } from '../components/AuthScreenShell';
+import { AuthSplitLayout } from '../components/AuthSplitLayout';
+import { AuthFormHeading } from '../components/AuthFormHeading';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignupReferral'>;
 
@@ -33,10 +34,11 @@ export function SignupReferralScreen({ route, navigation }: Props) {
   };
 
   return (
-    <AuthScreenShell testID="S-109" title="Referral code" subtitle="Optional — unlock fee discounts" onBack={() => navigation.goBack()}>
-      <TextField label="Code (optional)" value={referralCode} onChangeText={setReferralCode} leftIcon="gift-outline" autoCapitalize="characters" />
+    <AuthSplitLayout testID="S-109" showMarketingLogo onBack={() => navigation.goBack()}>
+      <AuthFormHeading title="Referral code" subtitle="Optional — unlock fee discounts" />
+      <TextField placeholder="Code (optional)" value={referralCode} onChangeText={setReferralCode} autoCapitalize="characters" />
       {error ? <ErrorBanner message={error} /> : null}
-      <PrimaryButton title="Finish signup" loading={signup.isPending} onPress={() => void submit()} />
-    </AuthScreenShell>
+      <PrimaryButton title="Finish signup" size="xl" loading={signup.isPending} onPress={() => void submit()} />
+    </AuthSplitLayout>
   );
 }
