@@ -33,7 +33,7 @@ export function filterByQuote(items: MarketListItem[], quote: string | null): Ma
 
 export function filterByTab(
   items: MarketListItem[],
-  tab: 'favorites' | 'all' | 'gainers' | 'losers' | 'trending',
+  tab: 'favorites' | 'all' | 'gainers' | 'losers' | 'trending' | 'new',
   favorites: string[],
 ): MarketListItem[] {
   switch (tab) {
@@ -45,9 +45,22 @@ export function filterByTab(
       return [...items].sort((a, b) => a.changePct - b.changePct).filter((i) => i.changePct < 0);
     case 'trending':
       return [...items].sort((a, b) => b.volume24h - a.volume24h).slice(0, 50);
+    case 'new':
+      return newListings(items);
     default:
       return items;
   }
+}
+
+export function newListings(items: MarketListItem[], limit = 50): MarketListItem[] {
+  return [...items]
+    .sort((a, b) => {
+      const ta = Date.parse(a.listedAt ?? '1970-01-01');
+      const tb = Date.parse(b.listedAt ?? '1970-01-01');
+      if (ta !== tb) return tb - ta;
+      return b.symbol.localeCompare(a.symbol);
+    })
+    .slice(0, limit);
 }
 
 export function sortMarkets(
@@ -93,4 +106,15 @@ export function topLosers(items: MarketListItem[], limit = 5): MarketListItem[] 
 
 export function trending(items: MarketListItem[], limit = 5): MarketListItem[] {
   return [...items].sort((a, b) => b.volume24h - a.volume24h).slice(0, limit);
+}
+
+export function newListingsPreview(items: MarketListItem[], limit = 5): MarketListItem[] {
+  return newListings(items, limit);
+}
+
+export function aggregateMarketStats(items: MarketListItem[]) {
+  const totalVolume = items.reduce((sum, i) => sum + i.volume24h, 0);
+  const gainers = items.filter((i) => i.changePct > 0).length;
+  const losers = items.filter((i) => i.changePct < 0).length;
+  return { totalVolume, pairsCount: items.length, gainers, losers };
 }

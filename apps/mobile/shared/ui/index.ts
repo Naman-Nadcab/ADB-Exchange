@@ -37,4 +37,13 @@ export { AssetRow } from './data/AssetRow';
 export { KYCStepper } from './data/KYCStepper';
 export { MerchantBadge } from './data/MerchantBadge';
 
+export { CandleChart, CHART_INTERVALS } from './charts/CandleChart';
+
 export { TxHistoryRow } from './lists/TxHistoryRow';
+
+export { TerminalPanel } from './trading/TerminalPanel';
+export { TerminalTabs } from './trading/TerminalTabs';
+export { PriceFlashText } from './trading/PriceFlashText';
+export { PercentageSlider } from './trading/PercentageSlider';
+export { TradeSideToggle } from './trading/TradeSideToggle';
+export { BalanceCard } from './trading/BalanceCard';

@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useTheme } from '@shared/theme';
+import { useTheme, hapticLight } from '@shared/theme';
+import { TerminalPanel } from '@shared/ui';
 import type { SpotOrder } from '@exchange/mobile-types';
 import { useCancelOrder, useCancelAllOrders } from '../hooks/useTrade';
 
@@ -14,44 +15,53 @@ export function OpenOrdersPeek({ orders, symbol, onViewAll }: Props) {
   if (!peek.length) return null;
 
   return (
-    <View style={styles.wrap}>
+    <TerminalPanel style={styles.wrap}>
       <View style={styles.header}>
-        <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '600' }}>
+        <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansSemiBold }]}>
           Open Orders ({orders.length})
         </Text>
         <View style={styles.headerActions}>
           {orders.length > 1 ? (
             <Pressable
-              onPress={() => cancelAll.mutate(symbol)}
+              onPress={() => {
+                void hapticLight();
+                cancelAll.mutate(symbol);
+              }}
               accessibilityLabel="Cancel all orders"
             >
-              <Text style={{ color: `hsl(${theme.colors.statusError})`, fontSize: 12 }}>Cancel all</Text>
+              <Text style={{ color: `hsl(${theme.colors.statusError})`, fontSize: 12, fontWeight: '600' }}>Cancel all</Text>
             </Pressable>
           ) : null}
           {onViewAll ? (
             <Pressable onPress={onViewAll}>
-              <Text style={{ color: `hsl(${theme.colors.brandPrimary})` }}>View all</Text>
+              <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600' }}>View all</Text>
             </Pressable>
           ) : null}
         </View>
       </View>
-      {peek.map((o) => (
-        <View key={o.id} style={styles.row}>
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}>
-            {o.side} {o.type} {o.quantity} @ {o.price ?? 'MKT'}
-          </Text>
-          <Pressable onPress={() => cancel.mutate(o.id)} accessibilityLabel="Cancel order">
-            <Text style={{ color: `hsl(${theme.colors.statusError})`, fontSize: 12 }}>Cancel</Text>
-          </Pressable>
-        </View>
-      ))}
-    </View>
+      {peek.map((o) => {
+        const sideColor = o.side === 'buy' ? theme.colors.tradeBuy : theme.colors.tradeSell;
+        return (
+          <View key={o.id} style={styles.row}>
+            <Text style={{ color: `hsl(${sideColor})`, fontSize: 12, fontWeight: '600', textTransform: 'capitalize' }}>
+              {o.side} {o.type}
+            </Text>
+            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, flex: 1, marginHorizontal: 8 }}>
+              {o.quantity} @ {o.price ?? 'MKT'}
+            </Text>
+            <Pressable onPress={() => cancel.mutate(o.id)} accessibilityLabel="Cancel order">
+              <Text style={{ color: `hsl(${theme.colors.statusError})`, fontSize: 12 }}>Cancel</Text>
+            </Pressable>
+          </View>
+        );
+      })}
+    </TerminalPanel>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginTop: 12, padding: 12, borderRadius: 8 },
+  wrap: { marginTop: 12 },
   header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   headerActions: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, minHeight: 28 },
 });

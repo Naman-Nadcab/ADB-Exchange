@@ -1,6 +1,8 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useTheme } from '@shared/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme, hapticLight } from '@shared/theme';
 import { formatPrice, formatChangePct, changeColorKey } from '@core/domain/markets/formatPrice';
+import { PriceFlashText, TerminalPanel, StatusChip } from '@shared/ui';
 import { useFavorites } from '@features/markets';
 import type { SpotTickerDetail } from '@exchange/mobile-types';
 import type { WsConnectionState } from '@core/ws/channels';
@@ -20,43 +22,71 @@ export function PairHeader({ symbol, ticker, livePrice, liveChange, wsState, onS
   const price = livePrice ?? Number(ticker?.last_price ?? 0);
   const change = liveChange ?? Number(ticker?.change_pct ?? 0);
   const ck = changeColorKey(change);
-  const changeColor =
-    ck === 'buy' ? theme.colors.tradeBuy : ck === 'sell' ? theme.colors.tradeSell : theme.colors.foregroundSecondary;
+  const direction = ck === 'buy' ? 'up' : ck === 'sell' ? 'down' : 'neutral';
 
   return (
-    <View style={styles.wrap}>
-      <Pressable onPress={onSwitchPair} accessibilityRole="button" accessibilityLabel="Switch trading pair">
-        <Text style={[styles.pair, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
-          {ticker?.base_asset ?? symbol.split('_')[0]}/{ticker?.quote_asset ?? symbol.split('_')[1]}
-        </Text>
-      </Pressable>
-      <Text style={[styles.price, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
-        {formatPrice(price, ticker?.quote_asset ?? 'USDT')}
-      </Text>
-      <View style={styles.row}>
-        <Text style={{ color: `hsl(${changeColor})`, fontWeight: '600' }}>{formatChangePct(change)}</Text>
-        <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}>
-          H {formatPrice(Number(ticker?.high_24h ?? 0), '')} L {formatPrice(Number(ticker?.low_24h ?? 0), '')}
-        </Text>
-      </View>
-      <View style={styles.actions}>
-        <Pressable onPress={() => toggle(symbol)} accessibilityLabel="Toggle favorite">
-          <Text style={{ color: `hsl(${theme.colors.brandPrimary})` }}>
-            {isFavorite(symbol) ? '★' : '☆'}
+    <TerminalPanel style={styles.wrap}>
+      <View style={styles.topRow}>
+        <Pressable onPress={onSwitchPair} accessibilityRole="button" accessibilityLabel="Switch trading pair" style={styles.pairBtn}>
+          <Text style={[theme.typography.headingMd, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+            {ticker?.base_asset ?? symbol.split('_')[0]}
+            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontWeight: '400' }}>
+              /{ticker?.quote_asset ?? symbol.split('_')[1]}
+            </Text>
           </Text>
+          <Ionicons name="chevron-down" size={16} color={`hsl(${theme.colors.foregroundSecondary})`} />
         </Pressable>
-        <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11 }}>
-          {wsState === 'connected' ? '● Live' : wsState === 'reconnecting' ? '↻ Reconnecting' : '○ Offline'}
+        <View style={styles.actions}>
+          <Pressable
+            onPress={() => {
+              void hapticLight();
+              toggle(symbol);
+            }}
+            accessibilityLabel="Toggle favorite"
+          >
+            <Ionicons
+              name={isFavorite(symbol) ? 'star' : 'star-outline'}
+              size={20}
+              color={`hsl(${theme.colors.brandPrimary})`}
+            />
+          </Pressable>
+          <StatusChip
+            label={wsState === 'connected' ? 'Live' : wsState === 'reconnecting' ? 'Syncing' : 'Offline'}
+            tone={wsState === 'connected' ? 'live' : wsState === 'reconnecting' ? 'sync' : 'off'}
+          />
+        </View>
+      </View>
+
+      <PriceFlashText value={formatPrice(price, ticker?.quote_asset ?? 'USDT')} direction={direction} size="xl" />
+
+      <View style={styles.statsRow}>
+        <Text
+          style={{
+            color: `hsl(${direction === 'up' ? theme.colors.tradeBuy : direction === 'down' ? theme.colors.tradeSell : theme.colors.foregroundSecondary})`,
+            fontWeight: '600',
+            fontSize: 14,
+          }}
+        >
+          {formatChangePct(change)}
+        </Text>
+        <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+          H {formatPrice(Number(ticker?.high_24h ?? 0), '')}
+        </Text>
+        <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+          L {formatPrice(Number(ticker?.low_24h ?? 0), '')}
+        </Text>
+        <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+          Vol {Number(ticker?.volume_24h ?? 0).toLocaleString(undefined, { notation: 'compact' })}
         </Text>
       </View>
-    </View>
+    </TerminalPanel>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: 12 },
-  pair: { fontSize: 18, fontWeight: '700' },
-  price: { fontSize: 24, fontWeight: '700', fontVariant: ['tabular-nums'], marginTop: 4 },
-  row: { flexDirection: 'row', gap: 12, marginTop: 4, alignItems: 'center' },
-  actions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  pairBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 8, alignItems: 'center' },
 });

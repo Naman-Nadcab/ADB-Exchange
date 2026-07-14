@@ -8,7 +8,7 @@ import {
   Pressable,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useTheme } from '@shared/theme';
+import { useTheme, hapticSelection } from '@shared/theme';
 import {
   ScreenLayout,
   SegmentControl,
@@ -19,9 +19,16 @@ import {
 } from '@shared/ui';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
-import { topGainers, topLosers, trending } from '@core/domain/markets/marketUtils';
+import {
+  topGainers,
+  topLosers,
+  trending,
+  newListingsPreview,
+  aggregateMarketStats,
+} from '@core/domain/markets/marketUtils';
 import { MarketRow } from '../components/MarketRow';
 import { MarketsHeaderWidgets } from '../components/MarketsHeaderWidgets';
+import { MarketsMetricsRow } from '../components/MarketsMetricsRow';
 import { useMarkets } from '../hooks/useMarkets';
 import { useFavorites } from '../hooks/useFavorites';
 import { useMarketsList } from '../hooks/useMarketsList';
@@ -36,8 +43,17 @@ type Props = NativeStackScreenProps<MarketsStackParamList, 'MarketsHome'>;
 const TABS: { id: MarketTab; label: string }[] = [
   { id: 'favorites', label: 'Favorites' },
   { id: 'all', label: 'All' },
+  { id: 'trending', label: 'Trending' },
   { id: 'gainers', label: 'Gainers' },
   { id: 'losers', label: 'Losers' },
+  { id: 'new', label: 'New' },
+];
+
+const SORT_OPTIONS: { id: MarketSortKey; label: string }[] = [
+  { id: 'volume', label: 'Volume' },
+  { id: 'change', label: 'Change' },
+  { id: 'name', label: 'Name' },
+  { id: 'price', label: 'Price' },
 ];
 
 const PAGE_SIZE = 30;
@@ -51,7 +67,7 @@ export function MarketsHomeScreen({ navigation }: Props) {
   const [quote, setQuote] = useState<string | null>(
     mmkvStorage.getString(CACHE_KEYS.quoteCurrency) ?? null,
   );
-  const [sortKey] = useState<MarketSortKey>(
+  const [sortKey, setSortKey] = useState<MarketSortKey>(
     (mmkvStorage.getString(CACHE_KEYS.marketSort) as MarketSortKey) ?? 'volume',
   );
   const [page, setPage] = useState(1);
@@ -60,6 +76,10 @@ export function MarketsHomeScreen({ navigation }: Props) {
   useEffect(() => {
     analytics.screen('S-200');
   }, []);
+
+  useEffect(() => {
+    setPage(1);
+  }, [tab, quote, sortKey, searchLocal]);
 
   const items = useMemo(() => data ?? [], [data]);
   const list = useMarketsList({
@@ -79,13 +99,15 @@ export function MarketsHomeScreen({ navigation }: Props) {
 
   const widgets = useMemo(
     () => ({
-      gainers: topGainers(items, 3),
-      losers: topLosers(items, 3),
-      trending: trending(items, 3),
+      gainers: topGainers(items, 4),
+      losers: topLosers(items, 4),
+      trending: trending(items, 4),
+      newListings: newListingsPreview(items, 4),
     }),
     [items],
   );
 
+  const stats = useMemo(() => aggregateMarketStats(items), [items]);
   const paged = useMemo(() => list.slice(0, page * PAGE_SIZE), [list, page]);
 
   const onEndReached = useCallback(() => {
@@ -101,24 +123,41 @@ export function MarketsHomeScreen({ navigation }: Props) {
     ? `Updated ${Math.round((Date.now() - dataUpdatedAt) / 1000)}s ago`
     : '';
 
-  const openAccount = useCallback(() => {
-    let nav = navigation.getParent();
-    while (nav?.getParent()) nav = nav.getParent();
-    (nav as { navigate: (name: string) => void } | undefined)?.navigate('Account');
-  }, [navigation]);
+  const cycleSort = () => {
+    void hapticSelection();
+    const idx = SORT_OPTIONS.findIndex((s) => s.id === sortKey);
+    const next = SORT_OPTIONS[(idx + 1) % SORT_OPTIONS.length].id;
+    setSortKey(next);
+    mmkvStorage.set(CACHE_KEYS.marketSort, next);
+  };
 
-  return (
-    <ScreenLayout testID="S-200">
+  const toggleQuote = () => {
+    void hapticSelection();
+    const next = quote === 'USDT' ? null : 'USDT';
+    setQuote(next);
+    if (next) mmkvStorage.set(CACHE_KEYS.quoteCurrency, next);
+    else mmkvStorage.remove(CACHE_KEYS.quoteCurrency);
+  };
+
+  const ListHeader = (
+    <>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Markets</Text>
-        <View style={styles.headerActions}>
-          <Pressable onPress={openAccount} accessibilityRole="button" accessibilityLabel="Account">
-            <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600' }}>Account</Text>
-          </Pressable>
-          <Pressable onPress={() => navigation.navigate('MarketSearch')} accessibilityRole="button">
-            <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600' }}>Search</Text>
-          </Pressable>
+        <View>
+          <Text style={[theme.typography.headingLg, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+            Markets
+          </Text>
+          <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: 2 }]}>
+            Explore spot pairs and live prices
+          </Text>
         </View>
+        <Pressable
+          onPress={() => navigation.navigate('MarketSearch')}
+          accessibilityRole="button"
+          accessibilityLabel="Search markets"
+          style={[styles.searchBtn, { borderColor: `hsl(${theme.colors.borderDefault})` }]}
+        >
+          <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600' }}>Search</Text>
+        </Pressable>
       </View>
       {!isOnline ? (
         <ErrorBanner message="Offline — showing cached markets" onRetry={() => void refetch()} />
@@ -126,45 +165,70 @@ export function MarketsHomeScreen({ navigation }: Props) {
       {staleLabel ? (
         <Text style={[styles.stale, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>{staleLabel}</Text>
       ) : null}
-      <SearchBar value={searchLocal} onChangeText={setSearchLocal} placeholder="Filter markets" />
+      <MarketsMetricsRow
+        pairsCount={stats.pairsCount}
+        totalVolume={stats.totalVolume}
+        gainers={stats.gainers}
+        losers={stats.losers}
+      />
       <MarketsHeaderWidgets
         gainers={widgets.gainers}
         losers={widgets.losers}
         trending={widgets.trending}
+        newListings={widgets.newListings}
         onSelect={openDetail}
       />
+      <SearchBar value={searchLocal} onChangeText={setSearchLocal} placeholder="Search by symbol or name" />
       <SegmentControl tabs={TABS} active={tab} onChange={(id) => setTab(id as MarketTab)} />
-      <Pressable
-        onPress={() => setQuote(quote === 'USDT' ? null : 'USDT')}
-        style={styles.quoteFilter}
-        accessibilityRole="button"
-        accessibilityLabel="Quote currency filter"
-      >
-        <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}>
-          Quote: {quote ?? 'All'}
-        </Text>
-      </Pressable>
+      <View style={styles.filters}>
+        <Pressable onPress={toggleQuote} style={styles.filterChip} accessibilityRole="button">
+          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}>
+            Quote: {quote ?? 'All'}
+          </Text>
+        </Pressable>
+        <Pressable onPress={cycleSort} style={styles.filterChip} accessibilityRole="button">
+          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}>
+            Sort: {SORT_OPTIONS.find((s) => s.id === sortKey)?.label}
+          </Text>
+        </Pressable>
+      </View>
+    </>
+  );
+
+  return (
+    <ScreenLayout testID="S-200">
       {isLoading && !data ? (
-        <SkeletonList />
+        <>
+          {ListHeader}
+          <SkeletonList />
+        </>
       ) : isError ? (
-        <EmptyState
-          title="Could not load markets"
-          message={error instanceof Error ? error.message : 'Try again'}
-          onAction={() => void refetch()}
-          actionLabel="Retry"
-        />
+        <>
+          {ListHeader}
+          <EmptyState
+            title="Could not load markets"
+            message={error instanceof Error ? error.message : 'Try again'}
+            onAction={() => void refetch()}
+            actionLabel="Retry"
+          />
+        </>
       ) : paged.length === 0 ? (
-        <EmptyState
-          title={tab === 'favorites' ? 'No favorites yet' : 'No markets found'}
-          message={tab === 'favorites' ? 'Long press a market to add favorites' : undefined}
-        />
+        <>
+          {ListHeader}
+          <EmptyState
+            title={tab === 'favorites' ? 'No favorites yet' : 'No markets found'}
+            message={tab === 'favorites' ? 'Long press a market to add favorites' : undefined}
+          />
+        </>
       ) : (
         <FlatList
           data={paged}
           keyExtractor={(item) => item.symbol}
-          renderItem={({ item }) => (
+          ListHeaderComponent={ListHeader}
+          renderItem={({ item, index }) => (
             <MarketRow
               item={item}
+              rank={tab === 'all' || tab === 'trending' ? index + 1 : undefined}
               onPress={() => openDetail(item.symbol)}
               onLongPress={() => toggle(item.symbol)}
               isFavorite={isFavorite(item.symbol)}
@@ -176,7 +240,7 @@ export function MarketsHomeScreen({ navigation }: Props) {
           maxToRenderPerBatch={10}
           windowSize={7}
           removeClippedSubviews
-          getItemLayout={(_, index) => ({ length: 64, offset: 64 * index, index })}
+          getItemLayout={(_, index) => ({ length: 68, offset: 68 * index, index })}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={() => void refetch()} />}
         />
       )}
@@ -185,9 +249,9 @@ export function MarketsHomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  headerActions: { flexDirection: 'row', gap: 16 },
-  title: { fontSize: 24, fontWeight: '700' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
+  searchBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1, minHeight: 36, justifyContent: 'center' },
   stale: { fontSize: 11, marginBottom: 8 },
-  quoteFilter: { marginBottom: 8, minHeight: 32, justifyContent: 'center' },
+  filters: { flexDirection: 'row', gap: 12, marginBottom: 8 },
+  filterChip: { minHeight: 32, justifyContent: 'center' },
 });

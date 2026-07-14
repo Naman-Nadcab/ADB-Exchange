@@ -4,7 +4,7 @@ import { mergeTickers } from '@core/domain/markets/marketUtils';
 import { readCache } from '@core/offline/readCache';
 import { CACHE_KEYS } from '@core/storage/cacheKeys';
 import { CACHE_TTL_MS } from '@core/offline/cacheTTL';
-import type { MarketListItem } from '@exchange/mobile-types';
+import type { MarketListItem, SpotMarket } from '@exchange/mobile-types';
 
 export const MARKETS_QUERY_KEY = ['markets'] as const;
 
@@ -12,8 +12,17 @@ export function useMarkets() {
   return useQuery({
     queryKey: MARKETS_QUERY_KEY,
     queryFn: async (): Promise<MarketListItem[]> => {
-      const tickers = await getSpotRepository().getTickers();
-      const items = mergeTickers(tickers);
+      const [tickers, markets] = await Promise.all([
+        getSpotRepository().getTickers(),
+        getSpotRepository().getMarkets().catch(() => [] as SpotMarket[]),
+      ]);
+      const listedBySymbol = new Map(
+        markets.map((m) => [m.symbol.toUpperCase().replace(/-/g, '_'), m.listed_at ?? m.created_at]),
+      );
+      const items = mergeTickers(tickers).map((item) => ({
+        ...item,
+        listedAt: listedBySymbol.get(item.symbol),
+      }));
       readCache.set(CACHE_KEYS.markets, items);
       return items;
     },

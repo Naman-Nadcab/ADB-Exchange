@@ -18,6 +18,8 @@ export type SpotMarket = {
   high_24h?: string;
   low_24h?: string;
   change_pct?: number;
+  listed_at?: string;
+  created_at?: string;
 };
 
 export type SpotTicker = {
@@ -65,10 +67,11 @@ export type MarketListItem = {
   volume24h: number;
   high24h: number;
   low24h: number;
+  listedAt?: string;
 };
 
 export type MarketSortKey = 'volume' | 'change' | 'name' | 'price';
-export type MarketTab = 'favorites' | 'all' | 'gainers' | 'losers' | 'trending';
+export type MarketTab = 'favorites' | 'all' | 'gainers' | 'losers' | 'trending' | 'new';
 
 export type OrderbookLevel = { price: string; quantity: string };
 

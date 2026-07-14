@@ -1,7 +1,8 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { ScrollView, View, Pressable, Text, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, SegmentControl, SkeletonList } from '@shared/ui';
+import { CandleChart, CHART_INTERVALS, ScreenLayout, TerminalTabs, SkeletonList, TerminalPanel } from '@shared/ui';
+import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useTicker } from '@features/markets';
 import { useTradeStore } from '@core/state/tradeStore';
@@ -10,7 +11,6 @@ import { useMarketDataStore } from '@core/state/marketDataStore';
 import { PairHeader } from '../components/PairHeader';
 import { OrderBookLadder } from '../components/OrderBookLadder';
 import { RecentTradesList } from '../components/RecentTradesList';
-import { CandleChart, INTERVALS } from '../components/CandleChart';
 import { OrderForm } from '../components/OrderForm';
 import { OpenOrdersPeek } from '../components/OpenOrdersPeek';
 import { useTradeScreenData } from '../hooks/useTradeSubscriptions';
@@ -18,14 +18,17 @@ import { useOpenOrders, useTradingBalances, useCandles, useMarketsMeta } from '.
 import type { TradeStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<TradeStackParamList, 'SpotTrading'>;
+type TradeTab = 'chart' | 'book' | 'trade' | 'orders';
 
 export function SpotTradingScreen({ navigation, route }: Props) {
+  const { theme } = useTheme();
   const symbol = route.params?.symbol ?? useTradeStore.getState().symbol;
   const side = useTradeStore((s) => s.side);
   const setSymbol = useTradeStore((s) => s.setSymbol);
   const setSide = useTradeStore((s) => s.setSide);
   const [presetPrice, setPresetPrice] = useState<string | undefined>();
   const [interval, setInterval] = useState(300);
+  const [tab, setTab] = useState<TradeTab>('trade');
   const wsState = useWsClient().getState();
 
   useEffect(() => {
@@ -57,59 +60,116 @@ export function SpotTradingScreen({ navigation, route }: Props) {
 
   const symbolOrders = (openOrders ?? []).filter((o) => o.market === symbol);
 
+  const goOrdersTab = useCallback(() => {
+    navigation.getParent()?.navigate('Orders');
+  }, [navigation]);
+
   return (
     <ScreenLayout testID="S-300">
-      <ScrollView keyboardShouldPersistTaps="handled">
-        <PairHeader
-          symbol={symbol}
-          ticker={ticker}
-          livePrice={live?.lastPrice}
-          liveChange={live?.changePct}
-          wsState={wsState}
-          onSwitchPair={() => navigation.navigate('PairSelector')}
-        />
-        <View style={styles.links}>
-          <Pressable onPress={() => navigation.navigate('ChartFullscreen', { symbol, interval })}>
-            <Text style={styles.link}>Chart ↗</Text>
-          </Pressable>
-          <Pressable onPress={() => navigation.navigate('OrderbookFullscreen', { symbol })}>
-            <Text style={styles.link}>Book ↗</Text>
-          </Pressable>
-          <Pressable onPress={() => navigation.navigate('TradesFullscreen', { symbol })}>
-            <Text style={styles.link}>Trades ↗</Text>
-          </Pressable>
-        </View>
-        <SegmentControl
-          tabs={INTERVALS.map((i) => ({ id: String(i.sec), label: i.label }))}
-          active={String(interval)}
-          onChange={(id) => setInterval(Number(id))}
-        />
-        {candlesLoading && !candles ? <SkeletonList rows={3} /> : <CandleChart candles={candles ?? []} />}
-        <View style={styles.split}>
-          <OrderBookLadder
-            book={orderbook}
-            onSelectPrice={(p) => setPresetPrice(p)}
-            maxRows={8}
+      <PairHeader
+        symbol={symbol}
+        ticker={ticker}
+        livePrice={live?.lastPrice}
+        liveChange={live?.changePct}
+        wsState={wsState}
+        onSwitchPair={() => navigation.navigate('PairSelector')}
+      />
+
+      <TerminalTabs
+        tabs={[
+          { id: 'chart', label: 'Chart' },
+          { id: 'book', label: 'Book' },
+          { id: 'trade', label: 'Trade' },
+          { id: 'orders', label: 'Orders' },
+        ]}
+        active={tab}
+        onChange={(id) => setTab(id as TradeTab)}
+      />
+
+      <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        {tab === 'chart' && (
+          <View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }}>
+              {CHART_INTERVALS.map((i) => (
+                <Pressable
+                  key={i.sec}
+                  onPress={() => setInterval(i.sec)}
+                  style={[
+                    styles.intervalChip,
+                    {
+                      backgroundColor:
+                        interval === i.sec ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.surfaceMuted})`,
+                      borderRadius: theme.radius.md,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color:
+                        interval === i.sec
+                          ? `hsl(${theme.colors.brandPrimaryForeground})`
+                          : `hsl(${theme.colors.foregroundPrimary})`,
+                      fontSize: 12,
+                      fontWeight: '600',
+                    }}
+                  >
+                    {i.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+            {candlesLoading && !candles ? (
+              <SkeletonList rows={4} />
+            ) : (
+              <TerminalPanel padded={false}>
+                <CandleChart candles={candles ?? []} height={220} />
+              </TerminalPanel>
+            )}
+            <Pressable onPress={() => navigation.navigate('ChartFullscreen', { symbol, interval })} style={styles.link}>
+              <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600' }}>Fullscreen chart ↗</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {tab === 'book' && (
+          <View style={styles.split}>
+            <OrderBookLadder book={orderbook} onSelectPrice={(p) => { setPresetPrice(p); setTab('trade'); }} maxRows={10} />
+            <RecentTradesList trades={trades ?? []} maxRows={12} />
+          </View>
+        )}
+
+        {tab === 'trade' && (
+          <OrderForm
+            symbol={symbol}
+            side={side}
+            market={marketMeta}
+            availableBalance={available}
+            quoteAsset={quoteAsset}
+            baseAsset={baseAsset}
+            onSideChange={setSide}
+            presetPrice={presetPrice}
           />
-          <RecentTradesList trades={trades ?? []} maxRows={8} />
-        </View>
-        <OrderForm
-          symbol={symbol}
-          side={side}
-          market={marketMeta}
-          availableBalance={available}
-          quoteAsset={quoteAsset}
-          onSideChange={setSide}
-          presetPrice={presetPrice}
-        />
-        <OpenOrdersPeek orders={symbolOrders} symbol={symbol} />
+        )}
+
+        {tab === 'orders' && (
+          <View>
+            <OpenOrdersPeek orders={symbolOrders} symbol={symbol} onViewAll={goOrdersTab} />
+            {symbolOrders.length === 0 ? (
+              <TerminalPanel>
+                <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, textAlign: 'center' }}>
+                  No open orders for this pair
+                </Text>
+              </TerminalPanel>
+            ) : null}
+          </View>
+        )}
       </ScrollView>
     </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  links: { flexDirection: 'row', gap: 16, marginBottom: 8 },
-  link: { fontWeight: '600', fontSize: 13 },
-  split: { flexDirection: 'row', gap: 8 },
+  intervalChip: { paddingHorizontal: 12, paddingVertical: 6, marginRight: 6, minHeight: 32, justifyContent: 'center' },
+  link: { marginTop: 12, alignItems: 'center' },
+  split: { gap: 8 },
 });
