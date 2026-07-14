@@ -1,16 +1,14 @@
 import { useState } from 'react';
-import { Text, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, PrimaryButton, TextField, ErrorBanner } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import { PrimaryButton, TextField, ErrorBanner } from '@shared/ui';
 import type { AuthStackParamList } from '@app/navigation/types';
 import { usePasswordResetRequest } from '../hooks/usePasswordReset';
 import { useAuthActions } from '../hooks/useAuthActions';
+import { AuthScreenShell } from '../components/AuthScreenShell';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ForgotPasswordRequest'>;
 
 export function ForgotPasswordRequestScreen({ navigation }: Props) {
-  const { theme } = useTheme();
   const [identifier, setIdentifier] = useState('');
   const [error, setError] = useState<string | null>(null);
   const resetReq = usePasswordResetRequest();
@@ -27,17 +25,10 @@ export function ForgotPasswordRequestScreen({ navigation }: Props) {
   };
 
   return (
-    <ScreenLayout testID="S-110">
-      <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
-        Forgot password
-      </Text>
-      <TextField label="Email or phone" value={identifier} onChangeText={setIdentifier} />
+    <AuthScreenShell testID="S-110" title="Forgot password" subtitle="We'll send a reset code" onBack={() => navigation.goBack()}>
+      <TextField label="Email or phone" value={identifier} onChangeText={setIdentifier} leftIcon="mail-outline" />
       {error ? <ErrorBanner message={error} /> : null}
       <PrimaryButton title="Send OTP" loading={resetReq.isPending} onPress={() => void submit()} />
-    </ScreenLayout>
+    </AuthScreenShell>
   );
 }
-
-const styles = StyleSheet.create({
-  title: { fontSize: 24, fontWeight: '600', marginBottom: 16 },
-});

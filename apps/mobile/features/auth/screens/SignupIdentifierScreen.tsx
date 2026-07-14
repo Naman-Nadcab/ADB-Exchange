@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { Text, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, PrimaryButton, TextField, ErrorBanner } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import { PrimaryButton, TextField, ErrorBanner } from '@shared/ui';
 import type { AuthStackParamList } from '@app/navigation/types';
 import { useSendOtp } from '../hooks/useSignup';
 import { useAuthActions } from '../hooks/useAuthActions';
+import { AuthScreenShell } from '../components/AuthScreenShell';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignupIdentifier'>;
 
@@ -14,7 +13,6 @@ function detectType(id: string): 'email' | 'phone' {
 }
 
 export function SignupIdentifierScreen({ navigation, route }: Props) {
-  const { theme } = useTheme();
   const [identifier, setIdentifier] = useState('');
   const [error, setError] = useState<string | null>(null);
   const sendOtp = useSendOtp();
@@ -40,15 +38,10 @@ export function SignupIdentifierScreen({ navigation, route }: Props) {
   };
 
   return (
-    <ScreenLayout testID="S-106">
-      <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Sign up</Text>
-      <TextField label="Email or phone" value={identifier} onChangeText={setIdentifier} />
+    <AuthScreenShell testID="S-106" title="Create account" subtitle="Enter your email or phone number" onBack={() => navigation.goBack()}>
+      <TextField label="Email or phone" value={identifier} onChangeText={setIdentifier} leftIcon="person-outline" />
       {error ? <ErrorBanner message={error} /> : null}
       <PrimaryButton title="Send OTP" loading={sendOtp.isPending} onPress={() => void submit()} />
-    </ScreenLayout>
+    </AuthScreenShell>
   );
 }
-
-const styles = StyleSheet.create({
-  title: { fontSize: 24, fontWeight: '600', marginBottom: 16 },
-});

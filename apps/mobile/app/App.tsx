@@ -12,6 +12,8 @@ import { AppProviders } from './providers/AppProviders';
 import { RootNavigator } from './navigation/RootNavigator';
 import { initStorage } from './bootstrap/initStorage';
 import { useTheme } from '@shared/theme';
+import { FontProvider } from './providers/FontProvider';
+import { ToastHost } from '@shared/ui';
 
 function AppInner() {
   const { colorScheme } = useTheme();
@@ -23,9 +25,12 @@ function AppInner() {
   return (
     <>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <AppProviders>
-        <RootNavigator />
-      </AppProviders>
+      <FontProvider>
+        <AppProviders>
+          <RootNavigator />
+        </AppProviders>
+        <ToastHost />
+      </FontProvider>
     </>
   );
 }

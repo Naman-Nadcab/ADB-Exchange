@@ -1,22 +1,12 @@
-import { Text, StyleSheet } from 'react-native';
-import { ScreenLayout } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import { ShellStateScreen } from '../components/ShellStateScreen';
 
 export function MaintenanceScreen() {
-  const { theme } = useTheme();
   return (
-    <ScreenLayout testID="S-002">
-      <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
-        Maintenance
-      </Text>
-      <Text style={[styles.body, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
-        METHErium is temporarily unavailable. Please try again later.
-      </Text>
-    </ScreenLayout>
+    <ShellStateScreen
+      testID="S-002"
+      title="Maintenance"
+      message="METHErium is temporarily unavailable. Please try again later."
+      icon="construct-outline"
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  title: { fontSize: 22, fontWeight: '600', marginBottom: 12 },
-  body: { fontSize: 14 },
-});

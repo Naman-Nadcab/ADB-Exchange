@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { Text, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, PrimaryButton, TextField, ErrorBanner } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import { PrimaryButton, PasswordInput, ErrorBanner, SecondaryButton } from '@shared/ui';
 import type { AuthStackParamList } from '@app/navigation/types';
 import { useSignup } from '../hooks/useSignup';
 import { useAuthActions } from '../hooks/useAuthActions';
+import { AuthScreenShell } from '../components/AuthScreenShell';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignupPassword'>;
 
@@ -22,7 +21,6 @@ function validatePassword(pw: string): string | null {
 }
 
 export function SignupPasswordScreen({ route, navigation }: Props) {
-  const { theme } = useTheme();
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const signup = useSignup();
@@ -48,14 +46,12 @@ export function SignupPasswordScreen({ route, navigation }: Props) {
   };
 
   return (
-    <ScreenLayout testID="S-108">
-      <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Create password</Text>
-      <TextField label="Password" value={password} onChangeText={setPassword} secureTextEntry />
+    <AuthScreenShell testID="S-108" title="Create password" subtitle="Use 8–30 characters with mixed case and a number" onBack={() => navigation.goBack()}>
+      <PasswordInput label="Password" value={password} onChangeText={setPassword} hint="Never share your password with anyone" />
       {error ? <ErrorBanner message={error} /> : null}
       <PrimaryButton title="Create account" loading={signup.isPending} onPress={() => void submit()} />
-      <PrimaryButton
+      <SecondaryButton
         title="Add referral code"
-        variant="secondary"
         onPress={() =>
           navigation.navigate('SignupReferral', {
             identifier: route.params.identifier,
@@ -63,10 +59,6 @@ export function SignupPasswordScreen({ route, navigation }: Props) {
           })
         }
       />
-    </ScreenLayout>
+    </AuthScreenShell>
   );
 }
-
-const styles = StyleSheet.create({
-  title: { fontSize: 24, fontWeight: '600', marginBottom: 16 },
-});

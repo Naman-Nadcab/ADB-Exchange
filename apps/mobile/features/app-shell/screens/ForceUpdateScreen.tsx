@@ -1,23 +1,15 @@
-import { Text, StyleSheet, Linking } from 'react-native';
-import { ScreenLayout, PrimaryButton } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import { Linking } from 'react-native';
+import { ShellStateScreen } from '../components/ShellStateScreen';
 
 export function ForceUpdateScreen() {
-  const { theme } = useTheme();
   return (
-    <ScreenLayout testID="S-001">
-      <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
-        Update Required
-      </Text>
-      <Text style={[styles.body, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
-        A new version of METHErium is required to continue.
-      </Text>
-      <PrimaryButton title="Open App Store" onPress={() => Linking.openURL('https://app.metheorium.com')} />
-    </ScreenLayout>
+    <ShellStateScreen
+      testID="S-001"
+      title="Update Required"
+      message="A new version of METHErium is required to continue."
+      icon="arrow-up-circle-outline"
+      actionLabel="Open App Store"
+      onAction={() => Linking.openURL('https://app.metheorium.com')}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  title: { fontSize: 22, fontWeight: '600', marginBottom: 12 },
-  body: { fontSize: 14, marginBottom: 24 },
-});

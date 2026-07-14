@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Text, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, PrimaryButton, TextField, ErrorBanner } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import { PrimaryButton, OTPInput, ErrorBanner } from '@shared/ui';
 import type { AuthStackParamList } from '@app/navigation/types';
 import { getAuthRepository } from '@core/repositories/AuthRepository';
 import { useAuthActions } from '../hooks/useAuthActions';
+import { AuthScreenShell } from '../components/AuthScreenShell';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'LoginOtp'>;
 
@@ -14,7 +14,6 @@ function detectType(id: string): 'email' | 'phone' {
 }
 
 export function LoginOtpScreen({ route, navigation }: Props) {
-  const { theme } = useTheme();
   const [otp, setOtp] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -50,15 +49,12 @@ export function LoginOtpScreen({ route, navigation }: Props) {
   };
 
   return (
-    <ScreenLayout testID="S-104">
-      <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Verify OTP</Text>
-      <TextField label="OTP" value={otp} onChangeText={setOtp} keyboardType="number-pad" />
+    <AuthScreenShell testID="S-104" title="Verify code" subtitle={`Sent to ${identifier}`} onBack={() => navigation.goBack()}>
+      <View style={{ alignItems: 'center', marginVertical: 24 }}>
+        <OTPInput value={otp} onChange={setOtp} error={!!error} />
+      </View>
       {error ? <ErrorBanner message={error} /> : null}
       <PrimaryButton title="Verify" loading={loading} onPress={() => void submit()} />
-    </ScreenLayout>
+    </AuthScreenShell>
   );
 }
-
-const styles = StyleSheet.create({
-  title: { fontSize: 24, fontWeight: '600', marginBottom: 16 },
-});

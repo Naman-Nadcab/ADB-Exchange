@@ -1,16 +1,15 @@
 import { useState } from 'react';
-import { Text, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, PrimaryButton, TextField, ErrorBanner } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import { PrimaryButton, OTPInput, ErrorBanner } from '@shared/ui';
 import type { AuthStackParamList } from '@app/navigation/types';
 import { getAuthRepository } from '@core/repositories/AuthRepository';
 import { useAuthActions } from '../hooks/useAuthActions';
+import { AuthScreenShell } from '../components/AuthScreenShell';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'LoginVerifyStep'>;
 
-export function LoginVerifyStepScreen({ route }: Props) {
-  const { theme } = useTheme();
+export function LoginVerifyStepScreen({ route, navigation }: Props) {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -34,17 +33,12 @@ export function LoginVerifyStepScreen({ route }: Props) {
   };
 
   return (
-    <ScreenLayout testID="S-104-verify">
-      <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
-        Additional verification
-      </Text>
-      <TextField label="Code" value={code} onChangeText={setCode} keyboardType="number-pad" />
+    <AuthScreenShell testID="S-104-verify" title="Additional verification" subtitle="Enter your 2FA code" onBack={() => navigation.goBack()}>
+      <View style={{ alignItems: 'center', marginVertical: 24 }}>
+        <OTPInput value={code} onChange={setCode} length={6} error={!!error} />
+      </View>
       {error ? <ErrorBanner message={error} /> : null}
       <PrimaryButton title="Continue" loading={loading} onPress={() => void submit()} />
-    </ScreenLayout>
+    </AuthScreenShell>
   );
 }
-
-const styles = StyleSheet.create({
-  title: { fontSize: 24, fontWeight: '600', marginBottom: 16 },
-});

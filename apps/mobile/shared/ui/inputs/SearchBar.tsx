@@ -1,4 +1,5 @@
-import { TextInput, View, StyleSheet } from 'react-native';
+import { View, TextInput, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@shared/theme';
 
 type Props = {
@@ -8,40 +9,49 @@ type Props = {
   testID?: string;
 };
 
-export function SearchBar({ value, onChangeText, placeholder = 'Search markets', testID }: Props) {
+export function SearchBar({ value, onChangeText, placeholder = 'Search', testID }: Props) {
   const { theme } = useTheme();
   return (
-    <View style={styles.wrap}>
+    <View
+      style={[
+        styles.wrap,
+        {
+          marginBottom: theme.spacing[3],
+          borderRadius: theme.radius.md,
+          borderColor: `hsl(${theme.colors.borderDefault})`,
+          backgroundColor: `hsl(${theme.colors.inputBackground})`,
+          paddingHorizontal: theme.spacing[3],
+        },
+      ]}
+    >
+      <Ionicons name="search" size={18} color={`hsl(${theme.colors.foregroundSecondary})`} />
       <TextInput
         testID={testID}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        accessibilityLabel="Search markets"
+        accessibilityLabel={placeholder}
         style={[
           styles.input,
-          {
-            color: `hsl(${theme.colors.foregroundPrimary})`,
-            backgroundColor: `hsl(${theme.colors.backgroundElevated})`,
-            borderColor: `hsl(${theme.colors.borderDefault})`,
-          },
+          theme.typography.bodyMd,
+          { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sans },
         ]}
         placeholderTextColor={`hsl(${theme.colors.foregroundSecondary})`}
         autoCapitalize="none"
         autoCorrect={false}
+        clearButtonMode="while-editing"
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginBottom: 12 },
-  input: {
+  wrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
     minHeight: 44,
   },
+  input: { flex: 1, paddingVertical: 10 },
 });

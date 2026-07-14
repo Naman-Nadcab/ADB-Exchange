@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { Text, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, PrimaryButton, TextField, ErrorBanner } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import { PrimaryButton, TextField, ErrorBanner } from '@shared/ui';
 import type { AuthStackParamList } from '@app/navigation/types';
 import { useSignup } from '../hooks/useSignup';
 import { useAuthActions } from '../hooks/useAuthActions';
+import { AuthScreenShell } from '../components/AuthScreenShell';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignupReferral'>;
 
@@ -13,8 +12,7 @@ function detectType(id: string): 'email' | 'phone' {
   return id.includes('@') ? 'email' : 'phone';
 }
 
-export function SignupReferralScreen({ route }: Props) {
-  const { theme } = useTheme();
+export function SignupReferralScreen({ route, navigation }: Props) {
   const [referralCode, setReferralCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const signup = useSignup();
@@ -35,15 +33,10 @@ export function SignupReferralScreen({ route }: Props) {
   };
 
   return (
-    <ScreenLayout testID="S-109">
-      <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Referral code</Text>
-      <TextField label="Code (optional)" value={referralCode} onChangeText={setReferralCode} />
+    <AuthScreenShell testID="S-109" title="Referral code" subtitle="Optional — unlock fee discounts" onBack={() => navigation.goBack()}>
+      <TextField label="Code (optional)" value={referralCode} onChangeText={setReferralCode} leftIcon="gift-outline" autoCapitalize="characters" />
       {error ? <ErrorBanner message={error} /> : null}
       <PrimaryButton title="Finish signup" loading={signup.isPending} onPress={() => void submit()} />
-    </ScreenLayout>
+    </AuthScreenShell>
   );
 }
-
-const styles = StyleSheet.create({
-  title: { fontSize: 24, fontWeight: '600', marginBottom: 16 },
-});

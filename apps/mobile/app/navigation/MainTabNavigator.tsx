@@ -4,13 +4,17 @@ import { TradeStackNavigator } from '@features/trade';
 import { WalletStackNavigator } from '@features/wallet';
 import { OrdersStackNavigator } from '@features/orders';
 import { P2PStackNavigator } from '@features/p2p';
+import { BottomNavigation } from '@shared/ui/navigation/BottomNavigation';
 import type { MainTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export function MainTabNavigator() {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
+    <Tab.Navigator
+      tabBar={(props) => <BottomNavigation {...props} />}
+      screenOptions={{ headerShown: false }}
+    >
       <Tab.Screen name="Markets" component={MarketsStackNavigator} />
       <Tab.Screen name="Trade" component={TradeStackNavigator} />
       <Tab.Screen name="Orders" component={OrdersStackNavigator} />
