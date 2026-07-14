@@ -43,7 +43,7 @@ function ShellGateOverlay() {
     case 'appLock':
       return <AppLockScreen />;
     default:
-      return null;
+      return <SplashScreen />;
   }
 }
 
@@ -57,10 +57,22 @@ export function RootNavigator() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const [, result] = await Promise.all([waitBootTimeout(), runLaunchFlow()]);
-      if (cancelled) return;
-      setPhase(result.phase);
-      setBootDone(true);
+      try {
+        const [, result] = await Promise.all([waitBootTimeout(), runLaunchFlow()]);
+        if (cancelled) return;
+        setPhase(result.phase);
+      } catch {
+        if (cancelled) return;
+        useAuthStore.getState().setUnauthenticated();
+        setPhase('auth');
+      } finally {
+        if (!cancelled) {
+          if (!useAuthStore.getState().authResolved) {
+            useAuthStore.getState().setUnauthenticated();
+          }
+          setBootDone(true);
+        }
+      }
     })();
     return () => {
       cancelled = true;
@@ -92,14 +104,16 @@ export function RootNavigator() {
     return <ShellGateOverlay />;
   }
 
+  const navPhase = phase === 'boot' ? 'auth' : phase;
+
   return (
     <NavigationContainer linking={linking as LinkingOptions<RootStackParamList>}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {phase === 'auth' && <Stack.Screen name="Auth" component={AuthNavigator} />}
-        {phase === 'onboarding' && (
+        {navPhase === 'auth' && <Stack.Screen name="Auth" component={AuthNavigator} />}
+        {navPhase === 'onboarding' && (
           <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
         )}
-        {phase === 'main' && (
+        {navPhase === 'main' && (
           <>
             <Stack.Screen name="Main" component={MainTabNavigator} />
             <Stack.Screen

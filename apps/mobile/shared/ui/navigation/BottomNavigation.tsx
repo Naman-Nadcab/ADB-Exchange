@@ -23,7 +23,7 @@ export function BottomNavigation({ state, descriptors, navigation }: BottomTabBa
         theme.shadows.md,
         {
           paddingBottom: insets.bottom + 4,
-          backgroundColor: `hsl(${theme.colors.backgroundElevated} / 0.95)`,
+          backgroundColor: `hsl(${theme.colors.backgroundElevated})`,
           borderTopColor: `hsl(${theme.colors.borderDefault})`,
           minHeight: theme.sizes.bottomNavHeight + insets.bottom,
         },
@@ -49,7 +49,7 @@ export function BottomNavigation({ state, descriptors, navigation }: BottomTabBa
               styles.tab,
               {
                 opacity: pressed ? 0.85 : 1,
-                backgroundColor: focused ? `hsl(${theme.colors.brandPrimary} / 0.1)` : 'transparent',
+                backgroundColor: focused ? `hsl(${theme.colors.surfaceAccent})` : 'transparent',
                 borderRadius: theme.radius.lg,
               },
             ]}

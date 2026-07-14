@@ -21,6 +21,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <View style={styles.container}>
           <Text style={styles.title}>Something went wrong</Text>
+          <Text style={styles.subtitle}>Restart the app to continue.</Text>
         </View>
       );
     }
@@ -29,6 +30,13 @@ export class ErrorBoundary extends Component<Props, State> {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 16 },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#05070B',
+    padding: 24,
+  },
+  title: { fontSize: 18, fontWeight: '600', color: '#F5F5F5' },
+  subtitle: { fontSize: 14, color: '#AEB6C4', marginTop: 8, textAlign: 'center' },
 });
