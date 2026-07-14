@@ -5,6 +5,7 @@ import { ScreenLayout, SegmentControl, PrimaryButton } from '@shared/ui';
 import { analytics } from '@core/observability/analytics';
 import { useNotifications, useNotificationMutations } from '../hooks/useAccount';
 import type { AccountStackParamList } from '../navigation/types';
+import type { UserNotification } from '@exchange/mobile-types';
 
 const TABS = [
   { id: 'all', label: 'All' },
@@ -24,7 +25,7 @@ export function NotificationsScreen({ navigation }: Props) {
 
   const items = useMemo(() => {
     const all = q.data ?? [];
-    return tab === 'unread' ? all.filter((n) => !n.read) : all;
+    return tab === 'unread' ? all.filter((n: UserNotification) => !n.read) : all;
   }, [q.data, tab]);
 
   return (
@@ -33,7 +34,7 @@ export function NotificationsScreen({ navigation }: Props) {
       <PrimaryButton title="Mark all read" variant="secondary" onPress={() => markAllRead.mutate()} />
       <FlatList
         data={items}
-        keyExtractor={(n) => n.id}
+        keyExtractor={(n: UserNotification) => n.id}
         initialNumToRender={20}
         renderItem={({ item }) => (
           <Pressable style={{ paddingVertical: 12 }} onPress={() => navigation.navigate('NotificationDetail', { id: item.id })}>

@@ -6,6 +6,7 @@ import { analytics } from '@core/observability/analytics';
 import { useSecuritySettings } from '../hooks/useAccount';
 import { AccountMenuRow } from '../components/AccountMenuRow';
 import type { AccountStackParamList } from '../navigation/types';
+import type { SecurityChecklistItem } from '@exchange/mobile-types';
 
 type Props = NativeStackScreenProps<AccountStackParamList, 'SecurityCenter'>;
 
@@ -23,7 +24,7 @@ export function SecurityCenterScreen({ navigation }: Props) {
     <ScreenLayout testID="S-710">
       <ScrollView>
         <Text>Security score: {score}%</Text>
-        {(s?.checklist ?? []).map((item) => (
+        {(s?.checklist ?? []).map((item: SecurityChecklistItem) => (
           <Text key={item.id}>
             {item.done ? '✓' : '○'} {item.label}
           </Text>

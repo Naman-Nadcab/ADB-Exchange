@@ -6,12 +6,13 @@ import { analytics } from '@core/observability/analytics';
 import { getAuthRepository } from '@core/repositories/AuthRepository';
 import { useApiKeys } from '../hooks/useAccount';
 import type { AccountStackParamList } from '../navigation/types';
+import type { ApiKey } from '@exchange/mobile-types';
 
 type Props = NativeStackScreenProps<AccountStackParamList, 'ApiKeyDetail'>;
 
 export function ApiKeyDetailScreen({ navigation, route }: Props) {
   const q = useApiKeys();
-  const item = useMemo(() => q.data?.find((k) => k.id === route.params.id), [q.data, route.params.id]);
+  const item = useMemo(() => q.data?.find((k: ApiKey) => k.id === route.params.id), [q.data, route.params.id]);
 
   useEffect(() => {
     analytics.screen('S-752');

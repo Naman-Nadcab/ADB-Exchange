@@ -155,6 +155,12 @@ export type UpdateP2PAdRequest = {
   status?: 'active' | 'paused';
 };
 
+export type P2PDisputeTimelineEntry = {
+  status: string;
+  at?: string;
+  note?: string;
+};
+
 export type P2PDispute = {
   id: string;
   order_id: string;
@@ -166,7 +172,7 @@ export type P2PDispute = {
   resolved_at?: string | null;
   order_status?: string;
   created_at?: string;
-  timeline?: Array<{ status: string; at?: string; note?: string }>;
+  timeline?: P2PDisputeTimelineEntry[];
 };
 
 export type P2PMerchantStats = {

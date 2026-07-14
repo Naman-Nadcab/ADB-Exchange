@@ -27,10 +27,10 @@ export function P2PChatPanel({ messages, typingUserId, currentUserId, onSend, on
 
   return (
     <View style={styles.wrap}>
-      <FlatList
+      <FlatList<P2PMessage>
         ref={listRef}
         data={messages}
-        keyExtractor={(m) => m.id}
+        keyExtractor={(m: P2PMessage) => m.id}
         inverted
         initialNumToRender={20}
         maxToRenderPerBatch={15}

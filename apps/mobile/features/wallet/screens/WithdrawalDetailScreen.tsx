@@ -7,6 +7,9 @@ import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useWithdrawals, useCancelWithdrawal } from '../hooks/useBlockchainWallet';
 import type { WalletStackParamList } from '../navigation/types';
+import type { WithdrawalRecord } from '@exchange/mobile-types';
+
+type WithdrawalPage = { items: WithdrawalRecord[]; pagination: { page: number; limit: number; total: number; totalPages: number } };
 
 type Props = NativeStackScreenProps<WalletStackParamList, 'WithdrawalDetail'>;
 
@@ -22,7 +25,9 @@ export function WithdrawalDetailScreen({ route }: Props) {
     void qc.invalidateQueries({ queryKey: ['withdrawals'] });
   }, [withdrawalId, qc]);
 
-  const item = q.data?.pages.flatMap((p) => p.items).find((w) => w.id === withdrawalId);
+  const item = q.data?.pages
+    .flatMap((p: WithdrawalPage) => p.items)
+    .find((w: WithdrawalRecord) => w.id === withdrawalId);
 
   if (q.isLoading && !item) {
     return (

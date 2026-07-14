@@ -8,6 +8,7 @@ import { validateOrderQuantity, getAdPrice } from '@core/domain/p2p/order';
 import { ApiError } from '@core/api/errors/ApiError';
 import { useP2PAds, useCreateP2POrder, useMyPaymentMethods } from '../hooks/useP2P';
 import type { P2PStackParamList } from '../navigation/types';
+import type { P2PAd, P2PUserPaymentMethod } from '@exchange/mobile-types';
 
 type Props = NativeStackScreenProps<P2PStackParamList, 'CreateOrder'>;
 
@@ -25,7 +26,7 @@ export function CreateOrderScreen({ navigation, route }: Props) {
     analytics.screen('S-602');
   }, []);
 
-  const ad = useMemo(() => adsQ.data?.pages.flat().find((a) => a.id === adId), [adsQ.data, adId]);
+  const ad = useMemo(() => adsQ.data?.pages.flat().find((a: P2PAd) => a.id === adId), [adsQ.data, adId]);
 
   const submit = async () => {
     setError(null);
@@ -59,7 +60,7 @@ export function CreateOrderScreen({ navigation, route }: Props) {
     );
   }
 
-  const methods = (pmQ.data ?? []).filter((m) => m.is_active !== false);
+  const methods = (pmQ.data ?? []).filter((m: P2PUserPaymentMethod) => m.is_active !== false);
 
   return (
     <ScreenLayout testID="S-602">

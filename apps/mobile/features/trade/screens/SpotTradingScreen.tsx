@@ -16,6 +16,7 @@ import { OpenOrdersPeek } from '../components/OpenOrdersPeek';
 import { useTradeScreenData } from '../hooks/useTradeSubscriptions';
 import { useOpenOrders, useTradingBalances, useCandles, useMarketsMeta } from '../hooks/useTrade';
 import type { TradeStackParamList } from '../navigation/types';
+import type { SpotMarket, SpotOrder, TradingBalance } from '@exchange/mobile-types';
 
 type Props = NativeStackScreenProps<TradeStackParamList, 'SpotTrading'>;
 
@@ -46,16 +47,16 @@ export function SpotTradingScreen({ navigation, route }: Props) {
   const { data: markets } = useMarketsMeta();
 
   const marketMeta = useMemo(
-    () => markets?.find((m) => m.symbol === symbol),
+    () => markets?.find((m: SpotMarket) => m.symbol === symbol),
     [markets, symbol],
   );
 
   const quoteAsset = marketMeta?.quote_asset ?? ticker?.quote_asset ?? 'USDT';
   const baseAsset = marketMeta?.base_asset ?? ticker?.base_asset ?? symbol.split('_')[0];
   const available =
-    balances?.balances.find((b) => b.symbol === (side === 'buy' ? quoteAsset : baseAsset))?.equity ?? '0';
+    balances?.balances.find((b: TradingBalance) => b.symbol === (side === 'buy' ? quoteAsset : baseAsset))?.equity ?? '0';
 
-  const symbolOrders = (openOrders ?? []).filter((o) => o.market === symbol);
+  const symbolOrders = (openOrders ?? []).filter((o: SpotOrder) => o.market === symbol);
 
   return (
     <ScreenLayout testID="S-300">

@@ -8,6 +8,7 @@ import { useAuthStore } from '@core/state/authStore';
 import { useAuthProfile, useNotifications, useKycStatus } from '../hooks/useAccount';
 import { AccountMenuRow } from '../components/AccountMenuRow';
 import type { AccountStackParamList } from '../navigation/types';
+import type { UserNotification } from '@exchange/mobile-types';
 
 type Props = NativeStackScreenProps<AccountStackParamList, 'AccountHome'>;
 
@@ -22,7 +23,7 @@ export function AccountHomeScreen({ navigation }: Props) {
     analytics.screen('S-700');
   }, []);
 
-  const unread = (notifQ.data ?? []).filter((n) => !n.read).length;
+  const unread = (notifQ.data ?? []).filter((n: UserNotification) => !n.read).length;
   const p = profileQ.data;
 
   return (

@@ -8,6 +8,7 @@ import { useP2PStore } from '@core/state/p2pStore';
 import { useP2PAds, useP2PSubscriptions } from '../hooks/useP2P';
 import { P2PAdCard } from '../components/P2PAdCard';
 import type { P2PStackParamList } from '../navigation/types';
+import type { P2PAd } from '@exchange/mobile-types';
 
 const SIDES = [
   { id: 'sell', label: 'Buy' },
@@ -37,7 +38,7 @@ export function MarketplaceScreen({ navigation }: Props) {
     const all = q.data?.pages.flat() ?? [];
     if (!search.trim()) return all;
     const s = search.toLowerCase();
-    return all.filter((a) => a.username.toLowerCase().includes(s) || a.crypto_symbol.toLowerCase().includes(s));
+    return all.filter((a: P2PAd) => a.username.toLowerCase().includes(s) || a.crypto_symbol.toLowerCase().includes(s));
   }, [q.data, search]);
 
   return (

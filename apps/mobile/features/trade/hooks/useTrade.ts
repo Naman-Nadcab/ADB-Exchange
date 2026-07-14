@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSpotRepository } from '@core/repositories/SpotRepository';
 import { appEventBus } from '@core/events/appEventBus';
-import type { PlaceOrderRequest } from '@exchange/mobile-types';
+import type { PlaceOrderRequest, SpotMarket, SpotOrder, OrderbookSnapshot, RecentTrade, Candle } from '@exchange/mobile-types';
 import { TRADING_BAL_KEY, useTradingBalances } from '@features/wallet';
 
 export const OPEN_ORDERS_KEY = ['openOrders'] as const;
@@ -12,7 +12,7 @@ export { useTradingBalances };
 
 export function useOpenOrders() {
   const qc = useQueryClient();
-  const q = useQuery({
+  const q = useQuery<SpotOrder[]>({
     queryKey: OPEN_ORDERS_KEY,
     queryFn: () => getSpotRepository().getOpenOrders(),
     staleTime: 0,
@@ -54,7 +54,7 @@ export function useCancelAllOrders() {
 }
 
 export function useOrderbookBootstrap(symbol: string) {
-  return useQuery({
+  return useQuery<OrderbookSnapshot>({
     queryKey: ['orderbook', symbol],
     queryFn: () => getSpotRepository().getOrderbook(symbol),
     staleTime: 3_000,
@@ -63,7 +63,7 @@ export function useOrderbookBootstrap(symbol: string) {
 }
 
 export function useRecentTradesBootstrap(symbol: string) {
-  return useQuery({
+  return useQuery<RecentTrade[]>({
     queryKey: ['recentTrades', symbol],
     queryFn: () => getSpotRepository().getRecentTrades(symbol),
     staleTime: 5_000,
@@ -72,7 +72,7 @@ export function useRecentTradesBootstrap(symbol: string) {
 }
 
 export function useCandles(symbol: string, interval: number) {
-  return useQuery({
+  return useQuery<Candle[]>({
     queryKey: ['candles', symbol, interval],
     queryFn: () => getSpotRepository().getCandles(symbol, interval),
     staleTime: 30_000,
@@ -81,7 +81,7 @@ export function useCandles(symbol: string, interval: number) {
 }
 
 export function useMarketsMeta() {
-  return useQuery({
+  return useQuery<SpotMarket[]>({
     queryKey: ['marketsMeta'],
     queryFn: () => getSpotRepository().getMarkets(),
     staleTime: 60_000,

@@ -6,6 +6,7 @@ import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useP2PDispute } from '../hooks/useP2P';
 import type { P2PStackParamList } from '../navigation/types';
+import type { P2PDisputeTimelineEntry } from '@exchange/mobile-types';
 
 type Props = NativeStackScreenProps<P2PStackParamList, 'DisputeDetail'>;
 
@@ -34,12 +35,12 @@ export function DisputeDetailScreen({ route }: Props) {
         <Text>Order: {d.order_id}</Text>
         <Text>Reason: {d.reason}</Text>
         <Text>Resolution: {d.resolution ?? 'Pending'}</Text>
-        {(d.evidence ?? []).map((url, i) => (
+        {(d.evidence ?? []).map((url: string, i: number) => (
           <Text key={i} style={{ fontSize: 12 }}>
             Evidence: {url}
           </Text>
         ))}
-        {(d.timeline ?? []).map((t, i) => (
+        {(d.timeline ?? []).map((t: P2PDisputeTimelineEntry, i: number) => (
           <Text key={i} style={{ fontSize: 12 }}>
             {t.status} {t.at ? new Date(t.at).toLocaleString() : ''}
           </Text>

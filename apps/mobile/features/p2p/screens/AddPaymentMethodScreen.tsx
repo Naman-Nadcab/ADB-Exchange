@@ -6,6 +6,7 @@ import { analytics } from '@core/observability/analytics';
 import { usePlatformPaymentMethods, useMyPaymentMethods, usePaymentMethodMutations } from '../hooks/useP2P';
 import { ApiError } from '@core/api/errors/ApiError';
 import type { P2PStackParamList } from '../navigation/types';
+import type { P2PUserPaymentMethod } from '@exchange/mobile-types';
 
 type Props = NativeStackScreenProps<P2PStackParamList, 'AddPaymentMethod'>;
 
@@ -14,7 +15,7 @@ export function AddPaymentMethodScreen({ navigation, route }: Props) {
   const platformQ = usePlatformPaymentMethods();
   const myQ = useMyPaymentMethods();
   const { add, update } = usePaymentMethodMutations();
-  const existing = myQ.data?.find((m) => m.id === editId);
+  const existing = myQ.data?.find((m: P2PUserPaymentMethod) => m.id === editId);
   const [platformId, setPlatformId] = useState(existing?.payment_method_id ?? '');
   const [displayName, setDisplayName] = useState(existing?.display_name ?? '');
   const [error, setError] = useState<string | null>(null);

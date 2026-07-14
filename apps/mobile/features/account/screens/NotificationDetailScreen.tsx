@@ -5,13 +5,14 @@ import { ScreenLayout } from '@shared/ui';
 import { analytics } from '@core/observability/analytics';
 import { useNotifications, useNotificationMutations } from '../hooks/useAccount';
 import type { AccountStackParamList } from '../navigation/types';
+import type { UserNotification } from '@exchange/mobile-types';
 
 type Props = NativeStackScreenProps<AccountStackParamList, 'NotificationDetail'>;
 
 export function NotificationDetailScreen({ route }: Props) {
   const q = useNotifications();
   const { markRead } = useNotificationMutations();
-  const item = useMemo(() => q.data?.find((n) => n.id === route.params.id), [q.data, route.params.id]);
+  const item = useMemo(() => q.data?.find((n: UserNotification) => n.id === route.params.id), [q.data, route.params.id]);
 
   useEffect(() => {
     analytics.screen('S-773');

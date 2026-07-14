@@ -5,13 +5,14 @@ import { ScreenLayout, TextField, PrimaryButton } from '@shared/ui';
 import { analytics } from '@core/observability/analytics';
 import { useMyP2PAds, useUpdateAd } from '../hooks/useP2P';
 import type { P2PStackParamList } from '../navigation/types';
+import type { P2PAd } from '@exchange/mobile-types';
 
 type Props = NativeStackScreenProps<P2PStackParamList, 'EditAd'>;
 
 export function EditAdScreen({ navigation, route }: Props) {
   const q = useMyP2PAds();
   const update = useUpdateAd();
-  const ad = useMemo(() => q.data?.find((a) => a.id === route.params.adId), [q.data, route.params.adId]);
+  const ad = useMemo(() => q.data?.find((a: P2PAd) => a.id === route.params.adId), [q.data, route.params.adId]);
   const [price, setPrice] = useState('');
   const [remarks, setRemarks] = useState('');
 

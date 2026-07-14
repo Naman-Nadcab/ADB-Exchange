@@ -7,6 +7,7 @@ import { useAppStore } from '@core/state/appStore';
 import { ApiError } from '@core/api/errors/ApiError';
 import { useConvertCurrencies, useConvertQuote, useExecuteConvert } from '../hooks/useWallet';
 import type { WalletStackParamList } from '../navigation/types';
+import type { ConvertCurrency } from '@exchange/mobile-types';
 
 type Props = NativeStackScreenProps<WalletStackParamList, 'Convert'>;
 
@@ -27,16 +28,16 @@ export function ConvertScreen({ navigation }: Props) {
   }, []);
 
   const fromCurrency = useMemo(
-    () => currenciesQ.data?.find((c) => c.symbol === fromSymbol),
+    () => currenciesQ.data?.find((c: ConvertCurrency) => c.symbol === fromSymbol),
     [currenciesQ.data, fromSymbol],
   );
   const toCurrency = useMemo(
-    () => currenciesQ.data?.find((c) => c.symbol === toSymbol),
+    () => currenciesQ.data?.find((c: ConvertCurrency) => c.symbol === toSymbol),
     [currenciesQ.data, toSymbol],
   );
 
   const tabs = useMemo(
-    () => (currenciesQ.data ?? []).slice(0, 12).map((c) => ({ id: c.symbol, label: c.symbol })),
+    () => (currenciesQ.data ?? []).slice(0, 12).map((c: ConvertCurrency) => ({ id: c.symbol, label: c.symbol })),
     [currenciesQ.data],
   );
 

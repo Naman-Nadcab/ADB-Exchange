@@ -1,16 +1,22 @@
-import type { OrderbookDelta, OrderbookSnapshot, PlaceOrderRequest, SpotMarket } from '@exchange/mobile-types';
+import type {
+  OrderbookDelta,
+  OrderbookLevel,
+  OrderbookSnapshot,
+  PlaceOrderRequest,
+  SpotMarket,
+} from '@exchange/mobile-types';
 import { isPositive, multiplyDecimal, roundDown } from './decimal';
 
 export function applyOrderbookDelta(
   snapshot: OrderbookSnapshot,
   delta: OrderbookDelta,
 ): OrderbookSnapshot {
-  const bidMap = new Map(snapshot.bids.map((l) => [l.price, l.quantity]));
+  const bidMap = new Map(snapshot.bids.map((l: OrderbookLevel) => [l.price, l.quantity]));
   for (const [p, q] of delta.bids) {
     if (!isPositive(q)) bidMap.delete(p);
     else bidMap.set(p, q);
   }
-  const askMap = new Map(snapshot.asks.map((l) => [l.price, l.quantity]));
+  const askMap = new Map(snapshot.asks.map((l: OrderbookLevel) => [l.price, l.quantity]));
   for (const [p, q] of delta.asks) {
     if (!isPositive(q)) askMap.delete(p);
     else askMap.set(p, q);

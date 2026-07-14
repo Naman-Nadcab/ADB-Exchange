@@ -23,6 +23,12 @@ export type UserProfile = {
   created_at?: string;
 };
 
+export type SecurityChecklistItem = {
+  id: string;
+  label: string;
+  done: boolean;
+};
+
 export type SecuritySettings = {
   twoFaEnabled?: boolean;
   smsAuthEnabled?: boolean;
@@ -33,7 +39,7 @@ export type SecuritySettings = {
   addressBookEnabled?: boolean;
   newAddressLockEnabled?: boolean;
   score?: number;
-  checklist?: Array<{ id: string; label: string; done: boolean }>;
+  checklist?: SecurityChecklistItem[];
 };
 
 export type UserSession = {

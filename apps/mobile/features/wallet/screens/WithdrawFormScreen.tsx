@@ -21,6 +21,7 @@ import {
 } from '../hooks/useBlockchainWallet';
 import { FeePreviewCard } from '../components/FeePreviewCard';
 import type { WalletStackParamList } from '../navigation/types';
+import type { WalletChain, WithdrawalAddress } from '@exchange/mobile-types';
 
 type Props = NativeStackScreenProps<WalletStackParamList, 'WithdrawForm'>;
 
@@ -48,7 +49,7 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
   }, []);
 
   useEffect(() => {
-    const active = (chainsQ.data ?? []).filter((c) => c.is_active !== false);
+    const active = (chainsQ.data ?? []).filter((c: WalletChain) => c.is_active !== false);
     if (active.length && !chainId) {
       setChainId(active[0].id);
       setChainName(active[0].name);
@@ -81,7 +82,7 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
       setError('Fee exceeds amount');
       return;
     }
-    const selected = addressesQ.data?.find((a) => a.address === address);
+    const selected = addressesQ.data?.find((a: WithdrawalAddress) => a.address === address);
     if (security.whitelist.data?.enabled && selected && !selected.is_whitelisted) {
       setError('Address is not whitelisted');
       return;
@@ -106,7 +107,7 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
       <ScrollView keyboardShouldPersistTaps="handled">
         <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Withdraw {name}</Text>
         <Text style={styles.section}>Network</Text>
-        {(chainsQ.data ?? []).map((c) => {
+        {(chainsQ.data ?? []).map((c: WalletChain) => {
           const disabled = c.is_active === false;
           return (
             <Pressable
@@ -127,9 +128,9 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
         })}
         <Text style={styles.section}>Saved addresses</Text>
         {(addressesQ.data ?? [])
-          .filter((a) => a.asset === symbol)
+          .filter((a: WithdrawalAddress) => a.asset === symbol)
           .slice(0, 5)
-          .map((a) => (
+          .map((a: WithdrawalAddress) => (
             <Pressable
               key={a.id}
               onPress={() => {

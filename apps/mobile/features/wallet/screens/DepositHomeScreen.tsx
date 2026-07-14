@@ -6,6 +6,7 @@ import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useDepositTokens } from '../hooks/useBlockchainWallet';
 import type { WalletStackParamList } from '../navigation/types';
+import type { DepositToken } from '@exchange/mobile-types';
 
 type Props = NativeStackScreenProps<WalletStackParamList, 'DepositHome'>;
 
@@ -22,7 +23,7 @@ export function DepositHomeScreen({ navigation }: Props) {
     const list = q.data ?? [];
     if (!search.trim()) return list;
     const s = search.toLowerCase();
-    return list.filter((t) => t.symbol.toLowerCase().includes(s) || t.name.toLowerCase().includes(s));
+    return list.filter((t: DepositToken) => t.symbol.toLowerCase().includes(s) || t.name.toLowerCase().includes(s));
   }, [q.data, search]);
 
   return (

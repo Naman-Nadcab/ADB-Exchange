@@ -6,7 +6,7 @@ import { analytics } from '@core/observability/analytics';
 import { validateTransferAmount } from '@core/domain/wallet/portfolio';
 import { useAppStore } from '@core/state/appStore';
 import { ApiError } from '@core/api/errors/ApiError';
-import type { AccountType } from '@exchange/mobile-types';
+import type { AccountType, TransferableToken } from '@exchange/mobile-types';
 import { useTransferBalances, useExecuteTransfer } from '../hooks/useWallet';
 import type { WalletStackParamList } from '../navigation/types';
 
@@ -38,7 +38,7 @@ export function TransferScreen({ navigation, route }: Props) {
   }, [balancesQ.data, tokenId]);
 
   const selected = useMemo(
-    () => balancesQ.data?.find((t) => t.tokenId === tokenId),
+    () => balancesQ.data?.find((t: TransferableToken) => t.tokenId === tokenId),
     [balancesQ.data, tokenId],
   );
 
@@ -98,7 +98,7 @@ export function TransferScreen({ navigation, route }: Props) {
       <PrimaryButton title="Swap direction" variant="secondary" onPress={swapDirection} />
       {balancesQ.data?.length ? (
         <SegmentControl
-          tabs={balancesQ.data.map((t) => ({ id: t.tokenId, label: t.symbol }))}
+          tabs={balancesQ.data.map((t: TransferableToken) => ({ id: t.tokenId, label: t.symbol }))}
           active={tokenId}
           onChange={setTokenId}
         />

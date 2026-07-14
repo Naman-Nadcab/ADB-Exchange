@@ -1,13 +1,31 @@
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 import { getWalletRepository } from '@core/repositories/WalletRepository';
 import { getAuthRepository } from '@core/repositories/AuthRepository';
 import { appEventBus } from '@core/events/appEventBus';
 import { useEffect } from 'react';
-import type { CreateWithdrawRequest, WithdrawalAddressInput } from '@exchange/mobile-types';
+import type {
+  CreateWithdrawRequest,
+  WithdrawalAddressInput,
+  AssetBalance,
+  DepositToken,
+  WalletChain,
+  DepositAddress,
+  DepositRecord,
+  DepositDetail,
+  WalletKycStatus,
+  WithdrawalFeeInfo,
+  WithdrawPreview,
+  WithdrawalRecord,
+  FundingBalances,
+  WithdrawalAddress,
+} from '@exchange/mobile-types';
 import { FUNDING_KEY, PORTFOLIO_KEY } from './useWallet';
 
+type DepositPage = { items: DepositRecord[]; pagination: { page: number; limit: number; total: number; totalPages: number } };
+type WithdrawalPage = { items: WithdrawalRecord[]; pagination: { page: number; limit: number; total: number; totalPages: number } };
+
 export function useDepositTokens() {
-  return useQuery({
+  return useQuery<DepositToken[]>({
     queryKey: ['depositTokens'],
     queryFn: () => getWalletRepository().getDepositTokens(),
     staleTime: 300_000,
@@ -15,7 +33,7 @@ export function useDepositTokens() {
 }
 
 export function useTokenChains(symbol: string) {
-  return useQuery({
+  return useQuery<WalletChain[]>({
     queryKey: ['tokenChains', symbol],
     queryFn: () => getWalletRepository().getTokenChains(symbol),
     staleTime: 300_000,
@@ -24,7 +42,7 @@ export function useTokenChains(symbol: string) {
 }
 
 export function useDepositAddress(chainId: string) {
-  return useQuery({
+  return useQuery<DepositAddress>({
     queryKey: ['depositAddress', chainId],
     queryFn: () => getWalletRepository().getDepositAddress(chainId),
     staleTime: 60_000,
@@ -33,9 +51,9 @@ export function useDepositAddress(chainId: string) {
 }
 
 export function useDeposits(status?: string) {
-  return useInfiniteQuery({
+  return useInfiniteQuery<DepositPage, Error, InfiniteData<DepositPage>, readonly unknown[], number>({
     queryKey: ['deposits', status],
-    queryFn: ({ pageParam = 1 }) =>
+    queryFn: ({ pageParam }) =>
       getWalletRepository().getDeposits({ page: pageParam, limit: 20, status }),
     initialPageParam: 1,
     getNextPageParam: (last) =>
@@ -44,7 +62,7 @@ export function useDeposits(status?: string) {
 }
 
 export function useDepositDetail(txHash: string) {
-  return useQuery({
+  return useQuery<DepositDetail>({
     queryKey: ['depositDetail', txHash],
     queryFn: () => getWalletRepository().getDepositDetail(txHash),
     enabled: !!txHash,
@@ -52,7 +70,7 @@ export function useDepositDetail(txHash: string) {
 }
 
 export function useKycStatus() {
-  return useQuery({
+  return useQuery<WalletKycStatus>({
     queryKey: ['kycStatus'],
     queryFn: () => getWalletRepository().getKycStatus(),
     staleTime: 120_000,
@@ -65,7 +83,7 @@ export function useWithdrawPreview(
   amount: string,
   enabled: boolean,
 ) {
-  return useQuery({
+  return useQuery<WithdrawPreview>({
     queryKey: ['withdrawPreview', symbol, chainId, amount],
     queryFn: () => getWalletRepository().getWithdrawPreview({ symbol, chainId, amount }),
     staleTime: 5_000,
@@ -74,7 +92,7 @@ export function useWithdrawPreview(
 }
 
 export function useWithdrawalFee(symbol: string, chainId: string) {
-  return useQuery({
+  return useQuery<WithdrawalFeeInfo>({
     queryKey: ['withdrawalFee', symbol, chainId],
     queryFn: () => getWalletRepository().getWithdrawalFee(symbol, chainId),
     staleTime: 60_000,
@@ -83,9 +101,9 @@ export function useWithdrawalFee(symbol: string, chainId: string) {
 }
 
 export function useWithdrawals(coin?: string, status?: string) {
-  return useInfiniteQuery({
+  return useInfiniteQuery<WithdrawalPage, Error, InfiniteData<WithdrawalPage>, readonly unknown[], number>({
     queryKey: ['withdrawals', coin, status],
-    queryFn: ({ pageParam = 1 }) =>
+    queryFn: ({ pageParam }) =>
       getWalletRepository().getWithdrawals({ page: pageParam, limit: 20, coin, status }),
     initialPageParam: 1,
     getNextPageParam: (last) =>
@@ -127,7 +145,7 @@ export function useCancelWithdrawal() {
 }
 
 export function useWithdrawalAddresses() {
-  return useQuery({
+  return useQuery<WithdrawalAddress[]>({
     queryKey: ['withdrawalAddresses'],
     queryFn: () => getAuthRepository().getWithdrawalAddresses(),
     staleTime: 30_000,
@@ -181,7 +199,7 @@ export function useVerify2FA() {
 }
 
 export function useFundingBalanceForSymbol(symbol: string) {
-  const q = useQuery({
+  const q = useQuery<FundingBalances>({
     queryKey: FUNDING_KEY,
     queryFn: () => getWalletRepository().getFundingBalances(),
     staleTime: 30_000,
@@ -189,6 +207,6 @@ export function useFundingBalanceForSymbol(symbol: string) {
   useEffect(() => {
     return appEventBus.on('balances:invalidate', () => void q.refetch());
   }, [q]);
-  const balance = q.data?.balances.find((b) => b.symbol === symbol);
+  const balance = q.data?.balances.find((b: AssetBalance) => b.symbol === symbol);
   return { ...q, available: balance?.available_balance ?? '0', total: balance?.total_balance ?? '0' };
 }

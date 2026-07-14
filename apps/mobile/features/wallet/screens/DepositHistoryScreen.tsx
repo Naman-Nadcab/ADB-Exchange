@@ -5,6 +5,9 @@ import { ScreenLayout, EmptyState, SearchBar, SegmentControl, TxHistoryRow } fro
 import { analytics } from '@core/observability/analytics';
 import { useDeposits } from '../hooks/useBlockchainWallet';
 import type { WalletStackParamList } from '../navigation/types';
+import type { DepositRecord } from '@exchange/mobile-types';
+
+type DepositPage = { items: DepositRecord[]; pagination: { page: number; limit: number; total: number; totalPages: number } };
 
 const STATUS_TABS = [
   { id: '', label: 'All' },
@@ -24,10 +27,10 @@ export function DepositHistoryScreen({ navigation }: Props) {
   }, []);
 
   const items = useMemo(() => {
-    const all = q.data?.pages.flatMap((p) => p.items) ?? [];
+    const all = q.data?.pages.flatMap((p: DepositPage) => p.items) ?? [];
     if (!search.trim()) return all;
     const s = search.toLowerCase();
-    return all.filter((d) => d.symbol.toLowerCase().includes(s) || d.tx_hash?.toLowerCase().includes(s));
+    return all.filter((d: DepositRecord) => d.symbol.toLowerCase().includes(s) || d.tx_hash?.toLowerCase().includes(s));
   }, [q.data, search]);
 
   return (

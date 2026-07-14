@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 import { useWs } from '@app/providers/WsProvider';
 import { useAuthStore } from '@core/state/authStore';
 import { getSpotRepository } from '@core/repositories/SpotRepository';
@@ -12,6 +12,13 @@ import type {
   UpdateP2PAdRequest,
   CreateP2POrderRequest,
   P2PMessage,
+  P2PAd,
+  P2PReferencePrice,
+  P2POrder,
+  P2PPlatformPaymentMethod,
+  P2PUserPaymentMethod,
+  P2PMerchantStats,
+  P2PDispute,
 } from '@exchange/mobile-types';
 
 export const P2P_ADS_KEY = ['p2p', 'ads'] as const;
@@ -30,9 +37,9 @@ export function useP2PAds(filters?: {
   fiat?: string;
   advertiser_id?: string;
 }) {
-  return useInfiniteQuery({
+  return useInfiniteQuery<P2PAd[], Error, InfiniteData<P2PAd[]>, readonly unknown[], number>({
     queryKey: [...P2P_ADS_KEY, filters],
-    queryFn: ({ pageParam = 0 }) =>
+    queryFn: ({ pageParam }) =>
       getP2PRepository().getAds({ ...filters, limit: 20, offset: pageParam }),
     initialPageParam: 0,
     getNextPageParam: (last, _pages, lastPageParam) =>
@@ -42,7 +49,7 @@ export function useP2PAds(filters?: {
 }
 
 export function useP2PReferencePrice(asset: string, fiat: string) {
-  return useQuery({
+  return useQuery<P2PReferencePrice | null>({
     queryKey: ['p2p', 'reference-price', asset, fiat],
     queryFn: () => getP2PRepository().getReferencePrice(asset, fiat),
     enabled: !!asset && !!fiat,
@@ -51,7 +58,7 @@ export function useP2PReferencePrice(asset: string, fiat: string) {
 }
 
 export function useMyP2PAds() {
-  return useQuery({
+  return useQuery<P2PAd[]>({
     queryKey: P2P_MY_ADS_KEY,
     queryFn: () => getP2PRepository().getMyAds(),
     staleTime: 30_000,
@@ -87,7 +94,7 @@ export function useDeleteAd() {
 }
 
 export function useMyP2POrders(status?: string) {
-  return useQuery({
+  return useQuery<P2POrder[]>({
     queryKey: [...P2P_ORDERS_KEY, status],
     queryFn: () => getP2PRepository().getMyOrders(status),
     staleTime: 15_000,
@@ -95,7 +102,7 @@ export function useMyP2POrders(status?: string) {
 }
 
 export function useP2POrder(orderId: string) {
-  return useQuery({
+  return useQuery<P2POrder>({
     queryKey: P2P_ORDER_KEY(orderId),
     queryFn: () => getP2PRepository().getOrder(orderId),
     enabled: !!orderId,
@@ -148,7 +155,7 @@ export function useP2PMessages(orderId: string) {
   const storeMessages = useP2PStore((s) => s.messagesByOrder[orderId]);
   const setMessages = useP2PStore((s) => s.setMessages);
 
-  const q = useQuery({
+  const q = useQuery<P2PMessage[]>({
     queryKey: P2P_MESSAGES_KEY(orderId),
     queryFn: () => getP2PRepository().getMessages(orderId),
     enabled: !!orderId,
@@ -200,7 +207,7 @@ export function useMarkMessagesRead(orderId: string) {
 }
 
 export function usePlatformPaymentMethods() {
-  return useQuery({
+  return useQuery<P2PPlatformPaymentMethod[]>({
     queryKey: P2P_PAYMENT_METHODS_KEY,
     queryFn: () => getP2PRepository().getPlatformPaymentMethods(),
     staleTime: 300_000,
@@ -208,7 +215,7 @@ export function usePlatformPaymentMethods() {
 }
 
 export function useMyPaymentMethods() {
-  return useQuery({
+  return useQuery<P2PUserPaymentMethod[]>({
     queryKey: P2P_MY_PAYMENT_METHODS_KEY,
     queryFn: () => getP2PRepository().getMyPaymentMethods(true),
     staleTime: 30_000,
@@ -249,7 +256,7 @@ export function usePaymentMethodMutations() {
 }
 
 export function useMerchantStats() {
-  return useQuery({
+  return useQuery<P2PMerchantStats | null>({
     queryKey: P2P_MERCHANT_STATS_KEY,
     queryFn: () => getP2PRepository().getMerchantStats(),
     staleTime: 60_000,
@@ -257,7 +264,7 @@ export function useMerchantStats() {
 }
 
 export function useP2PDispute(disputeId: string) {
-  return useQuery({
+  return useQuery<P2PDispute>({
     queryKey: P2P_DISPUTE_KEY(disputeId),
     queryFn: () => getP2PRepository().getDispute(disputeId),
     enabled: !!disputeId,

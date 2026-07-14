@@ -1,6 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAuthRepository } from '@core/repositories/AuthRepository';
 import { getUserRepository, getKycRepository, getSupportRepository, getPushRepository } from '@core/repositories/UserRepository';
+import type {
+  ApiKey,
+  FeeTier,
+  KycStatus,
+  LoginActivity,
+  ReferralEntry,
+  ReferralStats,
+  SecuritySettings,
+  SupportTicket,
+  UserNotification,
+  UserPreferences,
+  UserProfile,
+  UserSession,
+} from '@exchange/mobile-types';
 
 export const PROFILE_KEY = ['account', 'profile'] as const;
 export const AUTH_PROFILE_KEY = ['account', 'auth-profile'] as const;
@@ -16,15 +30,15 @@ export const TICKETS_KEY = ['account', 'tickets'] as const;
 export const FEE_TIER_KEY = ['account', 'fee-tier'] as const;
 
 export function useAuthProfile() {
-  return useQuery({ queryKey: AUTH_PROFILE_KEY, queryFn: () => getAuthRepository().getProfile(), staleTime: 60_000 });
+  return useQuery<UserProfile>({ queryKey: AUTH_PROFILE_KEY, queryFn: () => getAuthRepository().getProfile(), staleTime: 60_000 });
 }
 
 export function useUserProfile() {
-  return useQuery({ queryKey: PROFILE_KEY, queryFn: () => getUserRepository().getProfile(), staleTime: 60_000 });
+  return useQuery<UserProfile>({ queryKey: PROFILE_KEY, queryFn: () => getUserRepository().getProfile(), staleTime: 60_000 });
 }
 
 export function useSecuritySettings() {
-  return useQuery({
+  return useQuery<SecuritySettings>({
     queryKey: SECURITY_SETTINGS_KEY,
     queryFn: () => getAuthRepository().getSecuritySettings(),
     staleTime: 30_000,
@@ -32,15 +46,15 @@ export function useSecuritySettings() {
 }
 
 export function useSessions() {
-  return useQuery({ queryKey: SESSIONS_KEY, queryFn: () => getUserRepository().getSessions(), staleTime: 30_000 });
+  return useQuery<UserSession[]>({ queryKey: SESSIONS_KEY, queryFn: () => getUserRepository().getSessions(), staleTime: 30_000 });
 }
 
 export function useLoginActivity() {
-  return useQuery({ queryKey: ACTIVITY_KEY, queryFn: () => getUserRepository().getActivity(), staleTime: 60_000 });
+  return useQuery<LoginActivity[]>({ queryKey: ACTIVITY_KEY, queryFn: () => getUserRepository().getActivity(), staleTime: 60_000 });
 }
 
 export function useNotifications() {
-  return useQuery({
+  return useQuery<UserNotification[]>({
     queryKey: NOTIFICATIONS_KEY,
     queryFn: () => getUserRepository().getNotifications(),
     staleTime: 30_000,
@@ -62,7 +76,7 @@ export function useNotificationMutations() {
 }
 
 export function usePreferences() {
-  return useQuery({ queryKey: PREFERENCES_KEY, queryFn: () => getAuthRepository().getPreferences(), staleTime: 120_000 });
+  return useQuery<UserPreferences>({ queryKey: PREFERENCES_KEY, queryFn: () => getAuthRepository().getPreferences(), staleTime: 120_000 });
 }
 
 export function useSavePreferences() {
@@ -74,27 +88,27 @@ export function useSavePreferences() {
 }
 
 export function useKycStatus() {
-  return useQuery({ queryKey: KYC_KEY, queryFn: () => getKycRepository().getStatus(), staleTime: 30_000 });
+  return useQuery<KycStatus>({ queryKey: KYC_KEY, queryFn: () => getKycRepository().getStatus(), staleTime: 30_000 });
 }
 
 export function useApiKeys() {
-  return useQuery({ queryKey: API_KEYS_KEY, queryFn: () => getAuthRepository().getApiKeys(), staleTime: 30_000 });
+  return useQuery<ApiKey[]>({ queryKey: API_KEYS_KEY, queryFn: () => getAuthRepository().getApiKeys(), staleTime: 30_000 });
 }
 
 export function useReferralAnalytics() {
-  return useQuery({ queryKey: REFERRAL_KEY, queryFn: () => getUserRepository().getReferralAnalytics(), staleTime: 60_000 });
+  return useQuery<ReferralStats>({ queryKey: REFERRAL_KEY, queryFn: () => getUserRepository().getReferralAnalytics(), staleTime: 60_000 });
 }
 
 export function useReferrals() {
-  return useQuery({ queryKey: [...REFERRAL_KEY, 'list'], queryFn: () => getUserRepository().getReferrals(), staleTime: 60_000 });
+  return useQuery<ReferralEntry[]>({ queryKey: [...REFERRAL_KEY, 'list'], queryFn: () => getUserRepository().getReferrals(), staleTime: 60_000 });
 }
 
 export function useSupportTickets() {
-  return useQuery({ queryKey: TICKETS_KEY, queryFn: () => getSupportRepository().getTickets(), staleTime: 30_000 });
+  return useQuery<SupportTicket[]>({ queryKey: TICKETS_KEY, queryFn: () => getSupportRepository().getTickets(), staleTime: 30_000 });
 }
 
 export function useFeeTier() {
-  return useQuery({ queryKey: FEE_TIER_KEY, queryFn: () => getUserRepository().getFeeTier(), staleTime: 120_000 });
+  return useQuery<FeeTier>({ queryKey: FEE_TIER_KEY, queryFn: () => getUserRepository().getFeeTier(), staleTime: 120_000 });
 }
 
 export function usePushRegistration() {

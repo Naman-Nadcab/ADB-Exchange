@@ -7,6 +7,7 @@ import { analytics } from '@core/observability/analytics';
 import { getAdPrice, getAdSide } from '@core/domain/p2p/order';
 import { useP2PAds } from '../hooks/useP2P';
 import type { P2PStackParamList } from '../navigation/types';
+import type { P2PAd } from '@exchange/mobile-types';
 
 type Props = NativeStackScreenProps<P2PStackParamList, 'AdDetail'>;
 
@@ -19,7 +20,7 @@ export function AdDetailScreen({ navigation, route }: Props) {
     analytics.screen('S-601');
   }, []);
 
-  const ad = useMemo(() => q.data?.pages.flat().find((a) => a.id === adId), [q.data, adId]);
+  const ad = useMemo(() => q.data?.pages.flat().find((a: P2PAd) => a.id === adId), [q.data, adId]);
 
   if (!ad) {
     return (
