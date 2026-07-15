@@ -49,19 +49,21 @@ export class P2PRepository extends BaseRepository {
   }
 
   createAd(body: CreateP2PAdRequest) {
-    return this.http.request<P2PAd>(`${PREFIX}/ads`, { method: 'POST', body });
+    return this.http.request<P2PAd>(`${PREFIX}/ads`, { method: 'POST', body, idempotent: true });
   }
 
   updateAd(adId: string, body: UpdateP2PAdRequest) {
     return this.http.request<P2PAd>(`${PREFIX}/my-ads/${encodeURIComponent(adId)}`, {
       method: 'PATCH',
       body,
+      idempotent: true,
     });
   }
 
   deleteAd(adId: string) {
     return this.http.request<Record<string, unknown>>(`${PREFIX}/my-ads/${encodeURIComponent(adId)}`, {
       method: 'DELETE',
+      idempotent: true,
     });
   }
 

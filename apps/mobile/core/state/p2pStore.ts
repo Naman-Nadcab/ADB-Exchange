@@ -27,7 +27,14 @@ type P2PState = {
   clearOnLogout: () => void;
 };
 
-const initialDraft: PostAdDraft = { type: 'sell', payment_time_limit: 15 };
+const initialDraft: PostAdDraft = {
+  type: 'sell',
+  currency: 'USDT',
+  fiat: 'INR',
+  pricing_type: 'fixed',
+  payment_time_limit: 15,
+  float_margin_percent: 0,
+};
 
 export const useP2PStore = create<P2PState>((set, get) => ({
   postAdDraft: { ...initialDraft },

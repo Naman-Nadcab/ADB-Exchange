@@ -9,7 +9,7 @@ export type P2PStackParamList = {
   PostAdPayment: undefined;
   PostAdReview: undefined;
   MyAds: undefined;
-  EditAd: { adId: string };
+  EditAd: { adId: string; ad?: P2PAd };
   OrdersList: undefined;
   OrderRoom: { orderId: string };
   PaymentMethods: undefined;

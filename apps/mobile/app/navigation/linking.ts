@@ -78,6 +78,7 @@ export const linking = {
             screens: {
               Marketplace: 'p2p',
               AdDetail: 'p2p/ad/:adId',
+              PostAdType: 'p2p/create-ad',
               OrderRoom: 'p2p/order/:orderId',
             },
           },
