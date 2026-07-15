@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { ScrollView, Text, StyleSheet, View, Share } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenLayout, ErrorBanner, ErrorState, SkeletonList, PrimaryButton } from '@shared/ui';
@@ -55,10 +55,20 @@ export function TransferDetailScreen({ route }: Props) {
     analytics.screen('S-533');
   }, []);
 
-  const item = q.data?.pages.flatMap((p) => p.items).find((t) => t.id === transferId);
+  const item = useMemo(
+    () => q.data?.pages.flatMap((p) => p.items).find((t) => t.id === transferId),
+    [q.data, transferId],
+  );
+
+  useEffect(() => {
+    if (item || q.isLoading) return;
+    if (q.hasNextPage && !q.isFetchingNextPage) void q.fetchNextPage();
+  }, [item, q.isLoading, q.hasNextPage, q.isFetchingNextPage, q]);
+
+  const pendingLookup = !item && (q.isLoading || q.isFetchingNextPage || !!q.hasNextPage);
   const onRefresh = useCallback(() => void q.refetch(), [q]);
 
-  if (q.isLoading && !item) {
+  if (pendingLookup) {
     return (
       <ScreenLayout testID="S-533">
         <SkeletonList rows={6} />

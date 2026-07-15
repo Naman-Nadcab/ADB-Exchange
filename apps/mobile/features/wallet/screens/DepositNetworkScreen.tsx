@@ -19,7 +19,8 @@ import type { WalletChain } from '@exchange/mobile-types';
 type Props = NativeStackScreenProps<WalletStackParamList, 'DepositNetwork'>;
 
 export function DepositNetworkScreen({ route, navigation }: Props) {
-  const { symbol, name } = route.params;
+  const { symbol } = route.params;
+  const name = route.params.name ?? symbol;
   const { theme } = useTheme();
   const isOnline = useAppStore((s) => s.isOnline);
   const q = useTokenChains(symbol);

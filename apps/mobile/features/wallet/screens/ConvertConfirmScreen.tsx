@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { ScrollView, RefreshControl, View, Text, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { ScreenLayout, PrimaryButton, ErrorBanner } from '@shared/ui';
+import { ScreenLayout, PrimaryButton, ErrorBanner, SkeletonList } from '@shared/ui';
 import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
@@ -24,14 +24,35 @@ export function ConvertConfirmScreen({ navigation, route }: Props) {
   const [success, setSuccess] = useState<string | null>(null);
   const [nowTick, setNowTick] = useState(Date.now());
 
+  const paramsValid =
+    !!p?.quote?.fromCurrencyId &&
+    !!p?.quote?.toCurrencyId &&
+    !!p?.fromSymbol &&
+    !!p?.toSymbol &&
+    !!p?.amount;
+
   useEffect(() => {
     analytics.screen('S-541');
   }, []);
 
   useEffect(() => {
+    if (!paramsValid) {
+      navigation.replace('Convert');
+    }
+  }, [paramsValid, navigation]);
+
+  useEffect(() => {
     const id = setInterval(() => setNowTick(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  if (!paramsValid) {
+    return (
+      <ScreenLayout testID="S-541">
+        <SkeletonList rows={4} />
+      </ScreenLayout>
+    );
+  }
 
   const remainingMs = p.quote.expiresAtMs - nowTick;
   const quoteExpired = remainingMs <= 0;

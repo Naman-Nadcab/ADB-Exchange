@@ -32,7 +32,7 @@ export type WalletStackParamList = {
   TransactionHistory: undefined;
   FundHistory: undefined;
   DepositHome: undefined;
-  DepositNetwork: { symbol: string; name: string };
+  DepositNetwork: { symbol: string; name?: string };
   DepositAddress: { symbol: string; chainId: string; chainName?: string; chainType?: string; confirmations?: number };
   DepositHistory: undefined;
   DepositDetail: { txHash: string };

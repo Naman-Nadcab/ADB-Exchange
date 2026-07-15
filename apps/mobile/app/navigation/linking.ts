@@ -58,7 +58,12 @@ export const linking = {
               ConvertDetail: 'wallet/conversions/:conversionId',
               TransactionHistory: 'wallet/transactions',
               DepositHome: 'wallet/deposit',
-              DepositAddress: 'wallet/deposit/:symbol',
+              DepositNetwork: {
+                path: 'wallet/deposit/:symbol',
+                parse: {
+                  symbol: (symbol: string) => symbol.toUpperCase(),
+                },
+              },
               WithdrawHome: {
                 path: 'wallet/withdraw',
                 parse: { coin: (coin: string) => coin },

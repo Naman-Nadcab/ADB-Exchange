@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { ScrollView, RefreshControl, Text, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, PrimaryButton, ErrorBanner } from '@shared/ui';
+import { ScreenLayout, PrimaryButton, ErrorBanner, SkeletonList } from '@shared/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
@@ -23,9 +23,30 @@ export function TransferConfirmScreen({ navigation, route }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  const paramsValid =
+    !!p?.fromAccount &&
+    !!p?.toAccount &&
+    !!p?.tokenId &&
+    !!p?.symbol &&
+    !!p?.amount;
+
   useEffect(() => {
     analytics.screen('S-531');
   }, []);
+
+  useEffect(() => {
+    if (!paramsValid) {
+      navigation.replace('Transfer');
+    }
+  }, [paramsValid, navigation]);
+
+  if (!paramsValid) {
+    return (
+      <ScreenLayout testID="S-531">
+        <SkeletonList rows={4} />
+      </ScreenLayout>
+    );
+  }
 
   const submit = async () => {
     setError(null);

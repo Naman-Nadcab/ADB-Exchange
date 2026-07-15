@@ -23,6 +23,13 @@ type Props = NativeStackScreenProps<WalletStackParamList, 'DepositAddress'>;
 
 export function DepositAddressScreen({ route, navigation }: Props) {
   const { symbol, chainId, chainName, chainType, confirmations } = route.params;
+
+  useEffect(() => {
+    if (!chainId) {
+      navigation.replace('DepositNetwork', { symbol, name: symbol });
+    }
+  }, [chainId, symbol, navigation]);
+
   const isOnline = useAppStore((s) => s.isOnline);
   const q = useDepositAddress(chainId);
   const kycQ = useKycStatus();
@@ -55,6 +62,14 @@ export function DepositAddressScreen({ route, navigation }: Props) {
     void recentQ.refetch();
     void kycQ.refetch();
   }, [q, recentQ, kycQ]);
+
+  if (!chainId) {
+    return (
+      <ScreenLayout testID="S-512">
+        <SkeletonList rows={4} />
+      </ScreenLayout>
+    );
+  }
 
   const loading = q.isLoading && !q.data;
   const refreshing = q.isFetching || recentQ.isFetching;

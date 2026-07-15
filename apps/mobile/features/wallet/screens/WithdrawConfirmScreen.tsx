@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { ScrollView, RefreshControl } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, PrimaryButton, ErrorBanner } from '@shared/ui';
+import { ScreenLayout, PrimaryButton, ErrorBanner, SkeletonList } from '@shared/ui';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
 import { ApiError } from '@core/api/errors/ApiError';
@@ -29,9 +29,25 @@ export function WithdrawConfirmScreen({ navigation, route }: Props) {
   const [success, setSuccess] = useState(false);
   const [lastSecurity, setLastSecurity] = useState<SecurityInput>({});
 
+  const paramsValid = !!p?.symbol && !!p?.chainId && !!p?.address && !!p?.amount;
+
   useEffect(() => {
     analytics.screen('S-522');
   }, []);
+
+  useEffect(() => {
+    if (!paramsValid) {
+      navigation.replace('WithdrawHome');
+    }
+  }, [paramsValid, navigation]);
+
+  if (!paramsValid) {
+    return (
+      <ScreenLayout testID="S-522">
+        <SkeletonList rows={4} />
+      </ScreenLayout>
+    );
+  }
 
   const submit = async (security: SecurityInput) => {
     setError(null);
