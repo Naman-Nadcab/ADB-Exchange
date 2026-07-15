@@ -42,6 +42,8 @@ export const linking = {
               AssetsHome: 'wallet',
               AssetDetail: 'wallet/:symbol',
               Transfer: 'wallet/transfer',
+              TransferConfirm: 'wallet/transfer/confirm',
+              TransferHistory: 'wallet/transfer/history',
               Convert: 'wallet/convert',
               DepositHome: 'wallet/deposit',
               DepositAddress: 'wallet/deposit/:symbol',

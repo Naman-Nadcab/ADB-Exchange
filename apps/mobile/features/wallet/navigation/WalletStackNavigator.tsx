@@ -3,6 +3,7 @@ import { guestGuard } from '@features/auth';
 import { AssetsHomeScreen } from '../screens/AssetsHomeScreen';
 import { AssetDetailScreen } from '../screens/AssetDetailScreen';
 import { TransferScreen } from '../screens/TransferScreen';
+import { TransferConfirmScreen } from '../screens/TransferConfirmScreen';
 import { TransferHistoryScreen } from '../screens/TransferHistoryScreen';
 import { ConvertScreen } from '../screens/ConvertScreen';
 import { ConvertHistoryScreen } from '../screens/ConvertHistoryScreen';
@@ -33,6 +34,7 @@ export function WalletStackNavigator() {
       <Stack.Screen name="AssetsHome" component={AssetsHomeScreen} options={{ headerShown: false }} />
       <Stack.Screen name="AssetDetail" component={guestGuard(AssetDetailScreen, 'Log in to view asset details.')} options={{ title: 'Asset' }} />
       <Stack.Screen name="Transfer" component={guestGuard(TransferScreen, 'Log in to transfer funds.')} options={{ title: 'Transfer' }} />
+      <Stack.Screen name="TransferConfirm" component={guestGuard(TransferConfirmScreen, 'Log in to transfer funds.')} options={{ title: 'Confirm Transfer' }} />
       <Stack.Screen name="TransferHistory" component={guestGuard(TransferHistoryScreen, 'Log in to view transfer history.')} options={{ title: 'Transfer History' }} />
       <Stack.Screen name="Convert" component={guestGuard(ConvertScreen, 'Log in to convert assets.')} options={{ title: 'Convert' }} />
       <Stack.Screen name="ConvertHistory" component={guestGuard(ConvertHistoryScreen, 'Log in to view convert history.')} options={{ title: 'Convert History' }} />

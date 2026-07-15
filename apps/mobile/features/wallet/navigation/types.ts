@@ -3,7 +3,16 @@ import type { AccountType, WithdrawPreview } from '@exchange/mobile-types';
 export type WalletStackParamList = {
   AssetsHome: undefined;
   AssetDetail: { symbol: string };
-  Transfer: { from?: AccountType; to?: AccountType } | undefined;
+  Transfer: { from?: AccountType; to?: AccountType; symbol?: string } | undefined;
+  TransferConfirm: {
+    fromAccount: AccountType;
+    toAccount: AccountType;
+    tokenId: string;
+    symbol: string;
+    name: string;
+    amount: string;
+    available: string;
+  };
   TransferHistory: undefined;
   Convert: undefined;
   ConvertHistory: undefined;

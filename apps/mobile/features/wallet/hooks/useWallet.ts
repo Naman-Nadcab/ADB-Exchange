@@ -120,7 +120,23 @@ export function useExecuteTransfer() {
       void qc.invalidateQueries({ queryKey: PORTFOLIO_KEY });
       void qc.invalidateQueries({ queryKey: FUNDING_KEY });
       void qc.invalidateQueries({ queryKey: TRADING_BAL_KEY });
+      void qc.invalidateQueries({ queryKey: SPOT_BAL_KEY });
+      void qc.invalidateQueries({ queryKey: ['transferBalances'] });
+      void qc.invalidateQueries({ queryKey: ['transferHistory'] });
+      void qc.invalidateQueries({ queryKey: ['recentTransfers'] });
+      appEventBus.emit('balances:invalidate');
     },
+  });
+}
+
+export function useRecentTransfers(limit = 10) {
+  return useQuery({
+    queryKey: ['recentTransfers', limit],
+    queryFn: async () => {
+      const r = await getWalletRepository().getTransferHistory(limit, 0);
+      return r.items;
+    },
+    staleTime: 15_000,
   });
 }
 

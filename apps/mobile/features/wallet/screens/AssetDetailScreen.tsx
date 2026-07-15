@@ -158,7 +158,7 @@ export function AssetDetailScreen({ route, navigation }: Props) {
                   id: 'transfer',
                   label: 'Transfer',
                   icon: 'swap-horizontal',
-                  onPress: () => requireNav(() => navigation.navigate('Transfer')),
+                  onPress: () => requireNav(() => navigation.navigate('Transfer', { symbol })),
                 },
                 {
                   id: 'convert',

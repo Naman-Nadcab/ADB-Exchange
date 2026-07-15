@@ -1,68 +1,119 @@
-import { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import { ScrollView, RefreshControl, Pressable, Text, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, SegmentControl, TextField, PrimaryButton, ErrorBanner } from '@shared/ui';
+import { useTheme } from '@shared/theme';
+import {
+  ScreenLayout,
+  TextField,
+  PrimaryButton,
+  ErrorBanner,
+  ErrorState,
+} from '@shared/ui';
 import { analytics } from '@core/observability/analytics';
 import { validateTransferAmount } from '@core/domain/wallet/portfolio';
+import {
+  validateSameAccount,
+  applyTransferPercent,
+} from '@core/domain/wallet/transfer';
 import { useAppStore } from '@core/state/appStore';
-import { ApiError } from '@core/api/errors/ApiError';
+import { useWalletPrefsStore } from '@core/state/walletPrefsStore';
 import type { AccountType } from '@exchange/mobile-types';
-import { useTransferBalances, useExecuteTransfer } from '../hooks/useWallet';
+import { useTransferBalances, useRecentTransfers } from '../hooks/useWallet';
+import { TransferFlowHeader } from '../components/TransferFlowHeader';
+import { TransferAccountSection } from '../components/TransferAccountSection';
+import { TransferCoinPicker } from '../components/TransferCoinPicker';
+import { TransferAmountControls } from '../components/TransferAmountSection';
+import { TransferPreviewCard } from '../components/TransferPreviewCard';
+import { TransferInfoCard } from '../components/TransferInfoCard';
+import { TransferRecentPreview } from '../components/TransferRecentPreview';
 import type { WalletStackParamList } from '../navigation/types';
-
-const ACCOUNTS: { id: AccountType; label: string }[] = [
-  { id: 'funding', label: 'Funding' },
-  { id: 'trading', label: 'Trading' },
-];
 
 type Props = NativeStackScreenProps<WalletStackParamList, 'Transfer'>;
 
 export function TransferScreen({ navigation, route }: Props) {
+  const { theme } = useTheme();
   const [fromAccount, setFromAccount] = useState<AccountType>(route.params?.from ?? 'funding');
   const [toAccount, setToAccount] = useState<AccountType>(route.params?.to ?? 'trading');
   const [tokenId, setTokenId] = useState('');
   const [amount, setAmount] = useState('');
+  const [percent, setPercent] = useState(0);
+  const [search, setSearch] = useState('');
+  const [hideZero, setHideZero] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const isOnline = useAppStore((s) => s.isOnline);
+  const favorites = useWalletPrefsStore((s) => s.favorites);
 
   const balancesQ = useTransferBalances(fromAccount);
-  const transfer = useExecuteTransfer();
+  const recentQ = useRecentTransfers(10);
 
   useEffect(() => {
     analytics.screen('S-530');
   }, []);
 
   useEffect(() => {
-    if (balancesQ.data?.length && !tokenId) setTokenId(balancesQ.data[0].tokenId);
-  }, [balancesQ.data, tokenId]);
+    if (!balancesQ.data?.length) return;
+    const sym = route.params?.symbol?.toUpperCase();
+    if (sym) {
+      const match = balancesQ.data.find((t) => t.symbol.toUpperCase() === sym);
+      if (match) {
+        setTokenId(match.tokenId);
+        return;
+      }
+    }
+    if (!tokenId) setTokenId(balancesQ.data[0].tokenId);
+  }, [balancesQ.data, tokenId, route.params?.symbol]);
 
   const selected = useMemo(
     () => balancesQ.data?.find((t) => t.tokenId === tokenId),
     [balancesQ.data, tokenId],
   );
 
+  const onRefresh = useCallback(() => {
+    void balancesQ.refetch();
+    void recentQ.refetch();
+  }, [balancesQ, recentQ]);
+
   const swapDirection = () => {
     setFromAccount(toAccount);
     setToAccount(fromAccount);
     setTokenId('');
     setAmount('');
+    setPercent(0);
     setError(null);
   };
 
-  const submit = async () => {
+  const applyMax = () => {
+    if (selected) {
+      setAmount(selected.availableBalance);
+      setPercent(100);
+    }
+  };
+
+  const onPercent = (pct: number) => {
+    setPercent(pct);
+    if (selected) setAmount(applyTransferPercent(selected.availableBalance, pct));
+  };
+
+  const onFromChange = (a: AccountType) => {
+    setFromAccount(a);
+    setTokenId('');
+    setAmount('');
+    setPercent(0);
+  };
+
+  const proceed = () => {
     setError(null);
-    setSuccess(null);
     if (!isOnline) {
-      setError('Offline — cannot transfer');
+      setError('Offline — cannot transfer until reconnected');
       return;
     }
-    if (fromAccount === toAccount) {
-      setError('Select different accounts');
+    const sameErr = validateSameAccount(fromAccount, toAccount);
+    if (sameErr) {
+      setError(sameErr);
       return;
     }
     if (!tokenId || !selected) {
-      setError('Select an asset');
+      setError('Please select a coin');
       return;
     }
     const v = validateTransferAmount(amount, selected.availableBalance);
@@ -70,60 +121,106 @@ export function TransferScreen({ navigation, route }: Props) {
       setError(v);
       return;
     }
-    try {
-      await transfer.mutateAsync({ fromAccount, toAccount, tokenId, amount });
-      setSuccess(`Transferred ${amount} ${selected.symbol} successfully`);
-      setAmount('');
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Transfer failed');
-    }
+    navigation.navigate('TransferConfirm', {
+      fromAccount,
+      toAccount,
+      tokenId,
+      symbol: selected.symbol,
+      name: selected.name,
+      amount,
+      available: selected.availableBalance,
+    });
   };
 
   return (
     <ScreenLayout testID="S-530">
-      <SegmentControl
-        tabs={ACCOUNTS}
-        active={fromAccount}
-        onChange={(id) => {
-          setFromAccount(id as AccountType);
-          setTokenId('');
-        }}
-      />
-      <Text style={styles.arrow}>↓</Text>
-      <SegmentControl
-        tabs={ACCOUNTS}
-        active={toAccount}
-        onChange={(id) => setToAccount(id as AccountType)}
-      />
-      <PrimaryButton title="Swap direction" variant="secondary" onPress={swapDirection} />
-      {balancesQ.data?.length ? (
-        <SegmentControl
-          tabs={balancesQ.data.map((t) => ({ id: t.tokenId, label: t.symbol }))}
-          active={tokenId}
-          onChange={setTokenId}
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        refreshControl={<RefreshControl refreshing={balancesQ.isFetching} onRefresh={onRefresh} />}
+      >
+        <TransferFlowHeader step="Step 1 · Choose accounts, coin & amount" />
+
+        <Pressable onPress={() => navigation.navigate('TransferHistory')} style={styles.historyLink}>
+          <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600' }}>Transfer history</Text>
+        </Pressable>
+
+        {!isOnline ? <ErrorBanner message="Offline — balances may be stale" onRetry={onRefresh} /> : null}
+
+        <TransferAccountSection
+          fromAccount={fromAccount}
+          toAccount={toAccount}
+          onFromChange={onFromChange}
+          onToChange={setToAccount}
+          onSwap={swapDirection}
         />
-      ) : null}
-      <Text style={styles.avail}>
-        Available: {selected?.availableBalance ?? '0'} {selected?.symbol ?? ''}
-      </Text>
-      <TextField label="Amount" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" />
-      {error ? <ErrorBanner message={error} /> : null}
-      {success ? <Text style={styles.success}>{success}</Text> : null}
-      <PrimaryButton title="Confirm Transfer" loading={transfer.isPending} onPress={() => void submit()} />
-      <View style={styles.footer}>
-        <PrimaryButton
-          title="Transfer History"
-          variant="secondary"
-          onPress={() => navigation.navigate('TransferHistory')}
+
+        <TransferCoinPicker
+          tokens={balancesQ.data ?? []}
+          selectedId={tokenId}
+          onSelect={(t) => {
+            setTokenId(t.tokenId);
+            setAmount('');
+            setPercent(0);
+          }}
+          search={search}
+          onSearchChange={setSearch}
+          hideZero={hideZero}
+          onHideZeroChange={setHideZero}
+          favorites={favorites}
+          isLoading={balancesQ.isLoading}
+          isError={balancesQ.isError}
+          onRetry={onRefresh}
         />
-      </View>
+
+        {selected ? (
+          <>
+            <TextField
+              label="Amount"
+              value={amount}
+              onChangeText={(v) => {
+                setAmount(v);
+                setPercent(0);
+              }}
+              keyboardType="decimal-pad"
+              placeholder="Enter amount"
+            />
+            <TransferAmountControls
+              symbol={selected.symbol}
+              available={selected.availableBalance}
+              amount={amount}
+              onMax={applyMax}
+              percent={percent}
+              onPercentChange={onPercent}
+            />
+            <TransferPreviewCard
+              fromAccount={fromAccount}
+              toAccount={toAccount}
+              symbol={selected.symbol}
+              amount={amount}
+            />
+          </>
+        ) : balancesQ.isError ? (
+          <ErrorState title="Balances unavailable" onRetry={onRefresh} />
+        ) : null}
+
+        {error ? <ErrorBanner message={error} /> : null}
+
+        <PrimaryButton title="Review Transfer" onPress={proceed} disabled={!selected || !amount} />
+
+        <TransferInfoCard />
+
+        <TransferRecentPreview
+          items={recentQ.data ?? []}
+          isLoading={recentQ.isLoading}
+          error={recentQ.isError}
+          onRetry={() => void recentQ.refetch()}
+          onViewAll={() => navigation.navigate('TransferHistory')}
+        />
+      </ScrollView>
     </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  arrow: { textAlign: 'center', fontSize: 20, marginVertical: 8 },
-  avail: { fontSize: 12, marginVertical: 8 },
-  success: { color: '#10B981', marginVertical: 8 },
-  footer: { marginTop: 16 },
+  historyLink: { marginBottom: 12 },
 });
