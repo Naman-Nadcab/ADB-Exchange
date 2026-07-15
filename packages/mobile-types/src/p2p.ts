@@ -94,10 +94,13 @@ export type P2PUserPaymentMethod = {
   method_type?: string;
   display_name?: string;
   is_active?: boolean;
+  is_verified?: boolean;
   is_default?: boolean;
   priority?: number;
   payment_details?: Record<string, unknown>;
   verification_status?: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type P2PMessage = {

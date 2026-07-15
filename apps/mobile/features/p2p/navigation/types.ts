@@ -1,4 +1,4 @@
-import type { P2PAd, P2POrder } from '@exchange/mobile-types';
+import type { P2PAd, P2POrder, P2PUserPaymentMethod } from '@exchange/mobile-types';
 
 export type P2PStackParamList = {
   Marketplace: undefined;
@@ -13,7 +13,7 @@ export type P2PStackParamList = {
   OrdersList: undefined;
   OrderRoom: { orderId: string; order?: P2POrder };
   PaymentMethods: undefined;
-  AddPaymentMethod: { id?: string };
+  AddPaymentMethod: { id?: string; method?: P2PUserPaymentMethod };
   MerchantDashboard: undefined;
   MerchantProfile: { advertiserId: string; seedAd?: P2PAd };
   DisputeDetail: { disputeId: string };

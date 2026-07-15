@@ -186,7 +186,7 @@ export class P2PRepository extends BaseRepository {
 
   updatePaymentMethod(
     id: string,
-    body: { is_active?: boolean; is_default?: boolean; priority?: number; payment_details?: Record<string, unknown>; display_name?: string },
+    body: { is_active?: boolean; payment_details?: Record<string, unknown>; display_name?: string },
   ) {
     return this.http.request<P2PUserPaymentMethod>(`${PREFIX}/my-payment-methods/${encodeURIComponent(id)}`, {
       method: 'PATCH',

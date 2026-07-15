@@ -21,7 +21,9 @@ import type {
   P2PMessage,
   P2PAd,
   P2POrder,
+  P2PUserPaymentMethod,
 } from '@exchange/mobile-types';
+import { findPaymentMethodInCache } from '@core/domain/p2p/paymentMethods';
 import {
   findMerchantSeedInCache,
   merchantProfileFromAds,
@@ -309,8 +311,27 @@ export function useMyPaymentMethods() {
     queryKey: P2P_MY_PAYMENT_METHODS_KEY,
     queryFn: () => getP2PRepository().getMyPaymentMethods(true),
     staleTime: 30_000,
+    refetchOnWindowFocus: true,
   });
 }
+
+/** ADR-011 — payment method from list cache / navigation seed (no GET-by-ID). */
+export function usePaymentMethod(methodId: string, seed?: P2PUserPaymentMethod) {
+  const qc = useQueryClient();
+  const listQ = useMyPaymentMethods();
+  const cached = seed?.id === methodId ? seed : findPaymentMethodInCache(qc, methodId);
+  const fromList = listQ.data?.find((m) => m.id === methodId);
+  const method = fromList ?? cached;
+
+  return {
+    method,
+    isLoading: listQ.isLoading && !method,
+    isError: listQ.isError && !method,
+    refetch: listQ.refetch,
+  };
+}
+
+export { findPaymentMethodInCache };
 
 export function usePaymentMethodMutations() {
   const qc = useQueryClient();
@@ -331,8 +352,6 @@ export function usePaymentMethodMutations() {
       }: {
         id: string;
         is_active?: boolean;
-        is_default?: boolean;
-        priority?: number;
         payment_details?: Record<string, unknown>;
         display_name?: string;
       }) => getP2PRepository().updatePaymentMethod(id, body),

@@ -80,6 +80,8 @@ export const linking = {
               AdDetail: 'p2p/ad/:adId',
               PostAdType: 'p2p/create-ad',
               OrderRoom: 'p2p/order/:orderId',
+              PaymentMethods: 'p2p/payment-methods',
+              AddPaymentMethod: 'p2p/payment-methods/add',
               MerchantDashboard: 'p2p/merchant-dashboard',
               MerchantProfile: 'p2p/profile/:advertiserId',
               MyAds: 'p2p/my-ads',
