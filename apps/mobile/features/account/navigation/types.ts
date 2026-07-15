@@ -30,6 +30,8 @@ export type AccountStackParamList = {
   TicketDetail: { id: string };
   Notifications: undefined;
   NotificationDetail: { id: string };
+  Announcements: undefined;
+  AnnouncementDetail: { id: string };
   About: undefined;
   SystemStatus: undefined;
   LegalViewer: { doc: string };

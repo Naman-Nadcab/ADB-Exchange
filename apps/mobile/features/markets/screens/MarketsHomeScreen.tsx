@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { CommonActions } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { hapticSelection, marketing } from '@shared/theme';
 import {
@@ -153,6 +154,27 @@ export function MarketsHomeScreen({ navigation }: Props) {
     [navigation],
   );
 
+  const openAnnouncementsHub = useCallback(() => {
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: 'Account',
+        params: { screen: 'Announcements' },
+      }),
+    );
+  }, [navigation]);
+
+  const openAnnouncementDetail = useCallback(
+    (id: string) => {
+      navigation.dispatch(
+        CommonActions.navigate({
+          name: 'Account',
+          params: { screen: 'AnnouncementDetail', params: { id } },
+        }),
+      );
+    },
+    [navigation],
+  );
+
   const staleLabel = dataUpdatedAt
     ? `${Math.round((Date.now() - dataUpdatedAt) / 1000)}s ago`
     : '';
@@ -239,6 +261,8 @@ export function MarketsHomeScreen({ navigation }: Props) {
         bullishPct={pulse.bullishPct}
         bearishPct={pulse.bearishPct}
         onSelectPair={openDetail}
+        onSelectAnnouncement={openAnnouncementDetail}
+        onViewAllAnnouncements={openAnnouncementsHub}
       />
 
       <MarketsHeatmapSection rows={heatmap} onSelect={openDetail} />

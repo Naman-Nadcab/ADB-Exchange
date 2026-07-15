@@ -14,6 +14,8 @@ type Props = {
   bullishPct: number;
   bearishPct: number;
   onSelectPair: (symbol: string) => void;
+  onSelectAnnouncement?: (id: string) => void;
+  onViewAllAnnouncements?: () => void;
 };
 
 export function MarketsIntelligencePanel({
@@ -23,6 +25,8 @@ export function MarketsIntelligencePanel({
   bullishPct,
   bearishPct,
   onSelectPair,
+  onSelectAnnouncement,
+  onViewAllAnnouncements,
 }: Props) {
   const [tab, setTab] = useState<'news' | 'announcements' | 'listings' | 'pulse'>('news');
   const items =
@@ -78,14 +82,29 @@ export function MarketsIntelligencePanel({
             <Text style={styles.empty}>No {tab} available</Text>
           ) : (
             items.slice(0, 6).map((item, idx) => (
-              <View key={item.id ?? `${item.title}-${idx}`} style={styles.newsRow}>
+              <Pressable
+                key={item.id ?? `${item.title}-${idx}`}
+                style={styles.newsRow}
+                onPress={() => {
+                  if ((tab === 'news' || tab === 'announcements') && item.id && onSelectAnnouncement) {
+                    void hapticLight();
+                    onSelectAnnouncement(item.id);
+                  }
+                }}
+                disabled={!(tab === 'news' || tab === 'announcements') || !item.id || !onSelectAnnouncement}
+              >
                 <Text style={styles.newsTitle} numberOfLines={2}>{item.title}</Text>
                 {item.summary ? (
                   <Text style={styles.newsSummary} numberOfLines={2}>{item.summary}</Text>
                 ) : null}
-              </View>
+              </Pressable>
             ))
           )}
+          {(tab === 'news' || tab === 'announcements') && onViewAllAnnouncements ? (
+            <Pressable onPress={onViewAllAnnouncements} style={styles.viewAll}>
+              <Text style={styles.viewAllText}>View all</Text>
+            </Pressable>
+          ) : null}
         </View>
       )}
     </View>
@@ -123,4 +142,6 @@ const styles = StyleSheet.create({
   pulseFill: { height: '100%', borderRadius: 4 },
   pulsePct: { width: 36, textAlign: 'right', fontSize: 11, fontWeight: '700' },
   pulseHint: { color: marketing.mutedText, fontSize: 10, marginTop: 4 },
+  viewAll: { paddingTop: 10, alignItems: 'flex-end' },
+  viewAllText: { color: marketing.gold, fontSize: 12, fontWeight: '700' },
 });

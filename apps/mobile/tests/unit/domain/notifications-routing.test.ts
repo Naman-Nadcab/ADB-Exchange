@@ -1,5 +1,5 @@
 import type { UserNotification } from '@exchange/mobile-types';
-import { resolveP2PNotificationRoute, countUnreadNotifications } from '@core/domain/notifications/routing';
+import { resolveP2PNotificationRoute, resolveAnnouncementNotificationRoute, countUnreadNotifications } from '@core/domain/notifications/routing';
 
 describe('notification routing domain', () => {
   const base = (over: Partial<UserNotification> = {}): UserNotification => ({
@@ -24,5 +24,13 @@ describe('notification routing domain', () => {
 
   it('counts unread notifications', () => {
     expect(countUnreadNotifications([base(), base({ id: 'n-2', read: true })])).toBe(1);
+  });
+
+  it('routes announcement notifications with id', () => {
+    expect(
+      resolveAnnouncementNotificationRoute(
+        base({ data: { announcementId: 'abc-123' } }),
+      ),
+    ).toEqual({ kind: 'announcement', announcementId: 'abc-123' });
   });
 });

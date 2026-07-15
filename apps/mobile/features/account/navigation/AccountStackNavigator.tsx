@@ -31,6 +31,8 @@ import { CreateTicketScreen } from '../screens/CreateTicketScreen';
 import { TicketDetailScreen } from '../screens/TicketDetailScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { NotificationDetailScreen } from '../screens/NotificationDetailScreen';
+import { AnnouncementsScreen } from '../screens/AnnouncementsScreen';
+import { AnnouncementDetailScreen } from '../screens/AnnouncementDetailScreen';
 import { AboutScreen } from '../screens/AboutScreen';
 import { SystemStatusScreen } from '../screens/SystemStatusScreen';
 import { LegalViewerScreen } from '../screens/LegalViewerScreen';
@@ -74,6 +76,8 @@ export function AccountStackNavigator() {
       <Stack.Screen name="TicketDetail" component={guestGuard(TicketDetailScreen, 'Log in to view ticket details.')} options={{ title: 'Ticket' }} />
       <Stack.Screen name="Notifications" component={guestGuard(NotificationsScreen, 'Log in to view notifications.')} options={{ title: 'Notifications' }} />
       <Stack.Screen name="NotificationDetail" component={guestGuard(NotificationDetailScreen, 'Log in to view notification details.')} options={{ title: 'Notification' }} />
+      <Stack.Screen name="Announcements" component={AnnouncementsScreen} options={{ title: 'Announcements' }} />
+      <Stack.Screen name="AnnouncementDetail" component={AnnouncementDetailScreen} options={{ title: 'Announcement' }} />
       <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About' }} />
       <Stack.Screen name="SystemStatus" component={SystemStatusScreen} options={{ title: 'Status' }} />
       <Stack.Screen name="LegalViewer" component={LegalViewerScreen} options={{ title: 'Legal' }} />

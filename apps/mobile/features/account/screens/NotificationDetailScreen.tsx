@@ -4,7 +4,11 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CommonActions } from '@react-navigation/native';
 import { ScreenLayout, PrimaryButton } from '@shared/ui';
 import { analytics } from '@core/observability/analytics';
-import { resolveP2PNotificationRoute } from '@core/domain/notifications/routing';
+import {
+  resolveAnnouncementNotificationRoute,
+  resolveNotificationRoute,
+  resolveP2PNotificationRoute,
+} from '@core/domain/notifications/routing';
 import { useNotifications, useNotificationMutations } from '../hooks/useAccount';
 import type { AccountStackParamList } from '../navigation/types';
 
@@ -21,6 +25,8 @@ export function NotificationDetailScreen({ route, navigation }: Props) {
   }, [item, markRead]);
 
   const p2pRoute = item ? resolveP2PNotificationRoute(item) : null;
+  const announcementRoute = item ? resolveAnnouncementNotificationRoute(item) : null;
+  const routeHint = item ? resolveNotificationRoute(item) : null;
 
   const openP2POrder = () => {
     if (!p2pRoute) return;
@@ -35,6 +41,15 @@ export function NotificationDetailScreen({ route, navigation }: Props) {
     );
   };
 
+  const openAnnouncementDetail = () => {
+    if (!announcementRoute) return;
+    navigation.navigate('AnnouncementDetail', { id: announcementRoute.announcementId });
+  };
+
+  const openAnnouncementsHub = () => {
+    navigation.navigate('Announcements');
+  };
+
   if (!item) return <ScreenLayout><Text>Not found</Text></ScreenLayout>;
 
   return (
@@ -45,6 +60,11 @@ export function NotificationDetailScreen({ route, navigation }: Props) {
         <Text style={{ fontSize: 12 }}>{item.type} · {new Date(item.created_at).toLocaleString()}</Text>
         {p2pRoute ? (
           <PrimaryButton title="View P2P order" onPress={openP2POrder} />
+        ) : null}
+        {announcementRoute ? (
+          <PrimaryButton title="View announcement" onPress={openAnnouncementDetail} />
+        ) : routeHint?.kind === 'announcements_hub' ? (
+          <PrimaryButton title="View announcements" onPress={openAnnouncementsHub} />
         ) : null}
       </ScrollView>
     </ScreenLayout>

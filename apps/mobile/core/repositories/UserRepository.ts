@@ -88,9 +88,10 @@ export class UserRepository extends BaseRepository {
   }
 
   getAnnouncement(id: string) {
-    return this.http.request<Record<string, unknown>>(`/user/announcements/${encodeURIComponent(id)}`, {
-      method: 'GET',
-    });
+    return this.http.request<{ announcement?: Announcement }>(
+      `/user/announcements/${encodeURIComponent(id)}`,
+      { method: 'GET', skipAuth: true },
+    );
   }
 }
 

@@ -26,6 +26,14 @@ describe('deep link config', () => {
     expect(linking.config.screens.Main.screens.Wallet.screens.WalletPnl).toBe('wallet/pnl');
   });
 
+  it('maps announcement detail path', () => {
+    expect(linking.config.screens.Account.screens.AnnouncementDetail).toBe('announcement/:id');
+  });
+
+  it('maps announcements hub path', () => {
+    expect(linking.config.screens.Account.screens.Announcements).toBe('dashboard/announcements');
+  });
+
   it('maps deposit coin deep link to network selection', () => {
     expect(linking.config.screens.Main.screens.Wallet.screens.DepositNetwork.path).toBe('wallet/deposit/:symbol');
   });

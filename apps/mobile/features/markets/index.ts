@@ -3,6 +3,7 @@ export { MarketsHomeScreen } from './screens/MarketsHomeScreen';
 export { MarketSearchScreen } from './screens/MarketSearchScreen';
 export { PairDetailScreen } from './screens/PairDetailScreen';
 export { useMarkets, useTicker, MARKETS_QUERY_KEY } from './hooks/useMarkets';
+export { useAnnouncements, useAnnouncement, ANNOUNCEMENTS_KEY, partitionAnnouncements } from './hooks/useAnnouncements';
 export { useFavorites } from './hooks/useFavorites';
 export { useRecentMarkets } from './hooks/useRecentMarkets';
 export { useMarketsList } from './hooks/useMarketsList';

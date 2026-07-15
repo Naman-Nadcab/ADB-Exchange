@@ -107,6 +107,8 @@ export const linking = {
           TicketDetail: 'support/ticket/:id',
           ReferralHome: 'referral',
           Notifications: 'account/notifications',
+          Announcements: 'dashboard/announcements',
+          AnnouncementDetail: 'announcement/:id',
         },
       },
     },

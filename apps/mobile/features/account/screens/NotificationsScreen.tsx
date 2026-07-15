@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, Text } from 'react-native';
+import { FlatList, Pressable, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenLayout, SegmentControl, PrimaryButton } from '@shared/ui';
+import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useNotifications, useNotificationMutations } from '../hooks/useAccount';
 import type { AccountStackParamList } from '../navigation/types';
@@ -14,6 +15,7 @@ const TABS = [
 type Props = NativeStackScreenProps<AccountStackParamList, 'Notifications'>;
 
 export function NotificationsScreen({ navigation }: Props) {
+  const { theme } = useTheme();
   const [tab, setTab] = useState('all');
   const q = useNotifications();
   const { markAllRead } = useNotificationMutations();
@@ -35,6 +37,11 @@ export function NotificationsScreen({ navigation }: Props) {
         data={items}
         keyExtractor={(n) => n.id}
         initialNumToRender={20}
+        ListFooterComponent={
+          <Pressable onPress={() => navigation.navigate('Announcements')} style={{ paddingVertical: 16, alignItems: 'center' }}>
+            <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600' }}>View all announcements</Text>
+          </Pressable>
+        }
         renderItem={({ item }) => (
           <Pressable style={{ paddingVertical: 12 }} onPress={() => navigation.navigate('NotificationDetail', { id: item.id })}>
             <Text style={{ fontWeight: item.read ? '400' : '700' }}>{item.title}</Text>

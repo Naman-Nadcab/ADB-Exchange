@@ -16,6 +16,19 @@ export function useAnnouncements(limit = 12) {
   });
 }
 
+export function useAnnouncement(id: string) {
+  return useQuery({
+    queryKey: ['announcement', id],
+    queryFn: async (): Promise<Announcement | null> => {
+      const res = await getUserRepository().getAnnouncement(id);
+      return res.announcement ?? null;
+    },
+    enabled: !!id,
+    staleTime: 5 * 60_000,
+    retry: 1,
+  });
+}
+
 export function partitionAnnouncements(items: Announcement[]) {
   const news = items.filter((a) => (a.type ?? '').toLowerCase().includes('news'));
   const announcements = items.filter((a) => !(a.type ?? '').toLowerCase().includes('news'));

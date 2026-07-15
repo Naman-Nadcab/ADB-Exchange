@@ -98,11 +98,14 @@ export type MarketSortKey = 'volume' | 'change' | 'name' | 'price' | 'change7d' 
 export type MarketTab = 'favorites' | 'all' | 'gainers' | 'losers' | 'trending' | 'new';
 
 export type Announcement = {
-  id?: string;
+  id: string;
   title: string;
   type?: string;
-  summary?: string;
-  published_at?: string;
+  summary?: string | null;
+  body?: string | null;
+  is_pinned?: boolean;
+  published_at?: string | null;
+  expires_at?: string | null;
   created_at?: string;
 };
 
