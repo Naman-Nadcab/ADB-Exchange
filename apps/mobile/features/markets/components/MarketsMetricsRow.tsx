@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { useTheme } from '@shared/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { marketing } from '@shared/theme/marketing';
 import { formatVolume } from '@core/domain/markets/formatPrice';
 
 type Props = {
@@ -7,47 +8,92 @@ type Props = {
   totalVolume: number;
   gainers: number;
   losers: number;
+  fearGreedIndex?: number;
+  fearGreedLabel?: string;
 };
 
-function Metric({ label, value }: { label: string; value: string }) {
-  const { theme } = useTheme();
+function HeroMetric({
+  label,
+  value,
+  accent,
+  icon,
+}: {
+  label: string;
+  value: string;
+  accent?: string;
+  icon?: keyof typeof Ionicons.glyphMap;
+}) {
   return (
-    <View
-      style={[
-        styles.metric,
-        {
-          backgroundColor: `hsl(${theme.colors.backgroundElevated})`,
-          borderColor: `hsl(${theme.colors.brandPrimary} / 0.15)`,
-          borderRadius: theme.radius.lg,
-        },
-      ]}
-    >
-      <Text style={[styles.label, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>{label}</Text>
-      <Text style={[styles.value, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>{value}</Text>
+    <View style={[styles.metric, { borderColor: marketing.goldBorder, backgroundColor: marketing.cardBg }]}>
+      {icon ? (
+        <Ionicons name={icon} size={14} color={accent ?? marketing.gold} style={styles.icon} />
+      ) : null}
+      <Text style={[styles.label, { color: marketing.mutedText }]}>{label}</Text>
+      <Text style={[styles.value, { color: '#FFFFFF' }]}>{value}</Text>
     </View>
   );
 }
 
-export function MarketsMetricsRow({ pairsCount, totalVolume, gainers, losers }: Props) {
+export function MarketsMetricsRow({
+  pairsCount,
+  totalVolume,
+  gainers,
+  losers,
+  fearGreedIndex,
+  fearGreedLabel,
+}: Props) {
   return (
-    <View style={styles.row}>
-      <Metric label="Pairs" value={String(pairsCount)} />
-      <Metric label="24H Vol" value={formatVolume(totalVolume)} />
-      <Metric label="↑ Gainers" value={String(gainers)} />
-      <Metric label="↓ Losers" value={String(losers)} />
+    <View style={styles.grid}>
+      <HeroMetric label="Pairs" value={String(pairsCount)} icon="grid-outline" />
+      <HeroMetric label="24H Volume" value={formatVolume(totalVolume)} icon="pulse-outline" />
+      <HeroMetric label="Gainers" value={String(gainers)} accent="#34D399" icon="arrow-up" />
+      <HeroMetric label="Losers" value={String(losers)} accent="#FB7185" icon="arrow-down" />
+      {fearGreedIndex != null ? (
+        <HeroMetric
+          label="Fear & Greed"
+          value={String(fearGreedIndex)}
+          icon="speedometer-outline"
+          accent={fearGreedIndex >= 55 ? '#34D399' : fearGreedIndex <= 45 ? '#FB7185' : marketing.gold}
+        />
+      ) : null}
+      {fearGreedLabel ? (
+        <HeroMetric label="Sentiment" value={fearGreedLabel} icon="analytics-outline" />
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 14,
+  },
   metric: {
     flexGrow: 1,
-    flexBasis: '45%',
-    padding: 12,
+    flexBasis: '47%',
+    padding: 14,
+    borderRadius: 14,
     borderWidth: 1,
-    minHeight: 64,
+    minHeight: 72,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  label: { fontSize: 11, fontWeight: '500', marginBottom: 4 },
-  value: { fontSize: 15, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  icon: { marginBottom: 6 },
+  label: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  value: {
+    fontSize: 18,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
 });

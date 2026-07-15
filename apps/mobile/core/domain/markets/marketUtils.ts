@@ -65,7 +65,7 @@ export function newListings(items: MarketListItem[], limit = 50): MarketListItem
 
 export function sortMarkets(
   items: MarketListItem[],
-  sortKey: 'volume' | 'change' | 'name' | 'price',
+  sortKey: 'volume' | 'change' | 'name' | 'price' | 'change7d' | 'marketCap',
   direction: 'asc' | 'desc' = 'desc',
 ): MarketListItem[] {
   const sorted = [...items].sort((a, b) => {
@@ -74,6 +74,10 @@ export function sortMarkets(
         return b.volume24h - a.volume24h;
       case 'change':
         return b.changePct - a.changePct;
+      case 'change7d':
+        return (b.change7dPct ?? 0) - (a.change7dPct ?? 0);
+      case 'marketCap':
+        return (b.marketCap ?? 0) - (a.marketCap ?? 0);
       case 'name':
         return a.baseAsset.localeCompare(b.baseAsset);
       case 'price':
@@ -117,4 +121,49 @@ export function aggregateMarketStats(items: MarketListItem[]) {
   const gainers = items.filter((i) => i.changePct > 0).length;
   const losers = items.filter((i) => i.changePct < 0).length;
   return { totalVolume, pairsCount: items.length, gainers, losers };
+}
+
+export function popularMarkets(items: MarketListItem[], limit = 8): MarketListItem[] {
+  return trending(items, limit);
+}
+
+export function relatedPairs(items: MarketListItem[], symbol: string, limit = 6): MarketListItem[] {
+  const target = items.find((i) => normalizeSymbol(i.symbol) === normalizeSymbol(symbol));
+  if (!target) return trending(items, limit);
+  const sameQuote = items.filter(
+    (i) => i.quoteAsset === target.quoteAsset && normalizeSymbol(i.symbol) !== normalizeSymbol(symbol),
+  );
+  const sameBase = items.filter(
+    (i) => i.baseAsset === target.baseAsset && normalizeSymbol(i.symbol) !== normalizeSymbol(symbol),
+  );
+  const merged = [...sameQuote, ...sameBase];
+  const seen = new Set<string>();
+  const unique: MarketListItem[] = [];
+  for (const item of merged) {
+    if (seen.has(item.symbol)) continue;
+    seen.add(item.symbol);
+    unique.push(item);
+  }
+  if (unique.length < limit) {
+    for (const item of trending(items, limit * 2)) {
+      if (normalizeSymbol(item.symbol) === normalizeSymbol(symbol) || seen.has(item.symbol)) continue;
+      seen.add(item.symbol);
+      unique.push(item);
+      if (unique.length >= limit) break;
+    }
+  }
+  return unique.slice(0, limit);
+}
+
+export function marketPulse(items: MarketListItem[]) {
+  if (!items.length) return { bullishPct: 50, bearishPct: 50 };
+  const bullish = items.filter((i) => i.changePct > 0).length;
+  const bullishPct = Math.round((bullish / items.length) * 100);
+  return { bullishPct, bearishPct: 100 - bullishPct };
+}
+
+export function heatmapRows(items: MarketListItem[], limit = 18) {
+  return [...items]
+    .sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0))
+    .slice(0, limit);
 }

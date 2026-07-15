@@ -125,9 +125,22 @@ export type CoinInfo = {
   symbol: string;
   name?: string;
   description?: string;
-  market_cap_rank?: number;
+  image?: string;
+  market_cap?: number;
+  market_cap_rank?: number | null;
   current_price?: number;
+  price_change_24h?: number;
   price_change_percentage_24h?: number;
+  total_volume?: number;
+  circulating_supply?: number;
+  total_supply?: number | null;
+  max_supply?: number | null;
+  ath?: number;
+  ath_date?: string;
+  atl?: number;
+  atl_date?: string;
+  homepage?: string;
+  blockchain_site?: string;
 };
 
 export type WalletChain = {

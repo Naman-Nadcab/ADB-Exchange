@@ -68,10 +68,50 @@ export type MarketListItem = {
   high24h: number;
   low24h: number;
   listedAt?: string;
+  change7dPct?: number | null;
+  marketCap?: number | null;
+  liquidityScore?: number | null;
+  sparkline?: number[];
 };
 
-export type MarketSortKey = 'volume' | 'change' | 'name' | 'price';
+export type MarketIntelligenceSymbol = {
+  change_7d_pct: number | null;
+  market_cap: number | null;
+  liquidity_score: number | null;
+  sparkline: number[];
+};
+
+export type MarketIntelligencePayload = {
+  symbols: Record<string, MarketIntelligenceSymbol>;
+  sentiment: {
+    fear_greed_index: number;
+    fear_greed_label: string;
+    source: string;
+  };
+  total_market_cap?: number;
+  total_volume_24h?: number;
+  btc_dominance?: number;
+  assets_listed?: number;
+};
+
+export type MarketSortKey = 'volume' | 'change' | 'name' | 'price' | 'change7d' | 'marketCap';
 export type MarketTab = 'favorites' | 'all' | 'gainers' | 'losers' | 'trending' | 'new';
+
+export type Announcement = {
+  id?: string;
+  title: string;
+  type?: string;
+  summary?: string;
+  published_at?: string;
+  created_at?: string;
+};
+
+export type PlatformMetrics = {
+  total_users?: number;
+  total_volume_24h?: number;
+  total_markets?: number;
+  uptime_pct?: number;
+};
 
 export type OrderbookLevel = { price: string; quantity: string };
 

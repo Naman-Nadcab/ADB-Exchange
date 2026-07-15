@@ -6,16 +6,20 @@ import {
   RefreshControl,
   StyleSheet,
   Pressable,
+  ScrollView,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useTheme, hapticSelection } from '@shared/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { hapticSelection, marketing } from '@shared/theme';
 import {
   ScreenLayout,
   SegmentControl,
   SkeletonList,
   EmptyState,
   ErrorBanner,
-  SearchBar,
+  FilterChip,
+  ListColumnHeader,
+  AccountEntryButton,
 } from '@shared/ui';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
@@ -25,14 +29,22 @@ import {
   trending,
   newListingsPreview,
   aggregateMarketStats,
+  marketPulse,
+  heatmapRows,
 } from '@core/domain/markets/marketUtils';
+import { filterBySector, type MarketSector } from '@core/domain/markets/sectors';
 import { MarketRow } from '../components/MarketRow';
 import { MarketsHeaderWidgets } from '../components/MarketsHeaderWidgets';
-import { MarketsMetricsRow } from '../components/MarketsMetricsRow';
+import { MarketsGlobalStats } from '../components/MarketsGlobalStats';
+import { MarketsCategoryChips } from '../components/MarketsCategoryChips';
+import { MarketsIntelligencePanel } from '../components/MarketsIntelligencePanel';
+import { MarketsHeatmapSection } from '../components/MarketsHeatmapSection';
 import { useMarkets } from '../hooks/useMarkets';
 import { useFavorites } from '../hooks/useFavorites';
 import { useMarketsList } from '../hooks/useMarketsList';
+import { enrichWithIntelligence, useMarketIntelligence } from '../hooks/useMarketIntelligence';
 import { useVisibleTickerSubscriptions } from '../hooks/useTickerSubscription';
+import { useAnnouncements, partitionAnnouncements } from '../hooks/useAnnouncements';
 import { mmkvStorage } from '@core/storage/mmkvStorage';
 import { CACHE_KEYS } from '@core/storage/cacheKeys';
 import type { MarketsStackParamList } from '../navigation/types';
@@ -41,7 +53,7 @@ import type { MarketSortKey, MarketTab } from '@exchange/mobile-types';
 type Props = NativeStackScreenProps<MarketsStackParamList, 'MarketsHome'>;
 
 const TABS: { id: MarketTab; label: string }[] = [
-  { id: 'favorites', label: 'Favorites' },
+  { id: 'favorites', label: 'Watchlist' },
   { id: 'all', label: 'All' },
   { id: 'trending', label: 'Trending' },
   { id: 'gainers', label: 'Gainers' },
@@ -49,19 +61,24 @@ const TABS: { id: MarketTab; label: string }[] = [
   { id: 'new', label: 'New' },
 ];
 
+const QUOTE_OPTIONS: (string | null)[] = [null, 'USDT', 'BTC', 'USDC', 'INR'];
+
 const SORT_OPTIONS: { id: MarketSortKey; label: string }[] = [
   { id: 'volume', label: 'Volume' },
-  { id: 'change', label: 'Change' },
-  { id: 'name', label: 'Name' },
+  { id: 'change', label: '24H %' },
   { id: 'price', label: 'Price' },
+  { id: 'name', label: 'A–Z' },
+  { id: 'change7d', label: '7D %' },
+  { id: 'marketCap', label: 'MCap' },
 ];
 
 const PAGE_SIZE = 30;
 
 export function MarketsHomeScreen({ navigation }: Props) {
-  const { theme } = useTheme();
   const isOnline = useAppStore((s) => s.isOnline);
   const { data, isLoading, isError, error, refetch, isFetching, dataUpdatedAt } = useMarkets();
+  const { data: intelligence } = useMarketIntelligence();
+  const { data: announcementData } = useAnnouncements(12);
   const { favorites, toggle, isFavorite } = useFavorites();
   const [tab, setTab] = useState<MarketTab>('all');
   const [quote, setQuote] = useState<string | null>(
@@ -70,8 +87,13 @@ export function MarketsHomeScreen({ navigation }: Props) {
   const [sortKey, setSortKey] = useState<MarketSortKey>(
     (mmkvStorage.getString(CACHE_KEYS.marketSort) as MarketSortKey) ?? 'volume',
   );
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>(
+    (mmkvStorage.getString(CACHE_KEYS.marketSortDir) as 'asc' | 'desc') ?? 'desc',
+  );
+  const [category, setCategory] = useState<MarketSector | null>(
+    (mmkvStorage.getString(CACHE_KEYS.marketCategory) as MarketSector | null) ?? null,
+  );
   const [page, setPage] = useState(1);
-  const [searchLocal, setSearchLocal] = useState('');
 
   useEffect(() => {
     analytics.screen('S-200');
@@ -79,16 +101,22 @@ export function MarketsHomeScreen({ navigation }: Props) {
 
   useEffect(() => {
     setPage(1);
-  }, [tab, quote, sortKey, searchLocal]);
+  }, [tab, quote, sortKey, sortDir, category]);
 
-  const items = useMemo(() => data ?? [], [data]);
+  const enriched = useMemo(() => enrichWithIntelligence(data ?? [], intelligence), [data, intelligence]);
+  const items = useMemo(
+    () => (category ? filterBySector(enriched, category) : enriched),
+    [enriched, category],
+  );
+
   const list = useMarketsList({
     items,
     tab,
     favorites,
     quote,
     sortKey,
-    search: searchLocal,
+    sortDir,
+    search: '',
   });
 
   const visibleSymbols = useMemo(
@@ -108,7 +136,13 @@ export function MarketsHomeScreen({ navigation }: Props) {
   );
 
   const stats = useMemo(() => aggregateMarketStats(items), [items]);
+  const pulse = useMemo(() => marketPulse(items), [items]);
+  const heatmap = useMemo(() => heatmapRows(items, 12), [items]);
   const paged = useMemo(() => list.slice(0, page * PAGE_SIZE), [list, page]);
+  const { news, announcements } = useMemo(
+    () => partitionAnnouncements(announcementData ?? []),
+    [announcementData],
+  );
 
   const onEndReached = useCallback(() => {
     if (page * PAGE_SIZE < list.length) setPage((p) => p + 1);
@@ -120,7 +154,7 @@ export function MarketsHomeScreen({ navigation }: Props) {
   );
 
   const staleLabel = dataUpdatedAt
-    ? `Updated ${Math.round((Date.now() - dataUpdatedAt) / 1000)}s ago`
+    ? `${Math.round((Date.now() - dataUpdatedAt) / 1000)}s ago`
     : '';
 
   const cycleSort = () => {
@@ -131,46 +165,65 @@ export function MarketsHomeScreen({ navigation }: Props) {
     mmkvStorage.set(CACHE_KEYS.marketSort, next);
   };
 
-  const toggleQuote = () => {
+  const toggleSortDir = () => {
     void hapticSelection();
-    const next = quote === 'USDT' ? null : 'USDT';
-    setQuote(next);
-    if (next) mmkvStorage.set(CACHE_KEYS.quoteCurrency, next);
-    else mmkvStorage.remove(CACHE_KEYS.quoteCurrency);
+    const next = sortDir === 'desc' ? 'asc' : 'desc';
+    setSortDir(next);
+    mmkvStorage.set(CACHE_KEYS.marketSortDir, next);
+  };
+
+  const onCategoryChange = (next: MarketSector | null) => {
+    setCategory(next);
+    if (next) mmkvStorage.set(CACHE_KEYS.marketCategory, next);
+    else mmkvStorage.remove(CACHE_KEYS.marketCategory);
   };
 
   const ListHeader = (
     <>
-      <View style={styles.header}>
-        <View>
-          <Text style={[theme.typography.headingLg, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
-            Markets
-          </Text>
-          <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: 2 }]}>
-            Explore spot pairs and live prices
-          </Text>
+      <View style={styles.hero}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.heroEyebrow}>SPOT MARKETS</Text>
+          <Text style={styles.heroTitle}>Markets</Text>
+          <Text style={styles.heroSub}>Live prices · {stats.pairsCount} pairs</Text>
         </View>
-        <Pressable
-          onPress={() => navigation.navigate('MarketSearch')}
-          accessibilityRole="button"
-          accessibilityLabel="Search markets"
-          style={[styles.searchBtn, { borderColor: `hsl(${theme.colors.borderDefault})` }]}
-        >
-          <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600' }}>Search</Text>
-        </Pressable>
+        <View style={styles.heroActions}>
+          {staleLabel ? (
+            <View style={styles.liveBadge}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveText}>{staleLabel}</Text>
+            </View>
+          ) : null}
+          <AccountEntryButton />
+        </View>
       </View>
+
+      <Pressable
+        onPress={() => navigation.navigate('MarketSearch')}
+        style={[styles.searchHero, { borderColor: marketing.goldBorder }]}
+        accessibilityRole="button"
+        accessibilityLabel="Search markets"
+      >
+        <Ionicons name="search" size={18} color={marketing.mutedText} />
+        <Text style={styles.searchPlaceholder}>Search by symbol or name</Text>
+      </Pressable>
+
       {!isOnline ? (
         <ErrorBanner message="Offline — showing cached markets" onRetry={() => void refetch()} />
       ) : null}
-      {staleLabel ? (
-        <Text style={[styles.stale, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>{staleLabel}</Text>
-      ) : null}
-      <MarketsMetricsRow
+
+      <MarketsGlobalStats
         pairsCount={stats.pairsCount}
         totalVolume={stats.totalVolume}
         gainers={stats.gainers}
         losers={stats.losers}
+        fearGreedIndex={intelligence?.sentiment.fear_greed_index}
+        fearGreedLabel={intelligence?.sentiment.fear_greed_label}
+        globalMarketCap={intelligence?.total_market_cap}
+        btcDominance={intelligence?.btc_dominance}
+        intelligenceVolume={intelligence?.total_volume_24h}
+        bullishPct={pulse.bullishPct}
       />
+
       <MarketsHeaderWidgets
         gainers={widgets.gainers}
         losers={widgets.losers}
@@ -178,25 +231,56 @@ export function MarketsHomeScreen({ navigation }: Props) {
         newListings={widgets.newListings}
         onSelect={openDetail}
       />
-      <SearchBar value={searchLocal} onChangeText={setSearchLocal} placeholder="Search by symbol or name" />
+
+      <MarketsIntelligencePanel
+        news={news}
+        announcements={announcements}
+        newListings={widgets.newListings}
+        bullishPct={pulse.bullishPct}
+        bearishPct={pulse.bearishPct}
+        onSelectPair={openDetail}
+      />
+
+      <MarketsHeatmapSection rows={heatmap} onSelect={openDetail} />
+
       <SegmentControl tabs={TABS} active={tab} onChange={(id) => setTab(id as MarketTab)} />
-      <View style={styles.filters}>
-        <Pressable onPress={toggleQuote} style={styles.filterChip} accessibilityRole="button">
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}>
-            Quote: {quote ?? 'All'}
-          </Text>
-        </Pressable>
-        <Pressable onPress={cycleSort} style={styles.filterChip} accessibilityRole="button">
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}>
-            Sort: {SORT_OPTIONS.find((s) => s.id === sortKey)?.label}
-          </Text>
-        </Pressable>
-      </View>
+
+      <MarketsCategoryChips active={category} onChange={onCategoryChange} />
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quoteScroll} contentContainerStyle={styles.filters}>
+        {QUOTE_OPTIONS.map((q) => (
+          <FilterChip
+            key={q ?? 'all'}
+            label={q ?? 'All Quotes'}
+            selected={quote === q}
+            onPress={() => {
+              void hapticSelection();
+              setQuote(q);
+              if (q) mmkvStorage.set(CACHE_KEYS.quoteCurrency, q);
+              else mmkvStorage.remove(CACHE_KEYS.quoteCurrency);
+            }}
+          />
+        ))}
+        <FilterChip
+          label={`Sort: ${SORT_OPTIONS.find((s) => s.id === sortKey)?.label}`}
+          selected
+          onPress={cycleSort}
+        />
+        <FilterChip label={sortDir === 'desc' ? '↓ Desc' : '↑ Asc'} selected onPress={toggleSortDir} />
+      </ScrollView>
+
+      <ListColumnHeader
+        columns={[
+          { label: 'Pair / Vol', flex: 1.4 },
+          { label: 'Chart', flex: 0.5, align: 'center' },
+          { label: 'Last / 24h', flex: 0.9, align: 'right' },
+        ]}
+      />
     </>
   );
 
   return (
-    <ScreenLayout testID="S-200">
+    <ScreenLayout testID="S-200" style={{ backgroundColor: marketing.pageBg }} edges={['top', 'left', 'right']}>
       {isLoading && !data ? (
         <>
           {ListHeader}
@@ -216,8 +300,8 @@ export function MarketsHomeScreen({ navigation }: Props) {
         <>
           {ListHeader}
           <EmptyState
-            title={tab === 'favorites' ? 'No favorites yet' : 'No markets found'}
-            message={tab === 'favorites' ? 'Long press a market to add favorites' : undefined}
+            title={tab === 'favorites' ? 'Watchlist is empty' : 'No markets found'}
+            message={tab === 'favorites' ? 'Long press a market to add to your watchlist' : 'Try another filter or category'}
           />
         </>
       ) : (
@@ -232,16 +316,23 @@ export function MarketsHomeScreen({ navigation }: Props) {
               onPress={() => openDetail(item.symbol)}
               onLongPress={() => toggle(item.symbol)}
               isFavorite={isFavorite(item.symbol)}
+              variant="flat"
             />
           )}
           onEndReached={onEndReached}
           onEndReachedThreshold={0.4}
-          initialNumToRender={15}
-          maxToRenderPerBatch={10}
+          initialNumToRender={18}
+          maxToRenderPerBatch={12}
           windowSize={7}
           removeClippedSubviews
-          getItemLayout={(_, index) => ({ length: 68, offset: 68 * index, index })}
-          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={() => void refetch()} />}
+          getItemLayout={(_, index) => ({ length: 56, offset: 56 * index, index })}
+          refreshControl={
+            <RefreshControl
+              refreshing={isFetching}
+              onRefresh={() => void refetch()}
+              tintColor={marketing.gold}
+            />
+          }
         />
       )}
     </ScreenLayout>
@@ -249,9 +340,63 @@ export function MarketsHomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  searchBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1, minHeight: 36, justifyContent: 'center' },
-  stale: { fontSize: 11, marginBottom: 8 },
-  filters: { flexDirection: 'row', gap: 12, marginBottom: 8 },
-  filterChip: { minHeight: 32, justifyContent: 'center' },
+  hero: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  heroActions: { alignItems: 'flex-end', gap: 8 },
+  heroEyebrow: {
+    color: marketing.gold,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+    marginBottom: 4,
+  },
+  heroTitle: {
+    color: '#FFFFFF',
+    fontSize: 30,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+  },
+  heroSub: {
+    color: marketing.mutedText,
+    fontSize: 13,
+    marginTop: 4,
+  },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: marketing.cardBg,
+    borderWidth: 1,
+    borderColor: marketing.goldBorder,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#34D399',
+  },
+  liveText: { color: marketing.mutedText, fontSize: 10, fontWeight: '600' },
+  searchHero: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    backgroundColor: marketing.cardBg,
+    marginBottom: 14,
+    minHeight: 48,
+  },
+  searchPlaceholder: { color: marketing.mutedText, fontSize: 14, flex: 1 },
+  quoteScroll: { marginBottom: 6, maxHeight: 44 },
+  filters: { flexDirection: 'row', gap: 8, paddingRight: 8 },
 });

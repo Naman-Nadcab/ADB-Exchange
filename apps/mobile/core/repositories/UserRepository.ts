@@ -10,6 +10,7 @@ import type {
   FeeTier,
   SupportTicket,
   SupportTicketDetail,
+  Announcement,
 } from '@exchange/mobile-types';
 
 export class UserRepository extends BaseRepository {
@@ -73,10 +74,11 @@ export class UserRepository extends BaseRepository {
     return this.http.request<Record<string, unknown>>('/user/kyc', { method: 'GET' });
   }
 
-  getAnnouncements() {
-    return this.http.request<{ id: string; title: string; created_at: string }[]>('/user/announcements', {
-      method: 'GET',
-    });
+  getAnnouncements(limit = 12) {
+    return this.http.request<{ announcements?: Announcement[] }>(
+      `/user/announcements?limit=${limit}`,
+      { method: 'GET', skipAuth: true },
+    );
   }
 
   getAnnouncement(id: string) {

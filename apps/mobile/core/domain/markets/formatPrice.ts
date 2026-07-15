@@ -21,10 +21,26 @@ export function formatChangePct(change: number): string {
 }
 
 export function formatVolume(volume: number): string {
-  if (volume >= 1_000_000_000) return `${(volume / 1_000_000_000).toFixed(2)}B`;
-  if (volume >= 1_000_000) return `${(volume / 1_000_000).toFixed(2)}M`;
-  if (volume >= 1_000) return `${(volume / 1_000).toFixed(2)}K`;
-  return volume.toFixed(2);
+  if (volume >= 1_000_000_000) return `$${(volume / 1_000_000_000).toFixed(2)}B`;
+  if (volume >= 1_000_000) return `$${(volume / 1_000_000).toFixed(2)}M`;
+  if (volume >= 1_000) return `$${(volume / 1_000).toFixed(2)}K`;
+  return `$${volume.toFixed(2)}`;
+}
+
+export function formatMarketCap(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return '—';
+  if (value >= 1_000_000_000_000) return `$${(value / 1_000_000_000_000).toFixed(2)}T`;
+  if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(2)}B`;
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(2)}M`;
+  return `$${value.toLocaleString()}`;
+}
+
+export function formatSupply(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return '—';
+  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(2)}B`;
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(2)}K`;
+  return value.toLocaleString();
 }
 
 export function changeColorKey(change: number): 'buy' | 'sell' | 'muted' {

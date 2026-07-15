@@ -27,5 +27,10 @@ export function useRecentMarkets() {
     });
   }, []);
 
-  return { recent, addRecent };
+  const clearRecent = useCallback(() => {
+    void mmkvStorage.remove(CACHE_KEYS.recentMarkets);
+    setRecent([]);
+  }, []);
+
+  return { recent, addRecent, clearRecent };
 }
