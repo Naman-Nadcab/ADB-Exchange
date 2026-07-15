@@ -212,7 +212,7 @@ export function useP2POrder(orderId: string, seedOrder?: P2POrder) {
     refetchOnMount: 'always',
     refetchInterval: (q) => {
       const st = q.state.data?.status;
-      if (isTerminalOrderStatus(st) || st === 'disputed') return false;
+      if (isTerminalOrderStatus(st)) return false;
       return wsConnected ? 60_000 : 5_000;
     },
     retry: (count, err) => !(err instanceof P2POrderNotFoundError) && count < 2,
