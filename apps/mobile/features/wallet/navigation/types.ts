@@ -14,7 +14,17 @@ export type WalletStackParamList = {
     available: string;
   };
   TransferHistory: undefined;
-  Convert: undefined;
+  Convert: { fromSymbol?: string; toSymbol?: string; accountType?: AccountType } | undefined;
+  ConvertConfirm: {
+    accountType: AccountType;
+    fromSymbol: string;
+    toSymbol: string;
+    fromName: string;
+    toName: string;
+    amount: string;
+    available: string;
+    quote: import('@exchange/mobile-types').ConvertQuoteSnapshot;
+  };
   ConvertHistory: undefined;
   TransactionHistory: undefined;
   FundHistory: undefined;

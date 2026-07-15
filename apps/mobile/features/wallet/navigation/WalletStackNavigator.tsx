@@ -6,6 +6,7 @@ import { TransferScreen } from '../screens/TransferScreen';
 import { TransferConfirmScreen } from '../screens/TransferConfirmScreen';
 import { TransferHistoryScreen } from '../screens/TransferHistoryScreen';
 import { ConvertScreen } from '../screens/ConvertScreen';
+import { ConvertConfirmScreen } from '../screens/ConvertConfirmScreen';
 import { ConvertHistoryScreen } from '../screens/ConvertHistoryScreen';
 import { TransactionHistoryScreen } from '../screens/TransactionHistoryScreen';
 import { FundHistoryScreen } from '../screens/FundHistoryScreen';
@@ -37,6 +38,7 @@ export function WalletStackNavigator() {
       <Stack.Screen name="TransferConfirm" component={guestGuard(TransferConfirmScreen, 'Log in to transfer funds.')} options={{ title: 'Confirm Transfer' }} />
       <Stack.Screen name="TransferHistory" component={guestGuard(TransferHistoryScreen, 'Log in to view transfer history.')} options={{ title: 'Transfer History' }} />
       <Stack.Screen name="Convert" component={guestGuard(ConvertScreen, 'Log in to convert assets.')} options={{ title: 'Convert' }} />
+      <Stack.Screen name="ConvertConfirm" component={guestGuard(ConvertConfirmScreen, 'Log in to convert assets.')} options={{ title: 'Confirm Conversion' }} />
       <Stack.Screen name="ConvertHistory" component={guestGuard(ConvertHistoryScreen, 'Log in to view convert history.')} options={{ title: 'Convert History' }} />
       <Stack.Screen name="TransactionHistory" component={guestGuard(TransactionHistoryScreen, 'Log in to view transaction history.')} options={{ title: 'Transactions' }} />
       <Stack.Screen name="FundHistory" component={guestGuard(FundHistoryScreen, 'Log in to view fund history.')} options={{ title: 'Fund History' }} />

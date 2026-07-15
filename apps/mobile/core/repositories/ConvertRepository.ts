@@ -4,8 +4,10 @@ import type {
   ConvertCurrency,
   ConvertQuote,
   ConvertInstantRequest,
+  ConvertInstantResult,
   ConvertHistoryItem,
-  AssetBalance,
+  ConvertBalance,
+  ConvertDustResult,
   AccountType,
 } from '@exchange/mobile-types';
 
@@ -27,7 +29,7 @@ export class ConvertRepository extends BaseRepository {
   }
 
   executeInstant(body: ConvertInstantRequest) {
-    return this.http.request<{ conversionId: string }>('/convert/instant', {
+    return this.http.request<ConvertInstantResult>('/convert/instant', {
       method: 'POST',
       body,
       idempotent: true,
@@ -49,9 +51,17 @@ export class ConvertRepository extends BaseRepository {
       .then((r) => ({ items: r.data, pagination: r.pagination }));
   }
 
-  getBalances(accountType: AccountType = 'funding') {
-    return this.http.request<AssetBalance[]>(`/convert/balances?accountType=${accountType}`, {
+  getBalances(accountType: AccountType = 'spot') {
+    return this.http.request<ConvertBalance[]>(`/convert/balances?accountType=${accountType}`, {
       method: 'GET',
+    });
+  }
+
+  convertDust(threshold = 1) {
+    return this.http.request<ConvertDustResult>('/wallet/convert-dust', {
+      method: 'POST',
+      body: { threshold },
+      idempotent: true,
     });
   }
 }

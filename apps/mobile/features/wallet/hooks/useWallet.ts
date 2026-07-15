@@ -183,9 +183,50 @@ export function useConvertQuote(from: string, to: string, amount: string, enable
   return useQuery({
     queryKey: ['convertQuote', from, to, amount],
     queryFn: () => getConvertRepository().getQuote(from, to, amount),
-    staleTime: 5_000,
-    refetchInterval: enabled ? 10_000 : false,
+    staleTime: 0,
     enabled: enabled && !!from && !!to && !!amount && from !== to,
+  });
+}
+
+export function useConvertBalances(accountType: AccountType) {
+  return useQuery({
+    queryKey: ['convertBalances', accountType],
+    queryFn: () => getConvertRepository().getBalances(accountType),
+    staleTime: 10_000,
+  });
+}
+
+export function useGetConvertQuote() {
+  return useMutation({
+    mutationFn: ({ from, to, amount }: { from: string; to: string; amount: string }) =>
+      getConvertRepository().getQuote(from, to, amount),
+  });
+}
+
+export function useConvertDust() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (threshold?: number) => getConvertRepository().convertDust(threshold ?? 1),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: PORTFOLIO_KEY });
+      void qc.invalidateQueries({ queryKey: FUNDING_KEY });
+      void qc.invalidateQueries({ queryKey: TRADING_BAL_KEY });
+      void qc.invalidateQueries({ queryKey: SPOT_BAL_KEY });
+      void qc.invalidateQueries({ queryKey: ['convertBalances'] });
+      void qc.invalidateQueries({ queryKey: ['convertHistory'] });
+      void qc.invalidateQueries({ queryKey: ['recentConversions'] });
+    },
+  });
+}
+
+export function useRecentConversions(limit = 10) {
+  return useQuery({
+    queryKey: ['recentConversions', limit],
+    queryFn: async () => {
+      const r = await getConvertRepository().getHistory({ page: 1, limit });
+      return r.items;
+    },
+    staleTime: 15_000,
   });
 }
 
@@ -197,14 +238,19 @@ export function useExecuteConvert() {
       void qc.invalidateQueries({ queryKey: PORTFOLIO_KEY });
       void qc.invalidateQueries({ queryKey: FUNDING_KEY });
       void qc.invalidateQueries({ queryKey: TRADING_BAL_KEY });
+      void qc.invalidateQueries({ queryKey: SPOT_BAL_KEY });
+      void qc.invalidateQueries({ queryKey: ['convertBalances'] });
+      void qc.invalidateQueries({ queryKey: ['convertHistory'] });
+      void qc.invalidateQueries({ queryKey: ['recentConversions'] });
+      appEventBus.emit('balances:invalidate');
     },
   });
 }
 
-export function useConvertHistory() {
+export function useConvertHistory(status?: string) {
   return useInfiniteQuery({
-    queryKey: ['convertHistory'],
-    queryFn: ({ pageParam = 1 }) => getConvertRepository().getHistory({ page: pageParam, limit: 20 }),
+    queryKey: ['convertHistory', status],
+    queryFn: ({ pageParam = 1 }) => getConvertRepository().getHistory({ page: pageParam, limit: 20, status }),
     initialPageParam: 1,
     getNextPageParam: (last) =>
       last.pagination.page < last.pagination.totalPages ? last.pagination.page + 1 : undefined,

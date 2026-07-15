@@ -15,11 +15,46 @@ export type ConvertQuote = {
   expiresIn: number;
 };
 
+export type ConvertQuoteSnapshot = {
+  toAmount: string;
+  rate: string;
+  fee: string;
+  expiresAtMs: number;
+  fromCurrencyId: string;
+  toCurrencyId: string;
+};
+
+export type ConvertBalance = {
+  currency_id: string;
+  symbol: string;
+  name: string;
+  logo_url?: string;
+  available_balance: string;
+  total_balance: string;
+  locked_balance?: string;
+};
+
 export type ConvertInstantRequest = {
   fromCurrencyId: string;
   toCurrencyId: string;
   fromAmount: string;
   accountType?: 'funding' | 'spot' | 'trading';
+};
+
+export type ConvertInstantResult = {
+  id?: string;
+  conversionId?: string;
+  from?: { currency?: string; amount?: string };
+  to?: { currency?: string; amount?: string };
+  rate?: string;
+  status?: string;
+};
+
+export type ConvertDustResult = {
+  converted_count?: number;
+  assetsConverted?: number;
+  total_usdt_received?: string;
+  totalUsdt?: string;
 };
 
 export type ConvertHistoryItem = {

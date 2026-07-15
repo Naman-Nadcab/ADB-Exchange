@@ -45,6 +45,8 @@ export const linking = {
               TransferConfirm: 'wallet/transfer/confirm',
               TransferHistory: 'wallet/transfer/history',
               Convert: 'wallet/convert',
+              ConvertConfirm: 'wallet/convert/confirm',
+              ConvertHistory: 'wallet/convert/history',
               DepositHome: 'wallet/deposit',
               DepositAddress: 'wallet/deposit/:symbol',
               WithdrawHome: {

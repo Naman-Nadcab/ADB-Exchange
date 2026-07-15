@@ -164,7 +164,7 @@ export function AssetDetailScreen({ route, navigation }: Props) {
                   id: 'convert',
                   label: 'Convert',
                   icon: 'repeat',
-                  onPress: () => requireNav(() => navigation.navigate('Convert')),
+                  onPress: () => requireNav(() => navigation.navigate('Convert', { fromSymbol: symbol })),
                 },
                 {
                   id: 'trade',
