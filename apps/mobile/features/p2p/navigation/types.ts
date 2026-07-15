@@ -1,6 +1,8 @@
+import type { P2PAd } from '@exchange/mobile-types';
+
 export type P2PStackParamList = {
   Marketplace: undefined;
-  AdDetail: { adId: string };
+  AdDetail: { adId: string; ad?: P2PAd };
   CreateOrder: { adId: string };
   PostAdType: undefined;
   PostAdPrice: undefined;

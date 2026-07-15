@@ -5,6 +5,13 @@ import { useAuthStore } from '@core/state/authStore';
 import { getSpotRepository } from '@core/repositories/SpotRepository';
 import { getP2PRepository } from '@core/repositories/P2PRepository';
 import { useP2PStore } from '@core/state/p2pStore';
+import {
+  findAdInQueryCache,
+  resolveP2PAdById,
+  adLookupHintsFromSeed,
+  P2PAdNotFoundError,
+  P2P_AD_KEY,
+} from '@core/domain/p2p/resolveAd';
 import { appEventBus } from '@core/events/appEventBus';
 import { WS_CHANNELS } from '@core/ws/channels';
 import type {
@@ -12,6 +19,7 @@ import type {
   UpdateP2PAdRequest,
   CreateP2POrderRequest,
   P2PMessage,
+  P2PAd,
 } from '@exchange/mobile-types';
 
 export const P2P_ADS_KEY = ['p2p', 'ads'] as const;
@@ -64,6 +72,32 @@ export function useSpotTickersForP2P() {
     refetchInterval: 15_000,
   });
 }
+
+/** ADR-011 ad detail resolver — seed/cache first, paginate until found. */
+export function useP2PAdDetail(adId: string, seedAd?: P2PAd) {
+  const qc = useQueryClient();
+  const hints = adLookupHintsFromSeed(seedAd);
+
+  return useQuery({
+    queryKey: P2P_AD_KEY(adId),
+    queryFn: async () => {
+      const cached = findAdInQueryCache(qc, adId);
+      if (cached) return cached;
+      return resolveP2PAdById(adId, hints);
+    },
+    initialData: () => {
+      if (seedAd?.id === adId) return seedAd;
+      return findAdInQueryCache(qc, adId);
+    },
+    staleTime: 15_000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
+    enabled: !!adId,
+    retry: (count, err) => !(err instanceof P2PAdNotFoundError) && count < 2,
+  });
+}
+
+export { P2PAdNotFoundError };
 
 export function useP2PReferencePrice(asset: string, fiat: string) {
   return useQuery({

@@ -33,8 +33,8 @@ export function MerchantProfileScreen({ route, navigation }: Props) {
             ad={item}
             fiat={item.fiat_currency}
             authed={isAuthenticated}
-            onPress={() => navigation.navigate('AdDetail', { adId: item.id })}
-            onTrade={() => navigation.navigate('AdDetail', { adId: item.id })}
+            onPress={() => navigation.navigate('AdDetail', { adId: item.id, ad: item })}
+            onTrade={() => navigation.navigate('AdDetail', { adId: item.id, ad: item })}
           />
         )}
       />

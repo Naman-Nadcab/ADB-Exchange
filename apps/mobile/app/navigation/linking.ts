@@ -77,6 +77,7 @@ export const linking = {
           P2P: {
             screens: {
               Marketplace: 'p2p',
+              AdDetail: 'p2p/ad/:adId',
               OrderRoom: 'p2p/order/:orderId',
             },
           },

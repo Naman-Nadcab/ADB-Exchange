@@ -270,7 +270,7 @@ export function MarketplaceScreen({ navigation }: Props) {
             fiat={filters.fiat}
             authed={isAuthenticated}
             spotPrice={spotPrice}
-            onPress={() => navigation.navigate('AdDetail', { adId: item.id })}
+            onPress={() => navigation.navigate('AdDetail', { adId: item.id, ad: item })}
             onTrade={() => setModalAd(item)}
             onMerchantPress={
               item.user_id
