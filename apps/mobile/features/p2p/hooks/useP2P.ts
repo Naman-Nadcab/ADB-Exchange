@@ -22,7 +22,12 @@ import type {
   P2PAd,
   P2POrder,
   P2PUserPaymentMethod,
+  P2PDispute,
 } from '@exchange/mobile-types';
+import {
+  findDisputeInQueryCache,
+  isTerminalDisputeStatus,
+} from '@core/domain/p2p/dispute';
 import { ordersNeedLiveRefresh } from '@core/domain/p2p/ordersList';
 import { findPaymentMethodInCache } from '@core/domain/p2p/paymentMethods';
 import {
@@ -408,13 +413,24 @@ export function useMerchantProfileAds(advertiserId: string, seedAd?: P2PAd) {
   });
 }
 
-export { findMerchantSeedInCache, merchantProfileFromAds };
+export { findMerchantSeedInCache, merchantProfileFromAds, findDisputeInQueryCache };
 
-export function useP2PDispute(disputeId: string) {
-  return useQuery({
+export function useP2PDispute(disputeId: string, seedDispute?: P2PDispute) {
+  const qc = useQueryClient();
+  const cached = seedDispute?.id === disputeId ? seedDispute : findDisputeInQueryCache(qc, disputeId);
+
+  return useQuery<P2PDispute>({
     queryKey: P2P_DISPUTE_KEY(disputeId),
     queryFn: () => getP2PRepository().getDispute(disputeId),
     enabled: !!disputeId,
+    staleTime: 10_000,
+    refetchOnWindowFocus: true,
+    initialData: cached,
+    refetchInterval: (query) => {
+      const d = query.state.data;
+      if (d && isTerminalDisputeStatus(d.status)) return false;
+      return 10_000;
+    },
   });
 }
 

@@ -161,15 +161,24 @@ export type UpdateP2PAdRequest = {
 export type P2PDispute = {
   id: string;
   order_id: string;
+  initiator_id?: string;
   status: string;
   reason?: string;
   evidence?: string[] | null;
   resolution?: string | null;
+  admin_id?: string | null;
   admin_notes?: string | null;
   resolved_at?: string | null;
+  payment_context?: Record<string, unknown> | null;
   order_status?: string;
+  order_fiat_amount?: string;
+  order_quantity?: string;
+  order_fiat_currency?: string;
+  order_payment_proof_url?: string | null;
+  order_transaction_reference?: string | null;
+  order_payment_verification_status?: string | null;
   created_at?: string;
-  timeline?: Array<{ status: string; at?: string; note?: string }>;
+  updated_at?: string;
 };
 
 export type P2PMerchantStats = {

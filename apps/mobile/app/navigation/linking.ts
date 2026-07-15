@@ -85,6 +85,7 @@ export const linking = {
               AddPaymentMethod: 'p2p/payment-methods/add',
               MerchantDashboard: 'p2p/merchant-dashboard',
               MerchantProfile: 'p2p/profile/:advertiserId',
+              DisputeDetail: 'p2p/disputes/:disputeId',
               MyAds: 'p2p/my-ads',
             },
           },

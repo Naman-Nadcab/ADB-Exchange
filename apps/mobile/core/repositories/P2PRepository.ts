@@ -118,9 +118,10 @@ export class P2PRepository extends BaseRepository {
   }
 
   openDispute(orderId: string, reason: string, evidence?: string[]) {
-    return this.http.request<{ id: string }>(`${PREFIX}/orders/${encodeURIComponent(orderId)}/dispute`, {
+    return this.http.request<P2PDispute>(`${PREFIX}/orders/${encodeURIComponent(orderId)}/dispute`, {
       method: 'POST',
       body: { reason, evidence },
+      idempotent: true,
     });
   }
 

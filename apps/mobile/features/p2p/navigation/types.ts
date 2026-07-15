@@ -1,4 +1,4 @@
-import type { P2PAd, P2POrder, P2PUserPaymentMethod } from '@exchange/mobile-types';
+import type { P2PAd, P2POrder, P2PUserPaymentMethod, P2PDispute } from '@exchange/mobile-types';
 
 export type P2PStackParamList = {
   Marketplace: undefined;
@@ -16,6 +16,6 @@ export type P2PStackParamList = {
   AddPaymentMethod: { id?: string; method?: P2PUserPaymentMethod };
   MerchantDashboard: undefined;
   MerchantProfile: { advertiserId: string; seedAd?: P2PAd };
-  DisputeDetail: { disputeId: string };
+  DisputeDetail: { disputeId: string; dispute?: P2PDispute; orderId?: string };
   BlockedAdvertisers: undefined;
 };
