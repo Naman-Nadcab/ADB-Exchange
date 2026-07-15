@@ -33,6 +33,7 @@ import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { NotificationDetailScreen } from '../screens/NotificationDetailScreen';
 import { AnnouncementsScreen } from '../screens/AnnouncementsScreen';
 import { AnnouncementDetailScreen } from '../screens/AnnouncementDetailScreen';
+import { DataExportScreen } from '../screens/DataExportScreen';
 import { AboutScreen } from '../screens/AboutScreen';
 import { SystemStatusScreen } from '../screens/SystemStatusScreen';
 import { LegalViewerScreen } from '../screens/LegalViewerScreen';
@@ -78,6 +79,7 @@ export function AccountStackNavigator() {
       <Stack.Screen name="NotificationDetail" component={guestGuard(NotificationDetailScreen, 'Log in to view notification details.')} options={{ title: 'Notification' }} />
       <Stack.Screen name="Announcements" component={AnnouncementsScreen} options={{ title: 'Announcements' }} />
       <Stack.Screen name="AnnouncementDetail" component={AnnouncementDetailScreen} options={{ title: 'Announcement' }} />
+      <Stack.Screen name="DataExport" component={guestGuard(DataExportScreen, 'Log in to export account data.')} options={{ title: 'Data Export' }} />
       <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About' }} />
       <Stack.Screen name="SystemStatus" component={SystemStatusScreen} options={{ title: 'Status' }} />
       <Stack.Screen name="LegalViewer" component={LegalViewerScreen} options={{ title: 'Legal' }} />

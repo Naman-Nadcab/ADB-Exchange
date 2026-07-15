@@ -109,6 +109,7 @@ export const linking = {
           Notifications: 'account/notifications',
           Announcements: 'dashboard/announcements',
           AnnouncementDetail: 'announcement/:id',
+          DataExport: 'dashboard/data-export',
         },
       },
     },

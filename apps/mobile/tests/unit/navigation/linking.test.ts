@@ -34,6 +34,10 @@ describe('deep link config', () => {
     expect(linking.config.screens.Account.screens.Announcements).toBe('dashboard/announcements');
   });
 
+  it('maps data export path', () => {
+    expect(linking.config.screens.Account.screens.DataExport).toBe('dashboard/data-export');
+  });
+
   it('maps deposit coin deep link to network selection', () => {
     expect(linking.config.screens.Main.screens.Wallet.screens.DepositNetwork.path).toBe('wallet/deposit/:symbol');
   });

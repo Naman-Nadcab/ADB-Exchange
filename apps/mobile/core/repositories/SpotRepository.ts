@@ -100,6 +100,17 @@ export class SpotRepository extends BaseRepository {
     return this.http.request<SpotOrder[]>(`/spot/order-history${suffix}`, { method: 'GET' });
   }
 
+  listOrders(params: { status?: string; limit?: number; cursor?: string }) {
+    const q = new URLSearchParams();
+    if (params.status) q.set('status', params.status);
+    q.set('limit', String(params.limit ?? 100));
+    if (params.cursor) q.set('cursor', params.cursor);
+    return this.http.request<{ orders: SpotOrder[]; next_cursor?: string | null }>(
+      `/spot/orders?${q}`,
+      { method: 'GET' },
+    );
+  }
+
   getTradeHistory(params?: { page?: number; limit?: number; market?: string }) {
     const q = new URLSearchParams();
     if (params?.page) q.set('page', String(params.page));

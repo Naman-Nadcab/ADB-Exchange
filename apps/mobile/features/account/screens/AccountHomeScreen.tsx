@@ -122,6 +122,7 @@ export function AccountHomeScreen({ navigation }: Props) {
 
         <Section title="SUPPORT">
           <AccountMenuRow icon="megaphone-outline" label="Announcements" sub="Platform updates" onPress={() => navigation.navigate('Announcements')} />
+          <AccountMenuRow icon="download-outline" label="Data Export" sub="CSV activity exports" onPress={() => guardedNav(() => navigation.navigate('DataExport'))} />
           <AccountMenuRow icon="help-circle-outline" label="Help & FAQ" onPress={() => navigation.navigate('HelpFaq')} />
           <AccountMenuRow icon="chatbubbles-outline" label="Support Tickets" onPress={() => guardedNav(() => navigation.navigate('SupportTickets'))} />
           <AccountMenuRow icon="ribbon-outline" label="Fee Tier & VIP" onPress={() => navigation.navigate('FeeTier')} />

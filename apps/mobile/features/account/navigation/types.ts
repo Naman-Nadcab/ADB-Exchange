@@ -32,6 +32,7 @@ export type AccountStackParamList = {
   NotificationDetail: { id: string };
   Announcements: undefined;
   AnnouncementDetail: { id: string };
+  DataExport: undefined;
   About: undefined;
   SystemStatus: undefined;
   LegalViewer: { doc: string };
