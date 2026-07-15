@@ -18,6 +18,10 @@ describe('deep link config', () => {
     expect(linking.config.screens.Account.screens.SecurityCenter).toBe('security');
   });
 
+  it('maps wallet history path', () => {
+    expect(linking.config.screens.Main.screens.Wallet.screens.WalletHistory.path).toBe('wallet/history');
+  });
+
   it('includes app scheme prefix', () => {
     expect(linking.prefixes).toContain('metheorium://');
   });

@@ -11,6 +11,7 @@ type Props = {
   error?: string | null;
   onRetry?: () => void;
   onViewAll?: () => void;
+  onSelect?: (item: WalletRecentTransaction) => void;
 };
 
 function txIcon(type: WalletRecentTransaction['type']): keyof typeof Ionicons.glyphMap {
@@ -33,7 +34,7 @@ function statusStyle(status: string, theme: ReturnType<typeof useTheme>['theme']
   return { bg: `hsl(${theme.colors.surfaceMuted})`, fg: `hsl(${theme.colors.foregroundSecondary})` };
 }
 
-export function RecentTransactionsList({ items, isLoading, error, onRetry, onViewAll }: Props) {
+export function RecentTransactionsList({ items, isLoading, error, onRetry, onViewAll, onSelect }: Props) {
   const { theme } = useTheme();
 
   return (
@@ -80,8 +81,9 @@ export function RecentTransactionsList({ items, isLoading, error, onRetry, onVie
               : `hsl(${theme.colors.foregroundPrimary})`;
 
           return (
-            <View
+            <Pressable
               key={tx.id || `${tx.type}-${idx}`}
+              onPress={onSelect ? () => onSelect(tx) : undefined}
               style={[
                 styles.row,
                 idx > 0 ? { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: `hsl(${theme.colors.borderDefault})` } : null,
@@ -113,7 +115,7 @@ export function RecentTransactionsList({ items, isLoading, error, onRetry, onVie
                   <Text style={{ color: chip.fg, fontSize: 10, fontWeight: '600' }}>{tx.status}</Text>
                 </View>
               </View>
-            </View>
+            </Pressable>
           );
         })
       )}

@@ -323,4 +323,11 @@ export type WalletRecentTransaction = {
   status: string;
   created_at: string;
   chain_type?: string;
+  address?: string;
+  txid?: string;
+  confirmations?: number;
+  requiredConfirmations?: number;
+  explorerUrl?: string | null;
+  fee?: string;
+  method?: 'on-chain' | 'internal';
 };

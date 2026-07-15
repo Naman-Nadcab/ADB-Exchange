@@ -8,6 +8,9 @@ import { TransferHistoryScreen } from '../screens/TransferHistoryScreen';
 import { ConvertScreen } from '../screens/ConvertScreen';
 import { ConvertConfirmScreen } from '../screens/ConvertConfirmScreen';
 import { ConvertHistoryScreen } from '../screens/ConvertHistoryScreen';
+import { WalletHistoryRouteScreen } from '../screens/WalletHistoryRouteScreen';
+import { TransferDetailScreen } from '../screens/TransferDetailScreen';
+import { ConvertDetailScreen } from '../screens/ConvertDetailScreen';
 import { TransactionHistoryScreen } from '../screens/TransactionHistoryScreen';
 import { FundHistoryScreen } from '../screens/FundHistoryScreen';
 import { DepositHomeScreen } from '../screens/DepositHomeScreen';
@@ -40,7 +43,10 @@ export function WalletStackNavigator() {
       <Stack.Screen name="Convert" component={guestGuard(ConvertScreen, 'Log in to convert assets.')} options={{ title: 'Convert' }} />
       <Stack.Screen name="ConvertConfirm" component={guestGuard(ConvertConfirmScreen, 'Log in to convert assets.')} options={{ title: 'Confirm Conversion' }} />
       <Stack.Screen name="ConvertHistory" component={guestGuard(ConvertHistoryScreen, 'Log in to view convert history.')} options={{ title: 'Convert History' }} />
-      <Stack.Screen name="TransactionHistory" component={guestGuard(TransactionHistoryScreen, 'Log in to view transaction history.')} options={{ title: 'Transactions' }} />
+      <Stack.Screen name="WalletHistory" component={guestGuard(WalletHistoryRouteScreen, 'Log in to view wallet history.')} options={{ title: 'Wallet History' }} />
+      <Stack.Screen name="TransferDetail" component={guestGuard(TransferDetailScreen, 'Log in to view transfer details.')} options={{ title: 'Transfer Detail' }} />
+      <Stack.Screen name="ConvertDetail" component={guestGuard(ConvertDetailScreen, 'Log in to view conversion details.')} options={{ title: 'Conversion Detail' }} />
+      <Stack.Screen name="TransactionHistory" component={guestGuard(TransactionHistoryScreen, 'Log in to view transaction history.')} options={{ title: 'Wallet History' }} />
       <Stack.Screen name="FundHistory" component={guestGuard(FundHistoryScreen, 'Log in to view fund history.')} options={{ title: 'Fund History' }} />
       <Stack.Screen name="DepositHome" component={guestGuard(DepositHomeScreen, 'Log in to deposit.')} options={{ title: 'Deposit' }} />
       <Stack.Screen name="DepositNetwork" component={guestGuard(DepositNetworkScreen, 'Log in to deposit.')} options={{ title: 'Select Network' }} />

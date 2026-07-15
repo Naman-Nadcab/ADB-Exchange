@@ -26,6 +26,9 @@ export type WalletStackParamList = {
     quote: import('@exchange/mobile-types').ConvertQuoteSnapshot;
   };
   ConvertHistory: undefined;
+  WalletHistory: { tab?: string; coin?: string } | undefined;
+  TransferDetail: { transferId: string };
+  ConvertDetail: { conversionId: string };
   TransactionHistory: undefined;
   FundHistory: undefined;
   DepositHome: undefined;

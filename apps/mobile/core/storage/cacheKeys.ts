@@ -13,4 +13,5 @@ export const CACHE_KEYS = {
   marketCategory: 'markets.category',
   quoteCurrency: 'markets.quote',
   guestMode: 'prefs.guestMode',
+  walletHistoryFilters: 'wallet.history.filters',
 } as const;

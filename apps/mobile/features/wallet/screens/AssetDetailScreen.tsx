@@ -25,6 +25,8 @@ import { AssetQuickActions } from '../components/AssetQuickActions';
 import { AssetNetworksSection } from '../components/AssetNetworksSection';
 import { AssetMarketSection } from '../components/AssetMarketSection';
 import { RecentTransactionsList } from '../components/RecentTransactionsList';
+import { mapFromWalletRecentTransaction } from '@core/domain/wallet/walletHistory';
+import type { WalletRecentTransaction } from '@exchange/mobile-types';
 import type { WalletStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<WalletStackParamList, 'AssetDetail'>;
@@ -96,6 +98,28 @@ export function AssetDetailScreen({ route, navigation }: Props) {
     void txQ.refetch();
     void depositTokensQ.refetch();
   }, [fundingQ, spotQ, tickerQ, coinQ, chainsQ, txQ, depositTokensQ]);
+
+  const onRecentSelect = useCallback(
+    (tx: WalletRecentTransaction) => {
+      const row = mapFromWalletRecentTransaction(tx);
+      if (!row.detail) return;
+      switch (row.detail.screen) {
+        case 'DepositDetail':
+          navigation.navigate('DepositDetail', row.detail.params);
+          break;
+        case 'WithdrawalDetail':
+          navigation.navigate('WithdrawalDetail', row.detail.params);
+          break;
+        case 'TransferDetail':
+          navigation.navigate('TransferDetail', row.detail.params);
+          break;
+        case 'ConvertDetail':
+          navigation.navigate('ConvertDetail', row.detail.params);
+          break;
+      }
+    },
+    [navigation],
+  );
 
   const coinName = coinQ.data?.name ?? fundingRow?.name ?? symbol;
 
@@ -210,7 +234,8 @@ export function AssetDetailScreen({ route, navigation }: Props) {
               isLoading={txQ.isLoading}
               error={txQ.isError ? 'Could not load transaction history.' : null}
               onRetry={() => void txQ.refetch()}
-              onViewAll={() => navigation.navigate('TransactionHistory')}
+              onViewAll={() => navigation.navigate('WalletHistory', { tab: 'all', coin: symbol })}
+              onSelect={onRecentSelect}
             />
           </>
         )}

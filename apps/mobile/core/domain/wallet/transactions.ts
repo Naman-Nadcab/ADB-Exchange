@@ -10,6 +10,14 @@ export function normalizeWalletTx(row: Record<string, unknown>): WalletRecentTra
         ? 'deposit'
         : 'transfer';
   const qty = row.quantity ?? row.amount ?? '0';
+  const chainType = row.chain_type != null ? String(row.chain_type) : undefined;
+  const address = row.address != null ? String(row.address) : undefined;
+  const txid = row.txid != null ? String(row.txid) : row.tx_hash != null ? String(row.tx_hash) : undefined;
+  const isInternal =
+    type === 'withdrawal' &&
+    (String(row.withdrawal_type ?? '') === 'internal' ||
+      (chainType?.toLowerCase().includes('sent to') ?? false));
+  const isTransferInternal = type === 'transfer';
   return {
     id: String(row.id ?? ''),
     type,
@@ -17,7 +25,19 @@ export function normalizeWalletTx(row: Record<string, unknown>): WalletRecentTra
     amount: typeof qty === 'number' ? String(qty) : String(qty),
     status: String(row.status ?? ''),
     created_at: String(row.date_time ?? row.created_at ?? ''),
-    chain_type: row.chain_type != null ? String(row.chain_type) : undefined,
+    chain_type: chainType,
+    address,
+    txid,
+    confirmations: typeof row.confirmations === 'number' ? row.confirmations : undefined,
+    requiredConfirmations:
+      typeof row.requiredConfirmations === 'number'
+        ? row.requiredConfirmations
+        : typeof row.required_confirmations === 'number'
+          ? row.required_confirmations
+          : undefined,
+    explorerUrl: row.explorerUrl != null ? String(row.explorerUrl) : null,
+    fee: row.fee != null ? String(row.fee) : undefined,
+    method: isInternal || isTransferInternal ? 'internal' : address || txid ? 'on-chain' : undefined,
   };
 }
 

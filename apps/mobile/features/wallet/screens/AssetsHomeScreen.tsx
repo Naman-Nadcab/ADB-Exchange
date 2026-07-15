@@ -33,6 +33,8 @@ import {
 import { PortfolioSummary } from '../components/PortfolioSummary';
 import { AllocationChart } from '../components/AllocationChart';
 import { RecentTransactionsList } from '../components/RecentTransactionsList';
+import { mapFromWalletRecentTransaction } from '@core/domain/wallet/walletHistory';
+import type { WalletRecentTransaction } from '@exchange/mobile-types';
 import { AssetRow } from '../components/AssetRow';
 import type { WalletStackParamList } from '../navigation/types';
 
@@ -108,6 +110,28 @@ export function AssetsHomeScreen({ navigation }: Props) {
     void fundingQ.refetch();
     void tradingQ.refetch();
   }, [summaryQ, fundingQ, tradingQ]);
+
+  const onRecentSelect = useCallback(
+    (tx: WalletRecentTransaction) => {
+      const row = mapFromWalletRecentTransaction(tx);
+      if (!row.detail) return;
+      switch (row.detail.screen) {
+        case 'DepositDetail':
+          navigation.navigate('DepositDetail', row.detail.params);
+          break;
+        case 'WithdrawalDetail':
+          navigation.navigate('WithdrawalDetail', row.detail.params);
+          break;
+        case 'TransferDetail':
+          navigation.navigate('TransferDetail', row.detail.params);
+          break;
+        case 'ConvertDetail':
+          navigation.navigate('ConvertDetail', row.detail.params);
+          break;
+      }
+    },
+    [navigation],
+  );
 
   const isLoading = (summaryQ.isLoading || fundingQ.isLoading) && !summaryQ.data && !fundingQ.data;
 
@@ -266,7 +290,8 @@ export function AssetsHomeScreen({ navigation }: Props) {
                       recentTxQ.isError ? 'Recent activity is temporarily unavailable.' : null
                     }
                     onRetry={() => void recentTxQ.refetch()}
-                    onViewAll={() => navigation.navigate('TransactionHistory')}
+                    onViewAll={() => navigation.navigate('WalletHistory', { tab: 'all' })}
+                    onSelect={onRecentSelect}
                   />
 
                   <SearchBar value={search} onChangeText={setSearch} placeholder="Search assets" />
