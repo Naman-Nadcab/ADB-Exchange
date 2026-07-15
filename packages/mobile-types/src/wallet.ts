@@ -301,6 +301,19 @@ export type WithdrawalDetail = WithdrawalRecord & {
   displayStatus?: string;
 };
 
+export type WithdrawalLimitBucket = {
+  limit: string;
+  used: string;
+  remaining: string;
+  percentage: string;
+};
+
+export type WithdrawalLimits = {
+  daily: WithdrawalLimitBucket;
+  monthly: WithdrawalLimitBucket;
+  vipLevel: number;
+};
+
 /** Normalized row from GET /wallet/transactions/all */
 export type WalletRecentTransaction = {
   id: string;

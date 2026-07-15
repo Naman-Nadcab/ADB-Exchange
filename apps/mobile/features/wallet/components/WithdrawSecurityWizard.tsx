@@ -117,8 +117,11 @@ export function WithdrawSecurityWizard({
           <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 12 }}>
             Step {step + 1}/{steps.length || 1}: {steps[step] ?? 'Confirm'}
           </Text>
+          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11, marginBottom: 12 }}>
+            Security verification is required. Withdrawals may be subject to cooldown after security changes.
+          </Text>
           {steps[step] === '2FA' ? (
-            <TextField label="2FA Code" value={twoFa} onChangeText={setTwoFa} keyboardType="number-pad" />
+            <TextField label="Google Authenticator code" value={twoFa} onChangeText={setTwoFa} keyboardType="number-pad" />
           ) : null}
           {steps[step] === 'Fund Password' ? (
             <TextField label="Fund Password" value={fundPw} onChangeText={setFundPw} secureTextEntry />

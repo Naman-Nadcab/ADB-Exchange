@@ -33,3 +33,44 @@ export function formatNetworkLabel(chainName: string, confirmations?: number): s
   const conf = confirmations != null ? ` · ${confirmations} confirmations` : '';
   return `${chainName}${conf}`;
 }
+
+export function computeMaxWithdrawAmount(available: string, fee: string): string {
+  const avail = parseFloat(available);
+  const f = parseFloat(fee);
+  if (!Number.isFinite(avail) || avail <= 0) return '0';
+  const max = Math.max(0, avail - (Number.isFinite(f) ? f : 0));
+  return String(max);
+}
+
+export function applyWithdrawPercent(available: string, fee: string, pct: number): string {
+  const max = parseFloat(computeMaxWithdrawAmount(available, fee));
+  if (!Number.isFinite(max) || max <= 0) return '0';
+  const amt = (max * pct) / 100;
+  return amt.toFixed(8).replace(/\.?0+$/, '') || '0';
+}
+
+export function withdrawalStatusLabel(status: string): string {
+  const s = status.toLowerCase();
+  if (s === 'pending_email_verify') return 'Pending email verification';
+  if (s === 'pending_2fa') return 'Pending 2FA';
+  if (s === 'pending_approval') return 'Pending approval';
+  if (s === 'pending_blockchain') return 'Processing on-chain';
+  if (s === 'processing') return 'Processing';
+  if (s === 'completed') return 'Completed';
+  if (s === 'failed') return 'Failed';
+  if (s === 'cancelled') return 'Cancelled';
+  return status;
+}
+
+export function buildWithdrawExplorerUrl(txHash: string, chain?: string): string | null {
+  if (!txHash) return null;
+  const c = (chain ?? '').toLowerCase();
+  if (c.includes('btc') || c.includes('bitcoin')) return `https://mempool.space/tx/${txHash}`;
+  if (c.includes('sol')) return `https://solscan.io/tx/${txHash}`;
+  if (c.includes('bsc') || c.includes('bnb')) return `https://bscscan.com/tx/${txHash}`;
+  if (c.includes('polygon') || c.includes('matic')) return `https://polygonscan.com/tx/${txHash}`;
+  if (c.includes('avax')) return `https://snowtrace.io/tx/${txHash}`;
+  if (c.includes('arb')) return `https://arbiscan.io/tx/${txHash}`;
+  if (c.includes('tron') || c.includes('trx')) return `https://tronscan.org/#/transaction/${txHash}`;
+  return `https://etherscan.io/tx/${txHash}`;
+}

@@ -15,7 +15,15 @@ export type WalletStackParamList = {
   DepositHistory: undefined;
   DepositDetail: { txHash: string };
   WithdrawHome: undefined;
-  WithdrawForm: { symbol: string; name: string };
+  WithdrawNetwork: { symbol: string; name: string };
+  WithdrawForm: {
+    symbol: string;
+    name: string;
+    chainId?: string;
+    chainName?: string;
+    chainType?: string;
+    confirmations?: number;
+  };
   WithdrawConfirm: {
     symbol: string;
     chainId: string;

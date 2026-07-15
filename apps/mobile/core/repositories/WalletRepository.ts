@@ -26,6 +26,7 @@ import type {
   WithdrawPreview,
   CreateWithdrawRequest,
   WithdrawalRecord,
+  WithdrawalLimits,
 } from '@exchange/mobile-types';
 import { normalizeWalletTx } from '@core/domain/wallet/transactions';
 
@@ -236,6 +237,13 @@ export class WalletRepository extends BaseRepository {
   getWithdrawalFee(symbol: string, chainId: string) {
     return this.http.request<WithdrawalFeeInfo>(
       `/wallet/withdrawal-fee/${encodeURIComponent(symbol)}/${encodeURIComponent(chainId)}`,
+      { method: 'GET' },
+    );
+  }
+
+  getWithdrawalLimits(symbol = 'USDT') {
+    return this.http.request<WithdrawalLimits>(
+      `/wallet/withdrawal-limits?symbol=${encodeURIComponent(symbol)}`,
       { method: 'GET' },
     );
   }

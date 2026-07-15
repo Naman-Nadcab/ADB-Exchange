@@ -1,13 +1,12 @@
-import { useEffect, useState } from 'react';
-import { ScrollView, Text, StyleSheet } from 'react-native';
+import { useEffect, useState, useCallback } from 'react';
+import { ScrollView, RefreshControl } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenLayout, PrimaryButton, ErrorBanner } from '@shared/ui';
-import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
 import { ApiError } from '@core/api/errors/ApiError';
 import { useCreateWithdrawal } from '../hooks/useBlockchainWallet';
-import { FeePreviewCard } from '../components/FeePreviewCard';
+import { WithdrawReviewCard } from '../components/WithdrawReviewCard';
 import { WithdrawSecurityWizard } from '../components/WithdrawSecurityWizard';
 import type { WalletStackParamList } from '../navigation/types';
 
@@ -15,13 +14,13 @@ type Props = NativeStackScreenProps<WalletStackParamList, 'WithdrawConfirm'>;
 
 export function WithdrawConfirmScreen({ navigation, route }: Props) {
   const p = route.params;
-  const { theme } = useTheme();
   const isOnline = useAppStore((s) => s.isOnline);
   const withdraw = useCreateWithdrawal();
   const [showWizard, setShowWizard] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resultId, setResultId] = useState<string | null>(null);
   const [needsEmailOtp, setNeedsEmailOtp] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     analytics.screen('S-522');
@@ -30,7 +29,7 @@ export function WithdrawConfirmScreen({ navigation, route }: Props) {
   const submit = async (security: { twoFactorCode?: string; fund_password?: string }) => {
     setError(null);
     if (!isOnline) {
-      setError('Offline — cannot withdraw');
+      setError('Offline — cannot withdraw until reconnected');
       return;
     }
     try {
@@ -49,6 +48,7 @@ export function WithdrawConfirmScreen({ navigation, route }: Props) {
         setNeedsEmailOtp(true);
         setShowWizard(true);
       } else {
+        setSuccess(true);
         navigation.replace('WithdrawalDetail', { withdrawalId: res.id });
       }
     } catch (err) {
@@ -64,18 +64,27 @@ export function WithdrawConfirmScreen({ navigation, route }: Props) {
     }
   };
 
+  const onRefresh = useCallback(() => {}, []);
+
   return (
     <ScreenLayout testID="S-522">
-      <ScrollView>
-        <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Confirm Withdrawal</Text>
-        <Text style={styles.row}>Asset: {p.symbol}</Text>
-        <Text style={styles.row}>Network: {p.chainName}</Text>
-        <Text style={styles.row}>Address: {p.address}</Text>
-        {p.memo ? <Text style={styles.row}>Memo: {p.memo}</Text> : null}
-        <Text style={styles.row}>Amount: {p.amount}</Text>
-        <FeePreviewCard preview={p.preview} available={p.available} symbol={p.symbol} />
-        {error ? <ErrorBanner message={error} /> : null}
-        <PrimaryButton title="Submit Withdrawal" loading={withdraw.isPending} onPress={onReview} />
+      <ScrollView refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}>
+        {!isOnline ? <ErrorBanner message="Offline — cannot submit withdrawal" /> : null}
+
+        <WithdrawReviewCard
+          symbol={p.symbol}
+          chainName={p.chainName}
+          address={p.address}
+          memo={p.memo}
+          amount={p.amount}
+          fee={p.preview?.fee}
+          netAmount={p.preview?.net_amount}
+        />
+
+        {error ? <ErrorBanner message={error} onRetry={() => void submit({})} /> : null}
+        {success ? null : (
+          <PrimaryButton title="Submit Withdrawal" loading={withdraw.isPending} onPress={onReview} />
+        )}
       </ScrollView>
       <WithdrawSecurityWizard
         visible={showWizard}
@@ -85,10 +94,11 @@ export function WithdrawConfirmScreen({ navigation, route }: Props) {
         needsEmailOtp={needsEmailOtp}
         onClose={() => setShowWizard(false)}
         onComplete={(input) => {
-          setShowWizard(false);
           if (needsEmailOtp && resultId) {
+            setShowWizard(false);
             navigation.replace('WithdrawalDetail', { withdrawalId: resultId });
           } else {
+            setShowWizard(false);
             void submit(input);
           }
         }}
@@ -96,8 +106,3 @@ export function WithdrawConfirmScreen({ navigation, route }: Props) {
     </ScreenLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  title: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
-  row: { marginBottom: 6, fontSize: 14 },
-});

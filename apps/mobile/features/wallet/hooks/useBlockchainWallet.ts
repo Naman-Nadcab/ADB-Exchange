@@ -104,6 +104,27 @@ export function useWithdrawPreview(
   });
 }
 
+export function useWithdrawalLimits(symbol: string) {
+  return useQuery({
+    queryKey: ['withdrawalLimits', symbol],
+    queryFn: () => getWalletRepository().getWithdrawalLimits(symbol),
+    staleTime: 60_000,
+    enabled: !!symbol,
+  });
+}
+
+export function useRecentWithdrawals(limit = 10, coin?: string) {
+  return useQuery({
+    queryKey: ['recentWithdrawals', limit, coin],
+    queryFn: async () => {
+      const r = await getWalletRepository().getWithdrawals({ page: 1, limit, coin });
+      return r.items;
+    },
+    staleTime: 15_000,
+    refetchInterval: 15_000,
+  });
+}
+
 export function useWithdrawalFee(symbol: string, chainId: string) {
   return useQuery({
     queryKey: ['withdrawalFee', symbol, chainId],

@@ -14,6 +14,7 @@ import { DepositAddressScreen } from '../screens/DepositAddressScreen';
 import { DepositHistoryScreen } from '../screens/DepositHistoryScreen';
 import { DepositDetailScreen } from '../screens/DepositDetailScreen';
 import { WithdrawHomeScreen } from '../screens/WithdrawHomeScreen';
+import { WithdrawNetworkScreen } from '../screens/WithdrawNetworkScreen';
 import { WithdrawFormScreen } from '../screens/WithdrawFormScreen';
 import { WithdrawConfirmScreen } from '../screens/WithdrawConfirmScreen';
 import { WithdrawalHistoryScreen } from '../screens/WithdrawalHistoryScreen';
@@ -43,6 +44,7 @@ export function WalletStackNavigator() {
       <Stack.Screen name="DepositHistory" component={guestGuard(DepositHistoryScreen, 'Log in to view deposit history.')} options={{ title: 'Deposit History' }} />
       <Stack.Screen name="DepositDetail" component={guestGuard(DepositDetailScreen, 'Log in to view deposit details.')} options={{ title: 'Deposit Detail' }} />
       <Stack.Screen name="WithdrawHome" component={guestGuard(WithdrawHomeScreen, 'Log in to withdraw.')} options={{ title: 'Withdraw' }} />
+      <Stack.Screen name="WithdrawNetwork" component={guestGuard(WithdrawNetworkScreen, 'Log in to withdraw.')} options={{ title: 'Network' }} />
       <Stack.Screen name="WithdrawForm" component={guestGuard(WithdrawFormScreen, 'Log in to withdraw.')} options={{ title: 'Withdraw' }} />
       <Stack.Screen name="WithdrawConfirm" component={guestGuard(WithdrawConfirmScreen, 'Log in to withdraw.')} options={{ title: 'Confirm' }} />
       <Stack.Screen name="WithdrawalHistory" component={guestGuard(WithdrawalHistoryScreen, 'Log in to view withdrawal history.')} options={{ title: 'Withdrawals' }} />

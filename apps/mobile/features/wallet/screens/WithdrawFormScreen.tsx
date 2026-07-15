@@ -1,15 +1,27 @@
-import { useEffect, useState } from 'react';
-import { ScrollView, Text, Pressable, StyleSheet } from 'react-native';
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import { ScrollView, Text, Pressable, StyleSheet, RefreshControl, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, TextField, PrimaryButton, ErrorBanner } from '@shared/ui';
+import * as Clipboard from 'expo-clipboard';
+import {
+  ScreenLayout,
+  TextField,
+  PrimaryButton,
+  ErrorBanner,
+  SkeletonList,
+  ErrorState,
+  ExchangeCard,
+} from '@shared/ui';
 import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
+import { needsMemoTag } from '@core/domain/wallet/deposit';
 import {
   validateCryptoAddress,
   validateMemo,
   validateWithdrawAmount,
   formatNetworkLabel,
+  computeMaxWithdrawAmount,
+  applyWithdrawPercent,
 } from '@core/domain/wallet/withdraw';
 import {
   useTokenChains,
@@ -18,47 +30,99 @@ import {
   useWithdrawalFee,
   useWithdrawalAddresses,
   useWithdrawSecurityStatus,
+  useWithdrawalLimits,
+  useRecentWithdrawals,
 } from '../hooks/useBlockchainWallet';
 import { FeePreviewCard } from '../components/FeePreviewCard';
+import { WithdrawFlowHeader } from '../components/WithdrawFlowHeader';
+import { WithdrawLimitsCard } from '../components/WithdrawLimitsCard';
+import { WithdrawRecentPreview } from '../components/WithdrawRecentPreview';
 import type { WalletStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<WalletStackParamList, 'WithdrawForm'>;
 
 export function WithdrawFormScreen({ navigation, route }: Props) {
-  const { symbol, name } = route.params;
+  const { symbol, name, chainId: initialChainId, chainName: initialChainName, confirmations } = route.params;
   const { theme } = useTheme();
   const isOnline = useAppStore((s) => s.isOnline);
   const chainsQ = useTokenChains(symbol);
   const balanceQ = useFundingBalanceForSymbol(symbol);
   const addressesQ = useWithdrawalAddresses();
   const security = useWithdrawSecurityStatus();
+  const limitsQ = useWithdrawalLimits(symbol);
+  const recentQ = useRecentWithdrawals(10, symbol);
 
-  const [chainId, setChainId] = useState('');
-  const [chainName, setChainName] = useState('');
+  const [chainId, setChainId] = useState(initialChainId ?? '');
+  const [chainName, setChainName] = useState(initialChainName ?? '');
   const [address, setAddress] = useState('');
   const [memo, setMemo] = useState('');
   const [amount, setAmount] = useState('');
+  const [percent, setPercent] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const feeQ = useWithdrawalFee(symbol, chainId);
   const previewQ = useWithdrawPreview(symbol, chainId, amount, !!amount && !!chainId);
+  const memoRequired = needsMemoTag(symbol);
 
   useEffect(() => {
     analytics.screen('S-521');
   }, []);
 
   useEffect(() => {
+    if (initialChainId) return;
     const active = (chainsQ.data ?? []).filter((c) => c.is_active !== false);
     if (active.length && !chainId) {
       setChainId(active[0].id);
       setChainName(active[0].name);
     }
-  }, [chainsQ.data, chainId]);
+  }, [chainsQ.data, chainId, initialChainId]);
+
+  const savedForAsset = useMemo(() => {
+    const sym = symbol.toUpperCase();
+    const net = chainName.toLowerCase();
+    return (addressesQ.data ?? []).filter((a) => {
+      if ((a.asset ?? '').toUpperCase() !== sym) return false;
+      if (!a.network) return true;
+      const an = a.network.toLowerCase();
+      return an.includes(net) || net.includes(an) || !chainName;
+    });
+  }, [addressesQ.data, symbol, chainName]);
+
+  const onRefresh = useCallback(() => {
+    void chainsQ.refetch();
+    void balanceQ.refetch();
+    void addressesQ.refetch();
+    void limitsQ.refetch();
+    void recentQ.refetch();
+    void feeQ.refetch();
+    if (amount) void previewQ.refetch();
+  }, [chainsQ, balanceQ, addressesQ, limitsQ, recentQ, feeQ, previewQ, amount]);
+
+  const applyMax = () => {
+    const fee = previewQ.data?.fee ?? feeQ.data?.fee ?? '0';
+    setAmount(computeMaxWithdrawAmount(balanceQ.available, fee));
+    setPercent(100);
+  };
+
+  const onPercent = (pct: number) => {
+    setPercent(pct);
+    const fee = previewQ.data?.fee ?? feeQ.data?.fee ?? '0';
+    setAmount(applyWithdrawPercent(balanceQ.available, fee, pct));
+  };
+
+  const pasteAddress = async () => {
+    const text = (await Clipboard.getStringAsync()).trim();
+    if (text) setAddress(text);
+  };
 
   const proceed = () => {
     setError(null);
     if (!isOnline) {
-      setError('Offline — cannot withdraw');
+      setError('Offline — cannot withdraw until reconnected');
+      return;
+    }
+    if (!chainId) {
+      setError('Select a network');
       return;
     }
     const addrErr = validateCryptoAddress(address);
@@ -66,7 +130,7 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
       setError(addrErr);
       return;
     }
-    const memoErr = validateMemo(memo, false);
+    const memoErr = validateMemo(memo, memoRequired);
     if (memoErr) {
       setError(memoErr);
       return;
@@ -86,6 +150,10 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
       setError('Address is not whitelisted');
       return;
     }
+    if (security.addressLock.data?.enabled && !selected?.is_whitelisted) {
+      setError('New address lock enabled — use a whitelisted saved address');
+      return;
+    }
     navigation.navigate('WithdrawConfirm', {
       symbol,
       chainId,
@@ -101,79 +169,152 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
     });
   };
 
+  const loading = (chainsQ.isLoading || balanceQ.isLoading) && !chainId;
+
   return (
     <ScreenLayout testID="S-521">
-      <ScrollView keyboardShouldPersistTaps="handled">
-        <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Withdraw {name}</Text>
-        <Text style={styles.section}>Network</Text>
-        {(chainsQ.data ?? []).map((c) => {
-          const disabled = c.is_active === false;
-          return (
-            <Pressable
-              key={c.id}
-              disabled={disabled}
-              onPress={() => {
-                setChainId(c.id);
-                setChainName(c.name);
-              }}
-              style={[styles.chip, disabled && styles.disabled]}
-            >
-              <Text style={{ fontWeight: chainId === c.id ? '700' : '400', opacity: disabled ? 0.5 : 1 }}>
-                {formatNetworkLabel(c.name, c.confirmations_required)}
-                {disabled ? ' · Unavailable' : ''}
-              </Text>
-            </Pressable>
-          );
-        })}
-        <Text style={styles.section}>Saved addresses</Text>
-        {(addressesQ.data ?? [])
-          .filter((a) => a.asset === symbol)
-          .slice(0, 5)
-          .map((a) => (
-            <Pressable
-              key={a.id}
-              onPress={() => {
-                setAddress(a.address);
-                setMemo(a.memo ?? '');
-              }}
-            >
-              <Text style={{ color: `hsl(${theme.colors.brandPrimary})` }}>
-                {a.note ?? a.address.slice(0, 12)}… {a.is_whitelisted ? '★' : ''}
-              </Text>
-            </Pressable>
-          ))}
-        <TextField label="Address" value={address} onChangeText={setAddress} />
-        <TextField label="Memo / Tag (if required)" value={memo} onChangeText={setMemo} />
-        <TextField label="Amount" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" />
-        <FeePreviewCard
-          preview={previewQ.data}
-          available={balanceQ.available}
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        refreshControl={<RefreshControl refreshing={balanceQ.isFetching} onRefresh={onRefresh} />}
+      >
+        <WithdrawFlowHeader
           symbol={symbol}
-          isLoading={previewQ.isFetching}
+          name={name}
+          network={chainName ? formatNetworkLabel(chainName, confirmations) : undefined}
+          available={balanceQ.available}
+          withdrawEnabled={chainId ? (chainsQ.data?.find((c) => c.id === chainId)?.is_active !== false) : true}
+          step={initialChainId ? 'Step 3 · Address & amount' : 'Step 2 · Network, address & amount'}
         />
-        {feeQ.data ? (
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}>
-            Network fee: {feeQ.data.fee} {symbol} · Min: {feeQ.data.minWithdrawal} {symbol}
-          </Text>
-        ) : null}
-        <Text style={{ color: `hsl(${theme.colors.statusWarning})`, fontSize: 12, marginTop: 8 }}>
-          Withdrawals are irreversible. Verify address and network before submitting.
-        </Text>
-        {security.addressLock.data?.enabled ? (
-          <Text style={{ color: `hsl(${theme.colors.statusWarning})`, fontSize: 12 }}>
-            New address lock is enabled — only whitelisted addresses may withdraw.
-          </Text>
-        ) : null}
-        {error ? <ErrorBanner message={error} /> : null}
-        <PrimaryButton title="Review Withdrawal" onPress={proceed} />
+
+        {!isOnline ? <ErrorBanner message="Offline — balances and fees may be stale" onRetry={onRefresh} /> : null}
+
+        {loading ? (
+          <SkeletonList rows={6} />
+        ) : (
+          <>
+            <WithdrawLimitsCard limits={limitsQ.data} symbol={symbol} loading={limitsQ.isLoading} />
+
+            {!initialChainId ? (
+              <>
+                <Text style={[styles.section, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Network</Text>
+                {(chainsQ.data ?? []).map((c) => {
+                  const disabled = c.is_active === false;
+                  return (
+                    <Pressable
+                      key={c.id}
+                      disabled={disabled}
+                      onPress={() => {
+                        setChainId(c.id);
+                        setChainName(c.name);
+                      }}
+                      style={[styles.chip, disabled && styles.disabled]}
+                    >
+                      <Text style={{ fontWeight: chainId === c.id ? '700' : '400', opacity: disabled ? 0.5 : 1 }}>
+                        {formatNetworkLabel(c.name, c.confirmations_required)}
+                        {disabled ? ' · Maintenance' : ''}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </>
+            ) : null}
+
+            <View style={styles.sectionRow}>
+              <Text style={[styles.section, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Address</Text>
+              <Pressable onPress={() => navigation.navigate('AddressBook')}>
+                <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600', fontSize: 13 }}>Address book</Text>
+              </Pressable>
+            </View>
+
+            {savedForAsset.length ? (
+              <ExchangeCard variant="terminal" style={styles.savedCard}>
+                {savedForAsset.slice(0, 6).map((a) => (
+                  <Pressable
+                    key={a.id}
+                    onPress={() => {
+                      setAddress(a.address);
+                      setMemo(a.memo ?? '');
+                    }}
+                    style={styles.savedRow}
+                  >
+                    <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '600' }}>
+                      {a.note ?? `${a.address.slice(0, 10)}…`}
+                    </Text>
+                    <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11 }}>
+                      {a.is_whitelisted ? 'Whitelisted ★' : 'Saved'}
+                    </Text>
+                  </Pressable>
+                ))}
+              </ExchangeCard>
+            ) : null}
+
+            <TextField label="Withdrawal address" value={address} onChangeText={setAddress} />
+            <PrimaryButton title="Paste from clipboard" variant="secondary" onPress={() => void pasteAddress()} />
+
+            <TextField
+              label={memoRequired ? 'Memo / Tag (required)' : 'Memo / Tag (if required)'}
+              value={memo}
+              onChangeText={setMemo}
+            />
+
+            <TextField label="Amount" value={amount} onChangeText={(v) => { setAmount(v); setPercent(0); }} keyboardType="decimal-pad" />
+
+            <FeePreviewCard
+              preview={previewQ.data}
+              available={balanceQ.available}
+              symbol={symbol}
+              isLoading={previewQ.isFetching && !!amount}
+              onMax={applyMax}
+              percent={percent}
+              onPercentChange={onPercent}
+            />
+
+            {security.whitelist.data?.enabled ? (
+              <Text style={{ color: `hsl(${theme.colors.statusWarning})`, fontSize: 12 }}>
+                Whitelist enabled — only whitelisted addresses can withdraw.
+              </Text>
+            ) : null}
+            {security.addressLock.data?.enabled ? (
+              <Text style={{ color: `hsl(${theme.colors.statusWarning})`, fontSize: 12 }}>
+                New address lock active — recently added addresses may be blocked.
+              </Text>
+            ) : null}
+            {security.twoFa.data?.enabled ? (
+              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}>
+                Google Authenticator (2FA) will be required on confirmation.
+              </Text>
+            ) : null}
+            {security.fundPw.data?.enabled ? (
+              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}>
+                Fund password will be required on confirmation.
+              </Text>
+            ) : null}
+
+            {error ? <ErrorBanner message={error} /> : null}
+            {chainsQ.isError ? <ErrorState title="Networks unavailable" onRetry={onRefresh} /> : null}
+
+            <PrimaryButton title="Review Withdrawal" onPress={proceed} />
+
+            <WithdrawRecentPreview
+              items={recentQ.data ?? []}
+              isLoading={recentQ.isLoading}
+              error={recentQ.isError}
+              onRetry={() => void recentQ.refetch()}
+              onViewAll={() => navigation.navigate('WithdrawalHistory')}
+              onSelect={(id) => navigation.navigate('WithdrawalDetail', { withdrawalId: id })}
+            />
+          </>
+        )}
       </ScrollView>
     </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
-  section: { fontWeight: '600', marginTop: 12, marginBottom: 6 },
+  section: { fontWeight: '700', marginTop: 12, marginBottom: 6 },
+  sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
   chip: { paddingVertical: 8 },
   disabled: { opacity: 0.45 },
+  savedCard: { marginBottom: 10, paddingVertical: 0, paddingHorizontal: 0 },
+  savedRow: { paddingHorizontal: 16, paddingVertical: 12, minHeight: 44 },
 });
