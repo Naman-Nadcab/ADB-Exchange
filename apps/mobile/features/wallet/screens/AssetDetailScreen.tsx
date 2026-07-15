@@ -1,107 +1,224 @@
-import { useEffect, useMemo } from 'react';
-import { ScrollView, Text, View, StyleSheet } from 'react-native';
+import { useEffect, useMemo, useCallback } from 'react';
+import { ScrollView, RefreshControl, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, SkeletonList } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import {
+  ScreenLayout,
+  SkeletonList,
+  ErrorBanner,
+  ErrorState,
+} from '@shared/ui';
+import { useTicker } from '@features/markets';
 import { analytics } from '@core/observability/analytics';
-import { mergeAssets, computeAllocation, formatUsd } from '@core/domain/wallet/portfolio';
-import { useFundingBalances, useTradingBalances, usePortfolioHistory, useCoinInfo } from '../hooks/useWallet';
-import { AllocationChart } from '../components/AllocationChart';
+import { useAppStore } from '@core/state/appStore';
+import { useWalletPrefsStore } from '@core/state/walletPrefsStore';
+import { computeAssetHoldings } from '@core/domain/wallet/assetDetail';
+import {
+  useFundingBalances,
+  useSpotAccountBalances,
+  useCoinInfo,
+  useAssetTransactions,
+} from '../hooks/useWallet';
+import { useTokenChains, useDepositTokens } from '../hooks/useBlockchainWallet';
+import { AssetDetailHeader } from '../components/AssetDetailHeader';
+import { AssetPortfolioSection } from '../components/AssetPortfolioSection';
+import { AssetQuickActions } from '../components/AssetQuickActions';
+import { AssetNetworksSection } from '../components/AssetNetworksSection';
+import { AssetMarketSection } from '../components/AssetMarketSection';
+import { RecentTransactionsList } from '../components/RecentTransactionsList';
 import type { WalletStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<WalletStackParamList, 'AssetDetail'>;
 
-export function AssetDetailScreen({ route }: Props) {
+export function AssetDetailScreen({ route, navigation }: Props) {
   const { symbol } = route.params;
-  const { theme } = useTheme();
+  const isOnline = useAppStore((s) => s.isOnline);
+  const showBalances = useWalletPrefsStore((s) => s.showBalances);
+  const favorites = useWalletPrefsStore((s) => s.favorites);
+  const hydrate = useWalletPrefsStore((s) => s.hydrate);
+  const toggleFavorite = useWalletPrefsStore((s) => s.toggleFavorite);
+
+  const pairSymbol = `${symbol}_USDT`;
   const fundingQ = useFundingBalances();
-  const tradingQ = useTradingBalances();
-  const historyQ = usePortfolioHistory('7d');
+  const spotQ = useSpotAccountBalances();
+  const tickerQ = useTicker(pairSymbol);
   const coinQ = useCoinInfo(symbol);
+  const chainsQ = useTokenChains(symbol);
+  const depositTokensQ = useDepositTokens();
+  const txQ = useAssetTransactions(symbol, 50);
 
   useEffect(() => {
+    hydrate();
     analytics.screen('S-501');
-  }, []);
+  }, [hydrate]);
 
-  const asset = useMemo(() => {
-    const merged = mergeAssets(fundingQ.data?.balances, tradingQ.data?.balances);
-    return merged.find((a) => a.symbol === symbol);
-  }, [fundingQ.data, tradingQ.data, symbol]);
+  const fundingRow = useMemo(
+    () => fundingQ.data?.balances.find((b) => b.symbol === symbol),
+    [fundingQ.data, symbol],
+  );
+  const spotRow = useMemo(
+    () => spotQ.data?.find((b) => b.asset === symbol),
+    [spotQ.data, symbol],
+  );
+  const depositToken = useMemo(
+    () => depositTokensQ.data?.find((t) => t.symbol === symbol),
+    [depositTokensQ.data, symbol],
+  );
 
-  const allocation = useMemo(() => {
-    const merged = mergeAssets(fundingQ.data?.balances, tradingQ.data?.balances);
-    return computeAllocation(merged).find((s) => s.symbol === symbol);
-  }, [fundingQ.data, tradingQ.data, symbol]);
+  const holdings = useMemo(
+    () => computeAssetHoldings(fundingRow, spotRow),
+    [fundingRow, spotRow],
+  );
 
-  if (!asset && (fundingQ.isLoading || tradingQ.isLoading)) {
-    return (
-      <ScreenLayout testID="S-501">
-        <SkeletonList rows={5} />
-      </ScreenLayout>
-    );
-  }
+  const livePrice = tickerQ.data?.last_price
+    ? parseFloat(tickerQ.data.last_price)
+    : coinQ.data?.current_price ?? 0;
+  const change24h = tickerQ.data?.change_pct ?? coinQ.data?.price_change_percentage_24h ?? null;
+  const holdingsUsdStr =
+    livePrice > 0 ? String(holdings.grandTotal * livePrice) : (fundingRow?.usd_value ?? '0');
+
+  const balancesLoading = (fundingQ.isLoading || spotQ.isLoading) && !fundingQ.data && !spotQ.data;
+  const balancesError = fundingQ.isError || spotQ.isError;
+
+  const refreshing =
+    fundingQ.isFetching ||
+    spotQ.isFetching ||
+    tickerQ.isFetching ||
+    coinQ.isFetching ||
+    chainsQ.isFetching ||
+    txQ.isFetching;
+
+  const onRefresh = useCallback(() => {
+    void fundingQ.refetch();
+    void spotQ.refetch();
+    void tickerQ.refetch();
+    void coinQ.refetch();
+    void chainsQ.refetch();
+    void txQ.refetch();
+    void depositTokensQ.refetch();
+  }, [fundingQ, spotQ, tickerQ, coinQ, chainsQ, txQ, depositTokensQ]);
+
+  const coinName = coinQ.data?.name ?? fundingRow?.name ?? symbol;
+
+  const requireNav = (fn: () => void) => fn();
 
   return (
     <ScreenLayout testID="S-501">
-      <ScrollView>
-        <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
-          {asset?.name ?? symbol}
-        </Text>
-        <Text style={[styles.value, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
-          ${formatUsd(asset?.usdValue ?? '0')}
-        </Text>
-        {allocation ? (
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 12 }}>
-            Portfolio allocation: {allocation.pct.toFixed(1)}%
-          </Text>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        {!isOnline ? (
+          <ErrorBanner message="Offline — showing cached data where available" onRetry={onRefresh} />
         ) : null}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>Holdings</Text>
-          <DetailRow label="Funding total" value={`${asset?.fundingTotal ?? '0'} ${symbol}`} />
-          <DetailRow label="Funding available" value={`${asset?.fundingAvailable ?? '0'} ${symbol}`} />
-          <DetailRow label="Funding locked" value={`${asset?.fundingLocked ?? '0'} ${symbol}`} />
-          <DetailRow label="Trading equity" value={`${asset?.tradingEquity ?? '0'} ${symbol}`} />
-        </View>
-        {coinQ.data ? (
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
-              Coin Overview
-            </Text>
-            {coinQ.data.current_price != null ? (
-              <DetailRow label="Market price" value={`$${formatUsd(coinQ.data.current_price)}`} />
-            ) : null}
-            {coinQ.data.price_change_percentage_24h != null ? (
-              <DetailRow label="24h change" value={`${coinQ.data.price_change_percentage_24h.toFixed(2)}%`} />
-            ) : null}
-          </View>
+
+        {balancesError ? (
+          <ErrorBanner message="Portfolio could not be loaded. Pull to refresh or tap retry." onRetry={onRefresh} />
         ) : null}
-        {historyQ.data?.length ? (
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
-              Portfolio trend (7d)
-            </Text>
-            <AllocationChart slices={[{ symbol: 'Portfolio', usdValue: historyQ.data[historyQ.data.length - 1].total_usd, pct: 100 }]} />
-          </View>
-        ) : null}
+
+        {balancesLoading ? (
+          <SkeletonList rows={8} />
+        ) : balancesError && !fundingQ.data ? (
+          <ErrorState title="Could not load asset" onRetry={onRefresh} />
+        ) : (
+          <>
+            <AssetDetailHeader
+              symbol={symbol}
+              name={coinName}
+              image={coinQ.data?.image}
+              rank={coinQ.data?.market_cap_rank}
+              price={livePrice > 0 ? livePrice : null}
+              change24h={change24h}
+              holdingsUsd={holdingsUsdStr}
+              showBalances={showBalances}
+              isFavorite={favorites.has(symbol)}
+              onToggleFavorite={() => toggleFavorite(symbol)}
+              priceStale={tickerQ.data?.last_price_stale}
+            />
+
+            <AssetQuickActions
+              actions={[
+                {
+                  id: 'deposit',
+                  label: 'Deposit',
+                  icon: 'arrow-down-circle',
+                  primary: true,
+                  onPress: () =>
+                    requireNav(() =>
+                      navigation.navigate('DepositNetwork', { symbol, name: coinName }),
+                    ),
+                },
+                {
+                  id: 'withdraw',
+                  label: 'Withdraw',
+                  icon: 'arrow-up-circle',
+                  onPress: () =>
+                    requireNav(() => navigation.navigate('WithdrawForm', { symbol, name: coinName })),
+                },
+                {
+                  id: 'transfer',
+                  label: 'Transfer',
+                  icon: 'swap-horizontal',
+                  onPress: () => requireNav(() => navigation.navigate('Transfer')),
+                },
+                {
+                  id: 'convert',
+                  label: 'Convert',
+                  icon: 'repeat',
+                  onPress: () => requireNav(() => navigation.navigate('Convert')),
+                },
+                {
+                  id: 'trade',
+                  label: 'Trade',
+                  icon: 'trending-up',
+                  onPress: () =>
+                    navigation.getParent()?.navigate('Trade', {
+                      screen: 'SpotTrading',
+                      params: { symbol: pairSymbol },
+                    }),
+                },
+              ]}
+            />
+
+            <AssetPortfolioSection
+              symbol={symbol}
+              holdings={holdings}
+              priceUsd={livePrice > 0 ? livePrice : 0}
+              showBalances={showBalances}
+            />
+
+            <AssetNetworksSection
+              chains={chainsQ.data ?? []}
+              token={depositToken}
+              loading={chainsQ.isLoading}
+              error={chainsQ.isError}
+              onRetry={() => void chainsQ.refetch()}
+            />
+
+            <AssetMarketSection
+              ticker={tickerQ.data}
+              coinInfo={coinQ.data}
+              loading={tickerQ.isLoading && coinQ.isLoading}
+              error={tickerQ.isError && coinQ.isError}
+              onRetry={() => {
+                void tickerQ.refetch();
+                void coinQ.refetch();
+              }}
+            />
+
+            <RecentTransactionsList
+              items={txQ.data?.items ?? []}
+              isLoading={txQ.isLoading}
+              error={txQ.isError ? 'Could not load transaction history.' : null}
+              onRetry={() => void txQ.refetch()}
+              onViewAll={() => navigation.navigate('TransactionHistory')}
+            />
+          </>
+        )}
       </ScrollView>
     </ScreenLayout>
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
-  const { theme } = useTheme();
-  return (
-    <View style={styles.row}>
-      <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})` }}>{label}</Text>
-      <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '600' }}>{value}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  title: { fontSize: 22, fontWeight: '700' },
-  value: { fontSize: 28, fontWeight: '700', marginVertical: 8 },
-  section: { marginTop: 16 },
-  sectionTitle: { fontSize: 12, fontWeight: '600', marginBottom: 8 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
+  scroll: { paddingBottom: 24 },
 });

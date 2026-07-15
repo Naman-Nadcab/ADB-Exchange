@@ -10,6 +10,7 @@ import type { ConvertInstantRequest } from '@exchange/mobile-types';
 export const PORTFOLIO_KEY = ['portfolio'] as const;
 export const FUNDING_KEY = ['balances', 'funding'] as const;
 export const TRADING_BAL_KEY = ['balances', 'trading'] as const;
+export const SPOT_BAL_KEY = ['balances', 'spot'] as const;
 
 export function usePortfolioSummary() {
   const qc = useQueryClient();
@@ -33,6 +34,24 @@ export function useFundingBalances() {
     queryKey: FUNDING_KEY,
     queryFn: () => getWalletRepository().getFundingBalances(),
     staleTime: CACHE_TTL_MS.balances,
+  });
+}
+
+export function useSpotAccountBalances(enabled = true) {
+  return useQuery({
+    queryKey: SPOT_BAL_KEY,
+    queryFn: () => getWalletRepository().getSpotAccountBalances(),
+    staleTime: CACHE_TTL_MS.balances,
+    enabled,
+  });
+}
+
+export function useAssetTransactions(symbol: string, limit = 50) {
+  return useQuery({
+    queryKey: ['assetTransactions', symbol, limit],
+    queryFn: () => getWalletRepository().getTransactionsAll({ coin: symbol, limit }),
+    staleTime: 30_000,
+    enabled: !!symbol,
   });
 }
 

@@ -4,6 +4,7 @@ import type {
   BalanceSummary,
   FundingBalances,
   SpotTradingBalances,
+  SpotAccountBalance,
   TransferableToken,
   TransferRequest,
   TransferResult,
@@ -74,6 +75,10 @@ export class WalletRepository extends BaseRepository {
 
   getSpotBalances() {
     return this.http.request<SpotTradingBalances>('/wallet/balances/trading', { method: 'GET' });
+  }
+
+  getSpotAccountBalances() {
+    return this.http.request<SpotAccountBalance[]>('/wallet/balances/spot', { method: 'GET' });
   }
 
   getPortfolioHistory(period: '24h' | '7d' | '30d' | '90d' | '1y' = '7d') {

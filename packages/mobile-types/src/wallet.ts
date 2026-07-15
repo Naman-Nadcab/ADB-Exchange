@@ -40,6 +40,15 @@ export type SpotTradingBalances = {
   totalEquity?: EquityTotal;
 };
 
+/** Per-asset spot wallet row from GET /wallet/balances/spot */
+export type SpotAccountBalance = {
+  asset: string;
+  balance: string;
+  available_balance: string;
+  locked_balance: string;
+  account_type: 'spot';
+};
+
 export type TransferableToken = {
   tokenId: string;
   symbol: string;
