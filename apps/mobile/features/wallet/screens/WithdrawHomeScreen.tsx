@@ -8,6 +8,7 @@ import { useAppStore } from '@core/state/appStore';
 import { POPULAR_DEPOSIT_COINS } from '@core/domain/wallet/deposit';
 import { useDepositTokens } from '../hooks/useBlockchainWallet';
 import { WithdrawFlowHeader } from '../components/WithdrawFlowHeader';
+import { WithdrawTypeNav } from '../components/WithdrawTypeNav';
 import type { WalletStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<WalletStackParamList, 'WithdrawHome'>;
@@ -48,6 +49,11 @@ export function WithdrawHomeScreen({ navigation, route }: Props) {
   return (
     <ScreenLayout testID="S-520">
       <WithdrawFlowHeader symbol="—" name="Withdraw crypto" step="Step 1 · Choose coin" />
+      <WithdrawTypeNav
+        active="crypto"
+        onCrypto={() => undefined}
+        onFiat={() => navigation.navigate('FiatWithdraw')}
+      />
       {!isOnline ? <ErrorBanner message="Offline — coin list may be stale" onRetry={onRefresh} /> : null}
       <SearchBar value={search} onChangeText={setSearch} placeholder="Search coin" />
       <Pressable onPress={() => navigation.navigate('WithdrawalHistory')} style={styles.link}>

@@ -65,6 +65,18 @@ export type WalletStackParamList = {
   };
   WithdrawalHistory: undefined;
   WithdrawalDetail: { withdrawalId: string; snapshot?: import('@exchange/mobile-types').WithdrawalRecord };
+  FiatWithdraw: undefined;
+  FiatWithdrawConfirm: {
+    amount: string;
+    bankAccountId: string;
+    bankLabel: string;
+    methodName: string;
+    available: string;
+  };
+  FiatWithdrawalDetail: {
+    withdrawalId: string;
+    snapshot?: import('@exchange/mobile-types').FiatWithdrawal;
+  };
   AddressBook:
     | {
         selectMode?: boolean;

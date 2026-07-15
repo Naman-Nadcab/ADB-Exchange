@@ -331,3 +331,54 @@ export type WalletRecentTransaction = {
   fee?: string;
   method?: 'on-chain' | 'internal';
 };
+
+/** Isolated INR fiat ledger — GET /fiat/balance */
+export type FiatBalance = {
+  currency: string;
+  available_balance: string;
+  locked_balance: string;
+};
+
+export type FiatWithdrawalBankSnapshot = Record<string, unknown> & {
+  method_name?: string;
+  method_code?: string;
+  display_name?: string;
+  details?: Record<string, unknown>;
+};
+
+export type FiatWithdrawalStatus =
+  | 'pending'
+  | 'approved'
+  | 'processing'
+  | 'completed'
+  | 'rejected'
+  | 'cancelled'
+  | 'failed'
+  | string;
+
+/** User fiat withdrawal row — GET /fiat/withdrawals */
+export type FiatWithdrawal = {
+  id: string;
+  currency: string;
+  amount: string;
+  fee: string;
+  net_amount: string;
+  bank_account_id: string | null;
+  bank_snapshot: FiatWithdrawalBankSnapshot;
+  status: FiatWithdrawalStatus;
+  provider: string;
+  provider_reference: string | null;
+  admin_notes: string | null;
+  failure_reason: string | null;
+  requested_at: string;
+  reviewed_at: string | null;
+  completed_at: string | null;
+  created_at?: string;
+};
+
+export type CreateFiatWithdrawalInput = {
+  amount: string;
+  bankAccountId: string;
+  twoFactorCode?: string;
+  fund_password?: string;
+};

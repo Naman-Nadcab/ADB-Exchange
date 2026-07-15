@@ -68,6 +68,8 @@ export const linking = {
                 path: 'wallet/withdraw',
                 parse: { coin: (coin: string) => coin },
               },
+              FiatWithdraw: 'wallet/withdraw/fiat',
+              FiatWithdrawalDetail: 'wallet/fiat/withdrawals/:withdrawalId',
               WithdrawNetwork: 'wallet/withdraw/:symbol/network',
               WithdrawForm: 'wallet/withdraw/:symbol/form',
               WithdrawalHistory: 'wallet/withdraw/history',

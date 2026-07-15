@@ -4,7 +4,8 @@ import { getWalletRepository } from '@core/repositories/WalletRepository';
 import { getConvertRepository } from '@core/repositories/ConvertRepository';
 import { appEventBus } from '@core/events/appEventBus';
 import { CACHE_TTL_MS } from '@core/offline/cacheTTL';
-import type { TransferRequest, AccountType } from '@exchange/mobile-types';
+import { FIAT_BALANCE_QUERY_KEY, FIAT_WITHDRAWALS_QUERY_KEY } from '@core/domain/wallet/fiat';
+import type { TransferRequest, AccountType, CreateFiatWithdrawalInput } from '@exchange/mobile-types';
 import type { ConvertInstantRequest } from '@exchange/mobile-types';
 
 export const PORTFOLIO_KEY = ['portfolio'] as const;
@@ -263,5 +264,55 @@ export function useCoinInfo(symbol: string) {
     queryFn: () => getWalletRepository().getCoinInfo(symbol),
     staleTime: 300_000,
     enabled: !!symbol,
+  });
+}
+
+export { FIAT_BALANCE_QUERY_KEY, FIAT_WITHDRAWALS_QUERY_KEY };
+
+export function useFiatBalance(enabled = true) {
+  const qc = useQueryClient();
+  const q = useQuery({
+    queryKey: FIAT_BALANCE_QUERY_KEY,
+    queryFn: () => getWalletRepository().getFiatBalance(),
+    staleTime: CACHE_TTL_MS.balances,
+    enabled,
+  });
+  useEffect(() => {
+    return appEventBus.on('balances:invalidate', () => {
+      void qc.invalidateQueries({ queryKey: FIAT_BALANCE_QUERY_KEY });
+    });
+  }, [qc]);
+  return q;
+}
+
+export function useFiatWithdrawals(enabled = true) {
+  return useQuery({
+    queryKey: FIAT_WITHDRAWALS_QUERY_KEY,
+    queryFn: () => getWalletRepository().getFiatWithdrawals(),
+    staleTime: 30_000,
+    enabled,
+  });
+}
+
+export function useCreateFiatWithdrawal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CreateFiatWithdrawalInput) =>
+      getWalletRepository().createFiatWithdrawal(body),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: FIAT_BALANCE_QUERY_KEY });
+      void qc.invalidateQueries({ queryKey: FIAT_WITHDRAWALS_QUERY_KEY });
+    },
+  });
+}
+
+export function useCancelFiatWithdrawal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => getWalletRepository().cancelFiatWithdrawal(id),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: FIAT_BALANCE_QUERY_KEY });
+      void qc.invalidateQueries({ queryKey: FIAT_WITHDRAWALS_QUERY_KEY });
+    },
   });
 }

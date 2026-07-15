@@ -28,10 +28,12 @@ import {
   useTradingBalances,
   usePortfolioHistory,
   useRecentTransactions,
+  useFiatBalance,
   type PortfolioHistoryPeriod,
 } from '../hooks/useWallet';
 import { PortfolioSummary } from '../components/PortfolioSummary';
 import { AllocationChart } from '../components/AllocationChart';
+import { FiatBalanceCard } from '../components/FiatBalanceCard';
 import { RecentTransactionsList } from '../components/RecentTransactionsList';
 import { mapFromWalletRecentTransaction } from '@core/domain/wallet/walletHistory';
 import type { WalletRecentTransaction } from '@exchange/mobile-types';
@@ -70,6 +72,7 @@ export function AssetsHomeScreen({ navigation }: Props) {
   const tradingQ = useTradingBalances();
   const historyQ = usePortfolioHistory(chartPeriod);
   const recentTxQ = useRecentTransactions(8);
+  const fiatBalanceQ = useFiatBalance(!isGuest);
 
   useEffect(() => {
     hydrate();
@@ -95,7 +98,11 @@ export function AssetsHomeScreen({ navigation }: Props) {
       : null;
 
   const refreshing =
-    summaryQ.isFetching || fundingQ.isFetching || tradingQ.isFetching || historyQ.isFetching;
+    summaryQ.isFetching ||
+    fundingQ.isFetching ||
+    tradingQ.isFetching ||
+    historyQ.isFetching ||
+    fiatBalanceQ.isFetching;
 
   const onRefresh = useCallback(() => {
     void summaryQ.refetch();
@@ -103,7 +110,8 @@ export function AssetsHomeScreen({ navigation }: Props) {
     void tradingQ.refetch();
     void historyQ.refetch();
     void recentTxQ.refetch();
-  }, [summaryQ, fundingQ, tradingQ, historyQ, recentTxQ]);
+    void fiatBalanceQ.refetch();
+  }, [summaryQ, fundingQ, tradingQ, historyQ, recentTxQ, fiatBalanceQ]);
 
   const onRetryBalances = useCallback(() => {
     void summaryQ.refetch();
@@ -241,6 +249,22 @@ export function AssetsHomeScreen({ navigation }: Props) {
                     slices={allocation}
                     totalUsd={summaryQ.data?.total.totalUsd}
                     showBalances={showBalances}
+                  />
+
+                  <FiatBalanceCard
+                    availableBalance={fiatBalanceQ.data?.available_balance ?? '0'}
+                    isLoading={fiatBalanceQ.isLoading}
+                    isError={fiatBalanceQ.isError}
+                    showBalances={showBalances}
+                    onRetry={() => void fiatBalanceQ.refetch()}
+                    onWithdrawInr={() => {
+                      if (!requireAuth()) return;
+                      navigation.navigate('FiatWithdraw');
+                    }}
+                    onManageBanks={() => {
+                      if (!requireAuth()) return;
+                      navigation.getParent()?.navigate('P2P', { screen: 'PaymentMethods' });
+                    }}
                   />
 
                   <View style={styles.actions}>

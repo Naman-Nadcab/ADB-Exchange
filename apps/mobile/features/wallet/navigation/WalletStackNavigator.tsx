@@ -27,6 +27,9 @@ import { WithdrawalDetailScreen } from '../screens/WithdrawalDetailScreen';
 import { AddressBookScreen } from '../screens/AddressBookScreen';
 import { AddAddressScreen } from '../screens/AddAddressScreen';
 import { EditAddressScreen } from '../screens/EditAddressScreen';
+import { FiatWithdrawHomeScreen } from '../screens/FiatWithdrawHomeScreen';
+import { FiatWithdrawConfirmScreen } from '../screens/FiatWithdrawConfirmScreen';
+import { FiatWithdrawalDetailScreen } from '../screens/FiatWithdrawalDetailScreen';
 import type { WalletStackParamList } from './types';
 import { exchangeStackScreenOptions } from '@app/navigation/navigationTheme';
 
@@ -54,6 +57,9 @@ export function WalletStackNavigator() {
       <Stack.Screen name="DepositHistory" component={guestGuard(DepositHistoryScreen, 'Log in to view deposit history.')} options={{ title: 'Deposit History' }} />
       <Stack.Screen name="DepositDetail" component={guestGuard(DepositDetailScreen, 'Log in to view deposit details.')} options={{ title: 'Deposit Detail' }} />
       <Stack.Screen name="WithdrawHome" component={guestGuard(WithdrawHomeScreen, 'Log in to withdraw.')} options={{ title: 'Withdraw' }} />
+      <Stack.Screen name="FiatWithdraw" component={guestGuard(FiatWithdrawHomeScreen, 'Log in to withdraw INR.')} options={{ title: 'Fiat Withdrawal' }} />
+      <Stack.Screen name="FiatWithdrawConfirm" component={guestGuard(FiatWithdrawConfirmScreen, 'Log in to withdraw INR.')} options={{ title: 'Confirm' }} />
+      <Stack.Screen name="FiatWithdrawalDetail" component={guestGuard(FiatWithdrawalDetailScreen, 'Log in to view withdrawal details.')} options={{ title: 'INR Withdrawal' }} />
       <Stack.Screen name="WithdrawNetwork" component={guestGuard(WithdrawNetworkScreen, 'Log in to withdraw.')} options={{ title: 'Network' }} />
       <Stack.Screen name="WithdrawForm" component={guestGuard(WithdrawFormScreen, 'Log in to withdraw.')} options={{ title: 'Withdraw' }} />
       <Stack.Screen name="WithdrawConfirm" component={guestGuard(WithdrawConfirmScreen, 'Log in to withdraw.')} options={{ title: 'Confirm' }} />

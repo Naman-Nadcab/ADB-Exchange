@@ -27,6 +27,9 @@ import type {
   CreateWithdrawRequest,
   WithdrawalRecord,
   WithdrawalLimits,
+  FiatBalance,
+  FiatWithdrawal,
+  CreateFiatWithdrawalInput,
 } from '@exchange/mobile-types';
 import { normalizeWalletTx } from '@core/domain/wallet/transactions';
 
@@ -297,6 +300,29 @@ export class WalletRepository extends BaseRepository {
       `/wallet/withdrawals/${withdrawalId}/cancel`,
       { method: 'POST', body: {} },
     );
+  }
+
+  getFiatBalance() {
+    return this.http.request<FiatBalance>('/fiat/balance', { method: 'GET' });
+  }
+
+  getFiatWithdrawals() {
+    return this.http.request<FiatWithdrawal[]>('/fiat/withdrawals', { method: 'GET' });
+  }
+
+  createFiatWithdrawal(body: CreateFiatWithdrawalInput) {
+    return this.http.request<FiatWithdrawal>('/fiat/withdrawals', {
+      method: 'POST',
+      body,
+      idempotent: true,
+    });
+  }
+
+  cancelFiatWithdrawal(withdrawalId: string) {
+    return this.http.request<FiatWithdrawal>(`/fiat/withdrawals/${encodeURIComponent(withdrawalId)}/cancel`, {
+      method: 'POST',
+      body: {},
+    });
   }
 }
 
