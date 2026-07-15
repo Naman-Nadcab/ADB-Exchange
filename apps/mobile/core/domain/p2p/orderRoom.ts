@@ -86,7 +86,7 @@ export function getOrderRoomPermissions(order: P2POrder, role: OrderRoomRole): O
     canRelease: isSeller && st === 'payment_confirmed' && paymentVerificationGate(order),
     canCancel: (isBuyer || isSeller) && st === 'payment_pending',
     canDispute: (isBuyer || isSeller) && st === 'payment_confirmed',
-    chatEnabled: !isTerminalOrderStatus(st) && st !== 'disputed',
+    chatEnabled: !isTerminalOrderStatus(st),
     timerActive: st === 'payment_pending',
   };
 }

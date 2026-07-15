@@ -1,4 +1,5 @@
 import { useP2PStore } from '@core/state/p2pStore';
+import { useAuthStore } from '@core/state/authStore';
 import { appEventBus } from '@core/events/appEventBus';
 import type { P2PMessage, P2POrder } from '@exchange/mobile-types';
 
@@ -22,14 +23,19 @@ export function handleP2POrderRoomMessage(message: unknown): void {
 
   if (msg.type === 'message:new' && msg.data) {
     const payload = msg.data as unknown as P2PMessage;
-    useP2PStore.getState().appendMessage(orderId, {
+    const normalized: P2PMessage = {
       id: String(payload.id),
       orderId,
       senderId: String(payload.senderId),
       senderUsername: payload.senderUsername ?? null,
       message: String(payload.message ?? ''),
       createdAt: String(payload.createdAt ?? new Date().toISOString()),
-    });
+    };
+    useP2PStore.getState().appendMessage(orderId, normalized);
+    const myId = useAuthStore.getState().user?.id;
+    if (myId && normalized.senderId !== myId) {
+      useP2PStore.getState().addUnreadOrder(orderId);
+    }
     return;
   }
 

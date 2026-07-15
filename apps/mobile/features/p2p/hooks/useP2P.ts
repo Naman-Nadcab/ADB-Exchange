@@ -1,9 +1,10 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { useWs } from '@app/providers/WsProvider';
 import { useAuthStore } from '@core/state/authStore';
 import { getSpotRepository } from '@core/repositories/SpotRepository';
 import { getP2PRepository } from '@core/repositories/P2PRepository';
+import { getUserRepository } from '@core/repositories/UserRepository';
 import { useP2PStore } from '@core/state/p2pStore';
 import {
   findAdInQueryCache,
@@ -28,6 +29,15 @@ import {
   findDisputeInQueryCache,
   isTerminalDisputeStatus,
 } from '@core/domain/p2p/dispute';
+import {
+  CHAT_POLL_LIVE_MS,
+  CHAT_POLL_OFFLINE_MS,
+  CHAT_READ_DEBOUNCE_MS,
+  CHAT_TYPING_THROTTLE_MS,
+  mergeChatMessages,
+  sortMessagesByCreatedAt,
+} from '@core/domain/p2p/chat';
+import { countUnreadNotifications } from '@core/domain/notifications/routing';
 import { ordersNeedLiveRefresh } from '@core/domain/p2p/ordersList';
 import { findPaymentMethodInCache } from '@core/domain/p2p/paymentMethods';
 import {
@@ -262,24 +272,36 @@ export function useP2PMessages(orderId: string, enabled = true) {
     queryFn: () => getP2PRepository().getMessages(orderId),
     enabled: !!orderId && enabled,
     staleTime: 5_000,
+    refetchOnWindowFocus: true,
     refetchInterval: () => {
       if (!enabled || !orderId) return false;
-      return wsConnected ? 45_000 : 4_000;
+      return wsConnected ? CHAT_POLL_LIVE_MS : CHAT_POLL_OFFLINE_MS;
     },
   });
 
   useEffect(() => {
-    if (q.data) setMessages(orderId, q.data);
+    if (!q.data) return;
+    const prev = useP2PStore.getState().messagesByOrder[orderId] ?? [];
+    setMessages(orderId, mergeChatMessages(prev, q.data));
   }, [q.data, orderId, setMessages]);
 
-  return { ...q, messages: storeMessages ?? q.data ?? [] };
+  const messages = useMemo(
+    () => sortMessagesByCreatedAt(mergeChatMessages(storeMessages ?? [], q.data ?? [])),
+    [storeMessages, q.data],
+  );
+
+  return { ...q, messages };
 }
 
 export function useSendP2PMessage(orderId: string) {
   const upsert = useP2PStore((s) => s.upsertMessage);
   const qc = useQueryClient();
+  const sendLock = useRef(false);
+
   return useMutation({
     mutationFn: async (text: string) => {
+      if (sendLock.current) throw new Error('Send already in progress');
+      sendLock.current = true;
       const clientId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}`;
       const optimistic: P2PMessage = {
         id: clientId,
@@ -296,8 +318,10 @@ export function useSendP2PMessage(orderId: string) {
         upsert(orderId, { ...res, _clientId: clientId });
         return res;
       } catch (err) {
-        upsert(orderId, { ...optimistic, _failed: true });
+        upsert(orderId, { ...optimistic, _failed: true, _pending: false });
         throw err;
+      } finally {
+        sendLock.current = false;
       }
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: P2P_MESSAGES_KEY(orderId) }),
@@ -306,10 +330,34 @@ export function useSendP2PMessage(orderId: string) {
 
 export function useMarkMessagesRead(orderId: string) {
   const markOrderRead = useP2PStore((s) => s.markOrderRead);
-  return useMutation({
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSentRef = useRef<string | undefined>(undefined);
+
+  const mutation = useMutation({
     mutationFn: (lastId?: string) => getP2PRepository().markMessagesRead(orderId, lastId),
     onSuccess: () => markOrderRead(orderId),
   });
+
+  const mutate = useCallback(
+    (lastId?: string) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        if (lastId && lastSentRef.current === lastId) return;
+        lastSentRef.current = lastId;
+        mutation.mutate(lastId);
+      }, CHAT_READ_DEBOUNCE_MS);
+    },
+    [mutation],
+  );
+
+  useEffect(
+    () => () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    },
+    [],
+  );
+
+  return { ...mutation, mutate };
 }
 
 export function usePlatformPaymentMethods() {
@@ -459,6 +507,8 @@ export function useP2PSubscriptions(orderId?: string) {
   const isAuthenticated = useAuthStore((s) => s.status === 'authenticated');
   const qc = useQueryClient();
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingSentAt = useRef(0);
+  const wsConnected = useWsMetricsStore((s) => s.streamPhase === 'live');
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -476,6 +526,13 @@ export function useP2PSubscriptions(orderId?: string) {
         /* WS optional — REST fallback */
       }
     })();
+
+    void getUserRepository()
+      .getNotifications()
+      .then((rows) => {
+        useP2PStore.getState().setNotificationsUnread(countUnreadNotifications(rows));
+      })
+      .catch(() => undefined);
 
     const offOrders = appEventBus.on('p2p:orders:invalidate', () => {
       void qc.invalidateQueries({ queryKey: P2P_ORDERS_KEY });
@@ -495,6 +552,7 @@ export function useP2PSubscriptions(orderId?: string) {
 
   useEffect(() => {
     if (!orderId || !isAuthenticated) return;
+    useP2PStore.getState().clearUnreadOrder(orderId);
     const unsub = subscriptions.subscribeP2POrderRoom(orderId);
     return () => {
       unsub();
@@ -507,13 +565,16 @@ export function useP2PSubscriptions(orderId?: string) {
   }, []);
 
   const sendTyping = useCallback(() => {
-    if (!orderId) return;
+    if (!orderId || !wsConnected) return;
+    const now = Date.now();
+    if (now - typingSentAt.current < CHAT_TYPING_THROTTLE_MS) return;
+    typingSentAt.current = now;
     client.send({ type: 'p2p_typing', channel: WS_CHANNELS.p2pOrder(orderId) });
     if (typingTimer.current) clearTimeout(typingTimer.current);
     typingTimer.current = setTimeout(() => {
       useP2PStore.getState().setTyping(orderId, null);
     }, 3000);
-  }, [client, orderId]);
+  }, [client, orderId, wsConnected]);
 
-  return { sendTyping };
+  return { sendTyping, wsConnected };
 }

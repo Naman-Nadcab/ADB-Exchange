@@ -19,6 +19,8 @@ type P2PState = {
   upsertMessage: (orderId: string, message: P2PMessage) => void;
   setTyping: (orderId: string, userId: string | null) => void;
   markOrderRead: (orderId: string) => void;
+  addUnreadOrder: (orderId: string) => void;
+  clearUnreadOrder: (orderId: string) => void;
   setUnreadOrders: (ids: string[]) => void;
   setNotificationsUnread: (n: number) => void;
   addBlocked: (id: string) => void;
@@ -82,7 +84,21 @@ export const useP2PStore = create<P2PState>((set, get) => ({
   setTyping: (orderId, userId) =>
     set((s) => ({ typingUserIdByOrder: { ...s.typingUserIdByOrder, [orderId]: userId } })),
 
-  markOrderRead: (orderId) =>
+  markOrderRead: (orderId: string) =>
+    set((s) => {
+      const next = new Set(s.unreadOrderIds);
+      next.delete(orderId);
+      return { unreadOrderIds: next };
+    }),
+
+  addUnreadOrder: (orderId) =>
+    set((s) => {
+      const next = new Set(s.unreadOrderIds);
+      next.add(orderId);
+      return { unreadOrderIds: next };
+    }),
+
+  clearUnreadOrder: (orderId) =>
     set((s) => {
       const next = new Set(s.unreadOrderIds);
       next.delete(orderId);

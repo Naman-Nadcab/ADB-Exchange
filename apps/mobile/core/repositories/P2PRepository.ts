@@ -155,6 +155,7 @@ export class P2PRepository extends BaseRepository {
     return this.http.request<P2PMessage>(`${PREFIX}/orders/${encodeURIComponent(orderId)}/messages`, {
       method: 'POST',
       body: { message },
+      idempotent: true,
     });
   }
 
@@ -162,6 +163,7 @@ export class P2PRepository extends BaseRepository {
     return this.http.request<unknown>(`${PREFIX}/orders/${encodeURIComponent(orderId)}/messages/read`, {
       method: 'POST',
       body: { last_read_message_id: lastReadMessageId },
+      idempotent: true,
     });
   }
 

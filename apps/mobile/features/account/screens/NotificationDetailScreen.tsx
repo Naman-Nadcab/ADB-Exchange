@@ -1,22 +1,39 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { ScrollView, Text } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout } from '@shared/ui';
+import { CommonActions } from '@react-navigation/native';
+import { ScreenLayout, PrimaryButton } from '@shared/ui';
 import { analytics } from '@core/observability/analytics';
+import { resolveP2PNotificationRoute } from '@core/domain/notifications/routing';
 import { useNotifications, useNotificationMutations } from '../hooks/useAccount';
 import type { AccountStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<AccountStackParamList, 'NotificationDetail'>;
 
-export function NotificationDetailScreen({ route }: Props) {
+export function NotificationDetailScreen({ route, navigation }: Props) {
   const q = useNotifications();
   const { markRead } = useNotificationMutations();
-  const item = useMemo(() => q.data?.find((n) => n.id === route.params.id), [q.data, route.params.id]);
+  const item = q.data?.find((n) => n.id === route.params.id);
 
   useEffect(() => {
     analytics.screen('S-773');
     if (item && !item.read) markRead.mutate(item.id);
   }, [item, markRead]);
+
+  const p2pRoute = item ? resolveP2PNotificationRoute(item) : null;
+
+  const openP2POrder = () => {
+    if (!p2pRoute) return;
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: 'Main',
+        params: {
+          screen: 'P2P',
+          params: { screen: 'OrderRoom', params: { orderId: p2pRoute.orderId } },
+        },
+      }),
+    );
+  };
 
   if (!item) return <ScreenLayout><Text>Not found</Text></ScreenLayout>;
 
@@ -26,6 +43,9 @@ export function NotificationDetailScreen({ route }: Props) {
         <Text style={{ fontWeight: '700', fontSize: 18 }}>{item.title}</Text>
         <Text style={{ marginVertical: 8 }}>{item.body ?? ''}</Text>
         <Text style={{ fontSize: 12 }}>{item.type} · {new Date(item.created_at).toLocaleString()}</Text>
+        {p2pRoute ? (
+          <PrimaryButton title="View P2P order" onPress={openP2POrder} />
+        ) : null}
       </ScrollView>
     </ScreenLayout>
   );

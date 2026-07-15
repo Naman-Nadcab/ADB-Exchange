@@ -63,6 +63,9 @@ describe('p2p orderRoom domain', () => {
 
     const verified = { ...confirmed, payment_verification_status: 'verified' as const };
     expect(getOrderRoomPermissions(verified, 'seller').canRelease).toBe(true);
+
+    const disputed = { ...baseOrder(), status: 'disputed' as const };
+    expect(getOrderRoomPermissions(disputed, 'buyer').chatEnabled).toBe(true);
   });
 
   it('builds website 4-step timeline', () => {
