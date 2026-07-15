@@ -7,10 +7,11 @@ export const linking = {
       Auth: {
         screens: {
           Welcome: 'auth/welcome',
-          LoginMethod: 'auth/login',
           LoginPassword: 'login',
-          SignupIdentifier: 'auth/signup',
-          SignupReferral: 'referral/:referralCode',
+          LoginIdentifier: 'login/otp',
+          ForgotPasswordRequest: 'forgot-password',
+          SignupIdentifier: 'signup',
+          SignupReferral: 'signup/ref/:referralCode',
           OAuthCallback: 'oauth/callback',
         },
       },
@@ -58,6 +59,11 @@ export const linking = {
       Account: {
         screens: {
           AccountHome: 'account',
+          Preferences: 'account/preferences',
+          HelpFaq: 'account/help',
+          About: 'account/about',
+          LegalViewer: 'account/legal/:doc',
+          SystemStatus: 'account/status',
           SecurityCenter: 'security',
           KYCHub: 'kyc',
           TicketDetail: 'support/ticket/:id',

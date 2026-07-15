@@ -5,8 +5,7 @@ import { getAuthRepository } from '@core/repositories/AuthRepository';
 import { sessionManager } from '@core/auth/sessionManager';
 import { mmkvStorage } from '@core/storage/mmkvStorage';
 import { CACHE_KEYS } from '@core/storage/cacheKeys';
-import { clearGuestMode, enterGuestAfterLogout } from '@core/guest/guestMode';
-import { resetRoot } from '@app/navigation/navigationRef';
+import { clearGuestMode, enterGuestAfterLogout, finishAuthenticatedEntry } from '@core/guest/guestMode';
 import type { AuthSessionResponse, AuthUser } from '@exchange/mobile-types';
 import { ApiError } from '@core/api/errors/ApiError';
 
@@ -36,7 +35,7 @@ export function useAuthActions() {
       const onboarding = await mmkvStorage.get(CACHE_KEYS.onboarding);
       const nextPhase = onboarding === 'complete' ? 'main' : 'onboarding';
       setPhase(nextPhase);
-      resetRoot(nextPhase === 'onboarding' ? 'Onboarding' : 'Main');
+      finishAuthenticatedEntry(nextPhase);
     },
     [setAuthenticated, setPhase, setShellGate],
   );

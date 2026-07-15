@@ -96,8 +96,8 @@ export function AccountHomeScreen({ navigation }: Props) {
 
         {isGuest ? (
           <View style={{ gap: 12, marginBottom: 16 }}>
-            <PrimaryButton title="Log In" size="xl" onPress={openLogin} />
-            <PrimaryButton title="Register" variant="outline" size="xl" onPress={openSignup} />
+            <PrimaryButton title="Log In" size="xl" onPress={() => openLogin()} />
+            <PrimaryButton title="Register" variant="outline" size="xl" onPress={() => openSignup()} />
           </View>
         ) : null}
 

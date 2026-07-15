@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { guestGuard } from '@features/auth';
 import { AssetsHomeScreen } from '../screens/AssetsHomeScreen';
 import { AssetDetailScreen } from '../screens/AssetDetailScreen';
 import { TransferScreen } from '../screens/TransferScreen';
@@ -21,33 +22,34 @@ import { AddressBookScreen } from '../screens/AddressBookScreen';
 import { AddAddressScreen } from '../screens/AddAddressScreen';
 import { EditAddressScreen } from '../screens/EditAddressScreen';
 import type { WalletStackParamList } from './types';
+import { exchangeStackScreenOptions } from '@app/navigation/navigationTheme';
 
 const Stack = createNativeStackNavigator<WalletStackParamList>();
 
 export function WalletStackNavigator() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={exchangeStackScreenOptions}>
       <Stack.Screen name="AssetsHome" component={AssetsHomeScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="AssetDetail" component={AssetDetailScreen} options={{ title: 'Asset' }} />
-      <Stack.Screen name="Transfer" component={TransferScreen} options={{ title: 'Transfer' }} />
-      <Stack.Screen name="TransferHistory" component={TransferHistoryScreen} options={{ title: 'Transfer History' }} />
-      <Stack.Screen name="Convert" component={ConvertScreen} options={{ title: 'Convert' }} />
-      <Stack.Screen name="ConvertHistory" component={ConvertHistoryScreen} options={{ title: 'Convert History' }} />
-      <Stack.Screen name="TransactionHistory" component={TransactionHistoryScreen} options={{ title: 'Transactions' }} />
-      <Stack.Screen name="FundHistory" component={FundHistoryScreen} options={{ title: 'Fund History' }} />
-      <Stack.Screen name="DepositHome" component={DepositHomeScreen} options={{ title: 'Deposit' }} />
-      <Stack.Screen name="DepositNetwork" component={DepositNetworkScreen} options={{ title: 'Select Network' }} />
-      <Stack.Screen name="DepositAddress" component={DepositAddressScreen} options={{ title: 'Deposit Address' }} />
-      <Stack.Screen name="DepositHistory" component={DepositHistoryScreen} options={{ title: 'Deposit History' }} />
-      <Stack.Screen name="DepositDetail" component={DepositDetailScreen} options={{ title: 'Deposit Detail' }} />
-      <Stack.Screen name="WithdrawHome" component={WithdrawHomeScreen} options={{ title: 'Withdraw' }} />
-      <Stack.Screen name="WithdrawForm" component={WithdrawFormScreen} options={{ title: 'Withdraw' }} />
-      <Stack.Screen name="WithdrawConfirm" component={WithdrawConfirmScreen} options={{ title: 'Confirm' }} />
-      <Stack.Screen name="WithdrawalHistory" component={WithdrawalHistoryScreen} options={{ title: 'Withdrawals' }} />
-      <Stack.Screen name="WithdrawalDetail" component={WithdrawalDetailScreen} options={{ title: 'Withdrawal' }} />
-      <Stack.Screen name="AddressBook" component={AddressBookScreen} options={{ title: 'Address Book' }} />
-      <Stack.Screen name="AddAddress" component={AddAddressScreen} options={{ title: 'Add Address' }} />
-      <Stack.Screen name="EditAddress" component={EditAddressScreen} options={{ title: 'Edit Address' }} />
+      <Stack.Screen name="AssetDetail" component={guestGuard(AssetDetailScreen, 'Log in to view asset details.')} options={{ title: 'Asset' }} />
+      <Stack.Screen name="Transfer" component={guestGuard(TransferScreen, 'Log in to transfer funds.')} options={{ title: 'Transfer' }} />
+      <Stack.Screen name="TransferHistory" component={guestGuard(TransferHistoryScreen, 'Log in to view transfer history.')} options={{ title: 'Transfer History' }} />
+      <Stack.Screen name="Convert" component={guestGuard(ConvertScreen, 'Log in to convert assets.')} options={{ title: 'Convert' }} />
+      <Stack.Screen name="ConvertHistory" component={guestGuard(ConvertHistoryScreen, 'Log in to view convert history.')} options={{ title: 'Convert History' }} />
+      <Stack.Screen name="TransactionHistory" component={guestGuard(TransactionHistoryScreen, 'Log in to view transaction history.')} options={{ title: 'Transactions' }} />
+      <Stack.Screen name="FundHistory" component={guestGuard(FundHistoryScreen, 'Log in to view fund history.')} options={{ title: 'Fund History' }} />
+      <Stack.Screen name="DepositHome" component={guestGuard(DepositHomeScreen, 'Log in to deposit.')} options={{ title: 'Deposit' }} />
+      <Stack.Screen name="DepositNetwork" component={guestGuard(DepositNetworkScreen, 'Log in to deposit.')} options={{ title: 'Select Network' }} />
+      <Stack.Screen name="DepositAddress" component={guestGuard(DepositAddressScreen, 'Log in to deposit.')} options={{ title: 'Deposit Address' }} />
+      <Stack.Screen name="DepositHistory" component={guestGuard(DepositHistoryScreen, 'Log in to view deposit history.')} options={{ title: 'Deposit History' }} />
+      <Stack.Screen name="DepositDetail" component={guestGuard(DepositDetailScreen, 'Log in to view deposit details.')} options={{ title: 'Deposit Detail' }} />
+      <Stack.Screen name="WithdrawHome" component={guestGuard(WithdrawHomeScreen, 'Log in to withdraw.')} options={{ title: 'Withdraw' }} />
+      <Stack.Screen name="WithdrawForm" component={guestGuard(WithdrawFormScreen, 'Log in to withdraw.')} options={{ title: 'Withdraw' }} />
+      <Stack.Screen name="WithdrawConfirm" component={guestGuard(WithdrawConfirmScreen, 'Log in to withdraw.')} options={{ title: 'Confirm' }} />
+      <Stack.Screen name="WithdrawalHistory" component={guestGuard(WithdrawalHistoryScreen, 'Log in to view withdrawal history.')} options={{ title: 'Withdrawals' }} />
+      <Stack.Screen name="WithdrawalDetail" component={guestGuard(WithdrawalDetailScreen, 'Log in to view withdrawal details.')} options={{ title: 'Withdrawal' }} />
+      <Stack.Screen name="AddressBook" component={guestGuard(AddressBookScreen, 'Log in to manage addresses.')} options={{ title: 'Address Book' }} />
+      <Stack.Screen name="AddAddress" component={guestGuard(AddAddressScreen, 'Log in to add addresses.')} options={{ title: 'Add Address' }} />
+      <Stack.Screen name="EditAddress" component={guestGuard(EditAddressScreen, 'Log in to edit addresses.')} options={{ title: 'Edit Address' }} />
     </Stack.Navigator>
   );
 }

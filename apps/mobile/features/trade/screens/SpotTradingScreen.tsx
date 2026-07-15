@@ -176,7 +176,7 @@ export function SpotTradingScreen({ navigation, route }: Props) {
                 >
                   Sign in to place spot orders on {symbol.replace('_', '/')}
                 </Text>
-                <PrimaryButton title="Sign in to Trade" size="xl" onPress={openLogin} />
+                <PrimaryButton title="Sign in to Trade" size="xl" onPress={() => openLogin()} />
               </TerminalPanel>
             ) : (
               <OrderForm
@@ -200,7 +200,7 @@ export function SpotTradingScreen({ navigation, route }: Props) {
                 <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, textAlign: 'center' }}>
                   Sign in to view and manage open orders
                 </Text>
-                <PrimaryButton title="Sign in to Trade" size="md" onPress={openLogin} style={{ marginTop: 12 }} />
+                <PrimaryButton title="Sign in to Trade" size="md" onPress={() => openLogin()} style={{ marginTop: 12 }} />
               </TerminalPanel>
             ) : (
               <>

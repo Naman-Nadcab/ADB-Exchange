@@ -1,12 +1,7 @@
 import { useCallback } from 'react';
 import { useAuthStore } from '@core/state/authStore';
 import { useAppStore } from '@core/state/appStore';
-import {
-  enterGuestMode,
-  openLogin,
-  openSignup,
-  requireAuthAction,
-} from '@core/guest/guestMode';
+import { enterGuestMode, dismissAuthFromModal, openLogin, openSignup, requireAuthAction } from '@core/guest/guestMode';
 
 export function useGuestAccess() {
   const isAuthenticated = useAuthStore((s) => s.status === 'authenticated');
@@ -23,8 +18,9 @@ export function useGuestAccess() {
     isAuthenticated,
     isGuest,
     continueAsGuest,
-    openLogin: useCallback(() => openLogin(), []),
-    openSignup: useCallback(() => openSignup(), []),
+    openLogin: useCallback((onAuthed?: () => void) => openLogin(onAuthed), []),
+    openSignup: useCallback((onAuthed?: () => void) => openSignup(onAuthed), []),
+    dismissAuth: useCallback(() => dismissAuthFromModal(), []),
     requireAuth,
   };
 }

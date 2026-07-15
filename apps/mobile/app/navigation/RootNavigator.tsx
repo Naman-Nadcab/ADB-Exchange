@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import { NavigationContainer, type LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -70,6 +70,7 @@ export function RootNavigator() {
   const shellGate = useAppStore((s) => s.shellGate);
   const authResolved = useAuthStore((s) => s.authResolved);
   const [bootDone, setBootDone] = useState(false);
+  const initialNavDone = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -97,7 +98,8 @@ export function RootNavigator() {
   }, [setPhase]);
 
   useEffect(() => {
-    if (!bootDone || !authResolved) return;
+    if (!bootDone || !authResolved || initialNavDone.current) return;
+    initialNavDone.current = true;
     if (phase === 'auth') resetRoot('Auth');
     else if (phase === 'onboarding') resetRoot('Onboarding');
     else if (phase === 'main') resetRoot('Main');

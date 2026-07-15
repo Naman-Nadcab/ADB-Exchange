@@ -2,7 +2,12 @@ import { mmkvStorage } from '@core/storage/mmkvStorage';
 import { CACHE_KEYS } from '@core/storage/cacheKeys';
 import { useAppStore } from '@core/state/appStore';
 import { useAuthStore } from '@core/state/authStore';
-import { openAuthScreen, resetRoot } from '@app/navigation/navigationRef';
+import {
+  clearPendingAuthResume,
+  consumePendingAuthResume,
+  setPendingAuthResume,
+} from './authIntent';
+import { dismissAuthModal, openAuthScreen, resetRoot } from '@app/navigation/navigationRef';
 
 export function isAuthenticated(): boolean {
   return useAuthStore.getState().status === 'authenticated';
@@ -31,12 +36,19 @@ export async function enterGuestAfterLogout(): Promise<void> {
   resetRoot('Main');
 }
 
-export function openLogin(): void {
+export function openLogin(onAuthed?: () => void): void {
+  setPendingAuthResume(onAuthed ?? null);
   openAuthScreen('LoginPassword');
 }
 
-export function openSignup(): void {
+export function openSignup(onAuthed?: () => void): void {
+  setPendingAuthResume(onAuthed ?? null);
   openAuthScreen('SignupIdentifier');
+}
+
+export function dismissAuthFromModal(): void {
+  clearPendingAuthResume();
+  dismissAuthModal();
 }
 
 export function requireAuthAction(onAuthed?: () => void): boolean {
@@ -44,6 +56,17 @@ export function requireAuthAction(onAuthed?: () => void): boolean {
     onAuthed?.();
     return true;
   }
-  openLogin();
+  openLogin(onAuthed);
   return false;
+}
+
+/** After successful login — dismiss auth modal and resume guest intent without resetting Main. */
+export function finishAuthenticatedEntry(nextPhase: 'main' | 'onboarding'): void {
+  if (nextPhase === 'onboarding') {
+    clearPendingAuthResume();
+    resetRoot('Onboarding');
+    return;
+  }
+  dismissAuthModal();
+  consumePendingAuthResume();
 }

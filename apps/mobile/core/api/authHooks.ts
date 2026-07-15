@@ -5,7 +5,6 @@ import { withRefreshMutex } from '@core/auth/refreshMutex';
 import { getAuthRepository } from '@core/repositories/AuthRepository';
 import { secureStorage, SECURE_KEYS } from '@core/storage/secureStorage';
 import { enterGuestAfterLogout } from '@core/guest/guestMode';
-import { resetRoot } from '@app/navigation/navigationRef';
 
 export type AuthSession = {
   accessToken: string | null;
@@ -51,7 +50,6 @@ export function createAuthHooks(): AuthHooks {
       useAuthStore.getState().setUnauthenticated();
       useAppStore.getState().setShellGate('none');
       void enterGuestAfterLogout();
-      resetRoot('Main');
     },
   };
 }

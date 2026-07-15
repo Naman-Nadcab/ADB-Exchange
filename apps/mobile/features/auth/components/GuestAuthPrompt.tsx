@@ -26,8 +26,8 @@ export function GuestAuthPrompt({ testID, title, message, icon = 'lock-closed-ou
         <Ionicons name={icon} size={28} color={`hsl(${theme.colors.brandPrimary})`} />
       </View>
       <EmptyState title={title} message={message} />
-      <PrimaryButton title="Log In" size="xl" onPress={openLogin} />
-      <PrimaryButton title="Register" variant="outline" size="xl" onPress={openSignup} style={styles.secondary} />
+      <PrimaryButton title="Log In" size="xl" onPress={() => openLogin()} />
+      <PrimaryButton title="Register" variant="outline" size="xl" onPress={() => openSignup()} style={styles.secondary} />
     </View>
   );
 }

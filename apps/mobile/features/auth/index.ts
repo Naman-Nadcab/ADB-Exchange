@@ -16,5 +16,6 @@ export { OAuthCallbackScreen } from './screens/OAuthCallbackScreen';
 export { useAuthActions } from './hooks/useAuthActions';
 export { useGuestAccess } from './hooks/useGuestAccess';
 export { GuestAuthPrompt } from './components/GuestAuthPrompt';
+export { withGuestAuthGuard, guestGuard } from './components/withGuestAuthGuard';
 export { AuthSplitLayout } from './components/AuthSplitLayout';
 export { AuthFormHeading } from './components/AuthFormHeading';
