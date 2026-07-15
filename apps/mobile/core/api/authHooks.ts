@@ -1,8 +1,11 @@
 import { useAuthStore } from '@core/state/authStore';
+import { useAppStore } from '@core/state/appStore';
 import { sessionManager } from '@core/auth/sessionManager';
 import { withRefreshMutex } from '@core/auth/refreshMutex';
 import { getAuthRepository } from '@core/repositories/AuthRepository';
 import { secureStorage, SECURE_KEYS } from '@core/storage/secureStorage';
+import { enterGuestAfterLogout } from '@core/guest/guestMode';
+import { resetRoot } from '@app/navigation/navigationRef';
 
 export type AuthSession = {
   accessToken: string | null;
@@ -46,6 +49,9 @@ export function createAuthHooks(): AuthHooks {
     onSessionCleared: () => {
       void sessionManager.clearSession();
       useAuthStore.getState().setUnauthenticated();
+      useAppStore.getState().setShellGate('none');
+      void enterGuestAfterLogout();
+      resetRoot('Main');
     },
   };
 }

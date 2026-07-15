@@ -1,14 +1,21 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { guards } from '@app/navigation/guards';
+import { useAuthStore } from '@core/state/authStore';
 
 describe('navigation guards', () => {
-  it('requires auth for protected routes', () => {
-    expect(guards.requiresAuth('LoginOtp')).toBe(true);
-    expect(guards.requiresAuth('Welcome')).toBe(false);
+  beforeEach(() => {
+    useAuthStore.getState().setUnauthenticated();
   });
 
-  it('allows main only when phase is main', () => {
-    expect(guards.canAccessMain('main')).toBe(false);
+  it('requires auth for protected routes', () => {
+    expect(guards.requiresAuth('LoginOtp')).toBe(false);
+    expect(guards.requiresAuth('Welcome')).toBe(false);
+    expect(guards.requiresAuth('Profile')).toBe(true);
+  });
+
+  it('allows main when phase is main regardless of auth (guest browsing)', () => {
+    expect(guards.canAccessMain('main')).toBe(true);
     expect(guards.canAccessAuth('auth')).toBe(true);
+    expect(guards.isAuthenticated()).toBe(false);
   });
 });

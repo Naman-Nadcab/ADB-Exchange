@@ -5,6 +5,8 @@ import { getAuthRepository } from '@core/repositories/AuthRepository';
 import { sessionManager } from '@core/auth/sessionManager';
 import { mmkvStorage } from '@core/storage/mmkvStorage';
 import { CACHE_KEYS } from '@core/storage/cacheKeys';
+import { clearGuestMode, enterGuestAfterLogout } from '@core/guest/guestMode';
+import { resetRoot } from '@app/navigation/navigationRef';
 import type { AuthSessionResponse, AuthUser } from '@exchange/mobile-types';
 import { ApiError } from '@core/api/errors/ApiError';
 
@@ -21,6 +23,7 @@ export function useAuthActions() {
   const completeSession = useCallback(
     async (session: AuthSessionResponse) => {
       const user = mapUser(session.user);
+      await clearGuestMode();
       setAuthenticated(user, session.accessToken, session.refreshToken);
       await sessionManager.saveSession(
         { accessToken: session.accessToken, refreshToken: session.refreshToken },
@@ -31,7 +34,9 @@ export function useAuthActions() {
         return;
       }
       const onboarding = await mmkvStorage.get(CACHE_KEYS.onboarding);
-      setPhase(onboarding === 'complete' ? 'main' : 'onboarding');
+      const nextPhase = onboarding === 'complete' ? 'main' : 'onboarding';
+      setPhase(nextPhase);
+      resetRoot(nextPhase === 'onboarding' ? 'Onboarding' : 'Main');
     },
     [setAuthenticated, setPhase, setShellGate],
   );
@@ -44,8 +49,8 @@ export function useAuthActions() {
     }
     await sessionManager.clearSession();
     setUnauthenticated();
-    setPhase('auth');
-  }, [setPhase, setUnauthenticated]);
+    await enterGuestAfterLogout();
+  }, [setUnauthenticated]);
 
   const handleAuthError = useCallback(
     (err: unknown) => {

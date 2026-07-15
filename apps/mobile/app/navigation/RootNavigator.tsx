@@ -4,7 +4,10 @@ import { NavigationContainer, type LinkingOptions } from '@react-navigation/nati
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAppStore } from '@core/state/appStore';
 import { useAuthStore } from '@core/state/authStore';
+import { isCertPreviewEnabled } from '@app/bootstrap/certPreview';
 import { linking } from './linking';
+import { exchangeNavigationTheme } from './navigationTheme';
+import { navigationRef, resetRoot } from './navigationRef';
 import { AuthNavigator } from './AuthNavigator';
 import { OnboardingNavigator } from './OnboardingNavigator';
 import { MainTabNavigator } from './MainTabNavigator';
@@ -24,6 +27,20 @@ import {
 import { appLock } from '@core/security/appLock';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+function CertAccountOpener() {
+  useEffect(() => {
+    if (!isCertPreviewEnabled() || process.env.EXPO_PUBLIC_CERT_OPEN_ACCOUNT !== '1') return;
+    const timer = setInterval(() => {
+      if (navigationRef.isReady()) {
+        navigationRef.navigate('Account', { screen: 'AccountHome' });
+        clearInterval(timer);
+      }
+    }, 50);
+    return () => clearInterval(timer);
+  }, []);
+  return null;
+}
 
 function ShellGateOverlay() {
   const gate = useAppStore((s) => s.shellGate);
@@ -80,6 +97,13 @@ export function RootNavigator() {
   }, [setPhase]);
 
   useEffect(() => {
+    if (!bootDone || !authResolved) return;
+    if (phase === 'auth') resetRoot('Auth');
+    else if (phase === 'onboarding') resetRoot('Onboarding');
+    else if (phase === 'main') resetRoot('Main');
+  }, [bootDone, authResolved, phase]);
+
+  useEffect(() => {
     const sub = AppState.addEventListener('change', async (state) => {
       if (state === 'background') useAuthStore.getState().touchActivity();
       if (state === 'active') {
@@ -100,31 +124,47 @@ export function RootNavigator() {
     return <SplashScreen />;
   }
 
-  if (shellGate !== 'none' && shellGate !== 'restricted') {
+  const navPhase = phase === 'boot' ? 'auth' : phase;
+  const forceShellGate = process.env.EXPO_PUBLIC_FORCE_SHELL_GATE;
+  const blockShellGate =
+    shellGate !== 'none' &&
+    shellGate !== 'restricted' &&
+    !(shellGate === 'offline' && navPhase === 'main' && !forceShellGate) &&
+    !(shellGate === 'offline' && navPhase === 'auth' && !forceShellGate);
+
+  if (blockShellGate) {
     return <ShellGateOverlay />;
   }
 
-  const navPhase = phase === 'boot' ? 'auth' : phase;
-
   return (
-    <NavigationContainer linking={linking as LinkingOptions<RootStackParamList>}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {navPhase === 'auth' && <Stack.Screen name="Auth" component={AuthNavigator} />}
-        {navPhase === 'onboarding' && (
-          <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
-        )}
-        {navPhase === 'main' && (
-          <>
-            <Stack.Screen name="Main" component={MainTabNavigator} />
-            <Stack.Screen
-              name="Account"
-              component={AccountStackNavigator}
-              options={{ presentation: 'modal', headerShown: false }}
-            />
-          </>
-        )}
+    <NavigationContainer
+      ref={navigationRef}
+      linking={linking as LinkingOptions<RootStackParamList>}
+      theme={exchangeNavigationTheme}
+    >
+      <CertAccountOpener />
+      <Stack.Navigator
+        screenOptions={{ headerShown: false }}
+        initialRouteName={
+          navPhase === 'auth' ? 'Auth' : navPhase === 'onboarding' ? 'Onboarding' : 'Main'
+        }
+      >
+        <Stack.Screen name="Main" component={MainTabNavigator} />
+        <Stack.Screen
+          name="Account"
+          component={AccountStackNavigator}
+          options={{ presentation: 'modal', headerShown: false }}
+        />
+        <Stack.Screen
+          name="Auth"
+          component={AuthNavigator}
+          options={{ presentation: 'fullScreenModal', headerShown: false }}
+        />
+        <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
       </Stack.Navigator>
       {shellGate === 'restricted' ? <AccountRestrictedScreen /> : null}
     </NavigationContainer>
   );
 }
+
+export { navigationRef } from './navigationRef';

@@ -10,4 +10,5 @@ export const CACHE_KEYS = {
   appLockTimeout: 'prefs.appLock.timeout',
   marketSort: 'markets.sort',
   quoteCurrency: 'markets.quote',
+  guestMode: 'prefs.guestMode',
 } as const;

@@ -1,17 +1,36 @@
 import type { AppPhase } from '@core/state/appStore';
 import { useAuthStore } from '@core/state/authStore';
 
-/** Navigation guards — auth shell Sprint 1. */
+const PUBLIC_AUTH_ROUTES = new Set([
+  'Welcome',
+  'LoginMethod',
+  'LoginIdentifier',
+  'LoginPassword',
+  'LoginOtp',
+  'LoginPasskey',
+  'SignupIdentifier',
+  'SignupOtp',
+  'SignupPassword',
+  'SignupReferral',
+  'ForgotPasswordRequest',
+  'ForgotPasswordOtp',
+  'ForgotPasswordNew',
+  'OAuthCallback',
+]);
+
+/** Navigation guards — guest mode + protected actions. */
 export const guards = {
   canAccessMain(phase: AppPhase): boolean {
-    return phase === 'main' && useAuthStore.getState().status === 'authenticated';
+    return phase === 'main';
   },
   canAccessAuth(phase: AppPhase): boolean {
     return phase === 'auth' || phase === 'boot';
   },
+  isAuthenticated(): boolean {
+    return useAuthStore.getState().status === 'authenticated';
+  },
   requiresAuth(route: string): boolean {
-    const publicRoutes = ['Welcome', 'LoginMethod', 'LoginIdentifier', 'LoginPassword', 'SignupIdentifier'];
-    return !publicRoutes.includes(route);
+    return !PUBLIC_AUTH_ROUTES.has(route);
   },
   isSessionValid(): boolean {
     return useAuthStore.getState().status === 'authenticated' && !!useAuthStore.getState().accessToken;

@@ -13,3 +13,8 @@ export { ForgotPasswordRequestScreen } from './screens/ForgotPasswordRequestScre
 export { ForgotPasswordOtpScreen } from './screens/ForgotPasswordOtpScreen';
 export { ForgotPasswordNewScreen } from './screens/ForgotPasswordNewScreen';
 export { OAuthCallbackScreen } from './screens/OAuthCallbackScreen';
+export { useAuthActions } from './hooks/useAuthActions';
+export { useGuestAccess } from './hooks/useGuestAccess';
+export { GuestAuthPrompt } from './components/GuestAuthPrompt';
+export { AuthSplitLayout } from './components/AuthSplitLayout';
+export { AuthFormHeading } from './components/AuthFormHeading';

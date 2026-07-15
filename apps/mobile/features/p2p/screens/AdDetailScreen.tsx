@@ -6,6 +6,7 @@ import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { getAdPrice, getAdSide } from '@core/domain/p2p/order';
 import { useP2PAds } from '../hooks/useP2P';
+import { useGuestAccess } from '@features/auth';
 import type { P2PStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<P2PStackParamList, 'AdDetail'>;
@@ -13,6 +14,7 @@ type Props = NativeStackScreenProps<P2PStackParamList, 'AdDetail'>;
 export function AdDetailScreen({ navigation, route }: Props) {
   const { adId } = route.params;
   const { theme } = useTheme();
+  const { requireAuth } = useGuestAccess();
   const q = useP2PAds();
 
   useEffect(() => {
@@ -49,7 +51,13 @@ export function AdDetailScreen({ navigation, route }: Props) {
             <Text style={{ color: `hsl(${theme.colors.brandPrimary})` }}>View merchant profile</Text>
           </Pressable>
         ) : null}
-        <PrimaryButton title={side === 'sell' ? 'Buy' : 'Sell'} onPress={() => navigation.navigate('CreateOrder', { adId })} />
+        <PrimaryButton
+          title={side === 'sell' ? 'Buy' : 'Sell'}
+          onPress={() => {
+            if (!requireAuth()) return;
+            navigation.navigate('CreateOrder', { adId });
+          }}
+        />
       </ScrollView>
     </ScreenLayout>
   );

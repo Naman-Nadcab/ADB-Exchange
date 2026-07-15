@@ -13,8 +13,11 @@ import { createHttpClient, resetHttpClient } from '@core/api/httpClient';
 import { getApiBaseUrl } from '@core/config/env';
 import { createAuthHooks } from '@core/api/authHooks';
 import { ApiError } from '@core/api/errors/ApiError';
+import { applyCertPreviewIfEnabled } from './certPreview';
+import { applyAuthPreviewIfEnabled } from './authPreview';
+import type { ShellGate } from '@core/state/appStore';
 
-const BOOT_TIMEOUT_MS = 3000;
+const BOOT_TIMEOUT_MS = Number(process.env.EXPO_PUBLIC_BOOT_MIN_MS ?? 3000);
 
 export type LaunchResult = {
   phase: 'auth' | 'onboarding' | 'main';
@@ -48,6 +51,25 @@ function mapMeUser(data: Record<string, unknown>): AuthUser {
 }
 
 export async function runLaunchFlow(): Promise<LaunchResult> {
+  const certPreview = await applyCertPreviewIfEnabled();
+  if (certPreview) return certPreview;
+
+  const forceGate = process.env.EXPO_PUBLIC_FORCE_SHELL_GATE;
+  if (__DEV__ && forceGate) {
+    useAppStore.getState().setShellGate(forceGate as ShellGate);
+    return { phase: 'auth', shellGate: forceGate as ShellGate };
+  }
+
+  const authPreview = await applyAuthPreviewIfEnabled();
+  if (authPreview) return authPreview;
+
+  if (__DEV__ && process.env.EXPO_PUBLIC_GUEST_BOOT === '1') {
+    await mmkvStorage.set(CACHE_KEYS.guestMode, '1');
+    useAppStore.getState().setGuestMode(true);
+    useAuthStore.getState().setUnauthenticated();
+    return { phase: 'main', shellGate: useAppStore.getState().shellGate };
+  }
+
   resetHttpClient();
   createHttpClient({ getBaseUrl: getApiBaseUrl, authHooks: createAuthHooks() });
 
@@ -113,6 +135,12 @@ export async function runLaunchFlow(): Promise<LaunchResult> {
     }
   } else {
     useAuthStore.getState().setUnauthenticated();
+  }
+
+  const guestMode = await mmkvStorage.get(CACHE_KEYS.guestMode);
+  if (guestMode === '1') {
+    useAppStore.getState().setGuestMode(true);
+    return { phase: 'main', shellGate: useAppStore.getState().shellGate };
   }
 
   return { phase: 'auth', shellGate: useAppStore.getState().shellGate };
