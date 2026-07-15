@@ -29,6 +29,20 @@ export function validateWithdrawAmount(
   return null;
 }
 
+export function validateWithdrawLimits(
+  amount: string,
+  dailyRemaining?: string,
+  monthlyRemaining?: string,
+): string | null {
+  const a = parseFloat(amount);
+  if (!Number.isFinite(a) || a <= 0) return null;
+  const daily = dailyRemaining != null ? parseFloat(dailyRemaining) : NaN;
+  const monthly = monthlyRemaining != null ? parseFloat(monthlyRemaining) : NaN;
+  if (Number.isFinite(daily) && a > daily) return 'Amount exceeds your remaining daily withdrawal limit';
+  if (Number.isFinite(monthly) && a > monthly) return 'Amount exceeds your remaining monthly withdrawal limit';
+  return null;
+}
+
 export function formatNetworkLabel(chainName: string, confirmations?: number): string {
   const conf = confirmations != null ? ` · ${confirmations} confirmations` : '';
   return `${chainName}${conf}`;
@@ -62,8 +76,17 @@ export function withdrawalStatusLabel(status: string): string {
   return status;
 }
 
-export function buildWithdrawExplorerUrl(txHash: string, chain?: string): string | null {
+export function buildWithdrawExplorerUrl(
+  txHash: string,
+  chain?: string,
+  explorerUrlTemplate?: string,
+): string | null {
   if (!txHash) return null;
+  if (explorerUrlTemplate) {
+    if (explorerUrlTemplate.includes('{tx}')) return explorerUrlTemplate.replace('{tx}', txHash);
+    if (explorerUrlTemplate.endsWith('/')) return `${explorerUrlTemplate}${txHash}`;
+    return `${explorerUrlTemplate}/tx/${txHash}`;
+  }
   const c = (chain ?? '').toLowerCase();
   if (c.includes('btc') || c.includes('bitcoin')) return `https://mempool.space/tx/${txHash}`;
   if (c.includes('sol')) return `https://solscan.io/tx/${txHash}`;
@@ -71,6 +94,51 @@ export function buildWithdrawExplorerUrl(txHash: string, chain?: string): string
   if (c.includes('polygon') || c.includes('matic')) return `https://polygonscan.com/tx/${txHash}`;
   if (c.includes('avax')) return `https://snowtrace.io/tx/${txHash}`;
   if (c.includes('arb')) return `https://arbiscan.io/tx/${txHash}`;
+  if (c.includes('op') || c.includes('optimism')) return `https://optimistic.etherscan.io/tx/${txHash}`;
+  if (c.includes('base')) return `https://basescan.org/tx/${txHash}`;
   if (c.includes('tron') || c.includes('trx')) return `https://tronscan.org/#/transaction/${txHash}`;
   return `https://etherscan.io/tx/${txHash}`;
+}
+
+/** Maps backend withdrawal error codes to user-facing copy. */
+export function mapWithdrawApiError(code: string | undefined, message: string, payload?: unknown): string {
+  const body =
+    payload && typeof payload === 'object' && 'error' in payload
+      ? (payload as { error?: Record<string, unknown> }).error
+      : undefined;
+  const unlockAt = typeof body?.unlockAt === 'string' ? body.unlockAt : undefined;
+  const cooldownUntil = typeof body?.cooldown_until === 'string' ? body.cooldown_until : undefined;
+
+  switch (code) {
+    case 'KYC_REQUIRED':
+      return 'Complete identity verification (KYC) before withdrawing.';
+    case 'WITHDRAWAL_COOLDOWN_ACTIVE':
+      return cooldownUntil
+        ? `Withdrawals are temporarily disabled until ${new Date(cooldownUntil).toLocaleString()}.`
+        : 'Withdrawals are temporarily disabled after a recent security change.';
+    case 'WITHDRAWALS_PAUSED':
+    case 'WITHDRAWAL_DISABLED':
+      return 'Withdrawals are temporarily paused for maintenance. Try again later.';
+    case 'ADDRESS_NOT_WHITELISTED':
+      return 'This address is not whitelisted. Add it to your address book and wait for the timelock.';
+    case 'ADDRESS_TIMELOCKED':
+      return unlockAt
+        ? `This address is locked until ${new Date(unlockAt).toLocaleString()}.`
+        : 'This address is in a timelock period and cannot be used yet.';
+    case 'INSUFFICIENT_BALANCE':
+      return 'Insufficient balance for this withdrawal.';
+    case '2FA_REQUIRED':
+    case 'INVALID_2FA':
+      return message || 'Two-factor authentication is required or invalid.';
+    case 'FUND_PASSWORD_REQUIRED':
+    case 'INVALID_FUND_PASSWORD':
+      return message || 'Fund password is required or invalid.';
+    case 'SANCTIONS_BLOCKED':
+    case 'RISK_BLOCKED':
+      return message || 'Withdrawal blocked by compliance policy. Contact support.';
+    case 'UNAUTHORIZED':
+      return 'Session expired. Please sign in again.';
+    default:
+      return message || 'Withdrawal failed. Please try again.';
+  }
 }

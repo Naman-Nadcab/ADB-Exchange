@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { FlatList, RefreshControl } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, EmptyState, SearchBar, SegmentControl, TxHistoryRow, ErrorBanner } from '@shared/ui';
+import { ScreenLayout, EmptyState, SearchBar, SegmentControl, TxHistoryRow, ErrorBanner, ErrorState, SkeletonList } from '@shared/ui';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
 import { withdrawalStatusLabel } from '@core/domain/wallet/withdraw';
@@ -36,28 +36,33 @@ export function WithdrawalHistoryScreen({ navigation }: Props) {
       {!isOnline ? <ErrorBanner message="Offline — history may be stale" onRetry={onRefresh} /> : null}
       <SegmentControl tabs={STATUS} active={status} onChange={setStatus} />
       <SearchBar value={search} onChangeText={setSearch} placeholder="Filter by coin" />
-      <FlatList
-        data={items}
-        keyExtractor={(item) => item.id}
-        refreshControl={<RefreshControl refreshing={q.isFetching} onRefresh={onRefresh} />}
-        onEndReached={() => {
-          if (q.hasNextPage && !q.isFetchingNextPage) void q.fetchNextPage();
-        }}
-        renderItem={({ item }) => (
-          <TxHistoryRow
-            label={`${item.asset ?? item.symbol} · ${withdrawalStatusLabel(item.displayStatus ?? item.status)}`}
-            value={`-${item.quantity ?? item.amount}`}
-            sub={`${item.chain_name ?? item.chain ?? ''} · ${new Date(item.date_time ?? item.createdAt ?? Date.now()).toLocaleString()}`}
-            direction="out"
-            onPress={() => navigation.navigate('WithdrawalDetail', { withdrawalId: item.id })}
-          />
-        )}
-        ListEmptyComponent={
-          !q.isLoading ? (
+
+      {q.isLoading && !q.data ? (
+        <SkeletonList rows={8} />
+      ) : q.isError ? (
+        <ErrorState title="Could not load withdrawals" onRetry={onRefresh} />
+      ) : (
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.id}
+          refreshControl={<RefreshControl refreshing={q.isFetching} onRefresh={onRefresh} />}
+          onEndReached={() => {
+            if (q.hasNextPage && !q.isFetchingNextPage) void q.fetchNextPage();
+          }}
+          renderItem={({ item }) => (
+            <TxHistoryRow
+              label={`${item.asset ?? item.symbol} · ${withdrawalStatusLabel(item.displayStatus ?? item.status)}`}
+              value={`-${item.quantity ?? item.amount}`}
+              sub={`${item.chain_name ?? item.chain ?? ''} · ${new Date(item.date_time ?? item.createdAt ?? Date.now()).toLocaleString()}`}
+              direction="out"
+              onPress={() => navigation.navigate('WithdrawalDetail', { withdrawalId: item.id, snapshot: item })}
+            />
+          )}
+          ListEmptyComponent={
             <EmptyState title="No withdrawals" message="Your withdrawal history will appear here." />
-          ) : null
-        }
-      />
+          }
+        />
+      )}
     </ScreenLayout>
   );
 }

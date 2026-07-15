@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { getWalletRepository } from '@core/repositories/WalletRepository';
 import { getAuthRepository } from '@core/repositories/AuthRepository';
+import { getUserRepository } from '@core/repositories/UserRepository';
 import { appEventBus } from '@core/events/appEventBus';
 import { useEffect } from 'react';
 import type { CreateWithdrawRequest, WithdrawalAddressInput } from '@exchange/mobile-types';
@@ -87,6 +88,14 @@ export function useKycStatus() {
     queryKey: ['kycStatus'],
     queryFn: () => getWalletRepository().getKycStatus(),
     staleTime: 120_000,
+  });
+}
+
+export function useRiskStatus() {
+  return useQuery({
+    queryKey: ['riskStatus'],
+    queryFn: () => getUserRepository().getRiskStatus(),
+    staleTime: 60_000,
   });
 }
 

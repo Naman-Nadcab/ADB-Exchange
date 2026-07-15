@@ -14,7 +14,7 @@ export type WalletStackParamList = {
   DepositAddress: { symbol: string; chainId: string; chainName?: string; chainType?: string; confirmations?: number };
   DepositHistory: undefined;
   DepositDetail: { txHash: string };
-  WithdrawHome: undefined;
+  WithdrawHome: { coin?: string } | undefined;
   WithdrawNetwork: { symbol: string; name: string };
   WithdrawForm: {
     symbol: string;
@@ -23,6 +23,8 @@ export type WalletStackParamList = {
     chainName?: string;
     chainType?: string;
     confirmations?: number;
+    prefillAddress?: string;
+    prefillMemo?: string;
   };
   WithdrawConfirm: {
     symbol: string;
@@ -36,10 +38,21 @@ export type WalletStackParamList = {
     withdrawalAddressId?: string;
     needs2FA: boolean;
     needsFundPassword: boolean;
+    confirmations?: number;
+    chainType?: string;
   };
   WithdrawalHistory: undefined;
-  WithdrawalDetail: { withdrawalId: string };
-  AddressBook: undefined;
+  WithdrawalDetail: { withdrawalId: string; snapshot?: import('@exchange/mobile-types').WithdrawalRecord };
+  AddressBook:
+    | {
+        selectMode?: boolean;
+        symbol?: string;
+        name?: string;
+        chainId?: string;
+        chainName?: string;
+        confirmations?: number;
+      }
+    | undefined;
   AddAddress: undefined;
   EditAddress: { id: string };
 };

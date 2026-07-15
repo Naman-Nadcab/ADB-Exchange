@@ -1,5 +1,5 @@
-import { useEffect, useCallback } from 'react';
-import { ScrollView, Text, StyleSheet, View, Pressable, Linking, RefreshControl } from 'react-native';
+import { useEffect, useCallback, useState } from 'react';
+import { ScrollView, Text, StyleSheet, View, Pressable, Linking, RefreshControl, Alert } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQueryClient } from '@tanstack/react-query';
 import { ScreenLayout, PrimaryButton, ErrorBanner, ErrorState, SkeletonList } from '@shared/ui';
@@ -7,28 +7,56 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
+import { ApiError } from '@core/api/errors/ApiError';
 import { clipboardPolicy } from '@core/security/clipboardPolicy';
-import { buildWithdrawExplorerUrl, withdrawalStatusLabel } from '@core/domain/wallet/withdraw';
+import { buildWithdrawExplorerUrl, withdrawalStatusLabel, mapWithdrawApiError } from '@core/domain/wallet/withdraw';
 import { useWithdrawals, useCancelWithdrawal } from '../hooks/useBlockchainWallet';
+import { WithdrawSecurityWizard } from '../components/WithdrawSecurityWizard';
 import type { WalletStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<WalletStackParamList, 'WithdrawalDetail'>;
 
 export function WithdrawalDetailScreen({ route }: Props) {
-  const { withdrawalId } = route.params;
+  const { withdrawalId, snapshot } = route.params;
   const { theme } = useTheme();
   const isOnline = useAppStore((s) => s.isOnline);
   const qc = useQueryClient();
   const q = useWithdrawals();
   const cancel = useCancelWithdrawal();
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const [showEmailOtp, setShowEmailOtp] = useState(false);
 
   useEffect(() => {
     analytics.screen('S-525');
     void qc.invalidateQueries({ queryKey: ['withdrawals'] });
   }, [withdrawalId, qc]);
 
-  const item = q.data?.pages.flatMap((p) => p.items).find((w) => w.id === withdrawalId);
+  const item = q.data?.pages.flatMap((p) => p.items).find((w) => w.id === withdrawalId) ?? snapshot;
   const onRefresh = useCallback(() => void q.refetch(), [q]);
+
+  useEffect(() => {
+    if (item?.status === 'pending_email_verify') setShowEmailOtp(true);
+  }, [item?.status]);
+
+  const confirmCancel = () => {
+    Alert.alert('Cancel withdrawal?', 'This will cancel your pending withdrawal request.', [
+      { text: 'Keep', style: 'cancel' },
+      {
+        text: 'Cancel withdrawal',
+        style: 'destructive',
+        onPress: () => {
+          setCancelError(null);
+          cancel.mutate(item!.id, {
+            onError: (err) => {
+              setCancelError(
+                err instanceof ApiError ? mapWithdrawApiError(err.code, err.message, err.payload) : 'Could not cancel',
+              );
+            },
+          });
+        },
+      },
+    ]);
+  };
 
   if (q.isLoading && !item) {
     return (
@@ -42,7 +70,7 @@ export function WithdrawalDetailScreen({ route }: Props) {
     return (
       <ScreenLayout testID="S-525">
         {!isOnline ? <ErrorBanner message="Offline — cannot refresh" onRetry={onRefresh} /> : null}
-        <ErrorState title="Withdrawal not found" onRetry={onRefresh} />
+        <ErrorState title="Withdrawal not found" message="Pull to refresh or check withdrawal history." onRetry={onRefresh} />
       </ScreenLayout>
     );
   }
@@ -61,6 +89,10 @@ export function WithdrawalDetailScreen({ route }: Props) {
     if (txHash) await clipboardPolicy.copyWithExpiry(txHash);
   };
 
+  const cancellable = ['pending', 'pending_email_verify', 'pending_approval', 'pending_2fa', 'pending_blockchain', 'processing'].includes(
+    item.status,
+  );
+
   return (
     <ScreenLayout testID="S-525">
       <ScrollView refreshControl={<RefreshControl refreshing={q.isFetching} onRefresh={onRefresh} />}>
@@ -70,6 +102,13 @@ export function WithdrawalDetailScreen({ route }: Props) {
         <View style={[styles.chip, { backgroundColor: `hsl(${statusColor} / 0.12)` }]}>
           <Text style={{ color: `hsl(${statusColor})`, fontWeight: '700' }}>{status}</Text>
         </View>
+
+        {item.status === 'pending_email_verify' ? (
+          <ErrorBanner
+            message="Email verification required to process this withdrawal."
+            onRetry={() => setShowEmailOtp(true)}
+          />
+        ) : null}
 
         <Row label="Asset" value={item.asset ?? item.symbol ?? ''} theme={theme} />
         <Row label="Amount" value={`-${item.quantity ?? item.amount ?? ''}`} theme={theme} />
@@ -103,16 +142,28 @@ export function WithdrawalDetailScreen({ route }: Props) {
           </View>
         ) : null}
 
-        {['pending', 'pending_email_verify', 'pending_approval', 'pending_2fa', 'pending_blockchain', 'processing'].includes(
-          item.status,
-        ) ? (
+        {cancelError ? <ErrorBanner message={cancelError} /> : null}
+        {cancellable ? (
           <PrimaryButton
             title={cancel.isPending ? 'Cancelling…' : 'Cancel withdrawal'}
             variant="secondary"
-            onPress={() => cancel.mutate(item.id)}
+            onPress={confirmCancel}
           />
         ) : null}
       </ScrollView>
+
+      <WithdrawSecurityWizard
+        visible={showEmailOtp && item.status === 'pending_email_verify'}
+        withdrawalId={item.id}
+        needs2FA={false}
+        needsFundPassword={false}
+        needsEmailOtp
+        onClose={() => setShowEmailOtp(false)}
+        onComplete={() => {
+          setShowEmailOtp(false);
+          void onRefresh();
+        }}
+      />
     </ScreenLayout>
   );
 }

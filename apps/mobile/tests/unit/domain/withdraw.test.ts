@@ -8,6 +8,8 @@ import {
   applyWithdrawPercent,
   withdrawalStatusLabel,
   buildWithdrawExplorerUrl,
+  validateWithdrawLimits,
+  mapWithdrawApiError,
 } from '@core/domain/wallet/withdraw';
 
 describe('withdraw domain', () => {
@@ -45,5 +47,13 @@ describe('withdraw domain', () => {
 
   it('builds explorer url', () => {
     expect(buildWithdrawExplorerUrl('abc', 'ETH')).toContain('abc');
+  });
+
+  it('validates daily limit', () => {
+    expect(validateWithdrawLimits('100', '50', '1000')).toBeTruthy();
+  });
+
+  it('maps cooldown error', () => {
+    expect(mapWithdrawApiError('WITHDRAWAL_COOLDOWN_ACTIVE', 'blocked')).toContain('disabled');
   });
 });

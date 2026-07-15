@@ -112,7 +112,7 @@ export function WithdrawSecurityWizard({
       <View style={styles.overlay}>
         <View style={[styles.card, { backgroundColor: `hsl(${theme.colors.backgroundPrimary})` }]}>
           <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
-            Withdrawal Security (W-510)
+            Security verification
           </Text>
           <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 12 }}>
             Step {step + 1}/{steps.length || 1}: {steps[step] ?? 'Confirm'}

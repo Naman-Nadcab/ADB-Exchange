@@ -67,7 +67,13 @@ export class UserRepository extends BaseRepository {
   }
 
   getRiskStatus() {
-    return this.http.request<{ restricted?: boolean; message?: string }>('/user/risk-status', { method: 'GET' });
+    return this.http.request<{
+      kyc_level?: number;
+      kyc_status?: string;
+      active_cooldowns?: { type: string; reason: string; cooldown_until: string }[];
+      withdrawal_limits?: { daily: string; monthly: string; used_today: string; used_month: string };
+      risk_flags?: string[];
+    }>('/user/risk-status', { method: 'GET' });
   }
 
   getUserKyc() {

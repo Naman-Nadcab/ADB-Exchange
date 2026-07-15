@@ -152,7 +152,7 @@ export function AssetDetailScreen({ route, navigation }: Props) {
                   label: 'Withdraw',
                   icon: 'arrow-up-circle',
                   onPress: () =>
-                    requireNav(() => navigation.navigate('WithdrawForm', { symbol, name: coinName })),
+                    requireNav(() => navigation.navigate('WithdrawNetwork', { symbol, name: coinName })),
                 },
                 {
                   id: 'transfer',

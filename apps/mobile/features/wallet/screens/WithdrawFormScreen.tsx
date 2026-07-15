@@ -19,6 +19,7 @@ import {
   validateCryptoAddress,
   validateMemo,
   validateWithdrawAmount,
+  validateWithdrawLimits,
   formatNetworkLabel,
   computeMaxWithdrawAmount,
   applyWithdrawPercent,
@@ -32,17 +33,29 @@ import {
   useWithdrawSecurityStatus,
   useWithdrawalLimits,
   useRecentWithdrawals,
+  useKycStatus,
+  useRiskStatus,
 } from '../hooks/useBlockchainWallet';
 import { FeePreviewCard } from '../components/FeePreviewCard';
 import { WithdrawFlowHeader } from '../components/WithdrawFlowHeader';
 import { WithdrawLimitsCard } from '../components/WithdrawLimitsCard';
 import { WithdrawRecentPreview } from '../components/WithdrawRecentPreview';
+import { WithdrawWarningsSection } from '../components/WithdrawWarningsSection';
+import { WithdrawHelpLinks } from '../components/WithdrawHelpLinks';
 import type { WalletStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<WalletStackParamList, 'WithdrawForm'>;
 
 export function WithdrawFormScreen({ navigation, route }: Props) {
-  const { symbol, name, chainId: initialChainId, chainName: initialChainName, confirmations } = route.params;
+  const {
+    symbol,
+    name,
+    chainId: initialChainId,
+    chainName: initialChainName,
+    confirmations,
+    prefillAddress,
+    prefillMemo,
+  } = route.params;
   const { theme } = useTheme();
   const isOnline = useAppStore((s) => s.isOnline);
   const chainsQ = useTokenChains(symbol);
@@ -51,22 +64,31 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
   const security = useWithdrawSecurityStatus();
   const limitsQ = useWithdrawalLimits(symbol);
   const recentQ = useRecentWithdrawals(10, symbol);
+  const kycQ = useKycStatus();
+  const riskQ = useRiskStatus();
 
   const [chainId, setChainId] = useState(initialChainId ?? '');
   const [chainName, setChainName] = useState(initialChainName ?? '');
-  const [address, setAddress] = useState('');
-  const [memo, setMemo] = useState('');
+  const [address, setAddress] = useState(prefillAddress ?? '');
+  const [memo, setMemo] = useState(prefillMemo ?? '');
   const [amount, setAmount] = useState('');
   const [percent, setPercent] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
+  const selectedChain = chainsQ.data?.find((c) => c.id === chainId);
   const feeQ = useWithdrawalFee(symbol, chainId);
   const previewQ = useWithdrawPreview(symbol, chainId, amount, !!amount && !!chainId);
   const memoRequired = needsMemoTag(symbol);
+  const activeCooldown = riskQ.data?.active_cooldowns?.[0];
 
   useEffect(() => {
     analytics.screen('S-521');
   }, []);
+
+  useEffect(() => {
+    if (prefillAddress) setAddress(prefillAddress);
+    if (prefillMemo != null) setMemo(prefillMemo);
+  }, [prefillAddress, prefillMemo]);
 
   useEffect(() => {
     if (initialChainId) return;
@@ -94,9 +116,11 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
     void addressesQ.refetch();
     void limitsQ.refetch();
     void recentQ.refetch();
+    void kycQ.refetch();
+    void riskQ.refetch();
     void feeQ.refetch();
     if (amount) void previewQ.refetch();
-  }, [chainsQ, balanceQ, addressesQ, limitsQ, recentQ, feeQ, previewQ, amount]);
+  }, [chainsQ, balanceQ, addressesQ, limitsQ, recentQ, kycQ, riskQ, feeQ, previewQ, amount]);
 
   const applyMax = () => {
     const fee = previewQ.data?.fee ?? feeQ.data?.fee ?? '0';
@@ -121,6 +145,16 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
       setError('Offline — cannot withdraw until reconnected');
       return;
     }
+    if (activeCooldown) {
+      setError(
+        `Withdrawals disabled until ${new Date(activeCooldown.cooldown_until).toLocaleString()} after a security change.`,
+      );
+      return;
+    }
+    if (!kycQ.data?.verified && kycQ.data) {
+      setError('Complete KYC verification before withdrawing.');
+      return;
+    }
     if (!chainId) {
       setError('Select a network');
       return;
@@ -139,6 +173,11 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
     const amtErr = validateWithdrawAmount(amount, balanceQ.available, min);
     if (amtErr) {
       setError(amtErr);
+      return;
+    }
+    const limitErr = validateWithdrawLimits(amount, limitsQ.data?.daily.remaining, limitsQ.data?.monthly.remaining);
+    if (limitErr) {
+      setError(limitErr);
       return;
     }
     if (previewQ.data?.fee_exceeds_amount) {
@@ -166,10 +205,13 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
       withdrawalAddressId: selected?.id,
       needs2FA: !!security.twoFa.data?.enabled,
       needsFundPassword: !!security.fundPw.data?.enabled,
+      confirmations: confirmations ?? selectedChain?.confirmations_required,
+      chainType: selectedChain?.type,
     });
   };
 
   const loading = (chainsQ.isLoading || balanceQ.isLoading) && !chainId;
+  const stepLabel = initialChainId ? 'Step 3 · Address & amount' : 'Step 2 · Network, address & amount';
 
   return (
     <ScreenLayout testID="S-521">
@@ -182,11 +224,22 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
           name={name}
           network={chainName ? formatNetworkLabel(chainName, confirmations) : undefined}
           available={balanceQ.available}
-          withdrawEnabled={chainId ? (chainsQ.data?.find((c) => c.id === chainId)?.is_active !== false) : true}
-          step={initialChainId ? 'Step 3 · Address & amount' : 'Step 2 · Network, address & amount'}
+          withdrawEnabled={chainId ? selectedChain?.is_active !== false : true}
+          step={stepLabel}
         />
 
         {!isOnline ? <ErrorBanner message="Offline — balances and fees may be stale" onRetry={onRefresh} /> : null}
+        {!kycQ.data?.verified && kycQ.data ? (
+          <ErrorBanner
+            message="KYC verification may be required before withdrawing."
+            onRetry={() => navigation.getParent()?.navigate('Account', { screen: 'KYCHub' })}
+          />
+        ) : null}
+        {activeCooldown ? (
+          <ErrorBanner
+            message={`Withdrawals paused until ${new Date(activeCooldown.cooldown_until).toLocaleString()} — ${activeCooldown.reason}`}
+          />
+        ) : null}
 
         {loading ? (
           <SkeletonList rows={6} />
@@ -203,6 +256,7 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
                     <Pressable
                       key={c.id}
                       disabled={disabled}
+                      accessibilityLabel={`${c.name}${disabled ? ' maintenance' : ''}`}
                       onPress={() => {
                         setChainId(c.id);
                         setChainName(c.name);
@@ -221,7 +275,18 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
 
             <View style={styles.sectionRow}>
               <Text style={[styles.section, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Address</Text>
-              <Pressable onPress={() => navigation.navigate('AddressBook')}>
+              <Pressable
+                onPress={() =>
+                  navigation.navigate('AddressBook', {
+                    selectMode: true,
+                    symbol,
+                    name,
+                    chainId,
+                    chainName,
+                    confirmations,
+                  })
+                }
+              >
                 <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600', fontSize: 13 }}>Address book</Text>
               </Pressable>
             </View>
@@ -231,6 +296,7 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
                 {savedForAsset.slice(0, 6).map((a) => (
                   <Pressable
                     key={a.id}
+                    accessibilityLabel={`Use saved address ${a.note ?? a.address}`}
                     onPress={() => {
                       setAddress(a.address);
                       setMemo(a.memo ?? '');
@@ -269,6 +335,16 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
               onPercentChange={onPercent}
             />
 
+            {chainName ? (
+              <WithdrawWarningsSection
+                symbol={symbol}
+                chainName={chainName}
+                minWithdrawal={feeQ.data?.minWithdrawal ?? previewQ.data?.min_withdrawal}
+                confirmations={confirmations ?? selectedChain?.confirmations_required}
+                chainType={selectedChain?.type}
+              />
+            ) : null}
+
             {security.whitelist.data?.enabled ? (
               <Text style={{ color: `hsl(${theme.colors.statusWarning})`, fontSize: 12 }}>
                 Whitelist enabled — only whitelisted addresses can withdraw.
@@ -293,7 +369,9 @@ export function WithdrawFormScreen({ navigation, route }: Props) {
             {error ? <ErrorBanner message={error} /> : null}
             {chainsQ.isError ? <ErrorState title="Networks unavailable" onRetry={onRefresh} /> : null}
 
-            <PrimaryButton title="Review Withdrawal" onPress={proceed} />
+            <PrimaryButton title="Review Withdrawal" onPress={proceed} disabled={!!activeCooldown} />
+
+            <WithdrawHelpLinks />
 
             <WithdrawRecentPreview
               items={recentQ.data ?? []}

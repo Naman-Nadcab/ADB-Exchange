@@ -137,7 +137,7 @@ export function AssetsHomeScreen({ navigation }: Props) {
 
   const onAssetWithdraw = (symbol: string, name: string) => {
     if (!requireAuth()) return;
-    navigation.navigate('WithdrawForm', { symbol, name });
+    navigation.navigate('WithdrawNetwork', { symbol, name });
   };
 
   const onAssetTrade = (symbol: string) => {

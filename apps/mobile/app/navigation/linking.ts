@@ -45,7 +45,14 @@ export const linking = {
               Convert: 'wallet/convert',
               DepositHome: 'wallet/deposit',
               DepositAddress: 'wallet/deposit/:symbol',
-              WithdrawHome: 'wallet/withdraw',
+              WithdrawHome: {
+                path: 'wallet/withdraw',
+                parse: { coin: (coin: string) => coin },
+              },
+              WithdrawNetwork: 'wallet/withdraw/:symbol/network',
+              WithdrawForm: 'wallet/withdraw/:symbol/form',
+              WithdrawalHistory: 'wallet/withdraw/history',
+              WithdrawalDetail: 'wallet/withdrawals/:withdrawalId',
             },
           },
           P2P: {

@@ -12,7 +12,8 @@ import type { WalletStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<WalletStackParamList, 'WithdrawHome'>;
 
-export function WithdrawHomeScreen({ navigation }: Props) {
+export function WithdrawHomeScreen({ navigation, route }: Props) {
+  const coinParam = route.params?.coin;
   const { theme } = useTheme();
   const isOnline = useAppStore((s) => s.isOnline);
   const [search, setSearch] = useState('');
@@ -21,6 +22,14 @@ export function WithdrawHomeScreen({ navigation }: Props) {
   useEffect(() => {
     analytics.screen('S-520');
   }, []);
+
+  useEffect(() => {
+    if (!coinParam || !q.data?.length) return;
+    const matched = q.data.find((t) => t.symbol.toUpperCase() === coinParam.toUpperCase());
+    if (matched) {
+      navigation.navigate('WithdrawNetwork', { symbol: matched.symbol, name: matched.name });
+    }
+  }, [coinParam, q.data, navigation]);
 
   const filtered = useMemo(() => {
     const list = q.data ?? [];

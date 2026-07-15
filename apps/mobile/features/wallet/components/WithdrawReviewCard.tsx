@@ -11,9 +11,10 @@ type Props = {
   amount: string;
   fee?: string;
   netAmount?: string;
+  arrivalHint?: string;
 };
 
-export function WithdrawReviewCard({ symbol, chainName, address, memo, amount, fee, netAmount }: Props) {
+export function WithdrawReviewCard({ symbol, chainName, address, memo, amount, fee, netAmount, arrivalHint }: Props) {
   const { theme } = useTheme();
 
   return (
@@ -26,6 +27,7 @@ export function WithdrawReviewCard({ symbol, chainName, address, memo, amount, f
       <Row label="Amount" value={`${amount} ${symbol}`} />
       {fee ? <Row label="Network fee" value={`${fee} ${symbol}`} /> : null}
       {netAmount ? <Row label="You receive" value={`${netAmount} ${symbol}`} highlight /> : null}
+      {arrivalHint ? <Row label="Est. arrival" value={arrivalHint} /> : null}
       <View style={[styles.warn, { backgroundColor: `hsl(${theme.colors.statusWarning} / 0.1)` }]}>
         <Ionicons name="alert-circle-outline" size={16} color={`hsl(${theme.colors.statusWarning})`} />
         <Text style={{ color: `hsl(${theme.colors.statusWarning})`, fontSize: 12, flex: 1 }}>
