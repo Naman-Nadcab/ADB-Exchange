@@ -52,11 +52,28 @@ export function useTradingBalances(enabled = true) {
   return q;
 }
 
-export function usePortfolioHistory(period: '24h' | '7d' | '30d' | '90d' | '1y' = '7d') {
+export type PortfolioHistoryPeriod = '24h' | '7d' | '30d' | '90d' | '1y';
+
+export function usePortfolioHistory(period: PortfolioHistoryPeriod = '7d') {
   return useQuery({
     queryKey: ['portfolioHistory', period],
     queryFn: () => getWalletRepository().getPortfolioHistory(period),
     staleTime: 60_000,
+  });
+}
+
+export function useRecentTransactions(limit = 8) {
+  return useQuery({
+    queryKey: ['recentTransactions', limit],
+    queryFn: async () => {
+      try {
+        await getWalletRepository().syncDeposits();
+      } catch {
+        // Non-blocking — still load history if sync fails
+      }
+      return getWalletRepository().getTransactionsAll({ limit });
+    },
+    staleTime: 30_000,
   });
 }
 

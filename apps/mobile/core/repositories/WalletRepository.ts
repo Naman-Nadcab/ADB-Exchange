@@ -25,6 +25,7 @@ import type {
   CreateWithdrawRequest,
   WithdrawalRecord,
 } from '@exchange/mobile-types';
+import { normalizeWalletTx } from '@core/domain/wallet/transactions';
 
 type DepositsEnvelope = {
   success: boolean;
@@ -54,6 +55,12 @@ type FundHistoryEnvelope = {
   success: boolean;
   data: FundHistoryItem[];
   pagination: { page: number; limit: number; total: number; totalPages: number };
+};
+
+type TransactionsAllEnvelope = {
+  success: boolean;
+  data: Record<string, unknown>[];
+  total: number;
 };
 
 export class WalletRepository extends BaseRepository {
@@ -117,6 +124,31 @@ export class WalletRepository extends BaseRepository {
     return this.http
       .request<LedgerEnvelope>(`/wallet/ledger${suffix}`, { method: 'GET', retainEnvelope: true })
       .then((r) => ({ items: r.data, pagination: r.pagination }));
+  }
+
+  syncDeposits() {
+    return this.http.request<{ message?: string }>('/wallet/deposits/sync', {
+      method: 'POST',
+      body: {},
+    });
+  }
+
+  getTransactionsAll(params?: { limit?: number; offset?: number; coin?: string; status?: string }) {
+    const q = new URLSearchParams();
+    if (params?.limit != null) q.set('limit', String(params.limit));
+    if (params?.offset != null) q.set('offset', String(params.offset));
+    if (params?.coin) q.set('coin', params.coin);
+    if (params?.status) q.set('status', params.status);
+    const suffix = q.toString() ? `?${q}` : '';
+    return this.http
+      .request<TransactionsAllEnvelope>(`/wallet/transactions/all${suffix}`, {
+        method: 'GET',
+        retainEnvelope: true,
+      })
+      .then((r) => ({
+        items: (r.data ?? []).map((row) => normalizeWalletTx(row)),
+        total: r.total ?? 0,
+      }));
   }
 
   getFundHistory(params?: { page?: number; limit?: number; kind?: string }) {

@@ -125,6 +125,22 @@ export function compute24hChange(history: { total_usd: number }[]): number | nul
   return ((last - first) / first) * 100;
 }
 
+export type PeriodPnl = { amount: number; percent: number };
+
+export function computePeriodPnl(history: { total_usd: number }[]): PeriodPnl | null {
+  if (history.length < 2) return null;
+  const first = history[0].total_usd;
+  const last = history[history.length - 1].total_usd;
+  return {
+    amount: last - first,
+    percent: first > 0 ? ((last - first) / first) * 100 : 0,
+  };
+}
+
+export function maskBalance(value: string, showBalances: boolean): string {
+  return showBalances ? value : '••••••';
+}
+
 export function validateTransferAmount(amount: string, available: string): string | null {
   const a = parseFloat(amount);
   const avail = parseFloat(available);

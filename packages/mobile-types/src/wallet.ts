@@ -270,3 +270,14 @@ export type WithdrawalDetail = WithdrawalRecord & {
   required_confirmations?: number;
   displayStatus?: string;
 };
+
+/** Normalized row from GET /wallet/transactions/all */
+export type WalletRecentTransaction = {
+  id: string;
+  type: 'deposit' | 'withdrawal' | 'transfer';
+  symbol: string;
+  amount: string;
+  status: string;
+  created_at: string;
+  chain_type?: string;
+};
