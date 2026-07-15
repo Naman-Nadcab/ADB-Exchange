@@ -1,102 +1,126 @@
-import { useEffect, useMemo } from 'react';
-import { ScrollView, Text, StyleSheet, Pressable } from 'react-native';
+import { useEffect, useMemo, useCallback } from 'react';
+import { ScrollView, RefreshControl, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, SkeletonList, ErrorBanner } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import { ScreenLayout, SkeletonList, ErrorBanner, ErrorState } from '@shared/ui';
 import { analytics } from '@core/observability/analytics';
-import { useDepositAddress, useKycStatus, useDepositTokens, useDeposits } from '../hooks/useBlockchainWallet';
+import { ApiError } from '@core/api/errors/ApiError';
+import { useAppStore } from '@core/state/appStore';
+import {
+  useDepositAddress,
+  useKycStatus,
+  useDepositTokens,
+  useRecentDeposits,
+  useTokenChains,
+} from '../hooks/useBlockchainWallet';
 import { AddressQRCard } from '../components/AddressQRCard';
+import { DepositFlowHeader } from '../components/DepositFlowHeader';
+import { DepositWarningsSection } from '../components/DepositWarningsSection';
+import { DepositRecentPreview } from '../components/DepositRecentPreview';
+import { isChainDepositEnabled } from '@core/domain/wallet/deposit';
 import type { WalletStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<WalletStackParamList, 'DepositAddress'>;
 
 export function DepositAddressScreen({ route, navigation }: Props) {
-  const { symbol, chainId, chainName } = route.params;
-  const { theme } = useTheme();
+  const { symbol, chainId, chainName, chainType, confirmations } = route.params;
+  const isOnline = useAppStore((s) => s.isOnline);
   const q = useDepositAddress(chainId);
   const kycQ = useKycStatus();
   const tokensQ = useDepositTokens();
-  const depositsQ = useDeposits();
+  const chainsQ = useTokenChains(symbol);
+  const recentQ = useRecentDeposits(10, symbol);
 
   useEffect(() => {
     analytics.screen('S-512');
   }, []);
 
   const token = tokensQ.data?.find((t) => t.symbol === symbol);
-  const recentDeposits = useMemo(() => {
-    const seen = new Set<string>();
-    const items = [];
-    for (const d of depositsQ.data?.pages.flatMap((p) => p.items) ?? []) {
-      if (d.symbol !== symbol) continue;
-      const key = `${d.symbol}-${d.chain_name ?? ''}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      items.push(d);
-      if (items.length >= 3) break;
+  const chain = chainsQ.data?.find((c) => c.id === chainId);
+  const depositEnabled = chain ? isChainDepositEnabled(chain) : true;
+
+  const addressError = useMemo(() => {
+    if (!q.isError) return null;
+    const err = q.error;
+    if (err instanceof ApiError) {
+      if (err.code === 'KYC_REQUIRED') {
+        return 'Complete identity verification (KYC) to view your deposit address.';
+      }
+      return err.message || 'Could not load deposit address.';
     }
-    return items;
-  }, [depositsQ.data, symbol]);
+    return 'Failed to load deposit address. Check KYC or try another network.';
+  }, [q.isError, q.error]);
 
-  if (q.isLoading) {
-    return (
-      <ScreenLayout testID="S-512">
-        <SkeletonList rows={5} />
-      </ScreenLayout>
-    );
-  }
+  const onRefresh = useCallback(() => {
+    void q.refetch();
+    void recentQ.refetch();
+    void kycQ.refetch();
+  }, [q, recentQ, kycQ]);
 
-  if (q.isError || !q.data) {
-    return (
-      <ScreenLayout testID="S-512">
-        <ErrorBanner message="Failed to load deposit address. Check KYC or try another network." />
-      </ScreenLayout>
-    );
-  }
+  const loading = q.isLoading && !q.data;
+  const refreshing = q.isFetching || recentQ.isFetching;
 
   return (
     <ScreenLayout testID="S-512">
-      <ScrollView>
-        <Text style={styles.title}>Deposit {symbol}</Text>
-        {token?.min_deposit ? (
-          <Text style={styles.warn}>Minimum deposit: {token.min_deposit} {symbol}</Text>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        <DepositFlowHeader
+          symbol={symbol}
+          name={token?.name ?? symbol}
+          network={chainName ?? chain?.name}
+          depositEnabled={depositEnabled}
+          step="Step 3 · Confirm deposit details"
+        />
+
+        {!isOnline ? (
+          <ErrorBanner message="Offline — showing cached address if available" onRetry={onRefresh} />
         ) : null}
-        {!kycQ.data?.verified ? (
-          <Text style={styles.warn}>KYC may be required before deposits are credited.</Text>
+
+        {!kycQ.data?.verified && kycQ.data ? (
+          <ErrorBanner message="KYC verification may be required before deposits are credited." />
         ) : null}
-        {recentDeposits.length ? (
+
+        {loading ? (
+          <SkeletonList rows={6} />
+        ) : addressError && !q.data ? (
+          <ErrorState title="Address unavailable" message={addressError} onRetry={onRefresh} />
+        ) : q.data ? (
           <>
-            <Text style={[styles.section, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
-              Recent deposits
-            </Text>
-            {recentDeposits.map((d) => (
-              <Pressable
-                key={d.id}
-                onPress={() =>
-                  d.tx_hash ? navigation.navigate('DepositDetail', { txHash: d.tx_hash }) : undefined
-                }
-              >
-                <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, marginBottom: 4 }}>
-                  {d.symbol} · {d.chain_name ?? 'Network'} · {d.status}
-                </Text>
-              </Pressable>
-            ))}
+            <AddressQRCard
+              address={q.data.address}
+              qrData={q.data.qrCodeData}
+              memo={q.data.memo}
+              notice={q.data.notice}
+              chainName={chainName ?? q.data.chain.name}
+              confirmations={confirmations ?? q.data.chain.confirmationsRequired}
+              loading={q.isFetching}
+              onRefresh={onRefresh}
+            />
+
+            <DepositWarningsSection
+              symbol={symbol}
+              chainName={chainName ?? q.data.chain.name}
+              minDeposit={token?.min_deposit}
+              confirmations={confirmations ?? q.data.chain.confirmationsRequired}
+              chainType={chainType ?? q.data.chain.type}
+            />
+
+            <DepositRecentPreview
+              items={recentQ.data ?? []}
+              isLoading={recentQ.isLoading}
+              error={recentQ.isError}
+              onRetry={() => void recentQ.refetch()}
+              onViewAll={() => navigation.navigate('DepositHistory')}
+              onSelect={(txHash) => navigation.navigate('DepositDetail', { txHash })}
+            />
           </>
         ) : null}
-        <AddressQRCard
-          address={q.data.address}
-          qrData={q.data.qrCodeData}
-          memo={q.data.memo}
-          notice={q.data.notice}
-          chainName={chainName ?? q.data.chain.name}
-          confirmations={q.data.chain.confirmationsRequired}
-        />
       </ScrollView>
     </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
-  section: { fontSize: 13, fontWeight: '600', marginTop: 8, marginBottom: 4 },
-  warn: { color: '#F59E0B', fontSize: 12, marginBottom: 8 },
+  scroll: { paddingBottom: 24 },
 });

@@ -43,6 +43,37 @@ export function useDeposits(status?: string) {
   });
 }
 
+export function useDepositHistory(status?: string) {
+  return useInfiniteQuery({
+    queryKey: ['depositHistory', status],
+    queryFn: ({ pageParam = 1 }) =>
+      getWalletRepository().getDepositHistory({ page: pageParam, limit: 20, status }),
+    initialPageParam: 1,
+    getNextPageParam: (last) =>
+      last.pagination.page < last.pagination.totalPages ? last.pagination.page + 1 : undefined,
+  });
+}
+
+export function useRecentDeposits(limit = 10, symbol?: string) {
+  return useQuery({
+    queryKey: ['recentDeposits', limit, symbol],
+    queryFn: async () => {
+      try {
+        await getWalletRepository().syncDeposits();
+      } catch {
+        // Non-blocking sync
+      }
+      const result = await getWalletRepository().getDepositHistory({ limit, page: 1 });
+      const items = symbol
+        ? result.items.filter((d) => d.symbol.toUpperCase() === symbol.toUpperCase())
+        : result.items;
+      return items;
+    },
+    staleTime: 15_000,
+    refetchInterval: 12_000,
+  });
+}
+
 export function useDepositDetail(txHash: string) {
   return useQuery({
     queryKey: ['depositDetail', txHash],

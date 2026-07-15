@@ -211,11 +211,32 @@ export type DepositDetail = {
   symbol: string;
   currencyName?: string;
   chainName?: string;
+  chainSymbol?: string;
   confirmations: number;
   requiredConfirmations: number;
   status: string;
   createdAt: string;
   creditedAt?: string;
+  explorerUrl?: string | null;
+};
+
+/** Row from GET /wallet/deposit-history (website recent deposits). */
+export type DepositHistoryRecord = {
+  id: string;
+  txHash?: string | null;
+  explorerUrl?: string | null;
+  fromAddress?: string | null;
+  toAddress?: string | null;
+  amount: string;
+  symbol: string;
+  currencyName?: string;
+  chainName?: string;
+  chainSymbol?: string;
+  confirmations: number;
+  requiredConfirmations: number;
+  status: string;
+  createdAt: string;
+  creditedAt?: string | null;
 };
 
 export type WalletKycStatus = {

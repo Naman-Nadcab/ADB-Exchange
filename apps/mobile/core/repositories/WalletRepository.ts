@@ -20,6 +20,7 @@ import type {
   DepositAddress,
   DepositRecord,
   DepositDetail,
+  DepositHistoryRecord,
   WalletKycStatus,
   WithdrawalFeeInfo,
   WithdrawPreview,
@@ -31,6 +32,12 @@ import { normalizeWalletTx } from '@core/domain/wallet/transactions';
 type DepositsEnvelope = {
   success: boolean;
   data: DepositRecord[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+};
+
+type DepositHistoryEnvelope = {
+  success: boolean;
+  data: DepositHistoryRecord[];
   pagination: { page: number; limit: number; total: number; totalPages: number };
 };
 
@@ -199,6 +206,20 @@ export class WalletRepository extends BaseRepository {
     const suffix = q.toString() ? `?${q}` : '';
     return this.http
       .request<DepositsEnvelope>(`/wallet/deposits${suffix}`, { method: 'GET', retainEnvelope: true })
+      .then((r) => ({ items: r.data, pagination: r.pagination }));
+  }
+
+  getDepositHistory(params?: { page?: number; limit?: number; status?: string }) {
+    const q = new URLSearchParams();
+    if (params?.page) q.set('page', String(params.page));
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.status) q.set('status', params.status);
+    const suffix = q.toString() ? `?${q}` : '';
+    return this.http
+      .request<DepositHistoryEnvelope>(`/wallet/deposit-history${suffix}`, {
+        method: 'GET',
+        retainEnvelope: true,
+      })
       .then((r) => ({ items: r.data, pagination: r.pagination }));
   }
 
