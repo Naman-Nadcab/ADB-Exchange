@@ -15,7 +15,7 @@ export type P2PStackParamList = {
   PaymentMethods: undefined;
   AddPaymentMethod: { id?: string };
   MerchantDashboard: undefined;
-  MerchantProfile: { advertiserId: string };
+  MerchantProfile: { advertiserId: string; seedAd?: P2PAd };
   DisputeDetail: { disputeId: string };
   BlockedAdvertisers: undefined;
 };

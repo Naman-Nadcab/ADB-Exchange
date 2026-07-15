@@ -23,6 +23,10 @@ import type {
   P2POrder,
 } from '@exchange/mobile-types';
 import {
+  findMerchantSeedInCache,
+  merchantProfileFromAds,
+} from '@core/domain/p2p/merchant';
+import {
   findOrderInQueryCache,
   isTerminalOrderStatus,
   P2POrderNotFoundError,
@@ -38,6 +42,7 @@ export const P2P_MESSAGES_KEY = (id: string) => ['p2p', 'messages', id] as const
 export const P2P_PAYMENT_METHODS_KEY = ['p2p', 'payment-methods'] as const;
 export const P2P_MY_PAYMENT_METHODS_KEY = ['p2p', 'my-payment-methods'] as const;
 export const P2P_MERCHANT_STATS_KEY = ['p2p', 'merchant-stats'] as const;
+export const P2P_MERCHANT_PROFILE_KEY = (id: string) => ['p2p', 'merchant-profile', id] as const;
 export const P2P_DISPUTE_KEY = (id: string) => ['p2p', 'dispute', id] as const;
 
 export function useP2PAds(filters?: {
@@ -345,8 +350,37 @@ export function useMerchantStats() {
     queryKey: P2P_MERCHANT_STATS_KEY,
     queryFn: () => getP2PRepository().getMerchantStats(),
     staleTime: 60_000,
+    refetchOnWindowFocus: true,
   });
 }
+
+/** Merchant dashboard — stats + orders + my ads (website merchant-dashboard parity). */
+export function useMerchantDashboard() {
+  const statsQ = useMerchantStats();
+  const ordersQ = useMyP2POrders();
+  const adsQ = useMyP2PAds();
+  return { statsQ, ordersQ, adsQ };
+}
+
+/** ADR-011 public merchant profile — advertiser ads list with cache seed. */
+export function useMerchantProfileAds(advertiserId: string, seedAd?: P2PAd) {
+  const qc = useQueryClient();
+  return useQuery({
+    queryKey: P2P_MERCHANT_PROFILE_KEY(advertiserId),
+    queryFn: () => getP2PRepository().getAds({ advertiser_id: advertiserId, limit: 50, offset: 0 }),
+    initialData: () => {
+      if (seedAd?.user_id === advertiserId) return [seedAd];
+      const cached = findMerchantSeedInCache(qc, advertiserId);
+      return cached ? [cached] : undefined;
+    },
+    enabled: !!advertiserId,
+    staleTime: 15_000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
+  });
+}
+
+export { findMerchantSeedInCache, merchantProfileFromAds };
 
 export function useP2PDispute(disputeId: string) {
   return useQuery({
