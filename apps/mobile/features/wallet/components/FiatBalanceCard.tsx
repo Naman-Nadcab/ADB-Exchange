@@ -13,6 +13,7 @@ type Props = {
   onRetry: () => void;
   onWithdrawInr: () => void;
   onManageBanks: () => void;
+  onCryptoDeposit: () => void;
 };
 
 export function FiatBalanceCard({
@@ -23,6 +24,7 @@ export function FiatBalanceCard({
   onRetry,
   onWithdrawInr,
   onManageBanks,
+  onCryptoDeposit,
 }: Props) {
   const { theme } = useTheme();
   const mask = (v: string) => maskBalance(v, showBalances);
@@ -53,6 +55,15 @@ export function FiatBalanceCard({
           <Ionicons name="business-outline" size={16} color={`hsl(${theme.colors.foregroundPrimary})`} />
           <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '600', fontSize: 13 }}>
             Bank accounts
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={onCryptoDeposit}
+          style={[styles.secondaryBtn, { borderColor: `hsl(${theme.colors.borderDefault})` }]}
+        >
+          <Ionicons name="download-outline" size={16} color={`hsl(${theme.colors.foregroundPrimary})`} />
+          <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '600', fontSize: 13 }}>
+            Crypto deposit
           </Text>
         </Pressable>
       </View>

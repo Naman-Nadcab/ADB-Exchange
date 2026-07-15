@@ -9,18 +9,21 @@ type Props = {
   iconBg?: string;
   iconColor?: string;
   onPress: () => void;
+  disabled?: boolean;
 };
 
-export function WalletQuickToolLink({ title, subtitle, icon, iconBg, iconColor, onPress }: Props) {
+export function WalletQuickToolLink({ title, subtitle, icon, iconBg, iconColor, onPress, disabled }: Props) {
   const { theme } = useTheme();
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       style={[
         styles.link,
         {
           borderColor: `hsl(${theme.colors.borderDefault})`,
           backgroundColor: `hsl(${theme.colors.surfaceMuted} / 0.35)`,
+          opacity: disabled ? 0.5 : 1,
         },
       ]}
     >

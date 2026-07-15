@@ -324,6 +324,13 @@ export class WalletRepository extends BaseRepository {
       body: {},
     });
   }
+
+  getStatementCsv(year = new Date().getFullYear()) {
+    return this.http.requestPlainText(
+      `/wallet/statement?year=${year}&format=csv`,
+      { method: 'GET' },
+    );
+  }
 }
 
 let walletRepository: WalletRepository | null = null;

@@ -5,6 +5,7 @@ import {
   filterAssets,
   validateTransferAmount,
   formatUsd,
+  topFundingHoldings,
 } from '@core/domain/wallet/portfolio';
 
 describe('portfolio domain', () => {
@@ -25,16 +26,25 @@ describe('portfolio domain', () => {
     expect(slices[0].pct).toBeCloseTo(75);
   });
 
-  it('filters zero balances', () => {
+  it('filters small balances when hideSmall is enabled', () => {
     const out = filterAssets(
       [
-        { symbol: 'BTC', name: 'Bitcoin', fundingTotal: '0', fundingAvailable: '0', fundingLocked: '0', tradingEquity: '0', usdValue: '0', totalBalance: '0' },
+        { symbol: 'BTC', name: 'Bitcoin', fundingTotal: '0.001', fundingAvailable: '0.001', fundingLocked: '0', tradingEquity: '0', usdValue: '0.50', totalBalance: '0.001' },
         { symbol: 'ETH', name: 'Ethereum', fundingTotal: '1', fundingAvailable: '1', fundingLocked: '0', tradingEquity: '0', usdValue: '10', totalBalance: '1' },
       ],
-      { search: '', hideZero: true, hidden: new Set(), favorites: new Set(), sort: 'value' },
+      { search: '', hideSmall: true, hidden: new Set(), favorites: new Set(), sort: 'value' },
     );
     expect(out).toHaveLength(1);
-    expect(out[0].symbol).toBe('ETH');
+    expect(out[0]?.symbol).toBe('ETH');
+  });
+
+  it('computes top funding holdings', () => {
+    const top = topFundingHoldings([
+      { symbol: 'BTC', name: 'Bitcoin', total_balance: '1', available_balance: '1', locked_balance: '0', usd_value: '50000' },
+      { symbol: 'ETH', name: 'Ethereum', total_balance: '2', available_balance: '2', locked_balance: '0', usd_value: '6000' },
+    ]);
+    expect(top[0]?.symbol).toBe('BTC');
+    expect(top).toHaveLength(2);
   });
 
   it('validates transfer amount', () => {

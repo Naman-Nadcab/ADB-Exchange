@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '@shared/theme';
+import { ChangeLabel } from '@shared/ui';
 import { formatUsd, maskBalance } from '@core/domain/wallet/portfolio';
 import type { MergedAsset } from '@core/domain/wallet/portfolio';
 
@@ -8,6 +9,7 @@ type Props = {
   asset: MergedAsset;
   isFavorite?: boolean;
   showBalances?: boolean;
+  change24h?: number | null;
   onPress: () => void;
   onToggleFavorite?: () => void;
   onDeposit?: () => void;
@@ -19,6 +21,7 @@ function AssetRowInner({
   asset,
   isFavorite,
   showBalances = true,
+  change24h,
   onPress,
   onToggleFavorite,
   onDeposit,
@@ -28,6 +31,9 @@ function AssetRowInner({
   const { theme } = useTheme();
   const mask = (v: string) => maskBalance(v, showBalances);
   const hasActions = onDeposit || onWithdraw || onTrade;
+  const fundingAmt = parseFloat(asset.fundingTotal) || 0;
+  const tradingAmt = parseFloat(asset.tradingEquity) || 0;
+  const showSplit = fundingAmt > 0 || tradingAmt > 0;
 
   return (
     <View style={styles.wrap}>
@@ -44,6 +50,11 @@ function AssetRowInner({
           <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}>
             {asset.name}
           </Text>
+          {showSplit ? (
+            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 10, marginTop: 2 }}>
+              Funding {mask(asset.fundingTotal)} · Trading {mask(asset.tradingEquity)}
+            </Text>
+          ) : null}
         </View>
         <View style={styles.right}>
           <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '600' }}>
@@ -52,6 +63,7 @@ function AssetRowInner({
           <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11 }}>
             {mask(asset.totalBalance)} {asset.symbol}
           </Text>
+          {change24h != null ? <ChangeLabel changePct={change24h} /> : null}
         </View>
         {onToggleFavorite ? (
           <Pressable onPress={onToggleFavorite} hitSlop={8} accessibilityLabel="Toggle favorite asset">

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { FlatList, View, Text, Pressable, Switch, StyleSheet, RefreshControl } from 'react-native';
+import { FlatList, View, Text, Pressable, Switch, StyleSheet, RefreshControl, Share, Alert } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -12,15 +12,22 @@ import {
   ErrorState,
 } from '@shared/ui';
 import { GuestAuthPrompt, useGuestAccess } from '@features/auth';
+import { useAuthProfile } from '@features/account';
+import { useMarkets } from '@features/markets';
 import { useTheme, hapticLight } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
+import { getWalletRepository } from '@core/repositories/WalletRepository';
 import { useWalletPrefsStore } from '@core/state/walletPrefsStore';
 import {
   mergeAssets,
   filterAssets,
   computeAllocation,
   computePeriodPnl,
+  changePctByBaseFromMarkets,
+  priceByBaseFromMarkets,
+  topFundingHoldings,
+  topTradingHoldings,
 } from '@core/domain/wallet/portfolio';
 import {
   usePortfolioSummary,
@@ -29,12 +36,15 @@ import {
   usePortfolioHistory,
   useRecentTransactions,
   useFiatBalance,
+  useConvertDust,
   type PortfolioHistoryPeriod,
 } from '../hooks/useWallet';
 import { PortfolioSummary } from '../components/PortfolioSummary';
 import { AllocationChart } from '../components/AllocationChart';
 import { FiatBalanceCard } from '../components/FiatBalanceCard';
-import { WalletQuickToolLink } from '../components/WalletQuickToolLink';
+import { WalletQuickToolsGrid } from '../components/WalletQuickToolsGrid';
+import { WalletAccountCard } from '../components/WalletAccountCard';
+import { SecuritySnapshotCard } from '../components/SecuritySnapshotCard';
 import { RecentTransactionsList } from '../components/RecentTransactionsList';
 import { mapFromWalletRecentTransaction } from '@core/domain/wallet/walletHistory';
 import type { WalletRecentTransaction } from '@exchange/mobile-types';
@@ -55,15 +65,16 @@ export function AssetsHomeScreen({ navigation }: Props) {
   const { isGuest, requireAuth } = useGuestAccess();
   const isOnline = useAppStore((s) => s.isOnline);
   const [search, setSearch] = useState('');
-  const [chartPeriod, setChartPeriod] = useState<PortfolioHistoryPeriod>('24h');
+  const [chartPeriod, setChartPeriod] = useState<PortfolioHistoryPeriod>('7d');
+  const [statementLoading, setStatementLoading] = useState(false);
 
-  const hideZero = useWalletPrefsStore((s) => s.hideZero);
+  const hideSmall = useWalletPrefsStore((s) => s.hideSmall);
   const showBalances = useWalletPrefsStore((s) => s.showBalances);
   const hidden = useWalletPrefsStore((s) => s.hidden);
   const favorites = useWalletPrefsStore((s) => s.favorites);
   const sort = useWalletPrefsStore((s) => s.sort);
   const hydrate = useWalletPrefsStore((s) => s.hydrate);
-  const setHideZero = useWalletPrefsStore((s) => s.setHideZero);
+  const setHideSmall = useWalletPrefsStore((s) => s.setHideSmall);
   const toggleShowBalances = useWalletPrefsStore((s) => s.toggleShowBalances);
   const toggleFavorite = useWalletPrefsStore((s) => s.toggleFavorite);
   const setSort = useWalletPrefsStore((s) => s.setSort);
@@ -74,6 +85,9 @@ export function AssetsHomeScreen({ navigation }: Props) {
   const historyQ = usePortfolioHistory(chartPeriod);
   const recentTxQ = useRecentTransactions(8);
   const fiatBalanceQ = useFiatBalance(!isGuest);
+  const marketsQ = useMarkets();
+  const profileQ = useAuthProfile();
+  const dustConvert = useConvertDust();
 
   useEffect(() => {
     hydrate();
@@ -85,13 +99,33 @@ export function AssetsHomeScreen({ navigation }: Props) {
     [fundingQ.data, tradingQ.data],
   );
 
+  const changeMap = useMemo(
+    () => changePctByBaseFromMarkets(marketsQ.data ?? []),
+    [marketsQ.data],
+  );
+
+  const priceMap = useMemo(
+    () => priceByBaseFromMarkets(marketsQ.data ?? []),
+    [marketsQ.data],
+  );
+
   const filtered = useMemo(
-    () => filterAssets(merged, { search, hideZero, hidden, favorites, sort }),
-    [merged, search, hideZero, hidden, favorites, sort],
+    () => filterAssets(merged, { search, hideSmall, hidden, favorites, sort }),
+    [merged, search, hideSmall, hidden, favorites, sort],
   );
 
   const allocation = useMemo(() => computeAllocation(merged), [merged]);
   const periodPnl = computePeriodPnl(historyQ.data ?? []);
+
+  const topFunding = useMemo(
+    () => topFundingHoldings(fundingQ.data?.balances ?? []),
+    [fundingQ.data],
+  );
+
+  const topTrading = useMemo(
+    () => topTradingHoldings(tradingQ.data?.balances ?? [], priceMap),
+    [tradingQ.data, priceMap],
+  );
 
   const balanceError =
     summaryQ.isError || fundingQ.isError || tradingQ.isError
@@ -103,7 +137,8 @@ export function AssetsHomeScreen({ navigation }: Props) {
     fundingQ.isFetching ||
     tradingQ.isFetching ||
     historyQ.isFetching ||
-    fiatBalanceQ.isFetching;
+    fiatBalanceQ.isFetching ||
+    marketsQ.isFetching;
 
   const onRefresh = useCallback(() => {
     void summaryQ.refetch();
@@ -112,7 +147,9 @@ export function AssetsHomeScreen({ navigation }: Props) {
     void historyQ.refetch();
     void recentTxQ.refetch();
     void fiatBalanceQ.refetch();
-  }, [summaryQ, fundingQ, tradingQ, historyQ, recentTxQ, fiatBalanceQ]);
+    void marketsQ.refetch();
+    void profileQ.refetch();
+  }, [summaryQ, fundingQ, tradingQ, historyQ, recentTxQ, fiatBalanceQ, marketsQ, profileQ]);
 
   const onRetryBalances = useCallback(() => {
     void summaryQ.refetch();
@@ -141,6 +178,43 @@ export function AssetsHomeScreen({ navigation }: Props) {
     },
     [navigation],
   );
+
+  const handleDustConvert = useCallback(async () => {
+    if (!requireAuth()) return;
+    try {
+      const result = await dustConvert.mutateAsync(1);
+      const count = result.converted_count ?? 0;
+      const totalUsdt = result.total_usdt_received ?? '0';
+      if (count > 0) {
+        Alert.alert(
+          'Dust converted',
+          `Converted ${count} asset${count === 1 ? '' : 's'} → ${parseFloat(totalUsdt).toFixed(4)} USDT`,
+        );
+      }
+    } catch {
+      Alert.alert('Dust conversion failed', 'Could not convert small balances right now.');
+    }
+  }, [dustConvert, requireAuth]);
+
+  const handleExportStatement = useCallback(async () => {
+    if (!requireAuth()) return;
+    setStatementLoading(true);
+    try {
+      const year = new Date().getFullYear();
+      const csv = await getWalletRepository().getStatementCsv(year);
+      const fileName = `statement-${year}.csv`;
+      await Share.share({ message: csv, title: fileName });
+    } catch {
+      Alert.alert('Statement export failed', 'Could not start the statement download.');
+    } finally {
+      setStatementLoading(false);
+    }
+  }, [requireAuth]);
+
+  const openSecurityCenter = useCallback(() => {
+    if (!requireAuth()) return;
+    navigation.getParent()?.navigate('Account', { screen: 'SecurityCenter' });
+  }, [navigation, requireAuth]);
 
   const isLoading = (summaryQ.isLoading || fundingQ.isLoading) && !summaryQ.data && !fundingQ.data;
 
@@ -179,6 +253,47 @@ export function AssetsHomeScreen({ navigation }: Props) {
       params: { symbol: `${symbol}_USDT` },
     });
   };
+
+  const quickTools = [
+    {
+      id: 'dust',
+      title: 'Convert dust',
+      subtitle: 'Small balances → USDT',
+      icon: 'sparkles-outline' as const,
+      onPress: () => void handleDustConvert(),
+      loading: dustConvert.isPending,
+    },
+    {
+      id: 'statement',
+      title: 'Statement',
+      subtitle: 'CSV download',
+      icon: 'document-text-outline' as const,
+      onPress: () => void handleExportStatement(),
+      loading: statementLoading,
+    },
+    {
+      id: 'pnl',
+      title: 'P&L',
+      subtitle: 'Profit & loss',
+      icon: 'trending-up-outline' as const,
+      iconBg: `hsl(${theme.colors.tradeBuy} / 0.1)`,
+      iconColor: `hsl(${theme.colors.tradeBuy})`,
+      onPress: () => {
+        if (!requireAuth()) return;
+        navigation.navigate('WalletPnl');
+      },
+    },
+    {
+      id: 'history',
+      title: 'History',
+      subtitle: 'All movements',
+      icon: 'time-outline' as const,
+      onPress: () => {
+        if (!requireAuth()) return;
+        navigation.navigate('WalletHistory', { tab: 'all' });
+      },
+    },
+  ];
 
   return (
     <ScreenLayout testID="S-500">
@@ -266,18 +381,32 @@ export function AssetsHomeScreen({ navigation }: Props) {
                       if (!requireAuth()) return;
                       navigation.getParent()?.navigate('P2P', { screen: 'PaymentMethods' });
                     }}
+                    onCryptoDeposit={() => {
+                      if (!requireAuth()) return;
+                      navigation.navigate('DepositHome');
+                    }}
                   />
 
-                  <WalletQuickToolLink
-                    title="P&L"
-                    subtitle="Profit & loss"
-                    icon="trending-up-outline"
-                    iconBg={`hsl(${theme.colors.tradeBuy} / 0.1)`}
-                    iconColor={`hsl(${theme.colors.tradeBuy})`}
-                    onPress={() => {
-                      if (!requireAuth()) return;
-                      navigation.navigate('WalletPnl');
-                    }}
+                  <WalletAccountCard
+                    variant="funding"
+                    totalUsd={summaryQ.data?.funding.totalUsd ?? '0'}
+                    showBalances={showBalances}
+                    holdings={topFunding}
+                  />
+                  <WalletAccountCard
+                    variant="trading"
+                    totalUsd={summaryQ.data?.trading.totalUsd ?? '0'}
+                    showBalances={showBalances}
+                    holdings={topTrading}
+                  />
+
+                  <WalletQuickToolsGrid tools={quickTools} />
+
+                  <SecuritySnapshotCard
+                    loading={profileQ.isLoading}
+                    totpEnabled={!!profileQ.data?.totp_enabled}
+                    hasEmail={Boolean(profileQ.data?.email?.trim())}
+                    onManageSecurity={openSecurityCenter}
                   />
 
                   <View style={styles.actions}>
@@ -343,9 +472,9 @@ export function AssetsHomeScreen({ navigation }: Props) {
                   />
                   <View style={styles.toggleRow}>
                     <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>
-                      Hide zero balances
+                      Hide small balances
                     </Text>
-                    <Switch value={hideZero} onValueChange={setHideZero} />
+                    <Switch value={hideSmall} onValueChange={setHideSmall} />
                   </View>
                   {filtered.length === 0 && merged.length === 0 && !search.trim() ? (
                     <EmptyState
@@ -362,6 +491,7 @@ export function AssetsHomeScreen({ navigation }: Props) {
               asset={item}
               isFavorite={favorites.has(item.symbol)}
               showBalances={showBalances}
+              change24h={changeMap[item.symbol] ?? null}
               onPress={() => navigation.navigate('AssetDetail', { symbol: item.symbol })}
               onToggleFavorite={() => toggleFavorite(item.symbol)}
               onDeposit={() => onAssetDeposit(item.symbol, item.name)}

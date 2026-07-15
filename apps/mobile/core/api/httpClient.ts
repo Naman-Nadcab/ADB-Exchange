@@ -119,6 +119,74 @@ export class HttpClient {
 
     return data as T;
   }
+
+  /** Raw text responses (e.g. CSV exports) — skips JSON envelope parsing. */
+  async requestPlainText(path: string, config: HttpRequestConfig = {}): Promise<string> {
+    const base = (config.baseUrl ?? this.deps.getBaseUrl()).replace(/\/$/, '');
+    const url = `${base}${path.startsWith('/') ? path : `/${path}`}`;
+    if (!this.deviceId) {
+      this.deviceId = await getDeviceId();
+    }
+
+    let ctx = applyAuthInterceptor(
+      {
+        headers: {
+          Accept: 'text/csv, text/plain, */*',
+          'X-Request-Id': globalThis.crypto?.randomUUID?.() ?? `${Date.now()}`,
+          'X-Device-Id': this.deviceId,
+          ...config.headers,
+        },
+        skipAuth: config.skipAuth,
+        idempotent: config.idempotent,
+      },
+      {
+        getAccessToken: () => this.deps.authHooks?.getSession().accessToken ?? null,
+      },
+    );
+    ctx = applyIdempotencyInterceptor(ctx);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), config.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+    const signal = config.signal ?? controller.signal;
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: config.method ?? 'GET',
+        headers: ctx.headers,
+        signal,
+      });
+    } catch (err) {
+      clearTimeout(timeout);
+      throw err;
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (response.status === 401 && !config.skipAuth && this.deps.authHooks) {
+      const newToken = await this.deps.authHooks.onRefreshRequired();
+      if (newToken) {
+        return this.requestPlainText(path, {
+          ...config,
+          headers: { ...ctx.headers, Authorization: `Bearer ${newToken}` },
+        });
+      }
+      this.deps.authHooks.onSessionCleared();
+    }
+
+    const text = await response.text();
+    if (!response.ok) {
+      let body: unknown = text;
+      try {
+        body = JSON.parse(text);
+      } catch {
+        // keep raw text
+      }
+      applyErrorInterceptor({ status: response.status, body });
+    }
+
+    return text;
+  }
 }
 
 let httpClientSingleton: HttpClient | null = null;

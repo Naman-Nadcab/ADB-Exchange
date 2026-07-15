@@ -1,4 +1,12 @@
-import type { AssetBalance, TradingBalance } from '@exchange/mobile-types';
+import type { AssetBalance, MarketListItem, TradingBalance } from '@exchange/mobile-types';
+
+export const HIDE_SMALL_USD_THRESHOLD = 1;
+
+export type TopHolding = {
+  symbol: string;
+  amount: string;
+  usd: number;
+};
 
 export type MergedAsset = {
   symbol: string;
@@ -20,7 +28,7 @@ export type AllocationSlice = {
 export type AssetSort = 'value' | 'name' | 'symbol';
 export type AssetFilters = {
   search: string;
-  hideZero: boolean;
+  hideSmall: boolean;
   hidden: Set<string>;
   favorites: Set<string>;
   sort: AssetSort;
@@ -89,8 +97,8 @@ export function computeAllocation(assets: MergedAsset[]): AllocationSlice[] {
 
 export function filterAssets(assets: MergedAsset[], filters: AssetFilters): MergedAsset[] {
   let out = assets.filter((a) => !filters.hidden.has(a.symbol));
-  if (filters.hideZero) {
-    out = out.filter((a) => parseUsd(a.usdValue) > 0.01 || parseFloat(a.totalBalance) > 0);
+  if (filters.hideSmall) {
+    out = out.filter((a) => parseUsd(a.usdValue) >= HIDE_SMALL_USD_THRESHOLD);
   }
   if (filters.search.trim()) {
     const q = filters.search.trim().toLowerCase();
@@ -139,6 +147,52 @@ export function computePeriodPnl(history: { total_usd: number }[]): PeriodPnl | 
 
 export function maskBalance(value: string, showBalances: boolean): string {
   return showBalances ? value : '••••••';
+}
+
+export function priceByBaseFromMarkets(markets: MarketListItem[]): Record<string, number> {
+  const prices: Record<string, number> = { USDT: 1, USDC: 1, DAI: 1 };
+  for (const item of markets) {
+    const base = item.baseAsset ?? item.symbol.split('_')[0];
+    if (base && item.lastPrice > 0) prices[base] = item.lastPrice;
+  }
+  return prices;
+}
+
+export function changePctByBaseFromMarkets(markets: MarketListItem[]): Record<string, number> {
+  const changes: Record<string, number> = {};
+  for (const item of markets) {
+    const base = item.baseAsset ?? item.symbol.split('_')[0];
+    if (base) changes[base] = item.changePct;
+  }
+  return changes;
+}
+
+export function topFundingHoldings(balances: AssetBalance[], limit = 4): TopHolding[] {
+  return balances
+    .map((b) => ({
+      symbol: b.symbol,
+      amount: b.total_balance,
+      usd: parseUsd(b.usd_value),
+    }))
+    .filter((h) => h.usd > 0)
+    .sort((a, b) => b.usd - a.usd)
+    .slice(0, limit);
+}
+
+export function topTradingHoldings(
+  balances: TradingBalance[],
+  prices: Record<string, number>,
+  limit = 4,
+): TopHolding[] {
+  return balances
+    .map((b) => {
+      const amount = parseFloat(b.equity ?? b.wallet_balance ?? '0');
+      const price = prices[b.symbol] ?? 0;
+      return { symbol: b.symbol, amount: String(amount), usd: amount * price };
+    })
+    .filter((h) => h.usd > 0)
+    .sort((a, b) => b.usd - a.usd)
+    .slice(0, limit);
 }
 
 export function validateTransferAmount(amount: string, available: string): string | null {

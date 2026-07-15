@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { mmkvStorage } from '@core/storage/mmkvStorage';
 import type { AssetSort } from '@core/domain/wallet/portfolio';
 
-const HIDE_ZERO_KEY = 'wallet.hideZero';
+const HIDE_SMALL_KEY = 'wallet.hideSmall';
 const HIDDEN_KEY = 'wallet.hidden';
 const FAVORITES_KEY = 'wallet.favorites';
 const SORT_KEY = 'wallet.sort';
@@ -23,13 +23,13 @@ function saveSet(key: string, set: Set<string>) {
 }
 
 type WalletPrefsStore = {
-  hideZero: boolean;
+  hideSmall: boolean;
   showBalances: boolean;
   hidden: Set<string>;
   favorites: Set<string>;
   sort: AssetSort;
   hydrate: () => void;
-  setHideZero: (v: boolean) => void;
+  setHideSmall: (v: boolean) => void;
   toggleShowBalances: () => void;
   toggleHidden: (symbol: string) => void;
   toggleFavorite: (symbol: string) => void;
@@ -37,23 +37,23 @@ type WalletPrefsStore = {
 };
 
 export const useWalletPrefsStore = create<WalletPrefsStore>((set, get) => ({
-  hideZero: true,
+  hideSmall: false,
   showBalances: true,
   hidden: new Set(),
   favorites: new Set(),
   sort: 'value',
   hydrate: () => {
     set({
-      hideZero: mmkvStorage.getString(HIDE_ZERO_KEY) !== 'false',
+      hideSmall: mmkvStorage.getString(HIDE_SMALL_KEY) === 'true',
       showBalances: mmkvStorage.getString(SHOW_BALANCES_KEY) !== 'false',
       hidden: loadSet(HIDDEN_KEY),
       favorites: loadSet(FAVORITES_KEY),
       sort: (mmkvStorage.getString(SORT_KEY) as AssetSort) ?? 'value',
     });
   },
-  setHideZero: (hideZero) => {
-    mmkvStorage.set(HIDE_ZERO_KEY, String(hideZero));
-    set({ hideZero });
+  setHideSmall: (hideSmall) => {
+    mmkvStorage.set(HIDE_SMALL_KEY, String(hideSmall));
+    set({ hideSmall });
   },
   toggleShowBalances: () => {
     const showBalances = !get().showBalances;
