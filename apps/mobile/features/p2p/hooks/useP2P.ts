@@ -23,6 +23,7 @@ import type {
   P2POrder,
   P2PUserPaymentMethod,
 } from '@exchange/mobile-types';
+import { ordersNeedLiveRefresh } from '@core/domain/p2p/ordersList';
 import { findPaymentMethodInCache } from '@core/domain/p2p/paymentMethods';
 import {
   findMerchantSeedInCache,
@@ -160,10 +161,18 @@ export function useDeleteAd() {
 }
 
 export function useMyP2POrders(status?: string) {
-  return useQuery({
+  const wsConnected = useWsMetricsStore((s) => s.streamPhase === 'live');
+
+  return useQuery<P2POrder[]>({
     queryKey: [...P2P_ORDERS_KEY, status],
     queryFn: () => getP2PRepository().getMyOrders(status),
     staleTime: 15_000,
+    refetchOnWindowFocus: true,
+    refetchInterval: (query) => {
+      const rows = query.state.data ?? [];
+      if (!ordersNeedLiveRefresh(rows)) return false;
+      return wsConnected ? 60_000 : 15_000;
+    },
   });
 }
 
