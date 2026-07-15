@@ -195,6 +195,60 @@ export function topTradingHoldings(
     .slice(0, limit);
 }
 
+export type FundingSortKey = 'symbol' | 'balance' | 'value';
+export type SortDirection = 'asc' | 'desc';
+
+export const FUNDING_PAGE_SIZE = 25;
+
+export function filterFundingBalances(
+  balances: AssetBalance[],
+  opts: { search: string; hideSmall: boolean },
+): AssetBalance[] {
+  const q = opts.search.trim().toLowerCase();
+  return balances.filter((b) => {
+    if (opts.hideSmall && parseUsd(b.usd_value) < HIDE_SMALL_USD_THRESHOLD) return false;
+    if (!q) return true;
+    return (
+      b.symbol.toLowerCase().includes(q) ||
+      b.name.toLowerCase().includes(q)
+    );
+  });
+}
+
+export function sortFundingBalances(
+  balances: AssetBalance[],
+  sortKey: FundingSortKey,
+  sortDir: SortDirection,
+): AssetBalance[] {
+  const dir = sortDir === 'asc' ? 1 : -1;
+  return [...balances].sort((a, b) => {
+    switch (sortKey) {
+      case 'symbol':
+        return a.symbol.localeCompare(b.symbol) * dir;
+      case 'balance':
+        return (parseFloat(a.total_balance) - parseFloat(b.total_balance)) * dir;
+      case 'value':
+        return (parseUsd(a.usd_value) - parseUsd(b.usd_value)) * dir;
+      default:
+        return 0;
+    }
+  });
+}
+
+export function paginateItems<T>(items: T[], page: number, pageSize: number): T[] {
+  const start = (page - 1) * pageSize;
+  return items.slice(start, start + pageSize);
+}
+
+export function formatCryptoAmount(value: string | number, decimals = 8): string {
+  const n = typeof value === 'string' ? parseFloat(value) : value;
+  if (!Number.isFinite(n)) return `0.${'0'.repeat(Math.min(decimals, 8))}`;
+  return n.toLocaleString('en-US', {
+    minimumFractionDigits: Math.min(decimals, 8),
+    maximumFractionDigits: Math.min(decimals, 8),
+  });
+}
+
 export function validateTransferAmount(amount: string, available: string): string | null {
   const a = parseFloat(amount);
   const avail = parseFloat(available);

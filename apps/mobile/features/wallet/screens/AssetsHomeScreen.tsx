@@ -392,6 +392,7 @@ export function AssetsHomeScreen({ navigation }: Props) {
                     totalUsd={summaryQ.data?.funding.totalUsd ?? '0'}
                     showBalances={showBalances}
                     holdings={topFunding}
+                    onPress={() => navigation.navigate('FundingAccount')}
                   />
                   <WalletAccountCard
                     variant="trading"

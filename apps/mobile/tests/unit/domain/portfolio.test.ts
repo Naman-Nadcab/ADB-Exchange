@@ -6,6 +6,9 @@ import {
   validateTransferAmount,
   formatUsd,
   topFundingHoldings,
+  filterFundingBalances,
+  sortFundingBalances,
+  paginateItems,
 } from '@core/domain/wallet/portfolio';
 
 describe('portfolio domain', () => {
@@ -45,6 +48,19 @@ describe('portfolio domain', () => {
     ]);
     expect(top[0]?.symbol).toBe('BTC');
     expect(top).toHaveLength(2);
+  });
+
+  it('filters and sorts funding balances', () => {
+    const rows = [
+      { symbol: 'BTC', name: 'Bitcoin', total_balance: '1', available_balance: '1', locked_balance: '0', usd_value: '50000' },
+      { symbol: 'DOGE', name: 'Dogecoin', total_balance: '100', available_balance: '100', locked_balance: '0', usd_value: '0.50' },
+      { symbol: 'ETH', name: 'Ethereum', total_balance: '2', available_balance: '2', locked_balance: '0', usd_value: '6000' },
+    ];
+    const filtered = filterFundingBalances(rows, { search: '', hideSmall: true });
+    expect(filtered).toHaveLength(2);
+    const sorted = sortFundingBalances(filtered, 'symbol', 'asc');
+    expect(sorted[0]?.symbol).toBe('BTC');
+    expect(paginateItems(sorted, 1, 1)).toHaveLength(1);
   });
 
   it('validates transfer amount', () => {

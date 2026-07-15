@@ -40,6 +40,7 @@ export const linking = {
           Wallet: {
             screens: {
               AssetsHome: 'wallet',
+              FundingAccount: 'wallet/funding',
               AssetDetail: 'wallet/:symbol',
               Transfer: 'wallet/transfer',
               TransferConfirm: 'wallet/transfer/confirm',

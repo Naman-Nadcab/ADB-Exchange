@@ -22,6 +22,10 @@ describe('deep link config', () => {
     expect(linking.config.screens.Main.screens.Wallet.screens.WalletHistory.path).toBe('wallet/history');
   });
 
+  it('maps funding account path', () => {
+    expect(linking.config.screens.Main.screens.Wallet.screens.FundingAccount).toBe('wallet/funding');
+  });
+
   it('maps wallet pnl path', () => {
     expect(linking.config.screens.Main.screens.Wallet.screens.WalletPnl).toBe('wallet/pnl');
   });

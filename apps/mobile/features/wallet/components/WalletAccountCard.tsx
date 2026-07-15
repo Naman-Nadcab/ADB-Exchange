@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ExchangeCard } from '@shared/ui';
 import { useTheme } from '@shared/theme';
@@ -9,14 +9,15 @@ type Props = {
   totalUsd: string;
   showBalances: boolean;
   holdings: TopHolding[];
+  onPress?: () => void;
 };
 
-export function WalletAccountCard({ variant, totalUsd, showBalances, holdings }: Props) {
+export function WalletAccountCard({ variant, totalUsd, showBalances, holdings, onPress }: Props) {
   const { theme } = useTheme();
   const mask = (v: string) => maskBalance(v, showBalances);
   const isFunding = variant === 'funding';
 
-  return (
+  const content = (
     <ExchangeCard elevated style={styles.card}>
       <View style={styles.header}>
         <View
@@ -73,6 +74,16 @@ export function WalletAccountCard({ variant, totalUsd, showBalances, holdings }:
       ) : null}
     </ExchangeCard>
   );
+
+  if (onPress) {
+    return (
+      <Pressable onPress={onPress} accessibilityRole="button">
+        {content}
+      </Pressable>
+    );
+  }
+
+  return content;
 }
 
 const styles = StyleSheet.create({

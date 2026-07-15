@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { guestGuard } from '@features/auth';
 import { AssetsHomeScreen } from '../screens/AssetsHomeScreen';
+import { FundingAccountScreen } from '../screens/FundingAccountScreen';
 import { AssetDetailScreen } from '../screens/AssetDetailScreen';
 import { TransferScreen } from '../screens/TransferScreen';
 import { TransferConfirmScreen } from '../screens/TransferConfirmScreen';
@@ -40,6 +41,7 @@ export function WalletStackNavigator() {
   return (
     <Stack.Navigator screenOptions={exchangeStackScreenOptions}>
       <Stack.Screen name="AssetsHome" component={AssetsHomeScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="FundingAccount" component={guestGuard(FundingAccountScreen, 'Log in to view funding account.')} options={{ title: 'Funding Account' }} />
       <Stack.Screen name="AssetDetail" component={guestGuard(AssetDetailScreen, 'Log in to view asset details.')} options={{ title: 'Asset' }} />
       <Stack.Screen name="Transfer" component={guestGuard(TransferScreen, 'Log in to transfer funds.')} options={{ title: 'Transfer' }} />
       <Stack.Screen name="TransferConfirm" component={guestGuard(TransferConfirmScreen, 'Log in to transfer funds.')} options={{ title: 'Confirm Transfer' }} />
