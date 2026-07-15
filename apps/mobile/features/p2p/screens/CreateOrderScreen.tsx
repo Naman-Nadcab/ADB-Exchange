@@ -45,7 +45,7 @@ export function CreateOrderScreen({ navigation, route }: Props) {
     }
     try {
       const order = await create.mutateAsync({ adId, quantity, paymentMethodId });
-      navigation.replace('OrderRoom', { orderId: order.id });
+      navigation.replace('OrderRoom', { orderId: order.id, order });
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Failed to create order');
     }

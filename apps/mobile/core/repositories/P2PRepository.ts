@@ -99,19 +99,21 @@ export class P2PRepository extends BaseRepository {
     });
   }
 
-  releaseOrder(orderId: string) {
+  releaseOrder(orderId: string, idempotencyKey?: string) {
     return this.http.request<P2POrder>(`${PREFIX}/orders/${encodeURIComponent(orderId)}/release`, {
       method: 'POST',
       body: {},
       idempotent: true,
+      headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
     });
   }
 
-  cancelOrder(orderId: string, reason: string) {
+  cancelOrder(orderId: string, reason: string, idempotencyKey?: string) {
     return this.http.request<P2POrder>(`${PREFIX}/orders/${encodeURIComponent(orderId)}/cancel`, {
       method: 'POST',
       body: { reason },
       idempotent: true,
+      headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
     });
   }
 
@@ -133,11 +135,12 @@ export class P2PRepository extends BaseRepository {
     );
   }
 
-  submitPayment(orderId: string, form: FormData) {
+  submitPayment(orderId: string, form: FormData, idempotencyKey?: string) {
     return this.http.request<P2POrder>(`${PREFIX}/orders/${encodeURIComponent(orderId)}/pay`, {
       method: 'POST',
       formBody: form,
       idempotent: true,
+      headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
     });
   }
 

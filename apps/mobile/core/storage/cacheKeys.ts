@@ -14,4 +14,7 @@ export const CACHE_KEYS = {
   quoteCurrency: 'markets.quote',
   guestMode: 'prefs.guestMode',
   walletHistoryFilters: 'wallet.history.filters',
+  p2pOrderRoomDraft: (orderId: string) => `p2p.orderRoom.${orderId}.draft`,
+  p2pOrderRoomIdempotency: (orderId: string, action: string) =>
+    `p2p.orderRoom.${orderId}.idem.${action}`,
 } as const;

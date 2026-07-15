@@ -1,47 +1,63 @@
-import { useEffect, useState } from 'react';
-import { ScrollView, Text, Modal, View, StyleSheet, Alert } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ScrollView, Text, View, StyleSheet, RefreshControl, Pressable } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, TextField, PrimaryButton, ErrorBanner } from '@shared/ui';
+import { Ionicons } from '@expo/vector-icons';
+import {
+  ScreenLayout,
+  SkeletonList,
+  ErrorBanner,
+  ErrorState,
+  TerminalPanel,
+} from '@shared/ui';
 import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAuthStore } from '@core/state/authStore';
 import { useAppStore } from '@core/state/appStore';
-import { buildEscrowTimeline, displayOrderStatus } from '@core/domain/p2p/order';
 import { useP2PStore } from '@core/state/p2pStore';
 import {
+  buildOrderStatusTimeline,
+  getOrderRoomPermissions,
+  resolveOrderRole,
+} from '@core/domain/p2p/orderRoom';
+import {
   useP2POrder,
-  useP2POrderActions,
   useP2PMessages,
   useSendP2PMessage,
   useMarkMessagesRead,
   useP2PSubscriptions,
+  P2POrderNotFoundError,
 } from '../hooks/useP2P';
-import { OrderTimeline } from '../components/OrderTimeline';
+import { useOrderRoomActions } from '../hooks/useOrderRoomActions';
+import { OrderRoomTimer } from '../components/OrderRoomTimer';
+import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
+import { OrderRoomSummary, OrderRoomHeader, copyOrderId } from '../components/OrderRoomSummary';
+import { OrderPaymentInstructions } from '../components/OrderPaymentInstructions';
+import { OrderRoomActions } from '../components/OrderRoomActions';
 import { P2PChatPanel } from '../components/P2PChatPanel';
-import { P2PActionBar } from '../components/P2PActionBar';
 import type { P2PStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<P2PStackParamList, 'OrderRoom'>;
 
 export function OrderRoomScreen({ navigation, route }: Props) {
-  const { orderId } = route.params;
+  const { orderId, order: seedOrder } = route.params;
   const { theme } = useTheme();
   const userId = useAuthStore((s) => s.user?.id);
   const isOnline = useAppStore((s) => s.isOnline);
-  const orderQ = useP2POrder(orderId);
-  const actions = useP2POrderActions(orderId);
-  const messagesQ = useP2PMessages(orderId);
-  const sendMsg = useSendP2PMessage(orderId);
-  const markRead = useMarkMessagesRead(orderId);
+  const orderQ = useP2POrder(orderId, seedOrder);
+  const actions = useOrderRoomActions(orderId);
   const typingUserId = useP2PStore((s) => s.typingUserIdByOrder[orderId]);
   const { sendTyping } = useP2PSubscriptions(orderId);
 
-  const [showPay, setShowPay] = useState(false);
-  const [showDispute, setShowDispute] = useState(false);
-  const [txRef, setTxRef] = useState('');
-  const [proofUrl, setProofUrl] = useState('');
-  const [disputeReason, setDisputeReason] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const order = orderQ.data;
+  const role = order ? resolveOrderRole(order, userId) : 'none';
+  const permissions = order ? getOrderRoomPermissions(order, role) : null;
+  const messagesQ = useP2PMessages(orderId, permissions?.chatEnabled ?? false);
+  const sendMsg = useSendP2PMessage(orderId);
+  const markRead = useMarkMessagesRead(orderId);
+
+  const [copied, setCopied] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const draftTxRef = useMemo(() => actions.readDraft().txRef ?? '', [actions]);
 
   useEffect(() => {
     analytics.screen('S-610');
@@ -53,127 +69,171 @@ export function OrderRoomScreen({ navigation, route }: Props) {
     if (last?.id && !last._pending) void markRead.mutate(last.id);
   }, [messagesQ.messages, markRead]);
 
-  const order = orderQ.data;
-  if (!order) {
+  const onRefresh = useCallback(() => {
+    void orderQ.refetch();
+    void messagesQ.refetch();
+  }, [orderQ, messagesQ]);
+
+  const onCopyId = async () => {
+    await copyOrderId(orderId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const wrapAction = async (fn: () => Promise<void>) => {
+    if (!isOnline) throw new Error('Offline');
+    setActionLoading(true);
+    try {
+      await fn();
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  if (orderQ.isLoading && !order) {
     return (
       <ScreenLayout testID="S-610">
-        <Text>Loading order…</Text>
+        <SkeletonList rows={6} />
       </ScreenLayout>
     );
   }
 
-  const role = userId === order.buyer_id ? 'buyer' : 'seller';
-  const timeline = buildEscrowTimeline(order.status);
+  if (orderQ.isError && !order) {
+    const notFound = orderQ.error instanceof P2POrderNotFoundError;
+    return (
+      <ScreenLayout testID="S-610">
+        <ErrorState
+          title={notFound ? 'Order not found' : 'Could not load this order'}
+          message={notFound ? 'It may have been removed or you do not have access.' : undefined}
+          onRetry={() => void orderQ.refetch()}
+        />
+      </ScreenLayout>
+    );
+  }
 
-  const confirmPaid = async () => {
-    setError(null);
-    if (!isOnline) {
-      setError('Offline');
-      return;
-    }
-    try {
-      await actions.confirmPayment.mutateAsync({
-        transaction_reference: txRef.trim() || undefined,
-        proof_url: proofUrl.trim() || undefined,
-      });
-      setShowPay(false);
-    } catch {
-      setError('Payment confirmation failed');
-    }
-  };
+  if (!order) {
+    return (
+      <ScreenLayout testID="S-610">
+        <ErrorState title="Order not found" onRetry={() => void orderQ.refetch()} />
+      </ScreenLayout>
+    );
+  }
 
-  const openDispute = async () => {
-    if (disputeReason.trim().length < 10) {
-      setError('Reason must be at least 10 characters');
-      return;
-    }
-    try {
-      const res = await actions.openDispute.mutateAsync({
-        reason: disputeReason.trim(),
-        evidence: proofUrl.trim() ? [proofUrl.trim()] : undefined,
-      });
-      setShowDispute(false);
-      if (res?.id) navigation.navigate('DisputeDetail', { disputeId: res.id });
-    } catch {
-      setError('Failed to open dispute');
-    }
-  };
+  if (role === 'none') {
+    return (
+      <ScreenLayout testID="S-610">
+        <ErrorBanner message="You do not have access to this order." />
+      </ScreenLayout>
+    );
+  }
+
+  const isBuyer = role === 'buyer';
+  const timeline = buildOrderStatusTimeline(order.status);
+  const details = order.seller_payment_details as Record<string, unknown> | undefined;
 
   return (
     <ScreenLayout testID="S-610">
-      <ScrollView>
-        <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
-          {order.crypto_symbol} · {displayOrderStatus(order.status)}
-        </Text>
-        <Text>Quantity: {order.quantity}</Text>
-        <Text>Fiat: {order.fiat_amount ?? '—'} {order.fiat_currency}</Text>
-        {order.expires_at ? <Text>Expires: {new Date(order.expires_at).toLocaleString()}</Text> : null}
-        <OrderTimeline steps={timeline} />
-        <P2PActionBar
+      {!isOnline ? (
+        <View style={[styles.offline, { backgroundColor: `hsl(${theme.colors.statusError} / 0.08)` }]}>
+          <Ionicons name="cloud-offline-outline" size={16} color={`hsl(${theme.colors.statusError})`} />
+          <Text style={{ color: `hsl(${theme.colors.statusError})`, fontSize: 13, flex: 1 }}>
+            Offline — actions are disabled until you reconnect.
+          </Text>
+          <Pressable onPress={() => void orderQ.refetch()}>
+            <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '700' }}>Retry</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
+      <ScrollView
+        refreshControl={<RefreshControl refreshing={orderQ.isFetching} onRefresh={onRefresh} />}
+        contentContainerStyle={styles.content}
+      >
+        <OrderRoomHeader orderId={orderId} onCopy={() => void onCopyId()} copied={copied} />
+
+        <OrderRoomTimer
+          expiresAtIso={order.expires_at}
+          active={permissions?.timerActive ?? false}
+          onExpire={() => void orderQ.refetch()}
+        />
+
+        <OrderStatusTimeline steps={timeline} />
+
+        {order.status === 'expired' ? (
+          <TerminalPanel subtle style={{ marginBottom: 12 }}>
+            <Text style={{ fontWeight: '700', marginBottom: 4, color: `hsl(${theme.colors.foregroundPrimary})` }}>Order expired</Text>
+            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})` }}>The payment window has closed.</Text>
+          </TerminalPanel>
+        ) : null}
+        {order.status === 'cancelled' ? (
+          <TerminalPanel subtle style={{ marginBottom: 12 }}>
+            <Text style={{ fontWeight: '700', marginBottom: 4, color: `hsl(${theme.colors.foregroundPrimary})` }}>Order cancelled</Text>
+            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})` }}>{order.cancel_reason ?? 'This order was cancelled.'}</Text>
+          </TerminalPanel>
+        ) : null}
+        {order.status === 'completed' || order.status === 'released' ? (
+          <TerminalPanel subtle style={{ marginBottom: 12 }}>
+            <Text style={{ fontWeight: '700', marginBottom: 4, color: `hsl(${theme.colors.foregroundPrimary})` }}>Order completed</Text>
+            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})` }}>Crypto has been released successfully.</Text>
+          </TerminalPanel>
+        ) : null}
+
+        <OrderRoomSummary order={order} isBuyer={isBuyer} />
+
+        {isBuyer && order.status === 'payment_pending' && details ? (
+          <OrderPaymentInstructions details={details} displayName={order.seller_payment_display_name} />
+        ) : null}
+
+        <OrderRoomActions
           order={order}
           role={role}
-          loading={actions.confirmPayment.isPending || actions.release.isPending}
-          onMarkPaid={() => setShowPay(true)}
-          onVerify={() => void actions.verifyPayment.mutateAsync()}
-          onRelease={() =>
-            Alert.alert('Release crypto?', 'This cannot be undone.', [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'Release', onPress: () => void actions.release.mutateAsync() },
-            ])
-          }
-          onCancel={() =>
-            Alert.alert('Cancel order?', '', [
-              { text: 'No', style: 'cancel' },
-              { text: 'Yes', onPress: () => void actions.cancel.mutateAsync('User cancelled') },
-            ])
-          }
-          onDispute={() => setShowDispute(true)}
+          loading={actionLoading || actions.isLocked()}
+          initialTxRef={draftTxRef}
+          onPersistTxRef={actions.persistTxRef}
+          onSubmitPay={(proof, txRef) => wrapAction(() => actions.submitPay(proof, txRef).then(() => undefined))}
+          onVerify={() => wrapAction(() => actions.verifyPayment().then(() => undefined))}
+          onRelease={() => wrapAction(() => actions.release().then(() => undefined))}
+          onCancel={(reason) => wrapAction(() => actions.cancel(reason).then(() => undefined))}
+          onDispute={async (reason) => {
+            await wrapAction(async () => {
+              const res = await actions.openDispute(reason);
+              if (res?.id) navigation.navigate('DisputeDetail', { disputeId: res.id });
+            });
+          }}
         />
-        {error ? <ErrorBanner message={error} /> : null}
+
         <P2PChatPanel
           messages={messagesQ.messages}
           typingUserId={typingUserId}
           currentUserId={userId}
+          enabled={(permissions?.chatEnabled ?? false) && isOnline}
           sending={sendMsg.isPending}
           onTyping={sendTyping}
           onSend={(text) => void sendMsg.mutateAsync(text)}
+          onResend={(text) => void sendMsg.mutateAsync(text)}
         />
+
+        {order.dispute_id ? (
+          <Pressable
+            onPress={() => navigation.navigate('DisputeDetail', { disputeId: order.dispute_id! })}
+            style={{ marginTop: 8 }}
+          >
+            <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600' }}>View dispute</Text>
+          </Pressable>
+        ) : null}
       </ScrollView>
-
-      <Modal visible={showPay} transparent animationType="slide">
-        <View style={styles.modalBackdrop}>
-          <View style={[styles.modal, { backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
-            <Text style={[styles.modalTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
-              Payment proof
-            </Text>
-            <TextField label="Transaction reference" value={txRef} onChangeText={setTxRef} />
-            <TextField label="Proof URL (optional)" value={proofUrl} onChangeText={setProofUrl} />
-            <PrimaryButton title="Confirm Paid" onPress={() => void confirmPaid()} />
-            <PrimaryButton title="Cancel" variant="secondary" onPress={() => setShowPay(false)} />
-          </View>
-        </View>
-      </Modal>
-
-      <Modal visible={showDispute} transparent animationType="slide">
-        <View style={styles.modalBackdrop}>
-          <View style={[styles.modal, { backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
-            <Text style={[styles.modalTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
-              Open dispute
-            </Text>
-            <TextField label="Reason" value={disputeReason} onChangeText={setDisputeReason} />
-            <TextField label="Evidence URL" value={proofUrl} onChangeText={setProofUrl} />
-            <PrimaryButton title="Submit" onPress={() => void openDispute()} />
-            <PrimaryButton title="Cancel" variant="secondary" onPress={() => setShowDispute(false)} />
-          </View>
-        </View>
-      </Modal>
     </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
-  modalBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(5, 7, 11, 0.72)' },
-  modal: { padding: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16 },
-  modalTitle: { fontWeight: '700', marginBottom: 12, fontSize: 17 },
+  content: { paddingBottom: 32 },
+  offline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
 });

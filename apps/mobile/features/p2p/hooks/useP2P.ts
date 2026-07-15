@@ -20,7 +20,15 @@ import type {
   CreateP2POrderRequest,
   P2PMessage,
   P2PAd,
+  P2POrder,
 } from '@exchange/mobile-types';
+import {
+  findOrderInQueryCache,
+  isTerminalOrderStatus,
+  P2POrderNotFoundError,
+  P2P_ORDER_QUERY_KEY,
+} from '@core/domain/p2p/orderRoom';
+import { useWsMetricsStore } from '@core/state/wsMetricsStore';
 
 export const P2P_ADS_KEY = ['p2p', 'ads'] as const;
 export const P2P_MY_ADS_KEY = ['p2p', 'my-ads'] as const;
@@ -152,14 +160,35 @@ export function useMyP2POrders(status?: string) {
   });
 }
 
-export function useP2POrder(orderId: string) {
+export function useP2POrder(orderId: string, seedOrder?: P2POrder) {
+  const qc = useQueryClient();
+  const wsConnected = useWsMetricsStore((s) => s.streamPhase === 'live');
+
   return useQuery({
     queryKey: P2P_ORDER_KEY(orderId),
-    queryFn: () => getP2PRepository().getOrder(orderId),
+    queryFn: async () => {
+      const order = await getP2PRepository().getOrder(orderId);
+      if (!order?.id) throw new P2POrderNotFoundError(orderId);
+      return order;
+    },
+    initialData: () => {
+      if (seedOrder?.id === orderId) return seedOrder;
+      return findOrderInQueryCache(qc, orderId);
+    },
     enabled: !!orderId,
     staleTime: 5_000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
+    refetchInterval: (q) => {
+      const st = q.state.data?.status;
+      if (isTerminalOrderStatus(st) || st === 'disputed') return false;
+      return wsConnected ? 60_000 : 5_000;
+    },
+    retry: (count, err) => !(err instanceof P2POrderNotFoundError) && count < 2,
   });
 }
+
+export { P2POrderNotFoundError, P2P_ORDER_QUERY_KEY };
 
 export function useCreateP2POrder() {
   const qc = useQueryClient();
@@ -202,15 +231,20 @@ export function useP2POrderActions(orderId: string) {
   };
 }
 
-export function useP2PMessages(orderId: string) {
+export function useP2PMessages(orderId: string, enabled = true) {
   const storeMessages = useP2PStore((s) => s.messagesByOrder[orderId]);
   const setMessages = useP2PStore((s) => s.setMessages);
+  const wsConnected = useWsMetricsStore((s) => s.streamPhase === 'live');
 
   const q = useQuery({
     queryKey: P2P_MESSAGES_KEY(orderId),
     queryFn: () => getP2PRepository().getMessages(orderId),
-    enabled: !!orderId,
+    enabled: !!orderId && enabled,
     staleTime: 5_000,
+    refetchInterval: () => {
+      if (!enabled || !orderId) return false;
+      return wsConnected ? 45_000 : 4_000;
+    },
   });
 
   useEffect(() => {
