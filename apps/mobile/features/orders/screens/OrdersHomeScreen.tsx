@@ -76,9 +76,10 @@ export function OrdersHomeScreen({ navigation }: Props) {
   const { theme } = useTheme();
   const { isGuest } = useGuestAccess();
   const [tab, setTab] = useState<OrdersTab>('open');
-  const openQ = useOpenOrders();
-  const orderHistQ = useOrderHistory();
-  const tradeHistQ = useTradeHistory();
+  const authEnabled = !isGuest;
+  const openQ = useOpenOrders(authEnabled);
+  const orderHistQ = useOrderHistory(undefined, authEnabled);
+  const tradeHistQ = useTradeHistory(undefined, authEnabled);
 
   useEffect(() => {
     analytics.screen('S-400');

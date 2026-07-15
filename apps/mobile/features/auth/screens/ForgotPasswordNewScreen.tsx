@@ -41,7 +41,7 @@ export function ForgotPasswordNewScreen({ route, navigation }: Props) {
         otp: route.params.otp,
         newPassword,
       });
-      navigation.navigate('LoginPassword');
+      navigation.navigate('LoginPassword', { resetSuccess: true });
     } catch (err) {
       setError(handleAuthError(err));
     }

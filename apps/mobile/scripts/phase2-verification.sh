@@ -58,5 +58,7 @@ deeplink "metheorium://account/preferences"
 shot "Preferences (theme/lang)" "04-preferences.png" 4
 
 kill_metro
+echo ""
 echo "Passed: $PASSED | Failed: $FAILED | Screenshots: $OUT"
+echo "NOTE: Metro was stopped. Run ./scripts/dev-launch.sh before opening the dev client again."
 [[ "$FAILED" -eq 0 ]]

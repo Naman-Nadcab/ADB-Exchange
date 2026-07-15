@@ -1,7 +1,8 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ScreenLayout, Card, PrimaryButton, Loader } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PrimaryButton, Loader } from '@shared/ui';
+import { useTheme, marketing } from '@shared/theme';
 
 type Props = {
   testID: string;
@@ -23,11 +24,21 @@ export function ShellStateScreen({
   loading,
 }: Props) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
-    <ScreenLayout testID={testID} padded={false}>
-      <View style={[styles.wrap, { padding: theme.spacing.pageX }]}>
-        <Card elevated style={{ alignItems: 'center', paddingVertical: theme.spacing[8] }}>
+    <View
+      testID={testID}
+      style={[
+        styles.root,
+        {
+          paddingTop: insets.top + theme.spacing[6],
+          paddingBottom: insets.bottom + theme.spacing[6],
+          paddingHorizontal: theme.spacing.pageX,
+        },
+      ]}
+    >
+      <View style={[styles.card, { backgroundColor: `hsl(${theme.colors.backgroundElevated})`, borderColor: `hsl(${theme.colors.borderDefault})` }]}>
           {loading ? (
             <Loader size="lg" />
           ) : (
@@ -61,14 +72,24 @@ export function ShellStateScreen({
               <PrimaryButton title={actionLabel} onPress={onAction} />
             </View>
           ) : null}
-        </Card>
       </View>
-    </ScreenLayout>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, justifyContent: 'center' },
+  root: {
+    flex: 1,
+    backgroundColor: marketing.pageBg,
+    justifyContent: 'center',
+  },
+  card: {
+    alignItems: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
   iconWrap: {
     width: 64,
     height: 64,

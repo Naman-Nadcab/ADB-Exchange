@@ -1,12 +1,16 @@
 import { memo } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { useTheme } from '@shared/theme';
+import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
+import { useTheme, hapticLight } from '@shared/theme';
 import { TerminalPanel } from '@shared/ui';
 import type { RecentTrade } from '@exchange/mobile-types';
 
-type Props = { trades: RecentTrade[]; maxRows?: number };
+type Props = {
+  trades: RecentTrade[];
+  maxRows?: number;
+  onSelectPrice?: (price: string, quantity: string) => void;
+};
 
-function RecentTradesListInner({ trades, maxRows = 20 }: Props) {
+function RecentTradesListInner({ trades, maxRows = 20, onSelectPrice }: Props) {
   const { theme } = useTheme();
   const data = trades.slice(0, maxRows);
 
@@ -29,7 +33,16 @@ function RecentTradesListInner({ trades, maxRows = 20 }: Props) {
           const color = item.side === 'buy' ? theme.colors.tradeBuy : theme.colors.tradeSell;
           const time = item.time ? new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
           return (
-            <View style={styles.row} accessibilityLabel={`${item.side} ${item.price}`}>
+            <Pressable
+              onPress={() => {
+                if (onSelectPrice) {
+                  void hapticLight();
+                  onSelectPrice(item.price, item.quantity);
+                }
+              }}
+              style={styles.row}
+              accessibilityLabel={`${item.side} ${item.price}`}
+            >
               <Text style={{ color: `hsl(${color})`, fontSize: 12, flex: 1, fontFamily: theme.fonts.mono }}>{item.price}</Text>
               <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, flex: 1, fontFamily: theme.fonts.mono }}>
                 {item.quantity}
@@ -37,7 +50,7 @@ function RecentTradesListInner({ trades, maxRows = 20 }: Props) {
               <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 10, flex: 1, textAlign: 'right' }}>
                 {time}
               </Text>
-            </View>
+            </Pressable>
           );
         }}
         ListEmptyComponent={

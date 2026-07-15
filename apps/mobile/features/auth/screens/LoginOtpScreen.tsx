@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { PrimaryButton, OTPInput, ErrorBanner } from '@shared/ui';
 import type { AuthStackParamList } from '@app/navigation/types';
 import { getAuthRepository } from '@core/repositories/AuthRepository';
+import { useSendOtp } from '../hooks/useSignup';
 import { useAuthActions } from '../hooks/useAuthActions';
+import { useOtpCountdown } from '../hooks/useOtpCountdown';
 import { AuthSplitLayout } from '../components/AuthSplitLayout';
 import { AuthFormHeading } from '../components/AuthFormHeading';
-import { AuthProgressBar } from '../components/AuthProgressBar';
+import { useTheme } from '@shared/theme';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'LoginOtp'>;
 
@@ -16,10 +18,13 @@ function detectType(id: string): 'email' | 'phone' {
 }
 
 export function LoginOtpScreen({ route, navigation }: Props) {
+  const { theme } = useTheme();
   const [otp, setOtp] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { completeSession, handleAuthError } = useAuthActions();
+  const sendOtp = useSendOtp();
+  const { formatted, reset, canResend } = useOtpCountdown(120);
   const { identifier } = route.params;
 
   const submit = async () => {
@@ -50,18 +55,62 @@ export function LoginOtpScreen({ route, navigation }: Props) {
     }
   };
 
+  const resend = async () => {
+    if (!canResend) return;
+    setError(null);
+    try {
+      await sendOtp.mutateAsync({
+        identifier,
+        type: detectType(identifier),
+        purpose: 'login',
+      });
+      reset(120);
+      setOtp('');
+    } catch (err) {
+      setError(handleAuthError(err));
+    }
+  };
+
   return (
     <AuthSplitLayout testID="S-104" showMarketingLogo onBack={() => navigation.goBack()}>
-      <AuthProgressBar steps={2} currentIndex={1} />
       <AuthFormHeading
         title="Enter verification code"
         subtitle={`We sent a 6-digit code to ${identifier}`}
       />
+      <Pressable onPress={() => navigation.navigate('LoginIdentifier')} style={{ marginBottom: theme.spacing[3] }}>
+        <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansMedium, fontSize: 14 }}>
+          Change email or phone
+        </Text>
+      </Pressable>
       <View style={{ alignItems: 'center', marginVertical: 24 }}>
         <OTPInput value={otp} onChange={setOtp} error={!!error} />
       </View>
       {error ? <ErrorBanner message={error} /> : null}
-      <PrimaryButton title="Verify & continue" size="xl" loading={loading} onPress={() => void submit()} />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing[4] }}>
+        <Pressable onPress={() => void resend()} disabled={!canResend}>
+          <Text
+            style={{
+              color: canResend ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.foregroundSecondary})`,
+              fontFamily: theme.fonts.sansMedium,
+              fontSize: 14,
+            }}
+          >
+            Resend code
+          </Text>
+        </Pressable>
+        {formatted ? (
+          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontVariant: ['tabular-nums'] }}>
+            {formatted}
+          </Text>
+        ) : null}
+      </View>
+      <PrimaryButton
+        title="Verify & continue"
+        size="xl"
+        loading={loading}
+        disabled={otp.length !== 6}
+        onPress={() => void submit()}
+      />
     </AuthSplitLayout>
   );
 }

@@ -168,7 +168,9 @@ export class AuthRepository extends BaseRepository {
   }
 
   getFundPasswordStatus() {
-    return this.get<FundPasswordStatus>('/auth/fund-password/status');
+    return this.get<{ hasFundPassword?: boolean; isSet?: boolean }>('/auth/fund-password/status').then(
+      (s) => ({ enabled: !!(s.hasFundPassword ?? s.isSet), isSet: !!(s.hasFundPassword ?? s.isSet) }),
+    );
   }
 
   getProfile() {
@@ -176,11 +178,15 @@ export class AuthRepository extends BaseRepository {
   }
 
   changePassword(body: { currentPassword: string; newPassword: string; securityOtp?: string }) {
-    return this.post<{ message: string }>('/auth/change-password', body);
+    const { currentPassword, ...rest } = body;
+    return this.post<{ message: string }>('/auth/change-password', {
+      oldPassword: currentPassword,
+      ...rest,
+    });
   }
 
-  checkPassword(password: string) {
-    return this.post<{ valid: boolean }>('/auth/check-password', { password });
+  getPasswordStatus() {
+    return this.get<{ hasPassword: boolean }>('/auth/check-password');
   }
 
   setup2FA() {
@@ -291,7 +297,13 @@ export class AuthRepository extends BaseRepository {
   }
 
   getDeletionStatus() {
-    return this.get<import('@exchange/mobile-types').AccountDeletionStatus>('/auth/account/deletion-status');
+    return this.get<{ requested?: boolean; pending?: boolean; requestedAt?: string | null; scheduledAt?: string | null }>(
+      '/auth/account/deletion-status',
+    ).then((s) => ({
+      pending: !!(s.requested ?? s.pending),
+      requested_at: s.requestedAt ?? undefined,
+      scheduled_at: s.scheduledAt ?? undefined,
+    }));
   }
 
   requestAccountDeletion(reason?: string) {

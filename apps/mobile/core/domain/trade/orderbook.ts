@@ -59,6 +59,14 @@ export function validateOrder(
       return { valid: false, field: 'trailing_delta', message: 'Trailing delta 0–100%' };
     }
   }
+  if (req.post_only) {
+    if (req.type !== 'limit') {
+      return { valid: false, field: 'post_only', message: 'Post-only applies to limit orders only' };
+    }
+    if (req.time_in_force && req.time_in_force !== 'gtc') {
+      return { valid: false, field: 'time_in_force', message: 'Post-only requires GTC' };
+    }
+  }
   return { valid: true };
 }
 

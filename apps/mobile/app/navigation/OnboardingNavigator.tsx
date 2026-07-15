@@ -1,62 +1,93 @@
 import { Text, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ScreenLayout, PrimaryButton } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { PrimaryButton } from '@shared/ui';
+import { useTheme, marketing } from '@shared/theme';
 import { mmkvStorage } from '@core/storage/mmkvStorage';
 import { CACHE_KEYS } from '@core/storage/cacheKeys';
 import { useAppStore } from '@core/state/appStore';
 import { appLock } from '@core/security/appLock';
+import { AuthSplitLayout, AuthFormHeading } from '@features/auth';
+import {
+  getAuthPreviewScreen,
+  isAuthPreviewEnabled,
+} from '@app/bootstrap/authPreview';
 import type { OnboardingStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<OnboardingStackParamList>();
 
-function EnableBiometricsScreen() {
+function EnableBiometricsScreen({ navigation }: NativeStackScreenProps<OnboardingStackParamList, 'EnableBiometrics'>) {
   const { theme } = useTheme();
   const setPhase = useAppStore((s) => s.setPhase);
 
-  const enable = async () => {
-    const can = await appLock.canUseBiometrics();
-    if (can) await appLock.setEnabled(true);
-    await mmkvStorage.set(CACHE_KEYS.onboarding, 'complete');
-    useAppStore.getState().setOnboardingComplete(true);
-    setPhase('main');
-  };
-
-  const skip = async () => {
+  const finish = async (enableBio: boolean) => {
+    if (enableBio) {
+      const can = await appLock.canUseBiometrics();
+      if (can) await appLock.setEnabled(true);
+    }
     await mmkvStorage.set(CACHE_KEYS.onboarding, 'complete');
     useAppStore.getState().setOnboardingComplete(true);
     setPhase('main');
   };
 
   return (
-    <ScreenLayout testID="S-120">
-      <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
-        Enable biometrics
-      </Text>
-      <Text style={[styles.body, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
-        Unlock METHErium quickly when returning to the app.
-      </Text>
-      <PrimaryButton title="Enable" onPress={() => void enable()} />
-      <PrimaryButton title="Skip" variant="secondary" onPress={() => void skip()} />
-    </ScreenLayout>
+    <AuthSplitLayout testID="S-120" showMarketingLogo>
+      <AuthFormHeading
+        title="Enable biometrics"
+        subtitle="Unlock METHErium quickly when returning to the app."
+      />
+      <PrimaryButton title="Enable Face ID / Touch ID" size="xl" onPress={() => void finish(true)} />
+      <PrimaryButton
+        title="Set PIN instead"
+        variant="outline"
+        size="xl"
+        onPress={() => navigation.navigate('PinFallback')}
+        style={{ marginTop: theme.spacing[3] }}
+      />
+      <PrimaryButton
+        title="Skip for now"
+        variant="ghost"
+        size="md"
+        onPress={() => void finish(false)}
+        style={{ marginTop: theme.spacing[3] }}
+      />
+    </AuthSplitLayout>
   );
 }
 
-function PinFallbackScreen() {
+function PinFallbackScreen({ navigation }: NativeStackScreenProps<OnboardingStackParamList, 'PinFallback'>) {
   const { theme } = useTheme();
+  const setPhase = useAppStore((s) => s.setPhase);
+
+  const complete = async () => {
+    await mmkvStorage.set(CACHE_KEYS.onboarding, 'complete');
+    useAppStore.getState().setOnboardingComplete(true);
+    setPhase('main');
+  };
+
   return (
-    <ScreenLayout testID="S-123">
-      <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>PIN fallback</Text>
-      <Text style={[styles.body, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
-        Set a PIN as backup when biometrics are unavailable.
+    <AuthSplitLayout testID="S-123" showMarketingLogo onBack={() => navigation.goBack()}>
+      <AuthFormHeading
+        title="PIN fallback"
+        subtitle="Configure a PIN backup in Security Center after you enter the app."
+      />
+      <Text style={[styles.note, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+        App lock PIN setup is available under Account → Security Center → App Lock.
       </Text>
-    </ScreenLayout>
+      <PrimaryButton title="Continue to Markets" size="xl" onPress={() => void complete()} />
+    </AuthSplitLayout>
   );
 }
 
 export function OnboardingNavigator() {
+  const previewScreen = isAuthPreviewEnabled() ? getAuthPreviewScreen() : null;
+  const initialRouteName = (previewScreen ?? 'EnableBiometrics') as keyof OnboardingStackParamList;
+
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: marketing.pageBg } }}
+      initialRouteName={initialRouteName}
+    >
       <Stack.Screen name="EnableBiometrics" component={EnableBiometricsScreen} />
       <Stack.Screen name="PinFallback" component={PinFallbackScreen} />
     </Stack.Navigator>
@@ -64,6 +95,5 @@ export function OnboardingNavigator() {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 24, fontWeight: '600', marginBottom: 12 },
-  body: { fontSize: 14, marginBottom: 24 },
+  note: { fontSize: 14, marginBottom: 24, lineHeight: 20 },
 });

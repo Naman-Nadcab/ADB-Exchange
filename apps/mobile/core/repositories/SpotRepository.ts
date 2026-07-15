@@ -10,6 +10,7 @@ import type {
   PlaceOrderRequest,
   SpotOrder,
   CancelAllResult,
+  MarketIntelligencePayload,
 } from '@exchange/mobile-types';
 
 function norm(symbol: string) {
@@ -19,6 +20,13 @@ function norm(symbol: string) {
 export class SpotRepository extends BaseRepository {
   getMarkets() {
     return this.http.request<SpotMarket[]>('/spot/markets', { method: 'GET', skipAuth: true });
+  }
+
+  getMarketIntelligence() {
+    return this.http.request<MarketIntelligencePayload>('/spot/markets/intelligence', {
+      method: 'GET',
+      skipAuth: true,
+    });
   }
 
   getTickers() {

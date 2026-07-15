@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { FlatList, Pressable, Text, Alert } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, PrimaryButton } from '@shared/ui';
+import { ScreenLayout, PrimaryButton, SecondaryButton } from '@shared/ui';
 import { analytics } from '@core/observability/analytics';
 import { getAdPrice } from '@core/domain/p2p/order';
 import { useMyP2PAds, useUpdateAd, useDeleteAd } from '../hooks/useP2P';
@@ -21,6 +21,11 @@ export function MyAdsScreen({ navigation }: Props) {
   return (
     <ScreenLayout testID="S-607">
       <PrimaryButton title="Post new ad" onPress={() => navigation.navigate('PostAdType')} />
+      <SecondaryButton
+        title="Merchant dashboard"
+        onPress={() => navigation.navigate('MerchantDashboard')}
+        style={{ marginTop: 8, marginBottom: 8 }}
+      />
       <FlatList
         data={q.data ?? []}
         keyExtractor={(item) => item.id}

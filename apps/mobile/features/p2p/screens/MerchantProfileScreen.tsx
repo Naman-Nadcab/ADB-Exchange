@@ -9,7 +9,7 @@ import type { P2PStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<P2PStackParamList, 'MerchantProfile'>;
 
-export function MerchantProfileScreen({ route }: Props) {
+export function MerchantProfileScreen({ route, navigation }: Props) {
   const { advertiserId } = route.params;
   const q = useP2PAds({ advertiser_id: advertiserId });
   const block = useBlockAdvertiser();
@@ -26,7 +26,9 @@ export function MerchantProfileScreen({ route }: Props) {
       <FlatList
         data={ads}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <P2PAdCard ad={item} onPress={() => {}} />}
+        renderItem={({ item }) => (
+          <P2PAdCard ad={item} onPress={() => navigation.navigate('AdDetail', { adId: item.id })} />
+        )}
       />
     </ScreenLayout>
   );

@@ -1,6 +1,9 @@
-import { Pressable, View, Text } from 'react-native';
+import { Pressable, View, Text, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, hapticSelection } from '@shared/theme';
+
+const TERMS_URL = 'https://app.metheorium.com/terms';
+const PRIVACY_URL = 'https://app.metheorium.com/privacy';
 
 type Props = {
   checked: boolean;
@@ -47,11 +50,17 @@ export function AuthTermsCheckbox({ checked, onChange }: Props) {
       </View>
       <Text style={[theme.typography.bodyMd, { flex: 1, color: `hsl(${theme.colors.foregroundSecondary})` }]}>
         I agree to{' '}
-        <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansMedium }}>
+        <Text
+          onPress={() => void Linking.openURL(TERMS_URL)}
+          style={{ color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansMedium }}
+        >
           Terms
         </Text>{' '}
         and{' '}
-        <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansMedium }}>
+        <Text
+          onPress={() => void Linking.openURL(PRIVACY_URL)}
+          style={{ color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansMedium }}
+        >
           Privacy Policy
         </Text>
       </Text>

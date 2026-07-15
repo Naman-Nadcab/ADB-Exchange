@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, Text, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, SearchBar, SkeletonList } from '@shared/ui';
+import { ScreenLayout, SearchBar, SkeletonList, EmptyState, ErrorState } from '@shared/ui';
 import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useDepositTokens } from '../hooks/useBlockchainWallet';
@@ -33,6 +33,8 @@ export function DepositHomeScreen({ navigation }: Props) {
       </Pressable>
       {q.isLoading ? (
         <SkeletonList rows={8} />
+      ) : q.isError ? (
+        <ErrorState title="Could not load deposit coins" onRetry={() => void q.refetch()} />
       ) : (
         <FlatList
           data={filtered}
@@ -49,7 +51,12 @@ export function DepositHomeScreen({ navigation }: Props) {
               <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})` }}>{item.name}</Text>
             </Pressable>
           )}
-          ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 24 }}>No coins found</Text>}
+          ListEmptyComponent={
+            <EmptyState
+              title="No coins found"
+              message={search.trim() ? 'Try a different search term' : 'Deposit assets will appear when available from your account'}
+            />
+          }
         />
       )}
     </ScreenLayout>

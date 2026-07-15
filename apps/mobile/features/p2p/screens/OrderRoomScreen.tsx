@@ -141,22 +141,30 @@ export function OrderRoomScreen({ navigation, route }: Props) {
       </ScrollView>
 
       <Modal visible={showPay} transparent animationType="slide">
-        <View style={styles.modal}>
-          <Text style={styles.modalTitle}>Payment proof (M-601)</Text>
-          <TextField label="Transaction reference" value={txRef} onChangeText={setTxRef} />
-          <TextField label="Proof URL (optional)" value={proofUrl} onChangeText={setProofUrl} />
-          <PrimaryButton title="Confirm Paid" onPress={() => void confirmPaid()} />
-          <PrimaryButton title="Cancel" variant="secondary" onPress={() => setShowPay(false)} />
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modal, { backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
+            <Text style={[styles.modalTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+              Payment proof
+            </Text>
+            <TextField label="Transaction reference" value={txRef} onChangeText={setTxRef} />
+            <TextField label="Proof URL (optional)" value={proofUrl} onChangeText={setProofUrl} />
+            <PrimaryButton title="Confirm Paid" onPress={() => void confirmPaid()} />
+            <PrimaryButton title="Cancel" variant="secondary" onPress={() => setShowPay(false)} />
+          </View>
         </View>
       </Modal>
 
       <Modal visible={showDispute} transparent animationType="slide">
-        <View style={styles.modal}>
-          <Text style={styles.modalTitle}>Open dispute (M-602)</Text>
-          <TextField label="Reason" value={disputeReason} onChangeText={setDisputeReason} />
-          <TextField label="Evidence URL" value={proofUrl} onChangeText={setProofUrl} />
-          <PrimaryButton title="Submit" onPress={() => void openDispute()} />
-          <PrimaryButton title="Cancel" variant="secondary" onPress={() => setShowDispute(false)} />
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modal, { backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
+            <Text style={[styles.modalTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+              Open dispute
+            </Text>
+            <TextField label="Reason" value={disputeReason} onChangeText={setDisputeReason} />
+            <TextField label="Evidence URL" value={proofUrl} onChangeText={setProofUrl} />
+            <PrimaryButton title="Submit" onPress={() => void openDispute()} />
+            <PrimaryButton title="Cancel" variant="secondary" onPress={() => setShowDispute(false)} />
+          </View>
         </View>
       </Modal>
     </ScreenLayout>
@@ -165,6 +173,7 @@ export function OrderRoomScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
-  modal: { marginTop: 'auto', backgroundColor: '#fff', padding: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16 },
-  modalTitle: { fontWeight: '700', marginBottom: 12 },
+  modalBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(5, 7, 11, 0.72)' },
+  modal: { padding: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16 },
+  modalTitle: { fontWeight: '700', marginBottom: 12, fontSize: 17 },
 });

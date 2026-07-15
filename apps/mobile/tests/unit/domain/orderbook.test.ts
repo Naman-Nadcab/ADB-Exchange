@@ -48,4 +48,33 @@ describe('orderbook domain', () => {
     );
     expect(r.valid).toBe(false);
   });
+
+  it('validates trailing stop delta', () => {
+    const ok = validateOrder(
+      { market: 'BTC_USDT', side: 'sell', type: 'trailing_stop_market', quantity: '0.01', trailing_delta: '2' },
+      market,
+    );
+    expect(ok.valid).toBe(true);
+    const bad = validateOrder(
+      { market: 'BTC_USDT', side: 'sell', type: 'trailing_stop_market', quantity: '0.01', trailing_delta: '150' },
+      market,
+    );
+    expect(bad.valid).toBe(false);
+  });
+
+  it('rejects post-only with IOC', () => {
+    const r = validateOrder(
+      {
+        market: 'BTC_USDT',
+        side: 'buy',
+        type: 'limit',
+        quantity: '0.01',
+        price: '50000',
+        post_only: true,
+        time_in_force: 'ioc',
+      },
+      market,
+    );
+    expect(r.valid).toBe(false);
+  });
 });

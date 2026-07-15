@@ -2,13 +2,13 @@ export type AuthStackParamList = {
   Welcome: undefined;
   LoginMethod: undefined;
   LoginIdentifier: undefined;
-  LoginPassword: undefined;
+  LoginPassword: { resetSuccess?: boolean } | undefined;
   LoginOtp: { identifier: string };
   LoginVerifyStep: {
     verificationToken: string;
     nextStep: 'sms' | 'email' | '2fa';
   };
-  LoginPasskey: undefined;
+  LoginPasskey: { email?: string } | undefined;
   SignupIdentifier: { referralCode?: string; idType?: 'email' | 'phone' } | undefined;
   SignupOtp: { identifier: string; referralCode?: string };
   SignupPassword: { identifier: string; referralCode?: string };
@@ -37,7 +37,9 @@ export type RootStackParamList = {
   Auth: undefined;
   Onboarding: undefined;
   Main: undefined;
-  Account: undefined;
+  Account: import('@react-navigation/native').NavigatorScreenParams<
+    import('@features/account/navigation/types').AccountStackParamList
+  >;
 };
 
 declare global {

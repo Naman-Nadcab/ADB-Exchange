@@ -5,12 +5,13 @@ import { ChartFullscreenScreen } from '../screens/ChartFullscreenScreen';
 import { OrderbookFullscreenScreen } from '../screens/OrderbookFullscreenScreen';
 import { TradesFullscreenScreen } from '../screens/TradesFullscreenScreen';
 import type { TradeStackParamList } from './types';
+import { exchangeStackScreenOptions } from '@app/navigation/navigationTheme';
 
 const Stack = createNativeStackNavigator<TradeStackParamList>();
 
 export function TradeStackNavigator() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={exchangeStackScreenOptions}>
       <Stack.Screen
         name="SpotTrading"
         component={SpotTradingScreen}

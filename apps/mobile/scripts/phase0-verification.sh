@@ -119,4 +119,5 @@ echo "=== Phase 0 Verification Summary ==="
 echo "Passed: $PASSED"
 echo "Failed: $FAILED"
 echo "Screenshots: $OUT"
+echo "NOTE: Metro was stopped. Run ./scripts/dev-launch.sh before opening the dev client again."
 if [[ "$FAILED" -gt 0 ]]; then exit 1; fi

@@ -16,6 +16,8 @@ export type HttpRequestConfig = {
   body?: unknown;
   /** Multipart form body — skips JSON Content-Type. */
   formBody?: FormData;
+  /** Override API base (e.g. root `/health` lives outside `/api/v1`). */
+  baseUrl?: string;
   timeoutMs?: number;
   signal?: AbortSignal;
   skipAuth?: boolean;
@@ -37,7 +39,8 @@ export class HttpClient {
   constructor(private readonly deps: HttpClientDeps) {}
 
   async request<T>(path: string, config: HttpRequestConfig = {}): Promise<T> {
-    const url = `${this.deps.getBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`;
+    const base = (config.baseUrl ?? this.deps.getBaseUrl()).replace(/\/$/, '');
+    const url = `${base}${path.startsWith('/') ? path : `/${path}`}`;
     if (!this.deviceId) {
       this.deviceId = await getDeviceId();
     }

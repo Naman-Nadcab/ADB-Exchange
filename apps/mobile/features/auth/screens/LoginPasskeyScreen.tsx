@@ -9,8 +9,8 @@ import { AuthFormHeading } from '../components/AuthFormHeading';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'LoginPasskey'>;
 
-export function LoginPasskeyScreen({ navigation }: Props) {
-  const [email, setEmail] = useState('');
+export function LoginPasskeyScreen({ navigation, route }: Props) {
+  const [email, setEmail] = useState(route.params?.email ?? '');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { handleAuthError } = useAuthActions();

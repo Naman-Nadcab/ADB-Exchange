@@ -1,6 +1,8 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTheme, hapticLight } from '@shared/theme';
-import { TerminalPanel, StatusChip } from '@shared/ui';
+import { TerminalPanel, StatusChip, showToast } from '@shared/ui';
+import { ApiError } from '@core/api/errors/ApiError';
 import type { SpotOrder } from '@exchange/mobile-types';
 import { useCancelOpenOrder } from '../hooks/useCancelOpenOrder';
 
@@ -12,6 +14,7 @@ type Props = {
 export function OpenOrderRow({ order }: Props) {
   const { theme } = useTheme();
   const cancel = useCancelOpenOrder();
+  const [busy, setBusy] = useState(false);
   const sideColor = order.side === 'buy' ? theme.colors.tradeBuy : theme.colors.tradeSell;
 
   return (
@@ -37,13 +40,28 @@ export function OpenOrderRow({ order }: Props) {
       </View>
       <Pressable
         onPress={() => {
+          if (busy) return;
           void hapticLight();
-          cancel.mutate(order.id);
+          setBusy(true);
+          cancel.mutate(order.id, {
+            onSuccess: () => showToast('Order cancelled', { tone: 'success' }),
+            onError: (err) =>
+              showToast('Cancel failed', {
+                message: err instanceof ApiError ? err.message : 'Could not cancel order',
+                tone: 'error',
+              }),
+            onSettled: () => setBusy(false),
+          });
         }}
+        disabled={busy}
         accessibilityLabel="Cancel order"
         style={styles.cancelBtn}
       >
-        <Text style={{ color: `hsl(${theme.colors.statusError})`, fontSize: 13, fontWeight: '600' }}>Cancel</Text>
+        {busy ? (
+          <ActivityIndicator size="small" color={`hsl(${theme.colors.statusError})`} />
+        ) : (
+          <Text style={{ color: `hsl(${theme.colors.statusError})`, fontSize: 13, fontWeight: '600' }}>Cancel</Text>
+        )}
       </Pressable>
     </TerminalPanel>
   );

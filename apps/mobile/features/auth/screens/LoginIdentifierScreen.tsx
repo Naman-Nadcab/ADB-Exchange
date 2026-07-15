@@ -1,17 +1,19 @@
 import { useState } from 'react';
+import { Pressable, Text } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { PrimaryButton, TextField, ErrorBanner } from '@shared/ui';
+import { useTheme } from '@shared/theme';
 import type { AuthStackParamList } from '@app/navigation/types';
 import { useSendOtp } from '../hooks/useSignup';
 import { useAuthActions } from '../hooks/useAuthActions';
 import { AuthSplitLayout } from '../components/AuthSplitLayout';
 import { AuthFormHeading } from '../components/AuthFormHeading';
-import { AuthProgressBar } from '../components/AuthProgressBar';
 import { AuthIdTypeToggle } from '../components/AuthIdTypeToggle';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'LoginIdentifier'>;
 
 export function LoginIdentifierScreen({ navigation }: Props) {
+  const { theme } = useTheme();
   const [identifier, setIdentifier] = useState('');
   const [idType, setIdType] = useState<'email' | 'phone'>('email');
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +40,11 @@ export function LoginIdentifierScreen({ navigation }: Props) {
 
   return (
     <AuthSplitLayout testID="S-102" showMarketingLogo onBack={() => navigation.goBack()}>
-      <AuthProgressBar steps={2} currentIndex={0} />
+      <Pressable onPress={() => navigation.navigate('LoginPassword')} style={{ marginBottom: theme.spacing[3] }}>
+        <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansMedium, fontSize: 14 }}>
+          ← Back to password
+        </Text>
+      </Pressable>
       <AuthFormHeading title="Sign in with code" subtitle="We'll send a one-time code to your email or mobile." />
       <AuthIdTypeToggle value={idType} onChange={setIdType} />
       <TextField

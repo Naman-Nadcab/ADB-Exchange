@@ -159,6 +159,8 @@ export type OrderType =
   | 'stop_limit'
   | 'trailing_stop_market';
 
+export type TimeInForce = 'gtc' | 'ioc' | 'fok';
+
 export type PlaceOrderRequest = {
   market: string;
   side: OrderSide;
@@ -168,6 +170,12 @@ export type PlaceOrderRequest = {
   stop_price?: string;
   trailing_delta?: string;
   client_order_id?: string;
+  time_in_force?: TimeInForce;
+  post_only?: boolean;
+  /** Backend supports reduce_only (sell-only spot). Not exposed in web UI. */
+  reduce_only?: boolean;
+  /** Backend supports iceberg when feature flag enabled. Not exposed in web UI. */
+  display_quantity?: string;
 };
 
 export type SpotOrder = {

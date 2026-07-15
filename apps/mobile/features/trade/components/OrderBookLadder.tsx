@@ -7,7 +7,7 @@ import type { OrderbookSnapshot } from '@exchange/mobile-types';
 
 type Props = {
   book?: OrderbookSnapshot;
-  onSelectPrice?: (price: string, side: 'buy' | 'sell') => void;
+  onSelectPrice?: (price: string, side: 'buy' | 'sell', quantity?: string) => void;
   maxRows?: number;
 };
 
@@ -34,7 +34,7 @@ function OrderBookLadderInner({ book, onSelectPrice, maxRows = 12 }: Props) {
         <Pressable
           onPress={() => {
             void hapticLight();
-            onSelectPrice?.(item.price, side);
+            onSelectPrice?.(item.price, side, item.quantity);
           }}
           style={styles.row}
           accessibilityLabel={`${side} ${item.price}`}

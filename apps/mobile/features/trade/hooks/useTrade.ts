@@ -10,13 +10,14 @@ export const BALANCES_KEY = TRADING_BAL_KEY;
 
 export { useTradingBalances };
 
-export function useOpenOrders() {
+export function useOpenOrders(enabled = true) {
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: OPEN_ORDERS_KEY,
     queryFn: () => getSpotRepository().getOpenOrders(),
     staleTime: 0,
-    refetchInterval: 15_000,
+    refetchInterval: enabled ? 15_000 : false,
+    enabled,
   });
   useEffect(() => {
     return appEventBus.on('orders:invalidate', () => {
@@ -71,12 +72,13 @@ export function useRecentTradesBootstrap(symbol: string) {
   });
 }
 
-export function useCandles(symbol: string, interval: number) {
+export function useCandles(symbol: string, interval: number, enabled = true, refetchInterval = 15_000) {
   return useQuery({
     queryKey: ['candles', symbol, interval],
     queryFn: () => getSpotRepository().getCandles(symbol, interval),
-    staleTime: 30_000,
-    enabled: !!symbol,
+    staleTime: 15_000,
+    refetchInterval: enabled ? refetchInterval : false,
+    enabled: !!symbol && enabled,
   });
 }
 

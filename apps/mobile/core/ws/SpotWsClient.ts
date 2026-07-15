@@ -1,4 +1,6 @@
 import type { WsConnectionState } from './channels';
+import { streamPhaseFromWsState } from '@core/domain/trade/marketPulse';
+import { useWsMetricsStore } from '@core/state/wsMetricsStore';
 import { nextReconnectDelay, DEFAULT_RECONNECT_POLICY } from './reconnectPolicy';
 
 export type WsMessageHandler = (message: unknown) => void;
@@ -20,6 +22,8 @@ export class SpotWsClient {
   private reconnectAttempt = 0;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private shouldReconnect = true;
+  private pendingPings = new Map<number, number>();
+  private pingSeq = 0;
 
   constructor(private readonly options: SpotWsClientOptions) {}
 
@@ -29,6 +33,10 @@ export class SpotWsClient {
 
   private setState(state: WsConnectionState) {
     this.state = state;
+    useWsMetricsStore.getState().setStreamPhase(streamPhaseFromWsState(state));
+    if (state === 'connected') {
+      useWsMetricsStore.getState().setReconnectAttempt(0);
+    }
     this.options.onStateChange?.(state);
   }
 
@@ -52,6 +60,13 @@ export class SpotWsClient {
     ws.onmessage = (event) => {
       try {
         const parsed = JSON.parse(String(event.data));
+        if (parsed && typeof parsed === 'object' && (parsed as { type?: string }).type === 'pong') {
+          const clientTs = (parsed as { client_ts?: number }).client_ts;
+          if (typeof clientTs === 'number' && this.pendingPings.has(clientTs)) {
+            this.pendingPings.delete(clientTs);
+            useWsMetricsStore.getState().setLastRttMs(Math.round(Date.now() - clientTs));
+          }
+        }
         this.routeMessage(parsed);
       } catch {
         // drop malformed
@@ -156,6 +171,7 @@ export class SpotWsClient {
     this.clearReconnectTimer();
     const delay = nextReconnectDelay(this.reconnectAttempt, DEFAULT_RECONNECT_POLICY);
     this.reconnectAttempt += 1;
+    useWsMetricsStore.getState().setReconnectAttempt(this.reconnectAttempt);
     this.setState('reconnecting');
     this.reconnectTimer = setTimeout(() => this.connect(), delay);
   }
@@ -169,7 +185,10 @@ export class SpotWsClient {
     this.stopHeartbeat();
     this.heartbeatTimer = setInterval(() => {
       if (this.socket?.readyState === WebSocket.OPEN) {
-        this.socket.send(JSON.stringify({ type: 'ping' }));
+        const clientTs = Date.now();
+        this.pingSeq += 1;
+        this.pendingPings.set(clientTs, this.pingSeq);
+        this.socket.send(JSON.stringify({ type: 'ping', client_ts: clientTs }));
       }
     }, HEARTBEAT_INTERVAL_MS);
   }

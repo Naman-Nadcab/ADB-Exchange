@@ -123,7 +123,7 @@ export function SignupIdentifierScreen({ navigation, route }: Props) {
             </Pressable>
           </View>
         </View>
-        <Pressable onPress={() => navigation.navigate('LoginMethod')} style={{ marginTop: theme.spacing[6] }}>
+        <Pressable onPress={() => navigation.navigate('LoginPassword')} style={{ marginTop: theme.spacing[6] }}>
           <Text style={[theme.typography.bodyMd, { textAlign: 'center', color: `hsl(${theme.colors.foregroundSecondary})` }]}>
             Have an account?{' '}
             <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansMedium }}>

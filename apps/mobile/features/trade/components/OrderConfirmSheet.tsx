@@ -36,6 +36,9 @@ export function OrderConfirmSheet({
       <SummaryRow label="Quantity" value={`${order.quantity} ${baseAsset}`} theme={theme} />
       {order.price ? <SummaryRow label="Price" value={order.price} theme={theme} /> : null}
       {order.stop_price ? <SummaryRow label="Stop" value={order.stop_price} theme={theme} /> : null}
+      {order.trailing_delta ? <SummaryRow label="Trailing" value={`${order.trailing_delta}%`} theme={theme} /> : null}
+      {order.time_in_force ? <SummaryRow label="TIF" value={order.time_in_force.toUpperCase()} theme={theme} /> : null}
+      {order.post_only ? <SummaryRow label="Post-only" value="Yes" theme={theme} /> : null}
       {estimate ? <SummaryRow label="Est. total" value={`${estimate} ${quoteAsset}`} theme={theme} /> : null}
       {fee ? <SummaryRow label="Est. fee" value={fee} theme={theme} /> : null}
       <PrimaryButton

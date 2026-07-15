@@ -36,12 +36,13 @@ export function useFundingBalances() {
   });
 }
 
-export function useTradingBalances() {
+export function useTradingBalances(enabled = true) {
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: TRADING_BAL_KEY,
     queryFn: () => getWalletRepository().getSpotBalances(),
     staleTime: CACHE_TTL_MS.balances,
+    enabled,
   });
   useEffect(() => {
     return appEventBus.on('balances:invalidate', () => {
