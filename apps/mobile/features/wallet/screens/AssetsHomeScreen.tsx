@@ -34,6 +34,7 @@ import {
 import { PortfolioSummary } from '../components/PortfolioSummary';
 import { AllocationChart } from '../components/AllocationChart';
 import { FiatBalanceCard } from '../components/FiatBalanceCard';
+import { WalletQuickToolLink } from '../components/WalletQuickToolLink';
 import { RecentTransactionsList } from '../components/RecentTransactionsList';
 import { mapFromWalletRecentTransaction } from '@core/domain/wallet/walletHistory';
 import type { WalletRecentTransaction } from '@exchange/mobile-types';
@@ -264,6 +265,18 @@ export function AssetsHomeScreen({ navigation }: Props) {
                     onManageBanks={() => {
                       if (!requireAuth()) return;
                       navigation.getParent()?.navigate('P2P', { screen: 'PaymentMethods' });
+                    }}
+                  />
+
+                  <WalletQuickToolLink
+                    title="P&L"
+                    subtitle="Profit & loss"
+                    icon="trending-up-outline"
+                    iconBg={`hsl(${theme.colors.tradeBuy} / 0.1)`}
+                    iconColor={`hsl(${theme.colors.tradeBuy})`}
+                    onPress={() => {
+                      if (!requireAuth()) return;
+                      navigation.navigate('WalletPnl');
                     }}
                   />
 

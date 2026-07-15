@@ -77,6 +77,7 @@ export type WalletStackParamList = {
     withdrawalId: string;
     snapshot?: import('@exchange/mobile-types').FiatWithdrawal;
   };
+  WalletPnl: undefined;
   AddressBook:
     | {
         selectMode?: boolean;

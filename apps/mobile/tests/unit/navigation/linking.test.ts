@@ -22,6 +22,10 @@ describe('deep link config', () => {
     expect(linking.config.screens.Main.screens.Wallet.screens.WalletHistory.path).toBe('wallet/history');
   });
 
+  it('maps wallet pnl path', () => {
+    expect(linking.config.screens.Main.screens.Wallet.screens.WalletPnl).toBe('wallet/pnl');
+  });
+
   it('maps deposit coin deep link to network selection', () => {
     expect(linking.config.screens.Main.screens.Wallet.screens.DepositNetwork.path).toBe('wallet/deposit/:symbol');
   });

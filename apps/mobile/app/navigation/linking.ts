@@ -70,6 +70,7 @@ export const linking = {
               },
               FiatWithdraw: 'wallet/withdraw/fiat',
               FiatWithdrawalDetail: 'wallet/fiat/withdrawals/:withdrawalId',
+              WalletPnl: 'wallet/pnl',
               WithdrawNetwork: 'wallet/withdraw/:symbol/network',
               WithdrawForm: 'wallet/withdraw/:symbol/form',
               WithdrawalHistory: 'wallet/withdraw/history',

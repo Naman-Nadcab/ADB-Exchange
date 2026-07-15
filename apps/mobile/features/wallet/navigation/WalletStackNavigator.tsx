@@ -30,6 +30,7 @@ import { EditAddressScreen } from '../screens/EditAddressScreen';
 import { FiatWithdrawHomeScreen } from '../screens/FiatWithdrawHomeScreen';
 import { FiatWithdrawConfirmScreen } from '../screens/FiatWithdrawConfirmScreen';
 import { FiatWithdrawalDetailScreen } from '../screens/FiatWithdrawalDetailScreen';
+import { WalletPnlScreen } from '../screens/WalletPnlScreen';
 import type { WalletStackParamList } from './types';
 import { exchangeStackScreenOptions } from '@app/navigation/navigationTheme';
 
@@ -60,6 +61,7 @@ export function WalletStackNavigator() {
       <Stack.Screen name="FiatWithdraw" component={guestGuard(FiatWithdrawHomeScreen, 'Log in to withdraw INR.')} options={{ title: 'Fiat Withdrawal' }} />
       <Stack.Screen name="FiatWithdrawConfirm" component={guestGuard(FiatWithdrawConfirmScreen, 'Log in to withdraw INR.')} options={{ title: 'Confirm' }} />
       <Stack.Screen name="FiatWithdrawalDetail" component={guestGuard(FiatWithdrawalDetailScreen, 'Log in to view withdrawal details.')} options={{ title: 'INR Withdrawal' }} />
+      <Stack.Screen name="WalletPnl" component={guestGuard(WalletPnlScreen, 'Log in to view P&L analysis.')} options={{ title: 'P&L Analysis' }} />
       <Stack.Screen name="WithdrawNetwork" component={guestGuard(WithdrawNetworkScreen, 'Log in to withdraw.')} options={{ title: 'Network' }} />
       <Stack.Screen name="WithdrawForm" component={guestGuard(WithdrawFormScreen, 'Log in to withdraw.')} options={{ title: 'Withdraw' }} />
       <Stack.Screen name="WithdrawConfirm" component={guestGuard(WithdrawConfirmScreen, 'Log in to withdraw.')} options={{ title: 'Confirm' }} />

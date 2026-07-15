@@ -97,10 +97,13 @@ export function useRecentTransactions(limit = 8) {
   });
 }
 
-export function usePnl(period = '7D') {
+export function usePnl(params?: { period?: string; type?: string; symbol?: string }) {
+  const period = params?.period ?? '7d';
+  const type = params?.type ?? 'all';
+  const symbol = params?.symbol ?? 'all';
   return useQuery({
-    queryKey: ['pnl', period],
-    queryFn: () => getWalletRepository().getPnl({ period }),
+    queryKey: ['pnl', period, type, symbol],
+    queryFn: () => getWalletRepository().getPnl({ period, type, symbol }),
     staleTime: 60_000,
   });
 }
