@@ -41,6 +41,30 @@ export function useP2PAds(filters?: {
   });
 }
 
+/** Marketplace listing — single fetch of 50 ads matching website p2p-v2. */
+export function useP2PMarketplaceAds(filters: {
+  type: string;
+  currency: string;
+  fiat: string;
+}) {
+  return useQuery({
+    queryKey: [...P2P_ADS_KEY, 'marketplace', filters],
+    queryFn: () => getP2PRepository().getAds({ ...filters, limit: 50, offset: 0 }),
+    staleTime: 15_000,
+    refetchOnWindowFocus: true,
+    enabled: !!filters.type && !!filters.currency && !!filters.fiat,
+  });
+}
+
+export function useSpotTickersForP2P() {
+  return useQuery({
+    queryKey: ['spot', 'tickers', 'p2p'],
+    queryFn: () => getSpotRepository().getTickers(),
+    staleTime: 15_000,
+    refetchInterval: 15_000,
+  });
+}
+
 export function useP2PReferencePrice(asset: string, fiat: string) {
   return useQuery({
     queryKey: ['p2p', 'reference-price', asset, fiat],
