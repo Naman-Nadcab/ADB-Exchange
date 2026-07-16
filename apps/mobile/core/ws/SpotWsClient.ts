@@ -94,7 +94,7 @@ export class SpotWsClient {
     this.activeChannels.add(channel);
     if (this.socket?.readyState === WebSocket.OPEN) {
       this.sendSubscribe(channel);
-    } else if (!this.socket || this.socket.readyState === WebSocket.CLOSED) {
+    } else if ((!this.socket || this.socket.readyState === WebSocket.CLOSED) && this.shouldReconnect) {
       this.connect();
     }
   }
@@ -141,28 +141,6 @@ export class SpotWsClient {
     if (type) {
       const global = this.handlers.get(`__type__:${type}`);
       global?.forEach((h) => h(message));
-    }
-    if (type === 'orderbook_snapshot' || type === 'orderbook_update' || type === 'orderbook_delta' || type === 'orderbook_resync') {
-      if (channel) this.handlers.get(channel)?.forEach((h) => h(message));
-    }
-    if (type === 'trades' && channel) {
-      this.handlers.get(channel)?.forEach((h) => h(message));
-    }
-    if (type === 'ticker' && channel) {
-      this.handlers.get(channel)?.forEach((h) => h(message));
-    }
-    if (type === 'auth_result') {
-      this.handlers.get('__type__:auth_result')?.forEach((h) => h(message));
-    }
-    if (
-      type === 'p2p_order_update' ||
-      type === 'message:new' ||
-      type === 'message:read' ||
-      type === 'typing' ||
-      type === 'order:updated' ||
-      type === 'order:status_changed'
-    ) {
-      if (channel) this.handlers.get(channel)?.forEach((h) => h(message));
     }
   }
 

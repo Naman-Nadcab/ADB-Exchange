@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useMemo } from 'react';
 import { ScrollView, Text, StyleSheet, View, Pressable, Linking, RefreshControl, Alert } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQueryClient } from '@tanstack/react-query';
@@ -31,8 +31,16 @@ export function WithdrawalDetailScreen({ route }: Props) {
     void qc.invalidateQueries({ queryKey: ['withdrawals'] });
   }, [withdrawalId, qc]);
 
-  const item = q.data?.pages.flatMap((p) => p.items).find((w) => w.id === withdrawalId) ?? snapshot;
+  const item = useMemo(
+    () => q.data?.pages.flatMap((p) => p.items).find((w) => w.id === withdrawalId) ?? snapshot,
+    [q.data, withdrawalId, snapshot],
+  );
   const onRefresh = useCallback(() => void q.refetch(), [q]);
+
+  useEffect(() => {
+    if (item || q.isLoading) return;
+    if (q.hasNextPage && !q.isFetchingNextPage) void q.fetchNextPage();
+  }, [item, q.isLoading, q.hasNextPage, q.isFetchingNextPage, q]);
 
   useEffect(() => {
     if (item?.status === 'pending_email_verify') setShowEmailOtp(true);
@@ -59,6 +67,16 @@ export function WithdrawalDetailScreen({ route }: Props) {
   };
 
   if (q.isLoading && !item) {
+    return (
+      <ScreenLayout testID="S-525">
+        <SkeletonList rows={6} />
+      </ScreenLayout>
+    );
+  }
+
+  const pendingLookup = !item && (q.isFetchingNextPage || !!q.hasNextPage);
+
+  if (pendingLookup) {
     return (
       <ScreenLayout testID="S-525">
         <SkeletonList rows={6} />
