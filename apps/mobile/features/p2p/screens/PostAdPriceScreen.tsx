@@ -6,7 +6,7 @@ import { useTheme, hapticLight } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
 import { useP2PStore } from '@core/state/p2pStore';
-import { useFundingBalances } from '@features/wallet/hooks/useWallet';
+import { useFundingBalances } from '../../wallet/hooks/useWallet';
 import {
   buildPriceSuggestions,
   computeFloatingAdPrice,

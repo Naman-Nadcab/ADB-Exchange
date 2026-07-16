@@ -46,6 +46,8 @@ export function ConvertConfirmScreen({ navigation, route }: Props) {
     return () => clearInterval(id);
   }, []);
 
+  const onRefresh = useCallback(() => {}, []);
+
   if (!paramsValid) {
     return (
       <ScreenLayout testID="S-541">
@@ -81,8 +83,6 @@ export function ConvertConfirmScreen({ navigation, route }: Props) {
       setError(err instanceof ApiError ? mapConvertApiError(err.code, err.message) : 'Conversion failed');
     }
   };
-
-  const onRefresh = useCallback(() => {}, []);
 
   if (success) {
     return (

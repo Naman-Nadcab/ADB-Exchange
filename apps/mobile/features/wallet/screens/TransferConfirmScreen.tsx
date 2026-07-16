@@ -40,6 +40,8 @@ export function TransferConfirmScreen({ navigation, route }: Props) {
     }
   }, [paramsValid, navigation]);
 
+  const onRefresh = useCallback(() => {}, []);
+
   if (!paramsValid) {
     return (
       <ScreenLayout testID="S-531">
@@ -66,8 +68,6 @@ export function TransferConfirmScreen({ navigation, route }: Props) {
       setError(err instanceof ApiError ? mapTransferApiError(err.code, err.message) : 'Transfer failed');
     }
   };
-
-  const onRefresh = useCallback(() => {}, []);
 
   if (success) {
     return (

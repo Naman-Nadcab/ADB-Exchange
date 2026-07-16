@@ -1,4 +1,4 @@
-appId: metheorium-mobile
+appId: com.metheorium.mobile
 ---
 - launchApp
 - tapOn: "Wallet"

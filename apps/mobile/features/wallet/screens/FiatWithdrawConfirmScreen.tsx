@@ -38,6 +38,11 @@ export function FiatWithdrawConfirmScreen({ navigation, route }: Props) {
     if (!paramsValid) navigation.replace('FiatWithdraw');
   }, [paramsValid, navigation]);
 
+  const onRefresh = useCallback(() => {
+    void security.twoFa.refetch();
+    void security.fundPw.refetch();
+  }, [security.twoFa, security.fundPw]);
+
   if (!paramsValid) {
     return (
       <ScreenLayout testID="S-527">
@@ -77,11 +82,6 @@ export function FiatWithdrawConfirmScreen({ navigation, route }: Props) {
       void submit({});
     }
   };
-
-  const onRefresh = useCallback(() => {
-    void security.twoFa.refetch();
-    void security.fundPw.refetch();
-  }, [security.twoFa, security.fundPw]);
 
   return (
     <ScreenLayout testID="S-527">

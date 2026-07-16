@@ -16,7 +16,7 @@ import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
 import { bankLabelFromPaymentMethod, formatInr } from '@core/domain/wallet/fiat';
-import { useMyPaymentMethods } from '@features/p2p/hooks/useP2P';
+import { useMyPaymentMethods } from '../../p2p/hooks/useP2P';
 import { useFiatBalance, useFiatWithdrawals, useCancelFiatWithdrawal } from '../hooks/useWallet';
 import { WithdrawTypeNav } from '../components/WithdrawTypeNav';
 import { FiatWithdrawalHistoryRow } from '../components/FiatWithdrawalHistoryRow';

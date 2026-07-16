@@ -41,6 +41,8 @@ export function WithdrawConfirmScreen({ navigation, route }: Props) {
     }
   }, [paramsValid, navigation]);
 
+  const onRefresh = useCallback(() => void kycQ.refetch(), [kycQ]);
+
   if (!paramsValid) {
     return (
       <ScreenLayout testID="S-522">
@@ -95,8 +97,6 @@ export function WithdrawConfirmScreen({ navigation, route }: Props) {
       void submit({});
     }
   };
-
-  const onRefresh = useCallback(() => void kycQ.refetch(), [kycQ]);
 
   return (
     <ScreenLayout testID="S-522">
