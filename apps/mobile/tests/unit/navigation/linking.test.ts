@@ -26,6 +26,10 @@ describe('deep link config', () => {
     expect(linking.config.screens.Main.screens.Wallet.screens.FundingAccount).toBe('wallet/funding');
   });
 
+  it('maps trading account path', () => {
+    expect(linking.config.screens.Main.screens.Wallet.screens.TradingAccount).toBe('wallet/unified');
+  });
+
   it('maps wallet pnl path', () => {
     expect(linking.config.screens.Main.screens.Wallet.screens.WalletPnl).toBe('wallet/pnl');
   });

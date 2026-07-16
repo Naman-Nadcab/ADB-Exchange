@@ -399,6 +399,7 @@ export function AssetsHomeScreen({ navigation }: Props) {
                     totalUsd={summaryQ.data?.trading.totalUsd ?? '0'}
                     showBalances={showBalances}
                     holdings={topTrading}
+                    onPress={() => navigation.navigate('TradingAccount')}
                   />
 
                   <WalletQuickToolsGrid tools={quickTools} />

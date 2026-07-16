@@ -8,6 +8,7 @@ import {
   topFundingHoldings,
   filterFundingBalances,
   sortFundingBalances,
+  filterTradingBalances,
   paginateItems,
 } from '@core/domain/wallet/portfolio';
 
@@ -48,6 +49,19 @@ describe('portfolio domain', () => {
     ]);
     expect(top[0]?.symbol).toBe('BTC');
     expect(top).toHaveLength(2);
+  });
+
+  it('filters trading balances with website unified hide-small rule', () => {
+    const rows = [
+      { symbol: 'BTC', equity: '1', wallet_balance: '1', usd_value: '50000', name: 'Bitcoin' },
+      { symbol: 'DOGE', equity: '100', wallet_balance: '100', usd_value: '0.50', name: 'Dogecoin' },
+      { symbol: 'ETH', equity: '2', wallet_balance: '2', usd_value: '6000', name: 'Ethereum' },
+    ];
+    const filtered = filterTradingBalances(rows, { search: 'bit', hideSmall: false });
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0]?.symbol).toBe('BTC');
+    const hidden = filterTradingBalances(rows, { search: '', hideSmall: true });
+    expect(hidden).toHaveLength(2);
   });
 
   it('filters and sorts funding balances', () => {

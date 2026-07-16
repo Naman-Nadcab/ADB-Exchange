@@ -200,6 +200,23 @@ export type SortDirection = 'asc' | 'desc';
 
 export const FUNDING_PAGE_SIZE = 25;
 
+/** Mirrors website /wallet/unified hide-small rule (usd_value within ±$1). */
+export function filterTradingBalances(
+  balances: TradingBalance[],
+  opts: { search: string; hideSmall: boolean },
+): TradingBalance[] {
+  const q = opts.search.trim().toLowerCase();
+  return balances.filter((b) => {
+    const usd = parseUsd(b.usd_value ?? '0');
+    if (opts.hideSmall && usd < HIDE_SMALL_USD_THRESHOLD && usd > -HIDE_SMALL_USD_THRESHOLD) return false;
+    if (!q) return true;
+    return (
+      b.symbol.toLowerCase().includes(q) ||
+      (b.name ?? '').toLowerCase().includes(q)
+    );
+  });
+}
+
 export function filterFundingBalances(
   balances: AssetBalance[],
   opts: { search: string; hideSmall: boolean },

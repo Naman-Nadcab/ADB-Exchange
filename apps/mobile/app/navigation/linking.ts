@@ -41,6 +41,7 @@ export const linking = {
             screens: {
               AssetsHome: 'wallet',
               FundingAccount: 'wallet/funding',
+              TradingAccount: 'wallet/unified',
               AssetDetail: 'wallet/:symbol',
               Transfer: 'wallet/transfer',
               TransferConfirm: 'wallet/transfer/confirm',

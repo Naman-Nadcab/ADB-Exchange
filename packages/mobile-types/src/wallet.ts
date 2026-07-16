@@ -29,15 +29,21 @@ export type FundingBalances = {
 };
 
 export type TradingBalance = {
+  token_id?: string;
   symbol: string;
   equity: string;
   wallet_balance?: string;
+  available_balance?: string;
+  locked_balance?: string;
+  usd_value?: string;
   name?: string;
 };
 
 export type SpotTradingBalances = {
   balances: TradingBalance[];
   totalEquity?: EquityTotal;
+  availableBalance?: EquityTotal;
+  unrealizedPnl?: EquityTotal;
 };
 
 /** Per-asset spot wallet row from GET /wallet/balances/spot */
