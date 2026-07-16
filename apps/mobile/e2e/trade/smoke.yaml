@@ -1,5 +1,10 @@
 appId: com.metheorium.mobile
 ---
-- launchApp
-- tapOn: "Trade"
-- assertVisible: "S-300"
+- runFlow: ../_bootstrap/guestMain.yaml
+- runFlow: ../_bootstrap/tapTabTrade.yaml
+- extendedWaitUntil:
+    visible:
+      id: "S-300"
+    timeout: 15000
+- assertVisible:
+    id: "S-300"

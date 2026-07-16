@@ -1,0 +1,5 @@
+appId: com.metheorium.mobile
+---
+# iPhone 17 portrait tab bar — Trade is 2nd of 5 tabs.
+- tapOn:
+    point: "30%,96%"

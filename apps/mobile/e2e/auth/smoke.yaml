@@ -1,6 +1,12 @@
 appId: com.metheorium.mobile
 ---
-- launchApp
-- assertVisible: "METHErium"
+- runFlow: ../_bootstrap/devClient.yaml
+- assertVisible:
+    id: "S-100"
 - tapOn: "Log In"
-- assertVisible: "S-101"
+- extendedWaitUntil:
+    visible:
+      id: "S-103"
+    timeout: 15000
+- assertVisible:
+    id: "S-103"

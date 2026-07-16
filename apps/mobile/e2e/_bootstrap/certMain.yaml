@@ -1,0 +1,10 @@
+appId: com.metheorium.mobile
+---
+# Requires Metro with EXPO_PUBLIC_CERT_PREVIEW=1 (authenticated main, no backend).
+- launchApp:
+    clearState: true
+- openLink: exp+metheorium-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8081
+- extendedWaitUntil:
+    visible:
+      id: "S-200"
+    timeout: 120000

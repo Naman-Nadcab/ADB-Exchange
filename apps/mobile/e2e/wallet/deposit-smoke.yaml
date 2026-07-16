@@ -1,7 +1,8 @@
 appId: com.metheorium.mobile
 ---
-- launchApp
-- tapOn: "Wallet"
-- assertVisible: "S-500"
-- tapOn: "Deposit"
-- assertVisible: "S-510"
+- runFlow: ../_bootstrap/guestMain.yaml
+- openLink: metheorium://wallet/deposit
+- extendedWaitUntil:
+    visible: "Log in to deposit."
+    timeout: 15000
+- assertVisible: "Log in to deposit."

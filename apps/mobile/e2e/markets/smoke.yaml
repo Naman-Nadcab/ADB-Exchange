@@ -1,7 +1,12 @@
 appId: com.metheorium.mobile
 ---
-- launchApp
-- tapOn: "Markets"
-- assertVisible: "S-200"
-- tapOn: "Search"
-- assertVisible: "S-201"
+- runFlow: ../_bootstrap/guestMain.yaml
+- assertVisible:
+    id: "S-200"
+- tapOn: "Search markets"
+- extendedWaitUntil:
+    visible:
+      id: "S-201"
+    timeout: 15000
+- assertVisible:
+    id: "S-201"

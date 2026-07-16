@@ -1,0 +1,8 @@
+appId: com.metheorium.mobile
+---
+- runFlow: devClient.yaml
+- tapOn: "Continue as Guest"
+- extendedWaitUntil:
+    visible:
+      id: "S-200"
+    timeout: 60000

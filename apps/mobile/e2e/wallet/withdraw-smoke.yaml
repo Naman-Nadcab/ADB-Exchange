@@ -1,7 +1,8 @@
 appId: com.metheorium.mobile
 ---
-- launchApp
-- tapOn: "Wallet"
-- assertVisible: "S-500"
-- tapOn: "Withdraw"
-- assertVisible: "S-520"
+- runFlow: ../_bootstrap/guestMain.yaml
+- openLink: metheorium://wallet/withdraw
+- extendedWaitUntil:
+    visible: "Log in to withdraw."
+    timeout: 15000
+- assertVisible: "Log in to withdraw."

@@ -1,0 +1,5 @@
+appId: com.metheorium.mobile
+---
+# iPhone 17 portrait tab bar — P2P is 5th of 5 tabs.
+- tapOn:
+    point: "90%,96%"

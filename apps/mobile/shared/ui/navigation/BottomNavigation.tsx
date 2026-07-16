@@ -45,6 +45,7 @@ export function BottomNavigation({ state, descriptors, navigation }: BottomTabBa
             <Pressable
               key={route.key}
               accessibilityRole="button"
+              accessibilityLabel={label}
               accessibilityState={focused ? { selected: true } : {}}
               onPress={() => {
                 void hapticSelection();
