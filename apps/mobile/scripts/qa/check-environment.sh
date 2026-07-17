@@ -43,7 +43,8 @@ check "Maestro CLI" maestro --version
 check "Xcode simctl" xcrun simctl list devices
 check "Typecheck" npm run typecheck --silent
 check "Unit tests" npm test -- --passWithNoTests --silent
-check "ESLint (0 errors)" bash -c 'npm run lint --silent 2>&1 | tail -1 | rg -q "0 errors"'
+# ESLint exits non-zero only on errors; warnings do not fail the process.
+check "ESLint (0 errors)" npm run lint --silent
 check "Architecture validation" npm run validate:architecture --silent
 
 warn_if "Android adb" command -v adb
