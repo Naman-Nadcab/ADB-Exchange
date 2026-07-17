@@ -1,0 +1,6 @@
+appId: com.metheorium.mobile
+env:
+  DEEP_LINK: metheorium://markets
+---
+- openLink: ${DEEP_LINK}
+- runFlow: acceptDeepLinkPrompt.yaml

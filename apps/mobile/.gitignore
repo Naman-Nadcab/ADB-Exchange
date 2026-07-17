@@ -7,3 +7,16 @@ dist/
 *.mobileprovision
 .env
 .env.local
+
+# Native prebuild output (expo prebuild / run:ios — generated locally)
+ios/
+android/
+
+# QA screenshot and certification artifacts (reproducible — do not commit new captures)
+audit-screenshots/
+cert-screenshots/
+verify-screenshots/
+phase*-screenshots/
+phase3-certification/
+phase3-final-certification/
+

@@ -1,0 +1,56 @@
+appId: com.metheorium.mobile
+---
+# Release build deep-link routing matrix (no Metro). Install Release-iphonesimulator build first.
+- runFlow: ../_bootstrap/releaseGuestMain.yaml
+- openLink: metheorium://trade
+- runFlow: ../_bootstrap/acceptDeepLinkPrompt.yaml
+- extendedWaitUntil:
+    visible:
+      id: "S-300"
+    timeout: 30000
+- assertVisible:
+    id: "S-300"
+- openLink: metheorium://wallet
+- runFlow: ../_bootstrap/acceptDeepLinkPrompt.yaml
+- extendedWaitUntil:
+    visible:
+      id: "S-500"
+    timeout: 30000
+- assertVisible:
+    id: "S-500"
+- openLink: metheorium://p2p
+- runFlow: ../_bootstrap/acceptDeepLinkPrompt.yaml
+- extendedWaitUntil:
+    visible:
+      id: "S-600"
+    timeout: 30000
+- assertVisible:
+    id: "S-600"
+- openLink: metheorium://account
+- runFlow: ../_bootstrap/acceptDeepLinkPrompt.yaml
+- extendedWaitUntil:
+    visible:
+      id: "S-700"
+    timeout: 30000
+- assertVisible:
+    id: "S-700"
+- openLink: metheorium://wallet/deposit
+- runFlow: ../_bootstrap/acceptDeepLinkPrompt.yaml
+- extendedWaitUntil:
+    visible: "Log in to deposit."
+    timeout: 15000
+- assertVisible: "Log in to deposit."
+- openLink: metheorium://wallet/withdraw
+- runFlow: ../_bootstrap/acceptDeepLinkPrompt.yaml
+- extendedWaitUntil:
+    visible: "Log in to withdraw."
+    timeout: 15000
+- assertVisible: "Log in to withdraw."
+- openLink: metheorium://login
+- runFlow: ../_bootstrap/acceptDeepLinkPrompt.yaml
+- extendedWaitUntil:
+    visible:
+      id: "S-103"
+    timeout: 15000
+- assertVisible:
+    id: "S-103"

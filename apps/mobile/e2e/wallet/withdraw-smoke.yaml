@@ -2,6 +2,7 @@ appId: com.metheorium.mobile
 ---
 - runFlow: ../_bootstrap/guestMain.yaml
 - openLink: metheorium://wallet/withdraw
+- runFlow: ../_bootstrap/acceptDeepLinkPrompt.yaml
 - extendedWaitUntil:
     visible: "Log in to withdraw."
     timeout: 15000

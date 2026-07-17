@@ -1,6 +1,6 @@
 appId: com.metheorium.mobile
 ---
-- runFlow: devClient.yaml
+- runFlow: releaseBootstrap.yaml
 - scrollUntilVisible:
     element:
       text: "Continue as Guest"

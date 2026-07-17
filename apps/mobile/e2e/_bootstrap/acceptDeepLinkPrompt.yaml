@@ -1,0 +1,6 @@
+appId: com.metheorium.mobile
+---
+# iOS may show "Open in 'METHErium'?" when opening custom-scheme links from automation.
+- tapOn:
+    text: "Open"
+    optional: true

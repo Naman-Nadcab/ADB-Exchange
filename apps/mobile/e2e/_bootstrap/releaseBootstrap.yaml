@@ -1,0 +1,10 @@
+appId: com.metheorium.mobile
+---
+# Production Release build (embedded JS bundle). No Metro required.
+- launchApp:
+    clearState: true
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: "S-100"
+    timeout: 90000

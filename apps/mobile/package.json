@@ -13,7 +13,12 @@
     "test:watch": "jest --watch",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
-    "validate:architecture": "node scripts/validate-architecture.mjs"
+    "validate:architecture": "node scripts/validate-architecture.mjs",
+    "qa:check": "bash scripts/qa/check-environment.sh",
+    "qa:smoke:dev": "bash scripts/qa/run-maestro-dev-smoke.sh",
+    "qa:matrix:ios": "bash scripts/qa/run-maestro-release-matrix.sh",
+    "qa:matrix:ios:multi": "bash scripts/qa/run-ios-device-matrix.sh",
+    "qa:screenshot:release": "bash scripts/qa/screenshot-release-launch.sh"
   },
   "dependencies": {
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
