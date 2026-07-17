@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
+import { ExchangeCard, StatusChip } from '@shared/ui';
 import { useTheme, hapticLight } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import type { P2PUserPaymentMethod } from '@exchange/mobile-types';
 import {
   formatPaymentDetailLabel,
@@ -46,6 +48,9 @@ export function PaymentMethodCard({
   const updated = paymentMethodUpdatedLabel(method);
   const verify = verificationBadge(method);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const success = semanticStatusPalette(theme.colors, 'success');
+  const warning = semanticStatusPalette(theme.colors, 'warning');
+  const error = semanticStatusPalette(theme.colors, 'error');
 
   const copyValue = async (key: string, value: string) => {
     hapticLight();
@@ -55,105 +60,274 @@ export function PaymentMethodCard({
   };
 
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          borderColor: active ? `hsl(${theme.colors.borderDefault})` : `hsl(${theme.colors.borderDefault} / 0.6)`,
-          backgroundColor: `hsl(${theme.colors.backgroundElevated})`,
-          opacity: active ? 1 : 0.92,
-        },
-      ]}
+    <ExchangeCard
+      style={{
+        marginBottom: theme.spacing[2.5],
+        opacity: active ? 1 : theme.opacity.muted,
+      }}
     >
-      <View style={styles.row}>
-        <View style={[styles.iconWrap, { backgroundColor: active ? `hsl(${theme.colors.brandPrimary} / 0.12)` : `hsl(${theme.colors.surfaceMuted})` }]}>
+      <View style={[styles.row, { gap: theme.spacing[3] }]}>
+        <View
+          style={[
+            styles.iconWrap,
+            {
+              width: 44,
+              height: 44,
+              borderRadius: theme.radius.lg,
+              backgroundColor: active ? `hsl(${theme.colors.brandPrimary} / 0.12)` : `hsl(${theme.colors.surfaceMuted})`,
+            },
+          ]}
+        >
           <Ionicons
             name={methodIconName(method.method_code)}
-            size={20}
+            size={theme.sizes.iconMd}
             color={active ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.foregroundSecondary})`}
           />
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <View style={styles.titleRow}>
-            <Text style={{ fontWeight: '700', fontSize: 16, color: `hsl(${theme.colors.foregroundPrimary})`, flexShrink: 1 }} numberOfLines={1}>
+          <View style={[styles.titleRow, { gap: theme.spacing[2] }]}>
+            <Text
+              style={[
+                theme.typography.headingSm,
+                {
+                  color: `hsl(${theme.colors.foregroundPrimary})`,
+                  fontFamily: theme.fonts.sansBold,
+                  flexShrink: 1,
+                },
+              ]}
+              numberOfLines={1}
+            >
               {paymentMethodTitle(method)}
             </Text>
-            <View style={[styles.badge, { backgroundColor: active ? 'rgba(14,203,129,0.12)' : `hsl(${theme.colors.surfaceMuted})` }]}>
-              <Text style={{ fontSize: 11, fontWeight: '700', color: active ? '#0ecb81' : `hsl(${theme.colors.foregroundSecondary})` }}>
-                {active ? 'Active' : 'Disabled'}
-              </Text>
-            </View>
+            <StatusChip label={active ? 'Active' : 'Disabled'} tone={active ? 'live' : 'neutral'} />
           </View>
           {paymentMethodSubtitle(method) ? (
-            <Text style={{ fontSize: 13, color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: 2 }}>
+            <Text
+              style={[
+                theme.typography.bodySm,
+                { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[0.5] },
+              ]}
+            >
               {paymentMethodSubtitle(method)}
             </Text>
           ) : null}
-          <View style={styles.metaRow}>
-            <View style={[styles.privateBadge, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
-              <Ionicons name="lock-closed-outline" size={11} color={`hsl(${theme.colors.foregroundSecondary})`} />
-              <Text style={{ fontSize: 11, color: `hsl(${theme.colors.foregroundSecondary})` }}>Private until trade</Text>
+          <View style={[styles.metaRow, { gap: theme.spacing[2], marginTop: theme.spacing[2] }]}>
+            <View
+              style={[
+                styles.privateBadge,
+                {
+                  borderColor: `hsl(${theme.colors.borderDefault})`,
+                  borderRadius: theme.radius.sm,
+                  paddingHorizontal: theme.spacing[1.5],
+                  paddingVertical: theme.spacing[0.5],
+                  gap: theme.spacing[1],
+                },
+              ]}
+            >
+              <Ionicons name="lock-closed-outline" size={theme.sizes.iconXs} color={`hsl(${theme.colors.foregroundSecondary})`} />
+              <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+                Private until trade
+              </Text>
             </View>
             {verify ? (
-              <Text style={{ fontSize: 11, color: verify.tone === 'verified' ? '#0ecb81' : '#f59e0b' }}>{verify.label}</Text>
+              <Text
+                style={[
+                  theme.typography.labelSm,
+                  { color: verify.tone === 'verified' ? success.fg : warning.fg },
+                ]}
+              >
+                {verify.label}
+              </Text>
             ) : null}
-            {updated ? <Text style={{ fontSize: 11, color: `hsl(${theme.colors.foregroundSecondary})` }}>Updated {updated}</Text> : null}
+            {updated ? (
+              <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+                Updated {updated}
+              </Text>
+            ) : null}
           </View>
         </View>
       </View>
 
-      <View style={styles.actions}>
+      <View style={[styles.actions, { gap: theme.spacing[2], marginTop: theme.spacing[3] }]}>
         {details.length > 0 ? (
-          <Pressable onPress={onToggleExpand} style={[styles.actionBtn, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
-            <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={18} color={`hsl(${theme.colors.foregroundSecondary})`} />
+          <Pressable
+            onPress={onToggleExpand}
+            style={[
+              styles.actionBtn,
+              {
+                borderColor: `hsl(${theme.colors.borderDefault})`,
+                borderRadius: theme.radius.md,
+                minWidth: theme.sizes.tapTarget,
+                height: theme.sizes.tapTarget,
+              },
+            ]}
+          >
+            <Ionicons
+              name={expanded ? 'chevron-up' : 'chevron-down'}
+              size={theme.sizes.iconMd}
+              color={`hsl(${theme.colors.foregroundSecondary})`}
+            />
           </Pressable>
         ) : null}
         {onEdit ? (
-          <Pressable onPress={onEdit} style={[styles.actionBtn, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
-            <Ionicons name="create-outline" size={18} color={`hsl(${theme.colors.foregroundSecondary})`} />
+          <Pressable
+            onPress={onEdit}
+            style={[
+              styles.actionBtn,
+              {
+                borderColor: `hsl(${theme.colors.borderDefault})`,
+                borderRadius: theme.radius.md,
+                minWidth: theme.sizes.tapTarget,
+                height: theme.sizes.tapTarget,
+              },
+            ]}
+          >
+            <Ionicons name="create-outline" size={theme.sizes.iconMd} color={`hsl(${theme.colors.foregroundSecondary})`} />
           </Pressable>
         ) : null}
         <Pressable
           onPress={onToggleActive}
           disabled={loading}
-          style={[styles.toggleBtn, { borderColor: active ? 'rgba(245,158,11,0.35)' : 'rgba(14,203,129,0.35)' }]}
+          style={[
+            styles.toggleBtn,
+            {
+              borderColor: active ? warning.border : success.border,
+              borderRadius: theme.radius.md,
+              height: theme.sizes.tapTarget,
+              paddingHorizontal: theme.spacing[3.5],
+            },
+          ]}
         >
-          <Text style={{ fontWeight: '600', color: active ? '#f59e0b' : '#0ecb81' }}>{active ? 'Disable' : 'Enable'}</Text>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              {
+                fontFamily: theme.fonts.sansSemiBold,
+                color: active ? warning.fg : success.fg,
+              },
+            ]}
+          >
+            {active ? 'Disable' : 'Enable'}
+          </Text>
         </Pressable>
         {deleteConfirm ? (
           <>
-            <Pressable onPress={onDeleteConfirm} disabled={loading} style={[styles.confirmBtn, { borderColor: 'rgba(246,70,93,0.35)' }]}>
-              <Text style={{ color: '#f6465d', fontWeight: '700', fontSize: 12 }}>Confirm</Text>
+            <Pressable
+              onPress={onDeleteConfirm}
+              disabled={loading}
+              style={[
+                styles.confirmBtn,
+                {
+                  borderColor: error.border,
+                  borderRadius: theme.radius.md,
+                  height: theme.sizes.tapTarget,
+                  paddingHorizontal: theme.spacing[3],
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  { color: error.fg, fontFamily: theme.fonts.sansBold },
+                ]}
+              >
+                Confirm
+              </Text>
             </Pressable>
-            <Pressable onPress={onDeleteCancel} style={[styles.actionBtn, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}>Cancel</Text>
+            <Pressable
+              onPress={onDeleteCancel}
+              style={[
+                styles.actionBtn,
+                {
+                  borderColor: `hsl(${theme.colors.borderDefault})`,
+                  borderRadius: theme.radius.md,
+                  minWidth: theme.sizes.tapTarget,
+                  height: theme.sizes.tapTarget,
+                },
+              ]}
+            >
+              <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>Cancel</Text>
             </Pressable>
           </>
         ) : (
-          <Pressable onPress={onDeletePress} style={[styles.actionBtn, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
-            <Ionicons name="trash-outline" size={18} color="#f6465d" />
+          <Pressable
+            onPress={onDeletePress}
+            style={[
+              styles.actionBtn,
+              {
+                borderColor: `hsl(${theme.colors.borderDefault})`,
+                borderRadius: theme.radius.md,
+                minWidth: theme.sizes.tapTarget,
+                height: theme.sizes.tapTarget,
+              },
+            ]}
+          >
+            <Ionicons name="trash-outline" size={theme.sizes.iconMd} color={error.fg} />
           </Pressable>
         )}
       </View>
 
       {expanded && details.length > 0 ? (
-        <View style={[styles.details, { borderTopColor: `hsl(${theme.colors.borderDefault})` }]}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 8 }}>
+        <View
+          style={[
+            styles.details,
+            {
+              borderTopColor: `hsl(${theme.colors.borderDefault})`,
+              marginTop: theme.spacing[3],
+              paddingTop: theme.spacing[3],
+            },
+          ]}
+        >
+          <Text
+            style={[
+              theme.typography.labelSm,
+              {
+                color: `hsl(${theme.colors.foregroundSecondary})`,
+                fontFamily: theme.fonts.sansBold,
+                marginBottom: theme.spacing[2],
+              },
+            ]}
+          >
             ACCOUNT DETAILS
           </Text>
           {details.map(([k, v]) => {
             const copyId = `${method.id}-${k}`;
             return (
-              <View key={k} style={[styles.detailRow, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
+              <View
+                key={k}
+                style={[
+                  styles.detailRow,
+                  {
+                    borderColor: `hsl(${theme.colors.borderDefault})`,
+                    borderRadius: theme.radius.md,
+                    padding: theme.spacing[2.5],
+                    marginBottom: theme.spacing[2],
+                    gap: theme.spacing[2.5],
+                  },
+                ]}
+              >
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 11, color: `hsl(${theme.colors.foregroundSecondary})` }}>{formatPaymentDetailLabel(k)}</Text>
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: `hsl(${theme.colors.foregroundPrimary})`, marginTop: 2 }}>{v}</Text>
+                  <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+                    {formatPaymentDetailLabel(k)}
+                  </Text>
+                  <Text
+                    style={[
+                      theme.typography.bodyMd,
+                      {
+                        color: `hsl(${theme.colors.foregroundPrimary})`,
+                        fontFamily: theme.fonts.sansSemiBold,
+                        marginTop: theme.spacing[0.5],
+                      },
+                    ]}
+                  >
+                    {v}
+                  </Text>
                 </View>
                 <Pressable onPress={() => void copyValue(copyId, v)}>
                   <Ionicons
                     name={copiedKey === copyId ? 'checkmark-circle' : 'copy-outline'}
-                    size={16}
-                    color={copiedKey === copyId ? '#0ecb81' : `hsl(${theme.colors.foregroundSecondary})`}
+                    size={theme.sizes.iconSm}
+                    color={copiedKey === copyId ? success.fg : `hsl(${theme.colors.foregroundSecondary})`}
                   />
                 </Pressable>
               </View>
@@ -161,22 +335,20 @@ export function PaymentMethodCard({
           })}
         </View>
       ) : null}
-    </View>
+    </ExchangeCard>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { borderWidth: 1, borderRadius: 14, padding: 14, marginBottom: 10 },
-  row: { flexDirection: 'row', gap: 12 },
-  iconWrap: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-  badge: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8, alignItems: 'center' },
-  privateBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
-  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12, justifyContent: 'flex-end' },
-  actionBtn: { minWidth: 40, height: 40, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
-  toggleBtn: { height: 40, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14 },
-  confirmBtn: { height: 40, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
-  details: { borderTopWidth: StyleSheet.hairlineWidth, marginTop: 12, paddingTop: 12 },
-  detailRow: { flexDirection: 'row', gap: 10, borderWidth: 1, borderRadius: 10, padding: 10, marginBottom: 8 },
+  row: { flexDirection: 'row' },
+  iconWrap: { alignItems: 'center', justifyContent: 'center' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' },
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
+  privateBadge: { flexDirection: 'row', alignItems: 'center', borderWidth: 1 },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end' },
+  actionBtn: { borderWidth: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
+  toggleBtn: { borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  confirmBtn: { borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  details: { borderTopWidth: StyleSheet.hairlineWidth },
+  detailRow: { flexDirection: 'row', borderWidth: 1 },
 });

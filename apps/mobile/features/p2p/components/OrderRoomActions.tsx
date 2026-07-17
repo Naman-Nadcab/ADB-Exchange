@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { PrimaryButton, TextField, ErrorBanner } from '@shared/ui';
+import { PrimaryButton, TextField, ErrorBanner, ExchangeCard } from '@shared/ui';
 import { useTheme, hapticLight } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import type { P2POrder } from '@exchange/mobile-types';
 import {
   getOrderRoomPermissions,
@@ -42,6 +43,8 @@ export function OrderRoomActions({
 }: Props) {
   const { theme } = useTheme();
   const perms = getOrderRoomPermissions(order, role);
+  const success = semanticStatusPalette(theme.colors, 'success');
+  const warning = semanticStatusPalette(theme.colors, 'warning');
 
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
@@ -52,6 +55,18 @@ export function OrderRoomActions({
   const [releaseConfirmOpen, setReleaseConfirmOpen] = useState(false);
   const [releaseTyped, setReleaseTyped] = useState('');
   const [disputeConfirmOpen, setDisputeConfirmOpen] = useState(false);
+
+  const hintStyle = [
+    theme.typography.bodySm,
+    styles.hint,
+    {
+      color: warning.fg,
+      borderColor: warning.border,
+      backgroundColor: warning.bg,
+      padding: theme.spacing[2.5],
+      borderRadius: theme.radius.md,
+    },
+  ];
 
   const pickProof = async () => {
     hapticLight();
@@ -156,31 +171,71 @@ export function OrderRoomActions({
   if (role === 'none') return null;
 
   return (
-    <View style={[styles.wrap, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
-      <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Actions</Text>
+    <ExchangeCard style={{ marginBottom: theme.spacing[3], gap: theme.spacing[2.5] }}>
+      <Text
+        style={[
+          theme.typography.headingSm,
+          { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+        ]}
+      >
+        Actions
+      </Text>
 
       {err ? <ErrorBanner message={err} /> : null}
       {ok ? (
-        <View style={[styles.okBanner, { borderColor: `hsl(${theme.colors.tradeBuy} / 0.2)`, backgroundColor: `hsl(${theme.colors.tradeBuy} / 0.08)` }]}>
-          <Text style={{ color: `hsl(${theme.colors.tradeBuy})`, fontWeight: '600' }}>{ok}</Text>
+        <View
+          style={[
+            styles.okBanner,
+            {
+              borderColor: success.border,
+              backgroundColor: success.bg,
+              padding: theme.spacing[2.5],
+              borderRadius: theme.radius.md,
+            },
+          ]}
+        >
+          <Text style={[theme.typography.bodySm, { color: success.fg, fontFamily: theme.fonts.sansSemiBold }]}>{ok}</Text>
         </View>
       ) : null}
 
       {perms.canPay ? (
-        <View style={styles.section}>
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, lineHeight: 18, marginBottom: 8 }}>
+        <View style={{ gap: theme.spacing[2] }}>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[2] },
+            ]}
+          >
             Upload a screenshot of your transfer and enter the transaction ID from your bank or payment app.
           </Text>
           <Pressable
             onPress={() => void pickProof()}
-            style={[styles.uploadBox, { borderColor: `hsl(${theme.colors.borderDefault})` }]}
+            style={[
+              styles.uploadBox,
+              {
+                borderColor: `hsl(${theme.colors.borderDefault})`,
+                borderRadius: theme.radius.md,
+                padding: theme.spacing[4],
+              },
+            ]}
           >
-            <Ionicons name="cloud-upload-outline" size={22} color={`hsl(${theme.colors.foregroundSecondary})`} />
-            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, marginTop: 4 }}>
+            <Ionicons name="cloud-upload-outline" size={theme.sizes.iconMd} color={`hsl(${theme.colors.foregroundSecondary})`} />
+            <Text
+              style={[
+                theme.typography.bodySm,
+                { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[1] },
+              ]}
+            >
               {payProof?.fileName ?? 'Tap to upload payment proof (PNG/JPEG)'}
             </Text>
           </Pressable>
-          {payProof?.uri ? <Image source={{ uri: payProof.uri }} style={styles.preview} resizeMode="cover" /> : null}
+          {payProof?.uri ? (
+            <Image
+              source={{ uri: payProof.uri }}
+              style={[styles.preview, { borderRadius: theme.radius.md }]}
+              resizeMode="cover"
+            />
+          ) : null}
           <TextField
             label="Transaction reference"
             value={txRef}
@@ -200,7 +255,7 @@ export function OrderRoomActions({
       ) : null}
 
       {role === 'seller' && order.status === 'payment_confirmed' && order.payment_verification_status === 'pending' ? (
-        <Text style={[styles.hint, { color: '#f59e0b', borderColor: 'rgba(245,158,11,0.2)', backgroundColor: 'rgba(245,158,11,0.06)' }]}>
+        <Text style={hintStyle}>
           Check your account for the buyer&apos;s payment, review their proof and reference, then verify before releasing.
         </Text>
       ) : null}
@@ -210,7 +265,7 @@ export function OrderRoomActions({
       ) : null}
 
       {perms.canRelease ? (
-        <View style={styles.section}>
+        <View style={{ gap: theme.spacing[2] }}>
           {!releaseConfirmOpen ? (
             <PrimaryButton
               title="Prepare Release"
@@ -221,11 +276,27 @@ export function OrderRoomActions({
               }}
             />
           ) : (
-            <View style={[styles.confirmBox, { borderColor: 'rgba(245,158,11,0.25)', backgroundColor: 'rgba(245,158,11,0.05)' }]}>
-              <Text style={{ color: '#f59e0b', fontSize: 12, lineHeight: 18 }}>
+            <View
+              style={[
+                styles.confirmBox,
+                {
+                  borderColor: warning.border,
+                  backgroundColor: warning.bg,
+                  borderRadius: theme.radius.md,
+                  padding: theme.spacing[3],
+                  gap: theme.spacing[2],
+                },
+              ]}
+            >
+              <Text style={[theme.typography.bodySm, { color: warning.fg }]}>
                 Confirm payment is received before releasing escrow.
               </Text>
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, marginVertical: 6 }}>
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  { color: `hsl(${theme.colors.foregroundSecondary})`, marginVertical: theme.spacing[1.5] },
+                ]}
+              >
                 Order: {order.id.slice(0, 10)} · Amount: {order.quantity} {order.crypto_symbol ?? ''}
               </Text>
               <TextField
@@ -235,7 +306,7 @@ export function OrderRoomActions({
                 placeholder="RELEASE"
                 autoCapitalize="characters"
               />
-              <View style={styles.row2}>
+              <View style={[styles.row2, { gap: theme.spacing[2] }]}>
                 <PrimaryButton
                   title="Cancel"
                   variant="secondary"
@@ -257,7 +328,13 @@ export function OrderRoomActions({
       ) : null}
 
       {perms.canCancel ? (
-        <View style={[styles.section, styles.divider, { borderTopColor: `hsl(${theme.colors.borderDefault})` }]}>
+        <View
+          style={[
+            { gap: theme.spacing[2], borderTopColor: `hsl(${theme.colors.borderDefault})` },
+            styles.divider,
+            { paddingTop: theme.spacing[2.5] },
+          ]}
+        >
           <TextField
             label="Cancel reason (required)"
             value={cancelReason}
@@ -271,14 +348,20 @@ export function OrderRoomActions({
             disabled={cancelReason.trim().length < 1}
             onPress={() => void handleCancel()}
           />
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11 }}>
+          <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
             Only available before payment is marked as paid.
           </Text>
         </View>
       ) : null}
 
       {perms.canDispute ? (
-        <View style={[styles.section, styles.divider, { borderTopColor: `hsl(${theme.colors.borderDefault})` }]}>
+        <View
+          style={[
+            { gap: theme.spacing[2], borderTopColor: `hsl(${theme.colors.borderDefault})` },
+            styles.divider,
+            { paddingTop: theme.spacing[2.5] },
+          ]}
+        >
           <TextField
             label="Dispute reason (10–1000 characters)"
             value={disputeReason}
@@ -294,11 +377,22 @@ export function OrderRoomActions({
               onPress={() => setDisputeConfirmOpen(true)}
             />
           ) : (
-            <View style={[styles.confirmBox, { borderColor: 'rgba(245,158,11,0.25)', backgroundColor: 'rgba(245,158,11,0.05)' }]}>
-              <Text style={{ color: '#f59e0b', fontSize: 12, lineHeight: 18 }}>
+            <View
+              style={[
+                styles.confirmBox,
+                {
+                  borderColor: warning.border,
+                  backgroundColor: warning.bg,
+                  borderRadius: theme.radius.md,
+                  padding: theme.spacing[3],
+                  gap: theme.spacing[2],
+                },
+              ]}
+            >
+              <Text style={[theme.typography.bodySm, { color: warning.fg }]}>
                 Dispute escalation is irreversible for this order and will involve support review.
               </Text>
-              <View style={styles.row2}>
+              <View style={[styles.row2, { gap: theme.spacing[2] }]}>
                 <PrimaryButton title="Back" variant="secondary" onPress={() => setDisputeConfirmOpen(false)} />
                 <PrimaryButton
                   title={loading ? 'Submitting…' : 'Raise Dispute'}
@@ -313,29 +407,25 @@ export function OrderRoomActions({
       ) : null}
 
       {order.status === 'disputed' ? (
-        <Text style={[styles.hint, { color: '#f59e0b', borderColor: 'rgba(245,158,11,0.2)', backgroundColor: 'rgba(245,158,11,0.06)' }]}>
+        <Text style={hintStyle}>
           This order is under dispute. Support will review. You cannot cancel or release from here.
         </Text>
       ) : null}
-    </View>
+    </ExchangeCard>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 12, gap: 10 },
-  title: { fontSize: 15, fontWeight: '700' },
-  section: { gap: 8 },
-  divider: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 10 },
-  hint: { padding: 10, borderRadius: 8, borderWidth: 1, fontSize: 12, lineHeight: 18 },
-  okBanner: { borderWidth: 1, borderRadius: 8, padding: 10 },
+  section: {},
+  divider: { borderTopWidth: StyleSheet.hairlineWidth },
+  hint: { borderWidth: 1 },
+  okBanner: { borderWidth: 1 },
   uploadBox: {
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderRadius: 10,
-    padding: 16,
     alignItems: 'center',
   },
-  preview: { width: '100%', height: 140, borderRadius: 8 },
-  confirmBox: { borderWidth: 1, borderRadius: 10, padding: 12, gap: 8 },
-  row2: { flexDirection: 'row', gap: 8 },
+  preview: { width: '100%', height: 140 },
+  confirmBox: { borderWidth: 1 },
+  row2: { flexDirection: 'row' },
 });

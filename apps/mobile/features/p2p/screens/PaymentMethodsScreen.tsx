@@ -9,6 +9,7 @@ import {
   SkeletonList,
   EmptyState,
   ErrorState,
+  ExchangeCard,
 } from '@shared/ui';
 import { useTheme } from '@shared/theme';
 import { useAppStore } from '@core/state/appStore';
@@ -65,19 +66,54 @@ export function PaymentMethodsScreen({ navigation }: Props) {
   return (
     <ScreenLayout testID="S-611">
       {!isOnline ? (
-        <View style={[styles.offline, { backgroundColor: `hsl(${theme.colors.statusError} / 0.08)` }]}>
-          <Text style={{ color: `hsl(${theme.colors.statusError})`, fontSize: 13 }}>Offline — showing cached data.</Text>
+        <View
+          style={[
+            styles.offline,
+            {
+              backgroundColor: `hsl(${theme.colors.statusError} / 0.08)`,
+              borderRadius: theme.radius.md,
+              padding: theme.spacing[2.5],
+              marginBottom: theme.spacing[2],
+            },
+          ]}
+        >
+          <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.statusError})` }]}>
+            Offline — showing cached data.
+          </Text>
         </View>
       ) : null}
 
       <ScrollView
         refreshControl={<RefreshControl refreshing={q.isFetching} onRefresh={() => void q.refetch()} />}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={{ paddingBottom: theme.spacing[7] }}
       >
-        <View style={styles.header}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: `hsl(${theme.colors.foregroundSecondary})` }}>P2P · PAYMENTS</Text>
-          <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Payment methods</Text>
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13, lineHeight: 18, marginTop: 4 }}>
+        <View style={{ marginBottom: theme.spacing[3.5] }}>
+          <Text
+            style={[
+              theme.typography.labelSm,
+              { color: `hsl(${theme.colors.foregroundSecondary})`, fontFamily: theme.fonts.sansBold },
+            ]}
+          >
+            P2P · PAYMENTS
+          </Text>
+          <Text
+            style={[
+              theme.typography.displayMd,
+              {
+                color: `hsl(${theme.colors.foregroundPrimary})`,
+                fontFamily: theme.fonts.sansBold,
+                marginTop: theme.spacing[1],
+              },
+            ]}
+          >
+            Payment methods
+          </Text>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[1] },
+            ]}
+          >
             Add how you receive fiat for P2P trades. Details stay private until you match with a counterparty.
           </Text>
         </View>
@@ -85,21 +121,25 @@ export function PaymentMethodsScreen({ navigation }: Props) {
         <PrimaryButton title="Add method" onPress={() => navigation.navigate('AddPaymentMethod', {})} />
 
         {list.length > 0 ? (
-          <View style={styles.summaryRow}>
-            <View style={[styles.chip, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
-              <Text style={{ fontWeight: '800', color: `hsl(${theme.colors.brandPrimary})` }}>{counts.active}</Text>
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}> active</Text>
-            </View>
+          <View style={[styles.summaryRow, { gap: theme.spacing[2], marginVertical: theme.spacing[3] }]}>
+            <ExchangeCard style={[styles.chip, { flexDirection: 'row', alignItems: 'center', gap: theme.spacing[1] }]}>
+              <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansBold }]}>
+                {counts.active}
+              </Text>
+              <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}> active</Text>
+            </ExchangeCard>
             {counts.disabled > 0 ? (
-              <View style={[styles.chip, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.surfaceMuted})` }]}>
-                <Text style={{ fontWeight: '800', color: `hsl(${theme.colors.foregroundPrimary})` }}>{counts.disabled}</Text>
-                <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}> disabled</Text>
-              </View>
+              <ExchangeCard style={[styles.chip, { flexDirection: 'row', alignItems: 'center', gap: theme.spacing[1] }]}>
+                <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold }]}>
+                  {counts.disabled}
+                </Text>
+                <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}> disabled</Text>
+              </ExchangeCard>
             ) : null}
-            <View style={[styles.chip, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.surfaceMuted})` }]}>
-              <Ionicons name="lock-closed-outline" size={12} color={`hsl(${theme.colors.brandPrimary})`} />
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}> Shown only during trades</Text>
-            </View>
+            <ExchangeCard style={[styles.chip, { flexDirection: 'row', alignItems: 'center', gap: theme.spacing[1] }]}>
+              <Ionicons name="lock-closed-outline" size={theme.sizes.iconSm} color={`hsl(${theme.colors.brandPrimary})`} />
+              <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}> Shown only during trades</Text>
+            </ExchangeCard>
           </View>
         ) : null}
 
@@ -112,7 +152,17 @@ export function PaymentMethodsScreen({ navigation }: Props) {
           />
         ) : (
           <>
-            <Text style={[styles.sectionTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+            <Text
+              style={[
+                theme.typography.headingSm,
+                {
+                  color: `hsl(${theme.colors.foregroundPrimary})`,
+                  fontFamily: theme.fonts.sansBold,
+                  marginTop: theme.spacing[2],
+                  marginBottom: theme.spacing[2],
+                },
+              ]}
+            >
               Your methods ({list.length})
             </Text>
             {list.map((method) => (
@@ -141,28 +191,59 @@ export function PaymentMethodsScreen({ navigation }: Props) {
             ))}
 
             {list.length > 0 && list.length < 4 ? (
-              <View style={[styles.backup, { borderColor: `hsl(${theme.colors.brandPrimary} / 0.25)`, backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.06)` }]}>
-                <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>Add a backup method</Text>
-                <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13, marginTop: 4 }}>
+              <ExchangeCard
+                style={{
+                  marginTop: theme.spacing[2],
+                  borderColor: `hsl(${theme.colors.brandPrimary} / 0.25)`,
+                  backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.06)`,
+                }}
+              >
+                <Text
+                  style={[
+                    theme.typography.bodyMd,
+                    { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+                  ]}
+                >
+                  Add a backup method
+                </Text>
+                <Text
+                  style={[
+                    theme.typography.bodySm,
+                    { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[1] },
+                  ]}
+                >
                   A second payout option helps if one bank or app is down during a trade.
                 </Text>
-                <SecondaryButton title="Add another" onPress={() => navigation.navigate('AddPaymentMethod', {})} style={{ marginTop: 10 }} />
-              </View>
+                <SecondaryButton title="Add another" onPress={() => navigation.navigate('AddPaymentMethod', {})} style={{ marginTop: theme.spacing[2.5] }} />
+              </ExchangeCard>
             ) : null}
           </>
         )}
 
-        <View style={[styles.tips, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
-          <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>Before you trade</Text>
-          <Text style={styles.tipItem}>• Use the legal name that matches your bank or UPI KYC.</Text>
-          <Text style={styles.tipItem}>• Double-check account numbers and IFSC — buyers pay to these details.</Text>
-          <Text style={styles.tipItem}>• Disable a method instead of deleting it if you might use it again.</Text>
-        </View>
+        <ExchangeCard style={{ marginTop: theme.spacing[4] }}>
+          <Text
+            style={[
+              theme.typography.bodyMd,
+              { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+            ]}
+          >
+            Before you trade
+          </Text>
+          <Text style={[theme.typography.bodySm, styles.tipItem, { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[1.5] }]}>
+            • Use the legal name that matches your bank or UPI KYC.
+          </Text>
+          <Text style={[theme.typography.bodySm, styles.tipItem, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+            • Double-check account numbers and IFSC — buyers pay to these details.
+          </Text>
+          <Text style={[theme.typography.bodySm, styles.tipItem, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+            • Disable a method instead of deleting it if you might use it again.
+          </Text>
+        </ExchangeCard>
 
         <SecondaryButton
           title="Merchant dashboard"
           onPress={() => navigation.navigate('MerchantDashboard')}
-          style={{ marginTop: 12 }}
+          style={{ marginTop: theme.spacing[3] }}
         />
       </ScrollView>
     </ScreenLayout>
@@ -170,14 +251,8 @@ export function PaymentMethodsScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  content: { paddingBottom: 28 },
-  header: { marginBottom: 14 },
-  title: { fontSize: 24, fontWeight: '700', marginTop: 4 },
-  offline: { borderRadius: 8, padding: 10, marginBottom: 8 },
-  summaryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 12 },
-  chip: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6, gap: 4 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', marginTop: 8, marginBottom: 8 },
-  backup: { borderWidth: 1, borderRadius: 14, padding: 14, marginTop: 8 },
-  tips: { borderWidth: 1, borderRadius: 14, padding: 14, marginTop: 16 },
-  tipItem: { color: '#888', fontSize: 13, lineHeight: 20, marginTop: 6 },
+  summaryRow: { flexDirection: 'row', flexWrap: 'wrap' },
+  chip: {},
+  tipItem: { marginTop: 6 },
+  offline: {},
 });

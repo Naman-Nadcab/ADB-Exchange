@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import { TerminalPanel } from '@shared/ui';
 import type { CreateAdDraft } from '@core/domain/p2p/createAd';
 import { formatFiatSymbol, formatP2pFiatPrice } from '@core/domain/p2p/marketplace';
@@ -18,58 +19,86 @@ export function CreateAdPreview({ draft, referencePrice, paymentMethodCount }: P
   const sym = formatFiatSymbol(fiat);
   const display = resolveAdDisplayPrice(draft, referencePrice);
   const side = draft.type ?? 'sell';
-  const sideColor = side === 'sell' ? '#f6465d' : '#0ecb81';
+  const sidePalette = semanticStatusPalette(theme.colors, side === 'sell' ? 'sell' : 'buy');
 
   return (
-    <TerminalPanel style={styles.panel}>
-      <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Live Preview</Text>
-      <View style={styles.row}>
+    <TerminalPanel style={{ marginBottom: theme.spacing[3] }}>
+      <Text
+        style={[
+          theme.typography.bodyMd,
+          { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold, marginBottom: theme.spacing[2.5] },
+        ]}
+      >
+        Live Preview
+      </Text>
+      <View style={[styles.row, { marginBottom: theme.spacing[2.5] }]}>
         <View>
-          <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>
+          <Text
+            style={[
+              theme.typography.bodyMd,
+              { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+            ]}
+          >
             {crypto}/{fiat}
           </Text>
-          <Text style={{ fontSize: 12, color: `hsl(${theme.colors.foregroundSecondary})`, textTransform: 'capitalize' }}>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: `hsl(${theme.colors.foregroundSecondary})`, textTransform: 'capitalize' },
+            ]}
+          >
             {side} ad
           </Text>
         </View>
-        <View style={[styles.badge, { backgroundColor: `${sideColor}18` }]}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: sideColor, textTransform: 'capitalize' }}>{side}</Text>
+        <View
+          style={[
+            styles.badge,
+            {
+              borderRadius: theme.radius.md,
+              paddingHorizontal: theme.spacing[2],
+              paddingVertical: theme.spacing[1],
+              backgroundColor: sidePalette.bg,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              theme.typography.labelSm,
+              { color: sidePalette.fg, fontFamily: theme.fonts.sansBold, textTransform: 'capitalize' },
+            ]}
+          >
+            {side}
+          </Text>
         </View>
       </View>
-      <PreviewRow label="Price" value={display != null ? `${sym}${formatP2pFiatPrice(String(display), fiat)}` : '—'} theme={theme} />
-      <PreviewRow
-        label="Limits"
-        value={`${draft.min_amount || '—'} – ${draft.max_amount || '—'} ${fiat}`}
-        theme={theme}
-      />
-      <PreviewRow label="Available" value={`${draft.available_amount || '—'} ${crypto}`} theme={theme} />
-      <PreviewRow label="Methods" value={`${paymentMethodCount} selected`} theme={theme} />
-      <PreviewRow label="Window" value={`${draft.payment_time_limit ?? 15} min`} theme={theme} />
+      <PreviewRow label="Price" value={display != null ? `${sym}${formatP2pFiatPrice(String(display), fiat)}` : '—'} />
+      <PreviewRow label="Limits" value={`${draft.min_amount || '—'} – ${draft.max_amount || '—'} ${fiat}`} />
+      <PreviewRow label="Available" value={`${draft.available_amount || '—'} ${crypto}`} />
+      <PreviewRow label="Methods" value={`${paymentMethodCount} selected`} />
+      <PreviewRow label="Window" value={`${draft.payment_time_limit ?? 15} min`} />
     </TerminalPanel>
   );
 }
 
-function PreviewRow({
-  label,
-  value,
-  theme,
-}: {
-  label: string;
-  value: string;
-  theme: ReturnType<typeof useTheme>['theme'];
-}) {
+function PreviewRow({ label, value }: { label: string; value: string }) {
+  const { theme } = useTheme();
   return (
-    <View style={styles.previewRow}>
-      <Text style={{ fontSize: 12, color: `hsl(${theme.colors.foregroundSecondary})` }}>{label}</Text>
-      <Text style={{ fontSize: 12, fontWeight: '600', color: `hsl(${theme.colors.foregroundPrimary})` }}>{value}</Text>
+    <View style={[styles.previewRow, { paddingVertical: theme.spacing[1] }]}>
+      <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>{label}</Text>
+      <Text
+        style={[
+          theme.typography.bodySm,
+          { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+        ]}
+      >
+        {value}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  panel: { marginBottom: 12 },
-  title: { fontWeight: '700', marginBottom: 10, fontSize: 14 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  badge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
-  previewRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  badge: {},
+  previewRow: { flexDirection: 'row', justifyContent: 'space-between' },
 });

@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { FlatList, Pressable, Text, StyleSheet, View, Alert, RefreshControl } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, PrimaryButton, SecondaryButton, SkeletonList, EmptyState, ErrorState } from '@shared/ui';
+import { ScreenLayout, PrimaryButton, SecondaryButton, SkeletonList, EmptyState, ErrorState, ExchangeCard } from '@shared/ui';
 import { useTheme } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import { analytics } from '@core/observability/analytics';
 import { getAdPrice, getAdSide } from '@core/domain/p2p/order';
 import { formatFiatSymbol, formatP2pFiatPrice, formatP2pCryptoQty, parseAdPayments } from '@core/domain/p2p/marketplace';
@@ -56,7 +57,7 @@ export function MyAdsScreen({ navigation }: Props) {
       <SecondaryButton
         title="Merchant dashboard"
         onPress={() => navigation.navigate('MerchantDashboard')}
-        style={{ marginTop: 8, marginBottom: 4 }}
+        style={{ marginTop: theme.spacing[2], marginBottom: theme.spacing[1] }}
       />
       <FlatList
         data={rows}
@@ -77,67 +78,102 @@ export function MyAdsScreen({ navigation }: Props) {
           const side = getAdSide(item);
           const st = String(item.status ?? 'active');
           const payments = parseAdPayments(item);
+          const sidePalette = semanticStatusPalette(theme.colors, side === 'sell' ? 'sell' : 'buy');
           return (
-            <Pressable
-              style={[styles.card, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}
-              onPress={() => navigation.navigate('EditAd', { adId: item.id, ad: item })}
-            >
-              <View style={styles.top}>
-                <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>
-                  {item.crypto_symbol}/{fiat}
+            <Pressable onPress={() => navigation.navigate('EditAd', { adId: item.id, ad: item })}>
+              <ExchangeCard style={{ marginBottom: theme.spacing[2.5], marginTop: theme.spacing[2.5] }}>
+                <View style={styles.top}>
+                  <Text
+                    style={[
+                      theme.typography.bodyMd,
+                      { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+                    ]}
+                  >
+                    {item.crypto_symbol}/{fiat}
+                  </Text>
+                  <View
+                    style={[
+                      styles.sideBadge,
+                      {
+                        backgroundColor: sidePalette.bg,
+                        borderRadius: theme.radius.sm,
+                        paddingHorizontal: theme.spacing[1.5],
+                        paddingVertical: theme.spacing[0.5],
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        theme.typography.labelSm,
+                        { color: sidePalette.fg, fontFamily: theme.fonts.sansBold, textTransform: 'uppercase' },
+                      ]}
+                    >
+                      {side}
+                    </Text>
+                  </View>
+                </View>
+                <Text
+                  style={[
+                    theme.typography.bodyMd,
+                    {
+                      color: `hsl(${theme.colors.foregroundPrimary})`,
+                      fontFamily: theme.fonts.sansBold,
+                      marginTop: theme.spacing[1],
+                    },
+                  ]}
+                >
+                  {sym}{formatP2pFiatPrice(price, fiat)}
                 </Text>
                 <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '700',
-                    textTransform: 'uppercase',
-                    color: side === 'sell' ? '#f6465d' : '#0ecb81',
-                  }}
+                  style={[
+                    theme.typography.bodySm,
+                    { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[1] },
+                  ]}
                 >
-                  {side}
+                  Avail {formatP2pCryptoQty(item.available_amount)} {item.crypto_symbol} · {st}
                 </Text>
-              </View>
-              <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})`, marginTop: 4 }}>
-                {sym}{formatP2pFiatPrice(price, fiat)}
-              </Text>
-              <Text style={{ fontSize: 12, color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: 4 }}>
-                Avail {formatP2pCryptoQty(item.available_amount)} {item.crypto_symbol} · {st}
-              </Text>
-              {payments.length > 0 ? (
-                <Text style={{ fontSize: 11, color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: 4 }} numberOfLines={1}>
-                  {payments.join(', ')}
-                </Text>
-              ) : null}
-              <View style={styles.actions}>
-                <SecondaryButton
-                  title={st === 'paused' ? 'Resume' : 'Pause'}
-                  onPress={() =>
-                    void runLocked(() =>
-                      update.mutateAsync({ id: item.id, status: st === 'paused' ? 'active' : 'paused' }),
-                    )
-                  }
-                  style={{ flex: 1 }}
-                />
-                <SecondaryButton
-                  title="Edit"
-                  onPress={() => navigation.navigate('EditAd', { adId: item.id, ad: item })}
-                  style={{ flex: 1 }}
-                />
-                <SecondaryButton
-                  title="Delete"
-                  onPress={() =>
-                    Alert.alert('Delete ad?', 'This cannot be undone.', [
-                      { text: 'Cancel', style: 'cancel' },
-                      {
-                        text: 'Delete',
-                        style: 'destructive',
-                        onPress: () => void runLocked(() => del.mutateAsync(item.id)),
-                      },
-                    ])
-                  }
-                  style={{ flex: 1 }}
-                />
-              </View>
+                {payments.length > 0 ? (
+                  <Text
+                    style={[
+                      theme.typography.labelSm,
+                      { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[1] },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {payments.join(', ')}
+                  </Text>
+                ) : null}
+                <View style={[styles.actions, { gap: theme.spacing[2], marginTop: theme.spacing[3] }]}>
+                  <SecondaryButton
+                    title={st === 'paused' ? 'Resume' : 'Pause'}
+                    onPress={() =>
+                      void runLocked(() =>
+                        update.mutateAsync({ id: item.id, status: st === 'paused' ? 'active' : 'paused' }),
+                      )
+                    }
+                    style={{ flex: 1 }}
+                  />
+                  <SecondaryButton
+                    title="Edit"
+                    onPress={() => navigation.navigate('EditAd', { adId: item.id, ad: item })}
+                    style={{ flex: 1 }}
+                  />
+                  <SecondaryButton
+                    title="Delete"
+                    onPress={() =>
+                      Alert.alert('Delete ad?', 'This cannot be undone.', [
+                        { text: 'Cancel', style: 'cancel' },
+                        {
+                          text: 'Delete',
+                          style: 'destructive',
+                          onPress: () => void runLocked(() => del.mutateAsync(item.id)),
+                        },
+                      ])
+                    }
+                    style={{ flex: 1 }}
+                  />
+                </View>
+              </ExchangeCard>
             </Pressable>
           );
         }}
@@ -147,7 +183,7 @@ export function MyAdsScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 10, marginTop: 10 },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  actions: { flexDirection: 'row', gap: 8, marginTop: 12 },
+  sideBadge: {},
+  actions: { flexDirection: 'row' },
 });

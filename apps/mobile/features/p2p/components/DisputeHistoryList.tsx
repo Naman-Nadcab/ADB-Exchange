@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { ExchangeCard } from '@shared/ui';
 import { useTheme } from '@shared/theme';
 import type { P2PDispute } from '@exchange/mobile-types';
 import { buildDisputeHistoryEntries } from '@core/domain/p2p/dispute';
@@ -11,30 +12,49 @@ export function DisputeHistoryList({ dispute }: Props) {
   if (!entries.length) return null;
 
   return (
-    <View style={[styles.card, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
-      <Text style={{ fontSize: 12, fontWeight: '700', color: `hsl(${theme.colors.foregroundSecondary})`, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
+    <ExchangeCard padded={false} style={{ overflow: 'hidden', marginTop: theme.spacing[3] }}>
+      <Text
+        style={[
+          theme.typography.bodySm,
+          {
+            color: `hsl(${theme.colors.foregroundSecondary})`,
+            fontFamily: theme.fonts.sansBold,
+            paddingHorizontal: theme.spacing[4],
+            paddingTop: theme.spacing[3],
+            paddingBottom: theme.spacing[2],
+          },
+        ]}
+      >
         History
       </Text>
       {entries.map((entry, i) => (
-        <View key={`${entry.label}-${entry.at}`} style={[styles.row, i < entries.length - 1 ? styles.rowBorder : null]}>
-          <Text style={{ fontSize: 14, color: `hsl(${theme.colors.foregroundPrimary})` }}>{entry.label}</Text>
-          <Text style={{ fontSize: 12, color: `hsl(${theme.colors.foregroundSecondary})` }}>
+        <View
+          key={`${entry.label}-${entry.at}`}
+          style={[
+            styles.row,
+            {
+              paddingHorizontal: theme.spacing[4],
+              paddingVertical: theme.spacing[2.5],
+              borderBottomColor: `hsl(${theme.colors.borderDefault})`,
+            },
+            i < entries.length - 1 ? styles.rowBorder : null,
+          ]}
+        >
+          <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>{entry.label}</Text>
+          <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
             {new Date(entry.at).toLocaleString()}
           </Text>
         </View>
       ))}
-    </View>
+    </ExchangeCard>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { borderWidth: 1, borderRadius: 12, overflow: 'hidden', marginTop: 12 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
   },
-  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(128,128,128,0.2)' },
+  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth },
 });

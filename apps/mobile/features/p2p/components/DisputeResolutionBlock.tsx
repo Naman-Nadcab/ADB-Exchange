@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { ExchangeCard } from '@shared/ui';
 import { useTheme } from '@shared/theme';
 import type { P2PDispute } from '@exchange/mobile-types';
 import { disputeResolutionLabel } from '@core/domain/p2p/dispute';
@@ -10,29 +11,48 @@ export function DisputeResolutionBlock({ dispute }: Props) {
   if (!dispute.resolution) return null;
 
   return (
-    <View style={[styles.card, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
-      <View style={styles.row}>
-        <Text style={{ fontSize: 12, color: `hsl(${theme.colors.foregroundSecondary})` }}>Resolution</Text>
-        <Text style={{ fontSize: 14, fontWeight: '600', fontFamily: undefined, color: `hsl(${theme.colors.foregroundPrimary})` }}>
+    <ExchangeCard padded={false} style={{ overflow: 'hidden', marginTop: theme.spacing[3] }}>
+      <View
+        style={[
+          styles.row,
+          {
+            paddingHorizontal: theme.spacing[4],
+            paddingVertical: theme.spacing[3],
+          },
+        ]}
+      >
+        <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>Resolution</Text>
+        <Text
+          style={[
+            theme.typography.bodyMd,
+            { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+          ]}
+        >
           {disputeResolutionLabel(dispute.resolution)}
         </Text>
       </View>
       {dispute.resolved_at ? (
-        <Text style={{ fontSize: 12, color: `hsl(${theme.colors.foregroundSecondary})`, paddingHorizontal: 16, paddingBottom: 12 }}>
+        <Text
+          style={[
+            theme.typography.bodySm,
+            {
+              color: `hsl(${theme.colors.foregroundSecondary})`,
+              paddingHorizontal: theme.spacing[4],
+              paddingBottom: theme.spacing[3],
+            },
+          ]}
+        >
           {new Date(dispute.resolved_at).toLocaleString()}
         </Text>
       ) : null}
-    </View>
+    </ExchangeCard>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { borderWidth: 1, borderRadius: 12, overflow: 'hidden', marginTop: 12 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
   },
 });

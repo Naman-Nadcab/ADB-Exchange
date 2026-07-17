@@ -11,6 +11,7 @@ import {
   TerminalPanel,
 } from '@shared/ui';
 import { useTheme, hapticLight } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
 import { useP2PStore } from '@core/state/p2pStore';
@@ -47,25 +48,26 @@ type Props = NativeStackScreenProps<P2PStackParamList, 'AdDetail'>;
 function DetailRow({
   label,
   value,
-  theme,
   accent,
 }: {
   label: string;
   value: string;
-  theme: ReturnType<typeof useTheme>['theme'];
   accent?: string;
 }) {
+  const { theme } = useTheme();
   return (
-    <View style={styles.row}>
-      <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>{label}</Text>
+    <View style={[styles.row, { paddingVertical: theme.spacing[2], gap: theme.spacing[3] }]}>
+      <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>{label}</Text>
       <Text
-        style={{
-          color: accent ?? `hsl(${theme.colors.foregroundPrimary})`,
-          fontWeight: '700',
-          fontSize: 14,
-          flex: 1,
-          textAlign: 'right',
-        }}
+        style={[
+          theme.typography.bodyMd,
+          {
+            color: accent ?? `hsl(${theme.colors.foregroundPrimary})`,
+            fontFamily: theme.fonts.sansBold,
+            flex: 1,
+            textAlign: 'right',
+          },
+        ]}
       >
         {value}
       </Text>
@@ -76,6 +78,9 @@ function DetailRow({
 export function AdDetailScreen({ navigation, route }: Props) {
   const { adId, ad: seedAd } = route.params;
   const { theme } = useTheme();
+  const warning = semanticStatusPalette(theme.colors, 'warning');
+  const buyPalette = semanticStatusPalette(theme.colors, 'buy');
+  const sellPalette = semanticStatusPalette(theme.colors, 'sell');
   const isOnline = useAppStore((s) => s.isOnline);
   const { isAuthenticated, requireAuth, openLogin } = useGuestAccess();
   const toggleFavorite = useP2PStore((s) => s.toggleFavorite);
@@ -160,7 +165,7 @@ export function AdDetailScreen({ navigation, route }: Props) {
   const terms = adTermsText(ad);
   const autoReply = adAutoReplyText(ad);
   const isBuy = isUserBuyingFromAd(ad);
-  const tradeColor = isBuy ? '#0ecb81' : '#f6465d';
+  const tradePalette = isBuy ? buyPalette : sellPalette;
   const canTrade = availability === 'available' && isAuthenticated;
   const tickerFailed = tickersQ.isError && !tickersQ.data;
 
@@ -168,49 +173,99 @@ export function AdDetailScreen({ navigation, route }: Props) {
     <ScreenLayout testID="S-601">
       <ScrollView
         refreshControl={<RefreshControl refreshing={adQ.isFetching && !adQ.isLoading} onRefresh={onRefresh} />}
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingBottom: theme.spacing[6] }}
       >
         {!isOnline ? <ErrorBanner message="Offline — details may be stale." onRetry={onRefresh} /> : null}
         {availabilityMsg ? <ErrorBanner message={availabilityMsg} /> : null}
         {tickerFailed ? (
-          <View style={styles.riskBanner}>
-            <Text style={styles.riskText}>Spot reference feed is reconnecting.</Text>
+          <View
+            style={[
+              styles.riskBanner,
+              {
+                backgroundColor: warning.bg,
+                borderColor: warning.border,
+                borderRadius: theme.radius.md,
+                padding: theme.spacing[2.5],
+                marginBottom: theme.spacing[3],
+                gap: theme.spacing[2],
+              },
+            ]}
+          >
+            <Text style={[theme.typography.bodySm, styles.riskText, { color: warning.fg, flex: 1 }]}>
+              Spot reference feed is reconnecting.
+            </Text>
             <Pressable onPress={() => void tickersQ.refetch()}>
-              <Text style={styles.riskRetry}>Retry</Text>
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  { color: warning.fg, fontFamily: theme.fonts.sansBold, textDecorationLine: 'underline' },
+                ]}
+              >
+                Retry
+              </Text>
             </Pressable>
           </View>
         ) : null}
 
-        <View style={styles.headerActions}>
+        <View style={[styles.headerActions, { gap: theme.spacing[4], marginBottom: theme.spacing[2] }]}>
           <Pressable onPress={() => toggleFavorite(adId)} hitSlop={8} accessibilityLabel="Favorite merchant">
             <Ionicons
               name={isFavorite ? 'star' : 'star-outline'}
-              size={22}
+              size={theme.sizes.iconMd}
               color={`hsl(${theme.colors.brandPrimary})`}
             />
           </Pressable>
           <Pressable onPress={() => void shareAd()} hitSlop={8} accessibilityLabel="Share ad">
-            <Ionicons name="share-outline" size={22} color={`hsl(${theme.colors.foregroundSecondary})`} />
+            <Ionicons name="share-outline" size={theme.sizes.iconMd} color={`hsl(${theme.colors.foregroundSecondary})`} />
           </Pressable>
         </View>
 
-        <Text style={[styles.pairTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+        <Text
+          style={[
+            theme.typography.headingLg,
+            { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold, letterSpacing: -0.2 },
+          ]}
+        >
           {ad.crypto_symbol} / {ad.fiat_currency}
         </Text>
-        <Text style={{ fontSize: 13, color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 12 }}>
+        <Text
+          style={[
+            theme.typography.bodySm,
+            { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[3] },
+          ]}
+        >
           {isBuy ? 'You buy crypto' : 'You sell crypto'} · {ad.pricing_type === 'floating' ? 'Floating' : 'Fixed'} price
         </Text>
 
-        <TerminalPanel style={styles.pricePanel}>
-          <Text style={{ fontSize: 28, fontWeight: '800', color: tradeColor }}>
+        <TerminalPanel style={{ marginBottom: theme.spacing[3] }}>
+          <Text
+            style={[
+              theme.typography.displayMd,
+              { color: tradePalette.fg, fontFamily: theme.fonts.sansBold },
+            ]}
+          >
             {price.sym}
             {price.formatted}
           </Text>
-          <Text style={{ fontSize: 12, color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: 4 }}>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[1] },
+            ]}
+          >
             per {ad.crypto_symbol}
           </Text>
           {premium ? (
-            <Text style={{ fontSize: 13, fontWeight: '600', color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: 6 }}>
+            <Text
+              style={[
+                theme.typography.bodySm,
+                {
+                  color: `hsl(${theme.colors.foregroundSecondary})`,
+                  fontFamily: theme.fonts.sansSemiBold,
+                  marginTop: theme.spacing[1.5],
+                },
+              ]}
+            >
               {premium}
             </Text>
           ) : null}
@@ -218,32 +273,38 @@ export function AdDetailScreen({ navigation, route }: Props) {
 
         <AdDetailEscrowBanner />
 
-        <TerminalPanel style={{ marginBottom: 12 }}>
-          <DetailRow label="Available" value={`${available.qty} ${available.crypto}`} theme={theme} />
-          <DetailRow
-            label="Limit"
-            value={`${limits.sym}${limits.min} – ${limits.sym}${limits.max}`}
-            theme={theme}
-          />
-          <DetailRow label="Payment window" value={`${adPaymentWindowMinutes(ad)} min`} theme={theme} />
+        <TerminalPanel style={{ marginBottom: theme.spacing[3] }}>
+          <DetailRow label="Available" value={`${available.qty} ${available.crypto}`} />
+          <DetailRow label="Limit" value={`${limits.sym}${limits.min} – ${limits.sym}${limits.max}`} />
+          <DetailRow label="Payment window" value={`${adPaymentWindowMinutes(ad)} min`} />
           {referencePrice != null ? (
             <DetailRow
               label="Reference"
               value={`${price.sym}${referencePrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
-              theme={theme}
             />
           ) : null}
           {spread != null ? (
             <DetailRow
               label="Spread"
               value={`${spread >= 0 ? '+' : ''}${spread.toFixed(2)} ${ad.fiat_currency}`}
-              theme={theme}
-              accent={spread >= 0 ? '#f6465d' : '#0ecb81'}
+              accent={spread >= 0 ? sellPalette.fg : buyPalette.fg}
             />
           ) : null}
         </TerminalPanel>
 
-        <Text style={[styles.sectionTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Merchant</Text>
+        <Text
+          style={[
+            theme.typography.headingSm,
+            {
+              color: `hsl(${theme.colors.foregroundPrimary})`,
+              fontFamily: theme.fonts.sansBold,
+              marginBottom: theme.spacing[2],
+              marginTop: theme.spacing[1],
+            },
+          ]}
+        >
+          Merchant
+        </Text>
         <AdDetailMerchantCard
           ad={ad}
           onPress={
@@ -253,47 +314,106 @@ export function AdDetailScreen({ navigation, route }: Props) {
           }
         />
 
-        <Text style={[styles.sectionTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Payment methods</Text>
+        <Text
+          style={[
+            theme.typography.headingSm,
+            {
+              color: `hsl(${theme.colors.foregroundPrimary})`,
+              fontFamily: theme.fonts.sansBold,
+              marginBottom: theme.spacing[2],
+              marginTop: theme.spacing[1],
+            },
+          ]}
+        >
+          Payment methods
+        </Text>
         <AdDetailPaymentMethods payments={payments} />
 
         {terms ? (
           <>
-            <Text style={[styles.sectionTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Terms & conditions</Text>
-            <TerminalPanel style={{ marginBottom: 12 }}>
-              <Text style={{ fontSize: 13, lineHeight: 20, color: `hsl(${theme.colors.foregroundPrimary})` }}>{terms}</Text>
+            <Text
+              style={[
+                theme.typography.headingSm,
+                {
+                  color: `hsl(${theme.colors.foregroundPrimary})`,
+                  fontFamily: theme.fonts.sansBold,
+                  marginBottom: theme.spacing[2],
+                  marginTop: theme.spacing[1],
+                },
+              ]}
+            >
+              Terms & conditions
+            </Text>
+            <TerminalPanel style={{ marginBottom: theme.spacing[3] }}>
+              <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>{terms}</Text>
             </TerminalPanel>
           </>
         ) : null}
 
         {autoReply ? (
           <>
-            <Text style={[styles.sectionTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Auto reply</Text>
-            <TerminalPanel style={{ marginBottom: 12 }}>
-              <Text style={{ fontSize: 13, lineHeight: 20, color: `hsl(${theme.colors.foregroundPrimary})` }}>{autoReply}</Text>
+            <Text
+              style={[
+                theme.typography.headingSm,
+                {
+                  color: `hsl(${theme.colors.foregroundPrimary})`,
+                  fontFamily: theme.fonts.sansBold,
+                  marginBottom: theme.spacing[2],
+                  marginTop: theme.spacing[1],
+                },
+              ]}
+            >
+              Auto reply
+            </Text>
+            <TerminalPanel style={{ marginBottom: theme.spacing[3] }}>
+              <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>{autoReply}</Text>
             </TerminalPanel>
           </>
         ) : null}
 
-        <View style={styles.actionRow}>
+        <View style={[styles.actionRow, { gap: theme.spacing[2.5], marginBottom: theme.spacing[2] }]}>
           {isAuthenticated && ad.user_id ? (
             <Pressable
-              style={[styles.secondaryBtn, { borderColor: `hsl(${theme.colors.borderDefault})` }]}
+              style={[
+                styles.secondaryBtn,
+                {
+                  borderColor: `hsl(${theme.colors.borderDefault})`,
+                  borderRadius: theme.radius.md,
+                  paddingVertical: theme.spacing[3],
+                },
+              ]}
               onPress={() => {
                 void hapticLight();
                 block.mutate(ad.user_id!);
                 navigation.goBack();
               }}
             >
-              <Text style={{ fontWeight: '600', color: `hsl(${theme.colors.foregroundPrimary})` }}>Block merchant</Text>
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+                ]}
+              >
+                Block merchant
+              </Text>
             </Pressable>
           ) : null}
         </View>
 
         {!isAuthenticated ? (
           <>
-            <PrimaryButton title={tradeActionLabel(ad)} onPress={() => openLogin()} style={{ marginTop: 8 }} />
-            <Pressable onPress={() => openLogin()} style={{ marginTop: 8 }}>
-              <Text style={{ textAlign: 'center', fontWeight: '700', color: `hsl(${theme.colors.brandPrimary})` }}>
+            <PrimaryButton title={tradeActionLabel(ad)} onPress={() => openLogin()} style={{ marginTop: theme.spacing[2] }} />
+            <Pressable onPress={() => openLogin()} style={{ marginTop: theme.spacing[2] }}>
+              <Text
+                style={[
+                  theme.typography.bodyMd,
+                  {
+                    textAlign: 'center',
+                    fontFamily: theme.fonts.sansBold,
+                    color: `hsl(${theme.colors.brandPrimary})`,
+                  },
+                ]}
+              >
                 Log in to trade
               </Text>
             </Pressable>
@@ -307,7 +427,7 @@ export function AdDetailScreen({ navigation, route }: Props) {
               if (availability !== 'available') return;
               setShowTrade(true);
             }}
-            style={{ marginTop: 8 }}
+            style={{ marginTop: theme.spacing[2] }}
           />
         )}
       </ScrollView>
@@ -329,36 +449,22 @@ export function AdDetailScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  headerActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 16, marginBottom: 8 },
-  pairTitle: { fontSize: 22, fontWeight: '700', letterSpacing: -0.2 },
-  pricePanel: { marginBottom: 12 },
-  sectionTitle: { fontSize: 15, fontWeight: '700', marginBottom: 8, marginTop: 4 },
+  headerActions: { flexDirection: 'row', justifyContent: 'flex-end' },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
-    gap: 12,
   },
   riskBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(245, 158, 11, 0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.2)',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 12,
   },
-  riskText: { flex: 1, fontSize: 12, color: '#d97706' },
-  riskRetry: { fontSize: 12, fontWeight: '700', color: '#d97706', textDecorationLine: 'underline' },
-  actionRow: { flexDirection: 'row', gap: 10, marginBottom: 8 },
+  riskText: {},
+  actionRow: { flexDirection: 'row' },
   secondaryBtn: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 10,
-    paddingVertical: 12,
     alignItems: 'center',
   },
 });

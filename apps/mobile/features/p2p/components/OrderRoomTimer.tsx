@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 
 type Props = {
   expiresAtIso: string | null | undefined;
@@ -11,6 +12,8 @@ type Props = {
 
 export function OrderRoomTimer({ expiresAtIso, active, onExpire }: Props) {
   const { theme } = useTheme();
+  const warning = semanticStatusPalette(theme.colors, 'warning');
+  const error = semanticStatusPalette(theme.colors, 'error');
   const [leftSec, setLeftSec] = useState<number | null>(null);
   const fired = useRef(false);
 
@@ -46,25 +49,32 @@ export function OrderRoomTimer({ expiresAtIso, active, onExpire }: Props) {
   const m = leftSec == null ? 0 : Math.floor(leftSec / 60);
   const s = leftSec == null ? 0 : leftSec % 60;
   const urgent = leftSec != null && leftSec < 300;
+  const palette = urgent ? error : warning;
 
   return (
     <View
       style={[
         styles.wrap,
         {
-          borderColor: urgent ? `hsl(${theme.colors.statusError} / 0.3)` : 'rgba(245,158,11,0.25)',
-          backgroundColor: urgent ? `hsl(${theme.colors.statusError} / 0.06)` : 'rgba(245,158,11,0.06)',
+          borderColor: palette.border,
+          backgroundColor: palette.bg,
+          borderRadius: theme.radius.md,
+          paddingHorizontal: theme.spacing[3.5],
+          paddingVertical: theme.spacing[2.5],
+          marginBottom: theme.spacing[3],
+          gap: theme.spacing[2.5],
         },
       ]}
     >
-      <Ionicons name="time-outline" size={18} color={urgent ? `hsl(${theme.colors.statusError})` : '#f59e0b'} />
-      <Text style={[styles.label, { color: urgent ? `hsl(${theme.colors.statusError})` : '#f59e0b' }]}>
+      <Ionicons name="time-outline" size={theme.sizes.iconMd} color={palette.fg} />
+      <Text style={[theme.typography.bodyMd, styles.label, { color: palette.fg, fontFamily: theme.fonts.sansSemiBold }]}>
         Payment window
       </Text>
       <Text
         style={[
+          theme.typography.displayMd,
           styles.time,
-          { color: urgent ? `hsl(${theme.colors.statusError})` : '#f59e0b' },
+          { color: palette.fg, fontFamily: theme.fonts.sansBold, fontSize: 20, lineHeight: 26 },
         ]}
       >
         {leftSec == null ? '—' : `${m}:${s.toString().padStart(2, '0')}`}
@@ -77,13 +87,8 @@ const styles = StyleSheet.create({
   wrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
     borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 12,
   },
-  label: { fontSize: 14, fontWeight: '600', flex: 1 },
-  time: { fontSize: 20, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  label: { flex: 1 },
+  time: { fontVariant: ['tabular-nums'] },
 });

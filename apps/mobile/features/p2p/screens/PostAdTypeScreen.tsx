@@ -25,13 +25,38 @@ export function PostAdTypeScreen({ navigation }: Props) {
 
   return (
     <ScreenLayout testID="S-603">
-      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
-        <Text style={[styles.heading, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Post new ad</Text>
-        <Text style={[styles.sub, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+      <ScrollView contentContainerStyle={{ paddingBottom: theme.spacing[6] }}>
+        <Text
+          style={[
+            theme.typography.headingLg,
+            { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold, marginBottom: theme.spacing[1.5] },
+          ]}
+        >
+          Post new ad
+        </Text>
+        <Text
+          style={[
+            theme.typography.bodySm,
+            { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[4] },
+          ]}
+        >
           Create a {draft.type ?? 'sell'} ad for {draft.currency ?? 'USDT'}/{draft.fiat ?? 'INR'}.
         </Text>
 
-        <Text style={[styles.label, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>I want to</Text>
+        <Text
+          style={[
+            theme.typography.labelSm,
+            {
+              color: `hsl(${theme.colors.foregroundSecondary})`,
+              fontFamily: theme.fonts.sansBold,
+              textTransform: 'uppercase',
+              marginBottom: theme.spacing[2],
+              letterSpacing: 0.4,
+            },
+          ]}
+        >
+          I want to
+        </Text>
         <SegmentControl
           tabs={[
             { id: 'sell', label: 'Sell crypto' },
@@ -41,15 +66,43 @@ export function PostAdTypeScreen({ navigation }: Props) {
           onChange={(id) => setDraft({ type: id as 'buy' | 'sell' })}
         />
 
-        <Text style={[styles.label, { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: 16 }]}>Crypto</Text>
-        <View style={styles.chips}>
+        <Text
+          style={[
+            theme.typography.labelSm,
+            {
+              color: `hsl(${theme.colors.foregroundSecondary})`,
+              fontFamily: theme.fonts.sansBold,
+              textTransform: 'uppercase',
+              marginTop: theme.spacing[4],
+              marginBottom: theme.spacing[2],
+              letterSpacing: 0.4,
+            },
+          ]}
+        >
+          Crypto
+        </Text>
+        <View style={[styles.chips, { gap: theme.spacing[2] }]}>
           {MARKETPLACE_CRYPTOS.map((c) => (
             <FilterChip key={c} label={c} selected={draft.currency === c} onPress={() => setDraft({ currency: c })} />
           ))}
         </View>
 
-        <Text style={[styles.label, { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: 12 }]}>Fiat</Text>
-        <View style={styles.chips}>
+        <Text
+          style={[
+            theme.typography.labelSm,
+            {
+              color: `hsl(${theme.colors.foregroundSecondary})`,
+              fontFamily: theme.fonts.sansBold,
+              textTransform: 'uppercase',
+              marginTop: theme.spacing[3],
+              marginBottom: theme.spacing[2],
+              letterSpacing: 0.4,
+            },
+          ]}
+        >
+          Fiat
+        </Text>
+        <View style={[styles.chips, { gap: theme.spacing[2] }]}>
           {MARKETPLACE_FIATS.map((f) => (
             <FilterChip key={f} label={f} selected={draft.fiat === f} onPress={() => setDraft({ fiat: f })} />
           ))}
@@ -61,7 +114,7 @@ export function PostAdTypeScreen({ navigation }: Props) {
           title="Next: Pricing & Limits"
           disabled={!!validateCreateAdStep('type', draft, null)}
           onPress={() => navigation.navigate('PostAdPrice')}
-          style={{ marginTop: 20 }}
+          style={{ marginTop: theme.spacing[5] }}
         />
       </ScrollView>
     </ScreenLayout>
@@ -69,8 +122,5 @@ export function PostAdTypeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  heading: { fontSize: 22, fontWeight: '700', marginBottom: 6 },
-  sub: { fontSize: 13, marginBottom: 16, lineHeight: 20 },
-  label: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.4 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap' },
 });

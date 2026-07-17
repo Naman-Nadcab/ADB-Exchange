@@ -134,13 +134,26 @@ export function OrderRoomScreen({ navigation, route }: Props) {
   return (
     <ScreenLayout testID="S-610">
       {!isOnline ? (
-        <View style={[styles.offline, { backgroundColor: `hsl(${theme.colors.statusError} / 0.08)` }]}>
-          <Ionicons name="cloud-offline-outline" size={16} color={`hsl(${theme.colors.statusError})`} />
-          <Text style={{ color: `hsl(${theme.colors.statusError})`, fontSize: 13, flex: 1 }}>
+        <View
+          style={[
+            styles.offline,
+            {
+              backgroundColor: `hsl(${theme.colors.statusError} / 0.08)`,
+              borderRadius: theme.radius.md,
+              padding: theme.spacing[2.5],
+              marginBottom: theme.spacing[2],
+              gap: theme.spacing[2],
+            },
+          ]}
+        >
+          <Ionicons name="cloud-offline-outline" size={theme.sizes.iconSm} color={`hsl(${theme.colors.statusError})`} />
+          <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.statusError})`, flex: 1 }]}>
             Offline — actions are disabled until you reconnect.
           </Text>
           <Pressable onPress={() => void orderQ.refetch()}>
-            <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '700' }}>Retry</Text>
+            <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansBold }]}>
+              Retry
+            </Text>
           </Pressable>
         </View>
       ) : null}
@@ -160,21 +173,48 @@ export function OrderRoomScreen({ navigation, route }: Props) {
         <OrderStatusTimeline steps={timeline} />
 
         {order.status === 'expired' ? (
-          <TerminalPanel subtle style={{ marginBottom: 12 }}>
-            <Text style={{ fontWeight: '700', marginBottom: 4, color: `hsl(${theme.colors.foregroundPrimary})` }}>Order expired</Text>
-            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})` }}>The payment window has closed.</Text>
+          <TerminalPanel subtle style={{ marginBottom: theme.spacing[3] }}>
+            <Text
+              style={[
+                theme.typography.bodyMd,
+                { marginBottom: theme.spacing[1], color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+              ]}
+            >
+              Order expired
+            </Text>
+            <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+              The payment window has closed.
+            </Text>
           </TerminalPanel>
         ) : null}
         {order.status === 'cancelled' ? (
-          <TerminalPanel subtle style={{ marginBottom: 12 }}>
-            <Text style={{ fontWeight: '700', marginBottom: 4, color: `hsl(${theme.colors.foregroundPrimary})` }}>Order cancelled</Text>
-            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})` }}>{order.cancel_reason ?? 'This order was cancelled.'}</Text>
+          <TerminalPanel subtle style={{ marginBottom: theme.spacing[3] }}>
+            <Text
+              style={[
+                theme.typography.bodyMd,
+                { marginBottom: theme.spacing[1], color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+              ]}
+            >
+              Order cancelled
+            </Text>
+            <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+              {order.cancel_reason ?? 'This order was cancelled.'}
+            </Text>
           </TerminalPanel>
         ) : null}
         {order.status === 'completed' || order.status === 'released' ? (
-          <TerminalPanel subtle style={{ marginBottom: 12 }}>
-            <Text style={{ fontWeight: '700', marginBottom: 4, color: `hsl(${theme.colors.foregroundPrimary})` }}>Order completed</Text>
-            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})` }}>Crypto has been released successfully.</Text>
+          <TerminalPanel subtle style={{ marginBottom: theme.spacing[3] }}>
+            <Text
+              style={[
+                theme.typography.bodyMd,
+                { marginBottom: theme.spacing[1], color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+              ]}
+            >
+              Order completed
+            </Text>
+            <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+              Crypto has been released successfully.
+            </Text>
           </TerminalPanel>
         ) : null}
 
@@ -218,7 +258,14 @@ export function OrderRoomScreen({ navigation, route }: Props) {
             onPress={() => navigation.navigate('DisputeDetail', { disputeId: order.dispute_id! })}
             style={{ marginTop: 8 }}
           >
-            <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600' }}>View dispute</Text>
+            <Text
+              style={[
+                theme.typography.bodySm,
+                { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+              ]}
+            >
+              View dispute
+            </Text>
           </Pressable>
         ) : null}
       </ScrollView>
@@ -231,9 +278,5 @@ const styles = StyleSheet.create({
   offline: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 8,
   },
 });

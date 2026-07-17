@@ -19,12 +19,17 @@ type Props = {
 
 export function MarketplaceFilters({ value, onChange, onRefresh }: Props) {
   const { theme } = useTheme();
-  const buyColor = '#0ecb81';
-  const sellColor = '#f6465d';
+  const buyColor = `hsl(${theme.colors.tradeBuy})`;
+  const sellColor = `hsl(${theme.colors.tradeSell})`;
 
   return (
-    <View style={styles.wrap}>
-      <View style={[styles.sideRow, { borderBottomColor: `hsl(${theme.colors.borderDefault})` }]}>
+    <View style={[styles.wrap, { gap: theme.spacing[2.5] }]}>
+      <View
+        style={[
+          styles.sideRow,
+          { gap: theme.spacing[6], borderBottomColor: `hsl(${theme.colors.borderDefault})` },
+        ]}
+      >
         {(['buy', 'sell'] as const).map((s) => {
           const active = value.side === s;
           const color = s === 'buy' ? buyColor : sellColor;
@@ -35,20 +40,40 @@ export function MarketplaceFilters({ value, onChange, onRefresh }: Props) {
                 void hapticLight();
                 onChange({ ...value, side: s });
               }}
-              style={styles.sideTab}
+              style={[styles.sideTab, { paddingBottom: theme.spacing[2.5] }]}
               accessibilityRole="tab"
               accessibilityState={{ selected: active }}
             >
-              <Text style={[styles.sideLabel, { color: active ? color : `hsl(${theme.colors.foregroundSecondary})` }]}>
+              <Text
+                style={[
+                  theme.typography.headingMd,
+                  {
+                    color: active ? color : `hsl(${theme.colors.foregroundSecondary})`,
+                    textTransform: 'capitalize',
+                    fontFamily: theme.fonts.sansBold,
+                  },
+                ]}
+              >
                 {s.charAt(0).toUpperCase() + s.slice(1)}
               </Text>
-              {active ? <View style={[styles.sideUnderline, { backgroundColor: color }]} /> : null}
+              {active ? (
+                <View
+                  style={[
+                    styles.sideUnderline,
+                    { backgroundColor: color, borderRadius: theme.radius.sm, height: theme.borderWidth.medium },
+                  ]}
+                />
+              ) : null}
             </Pressable>
           );
         })}
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cryptoRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={[styles.cryptoRow, { gap: theme.spacing[2], paddingVertical: theme.spacing[0.5] }]}
+      >
         {MARKETPLACE_CRYPTOS.map((c) => (
           <FilterChip
             key={c}
@@ -60,7 +85,11 @@ export function MarketplaceFilters({ value, onChange, onRefresh }: Props) {
       </ScrollView>
 
       <View style={styles.dropdownRow}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.fiatRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={[styles.fiatRow, { gap: theme.spacing[2] }]}
+        >
           {MARKETPLACE_FIATS.map((f) => (
             <FilterChip
               key={f}
@@ -72,7 +101,14 @@ export function MarketplaceFilters({ value, onChange, onRefresh }: Props) {
         </ScrollView>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.paymentRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.paymentRow,
+          { gap: theme.spacing[2], alignItems: 'center', paddingBottom: theme.spacing[0.5] },
+        ]}
+      >
         {PAYMENT_FILTERS.map((p) => (
           <FilterChip
             key={p.value || 'all'}
@@ -90,13 +126,17 @@ export function MarketplaceFilters({ value, onChange, onRefresh }: Props) {
             style={[
               styles.refreshBtn,
               {
+                width: theme.sizes.tapTarget,
+                height: 36,
+                borderRadius: theme.radius.md,
                 borderColor: `hsl(${theme.colors.borderDefault})`,
                 backgroundColor: `hsl(${theme.colors.backgroundElevated})`,
+                marginLeft: theme.spacing[1],
               },
             ]}
             accessibilityLabel="Refresh"
           >
-            <Ionicons name="refresh" size={18} color={`hsl(${theme.colors.foregroundSecondary})`} />
+            <Ionicons name="refresh" size={theme.sizes.iconMd} color={`hsl(${theme.colors.foregroundSecondary})`} />
           </Pressable>
         ) : null}
       </ScrollView>
@@ -105,22 +145,13 @@ export function MarketplaceFilters({ value, onChange, onRefresh }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 10, marginBottom: 4 },
-  sideRow: { flexDirection: 'row', gap: 24, borderBottomWidth: StyleSheet.hairlineWidth },
-  sideTab: { paddingBottom: 10, minWidth: 48, alignItems: 'center' },
-  sideLabel: { fontSize: 18, fontWeight: '700', textTransform: 'capitalize' },
-  sideUnderline: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, borderRadius: 1 },
-  cryptoRow: { gap: 8, paddingVertical: 2 },
+  wrap: { marginBottom: 4 },
+  sideRow: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth },
+  sideTab: { minWidth: 48, alignItems: 'center' },
+  sideUnderline: { position: 'absolute', bottom: 0, left: 0, right: 0 },
+  cryptoRow: {},
   dropdownRow: { flexDirection: 'row', alignItems: 'center' },
-  fiatRow: { gap: 8 },
-  paymentRow: { gap: 8, alignItems: 'center', paddingBottom: 2 },
-  refreshBtn: {
-    width: 40,
-    height: 36,
-    borderRadius: 10,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 4,
-  },
+  fiatRow: {},
+  paymentRow: {},
+  refreshBtn: { borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
 });

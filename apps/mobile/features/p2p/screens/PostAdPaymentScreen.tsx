@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { FlatList, Pressable, Text, StyleSheet, View, Switch } from 'react-native';
+import { FlatList, Pressable, Text, View, Switch } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, PrimaryButton, TextField, ErrorBanner, EmptyState, SkeletonList } from '@shared/ui';
+import { ScreenLayout, PrimaryButton, TextField, ErrorBanner, EmptyState, SkeletonList, ExchangeCard } from '@shared/ui';
 import { useTheme, hapticLight } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
@@ -59,17 +59,46 @@ export function PostAdPaymentScreen({ navigation }: Props) {
         keyboardType="number-pad"
       />
 
-      <View style={[styles.autoRow, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
+      <ExchangeCard
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: theme.spacing[3],
+          marginBottom: theme.spacing[3],
+        }}
+      >
         <View style={{ flex: 1 }}>
-          <Text style={{ fontWeight: '600', color: `hsl(${theme.colors.foregroundPrimary})` }}>Auto-release</Text>
-          <Text style={{ fontSize: 11, color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: 2 }}>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+            ]}
+          >
+            Auto-release
+          </Text>
+          <Text
+            style={[
+              theme.typography.labelSm,
+              { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[0.5] },
+            ]}
+          >
             Release crypto when buyer marks paid.
           </Text>
         </View>
         <Switch value={draft.auto_release === true} onValueChange={(v) => setDraft({ auto_release: v })} />
-      </View>
+      </ExchangeCard>
 
-      <Text style={[styles.section, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+      <Text
+        style={[
+          theme.typography.bodyMd,
+          {
+            color: `hsl(${theme.colors.foregroundPrimary})`,
+            fontFamily: theme.fonts.sansBold,
+            marginBottom: theme.spacing[2],
+            marginTop: theme.spacing[2],
+          },
+        ]}
+      >
         Accepted methods {selected.length > 0 ? `(${selected.length})` : ''}
       </Text>
 
@@ -90,22 +119,36 @@ export function PostAdPaymentScreen({ navigation }: Props) {
           renderItem={({ item }) => {
             const checked = selected.includes(item.id);
             return (
-              <Pressable
-                onPress={() => toggle(item.id)}
-                style={[
-                  styles.pmRow,
-                  {
-                    borderColor: checked ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.borderDefault})`,
-                    backgroundColor: checked ? `hsl(${theme.colors.brandPrimary} / 0.06)` : 'transparent',
-                  },
-                ]}
-              >
-                <Text style={{ fontSize: 16, color: checked ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.foregroundSecondary})` }}>
-                  {checked ? '☑' : '☐'}
-                </Text>
-                <Text style={{ fontWeight: '600', color: `hsl(${theme.colors.foregroundPrimary})` }}>
-                  {item.display_name ?? item.method_name}
-                </Text>
+              <Pressable onPress={() => toggle(item.id)}>
+                <ExchangeCard
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: theme.spacing[2.5],
+                    marginBottom: theme.spacing[2],
+                    borderColor: checked ? `hsl(${theme.colors.brandPrimary})` : undefined,
+                    backgroundColor: checked ? `hsl(${theme.colors.brandPrimary} / 0.06)` : undefined,
+                  }}
+                >
+                  <Text
+                    style={[
+                      theme.typography.headingSm,
+                      {
+                        color: checked ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.foregroundSecondary})`,
+                      },
+                    ]}
+                  >
+                    {checked ? '☑' : '☐'}
+                  </Text>
+                  <Text
+                    style={[
+                      theme.typography.bodySm,
+                      { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+                    ]}
+                  >
+                    {item.display_name ?? item.method_name}
+                  </Text>
+                </ExchangeCard>
               </Pressable>
             );
           }}
@@ -113,7 +156,12 @@ export function PostAdPaymentScreen({ navigation }: Props) {
       )}
 
       {platformQ.data && platformQ.data.length > 0 ? (
-        <Text style={{ fontSize: 11, color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 8 }}>
+        <Text
+          style={[
+            theme.typography.labelSm,
+            { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[2] },
+          ]}
+        >
           Platform types: {platformQ.data.map((p) => p.code).filter(Boolean).join(', ')}
         </Text>
       ) : null}
@@ -124,14 +172,8 @@ export function PostAdPaymentScreen({ navigation }: Props) {
         title="Preview & Publish"
         disabled={!!stepErr || methods.length === 0}
         onPress={onNext}
-        style={{ marginTop: 8 }}
+        style={{ marginTop: theme.spacing[2] }}
       />
     </ScreenLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  section: { fontWeight: '700', fontSize: 14, marginBottom: 8, marginTop: 8 },
-  pmRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, paddingHorizontal: 10, borderWidth: 1, borderRadius: 10, marginBottom: 8 },
-  autoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 12 },
-});

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { ScreenLayout, TextField, PrimaryButton, ErrorBanner, ErrorState, SkeletonList } from '@shared/ui';
+import { ScreenLayout, TextField, PrimaryButton, ErrorBanner, ErrorState, SkeletonList, ExchangeCard } from '@shared/ui';
 import { useTheme, hapticLight } from '@shared/theme';
 import { useAppStore } from '@core/state/appStore';
 import { analytics } from '@core/observability/analytics';
@@ -111,18 +111,44 @@ export function AddPaymentMethodScreen({ navigation, route }: Props) {
 
   return (
     <ScreenLayout testID="S-612">
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+      <ScrollView contentContainerStyle={{ paddingBottom: theme.spacing[8] }}>
+        <Text
+          style={[
+            theme.typography.headingMd,
+            {
+              color: `hsl(${theme.colors.foregroundPrimary})`,
+              fontFamily: theme.fonts.sansBold,
+              marginBottom: theme.spacing[3],
+            },
+          ]}
+        >
           {isEdit ? 'Edit payment method' : 'Add payment method'}
         </Text>
 
         {!isEdit ? (
           <>
-            <Text style={[styles.label, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>Payment type</Text>
-            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13, marginBottom: 10 }}>
+            <Text
+              style={[
+                theme.typography.labelSm,
+                {
+                  color: `hsl(${theme.colors.foregroundSecondary})`,
+                  fontFamily: theme.fonts.sansBold,
+                  textTransform: 'uppercase',
+                  marginBottom: theme.spacing[1],
+                },
+              ]}
+            >
+              Payment type
+            </Text>
+            <Text
+              style={[
+                theme.typography.bodySm,
+                { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[2.5] },
+              ]}
+            >
               Choose how buyers will send you fiat.
             </Text>
-            <View style={styles.typeGrid}>
+            <View style={[styles.typeGrid, { gap: theme.spacing[2.5], marginBottom: theme.spacing[4] }]}>
               {(platformQ.data ?? []).map((p) => {
                 const selected = platformId === p.id;
                 return (
@@ -133,30 +159,57 @@ export function AddPaymentMethodScreen({ navigation, route }: Props) {
                       setPlatformId(p.id);
                       setFields({});
                     }}
-                    style={[
-                      styles.typeCard,
-                      {
-                        borderColor: selected ? `hsl(${theme.colors.brandPrimary} / 0.5)` : `hsl(${theme.colors.borderDefault})`,
-                        backgroundColor: selected ? `hsl(${theme.colors.brandPrimary} / 0.08)` : `hsl(${theme.colors.backgroundElevated})`,
-                      },
-                    ]}
                   >
-                    <Ionicons
-                      name={methodIconName(p.code)}
-                      size={20}
-                      color={selected ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.foregroundSecondary})`}
-                    />
-                    <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})`, marginTop: 6 }}>{p.name}</Text>
+                    <ExchangeCard
+                      style={{
+                        width: '47%',
+                        alignItems: 'center',
+                        borderColor: selected ? `hsl(${theme.colors.brandPrimary} / 0.5)` : undefined,
+                        backgroundColor: selected ? `hsl(${theme.colors.brandPrimary} / 0.08)` : undefined,
+                      }}
+                    >
+                      <Ionicons
+                        name={methodIconName(p.code)}
+                        size={theme.sizes.iconMd}
+                        color={selected ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.foregroundSecondary})`}
+                      />
+                      <Text
+                        style={[
+                          theme.typography.bodySm,
+                          {
+                            color: `hsl(${theme.colors.foregroundPrimary})`,
+                            fontFamily: theme.fonts.sansBold,
+                            marginTop: theme.spacing[1.5],
+                          },
+                        ]}
+                      >
+                        {p.name}
+                      </Text>
+                    </ExchangeCard>
                   </Pressable>
                 );
               })}
             </View>
           </>
         ) : (
-          <View style={[styles.editBanner, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.surfaceMuted})` }]}>
-            <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>{existing?.method_name}</Text>
-            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, marginTop: 2 }}>{existing?.method_code}</Text>
-          </View>
+          <ExchangeCard style={{ marginBottom: theme.spacing[3] }}>
+            <Text
+              style={[
+                theme.typography.bodyMd,
+                { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+              ]}
+            >
+              {existing?.method_name}
+            </Text>
+            <Text
+              style={[
+                theme.typography.bodySm,
+                { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[0.5] },
+              ]}
+            >
+              {existing?.method_code}
+            </Text>
+          </ExchangeCard>
         )}
 
         {(platformId || isEdit) && (
@@ -179,7 +232,7 @@ export function AddPaymentMethodScreen({ navigation, route }: Props) {
 
             {error ? <ErrorBanner message={error} /> : null}
 
-            <View style={styles.footer}>
+            <View style={{ gap: theme.spacing[2.5], marginTop: theme.spacing[2] }}>
               <PrimaryButton
                 title={submitting ? 'Saving…' : 'Save method'}
                 loading={submitting || actions.isLocked()}
@@ -188,9 +241,11 @@ export function AddPaymentMethodScreen({ navigation, route }: Props) {
               <PrimaryButton title="Cancel" variant="secondary" onPress={() => navigation.goBack()} />
             </View>
 
-            <View style={styles.security}>
-              <Ionicons name="shield-checkmark-outline" size={16} color={`hsl(${theme.colors.brandPrimary})`} />
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>Encrypted in transit</Text>
+            <View style={[styles.security, { gap: theme.spacing[2], marginTop: theme.spacing[3] }]}>
+              <Ionicons name="shield-checkmark-outline" size={theme.sizes.iconSm} color={`hsl(${theme.colors.brandPrimary})`} />
+              <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+                Encrypted in transit
+              </Text>
             </View>
           </>
         )}
@@ -200,12 +255,6 @@ export function AddPaymentMethodScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  content: { paddingBottom: 32 },
-  title: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
-  label: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginBottom: 4 },
-  typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
-  typeCard: { width: '47%', borderWidth: 1, borderRadius: 12, padding: 14, alignItems: 'center' },
-  editBanner: { borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 12 },
-  footer: { gap: 10, marginTop: 8 },
-  security: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
+  typeGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  security: { flexDirection: 'row', alignItems: 'center' },
 });

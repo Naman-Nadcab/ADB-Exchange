@@ -1,40 +1,62 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import { TerminalPanel } from '@shared/ui';
-import {
-  parseAdPayments,
-  paymentMethodChipTone,
-} from '@core/domain/p2p/marketplace';
+import { parseAdPayments, paymentMethodChipTone } from '@core/domain/p2p/marketplace';
 
 type Props = {
   payments: ReturnType<typeof parseAdPayments>;
 };
 
-function chipColors(tone: ReturnType<typeof paymentMethodChipTone>) {
-  if (tone === 'bank') return { bg: 'rgba(14, 203, 129, 0.08)', text: '#0ecb81', border: 'rgba(14, 203, 129, 0.15)' };
-  if (tone === 'upi') return { bg: 'rgba(245, 158, 11, 0.08)', text: '#f59e0b', border: 'rgba(245, 158, 11, 0.15)' };
-  if (tone === 'imps') return { bg: 'rgba(59, 130, 246, 0.08)', text: '#3b82f6', border: 'rgba(59, 130, 246, 0.15)' };
-  return { bg: 'rgba(128,128,128,0.12)', text: '#888', border: 'rgba(128,128,128,0.2)' };
+function paymentChipPalette(
+  colors: ReturnType<typeof useTheme>['theme']['colors'],
+  tone: ReturnType<typeof paymentMethodChipTone>,
+) {
+  if (tone === 'bank') return semanticStatusPalette(colors, 'buy');
+  if (tone === 'upi') return semanticStatusPalette(colors, 'warning');
+  if (tone === 'imps') return semanticStatusPalette(colors, 'info');
+  return semanticStatusPalette(colors, 'muted');
 }
 
 export function AdDetailPaymentMethods({ payments }: Props) {
   const { theme } = useTheme();
   if (!payments.length) {
     return (
-      <TerminalPanel style={styles.panel}>
-        <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>No payment methods listed.</Text>
+      <TerminalPanel style={{ marginBottom: theme.spacing[3] }}>
+        <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+          No payment methods listed.
+        </Text>
       </TerminalPanel>
     );
   }
 
   return (
-    <View style={styles.chips}>
+    <View style={[styles.chips, { gap: theme.spacing[2], marginBottom: theme.spacing[3] }]}>
       {payments.map((p, i) => {
-        const c = chipColors(paymentMethodChipTone(p));
+        const c = paymentChipPalette(theme.colors, paymentMethodChipTone(p));
         return (
-          <View key={`${p}-${i}`} style={[styles.chip, { backgroundColor: c.bg, borderColor: c.border }]}>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: c.text }}>{p}</Text>
+          <View
+            key={`${p}-${i}`}
+            style={[
+              styles.chip,
+              {
+                backgroundColor: c.bg,
+                borderColor: c.border,
+                borderRadius: theme.radius.md,
+                paddingHorizontal: theme.spacing[2.5],
+                paddingVertical: theme.spacing[1.5],
+              },
+            ]}
+          >
+            <Text
+              style={[
+                theme.typography.bodySm,
+                { color: c.fg, fontFamily: theme.fonts.sansSemiBold },
+              ]}
+            >
+              {p}
+            </Text>
           </View>
         );
       })}
@@ -44,10 +66,24 @@ export function AdDetailPaymentMethods({ payments }: Props) {
 
 export function AdDetailEscrowBanner() {
   const { theme } = useTheme();
+  const success = semanticStatusPalette(theme.colors, 'success');
+
   return (
-    <View style={[styles.escrow, { backgroundColor: 'rgba(14, 203, 129, 0.08)', borderColor: 'rgba(14, 203, 129, 0.2)' }]}>
-      <Ionicons name="shield-checkmark" size={18} color="#0ecb81" />
-      <Text style={{ flex: 1, fontSize: 13, color: `hsl(${theme.colors.foregroundPrimary})` }}>
+    <View
+      style={[
+        styles.escrow,
+        {
+          backgroundColor: success.bg,
+          borderColor: success.border,
+          borderRadius: theme.radius.md,
+          padding: theme.spacing[3],
+          marginBottom: theme.spacing[3],
+          gap: theme.spacing[2.5],
+        },
+      ]}
+    >
+      <Ionicons name="shield-checkmark" size={theme.sizes.iconMd} color={success.fg} />
+      <Text style={[theme.typography.bodySm, { flex: 1, color: `hsl(${theme.colors.foregroundPrimary})` }]}>
         Funds are secured in escrow until payment is confirmed.
       </Text>
     </View>
@@ -55,16 +91,7 @@ export function AdDetailEscrowBanner() {
 }
 
 const styles = StyleSheet.create({
-  panel: { marginBottom: 12 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
-  chip: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
-  escrow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 12,
-  },
+  chips: { flexDirection: 'row', flexWrap: 'wrap' },
+  chip: { borderWidth: 1 },
+  escrow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1 },
 });

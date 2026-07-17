@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, Text, StyleSheet, Pressable, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, TextField, PrimaryButton, SegmentControl, ErrorBanner } from '@shared/ui';
+import { ScreenLayout, TextField, PrimaryButton, SegmentControl, ErrorBanner, ExchangeCard } from '@shared/ui';
 import { useTheme, hapticLight } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
@@ -93,11 +93,20 @@ export function PostAdPriceScreen({ navigation }: Props) {
         <CreateAdMarketInsights draft={draft} referencePrice={referencePrice} />
 
         {pricing === 'fixed' && suggestions ? (
-          <View style={[styles.suggestBox, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: `hsl(${theme.colors.brandPrimary})`, marginBottom: 8 }}>
+          <ExchangeCard style={{ marginBottom: theme.spacing[3] }}>
+            <Text
+              style={[
+                theme.typography.bodySm,
+                {
+                  color: `hsl(${theme.colors.brandPrimary})`,
+                  fontFamily: theme.fonts.sansBold,
+                  marginBottom: theme.spacing[2],
+                },
+              ]}
+            >
               Smart Price Suggestions
             </Text>
-            <View style={styles.suggestRow}>
+            <View style={[styles.suggestRow, { gap: theme.spacing[2] }]}>
               {[
                 { label: 'Best Price', val: suggestions.bestPrice },
                 { label: 'Market', val: suggestions.competitive },
@@ -105,27 +114,57 @@ export function PostAdPriceScreen({ navigation }: Props) {
               ].map(({ label, val }) => (
                 <Pressable
                   key={label}
-                  style={[styles.suggestChip, { borderColor: `hsl(${theme.colors.borderDefault})` }]}
+                  style={[
+                    styles.suggestChip,
+                    {
+                      borderColor: `hsl(${theme.colors.borderDefault})`,
+                      borderRadius: theme.radius.md,
+                      padding: theme.spacing[2],
+                    },
+                  ]}
                   onPress={() => {
                     void hapticLight();
                     setDraft({ price: val.toFixed(4) });
                   }}
                 >
-                  <Text style={{ fontSize: 10, fontWeight: '700', color: `hsl(${theme.colors.foregroundSecondary})` }}>{label}</Text>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>
+                  <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.foregroundSecondary})`, fontFamily: theme.fonts.sansBold }]}>
+                    {label}
+                  </Text>
+                  <Text
+                    style={[
+                      theme.typography.bodySm,
+                      { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+                    ]}
+                  >
                     {sym}{formatP2pFiatPrice(String(val), draft.fiat ?? 'INR')}
                   </Text>
                 </Pressable>
               ))}
             </View>
-          </View>
+          </ExchangeCard>
         ) : null}
 
         {pricing === 'floating' ? (
-          <View style={[styles.floatBox, { backgroundColor: `hsl(${theme.colors.surfaceMuted} / 0.3)` }]}>
+          <View
+            style={[
+              styles.floatBox,
+              {
+                backgroundColor: `hsl(${theme.colors.surfaceMuted} / 0.3)`,
+                borderRadius: theme.radius.lg,
+                padding: theme.spacing[3],
+                marginBottom: theme.spacing[3],
+                gap: theme.spacing[2],
+              },
+            ]}
+          >
             <View style={styles.floatRow}>
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})` }}>Reference price</Text>
-              <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>
+              <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>Reference price</Text>
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+                ]}
+              >
                 {formatReferencePriceDisplay(draft.fiat ?? 'INR', referencePrice)}
               </Text>
             </View>
@@ -136,7 +175,7 @@ export function PostAdPriceScreen({ navigation }: Props) {
               keyboardType="decimal-pad"
             />
             {floatingPrice != null ? (
-              <Text style={{ fontSize: 13, color: `hsl(${theme.colors.foregroundPrimary})` }}>
+              <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
                 Your ad price: {sym}{formatP2pFiatPrice(String(floatingPrice), draft.fiat ?? 'INR')}
                 {premiumLabel ? ` · ${premiumLabel}` : ''}
               </Text>
@@ -152,7 +191,12 @@ export function PostAdPriceScreen({ navigation }: Props) {
               placeholder={referencePrice != null ? formatP2pFiatPrice(String(referencePrice), draft.fiat ?? 'INR') : undefined}
             />
             {premiumLabel ? (
-              <Text style={{ fontSize: 12, color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 12 }}>
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[3] },
+                ]}
+              >
                 {premiumLabel}
               </Text>
             ) : null}
@@ -160,7 +204,12 @@ export function PostAdPriceScreen({ navigation }: Props) {
         )}
 
         {draft.type === 'sell' && availableBalance != null ? (
-          <Text style={{ fontSize: 12, color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 12 }}>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[3] },
+            ]}
+          >
             Available balance: {availableBalance} {draft.currency}
           </Text>
         ) : null}
@@ -183,9 +232,8 @@ export function PostAdPriceScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  suggestBox: { borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 12 },
-  suggestRow: { flexDirection: 'row', gap: 8 },
-  suggestChip: { flex: 1, borderWidth: 1, borderRadius: 10, padding: 8 },
-  floatBox: { borderRadius: 12, padding: 12, marginBottom: 12, gap: 8 },
+  suggestRow: { flexDirection: 'row' },
+  suggestChip: { flex: 1, borderWidth: 1 },
+  floatBox: {},
   floatRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });

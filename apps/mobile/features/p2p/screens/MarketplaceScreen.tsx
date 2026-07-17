@@ -22,6 +22,7 @@ import {
   ErrorBanner,
 } from '@shared/ui';
 import { useTheme, hapticLight } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
 import { useGuestAccess } from '@features/auth';
@@ -57,6 +58,10 @@ const priceFmt = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2, mi
 
 export function MarketplaceScreen({ navigation }: Props) {
   const { theme } = useTheme();
+  const success = semanticStatusPalette(theme.colors, 'success');
+  const warning = semanticStatusPalette(theme.colors, 'warning');
+  const buyPalette = semanticStatusPalette(theme.colors, 'buy');
+  const sellPalette = semanticStatusPalette(theme.colors, 'sell');
   const isOnline = useAppStore((s) => s.isOnline);
   const { isAuthenticated, requireAuth, openLogin } = useGuestAccess();
 
@@ -132,29 +137,66 @@ export function MarketplaceScreen({ navigation }: Props) {
 
   const renderHeader = () => (
     <View>
-      <View style={styles.heroRow}>
+      <View style={[styles.heroRow, { marginBottom: theme.spacing[2] }]}>
         <View style={{ flex: 1 }}>
-          <View style={styles.titleRow}>
-            <Text style={[styles.heroTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>P2P Trading</Text>
-            <View style={styles.escrowBadge}>
-              <Ionicons name="shield-checkmark" size={14} color="#0ecb81" />
-              <Text style={styles.escrowText}>Escrow</Text>
+          <View style={[styles.titleRow, { gap: theme.spacing[2.5] }]}>
+            <Text
+              style={[
+                theme.typography.displayMd,
+                { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold, letterSpacing: -0.3 },
+              ]}
+            >
+              P2P Trading
+            </Text>
+            <View
+              style={[
+                styles.escrowBadge,
+                {
+                  backgroundColor: success.bg,
+                  borderColor: success.border,
+                  borderRadius: theme.radius.md,
+                  paddingHorizontal: theme.spacing[2],
+                  paddingVertical: theme.spacing[1],
+                  gap: theme.spacing[1],
+                },
+              ]}
+            >
+              <Ionicons name="shield-checkmark" size={theme.sizes.iconSm} color={success.fg} />
+              <Text style={[theme.typography.labelSm, { color: success.fg, fontFamily: theme.fonts.sansBold }]}>Escrow</Text>
             </View>
           </View>
           {tickerCoins.length > 0 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tickerStrip}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.tickerStrip, { marginTop: theme.spacing[2] }]}>
               {tickerCoins.map(({ symbol, price, chg }) => {
                 const up = chg != null && chg >= 0;
                 return (
-                  <View key={symbol} style={styles.tickerItem}>
-                    <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})`, fontSize: 12 }}>
+                  <View key={symbol} style={[styles.tickerItem, { gap: theme.spacing[1.5], marginRight: theme.spacing[4] }]}>
+                    <Text
+                      style={[
+                        theme.typography.bodySm,
+                        { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+                      ]}
+                    >
                       {symbol}
                     </Text>
-                    <Text style={{ fontWeight: '600', color: `hsl(${theme.colors.foregroundPrimary})`, fontSize: 12 }}>
+                    <Text
+                      style={[
+                        theme.typography.bodySm,
+                        { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+                      ]}
+                    >
                       {price != null ? `$${priceFmt.format(price)}` : '—'}
                     </Text>
                     {chg != null ? (
-                      <Text style={{ fontSize: 11, fontWeight: '600', color: up ? '#0ecb81' : '#f6465d' }}>
+                      <Text
+                        style={[
+                          theme.typography.labelSm,
+                          {
+                            color: up ? buyPalette.fg : sellPalette.fg,
+                            fontFamily: theme.fonts.sansSemiBold,
+                          },
+                        ]}
+                      >
                         {chg > 0 ? '+' : ''}
                         {chg.toFixed(2)}%
                       </Text>
@@ -175,18 +217,37 @@ export function MarketplaceScreen({ navigation }: Props) {
       <MarketplaceFilters value={filters} onChange={setFilters} onRefresh={onRefresh} />
 
       {tickerLoadFailed ? (
-        <View style={styles.riskBanner}>
-          <Text style={styles.riskText}>
+        <View
+          style={[
+            styles.riskBanner,
+            {
+              backgroundColor: warning.bg,
+              borderColor: warning.border,
+              borderRadius: theme.radius.md,
+              padding: theme.spacing[2.5],
+              marginBottom: theme.spacing[2],
+              gap: theme.spacing[2],
+            },
+          ]}
+        >
+          <Text style={[theme.typography.bodySm, styles.riskText, { color: warning.fg, flex: 1 }]}>
             Spot reference feed is reconnecting. P2P listing remains available.
           </Text>
           <Pressable onPress={() => void tickersQ.refetch()}>
-            <Text style={styles.riskRetry}>Retry</Text>
+            <Text
+              style={[
+                theme.typography.bodySm,
+                { color: warning.fg, fontFamily: theme.fonts.sansBold, textDecorationLine: 'underline' },
+              ]}
+            >
+              Retry
+            </Text>
           </Pressable>
         </View>
       ) : null}
 
-      <View style={styles.contextRow}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+      <View style={[styles.contextRow, { gap: theme.spacing[2], marginBottom: theme.spacing[2] }]}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chipRow, { gap: theme.spacing[2], paddingVertical: theme.spacing[1] }]}>
           {QUICK_CHIPS.map(({ id, label }) => (
             <FilterChip
               key={id}
@@ -196,28 +257,43 @@ export function MarketplaceScreen({ navigation }: Props) {
             />
           ))}
         </ScrollView>
-        <View style={styles.contextStats}>
+        <View style={[styles.contextStats, { gap: theme.spacing[3] }]}>
           {spotPrice != null ? (
-            <Text style={[styles.contextText, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+            <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
               Spot{' '}
-              <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>
+              <Text style={{ fontFamily: theme.fonts.sansBold, color: `hsl(${theme.colors.foregroundPrimary})` }}>
                 {sym}
                 {priceFmt.format(spotPrice)}
               </Text>
             </Text>
           ) : null}
           {p2pAvg != null ? (
-            <Text style={[styles.contextText, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+            <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
               P2P Avg{' '}
-              <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>
+              <Text style={{ fontFamily: theme.fonts.sansBold, color: `hsl(${theme.colors.foregroundPrimary})` }}>
                 {sym}
                 {priceFmt.format(p2pAvg)}
               </Text>
             </Text>
           ) : null}
           {!adsQ.isLoading ? (
-            <View style={[styles.adCount, { backgroundColor: `hsl(${theme.colors.surfaceMuted})` }]}>
-              <Text style={{ fontSize: 11, fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>
+            <View
+              style={[
+                styles.adCount,
+                {
+                  backgroundColor: `hsl(${theme.colors.surfaceMuted})`,
+                  borderRadius: theme.radius.md,
+                  paddingHorizontal: theme.spacing[2],
+                  paddingVertical: theme.spacing[1],
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  theme.typography.labelSm,
+                  { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+                ]}
+              >
                 {filteredAds.length} ad{filteredAds.length !== 1 ? 's' : ''}
               </Text>
             </View>
@@ -227,7 +303,7 @@ export function MarketplaceScreen({ navigation }: Props) {
 
       <SearchBar value={search} onChangeText={setSearch} placeholder="Search merchant or coin" />
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.toolbar}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.toolbar, { marginBottom: theme.spacing[2.5] }]}>
         {TOOLBAR.map((item) => (
           <Pressable
             key={item.id}
@@ -237,11 +313,22 @@ export function MarketplaceScreen({ navigation }: Props) {
               {
                 borderColor: `hsl(${theme.colors.borderDefault})`,
                 backgroundColor: `hsl(${theme.colors.backgroundElevated})`,
+                borderRadius: theme.radius.md,
+                paddingHorizontal: theme.spacing[3],
+                paddingVertical: theme.spacing[2],
+                marginRight: theme.spacing[2],
+                gap: theme.spacing[1.5],
+                minHeight: theme.listDensity.default.rowHeight - 20,
               },
             ]}
           >
-            <Ionicons name={item.icon} size={16} color={`hsl(${theme.colors.brandPrimary})`} />
-            <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontSize: 12, fontWeight: '600' }}>
+            <Ionicons name={item.icon} size={theme.sizes.iconSm} color={`hsl(${theme.colors.brandPrimary})`} />
+            <Text
+              style={[
+                theme.typography.bodySm,
+                { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+              ]}
+            >
               {item.label}
             </Text>
           </Pressable>
@@ -329,52 +416,17 @@ export function MarketplaceScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  heroRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
-  heroTitle: { fontSize: 24, fontWeight: '700', letterSpacing: -0.3 },
-  escrowBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(14, 203, 129, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(14, 203, 129, 0.2)',
-  },
-  escrowText: { fontSize: 11, fontWeight: '700', color: '#0ecb81' },
-  tickerStrip: { marginTop: 8, maxHeight: 28 },
-  tickerItem: { flexDirection: 'row', alignItems: 'center', gap: 6, marginRight: 16 },
-  riskBanner: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(245, 158, 11, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.2)',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 8,
-  },
-  riskText: { flex: 1, fontSize: 12, color: '#d97706' },
-  riskRetry: { fontSize: 12, fontWeight: '700', color: '#d97706', textDecorationLine: 'underline' },
-  contextRow: { gap: 8, marginBottom: 8 },
-  chipRow: { gap: 8, paddingVertical: 4 },
-  contextStats: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12 },
-  contextText: { fontSize: 12 },
-  adCount: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
-  toolbar: { marginBottom: 10, maxHeight: 44 },
-  toolBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    borderWidth: 1,
-    marginRight: 8,
-    minHeight: 36,
-  },
+  heroRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' },
+  escrowBadge: { flexDirection: 'row', alignItems: 'center', borderWidth: 1 },
+  tickerStrip: { maxHeight: 28 },
+  tickerItem: { flexDirection: 'row', alignItems: 'center' },
+  riskBanner: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', borderWidth: 1 },
+  riskText: {},
+  contextRow: {},
+  chipRow: {},
+  contextStats: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
+  adCount: {},
+  toolbar: { maxHeight: 44 },
+  toolBtn: { flexDirection: 'row', alignItems: 'center', borderWidth: 1 },
 });

@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTheme, hapticLight } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import { TerminalPanel, MerchantBadge } from '@shared/ui';
 import type { P2PAd } from '@exchange/mobile-types';
 import { getAdPrice, getAdSide } from '@core/domain/p2p/order';
@@ -28,15 +29,14 @@ type Props = {
   onLoginPress?: () => void;
 };
 
-function chipColors(tone: ReturnType<typeof paymentMethodChipTone>) {
-  if (tone === 'bank') return { bg: 'rgba(14, 203, 129, 0.08)', text: '#0ecb81', border: 'rgba(14, 203, 129, 0.15)' };
-  if (tone === 'upi') return { bg: 'rgba(245, 158, 11, 0.08)', text: '#f59e0b', border: 'rgba(245, 158, 11, 0.15)' };
-  if (tone === 'imps') return { bg: 'rgba(59, 130, 246, 0.08)', text: '#3b82f6', border: 'rgba(59, 130, 246, 0.15)' };
-  return {
-    bg: 'rgba(128,128,128,0.12)',
-    text: '#888',
-    border: 'rgba(128,128,128,0.2)',
-  };
+function paymentChipPalette(
+  colors: ReturnType<typeof useTheme>['theme']['colors'],
+  tone: ReturnType<typeof paymentMethodChipTone>,
+) {
+  if (tone === 'bank') return semanticStatusPalette(colors, 'buy');
+  if (tone === 'upi') return semanticStatusPalette(colors, 'warning');
+  if (tone === 'imps') return semanticStatusPalette(colors, 'info');
+  return semanticStatusPalette(colors, 'muted');
 }
 
 export const P2PAdCard = memo(function P2PAdCard({
@@ -63,8 +63,7 @@ export const P2PAdCard = memo(function P2PAdCard({
   const orders = ad.merchant_total_orders ?? ad.total_orders ?? 0;
   const releaseMin = ad.merchant_avg_release_time_minutes;
   const isBuy = isUserBuyingFromAd(ad);
-  const tradeColor = isBuy ? '#0ecb81' : '#f6465d';
-  const priceColor = isBuy ? '#0ecb81' : '#f6465d';
+  const tradePalette = semanticStatusPalette(theme.colors, isBuy ? 'buy' : 'sell');
   const adPriceNum = parseNum(rawPrice);
   const premiumLabel = formatPremiumLabel(
     adPriceNum != null ? computePremiumPct(adPriceNum, spotPrice ?? null) : null,
@@ -78,10 +77,10 @@ export const P2PAdCard = memo(function P2PAdCard({
       }}
       accessibilityLabel={`${side} ${ad.crypto_symbol} ${ad.username}`}
     >
-      <TerminalPanel style={styles.card}>
+      <TerminalPanel style={{ marginBottom: theme.spacing[2.5] }}>
         <View style={styles.top}>
           <Pressable
-            style={styles.merchant}
+            style={[styles.merchant, { gap: theme.spacing[2.5] }]}
             onPress={(e) => {
               e.stopPropagation?.();
               if (onMerchantPress) {
@@ -91,57 +90,118 @@ export const P2PAdCard = memo(function P2PAdCard({
             }}
             disabled={!onMerchantPress}
           >
-            <View style={[styles.avatar, { backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.14)` }]}>
-              <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '800', fontSize: 13 }}>
+            <View
+              style={[
+                styles.avatar,
+                {
+                  width: theme.sizes.tapTarget,
+                  height: theme.sizes.tapTarget,
+                  borderRadius: theme.radius.full,
+                  backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.14)`,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansBold },
+                ]}
+              >
                 {(ad.username || 'M').slice(0, 1).toUpperCase()}
               </Text>
             </View>
             <View style={styles.merchantMeta}>
-              <View style={styles.nameRow}>
-                <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})`, fontSize: 14 }}>
+              <View style={[styles.nameRow, { gap: theme.spacing[1.5] }]}>
+                <Text
+                  style={[
+                    theme.typography.bodyMd,
+                    { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+                  ]}
+                >
                   {ad.username || 'Merchant'}
                 </Text>
                 {verified ? <MerchantBadge completionRate={Number(ad.merchant_completion_rate) || 0} verified /> : null}
               </View>
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11, marginTop: 2 }}>
+              <Text
+                style={[
+                  theme.typography.labelSm,
+                  { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[0.5] },
+                ]}
+              >
                 {orders} orders · {completion}
                 {releaseMin ? ` · ~${releaseMin}m release` : ''}
               </Text>
             </View>
           </Pressable>
-          <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: `hsl(${theme.colors.foregroundSecondary})`, fontFamily: theme.fonts.sansBold },
+            ]}
+          >
             {ad.crypto_symbol}
           </Text>
         </View>
 
-        <View style={styles.priceRow}>
-          <View>
-            <Text style={{ fontWeight: '800', fontSize: 20, color: priceColor }}>
-              {sym}
-              {priceShown}
-              <Text style={{ fontSize: 12, fontWeight: '600', color: `hsl(${theme.colors.foregroundSecondary})` }}>
-                {' '}
-                /{ad.crypto_symbol}
-              </Text>
+        <View style={{ marginTop: theme.spacing[3] }}>
+          <Text
+            style={[
+              theme.typography.displayMd,
+              { color: tradePalette.fg, fontFamily: theme.fonts.sansBold, fontSize: 20, lineHeight: 26 },
+            ]}
+          >
+            {sym}
+            {priceShown}
+            <Text
+              style={[
+                theme.typography.bodySm,
+                { color: `hsl(${theme.colors.foregroundSecondary})`, fontFamily: theme.fonts.sansSemiBold },
+              ]}
+            >
+              {' '}
+              /{ad.crypto_symbol}
             </Text>
-            {premiumLabel ? (
-              <Text style={{ fontSize: 11, color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: 2 }}>
-                {premiumLabel}
-              </Text>
-            ) : null}
-          </View>
+          </Text>
+          {premiumLabel ? (
+            <Text
+              style={[
+                theme.typography.labelSm,
+                { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[0.5] },
+              ]}
+            >
+              {premiumLabel}
+            </Text>
+          ) : null}
         </View>
 
-        <View style={styles.statsRow}>
+        <View style={[styles.statsRow, { gap: theme.spacing[6], marginTop: theme.spacing[3] }]}>
           <View>
-            <Text style={styles.statLabel}>Available</Text>
-            <Text style={[styles.statValue, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+            <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>Available</Text>
+            <Text
+              style={[
+                theme.typography.bodySm,
+                {
+                  color: `hsl(${theme.colors.foregroundPrimary})`,
+                  fontFamily: theme.fonts.sansSemiBold,
+                  marginTop: theme.spacing[0.5],
+                },
+              ]}
+            >
               {avail} {ad.crypto_symbol}
             </Text>
           </View>
           <View>
-            <Text style={styles.statLabel}>Limit</Text>
-            <Text style={[styles.statValue, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+            <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>Limit</Text>
+            <Text
+              style={[
+                theme.typography.bodySm,
+                {
+                  color: `hsl(${theme.colors.foregroundPrimary})`,
+                  fontFamily: theme.fonts.sansSemiBold,
+                  marginTop: theme.spacing[0.5],
+                },
+              ]}
+            >
               {sym}
               {minF} – {sym}
               {maxF}
@@ -149,22 +209,41 @@ export const P2PAdCard = memo(function P2PAdCard({
           </View>
         </View>
 
-        <View style={styles.bottom}>
-          <View style={styles.chips}>
+        <View style={{ marginTop: theme.spacing[3.5], gap: theme.spacing[2.5] }}>
+          <View style={[styles.chips, { gap: theme.spacing[1.5] }]}>
             {payments.length > 0 ? (
               payments.map((p, i) => {
-                const c = chipColors(paymentMethodChipTone(p));
+                const c = paymentChipPalette(theme.colors, paymentMethodChipTone(p));
                 return (
-                  <View key={`${p}-${i}`} style={[styles.chip, { backgroundColor: c.bg, borderColor: c.border }]}>
-                    <Text style={{ fontSize: 11, fontWeight: '600', color: c.text }}>{p}</Text>
+                  <View
+                    key={`${p}-${i}`}
+                    style={[
+                      styles.chip,
+                      {
+                        backgroundColor: c.bg,
+                        borderColor: c.border,
+                        borderRadius: theme.radius.sm,
+                        paddingHorizontal: theme.spacing[2],
+                        paddingVertical: theme.spacing[1],
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        theme.typography.labelSm,
+                        { color: c.fg, fontFamily: theme.fonts.sansSemiBold },
+                      ]}
+                    >
+                      {p}
+                    </Text>
                   </View>
                 );
               })
             ) : (
-              <Text style={{ fontSize: 11, color: `hsl(${theme.colors.foregroundSecondary})` }}>—</Text>
+              <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>—</Text>
             )}
           </View>
-          <View style={styles.actions}>
+          <View style={{ gap: theme.spacing[1.5] }}>
             <Pressable
               onPress={(e) => {
                 e.stopPropagation?.();
@@ -175,14 +254,38 @@ export const P2PAdCard = memo(function P2PAdCard({
                 void hapticLight();
                 onTrade();
               }}
-              style={[styles.tradeBtn, { backgroundColor: tradeColor, opacity: authed ? 1 : 0.55 }]}
+              style={[
+                styles.tradeBtn,
+                {
+                  backgroundColor: tradePalette.fg,
+                  borderRadius: theme.radius.md,
+                  paddingVertical: theme.spacing[2.5],
+                  opacity: authed ? 1 : 0.55,
+                },
+              ]}
               accessibilityLabel={tradeActionLabel(ad)}
             >
-              <Text style={styles.tradeBtnText}>{tradeActionLabel(ad)}</Text>
+              <Text
+                style={[
+                  theme.typography.bodyMd,
+                  { color: `hsl(${theme.colors.destructiveForeground})`, fontFamily: theme.fonts.sansBold },
+                ]}
+              >
+                {tradeActionLabel(ad)}
+              </Text>
             </Pressable>
             {!authed ? (
               <Pressable onPress={onLoginPress}>
-                <Text style={{ fontSize: 11, fontWeight: '700', color: `hsl(${theme.colors.brandPrimary})`, textAlign: 'center' }}>
+                <Text
+                  style={[
+                    theme.typography.labelSm,
+                    {
+                      color: `hsl(${theme.colors.brandPrimary})`,
+                      fontFamily: theme.fonts.sansBold,
+                      textAlign: 'center',
+                    },
+                  ]}
+                >
                   Log in to trade
                 </Text>
               </Pressable>
@@ -195,20 +298,13 @@ export const P2PAdCard = memo(function P2PAdCard({
 });
 
 const styles = StyleSheet.create({
-  card: { marginBottom: 10 },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  merchant: { flexDirection: 'row', gap: 10, flex: 1 },
+  merchant: { flexDirection: 'row', flex: 1 },
   merchantMeta: { flex: 1, minWidth: 0 },
-  avatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-  priceRow: { marginTop: 12 },
-  statsRow: { flexDirection: 'row', gap: 24, marginTop: 12 },
-  statLabel: { fontSize: 11, color: '#888', fontWeight: '500' },
-  statValue: { fontSize: 13, fontWeight: '600', marginTop: 2 },
-  bottom: { marginTop: 14, gap: 10 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  chip: { borderWidth: 1, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 },
-  actions: { gap: 6 },
-  tradeBtn: { borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
-  tradeBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  avatar: { alignItems: 'center', justifyContent: 'center' },
+  nameRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' },
+  statsRow: { flexDirection: 'row' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap' },
+  chip: { borderWidth: 1 },
+  tradeBtn: { alignItems: 'center' },
 });

@@ -67,7 +67,19 @@ export function MerchantProfileScreen({ route, navigation }: Props) {
         ListHeaderComponent={
           <View style={styles.headerWrap}>
             <AdDetailMerchantCard ad={profile.headAd} />
-            <Text style={[styles.sectionTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Active Ads</Text>
+            <Text
+              style={[
+                theme.typography.headingSm,
+                {
+                  color: `hsl(${theme.colors.foregroundPrimary})`,
+                  fontFamily: theme.fonts.sansBold,
+                  marginTop: theme.spacing[2],
+                  marginBottom: theme.spacing[2],
+                },
+              ]}
+            >
+              Active Ads
+            </Text>
             {isAuthenticated && !isSelf ? (
               <PrimaryButton
                 title="Block advertiser"
@@ -95,6 +107,5 @@ export function MerchantProfileScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   headerWrap: { marginBottom: 8 },
-  sectionTitle: { fontSize: 15, fontWeight: '700', marginTop: 8, marginBottom: 8 },
   list: { paddingBottom: 24 },
 });

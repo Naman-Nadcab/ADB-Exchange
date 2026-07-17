@@ -2,7 +2,9 @@ import { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Ionicons } from '@expo/vector-icons';
+import { ExchangeCard } from '@shared/ui';
 import { useTheme, hapticLight } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import {
   formatPaymentDetailKey,
   pickPaymentDetail,
@@ -19,30 +21,53 @@ function DetailRow({
   copyKey,
   copied,
   onCopy,
-  theme,
 }: {
   label: string;
   value: string;
   copyKey: string;
   copied: string | null;
   onCopy: (key: string, value: string) => void;
-  theme: ReturnType<typeof useTheme>['theme'];
 }) {
+  const { theme } = useTheme();
+  const success = semanticStatusPalette(theme.colors, 'success');
   return (
-    <View style={[styles.row, { borderBottomColor: `hsl(${theme.colors.borderDefault})` }]}>
-      <Text style={{ fontSize: 11, fontWeight: '700', color: `hsl(${theme.colors.foregroundSecondary})`, textTransform: 'uppercase' }}>
+    <View
+      style={[
+        styles.row,
+        {
+          paddingVertical: theme.spacing[2.5],
+          borderBottomColor: `hsl(${theme.colors.borderDefault})`,
+          gap: theme.spacing[1],
+        },
+      ]}
+    >
+      <Text
+        style={[
+          theme.typography.labelSm,
+          {
+            color: `hsl(${theme.colors.foregroundSecondary})`,
+            fontFamily: theme.fonts.sansBold,
+            textTransform: 'uppercase',
+          },
+        ]}
+      >
         {label}
       </Text>
-      <View style={styles.rowValue}>
-        <Text style={{ flex: 1, fontSize: 14, fontWeight: '600', color: `hsl(${theme.colors.foregroundPrimary})` }}>
+      <View style={[styles.rowValue, { gap: theme.spacing[2] }]}>
+        <Text
+          style={[
+            theme.typography.bodyMd,
+            { flex: 1, color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+          ]}
+        >
           {value || '—'}
         </Text>
         {value ? (
           <Pressable onPress={() => onCopy(copyKey, value)} hitSlop={8}>
             <Ionicons
               name={copied === copyKey ? 'checkmark-circle' : 'copy-outline'}
-              size={16}
-              color={copied === copyKey ? `hsl(${theme.colors.tradeBuy})` : `hsl(${theme.colors.foregroundSecondary})`}
+              size={theme.sizes.iconSm}
+              color={copied === copyKey ? success.fg : `hsl(${theme.colors.foregroundSecondary})`}
             />
           </Pressable>
         ) : null}
@@ -53,6 +78,7 @@ function DetailRow({
 
 export function OrderPaymentInstructions({ details, displayName }: Props) {
   const { theme } = useTheme();
+  const warning = semanticStatusPalette(theme.colors, 'warning');
   const [copied, setCopied] = useState<string | null>(null);
 
   const accountName = pickPaymentDetail(details, [
@@ -88,44 +114,120 @@ export function OrderPaymentInstructions({ details, displayName }: Props) {
   };
 
   return (
-    <View style={[styles.wrap, { borderColor: 'rgba(245,158,11,0.2)', backgroundColor: 'rgba(245,158,11,0.04)' }]}>
-      <View style={[styles.warning, { borderColor: 'rgba(245,158,11,0.2)', backgroundColor: 'rgba(245,158,11,0.06)' }]}>
-        <Ionicons name="warning-outline" size={18} color="#f59e0b" />
+    <View
+      style={[
+        styles.wrap,
+        {
+          borderColor: warning.border,
+          backgroundColor: warning.bg,
+          borderRadius: theme.radius.lg,
+          padding: theme.spacing[3.5],
+          marginBottom: theme.spacing[3],
+        },
+      ]}
+    >
+      <View
+        style={[
+          styles.warning,
+          {
+            borderColor: warning.border,
+            backgroundColor: warning.bg,
+            borderRadius: theme.radius.md,
+            padding: theme.spacing[2.5],
+            marginBottom: theme.spacing[3],
+            gap: theme.spacing[2.5],
+          },
+        ]}
+      >
+        <Ionicons name="warning-outline" size={theme.sizes.iconMd} color={warning.fg} />
         <View style={{ flex: 1 }}>
-          <Text style={{ color: '#f59e0b', fontWeight: '700', marginBottom: 4 }}>Payment Safety</Text>
-          <Text style={{ color: '#f59e0b', fontSize: 12, lineHeight: 18 }}>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: warning.fg, fontFamily: theme.fonts.sansBold, marginBottom: theme.spacing[1] },
+            ]}
+          >
+            Payment Safety
+          </Text>
+          <Text style={[theme.typography.bodySm, { color: warning.fg }]}>
             Do not write crypto or exchange names in the bank transfer note.{'\n'}
             Only release crypto after you confirm fiat arrived in your account.
           </Text>
         </View>
       </View>
 
-      <Text style={{ fontSize: 16, fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})`, marginBottom: 6 }}>
+      <Text
+        style={[
+          theme.typography.headingSm,
+          { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold, marginBottom: theme.spacing[1.5] },
+        ]}
+      >
         Send Payment To
       </Text>
       {displayName ? (
-        <Text style={{ fontSize: 13, color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 8 }}>
-          Method: <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>{displayName}</Text>
+        <Text
+          style={[
+            theme.typography.bodySm,
+            { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[2] },
+          ]}
+        >
+          Method:{' '}
+          <Text style={{ fontFamily: theme.fonts.sansBold, color: `hsl(${theme.colors.foregroundPrimary})` }}>
+            {displayName}
+          </Text>
         </Text>
       ) : null}
 
-      <View style={[styles.detailsCard, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
-        <DetailRow label="Account Name" value={accountName} copyKey="account_name" copied={copied} onCopy={onCopy} theme={theme} />
-        <DetailRow label="Bank / Institution" value={bankName} copyKey="bank" copied={copied} onCopy={onCopy} theme={theme} />
-        <DetailRow label="Account Number / UPI" value={accountNumber} copyKey="account" copied={copied} onCopy={onCopy} theme={theme} />
-        {iban ? <DetailRow label="IBAN" value={iban} copyKey="iban" copied={copied} onCopy={onCopy} theme={theme} /> : null}
-        <DetailRow label="IFSC / Routing / SWIFT" value={routing} copyKey="routing" copied={copied} onCopy={onCopy} theme={theme} />
-      </View>
+      <ExchangeCard padded={false} style={{ overflow: 'hidden' }}>
+        <View style={{ paddingHorizontal: theme.spacing[3] }}>
+          <DetailRow label="Account Name" value={accountName} copyKey="account_name" copied={copied} onCopy={onCopy} />
+          <DetailRow label="Bank / Institution" value={bankName} copyKey="bank" copied={copied} onCopy={onCopy} />
+          <DetailRow label="Account Number / UPI" value={accountNumber} copyKey="account" copied={copied} onCopy={onCopy} />
+          {iban ? <DetailRow label="IBAN" value={iban} copyKey="iban" copied={copied} onCopy={onCopy} /> : null}
+          <DetailRow label="IFSC / Routing / SWIFT" value={routing} copyKey="routing" copied={copied} onCopy={onCopy} />
+        </View>
+      </ExchangeCard>
 
       {extras.length > 0 ? (
-        <View style={[styles.extras, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 8 }}>
+        <View
+          style={[
+            styles.extras,
+            {
+              borderColor: `hsl(${theme.colors.borderDefault})`,
+              borderRadius: theme.radius.md,
+              padding: theme.spacing[2.5],
+              marginTop: theme.spacing[2.5],
+            },
+          ]}
+        >
+          <Text
+            style={[
+              theme.typography.labelSm,
+              {
+                color: `hsl(${theme.colors.foregroundSecondary})`,
+                fontFamily: theme.fonts.sansBold,
+                marginBottom: theme.spacing[2],
+              },
+            ]}
+          >
             ADDITIONAL DETAILS
           </Text>
           {extras.map(([k, v]) => (
-            <View key={k} style={styles.extraRow}>
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>{formatPaymentDetailKey(k)}</Text>
-              <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontSize: 13, fontWeight: '600', flex: 1, textAlign: 'right' }}>
+            <View key={k} style={[styles.extraRow, { gap: theme.spacing[2], marginBottom: theme.spacing[1.5] }]}>
+              <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+                {formatPaymentDetailKey(k)}
+              </Text>
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  {
+                    color: `hsl(${theme.colors.foregroundPrimary})`,
+                    fontFamily: theme.fonts.sansSemiBold,
+                    flex: 1,
+                    textAlign: 'right',
+                  },
+                ]}
+              >
                 {String(v)}
               </Text>
             </View>
@@ -137,11 +239,10 @@ export function OrderPaymentInstructions({ details, displayName }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 12 },
-  warning: { flexDirection: 'row', gap: 10, borderWidth: 1, borderRadius: 8, padding: 10, marginBottom: 12 },
-  detailsCard: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12 },
-  row: { paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, gap: 4 },
-  rowValue: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  extras: { marginTop: 10, borderWidth: 1, borderRadius: 8, padding: 10 },
-  extraRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginBottom: 6 },
+  wrap: { borderWidth: 1 },
+  warning: { flexDirection: 'row', borderWidth: 1 },
+  row: { borderBottomWidth: StyleSheet.hairlineWidth },
+  rowValue: { flexDirection: 'row', alignItems: 'center' },
+  extras: { borderWidth: 1 },
+  extraRow: { flexDirection: 'row', justifyContent: 'space-between' },
 });

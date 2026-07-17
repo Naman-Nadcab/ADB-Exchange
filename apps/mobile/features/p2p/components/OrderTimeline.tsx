@@ -7,13 +7,16 @@ type Props = { steps: EscrowTimelineStep[] };
 export function OrderTimeline({ steps }: Props) {
   const { theme } = useTheme();
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, { marginVertical: theme.spacing[3], gap: theme.spacing[2] }]}>
       {steps.map((s) => (
-        <View key={s.key} style={styles.step}>
+        <View key={s.key} style={[styles.step, { gap: theme.spacing[2] }]}>
           <View
             style={[
               styles.dot,
               {
+                width: 10,
+                height: 10,
+                borderRadius: theme.radius.full,
                 backgroundColor: s.active
                   ? `hsl(${theme.colors.brandPrimary})`
                   : s.done
@@ -23,10 +26,13 @@ export function OrderTimeline({ steps }: Props) {
             ]}
           />
           <Text
-            style={{
-              color: `hsl(${s.active ? theme.colors.foregroundPrimary : theme.colors.foregroundSecondary})`,
-              fontWeight: s.active ? '700' : '400',
-            }}
+            style={[
+              theme.typography.bodySm,
+              {
+                color: `hsl(${s.active ? theme.colors.foregroundPrimary : theme.colors.foregroundSecondary})`,
+                fontFamily: s.active ? theme.fonts.sansBold : theme.fonts.sans,
+              },
+            ]}
           >
             {s.label}
           </Text>
@@ -37,7 +43,7 @@ export function OrderTimeline({ steps }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginVertical: 12, gap: 8 },
-  step: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  dot: { width: 10, height: 10, borderRadius: 5 },
+  wrap: {},
+  step: { flexDirection: 'row', alignItems: 'center' },
+  dot: {},
 });

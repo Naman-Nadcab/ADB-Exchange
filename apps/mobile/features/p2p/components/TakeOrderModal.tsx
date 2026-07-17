@@ -77,36 +77,70 @@ export function TakeOrderModal({ ad, fiat, visible, onClose, onCreated }: Props)
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.scrim} onPress={onClose}>
+      <Pressable style={[styles.scrim, { backgroundColor: `hsl(${theme.colors.foregroundPrimary} / ${theme.opacity.scrim})` }]} onPress={onClose}>
         <Pressable
           style={[
             styles.sheet,
             {
               backgroundColor: `hsl(${theme.colors.backgroundElevated})`,
               borderColor: `hsl(${theme.colors.borderDefault})`,
+              borderTopLeftRadius: theme.radius.xl,
+              borderTopRightRadius: theme.radius.xl,
+              padding: theme.spacing[5],
             },
           ]}
           onPress={(e) => e.stopPropagation()}
         >
-          <View style={styles.header}>
-            <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+          <View style={[styles.header, { marginBottom: theme.spacing[4] }]}>
+            <Text
+              style={[
+                theme.typography.headingMd,
+                { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+              ]}
+            >
               {side === 'sell' ? 'Buy' : 'Sell'} {ad.crypto_symbol}
             </Text>
             <Pressable onPress={onClose} hitSlop={8}>
-              <Ionicons name="close" size={24} color={`hsl(${theme.colors.foregroundSecondary})`} />
+              <Ionicons name="close" size={theme.sizes.iconMd} color={`hsl(${theme.colors.foregroundSecondary})`} />
             </Pressable>
           </View>
 
-          <View style={[styles.priceBox, { backgroundColor: `hsl(${theme.colors.surfaceMuted} / 0.35)`, borderColor: `hsl(${theme.colors.borderDefault})` }]}>
-            <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontSize: 18, fontWeight: '700' }}>
+          <View
+            style={[
+              styles.priceBox,
+              {
+                backgroundColor: `hsl(${theme.colors.surfaceMuted} / 0.35)`,
+                borderColor: `hsl(${theme.colors.borderDefault})`,
+                borderRadius: theme.radius.md,
+                padding: theme.spacing[3],
+                marginBottom: theme.spacing[4],
+              },
+            ]}
+          >
+            <Text
+              style={[
+                theme.typography.headingMd,
+                { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+              ]}
+            >
               {sym}
               {priceFmtModal}
-              <Text style={{ fontSize: 13, fontWeight: '500', color: `hsl(${theme.colors.foregroundSecondary})` }}>
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  { color: `hsl(${theme.colors.foregroundSecondary})`, fontFamily: theme.fonts.sansMedium },
+                ]}
+              >
                 {' '}
                 / {ad.crypto_symbol}
               </Text>
             </Text>
-            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, marginTop: 4 }}>
+            <Text
+              style={[
+                theme.typography.bodySm,
+                { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[1] },
+              ]}
+            >
               Limits {sym}
               {formatP2pFiatPrice(min, fiat)} – {sym}
               {formatP2pFiatPrice(max, fiat)}
@@ -121,15 +155,33 @@ export function TakeOrderModal({ ad, fiat, visible, onClose, onCreated }: Props)
               keyboardType="decimal-pad"
             />
 
-            <Text style={[styles.label, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>Payment method</Text>
+            <Text
+              style={[
+                theme.typography.labelSm,
+                {
+                  color: `hsl(${theme.colors.foregroundSecondary})`,
+                  fontFamily: theme.fonts.sansSemiBold,
+                  textTransform: 'uppercase',
+                  marginBottom: theme.spacing[2],
+                  letterSpacing: 0.4,
+                },
+              ]}
+            >
+              Payment method
+            </Text>
             {pmQ.isLoading ? (
               <SkeletonList rows={2} />
             ) : selectable.length === 0 ? (
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 12, fontSize: 13 }}>
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[3] },
+                ]}
+              >
                 No matching method. Add one in Payment Methods first.
               </Text>
             ) : (
-              <View style={styles.pmRow}>
+              <View style={[styles.pmRow, { gap: theme.spacing[2], marginBottom: theme.spacing[4] }]}>
                 {selectable.map((m) => (
                   <FilterChip
                     key={m.id}
@@ -145,7 +197,18 @@ export function TakeOrderModal({ ad, fiat, visible, onClose, onCreated }: Props)
             )}
 
             {err ? (
-              <Text style={{ color: '#f6465d', fontSize: 13, marginBottom: 12, fontWeight: '600' }}>{err}</Text>
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  {
+                    color: `hsl(${theme.colors.statusError})`,
+                    marginBottom: theme.spacing[3],
+                    fontFamily: theme.fonts.sansSemiBold,
+                  },
+                ]}
+              >
+                {err}
+              </Text>
             ) : null}
 
             <PrimaryButton
@@ -162,17 +225,12 @@ export function TakeOrderModal({ ad, fiat, visible, onClose, onCreated }: Props)
 }
 
 const styles = StyleSheet.create({
-  scrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
+  scrim: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
     maxHeight: '90%',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
     borderWidth: 1,
-    padding: 20,
   },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  title: { fontSize: 17, fontWeight: '700' },
-  priceBox: { borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 16 },
-  label: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.4 },
-  pmRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  priceBox: { borderWidth: 1 },
+  pmRow: { flexDirection: 'row', flexWrap: 'wrap' },
 });

@@ -1,27 +1,48 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ExchangeCard } from '@shared/ui';
 import { useTheme } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 
 type Props = { notes: string };
 
 export function DisputeAdminNotes({ notes }: Props) {
   const { theme } = useTheme();
+  const warning = semanticStatusPalette(theme.colors, 'warning');
   if (!notes.trim()) return null;
 
   return (
-    <View style={[styles.card, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
-      <View style={styles.header}>
-        <Ionicons name="shield-checkmark-outline" size={14} color="#f59e0b" />
-        <Text style={{ fontSize: 12, fontWeight: '700', color: '#f59e0b' }}>Admin Response</Text>
+    <ExchangeCard padded={false} style={{ overflow: 'hidden', marginTop: theme.spacing[3] }}>
+      <View
+        style={[
+          styles.header,
+          {
+            gap: theme.spacing[1.5],
+            paddingHorizontal: theme.spacing[4],
+            paddingTop: theme.spacing[3],
+            paddingBottom: theme.spacing[2],
+          },
+        ]}
+      >
+        <Ionicons name="shield-checkmark-outline" size={theme.sizes.iconSm} color={warning.fg} />
+        <Text style={[theme.typography.bodySm, { color: warning.fg, fontFamily: theme.fonts.sansBold }]}>Admin Response</Text>
       </View>
-      <Text style={{ fontSize: 14, color: `hsl(${theme.colors.foregroundPrimary})`, lineHeight: 20, paddingHorizontal: 16, paddingBottom: 12 }}>
+      <Text
+        style={[
+          theme.typography.bodyMd,
+          {
+            color: `hsl(${theme.colors.foregroundPrimary})`,
+            paddingHorizontal: theme.spacing[4],
+            paddingBottom: theme.spacing[3],
+          },
+        ]}
+      >
         {notes}
       </Text>
-    </View>
+    </ExchangeCard>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { borderWidth: 1, borderRadius: 12, overflow: 'hidden', marginTop: 12 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
+  header: { flexDirection: 'row', alignItems: 'center' },
 });

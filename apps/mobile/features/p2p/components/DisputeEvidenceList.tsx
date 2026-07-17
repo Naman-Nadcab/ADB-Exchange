@@ -1,5 +1,6 @@
-import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
+import { Text, Pressable, StyleSheet, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ExchangeCard } from '@shared/ui';
 import { useTheme } from '@shared/theme';
 import { normalizeDisputeEvidence } from '@core/domain/p2p/dispute';
 
@@ -11,28 +12,52 @@ export function DisputeEvidenceList({ evidence }: Props) {
   if (!urls.length) return null;
 
   return (
-    <View style={[styles.card, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
-      <Text style={{ fontSize: 12, color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 8, paddingHorizontal: 16, paddingTop: 12 }}>
+    <ExchangeCard padded={false} style={{ overflow: 'hidden', marginTop: theme.spacing[3] }}>
+      <Text
+        style={[
+          theme.typography.bodySm,
+          {
+            color: `hsl(${theme.colors.foregroundSecondary})`,
+            marginBottom: theme.spacing[2],
+            paddingHorizontal: theme.spacing[4],
+            paddingTop: theme.spacing[3],
+          },
+        ]}
+      >
         Evidence
       </Text>
       {urls.map((url, i) => (
         <Pressable
           key={`${url}-${i}`}
           onPress={() => void Linking.openURL(url)}
-          style={[styles.row, i < urls.length - 1 ? styles.rowBorder : null]}
+          style={[
+            styles.row,
+            {
+              gap: theme.spacing[2],
+              paddingHorizontal: theme.spacing[4],
+              paddingVertical: theme.spacing[2.5],
+              borderBottomColor: `hsl(${theme.colors.borderDefault})`,
+            },
+            i < urls.length - 1 ? styles.rowBorder : null,
+          ]}
         >
-          <Ionicons name="open-outline" size={14} color={`hsl(${theme.colors.brandPrimary})`} />
-          <Text style={{ flex: 1, fontSize: 13, color: `hsl(${theme.colors.brandPrimary})` }} numberOfLines={2}>
+          <Ionicons name="open-outline" size={theme.sizes.iconSm} color={`hsl(${theme.colors.brandPrimary})`} />
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { flex: 1, color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansMedium },
+            ]}
+            numberOfLines={2}
+          >
             {url}
           </Text>
         </Pressable>
       ))}
-    </View>
+    </ExchangeCard>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { borderWidth: 1, borderRadius: 12, overflow: 'hidden', marginTop: 12 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 10 },
-  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(128,128,128,0.2)' },
+  row: { flexDirection: 'row', alignItems: 'center' },
+  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth },
 });

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, Text, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, PrimaryButton, ErrorBanner, TextField, SecondaryButton } from '@shared/ui';
+import { ScreenLayout, PrimaryButton, ErrorBanner, TextField, SecondaryButton, ExchangeCard } from '@shared/ui';
 import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
@@ -85,7 +85,14 @@ export function PostAdReviewScreen({ navigation }: Props) {
   if (success) {
     return (
       <ScreenLayout testID="S-606">
-        <Text style={{ textAlign: 'center', marginTop: 40, fontWeight: '700' }}>Ad published</Text>
+        <Text
+          style={[
+            theme.typography.bodyMd,
+            { textAlign: 'center', marginTop: theme.spacing[10], fontFamily: theme.fonts.sansBold },
+          ]}
+        >
+          Ad published
+        </Text>
       </ScreenLayout>
     );
   }
@@ -118,12 +125,12 @@ export function PostAdReviewScreen({ navigation }: Props) {
           numberOfLines={3}
         />
 
-        <View style={[styles.summary, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
-          <SummaryLine label="Side" value={draft.type ?? '—'} theme={theme} />
-          <SummaryLine label="Pair" value={`${draft.currency}/${draft.fiat}`} theme={theme} />
-          <SummaryLine label="Pricing" value={draft.pricing_type ?? 'fixed'} theme={theme} />
-          <SummaryLine label="Auto-release" value={draft.auto_release ? 'Yes' : 'No'} theme={theme} />
-        </View>
+        <ExchangeCard style={{ marginBottom: theme.spacing[3], gap: theme.spacing[2] }}>
+          <SummaryLine label="Side" value={draft.type ?? '—'} />
+          <SummaryLine label="Pair" value={`${draft.currency}/${draft.fiat}`} />
+          <SummaryLine label="Pricing" value={draft.pricing_type ?? 'fixed'} />
+          <SummaryLine label="Auto-release" value={draft.auto_release ? 'Yes' : 'No'} />
+        </ExchangeCard>
 
         {error || validationErr ? <ErrorBanner message={error ?? validationErr!} /> : null}
 
@@ -139,19 +146,21 @@ export function PostAdReviewScreen({ navigation }: Props) {
   );
 }
 
-function SummaryLine({
-  label,
-  value,
-  theme,
-}: {
-  label: string;
-  value: string;
-  theme: ReturnType<typeof useTheme>['theme'];
-}) {
+function SummaryLine({ label, value }: { label: string; value: string }) {
+  const { theme } = useTheme();
   return (
     <View style={styles.line}>
-      <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>{label}</Text>
-      <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '600', textTransform: 'capitalize' }}>
+      <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>{label}</Text>
+      <Text
+        style={[
+          theme.typography.bodySm,
+          {
+            color: `hsl(${theme.colors.foregroundPrimary})`,
+            fontFamily: theme.fonts.sansSemiBold,
+            textTransform: 'capitalize',
+          },
+        ]}
+      >
         {value}
       </Text>
     </View>
@@ -159,6 +168,5 @@ function SummaryLine({
 }
 
 const styles = StyleSheet.create({
-  summary: { borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 12, gap: 8 },
   line: { flexDirection: 'row', justifyContent: 'space-between' },
 });

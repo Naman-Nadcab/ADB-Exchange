@@ -81,8 +81,20 @@ export function MerchantDashboardScreen({ navigation }: Props) {
   return (
     <ScreenLayout testID="S-613">
       {!isOnline ? (
-        <View style={[styles.offline, { backgroundColor: `hsl(${theme.colors.statusError} / 0.08)` }]}>
-          <Text style={{ color: `hsl(${theme.colors.statusError})`, fontSize: 13 }}>Offline — showing cached data.</Text>
+        <View
+          style={[
+            styles.offline,
+            {
+              backgroundColor: `hsl(${theme.colors.statusError} / 0.08)`,
+              borderRadius: theme.radius.md,
+              padding: theme.spacing[2.5],
+              marginBottom: theme.spacing[2],
+            },
+          ]}
+        >
+          <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.statusError})` }]}>
+            Offline — showing cached data.
+          </Text>
         </View>
       ) : null}
       <ScrollView

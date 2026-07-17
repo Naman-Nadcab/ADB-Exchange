@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Ionicons } from '@expo/vector-icons';
+import { ExchangeCard, StatusChip } from '@shared/ui';
 import { useTheme, hapticLight } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
+import type { StatusChipTone } from '@shared/theme/statusPalettes';
 import { getApiBaseUrl } from '@core/config/env';
 import { useAuthStore } from '@core/state/authStore';
 import type { P2POrder } from '@exchange/mobile-types';
@@ -19,6 +22,22 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   let binary = '';
   for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]!);
   return globalThis.btoa(binary);
+}
+
+function orderStatusChipTone(status: string): StatusChipTone {
+  switch (status) {
+    case 'payment_pending':
+      return 'warn';
+    case 'payment_confirmed':
+      return 'sync';
+    case 'completed':
+    case 'released':
+      return 'live';
+    case 'disputed':
+      return 'off';
+    default:
+      return 'neutral';
+  }
 }
 
 function PaymentProofViewer({ orderId, paymentProofUrl }: { orderId: string; paymentProofUrl: string }) {
@@ -56,30 +75,62 @@ function PaymentProofViewer({ orderId, paymentProofUrl }: { orderId: string; pay
 
   if (isSecure) {
     return (
-      <View style={styles.proofWrap}>
+      <View style={{ gap: theme.spacing[2] }}>
         <Pressable onPress={() => void loadSecure()} disabled={loading}>
-          <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600' }}>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+            ]}
+          >
             {loading ? 'Loading…' : uri ? 'Reload proof' : 'View payment proof'}
           </Text>
         </Pressable>
-        {err ? <Text style={{ color: `hsl(${theme.colors.statusError})`, fontSize: 12 }}>{err}</Text> : null}
-        {loading ? <ActivityIndicator style={{ marginTop: 8 }} /> : null}
-        {uri ? <Image source={{ uri }} style={styles.proofImage} resizeMode="contain" /> : null}
+        {err ? (
+          <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.statusError})` }]}>{err}</Text>
+        ) : null}
+        {loading ? <ActivityIndicator style={{ marginTop: theme.spacing[2] }} /> : null}
+        {uri ? (
+          <Image
+            source={{ uri }}
+            style={[styles.proofImage, { borderRadius: theme.radius.md }]}
+            resizeMode="contain"
+          />
+        ) : null}
       </View>
     );
   }
 
   const href = paymentProofUrl.startsWith('http') ? paymentProofUrl : paymentProofUrl;
   return (
-    <Image source={{ uri: href }} style={styles.proofImage} resizeMode="contain" />
+    <Image
+      source={{ uri: href }}
+      style={[styles.proofImage, { borderRadius: theme.radius.md }]}
+      resizeMode="contain"
+    />
   );
 }
 
-function InfoCell({ label, value, theme }: { label: string; value: string; theme: ReturnType<typeof useTheme>['theme'] }) {
+function InfoCell({ label, value }: { label: string; value: string }) {
+  const { theme } = useTheme();
   return (
-    <View style={styles.cell}>
-      <Text style={{ fontSize: 11, color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 4 }}>{label}</Text>
-      <Text style={{ fontSize: 14, fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>{value}</Text>
+    <View style={[styles.cell, { padding: theme.spacing[2] }]}>
+      <Text
+        style={[
+          theme.typography.labelSm,
+          { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[1] },
+        ]}
+      >
+        {label}
+      </Text>
+      <Text
+        style={[
+          theme.typography.bodyMd,
+          { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+        ]}
+      >
+        {value}
+      </Text>
     </View>
   );
 }
@@ -90,67 +141,114 @@ export function OrderRoomSummary({ order, isBuyer }: Props) {
   const sym = formatFiatSymbol(fiat);
   const vBadge = verificationBadgeLabel(order.payment_verification_status);
   const counterparty = isBuyer ? order.seller_username ?? '—' : order.buyer_username ?? '—';
-
-  const statusTone =
-    order.status === 'payment_pending'
-      ? '#f59e0b'
-      : order.status === 'payment_confirmed'
-        ? '#3b82f6'
-        : order.status === 'completed' || order.status === 'released'
-          ? `hsl(${theme.colors.tradeBuy})`
-          : order.status === 'disputed'
-            ? `hsl(${theme.colors.statusError})`
-            : `hsl(${theme.colors.foregroundSecondary})`;
+  const warning = semanticStatusPalette(theme.colors, 'warning');
 
   return (
-    <View style={[styles.card, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
-      <View style={[styles.header, { borderBottomColor: `hsl(${theme.colors.borderDefault})` }]}>
-        <Text style={{ fontSize: 16, fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>
+    <ExchangeCard padded={false} style={{ overflow: 'hidden', marginBottom: theme.spacing[3] }}>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingHorizontal: theme.spacing[3.5],
+            paddingVertical: theme.spacing[3],
+            borderBottomColor: `hsl(${theme.colors.borderDefault})`,
+            gap: theme.spacing[2],
+          },
+        ]}
+      >
+        <Text
+          style={[
+            theme.typography.headingSm,
+            { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+          ]}
+        >
           Order Details
         </Text>
-        <View style={styles.badges}>
-          <View style={[styles.badge, { backgroundColor: `${statusTone}18` }]}>
-            <Text style={{ color: statusTone, fontSize: 11, fontWeight: '700' }}>{orderStatusLabel(order.status)}</Text>
-          </View>
-          {vBadge ? (
-            <View style={[styles.badge, { backgroundColor: 'rgba(245,158,11,0.12)' }]}>
-              <Text style={{ color: '#f59e0b', fontSize: 11, fontWeight: '700' }}>{vBadge.label}</Text>
-            </View>
-          ) : null}
+        <View style={[styles.badges, { gap: theme.spacing[1.5] }]}>
+          <StatusChip label={orderStatusLabel(order.status)} tone={orderStatusChipTone(order.status)} />
+          {vBadge ? <StatusChip label={vBadge.label} tone="warn" /> : null}
         </View>
       </View>
 
       {!isBuyer && order.status === 'payment_confirmed' && order.payment_verification_status === 'pending' ? (
-        <Text style={[styles.hint, { color: '#f59e0b', borderColor: 'rgba(245,158,11,0.2)', backgroundColor: 'rgba(245,158,11,0.06)' }]}>
+        <Text
+          style={[
+            theme.typography.bodySm,
+            styles.hint,
+            {
+              color: warning.fg,
+              borderColor: warning.border,
+              backgroundColor: warning.bg,
+              marginHorizontal: theme.spacing[3.5],
+              marginTop: theme.spacing[3],
+              padding: theme.spacing[2.5],
+              borderRadius: theme.radius.md,
+            },
+          ]}
+        >
           Confirm the fiat arrived in your account before releasing. Verify payment after checking.
         </Text>
       ) : null}
 
-      <View style={styles.grid}>
-        <InfoCell label="Role" value={isBuyer ? 'Buyer' : 'Seller'} theme={theme} />
-        <InfoCell label="Counterparty" value={counterparty} theme={theme} />
-        <InfoCell label="Crypto" value={`${order.quantity} ${order.crypto_symbol ?? ''}`.trim()} theme={theme} />
-        <InfoCell label="Fiat" value={`${sym}${order.fiat_amount ?? '—'} ${fiat}`} theme={theme} />
+      <View style={[styles.grid, { padding: theme.spacing[1.5] }]}>
+        <InfoCell label="Role" value={isBuyer ? 'Buyer' : 'Seller'} />
+        <InfoCell label="Counterparty" value={counterparty} />
+        <InfoCell label="Crypto" value={`${order.quantity} ${order.crypto_symbol ?? ''}`.trim()} />
+        <InfoCell label="Fiat" value={`${sym}${order.fiat_amount ?? '—'} ${fiat}`} />
       </View>
 
       {!isBuyer && order.status === 'payment_confirmed' && order.transaction_reference ? (
-        <View style={[styles.block, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
-          <Text style={{ fontSize: 11, color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 4 }}>
+        <View
+          style={[
+            styles.block,
+            {
+              borderColor: `hsl(${theme.colors.borderDefault})`,
+              marginHorizontal: theme.spacing[3.5],
+              marginBottom: theme.spacing[3],
+              padding: theme.spacing[2.5],
+              borderRadius: theme.radius.md,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              theme.typography.labelSm,
+              { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[1] },
+            ]}
+          >
             Buyer Transaction Reference
           </Text>
-          <Text style={{ fontSize: 14, color: `hsl(${theme.colors.foregroundPrimary})` }}>{order.transaction_reference}</Text>
+          <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+            {order.transaction_reference}
+          </Text>
         </View>
       ) : null}
 
       {!isBuyer && order.status === 'payment_confirmed' && order.payment_proof_url ? (
-        <View style={[styles.block, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
-          <Text style={{ fontSize: 11, color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 8 }}>
+        <View
+          style={[
+            styles.block,
+            {
+              borderColor: `hsl(${theme.colors.borderDefault})`,
+              marginHorizontal: theme.spacing[3.5],
+              marginBottom: theme.spacing[3],
+              padding: theme.spacing[2.5],
+              borderRadius: theme.radius.md,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              theme.typography.labelSm,
+              { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[2] },
+            ]}
+          >
             Payment Proof
           </Text>
           <PaymentProofViewer orderId={order.id} paymentProofUrl={order.payment_proof_url} />
         </View>
       ) : null}
-    </View>
+    </ExchangeCard>
   );
 }
 
@@ -164,23 +262,29 @@ export function OrderRoomHeader({
   copied: boolean;
 }) {
   const { theme } = useTheme();
+  const success = semanticStatusPalette(theme.colors, 'success');
   return (
     <Pressable
       onPress={() => {
         hapticLight();
         onCopy();
       }}
-      style={styles.idRow}
+      style={[styles.idRow, { marginBottom: theme.spacing[2] }]}
     >
-      <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>Order ID</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        <Text style={{ fontFamily: undefined, fontWeight: '600', color: `hsl(${theme.colors.foregroundPrimary})` }}>
+      <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>Order ID</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing[1.5] }}>
+        <Text
+          style={[
+            theme.typography.bodySm,
+            { fontFamily: theme.fonts.monoSemiBold, color: `hsl(${theme.colors.foregroundPrimary})` },
+          ]}
+        >
           #{orderId.slice(0, 12)}
         </Text>
         <Ionicons
           name={copied ? 'checkmark-circle' : 'copy-outline'}
-          size={16}
-          color={copied ? `hsl(${theme.colors.tradeBuy})` : `hsl(${theme.colors.foregroundSecondary})`}
+          size={theme.sizes.iconSm}
+          color={copied ? success.fg : `hsl(${theme.colors.foregroundSecondary})`}
         />
       </View>
     </Pressable>
@@ -192,37 +296,22 @@ export async function copyOrderId(orderId: string): Promise<void> {
 }
 
 const styles = StyleSheet.create({
-  card: { borderWidth: 1, borderRadius: 12, overflow: 'hidden', marginBottom: 12 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
     borderBottomWidth: 1,
     flexWrap: 'wrap',
-    gap: 8,
   },
-  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  badge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
-  hint: {
-    marginHorizontal: 14,
-    marginTop: 12,
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', padding: 6 },
-  cell: { width: '50%', padding: 8 },
-  block: { marginHorizontal: 14, marginBottom: 12, padding: 10, borderRadius: 8, borderWidth: 1 },
-  proofWrap: { gap: 8 },
-  proofImage: { width: '100%', height: 180, borderRadius: 8 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap' },
+  hint: { borderWidth: 1 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap' },
+  cell: { width: '50%' },
+  block: { borderWidth: 1 },
+  proofImage: { width: '100%', height: 180 },
   idRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
   },
 });

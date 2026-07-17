@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { TextField, PrimaryButton } from '@shared/ui';
+import { TextField, PrimaryButton, ExchangeCard, StatusChip } from '@shared/ui';
 import { useTheme } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import { useWsMetricsStore } from '@core/state/wsMetricsStore';
 import type { P2PMessage } from '@exchange/mobile-types';
 import {
@@ -42,6 +43,7 @@ export function P2PChatPanel({
   sendError,
 }: Props) {
   const { theme } = useTheme();
+  const info = semanticStatusPalette(theme.colors, 'info');
   const metricsLive = useWsMetricsStore((s) => s.streamPhase === 'live');
   const live = wsConnected ?? metricsLive;
   const [text, setText] = useState('');
@@ -64,28 +66,41 @@ export function P2PChatPanel({
 
   if (!enabled) {
     return (
-      <View style={[styles.wrap, styles.disabledWrap, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
-        <Ionicons name="chatbubble-ellipses-outline" size={18} color={`hsl(${theme.colors.foregroundSecondary})`} />
-        <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13, flex: 1 }}>
+      <ExchangeCard
+        style={[
+          styles.disabledWrap,
+          {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: theme.spacing[2.5],
+            minHeight: 0,
+            paddingVertical: theme.spacing[4],
+          },
+        ]}
+      >
+        <Ionicons name="chatbubble-ellipses-outline" size={theme.sizes.iconMd} color={`hsl(${theme.colors.foregroundSecondary})`} />
+        <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})`, flex: 1 }]}>
           Chat available when the order is open.
         </Text>
-      </View>
+      </ExchangeCard>
     );
   }
 
   return (
-    <View style={[styles.wrap, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
+    <ExchangeCard style={{ minHeight: 260, gap: theme.spacing[2] }}>
       <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <Ionicons name="chatbubble-ellipses-outline" size={16} color={`hsl(${theme.colors.brandPrimary})`} />
-          <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>Chat</Text>
-        </View>
-        <View style={[styles.wsBadge, { backgroundColor: live ? 'rgba(14,203,129,0.12)' : 'rgba(245,158,11,0.12)' }]}>
-          <View style={[styles.wsDot, { backgroundColor: live ? '#0ecb81' : '#f59e0b' }]} />
-          <Text style={{ fontSize: 11, fontWeight: '700', color: live ? '#0ecb81' : '#f59e0b' }}>
-            {chatConnectionLabel(live)}
+        <View style={[styles.titleRow, { gap: theme.spacing[2] }]}>
+          <Ionicons name="chatbubble-ellipses-outline" size={theme.sizes.iconSm} color={`hsl(${theme.colors.brandPrimary})`} />
+          <Text
+            style={[
+              theme.typography.bodyMd,
+              { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+            ]}
+          >
+            Chat
           </Text>
         </View>
+        <StatusChip label={chatConnectionLabel(live)} tone={live ? 'live' : 'warn'} />
       </View>
 
       <FlatList
@@ -99,21 +114,35 @@ export function P2PChatPanel({
         windowSize={7}
         ListEmptyComponent={
           loading ? (
-            <View style={styles.emptyBox}>
+            <View style={[styles.emptyBox, { paddingVertical: theme.spacing[6] }]}>
               <ActivityIndicator color={`hsl(${theme.colors.brandPrimary})`} />
             </View>
           ) : (
-            <View style={styles.emptyBox}>
-              <Ionicons name="chatbubble-outline" size={28} color={`hsl(${theme.colors.foregroundSecondary})`} style={{ opacity: 0.35 }} />
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, textAlign: 'center' }}>No messages yet</Text>
+            <View style={[styles.emptyBox, { paddingVertical: theme.spacing[6], gap: theme.spacing[2] }]}>
+              <Ionicons
+                name="chatbubble-outline"
+                size={28}
+                color={`hsl(${theme.colors.foregroundSecondary})`}
+                style={{ opacity: theme.opacity.muted }}
+              />
+              <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})`, textAlign: 'center' }]}>
+                No messages yet
+              </Text>
             </View>
           )
         }
         renderItem={({ item }) => {
           if (item.kind === 'date') {
             return (
-              <View style={styles.dateRow}>
-                <Text style={{ fontSize: 11, fontWeight: '600', color: `hsl(${theme.colors.foregroundSecondary})` }}>{item.label}</Text>
+              <View style={[styles.dateRow, { paddingVertical: theme.spacing[2] }]}>
+                <Text
+                  style={[
+                    theme.typography.labelSm,
+                    { color: `hsl(${theme.colors.foregroundSecondary})`, fontFamily: theme.fonts.sansSemiBold },
+                  ]}
+                >
+                  {item.label}
+                </Text>
               </View>
             );
           }
@@ -121,8 +150,15 @@ export function P2PChatPanel({
           const message = item.message;
           if (isSystemChatMessage(message)) {
             return (
-              <View style={styles.systemRow}>
-                <Text style={{ fontSize: 12, color: `hsl(${theme.colors.foregroundSecondary})`, textAlign: 'center' }}>{message.message}</Text>
+              <View style={[styles.systemRow, { paddingVertical: theme.spacing[1.5], paddingHorizontal: theme.spacing[3] }]}>
+                <Text
+                  style={[
+                    theme.typography.bodySm,
+                    { color: `hsl(${theme.colors.foregroundSecondary})`, textAlign: 'center' },
+                  ]}
+                >
+                  {message.message}
+                </Text>
               </View>
             );
           }
@@ -134,22 +170,52 @@ export function P2PChatPanel({
               onPress={() => message._failed && onResend?.(message.message)}
               style={[
                 styles.bubble,
+                {
+                  padding: theme.spacing[2.5],
+                  borderRadius: theme.radius.md,
+                  marginVertical: theme.spacing[1],
+                  maxWidth: '85%',
+                },
                 mine
-                  ? { alignSelf: 'flex-end', backgroundColor: 'rgba(59,130,246,0.15)' }
-                  : { alignSelf: 'flex-start', backgroundColor: 'rgba(0,0,0,0.06)' },
+                  ? { alignSelf: 'flex-end', backgroundColor: info.bg, borderColor: info.border, borderWidth: 1 }
+                  : {
+                      alignSelf: 'flex-start',
+                      backgroundColor: `hsl(${theme.colors.surfaceMuted} / 0.5)`,
+                    },
               ]}
             >
               {!mine && message.senderUsername ? (
-                <Text style={{ fontSize: 10, fontWeight: '700', color: `hsl(${theme.colors.brandPrimary})`, marginBottom: 2 }}>
+                <Text
+                  style={[
+                    theme.typography.labelSm,
+                    {
+                      color: `hsl(${theme.colors.brandPrimary})`,
+                      fontFamily: theme.fonts.sansBold,
+                      marginBottom: theme.spacing[0.5],
+                    },
+                  ]}
+                >
                   {message.senderUsername}
                 </Text>
               ) : null}
-              <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, lineHeight: 20 }}>{message.message}</Text>
-              <View style={styles.metaRow}>
-                <Text style={styles.meta}>{formatChatTime(message.createdAt)}</Text>
-                {message._pending ? <Text style={styles.meta}> · Sending…</Text> : null}
+              <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+                {message.message}
+              </Text>
+              <View style={[styles.metaRow, { marginTop: theme.spacing[1] }]}>
+                <Text style={[theme.typography.labelSm, styles.meta, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+                  {formatChatTime(message.createdAt)}
+                </Text>
+                {message._pending ? (
+                  <Text style={[theme.typography.labelSm, styles.meta, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+                    {' '}
+                    · Sending…
+                  </Text>
+                ) : null}
                 {message._failed ? (
-                  <Text style={[styles.meta, { color: `hsl(${theme.colors.statusError})` }]}> · Tap to retry</Text>
+                  <Text style={[theme.typography.labelSm, styles.meta, { color: `hsl(${theme.colors.statusError})` }]}>
+                    {' '}
+                    · Tap to retry
+                  </Text>
                 ) : null}
               </View>
             </Pressable>
@@ -157,14 +223,23 @@ export function P2PChatPanel({
         }}
         ListHeaderComponent={
           typingUserId && typingUserId !== currentUserId ? (
-            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, paddingVertical: 4, textAlign: 'center' }}>
+            <Text
+              style={[
+                theme.typography.bodySm,
+                {
+                  color: `hsl(${theme.colors.foregroundSecondary})`,
+                  paddingVertical: theme.spacing[1],
+                  textAlign: 'center',
+                },
+              ]}
+            >
               Typing…
             </Text>
           ) : null
         }
       />
 
-      <View style={styles.inputRow}>
+      <View style={[styles.inputRow, { gap: theme.spacing[2], marginTop: theme.spacing[2] }]}>
         <TextField
           label=""
           value={text}
@@ -178,25 +253,29 @@ export function P2PChatPanel({
         <PrimaryButton title="Send" loading={sending} disabled={!enabled || !text.trim()} onPress={submit} />
       </View>
       {sendError ? (
-        <Text style={{ fontSize: 12, color: `hsl(${theme.colors.statusError})`, marginTop: 6 }}>Failed to send. Try again.</Text>
+        <Text
+          style={[
+            theme.typography.bodySm,
+            { color: `hsl(${theme.colors.statusError})`, marginTop: theme.spacing[1.5] },
+          ]}
+        >
+          Failed to send. Try again.
+        </Text>
       ) : null}
-    </View>
+    </ExchangeCard>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { borderWidth: 1, borderRadius: 12, padding: 12, minHeight: 260 },
-  disabledWrap: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 0, paddingVertical: 16 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  wsBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 },
-  wsDot: { width: 8, height: 8, borderRadius: 4 },
+  disabledWrap: {},
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  titleRow: { flexDirection: 'row', alignItems: 'center' },
   list: { flexGrow: 0, maxHeight: 320 },
-  emptyBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 24, gap: 8 },
-  dateRow: { alignItems: 'center', paddingVertical: 8 },
-  systemRow: { alignItems: 'center', paddingVertical: 6, paddingHorizontal: 12 },
-  bubble: { padding: 10, borderRadius: 8, marginVertical: 4, maxWidth: '85%' },
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 4 },
-  meta: { fontSize: 10, color: 'rgba(120,120,120,0.9)' },
-  inputRow: { flexDirection: 'row', gap: 8, alignItems: 'flex-end', marginTop: 8 },
+  emptyBox: { alignItems: 'center', justifyContent: 'center' },
+  dateRow: { alignItems: 'center' },
+  systemRow: { alignItems: 'center' },
+  bubble: {},
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap' },
+  meta: {},
+  inputRow: { flexDirection: 'row', alignItems: 'flex-end' },
 });

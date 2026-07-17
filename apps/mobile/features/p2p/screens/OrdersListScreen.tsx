@@ -10,6 +10,7 @@ import {
   FilterChip,
 } from '@shared/ui';
 import { useTheme } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import { useAppStore } from '@core/state/appStore';
 import { useAuthStore } from '@core/state/authStore';
 import { analytics } from '@core/observability/analytics';
@@ -27,6 +28,7 @@ type Props = NativeStackScreenProps<P2PStackParamList, 'OrdersList'>;
 
 export function OrdersListScreen({ navigation }: Props) {
   const { theme } = useTheme();
+  const warning = semanticStatusPalette(theme.colors, 'warning');
   const isOnline = useAppStore((s) => s.isOnline);
   const userId = useAuthStore((s) => s.user?.id);
   const [filter, setFilter] = useState('');
@@ -66,35 +68,96 @@ export function OrdersListScreen({ navigation }: Props) {
   return (
     <ScreenLayout testID="S-609">
       {!isOnline ? (
-        <View style={[styles.offline, { backgroundColor: `hsl(${theme.colors.statusError} / 0.08)` }]}>
-          <Text style={{ color: `hsl(${theme.colors.statusError})`, fontSize: 13 }}>Offline — showing cached data.</Text>
+        <View
+          style={[
+            styles.offline,
+            {
+              backgroundColor: `hsl(${theme.colors.statusError} / 0.08)`,
+              borderRadius: theme.radius.md,
+              padding: theme.spacing[2.5],
+              marginBottom: theme.spacing[2],
+            },
+          ]}
+        >
+          <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.statusError})` }]}>
+            Offline — showing cached data.
+          </Text>
         </View>
       ) : null}
 
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>My P2P orders</Text>
+      <View style={{ marginBottom: theme.spacing[3] }}>
+        <View style={[styles.titleRow, { gap: theme.spacing[2] }]}>
+          <Text
+            style={[
+              theme.typography.headingLg,
+              { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+            ]}
+          >
+            My P2P orders
+          </Text>
           {sorted.length > 0 ? (
-            <View style={[styles.countBadge, { backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.1)` }]}>
-              <Ionicons name="list-outline" size={14} color={`hsl(${theme.colors.brandPrimary})`} />
-              <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.brandPrimary})`, fontSize: 12 }}>
+            <View
+              style={[
+                styles.countBadge,
+                {
+                  backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.1)`,
+                  borderRadius: theme.radius.md,
+                  paddingHorizontal: theme.spacing[2],
+                  paddingVertical: theme.spacing[1],
+                  gap: theme.spacing[1.5],
+                },
+              ]}
+            >
+              <Ionicons name="list-outline" size={theme.sizes.iconSm} color={`hsl(${theme.colors.brandPrimary})`} />
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansBold },
+                ]}
+              >
                 {stats.total} orders
                 {stats.inProgress > 0 ? ` · ${stats.inProgress} active` : ''}
               </Text>
             </View>
           ) : null}
         </View>
-        <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13, lineHeight: 18, marginTop: 4 }}>
+        <Text
+          style={[
+            theme.typography.bodySm,
+            { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[1] },
+          ]}
+        >
           Your buys and sells with other users. Open a row for payment, proof, and release — escrow until the trade completes.
         </Text>
-        <Pressable onPress={() => navigation.navigate('Marketplace')} style={styles.marketLink}>
-          <Ionicons name="storefront-outline" size={16} color={`hsl(${theme.colors.foregroundSecondary})`} />
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontWeight: '600' }}>Marketplace</Text>
+        <Pressable
+          onPress={() => navigation.navigate('Marketplace')}
+          style={[styles.marketLink, { gap: theme.spacing[1.5], marginTop: theme.spacing[2.5] }]}
+        >
+          <Ionicons name="storefront-outline" size={theme.sizes.iconSm} color={`hsl(${theme.colors.foregroundSecondary})`} />
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: `hsl(${theme.colors.foregroundSecondary})`, fontFamily: theme.fonts.sansSemiBold },
+            ]}
+          >
+            Marketplace
+          </Text>
         </Pressable>
       </View>
 
-      <Text style={[styles.filterLabel, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>STATUS</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filters}>
+      <Text
+        style={[
+          theme.typography.labelSm,
+          {
+            color: `hsl(${theme.colors.foregroundSecondary})`,
+            fontFamily: theme.fonts.sansBold,
+            marginBottom: theme.spacing[2],
+          },
+        ]}
+      >
+        STATUS
+      </Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.filters, { marginBottom: theme.spacing[3] }]}>
         {ORDER_STATUS_FILTERS.map((s) => (
           <FilterChip
             key={s || 'all'}
@@ -106,18 +169,27 @@ export function OrdersListScreen({ navigation }: Props) {
       </ScrollView>
 
       {sorted.length > 0 ? (
-        <View style={styles.summaryRow}>
-          <Text style={{ fontSize: 12, fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>
+        <View style={[styles.summaryRow, { gap: theme.spacing[2.5], marginBottom: theme.spacing[2] }]}>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+            ]}
+          >
             {stats.total} orders
           </Text>
           {stats.inProgress > 0 ? (
-            <View style={styles.activeChip}>
-              <Ionicons name="time-outline" size={12} color="#f59e0b" />
-              <Text style={{ fontSize: 12, fontWeight: '700', color: '#f59e0b' }}>{stats.inProgress} active</Text>
+            <View style={[styles.activeChip, { gap: theme.spacing[1] }]}>
+              <Ionicons name="time-outline" size={theme.sizes.iconSm} color={warning.fg} />
+              <Text style={[theme.typography.bodySm, { color: warning.fg, fontFamily: theme.fonts.sansBold }]}>
+                {stats.inProgress} active
+              </Text>
             </View>
           ) : null}
           {stats.completed > 0 ? (
-            <Text style={{ fontSize: 12, color: `hsl(${theme.colors.foregroundSecondary})` }}>{stats.completed} done</Text>
+            <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+              {stats.completed} done
+            </Text>
           ) : null}
         </View>
       ) : null}
@@ -144,22 +216,18 @@ export function OrdersListScreen({ navigation }: Props) {
             />
           ) : null
         }
-        contentContainerStyle={styles.list}
+        contentContainerStyle={{ paddingBottom: theme.spacing[6] }}
       />
     </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { marginBottom: 12 },
-  titleRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
-  title: { fontSize: 22, fontWeight: '700' },
-  countBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
-  marketLink: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, alignSelf: 'flex-start' },
-  filterLabel: { fontSize: 11, fontWeight: '700', marginBottom: 8 },
-  filters: { marginBottom: 12, maxHeight: 44 },
-  summaryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 8, alignItems: 'center' },
-  activeChip: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  list: { paddingBottom: 24 },
-  offline: { borderRadius: 8, padding: 10, marginBottom: 8 },
+  titleRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
+  countBadge: { flexDirection: 'row', alignItems: 'center' },
+  marketLink: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start' },
+  filters: { maxHeight: 44 },
+  summaryRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
+  activeChip: { flexDirection: 'row', alignItems: 'center' },
+  offline: {},
 });
