@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ExchangeCard } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import { useTheme, hsl } from '@shared/theme';
 import { formatUsd, formatCryptoAmount, maskBalance } from '@core/domain/wallet/portfolio';
 import type { EquityTotal } from '@exchange/mobile-types';
 
@@ -20,21 +20,56 @@ function EquityCard({ label, subtitle, usd, icon, iconBg, iconColor, showBalance
   const mask = (v: string) => maskBalance(v, showBalances);
 
   return (
-    <ExchangeCard elevated style={styles.card}>
-      <View style={styles.header}>
-        <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>
-          <Ionicons name={icon} size={20} color={iconColor} />
+    <ExchangeCard elevated>
+      <View style={[styles.header, { gap: theme.spacing[2.5], marginBottom: theme.spacing[2.5] }]}>
+        <View
+          style={[
+            styles.iconWrap,
+            {
+              width: theme.sizes.buttonMd,
+              height: theme.sizes.buttonMd,
+              borderRadius: theme.radius.md + 2,
+              backgroundColor: iconBg,
+            },
+          ]}
+        >
+          <Ionicons name={icon} size={theme.sizes.iconSm} color={iconColor} />
         </View>
         <View>
-          <Text style={[styles.label, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>{label}</Text>
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 10 }}>{subtitle}</Text>
+          <Text
+            style={[
+              theme.typography.labelSm,
+              {
+                color: hsl(theme.colors.foregroundSecondary),
+                fontFamily: theme.fonts.sansBold,
+                letterSpacing: 1,
+              },
+            ]}
+          >
+            {label}
+          </Text>
+          <Text style={[theme.typography.labelSm, { color: hsl(theme.colors.foregroundSecondary) }]}>{subtitle}</Text>
         </View>
       </View>
-      <Text style={[styles.amount, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+      <Text
+        style={[
+          theme.typography.displayMd,
+          {
+            color: hsl(theme.colors.foregroundPrimary),
+            fontFamily: theme.fonts.sansBold,
+            fontVariant: ['tabular-nums'],
+          },
+        ]}
+      >
         ${mask(formatUsd(usd.usd))}
       </Text>
       {usd.btc ? (
-        <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, marginTop: 4 }}>
+        <Text
+          style={[
+            theme.typography.bodySm,
+            { color: hsl(theme.colors.foregroundSecondary), marginTop: theme.spacing[1] },
+          ]}
+        >
           ≈ {mask(formatCryptoAmount(usd.btc))} BTC
         </Text>
       ) : null}
@@ -51,9 +86,10 @@ type Props = {
 
 export function FundingEquitySummary({ totalEquity, availableBalance, inUse, showBalances }: Props) {
   const { theme } = useTheme();
+  const warning = `hsl(${theme.colors.statusWarning} / 0.12)`;
 
   return (
-    <View style={styles.wrap}>
+    <View style={{ gap: theme.spacing[2.5], marginBottom: theme.spacing[3.5] }}>
       <EquityCard
         label="TOTAL EQUITY"
         subtitle="Funding wallet (USD)"
@@ -77,8 +113,8 @@ export function FundingEquitySummary({ totalEquity, availableBalance, inUse, sho
         subtitle="Locked in orders or pending"
         usd={inUse}
         icon="time-outline"
-        iconBg="rgba(245,158,11,0.12)"
-        iconColor="#f59e0b"
+        iconBg={warning}
+        iconColor={`hsl(${theme.colors.statusWarning})`}
         showBalances={showBalances}
       />
     </View>
@@ -86,10 +122,6 @@ export function FundingEquitySummary({ totalEquity, availableBalance, inUse, sho
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 10, marginBottom: 14 },
-  card: { padding: 14 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
-  iconWrap: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  label: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
-  amount: { fontSize: 28, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  header: { flexDirection: 'row', alignItems: 'center' },
+  iconWrap: { alignItems: 'center', justifyContent: 'center' },
 });

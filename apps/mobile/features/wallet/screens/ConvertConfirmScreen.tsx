@@ -3,7 +3,7 @@ import { ScrollView, RefreshControl, View, Text, StyleSheet } from 'react-native
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenLayout, PrimaryButton, ErrorBanner, SkeletonList } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import { useTheme, hsl } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
 import { ApiError } from '@core/api/errors/ApiError';
@@ -87,9 +87,29 @@ export function ConvertConfirmScreen({ navigation, route }: Props) {
   if (success) {
     return (
       <ScreenLayout testID="S-541-success">
-        <View style={[styles.successBox, { backgroundColor: `hsl(${theme.colors.tradeBuy} / 0.12)` }]}>
-          <Ionicons name="checkmark-circle" size={32} color={`hsl(${theme.colors.tradeBuy})`} />
-          <Text style={{ color: `hsl(${theme.colors.tradeBuy})`, fontWeight: '700', fontSize: 16, marginTop: 8 }}>
+        <View
+          style={[
+            styles.successBox,
+            {
+              backgroundColor: `hsl(${theme.colors.tradeBuy} / 0.12)`,
+              padding: theme.spacing[6],
+              borderRadius: theme.radius.xl,
+              marginBottom: theme.spacing[5],
+              marginTop: theme.spacing[5],
+            },
+          ]}
+        >
+          <Ionicons name="checkmark-circle" size={theme.sizes.iconLg} color={hsl(theme.colors.tradeBuy)} />
+          <Text
+            style={[
+              theme.typography.headingSm,
+              {
+                color: hsl(theme.colors.tradeBuy),
+                fontFamily: theme.fonts.sansBold,
+                marginTop: theme.spacing[2],
+              },
+            ]}
+          >
             {success}
           </Text>
         </View>
@@ -108,7 +128,16 @@ export function ConvertConfirmScreen({ navigation, route }: Props) {
         {quoteExpired ? (
           <ErrorBanner message="Quote expired. Go back and refresh the quote." onRetry={() => navigation.goBack()} />
         ) : (
-          <Text style={{ color: `hsl(${theme.colors.statusWarning})`, fontSize: 12, marginBottom: 12, textAlign: 'center' }}>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              {
+                color: hsl(theme.colors.statusWarning),
+                marginBottom: theme.spacing[3],
+                textAlign: 'center',
+              },
+            ]}
+          >
             Quote expires in {formatQuoteCountdown(remainingMs)}
           </Text>
         )}
@@ -123,7 +152,15 @@ export function ConvertConfirmScreen({ navigation, route }: Props) {
           fee={p.quote.fee}
         />
 
-        <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11, marginBottom: 12 }}>
+        <Text
+          style={[
+            theme.typography.labelSm,
+            {
+              color: hsl(theme.colors.foregroundSecondary),
+              marginBottom: theme.spacing[3],
+            },
+          ]}
+        >
           Account conversions do not require 2FA or fund password.
         </Text>
 
@@ -142,5 +179,5 @@ export function ConvertConfirmScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  successBox: { alignItems: 'center', padding: 24, borderRadius: 16, marginBottom: 20, marginTop: 20 },
+  successBox: { alignItems: 'center' },
 });

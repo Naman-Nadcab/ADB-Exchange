@@ -21,7 +21,7 @@ import {
   PrimaryButton,
 } from '@shared/ui';
 import { useGuestAccess } from '@features/auth';
-import { useTheme, hapticLight } from '@shared/theme';
+import { useTheme, hapticLight, hsl } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
 import { useWalletPrefsStore } from '@core/state/walletPrefsStore';
@@ -139,12 +139,17 @@ export function FundingAccountScreen({ navigation }: Props) {
 
   const listHeader = (
     <View>
-      <View style={styles.heroRow}>
+      <View style={[styles.heroRow, { gap: theme.spacing[2.5], marginBottom: theme.spacing[3] }]}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+          <Text
+            style={[
+              theme.typography.displayMd,
+              { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansBold },
+            ]}
+          >
             Funding Account
           </Text>
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>
+          <Text style={[theme.typography.bodyMd, { color: hsl(theme.colors.foregroundSecondary) }]}>
             Wallet balances for deposits & withdrawals
           </Text>
         </View>
@@ -158,32 +163,58 @@ export function FundingAccountScreen({ navigation }: Props) {
         >
           <Ionicons
             name={showBalances ? 'eye-outline' : 'eye-off-outline'}
-            size={22}
-            color={`hsl(${theme.colors.foregroundSecondary})`}
+            size={theme.sizes.iconSm}
+            color={hsl(theme.colors.foregroundSecondary)}
           />
         </Pressable>
         <Pressable onPress={onRefresh} hitSlop={10} accessibilityLabel="Refresh balances">
-          <Ionicons
-            name="refresh"
-            size={22}
-            color={`hsl(${theme.colors.foregroundSecondary})`}
-          />
+          <Ionicons name="refresh" size={theme.sizes.iconSm} color={hsl(theme.colors.foregroundSecondary)} />
         </Pressable>
       </View>
 
-      <View style={styles.headerActions}>
+      <View style={[styles.headerActions, { gap: theme.spacing[2], marginBottom: theme.spacing[3.5] }]}>
         <PrimaryButton title="Deposit" onPress={() => navigation.navigate('DepositHome')} style={styles.headerBtn} />
         <Pressable
           onPress={() => navigation.navigate('WithdrawHome')}
-          style={[styles.secondaryBtn, { borderColor: `hsl(${theme.colors.borderDefault})` }]}
+          style={[
+            styles.secondaryBtn,
+            {
+              borderColor: hsl(theme.colors.borderDefault),
+              minHeight: theme.sizes.tapTarget,
+              borderRadius: theme.radius.md + 2,
+              paddingHorizontal: theme.spacing[3],
+            },
+          ]}
         >
-          <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '600' }}>Withdraw</Text>
+          <Text
+            style={[
+              theme.typography.bodyMd,
+              { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansSemiBold },
+            ]}
+          >
+            Withdraw
+          </Text>
         </Pressable>
         <Pressable
           onPress={() => navigation.navigate('Transfer')}
-          style={[styles.secondaryBtn, { borderColor: `hsl(${theme.colors.borderDefault})` }]}
+          style={[
+            styles.secondaryBtn,
+            {
+              borderColor: hsl(theme.colors.borderDefault),
+              minHeight: theme.sizes.tapTarget,
+              borderRadius: theme.radius.md + 2,
+              paddingHorizontal: theme.spacing[3],
+            },
+          ]}
         >
-          <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '600' }}>Transfer</Text>
+          <Text
+            style={[
+              theme.typography.bodyMd,
+              { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansSemiBold },
+            ]}
+          >
+            Transfer
+          </Text>
         </Pressable>
       </View>
 
@@ -218,36 +249,62 @@ export function FundingAccountScreen({ navigation }: Props) {
           />
 
           {activeTab === 'fiat' ? (
-            <View style={[styles.fiatPanel, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
-              <Ionicons name="cash-outline" size={32} color={`hsl(${theme.colors.foregroundSecondary})`} />
-              <Text style={[styles.fiatTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+            <View
+              style={[
+                styles.fiatPanel,
+                {
+                  borderColor: hsl(theme.colors.borderDefault),
+                  borderRadius: theme.radius.lg,
+                  padding: theme.spacing[6],
+                  gap: theme.spacing[2],
+                  marginTop: theme.spacing[3],
+                },
+              ]}
+            >
+              <Ionicons name="cash-outline" size={theme.sizes.iconLg} color={hsl(theme.colors.foregroundSecondary)} />
+              <Text
+                style={[
+                  theme.typography.headingMd,
+                  { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansBold },
+                ]}
+              >
                 Buy & sell with fiat
               </Text>
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13, textAlign: 'center' }}>
+              <Text
+                style={[
+                  theme.typography.bodyMd,
+                  { color: hsl(theme.colors.foregroundSecondary), textAlign: 'center' },
+                ]}
+              >
                 Buy and sell crypto with INR through P2P trading — no self-serve bank deposit page yet. Withdraw INR
                 from your fiat balance after P2P sells or team credit.
               </Text>
               <PrimaryButton
                 title="Go to P2P trading"
                 onPress={() => navigation.getParent()?.navigate('P2P', { screen: 'Marketplace' })}
-                style={{ marginTop: 14 }}
+                style={{ marginTop: theme.spacing[3.5] }}
               />
             </View>
           ) : (
             <>
               <SearchBar value={search} onChangeText={setSearch} placeholder="Search coin…" />
-              <View style={styles.toggleRow}>
-                <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>
+              <View style={[styles.toggleRow, { marginVertical: theme.spacing[2] }]}>
+                <Text style={[theme.typography.bodyMd, { color: hsl(theme.colors.foregroundSecondary) }]}>
                   Hide small balances
                 </Text>
                 <Switch value={hideSmall} onValueChange={setHideSmall} />
               </View>
               {filtered.length > 0 ? (
-                <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, marginBottom: 8 }}>
+                <Text
+                  style={[
+                    theme.typography.bodySm,
+                    { color: hsl(theme.colors.foregroundSecondary), marginBottom: theme.spacing[2] },
+                  ]}
+                >
                   {filtered.length} asset{filtered.length === 1 ? '' : 's'}
                 </Text>
               ) : null}
-              <View style={styles.sortRow}>
+              <View style={[styles.sortRow, { gap: theme.spacing[2], marginBottom: theme.spacing[2.5] }]}>
                 {SORT_TABS.map((tab) => {
                   const active = sortKey === tab.id;
                   return (
@@ -257,21 +314,26 @@ export function FundingAccountScreen({ navigation }: Props) {
                       style={[
                         styles.sortChip,
                         {
-                          borderColor: `hsl(${theme.colors.borderDefault})`,
+                          borderColor: hsl(theme.colors.borderDefault),
+                          borderRadius: theme.radius.md,
+                          paddingHorizontal: theme.spacing[2.5],
+                          paddingVertical: theme.spacing[2],
                           backgroundColor: active
                             ? `hsl(${theme.colors.brandPrimary} / 0.12)`
-                            : `hsl(${theme.colors.surfaceMuted})`,
+                            : hsl(theme.colors.surfaceMuted),
                         },
                       ]}
                     >
                       <Text
-                        style={{
-                          color: active
-                            ? `hsl(${theme.colors.brandPrimary})`
-                            : `hsl(${theme.colors.foregroundSecondary})`,
-                          fontWeight: '600',
-                          fontSize: 12,
-                        }}
+                        style={[
+                          theme.typography.bodySm,
+                          {
+                            fontFamily: theme.fonts.sansSemiBold,
+                            color: active
+                              ? hsl(theme.colors.brandPrimary)
+                              : hsl(theme.colors.foregroundSecondary),
+                          },
+                        ]}
                       >
                         {tab.label}
                         {active ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ''}
@@ -312,8 +374,8 @@ export function FundingAccountScreen({ navigation }: Props) {
           }
           ListFooterComponent={
             filtered.length > 0 ? (
-              <View style={styles.pagination}>
-                <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>
+              <View style={[styles.pagination, { paddingVertical: theme.spacing[4], gap: theme.spacing[2.5] }]}>
+                <Text style={[theme.typography.bodyMd, { color: hsl(theme.colors.foregroundSecondary) }]}>
                   Showing {rangeStart}–{rangeEnd} of {filtered.length}
                 </Text>
                 {pageCount > 1 ? (
@@ -321,21 +383,39 @@ export function FundingAccountScreen({ navigation }: Props) {
                     <Pressable
                       disabled={safePage <= 1}
                       onPress={() => setPage((p) => Math.max(1, p - 1))}
-                      style={[styles.pageBtn, { opacity: safePage <= 1 ? 0.4 : 1 }]}
+                      style={[
+                        styles.pageBtn,
+                        { paddingHorizontal: theme.spacing[3], paddingVertical: theme.spacing[2.5] },
+                        { opacity: safePage <= 1 ? theme.opacity.disabled : 1 },
+                      ]}
                     >
-                      <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '600' }}>
+                      <Text
+                        style={[
+                          theme.typography.bodyMd,
+                          { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansSemiBold },
+                        ]}
+                      >
                         Previous
                       </Text>
                     </Pressable>
-                    <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>
+                    <Text style={[theme.typography.bodyMd, { color: hsl(theme.colors.foregroundSecondary) }]}>
                       Page {safePage} / {pageCount}
                     </Text>
                     <Pressable
                       disabled={safePage >= pageCount}
                       onPress={() => setPage((p) => Math.min(pageCount, p + 1))}
-                      style={[styles.pageBtn, { opacity: safePage >= pageCount ? 0.4 : 1 }]}
+                      style={[
+                        styles.pageBtn,
+                        { paddingHorizontal: theme.spacing[3], paddingVertical: theme.spacing[2.5] },
+                        { opacity: safePage >= pageCount ? theme.opacity.disabled : 1 },
+                      ]}
                     >
-                      <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '600' }}>
+                      <Text
+                        style={[
+                          theme.typography.bodyMd,
+                          { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansSemiBold },
+                        ]}
+                      >
                         Next
                       </Text>
                     </Pressable>
@@ -358,33 +438,24 @@ export function FundingAccountScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  heroRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 12 },
-  title: { fontSize: 24, fontWeight: '700' },
-  headerActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
+  heroRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  headerActions: { flexDirection: 'row', flexWrap: 'wrap' },
   headerBtn: { flexGrow: 1, minWidth: 100 },
   secondaryBtn: {
     flexGrow: 1,
     minWidth: 100,
-    minHeight: 44,
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 12,
   },
-  toggleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 8 },
-  sortRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
-  sortChip: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8 },
+  toggleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  sortRow: { flexDirection: 'row', flexWrap: 'wrap' },
+  sortChip: { borderWidth: StyleSheet.hairlineWidth },
   fiatPanel: {
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 12,
-    padding: 24,
     alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
   },
-  fiatTitle: { fontSize: 17, fontWeight: '700' },
-  pagination: { paddingVertical: 16, gap: 10 },
+  pagination: {},
   pageControls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  pageBtn: { paddingHorizontal: 12, paddingVertical: 10 },
+  pageBtn: {},
 });

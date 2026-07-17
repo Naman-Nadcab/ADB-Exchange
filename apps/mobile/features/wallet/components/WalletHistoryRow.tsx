@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@shared/theme';
+import { useTheme, hsl } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import { formatTxDate } from '@core/domain/wallet/transactions';
 import {
   formatWalletHistoryAmount,
@@ -24,56 +25,99 @@ function rowIcon(kind: WalletHistoryRowModel['kind']): keyof typeof Ionicons.gly
 
 export function WalletHistoryRow({ row, onPress }: Props) {
   const { theme } = useTheme();
+  const buy = semanticStatusPalette(theme.colors, 'buy');
+  const sell = semanticStatusPalette(theme.colors, 'sell');
+  const muted = semanticStatusPalette(theme.colors, 'muted');
   const isIn = row.direction === 'in';
   const isOut = row.direction === 'out';
-  const iconColor = isIn
-    ? `hsl(${theme.colors.tradeBuy})`
-    : isOut
-      ? `hsl(${theme.colors.tradeSell})`
-      : `hsl(${theme.colors.foregroundSecondary})`;
-  const iconBg = isIn
-    ? `hsl(${theme.colors.tradeBuy} / 0.12)`
-    : isOut
-      ? `hsl(${theme.colors.tradeSell} / 0.12)`
-      : `hsl(${theme.colors.surfaceMuted})`;
-  const valueColor = isIn
-    ? `hsl(${theme.colors.tradeBuy})`
-    : isOut
-      ? `hsl(${theme.colors.tradeSell})`
-      : `hsl(${theme.colors.foregroundPrimary})`;
+  const iconColor = isIn ? buy.fg : isOut ? sell.fg : muted.fg;
+  const iconBg = isIn ? buy.bg : isOut ? sell.bg : muted.bg;
+  const valueColor = isIn ? buy.fg : isOut ? sell.fg : hsl(theme.colors.foregroundPrimary);
 
   const content = (
-    <View style={[styles.row, { borderBottomColor: `hsl(${theme.colors.borderDefault})` }]}>
-      <View style={styles.left}>
-        <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>
-          <Ionicons name={rowIcon(row.kind)} size={18} color={iconColor} />
+    <View
+      style={[
+        styles.row,
+        {
+          borderBottomColor: hsl(theme.colors.borderDefault),
+          paddingHorizontal: theme.spacing[4],
+          paddingVertical: theme.spacing[3],
+          gap: theme.spacing[2],
+          minHeight: theme.listDensity.asset.rowHeight + 8,
+        },
+      ]}
+    >
+      <View style={[styles.left, { gap: theme.spacing[2.5] }]}>
+        <View
+          style={[
+            styles.iconWrap,
+            {
+              backgroundColor: iconBg,
+              width: theme.sizes.buttonMd,
+              height: theme.sizes.buttonMd,
+              borderRadius: theme.radius.md + 2,
+            },
+          ]}
+        >
+          <Ionicons name={rowIcon(row.kind)} size={theme.sizes.iconSm - 2} color={iconColor} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '700', textTransform: 'capitalize' }}>
+          <Text
+            style={[
+              theme.typography.bodyMd,
+              {
+                color: hsl(theme.colors.foregroundPrimary),
+                fontFamily: theme.fonts.sansBold,
+                textTransform: 'capitalize',
+              },
+            ]}
+          >
             {row.typeLabel}
           </Text>
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11 }}>
+          <Text style={[theme.typography.labelSm, { color: hsl(theme.colors.foregroundSecondary) }]}>
             {row.symbol}
             {row.network ? ` · ${truncateWalletHistoryValue(row.network, 24)}` : ''}
           </Text>
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 10, marginTop: 2 }}>
+          <Text
+            style={[
+              theme.typography.labelSm,
+              { color: hsl(theme.colors.foregroundSecondary), marginTop: theme.spacing[0.5] },
+            ]}
+          >
             {formatTxDate(row.createdAt)}
             {row.account ? ` · ${truncateWalletHistoryValue(row.account, 20)}` : ''}
           </Text>
         </View>
       </View>
-      <View style={styles.right}>
-        <Text style={{ color: valueColor, fontWeight: '700', fontVariant: ['tabular-nums'], textAlign: 'right' }}>
+      <View style={[styles.right, { gap: theme.spacing[1] }]}>
+        <Text
+          style={[
+            theme.typography.bodyMd,
+            {
+              color: valueColor,
+              fontFamily: theme.fonts.sansBold,
+              fontVariant: ['tabular-nums'],
+              textAlign: 'right',
+            },
+          ]}
+        >
           {formatWalletHistoryAmount(row)}
           {row.kind !== 'convert' ? (
-            <Text style={{ fontSize: 11, fontWeight: '600', color: `hsl(${theme.colors.foregroundSecondary})` }}>
+            <Text
+              style={[
+                theme.typography.labelSm,
+                { fontFamily: theme.fonts.sansSemiBold, color: hsl(theme.colors.foregroundSecondary) },
+              ]}
+            >
               {' '}
               {row.symbol.includes('→') ? '' : row.symbol}
             </Text>
           ) : null}
         </Text>
         {row.fee ? (
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 10 }}>Fee {row.fee}</Text>
+          <Text style={[theme.typography.labelSm, { color: hsl(theme.colors.foregroundSecondary) }]}>
+            Fee {row.fee}
+          </Text>
         ) : null}
         <WalletHistoryStatusChip
           label={row.statusLabel}
@@ -83,7 +127,7 @@ export function WalletHistoryRow({ row, onPress }: Props) {
         />
       </View>
       {onPress ? (
-        <Ionicons name="chevron-forward" size={16} color={`hsl(${theme.colors.foregroundSecondary})`} />
+        <Ionicons name="chevron-forward" size={theme.sizes.iconXs} color={hsl(theme.colors.foregroundSecondary)} />
       ) : null}
     </View>
   );
@@ -102,13 +146,9 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    minHeight: 72,
   },
-  left: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  right: { alignItems: 'flex-end', gap: 4, maxWidth: '38%' },
-  iconWrap: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  left: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  right: { alignItems: 'flex-end', maxWidth: '38%' },
+  iconWrap: { alignItems: 'center', justifyContent: 'center' },
 });

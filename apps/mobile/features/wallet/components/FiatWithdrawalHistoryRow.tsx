@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@shared/theme';
+import { useTheme, hsl } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import { ExchangeCard, StatusChip } from '@shared/ui';
 import type { FiatWithdrawal } from '@exchange/mobile-types';
 import {
@@ -20,20 +21,41 @@ type Props = {
 
 export function FiatWithdrawalHistoryRow({ item, onPress, onCancel, cancelPending }: Props) {
   const { theme } = useTheme();
+  const warning = semanticStatusPalette(theme.colors, 'warning');
   const tone = fiatWithdrawalStatusTone(item.status);
 
   return (
     <Pressable onPress={onPress} disabled={!onPress}>
-      <ExchangeCard variant="terminal" style={styles.row}>
-        <View style={styles.top}>
-          <Text style={[styles.amount, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>{formatInr(item.amount)}</Text>
+      <ExchangeCard
+        variant="terminal"
+        style={{ marginBottom: theme.spacing[2], padding: theme.spacing[3] }}
+      >
+        <View style={[styles.top, { gap: theme.spacing[2] }]}>
+          <Text
+            style={[
+              theme.typography.headingSm,
+              { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansBold },
+            ]}
+          >
+            {formatInr(item.amount)}
+          </Text>
           <StatusChip label={item.status} tone={tone} />
         </View>
-        <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, marginTop: 4 }}>
+        <Text
+          style={[
+            theme.typography.bodySm,
+            { color: hsl(theme.colors.foregroundSecondary), marginTop: theme.spacing[1] },
+          ]}
+        >
           {bankLabelFromSnapshot(item.bank_snapshot)} · {fiatWithdrawalTimestamp(item)}
         </Text>
         {item.failure_reason ? (
-          <Text style={{ color: `hsl(${theme.colors.statusWarning})`, fontSize: 11, marginTop: 4 }}>
+          <Text
+            style={[
+              theme.typography.labelSm,
+              { color: warning.fg, marginTop: theme.spacing[1] },
+            ]}
+          >
             Reason: {item.failure_reason}
           </Text>
         ) : null}
@@ -44,10 +66,26 @@ export function FiatWithdrawalHistoryRow({ item, onPress, onCancel, cancelPendin
               onCancel();
             }}
             disabled={cancelPending}
-            style={[styles.cancelBtn, { borderColor: `hsl(${theme.colors.borderDefault})`, opacity: cancelPending ? 0.5 : 1 }]}
+            style={[
+              styles.cancelBtn,
+              {
+                borderColor: hsl(theme.colors.borderDefault),
+                marginTop: theme.spacing[2],
+                gap: theme.spacing[1],
+                paddingHorizontal: theme.spacing[2.5],
+                paddingVertical: theme.spacing[1.5],
+                borderRadius: theme.radius.md,
+                opacity: cancelPending ? theme.opacity.disabled : 1,
+              },
+            ]}
           >
-            <Ionicons name="close" size={14} color={`hsl(${theme.colors.foregroundSecondary})`} />
-            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, fontWeight: '600' }}>
+            <Ionicons name="close" size={theme.sizes.iconXs - 2} color={hsl(theme.colors.foregroundSecondary)} />
+            <Text
+              style={[
+                theme.typography.bodySm,
+                { color: hsl(theme.colors.foregroundSecondary), fontFamily: theme.fonts.sansSemiBold },
+              ]}
+            >
               Cancel
             </Text>
           </Pressable>
@@ -58,18 +96,11 @@ export function FiatWithdrawalHistoryRow({ item, onPress, onCancel, cancelPendin
 }
 
 const styles = StyleSheet.create({
-  row: { marginBottom: 8, padding: 12 },
-  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  amount: { fontSize: 15, fontWeight: '700' },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   cancelBtn: {
-    marginTop: 8,
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
     borderWidth: StyleSheet.hairlineWidth,
   },
 });

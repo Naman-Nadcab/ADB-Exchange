@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@shared/theme';
+import { useTheme, hsl } from '@shared/theme';
 import { ExchangeCard } from '@shared/ui';
 import { needsMemoTag } from '@core/domain/wallet/deposit';
 
@@ -18,8 +18,22 @@ export function DepositWarningsSection({ symbol, chainName, minDeposit, confirma
   const isEvm = (chainType ?? '').toLowerCase().includes('evm');
 
   return (
-    <ExchangeCard variant="terminal" style={styles.wrap}>
-      <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>IMPORTANT</Text>
+    <ExchangeCard variant="terminal" style={{ marginBottom: theme.spacing[3.5], paddingVertical: 0, paddingHorizontal: 0 }}>
+      <Text
+        style={[
+          theme.typography.labelSm,
+          {
+            color: hsl(theme.colors.foregroundSecondary),
+            fontFamily: theme.fonts.sansBold,
+            letterSpacing: 1.1,
+            paddingHorizontal: theme.spacing[4],
+            paddingTop: theme.spacing[3.5],
+            paddingBottom: theme.spacing[2],
+          },
+        ]}
+      >
+        IMPORTANT
+      </Text>
 
       {minDeposit ? (
         <WarningRow
@@ -94,19 +108,41 @@ function WarningRow({
 }) {
   const { theme } = useTheme();
   return (
-    <View style={[styles.row, { borderTopColor: `hsl(${theme.colors.borderDefault})` }]}>
-      <Ionicons name={icon} size={18} color={`hsl(${color})`} style={styles.icon} />
+    <View
+      style={[
+        styles.row,
+        {
+          borderTopColor: hsl(theme.colors.borderDefault),
+          paddingHorizontal: theme.spacing[4],
+          paddingVertical: theme.spacing[3],
+          gap: theme.spacing[2],
+        },
+      ]}
+    >
+      <Ionicons name={icon} size={theme.sizes.iconSm - 2} color={hsl(color)} style={styles.icon} />
       <View style={{ flex: 1 }}>
-        <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '600', fontSize: 13 }}>{title}</Text>
-        <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, marginTop: 2 }}>{body}</Text>
+        <Text
+          style={[
+            theme.typography.bodyMd,
+            { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansSemiBold },
+          ]}
+        >
+          {title}
+        </Text>
+        <Text
+          style={[
+            theme.typography.bodySm,
+            { color: hsl(theme.colors.foregroundSecondary), marginTop: theme.spacing[0.5] },
+          ]}
+        >
+          {body}
+        </Text>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginBottom: 14, paddingVertical: 0, paddingHorizontal: 0 },
-  title: { fontSize: 10, fontWeight: '700', letterSpacing: 1.1, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 },
-  row: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, gap: 8 },
+  row: { flexDirection: 'row', borderTopWidth: StyleSheet.hairlineWidth },
   icon: { marginTop: 2 },
 });

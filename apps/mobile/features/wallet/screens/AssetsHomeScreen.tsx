@@ -14,7 +14,7 @@ import {
 import { GuestAuthPrompt, useGuestAccess } from '@features/auth';
 import { useAuthProfile } from '@features/account';
 import { useMarkets } from '@features/markets';
-import { useTheme, hapticLight } from '@shared/theme';
+import { useTheme, hsl, hapticLight } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
 import { getWalletRepository } from '@core/repositories/WalletRepository';
@@ -310,20 +310,35 @@ export function AssetsHomeScreen({ navigation }: Props) {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListHeaderComponent={
             <View>
-              <View style={styles.heroRow}>
+              <View style={[styles.heroRow, { marginBottom: theme.spacing[0.5] }]}>
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.heroTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+                  <Text
+                    style={[
+                      theme.typography.displayMd,
+                      {
+                        color: hsl(theme.colors.foregroundPrimary),
+                        fontFamily: theme.fonts.sansBold,
+                        letterSpacing: -0.3,
+                        marginBottom: theme.spacing[0.5],
+                      },
+                    ]}
+                  >
                     Assets Overview
                   </Text>
-                  <Text style={[styles.heroSub, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+                  <Text
+                    style={[
+                      theme.typography.bodyMd,
+                      { color: hsl(theme.colors.foregroundSecondary), marginBottom: theme.spacing[3.5] },
+                    ]}
+                  >
                     Portfolio · Funding · Trading
                   </Text>
                 </View>
                 <Pressable onPress={onRefresh} hitSlop={10} accessibilityLabel="Refresh wallet">
                   <Ionicons
                     name="refresh"
-                    size={22}
-                    color={`hsl(${theme.colors.foregroundSecondary})`}
+                    size={theme.sizes.iconSm}
+                    color={hsl(theme.colors.foregroundSecondary)}
                   />
                 </Pressable>
               </View>
@@ -411,39 +426,47 @@ export function AssetsHomeScreen({ navigation }: Props) {
                     onManageSecurity={openSecurityCenter}
                   />
 
-                  <View style={styles.actions}>
+                  <View style={[styles.actions, { gap: theme.spacing[2], marginBottom: theme.spacing[3.5] }]}>
                     {QUICK_ACTIONS.map((action) => (
                       <Pressable
                         key={action.id}
                         onPress={() => onQuickAction(action.id)}
                         style={[
                           styles.actionBtn,
+                          {
+                            gap: theme.spacing[2],
+                            minHeight: theme.sizes.buttonLg,
+                            borderRadius: theme.radius.lg,
+                            paddingHorizontal: theme.spacing[3],
+                          },
                           action.primary
-                            ? { backgroundColor: `hsl(${theme.colors.brandPrimary})` }
+                            ? { backgroundColor: hsl(theme.colors.brandPrimary) }
                             : {
-                                backgroundColor: `hsl(${theme.colors.surfaceMuted})`,
-                                borderColor: `hsl(${theme.colors.borderDefault})`,
+                                backgroundColor: hsl(theme.colors.surfaceMuted),
+                                borderColor: hsl(theme.colors.borderDefault),
                                 borderWidth: 1,
                               },
                         ]}
                       >
                         <Ionicons
                           name={action.icon}
-                          size={18}
+                          size={theme.sizes.iconSm - 2}
                           color={
                             action.primary
-                              ? `hsl(${theme.colors.brandPrimaryForeground})`
-                              : `hsl(${theme.colors.foregroundPrimary})`
+                              ? hsl(theme.colors.brandPrimaryForeground)
+                              : hsl(theme.colors.foregroundPrimary)
                           }
                         />
                         <Text
-                          style={{
-                            color: action.primary
-                              ? `hsl(${theme.colors.brandPrimaryForeground})`
-                              : `hsl(${theme.colors.foregroundPrimary})`,
-                            fontWeight: '700',
-                            fontSize: 12,
-                          }}
+                          style={[
+                            theme.typography.bodySm,
+                            {
+                              fontFamily: theme.fonts.sansBold,
+                              color: action.primary
+                                ? hsl(theme.colors.brandPrimaryForeground)
+                                : hsl(theme.colors.foregroundPrimary),
+                            },
+                          ]}
                         >
                           {action.label}
                         </Text>
@@ -472,8 +495,8 @@ export function AssetsHomeScreen({ navigation }: Props) {
                     active={sort}
                     onChange={(id) => setSort(id as 'value' | 'name' | 'symbol')}
                   />
-                  <View style={styles.toggleRow}>
-                    <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>
+                  <View style={[styles.toggleRow, { marginVertical: theme.spacing[2] }]}>
+                    <Text style={[theme.typography.bodyMd, { color: hsl(theme.colors.foregroundSecondary) }]}>
                       Hide small balances
                     </Text>
                     <Switch value={hideSmall} onValueChange={setHideSmall} />
@@ -506,7 +529,12 @@ export function AssetsHomeScreen({ navigation }: Props) {
           removeClippedSubviews
           ListEmptyComponent={
             !isLoading && merged.length > 0 ? (
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, textAlign: 'center', marginTop: 24 }}>
+              <Text
+                style={[
+                  theme.typography.bodyMd,
+                  { color: hsl(theme.colors.foregroundSecondary), textAlign: 'center', marginTop: theme.spacing[6] },
+                ]}
+              >
                 No assets match your filters
               </Text>
             ) : null
@@ -522,21 +550,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 2,
   },
-  heroTitle: { fontSize: 28, fontWeight: '700', letterSpacing: -0.3, marginBottom: 2 },
-  heroSub: { fontSize: 13, marginBottom: 14 },
-  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
+  actions: { flexDirection: 'row', flexWrap: 'wrap' },
   actionBtn: {
     flexGrow: 1,
     flexBasis: '47%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    minHeight: 48,
-    borderRadius: 12,
-    paddingHorizontal: 12,
   },
-  toggleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 8 },
+  toggleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });

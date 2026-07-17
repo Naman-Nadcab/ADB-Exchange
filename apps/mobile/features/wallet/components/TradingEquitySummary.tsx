@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ExchangeCard } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import { useTheme, hsl } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import { formatUsd, maskBalance } from '@core/domain/wallet/portfolio';
 import type { EquityTotal } from '@exchange/mobile-types';
 
@@ -21,22 +22,59 @@ function EquityCard({ label, usd, icon, iconBg, iconColor, showBalances, trailin
   const mask = (v: string) => maskBalance(v, showBalances);
 
   return (
-    <ExchangeCard elevated style={styles.card}>
-      <View style={styles.header}>
-        <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>
-          <Ionicons name={icon} size={20} color={iconColor} />
+    <ExchangeCard elevated style={{ padding: theme.spacing[3.5] }}>
+      <View style={[styles.header, { gap: theme.spacing[2.5], marginBottom: theme.spacing[2.5] }]}>
+        <View
+          style={[
+            styles.iconWrap,
+            {
+              width: theme.sizes.buttonMd,
+              height: theme.sizes.buttonMd,
+              borderRadius: theme.radius.md + 2,
+              backgroundColor: iconBg,
+            },
+          ]}
+        >
+          <Ionicons name={icon} size={theme.sizes.iconSm} color={iconColor} />
         </View>
         <View style={{ flex: 1 }}>
-          <View style={styles.labelRow}>
-            <Text style={[styles.label, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>{label}</Text>
+          <View style={[styles.labelRow, { gap: theme.spacing[2] }]}>
+            <Text
+              style={[
+                theme.typography.labelSm,
+                {
+                  color: hsl(theme.colors.foregroundSecondary),
+                  fontFamily: theme.fonts.sansBold,
+                  letterSpacing: 1,
+                },
+              ]}
+            >
+              {label}
+            </Text>
             {trailing}
           </View>
         </View>
       </View>
-      <Text style={[styles.amount, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+      <Text
+        style={[
+          theme.typography.displayMd,
+          {
+            color: hsl(theme.colors.foregroundPrimary),
+            fontFamily: theme.fonts.sansBold,
+            fontVariant: ['tabular-nums'],
+          },
+        ]}
+      >
         ${mask(formatUsd(usd.usd))}
       </Text>
-      <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, marginTop: 4 }}>USD</Text>
+      <Text
+        style={[
+          theme.typography.bodySm,
+          { color: hsl(theme.colors.foregroundSecondary), marginTop: theme.spacing[1] },
+        ]}
+      >
+        USD
+      </Text>
     </ExchangeCard>
   );
 }
@@ -57,24 +95,39 @@ export function TradingEquitySummary({
   onOpenPnl,
 }: Props) {
   const { theme } = useTheme();
+  const warning = semanticStatusPalette(theme.colors, 'warning');
 
   return (
-    <View style={styles.wrap}>
+    <View style={{ gap: theme.spacing[2.5], marginBottom: theme.spacing[3.5] }}>
       <EquityCard
         label="TOTAL EQUITY"
         usd={totalEquity}
         icon="wallet-outline"
         iconBg={`hsl(${theme.colors.brandPrimary} / 0.12)`}
-        iconColor={`hsl(${theme.colors.brandPrimary})`}
+        iconColor={hsl(theme.colors.brandPrimary)}
         showBalances={showBalances}
         trailing={
           onOpenPnl ? (
             <Pressable
               onPress={onOpenPnl}
-              style={[styles.pnlChip, { backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.12)` }]}
+              style={[
+                styles.pnlChip,
+                {
+                  gap: theme.spacing[1],
+                  paddingHorizontal: theme.spacing[2],
+                  paddingVertical: theme.spacing[1],
+                  borderRadius: theme.radius.md,
+                  backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.12)`,
+                },
+              ]}
             >
-              <Ionicons name="trending-up-outline" size={12} color={`hsl(${theme.colors.brandPrimary})`} />
-              <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontSize: 11, fontWeight: '700' }}>
+              <Ionicons name="trending-up-outline" size={theme.sizes.iconXs - 4} color={hsl(theme.colors.brandPrimary)} />
+              <Text
+                style={[
+                  theme.typography.labelSm,
+                  { color: hsl(theme.colors.brandPrimary), fontFamily: theme.fonts.sansBold },
+                ]}
+              >
                 P&L
               </Text>
             </Pressable>
@@ -86,15 +139,15 @@ export function TradingEquitySummary({
         usd={availableBalance}
         icon="pulse-outline"
         iconBg={`hsl(${theme.colors.tradeBuy} / 0.12)`}
-        iconColor={`hsl(${theme.colors.tradeBuy})`}
+        iconColor={hsl(theme.colors.tradeBuy)}
         showBalances={showBalances}
       />
       <EquityCard
         label="UNREALIZED P&L"
         usd={unrealizedPnl}
         icon="trending-up-outline"
-        iconBg="rgba(245,158,11,0.12)"
-        iconColor="#f59e0b"
+        iconBg={warning.bg}
+        iconColor={warning.fg}
         showBalances={showBalances}
       />
     </View>
@@ -102,19 +155,8 @@ export function TradingEquitySummary({
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 10, marginBottom: 14 },
-  card: { padding: 14 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
-  iconWrap: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  labelRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-  label: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
-  amount: { fontSize: 28, fontWeight: '700', fontVariant: ['tabular-nums'] },
-  pnlChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
+  header: { flexDirection: 'row', alignItems: 'center' },
+  iconWrap: { alignItems: 'center', justifyContent: 'center' },
+  labelRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' },
+  pnlChip: { flexDirection: 'row', alignItems: 'center' },
 });

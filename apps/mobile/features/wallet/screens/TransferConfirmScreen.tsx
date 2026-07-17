@@ -3,7 +3,7 @@ import { ScrollView, RefreshControl, Text, StyleSheet, View } from 'react-native
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenLayout, PrimaryButton, ErrorBanner, SkeletonList } from '@shared/ui';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@shared/theme';
+import { useTheme, hsl } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
 import { ApiError } from '@core/api/errors/ApiError';
@@ -72,12 +72,41 @@ export function TransferConfirmScreen({ navigation, route }: Props) {
   if (success) {
     return (
       <ScreenLayout testID="S-531-success">
-        <View style={[styles.successBox, { backgroundColor: `hsl(${theme.colors.tradeBuy} / 0.12)` }]}>
-          <Ionicons name="checkmark-circle" size={32} color={`hsl(${theme.colors.tradeBuy})`} />
-          <Text style={{ color: `hsl(${theme.colors.tradeBuy})`, fontWeight: '700', fontSize: 16, marginTop: 8 }}>
+        <View
+          style={[
+            styles.successBox,
+            {
+              backgroundColor: `hsl(${theme.colors.tradeBuy} / 0.12)`,
+              padding: theme.spacing[6],
+              borderRadius: theme.radius.xl,
+              marginBottom: theme.spacing[5],
+              marginTop: theme.spacing[5],
+            },
+          ]}
+        >
+          <Ionicons name="checkmark-circle" size={theme.sizes.iconLg} color={hsl(theme.colors.tradeBuy)} />
+          <Text
+            style={[
+              theme.typography.headingSm,
+              {
+                color: hsl(theme.colors.tradeBuy),
+                fontFamily: theme.fonts.sansBold,
+                marginTop: theme.spacing[2],
+              },
+            ]}
+          >
             Transfer completed successfully!
           </Text>
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13, marginTop: 4, textAlign: 'center' }}>
+          <Text
+            style={[
+              theme.typography.bodyMd,
+              {
+                color: hsl(theme.colors.foregroundSecondary),
+                marginTop: theme.spacing[1],
+                textAlign: 'center',
+              },
+            ]}
+          >
             {p.amount} {p.symbol} moved to {p.toAccount} account.
           </Text>
         </View>
@@ -100,7 +129,15 @@ export function TransferConfirmScreen({ navigation, route }: Props) {
           amount={p.amount}
         />
 
-        <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11, marginBottom: 12 }}>
+        <Text
+          style={[
+            theme.typography.labelSm,
+            {
+              color: hsl(theme.colors.foregroundSecondary),
+              marginBottom: theme.spacing[3],
+            },
+          ]}
+        >
           Account transfers do not require 2FA or fund password. Review details before confirming.
         </Text>
 
@@ -118,5 +155,5 @@ export function TransferConfirmScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  successBox: { alignItems: 'center', padding: 24, borderRadius: 16, marginBottom: 20, marginTop: 20 },
+  successBox: { alignItems: 'center' },
 });

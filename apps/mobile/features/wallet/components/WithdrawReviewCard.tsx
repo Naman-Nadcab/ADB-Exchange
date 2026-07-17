@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@shared/theme';
+import { useTheme, hsl } from '@shared/theme';
 import { ExchangeCard } from '@shared/ui';
 
 type Props = {
@@ -18,8 +18,20 @@ export function WithdrawReviewCard({ symbol, chainName, address, memo, amount, f
   const { theme } = useTheme();
 
   return (
-    <ExchangeCard elevated style={styles.wrap}>
-      <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>REVIEW WITHDRAWAL</Text>
+    <ExchangeCard elevated style={{ marginBottom: theme.spacing[3.5] }}>
+      <Text
+        style={[
+          theme.typography.labelSm,
+          {
+            color: hsl(theme.colors.foregroundSecondary),
+            fontFamily: theme.fonts.sansBold,
+            letterSpacing: 1.1,
+            marginBottom: theme.spacing[2.5],
+          },
+        ]}
+      >
+        REVIEW WITHDRAWAL
+      </Text>
       <Row label="Asset" value={symbol} />
       <Row label="Network" value={chainName} />
       <Row label="Address" value={address} mono />
@@ -28,9 +40,20 @@ export function WithdrawReviewCard({ symbol, chainName, address, memo, amount, f
       {fee ? <Row label="Network fee" value={`${fee} ${symbol}`} /> : null}
       {netAmount ? <Row label="You receive" value={`${netAmount} ${symbol}`} highlight /> : null}
       {arrivalHint ? <Row label="Est. arrival" value={arrivalHint} /> : null}
-      <View style={[styles.warn, { backgroundColor: `hsl(${theme.colors.statusWarning} / 0.1)` }]}>
-        <Ionicons name="alert-circle-outline" size={16} color={`hsl(${theme.colors.statusWarning})`} />
-        <Text style={{ color: `hsl(${theme.colors.statusWarning})`, fontSize: 12, flex: 1 }}>
+      <View
+        style={[
+          styles.warn,
+          {
+            gap: theme.spacing[2],
+            padding: theme.spacing[2.5],
+            borderRadius: theme.radius.md,
+            marginTop: theme.spacing[2.5],
+            backgroundColor: hsl(`${theme.colors.statusWarning} / 0.1`),
+          },
+        ]}
+      >
+        <Ionicons name="alert-circle-outline" size={theme.sizes.iconSm} color={hsl(theme.colors.statusWarning)} />
+        <Text style={[theme.typography.bodySm, { color: hsl(theme.colors.statusWarning), flex: 1 }]}>
           Withdrawals are irreversible. Verify address, network, and memo before submitting.
         </Text>
       </View>
@@ -41,17 +64,18 @@ export function WithdrawReviewCard({ symbol, chainName, address, memo, amount, f
 function Row({ label, value, mono, highlight }: { label: string; value: string; mono?: boolean; highlight?: boolean }) {
   const { theme } = useTheme();
   return (
-    <View style={styles.row}>
-      <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>{label}</Text>
+    <View style={[styles.row, { gap: theme.spacing[3], paddingVertical: theme.spacing[1.5] }]}>
+      <Text style={[theme.typography.bodyMd, { color: hsl(theme.colors.foregroundSecondary) }]}>{label}</Text>
       <Text
-        style={{
-          color: `hsl(${highlight ? theme.colors.tradeBuy : theme.colors.foregroundPrimary})`,
-          fontWeight: highlight ? '700' : '600',
-          flex: 1,
-          textAlign: 'right',
-          fontFamily: mono ? 'monospace' : undefined,
-          fontSize: mono ? 11 : 14,
-        }}
+        style={[
+          mono ? theme.typography.labelMd : theme.typography.bodyMd,
+          {
+            color: hsl(highlight ? theme.colors.tradeBuy : theme.colors.foregroundPrimary),
+            fontFamily: highlight ? theme.fonts.sansBold : mono ? theme.fonts.mono : theme.fonts.sansSemiBold,
+            flex: 1,
+            textAlign: 'right',
+          },
+        ]}
       >
         {value}
       </Text>
@@ -60,8 +84,6 @@ function Row({ label, value, mono, highlight }: { label: string; value: string; 
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginBottom: 14 },
-  title: { fontSize: 10, fontWeight: '700', letterSpacing: 1.1, marginBottom: 10 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, paddingVertical: 6 },
-  warn: { flexDirection: 'row', gap: 8, padding: 10, borderRadius: 8, marginTop: 10, alignItems: 'flex-start' },
+  row: { flexDirection: 'row', justifyContent: 'space-between' },
+  warn: { flexDirection: 'row', alignItems: 'flex-start' },
 });

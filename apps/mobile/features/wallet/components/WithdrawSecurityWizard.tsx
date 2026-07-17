@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, Modal, StyleSheet } from 'react-native';
 import { TextField, PrimaryButton, ErrorBanner } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import { useTheme, hsl } from '@shared/theme';
 import { useVerify2FA, useWithdrawalEmailOtp, useVerifyWithdrawalEmailOtp } from '../hooks/useBlockchainWallet';
 
 type SecurityInput = {
@@ -109,15 +109,40 @@ export function WithdrawSecurityWizard({
 
   return (
     <Modal visible transparent animationType="slide">
-      <View style={styles.overlay}>
-        <View style={[styles.card, { backgroundColor: `hsl(${theme.colors.backgroundPrimary})` }]}>
-          <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+      <View style={[styles.overlay, { backgroundColor: hsl(theme.colors.overlayScrim) }]}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: hsl(theme.colors.backgroundPrimary),
+              padding: theme.spacing[5],
+              borderTopLeftRadius: theme.radius.xl,
+              borderTopRightRadius: theme.radius.xl,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              theme.typography.headingMd,
+              { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansBold, marginBottom: theme.spacing[2] },
+            ]}
+          >
             Security verification
           </Text>
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 12 }}>
+          <Text
+            style={[
+              theme.typography.bodyMd,
+              { color: hsl(theme.colors.foregroundSecondary), marginBottom: theme.spacing[3] },
+            ]}
+          >
             Step {step + 1}/{steps.length || 1}: {steps[step] ?? 'Confirm'}
           </Text>
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11, marginBottom: 12 }}>
+          <Text
+            style={[
+              theme.typography.labelMd,
+              { color: hsl(theme.colors.foregroundSecondary), marginBottom: theme.spacing[3] },
+            ]}
+          >
             Security verification is required. Withdrawals may be subject to cooldown after security changes.
           </Text>
           {steps[step] === '2FA' ? (
@@ -133,7 +158,7 @@ export function WithdrawSecurityWizard({
             </>
           ) : null}
           {error ? <ErrorBanner message={error} /> : null}
-          <View style={styles.actions}>
+          <View style={[styles.actions, { gap: theme.spacing[2], marginTop: theme.spacing[4] }]}>
             <PrimaryButton title="Cancel" variant="secondary" onPress={onClose} />
             <PrimaryButton title="Continue" onPress={() => void next()} />
           </View>
@@ -144,8 +169,7 @@ export function WithdrawSecurityWizard({
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  card: { padding: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16 },
-  title: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
-  actions: { flexDirection: 'row', gap: 8, marginTop: 16 },
+  overlay: { flex: 1, justifyContent: 'flex-end' },
+  card: {},
+  actions: { flexDirection: 'row' },
 });

@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@shared/theme';
+import { useTheme, hsl } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import { ExchangeCard, EmptyState, ErrorState, SkeletonList } from '@shared/ui';
 import type { WalletRecentTransaction } from '@exchange/mobile-types';
 import { formatTxAmount, formatTxDate } from '@core/domain/wallet/transactions';
@@ -23,28 +24,58 @@ function txIcon(type: WalletRecentTransaction['type']): keyof typeof Ionicons.gl
 function statusStyle(status: string, theme: ReturnType<typeof useTheme>['theme']) {
   const s = status.toLowerCase();
   if (s === 'completed' || s === 'confirmed') {
-    return { bg: `hsl(${theme.colors.tradeBuy} / 0.12)`, fg: `hsl(${theme.colors.tradeBuy})` };
+    const palette = semanticStatusPalette(theme.colors, 'buy');
+    return { bg: palette.bg, fg: palette.fg };
   }
   if (s === 'pending') {
-    return { bg: `hsl(${theme.colors.statusWarning} / 0.12)`, fg: `hsl(${theme.colors.statusWarning})` };
+    const palette = semanticStatusPalette(theme.colors, 'warning');
+    return { bg: palette.bg, fg: palette.fg };
   }
   if (s === 'failed') {
-    return { bg: `hsl(${theme.colors.tradeSell} / 0.12)`, fg: `hsl(${theme.colors.tradeSell})` };
+    const palette = semanticStatusPalette(theme.colors, 'sell');
+    return { bg: palette.bg, fg: palette.fg };
   }
-  return { bg: `hsl(${theme.colors.surfaceMuted})`, fg: `hsl(${theme.colors.foregroundSecondary})` };
+  const palette = semanticStatusPalette(theme.colors, 'muted');
+  return { bg: palette.bg, fg: palette.fg };
 }
 
 export function RecentTransactionsList({ items, isLoading, error, onRetry, onViewAll, onSelect }: Props) {
   const { theme } = useTheme();
+  const buy = semanticStatusPalette(theme.colors, 'buy');
+  const sell = semanticStatusPalette(theme.colors, 'sell');
+  const muted = semanticStatusPalette(theme.colors, 'muted');
 
   return (
-    <ExchangeCard variant="terminal" style={styles.wrap}>
-      <View style={[styles.header, { borderBottomColor: `hsl(${theme.colors.borderDefault})` }]}>
-        <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Recent Activity</Text>
+    <ExchangeCard variant="terminal" style={{ marginBottom: theme.spacing[3.5], paddingVertical: 0, paddingHorizontal: 0 }}>
+      <View
+        style={[
+          styles.header,
+          {
+            borderBottomColor: hsl(theme.colors.borderDefault),
+            paddingHorizontal: theme.spacing[4],
+            paddingVertical: theme.spacing[3.5],
+          },
+        ]}
+      >
+        <Text
+          style={[
+            theme.typography.headingSm,
+            { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansBold },
+          ]}
+        >
+          Recent Activity
+        </Text>
         {onViewAll ? (
-          <Pressable onPress={onViewAll} hitSlop={8} style={styles.viewAll}>
-            <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600', fontSize: 13 }}>View all</Text>
-            <Ionicons name="chevron-forward" size={14} color={`hsl(${theme.colors.brandPrimary})`} />
+          <Pressable onPress={onViewAll} hitSlop={8} style={[styles.viewAll, { gap: theme.spacing[0.5] }]}>
+            <Text
+              style={[
+                theme.typography.bodyMd,
+                { color: hsl(theme.colors.brandPrimary), fontFamily: theme.fonts.sansSemiBold },
+              ]}
+            >
+              View all
+            </Text>
+            <Ionicons name="chevron-forward" size={theme.sizes.iconXs - 2} color={hsl(theme.colors.brandPrimary)} />
           </Pressable>
         ) : null}
       </View>
@@ -64,21 +95,9 @@ export function RecentTransactionsList({ items, isLoading, error, onRetry, onVie
           const isWithdraw = tx.type === 'withdrawal';
           const amt = parseFloat(tx.amount) || 0;
           const chip = statusStyle(tx.status, theme);
-          const iconColor = isDeposit
-            ? `hsl(${theme.colors.tradeBuy})`
-            : isWithdraw
-              ? `hsl(${theme.colors.tradeSell})`
-              : `hsl(${theme.colors.foregroundSecondary})`;
-          const iconBg = isDeposit
-            ? `hsl(${theme.colors.tradeBuy} / 0.12)`
-            : isWithdraw
-              ? `hsl(${theme.colors.tradeSell} / 0.12)`
-              : `hsl(${theme.colors.surfaceMuted})`;
-          const valueColor = isDeposit
-            ? `hsl(${theme.colors.tradeBuy})`
-            : isWithdraw
-              ? `hsl(${theme.colors.tradeSell})`
-              : `hsl(${theme.colors.foregroundPrimary})`;
+          const iconColor = isDeposit ? buy.fg : isWithdraw ? sell.fg : muted.fg;
+          const iconBg = isDeposit ? buy.bg : isWithdraw ? sell.bg : muted.bg;
+          const valueColor = isDeposit ? buy.fg : isWithdraw ? sell.fg : hsl(theme.colors.foregroundPrimary);
 
           return (
             <Pressable
@@ -86,33 +105,87 @@ export function RecentTransactionsList({ items, isLoading, error, onRetry, onVie
               onPress={onSelect ? () => onSelect(tx) : undefined}
               style={[
                 styles.row,
-                idx > 0 ? { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: `hsl(${theme.colors.borderDefault})` } : null,
+                {
+                  paddingHorizontal: theme.spacing[4],
+                  paddingVertical: theme.spacing[3],
+                  gap: theme.spacing[2],
+                  minHeight: theme.listDensity.asset.rowHeight,
+                },
+                idx > 0
+                  ? { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: hsl(theme.colors.borderDefault) }
+                  : null,
               ]}
             >
-              <View style={styles.left}>
-                <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>
-                  <Ionicons name={txIcon(tx.type)} size={18} color={iconColor} />
+              <View style={[styles.left, { gap: theme.spacing[2.5] }]}>
+                <View
+                  style={[
+                    styles.iconWrap,
+                    {
+                      backgroundColor: iconBg,
+                      width: theme.sizes.buttonMd,
+                      height: theme.sizes.buttonMd,
+                      borderRadius: theme.radius.md + 2,
+                    },
+                  ]}
+                >
+                  <Ionicons name={txIcon(tx.type)} size={theme.sizes.iconSm - 2} color={iconColor} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '600', textTransform: 'capitalize' }}>
+                  <Text
+                    style={[
+                      theme.typography.bodyMd,
+                      {
+                        color: hsl(theme.colors.foregroundPrimary),
+                        fontFamily: theme.fonts.sansSemiBold,
+                        textTransform: 'capitalize',
+                      },
+                    ]}
+                  >
                     {tx.type}
                   </Text>
-                  <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11 }}>
+                  <Text style={[theme.typography.labelSm, { color: hsl(theme.colors.foregroundSecondary) }]}>
                     {tx.symbol}
                     {tx.created_at ? ` · ${formatTxDate(tx.created_at)}` : ''}
                   </Text>
                 </View>
               </View>
-              <View style={styles.right}>
-                <Text style={{ color: valueColor, fontWeight: '700', fontVariant: ['tabular-nums'] }}>
+              <View style={[styles.right, { gap: theme.spacing[1] }]}>
+                <Text
+                  style={[
+                    theme.typography.bodyMd,
+                    { color: valueColor, fontFamily: theme.fonts.sansBold, fontVariant: ['tabular-nums'] },
+                  ]}
+                >
                   {isDeposit ? '+' : isWithdraw ? '-' : ''}
                   {formatTxAmount(String(Math.abs(amt)))}{' '}
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: `hsl(${theme.colors.foregroundSecondary})` }}>
+                  <Text
+                    style={[
+                      theme.typography.labelSm,
+                      { fontFamily: theme.fonts.sansSemiBold, color: hsl(theme.colors.foregroundSecondary) },
+                    ]}
+                  >
                     {tx.symbol}
                   </Text>
                 </Text>
-                <View style={[styles.chip, { backgroundColor: chip.bg }]}>
-                  <Text style={{ color: chip.fg, fontSize: 10, fontWeight: '600' }}>{tx.status}</Text>
+                <View
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: chip.bg,
+                      borderRadius: theme.radius.full,
+                      paddingHorizontal: theme.spacing[2],
+                      paddingVertical: theme.spacing[0.5],
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      theme.typography.labelSm,
+                      { color: chip.fg, fontFamily: theme.fonts.sansSemiBold },
+                    ]}
+                  >
+                    {tx.status}
+                  </Text>
                 </View>
               </View>
             </Pressable>
@@ -124,20 +197,16 @@ export function RecentTransactionsList({ items, isLoading, error, onRetry, onVie
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginBottom: 14, paddingVertical: 0, paddingHorizontal: 0 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  title: { fontSize: 15, fontWeight: '700' },
-  viewAll: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
-  left: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  right: { alignItems: 'flex-end', gap: 4 },
-  iconWrap: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  chip: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
+  viewAll: { flexDirection: 'row', alignItems: 'center' },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  left: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  right: { alignItems: 'flex-end' },
+  iconWrap: { alignItems: 'center', justifyContent: 'center' },
+  chip: {},
 });

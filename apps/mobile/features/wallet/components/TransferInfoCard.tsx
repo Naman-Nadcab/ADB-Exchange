@@ -2,12 +2,14 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useTheme } from '@shared/theme';
+import { useTheme, hsl } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import { ExchangeCard } from '@shared/ui';
 import type { WalletStackParamList } from '../navigation/types';
 
 export function TransferInfoCard() {
   const { theme } = useTheme();
+  const buy = semanticStatusPalette(theme.colors, 'buy');
   const navigation = useNavigation<NativeStackNavigationProp<WalletStackParamList>>();
 
   const bullets = [
@@ -23,25 +25,55 @@ export function TransferInfoCard() {
   ];
 
   return (
-    <ExchangeCard variant="terminal" style={styles.wrap}>
-      <View style={styles.header}>
-        <Ionicons name="swap-horizontal" size={20} color={`hsl(${theme.colors.brandPrimary})`} />
+    <ExchangeCard variant="terminal" style={{ marginBottom: theme.spacing[3.5], padding: theme.spacing[3.5], gap: theme.spacing[2] }}>
+      <View style={[styles.header, { gap: theme.spacing[2.5], marginBottom: theme.spacing[1] }]}>
+        <Ionicons name="swap-horizontal" size={theme.sizes.iconSm} color={hsl(theme.colors.brandPrimary)} />
         <View>
-          <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '700' }}>Internal Transfer</Text>
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11 }}>Quick & Free</Text>
+          <Text
+            style={[
+              theme.typography.bodyMd,
+              { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansBold },
+            ]}
+          >
+            Internal Transfer
+          </Text>
+          <Text style={[theme.typography.labelSm, { color: hsl(theme.colors.foregroundSecondary) }]}>Quick & Free</Text>
         </View>
       </View>
       {bullets.map((b) => (
-        <View key={b} style={styles.bullet}>
-          <Ionicons name="checkmark-circle" size={14} color={`hsl(${theme.colors.tradeBuy})`} />
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, flex: 1 }}>{b}</Text>
+        <View key={b} style={[styles.bullet, { gap: theme.spacing[2] }]}>
+          <Ionicons name="checkmark-circle" size={theme.sizes.iconXs - 2} color={buy.fg} />
+          <Text style={[theme.typography.bodySm, { color: hsl(theme.colors.foregroundSecondary), flex: 1 }]}>{b}</Text>
         </View>
       ))}
-      <Text style={[styles.linksTitle, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>Quick Links</Text>
+      <Text
+        style={[
+          theme.typography.labelSm,
+          {
+            color: hsl(theme.colors.foregroundSecondary),
+            fontFamily: theme.fonts.sansBold,
+            letterSpacing: 1.1,
+            marginTop: theme.spacing[2],
+          },
+        ]}
+      >
+        Quick Links
+      </Text>
       {links.map((l) => (
-        <Pressable key={l.label} onPress={() => navigation.navigate(l.screen)} style={styles.link}>
-          <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600', fontSize: 13 }}>{l.label}</Text>
-          <Ionicons name="chevron-forward" size={14} color={`hsl(${theme.colors.brandPrimary})`} />
+        <Pressable
+          key={l.label}
+          onPress={() => navigation.navigate(l.screen)}
+          style={[styles.link, { paddingVertical: theme.spacing[2.5], minHeight: theme.listDensity.settings.rowHeight - 12 }]}
+        >
+          <Text
+            style={[
+              theme.typography.bodyMd,
+              { color: hsl(theme.colors.brandPrimary), fontFamily: theme.fonts.sansSemiBold },
+            ]}
+          >
+            {l.label}
+          </Text>
+          <Ionicons name="chevron-forward" size={theme.sizes.iconXs - 2} color={hsl(theme.colors.brandPrimary)} />
         </Pressable>
       ))}
     </ExchangeCard>
@@ -49,9 +81,7 @@ export function TransferInfoCard() {
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginBottom: 14, padding: 14, gap: 8 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
-  bullet: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  linksTitle: { fontSize: 10, fontWeight: '700', letterSpacing: 1.1, marginTop: 8 },
-  link: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, minHeight: 40 },
+  header: { flexDirection: 'row', alignItems: 'center' },
+  bullet: { flexDirection: 'row', alignItems: 'flex-start' },
+  link: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });

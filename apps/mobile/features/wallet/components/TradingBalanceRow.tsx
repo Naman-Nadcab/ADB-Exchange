@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
-import { useTheme } from '@shared/theme';
+import { useTheme, hsl } from '@shared/theme';
 import { formatUsd, formatCryptoAmount, maskBalance } from '@core/domain/wallet/portfolio';
 import type { TradingBalance } from '@exchange/mobile-types';
 
@@ -20,42 +20,144 @@ function TradingBalanceRowInner({ balance, showBalances, onTrade }: Props) {
   const usd = balance.usd_value ?? '0';
 
   return (
-    <View style={[styles.wrap, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
-      <View style={styles.mainRow}>
+    <View
+      style={[
+        styles.wrap,
+        {
+          borderColor: hsl(theme.colors.borderDefault),
+          borderRadius: theme.radius.lg,
+          padding: theme.spacing[3],
+          marginBottom: theme.spacing[2],
+        },
+      ]}
+    >
+      <View style={[styles.mainRow, { gap: theme.spacing[2], marginBottom: theme.spacing[2.5] }]}>
         <View style={styles.left}>
-          <Text style={{ fontWeight: '700', color: `hsl(${theme.colors.foregroundPrimary})` }}>
+          <Text
+            style={[
+              theme.typography.bodyMd,
+              { fontFamily: theme.fonts.sansBold, color: hsl(theme.colors.foregroundPrimary) },
+            ]}
+          >
             {balance.symbol}
           </Text>
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12 }}>
+          <Text style={[theme.typography.bodySm, { color: hsl(theme.colors.foregroundSecondary) }]}>
             {balance.name ?? balance.symbol}
           </Text>
         </View>
-        <Pressable onPress={onTrade} style={[styles.tradeBtn, { backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.12)` }]}>
-          <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontSize: 12, fontWeight: '700' }}>Trade</Text>
+        <Pressable
+          onPress={onTrade}
+          style={[
+            styles.tradeBtn,
+            {
+              backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.12)`,
+              paddingHorizontal: theme.spacing[3],
+              paddingVertical: theme.spacing[2],
+              borderRadius: theme.radius.md,
+              minHeight: theme.sizes.buttonSm,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: hsl(theme.colors.brandPrimary), fontFamily: theme.fonts.sansBold },
+            ]}
+          >
+            Trade
+          </Text>
         </Pressable>
       </View>
-      <View style={styles.grid}>
-        <View style={styles.cell}>
-          <Text style={[styles.cellLabel, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>Total</Text>
-          <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontSize: 12, fontWeight: '600' }}>
+      <View style={[styles.grid, { gap: theme.spacing[2] }]}>
+        <View style={[styles.cell, { gap: theme.spacing[0.5] }]}>
+          <Text
+            style={[
+              theme.typography.labelSm,
+              {
+                color: hsl(theme.colors.foregroundSecondary),
+                fontFamily: theme.fonts.sansSemiBold,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              },
+            ]}
+          >
+            Total
+          </Text>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansSemiBold },
+            ]}
+          >
             {maskNum(total)}
           </Text>
         </View>
-        <View style={styles.cell}>
-          <Text style={[styles.cellLabel, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>Available</Text>
-          <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontSize: 12, fontWeight: '600' }}>
+        <View style={[styles.cell, { gap: theme.spacing[0.5] }]}>
+          <Text
+            style={[
+              theme.typography.labelSm,
+              {
+                color: hsl(theme.colors.foregroundSecondary),
+                fontFamily: theme.fonts.sansSemiBold,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              },
+            ]}
+          >
+            Available
+          </Text>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansSemiBold },
+            ]}
+          >
             {maskNum(available)}
           </Text>
         </View>
-        <View style={styles.cell}>
-          <Text style={[styles.cellLabel, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>In Orders</Text>
-          <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontSize: 12, fontWeight: '600' }}>
+        <View style={[styles.cell, { gap: theme.spacing[0.5] }]}>
+          <Text
+            style={[
+              theme.typography.labelSm,
+              {
+                color: hsl(theme.colors.foregroundSecondary),
+                fontFamily: theme.fonts.sansSemiBold,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              },
+            ]}
+          >
+            In Orders
+          </Text>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansSemiBold },
+            ]}
+          >
             {maskNum(locked)}
           </Text>
         </View>
-        <View style={styles.cell}>
-          <Text style={[styles.cellLabel, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>USD Value</Text>
-          <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontSize: 12, fontWeight: '600' }}>
+        <View style={[styles.cell, { gap: theme.spacing[0.5] }]}>
+          <Text
+            style={[
+              theme.typography.labelSm,
+              {
+                color: hsl(theme.colors.foregroundSecondary),
+                fontFamily: theme.fonts.sansSemiBold,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              },
+            ]}
+          >
+            USD Value
+          </Text>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansSemiBold },
+            ]}
+          >
             ${mask(formatUsd(usd))}
           </Text>
         </View>
@@ -67,11 +169,10 @@ function TradingBalanceRowInner({ balance, showBalances, onTrade }: Props) {
 export const TradingBalanceRow = memo(TradingBalanceRowInner);
 
 const styles = StyleSheet.create({
-  wrap: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 12, padding: 12, marginBottom: 8 },
-  mainRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 10 },
+  wrap: { borderWidth: StyleSheet.hairlineWidth },
+  mainRow: { flexDirection: 'row', alignItems: 'flex-start' },
   left: { flex: 1 },
-  tradeBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, minHeight: 32, justifyContent: 'center' },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  cell: { width: '47%', gap: 2 },
-  cellLabel: { fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  tradeBtn: { justifyContent: 'center' },
+  grid: { flexDirection: 'row', flexWrap: 'wrap' },
+  cell: { width: '47%' },
 });

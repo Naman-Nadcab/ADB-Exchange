@@ -12,7 +12,7 @@ import {
   ErrorBanner,
   ExchangeCard,
 } from '@shared/ui';
-import { useTheme } from '@shared/theme';
+import { useTheme, hsl } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
 import { bankLabelFromPaymentMethod, formatInr } from '@core/domain/wallet/fiat';
@@ -74,8 +74,20 @@ export function FiatWithdrawHomeScreen({ navigation }: Props) {
   return (
     <ScreenLayout testID="S-526">
       <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-        <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Fiat withdrawal</Text>
-        <Text style={[styles.sub, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+        <Text
+          style={[
+            theme.typography.headingLg,
+            { color: hsl(theme.colors.foregroundPrimary), fontFamily: theme.fonts.sansBold, marginBottom: theme.spacing[1] },
+          ]}
+        >
+          Fiat withdrawal
+        </Text>
+        <Text
+          style={[
+            theme.typography.bodyMd,
+            { color: hsl(theme.colors.foregroundSecondary), lineHeight: 18, marginBottom: theme.spacing[3] },
+          ]}
+        >
           Withdraw your INR balance to a saved bank account or UPI. Requests are reviewed and settled by the team.
         </Text>
 
@@ -217,8 +229,6 @@ export function FiatWithdrawHomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 22, fontWeight: '700', marginBottom: 4 },
-  sub: { fontSize: 13, lineHeight: 18, marginBottom: 12 },
   formCard: { marginBottom: 16, padding: 14 },
   formHeader: { flexDirection: 'row', gap: 12, alignItems: 'center', marginBottom: 14 },
   iconCircle: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
