@@ -1,36 +1,19 @@
-import { View, StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
-import { useTheme } from '@shared/theme';
+import { ExchangeCard, type ExchangeCardProps } from './ExchangeCard';
 
-type Props = {
-  children: React.ReactNode;
-  style?: StyleProp<ViewStyle>;
+type Props = Omit<ExchangeCardProps, 'variant'> & {
   elevated?: boolean;
   padded?: boolean;
-  testID?: string;
 };
 
+/**
+ * @deprecated Use `ExchangeCard` instead. Thin wrapper retained for backward compatibility.
+ */
 export function Card({ children, style, elevated, padded = true, testID }: Props) {
-  const { theme } = useTheme();
   return (
-    <View
-      testID={testID}
-      style={[
-        styles.base,
-        {
-          borderRadius: theme.radius.lg,
-          borderColor: `hsl(${theme.colors.borderDefault})`,
-          backgroundColor: `hsl(${theme.colors.backgroundElevated})`,
-          padding: padded ? theme.spacing.cardPad : 0,
-        },
-        elevated ? theme.shadows.md : theme.shadows.none,
-        style,
-      ]}
-    >
+    <ExchangeCard testID={testID} style={style} elevated={elevated} padded={padded}>
       {children}
-    </View>
+    </ExchangeCard>
   );
 }
 
-const styles = StyleSheet.create({
-  base: { borderWidth: 1, overflow: 'hidden' },
-});
+export type { ExchangeCardProps };

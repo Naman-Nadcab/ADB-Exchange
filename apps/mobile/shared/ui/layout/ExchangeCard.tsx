@@ -1,13 +1,12 @@
 import { View, StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
 import { useTheme } from '@shared/theme';
-import { marketing } from '@shared/theme/marketing';
 
-type Variant = 'default' | 'marketing' | 'terminal';
+export type ExchangeCardVariant = 'default' | 'marketing' | 'terminal';
 
-type Props = {
+export type ExchangeCardProps = {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
-  variant?: Variant;
+  variant?: ExchangeCardVariant;
   elevated?: boolean;
   padded?: boolean;
   testID?: string;
@@ -20,10 +19,11 @@ export function ExchangeCard({
   elevated,
   padded = true,
   testID,
-}: Props) {
+}: ExchangeCardProps) {
   const { theme } = useTheme();
   const isMarketing = variant === 'marketing';
   const isTerminal = variant === 'terminal';
+  const { marketing: m } = theme;
 
   return (
     <View
@@ -31,18 +31,16 @@ export function ExchangeCard({
       style={[
         styles.base,
         {
-          borderRadius: isMarketing ? 16 : theme.radius.lg,
-          padding: padded ? (isMarketing ? 16 : theme.spacing.cardPad) : 0,
-          borderColor: isMarketing
-            ? marketing.goldBorder
-            : `hsl(${theme.colors.borderDefault})`,
+          borderRadius: isMarketing ? theme.radius.xl : theme.radius.lg,
+          padding: padded ? (isMarketing ? theme.spacing.cardPad : theme.spacing.cardPad) : 0,
+          borderColor: isMarketing ? m.goldBorder : `hsl(${theme.colors.borderDefault})`,
           backgroundColor: isMarketing
-            ? marketing.cardBg
+            ? m.cardBg
             : isTerminal
               ? `hsl(${theme.colors.backgroundPanel})`
               : `hsl(${theme.colors.backgroundElevated})`,
         },
-        isMarketing && styles.marketingInset,
+        isMarketing && theme.shadows.sm,
         elevated ? theme.shadows.md : null,
         style,
       ]}
@@ -54,11 +52,4 @@ export function ExchangeCard({
 
 const styles = StyleSheet.create({
   base: { borderWidth: 1, overflow: 'hidden' },
-  marketingInset: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 3,
-  },
 });

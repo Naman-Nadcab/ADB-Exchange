@@ -1,6 +1,6 @@
 import { Text } from 'react-native';
 import { useTheme } from '@shared/theme';
-import { Card } from '../layout/Card';
+import { ExchangeCard } from '../layout/ExchangeCard';
 import { PriceLabel } from './PriceLabel';
 
 type Props = {
@@ -17,8 +17,13 @@ export function WalletCard({ title, totalBalance, currency, pnl, pnlPct, testID 
   const pnlUp = (pnl ?? 0) >= 0;
 
   return (
-    <Card testID={testID} elevated style={{ marginBottom: theme.spacing[4] }}>
-      <Text style={[theme.typography.labelMd, { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[2] }]}>
+    <ExchangeCard testID={testID} elevated style={{ marginBottom: theme.spacing[4] }}>
+      <Text
+        style={[
+          theme.typography.labelMd,
+          { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[2] },
+        ]}
+      >
         {title}
       </Text>
       <PriceLabel value={totalBalance} currency={currency} size="lg" />
@@ -37,6 +42,6 @@ export function WalletCard({ title, totalBalance, currency, pnl, pnlPct, testID 
           {pnlPct.toFixed(2)}%)
         </Text>
       ) : null}
-    </Card>
+    </ExchangeCard>
   );
 }

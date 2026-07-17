@@ -5,4 +5,7 @@ export * from './motion';
 export * from './shadows';
 export * from './haptics';
 export * from './fonts';
+export * from './opacity';
+export * from './listDensity';
+export * from './statusPalettes';
 export * from './marketing';

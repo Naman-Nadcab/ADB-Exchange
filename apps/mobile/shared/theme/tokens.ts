@@ -4,6 +4,8 @@
 import { createShadows, type ShadowTokens } from './shadows';
 import { fontFamily } from './fonts';
 import { motion } from './motion';
+import { opacity } from './opacity';
+import { listDensity } from './listDensity';
 
 export const hsl = (token: string) => `hsl(${token})`;
 export const hslAlpha = (token: string, alpha: number) => `hsl(${token} / ${alpha})`;
@@ -64,6 +66,30 @@ export const darkColors = {
   destructiveForeground: '0 0% 100%',
 } as const;
 
+/**
+ * Marketing / public-surface palette — dark hero surfaces aligned with website.
+ * Semantic source of truth; `@shared/theme/marketing` re-exports for compatibility.
+ */
+export const marketingColors = {
+  pageBg: '#05070B',
+  cardBg: '#0D1118',
+  cardNested: '#05070B',
+  gold: '#F5B800',
+  goldLight: '#FFD54A',
+  goldBorder: 'rgba(245, 184, 0, 0.10)',
+  goldBorderStrong: 'rgba(245, 184, 0, 0.33)',
+  mutedText: '#AEB6C4',
+  subtleText: '#9CA3AF',
+  insetHighlight: 'rgba(255, 255, 255, 0.04)',
+} as const;
+
+/** Border widths — MOB-001B §7 */
+export const borderWidth = {
+  hairline: 1,
+  thin: 1,
+  medium: 2,
+} as const;
+
 /** 4px base grid — matches frontend dashboard spacing */
 export const spacing = {
   0: 0,
@@ -110,9 +136,11 @@ export const sizes = {
   authFormMaxWidth: 420,
   topBarHeight: 56,
   bottomNavHeight: 68,
-  iconSm: 16,
-  iconMd: 20,
-  iconLg: 24,
+  iconXs: 16,
+  iconSm: 20,
+  iconMd: 24,
+  iconLg: 32,
+  iconXl: 48,
   avatarSm: 32,
   avatarMd: 40,
   avatarLg: 56,
@@ -123,6 +151,7 @@ export const typography = {
   displayMd: { fontSize: 28, lineHeight: 34, fontWeight: '700' as const, fontFamily: fontFamily.sansBold },
   headingLg: { fontSize: 22, lineHeight: 28, fontWeight: '600' as const, fontFamily: fontFamily.sansSemiBold },
   headingMd: { fontSize: 18, lineHeight: 24, fontWeight: '600' as const, fontFamily: fontFamily.sansSemiBold },
+  headingSm: { fontSize: 16, lineHeight: 22, fontWeight: '600' as const, fontFamily: fontFamily.sansSemiBold },
   bodyLg: { fontSize: 16, lineHeight: 22, fontWeight: '400' as const, fontFamily: fontFamily.sans },
   bodyMd: { fontSize: 14, lineHeight: 20, fontWeight: '400' as const, fontFamily: fontFamily.sans },
   bodySm: { fontSize: 12, lineHeight: 16, fontWeight: '400' as const, fontFamily: fontFamily.sans },
@@ -138,10 +167,14 @@ export type ColorScheme = 'light' | 'dark';
 export type ThemeTokens = {
   scheme: ColorScheme;
   colors: typeof lightColors | typeof darkColors;
+  marketing: typeof marketingColors;
   spacing: typeof spacing;
   radius: typeof radius;
   sizes: typeof sizes;
   typography: typeof typography;
+  opacity: typeof opacity;
+  listDensity: typeof listDensity;
+  borderWidth: typeof borderWidth;
   shadows: ShadowTokens;
   motion: typeof motion;
   fonts: typeof fontFamily;
@@ -150,10 +183,14 @@ export type ThemeTokens = {
 export const createTheme = (scheme: ColorScheme): ThemeTokens => ({
   scheme,
   colors: scheme === 'dark' ? darkColors : lightColors,
+  marketing: marketingColors,
   spacing,
   radius,
   sizes,
   typography,
+  opacity,
+  listDensity,
+  borderWidth,
   shadows: createShadows(scheme),
   motion,
   fonts: fontFamily,

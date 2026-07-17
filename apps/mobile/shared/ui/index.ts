@@ -2,6 +2,7 @@ export { ScreenLayout } from './layout/ScreenLayout';
 export { SegmentControl } from './layout/SegmentControl';
 export { Card } from './layout/Card';
 export { ExchangeCard } from './layout/ExchangeCard';
+export type { ExchangeCardProps, ExchangeCardVariant } from './layout/ExchangeCard';
 export { ListColumnHeader } from './layout/ListColumnHeader';
 export { PillTabBar } from './layout/PillTabBar';
 export { TopAppBar } from './layout/TopAppBar';
@@ -54,3 +55,7 @@ export { PriceFlashText } from './trading/PriceFlashText';
 export { PercentageSlider } from './trading/PercentageSlider';
 export { TradeSideToggle } from './trading/TradeSideToggle';
 export { BalanceCard } from './trading/BalanceCard';
+
+export { FlowHeader } from '@shared/components/FlowHeader';
+export { StateFrame } from '@shared/components/StateFrame';
+export type { StateFrameVariant } from '@shared/components/StateFrame';

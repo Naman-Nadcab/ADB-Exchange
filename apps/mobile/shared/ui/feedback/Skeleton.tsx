@@ -21,11 +21,11 @@ export function Skeleton({ width = '100%', height = 16, style, testID }: Props) 
   const pulse = useSharedValue(0);
 
   useEffect(() => {
-    pulse.value = withRepeat(withTiming(1, { duration: 1400 }), -1, true);
-  }, [pulse]);
+    pulse.value = withRepeat(withTiming(1, { duration: theme.motion.duration.skeletonPulse }), -1, true);
+  }, [pulse, theme.motion.duration.skeletonPulse]);
 
   const anim = useAnimatedStyle(() => ({
-    opacity: interpolate(pulse.value, [0, 1], [0.45, 0.85]),
+    opacity: interpolate(pulse.value, [0, 1], [theme.opacity.skeletonMin, theme.opacity.skeletonMax]),
   }));
 
   return (
@@ -50,7 +50,7 @@ export function SkeletonGroup({ count = 3 }: { count?: number }) {
   return (
     <View style={{ gap: theme.spacing[3] }}>
       {Array.from({ length: count }).map((_, i) => (
-        <Skeleton key={i} height={52} />
+        <Skeleton key={i} height={theme.listDensity.settings.rowHeight} />
       ))}
     </View>
   );

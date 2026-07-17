@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@shared/theme';
+import { StateFrame } from '@shared/components/StateFrame';
 import { Button } from '../buttons/Button';
 
 type Props = {
@@ -21,57 +22,66 @@ export function EmptyState({
   testID,
 }: Props) {
   const { theme } = useTheme();
+
   return (
-    <View
-      testID={testID}
-      style={[
-        styles.wrap,
-        {
-          padding: theme.spacing[6],
-          borderRadius: theme.radius.lg,
-          borderColor: `hsl(${theme.colors.borderDefault})`,
-          backgroundColor: `hsl(${theme.colors.surfaceMuted} / 0.35)`,
-        },
-      ]}
-      accessibilityRole="text"
-    >
+    <StateFrame variant="empty" testID={testID}>
       <View
         style={[
           styles.iconWrap,
           {
+            width: theme.sizes.avatarLg,
+            height: theme.sizes.avatarLg,
+            borderRadius: theme.sizes.avatarLg / 2,
             backgroundColor: `hsl(${theme.colors.surfaceMuted})`,
             marginBottom: theme.spacing[4],
           },
         ]}
       >
-        <Ionicons name={icon} size={28} color={`hsl(${theme.colors.foregroundSecondary})`} />
+        <Ionicons name={icon} size={theme.sizes.iconLg} color={`hsl(${theme.colors.foregroundSecondary})`} />
       </View>
-      <Text style={[theme.typography.bodyMd, { fontFamily: theme.fonts.sansSemiBold, color: `hsl(${theme.colors.foregroundPrimary})`, textAlign: 'center' }]}>
+      <Text
+        style={[
+          theme.typography.bodyMd,
+          {
+            fontFamily: theme.fonts.sansSemiBold,
+            color: `hsl(${theme.colors.foregroundPrimary})`,
+            textAlign: 'center',
+          },
+        ]}
+      >
         {title}
       </Text>
       {message ? (
         <Text
           style={[
             theme.typography.bodySm,
-            { color: `hsl(${theme.colors.foregroundSecondary})`, textAlign: 'center', marginTop: theme.spacing[1], marginBottom: theme.spacing[4], maxWidth: 280 },
+            {
+              color: `hsl(${theme.colors.foregroundSecondary})`,
+              textAlign: 'center',
+              marginTop: theme.spacing[1],
+              marginBottom: theme.spacing[4],
+              maxWidth: 280,
+            },
           ]}
         >
           {message}
         </Text>
       ) : null}
       {onAction && actionLabel ? (
-        <Button title={actionLabel} onPress={onAction} size="md" fullWidth={false} style={{ paddingHorizontal: 24 }} />
+        <Button
+          title={actionLabel}
+          onPress={onAction}
+          size="md"
+          fullWidth={false}
+          style={{ paddingHorizontal: theme.spacing[6] }}
+        />
       ) : null}
-    </View>
+    </StateFrame>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   iconWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },

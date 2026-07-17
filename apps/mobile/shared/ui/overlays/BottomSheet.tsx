@@ -2,7 +2,7 @@ import { Modal, View, Text, Pressable, StyleSheet, KeyboardAvoidingView, Platfor
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, hapticLight } from '@shared/theme';
+import { useTheme, hapticLight, hsl } from '@shared/theme';
 
 type Props = {
   visible: boolean;
@@ -15,30 +15,58 @@ type Props = {
 export function BottomSheet({ visible, onClose, title, children, testID }: Props) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
+  const { duration } = theme.motion;
 
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onClose} testID={testID}>
-      <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)} style={styles.overlay}>
+      <Animated.View
+        entering={FadeIn.duration(duration.overlayIn)}
+        exiting={FadeOut.duration(duration.overlayOut)}
+        style={[styles.overlay, { backgroundColor: hsl(theme.colors.overlayScrim) }]}
+      >
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close sheet" />
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.sheetWrap}>
           <Animated.View
-            entering={SlideInDown.duration(280)}
-            exiting={SlideOutDown.duration(220)}
+            entering={SlideInDown.duration(duration.sheetIn)}
+            exiting={SlideOutDown.duration(duration.sheetOut)}
             style={[
               styles.sheet,
               theme.shadows.md,
               {
-                backgroundColor: `hsl(${theme.colors.backgroundElevated})`,
+                backgroundColor: hsl(theme.colors.backgroundElevated),
                 borderTopLeftRadius: theme.radius.xl,
                 borderTopRightRadius: theme.radius.xl,
                 paddingBottom: insets.bottom + theme.spacing[4],
               },
             ]}
           >
-            <View style={[styles.handle, { backgroundColor: `hsl(${theme.colors.borderStrong})` }]} />
+            <View
+              style={[
+                styles.handle,
+                {
+                  backgroundColor: hsl(theme.colors.borderStrong),
+                  marginTop: theme.spacing[2],
+                  marginBottom: theme.spacing[1],
+                },
+              ]}
+            />
             {title ? (
-              <View style={[styles.header, { borderBottomColor: `hsl(${theme.colors.borderDefault})` }]}>
-                <Text style={[theme.typography.headingMd, { color: `hsl(${theme.colors.foregroundPrimary})`, flex: 1 }]}>
+              <View
+                style={[
+                  styles.header,
+                  {
+                    borderBottomColor: hsl(theme.colors.borderDefault),
+                    paddingHorizontal: theme.spacing[4],
+                    paddingVertical: theme.spacing[3],
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    theme.typography.headingMd,
+                    { color: hsl(theme.colors.foregroundPrimary), flex: 1 },
+                  ]}
+                >
                   {title}
                 </Text>
                 <Pressable
@@ -46,9 +74,9 @@ export function BottomSheet({ visible, onClose, title, children, testID }: Props
                     void hapticLight();
                     onClose();
                   }}
-                  hitSlop={8}
+                  hitSlop={theme.spacing[2]}
                 >
-                  <Ionicons name="close" size={22} color={`hsl(${theme.colors.foregroundSecondary})`} />
+                  <Ionicons name="close" size={theme.sizes.iconMd} color={hsl(theme.colors.foregroundSecondary)} />
                 </Pressable>
               </View>
             ) : null}
@@ -63,15 +91,13 @@ export function BottomSheet({ visible, onClose, title, children, testID }: Props
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
+  overlay: { flex: 1, justifyContent: 'flex-end' },
   sheetWrap: { justifyContent: 'flex-end' },
   sheet: { maxHeight: '88%' },
-  handle: { width: 36, height: 4, borderRadius: 2, alignSelf: 'center', marginTop: 8, marginBottom: 4 },
+  handle: { width: 36, height: 4, borderRadius: 2, alignSelf: 'center' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
 });

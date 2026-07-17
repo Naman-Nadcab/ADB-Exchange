@@ -1,5 +1,5 @@
-import { Text, Pressable, StyleSheet } from 'react-native';
-import { useTheme } from '@shared/theme';
+import { Text, Pressable } from 'react-native';
+import { useTheme, hsl } from '@shared/theme';
 
 type Props = {
   message: string;
@@ -11,18 +11,28 @@ export function ErrorBanner({ message, onRetry }: Props) {
   return (
     <Pressable
       onPress={onRetry}
-      style={[styles.box, { backgroundColor: `hsl(${theme.colors.statusError} / 0.12)` }]}
+      style={{
+        padding: theme.spacing[3],
+        borderRadius: theme.radius.md,
+        marginBottom: theme.spacing[3],
+        backgroundColor: `hsl(${theme.colors.statusError} / 0.12)`,
+      }}
     >
-      <Text style={[styles.text, { color: `hsl(${theme.colors.statusError})` }]}>{message}</Text>
+      <Text style={[theme.typography.bodyMd, { color: hsl(theme.colors.statusError) }]}>{message}</Text>
       {onRetry ? (
-        <Text style={[styles.retry, { color: `hsl(${theme.colors.statusError})` }]}>Tap to retry</Text>
+        <Text
+          style={[
+            theme.typography.bodySm,
+            {
+              color: hsl(theme.colors.statusError),
+              marginTop: theme.spacing[1],
+              fontFamily: theme.fonts.sansSemiBold,
+            },
+          ]}
+        >
+          Tap to retry
+        </Text>
       ) : null}
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  box: { padding: 12, borderRadius: 8, marginBottom: 12 },
-  text: { fontSize: 14 },
-  retry: { fontSize: 12, marginTop: 4, fontWeight: '600' },
-});

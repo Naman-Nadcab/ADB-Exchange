@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { hapticSelection, marketing } from '@shared/theme';
+import { hapticSelection, useTheme } from '@shared/theme';
 
 type Props = {
   size?: number;
@@ -9,8 +9,11 @@ type Props = {
 };
 
 /** Opens the Account modal from any main-tab screen. */
-export function AccountEntryButton({ size = 26, compact = false }: Props) {
+export function AccountEntryButton({ size, compact = false }: Props) {
+  const { theme } = useTheme();
   const navigation = useNavigation();
+  const iconSize = size ?? theme.sizes.iconMd;
+  const { marketing: m } = theme;
 
   const openAccount = () => {
     void hapticSelection();
@@ -18,27 +21,33 @@ export function AccountEntryButton({ size = 26, compact = false }: Props) {
     root?.navigate('Account', { screen: 'AccountHome' });
   };
 
+  const dimension = compact ? theme.sizes.buttonSm : theme.sizes.buttonMd;
+
   return (
     <Pressable
       onPress={openAccount}
-      style={[styles.btn, compact && styles.btnCompact, { borderColor: marketing.goldBorder }]}
+      style={[
+        styles.btn,
+        {
+          width: dimension,
+          height: dimension,
+          borderRadius: dimension / 2,
+          borderColor: m.goldBorder,
+          backgroundColor: m.insetHighlight,
+        },
+      ]}
       accessibilityRole="button"
       accessibilityLabel="Account"
     >
-      <Ionicons name="person-circle-outline" size={size} color={marketing.gold} />
+      <Ionicons name="person-circle-outline" size={iconSize} color={m.gold} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   btn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: marketing.insetHighlight,
   },
-  btnCompact: { width: 32, height: 32, borderRadius: 16 },
 });
