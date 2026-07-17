@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
-import { hapticLight } from '@shared/theme';
-import { marketing } from '@shared/theme/marketing';
+import { hapticLight, useTheme, hsl } from '@shared/theme';
+import { ExchangeCard } from '@shared/ui';
 import { formatPrice, formatChangePct, changeColorKey } from '@core/domain/markets/formatPrice';
 import { Sparkline, sparklineFromChange } from './Sparkline';
 import type { MarketListItem } from '@exchange/mobile-types';
@@ -23,13 +23,30 @@ function MoverCard({
   items: MarketListItem[];
   onSelect: (s: string) => void;
 }) {
+  const { theme } = useTheme();
+  const m = theme.marketing;
+  const buy = hsl(theme.colors.tradeBuy);
+  const sell = hsl(theme.colors.tradeSell);
+
   return (
-    <View style={[styles.card, { borderColor: marketing.goldBorder, backgroundColor: marketing.cardBg }]}>
-      <Text style={[styles.cardTitle, { color: marketing.gold }]}>{title}</Text>
+    <ExchangeCard variant="marketing" style={[styles.card, { width: 186 }]}>
+      <Text
+        style={[
+          theme.typography.labelSm,
+          {
+            color: m.gold,
+            fontFamily: theme.fonts.sansBold,
+            marginBottom: theme.spacing[2.5],
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+          },
+        ]}
+      >
+        {title}
+      </Text>
       {items.map((item) => {
         const ck = changeColorKey(item.changePct);
-        const color =
-          ck === 'buy' ? '#34D399' : ck === 'sell' ? '#FB7185' : marketing.mutedText;
+        const color = ck === 'buy' ? buy : ck === 'sell' ? sell : m.mutedText;
         return (
           <Pressable
             key={item.symbol}
@@ -37,15 +54,39 @@ function MoverCard({
               void hapticLight();
               onSelect(item.symbol);
             }}
-            style={styles.item}
+            style={[styles.item, { paddingVertical: theme.spacing[1.5], minHeight: theme.listDensity.default.rowHeight - 20 }]}
             accessibilityRole="button"
           >
-            <View style={styles.itemLeft}>
-              <View style={[styles.coin, { backgroundColor: 'rgba(245,184,0,0.12)' }]}>
-                <Text style={styles.coinText}>{item.baseAsset.slice(0, 2)}</Text>
+            <View style={[styles.itemLeft, { gap: theme.spacing[2] }]}>
+              <View
+                style={[
+                  styles.coin,
+                  {
+                    width: theme.spacing[7],
+                    height: theme.spacing[7],
+                    borderRadius: theme.spacing[3.5],
+                    backgroundColor: m.insetHighlight,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    theme.typography.labelSm,
+                    { color: m.gold, fontFamily: theme.fonts.sansBold, fontWeight: '800' },
+                  ]}
+                >
+                  {item.baseAsset.slice(0, 2)}
+                </Text>
               </View>
               <View>
-                <Text style={styles.symbol}>{item.baseAsset}</Text>
+                <Text
+                  style={[
+                    theme.typography.bodyMd,
+                    { color: '#FFF', fontFamily: theme.fonts.sansBold, marginBottom: theme.spacing[0.5] },
+                  ]}
+                >
+                  {item.baseAsset}
+                </Text>
                 <Sparkline
                   data={
                     item.sparkline && item.sparkline.length >= 2
@@ -59,25 +100,41 @@ function MoverCard({
               </View>
             </View>
             <View style={styles.itemRight}>
-              <Text style={styles.price}>{formatPrice(item.lastPrice, '')}</Text>
-              <Text style={[styles.change, { color }]}>{formatChangePct(item.changePct)}</Text>
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  { color: '#FFF', fontFamily: theme.fonts.monoSemiBold, fontVariant: ['tabular-nums'] },
+                ]}
+              >
+                {formatPrice(item.lastPrice, '')}
+              </Text>
+              <Text
+                style={[
+                  theme.typography.labelMd,
+                  { color, fontFamily: theme.fonts.sansBold, marginTop: theme.spacing[0.5] },
+                ]}
+              >
+                {formatChangePct(item.changePct)}
+              </Text>
             </View>
           </Pressable>
         );
       })}
-    </View>
+    </ExchangeCard>
   );
 }
 
 function MarketsHeaderWidgetsInner({ gainers, losers, trending, newListings, onSelect }: Props) {
+  const { theme } = useTheme();
+
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       decelerationRate="fast"
       snapToInterval={196}
-      style={styles.scroll}
-      contentContainerStyle={styles.content}
+      style={{ marginBottom: theme.spacing[3.5] }}
+      contentContainerStyle={{ paddingRight: theme.spacing[3], gap: theme.spacing[2.5] }}
     >
       <MoverCard title="Trending" items={trending} onSelect={onSelect} />
       <MoverCard title="Top Gainers" items={gainers} onSelect={onSelect} />
@@ -90,39 +147,13 @@ function MarketsHeaderWidgetsInner({ gainers, losers, trending, newListings, onS
 export const MarketsHeaderWidgets = memo(MarketsHeaderWidgetsInner);
 
 const styles = StyleSheet.create({
-  scroll: { marginBottom: 14 },
-  content: { paddingRight: 12, gap: 10 },
-  card: {
-    width: 186,
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  cardTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    marginBottom: 10,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-  },
+  card: {},
   item: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 7,
-    minHeight: 36,
   },
-  itemLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  coin: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  coinText: { fontSize: 10, fontWeight: '800', color: marketing.gold },
-  symbol: { color: '#FFF', fontWeight: '700', fontSize: 13, marginBottom: 2 },
+  itemLeft: { flexDirection: 'row', alignItems: 'center' },
+  coin: { alignItems: 'center', justifyContent: 'center' },
   itemRight: { alignItems: 'flex-end' },
-  price: { color: '#FFF', fontSize: 12, fontVariant: ['tabular-nums'], fontWeight: '600' },
-  change: { fontSize: 11, fontWeight: '700', marginTop: 1 },
 });

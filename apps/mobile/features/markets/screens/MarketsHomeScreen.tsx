@@ -11,7 +11,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CommonActions } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { hapticSelection, marketing } from '@shared/theme';
+import { hapticSelection, useTheme, hsl } from '@shared/theme';
 import {
   ScreenLayout,
   SegmentControl,
@@ -76,6 +76,9 @@ const SORT_OPTIONS: { id: MarketSortKey; label: string }[] = [
 const PAGE_SIZE = 30;
 
 export function MarketsHomeScreen({ navigation }: Props) {
+  const { theme } = useTheme();
+  const m = theme.marketing;
+  const buy = hsl(theme.colors.tradeBuy);
   const isOnline = useAppStore((s) => s.isOnline);
   const { data, isLoading, isError, error, refetch, isFetching, dataUpdatedAt } = useMarkets();
   const { data: intelligence } = useMarketIntelligence();
@@ -202,17 +205,69 @@ export function MarketsHomeScreen({ navigation }: Props) {
 
   const ListHeader = (
     <>
-      <View style={styles.hero}>
+      <View style={[styles.hero, { marginBottom: theme.spacing[3], marginTop: theme.spacing[1] }]}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.heroEyebrow}>SPOT MARKETS</Text>
-          <Text style={styles.heroTitle}>Markets</Text>
-          <Text style={styles.heroSub}>Live prices · {stats.pairsCount} pairs</Text>
+          <Text
+            style={[
+              theme.typography.labelSm,
+              {
+                color: m.gold,
+                fontFamily: theme.fonts.sansBold,
+                letterSpacing: 1.4,
+                marginBottom: theme.spacing[1],
+              },
+            ]}
+          >
+            SPOT MARKETS
+          </Text>
+          <Text
+            style={[
+              theme.typography.displayMd,
+              { color: '#FFFFFF', fontFamily: theme.fonts.sansBold, letterSpacing: -0.5 },
+            ]}
+          >
+            Markets
+          </Text>
+          <Text
+            style={[
+              theme.typography.bodyMd,
+              { color: m.mutedText, marginTop: theme.spacing[1] },
+            ]}
+          >
+            Live prices · {stats.pairsCount} pairs
+          </Text>
         </View>
-        <View style={styles.heroActions}>
+        <View style={[styles.heroActions, { gap: theme.spacing[2] }]}>
           {staleLabel ? (
-            <View style={styles.liveBadge}>
-              <View style={styles.liveDot} />
-              <Text style={styles.liveText}>{staleLabel}</Text>
+            <View
+              style={[
+                styles.liveBadge,
+                {
+                  gap: theme.spacing[1.5],
+                  paddingHorizontal: theme.spacing[2.5],
+                  paddingVertical: theme.spacing[1.5],
+                  borderRadius: theme.radius.full,
+                  backgroundColor: m.cardBg,
+                  borderColor: m.goldBorder,
+                },
+              ]}
+            >
+              <View
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: 3,
+                  backgroundColor: buy,
+                }}
+              />
+              <Text
+                style={[
+                  theme.typography.labelSm,
+                  { color: m.mutedText, fontFamily: theme.fonts.sansSemiBold },
+                ]}
+              >
+                {staleLabel}
+              </Text>
             </View>
           ) : null}
           <AccountEntryButton />
@@ -221,12 +276,24 @@ export function MarketsHomeScreen({ navigation }: Props) {
 
       <Pressable
         onPress={() => navigation.navigate('MarketSearch')}
-        style={[styles.searchHero, { borderColor: marketing.goldBorder }]}
+        style={[
+          styles.searchHero,
+          {
+            gap: theme.spacing[2.5],
+            paddingHorizontal: theme.spacing[3.5],
+            paddingVertical: theme.spacing[3],
+            borderRadius: theme.radius.lg,
+            borderColor: m.goldBorder,
+            backgroundColor: m.cardBg,
+            marginBottom: theme.spacing[3.5],
+            minHeight: theme.sizes.inputHeight - 4,
+          },
+        ]}
         accessibilityRole="button"
         accessibilityLabel="Search markets"
       >
-        <Ionicons name="search" size={18} color={marketing.mutedText} />
-        <Text style={styles.searchPlaceholder}>Search by symbol or name</Text>
+        <Ionicons name="search" size={theme.sizes.iconSm - 2} color={m.mutedText} />
+        <Text style={[theme.typography.bodyMd, { color: m.mutedText, flex: 1 }]}>Search by symbol or name</Text>
       </Pressable>
 
       {!isOnline ? (
@@ -271,7 +338,7 @@ export function MarketsHomeScreen({ navigation }: Props) {
 
       <MarketsCategoryChips active={category} onChange={onCategoryChange} />
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quoteScroll} contentContainerStyle={styles.filters}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: theme.spacing[1.5], maxHeight: theme.sizes.buttonMd + 4 }} contentContainerStyle={[styles.filters, { gap: theme.spacing[2], paddingRight: theme.spacing[2] }]}>
         {QUOTE_OPTIONS.map((q) => (
           <FilterChip
             key={q ?? 'all'}
@@ -304,7 +371,7 @@ export function MarketsHomeScreen({ navigation }: Props) {
   );
 
   return (
-    <ScreenLayout testID="S-200" style={{ backgroundColor: marketing.pageBg }} edges={['top', 'left', 'right']}>
+    <ScreenLayout testID="S-200" style={{ backgroundColor: m.pageBg }} edges={['top', 'left', 'right']}>
       {isLoading && !data ? (
         <>
           {ListHeader}
@@ -354,7 +421,7 @@ export function MarketsHomeScreen({ navigation }: Props) {
             <RefreshControl
               refreshing={isFetching}
               onRefresh={() => void refetch()}
-              tintColor={marketing.gold}
+              tintColor={m.gold}
             />
           }
         />
@@ -368,59 +435,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
-    marginTop: 4,
   },
-  heroActions: { alignItems: 'flex-end', gap: 8 },
-  heroEyebrow: {
-    color: marketing.gold,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1.4,
-    marginBottom: 4,
-  },
-  heroTitle: {
-    color: '#FFFFFF',
-    fontSize: 30,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-  },
-  heroSub: {
-    color: marketing.mutedText,
-    fontSize: 13,
-    marginTop: 4,
-  },
+  heroActions: { alignItems: 'flex-end' },
   liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: marketing.cardBg,
     borderWidth: 1,
-    borderColor: marketing.goldBorder,
   },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#34D399',
-  },
-  liveText: { color: marketing.mutedText, fontSize: 10, fontWeight: '600' },
   searchHero: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 12,
     borderWidth: 1,
-    backgroundColor: marketing.cardBg,
-    marginBottom: 14,
-    minHeight: 48,
   },
-  searchPlaceholder: { color: marketing.mutedText, fontSize: 14, flex: 1 },
-  quoteScroll: { marginBottom: 6, maxHeight: 44 },
-  filters: { flexDirection: 'row', gap: 8, paddingRight: 8 },
+  filters: { flexDirection: 'row' },
 });

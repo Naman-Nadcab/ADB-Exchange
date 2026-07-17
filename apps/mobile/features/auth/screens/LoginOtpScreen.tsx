@@ -78,7 +78,7 @@ export function LoginOtpScreen({ route, navigation }: Props) {
         subtitle={`We sent a 6-digit code to ${identifier}`}
       />
       <Pressable onPress={() => navigation.navigate('LoginIdentifier')} style={{ marginBottom: theme.spacing[3] }}>
-        <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansMedium, fontSize: 14 }}>
+        <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansMedium }]}>
           Change email or phone
         </Text>
       </Pressable>
@@ -89,11 +89,13 @@ export function LoginOtpScreen({ route, navigation }: Props) {
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing[4] }}>
         <Pressable onPress={() => void resend()} disabled={!canResend}>
           <Text
-            style={{
-              color: canResend ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.foregroundSecondary})`,
-              fontFamily: theme.fonts.sansMedium,
-              fontSize: 14,
-            }}
+            style={[
+              theme.typography.bodyMd,
+              {
+                color: canResend ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.foregroundSecondary})`,
+                fontFamily: theme.fonts.sansMedium,
+              },
+            ]}
           >
             Resend code
           </Text>

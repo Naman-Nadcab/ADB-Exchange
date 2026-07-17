@@ -73,7 +73,7 @@ export function SignupOtpScreen({ route, navigation }: Props) {
     <AuthSplitLayout testID="S-107" showMarketingLogo onBack={() => navigation.goBack()}>
       <AuthProgressBar steps={4} currentIndex={2} />
       <Pressable onPress={() => navigation.goBack()} style={{ marginBottom: theme.spacing[3] }}>
-        <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansMedium, fontSize: 14 }}>
+        <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansMedium }]}>
           ← Back
         </Text>
       </Pressable>
@@ -88,11 +88,13 @@ export function SignupOtpScreen({ route, navigation }: Props) {
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing[4] }}>
         <Pressable onPress={() => void resend()} disabled={!canResend || sendOtp.isPending}>
           <Text
-            style={{
-              color: canResend ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.foregroundSecondary})`,
-              fontFamily: theme.fonts.sansMedium,
-              fontSize: 14,
-            }}
+            style={[
+              theme.typography.bodyMd,
+              {
+                color: canResend ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.foregroundSecondary})`,
+                fontFamily: theme.fonts.sansMedium,
+              },
+            ]}
           >
             Resend
           </Text>

@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { marketing } from '@shared/theme/marketing';
-import { hapticLight } from '@shared/theme';
-import { PillTabBar } from '@shared/ui';
+import { hapticLight, useTheme, hsl } from '@shared/theme';
+import { ExchangeCard, PillTabBar } from '@shared/ui';
 import type { Announcement, MarketListItem } from '@exchange/mobile-types';
 import { formatChangePct, changeColorKey } from '@core/domain/markets/formatPrice';
 
@@ -28,15 +27,26 @@ export function MarketsIntelligencePanel({
   onSelectAnnouncement,
   onViewAllAnnouncements,
 }: Props) {
+  const { theme } = useTheme();
+  const m = theme.marketing;
+  const buy = hsl(theme.colors.tradeBuy);
+  const sell = hsl(theme.colors.tradeSell);
   const [tab, setTab] = useState<'news' | 'announcements' | 'listings' | 'pulse'>('news');
   const items =
     tab === 'news' ? news : tab === 'announcements' ? announcements : tab === 'listings' ? [] : [];
 
   return (
-    <View style={[styles.wrap, { borderColor: marketing.goldBorder, backgroundColor: marketing.cardBg }]}>
-      <View style={styles.header}>
-        <Ionicons name="newspaper-outline" size={16} color={marketing.gold} />
-        <Text style={styles.title}>Market Intelligence</Text>
+    <ExchangeCard variant="marketing" style={{ marginBottom: theme.spacing[3.5] }}>
+      <View style={[styles.header, { gap: theme.spacing[2], marginBottom: theme.spacing[2.5] }]}>
+        <Ionicons name="newspaper-outline" size={theme.sizes.iconSm} color={m.gold} />
+        <Text
+          style={[
+            theme.typography.bodyLg,
+            { color: '#FFF', fontFamily: theme.fonts.sansBold },
+          ]}
+        >
+          Market Intelligence
+        </Text>
       </View>
       <PillTabBar
         tabs={[
@@ -49,27 +59,51 @@ export function MarketsIntelligencePanel({
         onChange={(id) => setTab(id as typeof tab)}
       />
       {tab === 'pulse' ? (
-        <View style={styles.pulse}>
-          <PulseBar label="Bullish" pct={bullishPct} color="#34D399" />
-          <PulseBar label="Bearish" pct={bearishPct} color="#FB7185" />
-          <Text style={styles.pulseHint}>Based on 24H price direction across all pairs</Text>
+        <View style={[styles.pulse, { marginTop: theme.spacing[3], gap: theme.spacing[2.5] }]}>
+          <PulseBar label="Bullish" pct={bullishPct} color={buy} />
+          <PulseBar label="Bearish" pct={bearishPct} color={sell} />
+          <Text style={[theme.typography.labelSm, { color: m.mutedText, marginTop: theme.spacing[1] }]}>
+            Based on 24H price direction across all pairs
+          </Text>
         </View>
       ) : tab === 'listings' ? (
-        <View style={styles.list}>
+        <View style={[styles.list, { marginTop: theme.spacing[2.5], gap: theme.spacing[2] }]}>
           {newListings.length === 0 ? (
-            <Text style={styles.empty}>No new listings</Text>
+            <Text
+              style={[
+                theme.typography.bodySm,
+                { color: m.mutedText, textAlign: 'center', paddingVertical: theme.spacing[4] },
+              ]}
+            >
+              No new listings
+            </Text>
           ) : (
             newListings.slice(0, 6).map((item) => (
               <Pressable
                 key={item.symbol}
-                style={styles.listingRow}
+                style={[styles.listingRow, { paddingVertical: theme.spacing[2] }]}
                 onPress={() => {
                   void hapticLight();
                   onSelectPair(item.symbol);
                 }}
               >
-                <Text style={styles.listingSymbol}>{item.baseAsset}/{item.quoteAsset}</Text>
-                <Text style={[styles.listingChange, { color: changeColorKey(item.changePct) === 'buy' ? '#34D399' : '#FB7185' }]}>
+                <Text
+                  style={[
+                    theme.typography.bodyMd,
+                    { color: '#FFF', fontFamily: theme.fonts.sansBold },
+                  ]}
+                >
+                  {item.baseAsset}/{item.quoteAsset}
+                </Text>
+                <Text
+                  style={[
+                    theme.typography.bodySm,
+                    {
+                      color: changeColorKey(item.changePct) === 'buy' ? buy : sell,
+                      fontFamily: theme.fonts.sansBold,
+                    },
+                  ]}
+                >
                   {formatChangePct(item.changePct)}
                 </Text>
               </Pressable>
@@ -77,14 +111,27 @@ export function MarketsIntelligencePanel({
           )}
         </View>
       ) : (
-        <View style={styles.list}>
+        <View style={[styles.list, { marginTop: theme.spacing[2.5], gap: theme.spacing[2] }]}>
           {items.length === 0 ? (
-            <Text style={styles.empty}>No {tab} available</Text>
+            <Text
+              style={[
+                theme.typography.bodySm,
+                { color: m.mutedText, textAlign: 'center', paddingVertical: theme.spacing[4] },
+              ]}
+            >
+              No {tab} available
+            </Text>
           ) : (
             items.slice(0, 6).map((item, idx) => (
               <Pressable
                 key={item.id ?? `${item.title}-${idx}`}
-                style={styles.newsRow}
+                style={[
+                  styles.newsRow,
+                  {
+                    paddingVertical: theme.spacing[1.5],
+                    borderBottomColor: m.insetHighlight,
+                  },
+                ]}
                 onPress={() => {
                   if ((tab === 'news' || tab === 'announcements') && item.id && onSelectAnnouncement) {
                     void hapticLight();
@@ -93,55 +140,91 @@ export function MarketsIntelligencePanel({
                 }}
                 disabled={!(tab === 'news' || tab === 'announcements') || !item.id || !onSelectAnnouncement}
               >
-                <Text style={styles.newsTitle} numberOfLines={2}>{item.title}</Text>
+                <Text
+                  style={[
+                    theme.typography.bodyMd,
+                    { color: '#FFF', fontFamily: theme.fonts.sansSemiBold },
+                  ]}
+                  numberOfLines={2}
+                >
+                  {item.title}
+                </Text>
                 {item.summary ? (
-                  <Text style={styles.newsSummary} numberOfLines={2}>{item.summary}</Text>
+                  <Text
+                    style={[
+                      theme.typography.labelMd,
+                      { color: m.mutedText, marginTop: theme.spacing[1] },
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {item.summary}
+                  </Text>
                 ) : null}
               </Pressable>
             ))
           )}
           {(tab === 'news' || tab === 'announcements') && onViewAllAnnouncements ? (
-            <Pressable onPress={onViewAllAnnouncements} style={styles.viewAll}>
-              <Text style={styles.viewAllText}>View all</Text>
+            <Pressable onPress={onViewAllAnnouncements} style={{ paddingTop: theme.spacing[2.5], alignItems: 'flex-end' }}>
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  { color: m.gold, fontFamily: theme.fonts.sansBold },
+                ]}
+              >
+                View all
+              </Text>
             </Pressable>
           ) : null}
         </View>
       )}
-    </View>
+    </ExchangeCard>
   );
 }
 
 function PulseBar({ label, pct, color }: { label: string; pct: number; color: string }) {
+  const { theme } = useTheme();
+  const m = theme.marketing;
+
   return (
-    <View style={styles.pulseRow}>
-      <Text style={styles.pulseLabel}>{label}</Text>
-      <View style={styles.pulseTrack}>
-        <View style={[styles.pulseFill, { width: `${pct}%`, backgroundColor: color }]} />
+    <View style={[styles.pulseRow, { gap: theme.spacing[2] }]}>
+      <Text
+        style={[
+          theme.typography.labelMd,
+          { color: m.mutedText, width: 56, fontFamily: theme.fonts.sansSemiBold },
+        ]}
+      >
+        {label}
+      </Text>
+      <View
+        style={[
+          styles.pulseTrack,
+          {
+            borderRadius: theme.radius.sm,
+            backgroundColor: m.insetHighlight,
+          },
+        ]}
+      >
+        <View style={[styles.pulseFill, { width: `${pct}%`, backgroundColor: color, borderRadius: theme.radius.sm }]} />
       </View>
-      <Text style={[styles.pulsePct, { color }]}>{pct}%</Text>
+      <Text
+        style={[
+          theme.typography.labelMd,
+          { color, width: 36, textAlign: 'right', fontFamily: theme.fonts.sansBold },
+        ]}
+      >
+        {pct}%
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { borderRadius: 16, borderWidth: 1, padding: 14, marginBottom: 14 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  title: { color: '#FFF', fontSize: 15, fontWeight: '700' },
-  list: { marginTop: 10, gap: 8 },
-  newsRow: { paddingVertical: 6, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.08)' },
-  newsTitle: { color: '#FFF', fontSize: 13, fontWeight: '600' },
-  newsSummary: { color: marketing.mutedText, fontSize: 11, marginTop: 4 },
-  listingRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 },
-  listingSymbol: { color: '#FFF', fontWeight: '700', fontSize: 13 },
-  listingChange: { fontSize: 12, fontWeight: '700' },
-  empty: { color: marketing.mutedText, fontSize: 12, textAlign: 'center', paddingVertical: 16 },
-  pulse: { marginTop: 12, gap: 10 },
-  pulseRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  pulseLabel: { color: marketing.mutedText, width: 56, fontSize: 11, fontWeight: '600' },
-  pulseTrack: { flex: 1, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.08)', overflow: 'hidden' },
-  pulseFill: { height: '100%', borderRadius: 4 },
-  pulsePct: { width: 36, textAlign: 'right', fontSize: 11, fontWeight: '700' },
-  pulseHint: { color: marketing.mutedText, fontSize: 10, marginTop: 4 },
-  viewAll: { paddingTop: 10, alignItems: 'flex-end' },
-  viewAllText: { color: marketing.gold, fontSize: 12, fontWeight: '700' },
+  header: { flexDirection: 'row', alignItems: 'center' },
+  list: {},
+  newsRow: { borderBottomWidth: StyleSheet.hairlineWidth },
+  listingRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  pulse: {},
+  pulseRow: { flexDirection: 'row', alignItems: 'center' },
+  pulseTrack: { flex: 1, height: 8, overflow: 'hidden' },
+  pulseFill: { height: '100%' },
 });

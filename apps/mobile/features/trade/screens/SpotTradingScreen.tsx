@@ -252,7 +252,7 @@ export function SpotTradingScreen({ navigation, route }: Props) {
               </TerminalPanel>
             )}
             <Pressable onPress={() => navigation.navigate('ChartFullscreen', { symbol, interval })} style={styles.link}>
-              <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600', fontSize: 13 }}>Expand chart ↗</Text>
+              <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansSemiBold }]}>Expand chart ↗</Text>
             </Pressable>
           </View>
         )}

@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { marketing } from '@shared/theme/marketing';
+import { useTheme, hsl } from '@shared/theme';
+import { ExchangeCard } from '@shared/ui';
 import { formatVolume, formatMarketCap } from '@core/domain/markets/formatPrice';
 
 type Props = {
@@ -27,16 +28,43 @@ function HeroMetric({
   accent?: string;
   icon?: keyof typeof Ionicons.glyphMap;
 }) {
+  const { theme } = useTheme();
+  const m = theme.marketing;
+
   return (
-    <View style={[styles.metric, { borderColor: marketing.goldBorder, backgroundColor: marketing.cardBg }]}>
+    <ExchangeCard variant="marketing" style={styles.metric}>
       {icon ? (
-        <Ionicons name={icon} size={14} color={accent ?? marketing.gold} style={styles.icon} />
+        <Ionicons
+          name={icon}
+          size={theme.sizes.iconSm - 6}
+          color={accent ?? m.gold}
+          style={{ marginBottom: theme.spacing[1.5] }}
+        />
       ) : null}
-      <Text style={[styles.label, { color: marketing.mutedText }]}>{label}</Text>
-      <Text style={[styles.value, { color: '#FFFFFF' }]} numberOfLines={1}>
+      <Text
+        style={[
+          theme.typography.labelSm,
+          {
+            color: m.mutedText,
+            fontFamily: theme.fonts.sansSemiBold,
+            letterSpacing: 1.1,
+            textTransform: 'uppercase',
+            marginBottom: theme.spacing[1],
+          },
+        ]}
+      >
+        {label}
+      </Text>
+      <Text
+        style={[
+          theme.typography.bodyLg,
+          { color: '#FFFFFF', fontFamily: theme.fonts.sansBold, fontVariant: ['tabular-nums'] },
+        ]}
+        numberOfLines={1}
+      >
         {value}
       </Text>
-    </View>
+    </ExchangeCard>
   );
 }
 
@@ -52,9 +80,13 @@ export function MarketsGlobalStats({
   intelligenceVolume,
   bullishPct,
 }: Props) {
+  const { theme } = useTheme();
+  const buy = hsl(theme.colors.tradeBuy);
+  const sell = hsl(theme.colors.tradeSell);
   const vol = intelligenceVolume && intelligenceVolume > 0 ? intelligenceVolume : totalVolume;
+
   return (
-    <View style={styles.grid}>
+    <View style={[styles.grid, { gap: theme.spacing[2], marginBottom: theme.spacing[3.5] }]}>
       {globalMarketCap != null && globalMarketCap > 0 ? (
         <HeroMetric label="Global MCap" value={formatMarketCap(globalMarketCap)} icon="globe-outline" />
       ) : null}
@@ -67,12 +99,12 @@ export function MarketsGlobalStats({
           label="Fear & Greed"
           value={`${fearGreedIndex}${fearGreedLabel ? ` · ${fearGreedLabel}` : ''}`}
           icon="speedometer-outline"
-          accent={fearGreedIndex >= 55 ? '#34D399' : fearGreedIndex <= 45 ? '#FB7185' : marketing.gold}
+          accent={fearGreedIndex >= 55 ? buy : fearGreedIndex <= 45 ? sell : theme.marketing.gold}
         />
       ) : null}
       <HeroMetric label="Pairs" value={String(pairsCount)} icon="grid-outline" />
-      <HeroMetric label="Gainers" value={String(gainers)} accent="#34D399" icon="arrow-up" />
-      <HeroMetric label="Losers" value={String(losers)} accent="#FB7185" icon="arrow-down" />
+      <HeroMetric label="Gainers" value={String(gainers)} accent={buy} icon="arrow-up" />
+      <HeroMetric label="Losers" value={String(losers)} accent={sell} icon="arrow-down" />
       {bullishPct != null ? (
         <HeroMetric label="Market Pulse" value={`${bullishPct}% bullish`} icon="analytics-outline" />
       ) : null}
@@ -81,16 +113,10 @@ export function MarketsGlobalStats({
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap' },
   metric: {
     flexGrow: 1,
     flexBasis: '47%',
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
     minHeight: 72,
   },
-  icon: { marginBottom: 6 },
-  label: { fontSize: 10, fontWeight: '600', letterSpacing: 1.1, textTransform: 'uppercase', marginBottom: 4 },
-  value: { fontSize: 16, fontWeight: '700', fontVariant: ['tabular-nums'] },
 });

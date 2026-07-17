@@ -41,7 +41,7 @@ export function LoginIdentifierScreen({ navigation }: Props) {
   return (
     <AuthSplitLayout testID="S-102" showMarketingLogo onBack={() => navigation.goBack()}>
       <Pressable onPress={() => navigation.navigate('LoginPassword')} style={{ marginBottom: theme.spacing[3] }}>
-        <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansMedium, fontSize: 14 }}>
+        <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansMedium }]}>
           ← Back to password
         </Text>
       </Pressable>

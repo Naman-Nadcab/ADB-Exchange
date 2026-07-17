@@ -147,7 +147,7 @@ export function PairDetailScreen({ route, navigation }: Props) {
             }}
             accessibilityLabel="Toggle watchlist"
           >
-            <Text style={{ fontSize: 22, color: `hsl(${theme.colors.brandPrimary})` }}>
+            <Text style={[theme.typography.headingLg, { color: `hsl(${theme.colors.brandPrimary})` }]}>
               {isFavorite(symbol) ? '★' : '☆'}
             </Text>
           </Pressable>
@@ -190,7 +190,7 @@ export function PairDetailScreen({ route, navigation }: Props) {
             OHLC Chart
           </Text>
           <Pressable onPress={goFullChart} accessibilityRole="button">
-            <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '700', fontSize: 13 }}>
+            <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansBold }]}>
               Open Full Chart →
             </Text>
           </Pressable>

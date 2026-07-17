@@ -36,6 +36,13 @@ function MarketRowInner({ item, onPress, onLongPress, isFavorite, rank, variant 
       onLongPress={onLongPress}
       style={({ pressed }) => [
         styles.row,
+        {
+          paddingHorizontal: theme.spacing[1],
+          paddingVertical: theme.spacing[2.5],
+          minHeight: theme.listDensity.default.rowHeight,
+          gap: theme.spacing[2],
+          opacity: !isFlat && pressed ? theme.opacity.pressed : 1,
+        },
         isFlat
           ? {
               borderBottomColor: `hsl(${theme.colors.borderDefault})`,
@@ -44,7 +51,7 @@ function MarketRowInner({ item, onPress, onLongPress, isFavorite, rank, variant 
           : {
               backgroundColor: `hsl(${theme.colors.backgroundElevated})`,
               borderColor: `hsl(${theme.colors.borderDefault})`,
-              opacity: pressed ? 0.92 : 1,
+              opacity: pressed ? theme.opacity.pressed : 1,
             },
       ]}
       accessibilityRole="button"
@@ -52,26 +59,53 @@ function MarketRowInner({ item, onPress, onLongPress, isFavorite, rank, variant 
     >
       <View style={styles.pairCol}>
         {rank != null ? (
-          <Text style={[styles.rank, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>{rank}</Text>
+          <Text
+            style={[
+              theme.typography.labelSm,
+              { color: `hsl(${theme.colors.foregroundSecondary})`, width: 18, textAlign: 'center', fontFamily: theme.fonts.sansSemiBold },
+            ]}
+          >
+            {rank}
+          </Text>
         ) : null}
-        <View style={[styles.icon, { backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.14)` }]}>
-          <Text style={[styles.iconText, { color: `hsl(${theme.colors.brandPrimary})` }]}>
+        <View
+          style={[
+            styles.icon,
+            {
+              width: theme.sizes.avatarSm,
+              height: theme.sizes.avatarSm,
+              borderRadius: theme.sizes.avatarSm / 2,
+              backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.14)`,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              theme.typography.labelMd,
+              { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansBold, fontWeight: '800' },
+            ]}
+          >
             {item.baseAsset.slice(0, 2)}
           </Text>
         </View>
         <View style={styles.pairMeta}>
-          <View style={styles.symbolRow}>
-            <Text style={[styles.symbol, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+          <View style={[styles.symbolRow, { gap: theme.spacing[1] }]}>
+            <Text
+              style={[
+                theme.typography.bodyMd,
+                { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+              ]}
+            >
               {item.baseAsset}
               <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontWeight: '400' }}>
                 /{item.quoteAsset}
               </Text>
             </Text>
             {isFavorite ? (
-              <Ionicons name="star" size={11} color={`hsl(${theme.colors.brandPrimary})`} />
+              <Ionicons name="star" size={theme.sizes.iconSm - 9} color={`hsl(${theme.colors.brandPrimary})`} />
             ) : null}
           </View>
-          <Text style={[styles.vol, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+          <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[0.5] }]}>
             Vol {item.volume24h.toLocaleString(undefined, { notation: 'compact' })}
           </Text>
         </View>
@@ -89,11 +123,32 @@ function MarketRowInner({ item, onPress, onLongPress, isFavorite, rank, variant 
       />
 
       <View style={styles.priceCol}>
-        <Text style={[styles.price, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+        <Text
+          style={[
+            theme.typography.price,
+            { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.monoSemiBold },
+          ]}
+        >
           {formatPrice(item.lastPrice, '')}
         </Text>
-        <View style={[styles.changePill, { backgroundColor: `hsl(${changeColor} / 0.14)` }]}>
-          <Text style={{ color: `hsl(${changeColor})`, fontSize: 11, fontWeight: '700' }}>
+        <View
+          style={[
+            styles.changePill,
+            {
+              paddingHorizontal: theme.spacing[1.5],
+              paddingVertical: theme.spacing[0.5],
+              borderRadius: theme.radius.sm,
+              marginTop: theme.spacing[0.5],
+              backgroundColor: `hsl(${changeColor} / 0.14)`,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              theme.typography.labelMd,
+              { color: `hsl(${changeColor})`, fontFamily: theme.fonts.sansBold },
+            ]}
+          >
             {formatChangePct(item.changePct)}
           </Text>
         </View>
@@ -108,24 +163,15 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 4,
-    paddingVertical: 11,
-    minHeight: 56,
-    gap: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderRadius: 0,
     borderWidth: 0,
     marginBottom: 0,
   },
   pairCol: { flex: 1.2, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  rank: { width: 18, fontSize: 10, fontWeight: '600', textAlign: 'center' },
-  icon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  iconText: { fontSize: 11, fontWeight: '800' },
+  icon: { alignItems: 'center', justifyContent: 'center' },
   pairMeta: { flex: 1 },
-  symbolRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  symbol: { fontSize: 14, fontWeight: '700' },
-  vol: { fontSize: 10, marginTop: 1 },
+  symbolRow: { flexDirection: 'row', alignItems: 'center' },
   priceCol: { alignItems: 'flex-end', minWidth: 88 },
-  price: { fontSize: 14, fontWeight: '700', fontVariant: ['tabular-nums'], fontFamily: 'IBMPlexMono_600SemiBold' },
-  changePill: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginTop: 3 },
+  changePill: {},
 });

@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
-import { marketing } from '@shared/theme/marketing';
-import { hapticLight } from '@shared/theme';
+import { hapticLight, useTheme, hsl, hslAlpha } from '@shared/theme';
+import { ExchangeCard } from '@shared/ui';
 import { formatChangePct, formatVolume, formatMarketCap, changeColorKey } from '@core/domain/markets/formatPrice';
 import type { MarketListItem } from '@exchange/mobile-types';
 
@@ -10,16 +10,34 @@ type Props = {
 };
 
 export function MarketsHeatmapSection({ rows, onSelect }: Props) {
+  const { theme } = useTheme();
+  const m = theme.marketing;
+  const buy = hsl(theme.colors.tradeBuy);
+  const sell = hsl(theme.colors.tradeSell);
+
   if (!rows.length) return null;
   const maxCap = Math.max(...rows.map((r) => r.marketCap ?? 0), 1);
 
   return (
-    <View style={[styles.wrap, { borderColor: marketing.goldBorder, backgroundColor: marketing.cardBg }]}>
-      <Text style={styles.title}>Market Heatmap</Text>
-      <ScrollView style={styles.scroll} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+    <ExchangeCard variant="marketing" style={{ marginBottom: theme.spacing[3.5], maxHeight: 280 }}>
+      <Text
+        style={[
+          theme.typography.labelSm,
+          {
+            color: m.gold,
+            fontFamily: theme.fonts.sansBold,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+            marginBottom: theme.spacing[2.5],
+          },
+        ]}
+      >
+        Market Heatmap
+      </Text>
+      <ScrollView style={{ maxHeight: 220 }} nestedScrollEnabled showsVerticalScrollIndicator={false}>
         {rows.map((row, idx) => {
           const bullish = row.changePct >= 0;
-          const color = changeColorKey(row.changePct) === 'buy' ? '#34D399' : '#FB7185';
+          const color = changeColorKey(row.changePct) === 'buy' ? buy : sell;
           const capShare = Math.max(20, Math.min(100, ((row.marketCap ?? 0) / maxCap) * 100));
           return (
             <Pressable
@@ -31,35 +49,64 @@ export function MarketsHeatmapSection({ rows, onSelect }: Props) {
               style={[
                 styles.ribbon,
                 {
-                  borderColor: bullish ? 'rgba(52,211,153,0.4)' : 'rgba(251,113,133,0.4)',
-                  backgroundColor: bullish ? 'rgba(6,78,59,0.35)' : 'rgba(127,29,29,0.35)',
+                  borderRadius: theme.radius.md + 2,
+                  marginBottom: theme.spacing[1.5],
+                  paddingHorizontal: theme.spacing[2.5],
+                  paddingVertical: theme.spacing[2],
+                  borderColor: bullish ? hslAlpha(theme.colors.tradeBuy, 0.4) : hslAlpha(theme.colors.tradeSell, 0.4),
+                  backgroundColor: bullish
+                    ? hslAlpha(theme.colors.tradeBuy, 0.12)
+                    : hslAlpha(theme.colors.tradeSell, 0.12),
                 },
               ]}
             >
-              <View style={[styles.capBar, { width: `${capShare}%`, backgroundColor: bullish ? 'rgba(52,211,153,0.2)' : 'rgba(251,113,133,0.2)' }]} />
+              <View
+                style={[
+                  styles.capBar,
+                  {
+                    width: `${capShare}%`,
+                    backgroundColor: bullish ? hslAlpha(theme.colors.tradeBuy, 0.2) : hslAlpha(theme.colors.tradeSell, 0.2),
+                  },
+                ]}
+              />
               <View style={styles.ribbonContent}>
                 <View>
-                  <Text style={styles.asset}>{idx + 1}. {row.baseAsset}</Text>
-                  <Text style={styles.meta}>Vol {formatVolume(row.volume24h)} · MCap {formatMarketCap(row.marketCap ?? 0)}</Text>
+                  <Text
+                    style={[
+                      theme.typography.bodyMd,
+                      { color: '#FFF', fontFamily: theme.fonts.sansBold },
+                    ]}
+                  >
+                    {idx + 1}. {row.baseAsset}
+                  </Text>
+                  <Text
+                    style={[
+                      theme.typography.labelSm,
+                      { color: m.mutedText, marginTop: theme.spacing[0.5] },
+                    ]}
+                  >
+                    Vol {formatVolume(row.volume24h)} · MCap {formatMarketCap(row.marketCap ?? 0)}
+                  </Text>
                 </View>
-                <Text style={[styles.change, { color }]}>{formatChangePct(row.changePct)}</Text>
+                <Text
+                  style={[
+                    theme.typography.bodyMd,
+                    { color, fontFamily: theme.fonts.sansBold },
+                  ]}
+                >
+                  {formatChangePct(row.changePct)}
+                </Text>
               </View>
             </Pressable>
           );
         })}
       </ScrollView>
-    </View>
+    </ExchangeCard>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { borderRadius: 16, borderWidth: 1, padding: 14, marginBottom: 14, maxHeight: 280 },
-  title: { color: marketing.gold, fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 10 },
-  scroll: { maxHeight: 220 },
-  ribbon: { borderRadius: 10, borderWidth: 1, marginBottom: 6, overflow: 'hidden', paddingHorizontal: 10, paddingVertical: 8 },
+  ribbon: { borderWidth: 1, overflow: 'hidden' },
   capBar: { position: 'absolute', left: 0, top: 0, bottom: 0 },
   ribbonContent: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  asset: { color: '#FFF', fontWeight: '700', fontSize: 13 },
-  meta: { color: marketing.mutedText, fontSize: 10, marginTop: 2 },
-  change: { fontSize: 13, fontWeight: '700' },
 });

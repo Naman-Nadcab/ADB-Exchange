@@ -102,8 +102,25 @@ export function OrdersHomeScreen({ navigation }: Props) {
     <ScreenLayout testID="S-400">
       <View style={styles.heroRow}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.heroTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Orders</Text>
-          <Text style={[styles.heroSub, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+          <Text
+            style={[
+              theme.typography.displayMd,
+              {
+                color: `hsl(${theme.colors.foregroundPrimary})`,
+                fontFamily: theme.fonts.sansBold,
+                letterSpacing: -0.3,
+                marginBottom: theme.spacing[0.5],
+              },
+            ]}
+          >
+            Orders
+          </Text>
+          <Text
+            style={[
+              theme.typography.bodyMd,
+              { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[3.5] },
+            ]}
+          >
             Spot · Open · History · Fills
           </Text>
         </View>
@@ -194,7 +211,7 @@ export function OrdersHomeScreen({ navigation }: Props) {
         variant="ghost"
         size="md"
         onPress={() => navigation.getParent()?.navigate('P2P', { screen: 'OrdersList' })}
-        style={{ marginTop: 12 }}
+        style={{ marginTop: theme.spacing[3] }}
       />
       </>
       )}
@@ -204,8 +221,6 @@ export function OrdersHomeScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   heroRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 2 },
-  heroTitle: { fontSize: 28, fontWeight: '700', letterSpacing: -0.3, marginBottom: 2 },
-  heroSub: { fontSize: 13, marginBottom: 14 },
   card: { flex: 1, marginBottom: 8 },
   historyRow: { marginBottom: 8 },
   historyTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },

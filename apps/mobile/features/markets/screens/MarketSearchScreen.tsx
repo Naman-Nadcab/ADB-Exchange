@@ -10,7 +10,7 @@ import {
   ListColumnHeader,
   ErrorBanner,
 } from '@shared/ui';
-import { marketing } from '@shared/theme';
+import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import { searchMarkets, trending, popularMarkets } from '@core/domain/markets/marketUtils';
 import { MarketRow } from '../components/MarketRow';
@@ -26,6 +26,8 @@ type Props = NativeStackScreenProps<MarketsStackParamList, 'MarketSearch'>;
 type SearchSection = 'recent' | 'favorites' | 'trending' | 'popular';
 
 export function MarketSearchScreen({ navigation }: Props) {
+  const { theme } = useTheme();
+  const m = theme.marketing;
   const [query, setQuery] = useState('');
   const { data, isLoading, isError, error, refetch, isFetching } = useMarkets();
   const { data: intelligence } = useMarketIntelligence();
@@ -98,7 +100,7 @@ export function MarketSearchScreen({ navigation }: Props) {
   };
 
   return (
-    <ScreenLayout testID="S-201" style={{ backgroundColor: marketing.pageBg }}>
+    <ScreenLayout testID="S-201" style={{ backgroundColor: m.pageBg }}>
       <SearchBar
         value={query}
         onChangeText={setQuery}
@@ -107,7 +109,7 @@ export function MarketSearchScreen({ navigation }: Props) {
       />
 
       {!query.trim() ? (
-        <View style={styles.quickTabs}>
+        <View style={[styles.quickTabs, { gap: theme.spacing[2], marginTop: theme.spacing[2] }]}>
           {(['recent', 'favorites', 'trending', 'popular'] as SearchSection[]).map((id) => (
             <FilterChip
               key={id}
@@ -119,8 +121,24 @@ export function MarketSearchScreen({ navigation }: Props) {
         </View>
       ) : null}
 
-      <View style={styles.metaRow}>
-        <Text style={[styles.sectionLabel, { color: marketing.mutedText }]}>{sectionLabel.toUpperCase()}</Text>
+      <View
+        style={[
+          styles.metaRow,
+          { marginBottom: theme.spacing[1], marginTop: theme.spacing[2] },
+        ]}
+      >
+        <Text
+          style={[
+            theme.typography.labelSm,
+            {
+              color: m.mutedText,
+              fontFamily: theme.fonts.sansBold,
+              letterSpacing: 1.2,
+            },
+          ]}
+        >
+          {sectionLabel.toUpperCase()}
+        </Text>
         {!query.trim() && recent.length > 0 ? (
           <FilterChip label="Clear history" onPress={clearRecent} />
         ) : null}
@@ -151,7 +169,7 @@ export function MarketSearchScreen({ navigation }: Props) {
           keyExtractor={(item) => item.symbol}
           keyboardShouldPersistTaps="handled"
           refreshControl={
-            <RefreshControl refreshing={isFetching} onRefresh={() => void refetch()} tintColor={marketing.gold} />
+            <RefreshControl refreshing={isFetching} onRefresh={() => void refetch()} tintColor={m.gold} />
           }
           renderItem={({ item }) => (
             <MarketRow
@@ -167,7 +185,7 @@ export function MarketSearchScreen({ navigation }: Props) {
           windowSize={5}
           ListFooterComponent={
             !query.trim() ? (
-              <View style={styles.footerSections}>
+              <View style={[styles.footerSections, { marginTop: theme.spacing[4], gap: theme.spacing[3], paddingBottom: theme.spacing[6] }]}>
                 {activeSection !== 'trending' && trendingItems.length > 0 ? (
                   <SectionBlock title="Trending" items={trendingItems} onSelect={openPair} isFavorite={isFavorite} toggle={toggle} />
                 ) : null}
@@ -199,9 +217,24 @@ function SectionBlock({
   isFavorite: (s: string) => boolean;
   toggle: (s: string) => void;
 }) {
+  const { theme } = useTheme();
+  const m = theme.marketing;
+
   return (
-    <View style={styles.sectionBlock}>
-      <Text style={[styles.sectionLabel, { color: marketing.mutedText, marginBottom: 6 }]}>{title.toUpperCase()}</Text>
+    <View style={{ marginTop: theme.spacing[1] }}>
+      <Text
+        style={[
+          theme.typography.labelSm,
+          {
+            color: m.mutedText,
+            fontFamily: theme.fonts.sansBold,
+            letterSpacing: 1.2,
+            marginBottom: theme.spacing[1.5],
+          },
+        ]}
+      >
+        {title.toUpperCase()}
+      </Text>
       {items.slice(0, 5).map((item) => (
         <MarketRow
           key={item.symbol}
@@ -221,11 +254,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
-    marginTop: 8,
   },
-  quickTabs: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
-  sectionLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1.2 },
-  footerSections: { marginTop: 16, gap: 12, paddingBottom: 24 },
-  sectionBlock: { marginTop: 4 },
+  quickTabs: { flexDirection: 'row', flexWrap: 'wrap' },
+  footerSections: {},
 });

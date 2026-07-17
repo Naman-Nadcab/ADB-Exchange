@@ -45,11 +45,13 @@ export function ForgotPasswordOtpScreen({ route, navigation }: Props) {
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing[4] }}>
         <Pressable onPress={() => void resend()} disabled={!canResend}>
           <Text
-            style={{
-              color: canResend ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.foregroundSecondary})`,
-              fontFamily: theme.fonts.sansMedium,
-              fontSize: 14,
-            }}
+            style={[
+              theme.typography.bodyMd,
+              {
+                color: canResend ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.foregroundSecondary})`,
+                fontFamily: theme.fonts.sansMedium,
+              },
+            ]}
           >
             Resend code
           </Text>

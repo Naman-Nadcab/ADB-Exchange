@@ -69,7 +69,7 @@ export function PairHeader({
             {baseAsset}
             <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontWeight: '400' }}>/{quoteAsset}</Text>
           </Text>
-          <Ionicons name="chevron-down" size={16} color={`hsl(${theme.colors.foregroundSecondary})`} />
+          <Ionicons name="chevron-down" size={theme.sizes.iconSm} color={`hsl(${theme.colors.foregroundSecondary})`} />
         </Pressable>
         <View style={styles.actions}>
           <Pressable
@@ -81,12 +81,12 @@ export function PairHeader({
           >
             <Ionicons
               name={isFavorite(symbol) ? 'star' : 'star-outline'}
-              size={20}
+              size={theme.sizes.iconSm}
               color={`hsl(${theme.colors.brandPrimary})`}
             />
           </Pressable>
           {marketStatus && marketStatus !== 'ACTIVE' ? (
-            <Text style={[styles.halt, { color: `hsl(${theme.colors.statusWarning})` }]}>{marketStatus}</Text>
+            <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.statusWarning})`, fontFamily: theme.fonts.sansBold, textTransform: 'uppercase' }]}>{marketStatus}</Text>
           ) : null}
           <AccountEntryButton compact size={20} />
         </View>
@@ -96,11 +96,13 @@ export function PairHeader({
 
       <View style={styles.statsRow}>
         <Text
-          style={{
-            color: `hsl(${direction === 'up' ? theme.colors.tradeBuy : direction === 'down' ? theme.colors.tradeSell : theme.colors.foregroundSecondary})`,
-            fontWeight: '600',
-            fontSize: 14,
-          }}
+          style={[
+            theme.typography.bodyMd,
+            {
+              color: `hsl(${direction === 'up' ? theme.colors.tradeBuy : direction === 'down' ? theme.colors.tradeSell : theme.colors.foregroundSecondary})`,
+              fontFamily: theme.fonts.sansSemiBold,
+            },
+          ]}
         >
           {formatChangePct(change)}
         </Text>
@@ -128,5 +130,4 @@ const styles = StyleSheet.create({
   pairBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 8, alignItems: 'center' },
-  halt: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
 });

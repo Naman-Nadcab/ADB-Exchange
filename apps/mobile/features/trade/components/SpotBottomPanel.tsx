@@ -39,15 +39,15 @@ function HistoryOrderRow({
   return (
     <TerminalPanel subtle style={styles.historyRow}>
       <View style={styles.historyTop}>
-        <Text style={{ color: `hsl(${sideColor})`, fontWeight: '600', textTransform: 'capitalize' }}>
+        <Text style={[theme.typography.bodyMd, { color: `hsl(${sideColor})`, fontFamily: theme.fonts.sansSemiBold, textTransform: 'capitalize' }]}>
           {side} · {type.replace(/_/g, ' ')}
         </Text>
         <StatusChip label={status} tone="neutral" />
       </View>
-      <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.mono, marginTop: 4 }}>
+      <Text style={[theme.typography.price, { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.mono, marginTop: theme.spacing[1] }]}>
         {quantity} @ {price}
       </Text>
-      <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11, marginTop: 2 }}>{market} · {time}</Text>
+      <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[0.5] }]}>{market} · {time}</Text>
     </TerminalPanel>
   );
 }
@@ -118,7 +118,7 @@ export function SpotBottomPanel({ symbol, isAuth }: Props) {
   const filterToggle = (
     <View style={styles.filterRow}>
       <Pressable onPress={() => setShowAllMarkets((v) => !v)} style={styles.filterBtn}>
-        <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontSize: 12, fontWeight: '600' }}>
+        <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansSemiBold }]}>
           {showAllMarkets ? 'All markets' : 'This pair'}
         </Text>
       </Pressable>
@@ -132,7 +132,7 @@ export function SpotBottomPanel({ symbol, isAuth }: Props) {
       ) : null}
       {tab === 'assets' ? (
         <View style={styles.switchRow}>
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11 }}>Hide small</Text>
+          <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>Hide small</Text>
           <Switch value={hideSmallBalances} onValueChange={setHideSmallBalances} />
         </View>
       ) : null}

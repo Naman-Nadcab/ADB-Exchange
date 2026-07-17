@@ -102,7 +102,7 @@ export function LoginPasswordScreen({ navigation, route }: Props) {
             borderColor: `hsl(${theme.colors.brandPrimary} / 0.3)`,
           }}
         >
-          <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontSize: 14 }}>
+          <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
             Password reset successful. Log in with your new password.
           </Text>
         </View>

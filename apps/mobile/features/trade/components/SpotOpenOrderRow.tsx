@@ -59,7 +59,14 @@ export function SpotOpenOrderRow({ order }: Props) {
         {busy ? (
           <ActivityIndicator size="small" color={`hsl(${theme.colors.statusError})`} />
         ) : (
-          <Text style={{ color: `hsl(${theme.colors.statusError})`, fontSize: 13, fontWeight: '600' }}>Cancel</Text>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: `hsl(${theme.colors.statusError})`, fontFamily: theme.fonts.sansSemiBold },
+            ]}
+          >
+            Cancel
+          </Text>
         )}
       </Pressable>
     </TerminalPanel>
