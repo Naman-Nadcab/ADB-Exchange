@@ -15,6 +15,7 @@ const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 export function BottomNavigation({ state, descriptors, navigation }: BottomTabBarProps) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
+  const settingsDensity = theme.listDensity.settings;
 
   return (
     <View
@@ -31,7 +32,13 @@ export function BottomNavigation({ state, descriptors, navigation }: BottomTabBa
           styles.bar,
           {
             backgroundColor:
-              Platform.OS === 'ios' ? 'rgba(13, 17, 24, 0.92)' : `hsl(${theme.colors.backgroundElevated})`,
+              Platform.OS === 'ios'
+                ? `hsl(${theme.colors.backgroundElevated} / 0.92)`
+                : `hsl(${theme.colors.backgroundElevated})`,
+            paddingTop: theme.spacing[1.5],
+            paddingHorizontal: theme.spacing[2],
+            minHeight: theme.sizes.bottomNavHeight,
+            gap: settingsDensity.gap,
           },
         ]}
       >
@@ -55,22 +62,24 @@ export function BottomNavigation({ state, descriptors, navigation }: BottomTabBa
               style={({ pressed }) => [
                 styles.tab,
                 {
-                  opacity: pressed ? 0.88 : 1,
+                  opacity: pressed ? theme.opacity.pressed : 1,
                   backgroundColor: focused ? `hsl(${theme.colors.brandPrimary} / 0.12)` : 'transparent',
                   borderRadius: theme.radius.lg,
+                  minHeight: settingsDensity.rowHeight,
+                  paddingHorizontal: theme.spacing[0.5],
                 },
               ]}
             >
               <Ionicons
                 name={icon}
-                size={focused ? 22 : 20}
+                size={focused ? theme.sizes.iconSm + 2 : theme.sizes.iconSm}
                 color={focused ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.foregroundSecondary})`}
               />
               <Text
                 style={[
                   theme.typography.labelSm,
                   {
-                    marginTop: 3,
+                    marginTop: theme.spacing[0.5] + 1,
                     color: focused ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.foregroundSecondary})`,
                     fontFamily: focused ? theme.fonts.sansSemiBold : theme.fonts.sansMedium,
                   },
@@ -80,7 +89,14 @@ export function BottomNavigation({ state, descriptors, navigation }: BottomTabBa
               </Text>
               {focused ? (
                 <View
-                  style={[styles.indicator, { backgroundColor: `hsl(${theme.colors.brandPrimary})` }]}
+                  style={[
+                    styles.indicator,
+                    {
+                      backgroundColor: `hsl(${theme.colors.brandPrimary})`,
+                      top: theme.spacing[0.5],
+                      borderRadius: theme.radius.sm,
+                    },
+                  ]}
                 />
               ) : null}
             </Pressable>
@@ -97,23 +113,16 @@ const styles = StyleSheet.create({
   },
   bar: {
     flexDirection: 'row',
-    paddingTop: 6,
-    paddingHorizontal: 8,
-    minHeight: 68,
   },
   tab: {
     flex: 1,
-    minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 2,
     position: 'relative',
   },
   indicator: {
     position: 'absolute',
-    top: 2,
     width: 20,
     height: 2,
-    borderRadius: 1,
   },
 });

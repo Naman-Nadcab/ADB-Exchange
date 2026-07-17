@@ -16,32 +16,39 @@ export function GuestAuthPrompt({ testID, title, message, icon = 'lock-closed-ou
   const { openLogin, openSignup } = useGuestAccess();
 
   return (
-    <View testID={testID} style={styles.wrap}>
+    <View testID={testID} style={[styles.wrap, { paddingVertical: theme.spacing.pageY }]}>
       <View
         style={[
           styles.iconWrap,
-          { backgroundColor: `hsl(${theme.colors.surfaceMuted})` },
+          {
+            width: theme.sizes.iconLg + theme.spacing[6],
+            height: theme.sizes.iconLg + theme.spacing[6],
+            borderRadius: theme.radius.full,
+            backgroundColor: `hsl(${theme.colors.surfaceMuted})`,
+            marginBottom: theme.spacing[2],
+          },
         ]}
       >
-        <Ionicons name={icon} size={28} color={`hsl(${theme.colors.brandPrimary})`} />
+        <Ionicons name={icon} size={theme.sizes.iconLg - 4} color={`hsl(${theme.colors.brandPrimary})`} />
       </View>
       <EmptyState title={title} message={message} />
       <PrimaryButton title="Log In" size="xl" onPress={() => openLogin()} />
-      <PrimaryButton title="Register" variant="outline" size="xl" onPress={() => openSignup()} style={styles.secondary} />
+      <PrimaryButton
+        title="Register"
+        variant="outline"
+        size="xl"
+        onPress={() => openSignup()}
+        style={{ marginTop: theme.spacing[3] }}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, justifyContent: 'center', paddingVertical: 24 },
+  wrap: { flex: 1, justifyContent: 'center' },
   iconWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
-    marginBottom: 8,
   },
-  secondary: { marginTop: 12 },
 });

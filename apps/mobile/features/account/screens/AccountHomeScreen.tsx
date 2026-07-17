@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
-import { ScrollView, Text, StyleSheet, View, Pressable } from 'react-native';
+import { ScrollView, Text, View, Pressable } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { ScreenLayout, ExchangeCard, Avatar, PrimaryButton } from '@shared/ui';
-import { useTheme, hapticSelection, marketing } from '@shared/theme';
+import { ScreenLayout, ExchangeCard, Avatar, PrimaryButton, StatusChip } from '@shared/ui';
+import { useTheme, hapticSelection } from '@shared/theme';
+import type { StatusChipTone } from '@shared/theme/statusPalettes';
 import { analytics } from '@core/observability/analytics';
 import { useAuthStore } from '@core/state/authStore';
 import { useAuthProfile, useNotifications, useKycStatus } from '../hooks/useAccount';
@@ -13,13 +14,35 @@ import type { AccountStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<AccountStackParamList, 'AccountHome'>;
 
+function kycStatusTone(status?: string): StatusChipTone {
+  const s = (status ?? '').toLowerCase();
+  if (s.includes('approved') || s.includes('verified')) return 'live';
+  if (s.includes('reject')) return 'off';
+  if (s.includes('pending') || s.includes('review')) return 'sync';
+  return 'neutral';
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   const { theme } = useTheme();
   return (
-    <View style={styles.section}>
-      <Text style={[styles.sectionTitle, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>{title}</Text>
-      <ExchangeCard variant="terminal" style={styles.sectionCard}>
-        <View style={styles.sectionInner}>{children}</View>
+    <View style={{ marginBottom: theme.spacing[4] }}>
+      <Text
+        style={[
+          theme.typography.labelSm,
+          {
+            color: `hsl(${theme.colors.foregroundSecondary})`,
+            fontFamily: theme.fonts.sansBold,
+            letterSpacing: 1.2,
+            marginBottom: theme.spacing[2],
+            marginLeft: theme.spacing[1],
+            textTransform: 'uppercase',
+          },
+        ]}
+      >
+        {title}
+      </Text>
+      <ExchangeCard variant="terminal" style={{ paddingVertical: 0, paddingHorizontal: 0 }}>
+        <View style={{ paddingVertical: theme.spacing[1] }}>{children}</View>
       </ExchangeCard>
     </View>
   );
@@ -41,6 +64,7 @@ export function AccountHomeScreen({ navigation }: Props) {
   const unread = (notifQ.data ?? []).filter((n) => !n.read).length;
   const p = profileQ.data;
   const displayName = p?.first_name ?? user?.username ?? user?.email ?? 'Guest';
+  const kycStatus = kycQ.data?.status ?? p?.kyc_status;
 
   const guardedNav = (action: () => void) => {
     if (!requireAuth()) return;
@@ -48,46 +72,72 @@ export function AccountHomeScreen({ navigation }: Props) {
   };
 
   return (
-    <ScreenLayout testID="S-700" style={{ backgroundColor: marketing.pageBg }}>
-      <View style={styles.modalHeader}>
+    <ScreenLayout testID="S-700" style={{ backgroundColor: theme.marketing.pageBg }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: theme.spacing[3],
+          minHeight: theme.sizes.tapTarget,
+        }}
+      >
         <Pressable
           onPress={() => {
             void hapticSelection();
             navigation.getParent()?.goBack();
           }}
-          hitSlop={12}
+          hitSlop={theme.spacing[3]}
           accessibilityRole="button"
           accessibilityLabel="Close account"
         >
-          <Ionicons name="close" size={24} color={`hsl(${theme.colors.foregroundPrimary})`} />
+          <Ionicons name="close" size={theme.sizes.iconMd} color={`hsl(${theme.colors.foregroundPrimary})`} />
         </Pressable>
-        <Text style={[styles.modalTitle, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Account</Text>
-        <View style={styles.modalSpacer} />
+        <Text style={[theme.typography.headingMd, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Account</Text>
+        <View style={{ width: theme.sizes.iconMd }} />
       </View>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <ExchangeCard elevated style={styles.hero}>
-          <View style={styles.heroRow}>
+        <ExchangeCard elevated style={{ marginBottom: theme.spacing[4] }}>
+          <View style={{ flexDirection: 'row', gap: theme.spacing[3.5], alignItems: 'center' }}>
             <Avatar name={displayName} size="lg" />
-            <View style={styles.heroMeta}>
-              <Text style={[styles.heroName, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={[
+                  theme.typography.headingMd,
+                  { color: `hsl(${theme.colors.foregroundPrimary})`, marginBottom: theme.spacing[0.5] },
+                ]}
+              >
                 {isGuest ? 'Guest' : displayName}
               </Text>
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>
+              <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
                 {isGuest ? 'Browse markets · Sign in for full access' : user?.email ?? user?.phone ?? '—'}
               </Text>
               {!isGuest ? (
-                <View style={styles.badges}>
-                  <View style={[styles.tierBadge, { backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.14)` }]}>
-                    <Ionicons name="diamond-outline" size={12} color={`hsl(${theme.colors.brandPrimary})`} />
-                    <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '700', fontSize: 11 }}>
+                <View style={{ flexDirection: 'row', gap: theme.spacing[2], marginTop: theme.spacing[2], flexWrap: 'wrap' }}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: theme.spacing[1],
+                      paddingHorizontal: theme.spacing[2],
+                      paddingVertical: theme.spacing[1],
+                      borderRadius: theme.radius.full,
+                      backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.14)`,
+                    }}
+                  >
+                    <Ionicons name="diamond-outline" size={theme.sizes.iconXs - 4} color={`hsl(${theme.colors.brandPrimary})`} />
+                    <Text
+                      style={[
+                        theme.typography.labelSm,
+                        { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansBold },
+                      ]}
+                    >
                       VIP {p?.tier_level ?? user?.tierLevel ?? 0}
                     </Text>
                   </View>
-                  <View style={[styles.kycBadge, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
-                    <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11, fontWeight: '600' }}>
-                      KYC {kycQ.data?.status ?? p?.kyc_status ?? '—'}
-                    </Text>
-                  </View>
+                  {kycStatus ? (
+                    <StatusChip label={`KYC ${kycStatus}`} tone={kycStatusTone(kycStatus)} />
+                  ) : null}
                 </View>
               ) : null}
             </View>
@@ -95,7 +145,7 @@ export function AccountHomeScreen({ navigation }: Props) {
         </ExchangeCard>
 
         {isGuest ? (
-          <View style={{ gap: 12, marginBottom: 16 }}>
+          <View style={{ gap: theme.spacing[3], marginBottom: theme.spacing[4] }}>
             <PrimaryButton title="Log In" size="xl" onPress={() => openLogin()} />
             <PrimaryButton title="Register" variant="outline" size="xl" onPress={() => openSignup()} />
           </View>
@@ -105,7 +155,7 @@ export function AccountHomeScreen({ navigation }: Props) {
           <Section title="ACCOUNT">
             <AccountMenuRow icon="person-outline" label="Profile & identifiers" onPress={() => navigation.navigate('Profile')} />
             <AccountMenuRow icon="shield-checkmark-outline" label="Security Center" onPress={() => navigation.navigate('SecurityCenter')} />
-            <AccountMenuRow icon="document-text-outline" label="Identity Verification" sub={kycQ.data?.status} onPress={() => navigation.navigate('KYCHub')} />
+            <AccountMenuRow icon="document-text-outline" label="Identity Verification" sub={kycStatus} onPress={() => navigation.navigate('KYCHub')} />
             <AccountMenuRow icon="notifications-outline" label="Notifications" badge={unread || undefined} onPress={() => navigation.navigate('Notifications')} />
           </Section>
         ) : null}
@@ -133,7 +183,7 @@ export function AccountHomeScreen({ navigation }: Props) {
         </Section>
 
         {!isGuest ? (
-          <ExchangeCard elevated style={{ marginTop: 8, marginBottom: 24 }}>
+          <ExchangeCard elevated style={{ marginTop: theme.spacing[2], marginBottom: theme.spacing.pageY }}>
             <AccountMenuRow
               icon="log-out-outline"
               label="Log out"
@@ -148,26 +198,3 @@ export function AccountHomeScreen({ navigation }: Props) {
     </ScreenLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-    minHeight: 44,
-  },
-  modalTitle: { fontSize: 17, fontWeight: '700' },
-  modalSpacer: { width: 24 },
-  hero: { marginBottom: 16 },
-  heroRow: { flexDirection: 'row', gap: 14, alignItems: 'center' },
-  heroMeta: { flex: 1 },
-  heroName: { fontSize: 18, fontWeight: '700', marginBottom: 2 },
-  badges: { flexDirection: 'row', gap: 8, marginTop: 8 },
-  tierBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 },
-  kycBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, borderWidth: 1 },
-  section: { marginBottom: 16 },
-  sectionTitle: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, marginBottom: 8, marginLeft: 4 },
-  sectionCard: { paddingVertical: 0, paddingHorizontal: 0 },
-  sectionInner: { paddingVertical: 4 },
-});

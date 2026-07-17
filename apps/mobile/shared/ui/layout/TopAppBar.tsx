@@ -35,12 +35,13 @@ export function TopAppBar({
         {
           paddingTop: insets.top > 0 ? 0 : theme.spacing[2],
           minHeight: theme.sizes.topBarHeight + (insets.top > 0 ? 0 : theme.spacing[2]),
+          paddingHorizontal: theme.spacing[1],
           backgroundColor: transparent ? 'transparent' : `hsl(${theme.colors.backgroundPrimary} / 0.92)`,
           borderBottomColor: transparent ? 'transparent' : `hsl(${theme.colors.borderDefault})`,
         },
       ]}
     >
-      <View style={styles.side}>
+      <View style={[styles.side, { width: theme.sizes.tapTarget + theme.spacing[1] }]}>
         {onBack ? (
           <Pressable
             accessibilityRole="button"
@@ -49,15 +50,22 @@ export function TopAppBar({
               void hapticLight();
               onBack();
             }}
-            style={({ pressed }) => [styles.iconBtn, { opacity: pressed ? 0.6 : 1 }]}
+            style={({ pressed }) => [
+              styles.iconBtn,
+              {
+                width: theme.sizes.tapTarget,
+                height: theme.sizes.tapTarget,
+                opacity: pressed ? theme.opacity.pressed : 1,
+              },
+            ]}
           >
-            <Ionicons name="chevron-back" size={24} color={`hsl(${theme.colors.foregroundPrimary})`} />
+            <Ionicons name="chevron-back" size={theme.sizes.iconMd} color={`hsl(${theme.colors.foregroundPrimary})`} />
           </Pressable>
         ) : (
-          <View style={styles.iconBtn} />
+          <View style={[styles.iconBtn, { width: theme.sizes.tapTarget, height: theme.sizes.tapTarget }]} />
         )}
       </View>
-      <View style={styles.center}>
+      <View style={[styles.center, { paddingHorizontal: theme.spacing[2] }]}>
         {title ? (
           <Text
             numberOfLines={1}
@@ -75,7 +83,7 @@ export function TopAppBar({
           </Text>
         ) : null}
       </View>
-      <View style={[styles.side, styles.right]}>
+      <View style={[styles.side, styles.right, { width: theme.sizes.tapTarget + theme.spacing[1] }]}>
         {right ??
           (onAction ? (
             <Pressable
@@ -84,12 +92,19 @@ export function TopAppBar({
                 void hapticLight();
                 onAction();
               }}
-              style={({ pressed }) => [styles.iconBtn, { opacity: pressed ? 0.6 : 1 }]}
+              style={({ pressed }) => [
+                styles.iconBtn,
+                {
+                  width: theme.sizes.tapTarget,
+                  height: theme.sizes.tapTarget,
+                  opacity: pressed ? theme.opacity.pressed : 1,
+                },
+              ]}
             >
-              <Ionicons name={actionIcon} size={22} color={`hsl(${theme.colors.foregroundPrimary})`} />
+              <Ionicons name={actionIcon} size={theme.sizes.iconSm + 2} color={`hsl(${theme.colors.foregroundPrimary})`} />
             </Pressable>
           ) : (
-            <View style={styles.iconBtn} />
+            <View style={[styles.iconBtn, { width: theme.sizes.tapTarget, height: theme.sizes.tapTarget }]} />
           ))}
       </View>
     </View>
@@ -100,15 +115,12 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  side: { width: 48, alignItems: 'flex-start', justifyContent: 'center' },
+  side: { alignItems: 'flex-start', justifyContent: 'center' },
   right: { alignItems: 'flex-end' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   iconBtn: {
-    width: 44,
-    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },

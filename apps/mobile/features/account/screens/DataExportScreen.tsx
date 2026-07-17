@@ -4,7 +4,6 @@ import {
   RefreshControl,
   ScrollView,
   Share,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
@@ -17,8 +16,12 @@ import {
   TextField,
   FilterChip,
   ErrorBanner,
+  ExchangeCard,
+  StatusChip,
 } from '@shared/ui';
 import { useTheme } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
+import type { StatusChipTone } from '@shared/theme/statusPalettes';
 import { analytics } from '@core/observability/analytics';
 import { useAppStore } from '@core/state/appStore';
 import { ordersToCsv, walletTransactionsToCsv } from '@core/domain/export/csv';
@@ -52,6 +55,10 @@ const TIME_RANGES: { id: TimeRangeType; label: string }[] = [
   { id: 'custom', label: 'Custom range' },
 ];
 
+function exportStatusTone(status: ExportLog['status']): StatusChipTone {
+  return status === 'completed' ? 'live' : 'off';
+}
+
 export function DataExportScreen({ navigation }: Props) {
   const { theme } = useTheme();
   const isOnline = useAppStore((s) => s.isOnline);
@@ -65,6 +72,7 @@ export function DataExportScreen({ navigation }: Props) {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [logs, setLogs] = useState<ExportLog[]>([]);
+  const warning = semanticStatusPalette(theme.colors, 'warning');
 
   useEffect(() => {
     analytics.screen('S-753');
@@ -145,59 +153,94 @@ export function DataExportScreen({ navigation }: Props) {
       ) : null}
 
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={{ padding: theme.spacing[4], paddingBottom: theme.spacing[8] }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Data Export</Text>
-        <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13, marginBottom: 16 }}>
+        <Text style={[theme.typography.headingLg, { color: `hsl(${theme.colors.foregroundPrimary})`, marginBottom: theme.spacing[1] }]}>
+          Data Export
+        </Text>
+        <Text
+          style={[
+            theme.typography.bodySm,
+            { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[4] },
+          ]}
+        >
           Download account activity exports. Account statements are temporarily disabled until backend job pipeline is enabled.
         </Text>
 
-        <View style={[styles.tabRow, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
-          {TABS.map((tab) => {
-            const active = activeTab === tab.id;
-            return (
-              <Pressable
-                key={tab.id}
-                onPress={() => setActiveTab(tab.id)}
-                style={[
-                  styles.tabBtn,
-                  active && { backgroundColor: `hsl(${theme.colors.brandPrimary})` },
-                ]}
-              >
-                <Ionicons
-                  name={tab.icon}
-                  size={16}
-                  color={active ? `hsl(${theme.colors.brandPrimaryForeground})` : `hsl(${theme.colors.foregroundSecondary})`}
-                />
-                <Text
-                  style={{
-                    color: active ? `hsl(${theme.colors.brandPrimaryForeground})` : `hsl(${theme.colors.foregroundSecondary})`,
-                    fontWeight: '600',
-                    fontSize: 12,
-                  }}
+        <ExchangeCard style={{ marginBottom: theme.spacing[3], padding: theme.spacing[2] }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing[2] }}>
+            {TABS.map((tab) => {
+              const active = activeTab === tab.id;
+              return (
+                <Pressable
+                  key={tab.id}
+                  onPress={() => setActiveTab(tab.id)}
+                  style={[
+                    {
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: theme.spacing[1.5],
+                      borderRadius: theme.radius.md + 2,
+                      paddingHorizontal: theme.spacing[3],
+                      paddingVertical: theme.spacing[2],
+                    },
+                    active && { backgroundColor: `hsl(${theme.colors.brandPrimary})` },
+                  ]}
                 >
-                  {tab.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+                  <Ionicons
+                    name={tab.icon}
+                    size={theme.sizes.iconXs}
+                    color={active ? `hsl(${theme.colors.brandPrimaryForeground})` : `hsl(${theme.colors.foregroundSecondary})`}
+                  />
+                  <Text
+                    style={[
+                      theme.typography.labelMd,
+                      {
+                        color: active ? `hsl(${theme.colors.brandPrimaryForeground})` : `hsl(${theme.colors.foregroundSecondary})`,
+                        fontFamily: theme.fonts.sansSemiBold,
+                      },
+                    ]}
+                  >
+                    {tab.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </ExchangeCard>
 
         {activeTab === 'account' ? (
-          <View style={[styles.warningBox, { borderColor: 'rgba(245,158,11,0.35)', backgroundColor: 'rgba(245,158,11,0.12)' }]}>
-            <Ionicons name="warning-outline" size={18} color="#fbbf24" />
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: '#fde68a', fontWeight: '700' }}>Account statement export is not live yet.</Text>
-              <Text style={{ color: 'rgba(253,230,138,0.85)', marginTop: 4, fontSize: 13 }}>
-                Use trade and wallet exports for now. This prevents showing a fake export flow.
-              </Text>
+          <ExchangeCard
+            style={{
+              marginBottom: theme.spacing[3],
+              borderColor: warning.border,
+              backgroundColor: warning.bg,
+            }}
+          >
+            <View style={{ flexDirection: 'row', gap: theme.spacing[2.5] }}>
+              <Ionicons name="warning-outline" size={theme.sizes.iconXs + 2} color={warning.fg} />
+              <View style={{ flex: 1 }}>
+                <Text style={[theme.typography.bodyMd, { color: warning.fg, fontFamily: theme.fonts.sansBold }]}>
+                  Account statement export is not live yet.
+                </Text>
+                <Text style={[theme.typography.bodySm, { color: warning.fg, marginTop: theme.spacing[1], opacity: theme.opacity.pressed }]}>
+                  Use trade and wallet exports for now. This prevents showing a fake export flow.
+                </Text>
+              </View>
             </View>
-          </View>
+          </ExchangeCard>
         ) : (
-          <View style={[styles.card, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
-            <Text style={[styles.label, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>Type</Text>
-            <View style={styles.chips}>
+          <ExchangeCard style={{ marginBottom: theme.spacing[3] }}>
+            <Text
+              style={[
+                theme.typography.labelMd,
+                { color: `hsl(${theme.colors.foregroundSecondary})`, fontFamily: theme.fonts.sansSemiBold, marginBottom: theme.spacing[2] },
+              ]}
+            >
+              Type
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing[2] }}>
               {activeTab === 'order' ? (
                 <>
                   <FilterChip label="All orders" selected={orderExportType === 'all'} onPress={() => setOrderExportType('all')} />
@@ -213,8 +256,20 @@ export function DataExportScreen({ navigation }: Props) {
               )}
             </View>
 
-            <Text style={[styles.label, { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: 12 }]}>Time Range</Text>
-            <View style={styles.chips}>
+            <Text
+              style={[
+                theme.typography.labelMd,
+                {
+                  color: `hsl(${theme.colors.foregroundSecondary})`,
+                  fontFamily: theme.fonts.sansSemiBold,
+                  marginTop: theme.spacing[3],
+                  marginBottom: theme.spacing[2],
+                },
+              ]}
+            >
+              Time Range
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing[2] }}>
               {TIME_RANGES.map((range) => (
                 <FilterChip
                   key={range.id}
@@ -226,17 +281,19 @@ export function DataExportScreen({ navigation }: Props) {
             </View>
 
             {timeRange === 'custom' ? (
-              <View style={{ gap: 10, marginTop: 12 }}>
+              <View style={{ gap: theme.spacing[2.5], marginTop: theme.spacing[3] }}>
                 <TextField label="Start Date (YYYY-MM-DD)" value={startDate} onChangeText={setStartDate} placeholder="2026-01-01" />
                 <TextField label="End Date (YYYY-MM-DD)" value={endDate} onChangeText={setEndDate} placeholder="2026-12-31" />
               </View>
             ) : null}
 
             {error ? (
-              <Text style={{ color: `hsl(${theme.colors.tradeSell})`, marginTop: 12, fontSize: 13 }}>{error}</Text>
+              <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.tradeSell})`, marginTop: theme.spacing[3] }]}>
+                {error}
+              </Text>
             ) : null}
 
-            <View style={styles.actions}>
+            <View style={{ marginTop: theme.spacing[4], gap: theme.spacing[3], alignItems: 'flex-start' }}>
               <PrimaryButton
                 title={running ? 'Preparing export...' : 'Export CSV'}
                 onPress={() => void handleExport()}
@@ -244,42 +301,83 @@ export function DataExportScreen({ navigation }: Props) {
                 loading={running}
               />
               <Pressable onPress={openWalletHistory}>
-                <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600', fontSize: 14 }}>
+                <Text
+                  style={[
+                    theme.typography.bodyMd,
+                    { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+                  ]}
+                >
                   Open full wallet history
                 </Text>
               </Pressable>
             </View>
-          </View>
+          </ExchangeCard>
         )}
 
-        <View style={[styles.card, { borderColor: `hsl(${theme.colors.borderDefault})`, backgroundColor: `hsl(${theme.colors.backgroundElevated})` }]}>
-          <Text style={[styles.sectionTitle, { color: `hsl(${theme.colors.foregroundPrimary})`, borderColor: `hsl(${theme.colors.borderDefault})` }]}>
+        <ExchangeCard>
+          <Text
+            style={[
+              theme.typography.bodyMd,
+              {
+                color: `hsl(${theme.colors.foregroundPrimary})`,
+                fontFamily: theme.fonts.sansBold,
+                marginBottom: theme.spacing[3],
+                paddingBottom: theme.spacing[2],
+                borderBottomWidth: 1,
+                borderBottomColor: `hsl(${theme.colors.borderDefault})`,
+              },
+            ]}
+          >
             Export Activity
           </Text>
           {logs.length === 0 ? (
-            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>
+            <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
               No export jobs in this session.
             </Text>
           ) : (
             logs.map((log) => (
               <View
                 key={log.id}
-                style={[styles.logRow, { borderColor: `hsl(${theme.colors.borderDefault})` }]}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: theme.spacing[2.5],
+                  borderWidth: 1,
+                  borderColor: `hsl(${theme.colors.borderDefault})`,
+                  borderRadius: theme.radius.md + 2,
+                  padding: theme.spacing[2.5],
+                  marginBottom: theme.spacing[2],
+                }}
               >
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontWeight: '600', color: `hsl(${theme.colors.foregroundPrimary})` }}>
-                    {log.kind} export - {log.status}
-                  </Text>
-                  <Text style={{ fontSize: 11, color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: 2 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing[2] }}>
+                    <Text
+                      style={[
+                        theme.typography.bodyMd,
+                        { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+                      ]}
+                    >
+                      {log.kind} export
+                    </Text>
+                    <StatusChip label={log.status} tone={exportStatusTone(log.status)} />
+                  </View>
+                  <Text
+                    style={[
+                      theme.typography.labelSm,
+                      { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[0.5] },
+                    ]}
+                  >
                     {new Date(log.requestedAt).toLocaleString()} · rows: {log.rows}
                   </Text>
                 </View>
                 <Text
-                  style={{
-                    color: log.status === 'completed' ? `hsl(${theme.colors.tradeBuy})` : `hsl(${theme.colors.tradeSell})`,
-                    fontSize: 12,
-                    maxWidth: 120,
-                  }}
+                  style={[
+                    theme.typography.bodySm,
+                    {
+                      color: log.status === 'completed' ? `hsl(${theme.colors.tradeBuy})` : `hsl(${theme.colors.tradeSell})`,
+                      maxWidth: theme.spacing[12] * 2 + theme.spacing[6],
+                    },
+                  ]}
                   numberOfLines={2}
                 >
                   {log.fileName ?? log.reason ?? 'Failed'}
@@ -287,22 +385,8 @@ export function DataExportScreen({ navigation }: Props) {
               </View>
             ))
           )}
-        </View>
+        </ExchangeCard>
       </ScrollView>
     </ScreenLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 32 },
-  title: { fontSize: 20, fontWeight: '700', marginBottom: 4 },
-  tabRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, borderWidth: 1, borderRadius: 12, padding: 8, marginBottom: 12 },
-  tabBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
-  warningBox: { flexDirection: 'row', gap: 10, borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 12 },
-  card: { borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 12 },
-  label: { fontSize: 12, fontWeight: '600', marginBottom: 8 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  actions: { marginTop: 16, gap: 12, alignItems: 'flex-start' },
-  sectionTitle: { fontSize: 14, fontWeight: '700', marginBottom: 12, paddingBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth },
-  logRow: { flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderRadius: 10, padding: 10, marginBottom: 8 },
-});

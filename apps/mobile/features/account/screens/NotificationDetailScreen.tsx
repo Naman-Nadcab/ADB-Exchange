@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
-import { ScrollView, Text } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CommonActions } from '@react-navigation/native';
-import { ScreenLayout, PrimaryButton } from '@shared/ui';
+import { ScreenLayout, PrimaryButton, ExchangeCard, StatusChip } from '@shared/ui';
+import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
 import {
   resolveAnnouncementNotificationRoute,
@@ -15,6 +16,7 @@ import type { AccountStackParamList } from '../navigation/types';
 type Props = NativeStackScreenProps<AccountStackParamList, 'NotificationDetail'>;
 
 export function NotificationDetailScreen({ route, navigation }: Props) {
+  const { theme } = useTheme();
   const q = useNotifications();
   const { markRead } = useNotificationMutations();
   const item = q.data?.find((n) => n.id === route.params.id);
@@ -50,20 +52,43 @@ export function NotificationDetailScreen({ route, navigation }: Props) {
     navigation.navigate('Announcements');
   };
 
-  if (!item) return <ScreenLayout><Text>Not found</Text></ScreenLayout>;
+  if (!item) {
+    return (
+      <ScreenLayout>
+        <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>Not found</Text>
+      </ScreenLayout>
+    );
+  }
 
   return (
     <ScreenLayout testID="S-773">
-      <ScrollView>
-        <Text style={{ fontWeight: '700', fontSize: 18 }}>{item.title}</Text>
-        <Text style={{ marginVertical: 8 }}>{item.body ?? ''}</Text>
-        <Text style={{ fontSize: 12 }}>{item.type} · {new Date(item.created_at).toLocaleString()}</Text>
-        {p2pRoute ? (
-          <PrimaryButton title="View P2P order" onPress={openP2POrder} />
-        ) : null}
-        {announcementRoute ? (
-          <PrimaryButton title="View announcement" onPress={openAnnouncementDetail} />
-        ) : routeHint?.kind === 'announcements_hub' ? (
+      <ScrollView contentContainerStyle={{ paddingBottom: theme.spacing.pageY, gap: theme.spacing[4] }}>
+        <ExchangeCard elevated>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: theme.spacing[2] }}>
+            <Text style={[theme.typography.headingMd, { color: `hsl(${theme.colors.foregroundPrimary})`, flex: 1 }]}>
+              {item.title}
+            </Text>
+            {!item.read ? <StatusChip label="Unread" tone="sync" /> : null}
+          </View>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[2] },
+            ]}
+          >
+            {item.type} · {new Date(item.created_at).toLocaleString()}
+          </Text>
+        </ExchangeCard>
+
+        <ExchangeCard variant="terminal">
+          <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+            {item.body ?? ''}
+          </Text>
+        </ExchangeCard>
+
+        {p2pRoute ? <PrimaryButton title="View P2P order" onPress={openP2POrder} /> : null}
+        {announcementRoute ? <PrimaryButton title="View announcement" onPress={openAnnouncementDetail} /> : null}
+        {routeHint?.kind === 'announcements_hub' ? (
           <PrimaryButton title="View announcements" onPress={openAnnouncementsHub} />
         ) : null}
       </ScrollView>

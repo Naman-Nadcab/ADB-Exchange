@@ -37,13 +37,25 @@ export function ScreenLayout({
   const body = scroll ? (
     <ScrollView
       keyboardShouldPersistTaps="handled"
-      contentContainerStyle={[styles.scrollContent, { paddingHorizontal: pad }, contentStyle]}
+      contentContainerStyle={[
+        styles.scrollContent,
+        { paddingHorizontal: pad, paddingTop: theme.spacing[2], paddingBottom: theme.spacing.pageY },
+        contentStyle,
+      ]}
       showsVerticalScrollIndicator={false}
     >
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.content, { paddingHorizontal: pad }, contentStyle]}>{children}</View>
+    <View
+      style={[
+        styles.content,
+        { paddingHorizontal: pad, paddingTop: theme.spacing[2] },
+        contentStyle,
+      ]}
+    >
+      {children}
+    </View>
   );
 
   const wrapped =
@@ -69,6 +81,6 @@ export function ScreenLayout({
 const styles = StyleSheet.create({
   root: { flex: 1 },
   flex: { flex: 1 },
-  content: { flex: 1, paddingTop: 8 },
-  scrollContent: { flexGrow: 1, paddingTop: 8, paddingBottom: 24 },
+  content: { flex: 1 },
+  scrollContent: { flexGrow: 1 },
 });

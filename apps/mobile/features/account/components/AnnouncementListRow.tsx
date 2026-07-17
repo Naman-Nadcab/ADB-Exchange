@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { StatusChip } from '@shared/ui';
 import { useTheme } from '@shared/theme';
 import {
   formatAnnouncementListDate,
@@ -24,31 +25,43 @@ export function AnnouncementListRow({ item, onPress }: Props) {
         {
           borderColor: `hsl(${theme.colors.borderDefault})`,
           backgroundColor: `hsl(${theme.colors.backgroundElevated})`,
+          borderRadius: theme.radius.lg,
+          padding: theme.spacing[3.5],
+          gap: theme.spacing[3],
+          marginBottom: theme.spacing[2],
         },
       ]}
     >
-      <View style={styles.left}>
-        {isNew ? (
-          <View style={[styles.newBadge, { backgroundColor: `hsl(${theme.colors.tradeSell})` }]}>
-            <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>NEW</Text>
-          </View>
-        ) : null}
+      <View style={[styles.left, { gap: theme.spacing[2] }]}>
+        {isNew ? <StatusChip label="NEW" tone="live" /> : null}
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]} numberOfLines={2}>
+          <Text
+            style={[
+              theme.typography.bodyLg,
+              { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+            ]}
+            numberOfLines={2}
+          >
             {item.title}
           </Text>
           {item.summary ? (
-            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13, marginTop: 2 }} numberOfLines={2}>
+            <Text
+              style={[
+                theme.typography.bodyMd,
+                { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[0.5] },
+              ]}
+              numberOfLines={2}
+            >
               {item.summary}
             </Text>
           ) : null}
         </View>
       </View>
-      <View style={styles.right}>
-        <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11 }}>
+      <View style={[styles.right, { gap: theme.spacing[1] }]}>
+        <Text style={[theme.typography.labelSm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
           {formatAnnouncementListDate(item)}
         </Text>
-        <Ionicons name="chevron-forward" size={18} color={`hsl(${theme.colors.foregroundSecondary})`} />
+        <Ionicons name="chevron-forward" size={theme.sizes.iconXs + 2} color={`hsl(${theme.colors.foregroundSecondary})`} />
       </View>
     </Pressable>
   );
@@ -57,16 +70,10 @@ export function AnnouncementListRow({ item, onPress }: Props) {
 const styles = StyleSheet.create({
   row: {
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 8,
   },
-  left: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, minWidth: 0 },
-  right: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  title: { fontWeight: '600', fontSize: 15 },
-  newBadge: { borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
+  left: { flex: 1, flexDirection: 'row', alignItems: 'center', minWidth: 0 },
+  right: { flexDirection: 'row', alignItems: 'center' },
 });

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, Text, Alert } from 'react-native';
+import { ScrollView, Text, Alert, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenLayout, PrimaryButton } from '@shared/ui';
+import { ScreenLayout, PrimaryButton, ExchangeCard, StatusChip } from '@shared/ui';
+import { useTheme } from '@shared/theme';
+import { semanticStatusPalette } from '@shared/theme/statusPalettes';
 import { analytics } from '@core/observability/analytics';
 import { getAuthRepository } from '@core/repositories/AuthRepository';
 import type { AccountStackParamList } from '../navigation/types';
@@ -9,7 +11,9 @@ import type { AccountStackParamList } from '../navigation/types';
 type Props = NativeStackScreenProps<AccountStackParamList, 'AccountDeletion'>;
 
 export function AccountDeletionScreen(_props: Props) {
+  const { theme } = useTheme();
   const [pending, setPending] = useState(false);
+  const errorPalette = semanticStatusPalette(theme.colors, 'error');
 
   useEffect(() => {
     analytics.screen('S-792');
@@ -18,9 +22,20 @@ export function AccountDeletionScreen(_props: Props) {
 
   return (
     <ScreenLayout testID="S-792">
-      <ScrollView>
-        <Text>Account deletion is irreversible after the cooling-off period.</Text>
-        <Text style={{ marginVertical: 12 }}>Pending: {pending ? 'Yes' : 'No'}</Text>
+      <ScrollView contentContainerStyle={{ paddingBottom: theme.spacing.pageY, gap: theme.spacing[4] }}>
+        <ExchangeCard style={{ borderColor: errorPalette.border, backgroundColor: errorPalette.bg }}>
+          <Text style={[theme.typography.bodyMd, { color: errorPalette.fg, fontFamily: theme.fonts.sansSemiBold }]}>
+            Account deletion is irreversible after the cooling-off period.
+          </Text>
+        </ExchangeCard>
+
+        <ExchangeCard variant="terminal">
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: theme.spacing[2] }}>
+            <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Deletion pending</Text>
+            <StatusChip label={pending ? 'Yes' : 'No'} tone={pending ? 'warn' : 'neutral'} />
+          </View>
+        </ExchangeCard>
+
         <PrimaryButton
           title="Request deletion"
           variant="secondary"

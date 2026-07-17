@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenLayout, ExchangeCard, Avatar, StatusChip } from '@shared/ui';
 import { useTheme } from '@shared/theme';
@@ -13,10 +13,32 @@ type Props = NativeStackScreenProps<AccountStackParamList, 'Profile'>;
 function Field({ label, value, verified }: { label: string; value: string; verified?: boolean }) {
   const { theme } = useTheme();
   return (
-    <View style={[styles.field, { borderBottomColor: `hsl(${theme.colors.borderDefault})` }]}>
-      <Text style={[styles.fieldLabel, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>{label}</Text>
-      <View style={styles.fieldValueRow}>
-        <Text style={[styles.fieldValue, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>{value}</Text>
+    <View
+      style={{
+        paddingVertical: theme.spacing[3.5],
+        paddingHorizontal: theme.spacing[4],
+        borderBottomWidth: 1,
+        borderBottomColor: `hsl(${theme.colors.borderDefault})`,
+      }}
+    >
+      <Text
+        style={[
+          theme.typography.labelSm,
+          {
+            color: `hsl(${theme.colors.foregroundSecondary})`,
+            fontFamily: theme.fonts.sansBold,
+            letterSpacing: 1,
+            textTransform: 'uppercase',
+            marginBottom: theme.spacing[1.5],
+          },
+        ]}
+      >
+        {label}
+      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing[2], flexWrap: 'wrap' }}>
+        <Text style={[theme.typography.bodyLg, { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansSemiBold }]}>
+          {value}
+        </Text>
         {verified ? <StatusChip label="Verified" tone="live" /> : null}
       </View>
     </View>
@@ -37,20 +59,20 @@ export function ProfileScreen({ navigation }: Props) {
 
   return (
     <ScreenLayout testID="S-701">
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <ExchangeCard elevated style={styles.hero}>
-          <View style={styles.heroRow}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: theme.spacing.pageY }}>
+        <ExchangeCard elevated style={{ marginBottom: theme.spacing[3.5] }}>
+          <View style={{ flexDirection: 'row', gap: theme.spacing[3.5], alignItems: 'center' }}>
             <Avatar name={name} size="lg" />
             <View style={{ flex: 1 }}>
-              <Text style={[styles.heroName, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>{name}</Text>
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>
+              <Text style={[theme.typography.headingLg, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>{name}</Text>
+              <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
                 Profile & identifiers
               </Text>
             </View>
           </View>
         </ExchangeCard>
 
-        <ExchangeCard variant="terminal" style={styles.card}>
+        <ExchangeCard variant="terminal" padded={false} style={{ marginBottom: theme.spacing[2] }}>
           <Field label="Email" value={p?.email ?? '—'} />
           <Field label="Phone" value={p?.phone ?? '—'} verified={!!p?.phone_verified} />
           <Field label="Username" value={p?.username ?? '—'} />
@@ -63,18 +85,3 @@ export function ProfileScreen({ navigation }: Props) {
     </ScreenLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  hero: { marginBottom: 14 },
-  heroRow: { flexDirection: 'row', gap: 14, alignItems: 'center' },
-  heroName: { fontSize: 20, fontWeight: '700' },
-  card: { marginBottom: 8, paddingVertical: 0, paddingHorizontal: 0 },
-  field: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  fieldLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 },
-  fieldValue: { fontSize: 15, fontWeight: '600' },
-  fieldValueRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-});

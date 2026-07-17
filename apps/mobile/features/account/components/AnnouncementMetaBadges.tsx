@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { StatusChip } from '@shared/ui';
 import { useTheme } from '@shared/theme';
 
 type Props = {
@@ -11,26 +12,39 @@ export function AnnouncementMetaBadges({ type, pinned }: Props) {
   if (!type && !pinned) return null;
 
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, { gap: theme.spacing[2], marginBottom: theme.spacing[2] }]}>
       {type ? (
-        <View style={[styles.badge, { backgroundColor: `hsl(${theme.colors.surfaceMuted})` }]}>
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11, fontWeight: '600', textTransform: 'capitalize' }}>
+        <View
+          style={[
+            styles.badge,
+            {
+              backgroundColor: `hsl(${theme.colors.surfaceMuted})`,
+              borderRadius: theme.radius.sm + 2,
+              paddingHorizontal: theme.spacing[2],
+              paddingVertical: theme.spacing[1],
+            },
+          ]}
+        >
+          <Text
+            style={[
+              theme.typography.labelSm,
+              {
+                color: `hsl(${theme.colors.foregroundSecondary})`,
+                fontFamily: theme.fonts.sansSemiBold,
+                textTransform: 'capitalize',
+              },
+            ]}
+          >
             {type}
           </Text>
         </View>
       ) : null}
-      {pinned ? (
-        <View style={[styles.badge, { backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.12)` }]}>
-          <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontSize: 11, fontWeight: '600' }}>
-            Pinned
-          </Text>
-        </View>
-      ) : null}
+      {pinned ? <StatusChip label="Pinned" tone="sync" /> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
-  badge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 },
+  row: { flexDirection: 'row', flexWrap: 'wrap' },
+  badge: {},
 });

@@ -2,10 +2,11 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BrandLogo } from '@shared/brand';
 import { Loader } from '@shared/ui';
-import { marketing } from '@shared/theme';
+import { useTheme } from '@shared/theme';
 
 /** Boot splash — matches website marketing brand (#05070B + gold). */
 export function SplashScreen() {
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
@@ -13,12 +14,20 @@ export function SplashScreen() {
       testID="S-000"
       style={[
         styles.root,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
+        {
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+          backgroundColor: theme.marketing.pageBg,
+          gap: theme.spacing.pageY,
+          paddingHorizontal: theme.spacing[8],
+        },
       ]}
     >
       <BrandLogo variant="marketing" />
       <Loader size="lg" />
-      <Text style={styles.message}>Loading your trading experience…</Text>
+      <Text style={[theme.typography.bodyMd, { color: theme.marketing.mutedText, textAlign: 'center' }]}>
+        Loading your trading experience…
+      </Text>
     </View>
   );
 }
@@ -26,15 +35,7 @@ export function SplashScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: marketing.pageBg,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 24,
-    paddingHorizontal: 32,
-  },
-  message: {
-    color: marketing.mutedText,
-    fontSize: 14,
-    textAlign: 'center',
   },
 });

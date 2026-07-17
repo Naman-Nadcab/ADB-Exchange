@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useAnnouncements } from '@features/markets';
@@ -35,18 +35,34 @@ export function AnnouncementsScreen({ navigation }: Props) {
   }, [q]);
 
   const listHeader = (
-    <View style={styles.header}>
-      <View style={[styles.iconWrap, { backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.12)` }]}>
-        <Ionicons name="notifications-outline" size={22} color={`hsl(${theme.colors.brandPrimary})`} />
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: theme.spacing[3],
+        marginBottom: theme.spacing[4],
+      }}
+    >
+      <View
+        style={{
+          width: theme.sizes.buttonMd,
+          height: theme.sizes.buttonMd,
+          borderRadius: theme.radius.lg,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.12)`,
+        }}
+      >
+        <Ionicons name="notifications-outline" size={theme.sizes.iconSm + 2} color={`hsl(${theme.colors.brandPrimary})`} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={[styles.title, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Announcements</Text>
-        <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13 }}>
+        <Text style={[theme.typography.headingLg, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>Announcements</Text>
+        <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
           Latest updates and news from the platform
         </Text>
       </View>
-      <Pressable onPress={() => void onRefresh()} hitSlop={10} accessibilityLabel="Refresh announcements">
-        <Ionicons name="refresh" size={22} color={`hsl(${theme.colors.foregroundSecondary})`} />
+      <Pressable onPress={() => void onRefresh()} hitSlop={theme.spacing[2.5]} accessibilityLabel="Refresh announcements">
+        <Ionicons name="refresh" size={theme.sizes.iconSm + 2} color={`hsl(${theme.colors.foregroundSecondary})`} />
       </Pressable>
     </View>
   );
@@ -58,12 +74,12 @@ export function AnnouncementsScreen({ navigation }: Props) {
       ) : null}
 
       {q.isLoading && !q.data ? (
-        <View style={styles.body}>
+        <View style={{ padding: theme.spacing[4], paddingBottom: theme.spacing[8] }}>
           {listHeader}
           <SkeletonList rows={6} />
         </View>
       ) : q.isError && !q.data ? (
-        <View style={styles.body}>
+        <View style={{ padding: theme.spacing[4], paddingBottom: theme.spacing[8] }}>
           {listHeader}
           <ErrorState title="Could not load announcements" onRetry={() => void q.refetch()} />
         </View>
@@ -73,7 +89,7 @@ export function AnnouncementsScreen({ navigation }: Props) {
           keyExtractor={(item) => item.id}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} />}
           ListHeaderComponent={listHeader}
-          contentContainerStyle={styles.body}
+          contentContainerStyle={{ padding: theme.spacing[4], paddingBottom: theme.spacing[8] }}
           renderItem={({ item }) => (
             <AnnouncementListRow
               item={item}
@@ -96,10 +112,3 @@ export function AnnouncementsScreen({ navigation }: Props) {
     </ScreenLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  body: { padding: 16, paddingBottom: 32 },
-  header: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 16 },
-  iconWrap: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 20, fontWeight: '700' },
-});

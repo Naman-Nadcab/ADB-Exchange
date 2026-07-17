@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useAnnouncement } from '@features/markets';
@@ -8,6 +8,7 @@ import {
   SkeletonList,
   ErrorState,
   ErrorBanner,
+  ExchangeCard,
 } from '@shared/ui';
 import { useTheme } from '@shared/theme';
 import { analytics } from '@core/observability/analytics';
@@ -42,15 +43,27 @@ export function AnnouncementDetailScreen({ route, navigation }: Props) {
   if (!item) {
     return (
       <ScreenLayout testID="S-771">
-        <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, padding: 16 }}>
+        <Text
+          style={[
+            theme.typography.bodyMd,
+            { color: `hsl(${theme.colors.foregroundSecondary})`, padding: theme.spacing[4] },
+          ]}
+        >
           Announcement not found or no longer available.
         </Text>
         <Pressable
           onPress={() => navigation.navigate('Announcements')}
-          style={styles.backLink}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing[2], paddingHorizontal: theme.spacing[4] }}
         >
-          <Ionicons name="arrow-back" size={16} color={`hsl(${theme.colors.brandPrimary})`} />
-          <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '600' }}>Back to announcements</Text>
+          <Ionicons name="arrow-back" size={theme.sizes.iconXs} color={`hsl(${theme.colors.brandPrimary})`} />
+          <Text
+            style={[
+              theme.typography.bodyMd,
+              { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+            ]}
+          >
+            Back to announcements
+          </Text>
         </Pressable>
       </ScreenLayout>
     );
@@ -62,40 +75,58 @@ export function AnnouncementDetailScreen({ route, navigation }: Props) {
         <ErrorBanner message="Offline — showing cached announcement where available" onRetry={() => void q.refetch()} />
       ) : null}
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <Pressable onPress={() => navigation.navigate('Announcements')} style={styles.backLink}>
-          <Ionicons name="arrow-back" size={16} color={`hsl(${theme.colors.foregroundSecondary})`} />
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 14 }}>Back to announcements</Text>
+      <ScrollView contentContainerStyle={{ padding: theme.spacing[4], paddingBottom: theme.spacing[8] }}>
+        <Pressable
+          onPress={() => navigation.navigate('Announcements')}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing[2], marginBottom: theme.spacing[4] }}
+        >
+          <Ionicons name="arrow-back" size={theme.sizes.iconXs} color={`hsl(${theme.colors.foregroundSecondary})`} />
+          <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+            Back to announcements
+          </Text>
         </Pressable>
 
-        <View
-          style={[
-            styles.card,
-            {
-              borderColor: `hsl(${theme.colors.borderDefault})`,
-              backgroundColor: `hsl(${theme.colors.backgroundElevated})`,
-            },
-          ]}
-        >
-          <View style={[styles.cardHeader, { borderColor: `hsl(${theme.colors.borderDefault})` }]}>
+        <ExchangeCard>
+          <View
+            style={{
+              paddingBottom: theme.spacing[5],
+              marginBottom: theme.spacing[4],
+              borderBottomWidth: 1,
+              borderBottomColor: `hsl(${theme.colors.borderDefault})`,
+            }}
+          >
             <AnnouncementMetaBadges type={item.type} pinned={item.is_pinned} />
-            <Text style={[styles.heading, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>{item.title}</Text>
-            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 13, marginTop: 8 }}>
+            <Text style={[theme.typography.headingLg, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>{item.title}</Text>
+            <Text
+              style={[
+                theme.typography.bodyMd,
+                { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[2] },
+              ]}
+            >
               {formatAnnouncementDetailDate(item)}
             </Text>
           </View>
 
-          <View style={styles.cardBody}>
+          <View>
             {item.summary ? (
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: 12 }}>{item.summary}</Text>
+              <Text
+                style={[
+                  theme.typography.bodyMd,
+                  { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[3] },
+                ]}
+              >
+                {item.summary}
+              </Text>
             ) : null}
             {item.body ? (
               <AnnouncementHtmlBody html={item.body} />
             ) : (
-              <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})` }}>No additional content.</Text>
+              <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+                No additional content.
+              </Text>
             )}
           </View>
-        </View>
+        </ExchangeCard>
       </ScrollView>
 
       {q.isError && item ? (
@@ -104,12 +135,3 @@ export function AnnouncementDetailScreen({ route, navigation }: Props) {
     </ScreenLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 32 },
-  backLink: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
-  card: { borderWidth: 1, borderRadius: 14, overflow: 'hidden' },
-  cardHeader: { padding: 20, borderBottomWidth: 1 },
-  cardBody: { padding: 20 },
-  heading: { fontSize: 20, fontWeight: '700' },
-});

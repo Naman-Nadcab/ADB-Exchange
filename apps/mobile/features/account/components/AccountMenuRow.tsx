@@ -13,37 +13,75 @@ type Props = {
 
 export function AccountMenuRow({ label, sub, badge, icon, onPress, testID }: Props) {
   const { theme } = useTheme();
+  const density = theme.listDensity.settings;
+
   return (
     <Pressable
-      style={[styles.row, { borderBottomColor: `hsl(${theme.colors.borderDefault})` }]}
+      style={[
+        styles.row,
+        {
+          borderBottomColor: `hsl(${theme.colors.borderDefault})`,
+          paddingVertical: theme.spacing[3.5],
+          minHeight: density.rowHeight,
+          gap: density.gap,
+        },
+      ]}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
       testID={testID}
     >
-      <View style={styles.left}>
+      <View style={[styles.left, { gap: theme.spacing[3] }]}>
         {icon ? (
-          <View style={[styles.iconWrap, { backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.12)` }]}>
-            <Ionicons name={icon} size={18} color={`hsl(${theme.colors.brandPrimary})`} />
+          <View
+            style={[
+              styles.iconWrap,
+              {
+                width: theme.sizes.avatarMd - 4,
+                height: theme.sizes.avatarMd - 4,
+                borderRadius: theme.radius.md + 2,
+                backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.12)`,
+              },
+            ]}
+          >
+            <Ionicons name={icon} size={theme.sizes.iconXs + 2} color={`hsl(${theme.colors.brandPrimary})`} />
           </View>
         ) : null}
         <View style={{ flex: 1 }}>
-          <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '600', fontSize: 14 }}>
+          <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansSemiBold }]}>
             {label}
           </Text>
           {sub ? (
-            <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 12, marginTop: 2 }}>
+            <Text
+              style={[
+                theme.typography.bodySm,
+                { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[0.5] },
+              ]}
+            >
               {sub}
             </Text>
           ) : null}
         </View>
       </View>
       {badge != null ? (
-        <View style={[styles.badge, { backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.15)` }]}>
-          <Text style={{ color: `hsl(${theme.colors.brandPrimary})`, fontWeight: '700', fontSize: 12 }}>{badge}</Text>
+        <View
+          style={[
+            styles.badge,
+            {
+              backgroundColor: `hsl(${theme.colors.brandPrimary} / 0.15)`,
+              paddingHorizontal: theme.spacing[2],
+              paddingVertical: theme.spacing[0.5] + 1,
+              borderRadius: theme.radius.md + 2,
+              minWidth: theme.spacing[6],
+            },
+          ]}
+        >
+          <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansBold }]}>
+            {badge}
+          </Text>
         </View>
       ) : (
-        <Ionicons name="chevron-forward" size={18} color={`hsl(${theme.colors.foregroundSecondary})`} />
+        <Ionicons name="chevron-forward" size={theme.sizes.iconXs + 2} color={`hsl(${theme.colors.foregroundSecondary})`} />
       )}
     </Pressable>
   );
@@ -51,15 +89,12 @@ export function AccountMenuRow({ label, sub, badge, icon, onPress, testID }: Pro
 
 const styles = StyleSheet.create({
   row: {
-    paddingVertical: 14,
-    minHeight: 52,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  left: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  iconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, minWidth: 24, alignItems: 'center' },
+  left: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  iconWrap: { alignItems: 'center', justifyContent: 'center' },
+  badge: { alignItems: 'center' },
 });
