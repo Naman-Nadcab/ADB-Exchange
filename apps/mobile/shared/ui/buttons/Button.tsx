@@ -56,11 +56,14 @@ export function Button({
         : size === 'xl'
           ? theme.sizes.buttonXl
           : theme.sizes.inputHeight;
+  const labelStyle =
+    size === 'sm' ? theme.typography.bodySm : size === 'xl' ? theme.typography.bodyLg : theme.typography.bodyMd;
 
   return (
     <Pressable
       testID={testID}
       accessibilityRole="button"
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
       disabled={disabled || loading}
       onPress={(e) => {
         void (variant === 'destructive' || variant === 'sell' ? hapticMedium() : hapticLight());
@@ -69,11 +72,11 @@ export function Button({
       style={({ pressed }) => [
         styles.base,
         {
-          minHeight: height,
+          minHeight: Math.max(height, theme.sizes.tapTarget),
           backgroundColor: palette.bg,
           borderColor: palette.border,
           borderWidth: palette.borderWidth,
-          opacity: disabled ? 0.5 : pressed ? 0.88 : 1,
+          opacity: disabled ? theme.opacity.disabled : pressed ? theme.opacity.pressed : 1,
           borderRadius: theme.radius.lg,
           width: fullWidth ? '100%' : undefined,
           paddingHorizontal: theme.spacing[4],
@@ -90,12 +93,11 @@ export function Button({
         <Text
           style={[
             styles.label,
-            theme.typography.bodyMd,
+            labelStyle,
             {
               color: palette.fg,
               fontFamily: theme.fonts.sansSemiBold,
-              fontWeight: '600',
-              fontSize: size === 'sm' ? 12 : size === 'xl' ? 16 : 14,
+              letterSpacing: 0.2,
             },
           ]}
         >
@@ -120,9 +122,9 @@ function getVariantColors(
     case 'destructive':
       return { bg: `hsl(${c.destructive})`, fg: `hsl(${c.destructiveForeground})`, border: 'transparent', borderWidth: 0 };
     case 'buy':
-      return { bg: `hsl(${c.tradeBuy})`, fg: '#ffffff', border: 'transparent', borderWidth: 0 };
+      return { bg: `hsl(${c.tradeBuy})`, fg: `hsl(${c.foregroundInverse})`, border: 'transparent', borderWidth: 0 };
     case 'sell':
-      return { bg: `hsl(${c.tradeSell})`, fg: '#ffffff', border: 'transparent', borderWidth: 0 };
+      return { bg: `hsl(${c.tradeSell})`, fg: `hsl(${c.foregroundInverse})`, border: 'transparent', borderWidth: 0 };
     case 'link':
       return { bg: 'transparent', fg: `hsl(${c.brandPrimary})`, border: 'transparent', borderWidth: 0 };
     default:

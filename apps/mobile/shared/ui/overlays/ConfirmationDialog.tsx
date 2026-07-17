@@ -52,7 +52,11 @@ export function ConfirmationDialog({
           <Text
             style={[
               theme.typography.headingMd,
-              { color: hsl(theme.colors.foregroundPrimary), marginBottom: theme.spacing[2] },
+              {
+                color: hsl(theme.colors.foregroundPrimary),
+                fontFamily: theme.fonts.sansSemiBold,
+                marginBottom: message ? theme.spacing[2] : theme.spacing[4],
+              },
             ]}
           >
             {title}
@@ -61,13 +65,17 @@ export function ConfirmationDialog({
             <Text
               style={[
                 theme.typography.bodyMd,
-                { color: hsl(theme.colors.foregroundSecondary), marginBottom: theme.spacing[5] },
+                {
+                  color: hsl(theme.colors.foregroundSecondary),
+                  marginBottom: theme.spacing[5],
+                  lineHeight: theme.typography.bodyMd.lineHeight + 2,
+                },
               ]}
             >
               {message}
             </Text>
           ) : null}
-          <View style={{ gap: theme.spacing[2] }}>
+          <View style={{ gap: theme.spacing[2.5] }}>
             <Button title={confirmLabel} onPress={onConfirm} variant={destructive ? 'destructive' : 'primary'} />
             <Button title={cancelLabel} onPress={onCancel} variant="ghost" />
           </View>

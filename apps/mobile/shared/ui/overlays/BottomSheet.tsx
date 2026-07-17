@@ -47,6 +47,8 @@ export function BottomSheet({ visible, onClose, title, children, testID }: Props
                   backgroundColor: hsl(theme.colors.borderStrong),
                   marginTop: theme.spacing[2],
                   marginBottom: theme.spacing[1],
+                  borderRadius: theme.radius.sm,
+                  height: theme.spacing[1],
                 },
               ]}
             />
@@ -75,6 +77,9 @@ export function BottomSheet({ visible, onClose, title, children, testID }: Props
                     onClose();
                   }}
                   hitSlop={theme.spacing[2]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Close sheet"
+                  style={({ pressed }) => ({ opacity: pressed ? theme.opacity.pressed : 1 })}
                 >
                   <Ionicons name="close" size={theme.sizes.iconMd} color={hsl(theme.colors.foregroundSecondary)} />
                 </Pressable>
@@ -94,7 +99,7 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
   sheetWrap: { justifyContent: 'flex-end' },
   sheet: { maxHeight: '88%' },
-  handle: { width: 36, height: 4, borderRadius: 2, alignSelf: 'center' },
+  handle: { width: 36, alignSelf: 'center' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

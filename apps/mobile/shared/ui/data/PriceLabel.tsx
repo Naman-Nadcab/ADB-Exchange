@@ -14,7 +14,14 @@ export function PriceLabel({ value, currency, size = 'md', testID }: Props) {
   const formatted = typeof value === 'number' ? value.toLocaleString(undefined, { maximumFractionDigits: 8 }) : value;
 
   return (
-    <Text testID={testID} style={[style, styles.base, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+    <Text
+      testID={testID}
+      style={[
+        style,
+        styles.base,
+        { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: style.fontFamily ?? theme.fonts.mono },
+      ]}
+    >
       {formatted}
       {currency ? (
         <Text style={[theme.typography.labelMd, { color: `hsl(${theme.colors.foregroundSecondary})` }]}> {currency}</Text>

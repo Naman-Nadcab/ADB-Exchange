@@ -56,9 +56,15 @@ export function TextField({
     <View style={{ marginBottom: theme.spacing[4] }}>
       {label ? (
         <Text
+          accessibilityRole="text"
           style={[
             theme.typography.labelMd,
-            { color: `hsl(${theme.colors.foregroundSecondary})`, marginBottom: theme.spacing[1.5] },
+            {
+              color: `hsl(${theme.colors.foregroundSecondary})`,
+              fontFamily: theme.fonts.sansMedium,
+              marginBottom: theme.spacing[1.5],
+              letterSpacing: 0.2,
+            },
           ]}
         >
           {label}
@@ -79,7 +85,7 @@ export function TextField({
         {leftIcon ? (
           <Ionicons
             name={leftIcon}
-            size={18}
+            size={theme.sizes.iconSm}
             color={`hsl(${theme.colors.foregroundSecondary})`}
             style={{ marginLeft: theme.spacing[4] }}
           />
@@ -87,6 +93,7 @@ export function TextField({
         <TextInput
           ref={inputRef}
           testID={testID}
+          accessibilityLabel={label ?? placeholder}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -104,15 +111,25 @@ export function TextField({
             theme.typography.bodyLg,
             {
               color: `hsl(${theme.colors.foregroundPrimary})`,
+              fontFamily: theme.fonts.sans,
               paddingHorizontal: leftIcon ? theme.spacing[2] : theme.spacing[4],
+              paddingVertical: theme.spacing[3.5],
             },
           ]}
           placeholderTextColor={`hsl(${theme.colors.foregroundSecondary})`}
           {...rest}
         />
         {rightIcon ? (
-          <Pressable onPress={onRightIconPress} hitSlop={8} style={{ paddingRight: theme.spacing[4] }}>
-            <Ionicons name={rightIcon} size={20} color={`hsl(${theme.colors.foregroundSecondary})`} />
+          <Pressable
+            onPress={onRightIconPress}
+            hitSlop={theme.spacing[2]}
+            accessibilityRole="button"
+            style={({ pressed }) => ({
+              paddingRight: theme.spacing[4],
+              opacity: pressed ? theme.opacity.pressed : 1,
+            })}
+          >
+            <Ionicons name={rightIcon} size={theme.sizes.iconSm} color={`hsl(${theme.colors.foregroundSecondary})`} />
           </Pressable>
         ) : null}
       </Animated.View>
@@ -148,5 +165,5 @@ export function TextField({
 
 const styles = StyleSheet.create({
   inputRow: { flexDirection: 'row', alignItems: 'center' },
-  input: { flex: 1, paddingVertical: 14 },
+  input: { flex: 1 },
 });

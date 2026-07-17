@@ -16,8 +16,18 @@ type Props = {
 
 export function AssetRow({ symbol, name, balance, value, changePct, onPress, right, testID }: Props) {
   const { theme } = useTheme();
+  const density = theme.listDensity.asset;
   const content = (
-    <View style={[styles.row, { paddingVertical: theme.spacing[3], borderBottomColor: `hsl(${theme.colors.borderDefault})` }]}>
+    <View
+      style={[
+        styles.row,
+        {
+          paddingVertical: theme.spacing[3],
+          minHeight: density.rowHeight,
+          borderBottomColor: `hsl(${theme.colors.borderDefault})`,
+        },
+      ]}
+    >
       <View style={styles.left}>
         <Text style={[theme.typography.bodyMd, { fontFamily: theme.fonts.sansSemiBold, color: `hsl(${theme.colors.foregroundPrimary})` }]}>
           {symbol}
@@ -26,7 +36,7 @@ export function AssetRow({ symbol, name, balance, value, changePct, onPress, rig
           <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>{name}</Text>
         ) : null}
       </View>
-      <View style={styles.right}>
+      <View style={[styles.right, { gap: theme.spacing[0.5] }]}>
         {value != null ? <PriceLabel value={value} size="md" /> : null}
         {balance ? (
           <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})`, textAlign: 'right' }]}>
@@ -48,7 +58,7 @@ export function AssetRow({ symbol, name, balance, value, changePct, onPress, rig
         void hapticLight();
         onPress();
       }}
-      style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+      style={({ pressed }) => ({ opacity: pressed ? theme.opacity.pressed : 1 })}
     >
       {content}
     </Pressable>

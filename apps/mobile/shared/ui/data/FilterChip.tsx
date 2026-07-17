@@ -23,9 +23,10 @@ export function FilterChip({ label, selected, onPress, testID }: Props) {
           borderRadius: theme.radius.full,
           borderColor: selected ? `hsl(${theme.colors.brandPrimary} / 0.45)` : `hsl(${theme.colors.borderDefault})`,
           backgroundColor: selected ? `hsl(${theme.colors.brandPrimary} / 0.12)` : `hsl(${theme.colors.surfaceMuted} / 0.5)`,
-          opacity: pressed ? 0.85 : 1,
+          opacity: pressed ? theme.opacity.pressed : 1,
           paddingHorizontal: theme.spacing[3],
           paddingVertical: theme.spacing[1.5],
+          minHeight: theme.sizes.tapTarget,
         },
       ]}
     >
@@ -45,5 +46,5 @@ export function FilterChip({ label, selected, onPress, testID }: Props) {
 }
 
 const styles = StyleSheet.create({
-  chip: { borderWidth: 1, minHeight: 32, justifyContent: 'center' },
+  chip: { borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
 });

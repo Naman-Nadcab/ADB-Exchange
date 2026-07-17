@@ -39,7 +39,7 @@ export function ShellStateScreen({
         },
       ]}
     >
-      <ExchangeCard elevated style={styles.card}>
+      <ExchangeCard elevated style={[styles.card, { paddingVertical: theme.spacing[8], paddingHorizontal: theme.spacing[6] }]}>
         {loading ? (
           <Loader size="lg" />
         ) : (

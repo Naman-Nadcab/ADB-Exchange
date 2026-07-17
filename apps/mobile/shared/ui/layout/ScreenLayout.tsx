@@ -39,7 +39,7 @@ export function ScreenLayout({
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={[
         styles.scrollContent,
-        { paddingHorizontal: pad, paddingTop: theme.spacing[2], paddingBottom: theme.spacing.pageY },
+        { paddingHorizontal: pad, paddingTop: theme.spacing[3], paddingBottom: theme.spacing.pageY },
         contentStyle,
       ]}
       showsVerticalScrollIndicator={false}
@@ -50,7 +50,7 @@ export function ScreenLayout({
     <View
       style={[
         styles.content,
-        { paddingHorizontal: pad, paddingTop: theme.spacing[2] },
+        { paddingHorizontal: pad, paddingTop: theme.spacing[3] },
         contentStyle,
       ]}
     >

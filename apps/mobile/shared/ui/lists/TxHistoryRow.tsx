@@ -1,5 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useTheme } from '@shared/theme';
+import { useTheme, hapticLight } from '@shared/theme';
 
 type Props = {
   label: string;
@@ -11,24 +11,67 @@ type Props = {
 
 export function TxHistoryRow({ label, value, sub, direction, onPress }: Props) {
   const { theme } = useTheme();
+  const density = theme.listDensity.default;
   const color =
     direction === 'in' ? theme.colors.tradeBuy : direction === 'out' ? theme.colors.tradeSell : theme.colors.foregroundPrimary;
 
   const content = (
-    <View style={styles.row}>
-      <View style={{ flex: 1 }}>
-        <Text style={{ color: `hsl(${theme.colors.foregroundPrimary})`, fontWeight: '600' }}>{label}</Text>
+    <View
+      style={[
+        styles.row,
+        {
+          paddingVertical: theme.spacing[2.5],
+          minHeight: density.rowHeight,
+          gap: density.gap,
+        },
+      ]}
+    >
+      <View style={{ flex: 1, justifyContent: 'center' }}>
+        <Text
+          style={[
+            theme.typography.bodyMd,
+            { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+          ]}
+        >
+          {label}
+        </Text>
         {sub ? (
-          <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})`, fontSize: 11 }}>{sub}</Text>
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[0.5] },
+            ]}
+          >
+            {sub}
+          </Text>
         ) : null}
       </View>
-      <Text style={{ color: `hsl(${color})`, fontWeight: '600', fontVariant: ['tabular-nums'] }}>{value}</Text>
+      <Text
+        style={[
+          theme.typography.price,
+          {
+            color: `hsl(${color})`,
+            fontFamily: theme.fonts.monoSemiBold,
+            fontVariant: ['tabular-nums'],
+            textAlign: 'right',
+          },
+        ]}
+      >
+        {value}
+      </Text>
     </View>
   );
 
   if (onPress) {
     return (
-      <Pressable onPress={onPress} accessibilityRole="button">
+      <Pressable
+        onPress={() => {
+          void hapticLight();
+          onPress();
+        }}
+        accessibilityRole="button"
+        style={({ pressed }) => ({ opacity: pressed ? theme.opacity.pressed : 1 })}
+      >
         {content}
       </Pressable>
     );
@@ -37,5 +80,5 @@ export function TxHistoryRow({ label, value, sub, direction, onPress }: Props) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, minHeight: 44 },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 });

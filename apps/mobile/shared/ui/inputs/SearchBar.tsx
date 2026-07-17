@@ -17,14 +17,16 @@ export function SearchBar({ value, onChangeText, placeholder = 'Search', testID 
         styles.wrap,
         {
           marginBottom: theme.spacing[3],
-          borderRadius: theme.radius.md,
+          borderRadius: theme.radius.lg,
           borderColor: `hsl(${theme.colors.borderDefault})`,
           backgroundColor: `hsl(${theme.colors.inputBackground})`,
           paddingHorizontal: theme.spacing[3],
+          minHeight: theme.sizes.tapTarget,
+          gap: theme.spacing[2],
         },
       ]}
     >
-      <Ionicons name="search" size={18} color={`hsl(${theme.colors.foregroundSecondary})`} />
+      <Ionicons name="search" size={theme.sizes.iconSm} color={`hsl(${theme.colors.foregroundSecondary})`} />
       <TextInput
         testID={testID}
         value={value}
@@ -34,7 +36,11 @@ export function SearchBar({ value, onChangeText, placeholder = 'Search', testID 
         style={[
           styles.input,
           theme.typography.bodyMd,
-          { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sans },
+          {
+            color: `hsl(${theme.colors.foregroundPrimary})`,
+            fontFamily: theme.fonts.sans,
+            paddingVertical: theme.spacing[2.5],
+          },
         ]}
         placeholderTextColor={`hsl(${theme.colors.foregroundSecondary})`}
         autoCapitalize="none"
@@ -49,9 +55,7 @@ const styles = StyleSheet.create({
   wrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
     borderWidth: 1,
-    minHeight: 44,
   },
-  input: { flex: 1, paddingVertical: 10 },
+  input: { flex: 1 },
 });

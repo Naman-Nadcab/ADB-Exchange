@@ -50,7 +50,10 @@ export function ToastHost() {
   const accent = toneColor(item.tone, theme.colors);
 
   return (
-    <View pointerEvents="box-none" style={[styles.host, { top: insets.top + 8 }]}>
+    <View
+      pointerEvents="box-none"
+      style={[styles.host, { top: insets.top + theme.spacing[2], paddingHorizontal: theme.spacing.pageX }]}
+    >
       <Animated.View
         entering={FadeInUp.duration(theme.motion.duration.normal)}
         exiting={FadeOutUp.duration(theme.motion.duration.fast)}
@@ -64,14 +67,36 @@ export function ToastHost() {
           },
         ]}
       >
-        <Pressable style={styles.row} onPress={() => dismiss(item.id)}>
-          <Ionicons name={toneIcon(item.tone)} size={20} color={`hsl(${accent})`} />
+        <Pressable
+          style={({ pressed }) => [
+            styles.row,
+            {
+              gap: theme.spacing[2.5],
+              padding: theme.spacing[3.5],
+              opacity: pressed ? theme.opacity.pressed : 1,
+            },
+          ]}
+          onPress={() => dismiss(item.id)}
+          accessibilityRole="button"
+          accessibilityLabel={`Dismiss ${item.title}`}
+        >
+          <Ionicons name={toneIcon(item.tone)} size={theme.sizes.iconSm} color={`hsl(${accent})`} />
           <View style={styles.textCol}>
-            <Text style={[theme.typography.bodyMd, { fontFamily: theme.fonts.sansSemiBold, color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+            <Text
+              style={[
+                theme.typography.bodyMd,
+                { fontFamily: theme.fonts.sansSemiBold, color: `hsl(${theme.colors.foregroundPrimary})` },
+              ]}
+            >
               {item.title}
             </Text>
             {item.message ? (
-              <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: 2 }]}>
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[0.5] },
+                ]}
+              >
                 {item.message}
               </Text>
             ) : null}
@@ -83,9 +108,9 @@ export function ToastHost() {
 }
 
 const styles = StyleSheet.create({
-  host: { position: 'absolute', left: 16, right: 16, zIndex: 9999 },
+  host: { position: 'absolute', left: 0, right: 0, zIndex: 9999 },
   toast: { borderWidth: 1, overflow: 'hidden' },
-  row: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 14 },
+  row: { flexDirection: 'row', alignItems: 'flex-start' },
   textCol: { flex: 1 },
 });
 

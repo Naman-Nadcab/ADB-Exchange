@@ -5,14 +5,15 @@ type Props = { size?: 'sm' | 'md' | 'lg'; testID?: string };
 
 export function Loader({ size = 'md', testID }: Props) {
   const { theme } = useTheme();
-  const dim = size === 'sm' ? 20 : size === 'lg' ? 40 : 28;
+  const dim =
+    size === 'sm' ? theme.sizes.iconSm : size === 'lg' ? theme.sizes.iconLg : theme.sizes.iconMd;
   return (
-    <View testID={testID} style={styles.center}>
-      <ActivityIndicator size={dim} color={`hsl(${theme.colors.brandPrimary})`} />
+    <View testID={testID} style={[styles.center, { padding: theme.spacing[4] }]}>
+      <ActivityIndicator size={dim >= 32 ? 'large' : 'small'} color={`hsl(${theme.colors.brandPrimary})`} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { alignItems: 'center', justifyContent: 'center', padding: 16 },
+  center: { alignItems: 'center', justifyContent: 'center' },
 });

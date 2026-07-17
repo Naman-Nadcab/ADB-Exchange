@@ -12,16 +12,21 @@ type Props = {
 export function SectionHeader({ title, subtitle, actionLabel, onAction, testID }: Props) {
   const { theme } = useTheme();
   return (
-    <View testID={testID} style={[styles.row, { marginBottom: theme.spacing[3] }]}>
-      <View style={styles.textCol}>
-        <Text style={[theme.typography.headingMd, { color: `hsl(${theme.colors.foregroundPrimary})` }]}>
+    <View testID={testID} style={[styles.row, { marginBottom: theme.spacing.sectionGap }]}>
+      <View style={[styles.textCol, { paddingRight: theme.spacing[2] }]}>
+        <Text
+          style={[
+            theme.typography.headingMd,
+            { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansSemiBold },
+          ]}
+        >
           {title}
         </Text>
         {subtitle ? (
           <Text
             style={[
               theme.typography.bodySm,
-              { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[0.5] },
+              { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[1] },
             ]}
           >
             {subtitle}
@@ -29,8 +34,13 @@ export function SectionHeader({ title, subtitle, actionLabel, onAction, testID }
         ) : null}
       </View>
       {actionLabel && onAction ? (
-        <Pressable onPress={onAction} hitSlop={8}>
-          <Text style={[theme.typography.labelMd, { color: `hsl(${theme.colors.brandPrimary})` }]}>
+        <Pressable
+          onPress={onAction}
+          hitSlop={theme.spacing[2]}
+          accessibilityRole="button"
+          style={({ pressed }) => ({ opacity: pressed ? theme.opacity.pressed : 1 })}
+        >
+          <Text style={[theme.typography.labelMd, { color: `hsl(${theme.colors.brandPrimary})`, fontFamily: theme.fonts.sansSemiBold }]}>
             {actionLabel}
           </Text>
         </Pressable>
@@ -40,6 +50,6 @@ export function SectionHeader({ title, subtitle, actionLabel, onAction, testID }
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   textCol: { flex: 1 },
 });

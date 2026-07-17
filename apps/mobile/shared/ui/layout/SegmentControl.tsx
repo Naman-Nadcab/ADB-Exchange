@@ -16,7 +16,7 @@ export function SegmentControl({ tabs, active, onChange, testID }: Props) {
       horizontal
       showsHorizontalScrollIndicator={false}
       style={{ marginBottom: theme.spacing[3] }}
-      contentContainerStyle={styles.row}
+      contentContainerStyle={[styles.row, { gap: theme.spacing[2], paddingVertical: theme.spacing[0.5] }]}
     >
       {tabs.map((tab) => {
         const selected = tab.id === active;
@@ -29,14 +29,16 @@ export function SegmentControl({ tabs, active, onChange, testID }: Props) {
             }}
             accessibilityRole="button"
             accessibilityState={{ selected }}
-            style={[
+            style={({ pressed }) => [
               styles.chip,
               {
                 borderRadius: theme.radius.full,
                 borderColor: selected ? `hsl(${theme.colors.brandPrimary} / 0.35)` : `hsl(${theme.colors.borderDefault})`,
                 backgroundColor: selected ? `hsl(${theme.colors.brandPrimary})` : `hsl(${theme.colors.surfaceMuted} / 0.55)`,
                 paddingHorizontal: theme.spacing[3.5],
-                minHeight: 36,
+                paddingVertical: theme.spacing[2],
+                minHeight: theme.sizes.buttonMd,
+                opacity: pressed ? theme.opacity.pressed : 1,
               },
             ]}
           >
@@ -45,6 +47,7 @@ export function SegmentControl({ tabs, active, onChange, testID }: Props) {
                 theme.typography.labelMd,
                 {
                   fontFamily: theme.fonts.sansSemiBold,
+                  letterSpacing: 0.2,
                   color: selected
                     ? `hsl(${theme.colors.brandPrimaryForeground})`
                     : `hsl(${theme.colors.foregroundPrimary})`,
@@ -61,6 +64,6 @@ export function SegmentControl({ tabs, active, onChange, testID }: Props) {
 }
 
 const styles = StyleSheet.create({
-  row: { gap: 8, paddingVertical: 2 },
-  chip: { borderWidth: 1, justifyContent: 'center', paddingVertical: 8 },
+  row: { flexDirection: 'row' },
+  chip: { borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
 });

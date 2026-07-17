@@ -34,7 +34,7 @@ export function FlowHeader(props: Props) {
   if (props.variant === 'text') {
     const { title, subtitle, step, testID } = props;
     return (
-      <View testID={testID} style={[styles.wrap, { marginBottom: theme.spacing[3.5] }]}>
+      <View testID={testID} style={[styles.wrap, { marginBottom: theme.spacing.sectionGap }]}>
         <Text
           style={[
             theme.typography.headingLg,

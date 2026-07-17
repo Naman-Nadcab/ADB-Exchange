@@ -17,13 +17,14 @@ export function AccountMenuRow({ label, sub, badge, icon, onPress, testID }: Pro
 
   return (
     <Pressable
-      style={[
+      style={({ pressed }) => [
         styles.row,
         {
           borderBottomColor: `hsl(${theme.colors.borderDefault})`,
           paddingVertical: theme.spacing[3.5],
           minHeight: density.rowHeight,
           gap: density.gap,
+          opacity: pressed ? theme.opacity.pressed : 1,
         },
       ]}
       onPress={onPress}

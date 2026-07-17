@@ -10,7 +10,7 @@ export function SkeletonList({ rows = 8, density = 'default' }: Props) {
   const { rowHeight, gap } = theme.listDensity[density];
 
   return (
-    <View style={[styles.wrap, { gap }]}>
+    <View style={[styles.wrap, { gap, paddingVertical: theme.spacing[2] }]}>
       {Array.from({ length: rows }).map((_, i) => (
         <Skeleton key={i} height={rowHeight} style={{ borderRadius: theme.radius.md }} />
       ))}

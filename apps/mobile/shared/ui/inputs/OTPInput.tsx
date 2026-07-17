@@ -20,7 +20,13 @@ export function OTPInput({ length = 6, value, onChange, testID, error }: Props) 
   }, [value, length]);
 
   return (
-    <Pressable testID={testID} onPress={() => ref.current?.focus()} style={[styles.row, { gap: 6 }]}>
+    <Pressable
+      testID={testID}
+      onPress={() => ref.current?.focus()}
+      accessibilityRole="button"
+      accessibilityLabel="One-time code input"
+      style={[styles.row, { gap: theme.spacing[1.5], marginBottom: theme.spacing[4] }]}
+    >
       <TextInput
         ref={ref}
         value={value}
@@ -37,7 +43,10 @@ export function OTPInput({ length = 6, value, onChange, testID, error }: Props) 
           style={[
             styles.cell,
             {
+              width: theme.sizes.tapTarget,
+              height: theme.sizes.buttonXl,
               borderRadius: theme.radius.md,
+              borderWidth: theme.borderWidth.medium,
               borderColor: error
                 ? `hsl(${theme.colors.statusError})`
                 : i === value.length
@@ -50,7 +59,11 @@ export function OTPInput({ length = 6, value, onChange, testID, error }: Props) 
           <Text
             style={[
               theme.typography.headingMd,
-              { color: `hsl(${theme.colors.foregroundPrimary})`, fontFamily: theme.fonts.sansBold },
+              {
+                color: `hsl(${theme.colors.foregroundPrimary})`,
+                fontFamily: theme.fonts.monoSemiBold,
+                fontVariant: ['tabular-nums'],
+              },
             ]}
           >
             {digit}
@@ -65,9 +78,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'center' },
   hidden: { position: 'absolute', opacity: 0, width: 1, height: 1 },
   cell: {
-    width: 44,
-    height: 56,
-    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },

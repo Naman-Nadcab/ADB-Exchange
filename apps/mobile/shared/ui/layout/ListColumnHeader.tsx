@@ -8,17 +8,29 @@ type Props = {
 export function ListColumnHeader({ columns }: Props) {
   const { theme } = useTheme();
   return (
-    <View style={[styles.row, { borderBottomColor: `hsl(${theme.colors.borderDefault})` }]}>
+    <View
+      style={[
+        styles.row,
+        {
+          borderBottomColor: `hsl(${theme.colors.borderDefault})`,
+          paddingVertical: theme.spacing[2],
+          paddingHorizontal: theme.spacing[1],
+          marginBottom: theme.spacing[0.5],
+        },
+      ]}
+    >
       {columns.map((col) => (
         <Text
           key={col.label}
           style={[
-            styles.label,
+            theme.typography.labelSm,
             {
               flex: col.flex ?? 1,
               textAlign: col.align ?? 'left',
               color: `hsl(${theme.colors.foregroundSecondary})`,
-              fontFamily: theme.fonts.sansMedium,
+              fontFamily: theme.fonts.sansSemiBold,
+              letterSpacing: 0.8,
+              textTransform: 'uppercase',
             },
           ]}
         >
@@ -33,15 +45,6 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    marginBottom: 2,
-  },
-  label: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
   },
 });

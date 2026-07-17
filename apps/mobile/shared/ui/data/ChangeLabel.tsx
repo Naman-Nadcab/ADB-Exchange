@@ -15,7 +15,15 @@ export function ChangeLabel({ changePct, testID }: Props) {
   return (
     <Text
       testID={testID}
-      style={[theme.typography.price, styles.base, { color: `hsl(${color})` }]}
+      style={[
+        theme.typography.price,
+        styles.base,
+        {
+          color: `hsl(${color})`,
+          fontFamily: theme.fonts.monoSemiBold,
+          textAlign: 'right',
+        },
+      ]}
     >
       {prefix}
       {changePct.toFixed(2)}%
