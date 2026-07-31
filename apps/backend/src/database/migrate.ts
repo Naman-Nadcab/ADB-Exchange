@@ -3004,6 +3004,10 @@ const migrations = [
   `DROP INDEX IF EXISTS settlement_events_engine_event_id_key;`,
   `CREATE UNIQUE INDEX IF NOT EXISTS settlement_events_match_engine_event_uidx ON settlement_events(match_engine_id, engine_event_id);`,
   `CREATE INDEX IF NOT EXISTS idx_settlement_events_match_engine ON settlement_events(match_engine_id, engine_event_id);`,
+  `ALTER TABLE settlement_events ADD COLUMN IF NOT EXISTS match_fingerprint TEXT;`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS settlement_events_match_fingerprint_uidx
+     ON settlement_events(match_engine_id, match_fingerprint)
+     WHERE match_fingerprint IS NOT NULL AND status IN ('pending', 'processed');`,
 
   // security_risk_signal_weights (moved from stray tail migration)
   `CREATE TABLE IF NOT EXISTS security_risk_signal_weights (

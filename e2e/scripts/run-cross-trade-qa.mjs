@@ -32,6 +32,11 @@ function hKey(key) {
 function hJwt(token) {
   return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 }
+/** Prefer JWT for trade mutations — production requires HMAC on API keys. */
+function hTrade(token, key) {
+  if (token?.trim()) return hJwt(token);
+  return hKey(key);
+}
 
 async function j(path, opts = {}) {
   reqStats.total += 1;
@@ -100,7 +105,7 @@ async function runOnce(iter, price) {
   const cidA = `qa-buy-${Date.now()}-${iter}`;
   const placeBuy = await j('/spot/order', {
     method: 'POST',
-    headers: hKey(KEY_A),
+    headers: hTrade(JWT_A, KEY_A),
     body: JSON.stringify({
       market: MARKET,
       side: 'buy',
@@ -124,7 +129,7 @@ async function runOnce(iter, price) {
   const cidB = `qa-sell-${Date.now()}-${iter}`;
   const placeSell = await j('/spot/order', {
     method: 'POST',
-    headers: hKey(KEY_B),
+    headers: hTrade(JWT_B, KEY_B),
     body: JSON.stringify({
       market: MARKET,
       side: 'sell',
