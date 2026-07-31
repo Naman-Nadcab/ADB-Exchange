@@ -39,7 +39,7 @@ async function main() {
 
   const pass = r1.inserted === 1 && r2.skipped_duplicate >= 1 && rows === 1;
   console.log(JSON.stringify({ pass, r1, r2, rows }, null, 2));
-  await db.end?.();
+  await db.close();
   process.exit(pass ? 0 : 1);
 }
 
