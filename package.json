@@ -41,6 +41,8 @@
     "verify:compliance-signoff:strict": "COMPLIANCE_STRICT=1 node scripts/compliance-signoff.mjs",
     "release:go-no-go": "node scripts/release-go-no-go.mjs",
     "release:go-no-go:strict": "RELEASE_STRICT_PROFILE=1 node scripts/release-go-no-go.mjs",
+    "release:closure": "bash scripts/run-final-release-certification.sh",
+    "release:external-blockers": "node scripts/check-external-blockers.mjs",
     "qa:e2e-credentials:file": "cd apps/backend && npx tsx scripts/e2e-provision-credentials.ts --emit-json ../../e2e/.e2e-credentials.json",
     "load": "k6 run load/k6-spot-order.js",
     "load:health": "k6 run load/k6-health-markets.js",
@@ -79,9 +81,10 @@
     "clean": "turbo run clean && rm -rf node_modules"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.49.0",
-    "turbo": "^2.0.0",
     "tsx": "^4.6.2",
+    "turbo": "^2.0.0",
     "typescript": "^5.3.3",
     "ws": "^8.14.2"
   },

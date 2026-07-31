@@ -20,27 +20,28 @@ import { runPhase13 } from './api/phase13-tier1-ops.test.js';
 import { runPhase14 } from './api/phase14-private-ws.test.js';
 import { runPhase15 } from './api/phase15-ws-rest-parity.test.js';
 
-const phases: Array<{ name: string; run: () => Promise<{ passed: number; failed: number; results: string[] }> }> = [
-  { name: 'Phase 1 — System health', run: runPhase1 },
-  { name: 'Phase 2 — Authentication', run: runPhase2 },
-  { name: 'Phase 3 — Spot trading', run: runPhase3 },
-  { name: 'Phase 4 — Rust engine', run: runPhase4 },
-  { name: 'Phase 5 — Wallet', run: runPhase5 },
-  { name: 'Phase 6 — Internal transfer', run: runPhase6 },
-  { name: 'Phase 7 — P2P', run: runPhase7 },
-  { name: 'Phase 8 — Liquidity bot / oracle', run: runPhase8 },
-  { name: 'Phase 9 — WebSocket', run: runPhase9 },
-  { name: 'Phase 11 — Security', run: runPhase11 },
-  { name: 'Phase 12 — Failure scenarios', run: runPhase12 },
-  { name: 'Phase 13 — Tier-1 operations metrics', run: runPhase13 },
+const phases: Array<{ id: number; name: string; run: () => Promise<{ passed: number; failed: number; results: string[] }> }> = [
+  { id: 1, name: 'Phase 1 — System health', run: runPhase1 },
+  { id: 2, name: 'Phase 2 — Authentication', run: runPhase2 },
+  { id: 3, name: 'Phase 3 — Spot trading', run: runPhase3 },
+  { id: 4, name: 'Phase 4 — Rust engine', run: runPhase4 },
+  { id: 5, name: 'Phase 5 — Wallet', run: runPhase5 },
+  { id: 6, name: 'Phase 6 — Internal transfer', run: runPhase6 },
+  { id: 7, name: 'Phase 7 — P2P', run: runPhase7 },
+  { id: 8, name: 'Phase 8 — Liquidity bot / oracle', run: runPhase8 },
+  { id: 9, name: 'Phase 9 — WebSocket', run: runPhase9 },
+  { id: 11, name: 'Phase 11 — Security', run: runPhase11 },
+  { id: 12, name: 'Phase 12 — Failure scenarios', run: runPhase12 },
+  { id: 13, name: 'Phase 13 — Tier-1 operations metrics', run: runPhase13 },
   {
+    id: 14,
     name: 'Phase 14 — Private WebSocket lifecycle',
     run: async () => {
       const r = await runPhase14();
       return { passed: r.passed, failed: r.failed, results: r.results };
     },
   },
-  { name: 'Phase 15 — WS/REST parity', run: runPhase15 },
+  { id: 15, name: 'Phase 15 — WS/REST parity', run: runPhase15 },
 ];
 
 function getPhaseFilter(): number[] | null {
@@ -54,9 +55,7 @@ function getPhaseFilter(): number[] | null {
 async function main() {
   const filter = getPhaseFilter();
   const toRun = filter?.length
-    ? filter
-        .map((n) => phases.find((_, i) => i + 1 === n))
-        .filter((p): p is (typeof phases)[number] => Boolean(p))
+    ? phases.filter((p) => filter.includes(p.id))
     : phases;
   console.log('E2E Test Runner');
   console.log('BASE_URL:', process.env.E2E_BASE_URL || 'http://localhost:4000');
