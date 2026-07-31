@@ -27,7 +27,9 @@ test.describe('Spot trading', () => {
     process.env.E2E_JWT = creds.E2E_JWT;
     process.env.E2E_API_KEY = creds.E2E_API_KEY;
     process.env.E2E_COUNTERPARTY_JWT = creds.E2E_COUNTERPARTY_JWT;
-    process.env.E2E_COUNTERPARTY_API_KEY = creds.E2E_COUNTERPARTY_API_KEY;
+    process.env.E2E_SPOT_SYMBOL = process.env.E2E_SPOT_SYMBOL || 'ETH_USDT';
+    process.env.E2E_ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL || creds.E2E_ADMIN_EMAIL || 'admin@example.com';
+    process.env.E2E_ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || creds.E2E_ADMIN_PASSWORD || 'admin123';
 
     const { failed, results } = await runPhase3();
     const critical = results.filter((r) => r.startsWith('FAIL:'));

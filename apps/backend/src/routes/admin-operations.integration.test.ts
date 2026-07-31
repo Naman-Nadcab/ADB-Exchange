@@ -126,16 +126,21 @@ async function run(): Promise<void> {
   assert(errCode(badSim.json) === 'INVALID_SIM_ACTION', `Expected INVALID_SIM_ACTION, got ${errCode(badSim.json)}`);
   console.log('PASS: simulation invalid-action contract enforced');
 
-  // 6) step-up required on sensitive hybrid route
+  // 6) step-up required on sensitive hybrid route (only when admin 2FA mandatory)
+  const admin2faMandatory = (process.env.ADMIN_2FA_MANDATORY ?? 'true').toLowerCase() !== 'false';
   const stepUp = await callApi(token, 'POST', '/external-liquidity/providers/bulk-state', {
     provider_ids: [randomUUID()],
     enabled: false,
     dry_run: true,
     reason: 'integration step-up check',
   });
-  assert(stepUp.status === 401, `Expected 401 for missing step-up auth, got ${stepUp.status}`);
-  assert(errCode(stepUp.json) === 'STEP_UP_REQUIRED', `Expected STEP_UP_REQUIRED, got ${errCode(stepUp.json)}`);
-  console.log('PASS: step-up guard enforced on sensitive hybrid writes');
+  if (admin2faMandatory) {
+    assert(stepUp.status === 401, `Expected 401 for missing step-up auth, got ${stepUp.status}`);
+    assert(errCode(stepUp.json) === 'STEP_UP_REQUIRED', `Expected STEP_UP_REQUIRED, got ${errCode(stepUp.json)}`);
+    console.log('PASS: step-up guard enforced on sensitive hybrid writes');
+  } else {
+    console.log('SKIP: step-up guard (ADMIN_2FA_MANDATORY=false — enable for production)');
+  }
 
   // 7) high-risk global action should be queued for dual approval
   const queued = await callApi(token, 'POST', '/control/global-action', {
