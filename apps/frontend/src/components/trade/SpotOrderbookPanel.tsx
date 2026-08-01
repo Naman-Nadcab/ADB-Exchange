@@ -293,7 +293,7 @@ function SentimentFooter({
                 paddingLeft: `${skew + 4}px`,
               }}
             >
-              <span>{s.toFixed(0)}%</span>
+              <span className="text-foreground">{s.toFixed(0)}%</span>
             </div>
           </div>
         </TooltipTrigger>
