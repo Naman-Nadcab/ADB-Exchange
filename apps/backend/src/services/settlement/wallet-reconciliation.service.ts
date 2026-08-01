@@ -45,7 +45,7 @@ export function createHotWalletOutflowDebitProvider(chainId: string, asset: stri
       `SELECT COALESCE(SUM(w.amount + w.fee), 0)::text AS sum
        FROM withdrawals w
        LEFT JOIN tokens t ON t.id = w.token_id
-       LEFT JOIN currencies c ON c.id = t.currency_id
+       LEFT JOIN currencies c ON UPPER(TRIM(c.symbol)) = UPPER(TRIM(t.symbol))
        WHERE w.chain_id = $1
          AND w.status = 'completed'
          AND w.tx_hash IS NOT NULL
