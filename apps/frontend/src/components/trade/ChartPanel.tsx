@@ -64,7 +64,7 @@ const TB_SEG_ON = 'bg-primary text-primary-foreground shadow-sm';
 const TB_SEG_OFF = 'text-foreground/75 hover:bg-accent hover:text-accent-foreground';
 /** Compact toggles (Vol SMA / RSI / studies) — no native checkbox paint. */
 const TB_TOGGLE_ON = 'border-primary/50 bg-primary/15 text-foreground';
-const TB_TOGGLE_OFF = 'border-border text-muted-foreground hover:bg-accent hover:text-foreground/90';
+const TB_TOGGLE_OFF = 'border-border text-foreground/75 hover:bg-accent hover:text-foreground/90';
 const TB_FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1';
 
 type ChartUiPrefs = {

@@ -424,7 +424,7 @@ const RecentTradesPanel = memo(function RecentTradesPanel({
           Time
         </span>
       </div>
-      <div className="spot-rail-scroll flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden pr-0.5">
+      <div className="spot-rail-scroll flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden pr-0.5" tabIndex={0}>
         {isInitialLoading ? (
           <TerminalLoadingRows rows={12} />
         ) : topTrades.length === 0 ? (
@@ -611,6 +611,7 @@ function TopMoversSection({
           role="region"
           aria-labelledby="spot-top-movers-heading"
           className="spot-rail-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-0.5"
+          tabIndex={0}
         >
           {movers.length === 0 ? (
             <TerminalEmptyState
@@ -624,7 +625,7 @@ function TopMoversSection({
           )}
         </div>
       ) : (
-        <div id="spot-top-movers-list" className="shrink-0" role="region" aria-labelledby="spot-top-movers-heading">
+        <div id="spot-top-movers-list" className="shrink-0" role="region" aria-labelledby="spot-top-movers-heading" tabIndex={0}>
           {top ? (
             renderRow(top, true)
           ) : (
