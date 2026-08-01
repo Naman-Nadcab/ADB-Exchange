@@ -48,9 +48,9 @@
   /* Binance-adjacent dark terminal: deeper shell, elevated panels, readable muted labels */
   .dark {
     --exchange-buy: 158 64% 46%;
-    --exchange-sell: 352 75% 62%;
+    --exchange-sell: 352 78% 65%;
     --price-up: 158 64% 46%;
-    --price-down: 352 75% 62%;
+    --price-down: 352 78% 65%;
     --panel: 218 11% 12%;
 
     --background: 216 14% 7%;
