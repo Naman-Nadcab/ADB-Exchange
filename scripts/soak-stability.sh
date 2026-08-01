@@ -173,29 +173,35 @@ while [[ "$(date +%s)" -lt "$deadline" ]]; do
   fi
   sleep "$SOAK_PHASE_GAP_SEC"
   # Drain settlement queue before determinism assertion (production backend image has no TS scripts).
+  DRAIN_ENV_FILE="$(mktemp)"
+  docker exec exchange-backend env > "$DRAIN_ENV_FILE"
   if ! docker run --rm --network container:exchange-backend \
     -v "$ROOT/apps/backend:/app" \
     -w /app \
-    -e "DATABASE_URL=$(docker exec exchange-backend printenv DATABASE_URL)" \
-    -e "REDIS_URL=$(docker exec exchange-backend printenv REDIS_URL)" \
+    --env-file "$DRAIN_ENV_FILE" \
     mcr.microsoft.com/playwright:v1.49.0-jammy \
     sh -c 'npm ci --ignore-scripts >/dev/null 2>&1 && npx tsx scripts/tier1-drain-settlement.ts' >> "$LOG_PATH" 2>&1; then
+    rm -f "$DRAIN_ENV_FILE"
     echo "=== DRAIN_ABORT iter=${iter}" | tee -a "$LOG_PATH"
     exit 1
   fi
+  rm -f "$DRAIN_ENV_FILE"
 
   determinism_ok=0
   for attempt in 1 2 3; do
+    DETERM_ENV_FILE="$(mktemp)"
+    docker exec exchange-backend env > "$DETERM_ENV_FILE"
     if docker run --rm --network container:exchange-backend \
       -v "$ROOT/apps/backend:/app" \
       -w /app \
-      -e "DATABASE_URL=$(docker exec exchange-backend printenv DATABASE_URL)" \
-      -e "REDIS_URL=$(docker exec exchange-backend printenv REDIS_URL)" \
+      --env-file "$DETERM_ENV_FILE" \
       mcr.microsoft.com/playwright:v1.49.0-jammy \
       sh -c 'npm ci --ignore-scripts >/dev/null 2>&1 && npx tsx scripts/settlement-determinism-verify.ts' >> "$LOG_PATH" 2>&1; then
+      rm -f "$DETERM_ENV_FILE"
       determinism_ok=1
       break
     fi
+    rm -f "$DETERM_ENV_FILE"
     echo "=== DETERMINISM_RETRY iter=${iter} attempt=${attempt}" | tee -a "$LOG_PATH"
     sleep 5
   done
