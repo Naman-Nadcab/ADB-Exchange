@@ -173,25 +173,15 @@ while [[ "$(date +%s)" -lt "$deadline" ]]; do
   fi
   sleep "$SOAK_PHASE_GAP_SEC"
   # Drain settlement queue before determinism assertion to avoid transient in-flight false failures.
-  # This still hard-fails if pending cannot be drained.
-  if ! docker run --rm --network host \
-    -v "$ROOT:/work" -w /work/apps/backend \
-    -e "DATABASE_URL=${HOST_DATABASE_URL:-$(host_db_url "${DATABASE_URL:-}")}" \
-    -e "REDIS_URL=${HOST_REDIS_URL:-$(host_redis_url "${REDIS_URL:-}")}" \
-    mcr.microsoft.com/playwright:v1.49.0-jammy \
-    npx tsx scripts/tier1-drain-settlement.ts >> "$LOG_PATH" 2>&1; then
+  # Run inside the backend container so DATABASE_URL/REDIS_URL match production networking.
+  if ! docker exec exchange-backend npx tsx scripts/tier1-drain-settlement.ts >> "$LOG_PATH" 2>&1; then
     echo "=== DRAIN_ABORT iter=${iter}" | tee -a "$LOG_PATH"
     exit 1
   fi
 
   determinism_ok=0
   for attempt in 1 2 3; do
-    if docker run --rm --network host \
-      -v "$ROOT:/work" -w /work/apps/backend \
-      -e "DATABASE_URL=${HOST_DATABASE_URL:-$(host_db_url "${DATABASE_URL:-}")}" \
-      -e "REDIS_URL=${HOST_REDIS_URL:-$(host_redis_url "${REDIS_URL:-}")}" \
-      mcr.microsoft.com/playwright:v1.49.0-jammy \
-      npx tsx scripts/settlement-determinism-verify.ts >> "$LOG_PATH" 2>&1; then
+    if docker exec exchange-backend npx tsx scripts/settlement-determinism-verify.ts >> "$LOG_PATH" 2>&1; then
       determinism_ok=1
       break
     fi
