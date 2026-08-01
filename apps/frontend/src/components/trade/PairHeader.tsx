@@ -203,6 +203,7 @@ export function PairHeader({
             <select
               value={sym}
               onChange={(e) => onChange(e.target.value)}
+              aria-label="Trading pair"
               className="numeric h-7 max-w-[9.5rem] min-w-[6.5rem] shrink cursor-pointer appearance-none truncate rounded-md border border-border bg-card py-0 pl-2 pr-7 text-book font-bold leading-7 text-foreground outline-none transition-colors hover:border-primary/35 focus:border-primary/50 focus:ring-1 focus:ring-primary/25 sm:max-w-[10.5rem]"
             >
               {mkt.map((m) => (

@@ -61,7 +61,7 @@ const INTERVALS: { label: string; seconds: number }[] = [
 
 /** Toolbar segmented control — app tokens (aligned with markets tabs / primary). */
 const TB_SEG_ON = 'bg-primary text-primary-foreground shadow-sm';
-const TB_SEG_OFF = 'text-muted-foreground hover:bg-accent hover:text-accent-foreground';
+const TB_SEG_OFF = 'text-foreground/75 hover:bg-accent hover:text-accent-foreground';
 /** Compact toggles (Vol SMA / RSI / studies) — no native checkbox paint. */
 const TB_TOGGLE_ON = 'border-primary/50 bg-primary/15 text-foreground';
 const TB_TOGGLE_OFF = 'border-border text-muted-foreground hover:bg-accent hover:text-foreground/90';
@@ -744,7 +744,7 @@ function ChartPanelInner({
                 value={overlayStudy}
                 onChange={(e) => setOverlayStudy(e.target.value as OverlayStudyId)}
                 className={`max-w-[11rem] shrink-0 cursor-pointer rounded-md border border-border bg-card px-2 py-1.5 text-price font-semibold text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring ${TB_FOCUS}`}
-                title="Price overlay (SMA, EMA, VWAP, Bollinger)"
+                aria-label="Price overlay indicator"
               >
                 {OVERLAY_OPTIONS.map(({ id, label }) => (
                   <option key={id} value={id}>

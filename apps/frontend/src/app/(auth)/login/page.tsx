@@ -407,7 +407,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-primary hover:underline font-medium">Sign up</Link>
+            <Link href="/signup" className="text-primary underline underline-offset-2 font-medium">Sign up</Link>
           </p>
         </form>
       )}
@@ -445,7 +445,7 @@ export default function LoginPage() {
           </button>
 
           <p className="text-center text-sm text-muted-foreground">
-            <Link href="/signup" className="text-primary hover:underline font-medium">Sign up</Link>
+            <Link href="/signup" className="text-primary underline underline-offset-2 font-medium">Sign up</Link>
           </p>
         </form>
       )}

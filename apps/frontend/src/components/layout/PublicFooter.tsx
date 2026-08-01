@@ -67,7 +67,7 @@ export function PublicFooter() {
                   <Link
                     href={item.href}
                     prefetch
-                    className="inline-flex min-h-[40px] min-w-[44px] items-center text-[#AEB6C4] transition hover:text-white"
+                    className="inline-flex min-h-[40px] min-w-[44px] items-center text-[#AEB6C4] underline underline-offset-2 decoration-[#AEB6C4]/40 transition hover:text-white hover:decoration-white/60"
                   >
                     {item.label}
                   </Link>
