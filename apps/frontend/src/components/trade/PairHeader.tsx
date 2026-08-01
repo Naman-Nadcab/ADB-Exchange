@@ -222,7 +222,7 @@ export function PairHeader({
             {pairLabel}
           </span>
         )}
-        <span className="inline-flex h-[18px] shrink-0 items-center rounded border border-border bg-muted/80 px-1.5 terminal-text-label font-semibold uppercase leading-none text-muted-foreground">
+        <span className="inline-flex h-[18px] shrink-0 items-center rounded border border-border bg-muted/80 px-1.5 terminal-text-label font-semibold uppercase leading-none text-foreground/85">
           Spot
         </span>
         {onToggleFavorite && sym && (
