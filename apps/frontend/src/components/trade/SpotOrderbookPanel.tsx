@@ -284,7 +284,7 @@ function SentimentFooter({
                 clipPath: `polygon(0 0, 100% 0, calc(100% - ${skew}px) 100%, 0 100%)`,
               }}
             >
-              <span>{b.toFixed(0)}%</span>
+              <span className="text-foreground">{b.toFixed(0)}%</span>
             </div>
             <div
               className="flex h-full min-w-0 flex-1 items-center justify-end bg-sell/35 pr-1.5 text-sell dark:bg-sell/25"
