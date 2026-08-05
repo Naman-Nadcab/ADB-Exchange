@@ -53,9 +53,9 @@ No remote URLs were modified during this migration step.
 | Item | Value |
 |------|-------|
 | **Branch** | `release/exchange-production-baseline` |
-| **Latest commit** | `f1b1054` — docs: add new repository migration report |
+| **Latest commit** | `2c2db8d` — docs: add new repository migration certification |
 | **Prior release commit** | `5fcef96` — chore(release): package deployment baseline for product repository migration |
-| **Commit count (branch history)** | **87** |
+| **Commit count (branch history)** | **88** |
 
 ---
 
@@ -88,17 +88,9 @@ All tags pushed with `git push product --tags` — **no force push**.
 | Force push used | ❌ **No** |
 | Old repository modified destructively | ❌ **No** |
 
-**Remote HEAD:** `f1b1054dddf2750451f7ba0fc0cfd8b844d98abc`
+**Remote HEAD:** `2c2db8d` (`2c2db8d` — migration certification)
 
----
-
-## 6. Remote Verification
-
-```text
-Branches:  release/exchange-production-baseline → f1b1054
-Tags:      8 annotated/lightweight tags present
-History:   87 commits on branch (verified on clone)
-```
+**Branch tip (deploy target):** `2c2db8d`
 
 ---
 
@@ -144,10 +136,10 @@ git clone --branch release/exchange-production-baseline \
 
 | Metric | Local (`/opt/m-live`) | Clone (`metherium_final_v.1`) |
 |--------|----------------------|-------------------------------|
-| HEAD SHA | `f1b1054` | `f1b1054` ✅ |
+| HEAD SHA | `2c2db8d` | `2c2db8d` ✅ |
 | Tracked files | 2836 | 2836 ✅ |
 | Tracked file diff | — | **0 lines** ✅ |
-| Commit count | 87 | 87 ✅ |
+| Commit count | 88 | 88 ✅ |
 
 **Production file differences:** **None** (tracked content identical).
 
@@ -222,7 +214,7 @@ Migration of `release/exchange-production-baseline` to **Naman-Nadcab/metherium_
 ```text
 git@github.com:Naman-Nadcab/metherium_final_v.1.git
 Branch: release/exchange-production-baseline
-Commit: f1b1054
+Commit: 2c2db8d
 ```
 
 ---
