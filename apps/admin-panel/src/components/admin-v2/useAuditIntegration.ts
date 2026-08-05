@@ -12,40 +12,37 @@
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAdminAuditLog } from '@/store/adminAuditLog';
-import { useAdminAlertStore } from '@/store/adminAlerts';
 import { useAdminIncidentStore } from '@/store/adminIncidents';
 import { ADMIN_FEATURE_FLAGS } from '@/lib/admin/featureFlags';
 
 export function useAuditIntegration() {
   // Production: immutable audit trail lives in Postgres (/audit/activity), not session storage.
-  if (ADMIN_FEATURE_FLAGS.ADMIN_PRODUCTION_HARDENING) return;
+  const enabled = !ADMIN_FEATURE_FLAGS.ADMIN_PRODUCTION_HARDENING;
 
   const logAction = useAdminAuditLog((s) => s.logAction);
   const trackPageVisit = useAdminAuditLog((s) => s.trackPageVisit);
   const pathname = usePathname();
 
-  const alerts = useAdminAlertStore((s) => s.alerts);
   const incidents = useAdminIncidentStore((s) => s.incidents);
 
-  const prevAlertCountRef = useRef(alerts.length);
   const prevIncidentSnapshotRef = useRef<string>('');
   const hasLoggedSessionRef = useRef(false);
 
   useEffect(() => {
-    if (!ADMIN_FEATURE_FLAGS.ADMIN_PRODUCTION_HARDENING) return;
+    if (!enabled) return;
     if (!hasLoggedSessionRef.current) {
       logAction('session_started', { userAgent: navigator.userAgent, path: pathname });
       hasLoggedSessionRef.current = true;
     }
-  }, [logAction, pathname]);
+  }, [enabled, logAction, pathname]);
 
   useEffect(() => {
-    if (!ADMIN_FEATURE_FLAGS.ADMIN_PRODUCTION_HARDENING) return;
+    if (!enabled) return;
     trackPageVisit(pathname);
-  }, [pathname, trackPageVisit]);
+  }, [enabled, pathname, trackPageVisit]);
 
   useEffect(() => {
-    if (!ADMIN_FEATURE_FLAGS.ADMIN_PRODUCTION_HARDENING) return;
+    if (!enabled) return;
 
     const snapshot = incidents.map((i) => `${i.id}:${i.status}`).join(',');
     if (snapshot === prevIncidentSnapshotRef.current) return;
@@ -78,5 +75,5 @@ export function useAuditIntegration() {
         }
       }
     }
-  }, [incidents, logAction]);
+  }, [enabled, incidents, logAction]);
 }

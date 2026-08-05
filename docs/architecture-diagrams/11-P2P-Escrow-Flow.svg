@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1123" height="794" viewBox="0 0 1123 794">
+<defs>
+  <filter id="shadow" x="-4%" y="-4%" width="108%" height="108%">
+    <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.10"/>
+  </filter>
+  <marker id="pa" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0,0 10,3.5 0,7" fill="#0078D4"/>
+  </marker>
+  <marker id="sa" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+    <polygon points="0,0 8,3 0,6" fill="#8A8886"/>
+  </marker>
+  <symbol id="ic-user" viewBox="0 0 20 18"><path d="M10 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm-8 12c0-3.3 3.6-6 8-6s8 2.7 8 6v1H2v-1z" fill="currentColor"/></symbol><symbol id="ic-server" viewBox="0 0 20 18"><path d="M2 3h16v5H2V3zm0 7h16v5H2v-5zm3 1.5h2v1H5v-1zm0-6h2v1H5v-1z" fill="currentColor"/></symbol><symbol id="ic-api" viewBox="0 0 20 18"><path d="M3 5h14v2H3V5zm0 4h10v2H3V9zm0 4h12v2H3v-2z" fill="currentColor"/></symbol><symbol id="ic-database" viewBox="0 0 20 18"><path d="M10 2c4.4 0 8 1.8 8 4s-3.6 4-8 4-8-1.8-8-4 3.6-4 8-4zm-8 6v2c0 2.2 3.6 4 8 4s8-1.8 8-4V8M2 12v2c0 2.2 3.6 4 8 4s8-1.8 8-4v-2" fill="currentColor"/></symbol><symbol id="ic-wallet" viewBox="0 0 20 18"><path d="M3 6h14a2 2 0 0 1 2 2v1H3V6zm0 3h16v5a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9h16V7H3z" fill="currentColor"/></symbol><symbol id="ic-queue" viewBox="0 0 20 18"><path d="M3 3h14v4H3V3zm0 6h14v4H3V9zm0 6h10v4H3v-4z" fill="currentColor"/></symbol><symbol id="ic-monitor" viewBox="0 0 20 18"><path d="M2 3h16v9H2V3zm5 10h6v3H7v-3z" fill="currentColor"/></symbol><symbol id="ic-shield" viewBox="0 0 20 18"><path d="M10 1l8 3.5v4.5c0 5.2-3.8 8.8-8 9.5C5.8 17.8 2 14.2 2 9V4.5L10 1z" fill="currentColor"/></symbol><symbol id="ic-container" viewBox="0 0 20 18"><path d="M2 5h16v10H2V5zm3 2v2h2V7H5zm5 0v2h2V7h-2zm5 0v2h2V7h-2z" fill="currentColor"/></symbol><symbol id="ic-cloud" viewBox="0 0 20 18"><path d="M5 14h10a3.5 3.5 0 0 0 .4-7A4.5 4.5 0 0 0 6.5 4.5 3.5 3.5 0 0 0 5 14z" fill="currentColor"/></symbol>
+</defs><rect width="1123" height="794" fill="#FFFFFF"/>
+<text x="28" y="28" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#605E5C">Figure 4.8</text>
+<text x="28" y="58" font-family="Segoe UI, Arial, sans-serif" font-size="37" font-weight="700" fill="#201F1E">P2P Escrow Architecture</text>
+<text x="28" y="82" font-family="Segoe UI, Arial, sans-serif" font-size="19" fill="#605E5C"><tspan font-weight="700">Purpose: </tspan>Peer-to-peer trade lifecycle including escrow, payment verification, release, dispute, admin review, and settlement.</text>
+<line x1="28" y1="90" x2="1095" y2="90" stroke="#D2D0CE" stroke-width="1"/>
+<path d="M 84 72 L 84 36 L 84 36 L 84 0" fill="none" stroke="#0078D4" stroke-width="2.5" marker-end="url(#pa)"/>
+<path d="M 84 72 L 84 36 L 84 36 L 84 0" fill="none" stroke="#0078D4" stroke-width="2.5" marker-end="url(#pa)"/>
+<path d="M 84 72 L 84 36 L 84 36 L 84 0" fill="none" stroke="#0078D4" stroke-width="2.5" marker-end="url(#pa)"/>
+<path d="M 84 72 L 84 36 L 84 36 L 84 0" fill="none" stroke="#0078D4" stroke-width="2.5" marker-end="url(#pa)"/>
+<path d="M 84 72 L 84 36 L 84 36 L 84 0" fill="none" stroke="#0078D4" stroke-width="2.5" marker-end="url(#pa)"/>
+<path d="M 84 72 L 84 36 L 84 36 L 84 0" fill="none" stroke="#0078D4" stroke-width="2.5" marker-end="url(#pa)"/>
+<path d="M 84 72 L 84 36 L 84 36 L 84 0" fill="none" stroke="#0078D4" stroke-width="2.5" marker-end="url(#pa)"/>
+<path d="M 84 72 L 84 36 L 84 36 L 84 0" fill="none" stroke="#0078D4" stroke-width="2.5" marker-end="url(#pa)"/>
+<path d="M 84 72 L 84 36 L 84 36 L 84 0" fill="none" stroke="#0078D4" stroke-width="2.5" marker-end="url(#pa)"/>
+<g id="pl0">
+  <rect x="36" y="331" width="188" height="72" rx="12" fill="#E7DFEC" stroke="#5C2D91" stroke-width="2" filter="url(#shadow)"/>
+  <g transform="translate(60,355)"><use href="#ic-user" x="0" y="0" width="24" height="24" color="#5C2D91"/></g>
+  <text x="92" y="372" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#3B1F5E">Buyer</text>
+</g>
+<g id="pl1">
+  <rect x="248" y="331" width="188" height="72" rx="12" fill="#E7DFEC" stroke="#5C2D91" stroke-width="2" filter="url(#shadow)"/>
+  <g transform="translate(272,355)"><use href="#ic-user" x="0" y="0" width="24" height="24" color="#5C2D91"/></g>
+  <text x="304" y="372" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#3B1F5E">Seller</text>
+</g>
+<g id="pl2">
+  <rect x="460" y="331" width="188" height="72" rx="12" fill="#DEECF9" stroke="#0078D4" stroke-width="2" filter="url(#shadow)"/>
+  <g transform="translate(484,355)"><use href="#ic-wallet" x="0" y="0" width="24" height="24" color="#0078D4"/></g>
+  <text x="516" y="372" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#003966">Escrow Lock</text>
+</g>
+<g id="pl3">
+  <rect x="671" y="331" width="188" height="72" rx="12" fill="#DEECF9" stroke="#0078D4" stroke-width="2" filter="url(#shadow)"/>
+  <g transform="translate(695,355)"><use href="#ic-api" x="0" y="0" width="24" height="24" color="#0078D4"/></g>
+  <text x="727" y="372" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#003966">Payment</text>
+</g>
+<g id="pl4">
+  <rect x="883" y="331" width="188" height="72" rx="12" fill="#DEECF9" stroke="#0078D4" stroke-width="2" filter="url(#shadow)"/>
+  <g transform="translate(907,355)"><use href="#ic-shield" x="0" y="0" width="24" height="24" color="#0078D4"/></g>
+  <text x="939" y="372" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#003966">Verification</text>
+</g>
+<g id="pl5">
+  <rect x="36" y="447" width="188" height="72" rx="12" fill="#DEECF9" stroke="#0078D4" stroke-width="2" filter="url(#shadow)"/>
+  <g transform="translate(60,471)"><use href="#ic-wallet" x="0" y="0" width="24" height="24" color="#0078D4"/></g>
+  <text x="92" y="488" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#003966">Release</text>
+</g>
+<g id="pl6">
+  <rect x="248" y="447" width="188" height="72" rx="12" fill="#DEECF9" stroke="#0078D4" stroke-width="2" filter="url(#shadow)"/>
+  <g transform="translate(272,471)"><use href="#ic-shield" x="0" y="0" width="24" height="24" color="#0078D4"/></g>
+  <text x="304" y="488" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#003966">Dispute</text>
+</g>
+<g id="pl7">
+  <rect x="460" y="447" width="188" height="72" rx="12" fill="#DEECF9" stroke="#0078D4" stroke-width="2" filter="url(#shadow)"/>
+  <g transform="translate(484,471)"><use href="#ic-server" x="0" y="0" width="24" height="24" color="#0078D4"/></g>
+  <text x="516" y="488" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#003966">Admin Review</text>
+</g>
+<g id="pl8">
+  <rect x="671" y="447" width="188" height="72" rx="12" fill="#DEECF9" stroke="#0078D4" stroke-width="2" filter="url(#shadow)"/>
+  <g transform="translate(695,471)"><use href="#ic-server" x="0" y="0" width="24" height="24" color="#0078D4"/></g>
+  <text x="727" y="488" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#003966">Settlement</text>
+</g>
+<g id="pl9">
+  <rect x="883" y="447" width="188" height="72" rx="12" fill="#DEECF9" stroke="#0078D4" stroke-width="2" filter="url(#shadow)"/>
+  <g transform="translate(907,471)"><use href="#ic-queue" x="0" y="0" width="24" height="24" color="#0078D4"/></g>
+  <text x="939" y="488" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#003966">Notifications</text>
+</g>
+<line x1="28" y1="752" x2="1095" y2="752" stroke="#D2D0CE" stroke-width="1"/>
+<text x="36" y="770" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#201F1E">Legend:</text>
+<rect x="94" y="758" width="16" height="12" rx="3" fill="#DEECF9" stroke="#0078D4" stroke-width="1.5"/>
+<text x="116" y="770" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#605E5C">Application</text>
+<rect x="202" y="758" width="16" height="12" rx="3" fill="#FFF4CE" stroke="#FFB900" stroke-width="1.5"/>
+<text x="224" y="770" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#605E5C">Data Store</text>
+<rect x="310" y="758" width="16" height="12" rx="3" fill="#D4EDDA" stroke="#107C10" stroke-width="1.5"/>
+<text x="332" y="770" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#605E5C">Monitoring</text>
+<rect x="418" y="758" width="16" height="12" rx="3" fill="#F3F2F1" stroke="#605E5C" stroke-width="1.5"/>
+<text x="440" y="770" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#605E5C">Infrastructure</text>
+<rect x="526" y="758" width="16" height="12" rx="3" fill="#E7DFEC" stroke="#5C2D91" stroke-width="1.5"/>
+<text x="548" y="770" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#605E5C">External</text>
+<line x1="634" y1="764" x2="656" y2="764" stroke="#0078D4" stroke-width="2.5" marker-end="url(#pa)"/>
+<text x="662" y="770" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#605E5C">Primary</text>
+<line x1="722" y1="764" x2="744" y2="764" stroke="#8A8886" stroke-width="1" stroke-dasharray="5 4" marker-end="url(#sa)"/>
+<text x="750" y="770" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#605E5C">Dependency</text>
+</svg>

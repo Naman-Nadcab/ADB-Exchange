@@ -16,6 +16,9 @@ services:
       - '--web.enable-lifecycle'
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+    networks:
+      - default
+      - exchange-production
 
   grafana:
     image: grafana/grafana:10.4.0
@@ -23,10 +26,12 @@ services:
     restart: unless-stopped
     ports:
       - '3001:3000'
+    env_file:
+      - ../.env
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=exchange-admin
-      - GF_USERS_ALLOW_SIGN_UP=false
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD required}
+      GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
@@ -34,6 +39,13 @@ services:
       - grafana-data:/var/lib/grafana
     depends_on:
       - prometheus
+    networks:
+      - default
+
+networks:
+  exchange-production:
+    external: true
+    name: exchange-production
 
 volumes:
   prometheus-data:
