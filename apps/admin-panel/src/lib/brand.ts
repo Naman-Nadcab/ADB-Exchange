@@ -18,29 +18,10 @@ export type BrandLogoVariant =
   | 'marketing'
   | 'icon';
 
-export type BrandLogoSize = 'header' | 'footer' | 'marketing' | 'icon';
-
-export const BRAND_LOGO_SRC: Record<BrandLogoVariant, string> = {
-  'horizontal-gold': BRAND.logoHorizontalGold,
-  'horizontal-compact-gold': BRAND.logoHorizontalCompactGold,
-  'horizontal-white': BRAND.logoHorizontalWhite,
-  marketing: BRAND.logoMarketing,
-  icon: BRAND.iconGold,
-};
-
-/** Transparent PNG intrinsic dimensions from supplied artwork exports. */
 export const BRAND_LOGO_INTRINSIC: Record<BrandLogoVariant, { width: number; height: number }> = {
   'horizontal-gold': { width: 181, height: 48 },
   'horizontal-compact-gold': { width: 181, height: 48 },
   'horizontal-white': { width: 168, height: 48 },
   marketing: { width: 480, height: 421 },
   icon: { width: 512, height: 512 },
-};
-
-/** Size modifiers — dimensions enforced in globals.css (.brand-logo--*). */
-export const BRAND_LOGO_SIZE_CLASS: Record<BrandLogoSize, string> = {
-  header: 'brand-logo--header',
-  footer: 'brand-logo--footer',
-  marketing: 'brand-logo--marketing',
-  icon: 'brand-logo--icon',
 };

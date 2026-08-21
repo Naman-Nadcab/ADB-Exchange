@@ -7,6 +7,7 @@ import {
   BRAND_LOGO_INTRINSIC,
   BRAND_LOGO_SIZE_CLASS,
   BRAND_LOGO_SRC,
+  BRAND_NAME_SHORT,
   type BrandLogoSize,
   type BrandLogoVariant,
 } from '@/lib/brand';
@@ -25,6 +26,37 @@ type BrandLogoProps = {
   marketingMaxWidth?: boolean;
 };
 
+function BrandLogoImage({
+  variant,
+  size,
+  imageClassName,
+  priority,
+}: {
+  variant: BrandLogoVariant;
+  size: BrandLogoSize;
+  imageClassName?: string;
+  priority?: boolean;
+}) {
+  const src = BRAND_LOGO_SRC[variant];
+  const dims = BRAND_LOGO_INTRINSIC[variant];
+
+  return (
+    <Image
+      src={src}
+      alt={BRAND_NAME_SHORT}
+      width={dims.width}
+      height={dims.height}
+      priority={priority}
+      unoptimized
+      className={cn(
+        'brand-logo-img block shrink-0 bg-transparent object-contain object-left',
+        BRAND_LOGO_SIZE_CLASS[size],
+        imageClassName
+      )}
+    />
+  );
+}
+
 export function BrandLogo({
   variant = 'horizontal-gold',
   size,
@@ -38,22 +70,30 @@ export function BrandLogo({
   const resolvedSize: BrandLogoSize =
     size ?? (marketingMaxWidth ? 'marketing' : header ? 'header' : variant === 'icon' ? 'icon' : 'header');
 
-  const src = BRAND_LOGO_SRC[variant];
-  const dims = BRAND_LOGO_INTRINSIC[variant];
+  const useResponsiveHeader =
+    variant === 'horizontal-gold' && resolvedSize === 'header';
 
-  const img = (
-    <Image
-      src={src}
-      alt="Metherium"
-      width={dims.width}
-      height={dims.height}
+  const img = useResponsiveHeader ? (
+    <>
+      <BrandLogoImage
+        variant="horizontal-compact-gold"
+        size={resolvedSize}
+        imageClassName={cn('sm:hidden', imageClassName)}
+        priority={priority}
+      />
+      <BrandLogoImage
+        variant="horizontal-gold"
+        size={resolvedSize}
+        imageClassName={cn('hidden sm:block', imageClassName)}
+        priority={priority}
+      />
+    </>
+  ) : (
+    <BrandLogoImage
+      variant={variant}
+      size={resolvedSize}
+      imageClassName={imageClassName}
       priority={priority}
-      unoptimized
-      className={cn(
-        'brand-logo-img block shrink-0 bg-transparent object-contain object-left',
-        BRAND_LOGO_SIZE_CLASS[resolvedSize],
-        imageClassName
-      )}
     />
   );
 

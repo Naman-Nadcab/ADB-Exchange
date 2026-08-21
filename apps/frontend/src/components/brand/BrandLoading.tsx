@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { BRAND } from '@/lib/brand';
+import { BRAND, BRAND_LOGO_INTRINSIC } from '@/lib/brand';
 
 /**
  * Institutional loading state — gold icon with subtle opacity pulse (no spin).
@@ -15,8 +15,8 @@ export function BrandLoading({ label = 'Loading' }: { label?: string }) {
       <Image
         src={BRAND.iconGold}
         alt=""
-        width={453}
-        height={451}
+        width={BRAND_LOGO_INTRINSIC.icon.width}
+        height={BRAND_LOGO_INTRINSIC.icon.height}
         priority
         unoptimized
         className="brand-logo-img brand-logo--icon brand-loading-pulse bg-transparent object-contain"

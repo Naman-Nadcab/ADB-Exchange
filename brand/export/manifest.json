@@ -1,0 +1,74 @@
+{
+  "eda-exchange-horizontal-gold.png": {
+    "path": "brand/export/eda-exchange-horizontal-gold.png",
+    "width": 181,
+    "height": 48,
+    "bytes": 16504
+  },
+  "eda-exchange-horizontal-white.png": {
+    "path": "brand/export/eda-exchange-horizontal-white.png",
+    "width": 168,
+    "height": 48,
+    "bytes": 13922
+  },
+  "eda-exchange-horizontal-compact-gold.png": {
+    "path": "brand/export/eda-exchange-horizontal-compact-gold.png",
+    "width": 181,
+    "height": 48,
+    "bytes": 14717
+  },
+  "eda-exchange-mark-gold.png": {
+    "path": "brand/export/eda-exchange-mark-gold.png",
+    "width": 512,
+    "height": 512,
+    "bytes": 312515
+  },
+  "eda-exchange-stacked-gold.png": {
+    "path": "brand/export/eda-exchange-stacked-gold.png",
+    "width": 480,
+    "height": 421,
+    "bytes": 220898
+  },
+  "eda-exchange-favicon-16.png": {
+    "path": "brand/export/eda-exchange-favicon-16.png",
+    "width": 16,
+    "height": 16,
+    "bytes": 1013
+  },
+  "eda-exchange-favicon-32.png": {
+    "path": "brand/export/eda-exchange-favicon-32.png",
+    "width": 32,
+    "height": 32,
+    "bytes": 3252
+  },
+  "eda-exchange-favicon-48.png": {
+    "path": "brand/export/eda-exchange-favicon-48.png",
+    "width": 48,
+    "height": 48,
+    "bytes": 6422
+  },
+  "eda-exchange-favicon-192.png": {
+    "path": "brand/export/eda-exchange-favicon-192.png",
+    "width": 192,
+    "height": 192,
+    "bytes": 59858
+  },
+  "eda-exchange-favicon-512.png": {
+    "path": "brand/export/eda-exchange-favicon-512.png",
+    "width": 512,
+    "height": 512,
+    "bytes": 296931
+  },
+  "eda-exchange-apple-touch-icon.png": {
+    "path": "brand/export/eda-exchange-apple-touch-icon.png",
+    "width": 180,
+    "height": 180,
+    "bytes": 53899
+  },
+  "eda-exchange-app-icon-1024.png": {
+    "path": "brand/export/eda-exchange-app-icon-1024.png",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 1417682
+  }
+}

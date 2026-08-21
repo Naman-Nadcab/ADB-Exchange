@@ -1,5 +1,6 @@
-import { Image, Pressable, StyleSheet } from 'react-native';
+import { Image, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
 import { BRAND_ASSETS, BRAND_LOGO_DIMENSIONS, type BrandLogoVariant } from './brandAssets';
+import { BRAND_NAME_SHORT } from './brandCopy';
 
 type Props = {
   variant?: BrandLogoVariant;
@@ -8,13 +9,23 @@ type Props = {
 };
 
 export function BrandLogo({ variant = 'horizontal-gold', onPress, testID }: Props) {
+  const { width: windowWidth } = useWindowDimensions();
+  const useCompactHeader =
+    variant === 'horizontal-gold' && windowWidth <= 640;
+
+  const resolvedVariant: BrandLogoVariant = useCompactHeader
+    ? 'horizontal-compact-gold'
+    : variant;
+
   const src =
-    variant === 'marketing'
+    resolvedVariant === 'marketing'
       ? BRAND_ASSETS.marketing
-      : variant === 'icon'
+      : resolvedVariant === 'icon'
         ? BRAND_ASSETS.iconGold
-        : BRAND_ASSETS.horizontalGold;
-  const dims = BRAND_LOGO_DIMENSIONS[variant];
+        : resolvedVariant === 'horizontal-compact-gold'
+          ? BRAND_ASSETS.horizontalCompactGold
+          : BRAND_ASSETS.horizontalGold;
+  const dims = BRAND_LOGO_DIMENSIONS[resolvedVariant];
   const aspect = dims.width / dims.height;
   const height = dims.displayHeight;
   const width = height * aspect;
@@ -24,7 +35,7 @@ export function BrandLogo({ variant = 'horizontal-gold', onPress, testID }: Prop
       testID={testID}
       source={src}
       style={{ width, height, resizeMode: 'contain' }}
-      accessibilityLabel="Metherium"
+      accessibilityLabel={BRAND_NAME_SHORT}
     />
   );
 
