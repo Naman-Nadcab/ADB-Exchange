@@ -22,16 +22,25 @@ export async function updateSpotOrdersFilledAfterMatch(
   makerOrderId: string
 ): Promise<void> {
   const useUnified = getSpotOrdersUseMarketSync();
+  /* Cap at quantity — duplicate settlement events must not over-fill (Phase 4 launch blocker). */
   const sql = useUnified
-    ? `UPDATE spot_orders SET filled_quantity = filled_quantity + $1::numeric, status = CASE
-         WHEN (quantity::numeric - filled_quantity::numeric - $1::numeric) <= 0 THEN 'FILLED' ELSE 'PARTIALLY_FILLED' END,
-         updated_at = NOW() WHERE id = $2::uuid`
-    : `UPDATE spot_orders SET filled_quantity = filled_quantity + $1::numeric,
-         remaining_quantity = GREATEST(0::numeric, COALESCE(remaining_quantity, quantity)::numeric - $1::numeric),
+    ? `UPDATE spot_orders SET
+         filled_quantity = LEAST(quantity::numeric, filled_quantity::numeric + $1::numeric),
          status = CASE
-           WHEN (quantity::numeric - filled_quantity::numeric - $1::numeric) <= 0 THEN 'filled'
+           WHEN LEAST(quantity::numeric, filled_quantity::numeric + $1::numeric) >= quantity::numeric THEN 'FILLED'
+           ELSE 'PARTIALLY_FILLED'
+         END,
+         updated_at = NOW()
+       WHERE id = $2::uuid`
+    : `UPDATE spot_orders SET
+         filled_quantity = LEAST(quantity::numeric, filled_quantity::numeric + $1::numeric),
+         remaining_quantity = GREATEST(0::numeric, quantity::numeric - LEAST(quantity::numeric, filled_quantity::numeric + $1::numeric)),
+         status = CASE
+           WHEN LEAST(quantity::numeric, filled_quantity::numeric + $1::numeric) >= quantity::numeric THEN 'filled'
            ELSE 'partially_filled'
-         END, updated_at = NOW() WHERE id = $2::uuid`;
+         END,
+         updated_at = NOW()
+       WHERE id = $2::uuid`;
   const r1 = await client.query(sql, [fillQty, takerOrderId]);
   if ((r1.rowCount ?? 0) === 0) throw new Error('ORDER_INVARIANT_VIOLATION');
   const r2 = await client.query(sql, [fillQty, makerOrderId]);

@@ -360,7 +360,6 @@ export function SpotOrderEntryPanel({
           <div className="relative flex min-w-[5.25rem] flex-1 border-l border-border">
             <select
               aria-label="More order types"
-              title="Stop, trailing…"
               value={isPrimaryType ? '' : orderType}
               onChange={(e) => {
                 const v = e.target.value as SpotOrderType;

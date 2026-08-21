@@ -15,6 +15,7 @@ function SpotPageSkeleton() {
   return (
     <div
       className="flex h-full w-full flex-col bg-background"
+      role="status"
       aria-busy="true"
       aria-label="Loading"
     >

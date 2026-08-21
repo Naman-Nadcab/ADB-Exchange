@@ -2272,24 +2272,7 @@ const migrations = [
   `CREATE INDEX IF NOT EXISTS idx_security_risk_events_scope ON security_risk_events(scope, created_at DESC);`,
   `CREATE INDEX IF NOT EXISTS idx_security_risk_events_request ON security_risk_events(request_id) WHERE request_id IS NOT NULL;`,
 
-  // ============================================
-  // DEFAULT ADMIN USER (only if no admin exists). Password: admin123
-  // ============================================
-  `DO $$
-  BEGIN
-    IF NOT EXISTS (SELECT 1 FROM admin_users LIMIT 1) THEN
-      INSERT INTO admin_users (id, email, password_hash, name, role, permissions, is_active)
-      VALUES (
-        uuid_generate_v4(),
-        'admin@example.com',
-        crypt('admin123', gen_salt('bf')),
-        'Super Admin',
-        'super_admin',
-        ARRAY['all']::text[],
-        TRUE
-      );
-    END IF;
-  END $$;`,
+  // Admin users are created by deployment seed-admin (INITIAL_ADMIN_EMAIL / INITIAL_ADMIN_PASSWORD in .env).
 
   // ============================================
   // WITHDRAWAL ADMIN APPROVAL (pending_approval → approved → signed)
@@ -3004,6 +2987,10 @@ const migrations = [
   `DROP INDEX IF EXISTS settlement_events_engine_event_id_key;`,
   `CREATE UNIQUE INDEX IF NOT EXISTS settlement_events_match_engine_event_uidx ON settlement_events(match_engine_id, engine_event_id);`,
   `CREATE INDEX IF NOT EXISTS idx_settlement_events_match_engine ON settlement_events(match_engine_id, engine_event_id);`,
+  `ALTER TABLE settlement_events ADD COLUMN IF NOT EXISTS match_fingerprint TEXT;`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS settlement_events_match_fingerprint_uidx
+     ON settlement_events(match_engine_id, match_fingerprint)
+     WHERE match_fingerprint IS NOT NULL AND status IN ('pending', 'processed');`,
 
   // security_risk_signal_weights (moved from stray tail migration)
   `CREATE TABLE IF NOT EXISTS security_risk_signal_weights (

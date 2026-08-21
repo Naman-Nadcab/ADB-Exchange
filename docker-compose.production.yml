@@ -136,7 +136,7 @@ services:
       dockerfile: Dockerfile
     container_name: exchange-backend
     group_add:
-      - "${DOCKER_GID:-999}"
+      - "${DOCKER_GID:?DOCKER_GID required — set in .env or allow deployment/load_env auto-detect}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${COMPOSE_PROJECT_DIR:-.}:/opt/m-live:ro

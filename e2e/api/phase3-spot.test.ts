@@ -1,9 +1,20 @@
 /**
  * Phase 3 — Spot trading E2E. Requires E2E_JWT or E2E_API_KEY for order placement.
  * Optional E2E_COUNTERPARTY_API_KEY: second user's API key to cross (self-match is blocked server-side).
- * E2E_MATCH_PRICE: limit price string for the cross test (default 876543.21).
+ *
+ * Cross-trade (3.3–3.6): uses an **isolated order book** (see Phase 14). Limit buys sweep all asks
+ * at better prices — liquidity bot fills are correct matching, not a product bug. When the book is
+ * not isolated, the cross block is SKIP (invalid test assumption), not FAIL.
+ *
+ * Env: E2E_SPOT_SYMBOL (default ETH_USDT for cross), E2E_MATCH_PRICE, E2E_SPOT_TRADE_SETTLEMENT_MS
  */
 import { config, getAuthHeaders, getCounterpartyRestHeaders } from '../config.js';
+import { resolveCrossMatchPrice } from '../utils/cross-match-price.js';
+import {
+  adminPrepareIsolatedCrossBook,
+  countForeignAsksAtOrBelow,
+  fetchOrderbookAsks,
+} from '../utils/cross-trade-isolation.js';
 
 const BASE = config.baseUrl;
 const TIMEOUT = config.timeoutMs;
@@ -91,9 +102,36 @@ async function spotOrderStatusFromList(headers: Record<string, string>, orderId:
   }
 }
 
-async function waitForAsk(price: string, attempts = 20): Promise<boolean> {
+async function spotOrderRow(
+  headers: Record<string, string>,
+  orderId: string
+): Promise<{ status: string; filled_quantity: string; quantity: string } | null> {
+  try {
+    const res = await fetch(`${BASE}/api/v1/spot/orders?status=ALL&limit=100`, {
+      headers,
+      signal: AbortSignal.timeout(TIMEOUT),
+    });
+    const data = (await res.json().catch(() => ({}))) as {
+      success?: boolean;
+      data?: { orders?: Array<{ id?: string; status?: string; filled_quantity?: string; quantity?: string }> };
+    };
+    const list = data.data?.orders ?? [];
+    if (!res.ok || !data.success) return null;
+    const row = list.find((o) => String(o.id) === orderId);
+    if (!row?.status) return null;
+    return {
+      status: String(row.status),
+      filled_quantity: String(row.filled_quantity ?? '0'),
+      quantity: String(row.quantity ?? '0'),
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function waitForAsk(market: string, price: string, attempts = 20): Promise<boolean> {
   for (let i = 0; i < attempts; i++) {
-    const res = await fetch(`${BASE}/api/v1/spot/orderbook/BTC_USDT?limit=100`, {
+    const res = await fetch(`${BASE}/api/v1/spot/orderbook/${encodeURIComponent(market)}?limit=100`, {
       signal: AbortSignal.timeout(TIMEOUT),
     });
     const data = (await res.json().catch(() => ({}))) as { success?: boolean; data?: { asks?: unknown[] } };
@@ -101,6 +139,36 @@ async function waitForAsk(price: string, attempts = 20): Promise<boolean> {
     await new Promise((r) => setTimeout(r, 400));
   }
   return false;
+}
+
+/** Poll until both cross orders reach FILLED with positive fill (order-level, not pagination totals). */
+async function waitForCrossPairFilled(
+  headersMaker: Record<string, string>,
+  headersTaker: Record<string, string>,
+  sellOrderId: string,
+  buyOrderId: string,
+  deadlineMs: number
+): Promise<{ sell: Awaited<ReturnType<typeof spotOrderRow>>; buy: Awaited<ReturnType<typeof spotOrderRow>> }> {
+  const deadline = Date.now() + deadlineMs;
+  let sell: Awaited<ReturnType<typeof spotOrderRow>> = null;
+  let buy: Awaited<ReturnType<typeof spotOrderRow>> = null;
+  while (Date.now() < deadline) {
+    sell = await spotOrderRow(headersMaker, sellOrderId);
+    buy = await spotOrderRow(headersTaker, buyOrderId);
+    const sellOk =
+      sell &&
+      String(sell.status).toUpperCase() === 'FILLED' &&
+      parseFloat(sell.filled_quantity) > 0 &&
+      parseFloat(sell.filled_quantity) <= parseFloat(sell.quantity);
+    const buyOk =
+      buy &&
+      String(buy.status).toUpperCase() === 'FILLED' &&
+      parseFloat(buy.filled_quantity) > 0 &&
+      parseFloat(buy.filled_quantity) <= parseFloat(buy.quantity);
+    if (sellOk && buyOk) return { sell, buy };
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  return { sell, buy };
 }
 
 /** Poll until both users' trade-history totals increase (settlement can lag a fixed sleep). */
@@ -133,35 +201,14 @@ async function waitForBothTradeCountsIncreased(
   return { m, t };
 }
 
-async function resolveDefaultMatchPrice(market: string): Promise<string> {
-  // Keep E2E crosses close to prevailing market to avoid polluting 24h extremes.
-  try {
-    const ob = await fetch(`${BASE}/api/v1/spot/orderbook/${encodeURIComponent(market)}?limit=5`, {
-      signal: AbortSignal.timeout(TIMEOUT),
-    });
-    const data = (await ob.json().catch(() => ({}))) as {
-      success?: boolean;
-      data?: { asks?: Array<{ price?: string }> };
-    };
-    const bestAsk = data?.data?.asks?.[0]?.price;
-    const askNum = Number(bestAsk);
-    if (Number.isFinite(askNum) && askNum > 0) {
-      return (askNum * 1.0005).toFixed(2);
-    }
-  } catch {
-    /* fallback below */
-  }
-  return '74000.00';
-}
-
 export async function runPhase3(): Promise<{ passed: number; failed: number; results: string[] }> {
   const results: string[] = [];
   let passed = 0;
   let failed = 0;
   const headers = getAuthHeaders();
   const cpHeaders = getCounterpartyRestHeaders();
-  const matchPrice = (process.env.E2E_MATCH_PRICE || (await resolveDefaultMatchPrice('BTC_USDT'))).trim();
   const crossQty = '0.0001';
+  const crossMarket = (process.env.E2E_SPOT_SYMBOL || 'ETH_USDT').trim();
 
   // 3.1 GET /spot/markets
   try {
@@ -200,14 +247,36 @@ export async function runPhase3(): Promise<{ passed: number; failed: number; res
   const hasAuth = Boolean(headers['Authorization'] || headers['X-API-Key']);
   const hasCp = Boolean(cpHeaders['Authorization'] || cpHeaders['X-API-Key']);
 
-  // 3.3–3.6 Cross-trade path (two distinct users)
+  // 3.3–3.6 Cross-trade path (two distinct users, isolated book — not BTC_USDT with live MM bot)
   if (hasAuth && hasCp) {
-    const market = 'BTC_USDT';
+    const market = crossMarket;
+    const adminOk = await adminPrepareIsolatedCrossBook(BASE, market, TIMEOUT);
+    if (adminOk) {
+      results.push('PASS: admin MM pause + cancel-all (cross book prep)');
+      passed++;
+    } else {
+      results.push(
+        'INFO: admin cross prep skipped (set E2E_ADMIN_EMAIL/E2E_ADMIN_PASSWORD for isolated book)'
+      );
+    }
     await cancelAllOpenSpotForMarket(headers, market);
     await cancelAllOpenSpotForMarket(getCounterpartyRestHeaders(), market);
-    await new Promise((r) => setTimeout(r, 400));
-    const t0Maker = await tradeHistoryTotal(headers, market);
-    const t0Taker = await tradeHistoryTotal(cpHeaders, market);
+    await new Promise((r) => setTimeout(r, 800));
+
+    const matchPrice = await resolveCrossMatchPrice(BASE, market, TIMEOUT);
+    const asks = await fetchOrderbookAsks(BASE, market, TIMEOUT);
+    const foreignAsks = asks ? countForeignAsksAtOrBelow(asks, matchPrice) : -1;
+
+    if (foreignAsks > 0) {
+      results.push(
+        `SKIP: cross-trade — orderbook not isolated (${foreignAsks} foreign ask(s) at/below ${matchPrice}); ` +
+          'liquidity bot price-time priority is correct product behaviour. Set E2E_ADMIN_* or E2E_MATCH_PRICE on a clean book.'
+      );
+    } else if (foreignAsks < 0) {
+      results.push('SKIP: cross-trade — could not read orderbook for isolation check');
+    } else {
+      results.push(`PASS: cross book isolated for ${market} @ ${matchPrice}`);
+      passed++;
 
     let sellOrderId: string | null = null;
     try {
@@ -243,7 +312,7 @@ export async function runPhase3(): Promise<{ passed: number; failed: number; res
     }
 
     if (sellOrderId) {
-      const obOk = await waitForAsk(matchPrice);
+      const obOk = await waitForAsk(market, matchPrice);
       if (obOk) {
         results.push('PASS: resting sell visible in orderbook');
         passed++;
@@ -309,39 +378,38 @@ export async function runPhase3(): Promise<{ passed: number; failed: number; res
         }
       }
 
-      if (buyOk) {
+      if (buyOk && buyOrderId && sellOrderId) {
         const settleWaitMs = Number(process.env.E2E_SPOT_TRADE_SETTLEMENT_MS) || 45_000;
-        const { m: t1Maker, t: t1Taker } = await waitForBothTradeCountsIncreased(
+        const { sell: sellRow, buy: buyRow } = await waitForCrossPairFilled(
           headers,
           cpHeaders,
-          market,
-          t0Maker,
-          t0Taker,
+          sellOrderId!,
+          buyOrderId!,
           settleWaitMs
         );
-        if (t0Maker != null && t1Maker != null && t1Maker > t0Maker && t0Taker != null && t1Taker != null && t1Taker > t0Taker) {
-          results.push('PASS: trade history increased for both users (balances settled)');
+        const sellFilled =
+          sellRow &&
+          String(sellRow.status).toUpperCase() === 'FILLED' &&
+          parseFloat(sellRow.filled_quantity) > 0 &&
+          parseFloat(sellRow.filled_quantity) <= parseFloat(sellRow.quantity);
+        const buyFilled =
+          buyRow &&
+          String(buyRow.status).toUpperCase() === 'FILLED' &&
+          parseFloat(buyRow.filled_quantity) > 0 &&
+          parseFloat(buyRow.filled_quantity) <= parseFloat(buyRow.quantity);
+
+        if (sellFilled && buyFilled) {
+          results.push('PASS: cross-trade both orders FILLED (order-level, isolated book)');
           passed++;
         } else {
-          const buySt = buyOrderId ? await spotOrderStatusFromList(cpHeaders, buyOrderId) : null;
-          const sellSt = sellOrderId ? await spotOrderStatusFromList(headers, sellOrderId) : null;
-          const bu = (buySt || '').toLowerCase();
-          const su = (sellSt || '').toLowerCase();
-          const stillOpen =
-            (bu === 'new' || bu === 'open' || bu === 'partially_filled') &&
-            (su === 'new' || su === 'open' || su === 'partially_filled');
-          if (stillOpen) {
-            results.push(
-              `FAIL: cross-trade never settled — REST orders still open (sell=${sellSt}, buy=${buySt}) after ${settleWaitMs}ms. GET /orderbook reflects DB depth; fills need Rust match → settlement_events → worker. Check settlement circuit (clear-settlement-circuit), drain pending, and that the API process runs the settlement worker.`
-            );
-          } else {
-            results.push(
-              `FAIL: trade history not updated (maker ${t0Maker}->${t1Maker}, taker ${t0Taker}->${t1Taker}; REST sell=${sellSt ?? '?'} buy=${buySt ?? '?'})`
-            );
-          }
+          results.push(
+            `FAIL: cross-trade pair not filled (sell=${sellRow?.status ?? '?'} filled=${sellRow?.filled_quantity ?? '?'}, ` +
+              `buy=${buyRow?.status ?? '?'} filled=${buyRow?.filled_quantity ?? '?'}; waited ${settleWaitMs}ms)`
+          );
           failed++;
         }
       }
+    }
     }
   } else if (hasAuth) {
     // Single user: resting order + orderbook + cancel (no self-match)

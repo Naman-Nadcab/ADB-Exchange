@@ -29,6 +29,7 @@ import { notifySpotPrivateChannelsAfterSettlement } from '../spot-settlement-pri
 import { getSpotTradesShapeSync, loadSpotTradesShape } from '../../lib/spot-trades-shape.js';
 import { insertSpotTradesAfterMatch, updateSpotOrdersFilledAfterMatch } from './spot-settlement-order-writes.js';
 import { computeSettlementLedgerDeltasFromPayload } from './settlement-ledger-deltas.js';
+import { fingerprintFromPayload } from './match-settlement-fingerprint.js';
 
 function buildLiveNotifyFromPayload(row: SettlementRow, p: EnginePayload): EngineLiveNotifyPayload {
   return {
@@ -290,6 +291,32 @@ export async function processSettlementEventRow(
   }
 
   const p = row.payload as EnginePayload;
+  const matchEngineIdForFp = row.match_engine_id || p.match_engine_id || 'default';
+  const matchFp = fingerprintFromPayload(matchEngineIdForFp, p as unknown as Record<string, unknown>);
+
+  /* Content dedup: another processed row with same match fingerprint (reassigned engine_event_id). */
+  const dupProcessed = await client.query<{ id: string }>(
+    `SELECT id::text FROM settlement_events
+     WHERE match_engine_id = $1 AND match_fingerprint = $2 AND id <> $3::bigint
+       AND status = 'processed'
+     LIMIT 1`,
+    [matchEngineIdForFp, matchFp, row.id]
+  );
+  if (dupProcessed.rows.length > 0) {
+    await client.query(
+      `UPDATE settlement_events SET status = 'processed', processed_at = NOW(),
+              match_fingerprint = COALESCE(match_fingerprint, $2)
+       WHERE id = $1`,
+      [row.id, matchFp]
+    );
+    recordSettlementEvent({
+      type: 'replay_detected',
+      settlementEventId: row.id,
+      engineEventId: row.engine_event_id,
+    });
+    return buildLiveNotifyFromPayload(row, p);
+  }
+
   const { base, quote, base_currency_id, quote_currency_id, price_precision, qty_precision, quote_precision } =
     await resolveMarketAssets(client, p.symbol);
   const assetToCurrency: Record<string, string> = { [base]: base_currency_id, [quote]: quote_currency_id };
@@ -676,6 +703,7 @@ export async function processSettlementEventRow(
   }
 
   const makerFeeForDb = makerRebatesEnabled ? makerFeeAmt.negated() : makerFeeAmt;
+
   await client.query(
     `INSERT INTO settlement_trades (symbol, price, qty, quote_qty, taker_user_id, maker_user_id, taker_order_id, maker_order_id, taker_fee, maker_fee)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
@@ -881,35 +909,68 @@ export async function ingestAndSettleMatchEventFromJetStream(
     taker_side: payload.taker_side,
     timestamp: payload.timestamp,
   });
+  const matchFp = fingerprintFromPayload(matchEngineId, JSON.parse(payloadJson) as Record<string, unknown>);
 
   const client = await db.getSettlementClient();
   try {
     await client.query('BEGIN');
-    const ins = await client.query<{ id: number }>(
-      `INSERT INTO settlement_events (match_engine_id, engine_event_id, payload, status)
-       VALUES ($1, $2, $3::jsonb, 'pending')
-       ON CONFLICT (match_engine_id, engine_event_id) DO NOTHING
-       RETURNING id`,
-      [matchEngineId, eventId, payloadJson]
+
+    const existingFp = await client.query<{ id: number; status: string }>(
+      `SELECT id, status::text AS status FROM settlement_events
+       WHERE match_engine_id = $1 AND match_fingerprint = $2
+         AND status IN ('pending', 'processed')
+       ORDER BY id ASC LIMIT 1 FOR UPDATE`,
+      [matchEngineId, matchFp]
     );
+    if (existingFp.rows.length > 0 && isTerminalSettlementStatus(existingFp.rows[0]!.status || '')) {
+      await client.query('COMMIT');
+      return { outcome: 'already_done' };
+    }
+
     let rowId: number;
-    if (ins.rows.length > 0) {
-      rowId = ins.rows[0]!.id;
+    if (existingFp.rows.length > 0) {
+      rowId = existingFp.rows[0]!.id;
     } else {
-      const ex = await client.query<{ id: number; status: string }>(
-        `SELECT id, status::text AS status FROM settlement_events
-         WHERE match_engine_id = $1 AND engine_event_id = $2 FOR UPDATE`,
-        [matchEngineId, eventId]
+      const ins = await client.query<{ id: number }>(
+        `INSERT INTO settlement_events (match_engine_id, engine_event_id, payload, status, match_fingerprint)
+         VALUES ($1, $2, $3::jsonb, 'pending', $4)
+         ON CONFLICT (match_engine_id, engine_event_id) DO NOTHING
+         RETURNING id`,
+        [matchEngineId, eventId, payloadJson, matchFp]
       );
-      if (ex.rows.length === 0) {
-        throw new Error('STREAM_MATCH_EVENT_ROW_MISSING');
+      if (ins.rows.length > 0) {
+        rowId = ins.rows[0]!.id;
+      } else {
+        const ex = await client.query<{ id: number; status: string }>(
+          `SELECT id, status::text AS status FROM settlement_events
+           WHERE match_engine_id = $1 AND engine_event_id = $2 FOR UPDATE`,
+          [matchEngineId, eventId]
+        );
+        if (ex.rows.length === 0) {
+          const byFp = await client.query<{ id: number; status: string }>(
+            `SELECT id, status::text AS status FROM settlement_events
+             WHERE match_engine_id = $1 AND match_fingerprint = $2
+               AND status IN ('pending', 'processed')
+             ORDER BY id ASC LIMIT 1 FOR UPDATE`,
+            [matchEngineId, matchFp]
+          );
+          if (byFp.rows.length === 0) {
+            throw new Error('STREAM_MATCH_EVENT_ROW_MISSING');
+          }
+          if (isTerminalSettlementStatus(byFp.rows[0]!.status || '')) {
+            await client.query('COMMIT');
+            return { outcome: 'already_done' };
+          }
+          rowId = byFp.rows[0]!.id;
+        } else {
+          const st = ex.rows[0]!.status || '';
+          if (isTerminalSettlementStatus(st)) {
+            await client.query('COMMIT');
+            return { outcome: 'already_done' };
+          }
+          rowId = ex.rows[0]!.id;
+        }
       }
-      const st = ex.rows[0]!.status || '';
-      if (isTerminalSettlementStatus(st)) {
-        await client.query('COMMIT');
-        return { outcome: 'already_done' };
-      }
-      rowId = ex.rows[0]!.id;
     }
 
     const locked = await client.query<{

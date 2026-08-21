@@ -1,6 +1,8 @@
 /**
- * Ensure default admin users exist for admin panel login.
+ * Ensure initial admin user exists for admin panel login (from .env).
  * Production: pre-enables 2FA (required when NODE_ENV=production) and prints bootstrap TOTP secret.
+ *
+ * Required env: INITIAL_ADMIN_EMAIL, INITIAL_ADMIN_PASSWORD
  *
  * Run: cd apps/backend && npx tsx seed-admin.ts
  * Docker: docker compose -f docker-compose.production.yml --profile tools run --rm seed-admin
@@ -15,10 +17,39 @@ import bcrypt from 'bcryptjs';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const ADMINS = [
-  { email: 'test@gmail.com', password: 'test123', name: 'Super Admin', role: 'super_admin', permissions: ['all'] },
-  { email: 'approver@example.com', password: 'approver123', name: 'Withdrawal Approver', role: 'withdrawal_approver', permissions: ['withdrawals:approve'] },
-] as const;
+type AdminSeed = {
+  email: string;
+  password: string;
+  name: string;
+  role: string;
+  permissions: string[];
+};
+
+function loadInitialAdmin(): AdminSeed[] {
+  const email = process.env.INITIAL_ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.INITIAL_ADMIN_PASSWORD?.trim();
+  if (!email || !password) {
+    console.error('INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD must be set in .env');
+    process.exit(1);
+  }
+  if (password.length < 8) {
+    console.error('INITIAL_ADMIN_PASSWORD must be at least 8 characters');
+    process.exit(1);
+  }
+  if (email === 'CHANGE_ME' || password.startsWith('CHANGE_ME')) {
+    console.error('INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD must not be placeholders');
+    process.exit(1);
+  }
+  return [
+    {
+      email,
+      password,
+      name: 'Super Admin',
+      role: 'super_admin',
+      permissions: ['all'],
+    },
+  ];
+}
 
 function base32Encode(buffer: Buffer): string {
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -82,6 +113,7 @@ async function main() {
     console.error('DATABASE_URL not set.');
     process.exit(1);
   }
+  const admins = loadInitialAdmin();
   const client = new pg.Client({ connectionString: url });
   const bootstrapSecrets: Array<{ email: string; base32: string; qrHint: string }> = [];
   try {
@@ -109,7 +141,7 @@ async function main() {
     `);
     const has2faCols = colCheck.rows.length >= 3;
 
-    for (const admin of ADMINS) {
+    for (const admin of admins) {
       const existing = await client.query(
         'SELECT id, email, two_factor_enabled FROM admin_users WHERE email = $1',
         [admin.email.toLowerCase()]
@@ -163,8 +195,7 @@ async function main() {
     }
 
     console.log('\nLogin at: /admin/login');
-    console.log('  Super Admin: test@gmail.com / test123');
-    console.log('  Withdrawal Approver: approver@example.com / approver123');
+    console.log(`  Super Admin: ${admins[0]!.email} (password from INITIAL_ADMIN_PASSWORD in .env)`);
     if (bootstrapSecrets.length > 0) {
       console.log('\n=== BOOTSTRAP 2FA (production login requires TOTP) ===');
       for (const s of bootstrapSecrets) {
@@ -173,7 +204,6 @@ async function main() {
         console.log(`  Authenticator URI: ${s.qrHint}`);
         console.log('  Add to Google Authenticator / Authy, then login with password + 6-digit code.');
       }
-      console.log('\nChange passwords immediately after first login.');
     }
   } catch (e) {
     console.error('Error:', e instanceof Error ? e.message : e);

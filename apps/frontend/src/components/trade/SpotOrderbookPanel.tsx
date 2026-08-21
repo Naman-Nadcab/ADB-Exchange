@@ -284,7 +284,7 @@ function SentimentFooter({
                 clipPath: `polygon(0 0, 100% 0, calc(100% - ${skew}px) 100%, 0 100%)`,
               }}
             >
-              <span>{b.toFixed(0)}%</span>
+              <span className="text-foreground">{b.toFixed(0)}%</span>
             </div>
             <div
               className="flex h-full min-w-0 flex-1 items-center justify-end bg-sell/35 pr-1.5 text-sell dark:bg-sell/25"
@@ -293,7 +293,7 @@ function SentimentFooter({
                 paddingLeft: `${skew + 4}px`,
               }}
             >
-              <span>{s.toFixed(0)}%</span>
+              <span className="text-foreground">{s.toFixed(0)}%</span>
             </div>
           </div>
         </TooltipTrigger>
@@ -797,7 +797,7 @@ export function SpotOrderbookPanel({
           <select
             value={depthLimit}
             onChange={(e) => setDepthLimit(Number(e.target.value) as (typeof DEPTH_OPTIONS)[number])}
-            title="Rows per side"
+            aria-label="Order book depth rows"
             className="h-6 min-w-[3rem] cursor-pointer rounded border border-border bg-muted px-1 text-label font-bold text-foreground"
           >
             {DEPTH_OPTIONS.map((d) => (
@@ -814,7 +814,7 @@ export function SpotOrderbookPanel({
           <div className="flex items-center gap-1" role="group" aria-label="Order book view">
             <button
               type="button"
-              title="All"
+              aria-label="Show all order book sides"
               className={iconToggle(bookView === 'both')}
               onClick={() => setBookView('both')}
             >
@@ -822,7 +822,7 @@ export function SpotOrderbookPanel({
             </button>
             <button
               type="button"
-              title="Sell orders only"
+              aria-label="Show sell orders only"
               className={iconToggle(bookView === 'asks')}
               onClick={() => setBookView('asks')}
             >
@@ -830,7 +830,7 @@ export function SpotOrderbookPanel({
             </button>
             <button
               type="button"
-              title="Buy orders only"
+              aria-label="Show buy orders only"
               className={iconToggle(bookView === 'bids')}
               onClick={() => setBookView('bids')}
             >
@@ -838,7 +838,7 @@ export function SpotOrderbookPanel({
             </button>
             <button
               type="button"
-              title="Flip order (bids above / below)"
+              aria-label="Flip order book vertical layout"
               className={iconToggle(flipVertical)}
               onClick={() => setFlipVertical((v) => !v)}
             >
@@ -849,7 +849,7 @@ export function SpotOrderbookPanel({
             <select
               value={effectivePricePrecision}
               onChange={(e) => setDisplayPricePrecision(Number(e.target.value))}
-              title="Price grouping"
+              aria-label="Order book price grouping"
               className="h-6 min-w-[5rem] cursor-pointer rounded border border-border bg-muted px-1 text-label font-mono font-semibold text-foreground"
             >
               {tickOptions.map((p) => (
@@ -861,7 +861,7 @@ export function SpotOrderbookPanel({
             <select
               value={depthLimit}
               onChange={(e) => setDepthLimit(Number(e.target.value) as (typeof DEPTH_OPTIONS)[number])}
-              title="Rows per side"
+              aria-label="Order book depth rows"
               className="h-6 min-w-[3rem] cursor-pointer rounded border border-border bg-muted px-1 text-label font-bold text-foreground"
             >
               {DEPTH_OPTIONS.map((d) => (

@@ -3,6 +3,10 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+# shellcheck source=scripts/lib/host-db-url.sh
+source "$ROOT/scripts/lib/host-db-url.sh"
+HOST_DATABASE_URL="$(host_db_url "${DATABASE_URL:-}")"
+HOST_REDIS_URL="$(host_redis_url "${REDIS_URL:-}")"
 
 SOAK_DURATION_SEC="${SOAK_DURATION_SEC:-7200}"
 SOAK_CYCLE_SEC="${SOAK_CYCLE_SEC:-120}"
@@ -34,12 +38,12 @@ qa_noise_streak=0
 cross_fail_streak=0
 
 refresh_e2e_credentials() {
-  if DATABASE_POOL_MIN="$VERIFY_DB_POOL_MIN" \
-    DATABASE_POOL_MAX="$VERIFY_DB_POOL_MAX" \
-    DB_CONNECTION_TIMEOUT_MS="$VERIFY_DB_CONNECTION_TIMEOUT_MS" \
-    DB_STATEMENT_TIMEOUT_MS="$VERIFY_DB_STATEMENT_TIMEOUT_MS" \
-    DB_APPLICATION_NAME="exchange-soak-cred-refresh" \
-    npm run qa:e2e-credentials:file >> "$LOG_PATH" 2>&1; then
+  if docker run --rm --network host \
+    -v "$ROOT:/work" -w /work/apps/backend \
+    -e "DATABASE_URL=${HOST_DATABASE_URL:-$(host_db_url "${DATABASE_URL:-}")}" \
+    -e "REDIS_URL=${HOST_REDIS_URL:-$(host_redis_url "${REDIS_URL:-}")}" \
+    mcr.microsoft.com/playwright:v1.49.0-jammy \
+    npx tsx scripts/e2e-provision-credentials.ts --emit-json ../../e2e/.e2e-credentials.json >> "$LOG_PATH" 2>&1; then
     if [[ -f "$ROOT/e2e/.e2e-credentials.json" ]]; then
       eval "$(
         node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync('$ROOT/e2e/.e2e-credentials.json','utf8'));for(const [k,v] of Object.entries(c)){if(typeof v==='string') console.log('export '+k+'='+JSON.stringify(v));}"
@@ -168,29 +172,36 @@ while [[ "$(date +%s)" -lt "$deadline" ]]; do
     cross_fail_streak=0
   fi
   sleep "$SOAK_PHASE_GAP_SEC"
-  # Drain settlement queue before determinism assertion to avoid transient in-flight false failures.
-  # This still hard-fails if pending cannot be drained.
-  if ! DATABASE_POOL_MIN="$VERIFY_DB_POOL_MIN" \
-    DATABASE_POOL_MAX="$VERIFY_DB_POOL_MAX" \
-    DB_CONNECTION_TIMEOUT_MS="$VERIFY_DB_CONNECTION_TIMEOUT_MS" \
-    DB_STATEMENT_TIMEOUT_MS="$VERIFY_DB_STATEMENT_TIMEOUT_MS" \
-    DB_APPLICATION_NAME="exchange-soak-drain" \
-    npx tsx apps/backend/scripts/tier1-drain-settlement.ts | tee -a "$LOG_PATH"; then
+  # Drain settlement queue before determinism assertion (production backend image has no TS scripts).
+  DRAIN_ENV_FILE="$(mktemp)"
+  docker exec exchange-backend env > "$DRAIN_ENV_FILE"
+  if ! docker run --rm --network container:exchange-backend \
+    -v "$ROOT/apps/backend:/app" \
+    -w /app \
+    --env-file "$DRAIN_ENV_FILE" \
+    mcr.microsoft.com/playwright:v1.49.0-jammy \
+    sh -c 'npm ci --ignore-scripts >/dev/null 2>&1 && npx tsx scripts/tier1-drain-settlement.ts' >> "$LOG_PATH" 2>&1; then
+    rm -f "$DRAIN_ENV_FILE"
     echo "=== DRAIN_ABORT iter=${iter}" | tee -a "$LOG_PATH"
     exit 1
   fi
+  rm -f "$DRAIN_ENV_FILE"
 
   determinism_ok=0
   for attempt in 1 2 3; do
-    if DATABASE_POOL_MIN="$VERIFY_DB_POOL_MIN" \
-      DATABASE_POOL_MAX="$VERIFY_DB_POOL_MAX" \
-      DB_CONNECTION_TIMEOUT_MS="$VERIFY_DB_CONNECTION_TIMEOUT_MS" \
-      DB_STATEMENT_TIMEOUT_MS="$VERIFY_DB_STATEMENT_TIMEOUT_MS" \
-      DB_APPLICATION_NAME="exchange-soak-determinism" \
-      npx tsx apps/backend/scripts/settlement-determinism-verify.ts | tee -a "$LOG_PATH"; then
+    DETERM_ENV_FILE="$(mktemp)"
+    docker exec exchange-backend env > "$DETERM_ENV_FILE"
+    if docker run --rm --network container:exchange-backend \
+      -v "$ROOT/apps/backend:/app" \
+      -w /app \
+      --env-file "$DETERM_ENV_FILE" \
+      mcr.microsoft.com/playwright:v1.49.0-jammy \
+      sh -c 'npm ci --ignore-scripts >/dev/null 2>&1 && npx tsx scripts/settlement-determinism-verify.ts' >> "$LOG_PATH" 2>&1; then
+      rm -f "$DETERM_ENV_FILE"
       determinism_ok=1
       break
     fi
+    rm -f "$DETERM_ENV_FILE"
     echo "=== DETERMINISM_RETRY iter=${iter} attempt=${attempt}" | tee -a "$LOG_PATH"
     sleep 5
   done

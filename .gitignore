@@ -101,8 +101,23 @@ scripts/interactive-*.mjs
 scripts/ui-forensic-*.mjs
 scripts/go-live-validation.mjs
 
+# Deploy revision tracking (VPS runtime)
+.deploy-rev
+.deploy-rev.prev
+
+# Release engineering — never ship in product repository
+release-backup/
+release/
+release-freeze-*.bundle
+*.bundle
+backups/
+audit/*.log
+audit/final-cert-*.log
+audit/PRODUCTION-CERT-RUN-*.log
+audit/regression-*.log
+audit/soak-*.log
+
 # Local machine paths
-.exchange/
 
 # Phase-A recovery — never commit runtime artifacts
 .audit-screenshots/

@@ -80,7 +80,7 @@ export default function AuthSplitLayout({
           <div className="p-4 border-t border-border bg-gray-50/50 dark:bg-background">
             <div className="flex items-center justify-between max-w-4xl mx-auto gap-4 flex-wrap">
               <p className="text-xs text-muted-foreground">
-                We use cookies. <Link href={ROUTES.cookies} className="text-primary hover:underline">Cookie Policy</Link>
+                We use cookies. <Link href={ROUTES.cookies} className="text-primary underline underline-offset-2 hover:underline">Cookie Policy</Link>
               </p>
               <button type="button" onClick={() => setCookiesAccepted(true)} className="px-4 py-2 rounded-lg bg-accent text-foreground/80 text-sm font-medium hover:bg-gray-300 dark:hover:bg-accent transition-colors">
                 Accept All

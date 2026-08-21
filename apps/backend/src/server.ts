@@ -578,6 +578,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   };
   app.get('/health', deepHealthHandler);
   app.get('/health/deep', deepHealthHandler);
+  app.get('/health/ready', deepHealthHandler);
 
   // Prometheus metrics (GET /metrics) — includes SLO gauges + exchange-domain metrics
   app.get('/metrics', async (_request, reply) => {

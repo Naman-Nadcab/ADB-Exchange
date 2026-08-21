@@ -79,10 +79,11 @@ async function main() {
   }
 
   const cur = await client.query<{ id: string; symbol: string }>(
-    `SELECT id, symbol FROM currencies WHERE UPPER(TRIM(symbol)) IN ('BTC','USDT')`
+    `SELECT id, symbol FROM currencies WHERE UPPER(TRIM(symbol)) IN ('BTC','USDT','ETH')`
   );
   const btc = cur.rows.find((r) => r.symbol?.toUpperCase().trim() === 'BTC')?.id;
   const usdt = cur.rows.find((r) => r.symbol?.toUpperCase().trim() === 'USDT')?.id;
+  const eth = cur.rows.find((r) => r.symbol?.toUpperCase().trim() === 'ETH')?.id;
   if (!btc || !usdt) {
     console.error('Need BTC and USDT rows in currencies.');
     process.exit(1);
@@ -293,6 +294,10 @@ async function main() {
   await fundTrading(idA, usdt, '500000');
   await fundTrading(idB, btc, '5');
   await fundTrading(idB, usdt, '500000');
+  if (eth) {
+    await fundTrading(idA, eth, '50');
+    await fundTrading(idB, eth, '50');
+  }
 
   await client.query(`DELETE FROM user_api_keys WHERE api_key IN ($1, $2)`, [API_KEY_A, API_KEY_B]);
 

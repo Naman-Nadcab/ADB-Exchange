@@ -9,6 +9,10 @@ import { logger } from '../../lib/logger.js';
 import { matchEventsPersistedTotal, matchEventsPersistFailedTotal } from '../../lib/prometheus-metrics.js';
 import type { EngineMatchEvent } from './engine-client.js';
 import { config } from '../../config/index.js';
+import {
+  fingerprintFromPayload,
+  findSettlementEventIdByFingerprint,
+} from './match-settlement-fingerprint.js';
 
 /** Thrown when match events could not be written to Postgres after retries (Rust may already have matched). */
 export class MatchEventPersistenceError extends Error {
@@ -43,7 +47,6 @@ function isSameMatchEvent(
   if (!existing) return false;
   return (
     String(existing.match_engine_id ?? '') === String(incoming.match_engine_id ?? '') &&
-    String(existing.event_id ?? '') === String(incoming.event_id ?? '') &&
     String(existing.symbol ?? '') === String(incoming.symbol ?? '') &&
     String(existing.taker_order_id ?? '') === String(incoming.taker_order_id ?? '') &&
     String(existing.maker_order_id ?? '') === String(incoming.maker_order_id ?? '') &&
@@ -51,33 +54,60 @@ function isSameMatchEvent(
     String(existing.maker_user_id ?? '') === String(incoming.maker_user_id ?? '') &&
     String(existing.taker_side ?? '') === String(incoming.taker_side ?? '') &&
     String(existing.price ?? '') === String(incoming.price ?? '') &&
-    String(existing.qty ?? '') === String(incoming.qty ?? '')
+    String(existing.qty ?? '') === String(incoming.qty ?? '') &&
+    String(existing.timestamp ?? '') === String(incoming.timestamp ?? '')
   );
 }
 
+async function insertSettlementEventRow(
+  executor: Queryable,
+  mid: string,
+  engineEventId: number,
+  payloadJson: string,
+  fingerprint: string
+): Promise<boolean> {
+  const r = await executor.query(
+    `INSERT INTO settlement_events (match_engine_id, engine_event_id, payload, status, match_fingerprint)
+     VALUES ($1, $2, $3::jsonb, 'pending', $4)
+     ON CONFLICT (match_engine_id, engine_event_id) DO NOTHING`,
+    [mid, engineEventId, payloadJson, fingerprint]
+  );
+  return (r.rowCount ?? 0) > 0;
+}
+
 /**
- * Persist engine match events to settlement_events. Idempotent per (match_engine_id, engine_event_id).
- * Use the same client as an outer transaction when provided.
+ * Persist engine match events to settlement_events.
+ * Idempotent per (match_engine_id, engine_event_id) AND per match content fingerprint.
  */
 export async function persistEngineMatchEvents(
   events: EngineMatchEvent[],
   source: MatchEventPersistSource,
   client?: PoolClient
-): Promise<{ inserted: number }> {
-  if (events.length === 0) return { inserted: 0 };
+): Promise<{ inserted: number; skipped_duplicate: number }> {
+  if (events.length === 0) return { inserted: 0, skipped_duplicate: 0 };
   let inserted = 0;
+  let skippedDuplicate = 0;
   const executor: Queryable = client ?? db;
   try {
     for (const ev of events) {
       const mid = ev.match_engine_id || 'default';
-      const payload = JSON.stringify(eventToPayload({ ...ev, match_engine_id: mid }));
-      const r = await executor.query(
-        `INSERT INTO settlement_events (match_engine_id, engine_event_id, payload, status)
-         VALUES ($1, $2, $3::jsonb, 'pending')
-         ON CONFLICT (match_engine_id, engine_event_id) DO NOTHING`,
-        [mid, ev.event_id, payload]
-      );
-      if ((r.rowCount ?? 0) > 0) {
+      const payloadObj = eventToPayload({ ...ev, match_engine_id: mid });
+      const payloadJson = JSON.stringify(payloadObj);
+      const fingerprint = fingerprintFromPayload(mid, payloadObj);
+
+      const existingFpId = await findSettlementEventIdByFingerprint(executor, mid, fingerprint);
+      if (existingFpId != null) {
+        skippedDuplicate += 1;
+        logger.debug('settlement_event_skipped_duplicate_fingerprint', {
+          matchEngineId: mid,
+          engineEventId: ev.event_id,
+          existingSettlementEventId: existingFpId,
+          source,
+        });
+        continue;
+      }
+
+      if (await insertSettlementEventRow(executor, mid, ev.event_id, payloadJson, fingerprint)) {
         inserted += 1;
         continue;
       }
@@ -86,13 +116,25 @@ export async function persistEngineMatchEvents(
         `SELECT payload FROM settlement_events WHERE match_engine_id = $1 AND engine_event_id = $2 LIMIT 1`,
         [mid, ev.event_id]
       );
-      const incomingPayload = JSON.parse(payload) as Record<string, unknown>;
+      const incomingPayload = payloadObj;
       const existingPayload = existing.rows[0]?.payload ?? null;
       if (isSameMatchEvent(existingPayload, incomingPayload)) {
         continue;
       }
 
-      // Engine restarted and reused event IDs; preserve event by reassigning a new per-engine id.
+      // engine_event_id collision with a different historical match — only persist if fingerprint is new.
+      const fpAfterCollision = await findSettlementEventIdByFingerprint(executor, mid, fingerprint);
+      if (fpAfterCollision != null) {
+        skippedDuplicate += 1;
+        logger.warn('settlement_event_id_collision_skipped_duplicate_match', {
+          matchEngineId: mid,
+          engineEventId: ev.event_id,
+          existingSettlementEventId: fpAfterCollision,
+          source,
+        });
+        continue;
+      }
+
       let reassignedInserted = false;
       let reassignedId = ev.event_id;
       for (let attempt = 0; attempt < 3; attempt++) {
@@ -103,27 +145,29 @@ export async function persistEngineMatchEvents(
           [mid]
         );
         const nextId = parseInt(nextIdRow.rows[0]?.next_id ?? '0', 10) || ev.event_id + attempt + 1;
-        const insReassigned = await executor.query(
-          `INSERT INTO settlement_events (match_engine_id, engine_event_id, payload, status)
-           VALUES ($1, $2, $3::jsonb, 'pending')
-           ON CONFLICT (match_engine_id, engine_event_id) DO NOTHING`,
-          [mid, nextId, payload]
-        );
-        if ((insReassigned.rowCount ?? 0) > 0) {
+
+        const fpAgain = await findSettlementEventIdByFingerprint(executor, mid, fingerprint);
+        if (fpAgain != null) {
+          skippedDuplicate += 1;
+          reassignedInserted = true;
+          break;
+        }
+
+        if (await insertSettlementEventRow(executor, mid, nextId, payloadJson, fingerprint)) {
           reassignedInserted = true;
           reassignedId = nextId;
           inserted += 1;
           break;
         }
       }
-      if (reassignedInserted) {
+      if (reassignedInserted && inserted > 0 && reassignedId !== ev.event_id) {
         logger.warn('settlement_event_id_collision_reassigned', {
           matchEngineId: mid,
           originalEngineEventId: ev.event_id,
           reassignedEngineEventId: reassignedId,
           source,
         });
-      } else {
+      } else if (!reassignedInserted) {
         matchEventsPersistFailedTotal.inc({ source });
         throw new MatchEventPersistenceError(
           `settlement_event_id_collision: could not persist event ${ev.event_id} for engine ${mid} after reassignment attempts (payload mismatch with existing row)`
@@ -133,7 +177,7 @@ export async function persistEngineMatchEvents(
     if (inserted > 0) {
       matchEventsPersistedTotal.inc({ source }, inserted);
     }
-    return { inserted };
+    return { inserted, skipped_duplicate: skippedDuplicate };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     matchEventsPersistFailedTotal.inc({ source });
@@ -151,7 +195,7 @@ export async function persistEngineMatchEventsWithRetry(
   events: EngineMatchEvent[],
   source: MatchEventPersistSource,
   opts?: { retries?: number; delayMs?: number; client?: PoolClient }
-): Promise<{ inserted: number }> {
+): Promise<{ inserted: number; skipped_duplicate: number }> {
   const retries = opts?.retries ?? config.spot.matchEventPersistRetries;
   const delayMs = opts?.delayMs ?? 50;
   let lastErr: unknown;

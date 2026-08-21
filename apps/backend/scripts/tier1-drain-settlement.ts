@@ -22,13 +22,25 @@ async function pendingCount(): Promise<number> {
   return parseInt(r.rows[0]?.n ?? '0', 10);
 }
 
+async function safeClose(): Promise<void> {
+  try {
+    await db.close();
+  } catch {
+    /* ignore */
+  }
+  try {
+    await redis.close();
+  } catch {
+    /* ignore */
+  }
+}
+
 async function main(): Promise<void> {
   let n = await pendingCount();
   console.log('[drain] settlement_events_pending', n);
   if (n === 0) {
     console.log('[drain] TIER1_DRAIN_SETTLEMENT_OK (already empty)');
-    await db.close();
-    await redis.close();
+    await safeClose();
     return;
   }
 
@@ -50,8 +62,7 @@ async function main(): Promise<void> {
     n = await pendingCount();
     if (n === 0) {
       console.log('[drain] TIER1_DRAIN_SETTLEMENT_OK after', i + 1, 'tick(s)');
-      await db.close();
-      await redis.close();
+      await safeClose();
       return;
     }
     if (n === prev) {
@@ -78,25 +89,14 @@ async function main(): Promise<void> {
   console.log('[drain] settlement_events_pending', n);
   if (n > 0) {
     console.error('[drain] TIER1_DRAIN_SETTLEMENT_INCOMPLETE — see sre-pending-detail.ts / circuit / halt');
-    await db.close();
-    await redis.close();
+    await safeClose();
     process.exit(1);
   }
-  await db.close();
-  await redis.close();
+  await safeClose();
 }
 
 main().catch(async (e) => {
   console.error('[drain] FAIL:', e instanceof Error ? e.message : e);
-  try {
-    await db.close();
-  } catch {
-    /* ignore */
-  }
-  try {
-    await redis.close();
-  } catch {
-    /* ignore */
-  }
+  await safeClose();
   process.exit(1);
 });
