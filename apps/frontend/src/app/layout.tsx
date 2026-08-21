@@ -4,6 +4,7 @@ import './globals.css';
 import { Providers } from '@/components/providers';
 import { DockerUserAppHint } from '@/components/DockerUserAppHint';
 import { Toaster } from '@/components/ui/toaster';
+import { BRAND_NAME_SHORT } from '@/lib/brand';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -28,14 +29,14 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Metherium — Spot & P2P Crypto Exchange',
-  description: 'Metherium — spot and P2P crypto exchange with wallet, API access, and account security controls.',
-  keywords: ['Metherium', 'crypto', 'exchange', 'bitcoin', 'ethereum', 'trading'],
-  applicationName: 'Metherium',
+  title: BRAND_NAME_SHORT,
+  description: `${BRAND_NAME_SHORT} — spot and P2P crypto exchange with wallet, API access, and account security controls.`,
+  keywords: [BRAND_NAME_SHORT, 'crypto', 'exchange', 'bitcoin', 'ethereum', 'trading'],
+  applicationName: BRAND_NAME_SHORT,
   openGraph: {
-    title: 'Metherium — Spot & P2P Crypto Exchange',
-    description: 'Trade spot and P2P markets on Metherium with wallet management and account security controls.',
-    siteName: 'Metherium',
+    title: BRAND_NAME_SHORT,
+    description: `Trade spot and P2P markets on ${BRAND_NAME_SHORT} with wallet management and account security controls.`,
+    siteName: BRAND_NAME_SHORT,
     type: 'website',
   },
   icons: {

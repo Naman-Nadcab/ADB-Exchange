@@ -1,7 +1,7 @@
 {
-  "name": "Metherium",
-  "short_name": "Metherium",
-  "description": "Metherium — spot and P2P crypto exchange with wallet, API access, and account security controls.",
+  "name": "EDA EXCHANGE",
+  "short_name": "EDA EXCHANGE",
+  "description": "EDA EXCHANGE — spot and P2P crypto exchange with wallet, API access, and account security controls.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#05070B",

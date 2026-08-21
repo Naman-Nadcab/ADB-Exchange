@@ -1,15 +1,18 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from '@/components/Providers';
+import { BRAND_NAME_FULL, BRAND_NAME_SHORT } from '@/lib/brand';
+
+const ADMIN_TITLE = `${BRAND_NAME_SHORT} Admin`;
 
 export const metadata: Metadata = {
-  title: 'Metherium Admin',
-  description: 'Metherium Exchange Admin Panel',
-  applicationName: 'Metherium Admin',
+  title: ADMIN_TITLE,
+  description: `${BRAND_NAME_FULL} Admin Panel`,
+  applicationName: ADMIN_TITLE,
   openGraph: {
-    title: 'Metherium Admin',
-    description: 'Metherium Exchange Admin Panel',
-    siteName: 'Metherium',
+    title: ADMIN_TITLE,
+    description: `${BRAND_NAME_FULL} Admin Panel`,
+    siteName: BRAND_NAME_SHORT,
     type: 'website',
   },
   icons: {
