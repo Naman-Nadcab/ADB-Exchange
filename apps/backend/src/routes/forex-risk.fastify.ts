@@ -3,6 +3,7 @@
  * Customers cannot change dealing or limits.
  */
 import type { FastifyInstance } from 'fastify';
+import { forexAuthenticate } from '../services/forex/auth/forex-authenticate.js';
 import { getForexPositionService } from '../services/forex/positions/service.js';
 import { getForexPricingService } from '../services/forex/quotes.service.js';
 import { getForexRiskService } from '../services/forex/risk/service.js';
@@ -18,7 +19,7 @@ function risk() {
 }
 
 export async function registerForexRiskRoutes(app: FastifyInstance): Promise<void> {
-  app.get('/risk/status', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/risk/status', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -26,7 +27,7 @@ export async function registerForexRiskRoutes(app: FastifyInstance): Promise<voi
     return reply.send({ success: true, data: risk().status(accountId) });
   });
 
-  app.get('/exposure', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/exposure', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -34,7 +35,7 @@ export async function registerForexRiskRoutes(app: FastifyInstance): Promise<voi
     return reply.send({ success: true, data: risk().exposure(accountId) });
   });
 
-  app.get('/risk/summary', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/risk/summary', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });

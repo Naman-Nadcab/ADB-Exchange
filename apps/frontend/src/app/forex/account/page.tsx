@@ -1,38 +1,105 @@
 'use client';
 
-import { ForexAccountBar } from '@/components/forex/ForexAccountBar';
-import { hasForexBearer } from '@/lib/forex/api/auth-token';
+import Link from 'next/link';
+import { ForexAccountNav } from '@/components/forex/ForexAccountNav';
+import { ForexMetric } from '@/components/forex/ForexMetric';
+import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useForexStore } from '@/lib/forex/state/store';
+import { useAuthStore } from '@/store/auth';
+import { fxMoney, fxPlain } from '@/components/forex/format';
 
 export default function ForexAccountPage() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const authed = isAuthenticated || hasForexPrivateSession();
   const account = useForexStore((s) => s.account);
-  const authed = hasForexBearer();
+  const balance = useForexStore((s) => s.balance);
+  const margin = useForexStore((s) => s.margin);
+  const pnl = useForexStore((s) => s.pnl);
+  const fees = useForexStore((s) => s.fees);
+  const swaps = useForexStore((s) => s.swaps);
+  const funding = useForexStore((s) => s.funding);
+  const risk = useForexStore((s) => s.riskStatus);
+  const currency = account?.currency ?? balance?.currency ?? 'USD';
+
   return (
-    <div className="space-y-3 p-4 text-[12px] md:max-w-lg">
-      <h1 className="text-sm font-medium">Forex account</h1>
-      {!authed ? (
-        <p className="text-stone-500">Private account fields require Authorization: Bearer. Cookie-only sessions cannot authenticate Forex REST.</p>
-      ) : account ? (
-        <dl className="grid grid-cols-2 gap-2 font-mono">
-          <dt className="text-stone-500">Account</dt><dd>{account.accountId}</dd>
-          <dt className="text-stone-500">Currency</dt><dd>{account.currency}</dd>
-          <dt className="text-stone-500">Ledger</dt><dd>{account.ledgerBalance}</dd>
-          <dt className="text-stone-500">Equity</dt><dd>{account.equity}</dd>
-          <dt className="text-stone-500">Available</dt><dd>{account.availableBalance}</dd>
-          <dt className="text-stone-500">Used margin</dt><dd>{account.usedMargin}</dd>
-          <dt className="text-stone-500">Free margin</dt><dd>{account.freeMargin}</dd>
-          <dt className="text-stone-500">Margin level</dt><dd>{account.marginLevel ?? '—'}</dd>
-          <dt className="text-stone-500">Unrealized</dt><dd>{account.unrealizedPnl}</dd>
-          <dt className="text-stone-500">Realized</dt><dd>{account.realizedPnl}</dd>
-          <dt className="text-stone-500">Calc</dt><dd>{account.calculationStatus}</dd>
-          <dt className="text-stone-500">Price source</dt><dd>{account.priceSource}</dd>
-        </dl>
-      ) : (
-        <p className="text-stone-500">No account payload yet. Waiting for GET /api/v1/forex/account.</p>
-      )}
-      <div className="md:hidden">
-        <ForexAccountBar />
+    <div className="mx-auto max-w-5xl space-y-5 p-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-semibold tracking-tight">Account</h1>
+          <p className="text-[12px] text-stone-500">Backend-authoritative Forex cash, margin, and P&amp;L. Source: GET /account, /balance, /margin, /pnl.</p>
+        </div>
+        <ForexAccountNav />
       </div>
+
+      {!authed ? (
+        <p className="rounded border border-stone-200 bg-white p-4 text-[13px] text-stone-600 dark:border-stone-800 dark:bg-[#101214]">
+          Sign in to load private Forex account fields.{' '}
+          <Link href="/login?redirect=/forex/account" className="underline underline-offset-2">
+            Sign in
+          </Link>
+        </p>
+      ) : !account && !balance ? (
+        <p className="text-[13px] text-stone-500">Waiting for GET /api/v1/forex/account…</p>
+      ) : (
+        <>
+          <section className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-6" aria-label="Account totals">
+            <ForexMetric label="Balance" value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} hint="ledgerBalance" />
+            <ForexMetric label="Equity" value={account?.equity ?? balance?.equity} currency={currency} hint="CUSTOMER_CASH + uPnL" />
+            <ForexMetric label="Available" value={account?.availableBalance ?? balance?.availableBalance} currency={currency} hint="free margin" />
+            <ForexMetric label="Used margin" value={account?.usedMargin ?? margin?.usedMargin} currency={currency} />
+            <ForexMetric label="Free margin" value={account?.freeMargin ?? margin?.freeMargin} currency={currency} />
+            <ForexMetric
+              label="Margin level"
+              value={account?.marginLevel ?? margin?.marginLevel}
+              kind="plain"
+              hint={account?.marginLevel == null && margin?.marginLevel == null ? 'null when unused' : '%'}
+            />
+          </section>
+
+          <section className="grid grid-cols-2 gap-2 md:grid-cols-5" aria-label="Performance">
+            <ForexMetric label="Realized P&L" value={account?.realizedPnl ?? pnl?.realized} currency={currency} signed />
+            <ForexMetric label="Unrealized P&L" value={account?.unrealizedPnl ?? pnl?.unrealized} currency={currency} signed />
+            <ForexMetric label="Fees" value={fees?.total} currency={fees?.currency ?? currency} />
+            <ForexMetric label="Swaps" value={swaps?.total} currency={swaps?.currency ?? currency} />
+            <ForexMetric label="Funding rows" value={String(funding.length)} kind="plain" hint="GET /funding" />
+          </section>
+
+          <section className="rounded border border-stone-200 bg-white p-3 text-[12px] dark:border-stone-800 dark:bg-[#101214]">
+            <h2 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-stone-500">Risk</h2>
+            <dl className="grid grid-cols-2 gap-2 font-mono md:grid-cols-4">
+              <div>
+                <dt className="text-stone-400">State</dt>
+                <dd>{fxPlain(risk?.state)}</dd>
+              </div>
+              <div>
+                <dt className="text-stone-400">Reason</dt>
+                <dd>{fxPlain(risk?.reason)}</dd>
+              </div>
+              <div>
+                <dt className="text-stone-400">Liquidation lock</dt>
+                <dd>{risk ? String(risk.liquidationLock) : 'Unavailable'}</dd>
+              </div>
+              <div>
+                <dt className="text-stone-400">Calc</dt>
+                <dd>{fxPlain(account?.calculationStatus ?? balance?.calculationStatus)}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <p className="text-[12px] text-stone-500">
+            <Link href={FOREX_ROUTES.ledger} className="underline underline-offset-2">
+              Open ledger
+            </Link>
+            {' · '}
+            <Link href={FOREX_ROUTES.funds} className="underline underline-offset-2">
+              Funds
+            </Link>
+            {' · '}
+            Balance {fxMoney(account?.ledgerBalance ?? balance?.ledgerBalance, currency)}
+          </p>
+        </>
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { forexApi, unwrap } from '../api/client';
-import { hasForexBearer } from '../api/auth-token';
+import { hasForexPrivateSession } from '../api/auth-token';
 import { normalizeForexError } from '../models/errors';
 import { useForexStore } from '../state/store';
 
@@ -39,7 +39,7 @@ export async function hydrateForexPublic(signal?: AbortSignal): Promise<void> {
 }
 
 export async function hydrateForexPrivate(): Promise<boolean> {
-  if (!hasForexBearer()) return false;
+  if (!hasForexPrivateSession()) return false;
   const store = useForexStore.getState();
 
   const [
@@ -129,9 +129,16 @@ export async function hydrateForexPrivate(): Promise<boolean> {
     positions: pos.ok ? pos.data.positions : undefined,
     fills: fl.ok ? fl.data.fills : undefined,
     protections: pr.ok ? pr.data.protections : undefined,
-    fees: fee.ok ? { currency: fee.data.currency, transactions: fee.data.transactions } : undefined,
+    fees: fee.ok
+      ? { currency: fee.data.currency, total: typeof fee.data.fees === 'string' ? fee.data.fees : undefined, transactions: fee.data.transactions }
+      : undefined,
     swaps: sw.ok
-      ? { currency: sw.data.currency, transactions: sw.data.transactions, history: sw.data.history }
+      ? {
+          currency: sw.data.currency,
+          total: typeof sw.data.swaps === 'string' ? sw.data.swaps : undefined,
+          transactions: sw.data.transactions,
+          history: sw.data.history,
+        }
       : undefined,
     ledger: led.ok ? led.data.transactions : undefined,
     funding: fund.ok ? fund.data.transactions : undefined,

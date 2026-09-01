@@ -3,6 +3,7 @@
  * Does not start live customer liquidation from HTTP.
  */
 import type { FastifyInstance } from 'fastify';
+import { forexAuthenticate } from '../services/forex/auth/forex-authenticate.js';
 import { getForexAccountingService } from '../services/forex/accounting/service.js';
 import { ForexLiquidationError, publicForexLiquidation } from '../services/forex/liquidation/models.js';
 import { getForexLiquidationService } from '../services/forex/liquidation/service.js';
@@ -23,7 +24,7 @@ function liq() {
 }
 
 export async function registerForexLiquidationRoutes(app: FastifyInstance): Promise<void> {
-  app.get('/liquidation', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/liquidation', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -31,7 +32,7 @@ export async function registerForexLiquidationRoutes(app: FastifyInstance): Prom
     return reply.send({ success: true, data: liq().status(accountId) });
   });
 
-  app.get<{ Params: { liquidationId: string } }>('/liquidation/:liquidationId', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get<{ Params: { liquidationId: string } }>('/liquidation/:liquidationId', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });

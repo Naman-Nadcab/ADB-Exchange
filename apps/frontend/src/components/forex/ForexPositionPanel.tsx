@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { hasForexBearer } from '@/lib/forex/api/auth-token';
+import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import {
   activeProtectionsFor,
   closeReferenceSide,
@@ -25,7 +25,7 @@ type ConfirmState = {
 };
 
 export function ForexPositionPanel() {
-  const authed = hasForexBearer();
+  const authed = hasForexPrivateSession();
   const hydratePhase = useForexStore((s) => s.hydratePhase);
   const hydrateError = useForexStore((s) => s.hydrateError);
   const socketState = useForexStore((s) => s.socketState);

@@ -111,6 +111,12 @@ export const forexApi = {
   ledger: () => fxGet<{ source: string; count: number; transactions: ForexLedgerRow[] }>('/ledger'),
   funding: () => fxGet<{ source: string; count: number; transactions: ForexLedgerRow[] }>('/funding'),
   liquidation: () => fxGet<Record<string, unknown>>('/liquidation'),
+  news: () => fxGet<{ source: string; provider: string; availability: string; reason?: string; count: number; items: unknown[] }>('/news', true),
+  calendar: () =>
+    fxGet<{ source: string; provider: string; availability: string; reason?: string; count: number; events: unknown[] }>(
+      '/calendar',
+      true
+    ),
 
   previewOrder: (body: ForexPreviewRequest, signal?: AbortSignal) =>
     api.post<ForexPreviewResponse>(`${FOREX_PREFIX}/orders/preview`, body, {

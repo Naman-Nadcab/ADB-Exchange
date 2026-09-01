@@ -50,8 +50,8 @@ export interface ForexDomainState {
   positions: Record<string, ForexPublicPosition>;
   fills: ForexFillRow[];
   protections: Record<string, ForexPublicProtection>;
-  fees: { currency?: string; transactions: ForexLedgerRow[] } | null;
-  swaps: { currency?: string; transactions: ForexLedgerRow[]; history: unknown[] } | null;
+  fees: { currency?: string; total?: string; transactions: ForexLedgerRow[] } | null;
+  swaps: { currency?: string; total?: string; transactions: ForexLedgerRow[]; history: unknown[] } | null;
   ledger: ForexLedgerRow[];
   funding: ForexLedgerRow[];
   liquidation: Record<string, unknown> | null;

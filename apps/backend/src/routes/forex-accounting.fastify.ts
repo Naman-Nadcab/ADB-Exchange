@@ -3,6 +3,7 @@
  * Account-scoped. Never expose another user's ledger. SIMULATED source only.
  */
 import type { FastifyInstance } from 'fastify';
+import { forexAuthenticate } from '../services/forex/auth/forex-authenticate.js';
 import { publicLedgerRow } from '../services/forex/accounting/service.js';
 import { getForexAccountingService } from '../services/forex/accounting/service.js';
 import { ForexLedgerError } from '../services/forex/ledger/models.js';
@@ -23,7 +24,7 @@ function accounting() {
 }
 
 export async function registerForexAccountingRoutes(app: FastifyInstance): Promise<void> {
-  app.get('/account', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/account', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -42,7 +43,7 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
     });
   });
 
-  app.get('/balance', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/balance', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -62,7 +63,7 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
     });
   });
 
-  app.get('/ledger', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/ledger', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -74,7 +75,7 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
     });
   });
 
-  app.get('/pnl', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/pnl', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -83,7 +84,7 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
     return reply.send({ success: true, data: { source: 'SIMULATED', pnl } });
   });
 
-  app.get('/equity', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/equity', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -103,7 +104,7 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
     });
   });
 
-  app.get('/funding', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/funding', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -118,7 +119,7 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
   /**
    * Simulated test credit only. No payment rail. Cannot move Crypto or real money.
    */
-  app.post('/funding/test', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.post('/funding/test', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });

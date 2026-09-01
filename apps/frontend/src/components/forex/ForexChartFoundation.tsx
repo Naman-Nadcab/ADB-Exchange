@@ -36,9 +36,10 @@ export function ForexChartFoundation() {
   const dark = useHtmlDark();
   const [expanded, setExpanded] = useState(false);
 
-  const candleView = useForexCandles(selected, null);
+  const requestedTf = storedTf && isReservedForexTimeframe(storedTf) ? storedTf : '1D';
+  const candleView = useForexCandles(selected, requestedTf);
   const timeframes = candleView.supportedTimeframes.filter(isReservedForexTimeframe);
-  const activeTf = timeframes.includes(storedTf as (typeof timeframes)[number]) ? storedTf : null;
+  const activeTf = timeframes.includes(requestedTf) ? requestedTf : timeframes[0] ?? requestedTf;
 
   const staleQuote = !quote || isQuoteStale(quote);
   const digits = inst?.digits ?? 5;

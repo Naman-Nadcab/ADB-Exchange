@@ -15,8 +15,16 @@ import { getForexInstrumentBySymbol, normalizeForexSymbol } from '../instruments
 export const FOREX_CANDLE_RESERVED_TIMEFRAMES = ['1m', '5m', '15m', '1h', '4h', '1D'] as const;
 export type ForexReservedTimeframe = (typeof FOREX_CANDLE_RESERVED_TIMEFRAMES)[number];
 
-/** No timeframe is served until an authoritative OHLC store exists. */
+/**
+ * Durable EDA OHLC store is still empty. External Yahoo history is optional.
+ * FOREX_OHLC_PROVIDER=off keeps the original UNAVAILABLE contract.
+ */
 export const FOREX_SUPPORTED_CANDLE_TIMEFRAMES: readonly ForexReservedTimeframe[] = [];
+
+export function forexOhlcProviderName(): 'yahoo' | 'off' {
+  const raw = (process.env.FOREX_OHLC_PROVIDER ?? 'yahoo').trim().toLowerCase();
+  return raw === 'off' || raw === '0' || raw === 'false' ? 'off' : 'yahoo';
+}
 
 export const FOREX_CANDLE_DEFAULT_LIMIT = 300;
 export const FOREX_CANDLE_MAX_LIMIT = 500;
@@ -167,4 +175,115 @@ export function forexCandlesPayload(query: ForexCandleQuery): {
       },
     },
   };
+}
+
+export async function forexCandlesResolve(query: ForexCandleQuery): Promise<{
+  status: 200 | 400 | 404;
+  body:
+    | {
+        success: true;
+        data: {
+          symbol: string;
+          timeframe: string | null;
+          source: 'SIMULATED' | 'EXTERNAL';
+          provider?: string;
+          availability: 'UNAVAILABLE' | 'AVAILABLE';
+          reason: string;
+          supportedTimeframes: readonly string[];
+          count: number;
+          limit: number;
+          from: string | null;
+          to: string | null;
+          candles: ForexCandleRecord[];
+          providerNote?: string;
+        };
+      }
+    | { success: false; error: { code: string; message: string; source: 'SIMULATED' } };
+}> {
+  const base = forexCandlesPayload(query);
+  if (!base.body.success) return base;
+  if (forexOhlcProviderName() !== 'yahoo') return base;
+
+  const { isYahooTimeframe, fetchYahooOhlc } = await import('./ohlc-yahoo.js');
+  const supported = (await import('./ohlc-yahoo.js')).YAHOO_SUPPORTED_TIMEFRAMES;
+  const rawTf = query.timeframe?.trim() || '1D';
+  if (!isYahooTimeframe(rawTf)) {
+    return {
+      status: 400,
+      body: {
+        success: false,
+        error: {
+          code: 'FOREX_TIMEFRAME_UNSUPPORTED',
+          message: `Yahoo OHLC does not serve ${rawTf}`,
+          source: 'SIMULATED',
+        },
+      },
+    };
+  }
+
+  try {
+    const fetched = await fetchYahooOhlc({
+      symbol: base.body.data.symbol,
+      timeframe: rawTf,
+      limit: base.body.data.limit,
+      from: base.body.data.from ?? undefined,
+      to: base.body.data.to ?? undefined,
+    });
+    if (fetched.bars.length === 0) {
+      return {
+        status: 200,
+        body: {
+          success: true,
+          data: {
+            ...base.body.data,
+            timeframe: rawTf,
+            source: 'EXTERNAL',
+            provider: 'yahoo',
+            availability: 'UNAVAILABLE',
+            reason: 'PROVIDER_EMPTY',
+            supportedTimeframes: supported,
+            candles: [],
+            count: 0,
+            providerNote: fetched.note,
+          },
+        },
+      };
+    }
+    return {
+      status: 200,
+      body: {
+        success: true,
+        data: {
+          ...base.body.data,
+          timeframe: rawTf,
+          source: 'EXTERNAL',
+          provider: 'yahoo',
+          availability: 'AVAILABLE',
+          reason: 'EXTERNAL_YAHOO',
+          supportedTimeframes: supported,
+          candles: fetched.bars,
+          count: fetched.bars.length,
+          providerNote: fetched.note,
+        },
+      },
+    };
+  } catch {
+    return {
+      status: 200,
+      body: {
+        success: true,
+        data: {
+          ...base.body.data,
+          timeframe: rawTf,
+          source: 'EXTERNAL',
+          provider: 'yahoo',
+          availability: 'UNAVAILABLE',
+          reason: 'PROVIDER_UNAVAILABLE',
+          supportedTimeframes: supported,
+          candles: [],
+          count: 0,
+        },
+      },
+    };
+  }
 }

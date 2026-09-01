@@ -121,6 +121,7 @@ const POST_LOGIN_PREFIXES = [
   '/p2p',
   '/orders',
   '/earn',
+  '/forex',
 ];
 
 /** Resolve first allowed post-login path from query params / stored redirect. */

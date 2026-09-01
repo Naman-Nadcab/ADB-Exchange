@@ -3,6 +3,7 @@
  * Authenticated. SIMULATED / MOCK only. Does not move Crypto funds.
  */
 import type { FastifyInstance } from 'fastify';
+import { forexAuthenticate } from '../services/forex/auth/forex-authenticate.js';
 import { ForexOrderError, publicForexOrder } from '../services/forex/orders/models.js';
 import type { ForexOrderModifyRequest } from '../services/forex/orders/models.js';
 import type { ForexOrderRequest } from '../services/forex/orders/request.js';
@@ -31,7 +32,7 @@ function orderBody(body: unknown): ForexOrderRequest {
 }
 
 export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Promise<void> {
-  app.post('/orders', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.post('/orders', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -56,7 +57,7 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
     }
   });
 
-  app.post('/orders/preview', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.post('/orders/preview', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -86,7 +87,7 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
     });
   });
 
-  app.get('/orders', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/orders', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -98,7 +99,7 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
     });
   });
 
-  app.get('/orders/pending', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/orders/pending', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -110,7 +111,7 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
     });
   });
 
-  app.patch<{ Params: { orderId: string } }>('/orders/:orderId', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.patch<{ Params: { orderId: string } }>('/orders/:orderId', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -141,7 +142,7 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
     }
   });
 
-  app.get<{ Params: { orderId: string } }>('/orders/:orderId', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get<{ Params: { orderId: string } }>('/orders/:orderId', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -163,7 +164,7 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
     }
   });
 
-  app.post<{ Params: { orderId: string } }>('/orders/:orderId/cancel', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.post<{ Params: { orderId: string } }>('/orders/:orderId/cancel', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });

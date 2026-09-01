@@ -2,6 +2,7 @@
  * Authenticated Forex SL/TP protections. SIMULATED / MOCK. JWT identity only.
  */
 import type { FastifyInstance } from 'fastify';
+import { forexAuthenticate } from '../services/forex/auth/forex-authenticate.js';
 import { ForexProtectionError, publicForexProtection } from '../services/forex/protection/models.js';
 import { getForexProtectionService } from '../services/forex/protection/service.js';
 import { ForexPositionError } from '../services/forex/positions/models.js';
@@ -20,7 +21,7 @@ function protections() {
 }
 
 export async function registerForexProtectionRoutes(app: FastifyInstance): Promise<void> {
-  app.post('/protections', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.post('/protections', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -49,7 +50,7 @@ export async function registerForexProtectionRoutes(app: FastifyInstance): Promi
     }
   });
 
-  app.get('/protections', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/protections', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -58,7 +59,7 @@ export async function registerForexProtectionRoutes(app: FastifyInstance): Promi
     return reply.send({ success: true, data: { source: 'SIMULATED', executionMode: 'MOCK', count: list.length, protections: list } });
   });
 
-  app.get<{ Params: { protectionId: string } }>('/protections/:protectionId', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get<{ Params: { protectionId: string } }>('/protections/:protectionId', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -71,7 +72,7 @@ export async function registerForexProtectionRoutes(app: FastifyInstance): Promi
     }
   });
 
-  app.delete<{ Params: { protectionId: string } }>('/protections/:protectionId', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.delete<{ Params: { protectionId: string } }>('/protections/:protectionId', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });

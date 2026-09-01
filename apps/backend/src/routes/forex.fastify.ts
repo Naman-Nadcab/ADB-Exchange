@@ -12,7 +12,8 @@ import {
   forexQuotesPayload,
   isForexExecutionTestAuthorized,
 } from '../services/forex/http.js';
-import { forexCandlesPayload } from '../services/forex/market-data/candles.service.js';
+import { forexCandlesResolve } from '../services/forex/market-data/candles.service.js';
+import { registerForexInfoRoutes } from './forex-info.fastify.js';
 import { getForexPricingService } from '../services/forex/quotes.service.js';
 import { ForexExecutionError } from '../services/forex/execution/models.js';
 import { getForexExecutionService } from '../services/forex/execution/service.js';
@@ -45,6 +46,8 @@ function isForexPublicReadPath(url: string): boolean {
     path.includes('/sessions') ||
     path.includes('/trading-config') ||
     path.includes('/candles') ||
+    path.includes('/news') ||
+    path.includes('/calendar') ||
     path.endsWith('/ws') ||
     path.includes('/forex/ws')
   );
@@ -86,7 +89,7 @@ export default async function forexRoutes(app: FastifyInstance) {
   app.get<{
     Querystring: { symbol?: string; timeframe?: string; from?: string; to?: string; limit?: string };
   }>('/candles', async (request, reply) => {
-    const result = forexCandlesPayload(request.query ?? {});
+    const result = await forexCandlesResolve(request.query ?? {});
     return reply.status(result.status).send(result.body);
   });
 
@@ -184,6 +187,7 @@ export default async function forexRoutes(app: FastifyInstance) {
   await registerForexLiquidationRoutes(app);
   await registerForexRiskRoutes(app);
   await registerForexAdvancedRoutes(app);
+  await registerForexInfoRoutes(app);
 
   app.get('/ws', { websocket: true }, async (socket, req) => {
     const rawUrl = (req as { url?: string }).url || '';

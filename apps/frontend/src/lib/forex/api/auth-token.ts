@@ -31,3 +31,9 @@ export function getForexAccountId(): string | null {
 export function hasForexBearer(): boolean {
   return Boolean(getForexAccessToken());
 }
+
+/** Cookie session or Bearer — enough for Forex private REST after Phase 11 cookie gate. */
+export function hasForexPrivateSession(): boolean {
+  if (hasForexBearer()) return true;
+  return Boolean(useAuthStore.getState().isAuthenticated);
+}

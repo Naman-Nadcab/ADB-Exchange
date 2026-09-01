@@ -1,6 +1,6 @@
 'use client';
 
-import { hasForexBearer } from '@/lib/forex/api/auth-token';
+import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexStore } from '@/lib/forex/state/store';
 import { cn } from '@/lib/utils';
 import { fxNum, fxPlain } from './format';
@@ -9,7 +9,7 @@ export function ForexRiskBar() {
   const risk = useForexStore((s) => s.riskStatus);
   const margin = useForexStore((s) => s.margin);
   const exposure = useForexStore((s) => s.exposure);
-  const authed = hasForexBearer();
+  const authed = hasForexPrivateSession();
   if (!authed) return null;
 
   const state = risk?.state ?? '—';

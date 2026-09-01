@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { hasForexBearer } from '@/lib/forex/api/auth-token';
+import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexStore } from '@/lib/forex/state/store';
 import { ForexPositionPanel } from './ForexPositionPanel';
 import { fxNum, fxPlain } from './format';
@@ -10,7 +10,7 @@ type Tab = 'positions' | 'orders' | 'history' | 'risk';
 
 export function ForexBottomPanels() {
   const [tab, setTab] = useState<Tab>('positions');
-  const authed = hasForexBearer();
+  const authed = hasForexPrivateSession();
   const orders = useForexStore((s) => s.orders);
   const fills = useForexStore((s) => s.fills);
   const ledger = useForexStore((s) => s.ledger);
@@ -38,7 +38,7 @@ export function ForexBottomPanels() {
             {t}
           </button>
         ))}
-        {!authed ? <span className="ml-auto text-[11px] text-stone-400">Private panels require a Bearer JWT</span> : null}
+        {!authed ? <span className="ml-auto text-[11px] text-stone-400">Sign in to load private Forex panels</span> : null}
       </div>
       <div className="min-h-0 flex-1 overflow-auto" role="tabpanel">
         {tab === 'positions' ? (

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
-import { hasForexBearer } from '@/lib/forex/api/auth-token';
+import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
 import { isPreviewParamComplete } from '@/lib/forex/models/preview';
 import { executablePrice, isQuoteStale } from '@/lib/forex/models/quotes';
@@ -43,7 +43,7 @@ export function ForexOrderTicket() {
     dealing?.symbol.newOrderEnabled !== false &&
     dealing?.symbol.enabled !== false;
   const sideEnabled = side === 'buy' ? dealing?.symbol.buyEnabled !== false : dealing?.symbol.sellEnabled !== false;
-  const authed = hasForexBearer();
+  const authed = hasForexPrivateSession();
   const previewReq = {
     symbol: selected,
     side,

@@ -3,6 +3,7 @@
  * JWT identity only. No dealing mutation.
  */
 import type { FastifyInstance } from 'fastify';
+import { forexAuthenticate } from '../services/forex/auth/forex-authenticate.js';
 import { publicLedgerRow } from '../services/forex/accounting/service.js';
 import { getForexAccountingService } from '../services/forex/accounting/service.js';
 import { getForexCustomerTradingConfig } from '../services/forex/admin/config.js';
@@ -33,7 +34,7 @@ export async function registerForexAdvancedRoutes(app: FastifyInstance): Promise
     return reply.send({ success: true, data: getForexCustomerTradingConfig() });
   });
 
-  app.get('/pending-orders', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/pending-orders', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -45,7 +46,7 @@ export async function registerForexAdvancedRoutes(app: FastifyInstance): Promise
     });
   });
 
-  app.get('/fills', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/fills', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -54,7 +55,7 @@ export async function registerForexAdvancedRoutes(app: FastifyInstance): Promise
     return reply.send({ success: true, data: { source: 'SIMULATED', count: fills.length, fills } });
   });
 
-  app.get('/trades', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/trades', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -63,7 +64,7 @@ export async function registerForexAdvancedRoutes(app: FastifyInstance): Promise
     return reply.send({ success: true, data: { source: 'SIMULATED', count: trades.length, trades } });
   });
 
-  app.get('/fees', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/fees', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -81,7 +82,7 @@ export async function registerForexAdvancedRoutes(app: FastifyInstance): Promise
     });
   });
 
-  app.get('/swaps', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/swaps', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
@@ -103,7 +104,7 @@ export async function registerForexAdvancedRoutes(app: FastifyInstance): Promise
     });
   });
 
-  app.get('/account/summary', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/account/summary', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const accountId = accountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });

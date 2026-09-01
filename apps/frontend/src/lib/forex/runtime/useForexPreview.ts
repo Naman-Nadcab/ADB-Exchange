@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { forexApi, unwrap } from '../api/client';
-import { hasForexBearer } from '../api/auth-token';
+import { hasForexPrivateSession } from '../api/auth-token';
 import {
   idlePreviewView,
   interpretForexPreviewResult,
@@ -25,7 +25,7 @@ export function useForexPreview(request: ForexPreviewRequest | null, refreshNonc
   const liveSeq = useForexStore((s) => (request ? s.quotes[request.symbol]?.sequence : undefined));
 
   useEffect(() => {
-    if (!request || !isPreviewParamComplete(request) || !hasForexBearer()) {
+    if (!request || !isPreviewParamComplete(request) || !hasForexPrivateSession()) {
       genRef.current += 1;
       keyRef.current = '';
       setView(idlePreviewView());
