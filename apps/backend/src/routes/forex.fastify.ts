@@ -10,8 +10,12 @@ import {
   forexProvidersPayload,
   forexQuoteBySymbolPayload,
   forexQuotesPayload,
+  isForexExecutionTestAuthorized,
 } from '../services/forex/http.js';
 import { getForexPricingService } from '../services/forex/quotes.service.js';
+import { ForexExecutionError } from '../services/forex/execution/models.js';
+import { getForexExecutionService } from '../services/forex/execution/service.js';
+import type { ForexExecutionRequest } from '../services/forex/execution/request.js';
 import { startForexMarketDataWorker, stopForexMarketDataWorker } from '../services/forex/market-data/worker.js';
 import { forexWsHub } from '../services/forex/ws/hub.js';
 import {
@@ -61,6 +65,68 @@ export default async function forexRoutes(app: FastifyInstance) {
     return reply.status(result.status).send(result.body);
   });
 
+  /**
+   * Test/demo execution only. Not a customer order API. Cannot move real funds.
+   * Requires header X-EDA-Forex-Test: SIMULATED
+   */
+  app.post('/execution/test', async (request, reply) => {
+    if (!isForexExecutionTestAuthorized(request.headers['x-eda-forex-test'])) {
+      return reply.status(403).send({
+        success: false,
+        error: { code: 'FOREX_EXECUTION_TEST_FORBIDDEN', message: 'Test execution requires X-EDA-Forex-Test: SIMULATED' },
+      });
+    }
+    const body = (request.body ?? {}) as Partial<ForexExecutionRequest>;
+    const pricing = getForexPricingService();
+    const exec = getForexExecutionService(pricing);
+    try {
+      const record = await exec.execute({
+        clientExecId: String(body.clientExecId ?? ''),
+        symbol: String(body.symbol ?? ''),
+        side: body.side === 'sell' ? 'sell' : 'buy',
+        volume: String(body.volume ?? ''),
+        orderType: body.orderType === 'limit' ? 'limit' : 'market',
+        requestedPrice: body.requestedPrice,
+        maxSlippage: body.maxSlippage,
+        maxDeviation: body.maxDeviation,
+        accountId: body.accountId,
+        timestamp: body.timestamp ?? new Date().toISOString(),
+      });
+      return reply.send({
+        success: true,
+        data: { source: 'SIMULATED', scope: 'TEST_ONLY', execution: record },
+      });
+    } catch (e) {
+      if (e instanceof ForexExecutionError) {
+        return reply.status(409).send({
+          success: false,
+          error: { code: e.reason, message: e.message, source: 'SIMULATED' },
+        });
+      }
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FOREX_EXECUTION_FAILED', message: 'Execution failed', source: 'SIMULATED' },
+      });
+    }
+  });
+
+  app.get<{ Params: { clientExecId: string } }>('/execution/test/:clientExecId', async (request, reply) => {
+    if (!isForexExecutionTestAuthorized(request.headers['x-eda-forex-test'])) {
+      return reply.status(403).send({
+        success: false,
+        error: { code: 'FOREX_EXECUTION_TEST_FORBIDDEN', message: 'Test execution requires X-EDA-Forex-Test: SIMULATED' },
+      });
+    }
+    const record = getForexExecutionService(getForexPricingService()).get(request.params.clientExecId);
+    if (!record) {
+      return reply.status(404).send({
+        success: false,
+        error: { code: 'FOREX_EXECUTION_NOT_FOUND', message: 'Unknown clientExecId' },
+      });
+    }
+    return reply.send({ success: true, data: { source: 'SIMULATED', scope: 'TEST_ONLY', execution: record } });
+  });
+
   app.get('/ws', { websocket: true }, (socket, req) => {
     const rawUrl = (req as { url?: string }).url || '';
     try {
@@ -78,8 +144,8 @@ export default async function forexRoutes(app: FastifyInstance) {
       forexWsEnvelope('welcome', undefined, {
         protocol: 'eda.forex.ws.v1',
         source: 'SIMULATED',
-        events: ['fx.quote', 'fx.liquidity'],
-        reserved: ['fx.order', 'fx.execution', 'fx.position', 'fx.pnl', 'fx.margin', 'fx.risk'],
+        events: ['fx.quote', 'fx.liquidity', 'fx.execution'],
+        reserved: ['fx.order', 'fx.position', 'fx.pnl', 'fx.margin', 'fx.risk'],
       })
     );
 
@@ -114,6 +180,10 @@ export default async function forexRoutes(app: FastifyInstance) {
           return;
         }
         socket.send(forexWsEnvelope('subscribed', msg.channel, { ok: true }));
+        if (msg.channel === 'fx.execution' || msg.channel.startsWith('fx.execution.') || msg.channel === 'fx.execution.*') {
+          socket.send(forexWsEnvelope('fx.execution', 'fx.execution', { source: 'SIMULATED', status: 'SUBSCRIBED' }));
+          return;
+        }
         if (msg.channel.startsWith('fx.liquidity.') || msg.channel === 'fx.liquidity.*') {
           const symbol = msg.channel === 'fx.liquidity.*' ? 'EURUSD' : msg.channel.slice('fx.liquidity.'.length);
           const book = getForexPricingService().getRoutingSnapshot(symbol);

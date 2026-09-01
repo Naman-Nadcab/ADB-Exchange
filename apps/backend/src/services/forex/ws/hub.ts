@@ -43,6 +43,10 @@ class ForexWsHub {
     this.fanout(`fx.liquidity.${snapshot.symbol}`, 'fx.liquidity.*', 'fx.liquidity', snapshot);
   }
 
+  publishExecution(payload: unknown): void {
+    this.fanout('fx.execution', 'fx.execution.*', 'fx.execution', payload);
+  }
+
   private fanout(specific: string, wildcard: string, type: string, data: unknown): void {
     const payload = forexWsEnvelope(type, specific, data);
     for (const conn of this.conns.values()) {

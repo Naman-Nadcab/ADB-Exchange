@@ -39,4 +39,11 @@ export const forexConfig = {
   /** Phase 1 default: latest-only. Tick history table exists for later replay. */
   persistQuoteTicks: envBool('FOREX_QUOTE_TICKS_PERSIST', false),
   degradedErrorRate: 0.05,
+  /** Venue placeOrder timeout. */
+  executionTimeoutMs: envInt('FOREX_EXECUTION_TIMEOUT_MS', 1500),
+  /** Default max |requested-expected| in price units. */
+  defaultMaxDeviation: process.env.FOREX_DEFAULT_MAX_DEVIATION?.trim() || '0.00100',
+  /** Default max slippage in price units. */
+  defaultMaxSlippage: process.env.FOREX_DEFAULT_MAX_SLIPPAGE?.trim() || '0.00030',
+  executionTestApiEnabled: envBool('FOREX_EXECUTION_TEST_API', false),
 } as const;

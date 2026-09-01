@@ -4285,6 +4285,76 @@ const migrations = [
    WHERE NOT EXISTS (
      SELECT 1 FROM forex_routing_rules r WHERE r.provider_id = v.provider_id AND r.instrument_id IS NULL
    );`,
+
+  // FOREX PHASE 3 — execution / fills / audit (append-only, isolated from Crypto)
+  `CREATE TABLE IF NOT EXISTS forex_executions (
+    execution_id UUID PRIMARY KEY,
+    client_exec_id VARCHAR(128) NOT NULL UNIQUE,
+    fingerprint TEXT NOT NULL,
+    account_id UUID,
+    symbol VARCHAR(16) NOT NULL,
+    side VARCHAR(4) NOT NULL CHECK (side IN ('buy','sell')),
+    volume NUMERIC(20,8) NOT NULL,
+    order_type VARCHAR(16) NOT NULL,
+    requested_price NUMERIC(20,8),
+    max_slippage NUMERIC(20,8),
+    max_deviation NUMERIC(20,8),
+    status VARCHAR(24) NOT NULL,
+    selected_provider VARCHAR(32),
+    routing_reason VARCHAR(40),
+    snapshot_status VARCHAR(24),
+    expected_price NUMERIC(20,8),
+    execution_price NUMERIC(20,8),
+    filled_volume NUMERIC(20,8) NOT NULL DEFAULT 0,
+    remaining_volume NUMERIC(20,8) NOT NULL,
+    failure_reason VARCHAR(40),
+    request_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    source VARCHAR(16) NOT NULL DEFAULT 'SIMULATED',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_executions_status ON forex_executions(status, created_at DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_executions_symbol ON forex_executions(symbol, created_at DESC);`,
+  `CREATE TABLE IF NOT EXISTS forex_execution_attempts (
+    id BIGSERIAL PRIMARY KEY,
+    execution_id UUID NOT NULL REFERENCES forex_executions(execution_id) ON DELETE CASCADE,
+    attempt_no INTEGER NOT NULL,
+    provider VARCHAR(32) NOT NULL,
+    status VARCHAR(16) NOT NULL,
+    venue_exec_id VARCHAR(80),
+    reject_reason TEXT,
+    submitted_at TIMESTAMPTZ NOT NULL,
+    completed_at TIMESTAMPTZ,
+    UNIQUE (execution_id, attempt_no)
+  );`,
+  `CREATE TABLE IF NOT EXISTS forex_fills (
+    fill_id UUID PRIMARY KEY,
+    execution_id UUID NOT NULL REFERENCES forex_executions(execution_id) ON DELETE CASCADE,
+    client_exec_id VARCHAR(128) NOT NULL,
+    venue_exec_id VARCHAR(80),
+    provider VARCHAR(32) NOT NULL,
+    symbol VARCHAR(16) NOT NULL,
+    side VARCHAR(4) NOT NULL,
+    price NUMERIC(20,8) NOT NULL,
+    volume NUMERIC(20,8) NOT NULL,
+    fill_timestamp TIMESTAMPTZ NOT NULL,
+    liquidity_source VARCHAR(16) NOT NULL DEFAULT 'MOCK',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT forex_fills_volume_positive CHECK (volume > 0)
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_fills_execution ON forex_fills(execution_id, created_at);`,
+  `CREATE TABLE IF NOT EXISTS forex_execution_events (
+    id BIGSERIAL PRIMARY KEY,
+    event_id UUID NOT NULL UNIQUE,
+    execution_id UUID NOT NULL,
+    client_exec_id VARCHAR(128) NOT NULL,
+    event_type VARCHAR(40) NOT NULL,
+    provider VARCHAR(32),
+    reason VARCHAR(40),
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_execution_events_exec ON forex_execution_events(execution_id, created_at);`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

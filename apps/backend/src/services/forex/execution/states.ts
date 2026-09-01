@@ -1,0 +1,91 @@
+export const FOREX_EXECUTION_STATES = [
+  'RECEIVED',
+  'VALIDATING',
+  'ROUTING',
+  'SUBMITTED',
+  'ACKNOWLEDGED',
+  'PARTIALLY_FILLED',
+  'FILLED',
+  'REJECTED',
+  'CANCEL_PENDING',
+  'CANCELLED',
+  'FAILED',
+] as const;
+
+export type ForexExecutionState = (typeof FOREX_EXECUTION_STATES)[number];
+
+const TRANSITIONS: Readonly<Record<ForexExecutionState, readonly ForexExecutionState[]>> = {
+  RECEIVED: ['VALIDATING'],
+  VALIDATING: ['ROUTING', 'REJECTED'],
+  ROUTING: ['SUBMITTED', 'FAILED', 'REJECTED'],
+  SUBMITTED: ['ACKNOWLEDGED', 'REJECTED', 'FAILED', 'PARTIALLY_FILLED', 'FILLED'],
+  ACKNOWLEDGED: ['PARTIALLY_FILLED', 'FILLED'],
+  PARTIALLY_FILLED: ['FILLED', 'CANCEL_PENDING', 'SUBMITTED'],
+  FILLED: [],
+  REJECTED: [],
+  CANCEL_PENDING: ['CANCELLED', 'PARTIALLY_FILLED'],
+  CANCELLED: [],
+  FAILED: [],
+};
+
+export function canTransition(from: ForexExecutionState, to: ForexExecutionState): boolean {
+  return TRANSITIONS[from].includes(to);
+}
+
+export function assertTransition(from: ForexExecutionState, to: ForexExecutionState): void {
+  if (!canTransition(from, to)) {
+    throw new Error(`INVALID_STATE_TRANSITION:${from}->${to}`);
+  }
+}
+
+export const FOREX_EXEC_EVENT_TYPES = [
+  'EXECUTION_RECEIVED',
+  'VALIDATION_STARTED',
+  'VALIDATION_FAILED',
+  'ROUTING_SELECTED',
+  'VENUE_SUBMITTED',
+  'VENUE_ACK',
+  'VENUE_REJECT',
+  'FILL_RECEIVED',
+  'PARTIAL_FILL',
+  'FINAL_FILL',
+  'FAILOVER',
+  'EXECUTION_FAILED',
+  'EXECUTION_COMPLETED',
+  'VENUE_TIMEOUT',
+  'IDEMPOTENCY_HIT',
+  'IDEMPOTENCY_CONFLICT',
+] as const;
+
+export type ForexExecEventType = (typeof FOREX_EXEC_EVENT_TYPES)[number];
+
+export const FOREX_EXEC_REASONS = [
+  'OK',
+  'UNKNOWN_INSTRUMENT',
+  'INSTRUMENT_HALTED',
+  'INVALID_SIDE',
+  'INVALID_VOLUME',
+  'INVALID_VOLUME_PRECISION',
+  'INVALID_VOLUME_STEP',
+  'INVALID_PRICE',
+  'INVALID_CLIENT_EXEC_ID',
+  'INVALID_TIMESTAMP',
+  'NO_QUOTE',
+  'QUOTE_STALE',
+  'QUOTE_CROSSED',
+  'QUOTE_INVALID',
+  'PROVIDER_INELIGIBLE',
+  'NO_LIQUIDITY',
+  'PRICE_DEVIATION_LIMIT',
+  'SLIPPAGE_LIMIT',
+  'VENUE_REJECT',
+  'ALL_VENUES_REJECTED',
+  'VENUE_TIMEOUT',
+  'MALFORMED_VENUE_RESPONSE',
+  'OVERFILL',
+  'IDEMPOTENCY_CONFLICT',
+  'DUPLICATE',
+  'INVALID_STATE_TRANSITION',
+] as const;
+
+export type ForexExecReason = (typeof FOREX_EXEC_REASONS)[number];

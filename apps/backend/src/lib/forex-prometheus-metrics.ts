@@ -2,7 +2,7 @@
  * Forex-only Prometheus series. Registers on the existing EDA registry.
  * Does not rename or alter Crypto/Spot metrics.
  */
-import { Counter, Gauge } from 'prom-client';
+import { Counter, Gauge, Histogram } from 'prom-client';
 import { register } from './prometheus-metrics.js';
 
 export const forexQuoteReceivedTotal = new Counter({
@@ -92,5 +92,69 @@ export const forexNoLiquidityTotal = new Counter({
   name: 'forex_no_liquidity_total',
   help: 'Routing snapshots with NO_LIQUIDITY',
   labelNames: ['symbol'],
+  registers: [register],
+});
+
+export const forexExecutionReceivedTotal = new Counter({
+  name: 'forex_execution_received_total',
+  help: 'Forex execution requests received',
+  labelNames: ['symbol'],
+  registers: [register],
+});
+
+export const forexExecutionCompletedTotal = new Counter({
+  name: 'forex_execution_completed_total',
+  help: 'Forex executions completed (filled or leftover partial)',
+  labelNames: ['symbol', 'status'],
+  registers: [register],
+});
+
+export const forexExecutionRejectedTotal = new Counter({
+  name: 'forex_execution_rejected_total',
+  help: 'Forex executions rejected before or after routing',
+  labelNames: ['symbol', 'reason'],
+  registers: [register],
+});
+
+export const forexExecutionFailedTotal = new Counter({
+  name: 'forex_execution_failed_total',
+  help: 'Forex executions failed',
+  labelNames: ['symbol', 'reason'],
+  registers: [register],
+});
+
+export const forexExecutionLatency = new Histogram({
+  name: 'forex_execution_latency',
+  help: 'Forex execution latency in seconds',
+  labelNames: ['symbol'],
+  buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5],
+  registers: [register],
+});
+
+export const forexExecutionSlippage = new Gauge({
+  name: 'forex_execution_slippage',
+  help: 'Last observed absolute fill-vs-expected slippage in price units',
+  labelNames: ['symbol', 'side'],
+  registers: [register],
+});
+
+export const forexExecutionFailoverTotal = new Counter({
+  name: 'forex_execution_failover_total',
+  help: 'Forex execution failovers to a secondary venue',
+  labelNames: ['from', 'to'],
+  registers: [register],
+});
+
+export const forexExecutionTimeoutTotal = new Counter({
+  name: 'forex_execution_timeout_total',
+  help: 'Forex venue timeouts',
+  labelNames: ['provider'],
+  registers: [register],
+});
+
+export const forexExecutionDuplicateTotal = new Counter({
+  name: 'forex_execution_duplicate_total',
+  help: 'Duplicate or conflicting Forex clientExecId submissions',
+  labelNames: ['result'],
   registers: [register],
 });
