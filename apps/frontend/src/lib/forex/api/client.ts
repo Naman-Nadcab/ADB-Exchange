@@ -1,0 +1,113 @@
+import { api } from '@/lib/api';
+import { describeForexError, normalizeForexError } from '../models/errors';
+import type {
+  ForexAccountView,
+  ForexError,
+  ForexFillRow,
+  ForexInstrument,
+  ForexLedgerRow,
+  ForexMarginSnapshot,
+  ForexPlaceOrderBody,
+  ForexPnlView,
+  ForexPublicOrder,
+  ForexPublicPosition,
+  ForexPublicProtection,
+  ForexQuoteDto,
+  ForexRiskStatus,
+  ForexSessionSnapshot,
+  ForexTradingConfig,
+} from '../models/types';
+import { FOREX_PREFIX } from '../models/types';
+
+export type ForexResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: ForexError; statusHint?: string };
+
+function unwrap<T>(res: { success: boolean; data?: T; error?: { code?: string; message?: string; source?: string } }): ForexResult<T> {
+  if (res.success && res.data !== undefined) return { ok: true, data: res.data };
+  const error = normalizeForexError(res.error ?? res);
+  return { ok: false, error: { ...error, message: describeForexError(error) } };
+}
+
+function fxGet<T>(path: string, skipAuth = false) {
+  return api.get<T>(`${FOREX_PREFIX}${path}`, { skipAuth, notifyOnError: false });
+}
+
+export const forexApi = {
+  instruments: () => fxGet<{ count: number; instruments: ForexInstrument[] }>('/instruments', true),
+  quotes: () =>
+    fxGet<{ source: string; count: number; quotes: ForexQuoteDto[]; providers: unknown[] }>('/quotes', true),
+  quote: (symbol: string) =>
+    fxGet<{ source: string; quality: string; freshness: string; quote: ForexQuoteDto }>(
+      `/quotes/${encodeURIComponent(symbol)}`,
+      true
+    ),
+  sessions: () => fxGet<ForexSessionSnapshot>('/sessions', true),
+  tradingConfig: () => fxGet<ForexTradingConfig>('/trading-config', true),
+  providersHealth: () => fxGet<{ source: string; providers: Array<{ status?: string }> }>('/providers/health', true),
+
+  account: () => fxGet<{ source: string; account: ForexAccountView; calculationStatus?: string }>('/account'),
+  balance: () =>
+    fxGet<{
+      source: string;
+      currency: string;
+      ledgerBalance: string;
+      availableBalance: string;
+      equity: string;
+      calculationStatus: string;
+    }>('/balance'),
+  equity: () =>
+    fxGet<{
+      source: string;
+      currency: string;
+      equity: string;
+      ledgerBalance: string;
+      unrealizedPnl: string;
+      calculationStatus: string;
+    }>('/equity'),
+  pnl: () => fxGet<{ source: string; pnl: ForexPnlView }>('/pnl'),
+  margin: () => fxGet<{ source: string; valuationKind: string; margin: ForexMarginSnapshot }>('/margin'),
+  risk: () => fxGet<{ source: string; valuationKind: string; risk: unknown }>('/risk'),
+  riskStatus: () => fxGet<ForexRiskStatus>('/risk/status'),
+  riskSummary: () => fxGet<Pick<ForexRiskStatus, 'state' | 'reason' | 'exposure' | 'margin' | 'dealing'> & { source: string }>(
+    '/risk/summary'
+  ),
+  exposure: () => fxGet<Record<string, unknown>>('/exposure'),
+  orders: () => fxGet<{ source: string; count: number; orders: ForexPublicOrder[] }>('/orders'),
+  ordersPending: () => fxGet<{ source: string; count: number; orders: ForexPublicOrder[] }>('/orders/pending'),
+  pendingOrders: () => fxGet<{ source: string; count: number; orders: ForexPublicOrder[] }>('/pending-orders'),
+  order: (orderId: string) => fxGet<{ source: string; order: ForexPublicOrder }>(`/orders/${encodeURIComponent(orderId)}`),
+  positions: () => fxGet<{ source: string; count: number; positions: ForexPublicPosition[] }>('/positions'),
+  position: (positionId: string) =>
+    fxGet<{ source: string; position: ForexPublicPosition }>(`/positions/${encodeURIComponent(positionId)}`),
+  fills: () => fxGet<{ source: string; count: number; fills: ForexFillRow[] }>('/fills'),
+  trades: () => fxGet<{ source: string; count: number; trades: ForexFillRow[] }>('/trades'),
+  protections: () =>
+    fxGet<{ source: string; count: number; protections: ForexPublicProtection[] }>('/protections'),
+  fees: () => fxGet<{ source: string; currency: string; fees: unknown; count: number; transactions: ForexLedgerRow[] }>('/fees'),
+  swaps: () =>
+    fxGet<{
+      source: string;
+      currency: string;
+      swaps: unknown;
+      count: number;
+      history: unknown[];
+      transactions: ForexLedgerRow[];
+    }>('/swaps'),
+  ledger: () => fxGet<{ source: string; count: number; transactions: ForexLedgerRow[] }>('/ledger'),
+  funding: () => fxGet<{ source: string; count: number; transactions: ForexLedgerRow[] }>('/funding'),
+  liquidation: () => fxGet<Record<string, unknown>>('/liquidation'),
+
+  placeOrder: (body: ForexPlaceOrderBody) =>
+    api.post<{ source: string; executionMode: string; order: ForexPublicOrder }>(`${FOREX_PREFIX}/orders`, body, {
+      notifyOnError: false,
+    }),
+  cancelOrder: (orderId: string) =>
+    api.post<{ source: string; order: ForexPublicOrder }>(
+      `${FOREX_PREFIX}/orders/${encodeURIComponent(orderId)}/cancel`,
+      undefined,
+      { notifyOnError: false }
+    ),
+};
+
+export { unwrap };
