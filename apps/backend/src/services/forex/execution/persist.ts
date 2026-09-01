@@ -1,10 +1,12 @@
 import { db } from '../../../lib/database.js';
+import { fxq, type ForexQueryable } from '../durability/tx.js';
 import type { ForexExecutionAttempt, ForexExecutionEvent, ForexExecutionRecord, ForexFill } from './models.js';
 import type { ForexExecutionRequest } from './request.js';
 import type { ForexExecReason, ForexExecutionState } from './states.js';
 
-export async function persistExecution(record: ForexExecutionRecord): Promise<void> {
-  await db.query(
+export async function persistExecution(record: ForexExecutionRecord, client?: ForexQueryable): Promise<void> {
+  const q = fxq(client);
+  await q.query(
     `INSERT INTO forex_executions (
        execution_id, client_exec_id, fingerprint, account_id, symbol, side, volume, order_type,
        requested_price, max_slippage, max_deviation, status, selected_provider, routing_reason,
@@ -50,7 +52,7 @@ export async function persistExecution(record: ForexExecutionRecord): Promise<vo
   );
 
   for (const attempt of record.attempts) {
-    await db.query(
+    await q.query(
       `INSERT INTO forex_execution_attempts (
          execution_id, attempt_no, provider, status, venue_exec_id, reject_reason, submitted_at, completed_at
        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
@@ -73,8 +75,8 @@ export async function persistExecution(record: ForexExecutionRecord): Promise<vo
   }
 }
 
-export async function persistFill(fill: ForexFill): Promise<void> {
-  await db.query(
+export async function persistFill(fill: ForexFill, client?: ForexQueryable): Promise<void> {
+  await fxq(client).query(
     `INSERT INTO forex_fills (
        fill_id, execution_id, client_exec_id, venue_exec_id, provider, symbol, side,
        price, volume, fill_timestamp, liquidity_source
@@ -95,8 +97,8 @@ export async function persistFill(fill: ForexFill): Promise<void> {
   );
 }
 
-export async function persistEvent(event: ForexExecutionEvent): Promise<void> {
-  await db.query(
+export async function persistEvent(event: ForexExecutionEvent, client?: ForexQueryable): Promise<void> {
+  await fxq(client).query(
     `INSERT INTO forex_execution_events (
        event_id, execution_id, client_exec_id, event_type, provider, reason, metadata, created_at
      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)

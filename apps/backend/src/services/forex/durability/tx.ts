@@ -13,6 +13,10 @@ export function fxq(client?: ForexQueryable): ForexQueryable {
   return client ?? db;
 }
 
+export function isPgUniqueViolation(err: unknown): boolean {
+  return typeof err === 'object' && err !== null && 'code' in err && (err as { code: string }).code === '23505';
+}
+
 export async function withForexTransaction<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
   return db.transaction(fn);
 }

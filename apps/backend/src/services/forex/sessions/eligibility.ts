@@ -1,42 +1,58 @@
 /**
  * Deterministic Forex trading-session eligibility.
  *
- * 24x5 contract: open Sunday 21:00 UTC through Friday 21:00 UTC.
- * Saturday is always closed. Weekdays are not assumed always tradable:
- * configured holiday/exception dates close the market.
+ * 24x5 contract: open Sunday 17:00 America/New_York through Friday 17:00
+ * America/New_York. Saturday is always closed. DST is applied through
+ * IANA rules — Friday 17:00 NY is 21:00 UTC in EDT and 22:00 UTC in EST.
  *
  * Holiday coverage is UNCONFIGURED unless dates are supplied.
  * This module does not fabricate holiday rows.
- *
- * DST-ready: session windows carry a timezone field. UTC is identity.
- * Named zones are accepted as configuration; offsets are not invented.
  */
+import { FOREX_VALUATION_POLICY } from '../accounting/valuation.js';
 import { buildDefaultForexSessionCalendar } from '../sessions.catalog.js';
 import type { ForexSessionCalendar, ForexSessionName, ForexSessionWindow } from '../types.js';
+import {
+  holidayCoverage,
+  holidayOn,
+  holidayReadiness,
+  holidayRequired,
+  listForexSessionExceptions,
+  setForexHolidayRequiredForTests,
+  setForexSessionException,
+  resetForexSessionExceptionsForTests,
+  type ForexHolidayCoverage,
+  type ForexSessionException,
+} from './holidays.js';
+import { civilSeconds, FOREX_WEEKEND_TIMEZONE, zonedCivil } from './timezone.js';
 
-export type ForexHolidayCoverage = 'UNCONFIGURED' | 'CONFIGURED';
-
-export interface ForexSessionException {
-  date: string;
-  kind: 'holiday' | 'closure' | 'special' | 'dst_override';
-  notes?: string;
-}
+export type { ForexHolidayCoverage, ForexSessionException };
+export {
+  holidayCoverage,
+  holidayReadiness,
+  holidayRequired,
+  listForexSessionExceptions,
+  resetForexSessionExceptionsForTests,
+  setForexHolidayRequiredForTests,
+  setForexSessionException,
+};
 
 export interface ForexSessionEligibility {
   open: boolean;
-  reason: 'OPEN' | 'WEEKEND_CLOSURE' | 'FRIDAY_CLOSE' | 'HOLIDAY_CLOSURE' | 'OUTSIDE_SESSION';
+  reason: 'OPEN' | 'WEEKEND_CLOSURE' | 'FRIDAY_CLOSE' | 'HOLIDAY_CLOSURE' | 'HOLIDAY_UNCONFIGURED' | 'OUTSIDE_SESSION';
   sessions: ForexSessionName[];
   overlaps: Array<[ForexSessionName, ForexSessionName]>;
   weekend: boolean;
   holiday: boolean;
   holidayCoverage: ForexHolidayCoverage;
+  holidayRequired: boolean;
+  holidaySafe: boolean;
+  dstApplied: boolean;
   timezone: string;
   timestamp: string;
   source: 'SIMULATED';
 }
 
 let clockOverride: Date | null = null;
-let holidayDates = new Map<string, ForexSessionException>();
 
 export function setForexSessionNowForTests(now: Date | null): void {
   clockOverride = now;
@@ -44,22 +60,6 @@ export function setForexSessionNowForTests(now: Date | null): void {
 
 export function forexSessionNow(): Date {
   return clockOverride ?? new Date();
-}
-
-export function resetForexSessionExceptionsForTests(): void {
-  holidayDates = new Map();
-}
-
-export function setForexSessionException(exception: ForexSessionException): void {
-  holidayDates.set(exception.date, exception);
-}
-
-export function listForexSessionExceptions(): ForexSessionException[] {
-  return [...holidayDates.values()];
-}
-
-export function holidayCoverage(): ForexHolidayCoverage {
-  return holidayDates.size === 0 ? 'UNCONFIGURED' : 'CONFIGURED';
 }
 
 function parseHms(time: string): number {
@@ -71,11 +71,9 @@ function parseHms(time: string): number {
 }
 
 function windowOpen(window: ForexSessionWindow, now: Date): boolean {
-  if (window.timezone !== 'UTC') {
-    /* DST-ready: named zones stay on the window; evaluation stays UTC until a dataset is attached. */
-  }
-  if (window.dayOfWeek !== now.getUTCDay()) return false;
-  const sec = now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+  const civil = zonedCivil(now, window.timezone || FOREX_WEEKEND_TIMEZONE);
+  if (window.dayOfWeek !== civil.weekday) return false;
+  const sec = civilSeconds(civil);
   const open = parseHms(window.openTime);
   const close = parseHms(window.closeTime);
   if (window.wrapsMidnight) return sec >= open || sec < close;
@@ -101,64 +99,71 @@ export function forexSessionOverlaps(sessions: ForexSessionName[]): Array<[Forex
 }
 
 /**
- * Standard FX weekend: Friday 21:00 UTC → Sunday 21:00 UTC closed.
+ * Standard FX weekend: Friday 17:00 America/New_York → Sunday 17:00 America/New_York.
  */
 export function isForexWeekendClosed(now: Date): boolean {
-  const day = now.getUTCDay();
-  const minutes = now.getUTCHours() * 60 + now.getUTCMinutes();
-  if (day === 6) return true;
-  if (day === 5 && minutes >= 21 * 60) return true;
-  if (day === 0 && minutes < 21 * 60) return true;
+  const ny = zonedCivil(now, FOREX_WEEKEND_TIMEZONE);
+  const minutes = ny.hour * 60 + ny.minute;
+  if (ny.weekday === 6) return true;
+  if (ny.weekday === 5 && minutes >= 17 * 60) return true;
+  if (ny.weekday === 0 && minutes < 17 * 60) return true;
   return false;
 }
 
 export function isForexTradingEligible(now = forexSessionNow()): ForexSessionEligibility {
   const calendar = buildDefaultForexSessionCalendar();
-  const dateKey = now.toISOString().slice(0, 10);
-  const holiday = holidayDates.get(dateKey);
+  const ny = zonedCivil(now, FOREX_WEEKEND_TIMEZONE);
+  const readiness = holidayReadiness();
+  const holiday = holidayOn(ny.dateKey);
   const weekend = isForexWeekendClosed(now);
-  const sessions = weekend || holiday ? [] : activeForexSessions(now, calendar);
-  const overlaps = forexSessionOverlaps(sessions);
+  const base = {
+    sessions: [] as ForexSessionName[],
+    overlaps: [] as Array<[ForexSessionName, ForexSessionName]>,
+    holidayCoverage: readiness.coverage,
+    holidayRequired: readiness.required,
+    holidaySafe: readiness.holidaySafe,
+    dstApplied: true,
+    timezone: calendar.timezone,
+    timestamp: now.toISOString(),
+    source: 'SIMULATED' as const,
+  };
+
+  if (!readiness.holidaySafe) {
+    return {
+      ...base,
+      open: false,
+      reason: 'HOLIDAY_UNCONFIGURED',
+      weekend,
+      holiday: false,
+    };
+  }
   if (holiday && (holiday.kind === 'holiday' || holiday.kind === 'closure')) {
     return {
+      ...base,
       open: false,
       reason: 'HOLIDAY_CLOSURE',
-      sessions: [],
-      overlaps: [],
       weekend,
       holiday: true,
-      holidayCoverage: holidayCoverage(),
-      timezone: calendar.timezone,
-      timestamp: now.toISOString(),
-      source: 'SIMULATED',
     };
   }
   if (weekend) {
     return {
+      ...base,
       open: false,
-      reason: now.getUTCDay() === 5 ? 'FRIDAY_CLOSE' : 'WEEKEND_CLOSURE',
-      sessions: [],
-      overlaps: [],
+      reason: ny.weekday === 5 ? 'FRIDAY_CLOSE' : 'WEEKEND_CLOSURE',
       weekend: true,
       holiday: false,
-      holidayCoverage: holidayCoverage(),
-      timezone: calendar.timezone,
-      timestamp: now.toISOString(),
-      source: 'SIMULATED',
     };
   }
-  const open24x5 = !weekend && !holiday;
+  const sessions = activeForexSessions(now, calendar);
   return {
-    open: open24x5,
-    reason: open24x5 ? 'OPEN' : 'OUTSIDE_SESSION',
+    ...base,
+    open: true,
+    reason: 'OPEN',
     sessions,
-    overlaps,
+    overlaps: forexSessionOverlaps(sessions),
     weekend: false,
     holiday: false,
-    holidayCoverage: holidayCoverage(),
-    timezone: calendar.timezone,
-    timestamp: now.toISOString(),
-    source: 'SIMULATED',
   };
 }
 
@@ -176,7 +181,12 @@ export function forexSessionSnapshot(now = forexSessionNow()) {
     sessions: ['Sydney', 'Tokyo', 'London', 'New York'] as ForexSessionName[],
     eligibility,
     holidayCoverage: eligibility.holidayCoverage,
+    holidayRequired: eligibility.holidayRequired,
+    holidaySafe: eligibility.holidaySafe,
     exceptionsConfigured: listForexSessionExceptions().length,
-    dstReady: true,
+    dstApplied: true,
+    dstModel: 'IANA',
+    weekendTimezone: FOREX_WEEKEND_TIMEZONE,
+    valuationPolicy: FOREX_VALUATION_POLICY,
   };
 }

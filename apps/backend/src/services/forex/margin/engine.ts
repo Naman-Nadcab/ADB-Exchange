@@ -7,8 +7,9 @@ export type ForexMarginStatus = 'NORMAL' | 'WARNING' | 'MARGIN_CALL' | 'STOP_OUT
 
 /**
  * Valuation prices (backend-authoritative, never frontend):
- * - initial margin: weighted average entry
- * - current used-margin / exposure: latest book mid; fallback to entry
+ * - initial / used margin: weighted average entry (sum of open initial margins)
+ * - current exposure / currentMargin: executable close (LONG=BID, SHORT=ASK)
+ * - mid is never used for liquidation-critical equity
  *
  * Required margin is the STRICTER of:
  *   notional / effectiveLeverage

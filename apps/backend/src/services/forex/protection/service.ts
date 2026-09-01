@@ -259,9 +259,7 @@ export class ForexProtectionService {
 
   private persist(p: ForexProtectionRecord): void {
     if (!this.persistEnabled) return;
-    void import('./persist.js')
-      .then((m) => m.persistProtection(p))
-      .catch(() => undefined);
+    void import('./persist.js').then((m) => m.persistProtection(p));
   }
 
   private publish(p: ForexProtectionRecord, type: string): void {

@@ -14,6 +14,7 @@ import { listForexSwapPolicies } from '../swap/policy.js';
 export const FOREX_CUSTOMER_ORDER_TYPES = ['market', 'limit', 'stop'] as const;
 
 export function getForexAdminBackendConfig() {
+  const sessions = forexSessionSnapshot();
   return {
     source: 'SIMULATED' as const,
     executionMode: 'MOCK' as const,
@@ -31,7 +32,7 @@ export function getForexAdminBackendConfig() {
       minVolume: i.minVolume,
       maxVolume: i.maxVolume,
     })),
-    sessions: forexSessionSnapshot(),
+    sessions,
     fees: listForexCommissionPolicies(),
     swaps: listForexSwapPolicies(),
     leverage: {
@@ -51,6 +52,12 @@ export function getForexAdminBackendConfig() {
       fundingTestApiEnabled: forexConfig.fundingTestApiEnabled,
       executionTestApiEnabled: forexConfig.executionTestApiEnabled,
     },
+    holiday: {
+      coverage: sessions.holidayCoverage,
+      required: sessions.holidayRequired,
+      holidaySafe: sessions.holidaySafe,
+      dstApplied: sessions.dstApplied,
+    },
   };
 }
 
@@ -64,5 +71,6 @@ export function getForexCustomerTradingConfig() {
     fees: { global: admin.fees.global, model: admin.fees.global.model },
     swaps: { rolloverTime: admin.swaps.global.rolloverTime, timezone: admin.swaps.global.timezone },
     leverage: admin.leverage,
+    holiday: admin.holiday,
   };
 }

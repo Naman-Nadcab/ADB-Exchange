@@ -21,6 +21,7 @@ import type { ForexProtectionService } from '../protection/service.js';
 import { recoverForexRuntime } from '../recovery/service.js';
 import type { ForexRiskService } from '../risk/service.js';
 import type { ForexSwapService } from '../swap/service.js';
+import { hydrateForexHolidayCalendar } from '../sessions/holidays.js';
 import { markForexEconomicFailed, markForexEconomicReady } from './ready.js';
 
 export async function hydrateForexEconomicState(args: {
@@ -58,6 +59,7 @@ export async function hydrateForexEconomicState(args: {
     args.accounting.ledger.store.hydrate(ledger);
     for (const tx of ledger) args.accounting.ensureAccount(tx.accountId);
     args.swaps.hydrate(swaps);
+    await hydrateForexHolidayCalendar();
 
     await args.protections.hydrateFromDb();
     await args.liquidations.hydrateFromDb();

@@ -2,6 +2,8 @@
  * Forex economic readiness. Public market-data may run without this.
  * Customer trading must not become ready until hydrate + recover succeed.
  */
+import { holidayReadiness } from '../sessions/holidays.js';
+
 let ready = false;
 let reason: string | null = 'FOREX_NOT_HYDRATED';
 
@@ -26,4 +28,15 @@ export function markForexEconomicFailed(message: string): void {
 export function resetForexEconomicReadyForTests(): void {
   ready = false;
   reason = 'FOREX_NOT_HYDRATED';
+}
+
+export function forexReadinessSnapshot() {
+  const holiday = holidayReadiness();
+  return {
+    economicReady: ready,
+    reason,
+    holiday,
+    dstApplied: true,
+    valuation: 'LONG=BID SHORT=ASK',
+  };
 }

@@ -33,7 +33,8 @@ export function validateForexOrderRequest(req: ForexOrderRequest): OrderValidati
 
   const session = isForexTradingEligible();
   if (!session.open && (req.intent ?? 'CUSTOMER') === 'CUSTOMER') {
-    return { ok: false, reason: 'SESSION_CLOSED', detail: session.reason };
+    const reason = session.reason === 'HOLIDAY_UNCONFIGURED' ? 'HOLIDAY_UNCONFIGURED' : 'SESSION_CLOSED';
+    return { ok: false, reason, detail: session.reason };
   }
 
   if (req.side !== 'buy' && req.side !== 'sell') {

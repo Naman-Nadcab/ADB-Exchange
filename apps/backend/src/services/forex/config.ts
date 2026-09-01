@@ -73,4 +73,9 @@ export const forexConfig = {
   killSwitch: envBool('FOREX_KILL_SWITCH', false),
   /** Test-only Forex credit API. Cannot move real money. */
   fundingTestApiEnabled: envBool('FOREX_FUNDING_TEST_API', false),
+  /**
+   * When true, UNCONFIGURED holiday coverage fail-closes customer trading.
+   * Default false for MOCK: no invented holiday list; state stays explicit.
+   */
+  holidayRequired: envBool('FOREX_HOLIDAY_REQUIRED', false),
 } as const;

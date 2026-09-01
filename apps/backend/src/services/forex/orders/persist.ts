@@ -1,10 +1,11 @@
 import { db } from '../../../lib/database.js';
+import { fxq, type ForexQueryable } from '../durability/tx.js';
 import type { ForexOrderEvent, ForexOrderRecord } from './models.js';
 import type { ForexOrderRequest } from './request.js';
 import type { ForexOrderReason, ForexOrderState } from './states.js';
 
-export async function persistOrder(record: ForexOrderRecord): Promise<void> {
-  await db.query(
+export async function persistOrder(record: ForexOrderRecord, client?: ForexQueryable): Promise<void> {
+  await fxq(client).query(
     `INSERT INTO forex_orders (
        order_id, client_order_id, client_exec_id, account_id, fingerprint, symbol, side, order_type,
        requested_volume, filled_volume, remaining_volume, requested_price, max_slippage, max_deviation,
@@ -44,8 +45,8 @@ export async function persistOrder(record: ForexOrderRecord): Promise<void> {
   );
 }
 
-export async function persistOrderEvent(event: ForexOrderEvent): Promise<void> {
-  await db.query(
+export async function persistOrderEvent(event: ForexOrderEvent, client?: ForexQueryable): Promise<void> {
+  await fxq(client).query(
     `INSERT INTO forex_order_events (
        event_id, order_id, client_order_id, event_type, reason, execution_id, metadata, created_at
      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)

@@ -47,16 +47,28 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   });
 }
 
+export type ForexLifecyclePersistMode = 'off' | 'immediate' | 'deferred';
+
 export class ForexExecutionService {
+  private lifecyclePersist: ForexLifecyclePersistMode = 'off';
+
   constructor(
     private readonly pricing: ForexPricingService,
     private readonly venues: Map<string, ForexExecutionVenue>,
     readonly store: ForexExecutionStore,
     private persistEnabled = false
-  ) {}
+  ) {
+    this.lifecyclePersist = persistEnabled ? 'immediate' : 'off';
+  }
 
   setPersistEnabled(on: boolean): void {
     this.persistEnabled = on;
+    if (!on) this.lifecyclePersist = 'off';
+    else if (this.lifecyclePersist === 'off') this.lifecyclePersist = 'immediate';
+  }
+
+  setLifecyclePersist(mode: ForexLifecyclePersistMode): void {
+    this.lifecyclePersist = this.persistEnabled ? mode : 'off';
   }
 
   get(clientExecId: string): ForexExecutionRecord | undefined {
@@ -118,7 +130,7 @@ export class ForexExecutionService {
 
     const pre = validateExecutionRequest(req);
     if (!pre.ok) {
-      return this.finish(record, 'REJECTED', pre.reason, started);
+      return await this.finish(record, 'REJECTED', pre.reason, started);
     }
     record.request.symbol = pre.symbol;
 
@@ -139,7 +151,7 @@ export class ForexExecutionService {
 
     if (snap.status === 'NO_LIQUIDITY' || !decision.selectedProvider || !decision.expectedPrice || !decision.quote) {
       this.emit(record, 'ROUTING_SELECTED', { reason: 'NO_LIQUIDITY', metadata: { status: snap.status } });
-      return this.finish(record, 'REJECTED', 'NO_LIQUIDITY', started);
+      return await this.finish(record, 'REJECTED', 'NO_LIQUIDITY', started);
     }
 
     const deviation = checkPriceDeviation({
@@ -148,14 +160,14 @@ export class ForexExecutionService {
       maxDeviation: req.maxDeviation ?? forexConfig.defaultMaxDeviation,
     });
     if (!deviation.ok) {
-      return this.finish(record, 'REJECTED', deviation.reason, started, deviation.detail);
+      return await this.finish(record, 'REJECTED', deviation.reason, started, deviation.detail);
     }
 
     const eligible = snap.providers
       .filter((p) => p.eligible)
       .sort((a, b) => a.priority - b.priority);
     if (eligible.length === 0) {
-      return this.finish(record, 'REJECTED', 'NO_LIQUIDITY', started);
+      return await this.finish(record, 'REJECTED', 'NO_LIQUIDITY', started);
     }
 
     this.emit(record, 'ROUTING_SELECTED', {
@@ -204,42 +216,42 @@ export class ForexExecutionService {
 
       const submitResult = await this.submitVenue(record, venue, provider, remaining.toFixed(), expected);
       if (submitResult === 'timeout') {
-        return this.finish(record, 'FAILED', 'VENUE_TIMEOUT', started);
+        return await this.finish(record, 'FAILED', 'VENUE_TIMEOUT', started);
       }
       if (submitResult === 'malformed') {
-        return this.finish(record, 'FAILED', 'MALFORMED_VENUE_RESPONSE', started);
+        return await this.finish(record, 'FAILED', 'MALFORMED_VENUE_RESPONSE', started);
       }
       if (submitResult === 'reject') {
         continue;
       }
       if (submitResult === 'slippage') {
-        return this.finish(record, 'REJECTED', 'SLIPPAGE_LIMIT', started);
+        return await this.finish(record, 'REJECTED', 'SLIPPAGE_LIMIT', started);
       }
       if (submitResult === 'overfill') {
-        return this.finish(record, 'FAILED', 'OVERFILL', started);
+        return await this.finish(record, 'FAILED', 'OVERFILL', started);
       }
 
       remaining = fxDecimal(record.remainingVolume);
       if (!remaining.gt(0)) {
-        return this.finish(record, 'FILLED', 'OK', started);
+        return await this.finish(record, 'FILLED', 'OK', started);
       }
 
       while (remaining.gt(0)) {
         const more = await this.submitVenue(record, venue, provider, remaining.toFixed(), expected);
         if (more !== 'ok' && more !== 'partial') break;
         remaining = fxDecimal(record.remainingVolume);
-        if (!remaining.gt(0)) return this.finish(record, 'FILLED', 'OK', started);
+        if (!remaining.gt(0)) return await this.finish(record, 'FILLED', 'OK', started);
         if (more === 'ok') break;
         if (record.attempts.filter((a) => a.provider === provider).length >= 4) break;
       }
       remaining = fxDecimal(record.remainingVolume);
-      if (!remaining.gt(0)) return this.finish(record, 'FILLED', 'OK', started);
+      if (!remaining.gt(0)) return await this.finish(record, 'FILLED', 'OK', started);
     }
 
     if (fxDecimal(record.filledVolume).gt(0)) {
-      return this.finish(record, 'PARTIALLY_FILLED', 'OK', started);
+      return await this.finish(record, 'PARTIALLY_FILLED', 'OK', started);
     }
-    return this.finish(record, 'REJECTED', 'ALL_VENUES_REJECTED', started);
+    return await this.finish(record, 'REJECTED', 'ALL_VENUES_REJECTED', started);
   }
 
   private orderProviders(codes: string[], preferred: string | null): string[] {
@@ -373,7 +385,6 @@ export class ForexExecutionService {
     record.remainingVolume = remainingBefore.minus(filled).toFixed();
     record.executionPrice = fillPrice;
     this.emit(record, 'FILL_RECEIVED', { provider, metadata: { fillId: fill.fillId, volume: fill.volume } });
-    void this.persistFill(fill);
 
     if (fxDecimal(record.remainingVolume).gt(0)) {
       if (canTransition(record.status, 'PARTIALLY_FILLED')) {
@@ -416,22 +427,17 @@ export class ForexExecutionService {
     const memory = this.store.claimIdempotency(req);
     if (memory) return memory;
     if (!this.persistEnabled) return undefined;
-    try {
-      const { loadExecutionByClient } = await import('./persist.js');
-      const loaded = await loadExecutionByClient(req.clientExecId);
-      if (!loaded) return undefined;
-      this.store.put(loaded);
-      return this.store.claimIdempotency(req);
-    } catch {
-      return undefined;
-    }
+    const { loadExecutionByClient } = await import('./persist.js');
+    const loaded = await loadExecutionByClient(req.clientExecId);
+    if (!loaded) return undefined;
+    this.store.put(loaded);
+    return this.store.claimIdempotency(req);
   }
 
   private transition(record: ForexExecutionRecord, to: ForexExecutionState): void {
     assertTransition(record.status, to);
     record.status = to;
     record.updatedAt = new Date().toISOString();
-    this.persist(record);
   }
 
   private emit(
@@ -451,7 +457,6 @@ export class ForexExecutionService {
     };
     record.events.push(event);
     record.updatedAt = event.timestamp;
-    void this.persistEvent(event);
     forexWsHub.publishExecution({
       source: 'SIMULATED',
       eventType,
@@ -463,13 +468,13 @@ export class ForexExecutionService {
     });
   }
 
-  private finish(
+  private async finish(
     record: ForexExecutionRecord,
     status: ForexExecutionState,
     reason: ForexExecReason,
     started: number,
     detail?: string
-  ): ForexExecutionRecord {
+  ): Promise<ForexExecutionRecord> {
     if (record.status !== status) this.transition(record, status);
     record.failureReason = reason === 'OK' ? null : reason;
     record.updatedAt = new Date().toISOString();
@@ -484,29 +489,24 @@ export class ForexExecutionService {
       forexExecutionCompletedTotal.inc({ symbol: record.request.symbol, status });
     }
     forexExecutionLatency.observe({ symbol: record.request.symbol }, (Date.now() - started) / 1000);
-    this.persist(record);
+    await this.flushImmediate(record);
     return record;
   }
 
-  private persist(record: ForexExecutionRecord): void {
+  async persistLifecycle(record: ForexExecutionRecord, client?: import('../durability/tx.js').ForexQueryable): Promise<void> {
     if (!this.persistEnabled) return;
-    void import('./persist.js')
-      .then((m) => m.persistExecution(record))
-      .catch(() => undefined);
+    const { persistExecution, persistFill, persistEvent } = await import('./persist.js');
+    await persistExecution(record, client);
+    for (const fill of record.fills) await persistFill(fill, client);
+    const { FOREX_LIFECYCLE_EXEC_EVENTS } = await import('../durability/write-classes.js');
+    for (const event of record.events) {
+      if (FOREX_LIFECYCLE_EXEC_EVENTS.has(event.eventType)) await persistEvent(event, client);
+    }
   }
 
-  private persistFill(fill: ForexFill): void {
-    if (!this.persistEnabled) return;
-    void import('./persist.js')
-      .then((m) => m.persistFill(fill))
-      .catch(() => undefined);
-  }
-
-  private persistEvent(event: ForexExecutionEvent): void {
-    if (!this.persistEnabled) return;
-    void import('./persist.js')
-      .then((m) => m.persistEvent(event))
-      .catch(() => undefined);
+  private async flushImmediate(record: ForexExecutionRecord): Promise<void> {
+    if (this.lifecyclePersist !== 'immediate') return;
+    await this.persistLifecycle(record);
   }
 }
 

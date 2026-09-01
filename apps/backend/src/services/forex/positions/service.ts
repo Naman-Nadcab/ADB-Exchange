@@ -13,12 +13,12 @@ import {
   forexPositionReversalTotal,
   forexStopOutReadyTotal,
 } from '../../../lib/forex-prometheus-metrics.js';
-import { forexConfig } from '../config.js';
 import { fxDecimal } from '../decimal-fx.js';
 import type { ForexAccountingService } from '../accounting/service.js';
 import { isForexAccountLiquidationLocked } from '../liquidation/lock.js';
 import type { ForexLiquidationService } from '../liquidation/service.js';
 import type { ForexProtectionService } from '../protection/service.js';
+import { executableClosePrice } from '../pnl/engine.js';
 import { classifyMarginLevel, marginLevel, positionMarginSnapshot } from '../margin/engine.js';
 import { getForexAccountPolicy, evaluateAccountRisk, type ForexRiskDecision } from '../risk/engine.js';
 import type { ForexPricingService } from '../quotes.service.js';
@@ -30,6 +30,7 @@ import type {
   ForexPositionEvent,
   ForexPositionFillInput,
   ForexPositionRecord,
+  ForexPositionSide,
 } from './models.js';
 import { ForexPositionError, publicForexPosition } from './models.js';
 import { applyNettingFill, replayNetting, type NettingState } from './netting.js';
@@ -143,7 +144,8 @@ export class ForexPositionService {
     afterEach?: (
       input: ForexPositionFillInput,
       client: ForexQueryable
-    ) => Promise<import('../ledger/models.js').ForexLedgerTransaction | null | void>
+    ) => Promise<import('../ledger/models.js').ForexLedgerTransaction | null | void>,
+    lifecycle?: (client: ForexQueryable) => Promise<void>
   ): Promise<ForexPositionRecord[]> {
     if (!this.persistEnabled) return this.applyFills(inputs);
     if (inputs.length === 0) return [];
@@ -164,6 +166,7 @@ export class ForexPositionService {
             }
           }
         }
+        if (lifecycle) await lifecycle(c);
         return { out, extras };
       })
     );
@@ -319,7 +322,9 @@ export class ForexPositionService {
     const existing = this.store.getOpen(input.accountId, input.symbol) ?? null;
     const result = applyNettingFill(existing ? toNet(existing) : null, fill);
     const now = new Date().toISOString();
-    const currentPx = this.currentPrice(input.symbol, input.price);
+    const valuationSide: ForexPositionSide =
+      result.after.status === 'CLOSED' ? (existing?.side ?? result.after.side) : result.after.side;
+    const currentPx = this.currentPrice(input.symbol, input.price, valuationSide);
     const ledgerTxs: import('../ledger/models.js').ForexLedgerTransaction[] = [];
 
     if (result.eventType === 'POSITION_REVERSED' && existing) {
@@ -436,7 +441,9 @@ export class ForexPositionService {
       });
     }
     const now = new Date().toISOString();
-    const currentPx = this.currentPrice(input.symbol, input.price);
+    const valuationSide: ForexPositionSide =
+      result.after.status === 'CLOSED' ? (existing?.side ?? result.after.side) : result.after.side;
+    const currentPx = this.currentPrice(input.symbol, input.price, valuationSide);
     if (result.eventType === 'POSITION_REVERSED' && existing) {
       const closeFill: ForexAppliedFill = { ...fill, volume: result.closedVolume };
       const openFill: ForexAppliedFill = { ...fill, volume: result.openedVolume };
@@ -561,7 +568,7 @@ export class ForexPositionService {
 
   private refreshValuation(p: ForexPositionRecord): ForexPositionRecord {
     if (p.status !== 'OPEN') return p;
-    const current = this.currentPrice(p.symbol, p.entryPrice);
+    const current = this.currentPrice(p.symbol, p.entryPrice, p.side);
     const m = positionMarginSnapshot({
       symbol: p.symbol,
       volume: p.volume,
@@ -579,9 +586,15 @@ export class ForexPositionService {
     return p;
   }
 
-  private currentPrice(symbol: string, fallback: string): string {
+  /**
+   * Executable close for risk/exposure. LONG=BID, SHORT=ASK.
+   * Mid is never used. Stale/unusable quote falls back to entry, not mid.
+   */
+  private currentPrice(symbol: string, fallback: string, side?: ForexPositionSide): string {
     const q = this.pricing?.getQuote(symbol);
-    return q?.mid ?? fallback;
+    if (!q || !side) return fallback;
+    if (q.freshness === 'STALE' || q.quality === 'STALE' || q.status !== 'TRADEABLE') return fallback;
+    return executableClosePrice(side, q).price;
   }
 
   private emit(
@@ -605,16 +618,12 @@ export class ForexPositionService {
       metadata,
     };
     if (!this.persistEnabled) return;
-    void import('./persist.js')
-      .then((m) => m.persistPositionEvent(event))
-      .catch(() => undefined);
+    void import('./persist.js').then((m) => m.persistPositionEvent(event));
   }
 
   private persist(record: ForexPositionRecord): void {
     if (!this.persistEnabled) return;
-    void import('./persist.js')
-      .then((m) => m.persistPosition(record))
-      .catch(() => undefined);
+    void import('./persist.js').then((m) => m.persistPosition(record));
   }
 
   private publish(position: ForexPositionRecord, type: string): void {

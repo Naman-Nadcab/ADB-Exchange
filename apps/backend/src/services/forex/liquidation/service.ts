@@ -281,11 +281,7 @@ export class ForexLiquidationService {
 
   private persist(rec: ForexLiquidationRecord): void {
     if (!this.persistEnabled) return;
-    void import('./persist.js')
-      .then((m) => m.persistLiquidation(rec))
-      .catch((err) => {
-        throw err;
-      });
+    void import('./persist.js').then((m) => m.persistLiquidation(rec));
   }
 
   private publish(rec: ForexLiquidationRecord, type: string): void {

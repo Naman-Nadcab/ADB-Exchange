@@ -4789,6 +4789,26 @@ const migrations = [
     acquired_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
   );`,
   `CREATE INDEX IF NOT EXISTS idx_forex_liquidation_locks_liq ON forex_liquidation_locks(liquidation_id);`,
+
+  // FOREX PHASE 9.6 — execution account_id matches orders; holiday calendar (no invented dates)
+  `ALTER TABLE forex_executions ALTER COLUMN account_id TYPE VARCHAR(64);`,
+  `CREATE TABLE IF NOT EXISTS forex_holiday_calendar_state (
+    id SMALLINT PRIMARY KEY CHECK (id = 1),
+    coverage VARCHAR(16) NOT NULL DEFAULT 'UNCONFIGURED'
+      CHECK (coverage IN ('UNCONFIGURED','CONFIGURED')),
+    required BOOLEAN NOT NULL DEFAULT FALSE,
+    notes TEXT,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `INSERT INTO forex_holiday_calendar_state (id, coverage, required)
+   VALUES (1, 'UNCONFIGURED', FALSE)
+   ON CONFLICT (id) DO NOTHING;`,
+  `CREATE TABLE IF NOT EXISTS forex_holiday_dates (
+    calendar_date DATE PRIMARY KEY,
+    kind VARCHAR(16) NOT NULL CHECK (kind IN ('holiday','closure','special')),
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

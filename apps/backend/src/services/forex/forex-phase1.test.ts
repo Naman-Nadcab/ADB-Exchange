@@ -92,10 +92,11 @@ function validateOf(symbol: string, bid: string, ask: string, extra: Partial<Par
 
 {
   const cal = buildDefaultForexSessionCalendar();
-  assert.equal(cal.timezone, 'UTC');
+  assert.equal(cal.timezone, 'America/New_York');
   const names = new Set(cal.windows.map((w) => w.sessionName));
   assert.deepEqual([...names].sort(), ['London', 'New York', 'Sydney', 'Tokyo']);
-  assert.ok(cal.windows.every((w) => w.dayOfWeek >= 0 && w.dayOfWeek <= 4));
+  assert.ok(cal.windows.every((w) => w.dayOfWeek >= 1 && w.dayOfWeek <= 5));
+  assert.ok(cal.windows.every((w) => w.timezone !== 'UTC'));
 }
 
 // ---------- quotes validation ----------

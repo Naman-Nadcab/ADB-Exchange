@@ -29,10 +29,13 @@ import type { ForexOrderEvent, ForexOrderModifyRequest, ForexOrderRecord } from 
 import { ForexOrderError, publicForexOrder } from './models.js';
 import { isPendingTriggered, isPendingWorkingStatus, quoteKey, quoteUsableForTrigger } from './pending.js';
 import { clientExecIdForOrder, orderFingerprint, type ForexOrderRequest } from './request.js';
+import { FOREX_LIFECYCLE_ORDER_EVENTS } from '../durability/write-classes.js';
+import { isPgUniqueViolation, type ForexQueryable } from '../durability/tx.js';
 import {
   assertOrderTransition,
   canOrderTransition,
   FOREX_ORDER_REASONS,
+  FOREX_ORDER_TERMINAL,
   type ForexOrderEventType,
   type ForexOrderReason,
   type ForexOrderState,
@@ -43,6 +46,8 @@ import { getForexInstrumentBySymbol } from '../instruments.catalog.js';
 import { validateForexOrderRequest } from './validate.js';
 
 export class ForexOrderService {
+  private holdLifecyclePersist = false;
+
   constructor(
     private readonly execution: ForexExecutionService,
     readonly store: ForexOrderStore,
@@ -152,7 +157,7 @@ export class ForexOrderService {
       }
       order.failureReason = 'RECOVERY_FAIL_CLOSED';
       this.emit(order, 'ORDER_FAILED', { reason: 'RECOVERY_FAIL_CLOSED' });
-      this.persist(order);
+      void this.persistNow(order);
       recovered.push(order);
     }
     this.refreshPendingGauge();
@@ -164,7 +169,18 @@ export class ForexOrderService {
     for (const order of open) {
       if (order.status === 'TRIGGERING') continue;
       const exec = this.execution.get(order.clientExecId);
-      if (exec) this.applyExecution(order, exec, Date.now());
+      if (!exec) continue;
+      this.holdLifecyclePersist = true;
+      try {
+        order.executionId = exec.executionId;
+        this.applyFills(order, exec.fills);
+        if (exec.status === 'FILLED' && canOrderTransition(order.status, 'FILLED')) this.transition(order, 'FILLED');
+        else if (exec.status === 'PARTIALLY_FILLED' && canOrderTransition(order.status, 'PARTIALLY_FILLED')) {
+          this.transition(order, 'PARTIALLY_FILLED');
+        }
+      } finally {
+        this.holdLifecyclePersist = false;
+      }
     }
     this.refreshPendingGauge();
     return open;
@@ -186,14 +202,22 @@ export class ForexOrderService {
       throw new ForexOrderError('IDEMPOTENCY_CONFLICT', 'clientOrderId reused with a different request', 409);
     }
     if (existing) {
-      forexOrderIdempotencyHitTotal.inc({ result: 'replay' });
-      this.emit(existing, 'ORDER_IDEMPOTENCY_HIT', { reason: 'DUPLICATE' });
-      return existing;
+      return this.resumeExisting(existing, req);
     }
 
     const order = this.createRecord(accountId, req);
     this.store.put(order);
-    this.persist(order);
+    try {
+      await this.persistNow(order);
+    } catch (err) {
+      if (this.persistEnabled && isPgUniqueViolation(err)) {
+        const loaded = await this.reloadByScope(accountId, req.clientOrderId);
+        if (loaded) return this.resumeExisting(loaded, req);
+      }
+      if (this.persistEnabled) {
+        throw new ForexOrderError('ORDER_PERSIST_FAILED', 'Failed to persist Forex order', 503);
+      }
+    }
     forexOrderCreatedTotal.inc({ symbol: order.symbol || 'UNKNOWN' });
     this.emit(order, 'ORDER_CREATED');
     this.publish(order, 'fx.order.created');
@@ -202,7 +226,7 @@ export class ForexOrderService {
 
     const pre = validateForexOrderRequest(req);
     if (!pre.ok) {
-      return this.finish(order, 'REJECTED', pre.reason, started, pre.detail);
+      return await this.finish(order, 'REJECTED', pre.reason, started, pre.detail);
     }
     order.symbol = pre.symbol;
     order.request.symbol = pre.symbol;
@@ -214,7 +238,7 @@ export class ForexOrderService {
         const mapped = (FOREX_ORDER_REASONS as readonly string[]).includes(gate.reason ?? '')
           ? (gate.reason as ForexOrderReason)
           : 'RISK_REJECTED';
-        return this.finish(order, 'REJECTED', mapped, started, gate.reason ?? 'risk limit');
+        return await this.finish(order, 'REJECTED', mapped, started, gate.reason ?? 'risk limit');
       }
     }
 
@@ -223,6 +247,7 @@ export class ForexOrderService {
       this.emit(order, 'ORDER_ACCEPTED');
       this.transition(order, 'PENDING');
       this.emit(order, 'ORDER_PENDING');
+      await this.persistNow(order);
       await this.persistPending(order);
       this.publish(order, 'fx.order.pending');
       this.refreshPendingGauge();
@@ -256,6 +281,7 @@ export class ForexOrderService {
       forexCancelReplaceTotal.inc({ result: 'cancelled' });
       this.publish(order, 'fx.order.cancelled');
       this.refreshPendingGauge();
+      await this.persistNow(order);
       return order;
     }
     if (!canOrderTransition(order.status, 'CANCEL_PENDING')) {
@@ -276,6 +302,7 @@ export class ForexOrderService {
     forexOrderCancelledTotal.inc({ symbol: order.symbol });
     forexCancelReplaceTotal.inc({ result: 'cancelled' });
     this.publish(order, 'fx.order.cancelled');
+    await this.persistNow(order);
     return order;
   }
 
@@ -324,7 +351,7 @@ export class ForexOrderService {
     this.emit(order, 'ORDER_MODIFIED', {
       metadata: { version: order.version, requestedPrice: order.requestedPrice, volume: order.requestedVolume, stopLoss: patch.stopLoss ?? null, takeProfit: patch.takeProfit ?? null },
     });
-    this.persist(order);
+    await this.persistNow(order);
     await this.persistPending(order);
     if (this.persistEnabled) {
       const { persistOrderModification } = await import('../advanced/persist.js');
@@ -359,17 +386,17 @@ export class ForexOrderService {
     }
     if (!isPendingTriggered(order, quote)) {
       forexPendingTriggerEvaluationsTotal.inc({ result: 'not_met' });
-      this.persist(order);
+      await this.persistNow(order);
       return;
     }
     const instrument = getForexInstrumentBySymbol(order.symbol);
     if (!instrument || instrument.tradingStatus !== 'active') {
-      this.finish(order, 'FAILED', 'INSTRUMENT_HALTED', started, 'instrument not executable');
+      await this.finish(order, 'FAILED', 'INSTRUMENT_HALTED', started, 'instrument not executable');
       return;
     }
     const session = isForexTradingEligible();
     if (!session.open && (order.request.intent ?? 'CUSTOMER') === 'CUSTOMER') {
-      this.finish(order, 'FAILED', 'SESSION_CLOSED', started, session.reason);
+      await this.finish(order, 'FAILED', session.reason === 'HOLIDAY_UNCONFIGURED' ? 'HOLIDAY_UNCONFIGURED' : 'SESSION_CLOSED', started, session.reason);
       return;
     }
     this.transition(order, 'TRIGGERING');
@@ -383,7 +410,7 @@ export class ForexOrderService {
       const gate = this.riskGate(order.accountId, order.symbol, order.side, order.requestedVolume, order.request.intent ?? 'CUSTOMER', this.riskRequest(order.request));
       if (!gate.ok) {
         forexRiskRejectionTotal.inc({ reason: gate.reason ?? 'RISK_REJECTED' });
-        this.finish(order, 'FAILED', 'RISK_REJECTED', started, gate.reason ?? 'risk limit');
+        await this.finish(order, 'FAILED', 'RISK_REJECTED', started, gate.reason ?? 'risk limit');
         return;
       }
     }
@@ -403,6 +430,8 @@ export class ForexOrderService {
     this.emit(order, 'ORDER_SUBMITTED', { metadata: { clientExecId: order.clientExecId } });
 
     let exec: ForexExecutionRecord;
+    const prevPersist = this.persistEnabled ? 'deferred' : 'off';
+    this.execution.setLifecyclePersist(prevPersist);
     try {
       exec = await this.execution.execute({
         clientExecId: order.clientExecId,
@@ -417,37 +446,57 @@ export class ForexOrderService {
         timestamp: new Date().toISOString(),
       });
     } catch (err) {
+      this.execution.setLifecyclePersist(this.persistEnabled ? 'immediate' : 'off');
       if (err instanceof ForexExecutionError && err.reason === 'IDEMPOTENCY_CONFLICT') {
-        return this.finish(order, 'FAILED', 'IDEMPOTENCY_CONFLICT', started, err.message);
+        return await this.finish(order, 'FAILED', 'IDEMPOTENCY_CONFLICT', started, err.message);
       }
       const reused = this.execution.get(order.clientExecId);
       if (reused) {
-        this.applyExecution(order, reused, started);
-        await this.bookPositions(order.accountId, order, reused);
+        await this.commitExecutionLifecycle(order, reused, started);
         return order;
       }
-      return this.finish(order, 'FAILED', 'ORDER_FAILED', started, err instanceof Error ? err.message : 'execution failed');
+      return await this.finish(order, 'FAILED', 'ORDER_FAILED', started, err instanceof Error ? err.message : 'execution failed');
     }
+    this.execution.setLifecyclePersist(this.persistEnabled ? 'immediate' : 'off');
 
     try {
-      this.applyExecution(order, exec, started);
-      await this.bookPositions(order.accountId, order, exec);
+      await this.commitExecutionLifecycle(order, exec, started);
     } catch (err) {
       if (err instanceof ForexOrderError && err.reason === 'OVERFILL') {
-        return this.finish(order, 'FAILED', 'OVERFILL', started, err.message);
+        return await this.finish(order, 'FAILED', 'OVERFILL', started, err.message);
       }
       throw err;
     }
     return order;
   }
 
-  private applyExecution(order: ForexOrderRecord, exec: ForexExecutionRecord, started: number): void {
+  /**
+   * Project execution onto a working copy, persist order+execution+book in one
+   * TX when persist is on, then adopt into memory only after COMMIT.
+   */
+  private async commitExecutionLifecycle(
+    order: ForexOrderRecord,
+    exec: ForexExecutionRecord,
+    started: number
+  ): Promise<void> {
+    const working = this.cloneOrder(order);
+    this.holdLifecyclePersist = true;
+    try {
+      await this.applyExecution(working, exec, started);
+    } finally {
+      this.holdLifecyclePersist = false;
+    }
+    await this.bookPositions(order.accountId, working, exec);
+    this.adoptOrder(order, working);
+  }
+
+  private async applyExecution(order: ForexOrderRecord, exec: ForexExecutionRecord, started: number): Promise<void> {
     order.executionId = exec.executionId;
     this.applyFills(order, exec.fills);
     this.emit(order, 'ORDER_ACKNOWLEDGED', { executionId: exec.executionId });
 
     if (exec.status === 'FILLED') {
-      this.finish(order, 'FILLED', 'OK', started);
+      await this.finish(order, 'FILLED', 'OK', started);
       this.publish(order, 'fx.order.filled');
       return;
     }
@@ -458,11 +507,11 @@ export class ForexOrderService {
       return;
     }
     if (exec.status === 'REJECTED') {
-      this.finish(order, 'REJECTED', (exec.failureReason as ForexOrderReason) ?? 'ORDER_REJECTED', started);
+      await this.finish(order, 'REJECTED', (exec.failureReason as ForexOrderReason) ?? 'ORDER_REJECTED', started);
       return;
     }
     if (exec.status === 'FAILED') {
-      this.finish(order, 'FAILED', (exec.failureReason as ForexOrderReason) ?? 'ORDER_FAILED', started);
+      await this.finish(order, 'FAILED', (exec.failureReason as ForexOrderReason) ?? 'ORDER_FAILED', started);
       this.publish(order, 'fx.order.updated');
       return;
     }
@@ -528,7 +577,10 @@ export class ForexOrderService {
   }
 
   private async bookPositions(accountId: string, order: ForexOrderRecord, exec: ForexExecutionRecord): Promise<void> {
-    if (!this.positions) return;
+    if (!this.positions) {
+      if (this.persistEnabled) await this.persistLifecycleInTx(order, exec);
+      return;
+    }
     const fills = exec.fills.map((f) => ({
       fillId: f.fillId,
       accountId,
@@ -540,28 +592,48 @@ export class ForexOrderService {
       executionId: f.executionId,
       orderId: order.orderId,
     }));
+    if (this.persistEnabled && fills.length === 0) {
+      await this.persistLifecycleInTx(order, exec);
+      return;
+    }
     if (this.positions && this.persistEnabled) {
-      await this.positions.applyFillsInTransaction(fills, async (input, client) => {
-        const { peekForexAccountingService } = await import('../accounting/service.js');
-        const acc = peekForexAccountingService();
-        if (!acc) return;
-        return acc.postCommission(
-          {
-            accountId,
-            fillId: input.fillId,
-            symbol: input.symbol,
-            side: input.side,
-            volume: input.volume,
-            price: input.price,
-          },
-          client
-        );
-      });
+      await this.positions.applyFillsInTransaction(
+        fills,
+        async (input, client) => {
+          const { peekForexAccountingService } = await import('../accounting/service.js');
+          const acc = peekForexAccountingService();
+          if (!acc) return;
+          return acc.postCommission(
+            {
+              accountId,
+              fillId: input.fillId,
+              symbol: input.symbol,
+              side: input.side,
+              volume: input.volume,
+              price: input.price,
+            },
+            client
+          );
+        },
+        async (client) => {
+          await this.persistLifecycleInTx(order, exec, client);
+        }
+      );
     } else {
       await this.positions.applyFills(fills);
       await this.postFillCommissions(accountId, exec);
+      if (this.persistEnabled) await this.persistLifecycleInTx(order, exec);
     }
     this.publishFills(accountId, order, exec);
+  }
+
+  private async persistLifecycleInTx(
+    order: ForexOrderRecord,
+    exec: ForexExecutionRecord,
+    client?: ForexQueryable
+  ): Promise<void> {
+    await this.execution.persistLifecycle(exec, client);
+    await this.persistNow(order, client);
   }
 
   private publishFills(accountId: string, order: ForexOrderRecord, exec: ForexExecutionRecord): void {
@@ -653,22 +725,62 @@ export class ForexOrderService {
     const memory = this.store.claim(accountId, req);
     if (memory) return memory;
     if (!this.persistEnabled) return undefined;
-    try {
-      const { loadOrderByScope } = await import('./persist.js');
-      const loaded = await loadOrderByScope(accountId, req.clientOrderId);
-      if (!loaded) return undefined;
-      this.store.put(loaded);
-      return this.store.claim(accountId, req);
-    } catch {
-      return undefined;
+    const loaded = await this.reloadByScope(accountId, req.clientOrderId);
+    if (!loaded) return undefined;
+    return this.store.claim(accountId, req);
+  }
+
+  private async reloadByScope(accountId: string, clientOrderId: string): Promise<ForexOrderRecord | undefined> {
+    const { loadOrderByScope } = await import('./persist.js');
+    const loaded = await loadOrderByScope(accountId, clientOrderId);
+    if (!loaded) return undefined;
+    this.store.put(loaded);
+    return loaded;
+  }
+
+  private async resumeExisting(existing: ForexOrderRecord, req: ForexOrderRequest): Promise<ForexOrderRecord> {
+    forexOrderIdempotencyHitTotal.inc({ result: 'replay' });
+    this.emit(existing, 'ORDER_IDEMPOTENCY_HIT', { reason: 'DUPLICATE' });
+    if (FOREX_ORDER_TERMINAL.has(existing.status)) return existing;
+    if (existing.status === 'PENDING' || existing.status === 'TRIGGERING' || existing.status === 'ACCEPTED') {
+      return existing;
     }
+    const exec = this.execution.get(existing.clientExecId);
+    if (exec && exec.fills.length > 0) {
+      await this.commitExecutionLifecycle(existing, exec, Date.now());
+    }
+    void req;
+    return existing;
+  }
+
+  private cloneOrder(order: ForexOrderRecord): ForexOrderRecord {
+    return {
+      ...order,
+      fillIds: [...order.fillIds],
+      events: order.events.map((e) => ({ ...e })),
+      request: { ...order.request },
+    };
+  }
+
+  private adoptOrder(live: ForexOrderRecord, next: ForexOrderRecord): void {
+    live.filledVolume = next.filledVolume;
+    live.remainingVolume = next.remainingVolume;
+    live.status = next.status;
+    live.failureReason = next.failureReason;
+    live.executionId = next.executionId;
+    live.fillIds = next.fillIds;
+    live.events = next.events;
+    live.request = next.request;
+    live.updatedAt = next.updatedAt;
+    live.lastQuoteKey = next.lastQuoteKey;
+    live.lastModifyKey = next.lastModifyKey;
+    live.version = next.version;
   }
 
   private transition(order: ForexOrderRecord, to: ForexOrderState): void {
     assertOrderTransition(order.status, to);
     order.status = to;
     order.updatedAt = new Date().toISOString();
-    this.persist(order);
   }
 
   private emit(
@@ -688,16 +800,18 @@ export class ForexOrderService {
     };
     order.events.push(event);
     order.updatedAt = event.timestamp;
-    void this.persistEvent(event);
+    if (!this.holdLifecyclePersist && FOREX_LIFECYCLE_ORDER_EVENTS.has(eventType)) {
+      void this.persistEventNow(event);
+    }
   }
 
-  private finish(
+  private async finish(
     order: ForexOrderRecord,
     status: ForexOrderState,
     reason: ForexOrderReason | string,
     started: number,
     detail?: string
-  ): ForexOrderRecord {
+  ): Promise<ForexOrderRecord> {
     if (order.status !== status) {
       if (!canOrderTransition(order.status, status)) {
         throw new ForexOrderError('INVALID_STATE_TRANSITION', `Cannot move order ${order.status} → ${status}`, 409);
@@ -718,7 +832,7 @@ export class ForexOrderService {
       forexOrderFilledTotal.inc({ symbol: order.symbol });
     }
     this.observeLatency(order, started);
-    this.persist(order);
+    if (!this.holdLifecyclePersist) await this.persistNow(order);
     return order;
   }
 
@@ -735,9 +849,13 @@ export class ForexOrderService {
     });
   }
 
-  private persist(order: ForexOrderRecord): void {
+  private async persistNow(order: ForexOrderRecord, client?: ForexQueryable): Promise<void> {
     if (!this.persistEnabled) return;
-    void import('./persist.js').then((m) => m.persistOrder(order));
+    const { persistOrder, persistOrderEvent } = await import('./persist.js');
+    await persistOrder(order, client);
+    for (const event of order.events) {
+      if (FOREX_LIFECYCLE_ORDER_EVENTS.has(event.eventType)) await persistOrderEvent(event, client);
+    }
   }
 
   private async persistPending(order: ForexOrderRecord): Promise<void> {
@@ -753,11 +871,10 @@ export class ForexOrderService {
     });
   }
 
-  private persistEvent(event: ForexOrderEvent): void {
+  private async persistEventNow(event: ForexOrderEvent): Promise<void> {
     if (!this.persistEnabled) return;
-    void import('./persist.js')
-      .then((m) => m.persistOrderEvent(event))
-      .catch(() => undefined);
+    const { persistOrderEvent } = await import('./persist.js');
+    await persistOrderEvent(event);
   }
 }
 
