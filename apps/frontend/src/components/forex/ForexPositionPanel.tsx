@@ -12,6 +12,7 @@ import {
   positionUiStatus,
   positionUnrealizedPnl,
   protectionInputOk,
+  protectionVolumeMismatch,
 } from '@/lib/forex/models/position';
 import type { ForexPublicPosition } from '@/lib/forex/models/types';
 import { useForexPositionActions } from '@/lib/forex/runtime/useForexPositionActions';
@@ -252,6 +253,7 @@ function PositionRow(props: {
         <ProtectionCell
           kind="SL"
           existing={props.prot.sl}
+          positionVolume={p.volume}
           value={props.draft.sl}
           onChange={(sl) => props.onDraft({ ...props.draft, sl })}
           onSet={props.onSetSl}
@@ -264,6 +266,7 @@ function PositionRow(props: {
         <ProtectionCell
           kind="TP"
           existing={props.prot.tp}
+          positionVolume={p.volume}
           value={props.draft.tp}
           onChange={(tp) => props.onDraft({ ...props.draft, tp })}
           onSet={props.onSetTp}
@@ -316,6 +319,7 @@ function PositionCard(props: Parameters<typeof PositionRow>[0]) {
         <ProtectionCell
           kind="SL"
           existing={props.prot.sl}
+          positionVolume={p.volume}
           value={props.draft.sl}
           onChange={(sl) => props.onDraft({ ...props.draft, sl })}
           onSet={props.onSetSl}
@@ -326,6 +330,7 @@ function PositionCard(props: Parameters<typeof PositionRow>[0]) {
         <ProtectionCell
           kind="TP"
           existing={props.prot.tp}
+          positionVolume={p.volume}
           value={props.draft.tp}
           onChange={(tp) => props.onDraft({ ...props.draft, tp })}
           onSet={props.onSetTp}
@@ -349,6 +354,7 @@ function PositionCard(props: Parameters<typeof PositionRow>[0]) {
 function ProtectionCell(props: {
   kind: 'SL' | 'TP';
   existing: ReturnType<typeof activeProtectionsFor>['sl'];
+  positionVolume: string;
   value: string;
   onChange: (v: string) => void;
   onSet: () => void;
@@ -356,12 +362,19 @@ function ProtectionCell(props: {
   onRemove: () => void;
   busy: boolean;
 }) {
+  const mismatch = props.existing ? protectionVolumeMismatch(props.positionVolume, props.existing.volume) : false;
   return (
     <div className="flex min-w-[9.5rem] flex-col gap-1">
       <div className="flex items-center gap-1">
         <span className="w-6 text-[10px] text-stone-400">{props.kind}</span>
         <span className="font-mono text-[11px]">{props.existing ? fxPlain(props.existing.triggerPrice) : '—'}</span>
       </div>
+      {props.existing ? (
+        <p className={`text-[10px] leading-tight ${mismatch ? 'text-amber-800 dark:text-amber-300' : 'text-stone-400'}`}>
+          Covers {fxPlain(props.existing.volume)} of {fxPlain(props.positionVolume)}
+          {mismatch ? ' · does not cover remaining volume' : ''}
+        </p>
+      ) : null}
       <div className="flex items-center gap-1">
         <input
           value={props.value}

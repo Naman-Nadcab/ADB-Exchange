@@ -8,6 +8,15 @@ import { useForexCandles } from '@/lib/forex/runtime/useForexCandles';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 
 type NewsItem = { time?: string | null; headline?: string; source?: string; url?: string | null };
+type CalendarEvent = {
+  time?: string | null;
+  currency?: string | null;
+  event?: string;
+  impact?: string;
+  actual?: string | null;
+  forecast?: string | null;
+  previous?: string | null;
+};
 
 export default function ForexAnalysisPage() {
   const symbol = useForexWorkspaceStore((s) => s.selectedSymbol);
@@ -17,19 +26,55 @@ export default function ForexAnalysisPage() {
     () => (candles.status === 'READY' ? latestIndicators(candles.candles) : null),
     [candles]
   );
-  const [news, setNews] = useState<{ availability: string; reason?: string; items: NewsItem[] } | null>(null);
-  const [calendar, setCalendar] = useState<{ availability: string; reason?: string } | null>(null);
+  const [news, setNews] = useState<{ availability: string; reason?: string; provider?: string; items: NewsItem[] } | null>(null);
+  const [calendar, setCalendar] = useState<{
+    availability: string;
+    reason?: string;
+    provider?: string;
+    events: CalendarEvent[];
+  } | null>(null);
+  const [impactFilter, setImpactFilter] = useState<'ALL' | 'High' | 'Medium' | 'Low'>('ALL');
+  const [currencyFilter, setCurrencyFilter] = useState('ALL');
 
   useEffect(() => {
     void forexApi.news().then((res) => {
       const u = unwrap(res);
-      if (u.ok) setNews({ availability: u.data.availability, reason: u.data.reason, items: (u.data.items as NewsItem[]) ?? [] });
+      if (u.ok)
+        setNews({
+          availability: u.data.availability,
+          reason: u.data.reason,
+          provider: u.data.provider,
+          items: (u.data.items as NewsItem[]) ?? [],
+        });
     });
     void forexApi.calendar().then((res) => {
       const u = unwrap(res);
-      if (u.ok) setCalendar({ availability: u.data.availability, reason: u.data.reason });
+      if (u.ok)
+        setCalendar({
+          availability: u.data.availability,
+          reason: u.data.reason,
+          provider: u.data.provider,
+          events: (u.data.events as CalendarEvent[]) ?? [],
+        });
     });
   }, []);
+
+  const currencies = useMemo(() => {
+    const set = new Set((calendar?.events ?? []).map((e) => e.currency).filter((c): c is string => Boolean(c)));
+    return ['ALL', ...[...set].sort()];
+  }, [calendar]);
+
+  const calendarRows = useMemo(() => {
+    return (calendar?.events ?? []).filter((ev) => {
+      const impact = (ev.impact ?? '').toLowerCase();
+      if (impactFilter !== 'ALL') {
+        if (impactFilter === 'Low' && impact !== 'low' && impact !== 'holiday') return false;
+        if (impactFilter !== 'Low' && impact !== impactFilter.toLowerCase()) return false;
+      }
+      if (currencyFilter !== 'ALL' && ev.currency !== currencyFilter) return false;
+      return true;
+    });
+  }, [calendar, impactFilter, currencyFilter]);
 
   const fmt = (n: number | null | undefined) => (n == null || !Number.isFinite(n) ? 'Unavailable' : n.toFixed(5));
 
@@ -83,15 +128,84 @@ export default function ForexAnalysisPage() {
 
       <section className="rounded border border-stone-200 bg-white p-3 dark:border-stone-800 dark:bg-[#101214]">
         <h2 className="text-[11px] font-medium uppercase tracking-wide text-stone-500">Economic calendar</h2>
-        <p className="mt-2 text-[13px] text-stone-500">
-          {calendar?.availability === 'UNAVAILABLE' || !calendar
-            ? `Economic calendar unavailable${calendar?.reason ? ` (${calendar.reason})` : ''}.`
-            : 'Calendar loaded.'}
-        </p>
+        {calendar?.availability === 'UNAVAILABLE' || !calendar ? (
+          <p className="mt-2 text-[13px] text-stone-500">
+            Economic calendar unavailable{calendar?.reason ? ` (${calendar.reason})` : ''}.
+          </p>
+        ) : (
+          <>
+            <p className="mt-1 text-[11px] text-stone-500">
+              Source {calendar.provider ?? 'external'} · this-week feed. Actual is shown only when the provider supplies it.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2 text-[12px]">
+              {(['ALL', 'High', 'Medium', 'Low'] as const).map((level) => (
+                <button
+                  key={level}
+                  type="button"
+                  aria-pressed={impactFilter === level}
+                  onClick={() => setImpactFilter(level)}
+                  className={`rounded border px-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 ${
+                    impactFilter === level ? 'border-stone-800 dark:border-stone-200' : 'border-stone-300 dark:border-stone-700'
+                  }`}
+                >
+                  {level}
+                </button>
+              ))}
+              <label className="ml-auto flex items-center gap-1">
+                <span className="text-stone-500">Currency</span>
+                <select
+                  value={currencyFilter}
+                  onChange={(e) => setCurrencyFilter(e.target.value)}
+                  className="h-7 rounded border border-stone-300 bg-transparent px-1 dark:border-stone-700"
+                >
+                  {currencies.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            {calendarRows.length === 0 ? (
+              <p className="mt-2 text-[13px] text-stone-500">No calendar events for this filter.</p>
+            ) : (
+              <div className="mt-2 overflow-x-auto">
+                <table className="min-w-[720px] w-full text-left font-mono text-[12px]">
+                  <thead className="text-stone-500">
+                    <tr>
+                      <th className="py-1 font-medium">Time</th>
+                      <th className="py-1 font-medium">Currency</th>
+                      <th className="py-1 font-medium">Event</th>
+                      <th className="py-1 font-medium">Impact</th>
+                      <th className="py-1 font-medium">Actual</th>
+                      <th className="py-1 font-medium">Forecast</th>
+                      <th className="py-1 font-medium">Previous</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {calendarRows.slice(0, 80).map((ev, i) => (
+                      <tr key={`${ev.event}-${ev.time}-${i}`} className="border-t border-stone-100 dark:border-stone-800">
+                        <td className="py-1">{ev.time ? new Date(ev.time).toLocaleString() : '—'}</td>
+                        <td className="py-1">{ev.currency ?? '—'}</td>
+                        <td className="py-1">{ev.event}</td>
+                        <td className="py-1">{ev.impact ?? '—'}</td>
+                        <td className="py-1">{ev.actual ?? 'Unavailable'}</td>
+                        <td className="py-1">{ev.forecast ?? '—'}</td>
+                        <td className="py-1">{ev.previous ?? '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
       </section>
 
       <section className="rounded border border-stone-200 bg-white p-3 dark:border-stone-800 dark:bg-[#101214]">
-        <h2 className="text-[11px] font-medium uppercase tracking-wide text-stone-500">News</h2>
+        <h2 className="text-[11px] font-medium uppercase tracking-wide text-stone-500">
+          News{news?.provider ? ` · ${news.provider}` : ''}
+        </h2>
         {!news || news.availability === 'UNAVAILABLE' ? (
           <p className="mt-2 text-[13px] text-stone-500">No market news available{news?.reason ? ` (${news.reason})` : ''}.</p>
         ) : (

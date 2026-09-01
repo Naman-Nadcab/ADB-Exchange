@@ -22,6 +22,7 @@ export function forexAccountingComponents(txs: ForexLedgerTransaction[]): {
   realizedPnl: string;
   fees: string;
   swaps: string;
+  adjustments: string;
   ledgerFromComponents: string;
 } {
   const deposits = fxDecimal(sumCustomerCashByType(txs, 'DEPOSIT')).plus(sumCustomerCashByType(txs, 'INITIAL_FUNDING'));
@@ -36,6 +37,7 @@ export function forexAccountingComponents(txs: ForexLedgerTransaction[]): {
     realizedPnl: realizedPnl.toFixed(),
     fees: fees.toFixed(),
     swaps: swaps.toFixed(),
+    adjustments: adjustments.toFixed(),
     ledgerFromComponents: deposits.plus(withdrawals).plus(realizedPnl).plus(fees).plus(swaps).plus(adjustments).toFixed(),
   };
 }

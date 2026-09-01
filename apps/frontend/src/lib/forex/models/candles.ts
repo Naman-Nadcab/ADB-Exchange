@@ -33,6 +33,8 @@ export interface ForexCandleResponse {
   count: number;
   limit?: number;
   candles: ForexCandle[];
+  providerNote?: string;
+  provider?: string;
 }
 
 export type ForexCandleViewStatus = 'LOADING' | 'NO_HISTORY' | 'READY' | 'INVALID' | 'ERROR';
@@ -45,6 +47,7 @@ export interface ForexCandleView {
   candles: ForexCandle[];
   source?: string;
   reason?: string;
+  providerNote?: string;
   error?: ForexError;
 }
 
@@ -256,6 +259,8 @@ export function interpretForexCandleResult(args: {
     supportedTimeframes: supported,
     candles: validated.candles,
     source: data.source,
+    reason: data.reason,
+    providerNote: typeof data.providerNote === 'string' ? data.providerNote : undefined,
   };
 }
 

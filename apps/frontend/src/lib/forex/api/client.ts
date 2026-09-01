@@ -10,6 +10,7 @@ import type {
   ForexError,
   ForexFillRow,
   ForexInstrument,
+  ForexLedgerReconciliation,
   ForexLedgerRow,
   ForexMarginSnapshot,
   ForexPlaceOrderBody,
@@ -108,7 +109,10 @@ export const forexApi = {
       history: unknown[];
       transactions: ForexLedgerRow[];
     }>('/swaps'),
-  ledger: () => fxGet<{ source: string; count: number; transactions: ForexLedgerRow[] }>('/ledger'),
+  ledger: () =>
+    fxGet<{ source: string; count: number; transactions: ForexLedgerRow[]; reconciliation?: ForexLedgerReconciliation }>(
+      '/ledger'
+    ),
   funding: () => fxGet<{ source: string; count: number; transactions: ForexLedgerRow[] }>('/funding'),
   liquidation: () => fxGet<Record<string, unknown>>('/liquidation'),
   news: () => fxGet<{ source: string; provider: string; availability: string; reason?: string; count: number; items: unknown[] }>('/news', true),

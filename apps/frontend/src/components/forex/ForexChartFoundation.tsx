@@ -32,7 +32,14 @@ export function ForexChartFoundation() {
   const socketState = useForexStore((s) => s.socketState);
   const quotes = useForexStore((s) => s.quotes);
   const providers = useForexStore((s) => s.providerHealth);
-  const connection = deriveDisplayConnection({ socketState, quotes, selectedSymbol: selected, providers });
+  const hydratePhase = useForexStore((s) => s.hydratePhase);
+  const connection = deriveDisplayConnection({
+    socketState,
+    quotes,
+    selectedSymbol: selected,
+    providers,
+    hydratePhase,
+  });
   const dark = useHtmlDark();
   const [expanded, setExpanded] = useState(false);
 
@@ -74,8 +81,27 @@ export function ForexChartFoundation() {
   }
   if (quoteFreshness === 'STALE') {
     banners.push({ tone: 'warn', text: 'Market data is stale.' });
+  } else if (connection === 'CONNECTING' || connection === 'RECONNECTING') {
+    banners.push({ tone: 'neutral', text: 'Connecting to market…' });
   } else if (quoteFreshness === 'DISCONNECTED') {
     banners.push({ tone: 'warn', text: 'Market data disconnected.' });
+  }
+  if (candleView.providerNote) {
+    banners.push({
+      tone: 'neutral',
+      text:
+        candleView.reason === 'EXTERNAL_YAHOO_AGGREGATED_4H'
+          ? `Market data source: ${candleView.providerNote}`
+          : `Market data source: ${candleView.providerNote}`,
+    });
+  } else if (candleView.status === 'READY' && (selected === 'XAUUSD' || selected === 'XAGUSD')) {
+    banners.push({
+      tone: 'neutral',
+      text:
+        selected === 'XAUUSD'
+          ? 'Market data source: COMEX gold futures proxy (GC=F). Not exact spot XAUUSD.'
+          : 'Market data source: COMEX silver futures proxy (SI=F). Not exact spot XAGUSD.',
+    });
   }
 
   return (

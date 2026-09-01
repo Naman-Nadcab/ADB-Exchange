@@ -86,6 +86,12 @@ export function positionUnrealizedPnl(
   return { available: true, value: row.accountPnl, currency: row.currency ?? pnl.currency };
 }
 
+export function protectionVolumeMismatch(positionVolume: string, protectionVolume: string | undefined): boolean {
+  if (protectionVolume == null || protectionVolume === '') return false;
+  const cmp = compareVolume(protectionVolume, positionVolume);
+  return cmp != null && cmp !== 0;
+}
+
 export function activeProtectionsFor(
   protections: Record<string, ForexPublicProtection>,
   positionId: string

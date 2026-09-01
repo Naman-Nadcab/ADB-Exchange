@@ -56,6 +56,45 @@ export function isYahooTimeframe(value: string): value is YahooForexTimeframe {
   return (YAHOO_SUPPORTED_TIMEFRAMES as readonly string[]).includes(value);
 }
 
+const FOUR_H_MS = 4 * 60 * 60 * 1000;
+
+/** Roll valid 1h bars into UTC 4h buckets. Open first, high max, low min, close last. Never synthesizes missing hours. */
+export function aggregateHourlyTo4h(bars: ExternalOhlcBar[]): ExternalOhlcBar[] {
+  const buckets = new Map<number, ExternalOhlcBar[]>();
+  for (const bar of bars) {
+    const ms = Date.parse(bar.timestamp);
+    if (!Number.isFinite(ms)) continue;
+    const bucket = Math.floor(ms / FOUR_H_MS) * FOUR_H_MS;
+    const list = buckets.get(bucket) ?? [];
+    list.push(bar);
+    buckets.set(bucket, list);
+  }
+  const out: ExternalOhlcBar[] = [];
+  for (const [bucket, list] of [...buckets.entries()].sort((a, b) => a[0] - b[0])) {
+    list.sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+    const first = list[0];
+    const last = list[list.length - 1];
+    if (!first || !last) continue;
+    let high = Number(first.high);
+    let low = Number(first.low);
+    for (const x of list) {
+      const h = Number(x.high);
+      const l = Number(x.low);
+      if (Number.isFinite(h) && h > high) high = h;
+      if (Number.isFinite(l) && l < low) low = l;
+    }
+    const bar: ExternalOhlcBar = {
+      timestamp: new Date(bucket).toISOString(),
+      open: first.open,
+      high: String(high),
+      low: String(low),
+      close: last.close,
+    };
+    if (isValidOhlcRelation(bar)) out.push(bar);
+  }
+  return out;
+}
+
 function dec(n: unknown): string | null {
   if (typeof n !== 'number' || !Number.isFinite(n)) return null;
   return String(n);

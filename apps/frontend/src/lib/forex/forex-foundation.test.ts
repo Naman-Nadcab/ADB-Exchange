@@ -92,6 +92,26 @@ function testConnection(): void {
     }) === 'CONNECTED',
     'healthy connected'
   );
+  assert(
+    deriveDisplayConnection({
+      socketState: 'DISCONNECTED',
+      quotes: {},
+      selectedSymbol: 'EURUSD',
+      providers: [],
+      hydratePhase: 'idle',
+    }) === 'CONNECTING',
+    'ssr idle is connecting not disconnected'
+  );
+  assert(
+    deriveDisplayConnection({
+      socketState: 'DISCONNECTED',
+      quotes: {},
+      selectedSymbol: 'EURUSD',
+      providers: [],
+      hydratePhase: 'ready',
+    }) === 'DISCONNECTED',
+    'ready + disconnected stays disconnected'
+  );
 }
 
 testQuoteSequence();

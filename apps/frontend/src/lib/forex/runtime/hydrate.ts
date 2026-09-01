@@ -141,6 +141,7 @@ export async function hydrateForexPrivate(): Promise<boolean> {
         }
       : undefined,
     ledger: led.ok ? led.data.transactions : undefined,
+    ledgerReconciliation: led.ok ? led.data.reconciliation ?? null : undefined,
     funding: fund.ok ? fund.data.transactions : undefined,
     liquidation: liq.ok ? liq.data : undefined,
   });

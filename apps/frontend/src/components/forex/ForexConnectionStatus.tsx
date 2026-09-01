@@ -6,8 +6,8 @@ import { deriveDisplayConnection } from '@/lib/forex/selectors/connection';
 import { cn } from '@/lib/utils';
 
 const LABEL: Record<string, string> = {
-  CONNECTED: 'Connected',
-  CONNECTING: 'Connecting',
+  CONNECTED: 'Live',
+  CONNECTING: 'Connecting to market…',
   RECONNECTING: 'Reconnecting',
   DEGRADED: 'Degraded',
   STALE: 'Stale quotes',
@@ -18,8 +18,9 @@ export function ForexConnectionStatus() {
   const socketState = useForexStore((s) => s.socketState);
   const quotes = useForexStore((s) => s.quotes);
   const providers = useForexStore((s) => s.providerHealth);
+  const hydratePhase = useForexStore((s) => s.hydratePhase);
   const selectedSymbol = useForexWorkspaceStore((s) => s.selectedSymbol);
-  const state = deriveDisplayConnection({ socketState, quotes, selectedSymbol, providers });
+  const state = deriveDisplayConnection({ socketState, quotes, selectedSymbol, providers, hydratePhase });
 
   return (
     <span

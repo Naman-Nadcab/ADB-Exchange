@@ -68,10 +68,15 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
-    const txs = accounting().listLedger(accountId).map(publicLedgerRow);
+    const view = accounting().publicLedgerView(accountId);
     return reply.send({
       success: true,
-      data: { source: 'SIMULATED', count: txs.length, transactions: txs },
+      data: {
+        source: 'SIMULATED',
+        count: view.transactions.length,
+        transactions: view.transactions,
+        reconciliation: view.reconciliation,
+      },
     });
   });
 

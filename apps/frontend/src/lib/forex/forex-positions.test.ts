@@ -15,6 +15,7 @@ import {
   positionUiStatus,
   positionUnrealizedPnl,
   protectionInputOk,
+  protectionVolumeMismatch,
   shouldIgnoreStaleGeneration,
 } from './models/position';
 import type { ForexPublicPosition, ForexPublicProtection, ForexPnlView } from './models/types';
@@ -176,8 +177,15 @@ function testWsProtectionMerge(): void {
   assert(useForexStore.getState().protections.pr1.status === 'TRIGGERED', 'triggered merged');
 }
 
+function testProtectionVolumeDisclosure(): void {
+  assert(!protectionVolumeMismatch('0.50', '0.50'), 'same volume');
+  assert(protectionVolumeMismatch('0.25', '0.50'), 'original protection after partial close');
+  assert(!protectionVolumeMismatch('0.50', undefined), 'missing volume not treated as mismatch');
+}
+
 testNormalizeAndSides();
 testCloseVolume();
+testProtectionVolumeDisclosure();
 testPnlAuthority();
 testCloseErrorMapping();
 testStates();

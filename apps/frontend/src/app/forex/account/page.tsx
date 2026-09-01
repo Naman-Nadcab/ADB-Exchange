@@ -20,6 +20,7 @@ export default function ForexAccountPage() {
   const swaps = useForexStore((s) => s.swaps);
   const funding = useForexStore((s) => s.funding);
   const risk = useForexStore((s) => s.riskStatus);
+  const lastHydratedAt = useForexStore((s) => s.lastHydratedAt);
   const currency = account?.currency ?? balance?.currency ?? 'USD';
 
   return (
@@ -97,6 +98,7 @@ export default function ForexAccountPage() {
             </Link>
             {' · '}
             Balance {fxMoney(account?.ledgerBalance ?? balance?.ledgerBalance, currency)}
+            {lastHydratedAt ? ` · Last updated ${new Date(lastHydratedAt).toLocaleString()}` : ''}
           </p>
         </>
       )}

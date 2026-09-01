@@ -354,11 +354,30 @@ export interface ForexLedgerRow {
   type: string;
   debit: string;
   credit: string;
+  cashDebit?: string;
+  cashCredit?: string;
+  net?: string;
   currency: string;
   reference?: unknown;
   timestamp: string;
   status: string;
   source: string;
+  balanceBefore?: string;
+  balanceAfter?: string;
+}
+
+export interface ForexLedgerReconciliation {
+  currency: string;
+  openingBalance: string;
+  deposits: string;
+  withdrawals: string;
+  realizedPnl: string;
+  fees: string;
+  swaps: string;
+  adjustments: string;
+  ledgerFromComponents: string;
+  ledgerBalance: string;
+  status: 'MATCH' | 'MISMATCH';
 }
 
 export interface ForexError {

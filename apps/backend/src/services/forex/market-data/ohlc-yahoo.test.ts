@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { parseYahooChart, yahooSymbolFor } from './ohlc-yahoo.js';
+import { aggregateHourlyTo4h, parseYahooChart, yahooSymbolFor } from './ohlc-yahoo.js';
 
 function testParse(): void {
   const bars = parseYahooChart({
@@ -46,7 +46,24 @@ function testMap(): void {
   assert.equal(yahooSymbolFor('UNKNOWN'), null);
 }
 
+function testAggregate4h(): void {
+  const bars = aggregateHourlyTo4h([
+    { timestamp: '2026-01-01T00:00:00.000Z', open: '1.10', high: '1.12', low: '1.09', close: '1.11' },
+    { timestamp: '2026-01-01T01:00:00.000Z', open: '1.11', high: '1.15', low: '1.10', close: '1.14' },
+    { timestamp: '2026-01-01T04:00:00.000Z', open: '1.14', high: '1.16', low: '1.13', close: '1.15' },
+  ]);
+  assert.equal(bars.length, 2);
+  assert.equal(bars[0]?.timestamp, '2026-01-01T00:00:00.000Z');
+  assert.equal(bars[0]?.open, '1.10');
+  assert.equal(bars[0]?.high, '1.15');
+  assert.equal(bars[0]?.low, '1.09');
+  assert.equal(bars[0]?.close, '1.14');
+  assert.equal(bars[1]?.open, '1.14');
+  assert.equal(bars[1]?.close, '1.15');
+}
+
 testParse();
 testSkipInvalid();
 testMap();
+testAggregate4h();
 console.log('ohlc-yahoo.test.ts ok');

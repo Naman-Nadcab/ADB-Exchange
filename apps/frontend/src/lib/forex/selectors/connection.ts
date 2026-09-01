@@ -10,8 +10,13 @@ export function deriveDisplayConnection(args: {
   quotes: Record<string, ForexQuoteDto>;
   selectedSymbol: string;
   providers: Array<{ status?: string }>;
+  hydratePhase?: 'idle' | 'hydrating' | 'ready' | 'error';
 }): ForexConnectionState {
   const { socketState, quotes, selectedSymbol, providers } = args;
+  const phase = args.hydratePhase ?? 'ready';
+  if ((phase === 'idle' || phase === 'hydrating') && (socketState === 'DISCONNECTED' || socketState === 'CONNECTING')) {
+    return 'CONNECTING';
+  }
   if (socketState === 'CONNECTING' || socketState === 'RECONNECTING' || socketState === 'DISCONNECTED') {
     return socketState;
   }

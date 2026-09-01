@@ -10,6 +10,7 @@ import {
   forexUnrealizedPnl,
 } from '../../../lib/forex-prometheus-metrics.js';
 import { forexAccountingComponents } from './components.js';
+import { publicLedgerReconciliation, publicLedgerRow as toPublicLedgerRow, publicLedgerTrail } from './ledger-public.js';
 import { calculateForexCommission } from '../fees/engine.js';
 import { fxDecimal } from '../decimal-fx.js';
 import { ForexLedgerError } from '../ledger/models.js';
@@ -461,6 +462,13 @@ export class ForexAccountingService {
       fees: components.fees,
       swaps: components.swaps,
       deposits: components.deposits,
+      withdrawals: components.withdrawals,
+      adjustments: components.adjustments,
+      ledgerFromComponents: components.ledgerFromComponents,
+      ledgerBalance: view.ledgerBalance,
+      reconciliationStatus: fxDecimal(components.ledgerFromComponents).eq(fxDecimal(view.ledgerBalance))
+        ? ('MATCH' as const)
+        : ('MISMATCH' as const),
       realizedPnl: components.realizedPnl,
       unrealizedPnl: view.unrealizedPnl,
       equity: view.equity,
@@ -469,6 +477,14 @@ export class ForexAccountingService {
         freeMargin: view.freeMargin,
         marginLevel: view.marginLevel,
       },
+    };
+  }
+
+  publicLedgerView(accountId: string) {
+    const txs = this.ledger.list(accountId);
+    return {
+      transactions: publicLedgerTrail(txs),
+      reconciliation: publicLedgerReconciliation(txs, this.ledger.customerCashBalance(accountId), ACCOUNTING_CURRENCY),
     };
   }
 
@@ -734,24 +750,8 @@ function requirePositive(amount: string): string {
   return d.toFixed();
 }
 
-function publicTx(tx: ForexLedgerTransaction) {
-  const debit = tx.entries.reduce((a, e) => a.plus(e.debit), fxDecimal(0)).toFixed();
-  const credit = tx.entries.reduce((a, e) => a.plus(e.credit), fxDecimal(0)).toFixed();
-  return {
-    transactionId: tx.transactionId,
-    type: tx.type,
-    debit,
-    credit,
-    currency: tx.currency,
-    reference: tx.metadata ?? {},
-    timestamp: tx.createdAt,
-    status: tx.status,
-    source: tx.source,
-  };
-}
-
 export function publicLedgerRow(tx: ForexLedgerTransaction) {
-  return publicTx(tx);
+  return toPublicLedgerRow(tx);
 }
 
 function collectClosedFills(positions: ForexPositionRecord[]): Array<{ fillId: string }> {

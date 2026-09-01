@@ -22,7 +22,7 @@ export default function ForexMarketsPage() {
         Instruments from GET /instruments. Bid/ask from GET /quotes. Change % is not provided by the quote API.
       </p>
       {rows.length === 0 ? (
-        <p className="text-[13px] text-stone-500">Waiting for Forex instruments…</p>
+        <p className="text-[13px] text-stone-500">Connecting to market…</p>
       ) : (
         <div className="overflow-x-auto rounded border border-stone-200 bg-white dark:border-stone-800 dark:bg-[#101214]">
           <table className="min-w-[760px] w-full text-left font-mono text-[12px]">
@@ -34,6 +34,7 @@ export default function ForexMarketsPage() {
                 <th className="px-3 py-2 font-medium">Spread</th>
                 <th className="px-3 py-2 font-medium">Freshness</th>
                 <th className="px-3 py-2 font-medium">Session</th>
+                <th className="px-3 py-2 font-medium">Source</th>
               </tr>
             </thead>
             <tbody>
@@ -58,6 +59,13 @@ export default function ForexMarketsPage() {
                     <td className="px-3 py-2">{q ? fxPlain(q.spreadPips) : 'Unavailable'}</td>
                     <td className="px-3 py-2">{q ? (isQuoteStale(q) ? 'STALE' : q.freshness) : 'Unavailable'}</td>
                     <td className="px-3 py-2">{sessions?.eligibility.open ? 'OPEN' : sessions?.eligibility.reason ?? 'Unavailable'}</td>
+                    <td className="px-3 py-2 text-stone-500">
+                      {inst.symbol === 'XAUUSD'
+                        ? 'COMEX gold futures proxy'
+                        : inst.symbol === 'XAGUSD'
+                          ? 'COMEX silver futures proxy'
+                          : 'Yahoo FX'}
+                    </td>
                   </tr>
                 );
               })}

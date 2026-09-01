@@ -6,10 +6,12 @@ import { cn } from '@/lib/utils';
 
 export function ForexSessionBar() {
   const sessions = useForexStore((s) => s.sessions);
+  const hydratePhase = useForexStore((s) => s.hydratePhase);
   const eligibility = sessions?.eligibility;
   const active = new Set(eligibility?.sessions ?? []);
   const coverage = sessions?.holidayCoverage ?? eligibility?.holidayCoverage;
   const reason = eligibility?.reason;
+  const connecting = !sessions && (hydratePhase === 'idle' || hydratePhase === 'hydrating');
 
   return (
     <div
@@ -17,7 +19,12 @@ export function ForexSessionBar() {
       aria-label="Forex sessions"
     >
       <span className="font-medium text-stone-500 dark:text-stone-400">Sessions</span>
-      {FOREX_SESSION_NAMES.map((name) => {
+      {connecting ? (
+        <span className="font-mono text-stone-500" role="status">
+          Connecting to market…
+        </span>
+      ) : null}
+      {!connecting && FOREX_SESSION_NAMES.map((name) => {
         const isOpen = active.has(name);
         return (
           <span key={name} className="inline-flex items-center gap-1.5 font-mono">

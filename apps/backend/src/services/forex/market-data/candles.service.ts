@@ -204,10 +204,11 @@ export async function forexCandlesResolve(query: ForexCandleQuery): Promise<{
   if (!base.body.success) return base;
   if (forexOhlcProviderName() !== 'yahoo') return base;
 
-  const { isYahooTimeframe, fetchYahooOhlc } = await import('./ohlc-yahoo.js');
-  const supported = (await import('./ohlc-yahoo.js')).YAHOO_SUPPORTED_TIMEFRAMES;
+  const yahoo = await import('./ohlc-yahoo.js');
+  const supported = [...yahoo.YAHOO_SUPPORTED_TIMEFRAMES, '4h'] as const;
   const rawTf = query.timeframe?.trim() || '1D';
-  if (!isYahooTimeframe(rawTf)) {
+  const isAggregated4h = rawTf === '4h';
+  if (!yahoo.isYahooTimeframe(rawTf) && !isAggregated4h) {
     return {
       status: 400,
       body: {
@@ -222,14 +223,25 @@ export async function forexCandlesResolve(query: ForexCandleQuery): Promise<{
   }
 
   try {
-    const fetched = await fetchYahooOhlc({
+    const fetched = await yahoo.fetchYahooOhlc({
       symbol: base.body.data.symbol,
-      timeframe: rawTf,
-      limit: base.body.data.limit,
+      timeframe: isAggregated4h ? '1h' : rawTf,
+      limit: isAggregated4h ? FOREX_CANDLE_MAX_LIMIT : base.body.data.limit,
       from: base.body.data.from ?? undefined,
       to: base.body.data.to ?? undefined,
     });
-    if (fetched.bars.length === 0) {
+    let bars = fetched.bars;
+    let reason = 'EXTERNAL_YAHOO';
+    let providerNote = fetched.note;
+    if (isAggregated4h) {
+      bars = yahoo.aggregateHourlyTo4h(bars);
+      if (bars.length > base.body.data.limit) {
+        bars = bars.slice(bars.length - base.body.data.limit);
+      }
+      reason = 'EXTERNAL_YAHOO_AGGREGATED_4H';
+      providerNote = [fetched.note, '4h aggregated from valid 1h Yahoo OHLC'].filter(Boolean).join(' · ');
+    }
+    if (bars.length === 0) {
       return {
         status: 200,
         body: {
@@ -244,7 +256,7 @@ export async function forexCandlesResolve(query: ForexCandleQuery): Promise<{
             supportedTimeframes: supported,
             candles: [],
             count: 0,
-            providerNote: fetched.note,
+            providerNote,
           },
         },
       };
@@ -259,11 +271,11 @@ export async function forexCandlesResolve(query: ForexCandleQuery): Promise<{
           source: 'EXTERNAL',
           provider: 'yahoo',
           availability: 'AVAILABLE',
-          reason: 'EXTERNAL_YAHOO',
+          reason,
           supportedTimeframes: supported,
-          candles: fetched.bars,
-          count: fetched.bars.length,
-          providerNote: fetched.note,
+          candles: bars,
+          count: bars.length,
+          providerNote,
         },
       },
     };

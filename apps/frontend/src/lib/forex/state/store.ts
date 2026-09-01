@@ -7,6 +7,7 @@ import type {
   ForexConnectionState,
   ForexFillRow,
   ForexInstrument,
+  ForexLedgerReconciliation,
   ForexLedgerRow,
   ForexMarginSnapshot,
   ForexPnlView,
@@ -53,6 +54,7 @@ export interface ForexDomainState {
   fees: { currency?: string; total?: string; transactions: ForexLedgerRow[] } | null;
   swaps: { currency?: string; total?: string; transactions: ForexLedgerRow[]; history: unknown[] } | null;
   ledger: ForexLedgerRow[];
+  ledgerReconciliation: ForexLedgerReconciliation | null;
   funding: ForexLedgerRow[];
   liquidation: Record<string, unknown> | null;
 
@@ -81,6 +83,7 @@ export interface ForexDomainState {
     fees?: ForexDomainState['fees'];
     swaps?: ForexDomainState['swaps'];
     ledger?: ForexLedgerRow[];
+    ledgerReconciliation?: ForexLedgerReconciliation | null;
     funding?: ForexLedgerRow[];
     liquidation?: Record<string, unknown> | null;
   }) => void;
@@ -137,6 +140,7 @@ export const useForexStore = create<ForexDomainState>((set, get) => ({
   fees: null,
   swaps: null,
   ledger: [],
+  ledgerReconciliation: null,
   funding: [],
   liquidation: null,
   ticketBusy: false,
@@ -175,6 +179,7 @@ export const useForexStore = create<ForexDomainState>((set, get) => ({
       fees: p.fees ?? s.fees,
       swaps: p.swaps ?? s.swaps,
       ledger: p.ledger ?? s.ledger,
+      ledgerReconciliation: p.ledgerReconciliation !== undefined ? p.ledgerReconciliation : s.ledgerReconciliation,
       funding: p.funding ?? s.funding,
       liquidation: p.liquidation !== undefined ? p.liquidation : s.liquidation,
       lastHydratedAt: Date.now(),
