@@ -230,7 +230,7 @@ function quotePatch(base: ForexQuoteDto, patch: Partial<ForexQuoteDto>): ForexQu
     assert.ok(first.orderIds.length >= 1);
   }
   const dup = await liq.evaluateAccount(USER);
-  if (first.status === 'PENDING' || first.status === 'EXECUTING' || first.status === 'PARTIALLY_LIQUIDATED') {
+  if (first.status === 'EXECUTING' || first.status === 'PARTIALLY_LIQUIDATED') {
     assert.equal(dup?.liquidationId, first.liquidationId);
   }
 

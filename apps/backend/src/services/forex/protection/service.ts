@@ -71,7 +71,7 @@ export class ForexProtectionService {
 
   async evaluateQuote(quote: ForexQuoteDto): Promise<void> {
     if (!quoteUsableForTrigger(quote)) {
-      forexTriggerRejectTotal.inc({ reason: quote ? (quote.freshness === 'STALE' ? 'STALE' : 'INVALID') : 'UNAVAILABLE' });
+      forexTriggerRejectTotal.inc({ reason: quote.freshness === 'STALE' || quote.quality === 'STALE' ? 'STALE' : 'INVALID' });
       return;
     }
     const active = this.store.listActiveBySymbol(quote.symbol);

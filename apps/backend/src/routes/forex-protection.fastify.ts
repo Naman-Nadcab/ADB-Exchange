@@ -27,10 +27,16 @@ export async function registerForexProtectionRoutes(app: FastifyInstance): Promi
     }
     const body = (request.body ?? {}) as Record<string, unknown>;
     try {
+      if (body.type !== 'STOP_LOSS' && body.type !== 'TAKE_PROFIT') {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'INVALID_PROTECTION_TYPE', message: 'type must be STOP_LOSS or TAKE_PROFIT', source: 'SIMULATED' },
+        });
+      }
       const protection = await protections().create(accountId, {
         clientProtectionId: String(body.clientProtectionId ?? ''),
         positionId: String(body.positionId ?? ''),
-        type: body.type === 'TAKE_PROFIT' ? 'TAKE_PROFIT' : body.type === 'STOP_LOSS' ? 'STOP_LOSS' : String(body.type ?? ''),
+        type: body.type,
         triggerPrice: String(body.triggerPrice ?? ''),
         volume: body.volume != null ? String(body.volume) : undefined,
       });
