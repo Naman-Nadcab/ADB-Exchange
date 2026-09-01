@@ -28,7 +28,8 @@ export function validateProtectionCreate(args: {
   if (!instrument || instrument.tradingStatus !== 'active') {
     throw new ForexProtectionError('UNKNOWN_INSTRUMENT', args.position.symbol);
   }
-  if (!quoteUsableForTrigger(args.quote)) {
+  const quote = args.quote;
+  if (!quote || !quoteUsableForTrigger(quote)) {
     throw new ForexProtectionError('PRICE_UNAVAILABLE', 'authoritative quote is unavailable or stale', 409);
   }
   let trigger;
@@ -63,7 +64,7 @@ export function validateProtectionCreate(args: {
   if (volume.lt(instrument.minVolume) || volume.gt(instrument.maxVolume) || !volume.div(step).isInteger()) {
     throw new ForexProtectionError('INVALID_VOLUME_STEP', `volume must be a ${instrument.volumeStep} step within instrument limits`);
   }
-  const market = executableTriggerPrice(args.position.side, args.quote);
+  const market = executableTriggerPrice(args.position.side, quote);
   const dir = triggerDirectionValid({
     type: args.type,
     positionSide: args.position.side,

@@ -28,7 +28,7 @@ export function executableTriggerPrice(positionSide: 'long' | 'short', quote: Fo
   return positionSide === 'long' ? quote.bid : quote.ask;
 }
 
-export function quoteUsableForTrigger(quote: ForexQuoteDto | undefined): quote is ForexQuoteDto {
+export function quoteUsableForTrigger(quote: ForexQuoteDto | undefined): boolean {
   if (!quote) return false;
   if (quote.freshness === 'STALE' || quote.quality === 'STALE') return false;
   if (quote.status !== 'TRADEABLE') return false;
