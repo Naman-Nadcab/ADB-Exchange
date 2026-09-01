@@ -1,6 +1,7 @@
 import { api } from '@/lib/api';
 import { describeForexError, normalizeForexError } from '../models/errors';
 import type { ForexCandleQuery, ForexCandleResponse } from '../models/candles';
+import type { ForexPreviewRequest, ForexPreviewResponse } from '../models/preview';
 import type {
   ForexAccountView,
   ForexError,
@@ -108,6 +109,11 @@ export const forexApi = {
   funding: () => fxGet<{ source: string; count: number; transactions: ForexLedgerRow[] }>('/funding'),
   liquidation: () => fxGet<Record<string, unknown>>('/liquidation'),
 
+  previewOrder: (body: ForexPreviewRequest, signal?: AbortSignal) =>
+    api.post<ForexPreviewResponse>(`${FOREX_PREFIX}/orders/preview`, body, {
+      notifyOnError: false,
+      signal,
+    }),
   placeOrder: (body: ForexPlaceOrderBody) =>
     api.post<{ source: string; executionMode: string; order: ForexPublicOrder }>(`${FOREX_PREFIX}/orders`, body, {
       notifyOnError: false,

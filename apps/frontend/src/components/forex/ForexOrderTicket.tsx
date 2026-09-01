@@ -4,8 +4,10 @@ import { useMemo, useState } from 'react';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
 import { hasForexBearer } from '@/lib/forex/api/auth-token';
 import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
+import { isPreviewParamComplete } from '@/lib/forex/models/preview';
 import { executablePrice, isQuoteStale } from '@/lib/forex/models/quotes';
 import type { ForexOrderType, ForexSide } from '@/lib/forex/models/types';
+import { useForexPreview } from '@/lib/forex/runtime/useForexPreview';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { cn } from '@/lib/utils';
@@ -28,6 +30,7 @@ export function ForexOrderTicket() {
   const [price, setPrice] = useState('');
   const [sl, setSl] = useState('');
   const [tp, setTp] = useState('');
+  const [refreshNonce, setRefreshNonce] = useState(0);
 
   const allowedTypes = config?.orderTypes ?? ['market', 'limit', 'stop'];
   const stale = !quote || isQuoteStale(quote);
@@ -41,6 +44,15 @@ export function ForexOrderTicket() {
     dealing?.symbol.enabled !== false;
   const sideEnabled = side === 'buy' ? dealing?.symbol.buyEnabled !== false : dealing?.symbol.sellEnabled !== false;
   const authed = hasForexBearer();
+  const previewReq = {
+    symbol: selected,
+    side,
+    orderType: type,
+    volume,
+    ...(type !== 'market' && price.trim() ? { requestedPrice: price.trim() } : {}),
+  };
+  const preview = useForexPreview(authed && isPreviewParamComplete(previewReq) ? previewReq : null, refreshNonce);
+  const previewData = preview.data;
 
   const blockReason = useMemo(() => {
     if (!authed) return 'Sign in with a user JWT to place Forex orders.';
@@ -135,10 +147,88 @@ export function ForexOrderTicket() {
           <dt>Quote</dt><dd className="text-right">{quote ? `${quote.freshness}/${quote.status}` : '—'}</dd>
           <dt>Risk</dt><dd className="text-right">{risk?.state ?? '—'}</dd>
         </dl>
-        <p className="text-[10px] leading-relaxed text-stone-400">
-          Required margin, projected free margin, and dollar risk are not shown — no trade-preview endpoint exists.
-          Buy uses ASK, sell uses BID from the backend quote. Mid is not used for execution.
-        </p>
+        <div className="rounded border border-stone-200 p-2 dark:border-stone-800" aria-live="polite">
+          <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wide text-stone-500">
+            <span>Backend preview · {preview.status}</span>
+            <button
+              type="button"
+              onClick={() => setRefreshNonce((n) => n + 1)}
+              className="rounded px-1.5 py-0.5 text-[10px] text-stone-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 dark:text-stone-300"
+            >
+              Refresh
+            </button>
+          </div>
+          {preview.status === 'LOADING' ? <p className="text-[11px] text-stone-500">Loading preview…</p> : null}
+          {preview.status === 'IDLE' ? (
+            <p className="text-[11px] text-stone-500">
+              {authed ? 'Enter a valid size to request an authoritative preview.' : 'Sign in to request a backend trade preview.'}
+            </p>
+          ) : null}
+          {preview.status === 'ERROR' && preview.error ? (
+            <p className="text-[11px] text-rose-800 dark:text-rose-200" role="alert">
+              {preview.error.code}: {preview.error.message}
+            </p>
+          ) : null}
+          {preview.status === 'STALE' ? (
+            <p className="text-[11px] text-amber-800 dark:text-amber-200">Preview is stale. Refresh before submitting.</p>
+          ) : null}
+          {previewData && (preview.status === 'READY' || preview.status === 'BLOCKED' || preview.status === 'STALE') ? (
+            <dl className="mt-1 grid grid-cols-2 gap-x-2 gap-y-1 font-mono text-[11px] text-stone-600 dark:text-stone-400">
+              {previewData.referencePrice ? (
+                <>
+                  <dt>Reference {previewData.referenceSide}</dt>
+                  <dd className="text-right">{fxNum(previewData.referencePrice, digits)}</dd>
+                </>
+              ) : null}
+              {previewData.estimatedFee != null ? (
+                <>
+                  <dt>Estimated fee</dt>
+                  <dd className="text-right">{previewData.estimatedFee}{previewData.feeCurrency ? ` ${previewData.feeCurrency}` : ''}</dd>
+                </>
+              ) : null}
+              {previewData.requiredMargin != null ? (
+                <>
+                  <dt>Required margin</dt>
+                  <dd className="text-right">{previewData.requiredMargin}</dd>
+                </>
+              ) : null}
+              {previewData.freeMargin != null ? (
+                <>
+                  <dt>Free margin</dt>
+                  <dd className="text-right">{previewData.freeMargin}</dd>
+                </>
+              ) : null}
+              {previewData.projectedFreeMargin != null ? (
+                <>
+                  <dt>Free margin after</dt>
+                  <dd className="text-right">{previewData.projectedFreeMargin}</dd>
+                </>
+              ) : null}
+              {previewData.projectedMarginLevel != null ? (
+                <>
+                  <dt>Margin level</dt>
+                  <dd className="text-right">{previewData.projectedMarginLevel}</dd>
+                </>
+              ) : null}
+              {previewData.spreadPips != null ? (
+                <>
+                  <dt>Spread (pips)</dt>
+                  <dd className="text-right">{previewData.spreadPips}</dd>
+                </>
+              ) : null}
+            </dl>
+          ) : null}
+          {preview.status === 'BLOCKED' && previewData?.reason ? (
+            <p className="mt-1 text-[11px] text-amber-900 dark:text-amber-200" role="status">
+              {previewData.reason}: order is not currently allowed. Preview is indicative — submission still revalidates.
+            </p>
+          ) : null}
+          {preview.status === 'READY' ? (
+            <p className="mt-1 text-[10px] leading-relaxed text-stone-400">
+              Indicative only. Quotes, margin, and risk can change before POST /orders. Buy uses ASK, sell uses BID.
+            </p>
+          ) : null}
+        </div>
         {blockReason ? (
           <p className="rounded border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200" role="status">
             {blockReason}
@@ -159,7 +249,7 @@ export function ForexOrderTicket() {
       <div className="border-t border-stone-200 p-2 dark:border-stone-800">
         <button
           type="button"
-          disabled={Boolean(blockReason) || busy}
+          disabled={Boolean(blockReason) || busy || preview.status === 'STALE' || preview.status === 'BLOCKED' || preview.status === 'LOADING'}
           onClick={() => void submit()}
           className={cn(
             'h-9 w-full rounded font-mono text-[12px] font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 disabled:cursor-not-allowed disabled:opacity-50',

@@ -59,6 +59,16 @@ export function describeForexError(err: ForexError): string {
     case 'FOREX_CANDLES_INVALID_TIMESTAMP':
     case 'FOREX_TIMEFRAME_UNSUPPORTED':
     case 'FOREX_SYMBOL_REQUIRED':
+    case 'FOREX_PREVIEW_UNAVAILABLE':
+    case 'FOREX_PREVIEW_INVALID':
+    case 'INSUFFICIENT_MARGIN':
+    case 'INSUFFICIENT_FOREX_BALANCE':
+    case 'INVALID_VOLUME':
+    case 'INVALID_VOLUME_STEP':
+    case 'INVALID_PRICE':
+    case 'STALE_MARKET':
+    case 'RISK_REJECTED':
+    case 'DEALING_RESTRICTED':
       return `${err.code}: ${err.message}`;
     case 'NETWORK_ERROR':
       return `${err.code}: ${err.message}. Connection to the Forex API failed.`;

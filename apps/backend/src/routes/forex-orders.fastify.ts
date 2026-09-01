@@ -6,7 +6,10 @@ import type { FastifyInstance } from 'fastify';
 import { ForexOrderError, publicForexOrder } from '../services/forex/orders/models.js';
 import type { ForexOrderModifyRequest } from '../services/forex/orders/models.js';
 import type { ForexOrderRequest } from '../services/forex/orders/request.js';
+import { previewForexOrder } from '../services/forex/orders/preview.js';
 import { getForexOrderService } from '../services/forex/orders/service.js';
+import { getForexPositionService } from '../services/forex/positions/service.js';
+import { getForexPricingService } from '../services/forex/quotes.service.js';
 
 function accountIdFromRequest(request: { user?: { id?: string; userId?: string } }): string | null {
   const id = request.user?.id ?? request.user?.userId;
@@ -51,6 +54,36 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
         error: { code: 'FOREX_ORDER_FAILED', message: 'Order failed', source: 'SIMULATED' },
       });
     }
+  });
+
+  app.post('/orders/preview', { preHandler: [app.authenticate] }, async (request, reply) => {
+    const accountId = accountIdFromRequest(request);
+    if (!accountId) {
+      return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+    }
+    const body = (request.body ?? {}) as Record<string, unknown>;
+    const preview = previewForexOrder(
+      accountId,
+      {
+        symbol: String(body.symbol ?? ''),
+        side: body.side === 'sell' ? 'sell' : 'buy',
+        orderType:
+          body.orderType === 'limit' ? 'limit' : body.orderType === 'stop' ? 'stop' : 'market',
+        volume: String(body.volume ?? ''),
+        requestedPrice: body.requestedPrice != null ? String(body.requestedPrice) : undefined,
+        maxSlippage: body.maxSlippage != null ? String(body.maxSlippage) : undefined,
+        maxDeviation: body.maxDeviation != null ? String(body.maxDeviation) : undefined,
+      },
+      {
+        positions: getForexPositionService(),
+        pricing: getForexPricingService(),
+        orders: getForexOrderService(),
+      }
+    );
+    return reply.send({
+      success: true,
+      data: preview,
+    });
   });
 
   app.get('/orders', { preHandler: [app.authenticate] }, async (request, reply) => {
