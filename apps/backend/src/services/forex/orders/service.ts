@@ -14,7 +14,8 @@ import type { ForexExecutionRecord, ForexFill } from '../execution/models.js';
 import type { ForexExecutionService } from '../execution/service.js';
 import { getForexExecutionService } from '../execution/service.js';
 import { forexRiskRejectionTotal } from '../../../lib/forex-prometheus-metrics.js';
-import { evaluateAccountRisk } from '../risk/engine.js';
+import { isForexAccountLiquidationLocked } from '../liquidation/lock.js';
+import { evaluateAccountRisk, getForexAccountPolicy } from '../risk/engine.js';
 import type { ForexPositionService } from '../positions/service.js';
 import { getForexPositionService } from '../positions/service.js';
 import { getForexPricingService } from '../quotes.service.js';
@@ -156,10 +157,11 @@ export class ForexOrderService {
     order.request.symbol = pre.symbol;
 
     if (this.positions) {
-      const gate = this.riskGate(accountId, pre.symbol, req.side, req.volume);
+      const gate = this.riskGate(accountId, pre.symbol, req.side, req.volume, req.intent ?? 'CUSTOMER');
       if (!gate.ok) {
         forexRiskRejectionTotal.inc({ reason: gate.reason ?? 'RISK_REJECTED' });
-        return this.finish(order, 'REJECTED', 'RISK_REJECTED', started, gate.reason ?? 'risk limit');
+        const reason = gate.reason === 'ACCOUNT_LIQUIDATION_LOCK' ? 'ACCOUNT_LIQUIDATION_LOCK' : 'RISK_REJECTED';
+        return this.finish(order, 'REJECTED', reason, started, gate.reason ?? 'risk limit');
       }
     }
 
@@ -261,8 +263,22 @@ export class ForexOrderService {
     }
   }
 
-  private riskGate(accountId: string, symbol: string, side: 'buy' | 'sell', volume: string) {
+  private riskGate(
+    accountId: string,
+    symbol: string,
+    side: 'buy' | 'sell',
+    volume: string,
+    intent: import('./request.js').ForexOrderIntent = 'CUSTOMER'
+  ) {
     if (!this.positions) return { ok: true, reason: null };
+    if (intent === 'CUSTOMER' && isForexAccountLiquidationLocked(accountId)) {
+      return { ok: false, reason: 'ACCOUNT_LIQUIDATION_LOCK' };
+    }
+    if (intent === 'PROTECTION_CLOSE' || intent === 'LIQUIDATION_CLOSE') {
+      const policy = getForexAccountPolicy(accountId);
+      if (policy.killSwitch) return { ok: false, reason: 'FOREX_KILL_SWITCH' };
+      return { ok: true, reason: null };
+    }
     const quote = getForexPricingService().getQuote(symbol);
     const px = quote ? (side === 'buy' ? quote.ask : quote.bid) : undefined;
     const inputs = this.positions.riskAccountingInputs(accountId);

@@ -17,10 +17,13 @@ import { ForexExecutionError } from '../services/forex/execution/models.js';
 import { getForexExecutionService } from '../services/forex/execution/service.js';
 import type { ForexExecutionRequest } from '../services/forex/execution/request.js';
 import { startForexMarketDataWorker, stopForexMarketDataWorker } from '../services/forex/market-data/worker.js';
+import { startForexProtectionRuntime } from '../services/forex/protection/runtime.js';
 import { forexWsHub } from '../services/forex/ws/hub.js';
 import { registerForexAccountingRoutes } from './forex-accounting.fastify.js';
+import { registerForexLiquidationRoutes } from './forex-liquidation.fastify.js';
 import { registerForexCustomerOrderRoutes } from './forex-orders.fastify.js';
 import { registerForexPositionRoutes } from './forex-positions.fastify.js';
+import { registerForexProtectionRoutes } from './forex-protection.fastify.js';
 import {
   forexWsEnvelope,
   isForexAccountPrivateChannel,
@@ -31,6 +34,7 @@ import {
 export default async function forexRoutes(app: FastifyInstance) {
   app.addHook('onReady', async () => {
     startForexMarketDataWorker();
+    await startForexProtectionRuntime();
   });
   app.addHook('onClose', async () => {
     stopForexMarketDataWorker();
@@ -134,6 +138,8 @@ export default async function forexRoutes(app: FastifyInstance) {
   await registerForexCustomerOrderRoutes(app);
   await registerForexPositionRoutes(app);
   await registerForexAccountingRoutes(app);
+  await registerForexProtectionRoutes(app);
+  await registerForexLiquidationRoutes(app);
 
   app.get('/ws', { websocket: true }, async (socket, req) => {
     const rawUrl = (req as { url?: string }).url || '';
@@ -164,8 +170,8 @@ export default async function forexRoutes(app: FastifyInstance) {
         protocol: 'eda.forex.ws.v1',
         source: 'SIMULATED',
         events: ['fx.quote', 'fx.liquidity', 'fx.execution'],
-        authenticatedEvents: ['fx.order', 'fx.position', 'fx.margin', 'fx.risk', 'fx.account', 'fx.balance', 'fx.pnl', 'fx.equity', 'fx.funding'],
-        reserved: ['fx.liquidation'],
+        authenticatedEvents: ['fx.order', 'fx.position', 'fx.margin', 'fx.risk', 'fx.account', 'fx.balance', 'fx.pnl', 'fx.equity', 'fx.funding', 'fx.protection', 'fx.liquidation'],
+        reserved: ['fx.copy'],
       })
     );
 
@@ -222,7 +228,11 @@ export default async function forexRoutes(app: FastifyInstance) {
                         ? 'fx.equity'
                         : msg.channel.startsWith('fx.funding')
                           ? 'fx.funding'
-                          : 'fx.order';
+                          : msg.channel.startsWith('fx.protection')
+                            ? 'fx.protection'
+                            : msg.channel.startsWith('fx.liquidation')
+                              ? 'fx.liquidation'
+                              : 'fx.order';
           socket.send(forexWsEnvelope(root, msg.channel, { source: 'SIMULATED', status: 'SUBSCRIBED' }));
           return;
         }

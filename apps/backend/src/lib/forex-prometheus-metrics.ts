@@ -375,3 +375,69 @@ export const forexCurrencyConversionErrorTotal = new Counter({
   labelNames: ['reason'],
   registers: [register],
 });
+
+export const forexProtectionCreatedTotal = new Counter({
+  name: 'forex_protection_created_total',
+  help: 'Forex SL/TP protections created',
+  labelNames: ['type'],
+  registers: [register],
+});
+
+export const forexProtectionTriggeredTotal = new Counter({
+  name: 'forex_protection_triggered_total',
+  help: 'Forex SL/TP protections triggered',
+  labelNames: ['type'],
+  registers: [register],
+});
+
+export const forexProtectionCancelledTotal = new Counter({
+  name: 'forex_protection_cancelled_total',
+  help: 'Forex SL/TP protections cancelled',
+  labelNames: ['type'],
+  registers: [register],
+});
+
+export const forexTriggerRejectTotal = new Counter({
+  name: 'forex_trigger_reject_total',
+  help: 'Forex protection trigger evaluations rejected',
+  labelNames: ['reason'],
+  registers: [register],
+});
+
+export const forexLiquidationEligibleTotal = new Counter({
+  name: 'forex_liquidation_eligible_total',
+  help: 'Forex accounts marked liquidation-eligible',
+  registers: [register],
+});
+
+export const forexLiquidationStartedTotal = new Counter({
+  name: 'forex_liquidation_started_total',
+  help: 'Forex liquidation cycles started',
+  registers: [register],
+});
+
+export const forexLiquidationCompletedTotal = new Counter({
+  name: 'forex_liquidation_completed_total',
+  help: 'Forex liquidations completed',
+  registers: [register],
+});
+
+export const forexLiquidationFailedTotal = new Counter({
+  name: 'forex_liquidation_failed_total',
+  help: 'Forex liquidations failed',
+  labelNames: ['reason'],
+  registers: [register],
+});
+
+export const forexLiquidationDuplicateTotal = new Counter({
+  name: 'forex_liquidation_duplicate_total',
+  help: 'Duplicate Forex liquidation attempts prevented',
+  registers: [register],
+});
+
+export const forexLiquidationLatency = new Histogram({
+  name: 'forex_liquidation_latency',
+  help: 'Forex liquidation cycle latency in seconds',
+  buckets: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5],
+  registers: [register],
+});

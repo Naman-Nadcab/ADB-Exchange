@@ -16,6 +16,9 @@ import {
 import { forexConfig } from '../config.js';
 import { fxDecimal } from '../decimal-fx.js';
 import type { ForexAccountingService } from '../accounting/service.js';
+import { isForexAccountLiquidationLocked } from '../liquidation/lock.js';
+import type { ForexLiquidationService } from '../liquidation/service.js';
+import type { ForexProtectionService } from '../protection/service.js';
 import { classifyMarginLevel, marginLevel, positionMarginSnapshot } from '../margin/engine.js';
 import { getForexAccountPolicy, evaluateAccountRisk, type ForexRiskDecision } from '../risk/engine.js';
 import type { ForexPricingService } from '../quotes.service.js';
@@ -34,6 +37,8 @@ import { ForexPositionStore } from './store.js';
 export class ForexPositionService {
   private readonly lastMarginStatus = new Map<string, string>();
   private accounting: ForexAccountingService | null = null;
+  private protection: ForexProtectionService | null = null;
+  private liquidation: ForexLiquidationService | null = null;
 
   constructor(
     readonly store: ForexPositionStore,
@@ -47,6 +52,14 @@ export class ForexPositionService {
 
   attachAccounting(accounting: ForexAccountingService): void {
     this.accounting = accounting;
+  }
+
+  attachProtection(protection: ForexProtectionService): void {
+    this.protection = protection;
+  }
+
+  attachLiquidation(liquidation: ForexLiquidationService): void {
+    this.liquidation = liquidation;
   }
 
   riskAccountingInputs(accountId: string): { equity?: string; accountingAvailable: boolean } | undefined {
@@ -252,6 +265,7 @@ export class ForexPositionService {
       forexPositionReversalTotal.inc({ symbol: input.symbol });
       forexPositionOpenedTotal.inc({ symbol: input.symbol, side: opened.side });
       this.publish(opened, 'fx.position');
+      this.notifyLifecycle(input.accountId, existing.positionId);
       return opened;
     }
 
@@ -266,7 +280,15 @@ export class ForexPositionService {
     this.publish(target, 'fx.position');
     const snap = this.accountSnapshot(input.accountId);
     this.publishAccount(input.accountId, snap);
+    this.notifyLifecycle(input.accountId, result.eventType === 'POSITION_CLOSED' && existing ? existing.positionId : undefined);
     return target;
+  }
+
+  private notifyLifecycle(accountId: string, closedPositionId?: string): void {
+    if (closedPositionId) this.protection?.onPositionClosed(accountId, closedPositionId);
+    if (this.liquidation && !isForexAccountLiquidationLocked(accountId)) {
+      void this.liquidation.evaluateAccount(accountId).catch(() => undefined);
+    }
   }
 
   private materialize(

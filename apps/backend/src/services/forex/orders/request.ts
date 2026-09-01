@@ -1,6 +1,7 @@
 import type { ForexExecSide } from '../execution/venue.js';
 
 export type ForexCustomerOrderType = 'market' | 'limit' | 'stop';
+export type ForexOrderIntent = 'CUSTOMER' | 'PROTECTION_CLOSE' | 'LIQUIDATION_CLOSE';
 
 export interface ForexOrderRequest {
   clientOrderId: string;
@@ -11,6 +12,8 @@ export interface ForexOrderRequest {
   requestedPrice?: string;
   maxSlippage?: string;
   maxDeviation?: string;
+  /** Reducing closes from SL/TP or liquidation skip new-exposure gates. Default CUSTOMER. */
+  intent?: ForexOrderIntent;
 }
 
 export function orderFingerprint(req: ForexOrderRequest): string {

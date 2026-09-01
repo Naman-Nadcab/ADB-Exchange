@@ -84,6 +84,7 @@ export const FOREX_ORDER_REASONS = [
   'OVERFILL',
   'INVALID_STATE_TRANSITION',
   'RISK_REJECTED',
+  'ACCOUNT_LIQUIDATION_LOCK',
 ] as const;
 
 export type ForexOrderReason = (typeof FOREX_ORDER_REASONS)[number];

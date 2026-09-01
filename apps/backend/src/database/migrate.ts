@@ -4547,6 +4547,98 @@ const migrations = [
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
   );`,
   `CREATE INDEX IF NOT EXISTS idx_forex_accounting_outbox_status ON forex_accounting_outbox(status, created_at);`,
+
+  // FOREX PHASE 7 — SL/TP protections + liquidation (append-only, isolated from Crypto)
+  `CREATE TABLE IF NOT EXISTS forex_protections (
+    protection_id UUID PRIMARY KEY,
+    client_protection_id VARCHAR(128) NOT NULL,
+    account_id VARCHAR(64) NOT NULL,
+    position_id UUID NOT NULL,
+    symbol VARCHAR(16) NOT NULL,
+    position_side VARCHAR(8) NOT NULL,
+    type VARCHAR(16) NOT NULL,
+    volume NUMERIC(20,8) NOT NULL,
+    trigger_price NUMERIC(20,8) NOT NULL,
+    status VARCHAR(16) NOT NULL,
+    fingerprint TEXT NOT NULL,
+    last_quote_key TEXT,
+    last_eval_price NUMERIC(20,8),
+    last_eval_source VARCHAR(8),
+    order_id UUID,
+    failure_reason VARCHAR(80),
+    source VARCHAR(16) NOT NULL DEFAULT 'SIMULATED',
+    execution_mode VARCHAR(16) NOT NULL DEFAULT 'MOCK',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT forex_protections_account_client UNIQUE (account_id, client_protection_id),
+    CONSTRAINT forex_protections_volume_pos CHECK (volume > 0)
+  );`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_forex_protections_active_type
+     ON forex_protections(position_id, type) WHERE status = 'ACTIVE';`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_protections_account ON forex_protections(account_id, status, created_at DESC);`,
+  `CREATE TABLE IF NOT EXISTS forex_protection_events (
+    id BIGSERIAL PRIMARY KEY,
+    event_id UUID NOT NULL UNIQUE,
+    protection_id UUID NOT NULL,
+    account_id VARCHAR(64) NOT NULL,
+    event_type VARCHAR(48) NOT NULL,
+    quote_key TEXT,
+    reason VARCHAR(64),
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_protection_events_prot ON forex_protection_events(protection_id, created_at);`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_forex_protection_events_trigger
+     ON forex_protection_events(protection_id, event_type, quote_key) WHERE quote_key IS NOT NULL;`,
+  `CREATE OR REPLACE FUNCTION forex_protection_events_immutable() RETURNS trigger AS $$
+     BEGIN
+       RAISE EXCEPTION 'forex_protection_events are immutable';
+     END;
+     $$ LANGUAGE plpgsql;`,
+  `DROP TRIGGER IF EXISTS trg_forex_protection_events_immutable ON forex_protection_events;`,
+  `CREATE TRIGGER trg_forex_protection_events_immutable
+     BEFORE UPDATE OR DELETE ON forex_protection_events
+     FOR EACH ROW EXECUTE FUNCTION forex_protection_events_immutable();`,
+  `CREATE TABLE IF NOT EXISTS forex_liquidations (
+    liquidation_id UUID PRIMARY KEY,
+    account_id VARCHAR(64) NOT NULL,
+    status VARCHAR(24) NOT NULL,
+    reason VARCHAR(64) NOT NULL,
+    equity NUMERIC(20,8),
+    used_margin NUMERIC(20,8) NOT NULL,
+    maintenance_margin NUMERIC(20,8) NOT NULL,
+    margin_level NUMERIC(20,8),
+    selected_position_id UUID,
+    attempt INTEGER NOT NULL DEFAULT 0,
+    order_ids UUID[] NOT NULL DEFAULT ARRAY[]::UUID[],
+    source VARCHAR(16) NOT NULL DEFAULT 'SIMULATED',
+    execution_mode VARCHAR(16) NOT NULL DEFAULT 'MOCK',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_forex_liquidations_active
+     ON forex_liquidations(account_id) WHERE status IN ('PENDING','EXECUTING','PARTIALLY_LIQUIDATED');`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_liquidations_account ON forex_liquidations(account_id, created_at DESC);`,
+  `CREATE TABLE IF NOT EXISTS forex_liquidation_events (
+    id BIGSERIAL PRIMARY KEY,
+    event_id UUID NOT NULL UNIQUE,
+    liquidation_id UUID NOT NULL,
+    account_id VARCHAR(64) NOT NULL,
+    event_type VARCHAR(48) NOT NULL,
+    reason VARCHAR(64),
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_liquidation_events_liq ON forex_liquidation_events(liquidation_id, created_at);`,
+  `CREATE OR REPLACE FUNCTION forex_liquidation_events_immutable() RETURNS trigger AS $$
+     BEGIN
+       RAISE EXCEPTION 'forex_liquidation_events are immutable';
+     END;
+     $$ LANGUAGE plpgsql;`,
+  `DROP TRIGGER IF EXISTS trg_forex_liquidation_events_immutable ON forex_liquidation_events;`,
+  `CREATE TRIGGER trg_forex_liquidation_events_immutable
+     BEFORE UPDATE OR DELETE ON forex_liquidation_events
+     FOR EACH ROW EXECUTE FUNCTION forex_liquidation_events_immutable();`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

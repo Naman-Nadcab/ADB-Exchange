@@ -20,7 +20,7 @@ import {
 } from './http.js';
 import { resetForexPricingServiceForTests } from './quotes.service.js';
 import { forexWsHub } from './ws/hub.js';
-import { forexWsEnvelope, isForexOrderChannel, isPublicForexChannel, isReservedPrivateForexChannel } from './ws/protocol.js';
+import { forexWsEnvelope, isForexAccountPrivateChannel, isForexOrderChannel, isPublicForexChannel, isReservedPrivateForexChannel } from './ws/protocol.js';
 import type { ProviderRawQuote } from './types.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -313,8 +313,11 @@ function validateOf(symbol: string, bid: string, ask: string, extra: Partial<Par
   assert.equal(quoteEv.data?.source, 'SIMULATED');
   assert.equal(quoteEv.data?.symbol, 'EURUSD');
   assert.equal(isForexOrderChannel('fx.order.x'), true);
-  assert.equal(isReservedPrivateForexChannel('fx.liquidation.x'), true);
+  assert.equal(isReservedPrivateForexChannel('fx.copy.x'), true);
+  assert.equal(isReservedPrivateForexChannel('fx.liquidation.x'), false);
   assert.equal(isReservedPrivateForexChannel('fx.pnl.x'), false);
+  assert.equal(isForexAccountPrivateChannel('fx.liquidation'), true);
+  assert.equal(isForexAccountPrivateChannel('fx.protection'), true);
   assert.equal(isPublicForexChannel('orderbook:BTC_USDT'), false);
 }
 

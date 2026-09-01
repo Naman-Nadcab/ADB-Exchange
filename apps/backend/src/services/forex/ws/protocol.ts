@@ -3,12 +3,13 @@
  *
  * Public: fx.quote, fx.liquidity, fx.execution (SIMULATED).
  * Authenticated private: fx.order, fx.position, fx.margin, fx.risk,
- *   fx.account, fx.balance, fx.pnl, fx.equity, fx.funding (SIMULATED).
- * Reserved: fx.liquidation (Phase 7+).
+ *   fx.account, fx.balance, fx.pnl, fx.equity, fx.funding,
+ *   fx.protection, fx.liquidation (SIMULATED).
+ * Reserved: fx.copy (later phases).
  */
 
 export const FOREX_WS_PUBLIC_PREFIXES = ['fx.quote.', 'fx.liquidity.', 'fx.execution.'] as const;
-export const FOREX_WS_PRIVATE_PREFIXES = ['fx.liquidation.'] as const;
+export const FOREX_WS_PRIVATE_PREFIXES = ['fx.copy.'] as const;
 
 export type ForexWsClientMessage =
   | { type: 'subscribe'; channel: string }
@@ -61,7 +62,13 @@ export function isForexAccountPrivateChannel(channel: string): boolean {
     channel.startsWith('fx.equity.') ||
     channel === 'fx.funding' ||
     channel === 'fx.funding.*' ||
-    channel.startsWith('fx.funding.')
+    channel.startsWith('fx.funding.') ||
+    channel === 'fx.protection' ||
+    channel === 'fx.protection.*' ||
+    channel.startsWith('fx.protection.') ||
+    channel === 'fx.liquidation' ||
+    channel === 'fx.liquidation.*' ||
+    channel.startsWith('fx.liquidation.')
   );
 }
 

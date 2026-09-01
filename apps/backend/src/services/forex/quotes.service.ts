@@ -61,6 +61,11 @@ export class ForexPricingService {
   readonly edaSeq = new EdaReceiveSequence();
   readonly providers: MockForexProvider[];
   private persistEnabled = true;
+  private readonly quoteListeners: Array<(quote: ForexQuoteDto) => void> = [];
+
+  onAcceptedQuote(fn: (quote: ForexQuoteDto) => void): void {
+    this.quoteListeners.push(fn);
+  }
 
   constructor(providers?: MockForexProvider[]) {
     this.providers = providers ?? createMockProviders();
@@ -196,7 +201,16 @@ export class ForexPricingService {
     }
 
     const dto = this.aggregator.getLatestDto(raw.symbol, receivedTimestamp);
-    if (dto) forexWsHub.publishQuote(dto);
+    if (dto) {
+      forexWsHub.publishQuote(dto);
+      for (const fn of this.quoteListeners) {
+        try {
+          fn(dto);
+        } catch {
+          /* protection/liquidation listeners must not break ingest */
+        }
+      }
+    }
 
     if (this.persistEnabled) {
       void persistAccepted(normalized).catch((err) => {
