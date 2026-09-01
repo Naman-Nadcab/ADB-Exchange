@@ -295,7 +295,83 @@ export const forexExposure = new Gauge({
 
 export const forexMarginUtilization = new Gauge({
   name: 'forex_margin_utilization',
-  help: 'Used margin / simulated equity reference',
+  help: 'Used margin / Forex equity (ledger + unrealized)',
   labelNames: ['account'],
+  registers: [register],
+});
+
+export const forexLedgerTransactionTotal = new Counter({
+  name: 'forex_ledger_transaction_total',
+  help: 'Forex ledger transactions attempted',
+  labelNames: ['type'],
+  registers: [register],
+});
+
+export const forexLedgerPostedTotal = new Counter({
+  name: 'forex_ledger_posted_total',
+  help: 'Forex ledger transactions posted',
+  labelNames: ['type'],
+  registers: [register],
+});
+
+export const forexLedgerRejectedTotal = new Counter({
+  name: 'forex_ledger_rejected_total',
+  help: 'Forex ledger transactions rejected',
+  labelNames: ['reason'],
+  registers: [register],
+});
+
+export const forexLedgerUnbalancedTotal = new Counter({
+  name: 'forex_ledger_unbalanced_total',
+  help: 'Forex ledger posts rejected as unbalanced',
+  registers: [register],
+});
+
+export const forexLedgerIdempotencyTotal = new Counter({
+  name: 'forex_ledger_idempotency_total',
+  help: 'Forex ledger idempotency replays and conflicts',
+  labelNames: ['result'],
+  registers: [register],
+});
+
+export const forexRealizedPnlTotal = new Counter({
+  name: 'forex_realized_pnl_total',
+  help: 'Forex realized P&L postings (count)',
+  labelNames: ['result'],
+  registers: [register],
+});
+
+export const forexUnrealizedPnl = new Gauge({
+  name: 'forex_unrealized_pnl',
+  help: 'Forex unrealized P&L in accounting currency (USD)',
+  labelNames: ['account'],
+  registers: [register],
+});
+
+export const forexEquity = new Gauge({
+  name: 'forex_equity',
+  help: 'Forex equity (ledger cash + unrealized P&L)',
+  labelNames: ['account'],
+  registers: [register],
+});
+
+export const forexFundingTotal = new Counter({
+  name: 'forex_funding_total',
+  help: 'Forex funding payments posted (not deposits)',
+  labelNames: ['direction'],
+  registers: [register],
+});
+
+export const forexAccountingReconciliationErrorTotal = new Counter({
+  name: 'forex_accounting_reconciliation_error_total',
+  help: 'Forex accounting reconciliation mismatches (no silent repair)',
+  labelNames: ['reason'],
+  registers: [register],
+});
+
+export const forexCurrencyConversionErrorTotal = new Counter({
+  name: 'forex_currency_conversion_error_total',
+  help: 'Forex P&L conversion failures',
+  labelNames: ['reason'],
   registers: [register],
 });

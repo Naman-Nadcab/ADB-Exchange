@@ -59,14 +59,18 @@ export const forexConfig = {
   marginCallLevel: process.env.FOREX_MARGIN_CALL_LEVEL?.trim() || '100',
   stopOutLevel: process.env.FOREX_STOP_OUT_LEVEL?.trim() || '50',
   /**
-   * Simulated reference only. Not a ledger, not Crypto, not reserved funds.
-   * Phase 6 will replace this with the Forex ledger equity.
+   * Fallback only when no Forex ledger is attached (Phase 5 tests).
+   * Phase 6 account views use posted CUSTOMER_CASH, not this value.
    */
   simulatedBalanceReference: process.env.FOREX_SIMULATED_BALANCE_REF?.trim() || '100000',
+  /** Sole Phase 6 accounting currency. Do not mix. */
+  accountingCurrency: 'USD',
   maxPositionVolume: process.env.FOREX_MAX_POSITION_VOLUME?.trim() || '50',
   maxOrderVolume: process.env.FOREX_MAX_ORDER_VOLUME?.trim() || '20',
   maxSymbolExposure: process.env.FOREX_MAX_SYMBOL_EXPOSURE?.trim() || '100000000',
   maxTotalExposure: process.env.FOREX_MAX_TOTAL_EXPOSURE?.trim() || '500000000',
   maxMarginUtilization: process.env.FOREX_MAX_MARGIN_UTILIZATION?.trim() || '0.80',
   killSwitch: envBool('FOREX_KILL_SWITCH', false),
+  /** Test-only Forex credit API. Cannot move real money. */
+  fundingTestApiEnabled: envBool('FOREX_FUNDING_TEST_API', false),
 } as const;

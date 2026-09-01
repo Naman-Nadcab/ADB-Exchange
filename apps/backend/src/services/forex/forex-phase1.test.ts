@@ -313,7 +313,8 @@ function validateOf(symbol: string, bid: string, ask: string, extra: Partial<Par
   assert.equal(quoteEv.data?.source, 'SIMULATED');
   assert.equal(quoteEv.data?.symbol, 'EURUSD');
   assert.equal(isForexOrderChannel('fx.order.x'), true);
-  assert.equal(isReservedPrivateForexChannel('fx.pnl.x'), true);
+  assert.equal(isReservedPrivateForexChannel('fx.liquidation.x'), true);
+  assert.equal(isReservedPrivateForexChannel('fx.pnl.x'), false);
   assert.equal(isPublicForexChannel('orderbook:BTC_USDT'), false);
 }
 

@@ -4456,6 +4456,97 @@ const migrations = [
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
   );`,
   `CREATE INDEX IF NOT EXISTS idx_forex_position_events_pos ON forex_position_events(position_id, created_at);`,
+
+  // FOREX PHASE 6 — authoritative ledger / accounts / events (append-only, isolated from Crypto)
+  `CREATE TABLE IF NOT EXISTS forex_accounts (
+    account_id VARCHAR(64) PRIMARY KEY,
+    user_id VARCHAR(64) NOT NULL,
+    currency VARCHAR(8) NOT NULL DEFAULT 'USD',
+    status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT forex_accounts_currency_usd CHECK (currency = 'USD')
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_accounts_user ON forex_accounts(user_id);`,
+  `CREATE TABLE IF NOT EXISTS forex_ledger_accounts (
+    ledger_account VARCHAR(32) PRIMARY KEY,
+    purpose TEXT NOT NULL
+  );`,
+  `INSERT INTO forex_ledger_accounts (ledger_account, purpose) VALUES
+     ('CUSTOMER_CASH', 'Customer Forex cash liability. Credit increases customer balance. Authoritative cash is credits minus debits.'),
+     ('CLEARING', 'Broker/clearing counterpart for simulated deposits, withdrawals, and settlement offsets.'),
+     ('REALIZED_PNL', 'Offset for posted customer realized trading P&L.'),
+     ('FEE_REVENUE', 'Broker commission income when an instrument commission is configured (catalog default is 0).'),
+     ('FUNDING', 'Swap/rollover funding payments. Not deposits and not Crypto funding.'),
+     ('SYSTEM_ADJUSTMENT', 'Compensating adjustments only. Corrections use reversal transactions.')
+   ON CONFLICT (ledger_account) DO NOTHING;`,
+  `CREATE TABLE IF NOT EXISTS forex_ledger_transactions (
+    transaction_id UUID PRIMARY KEY,
+    idempotency_key VARCHAR(160) NOT NULL UNIQUE,
+    fingerprint TEXT NOT NULL,
+    type VARCHAR(24) NOT NULL,
+    account_id VARCHAR(64) NOT NULL,
+    currency VARCHAR(8) NOT NULL,
+    status VARCHAR(16) NOT NULL,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    source VARCHAR(16) NOT NULL DEFAULT 'SIMULATED',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT forex_ledger_tx_currency CHECK (currency = 'USD')
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_ledger_tx_account ON forex_ledger_transactions(account_id, created_at DESC);`,
+  `CREATE TABLE IF NOT EXISTS forex_ledger_entries (
+    entry_id UUID PRIMARY KEY,
+    transaction_id UUID NOT NULL,
+    ledger_account VARCHAR(32) NOT NULL,
+    account_id VARCHAR(64),
+    debit NUMERIC(20,8) NOT NULL DEFAULT 0,
+    credit NUMERIC(20,8) NOT NULL DEFAULT 0,
+    currency VARCHAR(8) NOT NULL,
+    reference_type VARCHAR(32),
+    reference_id VARCHAR(80),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT forex_ledger_entry_nonneg CHECK (debit >= 0 AND credit >= 0),
+    CONSTRAINT forex_ledger_entry_xor CHECK (
+      (debit > 0 AND credit = 0) OR (credit > 0 AND debit = 0) OR (debit = 0 AND credit = 0)
+    ),
+    CONSTRAINT forex_ledger_entry_currency CHECK (currency = 'USD')
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_ledger_entries_tx ON forex_ledger_entries(transaction_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_ledger_entries_account ON forex_ledger_entries(account_id, created_at);`,
+  `CREATE OR REPLACE FUNCTION forex_ledger_entries_immutable() RETURNS trigger AS $$
+     BEGIN
+       RAISE EXCEPTION 'forex_ledger_entries are immutable';
+     END;
+     $$ LANGUAGE plpgsql;`,
+  `DROP TRIGGER IF EXISTS trg_forex_ledger_entries_immutable ON forex_ledger_entries;`,
+  `CREATE TRIGGER trg_forex_ledger_entries_immutable
+     BEFORE UPDATE OR DELETE ON forex_ledger_entries
+     FOR EACH ROW EXECUTE FUNCTION forex_ledger_entries_immutable();`,
+  `CREATE TABLE IF NOT EXISTS forex_accounting_events (
+    id BIGSERIAL PRIMARY KEY,
+    event_id UUID NOT NULL UNIQUE,
+    account_id VARCHAR(64) NOT NULL,
+    event_type VARCHAR(48) NOT NULL,
+    transaction_id UUID,
+    position_id UUID,
+    fill_id VARCHAR(80),
+    reason VARCHAR(64),
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_accounting_events_account ON forex_accounting_events(account_id, created_at);`,
+  `CREATE TABLE IF NOT EXISTS forex_accounting_outbox (
+    outbox_id UUID PRIMARY KEY,
+    account_id VARCHAR(64) NOT NULL,
+    event_type VARCHAR(48) NOT NULL,
+    status VARCHAR(16) NOT NULL,
+    transaction_id UUID,
+    fill_id VARCHAR(80),
+    position_id UUID,
+    payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_accounting_outbox_status ON forex_accounting_outbox(status, created_at);`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

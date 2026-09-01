@@ -11,7 +11,7 @@ export interface ForexAccountPolicy {
   maxSymbolExposure: string;
   maxTotalExposure: string;
   maxMarginUtilization: string;
-  /** Simulated reference only — not a ledger and not Crypto. */
+  /** Phase-5 fallback only. Phase 6 risk uses posted ledger equity when provided. */
   balanceReference: string;
   killSwitch: boolean;
 }
@@ -69,6 +69,10 @@ export function evaluateAccountRisk(args: {
   positions: ForexPositionRecord[];
   proposedVolume?: string;
   proposedSymbol?: string;
+  /** Posted ledger equity. When omitted, Phase-5 balanceReference is used. */
+  equity?: string;
+  /** When false, fail closed — never assume enough margin. */
+  accountingAvailable?: boolean;
 }): ForexRiskDecision {
   const policy = getForexAccountPolicy(args.accountId);
   const open = args.positions.filter((p) => p.status === 'OPEN');
@@ -84,7 +88,23 @@ export function evaluateAccountRisk(args: {
     bySymbol[p.symbol] = (bySymbol[p.symbol] ?? fxDecimal(0)).plus(exp);
   }
 
-  const equity = fxDecimal(policy.balanceReference);
+  if (args.accountingAvailable === false) {
+    return {
+      ok: false,
+      reason: 'ACCOUNTING_UNAVAILABLE',
+      status: 'STOP_OUT_READY',
+      usedMargin: used.toFixed(),
+      freeMargin: '0',
+      marginLevel: null,
+      marginUtilization: '0',
+      totalExposure: gross.toFixed(),
+      grossExposure: gross.toFixed(),
+      netExposure: net.toFixed(),
+      symbolExposures: Object.fromEntries(Object.entries(bySymbol).map(([k, v]) => [k, v.toFixed()])),
+    };
+  }
+
+  const equity = fxDecimal(args.equity ?? policy.balanceReference);
   const free = equity.minus(used);
   const level = marginLevel(equity.toFixed(), used.toFixed());
   const util = equity.gt(0) ? used.div(equity) : fxDecimal(0);
@@ -105,6 +125,13 @@ export function evaluateAccountRisk(args: {
     netExposure: net.toFixed(),
     symbolExposures,
   };
+
+  if (args.equity != null && !equity.gt(0) && (used.gt(0) || Boolean(args.proposedVolume))) {
+    return { ...base, ok: false, reason: 'INSUFFICIENT_FOREX_BALANCE' };
+  }
+  if (args.equity != null && used.gt(equity) && Boolean(args.proposedVolume)) {
+    return { ...base, ok: false, reason: 'INSUFFICIENT_FOREX_BALANCE' };
+  }
 
   if (policy.killSwitch || forexConfig.killSwitch) {
     return { ...base, ok: false, reason: 'FOREX_KILL_SWITCH' };

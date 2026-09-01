@@ -103,3 +103,9 @@ export function isForexExecutionTestAuthorized(header: string | string[] | undef
   const v = Array.isArray(header) ? header[0] : header;
   return v === 'SIMULATED';
 }
+
+export function isForexFundingTestAuthorized(header: string | string[] | undefined): boolean {
+  if (!forexConfig.fundingTestApiEnabled) return false;
+  const v = Array.isArray(header) ? header[0] : header;
+  return v === 'SIMULATED';
+}

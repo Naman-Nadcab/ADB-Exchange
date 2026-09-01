@@ -31,6 +31,7 @@
     "test:forex-phase3": "FOREX_SILENT_LOG=1 tsx src/services/forex/forex-phase3.test.ts",
     "test:forex-phase4": "FOREX_SILENT_LOG=1 tsx src/services/forex/forex-phase4.test.ts",
     "test:forex-phase5": "FOREX_SILENT_LOG=1 tsx src/services/forex/forex-phase5.test.ts",
+    "test:forex-phase6": "FOREX_SILENT_LOG=1 tsx src/services/forex/forex-phase6.test.ts",
     "test:tier1-alerts": "tsx scripts/tier1-alert-verify.ts",
     "load-historical-candles": "tsx scripts/load-historical-candles.ts",
     "backfill:opening-ledger": "tsx scripts/backfill-opening-balance-ledger.ts",

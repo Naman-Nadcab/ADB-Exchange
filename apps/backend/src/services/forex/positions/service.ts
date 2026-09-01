@@ -15,6 +15,7 @@ import {
 } from '../../../lib/forex-prometheus-metrics.js';
 import { forexConfig } from '../config.js';
 import { fxDecimal } from '../decimal-fx.js';
+import type { ForexAccountingService } from '../accounting/service.js';
 import { classifyMarginLevel, marginLevel, positionMarginSnapshot } from '../margin/engine.js';
 import { getForexAccountPolicy, evaluateAccountRisk, type ForexRiskDecision } from '../risk/engine.js';
 import type { ForexPricingService } from '../quotes.service.js';
@@ -32,6 +33,7 @@ import { ForexPositionStore } from './store.js';
 
 export class ForexPositionService {
   private readonly lastMarginStatus = new Map<string, string>();
+  private accounting: ForexAccountingService | null = null;
 
   constructor(
     readonly store: ForexPositionStore,
@@ -41,6 +43,14 @@ export class ForexPositionService {
 
   setPersistEnabled(on: boolean): void {
     this.persistEnabled = on;
+  }
+
+  attachAccounting(accounting: ForexAccountingService): void {
+    this.accounting = accounting;
+  }
+
+  riskAccountingInputs(accountId: string): { equity?: string; accountingAvailable: boolean } | undefined {
+    return this.accounting?.riskInputs(accountId);
   }
 
   getOwned(accountId: string, positionId: string): ForexPositionRecord {
@@ -117,21 +127,32 @@ export class ForexPositionService {
     netExposure: string;
     symbolExposures: Record<string, string>;
     status: ReturnType<typeof classifyMarginLevel>;
+    ledgerBalance?: string;
+    unrealizedPnl?: string;
+    calculationStatus?: string;
     source: 'SIMULATED';
     valuationKind: 'CALCULATED';
     timestamp: string;
   } {
     const positions = this.listOwned(accountId, true);
     const policy = getForexAccountPolicy(accountId);
-    const decision = evaluateAccountRisk({ accountId, positions });
+    const inputs = this.accounting?.riskInputs(accountId);
+    const decision = evaluateAccountRisk({
+      accountId,
+      positions,
+      equity: inputs?.equity,
+      accountingAvailable: inputs?.accountingAvailable,
+    });
     let maint = fxDecimal(0);
     for (const p of positions) maint = maint.plus(p.maintenanceMargin);
     const status = classifyMarginLevel(decision.marginLevel);
     this.observeMargin(accountId, status, decision);
+    const ledgerBalance = this.accounting?.ledgerBalance(accountId) ?? policy.balanceReference;
+    const equity = inputs?.equity ?? policy.balanceReference;
     return {
       accountId,
-      balanceReference: policy.balanceReference,
-      equityReference: policy.balanceReference,
+      balanceReference: ledgerBalance,
+      equityReference: equity,
       usedMargin: decision.usedMargin,
       maintenanceMargin: maint.toFixed(),
       freeMargin: decision.freeMargin,
@@ -142,6 +163,9 @@ export class ForexPositionService {
       netExposure: decision.netExposure,
       symbolExposures: decision.symbolExposures,
       status,
+      ledgerBalance,
+      unrealizedPnl: this.accounting && inputs?.accountingAvailable ? fxDecimal(equity).minus(ledgerBalance).toFixed() : undefined,
+      calculationStatus: inputs ? (inputs.accountingAvailable ? 'CALCULATED' : 'ACCOUNTING_UNAVAILABLE') : undefined,
       source: 'SIMULATED',
       valuationKind: 'CALCULATED',
       timestamp: new Date().toISOString(),
@@ -150,7 +174,13 @@ export class ForexPositionService {
 
   riskSnapshot(accountId: string): ForexRiskDecision & { source: 'SIMULATED'; valuationKind: 'CALCULATED'; timestamp: string; policy: ReturnType<typeof getForexAccountPolicy> } {
     const positions = this.listOwned(accountId, true);
-    const decision = evaluateAccountRisk({ accountId, positions });
+    const inputs = this.accounting?.riskInputs(accountId);
+    const decision = evaluateAccountRisk({
+      accountId,
+      positions,
+      equity: inputs?.equity,
+      accountingAvailable: inputs?.accountingAvailable,
+    });
     return {
       ...decision,
       source: 'SIMULATED',
@@ -182,6 +212,18 @@ export class ForexPositionService {
     };
     const existing = this.store.getOpen(input.accountId, input.symbol) ?? null;
     const result = applyNettingFill(existing ? toNet(existing) : null, fill);
+    if (this.accounting && fxDecimal(result.closedVolume).gt(0) && existing) {
+      await this.accounting.postRealizedFromFill({
+        accountId: input.accountId,
+        fillId: fill.fillId,
+        positionId: existing.positionId,
+        symbol: input.symbol,
+        side: existing.side,
+        entryPrice: existing.entryPrice,
+        closePrice: fill.price,
+        closedVolume: result.closedVolume,
+      });
+    }
     const now = new Date().toISOString();
     const currentPx = this.currentPrice(input.symbol, input.price);
     const target = this.materialize(input.accountId, input.symbol, result.after, existing, existing ? [...existing.appliedFills, fill] : [fill], currentPx);

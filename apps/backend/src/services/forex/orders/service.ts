@@ -265,7 +265,17 @@ export class ForexOrderService {
     if (!this.positions) return { ok: true, reason: null };
     const quote = getForexPricingService().getQuote(symbol);
     const px = quote ? (side === 'buy' ? quote.ask : quote.bid) : undefined;
-    if (!px) return evaluateAccountRisk({ accountId, positions: this.positions.listOwned(accountId, true), proposedVolume: volume, proposedSymbol: symbol });
+    const inputs = this.positions.riskAccountingInputs(accountId);
+    if (!px) {
+      return evaluateAccountRisk({
+        accountId,
+        positions: this.positions.listOwned(accountId, true),
+        proposedVolume: volume,
+        proposedSymbol: symbol,
+        equity: inputs?.equity,
+        accountingAvailable: inputs?.accountingAvailable,
+      });
+    }
     const preview = this.positions.previewAfterFill({
       fillId: `preview-${accountId}-${symbol}`,
       accountId,
@@ -275,7 +285,14 @@ export class ForexOrderService {
       price: px,
       timestamp: new Date().toISOString(),
     });
-    return evaluateAccountRisk({ accountId, positions: preview, proposedVolume: volume, proposedSymbol: symbol });
+    return evaluateAccountRisk({
+      accountId,
+      positions: preview,
+      proposedVolume: volume,
+      proposedSymbol: symbol,
+      equity: inputs?.equity,
+      accountingAvailable: inputs?.accountingAvailable,
+    });
   }
 
   private async bookPositions(accountId: string, order: ForexOrderRecord, exec: ForexExecutionRecord): Promise<void> {

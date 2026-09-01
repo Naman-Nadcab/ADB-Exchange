@@ -18,6 +18,7 @@ import { getForexExecutionService } from '../services/forex/execution/service.js
 import type { ForexExecutionRequest } from '../services/forex/execution/request.js';
 import { startForexMarketDataWorker, stopForexMarketDataWorker } from '../services/forex/market-data/worker.js';
 import { forexWsHub } from '../services/forex/ws/hub.js';
+import { registerForexAccountingRoutes } from './forex-accounting.fastify.js';
 import { registerForexCustomerOrderRoutes } from './forex-orders.fastify.js';
 import { registerForexPositionRoutes } from './forex-positions.fastify.js';
 import {
@@ -132,6 +133,7 @@ export default async function forexRoutes(app: FastifyInstance) {
 
   await registerForexCustomerOrderRoutes(app);
   await registerForexPositionRoutes(app);
+  await registerForexAccountingRoutes(app);
 
   app.get('/ws', { websocket: true }, async (socket, req) => {
     const rawUrl = (req as { url?: string }).url || '';
@@ -162,8 +164,8 @@ export default async function forexRoutes(app: FastifyInstance) {
         protocol: 'eda.forex.ws.v1',
         source: 'SIMULATED',
         events: ['fx.quote', 'fx.liquidity', 'fx.execution'],
-        authenticatedEvents: ['fx.order', 'fx.position', 'fx.margin', 'fx.risk'],
-        reserved: ['fx.pnl'],
+        authenticatedEvents: ['fx.order', 'fx.position', 'fx.margin', 'fx.risk', 'fx.account', 'fx.balance', 'fx.pnl', 'fx.equity', 'fx.funding'],
+        reserved: ['fx.liquidation'],
       })
     );
 
@@ -210,7 +212,17 @@ export default async function forexRoutes(app: FastifyInstance) {
               ? 'fx.margin'
               : msg.channel.startsWith('fx.risk')
                 ? 'fx.risk'
-                : 'fx.order';
+                : msg.channel.startsWith('fx.account')
+                  ? 'fx.account'
+                  : msg.channel.startsWith('fx.balance')
+                    ? 'fx.balance'
+                    : msg.channel.startsWith('fx.pnl')
+                      ? 'fx.pnl'
+                      : msg.channel.startsWith('fx.equity')
+                        ? 'fx.equity'
+                        : msg.channel.startsWith('fx.funding')
+                          ? 'fx.funding'
+                          : 'fx.order';
           socket.send(forexWsEnvelope(root, msg.channel, { source: 'SIMULATED', status: 'SUBSCRIBED' }));
           return;
         }
