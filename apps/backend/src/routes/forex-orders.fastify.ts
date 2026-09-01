@@ -4,6 +4,7 @@
  */
 import type { FastifyInstance } from 'fastify';
 import { ForexOrderError, publicForexOrder } from '../services/forex/orders/models.js';
+import type { ForexOrderModifyRequest } from '../services/forex/orders/models.js';
 import type { ForexOrderRequest } from '../services/forex/orders/request.js';
 import { getForexOrderService } from '../services/forex/orders/service.js';
 
@@ -62,6 +63,49 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
       success: true,
       data: { source: 'SIMULATED', executionMode: 'MOCK', count: orders.length, orders },
     });
+  });
+
+  app.get('/orders/pending', { preHandler: [app.authenticate] }, async (request, reply) => {
+    const accountId = accountIdFromRequest(request);
+    if (!accountId) {
+      return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+    }
+    const orders = getForexOrderService().listPending(accountId).map(publicForexOrder);
+    return reply.send({
+      success: true,
+      data: { source: 'SIMULATED', executionMode: 'MOCK', count: orders.length, orders },
+    });
+  });
+
+  app.patch<{ Params: { orderId: string } }>('/orders/:orderId', { preHandler: [app.authenticate] }, async (request, reply) => {
+    const accountId = accountIdFromRequest(request);
+    if (!accountId) {
+      return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+    }
+    const b = (request.body ?? {}) as Record<string, unknown>;
+    const patch: ForexOrderModifyRequest = {
+      requestedPrice: b.requestedPrice != null ? String(b.requestedPrice) : undefined,
+      volume: b.volume != null ? String(b.volume) : undefined,
+      stopLoss: b.stopLoss != null ? String(b.stopLoss) : undefined,
+      takeProfit: b.takeProfit != null ? String(b.takeProfit) : undefined,
+      expectedVersion: typeof b.expectedVersion === 'number' ? b.expectedVersion : b.expectedVersion != null ? Number(b.expectedVersion) : undefined,
+      idempotencyKey: b.idempotencyKey != null ? String(b.idempotencyKey) : undefined,
+    };
+    try {
+      const order = await getForexOrderService().modify(accountId, request.params.orderId, patch);
+      return reply.send({
+        success: true,
+        data: { source: 'SIMULATED', executionMode: 'MOCK', order: publicForexOrder(order) },
+      });
+    } catch (e) {
+      if (e instanceof ForexOrderError) {
+        return reply.status(e.statusCode).send({
+          success: false,
+          error: { code: e.reason, message: e.message, source: 'SIMULATED' },
+        });
+      }
+      return reply.status(500).send({ success: false, error: { code: 'FOREX_ORDER_FAILED', message: 'Modify failed' } });
+    }
   });
 
   app.get<{ Params: { orderId: string } }>('/orders/:orderId', { preHandler: [app.authenticate] }, async (request, reply) => {

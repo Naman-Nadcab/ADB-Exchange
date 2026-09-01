@@ -1,11 +1,16 @@
 import { randomUUID } from 'node:crypto';
 import {
   forexAccountingReconciliationErrorTotal,
+  forexAccountingReconcileTotal,
+  forexCommissionPostedTotal,
   forexEquity,
   forexFundingTotal,
+  forexRealizedPnlGauge,
   forexRealizedPnlTotal,
   forexUnrealizedPnl,
 } from '../../../lib/forex-prometheus-metrics.js';
+import { forexAccountingComponents } from './components.js';
+import { calculateForexCommission } from '../fees/engine.js';
 import { fxDecimal } from '../decimal-fx.js';
 import { ForexLedgerError } from '../ledger/models.js';
 import type { ForexLedgerTransaction } from '../ledger/models.js';
@@ -262,7 +267,6 @@ export class ForexAccountingService {
       fillId: args.fillId,
       positionId: args.positionId,
     });
-    await this.maybePostFee(args.accountId, args.fillId, args.symbol, args.closedVolume);
     this.publishAccount(args.accountId);
     return { transaction: tx, pnl, replay: false };
   }
@@ -342,6 +346,7 @@ export class ForexAccountingService {
   reconcile(accountId: string): ForexReconciliationResult {
     const fail = (reason: string, detail?: string): ForexReconciliationResult => {
       forexAccountingReconciliationErrorTotal.inc({ reason });
+      forexAccountingReconcileTotal.inc({ result: 'fail' });
       this.emitAudit(accountId, 'ACCOUNTING_RECONCILIATION_FAILED', { reason, metadata: { detail } });
       return { ok: false, reason, detail, accountId };
     };
@@ -392,6 +397,11 @@ export class ForexAccountingService {
     const expectEq = fxDecimal(view.ledgerBalance).plus(view.unrealizedPnl);
     if (!expectEq.eq(view.equity)) return fail('INCORRECT_EQUITY', `${view.equity} != ${expectEq.toFixed()}`);
 
+    const components = forexAccountingComponents(this.ledger.list(accountId));
+    if (components.ledgerFromComponents !== fromEntries) {
+      return fail('LEDGER_COMPONENT_MISMATCH', `${components.ledgerFromComponents} != ${fromEntries}`);
+    }
+
     const decision = evaluateAccountRisk({
       accountId,
       positions: this.positions.listOwned(accountId, true),
@@ -400,7 +410,144 @@ export class ForexAccountingService {
     });
     if (decision.usedMargin !== view.usedMargin) return fail('MARGIN_MISMATCH', `${decision.usedMargin} != ${view.usedMargin}`);
 
+    this.emitAudit(accountId, 'ACCOUNTING_RECONCILIATION_OK', { metadata: { components, equity: view.equity } });
+    forexAccountingReconcileTotal.inc({ result: 'ok' });
     return { ok: true, reason: null, accountId };
+  }
+
+  feeSummary(accountId: string) {
+    const txs = this.ledger.list(accountId).filter((t) => t.type === 'FEE');
+    const components = forexAccountingComponents(this.ledger.list(accountId));
+    return {
+      source: 'SIMULATED' as const,
+      currency: ACCOUNTING_CURRENCY,
+      fees: components.fees,
+      count: txs.length,
+      transactions: txs,
+    };
+  }
+
+  swapSummary(accountId: string) {
+    const txs = this.ledger.list(accountId).filter((t) => t.type === 'FUNDING');
+    const components = forexAccountingComponents(this.ledger.list(accountId));
+    return {
+      source: 'SIMULATED' as const,
+      currency: ACCOUNTING_CURRENCY,
+      swaps: components.swaps,
+      count: txs.length,
+      transactions: txs,
+    };
+  }
+
+  accountSummary(accountId: string) {
+    const view = this.accountView(accountId);
+    const pnl = this.pnlView(accountId);
+    const components = forexAccountingComponents(this.ledger.list(accountId));
+    return {
+      source: 'SIMULATED' as const,
+      valuationKind: 'CALCULATED' as const,
+      currency: ACCOUNTING_CURRENCY,
+      boundary: 'forex_ledger' as const,
+      cryptoAuthority: false,
+      account: view,
+      pnl,
+      fees: components.fees,
+      swaps: components.swaps,
+      deposits: components.deposits,
+      realizedPnl: components.realizedPnl,
+      unrealizedPnl: view.unrealizedPnl,
+      equity: view.equity,
+      margin: {
+        usedMargin: view.usedMargin,
+        freeMargin: view.freeMargin,
+        marginLevel: view.marginLevel,
+      },
+    };
+  }
+
+  async postCommission(args: {
+    accountId: string;
+    fillId: string;
+    symbol: string;
+    side: 'buy' | 'sell';
+    volume: string;
+    price: string;
+  }): Promise<ForexLedgerTransaction | null> {
+    this.ensureAccount(args.accountId);
+    const calc = calculateForexCommission({
+      accountId: args.accountId,
+      symbol: args.symbol,
+      side: args.side,
+      volume: args.volume,
+      price: args.price,
+    });
+    if (!fxDecimal(calc.amount).gt(0)) return null;
+    const existing = this.ledger.store.getByKey(`FEE:${args.fillId}`);
+    if (existing) return existing;
+    const tx = await this.ledger.post({
+      idempotencyKey: `FEE:${args.fillId}`,
+      type: 'FEE',
+      accountId: args.accountId,
+      currency: ACCOUNTING_CURRENCY,
+      entries: [
+        { ledgerAccount: 'CUSTOMER_CASH', accountId: args.accountId, debit: calc.amount, credit: '0', referenceType: 'FILL', referenceId: args.fillId },
+        { ledgerAccount: 'FEE_REVENUE', debit: '0', credit: calc.amount, referenceType: 'FILL', referenceId: args.fillId },
+      ],
+      metadata: { fillId: args.fillId, symbol: args.symbol, commission: calc },
+    });
+    forexCommissionPostedTotal.inc({ symbol: args.symbol });
+    this.emitAudit(args.accountId, 'FEE_POSTED', { transactionId: tx.transactionId, fillId: args.fillId, metadata: { amount: calc.amount } });
+    this.publishAccount(args.accountId);
+    return tx;
+  }
+
+  async postSwap(args: {
+    accountId: string;
+    positionId: string;
+    symbol: string;
+    amount: string;
+    idempotencyKey: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<ForexLedgerTransaction | null> {
+    this.ensureAccount(args.accountId);
+    const amount = fxDecimal(args.amount);
+    if (amount.eq(0)) {
+      const existingZero = this.ledger.store.getByKey(args.idempotencyKey);
+      if (existingZero) return existingZero;
+      const tx = await this.ledger.post({
+        idempotencyKey: args.idempotencyKey,
+        type: 'FUNDING',
+        accountId: args.accountId,
+        currency: ACCOUNTING_CURRENCY,
+        entries: [],
+        metadata: { ...args.metadata, positionId: args.positionId, symbol: args.symbol, zeroAmount: true },
+      });
+      forexFundingTotal.inc({ direction: 'credit' });
+      this.emitAudit(args.accountId, 'SWAP_POSTED', { transactionId: tx.transactionId, positionId: args.positionId, metadata: { amount: '0' } });
+      return tx;
+    }
+    const creditCustomer = amount.gt(0);
+    const abs = amount.abs().toFixed();
+    const tx = await this.ledger.post({
+      idempotencyKey: args.idempotencyKey,
+      type: 'FUNDING',
+      accountId: args.accountId,
+      currency: ACCOUNTING_CURRENCY,
+      entries: creditCustomer
+        ? [
+            { ledgerAccount: 'FUNDING', debit: abs, credit: '0', referenceType: 'SWAP', referenceId: args.positionId },
+            { ledgerAccount: 'CUSTOMER_CASH', accountId: args.accountId, debit: '0', credit: abs, referenceType: 'SWAP', referenceId: args.positionId },
+          ]
+        : [
+            { ledgerAccount: 'CUSTOMER_CASH', accountId: args.accountId, debit: abs, credit: '0', referenceType: 'SWAP', referenceId: args.positionId },
+            { ledgerAccount: 'FUNDING', debit: '0', credit: abs, referenceType: 'SWAP', referenceId: args.positionId },
+          ],
+      metadata: { ...args.metadata, positionId: args.positionId, symbol: args.symbol },
+    });
+    forexFundingTotal.inc({ direction: creditCustomer ? 'credit' : 'debit' });
+    this.emitAudit(args.accountId, 'SWAP_POSTED', { transactionId: tx.transactionId, positionId: args.positionId, metadata: { amount: args.amount } });
+    this.publishAccount(args.accountId);
+    return tx;
   }
 
   recover(): void {
@@ -422,6 +569,7 @@ export class ForexAccountingService {
     if (view.calculationStatus === 'CALCULATED') {
       forexUnrealizedPnl.set({ account: accountId }, Number(view.unrealizedPnl));
       forexEquity.set({ account: accountId }, Number(view.equity));
+      forexRealizedPnlGauge.set({ account: accountId }, Number(view.realizedPnl));
     }
     this.emitAudit(accountId, 'EQUITY_RECALCULATED', { metadata: { equity: view.equity, status: view.calculationStatus } });
     this.emitAudit(accountId, 'UNREALIZED_PNL_UPDATED', { metadata: { unrealized: view.unrealizedPnl, status: view.calculationStatus } });
@@ -495,25 +643,6 @@ export class ForexAccountingService {
     } catch {
       return null;
     }
-  }
-
-  private async maybePostFee(accountId: string, fillId: string, symbol: string, volume: string): Promise<void> {
-    const { getForexInstrumentBySymbol } = await import('../instruments.catalog.js');
-    const inst = getForexInstrumentBySymbol(symbol);
-    const commission = fxDecimal(inst?.commission ?? '0');
-    if (!commission.gt(0)) return;
-    const fee = commission.times(volume).toFixed();
-    await this.ledger.post({
-      idempotencyKey: `FEE:${fillId}`,
-      type: 'FEE',
-      accountId,
-      currency: ACCOUNTING_CURRENCY,
-      entries: [
-        { ledgerAccount: 'CUSTOMER_CASH', accountId, debit: fee, credit: '0', referenceType: 'FILL', referenceId: fillId },
-        { ledgerAccount: 'FEE_REVENUE', debit: '0', credit: fee, referenceType: 'FILL', referenceId: fillId },
-      ],
-      metadata: { fillId, symbol, configuredCommission: inst?.commission },
-    });
   }
 
   private pushOutbox(
@@ -600,6 +729,10 @@ function collectClosedFills(positions: ForexPositionRecord[]): Array<{ fillId: s
 }
 
 let singleton: ForexAccountingService | null = null;
+
+export function peekForexAccountingService(): ForexAccountingService | null {
+  return singleton;
+}
 
 export function getForexAccountingService(positions: ForexPositionService, pricing?: ForexPricingService): ForexAccountingService {
   if (!singleton) {

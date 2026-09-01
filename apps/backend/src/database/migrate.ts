@@ -4669,6 +4669,109 @@ const migrations = [
   `CREATE TRIGGER trg_forex_risk_events_immutable
      BEFORE UPDATE OR DELETE ON forex_risk_events
      FOR EACH ROW EXECUTE FUNCTION forex_risk_events_immutable();`,
+
+  // FOREX PHASE 9 — pending/modify/fees/swaps/reconciliation (append-only, isolated from Crypto)
+  `CREATE TABLE IF NOT EXISTS forex_pending_orders (
+    order_id UUID PRIMARY KEY,
+    account_id VARCHAR(64) NOT NULL,
+    symbol VARCHAR(16) NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1,
+    last_quote_key TEXT,
+    last_modify_key TEXT,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_pending_orders_account ON forex_pending_orders(account_id, symbol);`,
+  `CREATE TABLE IF NOT EXISTS forex_order_modifications (
+    id BIGSERIAL PRIMARY KEY,
+    event_id UUID NOT NULL UNIQUE,
+    order_id UUID NOT NULL,
+    account_id VARCHAR(64) NOT NULL,
+    from_version INTEGER NOT NULL,
+    to_version INTEGER NOT NULL,
+    requested_price NUMERIC(20,8),
+    volume NUMERIC(20,8),
+    idempotency_key TEXT,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_order_modifications_order ON forex_order_modifications(order_id, created_at);`,
+  `CREATE OR REPLACE FUNCTION forex_order_modifications_immutable() RETURNS trigger AS $$
+     BEGIN
+       RAISE EXCEPTION 'forex_order_modifications are immutable';
+     END;
+     $$ LANGUAGE plpgsql;`,
+  `DROP TRIGGER IF EXISTS trg_forex_order_modifications_immutable ON forex_order_modifications;`,
+  `CREATE TRIGGER trg_forex_order_modifications_immutable
+     BEFORE UPDATE OR DELETE ON forex_order_modifications
+     FOR EACH ROW EXECUTE FUNCTION forex_order_modifications_immutable();`,
+  `CREATE TABLE IF NOT EXISTS forex_fee_events (
+    id BIGSERIAL PRIMARY KEY,
+    event_id UUID NOT NULL UNIQUE,
+    account_id VARCHAR(64) NOT NULL,
+    fill_id UUID,
+    transaction_id UUID,
+    symbol VARCHAR(16),
+    amount NUMERIC(20,8) NOT NULL,
+    model VARCHAR(24) NOT NULL,
+    idempotency_key TEXT NOT NULL UNIQUE,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_fee_events_account ON forex_fee_events(account_id, created_at);`,
+  `CREATE OR REPLACE FUNCTION forex_fee_events_immutable() RETURNS trigger AS $$
+     BEGIN
+       RAISE EXCEPTION 'forex_fee_events are immutable';
+     END;
+     $$ LANGUAGE plpgsql;`,
+  `DROP TRIGGER IF EXISTS trg_forex_fee_events_immutable ON forex_fee_events;`,
+  `CREATE TRIGGER trg_forex_fee_events_immutable
+     BEFORE UPDATE OR DELETE ON forex_fee_events
+     FOR EACH ROW EXECUTE FUNCTION forex_fee_events_immutable();`,
+  `CREATE TABLE IF NOT EXISTS forex_swap_events (
+    id BIGSERIAL PRIMARY KEY,
+    event_id UUID NOT NULL UNIQUE,
+    account_id VARCHAR(64) NOT NULL,
+    position_id UUID NOT NULL,
+    symbol VARCHAR(16) NOT NULL,
+    amount NUMERIC(20,8) NOT NULL,
+    rollover_date DATE NOT NULL,
+    triple BOOLEAN NOT NULL DEFAULT FALSE,
+    idempotency_key TEXT NOT NULL UNIQUE,
+    transaction_id UUID,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_swap_events_account ON forex_swap_events(account_id, rollover_date);`,
+  `CREATE OR REPLACE FUNCTION forex_swap_events_immutable() RETURNS trigger AS $$
+     BEGIN
+       RAISE EXCEPTION 'forex_swap_events are immutable';
+     END;
+     $$ LANGUAGE plpgsql;`,
+  `DROP TRIGGER IF EXISTS trg_forex_swap_events_immutable ON forex_swap_events;`,
+  `CREATE TRIGGER trg_forex_swap_events_immutable
+     BEFORE UPDATE OR DELETE ON forex_swap_events
+     FOR EACH ROW EXECUTE FUNCTION forex_swap_events_immutable();`,
+  `CREATE TABLE IF NOT EXISTS forex_reconciliation_events (
+    id BIGSERIAL PRIMARY KEY,
+    event_id UUID NOT NULL UNIQUE,
+    account_id VARCHAR(64) NOT NULL,
+    kind VARCHAR(24) NOT NULL CHECK (kind IN ('accounting','execution')),
+    ok BOOLEAN NOT NULL,
+    reason VARCHAR(64),
+    detail TEXT,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_reconciliation_events_account ON forex_reconciliation_events(account_id, created_at);`,
+  `CREATE OR REPLACE FUNCTION forex_reconciliation_events_immutable() RETURNS trigger AS $$
+     BEGIN
+       RAISE EXCEPTION 'forex_reconciliation_events are immutable';
+     END;
+     $$ LANGUAGE plpgsql;`,
+  `DROP TRIGGER IF EXISTS trg_forex_reconciliation_events_immutable ON forex_reconciliation_events;`,
+  `CREATE TRIGGER trg_forex_reconciliation_events_immutable
+     BEFORE UPDATE OR DELETE ON forex_reconciliation_events
+     FOR EACH ROW EXECUTE FUNCTION forex_reconciliation_events_immutable();`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

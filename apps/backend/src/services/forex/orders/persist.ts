@@ -102,6 +102,9 @@ function rowToOrder(row: Record<string, unknown>, events: ForexOrderEvent[] = []
     source: 'SIMULATED',
     executionMode: 'MOCK',
     events,
+    version: Number(row.version ?? 1) || 1,
+    lastQuoteKey: row.last_quote_key == null ? null : str(row.last_quote_key),
+    lastModifyKey: row.last_modify_key == null ? null : str(row.last_modify_key),
     createdAt: str(row.created_at),
     updatedAt: str(row.updated_at),
   };

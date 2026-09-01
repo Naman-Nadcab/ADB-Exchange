@@ -494,3 +494,86 @@ export const forexHaltedAccounts = new Gauge({
   help: 'Forex accounts in HALTED state',
   registers: [register],
 });
+
+export const forexPendingOrders = new Gauge({
+  name: 'forex_pending_orders',
+  help: 'Working Forex pending orders',
+  registers: [register],
+});
+
+export const forexPendingTriggerEvaluationsTotal = new Counter({
+  name: 'forex_pending_trigger_evaluations_total',
+  help: 'Pending-order trigger evaluations',
+  labelNames: ['result'],
+  registers: [register],
+});
+
+export const forexPendingTriggeredTotal = new Counter({
+  name: 'forex_pending_triggered_total',
+  help: 'Pending Forex orders that triggered',
+  labelNames: ['symbol', 'type'],
+  registers: [register],
+});
+
+export const forexOrderModifyTotal = new Counter({
+  name: 'forex_order_modify_total',
+  help: 'Forex pending-order modifications',
+  labelNames: ['result'],
+  registers: [register],
+});
+
+export const forexCancelReplaceTotal = new Counter({
+  name: 'forex_cancel_replace_total',
+  help: 'Forex pending cancel/replace outcomes',
+  labelNames: ['result'],
+  registers: [register],
+});
+
+export const forexCommissionPostedTotal = new Counter({
+  name: 'forex_commission_posted_total',
+  help: 'Forex commissions posted to the Forex ledger',
+  labelNames: ['symbol'],
+  registers: [register],
+});
+
+export const forexSwapAppliedTotal = new Counter({
+  name: 'forex_swap_applied_total',
+  help: 'Forex overnight swaps applied',
+  labelNames: ['symbol', 'triple'],
+  registers: [register],
+});
+
+export const forexSwapSkippedTotal = new Counter({
+  name: 'forex_swap_skipped_total',
+  help: 'Forex rollover evaluations that did not apply',
+  labelNames: ['reason'],
+  registers: [register],
+});
+
+export const forexRealizedPnlGauge = new Gauge({
+  name: 'forex_realized_pnl',
+  help: 'Last posted Forex realized P&L for an account',
+  labelNames: ['account'],
+  registers: [register],
+});
+
+export const forexAccountingReconcileTotal = new Counter({
+  name: 'forex_accounting_reconcile_total',
+  help: 'Forex accounting reconciliation runs',
+  labelNames: ['result'],
+  registers: [register],
+});
+
+export const forexExecutionReconcileTotal = new Counter({
+  name: 'forex_execution_reconcile_total',
+  help: 'Forex execution reconciliation runs',
+  labelNames: ['result'],
+  registers: [register],
+});
+
+export const forexRecoveryTotal = new Counter({
+  name: 'forex_recovery_total',
+  help: 'Forex restart recovery runs',
+  labelNames: ['result'],
+  registers: [register],
+});

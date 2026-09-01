@@ -35,6 +35,9 @@ export interface ForexOrderRecord {
   source: 'SIMULATED';
   executionMode: 'MOCK';
   events: ForexOrderEvent[];
+  version: number;
+  lastQuoteKey: string | null;
+  lastModifyKey: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -65,9 +68,19 @@ export function publicForexOrder(order: ForexOrderRecord) {
     status: order.status,
     failureReason: order.failureReason,
     executionId: order.executionId,
+    version: order.version,
     source: order.source,
     executionMode: order.executionMode,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
   };
+}
+
+export interface ForexOrderModifyRequest {
+  requestedPrice?: string;
+  volume?: string;
+  stopLoss?: string;
+  takeProfit?: string;
+  expectedVersion?: number;
+  idempotencyKey?: string;
 }

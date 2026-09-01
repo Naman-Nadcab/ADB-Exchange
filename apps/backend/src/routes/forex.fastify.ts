@@ -17,7 +17,8 @@ import { ForexExecutionError } from '../services/forex/execution/models.js';
 import { getForexExecutionService } from '../services/forex/execution/service.js';
 import type { ForexExecutionRequest } from '../services/forex/execution/request.js';
 import { startForexMarketDataWorker, stopForexMarketDataWorker } from '../services/forex/market-data/worker.js';
-import { startForexProtectionRuntime } from '../services/forex/protection/runtime.js';
+import { startForexProtectionRuntime, stopForexAdvancedRuntime } from '../services/forex/protection/runtime.js';
+import { registerForexAdvancedRoutes } from './forex-advanced.fastify.js';
 import { forexWsHub } from '../services/forex/ws/hub.js';
 import { registerForexAccountingRoutes } from './forex-accounting.fastify.js';
 import { registerForexLiquidationRoutes } from './forex-liquidation.fastify.js';
@@ -39,6 +40,7 @@ export default async function forexRoutes(app: FastifyInstance) {
   });
   app.addHook('onClose', async () => {
     stopForexMarketDataWorker();
+    stopForexAdvancedRuntime();
   });
 
   app.get('/instruments', async (_request, reply) => {
@@ -142,6 +144,7 @@ export default async function forexRoutes(app: FastifyInstance) {
   await registerForexProtectionRoutes(app);
   await registerForexLiquidationRoutes(app);
   await registerForexRiskRoutes(app);
+  await registerForexAdvancedRoutes(app);
 
   app.get('/ws', { websocket: true }, async (socket, req) => {
     const rawUrl = (req as { url?: string }).url || '';

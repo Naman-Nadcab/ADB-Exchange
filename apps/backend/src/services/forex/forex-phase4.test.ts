@@ -91,11 +91,11 @@ const USER_B = 'user-b';
   assert.equal(badVol.failureReason, 'INVALID_VOLUME');
   const badStep = await orders.place(USER, req({ clientOrderId: 'bad-step', volume: '0.015' }));
   assert.equal(badStep.failureReason, 'INVALID_VOLUME_STEP');
-  const unsup = await orders.place(USER, req({ clientOrderId: 'bad-lim', orderType: 'limit', requestedPrice: '1.16622' }));
-  assert.equal(unsup.failureReason, 'UNSUPPORTED_ORDER_TYPE');
-  assert.equal(unsup.executionId, null);
+  const pending = await orders.place(USER, req({ clientOrderId: 'bad-lim', orderType: 'limit', requestedPrice: '1.16000' }));
+  assert.equal(pending.status, 'PENDING');
+  assert.equal(pending.executionId, null);
   const stop = await orders.place(USER, req({ clientOrderId: 'bad-stop', orderType: 'stop' }));
-  assert.equal(stop.failureReason, 'UNSUPPORTED_ORDER_TYPE');
+  assert.equal(stop.failureReason, 'INVALID_PRICE');
   const badCid = await orders.place(USER, req({ clientOrderId: 'bad id!' }));
   assert.equal(badCid.failureReason, 'INVALID_CLIENT_ORDER_ID');
 }
@@ -385,6 +385,9 @@ const USER_B = 'user-b';
     source: 'SIMULATED',
     executionMode: 'MOCK',
     events: [],
+    version: 1,
+    lastQuoteKey: null,
+    lastModifyKey: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   });

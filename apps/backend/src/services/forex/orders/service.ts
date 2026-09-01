@@ -1,26 +1,33 @@
 import { randomUUID } from 'node:crypto';
 import {
+  forexCancelReplaceTotal,
   forexOrderCancelledTotal,
   forexOrderCreatedTotal,
   forexOrderFailedTotal,
   forexOrderFilledTotal,
   forexOrderIdempotencyHitTotal,
   forexOrderLatency,
+  forexOrderModifyTotal,
   forexOrderRejectedTotal,
+  forexPendingOrders,
+  forexPendingTriggeredTotal,
+  forexPendingTriggerEvaluationsTotal,
+  forexRiskRejectionTotal,
 } from '../../../lib/forex-prometheus-metrics.js';
 import { fxDecimal } from '../decimal-fx.js';
 import { ForexExecutionError } from '../execution/models.js';
 import type { ForexExecutionRecord, ForexFill } from '../execution/models.js';
 import type { ForexExecutionService } from '../execution/service.js';
 import { getForexExecutionService } from '../execution/service.js';
-import { forexRiskRejectionTotal } from '../../../lib/forex-prometheus-metrics.js';
 import { getForexRiskService } from '../risk/service.js';
 import type { ForexPositionService } from '../positions/service.js';
 import { getForexPositionService } from '../positions/service.js';
-import { getForexPricingService } from '../quotes.service.js';
+import { getForexPricingService, type ForexPricingService } from '../quotes.service.js';
+import type { ForexQuoteDto } from '../types.js';
 import { forexWsHub } from '../ws/hub.js';
-import type { ForexOrderEvent, ForexOrderRecord } from './models.js';
+import type { ForexOrderEvent, ForexOrderModifyRequest, ForexOrderRecord } from './models.js';
 import { ForexOrderError, publicForexOrder } from './models.js';
+import { isPendingTriggered, isPendingWorkingStatus, quoteKey, quoteUsableForTrigger } from './pending.js';
 import { clientExecIdForOrder, orderFingerprint, type ForexOrderRequest } from './request.js';
 import {
   assertOrderTransition,
@@ -38,7 +45,8 @@ export class ForexOrderService {
     private readonly execution: ForexExecutionService,
     readonly store: ForexOrderStore,
     private persistEnabled = false,
-    private readonly positions?: ForexPositionService
+    private readonly positions?: ForexPositionService,
+    private readonly pricing?: ForexPricingService
   ) {}
 
   setPersistEnabled(on: boolean): void {
@@ -82,49 +90,90 @@ export class ForexOrderService {
   }
 
   async cancel(accountId: string, orderId: string): Promise<ForexOrderRecord> {
-    const order = await this.getOwned(accountId, orderId);
-    if (order.status === 'CANCELLED') return order;
-    if (order.status === 'FILLED') {
-      throw new ForexOrderError('CANCEL_FILLED_REJECTED', 'Filled market orders cannot be cancelled', 409);
-    }
-    if (order.status === 'REJECTED' || order.status === 'FAILED') {
-      throw new ForexOrderError('CANCEL_NOT_SUPPORTED', 'Order is already terminal', 409);
-    }
-    if (order.status === 'NEW' && canOrderTransition(order.status, 'CANCELLED')) {
-      this.emit(order, 'ORDER_CANCEL_REQUESTED');
-      this.transition(order, 'CANCELLED');
-      this.emit(order, 'ORDER_CANCELLED');
-      forexOrderCancelledTotal.inc({ symbol: order.symbol });
-      this.publish(order, 'fx.order.cancelled');
-      return order;
-    }
-    if (!canOrderTransition(order.status, 'CANCEL_PENDING')) {
-      throw new ForexOrderError('CANCEL_NOT_SUPPORTED', `Cancel is not supported from ${order.status}`, 409);
-    }
+    const run = () => this.store.enqueue(accountId, orderId, () => this.cancelLocked(accountId, orderId));
+    return this.store.enqueue(accountId, '*risk*', run);
+  }
 
-    this.emit(order, 'ORDER_CANCEL_REQUESTED');
-    this.transition(order, 'CANCEL_PENDING');
+  async modify(accountId: string, orderId: string, patch: ForexOrderModifyRequest): Promise<ForexOrderRecord> {
+    const run = () => this.store.enqueue(accountId, orderId, () => this.modifyLocked(accountId, orderId, patch));
+    return this.store.enqueue(accountId, '*risk*', run);
+  }
 
-    const leftover = fxDecimal(order.remainingVolume).gt(0) && fxDecimal(order.filledVolume).gt(0);
-    const venue = await this.execution.cancel(order.clientExecId);
-    if (!venue.ok && !leftover) {
-      if (canOrderTransition(order.status, 'PARTIALLY_FILLED')) this.transition(order, 'PARTIALLY_FILLED');
-      throw new ForexOrderError('CANCEL_NOT_SUPPORTED', venue.reason ?? 'Venue cancel is not supported', 409);
+  listPending(accountId: string): ForexOrderRecord[] {
+    return this.listOwned(accountId).filter((o) => isPendingWorkingStatus(o.status));
+  }
+
+  listFills(accountId: string): Array<{ fillId: string; orderId: string; symbol: string; side: string; volume: string; price: string; timestamp: string; source: 'SIMULATED' }> {
+    const out = [];
+    for (const order of this.listOwned(accountId)) {
+      const exec = this.execution.get(order.clientExecId);
+      if (!exec) continue;
+      for (const f of exec.fills) {
+        out.push({
+          fillId: f.fillId,
+          orderId: order.orderId,
+          symbol: f.symbol,
+          side: f.side,
+          volume: f.volume,
+          price: f.price,
+          timestamp: f.timestamp,
+          source: 'SIMULATED' as const,
+        });
+      }
     }
-    this.transition(order, 'CANCELLED');
-    this.emit(order, 'ORDER_CANCELLED', { executionId: order.executionId ?? undefined, metadata: { venue } });
-    forexOrderCancelledTotal.inc({ symbol: order.symbol });
-    this.publish(order, 'fx.order.cancelled');
-    return order;
+    return out.sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
+  }
+
+  async evaluateQuote(quote: ForexQuoteDto): Promise<void> {
+    forexPendingTriggerEvaluationsTotal.inc({ result: 'seen' });
+    if (!quoteUsableForTrigger(quote)) {
+      forexPendingTriggerEvaluationsTotal.inc({ result: 'rejected_quote' });
+      return;
+    }
+    const pending = this.store
+      .listOpen()
+      .filter((o) => o.symbol === quote.symbol && isPendingWorkingStatus(o.status));
+    for (const order of pending) {
+      await this.store.enqueue(order.accountId, order.orderId, () => this.evaluateOne(order, quote));
+    }
+  }
+
+  recoverPending(): ForexOrderRecord[] {
+    const recovered: ForexOrderRecord[] = [];
+    for (const order of this.store.listOpen()) {
+      if (order.status !== 'TRIGGERING') continue;
+      try {
+        this.transition(order, 'FAILED');
+      } catch {
+        order.status = 'FAILED';
+        order.updatedAt = new Date().toISOString();
+      }
+      order.failureReason = 'RECOVERY_FAIL_CLOSED';
+      this.emit(order, 'ORDER_FAILED', { reason: 'RECOVERY_FAIL_CLOSED' });
+      this.persist(order);
+      recovered.push(order);
+    }
+    this.refreshPendingGauge();
+    return recovered;
   }
 
   recoverOpen(): ForexOrderRecord[] {
     const open = this.store.listOpen();
     for (const order of open) {
+      if (order.status === 'TRIGGERING') continue;
       const exec = this.execution.get(order.clientExecId);
       if (exec) this.applyExecution(order, exec, Date.now());
     }
+    this.refreshPendingGauge();
     return open;
+  }
+
+  async hydrateFromDb(): Promise<void> {
+    if (!this.persistEnabled) return;
+    const { loadOpenOrders } = await import('./persist.js');
+    this.store.hydrate(await loadOpenOrders());
+    this.recoverPending();
+    this.recoverOpen();
   }
 
   private async placeLocked(accountId: string, req: ForexOrderRequest): Promise<ForexOrderRecord> {
@@ -157,7 +206,7 @@ export class ForexOrderService {
     order.request.symbol = pre.symbol;
 
     if (this.positions) {
-      const gate = this.riskGate(accountId, pre.symbol, req.side, req.volume, req.intent ?? 'CUSTOMER', req);
+      const gate = this.riskGate(accountId, pre.symbol, req.side, req.volume, req.intent ?? 'CUSTOMER', this.riskRequest(req));
       if (!gate.ok) {
         forexRiskRejectionTotal.inc({ reason: gate.reason ?? 'RISK_REJECTED' });
         const mapped = (FOREX_ORDER_REASONS as readonly string[]).includes(gate.reason ?? '')
@@ -167,6 +216,159 @@ export class ForexOrderService {
       }
     }
 
+    if (req.orderType === 'limit' || req.orderType === 'stop') {
+      this.transition(order, 'ACCEPTED');
+      this.emit(order, 'ORDER_ACCEPTED');
+      this.transition(order, 'PENDING');
+      this.emit(order, 'ORDER_PENDING');
+      this.publish(order, 'fx.order.pending');
+      this.refreshPendingGauge();
+      const quote = this.pricing?.getQuote(order.symbol);
+      if (quote) await this.evaluateOne(order, quote, started);
+      return this.store.get(order.orderId) ?? order;
+    }
+
+    return this.submitAndExecute(order, req, pre.symbol, started);
+  }
+
+  private async cancelLocked(accountId: string, orderId: string): Promise<ForexOrderRecord> {
+    const order = await this.getOwned(accountId, orderId);
+    if (order.status === 'CANCELLED') {
+      forexCancelReplaceTotal.inc({ result: 'idempotent' });
+      return order;
+    }
+    if (order.status === 'FILLED') {
+      forexCancelReplaceTotal.inc({ result: 'filled' });
+      throw new ForexOrderError('CANCEL_FILLED_REJECTED', 'Filled orders cannot be cancelled', 409);
+    }
+    if (order.status === 'REJECTED' || order.status === 'FAILED') {
+      forexCancelReplaceTotal.inc({ result: 'terminal' });
+      throw new ForexOrderError('CANCEL_NOT_SUPPORTED', 'Order is already terminal', 409);
+    }
+    if (order.status === 'NEW' || isPendingWorkingStatus(order.status) || order.status === 'TRIGGERING') {
+      this.emit(order, 'ORDER_CANCEL_REQUESTED');
+      this.transition(order, 'CANCELLED');
+      this.emit(order, 'ORDER_CANCELLED');
+      forexOrderCancelledTotal.inc({ symbol: order.symbol });
+      forexCancelReplaceTotal.inc({ result: 'cancelled' });
+      this.publish(order, 'fx.order.cancelled');
+      this.refreshPendingGauge();
+      return order;
+    }
+    if (!canOrderTransition(order.status, 'CANCEL_PENDING')) {
+      throw new ForexOrderError('CANCEL_NOT_SUPPORTED', `Cancel is not supported from ${order.status}`, 409);
+    }
+
+    this.emit(order, 'ORDER_CANCEL_REQUESTED');
+    this.transition(order, 'CANCEL_PENDING');
+
+    const leftover = fxDecimal(order.remainingVolume).gt(0) && fxDecimal(order.filledVolume).gt(0);
+    const venue = await this.execution.cancel(order.clientExecId);
+    if (!venue.ok && !leftover) {
+      if (canOrderTransition(order.status, 'PARTIALLY_FILLED')) this.transition(order, 'PARTIALLY_FILLED');
+      throw new ForexOrderError('CANCEL_NOT_SUPPORTED', venue.reason ?? 'Venue cancel is not supported', 409);
+    }
+    this.transition(order, 'CANCELLED');
+    this.emit(order, 'ORDER_CANCELLED', { executionId: order.executionId ?? undefined, metadata: { venue } });
+    forexOrderCancelledTotal.inc({ symbol: order.symbol });
+    forexCancelReplaceTotal.inc({ result: 'cancelled' });
+    this.publish(order, 'fx.order.cancelled');
+    return order;
+  }
+
+  private async modifyLocked(accountId: string, orderId: string, patch: ForexOrderModifyRequest): Promise<ForexOrderRecord> {
+    const order = await this.getOwned(accountId, orderId);
+    const key = patch.idempotencyKey?.trim();
+    if (key && order.lastModifyKey === key) {
+      forexOrderModifyTotal.inc({ result: 'replay' });
+      return order;
+    }
+    if (!isPendingWorkingStatus(order.status)) {
+      forexOrderModifyTotal.inc({ result: 'rejected' });
+      throw new ForexOrderError('MODIFY_NOT_SUPPORTED', `Cannot modify order in ${order.status}`, 409);
+    }
+    if (patch.expectedVersion != null && patch.expectedVersion !== order.version) {
+      forexOrderModifyTotal.inc({ result: 'conflict' });
+      throw new ForexOrderError('MODIFY_VERSION_CONFLICT', 'Order version conflict', 409);
+    }
+    const nextReq: ForexOrderRequest = {
+      ...order.request,
+      volume: patch.volume ?? order.request.volume,
+      requestedPrice: patch.requestedPrice ?? order.request.requestedPrice,
+    };
+    const pre = validateForexOrderRequest(nextReq);
+    if (!pre.ok) {
+      forexOrderModifyTotal.inc({ result: 'rejected' });
+      throw new ForexOrderError(pre.reason, pre.detail, 400);
+    }
+    if (this.positions) {
+      const gate = this.riskGate(accountId, pre.symbol, nextReq.side, nextReq.volume, nextReq.intent ?? 'CUSTOMER', this.riskRequest(nextReq));
+      if (!gate.ok) {
+        forexRiskRejectionTotal.inc({ reason: gate.reason ?? 'RISK_REJECTED' });
+        forexOrderModifyTotal.inc({ result: 'risk' });
+        throw new ForexOrderError('RISK_REJECTED', gate.reason ?? 'risk limit', 400);
+      }
+    }
+    order.request = { ...nextReq, symbol: pre.symbol };
+    order.symbol = pre.symbol;
+    order.requestedVolume = nextReq.volume;
+    order.remainingVolume = nextReq.volume;
+    order.requestedPrice = nextReq.requestedPrice ?? null;
+    order.fingerprint = orderFingerprint(order.request);
+    order.version += 1;
+    if (key) order.lastModifyKey = key;
+    order.updatedAt = new Date().toISOString();
+    this.emit(order, 'ORDER_MODIFIED', {
+      metadata: { version: order.version, requestedPrice: order.requestedPrice, volume: order.requestedVolume, stopLoss: patch.stopLoss ?? null, takeProfit: patch.takeProfit ?? null },
+    });
+    this.persist(order);
+    forexOrderModifyTotal.inc({ result: 'ok' });
+    this.publish(order, 'fx.order.updated');
+    return order;
+  }
+
+  private async evaluateOne(order: ForexOrderRecord, quote: ForexQuoteDto, started = Date.now()): Promise<void> {
+    if (!isPendingWorkingStatus(order.status)) return;
+    const key = quoteKey(quote);
+    if (order.lastQuoteKey === key) {
+      forexPendingTriggerEvaluationsTotal.inc({ result: 'duplicate' });
+      return;
+    }
+    order.lastQuoteKey = key;
+    if (!quoteUsableForTrigger(quote)) {
+      forexPendingTriggerEvaluationsTotal.inc({ result: 'rejected_quote' });
+      return;
+    }
+    if (!isPendingTriggered(order, quote)) {
+      forexPendingTriggerEvaluationsTotal.inc({ result: 'not_met' });
+      this.persist(order);
+      return;
+    }
+    this.transition(order, 'TRIGGERING');
+    this.emit(order, 'ORDER_TRIGGERING', { metadata: { quoteKey: key } });
+    this.emit(order, 'ORDER_TRIGGERED', { metadata: { quoteKey: key } });
+    forexPendingTriggeredTotal.inc({ symbol: order.symbol, type: order.orderType });
+    this.publish(order, 'fx.order.triggered');
+    this.refreshPendingGauge();
+
+    if (this.positions) {
+      const gate = this.riskGate(order.accountId, order.symbol, order.side, order.requestedVolume, order.request.intent ?? 'CUSTOMER', this.riskRequest(order.request));
+      if (!gate.ok) {
+        forexRiskRejectionTotal.inc({ reason: gate.reason ?? 'RISK_REJECTED' });
+        this.finish(order, 'FAILED', 'RISK_REJECTED', started, gate.reason ?? 'risk limit');
+        return;
+      }
+    }
+
+    await this.submitAndExecute(order, order.request, order.symbol, started);
+  }
+
+  private async submitAndExecute(
+    order: ForexOrderRecord,
+    req: ForexOrderRequest,
+    symbol: string,
+    started: number
+  ): Promise<ForexOrderRecord> {
     this.transition(order, 'ROUTING');
     this.emit(order, 'ORDER_ROUTING');
     this.transition(order, 'SUBMITTED');
@@ -176,14 +378,14 @@ export class ForexOrderService {
     try {
       exec = await this.execution.execute({
         clientExecId: order.clientExecId,
-        symbol: pre.symbol,
+        symbol,
         side: req.side,
         volume: req.volume,
         orderType: 'market',
-        requestedPrice: req.requestedPrice,
+        requestedPrice: req.orderType === 'market' ? req.requestedPrice : undefined,
         maxSlippage: req.maxSlippage,
-        maxDeviation: req.maxDeviation,
-        accountId,
+        maxDeviation: req.orderType === 'market' ? req.maxDeviation : undefined,
+        accountId: order.accountId,
         timestamp: new Date().toISOString(),
       });
     } catch (err) {
@@ -193,7 +395,7 @@ export class ForexOrderService {
       const reused = this.execution.get(order.clientExecId);
       if (reused) {
         this.applyExecution(order, reused, started);
-        await this.bookPositions(accountId, order, reused);
+        await this.bookPositions(order.accountId, order, reused);
         return order;
       }
       return this.finish(order, 'FAILED', 'ORDER_FAILED', started, err instanceof Error ? err.message : 'execution failed');
@@ -201,7 +403,7 @@ export class ForexOrderService {
 
     try {
       this.applyExecution(order, exec, started);
-      await this.bookPositions(accountId, order, exec);
+      await this.bookPositions(order.accountId, order, exec);
     } catch (err) {
       if (err instanceof ForexOrderError && err.reason === 'OVERFILL') {
         return this.finish(order, 'FAILED', 'OVERFILL', started, err.message);
@@ -265,6 +467,14 @@ export class ForexOrderService {
     }
   }
 
+  /** Pending trigger prices are not execution prices — do not apply deviation to them. */
+  private riskRequest(req: ForexOrderRequest): ForexOrderRequest {
+    if (req.orderType === 'limit' || req.orderType === 'stop') {
+      return { ...req, requestedPrice: undefined, maxDeviation: undefined };
+    }
+    return req;
+  }
+
   private riskGate(
     accountId: string,
     symbol: string,
@@ -303,6 +513,55 @@ export class ForexOrderService {
       orderId: order.orderId,
     }));
     await this.positions.applyFills(fills);
+    this.publishFills(accountId, order, exec);
+    await this.postFillCommissions(accountId, exec);
+  }
+
+  private publishFills(accountId: string, order: ForexOrderRecord, exec: ForexExecutionRecord): void {
+    for (const f of exec.fills) {
+      forexWsHub.publishPrivate(accountId, 'fx.fill', {
+        source: 'SIMULATED',
+        executionMode: 'MOCK',
+        fill: {
+          fillId: f.fillId,
+          orderId: order.orderId,
+          executionId: exec.executionId,
+          symbol: f.symbol,
+          side: f.side,
+          volume: f.volume,
+          price: f.price,
+          timestamp: f.timestamp,
+        },
+      });
+    }
+    forexWsHub.publishPrivate(accountId, 'fx.execution', {
+      source: 'SIMULATED',
+      executionMode: 'MOCK',
+      executionId: exec.executionId,
+      orderId: order.orderId,
+      status: exec.status,
+    });
+  }
+
+  private async postFillCommissions(accountId: string, exec: ForexExecutionRecord): Promise<void> {
+    if (!this.positions) return;
+    try {
+      const { peekForexAccountingService } = await import('../accounting/service.js');
+      const acc = peekForexAccountingService();
+      if (!acc) return;
+      for (const f of exec.fills) {
+        await acc.postCommission({
+          accountId,
+          fillId: f.fillId,
+          symbol: f.symbol,
+          side: f.side,
+          volume: f.volume,
+          price: f.price,
+        });
+      }
+    } catch {
+      /* accounting optional in isolated order tests */
+    }
   }
 
   private createRecord(accountId: string, req: ForexOrderRequest): ForexOrderRecord {
@@ -331,9 +590,16 @@ export class ForexOrderService {
       source: 'SIMULATED',
       executionMode: 'MOCK',
       events: [],
+      version: 1,
+      lastQuoteKey: null,
+      lastModifyKey: null,
       createdAt: now,
       updatedAt: now,
     };
+  }
+
+  private refreshPendingGauge(): void {
+    forexPendingOrders.set(this.store.listOpen().filter((o) => isPendingWorkingStatus(o.status)).length);
   }
 
   private async claim(accountId: string, req: ForexOrderRequest): Promise<ForexOrderRecord | 'conflict' | undefined> {
@@ -446,16 +712,21 @@ export function getForexOrderService(): ForexOrderService {
       getForexExecutionService(pricing),
       new ForexOrderStore(),
       true,
-      getForexPositionService(pricing)
+      getForexPositionService(pricing),
+      pricing
     );
+    pricing.onAcceptedQuote((q) => {
+      void orderSingleton?.evaluateQuote(q);
+    });
   }
   return orderSingleton;
 }
 
 export function resetForexOrderServiceForTests(
   execution: ForexExecutionService,
-  positions?: ForexPositionService
+  positions?: ForexPositionService,
+  pricing?: ForexPricingService
 ): ForexOrderService {
-  orderSingleton = new ForexOrderService(execution, new ForexOrderStore(), false, positions);
+  orderSingleton = new ForexOrderService(execution, new ForexOrderStore(), false, positions, pricing);
   return orderSingleton;
 }

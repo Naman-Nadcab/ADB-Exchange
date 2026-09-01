@@ -1,5 +1,7 @@
 import { fxDecimal, fxDecimalPlaces, fxPositive } from '../decimal-fx.js';
 import { getForexInstrumentBySymbol, normalizeForexSymbol } from '../instruments.catalog.js';
+import { isForexTradingEligible } from '../sessions/eligibility.js';
+import { pendingTriggerValid } from './pending.js';
 import type { ForexOrderRequest } from './request.js';
 import type { ForexOrderReason } from './states.js';
 
@@ -20,8 +22,18 @@ export function validateForexOrderRequest(req: ForexOrderRequest): OrderValidati
     return { ok: false, reason: 'INVALID_CLIENT_ORDER_ID', detail: 'clientOrderId is required and must be 1-128 safe characters' };
   }
 
-  if (req.orderType !== 'market') {
-    return { ok: false, reason: 'UNSUPPORTED_ORDER_TYPE', detail: `orderType ${req.orderType} is not supported in Phase 4` };
+  if (req.orderType !== 'market' && req.orderType !== 'limit' && req.orderType !== 'stop') {
+    return { ok: false, reason: 'UNSUPPORTED_ORDER_TYPE', detail: `orderType ${String(req.orderType)} is not supported` };
+  }
+
+  const trigger = pendingTriggerValid({ orderType: req.orderType, side: req.side, requestedPrice: req.requestedPrice });
+  if (!trigger.ok) {
+    return { ok: false, reason: trigger.reason, detail: 'pending order requires a valid requestedPrice' };
+  }
+
+  const session = isForexTradingEligible();
+  if (!session.open && (req.intent ?? 'CUSTOMER') === 'CUSTOMER') {
+    return { ok: false, reason: 'SESSION_CLOSED', detail: session.reason };
   }
 
   if (req.side !== 'buy' && req.side !== 'sell') {
