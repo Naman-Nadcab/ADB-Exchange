@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { hasForexBearer } from '@/lib/forex/api/auth-token';
-import { closePriceLabel } from '@/lib/forex/models/quotes';
 import { useForexStore } from '@/lib/forex/state/store';
+import { ForexPositionPanel } from './ForexPositionPanel';
 import { fxNum, fxPlain } from './format';
 
 type Tab = 'positions' | 'orders' | 'history' | 'risk';
@@ -11,7 +11,6 @@ type Tab = 'positions' | 'orders' | 'history' | 'risk';
 export function ForexBottomPanels() {
   const [tab, setTab] = useState<Tab>('positions');
   const authed = hasForexBearer();
-  const positions = useForexStore((s) => s.positions);
   const orders = useForexStore((s) => s.orders);
   const fills = useForexStore((s) => s.fills);
   const ledger = useForexStore((s) => s.ledger);
@@ -20,7 +19,6 @@ export function ForexBottomPanels() {
   const risk = useForexStore((s) => s.riskStatus);
   const exposure = useForexStore((s) => s.exposure);
 
-  const posRows = useMemo(() => Object.values(positions), [positions]);
   const orderRows = useMemo(() => Object.values(orders).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)), [orders]);
 
   return (
@@ -43,37 +41,10 @@ export function ForexBottomPanels() {
         {!authed ? <span className="ml-auto text-[11px] text-stone-400">Private panels require a Bearer JWT</span> : null}
       </div>
       <div className="min-h-0 flex-1 overflow-auto" role="tabpanel">
-        {!authed ? (
-          <p className="p-3 text-[12px] text-stone-500">Sign in to load positions, orders, fills, and risk from /api/v1/forex.</p>
-        ) : tab === 'positions' ? (
-          <table className="w-full text-left font-mono text-[11px]">
-            <thead className="text-stone-500">
-              <tr>
-                <th className="px-2 py-1 font-medium">Symbol</th>
-                <th className="px-2 py-1 font-medium">Side</th>
-                <th className="px-2 py-1 font-medium">Vol</th>
-                <th className="px-2 py-1 font-medium">Entry</th>
-                <th className="px-2 py-1 font-medium">Close px</th>
-                <th className="px-2 py-1 font-medium">Margin</th>
-                <th className="px-2 py-1 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {posRows.map((p) => (
-                <tr key={p.positionId} className="border-t border-stone-100 dark:border-stone-800">
-                  <td className="px-2 py-1">{p.symbol}</td>
-                  <td className="px-2 py-1">{p.side}</td>
-                  <td className="px-2 py-1">{p.volume}</td>
-                  <td className="px-2 py-1">{p.averageEntryPrice}</td>
-                  <td className="px-2 py-1">
-                    {p.currentPrice} <span className="text-stone-400">{closePriceLabel(p.side)}</span>
-                  </td>
-                  <td className="px-2 py-1">{p.initialMargin}</td>
-                  <td className="px-2 py-1">{p.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {tab === 'positions' ? (
+          <ForexPositionPanel />
+        ) : !authed ? (
+          <p className="p-3 text-[12px] text-stone-500">Sign in to view orders, fills, and risk.</p>
         ) : tab === 'orders' ? (
           <table className="w-full text-left font-mono text-[11px]">
             <thead className="text-stone-500">

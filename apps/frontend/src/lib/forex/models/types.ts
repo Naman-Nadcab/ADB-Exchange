@@ -247,6 +247,21 @@ export interface ForexExposure {
   [key: string]: unknown;
 }
 
+export interface ForexUnrealizedPnlRow {
+  kind?: 'UNREALIZED';
+  accountPnl?: string;
+  quotePnl?: string;
+  currency?: string;
+  volume?: string;
+  entryPrice?: string;
+  valuationPrice?: string;
+  side?: ForexPositionSide;
+  symbol?: string;
+  calculationStatus?: string;
+  priceSource?: string;
+  reason?: string;
+}
+
 export interface ForexPnlView {
   realized: string;
   unrealized: string;
@@ -257,7 +272,7 @@ export interface ForexPnlView {
   conversionSource: string;
   status: string;
   source: 'SIMULATED';
-  positions?: unknown[];
+  positions?: ForexUnrealizedPnlRow[];
 }
 
 export interface ForexPublicOrder {
@@ -361,6 +376,31 @@ export interface ForexPlaceOrderBody {
   requestedPrice?: string;
   maxSlippage?: string;
   maxDeviation?: string;
+}
+
+export interface ForexClosePositionBody {
+  clientOrderId: string;
+  volume?: string;
+  expectedVersion?: number;
+}
+
+export interface ForexClosePositionResult {
+  source: string;
+  executionMode: string;
+  reduceOnly: true;
+  closeSide: ForexSide;
+  referenceSide: 'BID' | 'ASK';
+  requestedVolume: string;
+  order: ForexPublicOrder;
+  position: ForexPublicPosition | null;
+}
+
+export interface ForexCreateProtectionBody {
+  clientProtectionId: string;
+  positionId: string;
+  type: ForexProtectionType;
+  triggerPrice: string;
+  volume?: string;
 }
 
 export const FOREX_SESSION_NAMES: ForexSessionName[] = ['Sydney', 'Tokyo', 'London', 'New York'];

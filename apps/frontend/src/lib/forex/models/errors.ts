@@ -61,6 +61,20 @@ export function describeForexError(err: ForexError): string {
     case 'FOREX_SYMBOL_REQUIRED':
     case 'FOREX_PREVIEW_UNAVAILABLE':
     case 'FOREX_PREVIEW_INVALID':
+    case 'FOREX_CLOSE_UNAVAILABLE':
+    case 'CLOSE_VOLUME_EXCEEDS_POSITION':
+    case 'NOT_A_CLOSE':
+    case 'STALE_POSITION':
+    case 'POSITION_NOT_FOUND':
+    case 'POSITION_CLOSED':
+    case 'POSITION_NOT_OPEN':
+    case 'INVALID_PROTECTION':
+    case 'INVALID_PROTECTION_TYPE':
+    case 'INVALID_TRIGGER_PRICE':
+    case 'INVALID_TRIGGER_DIRECTION':
+    case 'TRIGGER_ALREADY_MET':
+    case 'DUPLICATE_PROTECTION':
+    case 'PROTECTION_NOT_FOUND':
     case 'INSUFFICIENT_MARGIN':
     case 'INSUFFICIENT_FOREX_BALANCE':
     case 'INVALID_VOLUME':

@@ -123,6 +123,8 @@ export const FOREX_ORDER_REASONS = [
   'MODIFY_NOT_SUPPORTED',
   'MODIFY_VERSION_CONFLICT',
   'RECOVERY_FAIL_CLOSED',
+  'CLOSE_VOLUME_EXCEEDS_POSITION',
+  'NOT_A_CLOSE',
 ] as const;
 
 export type ForexOrderReason = (typeof FOREX_ORDER_REASONS)[number];

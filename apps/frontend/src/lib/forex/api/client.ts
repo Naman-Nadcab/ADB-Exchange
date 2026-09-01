@@ -4,6 +4,9 @@ import type { ForexCandleQuery, ForexCandleResponse } from '../models/candles';
 import type { ForexPreviewRequest, ForexPreviewResponse } from '../models/preview';
 import type {
   ForexAccountView,
+  ForexClosePositionBody,
+  ForexClosePositionResult,
+  ForexCreateProtectionBody,
   ForexError,
   ForexFillRow,
   ForexInstrument,
@@ -118,6 +121,21 @@ export const forexApi = {
     api.post<{ source: string; executionMode: string; order: ForexPublicOrder }>(`${FOREX_PREFIX}/orders`, body, {
       notifyOnError: false,
     }),
+  closePosition: (positionId: string, body: ForexClosePositionBody) =>
+    api.post<ForexClosePositionResult>(`${FOREX_PREFIX}/positions/${encodeURIComponent(positionId)}/close`, body, {
+      notifyOnError: false,
+    }),
+  createProtection: (body: ForexCreateProtectionBody) =>
+    api.post<{ source: string; executionMode: string; protection: ForexPublicProtection }>(
+      `${FOREX_PREFIX}/protections`,
+      body,
+      { notifyOnError: false }
+    ),
+  cancelProtection: (protectionId: string) =>
+    api.delete<{ source: string; executionMode: string; protection: ForexPublicProtection }>(
+      `${FOREX_PREFIX}/protections/${encodeURIComponent(protectionId)}`,
+      { notifyOnError: false }
+    ),
   cancelOrder: (orderId: string) =>
     api.post<{ source: string; order: ForexPublicOrder }>(
       `${FOREX_PREFIX}/orders/${encodeURIComponent(orderId)}/cancel`,

@@ -1,7 +1,7 @@
 import type { ForexExecSide } from '../execution/venue.js';
 
 export type ForexCustomerOrderType = 'market' | 'limit' | 'stop';
-export type ForexOrderIntent = 'CUSTOMER' | 'PROTECTION_CLOSE' | 'LIQUIDATION_CLOSE';
+export type ForexOrderIntent = 'CUSTOMER' | 'CUSTOMER_CLOSE' | 'PROTECTION_CLOSE' | 'LIQUIDATION_CLOSE';
 
 export interface ForexOrderRequest {
   clientOrderId: string;

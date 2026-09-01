@@ -81,7 +81,11 @@ export function evaluatePreTradeRisk(args: {
   const intent = args.intent ?? 'CUSTOMER';
   const current = args.currentPositions.find((p) => p.symbol === args.symbol && p.status === 'OPEN') ?? null;
   const classified = classifyForexOrderRisk({ side: args.side, volume: args.volume, position: current });
-  const reducing = classified.direction === 'REDUCING' || intent === 'PROTECTION_CLOSE' || intent === 'LIQUIDATION_CLOSE';
+  const reducing =
+    classified.direction === 'REDUCING' ||
+    intent === 'PROTECTION_CLOSE' ||
+    intent === 'LIQUIDATION_CLOSE' ||
+    intent === 'CUSTOMER_CLOSE';
   const dealing = getForexDealingSnapshot(args.accountId, args.symbol);
   const limits = resolveEffectiveLimits({ symbol: args.symbol, accountId: args.accountId, positionId: current?.positionId });
   const locked = isForexAccountLiquidationLocked(args.accountId);
@@ -116,6 +120,11 @@ export function evaluatePreTradeRisk(args: {
     source: 'SIMULATED',
     executionMode: 'MOCK',
   });
+
+  if (intent === 'CUSTOMER_CLOSE') {
+    if (classified.kind === 'REVERSAL') return fail('CLOSE_VOLUME_EXCEEDS_POSITION');
+    if (classified.kind === 'OPEN' || classified.kind === 'INCREASE') return fail('NOT_A_CLOSE');
+  }
 
   const deal = evaluateDealingControls({ snapshot: dealing, side: args.side, reducing });
   if (!deal.ok) return fail(deal.reason);

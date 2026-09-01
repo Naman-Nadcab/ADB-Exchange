@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { ForexPositionPanel } from '@/components/forex/ForexPositionPanel';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 
 export default function ForexPortfolioPage() {
@@ -9,8 +10,8 @@ export default function ForexPortfolioPage() {
     setWorkspace('portfolio');
   }, [setWorkspace]);
   return (
-    <p className="p-3 text-[12px] text-stone-500 md:hidden">
-      Portfolio uses backend positions, margin, and risk in the terminal panels.
-    </p>
+    <div className="md:hidden">
+      <ForexPositionPanel />
+    </div>
   );
 }
