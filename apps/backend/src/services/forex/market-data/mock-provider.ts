@@ -1,4 +1,3 @@
-import { Decimal } from '../../../lib/decimal.js';
 import { fxDecimal, fxToPriceString } from '../decimal-fx.js';
 import {
   FOREX_INSTRUMENT_CATALOG,
@@ -28,18 +27,21 @@ export function deterministicOffsetTicks(symbol: string, sequence: bigint, ampli
   return Number(mixed % span) - amplitude;
 }
 
+/** Relative bid offset in ticks so A/B/C never print the same book. */
+const PROVIDER_BID_OFFSET_TICKS = [0, 1, -1] as const;
+
 export function mockPriceAt(symbol: string, sequence: bigint, providerIndex: number): { bid: string; ask: string } {
   const instrument = getForexInstrumentBySymbol(symbol);
   const base = FOREX_MOCK_BASE_PRICES[symbol];
   if (!instrument || !base) {
     throw new Error(`No mock base price for ${symbol}`);
   }
-  const spreadTicks = (FOREX_MOCK_SPREAD_TICKS[symbol] ?? 8) + providerIndex * 2;
+  const idx = providerIndex === 0 || providerIndex === 1 || providerIndex === 2 ? providerIndex : 0;
+  const spreadTicks = FOREX_MOCK_SPREAD_TICKS[symbol] ?? 8;
   const tick = fxDecimal(instrument.tickSize);
-  const offset = deterministicOffsetTicks(symbol, sequence + BigInt(providerIndex * 17), 12);
-  const mid = fxDecimal(base).plus(tick.times(offset));
-  const half = new Decimal(spreadTicks).div(2);
-  const bid = mid.minus(tick.times(half.floor()));
+  const walk = deterministicOffsetTicks(symbol, sequence, 8);
+  const mid = fxDecimal(base).plus(tick.times(walk));
+  const bid = mid.plus(tick.times(PROVIDER_BID_OFFSET_TICKS[idx]));
   const ask = bid.plus(tick.times(spreadTicks));
   return {
     bid: fxToPriceString(bid, instrument.pricePrecision),
@@ -55,6 +57,7 @@ export class MockForexProvider implements ForexMarketDataProvider {
   private running = false;
   private quoteCount = 0;
   private lastQuoteTime: Date | null = null;
+  private providerLatencyMs = 0;
 
   constructor(
     readonly id: string,
@@ -72,10 +75,16 @@ export class MockForexProvider implements ForexMarketDataProvider {
     this.running = false;
   }
 
+  /** Test hook: provider_timestamp is this many ms before EDA receive. */
+  setProviderLatencyMs(ms: number): void {
+    this.providerLatencyMs = Math.max(0, ms);
+  }
+
   nextQuotes(now: Date): ProviderRawQuote[] {
     if (!this.running) return [];
     this.sequence += 1n;
     this.lastQuoteTime = now;
+    const providerTs = new Date(now.getTime() - this.providerLatencyMs);
     const out: ProviderRawQuote[] = [];
     for (const symbol of this.symbols) {
       const px = mockPriceAt(symbol, this.sequence, this.providerIndex);
@@ -86,7 +95,7 @@ export class MockForexProvider implements ForexMarketDataProvider {
         symbol,
         bid: px.bid,
         ask: px.ask,
-        providerTimestamp: now,
+        providerTimestamp: providerTs,
         providerSequence: this.sequence,
         source: 'SIMULATED',
       });
@@ -108,6 +117,7 @@ export class MockForexProvider implements ForexMarketDataProvider {
       errorCount: 0,
       duplicateCount: 0,
       outOfOrderCount: 0,
+      rejectRate: 0,
     };
   }
 }

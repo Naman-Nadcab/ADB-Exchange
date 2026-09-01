@@ -182,6 +182,7 @@ export interface ProviderHealthSnapshot {
   status: ForexProviderHealthStatus;
   lastQuoteTime: string | null;
   lastSequence: string | null;
+  /** provider_timestamp → EDA receive (network/provider clock, not processing). */
   latencyMs: number | null;
   quoteCount: number;
   staleCount: number;
@@ -189,11 +190,52 @@ export interface ProviderHealthSnapshot {
   errorCount: number;
   duplicateCount: number;
   outOfOrderCount: number;
+  rejectRate: number;
+}
+
+export const FOREX_ELIGIBILITY_REASONS = [
+  'ELIGIBLE',
+  'PROVIDER_DISABLED',
+  'NO_QUOTE',
+  'QUOTE_STALE',
+  'QUOTE_INVALID',
+  'QUOTE_CROSSED',
+  'PROVIDER_UNHEALTHY',
+  'INSTRUMENT_UNSUPPORTED',
+  'SPREAD_LIMIT',
+  'LATENCY_LIMIT',
+  'REJECT_RATE_LIMIT',
+] as const;
+export type ForexEligibilityReason = (typeof FOREX_ELIGIBILITY_REASONS)[number];
+
+export const FOREX_BOOK_STATUSES = ['READY', 'DEGRADED', 'STALE', 'HALTED', 'NO_LIQUIDITY'] as const;
+export type ForexBookStatus = (typeof FOREX_BOOK_STATUSES)[number];
+
+export interface ForexRoutingRule {
+  providerId: string;
+  providerCode: string;
+  instrumentSymbol: string | null;
+  enabled: boolean;
+  priority: number;
+  maxSpread: string;
+  maxLatencyMs: number;
+  maxRejectRate: number;
+  failoverEnabled: boolean;
+}
+
+export interface ForexEligibilityResult {
+  providerId: string;
+  providerCode: string;
+  eligible: boolean;
+  reason: ForexEligibilityReason;
+  detail: string;
+  latencyMs: number | null;
+  rejectRate: number;
+  spread: string | null;
 }
 
 /**
- * Future multi-LP book top. Phase 1 fills this from registered providers
- * so Phase 2 routing does not need a new quote contract.
+ * Multi-LP book top. Eligibility-aware — never first-provider-wins.
  */
 export interface AggregatedBookTop {
   symbol: string;
@@ -201,9 +243,16 @@ export interface AggregatedBookTop {
   bestAsk: string | null;
   bestBidProviderId: string | null;
   bestAskProviderId: string | null;
+  bestBidProviderCode: string | null;
+  bestAskProviderCode: string | null;
   spread: string | null;
+  providerCount: number;
+  healthyProviderCount: number;
+  eligibleProviderCount: number;
   eligibleProviderIds: string[];
+  status: ForexBookStatus;
   quotes: ForexQuoteDto[];
+  eligibility: ForexEligibilityResult[];
 }
 
 export interface ForexMarketDataProvider {

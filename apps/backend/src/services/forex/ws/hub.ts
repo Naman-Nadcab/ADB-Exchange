@@ -1,6 +1,7 @@
 import type { WebSocket } from 'ws';
 import { forexWsEnvelope, isPublicForexChannel } from './protocol.js';
 import type { ForexQuoteDto } from '../types.js';
+import type { ForexRoutingSnapshot } from '../liquidity/snapshot.js';
 
 interface ForexWsConn {
   socket: WebSocket;
@@ -35,10 +36,17 @@ class ForexWsHub {
   }
 
   publishQuote(quote: ForexQuoteDto): void {
-    const specific = `fx.quote.${quote.symbol}`;
-    const payload = forexWsEnvelope('fx.quote', specific, quote);
+    this.fanout(`fx.quote.${quote.symbol}`, 'fx.quote.*', 'fx.quote', quote);
+  }
+
+  publishLiquidity(snapshot: ForexRoutingSnapshot): void {
+    this.fanout(`fx.liquidity.${snapshot.symbol}`, 'fx.liquidity.*', 'fx.liquidity', snapshot);
+  }
+
+  private fanout(specific: string, wildcard: string, type: string, data: unknown): void {
+    const payload = forexWsEnvelope(type, specific, data);
     for (const conn of this.conns.values()) {
-      if (conn.channels.has(specific) || conn.channels.has('fx.quote.*')) {
+      if (conn.channels.has(specific) || conn.channels.has(wildcard)) {
         try {
           if (conn.socket.readyState === 1) conn.socket.send(payload);
         } catch {

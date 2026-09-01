@@ -45,3 +45,52 @@ const HEALTH_VALUE = { HEALTHY: 3, DEGRADED: 2, STALE: 1, OFFLINE: 0 } as const;
 export function forexHealthToNumber(status: keyof typeof HEALTH_VALUE): number {
   return HEALTH_VALUE[status];
 }
+
+export const forexLpQuoteReceivedTotal = new Counter({
+  name: 'forex_lp_quote_received_total',
+  help: 'Per-LP Forex quotes accepted',
+  labelNames: ['provider', 'symbol'],
+  registers: [register],
+});
+
+export const forexLpEligibleTotal = new Counter({
+  name: 'forex_lp_eligible_total',
+  help: 'Eligibility evaluations that passed',
+  labelNames: ['provider', 'symbol'],
+  registers: [register],
+});
+
+export const forexLpIneligibleTotal = new Counter({
+  name: 'forex_lp_ineligible_total',
+  help: 'Eligibility evaluations that failed',
+  labelNames: ['provider', 'symbol', 'reason'],
+  registers: [register],
+});
+
+export const forexLpRejectionRate = new Gauge({
+  name: 'forex_lp_rejection_rate',
+  help: 'Provider quote rejection rate (0-1)',
+  labelNames: ['provider'],
+  registers: [register],
+});
+
+export const forexLpLatency = new Gauge({
+  name: 'forex_lp_latency',
+  help: 'Last provider_timestamp to EDA receive latency in milliseconds',
+  labelNames: ['provider'],
+  registers: [register],
+});
+
+export const forexRoutingDecisionTotal = new Counter({
+  name: 'forex_routing_decision_total',
+  help: 'Forex routing snapshots produced',
+  labelNames: ['symbol', 'status'],
+  registers: [register],
+});
+
+export const forexNoLiquidityTotal = new Counter({
+  name: 'forex_no_liquidity_total',
+  help: 'Routing snapshots with NO_LIQUIDITY',
+  labelNames: ['symbol'],
+  registers: [register],
+});

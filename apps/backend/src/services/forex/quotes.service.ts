@@ -1,10 +1,17 @@
 import {
   forexHealthToNumber,
+  forexLpEligibleTotal,
+  forexLpIneligibleTotal,
+  forexLpLatency,
+  forexLpQuoteReceivedTotal,
+  forexLpRejectionRate,
+  forexNoLiquidityTotal,
   forexProviderHealth,
   forexProviderLatency,
   forexQuoteReceivedTotal,
   forexQuoteRejectedTotal,
   forexQuoteStaleTotal,
+  forexRoutingDecisionTotal,
 } from '../../lib/forex-prometheus-metrics.js';
 import { forexConfig } from './config.js';
 import { getForexInstrumentBySymbol, listForexSymbols } from './instruments.catalog.js';
@@ -22,6 +29,8 @@ import type {
   ProviderRawQuote,
 } from './types.js';
 import { forexWsHub } from './ws/hub.js';
+import { eligibilityToRow, buildRoutingSnapshot, type ForexRoutingSnapshot } from './liquidity/snapshot.js';
+import type { ForexExecutionDecision, ForexExecSide } from './execution/venue.js';
 
 function forexWarn(message: string, meta?: Record<string, unknown>): void {
   if (process.env.FOREX_SILENT_LOG === '1') return;
@@ -58,6 +67,7 @@ export class ForexPricingService {
     for (const p of this.providers) {
       this.health.register(p.id, p.code);
     }
+    this.aggregator.setHealthLookup((id, now) => this.health.snapshot(id, now));
   }
 
   setPersistEnabled(enabled: boolean): void {
@@ -68,6 +78,10 @@ export class ForexPricingService {
     const primary = this.providers[0];
     if (!primary) return;
     primary.start(symbols);
+  }
+
+  startAll(symbols = listForexSymbols()): void {
+    for (const p of this.providers) p.start(symbols);
   }
 
   stopAll(): void {
@@ -167,6 +181,7 @@ export class ForexPricingService {
       symbol: raw.symbol,
       source: raw.source,
     });
+    forexLpQuoteReceivedTotal.inc({ provider: raw.providerCode, symbol: raw.symbol });
     if (stale.freshness === 'STALE') {
       forexQuoteStaleTotal.inc({ provider: raw.providerCode, symbol: raw.symbol });
     }
@@ -175,7 +190,9 @@ export class ForexPricingService {
       forexProviderHealth.set({ provider: raw.providerCode }, forexHealthToNumber(snap.status));
       if (snap.latencyMs != null) {
         forexProviderLatency.set({ provider: raw.providerCode }, snap.latencyMs);
+        forexLpLatency.set({ provider: raw.providerCode }, snap.latencyMs);
       }
+      forexLpRejectionRate.set({ provider: raw.providerCode }, snap.rejectRate);
     }
 
     const dto = this.aggregator.getLatestDto(raw.symbol, receivedTimestamp);
@@ -213,6 +230,103 @@ export class ForexPricingService {
 
   listHealth(): ProviderHealthSnapshot[] {
     return this.health.list();
+  }
+
+  getRoutingSnapshot(symbol: string, now = new Date()): ForexRoutingSnapshot {
+    const book = this.aggregator.getAggregatedBook(symbol, now);
+    const rows = book.eligibility.map((el) => {
+      const rule = this.aggregator.rules.get(el.providerId, symbol);
+      const q = book.quotes.find((x) => x.providerId === el.providerId) ?? null;
+      const h = this.health.snapshot(el.providerId, now);
+      if (el.eligible) forexLpEligibleTotal.inc({ provider: el.providerCode, symbol });
+      else forexLpIneligibleTotal.inc({ provider: el.providerCode, symbol, reason: el.reason });
+      return eligibilityToRow(el, q, h?.status ?? null, rule?.priority ?? 999, rule?.enabled ?? false);
+    });
+    const snap = buildRoutingSnapshot({
+      symbol,
+      now,
+      bestBid: book.bestBid,
+      bestBidProviderCode: book.bestBidProviderCode,
+      bestAsk: book.bestAsk,
+      bestAskProviderCode: book.bestAskProviderCode,
+      spread: book.spread,
+      providerCount: book.providerCount,
+      healthyProviderCount: book.healthyProviderCount,
+      eligibleProviderCount: book.eligibleProviderCount,
+      status: book.status,
+      providers: rows,
+      source: 'SIMULATED',
+    });
+    forexRoutingDecisionTotal.inc({ symbol, status: snap.status });
+    if (snap.status === 'NO_LIQUIDITY') forexNoLiquidityTotal.inc({ symbol });
+    return snap;
+  }
+
+  listRoutingSnapshots(now = new Date()): ForexRoutingSnapshot[] {
+    return listForexSymbols().map((s) => this.getRoutingSnapshot(s, now));
+  }
+
+  listProviders() {
+    return this.providers.map((p) => {
+      const rule = this.aggregator.rules.get(p.id, null);
+      const health = this.health.snapshot(p.id);
+      return {
+        id: p.id,
+        code: p.code,
+        name: p.name,
+        kind: p.kind,
+        source: p.source,
+        enabled: rule?.enabled ?? true,
+        priority: rule?.priority ?? 100,
+        maxSpread: rule?.maxSpread ?? null,
+        maxLatencyMs: rule?.maxLatencyMs ?? null,
+        maxRejectRate: rule?.maxRejectRate ?? null,
+        failoverEnabled: rule?.failoverEnabled ?? true,
+        health,
+      };
+    });
+  }
+
+  decideExecution(args: {
+    symbol: string;
+    side: ForexExecSide;
+    volume: string;
+    maxSlippage?: string;
+    now?: Date;
+  }): ForexExecutionDecision {
+    const now = args.now ?? new Date();
+    const snap = this.getRoutingSnapshot(args.symbol, now);
+    const side = args.side;
+    const preferred = side === 'buy' ? snap.bestAskProvider : snap.bestBidProvider;
+    let selected = preferred;
+    let routingReason = side === 'buy' ? 'BEST_ASK' : 'BEST_BID';
+    if (!selected || snap.status === 'NO_LIQUIDITY') {
+      selected = snap.selectedProvider;
+      routingReason = snap.selectedReason === 'FAILOVER' ? 'FAILOVER' : snap.selectedReason;
+    } else if (snap.selectedReason === 'FAILOVER' && snap.selectedProvider && snap.selectedProvider !== preferred) {
+      const preferredRow = snap.providers.find((p) => p.providerCode === preferred);
+      if (preferredRow && !preferredRow.eligible) {
+        selected = snap.selectedProvider;
+        routingReason = 'FAILOVER';
+      }
+    }
+    const row = snap.providers.find((p) => p.providerCode === selected);
+    const quote = row?.quote
+      ? { bid: row.quote.bid, ask: row.quote.ask, providerCode: row.providerCode }
+      : null;
+    const expectedPrice = quote ? (side === 'buy' ? quote.ask : quote.bid) : null;
+    return {
+      symbol: args.symbol,
+      side,
+      requestedVolume: args.volume,
+      selectedProvider: selected,
+      quote,
+      expectedPrice,
+      maxSlippage: args.maxSlippage ?? '0',
+      routingReason,
+      snapshotStatus: snap.status,
+      timestamp: now.toISOString(),
+    };
   }
 }
 

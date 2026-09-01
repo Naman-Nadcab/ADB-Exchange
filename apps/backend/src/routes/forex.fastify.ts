@@ -5,6 +5,9 @@
 import type { FastifyInstance } from 'fastify';
 import {
   forexInstrumentsPayload,
+  forexLiquidityBySymbolPayload,
+  forexLiquidityPayload,
+  forexProvidersPayload,
   forexQuoteBySymbolPayload,
   forexQuotesPayload,
 } from '../services/forex/http.js';
@@ -38,11 +41,24 @@ export default async function forexRoutes(app: FastifyInstance) {
     return reply.status(result.status).send(result.body);
   });
 
+  app.get('/providers', async (_request, reply) => {
+    return reply.send(forexProvidersPayload(getForexPricingService()));
+  });
+
   app.get('/providers/health', async (_request, reply) => {
     return reply.send({
       success: true,
-      data: { providers: getForexPricingService().listHealth() },
+      data: { source: 'SIMULATED', providers: getForexPricingService().listHealth() },
     });
+  });
+
+  app.get('/liquidity', async (_request, reply) => {
+    return reply.send(forexLiquidityPayload(getForexPricingService()));
+  });
+
+  app.get<{ Params: { symbol: string } }>('/liquidity/:symbol', async (request, reply) => {
+    const result = forexLiquidityBySymbolPayload(getForexPricingService(), request.params.symbol);
+    return reply.status(result.status).send(result.body);
   });
 
   app.get('/ws', { websocket: true }, (socket, req) => {
@@ -62,7 +78,7 @@ export default async function forexRoutes(app: FastifyInstance) {
       forexWsEnvelope('welcome', undefined, {
         protocol: 'eda.forex.ws.v1',
         source: 'SIMULATED',
-        events: ['fx.quote'],
+        events: ['fx.quote', 'fx.liquidity'],
         reserved: ['fx.order', 'fx.execution', 'fx.position', 'fx.pnl', 'fx.margin', 'fx.risk'],
       })
     );
@@ -98,6 +114,12 @@ export default async function forexRoutes(app: FastifyInstance) {
           return;
         }
         socket.send(forexWsEnvelope('subscribed', msg.channel, { ok: true }));
+        if (msg.channel.startsWith('fx.liquidity.') || msg.channel === 'fx.liquidity.*') {
+          const symbol = msg.channel === 'fx.liquidity.*' ? 'EURUSD' : msg.channel.slice('fx.liquidity.'.length);
+          const book = getForexPricingService().getRoutingSnapshot(symbol);
+          socket.send(forexWsEnvelope('fx.liquidity', `fx.liquidity.${book.symbol}`, book));
+          return;
+        }
         const symbol = msg.channel === 'fx.quote.*' ? 'EURUSD' : msg.channel.slice('fx.quote.'.length);
         const snap = getForexPricingService().getQuote(symbol);
         if (snap && (msg.channel === `fx.quote.${snap.symbol}` || msg.channel === 'fx.quote.*')) {

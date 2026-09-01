@@ -4254,6 +4254,37 @@ const migrations = [
      max_leverage = EXCLUDED.max_leverage,
      margin_percent = EXCLUDED.margin_percent,
      updated_at = CURRENT_TIMESTAMP;`,
+
+  // FOREX PHASE 2 — routing rules (append-only, no Crypto tables)
+  `CREATE TABLE IF NOT EXISTS forex_routing_rules (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    provider_id UUID NOT NULL REFERENCES forex_lp_providers(id) ON DELETE CASCADE,
+    instrument_id UUID REFERENCES forex_instruments(id) ON DELETE CASCADE,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    priority INTEGER NOT NULL DEFAULT 100,
+    max_spread NUMERIC(20,8) NOT NULL DEFAULT 0.05,
+    max_latency_ms INTEGER NOT NULL DEFAULT 500,
+    max_reject_rate NUMERIC(10,6) NOT NULL DEFAULT 0.05,
+    failover_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT forex_routing_rules_priority_positive CHECK (priority >= 0)
+  );`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_forex_routing_rules_global
+     ON forex_routing_rules(provider_id) WHERE instrument_id IS NULL;`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_forex_routing_rules_instrument
+     ON forex_routing_rules(provider_id, instrument_id) WHERE instrument_id IS NOT NULL;`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_routing_rules_provider ON forex_routing_rules(provider_id, enabled, priority);`,
+  `INSERT INTO forex_routing_rules (provider_id, instrument_id, enabled, priority, max_spread, max_latency_ms, max_reject_rate, failover_enabled)
+   SELECT v.provider_id, NULL, TRUE, v.priority, 0.05, 500, 0.05, TRUE
+   FROM (VALUES
+     ('f0000000-0000-4000-8000-0000000000a1'::uuid, 10),
+     ('f0000000-0000-4000-8000-0000000000a2'::uuid, 20),
+     ('f0000000-0000-4000-8000-0000000000a3'::uuid, 30)
+   ) AS v(provider_id, priority)
+   WHERE NOT EXISTS (
+     SELECT 1 FROM forex_routing_rules r WHERE r.provider_id = v.provider_id AND r.instrument_id IS NULL
+   );`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

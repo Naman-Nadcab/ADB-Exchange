@@ -2,6 +2,7 @@ import { logger } from '../../../lib/logger.js';
 import { forexConfig } from '../config.js';
 import { listForexSymbols } from '../instruments.catalog.js';
 import { getForexPricingService } from '../quotes.service.js';
+import { forexWsHub } from '../ws/hub.js';
 
 let timer: ReturnType<typeof setInterval> | null = null;
 
@@ -12,10 +13,14 @@ export function startForexMarketDataWorker(): void {
   }
   if (timer) return;
   const svc = getForexPricingService();
-  svc.startPrimary(listForexSymbols());
+  svc.startAll(listForexSymbols());
   timer = setInterval(() => {
     try {
-      svc.tick(new Date());
+      const now = new Date();
+      svc.tick(now);
+      for (const symbol of listForexSymbols()) {
+        forexWsHub.publishLiquidity(svc.getRoutingSnapshot(symbol, now));
+      }
     } catch (err) {
       logger.warn('Forex market-data tick failed', {
         error: err instanceof Error ? err.message : String(err),
@@ -24,7 +29,7 @@ export function startForexMarketDataWorker(): void {
   }, forexConfig.marketDataIntervalMs);
   logger.info('Forex market-data worker started', {
     intervalMs: forexConfig.marketDataIntervalMs,
-    provider: 'MOCK-A',
+    providers: ['MOCK-A', 'MOCK-B', 'MOCK-C'],
     source: 'SIMULATED',
     symbols: listForexSymbols().length,
   });

@@ -1,15 +1,25 @@
-import { fxDecimal } from '../decimal-fx.js';
-import type { AggregatedBookTop, ForexQuoteDto, NormalizedQuote } from '../types.js';
+import type { AggregatedBookTop, ForexQuoteDto, NormalizedQuote, ProviderHealthSnapshot } from '../types.js';
 import { applyFreshness, quoteToDto } from './normalize.js';
 import { getForexInstrumentBySymbol } from '../instruments.catalog.js';
+import { aggregateEligibleBook } from '../liquidity/book.js';
+import { ForexRoutingRuleRegistry } from '../liquidity/routing-rules.js';
 
 /**
- * Multi-LP book. Phase 1 typically has MOCK-A publishing; MOCK-B/C stay registered
- * so Phase 2 can add adapters without changing this contract.
+ * Multi-LP book. Eligibility-aware best bid/ask — never first-provider-wins.
  */
 export class ForexQuoteAggregator {
   private readonly byProviderSymbol = new Map<string, NormalizedQuote>();
   private readonly edaBySymbol = new Map<string, NormalizedQuote>();
+  readonly rules: ForexRoutingRuleRegistry;
+  private healthLookup: (providerId: string, now: Date) => ProviderHealthSnapshot | undefined = () => undefined;
+
+  constructor(rules?: ForexRoutingRuleRegistry) {
+    this.rules = rules ?? new ForexRoutingRuleRegistry();
+  }
+
+  setHealthLookup(fn: (providerId: string, now: Date) => ProviderHealthSnapshot | undefined): void {
+    this.healthLookup = fn;
+  }
 
   private key(providerId: string, symbol: string): string {
     return `${providerId}:${symbol}`;
@@ -21,6 +31,15 @@ export class ForexQuoteAggregator {
     if (!current || quote.edaReceiveSequence > current.edaReceiveSequence) {
       this.edaBySymbol.set(quote.symbol, quote);
     }
+  }
+
+  listProviderQuotes(symbol?: string): NormalizedQuote[] {
+    const out: NormalizedQuote[] = [];
+    for (const q of this.byProviderSymbol.values()) {
+      if (symbol && q.symbol !== symbol) continue;
+      out.push(q);
+    }
+    return out;
   }
 
   getLatest(symbol: string, now = new Date()): NormalizedQuote | undefined {
@@ -44,41 +63,11 @@ export class ForexQuoteAggregator {
     return out.sort((a, b) => a.symbol.localeCompare(b.symbol));
   }
 
-  /**
-   * Best bid/ask across fresh, tradeable provider quotes.
-   * Stale quotes are never eligible for future routing.
-   */
   getAggregatedBook(symbol: string, now = new Date()): AggregatedBookTop {
-    const instrument = getForexInstrumentBySymbol(symbol);
-    const quotes: ForexQuoteDto[] = [];
-    let bestBid: { price: ReturnType<typeof fxDecimal>; providerId: string } | null = null;
-    let bestAsk: { price: ReturnType<typeof fxDecimal>; providerId: string } | null = null;
-    const eligible: string[] = [];
-
-    for (const raw of this.byProviderSymbol.values()) {
-      if (raw.symbol !== symbol) continue;
-      const q = applyFreshness(raw, now);
-      if (!instrument) continue;
-      const dto = quoteToDto(q, instrument.displaySymbol, instrument.pricePrecision);
-      quotes.push(dto);
-      if (q.freshness !== 'FRESH' || q.status !== 'TRADEABLE') continue;
-      eligible.push(q.providerId);
-      if (!bestBid || q.bid.gt(bestBid.price)) bestBid = { price: q.bid, providerId: q.providerId };
-      if (!bestAsk || q.ask.lt(bestAsk.price)) bestAsk = { price: q.ask, providerId: q.providerId };
-    }
-
-    const spread =
-      bestBid && bestAsk ? bestAsk.price.minus(bestBid.price).toFixed(instrument?.pricePrecision ?? 5) : null;
-
-    return {
-      symbol,
-      bestBid: bestBid && instrument ? bestBid.price.toFixed(instrument.pricePrecision) : null,
-      bestAsk: bestAsk && instrument ? bestAsk.price.toFixed(instrument.pricePrecision) : null,
-      bestBidProviderId: bestBid?.providerId ?? null,
-      bestAskProviderId: bestAsk?.providerId ?? null,
-      spread,
-      eligibleProviderIds: [...new Set(eligible)],
-      quotes,
-    };
+    return aggregateEligibleBook(symbol, this.listProviderQuotes(symbol), {
+      rules: this.rules,
+      healthOf: this.healthLookup,
+      now,
+    });
   }
 }

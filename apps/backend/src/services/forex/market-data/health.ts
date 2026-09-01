@@ -13,6 +13,12 @@ export interface ProviderHealthCounters {
   lastLatencyMs: number | null;
 }
 
+export function rejectRateOf(quoteCount: number, rejectedCount: number): number {
+  const denom = quoteCount + rejectedCount;
+  if (denom <= 0) return 0;
+  return rejectedCount / denom;
+}
+
 export function emptyHealthCounters(): ProviderHealthCounters {
   return {
     quoteCount: 0,
@@ -97,6 +103,7 @@ export class ForexProviderHealthRegistry {
       errorCount: c.errorCount,
       duplicateCount: c.duplicateCount,
       outOfOrderCount: c.outOfOrderCount,
+      rejectRate: rejectRateOf(c.quoteCount, c.rejectedCount),
     };
   }
 

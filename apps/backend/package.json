@@ -27,6 +27,7 @@
     "test:admin-rbac": "tsx src/lib/admin-rbac-routes.test.ts",
     "test:admin-ops": "tsx src/routes/admin-operations.integration.test.ts",
     "test:forex-phase1": "FOREX_SILENT_LOG=1 tsx src/services/forex/forex-phase1.test.ts",
+    "test:forex-phase2": "FOREX_SILENT_LOG=1 tsx src/services/forex/forex-phase2.test.ts",
     "test:tier1-alerts": "tsx scripts/tier1-alert-verify.ts",
     "load-historical-candles": "tsx scripts/load-historical-candles.ts",
     "backfill:opening-ledger": "tsx scripts/backfill-opening-balance-ledger.ts",

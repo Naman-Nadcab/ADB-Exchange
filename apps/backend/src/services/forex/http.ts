@@ -24,6 +24,43 @@ export function forexQuotesPayload(svc: ForexPricingService) {
   };
 }
 
+export function forexProvidersPayload(svc: ForexPricingService) {
+  const providers = svc.listProviders();
+  return {
+    success: true as const,
+    data: { source: 'SIMULATED' as const, count: providers.length, providers },
+  };
+}
+
+export function forexLiquidityPayload(svc: ForexPricingService) {
+  const books = svc.listRoutingSnapshots();
+  return {
+    success: true as const,
+    data: { source: 'SIMULATED' as const, count: books.length, books },
+  };
+}
+
+export function forexLiquidityBySymbolPayload(svc: ForexPricingService, rawSymbol: string) {
+  const symbol = normalizeForexSymbol(rawSymbol);
+  const instrument = getForexInstrumentBySymbol(symbol);
+  if (!instrument) {
+    return {
+      status: 404 as const,
+      body: {
+        success: false as const,
+        error: { code: 'FOREX_INSTRUMENT_NOT_FOUND', message: `Unknown Forex symbol ${symbol}` },
+      },
+    };
+  }
+  return {
+    status: 200 as const,
+    body: {
+      success: true as const,
+      data: svc.getRoutingSnapshot(symbol),
+    },
+  };
+}
+
 export function forexQuoteBySymbolPayload(svc: ForexPricingService, rawSymbol: string) {
   const symbol = normalizeForexSymbol(rawSymbol);
   const instrument = getForexInstrumentBySymbol(symbol);
