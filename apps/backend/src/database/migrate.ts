@@ -4639,6 +4639,36 @@ const migrations = [
   `CREATE TRIGGER trg_forex_liquidation_events_immutable
      BEFORE UPDATE OR DELETE ON forex_liquidation_events
      FOR EACH ROW EXECUTE FUNCTION forex_liquidation_events_immutable();`,
+
+  // FOREX PHASE 8 — risk states + append-only dealing/risk audit (isolated from Crypto)
+  `CREATE TABLE IF NOT EXISTS forex_account_risk_states (
+    account_id VARCHAR(64) PRIMARY KEY,
+    state VARCHAR(24) NOT NULL,
+    reason VARCHAR(64),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_account_risk_states_state ON forex_account_risk_states(state);`,
+  `CREATE TABLE IF NOT EXISTS forex_risk_events (
+    id BIGSERIAL PRIMARY KEY,
+    event_id UUID NOT NULL UNIQUE,
+    account_id VARCHAR(64) NOT NULL,
+    event_type VARCHAR(48) NOT NULL,
+    reason VARCHAR(64),
+    from_state VARCHAR(24),
+    to_state VARCHAR(24),
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_risk_events_account ON forex_risk_events(account_id, created_at);`,
+  `CREATE OR REPLACE FUNCTION forex_risk_events_immutable() RETURNS trigger AS $$
+     BEGIN
+       RAISE EXCEPTION 'forex_risk_events are immutable';
+     END;
+     $$ LANGUAGE plpgsql;`,
+  `DROP TRIGGER IF EXISTS trg_forex_risk_events_immutable ON forex_risk_events;`,
+  `CREATE TRIGGER trg_forex_risk_events_immutable
+     BEFORE UPDATE OR DELETE ON forex_risk_events
+     FOR EACH ROW EXECUTE FUNCTION forex_risk_events_immutable();`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

@@ -14,8 +14,7 @@ import type { ForexExecutionRecord, ForexFill } from '../execution/models.js';
 import type { ForexExecutionService } from '../execution/service.js';
 import { getForexExecutionService } from '../execution/service.js';
 import { forexRiskRejectionTotal } from '../../../lib/forex-prometheus-metrics.js';
-import { isForexAccountLiquidationLocked } from '../liquidation/lock.js';
-import { evaluateAccountRisk, getForexAccountPolicy } from '../risk/engine.js';
+import { getForexRiskService } from '../risk/service.js';
 import type { ForexPositionService } from '../positions/service.js';
 import { getForexPositionService } from '../positions/service.js';
 import { getForexPricingService } from '../quotes.service.js';
@@ -26,6 +25,7 @@ import { clientExecIdForOrder, orderFingerprint, type ForexOrderRequest } from '
 import {
   assertOrderTransition,
   canOrderTransition,
+  FOREX_ORDER_REASONS,
   type ForexOrderEventType,
   type ForexOrderReason,
   type ForexOrderState,
@@ -157,11 +157,13 @@ export class ForexOrderService {
     order.request.symbol = pre.symbol;
 
     if (this.positions) {
-      const gate = this.riskGate(accountId, pre.symbol, req.side, req.volume, req.intent ?? 'CUSTOMER');
+      const gate = this.riskGate(accountId, pre.symbol, req.side, req.volume, req.intent ?? 'CUSTOMER', req);
       if (!gate.ok) {
         forexRiskRejectionTotal.inc({ reason: gate.reason ?? 'RISK_REJECTED' });
-        const reason = gate.reason === 'ACCOUNT_LIQUIDATION_LOCK' ? 'ACCOUNT_LIQUIDATION_LOCK' : 'RISK_REJECTED';
-        return this.finish(order, 'REJECTED', reason, started, gate.reason ?? 'risk limit');
+        const mapped = (FOREX_ORDER_REASONS as readonly string[]).includes(gate.reason ?? '')
+          ? (gate.reason as ForexOrderReason)
+          : 'RISK_REJECTED';
+        return this.finish(order, 'REJECTED', mapped, started, gate.reason ?? 'risk limit');
       }
     }
 
@@ -268,47 +270,23 @@ export class ForexOrderService {
     symbol: string,
     side: 'buy' | 'sell',
     volume: string,
-    intent: import('./request.js').ForexOrderIntent = 'CUSTOMER'
+    intent: import('./request.js').ForexOrderIntent = 'CUSTOMER',
+    req?: import('./request.js').ForexOrderRequest
   ) {
     if (!this.positions) return { ok: true, reason: null };
-    if (intent === 'CUSTOMER' && isForexAccountLiquidationLocked(accountId)) {
-      return { ok: false, reason: 'ACCOUNT_LIQUIDATION_LOCK' };
-    }
-    if (intent === 'PROTECTION_CLOSE' || intent === 'LIQUIDATION_CLOSE') {
-      const policy = getForexAccountPolicy(accountId);
-      if (policy.killSwitch) return { ok: false, reason: 'FOREX_KILL_SWITCH' };
-      return { ok: true, reason: null };
-    }
-    const quote = getForexPricingService().getQuote(symbol);
-    const px = quote ? (side === 'buy' ? quote.ask : quote.bid) : undefined;
-    const inputs = this.positions.riskAccountingInputs(accountId);
-    if (!px) {
-      return evaluateAccountRisk({
-        accountId,
-        positions: this.positions.listOwned(accountId, true),
-        proposedVolume: volume,
-        proposedSymbol: symbol,
-        equity: inputs?.equity,
-        accountingAvailable: inputs?.accountingAvailable,
-      });
-    }
-    const preview = this.positions.previewAfterFill({
-      fillId: `preview-${accountId}-${symbol}`,
+    const openForSymbol = this.store.listByAccount(accountId).filter((o) => o.symbol === symbol && !['FILLED', 'REJECTED', 'CANCELLED', 'FAILED'].includes(o.status)).length;
+    const decision = getForexRiskService(this.positions, getForexPricingService()).evaluateOrder({
       accountId,
       symbol,
       side,
       volume,
-      price: px,
-      timestamp: new Date().toISOString(),
+      intent,
+      requestedPrice: req?.requestedPrice,
+      maxDeviation: req?.maxDeviation,
+      openOrdersForSymbol: openForSymbol,
     });
-    return evaluateAccountRisk({
-      accountId,
-      positions: preview,
-      proposedVolume: volume,
-      proposedSymbol: symbol,
-      equity: inputs?.equity,
-      accountingAvailable: inputs?.accountingAvailable,
-    });
+    if (!decision.ok) return { ok: false, reason: decision.reason };
+    return { ok: true, reason: null };
   }
 
   private async bookPositions(accountId: string, order: ForexOrderRecord, exec: ForexExecutionRecord): Promise<void> {

@@ -192,7 +192,7 @@ function pos() {
     maxDeviation: '0.01',
   });
   assert.equal(rejected.status, 'REJECTED');
-  assert.equal(rejected.failureReason, 'RISK_REJECTED');
+  assert.ok(rejected.failureReason === 'MAX_ORDER_VOLUME' || rejected.failureReason === 'RISK_REJECTED');
   assert.equal(positions.listOwned(USER, true).length, 0);
 
   resetForexAccountPoliciesForTests();

@@ -4,7 +4,7 @@
  * Public: fx.quote, fx.liquidity, fx.execution (SIMULATED).
  * Authenticated private: fx.order, fx.position, fx.margin, fx.risk,
  *   fx.account, fx.balance, fx.pnl, fx.equity, fx.funding,
- *   fx.protection, fx.liquidation (SIMULATED).
+ *   fx.protection, fx.liquidation, fx.exposure, fx.dealing, fx.restriction (SIMULATED).
  * Reserved: fx.copy (later phases).
  */
 
@@ -68,7 +68,16 @@ export function isForexAccountPrivateChannel(channel: string): boolean {
     channel.startsWith('fx.protection.') ||
     channel === 'fx.liquidation' ||
     channel === 'fx.liquidation.*' ||
-    channel.startsWith('fx.liquidation.')
+    channel.startsWith('fx.liquidation.') ||
+    channel === 'fx.exposure' ||
+    channel === 'fx.exposure.*' ||
+    channel.startsWith('fx.exposure.') ||
+    channel === 'fx.dealing' ||
+    channel === 'fx.dealing.*' ||
+    channel.startsWith('fx.dealing.') ||
+    channel === 'fx.restriction' ||
+    channel === 'fx.restriction.*' ||
+    channel.startsWith('fx.restriction.')
   );
 }
 

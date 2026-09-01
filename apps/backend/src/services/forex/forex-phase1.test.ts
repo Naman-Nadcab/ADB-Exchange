@@ -318,6 +318,9 @@ function validateOf(symbol: string, bid: string, ask: string, extra: Partial<Par
   assert.equal(isReservedPrivateForexChannel('fx.pnl.x'), false);
   assert.equal(isForexAccountPrivateChannel('fx.liquidation'), true);
   assert.equal(isForexAccountPrivateChannel('fx.protection'), true);
+  assert.equal(isForexAccountPrivateChannel('fx.exposure'), true);
+  assert.equal(isForexAccountPrivateChannel('fx.dealing'), true);
+  assert.equal(isForexAccountPrivateChannel('fx.restriction'), true);
   assert.equal(isPublicForexChannel('orderbook:BTC_USDT'), false);
 }
 

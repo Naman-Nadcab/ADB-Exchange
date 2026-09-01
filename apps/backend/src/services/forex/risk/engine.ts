@@ -2,6 +2,7 @@ import { forexConfig } from '../config.js';
 import { fxDecimal } from '../decimal-fx.js';
 import { classifyMarginLevel, marginLevel, type ForexMarginStatus } from '../margin/engine.js';
 import type { ForexPositionRecord } from '../positions/models.js';
+import { calculateForexExposure } from './exposure.js';
 
 export interface ForexAccountPolicy {
   accountId: string;
@@ -76,17 +77,12 @@ export function evaluateAccountRisk(args: {
 }): ForexRiskDecision {
   const policy = getForexAccountPolicy(args.accountId);
   const open = args.positions.filter((p) => p.status === 'OPEN');
-  let used = fxDecimal(0);
-  let gross = fxDecimal(0);
-  let net = fxDecimal(0);
+  const expSnap = calculateForexExposure(args.positions);
+  const used = fxDecimal(expSnap.usedMargin);
+  const gross = fxDecimal(expSnap.accountGross);
+  const net = fxDecimal(expSnap.accountNet);
   const bySymbol: Record<string, ReturnType<typeof fxDecimal>> = {};
-  for (const p of open) {
-    used = used.plus(p.initialMargin);
-    const exp = fxDecimal(p.exposure);
-    gross = gross.plus(exp);
-    net = net.plus(p.side === 'long' ? exp : exp.neg());
-    bySymbol[p.symbol] = (bySymbol[p.symbol] ?? fxDecimal(0)).plus(exp);
-  }
+  for (const [k, v] of Object.entries(expSnap.symbolExposure)) bySymbol[k] = fxDecimal(v);
 
   if (args.accountingAvailable === false) {
     return {

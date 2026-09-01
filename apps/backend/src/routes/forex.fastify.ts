@@ -24,6 +24,7 @@ import { registerForexLiquidationRoutes } from './forex-liquidation.fastify.js';
 import { registerForexCustomerOrderRoutes } from './forex-orders.fastify.js';
 import { registerForexPositionRoutes } from './forex-positions.fastify.js';
 import { registerForexProtectionRoutes } from './forex-protection.fastify.js';
+import { registerForexRiskRoutes } from './forex-risk.fastify.js';
 import {
   forexWsEnvelope,
   isForexAccountPrivateChannel,
@@ -140,6 +141,7 @@ export default async function forexRoutes(app: FastifyInstance) {
   await registerForexAccountingRoutes(app);
   await registerForexProtectionRoutes(app);
   await registerForexLiquidationRoutes(app);
+  await registerForexRiskRoutes(app);
 
   app.get('/ws', { websocket: true }, async (socket, req) => {
     const rawUrl = (req as { url?: string }).url || '';
@@ -170,7 +172,7 @@ export default async function forexRoutes(app: FastifyInstance) {
         protocol: 'eda.forex.ws.v1',
         source: 'SIMULATED',
         events: ['fx.quote', 'fx.liquidity', 'fx.execution'],
-        authenticatedEvents: ['fx.order', 'fx.position', 'fx.margin', 'fx.risk', 'fx.account', 'fx.balance', 'fx.pnl', 'fx.equity', 'fx.funding', 'fx.protection', 'fx.liquidation'],
+        authenticatedEvents: ['fx.order', 'fx.position', 'fx.margin', 'fx.risk', 'fx.account', 'fx.balance', 'fx.pnl', 'fx.equity', 'fx.funding', 'fx.protection', 'fx.liquidation', 'fx.exposure', 'fx.dealing', 'fx.restriction'],
         reserved: ['fx.copy'],
       })
     );

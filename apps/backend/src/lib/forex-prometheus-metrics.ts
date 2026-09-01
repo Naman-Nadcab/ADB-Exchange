@@ -441,3 +441,56 @@ export const forexLiquidationLatency = new Histogram({
   buckets: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5],
   registers: [register],
 });
+
+export const forexRiskStateChangeTotal = new Counter({
+  name: 'forex_risk_state_changes_total',
+  help: 'Forex account risk state transitions',
+  labelNames: ['from', 'to'],
+  registers: [register],
+});
+
+export const forexDealingRejectTotal = new Counter({
+  name: 'forex_dealing_rejections_total',
+  help: 'Forex dealing-control rejections',
+  labelNames: ['reason'],
+  registers: [register],
+});
+
+export const forexAnomalyRejectTotal = new Counter({
+  name: 'forex_anomaly_rejections_total',
+  help: 'Forex market/execution anomaly rejections at pre-trade',
+  labelNames: ['reason'],
+  registers: [register],
+});
+
+export const forexExposureGross = new Gauge({
+  name: 'forex_gross_exposure',
+  help: 'Forex account gross exposure',
+  labelNames: ['account'],
+  registers: [register],
+});
+
+export const forexExposureNet = new Gauge({
+  name: 'forex_net_exposure',
+  help: 'Forex account net exposure',
+  labelNames: ['account'],
+  registers: [register],
+});
+
+export const forexRestrictedAccounts = new Gauge({
+  name: 'forex_restricted_accounts',
+  help: 'Forex accounts in RESTRICTED state',
+  registers: [register],
+});
+
+export const forexLiquidationOnlyAccounts = new Gauge({
+  name: 'forex_liquidation_only_accounts',
+  help: 'Forex accounts in LIQUIDATION_ONLY state',
+  registers: [register],
+});
+
+export const forexHaltedAccounts = new Gauge({
+  name: 'forex_halted_accounts',
+  help: 'Forex accounts in HALTED state',
+  registers: [register],
+});

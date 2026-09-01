@@ -7,6 +7,7 @@ import { getForexLiquidationService } from '../liquidation/service.js';
 import { getForexOrderService } from '../orders/service.js';
 import { getForexPositionService } from '../positions/service.js';
 import { getForexPricingService } from '../quotes.service.js';
+import { getForexRiskService } from '../risk/service.js';
 import { getForexProtectionService } from './service.js';
 
 export async function startForexProtectionRuntime(): Promise<void> {
@@ -18,4 +19,7 @@ export async function startForexProtectionRuntime(): Promise<void> {
   const liq = getForexLiquidationService(positions, orders, accounting);
   await prot.hydrateFromDb().catch(() => undefined);
   await liq.hydrateFromDb().catch(() => undefined);
+  const risk = getForexRiskService(positions, pricing);
+  risk.setPersistEnabled(true);
+  await risk.hydrateFromDb().catch(() => undefined);
 }
