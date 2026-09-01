@@ -45,7 +45,8 @@ export function forexAuthenticate(app: FastifyInstance) {
         return;
       }
 
-      const valid = await isSessionValid(decoded.sessionId);
+      const sessionId = decoded.sessionId ?? '';
+      const valid = await isSessionValid(sessionId);
       if (!valid) {
         return reply.status(401).send({
           success: false,
@@ -55,10 +56,10 @@ export function forexAuthenticate(app: FastifyInstance) {
 
       request.user = {
         id: decoded.userId,
-        email: decoded.email,
+        email: decoded.email ?? '',
         phone: decoded.phone,
-        role: decoded.role,
-        sessionId: decoded.sessionId,
+        role: decoded.role ?? 'user',
+        sessionId,
       };
     } catch {
       return reply.status(401).send({
