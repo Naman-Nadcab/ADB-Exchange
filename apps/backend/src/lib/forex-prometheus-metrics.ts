@@ -577,3 +577,10 @@ export const forexRecoveryTotal = new Counter({
   labelNames: ['result'],
   registers: [register],
 });
+
+export const forexHydrateTotal = new Counter({
+  name: 'forex_hydrate_total',
+  help: 'Forex economic hydrate attempts at process start',
+  labelNames: ['result'],
+  registers: [register],
+});

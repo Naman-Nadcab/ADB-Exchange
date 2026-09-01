@@ -135,6 +135,18 @@ export async function loadOpenOrders(): Promise<ForexOrderRecord[]> {
   return Promise.all(rows.map((row) => attachEvents(row)));
 }
 
+export async function loadPendingOrderOverlays(): Promise<
+  Array<{ orderId: string; version: number; lastQuoteKey: string | null; lastModifyKey: string | null }>
+> {
+  const res = await db.query(`SELECT * FROM forex_pending_orders`);
+  return (res.rows as Record<string, unknown>[]).map((row) => ({
+    orderId: String(row.order_id),
+    version: Number(row.version ?? 1),
+    lastQuoteKey: row.last_quote_key == null ? null : String(row.last_quote_key),
+    lastModifyKey: row.last_modify_key == null ? null : String(row.last_modify_key),
+  }));
+}
+
 async function attachEvents(row: Record<string, unknown>): Promise<ForexOrderRecord> {
   const eventsRes = await db.query(
     `SELECT * FROM forex_order_events WHERE order_id = $1 ORDER BY created_at`,

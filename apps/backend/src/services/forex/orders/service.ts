@@ -38,6 +38,8 @@ import {
   type ForexOrderState,
 } from './states.js';
 import { ForexOrderStore } from './store.js';
+import { isForexTradingEligible } from '../sessions/eligibility.js';
+import { getForexInstrumentBySymbol } from '../instruments.catalog.js';
 import { validateForexOrderRequest } from './validate.js';
 
 export class ForexOrderService {
@@ -221,6 +223,7 @@ export class ForexOrderService {
       this.emit(order, 'ORDER_ACCEPTED');
       this.transition(order, 'PENDING');
       this.emit(order, 'ORDER_PENDING');
+      await this.persistPending(order);
       this.publish(order, 'fx.order.pending');
       this.refreshPendingGauge();
       const quote = this.pricing?.getQuote(order.symbol);
@@ -322,6 +325,21 @@ export class ForexOrderService {
       metadata: { version: order.version, requestedPrice: order.requestedPrice, volume: order.requestedVolume, stopLoss: patch.stopLoss ?? null, takeProfit: patch.takeProfit ?? null },
     });
     this.persist(order);
+    await this.persistPending(order);
+    if (this.persistEnabled) {
+      const { persistOrderModification } = await import('../advanced/persist.js');
+      await persistOrderModification({
+        eventId: randomUUID(),
+        orderId: order.orderId,
+        accountId,
+        fromVersion: order.version - 1,
+        toVersion: order.version,
+        requestedPrice: order.requestedPrice,
+        volume: order.requestedVolume,
+        idempotencyKey: key ?? null,
+        metadata: { stopLoss: patch.stopLoss ?? null, takeProfit: patch.takeProfit ?? null },
+      });
+    }
     forexOrderModifyTotal.inc({ result: 'ok' });
     this.publish(order, 'fx.order.updated');
     return order;
@@ -342,6 +360,16 @@ export class ForexOrderService {
     if (!isPendingTriggered(order, quote)) {
       forexPendingTriggerEvaluationsTotal.inc({ result: 'not_met' });
       this.persist(order);
+      return;
+    }
+    const instrument = getForexInstrumentBySymbol(order.symbol);
+    if (!instrument || instrument.tradingStatus !== 'active') {
+      this.finish(order, 'FAILED', 'INSTRUMENT_HALTED', started, 'instrument not executable');
+      return;
+    }
+    const session = isForexTradingEligible();
+    if (!session.open && (order.request.intent ?? 'CUSTOMER') === 'CUSTOMER') {
+      this.finish(order, 'FAILED', 'SESSION_CLOSED', started, session.reason);
       return;
     }
     this.transition(order, 'TRIGGERING');
@@ -512,9 +540,28 @@ export class ForexOrderService {
       executionId: f.executionId,
       orderId: order.orderId,
     }));
-    await this.positions.applyFills(fills);
+    if (this.positions && this.persistEnabled) {
+      await this.positions.applyFillsInTransaction(fills, async (input, client) => {
+        const { peekForexAccountingService } = await import('../accounting/service.js');
+        const acc = peekForexAccountingService();
+        if (!acc) return;
+        return acc.postCommission(
+          {
+            accountId,
+            fillId: input.fillId,
+            symbol: input.symbol,
+            side: input.side,
+            volume: input.volume,
+            price: input.price,
+          },
+          client
+        );
+      });
+    } else {
+      await this.positions.applyFills(fills);
+      await this.postFillCommissions(accountId, exec);
+    }
     this.publishFills(accountId, order, exec);
-    await this.postFillCommissions(accountId, exec);
   }
 
   private publishFills(accountId: string, order: ForexOrderRecord, exec: ForexExecutionRecord): void {
@@ -690,9 +737,20 @@ export class ForexOrderService {
 
   private persist(order: ForexOrderRecord): void {
     if (!this.persistEnabled) return;
-    void import('./persist.js')
-      .then((m) => m.persistOrder(order))
-      .catch(() => undefined);
+    void import('./persist.js').then((m) => m.persistOrder(order));
+  }
+
+  private async persistPending(order: ForexOrderRecord): Promise<void> {
+    if (!this.persistEnabled) return;
+    const { persistPendingOrder } = await import('../advanced/persist.js');
+    await persistPendingOrder({
+      orderId: order.orderId,
+      accountId: order.accountId,
+      symbol: order.symbol,
+      version: order.version,
+      lastQuoteKey: order.lastQuoteKey,
+      lastModifyKey: order.lastModifyKey,
+    });
   }
 
   private persistEvent(event: ForexOrderEvent): void {

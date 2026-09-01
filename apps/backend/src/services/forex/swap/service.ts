@@ -6,6 +6,8 @@
 import { randomUUID } from 'node:crypto';
 import { forexSwapAppliedTotal, forexSwapSkippedTotal } from '../../../lib/forex-prometheus-metrics.js';
 import type { ForexAccountingService } from '../accounting/service.js';
+import { persistSwapEvent } from '../advanced/persist.js';
+import { lockForexSwapKey, withForexTransaction } from '../durability/tx.js';
 import type { ForexPositionService } from '../positions/service.js';
 import { calculateForexSwap, isRolloverMoment, rolloverDateKey } from './engine.js';
 import { resolveForexSwap } from './policy.js';
@@ -28,20 +30,34 @@ export interface ForexSwapEvent {
 export class ForexSwapService {
   readonly events: ForexSwapEvent[] = [];
   private readonly applied = new Set<string>();
-  private lastRolloverDate: string | null = null;
+  private persistEnabled = false;
 
   constructor(
     private readonly positions: ForexPositionService,
-    private readonly accounting: ForexAccountingService
-  ) {}
+    private readonly accounting: ForexAccountingService,
+    persistEnabled = false
+  ) {
+    this.persistEnabled = persistEnabled;
+  }
+
+  setPersistEnabled(on: boolean): void {
+    this.persistEnabled = on;
+  }
 
   listOwned(accountId: string): ForexSwapEvent[] {
     return this.events.filter((e) => e.accountId === accountId);
   }
 
+  hydrate(events: ForexSwapEvent[]): void {
+    for (const e of events) {
+      this.events.push(e);
+      this.applied.add(e.idempotencyKey);
+    }
+  }
+
   /**
-   * Evaluate rollover at `at`. No-op unless the session/rollover condition is met
-   * and this UTC date has not already been processed.
+   * Evaluate rollover at `at`. No-op unless the session/rollover condition is met.
+   * Per-position key SWAP:{positionId}:{date} is the durable uniqueness barrier.
    */
   async applyRollover(at: Date): Promise<ForexSwapEvent[]> {
     const rule = resolveForexSwap('EURUSD');
@@ -50,10 +66,6 @@ export class ForexSwapService {
       return [];
     }
     const date = rolloverDateKey(at);
-    if (this.lastRolloverDate === date) {
-      forexSwapSkippedTotal.inc({ reason: 'ALREADY_APPLIED_DATE' });
-      return [];
-    }
     const applied: ForexSwapEvent[] = [];
     for (const p of this.positions.store.listOpen()) {
       const key = `SWAP:${p.positionId}:${date}`;
@@ -62,15 +74,6 @@ export class ForexSwapService {
         continue;
       }
       const calc = calculateForexSwap({ symbol: p.symbol, side: p.side, volume: p.volume, at });
-      const tx = await this.accounting.postSwap({
-        accountId: p.accountId,
-        positionId: p.positionId,
-        symbol: p.symbol,
-        amount: calc.amount,
-        idempotencyKey: key,
-        metadata: { ...calc, volume: p.volume },
-      });
-      this.applied.add(key);
       const event: ForexSwapEvent = {
         eventId: randomUUID(),
         accountId: p.accountId,
@@ -81,15 +84,54 @@ export class ForexSwapService {
         rolloverDate: date,
         triple: calc.triple,
         idempotencyKey: key,
-        transactionId: tx?.transactionId,
         timestamp: at.toISOString(),
         source: 'SIMULATED',
       };
+      if (this.persistEnabled) {
+        const posted = await withForexTransaction(async (client) => {
+          await lockForexSwapKey(client, key);
+          const inserted = await persistSwapEvent(event, client);
+          if (inserted !== 'inserted') return null;
+          const tx = await this.accounting.postSwap(
+            {
+              accountId: p.accountId,
+              positionId: p.positionId,
+              symbol: p.symbol,
+              amount: calc.amount,
+              idempotencyKey: key,
+              metadata: { ...calc, volume: p.volume },
+            },
+            client
+          );
+          event.transactionId = tx?.transactionId;
+          return { event, tx };
+        });
+        if (!posted) {
+          this.applied.add(key);
+          forexSwapSkippedTotal.inc({ reason: 'IDEMPOTENT' });
+          continue;
+        }
+        if (posted.tx) this.accounting.ledger.store.put(posted.tx);
+        this.applied.add(key);
+        this.events.push(posted.event);
+        forexSwapAppliedTotal.inc({ symbol: p.symbol, triple: calc.triple ? '1' : '0' });
+        applied.push(posted.event);
+        continue;
+      }
+      const tx = await this.accounting.postSwap({
+        accountId: p.accountId,
+        positionId: p.positionId,
+        symbol: p.symbol,
+        amount: calc.amount,
+        idempotencyKey: key,
+        metadata: { ...calc, volume: p.volume },
+      });
+      event.transactionId = tx?.transactionId;
+      this.applied.add(key);
       this.events.push(event);
       forexSwapAppliedTotal.inc({ symbol: p.symbol, triple: calc.triple ? '1' : '0' });
       applied.push(event);
     }
-    this.lastRolloverDate = date;
     return applied;
   }
 
@@ -101,11 +143,11 @@ export class ForexSwapService {
 let swapSingleton: ForexSwapService | null = null;
 
 export function getForexSwapService(positions: ForexPositionService, accounting: ForexAccountingService): ForexSwapService {
-  if (!swapSingleton) swapSingleton = new ForexSwapService(positions, accounting);
+  if (!swapSingleton) swapSingleton = new ForexSwapService(positions, accounting, true);
   return swapSingleton;
 }
 
 export function resetForexSwapServiceForTests(positions: ForexPositionService, accounting: ForexAccountingService): ForexSwapService {
-  swapSingleton = new ForexSwapService(positions, accounting);
+  swapSingleton = new ForexSwapService(positions, accounting, false);
   return swapSingleton;
 }

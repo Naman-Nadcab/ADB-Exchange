@@ -13,7 +13,12 @@ import type { ForexOrderService } from '../orders/service.js';
 import type { ForexPositionService } from '../positions/service.js';
 import { forexWsHub } from '../ws/hub.js';
 import { calculateLiquidationEligibility } from './eligibility.js';
-import { isForexAccountLiquidationLocked, setForexAccountLiquidationLock } from './lock.js';
+import {
+  acquireForexLiquidationLock,
+  isForexAccountLiquidationLocked,
+  releaseForexLiquidationLock,
+  setForexAccountLiquidationLock,
+} from './lock.js';
 import { ForexLiquidationError, publicForexLiquidation, type ForexLiquidationEvent, type ForexLiquidationRecord } from './models.js';
 import { rankLiquidationCandidates } from './priority.js';
 import { assertLiquidationTransition } from './states.js';
@@ -124,6 +129,13 @@ export class ForexLiquidationService {
     }
     const started = Date.now();
     const rec = this.createRecord(accountId, elig, 'ELIGIBLE');
+    if (this.persistEnabled) {
+      const acquired = await acquireForexLiquidationLock(accountId, rec.liquidationId);
+      if (!acquired) {
+        forexLiquidationDuplicateTotal.inc({});
+        return this.store.activeForAccount(accountId) ?? null;
+      }
+    }
     this.transition(rec, 'PENDING');
     setForexAccountLiquidationLock(accountId, true);
     forexLiquidationStartedTotal.inc({});
@@ -134,6 +146,7 @@ export class ForexLiquidationService {
     } finally {
       if (rec.status !== 'EXECUTING' && rec.status !== 'PENDING' && rec.status !== 'PARTIALLY_LIQUIDATED') {
         setForexAccountLiquidationLock(accountId, false);
+        if (this.persistEnabled) await releaseForexLiquidationLock(accountId);
       }
     }
     forexLiquidationLatency.observe({}, (Date.now() - started) / 1000);
@@ -234,6 +247,9 @@ export class ForexLiquidationService {
       }
     }
     setForexAccountLiquidationLock(rec.accountId, false);
+    if (this.persistEnabled) {
+      void releaseForexLiquidationLock(rec.accountId);
+    }
     forexLiquidationFailedTotal.inc({ reason });
     this.emit(rec, 'LIQUIDATION_FAILED', { reason });
     this.persist(rec);
@@ -267,7 +283,9 @@ export class ForexLiquidationService {
     if (!this.persistEnabled) return;
     void import('./persist.js')
       .then((m) => m.persistLiquidation(rec))
-      .catch(() => undefined);
+      .catch((err) => {
+        throw err;
+      });
   }
 
   private publish(rec: ForexLiquidationRecord, type: string): void {

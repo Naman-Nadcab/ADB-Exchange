@@ -1,10 +1,15 @@
-import { db } from '../../../lib/database.js';
+import { fxq, type ForexQueryable } from '../durability/tx.js';
 import type { ForexAppliedFill, ForexPositionEvent, ForexPositionRecord } from './models.js';
 import type { ForexPositionMode } from './mode.js';
 
-export async function persistPosition(record: ForexPositionRecord, expectedVersion?: number): Promise<boolean> {
+export async function persistPosition(
+  record: ForexPositionRecord,
+  expectedVersion?: number,
+  client?: ForexQueryable
+): Promise<boolean> {
+  const q = fxq(client);
   if (expectedVersion == null) {
-    await db.query(
+    await q.query(
       `INSERT INTO forex_positions (
          position_id, account_id, symbol, side, volume, entry_price, current_price, contract_size,
          leverage, initial_margin, maintenance_margin, exposure, status, mode, version,
@@ -51,7 +56,7 @@ export async function persistPosition(record: ForexPositionRecord, expectedVersi
     );
     return true;
   }
-  const res = await db.query(
+  const res = await q.query(
     `UPDATE forex_positions SET
        side = $1, volume = $2, entry_price = $3, current_price = $4, leverage = $5,
        initial_margin = $6, maintenance_margin = $7, exposure = $8, status = $9,
@@ -78,8 +83,9 @@ export async function persistPosition(record: ForexPositionRecord, expectedVersi
   return (res.rowCount ?? 0) > 0;
 }
 
-export async function persistPositionEvent(event: ForexPositionEvent): Promise<void> {
-  await db.query(
+export async function persistPositionEvent(event: ForexPositionEvent, client?: ForexQueryable): Promise<void> {
+  const q = fxq(client);
+  await q.query(
     `INSERT INTO forex_position_events (
        event_id, position_id, account_id, symbol, side, volume, entry_price, event_type,
        source_fill_id, reason, metadata, created_at
@@ -102,28 +108,40 @@ export async function persistPositionEvent(event: ForexPositionEvent): Promise<v
   );
 }
 
-export async function persistAppliedFill(accountId: string, positionId: string, fill: ForexAppliedFill): Promise<boolean> {
-  try {
-    await db.query(
-      `INSERT INTO forex_position_fills (fill_id, position_id, account_id, side, volume, price, fill_timestamp, execution_id)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-       ON CONFLICT (fill_id) DO NOTHING`,
-      [fill.fillId, positionId, accountId, fill.side, fill.volume, fill.price, fill.timestamp, fill.executionId ?? null]
-    );
-    const check = await db.query(`SELECT position_id FROM forex_position_fills WHERE fill_id = $1`, [fill.fillId]);
-    return (check.rows[0] as { position_id?: string } | undefined)?.position_id === positionId;
-  } catch {
-    return false;
-  }
+export async function persistAppliedFill(
+  accountId: string,
+  positionId: string,
+  fill: ForexAppliedFill,
+  client?: ForexQueryable
+): Promise<boolean> {
+  const q = fxq(client);
+  const inserted = await q.query(
+    `INSERT INTO forex_position_fills (fill_id, position_id, account_id, side, volume, price, fill_timestamp, execution_id)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+     ON CONFLICT (fill_id) DO NOTHING
+     RETURNING fill_id`,
+    [fill.fillId, positionId, accountId, fill.side, fill.volume, fill.price, fill.timestamp, fill.executionId ?? null]
+  );
+  return (inserted.rowCount ?? 0) > 0;
 }
 
-export async function loadOpenPositions(): Promise<ForexPositionRecord[]> {
-  const res = await db.query(`SELECT * FROM forex_positions WHERE status = 'OPEN'`);
+export async function loadOpenPositions(client?: ForexQueryable): Promise<ForexPositionRecord[]> {
+  const res = await fxq(client).query(`SELECT * FROM forex_positions WHERE status = 'OPEN'`);
   return (res.rows as Record<string, unknown>[]).map(rowToPosition);
 }
 
-export async function loadPositionById(positionId: string): Promise<ForexPositionRecord | null> {
-  const res = await db.query(`SELECT * FROM forex_positions WHERE position_id = $1`, [positionId]);
+export async function loadAllPositions(client?: ForexQueryable): Promise<ForexPositionRecord[]> {
+  const res = await fxq(client).query(`SELECT * FROM forex_positions`);
+  return (res.rows as Record<string, unknown>[]).map(rowToPosition);
+}
+
+export async function loadAllPositionFills(client?: ForexQueryable): Promise<string[]> {
+  const res = await fxq(client).query(`SELECT fill_id FROM forex_position_fills`);
+  return (res.rows as { fill_id?: unknown }[]).map((r) => String(r.fill_id));
+}
+
+export async function loadPositionById(positionId: string, client?: ForexQueryable): Promise<ForexPositionRecord | null> {
+  const res = await fxq(client).query(`SELECT * FROM forex_positions WHERE position_id = $1`, [positionId]);
   const row = res.rows[0] as Record<string, unknown> | undefined;
   return row ? rowToPosition(row) : null;
 }

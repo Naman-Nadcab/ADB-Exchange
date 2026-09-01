@@ -24,6 +24,7 @@ import type { ForexPositionRecord } from '../positions/models.js';
 import type { ForexPositionService } from '../positions/service.js';
 import type { ForexPricingService } from '../quotes.service.js';
 import { evaluateAccountRisk } from '../risk/engine.js';
+import type { ForexQueryable } from '../durability/tx.js';
 import { forexWsHub } from '../ws/hub.js';
 import type {
   ForexAccountView,
@@ -191,16 +192,19 @@ export class ForexAccountingService {
     return tx;
   }
 
-  async postRealizedFromFill(args: {
-    accountId: string;
-    fillId: string;
-    positionId: string;
-    symbol: string;
-    side: 'long' | 'short';
-    entryPrice: string;
-    closePrice: string;
-    closedVolume: string;
-  }): Promise<RealizedPostResult> {
+  async postRealizedFromFill(
+    args: {
+      accountId: string;
+      fillId: string;
+      positionId: string;
+      symbol: string;
+      side: 'long' | 'short';
+      entryPrice: string;
+      closePrice: string;
+      closedVolume: string;
+    },
+    client?: ForexQueryable
+  ): Promise<RealizedPostResult> {
     const key = `REALIZED_PNL:${args.fillId}`;
     const existing = this.ledger.store.getByKey(key);
     if (existing) {
@@ -248,14 +252,17 @@ export class ForexAccountingService {
             { ledgerAccount: 'REALIZED_PNL' as const, debit: '0', credit: abs, referenceType: 'FILL', referenceId: args.fillId },
           ];
 
-    const tx = await this.ledger.post({
-      idempotencyKey: key,
-      type: 'REALIZED_PNL',
-      accountId: args.accountId,
-      currency: ACCOUNTING_CURRENCY,
-      entries,
-      metadata: { pnl, fillId: args.fillId, positionId: args.positionId, symbol: args.symbol, zeroAmount: fxDecimal(abs).eq(0) },
-    });
+    const tx = await this.ledger.post(
+      {
+        idempotencyKey: key,
+        type: 'REALIZED_PNL',
+        accountId: args.accountId,
+        currency: ACCOUNTING_CURRENCY,
+        entries,
+        metadata: { pnl, fillId: args.fillId, positionId: args.positionId, symbol: args.symbol, zeroAmount: fxDecimal(abs).eq(0) },
+      },
+      client
+    );
     forexRealizedPnlTotal.inc({ result: loss ? 'loss' : profit ? 'profit' : 'flat' });
     this.pushOutbox(args.accountId, 'REALIZED_PNL_POSTED', 'POSTED', {
       transactionId: tx.transactionId,
@@ -465,14 +472,17 @@ export class ForexAccountingService {
     };
   }
 
-  async postCommission(args: {
-    accountId: string;
-    fillId: string;
-    symbol: string;
-    side: 'buy' | 'sell';
-    volume: string;
-    price: string;
-  }): Promise<ForexLedgerTransaction | null> {
+  async postCommission(
+    args: {
+      accountId: string;
+      fillId: string;
+      symbol: string;
+      side: 'buy' | 'sell';
+      volume: string;
+      price: string;
+    },
+    client?: ForexQueryable
+  ): Promise<ForexLedgerTransaction | null> {
     this.ensureAccount(args.accountId);
     const calc = calculateForexCommission({
       accountId: args.accountId,
@@ -484,66 +494,95 @@ export class ForexAccountingService {
     if (!fxDecimal(calc.amount).gt(0)) return null;
     const existing = this.ledger.store.getByKey(`FEE:${args.fillId}`);
     if (existing) return existing;
-    const tx = await this.ledger.post({
-      idempotencyKey: `FEE:${args.fillId}`,
-      type: 'FEE',
-      accountId: args.accountId,
-      currency: ACCOUNTING_CURRENCY,
-      entries: [
-        { ledgerAccount: 'CUSTOMER_CASH', accountId: args.accountId, debit: calc.amount, credit: '0', referenceType: 'FILL', referenceId: args.fillId },
-        { ledgerAccount: 'FEE_REVENUE', debit: '0', credit: calc.amount, referenceType: 'FILL', referenceId: args.fillId },
-      ],
-      metadata: { fillId: args.fillId, symbol: args.symbol, commission: calc },
-    });
+    const tx = await this.ledger.post(
+      {
+        idempotencyKey: `FEE:${args.fillId}`,
+        type: 'FEE',
+        accountId: args.accountId,
+        currency: ACCOUNTING_CURRENCY,
+        entries: [
+          { ledgerAccount: 'CUSTOMER_CASH', accountId: args.accountId, debit: calc.amount, credit: '0', referenceType: 'FILL', referenceId: args.fillId },
+          { ledgerAccount: 'FEE_REVENUE', debit: '0', credit: calc.amount, referenceType: 'FILL', referenceId: args.fillId },
+        ],
+        metadata: { fillId: args.fillId, symbol: args.symbol, commission: calc },
+      },
+      client
+    );
+    if (this.persistEnabled) {
+      const { persistFeeEvent } = await import('../advanced/persist.js');
+      await persistFeeEvent(
+        {
+          eventId: randomUUID(),
+          accountId: args.accountId,
+          fillId: args.fillId,
+          transactionId: tx.transactionId,
+          symbol: args.symbol,
+          amount: calc.amount,
+          model: calc.model,
+          idempotencyKey: `FEE:${args.fillId}`,
+          metadata: { commission: calc },
+        },
+        client
+      );
+    }
     forexCommissionPostedTotal.inc({ symbol: args.symbol });
     this.emitAudit(args.accountId, 'FEE_POSTED', { transactionId: tx.transactionId, fillId: args.fillId, metadata: { amount: calc.amount } });
     this.publishAccount(args.accountId);
     return tx;
   }
 
-  async postSwap(args: {
-    accountId: string;
-    positionId: string;
-    symbol: string;
-    amount: string;
-    idempotencyKey: string;
-    metadata?: Record<string, unknown>;
-  }): Promise<ForexLedgerTransaction | null> {
+  async postSwap(
+    args: {
+      accountId: string;
+      positionId: string;
+      symbol: string;
+      amount: string;
+      idempotencyKey: string;
+      metadata?: Record<string, unknown>;
+    },
+    client?: ForexQueryable
+  ): Promise<ForexLedgerTransaction | null> {
     this.ensureAccount(args.accountId);
     const amount = fxDecimal(args.amount);
     if (amount.eq(0)) {
       const existingZero = this.ledger.store.getByKey(args.idempotencyKey);
       if (existingZero) return existingZero;
-      const tx = await this.ledger.post({
-        idempotencyKey: args.idempotencyKey,
-        type: 'FUNDING',
-        accountId: args.accountId,
-        currency: ACCOUNTING_CURRENCY,
-        entries: [],
-        metadata: { ...args.metadata, positionId: args.positionId, symbol: args.symbol, zeroAmount: true },
-      });
+      const tx = await this.ledger.post(
+        {
+          idempotencyKey: args.idempotencyKey,
+          type: 'FUNDING',
+          accountId: args.accountId,
+          currency: ACCOUNTING_CURRENCY,
+          entries: [],
+          metadata: { ...args.metadata, positionId: args.positionId, symbol: args.symbol, zeroAmount: true },
+        },
+        client
+      );
       forexFundingTotal.inc({ direction: 'credit' });
       this.emitAudit(args.accountId, 'SWAP_POSTED', { transactionId: tx.transactionId, positionId: args.positionId, metadata: { amount: '0' } });
       return tx;
     }
     const creditCustomer = amount.gt(0);
     const abs = amount.abs().toFixed();
-    const tx = await this.ledger.post({
-      idempotencyKey: args.idempotencyKey,
-      type: 'FUNDING',
-      accountId: args.accountId,
-      currency: ACCOUNTING_CURRENCY,
-      entries: creditCustomer
-        ? [
-            { ledgerAccount: 'FUNDING', debit: abs, credit: '0', referenceType: 'SWAP', referenceId: args.positionId },
-            { ledgerAccount: 'CUSTOMER_CASH', accountId: args.accountId, debit: '0', credit: abs, referenceType: 'SWAP', referenceId: args.positionId },
-          ]
-        : [
-            { ledgerAccount: 'CUSTOMER_CASH', accountId: args.accountId, debit: abs, credit: '0', referenceType: 'SWAP', referenceId: args.positionId },
-            { ledgerAccount: 'FUNDING', debit: '0', credit: abs, referenceType: 'SWAP', referenceId: args.positionId },
-          ],
-      metadata: { ...args.metadata, positionId: args.positionId, symbol: args.symbol },
-    });
+    const tx = await this.ledger.post(
+      {
+        idempotencyKey: args.idempotencyKey,
+        type: 'FUNDING',
+        accountId: args.accountId,
+        currency: ACCOUNTING_CURRENCY,
+        entries: creditCustomer
+          ? [
+              { ledgerAccount: 'FUNDING', debit: abs, credit: '0', referenceType: 'SWAP', referenceId: args.positionId },
+              { ledgerAccount: 'CUSTOMER_CASH', accountId: args.accountId, debit: '0', credit: abs, referenceType: 'SWAP', referenceId: args.positionId },
+            ]
+          : [
+              { ledgerAccount: 'CUSTOMER_CASH', accountId: args.accountId, debit: abs, credit: '0', referenceType: 'SWAP', referenceId: args.positionId },
+              { ledgerAccount: 'FUNDING', debit: '0', credit: abs, referenceType: 'SWAP', referenceId: args.positionId },
+            ],
+        metadata: { ...args.metadata, positionId: args.positionId, symbol: args.symbol },
+      },
+      client
+    );
     forexFundingTotal.inc({ direction: creditCustomer ? 'credit' : 'debit' });
     this.emitAudit(args.accountId, 'SWAP_POSTED', { transactionId: tx.transactionId, positionId: args.positionId, metadata: { amount: args.amount } });
     this.publishAccount(args.accountId);

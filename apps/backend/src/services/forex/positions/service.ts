@@ -23,6 +23,7 @@ import { classifyMarginLevel, marginLevel, positionMarginSnapshot } from '../mar
 import { getForexAccountPolicy, evaluateAccountRisk, type ForexRiskDecision } from '../risk/engine.js';
 import type { ForexPricingService } from '../quotes.service.js';
 import { forexWsHub } from '../ws/hub.js';
+import { lockForexAccount, lockForexPosition, withForexTransaction, type ForexQueryable } from '../durability/tx.js';
 import { FOREX_ACTIVE_POSITION_MODE } from './mode.js';
 import type {
   ForexAppliedFill,
@@ -33,6 +34,15 @@ import type {
 import { ForexPositionError, publicForexPosition } from './models.js';
 import { applyNettingFill, replayNetting, type NettingState } from './netting.js';
 import { ForexPositionStore } from './store.js';
+
+type FillPlan = {
+  fill: ForexAppliedFill;
+  existing: ForexPositionRecord | null;
+  target: ForexPositionRecord;
+  result: ReturnType<typeof applyNettingFill>;
+  reversed: boolean;
+  ledgerTxs: import('../ledger/models.js').ForexLedgerTransaction[];
+};
 
 export class ForexPositionService {
   private readonly lastMarginStatus = new Map<string, string>();
@@ -76,17 +86,94 @@ export class ForexPositionService {
     return this.store.listByAccount(accountId, openOnly).map((p) => this.refreshValuation(p));
   }
 
-  async applyFill(input: ForexPositionFillInput): Promise<ForexPositionRecord | null> {
-    return this.store.enqueue(input.accountId, input.symbol, () => this.applyFillLocked(input));
+  async applyFill(input: ForexPositionFillInput, client?: ForexQueryable): Promise<ForexPositionRecord | null> {
+    if (!this.persistEnabled) {
+      return this.store.enqueue(input.accountId, input.symbol, () => this.applyFillMemory(input));
+    }
+    if (client) {
+      const plan = await this.persistFillPlan(input, client);
+      if (!plan) return this.store.getOpen(input.accountId, input.symbol) ?? null;
+      this.commitEconomicMemory(plan);
+      return plan.target;
+    }
+    return this.store.enqueue(input.accountId, input.symbol, async () => {
+      const plan = await withForexTransaction(async (c) => {
+        await lockForexAccount(c, input.accountId);
+        await lockForexPosition(c, input.accountId, input.symbol);
+        return this.persistFillPlan(input, c);
+      });
+      if (!plan) return this.store.getOpen(input.accountId, input.symbol) ?? null;
+      this.commitEconomicMemory(plan);
+      return plan.target;
+    });
   }
 
   async applyFills(inputs: ForexPositionFillInput[]): Promise<ForexPositionRecord[]> {
-    const out: ForexPositionRecord[] = [];
-    for (const f of inputs) {
-      const r = await this.applyFill(f);
-      if (r) out.push(r);
+    if (!this.persistEnabled || inputs.length === 0) {
+      const out: ForexPositionRecord[] = [];
+      for (const f of inputs) {
+        const r = await this.applyFill(f);
+        if (r) out.push(r);
+      }
+      return out;
     }
-    return out;
+    const accountId = inputs[0]!.accountId;
+    const plans = await this.store.enqueueAccount(accountId, () =>
+      withForexTransaction(async (c) => {
+        await lockForexAccount(c, accountId);
+        const out: FillPlan[] = [];
+        for (const input of inputs) {
+          await lockForexPosition(c, input.accountId, input.symbol);
+          const plan = await this.persistFillPlan(input, c);
+          if (plan) out.push(plan);
+        }
+        return out;
+      })
+    );
+    const records: ForexPositionRecord[] = [];
+    for (const plan of plans) {
+      this.commitEconomicMemory(plan);
+      records.push(plan.target);
+    }
+    return records;
+  }
+
+  async applyFillsInTransaction(
+    inputs: ForexPositionFillInput[],
+    afterEach?: (
+      input: ForexPositionFillInput,
+      client: ForexQueryable
+    ) => Promise<import('../ledger/models.js').ForexLedgerTransaction | null | void>
+  ): Promise<ForexPositionRecord[]> {
+    if (!this.persistEnabled) return this.applyFills(inputs);
+    if (inputs.length === 0) return [];
+    const accountId = inputs[0]!.accountId;
+    const packed = await this.store.enqueueAccount(accountId, () =>
+      withForexTransaction(async (c) => {
+        await lockForexAccount(c, accountId);
+        const out: FillPlan[] = [];
+        const extras: import('../ledger/models.js').ForexLedgerTransaction[] = [];
+        for (const input of inputs) {
+          await lockForexPosition(c, input.accountId, input.symbol);
+          const plan = await this.persistFillPlan(input, c);
+          if (plan) {
+            out.push(plan);
+            if (afterEach) {
+              const extra = await afterEach(input, c);
+              if (extra) extras.push(extra);
+            }
+          }
+        }
+        return { out, extras };
+      })
+    );
+    for (const tx of packed.extras) this.accounting?.ledger.store.put(tx);
+    const records: ForexPositionRecord[] = [];
+    for (const plan of packed.out) {
+      this.commitEconomicMemory(plan);
+      records.push(plan.target);
+    }
+    return records;
   }
 
   previewAfterFill(input: ForexPositionFillInput): ForexPositionRecord[] {
@@ -212,7 +299,118 @@ export class ForexPositionService {
     return open;
   }
 
-  private async applyFillLocked(input: ForexPositionFillInput): Promise<ForexPositionRecord | null> {
+  private async persistFillPlan(input: ForexPositionFillInput, client: ForexQueryable): Promise<FillPlan | null> {
+    const persist = await import('./persist.js');
+    const seen = await client.query(`SELECT fill_id FROM forex_position_fills WHERE fill_id = $1`, [input.fillId]);
+    if ((seen.rowCount ?? 0) > 0 || this.store.hasFill(input.fillId)) {
+      await this.hydrateOpenSymbol(input.accountId, input.symbol, persist, client);
+      return null;
+    }
+    await this.hydrateOpenSymbol(input.accountId, input.symbol, persist, client);
+    const fill: ForexAppliedFill = {
+      fillId: input.fillId,
+      side: input.side,
+      volume: input.volume,
+      price: input.price,
+      timestamp: input.timestamp,
+      executionId: input.executionId,
+      orderId: input.orderId,
+    };
+    const existing = this.store.getOpen(input.accountId, input.symbol) ?? null;
+    const result = applyNettingFill(existing ? toNet(existing) : null, fill);
+    const now = new Date().toISOString();
+    const currentPx = this.currentPrice(input.symbol, input.price);
+    const ledgerTxs: import('../ledger/models.js').ForexLedgerTransaction[] = [];
+
+    if (result.eventType === 'POSITION_REVERSED' && existing) {
+      const closeFill: ForexAppliedFill = { ...fill, volume: result.closedVolume };
+      const openFill: ForexAppliedFill = { ...fill, volume: result.openedVolume };
+      const closed: ForexPositionRecord = {
+        ...existing,
+        status: 'CLOSED',
+        volume: '0',
+        closedAt: now,
+        updatedAt: now,
+        version: existing.version + 1,
+        appliedFills: [...existing.appliedFills, closeFill],
+      };
+      const opened = this.materialize(input.accountId, input.symbol, result.after, null, [openFill], currentPx);
+      const claimed = await persist.persistAppliedFill(input.accountId, opened.positionId, fill, client);
+      if (!claimed) {
+        await this.hydrateOpenSymbol(input.accountId, input.symbol, persist, client);
+        return null;
+      }
+      if (this.accounting && fxDecimal(result.closedVolume).gt(0)) {
+        const posted = await this.accounting.postRealizedFromFill(
+          {
+            accountId: input.accountId,
+            fillId: fill.fillId,
+            positionId: existing.positionId,
+            symbol: input.symbol,
+            side: existing.side,
+            entryPrice: existing.entryPrice,
+            closePrice: fill.price,
+            closedVolume: result.closedVolume,
+          },
+          client
+        );
+        ledgerTxs.push(posted.transaction);
+      }
+      await persist.persistPosition(closed, undefined, client);
+      await persist.persistPosition(opened, undefined, client);
+      return { fill, existing: closed, target: opened, result, reversed: true, ledgerTxs };
+    }
+
+    const target = this.materialize(
+      input.accountId,
+      input.symbol,
+      result.after,
+      existing,
+      existing ? [...existing.appliedFills, fill] : [fill],
+      currentPx
+    );
+    if (existing) {
+      target.positionId = existing.positionId;
+      target.openedAt = existing.openedAt;
+      target.version = existing.version + 1;
+    }
+    const claimed = await persist.persistAppliedFill(input.accountId, target.positionId, fill, client);
+    if (!claimed) {
+      await this.hydrateOpenSymbol(input.accountId, input.symbol, persist, client);
+      return null;
+    }
+    if (this.accounting && fxDecimal(result.closedVolume).gt(0) && existing) {
+      const posted = await this.accounting.postRealizedFromFill(
+        {
+          accountId: input.accountId,
+          fillId: fill.fillId,
+          positionId: existing.positionId,
+          symbol: input.symbol,
+          side: existing.side,
+          entryPrice: existing.entryPrice,
+          closePrice: fill.price,
+          closedVolume: result.closedVolume,
+        },
+        client
+      );
+      ledgerTxs.push(posted.transaction);
+    }
+    await persist.persistPosition(target, undefined, client);
+    return { fill, existing, target, result, reversed: false, ledgerTxs };
+  }
+
+  private async hydrateOpenSymbol(
+    accountId: string,
+    symbol: string,
+    persist: typeof import('./persist.js'),
+    client: ForexQueryable
+  ): Promise<void> {
+    const open = await persist.loadOpenPositions(client);
+    const match = open.find((p) => p.accountId === accountId && p.symbol === symbol);
+    if (match) this.store.put(match);
+  }
+
+  private async applyFillMemory(input: ForexPositionFillInput): Promise<ForexPositionRecord | null> {
     if (this.store.hasFill(input.fillId)) return this.store.getOpen(input.accountId, input.symbol) ?? null;
     const fill: ForexAppliedFill = {
       fillId: input.fillId,
@@ -239,12 +437,6 @@ export class ForexPositionService {
     }
     const now = new Date().toISOString();
     const currentPx = this.currentPrice(input.symbol, input.price);
-    const target = this.materialize(input.accountId, input.symbol, result.after, existing, existing ? [...existing.appliedFills, fill] : [fill], currentPx);
-    if (existing) {
-      target.positionId = existing.positionId;
-      target.openedAt = existing.openedAt;
-      target.version = existing.version + 1;
-    }
     if (result.eventType === 'POSITION_REVERSED' && existing) {
       const closeFill: ForexAppliedFill = { ...fill, volume: result.closedVolume };
       const openFill: ForexAppliedFill = { ...fill, volume: result.openedVolume };
@@ -254,34 +446,64 @@ export class ForexPositionService {
       existing.updatedAt = now;
       existing.version += 1;
       existing.appliedFills = [...existing.appliedFills, closeFill];
-      this.store.put(existing);
-      this.emit(existing, 'POSITION_CLOSED', fill.fillId, { reversed: true });
       const opened = this.materialize(input.accountId, input.symbol, result.after, null, [openFill], currentPx);
-      this.store.markFill(fill.fillId);
-      this.store.put(opened);
-      this.persist(opened);
-      this.emit(opened, 'POSITION_REVERSED', fill.fillId);
-      this.emit(opened, 'POSITION_OPENED', fill.fillId, { reversedFrom: existing.positionId });
-      forexPositionReversalTotal.inc({ symbol: input.symbol });
-      forexPositionOpenedTotal.inc({ symbol: input.symbol, side: opened.side });
-      this.publish(opened, 'fx.position');
-      this.notifyLifecycle(input.accountId, existing.positionId);
+      this.commitFillMemory({ fill, existing, target: opened, result, reversed: true });
       return opened;
     }
+    const target = this.materialize(
+      input.accountId,
+      input.symbol,
+      result.after,
+      existing,
+      existing ? [...existing.appliedFills, fill] : [fill],
+      currentPx
+    );
+    if (existing) {
+      target.positionId = existing.positionId;
+      target.openedAt = existing.openedAt;
+      target.version = existing.version + 1;
+    }
+    this.commitFillMemory({ fill, existing, target, result, reversed: false });
+    return target;
+  }
 
+  private commitEconomicMemory(plan: FillPlan): void {
+    for (const tx of plan.ledgerTxs) this.accounting?.ledger.store.put(tx);
+    this.commitFillMemory(plan);
+  }
+
+  private commitFillMemory(args: {
+    fill: ForexAppliedFill;
+    existing: ForexPositionRecord | null;
+    target: ForexPositionRecord;
+    result: ReturnType<typeof applyNettingFill>;
+    reversed: boolean;
+  }): void {
+    const { fill, existing, target, result, reversed } = args;
+    if (reversed && existing) {
+      this.store.put(existing);
+      this.emit(existing, 'POSITION_CLOSED', fill.fillId, { reversed: true });
+      this.store.markFill(fill.fillId);
+      this.store.put(target);
+      this.emit(target, 'POSITION_REVERSED', fill.fillId);
+      this.emit(target, 'POSITION_OPENED', fill.fillId, { reversedFrom: existing.positionId });
+      forexPositionReversalTotal.inc({ symbol: target.symbol });
+      forexPositionOpenedTotal.inc({ symbol: target.symbol, side: target.side });
+      this.publish(target, 'fx.position');
+      this.notifyLifecycle(target.accountId, existing.positionId);
+      return;
+    }
     this.store.markFill(fill.fillId);
     this.store.put(target);
-    this.persist(target);
     this.emit(target, result.eventType, fill.fillId);
-    if (result.eventType === 'POSITION_OPENED') forexPositionOpenedTotal.inc({ symbol: input.symbol, side: target.side });
-    if (result.eventType === 'POSITION_INCREASED') forexPositionIncreasedTotal.inc({ symbol: input.symbol });
-    if (result.eventType === 'POSITION_REDUCED') forexPositionReducedTotal.inc({ symbol: input.symbol });
-    if (result.eventType === 'POSITION_CLOSED') forexPositionClosedTotal.inc({ symbol: input.symbol });
+    if (result.eventType === 'POSITION_OPENED') forexPositionOpenedTotal.inc({ symbol: target.symbol, side: target.side });
+    if (result.eventType === 'POSITION_INCREASED') forexPositionIncreasedTotal.inc({ symbol: target.symbol });
+    if (result.eventType === 'POSITION_REDUCED') forexPositionReducedTotal.inc({ symbol: target.symbol });
+    if (result.eventType === 'POSITION_CLOSED') forexPositionClosedTotal.inc({ symbol: target.symbol });
     this.publish(target, 'fx.position');
-    const snap = this.accountSnapshot(input.accountId);
-    this.publishAccount(input.accountId, snap);
-    this.notifyLifecycle(input.accountId, result.eventType === 'POSITION_CLOSED' && existing ? existing.positionId : undefined);
-    return target;
+    const snap = this.accountSnapshot(target.accountId);
+    this.publishAccount(target.accountId, snap);
+    this.notifyLifecycle(target.accountId, result.eventType === 'POSITION_CLOSED' && existing ? existing.positionId : undefined);
   }
 
   private notifyLifecycle(accountId: string, closedPositionId?: string): void {

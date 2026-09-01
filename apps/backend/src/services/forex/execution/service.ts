@@ -67,6 +67,12 @@ export class ForexExecutionService {
     return this.store.listOpen();
   }
 
+  async hydrateFromDb(): Promise<void> {
+    if (!this.persistEnabled) return;
+    const { loadAllExecutions } = await import('./persist.js');
+    this.store.hydrate(await loadAllExecutions());
+  }
+
   async cancel(clientExecId: string): Promise<{ ok: true } | { ok: false; reason: string }> {
     const rec = this.store.getByClient(clientExecId);
     if (!rec) return { ok: false, reason: 'NOT_FOUND' };

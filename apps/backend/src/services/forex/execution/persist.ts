@@ -118,6 +118,16 @@ function str(v: unknown): string {
   return v == null ? '' : String(v);
 }
 
+export async function loadAllExecutions(): Promise<ForexExecutionRecord[]> {
+  const ids = await db.query(`SELECT client_exec_id FROM forex_executions`);
+  const out: ForexExecutionRecord[] = [];
+  for (const row of ids.rows as { client_exec_id?: unknown }[]) {
+    const rec = await loadExecutionByClient(String(row.client_exec_id));
+    if (rec) out.push(rec);
+  }
+  return out;
+}
+
 export async function loadExecutionByClient(clientExecId: string): Promise<ForexExecutionRecord | null> {
   const execRes = await db.query(
     `SELECT * FROM forex_executions WHERE client_exec_id = $1 LIMIT 1`,

@@ -4772,6 +4772,23 @@ const migrations = [
   `CREATE TRIGGER trg_forex_reconciliation_events_immutable
      BEFORE UPDATE OR DELETE ON forex_reconciliation_events
      FOR EACH ROW EXECUTE FUNCTION forex_reconciliation_events_immutable();`,
+
+  // FOREX PHASE 9.5 — durability / immutability / global liquidation lock (append-only, isolated from Crypto)
+  `CREATE OR REPLACE FUNCTION forex_ledger_transactions_immutable() RETURNS trigger AS $$
+     BEGIN
+       RAISE EXCEPTION 'forex_ledger_transactions are immutable';
+     END;
+     $$ LANGUAGE plpgsql;`,
+  `DROP TRIGGER IF EXISTS trg_forex_ledger_transactions_immutable ON forex_ledger_transactions;`,
+  `CREATE TRIGGER trg_forex_ledger_transactions_immutable
+     BEFORE UPDATE OR DELETE ON forex_ledger_transactions
+     FOR EACH ROW EXECUTE FUNCTION forex_ledger_transactions_immutable();`,
+  `CREATE TABLE IF NOT EXISTS forex_liquidation_locks (
+    account_id VARCHAR(64) PRIMARY KEY,
+    liquidation_id UUID NOT NULL,
+    acquired_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_liquidation_locks_liq ON forex_liquidation_locks(liquidation_id);`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

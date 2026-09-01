@@ -16,6 +16,7 @@ import { getForexPricingService } from '../services/forex/quotes.service.js';
 import { ForexExecutionError } from '../services/forex/execution/models.js';
 import { getForexExecutionService } from '../services/forex/execution/service.js';
 import type { ForexExecutionRequest } from '../services/forex/execution/request.js';
+import { forexNotReadyReason, isForexEconomicReady } from '../services/forex/durability/ready.js';
 import { startForexMarketDataWorker, stopForexMarketDataWorker } from '../services/forex/market-data/worker.js';
 import { startForexProtectionRuntime, stopForexAdvancedRuntime } from '../services/forex/protection/runtime.js';
 import { registerForexAdvancedRoutes } from './forex-advanced.fastify.js';
@@ -33,10 +34,39 @@ import {
   isReservedPrivateForexChannel,
 } from '../services/forex/ws/protocol.js';
 
+function isForexPublicReadPath(url: string): boolean {
+  const path = (url.split('?')[0] ?? '').replace(/\/+$/, '');
+  return (
+    path.endsWith('/instruments') ||
+    path.includes('/quotes') ||
+    path.includes('/providers') ||
+    path.includes('/liquidity') ||
+    path.includes('/sessions') ||
+    path.includes('/trading-config') ||
+    path.endsWith('/ws') ||
+    path.includes('/forex/ws')
+  );
+}
+
 export default async function forexRoutes(app: FastifyInstance) {
   app.addHook('onReady', async () => {
     startForexMarketDataWorker();
-    await startForexProtectionRuntime();
+    try {
+      await startForexProtectionRuntime();
+    } catch {
+      /* Forex trading stays not-ready. Crypto and public market-data continue. */
+    }
+  });
+  app.addHook('preHandler', async (request, reply) => {
+    if (isForexPublicReadPath(request.url)) return;
+    if (isForexEconomicReady()) return;
+    return reply.status(503).send({
+      success: false,
+      error: {
+        code: 'FOREX_NOT_READY',
+        message: forexNotReadyReason() ?? 'Forex economic state is not hydrated',
+      },
+    });
   });
   app.addHook('onClose', async () => {
     stopForexMarketDataWorker();

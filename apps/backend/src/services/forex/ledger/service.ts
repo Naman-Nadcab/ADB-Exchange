@@ -8,6 +8,7 @@ import {
 } from '../../../lib/forex-prometheus-metrics.js';
 import { forexConfig } from '../config.js';
 import { fxDecimal } from '../decimal-fx.js';
+import { lockForexAccount, withForexTransaction, type ForexQueryable } from '../durability/tx.js';
 import type { ForexLedgerAccount } from './accounts.js';
 import type { ForexAccountingEvent, ForexLedgerEntry, ForexLedgerPostRequest, ForexLedgerTransaction } from './models.js';
 import { ForexLedgerError } from './models.js';
@@ -30,7 +31,8 @@ export class ForexLedgerService {
     this.persistEnabled = on;
   }
 
-  async post(req: ForexLedgerPostRequest): Promise<ForexLedgerTransaction> {
+  async post(req: ForexLedgerPostRequest, client?: ForexQueryable): Promise<ForexLedgerTransaction> {
+    if (client) return this.postLocked(req, client);
     return this.store.enqueue(req.accountId, () => this.postLocked(req));
   }
 
@@ -51,11 +53,16 @@ export class ForexLedgerService {
     return this.store.snapshot();
   }
 
-  private async postLocked(req: ForexLedgerPostRequest): Promise<ForexLedgerTransaction> {
+  private async postLocked(req: ForexLedgerPostRequest, client?: ForexQueryable): Promise<ForexLedgerTransaction> {
     forexLedgerTransactionTotal.inc({ type: req.type });
     const key = req.idempotencyKey.trim();
     if (!key) throw new ForexLedgerError('INVALID_IDEMPOTENCY_KEY', 'idempotencyKey is required');
-    const existing = this.store.getByKey(key);
+    let existing = this.store.getByKey(key);
+    if (!existing && this.persistEnabled) {
+      const { loadLedgerByKey } = await import('./persist.js');
+      existing = (await loadLedgerByKey(key, client)) ?? undefined;
+      if (existing) this.store.put(existing);
+    }
     const fp = ledgerFingerprint(req);
     if (existing) {
       if (existing.fingerprint !== fp) {
@@ -127,13 +134,21 @@ export class ForexLedgerService {
     const cashDebit = entries
       .filter((e) => e.ledgerAccount === 'CUSTOMER_CASH' && e.accountId === req.accountId)
       .reduce((a, e) => a.plus(e.debit), fxDecimal(0));
-    if (cashDebit.gt(0)) {
-      const bal = fxDecimal(this.customerCashBalance(req.accountId));
+
+    const assertCash = async (c?: ForexQueryable): Promise<void> => {
+      if (!cashDebit.gt(0)) return;
+      let bal = fxDecimal(this.customerCashBalance(req.accountId));
+      if (this.persistEnabled) {
+        const { customerCashBalanceFromDb } = await import('./persist.js');
+        bal = fxDecimal(await customerCashBalanceFromDb(req.accountId, c));
+      }
       if (bal.minus(cashDebit).lt(0)) {
         forexLedgerRejectedTotal.inc({ reason: 'INSUFFICIENT_FOREX_BALANCE' });
         throw new ForexLedgerError('INSUFFICIENT_FOREX_BALANCE', 'operation would create a negative Forex cash balance', 409);
       }
-    }
+    };
+
+    if (!this.persistEnabled) await assertCash();
 
     const tx: ForexLedgerTransaction = {
       transactionId,
@@ -148,32 +163,50 @@ export class ForexLedgerService {
       metadata: req.metadata,
       source: 'SIMULATED',
     };
-    this.store.put(tx);
-    this.persist(tx);
-    forexLedgerPostedTotal.inc({ type: req.type });
-    this.emit({
+    const postedEvent: ForexAccountingEvent = {
       eventId: randomUUID(),
       accountId: req.accountId,
       eventType: 'LEDGER_TRANSACTION_POSTED',
       timestamp: now,
       transactionId,
-    });
+    };
+
+    if (this.persistEnabled) {
+      const write = async (c: ForexQueryable): Promise<ForexLedgerTransaction> => {
+        await assertCash(c);
+        const { persistAccountingEvent, persistLedgerTransaction, loadLedgerByKey } = await import('./persist.js');
+        const result = await persistLedgerTransaction(tx, c);
+        if (result === 'replay') {
+          const loaded = await loadLedgerByKey(key, c);
+          if (loaded) {
+            if (!this.store.getByKey(key)) this.store.put(loaded);
+            forexLedgerIdempotencyTotal.inc({ result: 'replay' });
+            return loaded;
+          }
+        }
+        await persistAccountingEvent(postedEvent, c);
+        if (!client) {
+          this.store.put(tx);
+          this.store.events.push(postedEvent);
+        }
+        forexLedgerPostedTotal.inc({ type: req.type });
+        return tx;
+      };
+      if (client) return write(client);
+      return withForexTransaction(async (c) => {
+        await lockForexAccount(c, req.accountId);
+        return write(c);
+      });
+    }
+
+    this.store.put(tx);
+    forexLedgerPostedTotal.inc({ type: req.type });
+    this.emit(postedEvent);
     return this.store.get(transactionId) ?? tx;
   }
 
   private emit(event: ForexAccountingEvent): void {
     this.store.events.push(event);
-    if (!this.persistEnabled) return;
-    void import('./persist.js')
-      .then((m) => m.persistAccountingEvent(event))
-      .catch(() => undefined);
-  }
-
-  private persist(tx: ForexLedgerTransaction): void {
-    if (!this.persistEnabled) return;
-    void import('./persist.js')
-      .then((m) => m.persistLedgerTransaction(tx))
-      .catch(() => undefined);
   }
 }
 
