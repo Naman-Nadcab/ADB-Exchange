@@ -188,7 +188,7 @@ export class ForexAccountingService {
     });
     forexFundingTotal.inc({ direction: args.direction });
     this.emitAudit(args.accountId, 'FUNDING_POSTED', { transactionId: tx.transactionId, fillId: undefined });
-    this.publish(args.accountId, 'fx.funding', { source: 'SIMULATED', funding: publicTx(tx) });
+    this.publish(args.accountId, 'fx.funding', { source: 'SIMULATED', funding: publicLedgerRow(tx) });
     this.publishAccount(args.accountId);
     return tx;
   }
