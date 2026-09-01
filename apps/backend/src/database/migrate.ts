@@ -4355,6 +4355,51 @@ const migrations = [
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
   );`,
   `CREATE INDEX IF NOT EXISTS idx_forex_execution_events_exec ON forex_execution_events(execution_id, created_at);`,
+
+  // FOREX PHASE 4 — customer orders / order audit (append-only, isolated from Crypto)
+  `CREATE TABLE IF NOT EXISTS forex_orders (
+    order_id UUID PRIMARY KEY,
+    client_order_id VARCHAR(128) NOT NULL,
+    client_exec_id VARCHAR(128) NOT NULL UNIQUE,
+    account_id VARCHAR(64) NOT NULL,
+    fingerprint TEXT NOT NULL,
+    symbol VARCHAR(16) NOT NULL,
+    side VARCHAR(4) NOT NULL CHECK (side IN ('buy','sell')),
+    order_type VARCHAR(16) NOT NULL,
+    requested_volume NUMERIC(20,8) NOT NULL,
+    filled_volume NUMERIC(20,8) NOT NULL DEFAULT 0,
+    remaining_volume NUMERIC(20,8) NOT NULL,
+    requested_price NUMERIC(20,8),
+    max_slippage NUMERIC(20,8),
+    max_deviation NUMERIC(20,8),
+    status VARCHAR(24) NOT NULL,
+    failure_reason VARCHAR(40),
+    execution_id UUID,
+    fill_ids UUID[] NOT NULL DEFAULT ARRAY[]::UUID[],
+    request_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    source VARCHAR(16) NOT NULL DEFAULT 'SIMULATED',
+    execution_mode VARCHAR(16) NOT NULL DEFAULT 'MOCK',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT forex_orders_account_client UNIQUE (account_id, client_order_id),
+    CONSTRAINT forex_orders_filled_nonneg CHECK (filled_volume >= 0),
+    CONSTRAINT forex_orders_remaining_nonneg CHECK (remaining_volume >= 0),
+    CONSTRAINT forex_orders_fill_bound CHECK (filled_volume <= requested_volume)
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_orders_account ON forex_orders(account_id, created_at DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_orders_status ON forex_orders(status, created_at DESC);`,
+  `CREATE TABLE IF NOT EXISTS forex_order_events (
+    id BIGSERIAL PRIMARY KEY,
+    event_id UUID NOT NULL UNIQUE,
+    order_id UUID NOT NULL,
+    client_order_id VARCHAR(128) NOT NULL,
+    event_type VARCHAR(40) NOT NULL,
+    reason VARCHAR(40),
+    execution_id UUID,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_order_events_order ON forex_order_events(order_id, created_at);`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

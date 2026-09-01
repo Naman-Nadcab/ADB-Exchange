@@ -27,6 +27,7 @@ export class MockForexExecutionVenue implements ForexExecutionVenue {
   private planIdx = 0;
   private malformed = false;
   private forceReject = false;
+  private rejectAfterAccepts: number | null = null;
 
   constructor(code = 'MOCK-A', name = 'EDA Mock Execution A', id = 'f0000000-0000-4000-8000-0000000000a1') {
     this.code = code;
@@ -53,6 +54,10 @@ export class MockForexExecutionVenue implements ForexExecutionVenue {
 
   setForceReject(on: boolean): void {
     this.forceReject = on;
+  }
+
+  setRejectAfterAccepts(n: number | null): void {
+    this.rejectAfterAccepts = n == null ? null : Math.max(0, n);
   }
 
   async placeOrder(req: ForexExecRequest): Promise<ForexExecAck> {
@@ -82,7 +87,14 @@ export class MockForexExecutionVenue implements ForexExecutionVenue {
       };
     }
 
-    if (!volume.gt(0) || this.forceReject || req.clientExecId.includes('REJECT') || req.volume === '0') {
+    const acceptedSoFar = this.acceptCount + this.partialCount;
+    if (
+      !volume.gt(0) ||
+      this.forceReject ||
+      (this.rejectAfterAccepts != null && acceptedSoFar >= this.rejectAfterAccepts) ||
+      req.clientExecId.includes('REJECT') ||
+      req.volume === '0'
+    ) {
       status = 'rejected';
       filled = fxDecimal(0);
       rejectReason = 'MOCK_REJECT';

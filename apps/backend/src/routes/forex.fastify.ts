@@ -18,8 +18,10 @@ import { getForexExecutionService } from '../services/forex/execution/service.js
 import type { ForexExecutionRequest } from '../services/forex/execution/request.js';
 import { startForexMarketDataWorker, stopForexMarketDataWorker } from '../services/forex/market-data/worker.js';
 import { forexWsHub } from '../services/forex/ws/hub.js';
+import { registerForexCustomerOrderRoutes } from './forex-orders.fastify.js';
 import {
   forexWsEnvelope,
+  isForexOrderChannel,
   isPublicForexChannel,
   isReservedPrivateForexChannel,
 } from '../services/forex/ws/protocol.js';
@@ -127,7 +129,9 @@ export default async function forexRoutes(app: FastifyInstance) {
     return reply.send({ success: true, data: { source: 'SIMULATED', scope: 'TEST_ONLY', execution: record } });
   });
 
-  app.get('/ws', { websocket: true }, (socket, req) => {
+  await registerForexCustomerOrderRoutes(app);
+
+  app.get('/ws', { websocket: true }, async (socket, req) => {
     const rawUrl = (req as { url?: string }).url || '';
     try {
       const u = new URL(rawUrl, 'http://localhost');
@@ -139,13 +143,25 @@ export default async function forexRoutes(app: FastifyInstance) {
       /* ignore */
     }
 
-    const connId = forexWsHub.register(socket as unknown as import('ws').WebSocket);
+    let userId: string | undefined;
+    const upgradeReq = req as typeof req & { jwtVerify?: () => Promise<void>; user?: { id?: string; userId?: string } };
+    try {
+      if (typeof upgradeReq.jwtVerify === 'function' && req.headers.authorization) {
+        await upgradeReq.jwtVerify();
+        userId = upgradeReq.user?.id ?? upgradeReq.user?.userId;
+      }
+    } catch {
+      userId = undefined;
+    }
+
+    const connId = forexWsHub.register(socket as unknown as import('ws').WebSocket, userId);
     socket.send(
       forexWsEnvelope('welcome', undefined, {
         protocol: 'eda.forex.ws.v1',
         source: 'SIMULATED',
         events: ['fx.quote', 'fx.liquidity', 'fx.execution'],
-        reserved: ['fx.order', 'fx.position', 'fx.pnl', 'fx.margin', 'fx.risk'],
+        authenticatedEvents: ['fx.order'],
+        reserved: ['fx.position', 'fx.pnl', 'fx.margin', 'fx.risk'],
       })
     );
 
@@ -173,6 +189,20 @@ export default async function forexRoutes(app: FastifyInstance) {
               message: 'Private Forex channels are reserved for later phases',
             })
           );
+          return;
+        }
+        if (isForexOrderChannel(msg.channel)) {
+          if (!forexWsHub.subscribe(connId, msg.channel)) {
+            socket.send(
+              forexWsEnvelope('error', msg.channel, {
+                code: 'AUTH_REQUIRED',
+                message: 'fx.order requires an authenticated Forex WebSocket session',
+              })
+            );
+            return;
+          }
+          socket.send(forexWsEnvelope('subscribed', msg.channel, { ok: true, source: 'SIMULATED' }));
+          socket.send(forexWsEnvelope('fx.order', msg.channel, { source: 'SIMULATED', status: 'SUBSCRIBED' }));
           return;
         }
         if (!isPublicForexChannel(msg.channel) || !forexWsHub.subscribe(connId, msg.channel)) {

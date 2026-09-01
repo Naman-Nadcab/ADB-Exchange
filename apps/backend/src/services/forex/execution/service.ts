@@ -67,6 +67,29 @@ export class ForexExecutionService {
     return this.store.listOpen();
   }
 
+  async cancel(clientExecId: string): Promise<{ ok: true } | { ok: false; reason: string }> {
+    const rec = this.store.getByClient(clientExecId);
+    if (!rec) return { ok: false, reason: 'NOT_FOUND' };
+    if (rec.status === 'FILLED' || rec.status === 'REJECTED' || rec.status === 'FAILED' || rec.status === 'CANCELLED') {
+      return { ok: false, reason: 'CANCEL_NOT_SUPPORTED' };
+    }
+    if (!canTransition(rec.status, 'CANCEL_PENDING')) {
+      return { ok: false, reason: 'CANCEL_NOT_SUPPORTED' };
+    }
+    const venueExecId = [...rec.attempts].reverse().find((a) => a.venueExecId)?.venueExecId;
+    const venue = rec.selectedProvider ? this.venues.get(rec.selectedProvider) : undefined;
+    if (!venue || !venueExecId) return { ok: false, reason: 'CANCEL_NOT_SUPPORTED' };
+    this.transition(rec, 'CANCEL_PENDING');
+    const ack = await venue.cancelOrder(venueExecId);
+    if (!ack.cancelled) {
+      if (canTransition(rec.status, 'PARTIALLY_FILLED')) this.transition(rec, 'PARTIALLY_FILLED');
+      return { ok: false, reason: ack.reason ?? 'CANCEL_NOT_SUPPORTED' };
+    }
+    this.transition(rec, 'CANCELLED');
+    this.emit(rec, 'EXECUTION_COMPLETED', { reason: 'OK', metadata: { cancelled: true } });
+    return { ok: true };
+  }
+
   async execute(req: ForexExecutionRequest): Promise<ForexExecutionRecord> {
     const started = Date.now();
     const existing = await this.claim(req);

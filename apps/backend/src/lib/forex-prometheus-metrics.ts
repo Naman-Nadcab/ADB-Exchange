@@ -158,3 +158,53 @@ export const forexExecutionDuplicateTotal = new Counter({
   labelNames: ['result'],
   registers: [register],
 });
+
+export const forexOrderCreatedTotal = new Counter({
+  name: 'forex_order_created_total',
+  help: 'Forex customer orders created',
+  labelNames: ['symbol'],
+  registers: [register],
+});
+
+export const forexOrderFilledTotal = new Counter({
+  name: 'forex_order_filled_total',
+  help: 'Forex customer orders fully filled',
+  labelNames: ['symbol'],
+  registers: [register],
+});
+
+export const forexOrderRejectedTotal = new Counter({
+  name: 'forex_order_rejected_total',
+  help: 'Forex customer orders rejected',
+  labelNames: ['symbol', 'reason'],
+  registers: [register],
+});
+
+export const forexOrderCancelledTotal = new Counter({
+  name: 'forex_order_cancelled_total',
+  help: 'Forex customer orders cancelled',
+  labelNames: ['symbol'],
+  registers: [register],
+});
+
+export const forexOrderFailedTotal = new Counter({
+  name: 'forex_order_failed_total',
+  help: 'Forex customer orders failed',
+  labelNames: ['symbol', 'reason'],
+  registers: [register],
+});
+
+export const forexOrderIdempotencyHitTotal = new Counter({
+  name: 'forex_order_idempotency_hit_total',
+  help: 'Forex customer order idempotency replays and conflicts',
+  labelNames: ['result'],
+  registers: [register],
+});
+
+export const forexOrderLatency = new Histogram({
+  name: 'forex_order_latency',
+  help: 'Forex customer order place latency in seconds',
+  labelNames: ['symbol'],
+  buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5],
+  registers: [register],
+});

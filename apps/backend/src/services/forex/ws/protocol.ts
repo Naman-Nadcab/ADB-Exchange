@@ -2,12 +2,12 @@
  * Dedicated Forex WS protocol. Must not be mixed with /api/v1/spot/ws.
  *
  * Public: fx.quote, fx.liquidity, fx.execution (SIMULATED).
- * Reserved: fx.order, fx.position, fx.pnl, fx.margin, fx.risk.
+ * Authenticated private: fx.order (SIMULATED).
+ * Reserved: fx.position, fx.pnl, fx.margin, fx.risk.
  */
 
 export const FOREX_WS_PUBLIC_PREFIXES = ['fx.quote.', 'fx.liquidity.', 'fx.execution.'] as const;
 export const FOREX_WS_PRIVATE_PREFIXES = [
-  'fx.order.',
   'fx.position.',
   'fx.pnl.',
   'fx.margin.',
@@ -33,6 +33,10 @@ export function isPublicForexChannel(channel: string): boolean {
 
 export function isReservedPrivateForexChannel(channel: string): boolean {
   return FOREX_WS_PRIVATE_PREFIXES.some((p) => channel === p.slice(0, -1) || channel.startsWith(p));
+}
+
+export function isForexOrderChannel(channel: string): boolean {
+  return channel === 'fx.order' || channel === 'fx.order.*' || channel.startsWith('fx.order.');
 }
 
 export function forexWsEnvelope(
