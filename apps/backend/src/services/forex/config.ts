@@ -46,4 +46,27 @@ export const forexConfig = {
   /** Default max slippage in price units. */
   defaultMaxSlippage: process.env.FOREX_DEFAULT_MAX_SLIPPAGE?.trim() || '0.00030',
   executionTestApiEnabled: envBool('FOREX_EXECUTION_TEST_API', false),
+  /** Active position mode. HEDGING is reserved; keying stays mode-aware. */
+  positionMode: (process.env.FOREX_POSITION_MODE?.trim().toUpperCase() === 'HEDGING' ? 'HEDGING' : 'NETTING') as
+    | 'NETTING'
+    | 'HEDGING',
+  globalMaxLeverage: process.env.FOREX_GLOBAL_MAX_LEVERAGE?.trim() || '100',
+  defaultAccountLeverage: process.env.FOREX_DEFAULT_ACCOUNT_LEVERAGE?.trim() || '50',
+  /** maintenance = initial * this ratio. */
+  maintenanceRatio: process.env.FOREX_MAINTENANCE_RATIO?.trim() || '0.50',
+  /** Margin level % thresholds (equity/used*100). */
+  marginWarningLevel: process.env.FOREX_MARGIN_WARNING_LEVEL?.trim() || '150',
+  marginCallLevel: process.env.FOREX_MARGIN_CALL_LEVEL?.trim() || '100',
+  stopOutLevel: process.env.FOREX_STOP_OUT_LEVEL?.trim() || '50',
+  /**
+   * Simulated reference only. Not a ledger, not Crypto, not reserved funds.
+   * Phase 6 will replace this with the Forex ledger equity.
+   */
+  simulatedBalanceReference: process.env.FOREX_SIMULATED_BALANCE_REF?.trim() || '100000',
+  maxPositionVolume: process.env.FOREX_MAX_POSITION_VOLUME?.trim() || '50',
+  maxOrderVolume: process.env.FOREX_MAX_ORDER_VOLUME?.trim() || '20',
+  maxSymbolExposure: process.env.FOREX_MAX_SYMBOL_EXPOSURE?.trim() || '100000000',
+  maxTotalExposure: process.env.FOREX_MAX_TOTAL_EXPOSURE?.trim() || '500000000',
+  maxMarginUtilization: process.env.FOREX_MAX_MARGIN_UTILIZATION?.trim() || '0.80',
+  killSwitch: envBool('FOREX_KILL_SWITCH', false),
 } as const;

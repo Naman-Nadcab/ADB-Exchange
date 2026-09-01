@@ -13,6 +13,10 @@ import { ForexExecutionError } from '../execution/models.js';
 import type { ForexExecutionRecord, ForexFill } from '../execution/models.js';
 import type { ForexExecutionService } from '../execution/service.js';
 import { getForexExecutionService } from '../execution/service.js';
+import { forexRiskRejectionTotal } from '../../../lib/forex-prometheus-metrics.js';
+import { evaluateAccountRisk } from '../risk/engine.js';
+import type { ForexPositionService } from '../positions/service.js';
+import { getForexPositionService } from '../positions/service.js';
 import { getForexPricingService } from '../quotes.service.js';
 import { forexWsHub } from '../ws/hub.js';
 import type { ForexOrderEvent, ForexOrderRecord } from './models.js';
@@ -32,7 +36,8 @@ export class ForexOrderService {
   constructor(
     private readonly execution: ForexExecutionService,
     readonly store: ForexOrderStore,
-    private persistEnabled = false
+    private persistEnabled = false,
+    private readonly positions?: ForexPositionService
   ) {}
 
   setPersistEnabled(on: boolean): void {
@@ -42,7 +47,9 @@ export class ForexOrderService {
   async place(accountId: string, raw: ForexOrderRequest): Promise<ForexOrderRecord> {
     if (!accountId) throw new ForexOrderError('UNAUTHENTICATED', 'Authentication required', 401);
     const req: ForexOrderRequest = { ...raw, clientOrderId: raw.clientOrderId?.trim() ?? '' };
-    return this.store.enqueue(accountId, req.clientOrderId, () => this.placeLocked(accountId, req));
+    const run = () => this.store.enqueue(accountId, req.clientOrderId, () => this.placeLocked(accountId, req));
+    if (this.positions) return this.store.enqueue(accountId, '*risk*', run);
+    return run();
   }
 
   async getOwned(accountId: string, orderId: string): Promise<ForexOrderRecord> {
@@ -148,6 +155,14 @@ export class ForexOrderService {
     order.symbol = pre.symbol;
     order.request.symbol = pre.symbol;
 
+    if (this.positions) {
+      const gate = this.riskGate(accountId, pre.symbol, req.side, req.volume);
+      if (!gate.ok) {
+        forexRiskRejectionTotal.inc({ reason: gate.reason ?? 'RISK_REJECTED' });
+        return this.finish(order, 'REJECTED', 'RISK_REJECTED', started, gate.reason ?? 'risk limit');
+      }
+    }
+
     this.transition(order, 'ROUTING');
     this.emit(order, 'ORDER_ROUTING');
     this.transition(order, 'SUBMITTED');
@@ -174,6 +189,7 @@ export class ForexOrderService {
       const reused = this.execution.get(order.clientExecId);
       if (reused) {
         this.applyExecution(order, reused, started);
+        await this.bookPositions(accountId, order, reused);
         return order;
       }
       return this.finish(order, 'FAILED', 'ORDER_FAILED', started, err instanceof Error ? err.message : 'execution failed');
@@ -181,6 +197,7 @@ export class ForexOrderService {
 
     try {
       this.applyExecution(order, exec, started);
+      await this.bookPositions(accountId, order, exec);
     } catch (err) {
       if (err instanceof ForexOrderError && err.reason === 'OVERFILL') {
         return this.finish(order, 'FAILED', 'OVERFILL', started, err.message);
@@ -242,6 +259,39 @@ export class ForexOrderService {
     if (fxDecimal(order.remainingVolume).lt(0)) {
       throw new ForexOrderError('OVERFILL', 'remainingVolume would be negative', 409);
     }
+  }
+
+  private riskGate(accountId: string, symbol: string, side: 'buy' | 'sell', volume: string) {
+    if (!this.positions) return { ok: true, reason: null };
+    const quote = getForexPricingService().getQuote(symbol);
+    const px = quote ? (side === 'buy' ? quote.ask : quote.bid) : undefined;
+    if (!px) return evaluateAccountRisk({ accountId, positions: this.positions.listOwned(accountId, true), proposedVolume: volume, proposedSymbol: symbol });
+    const preview = this.positions.previewAfterFill({
+      fillId: `preview-${accountId}-${symbol}`,
+      accountId,
+      symbol,
+      side,
+      volume,
+      price: px,
+      timestamp: new Date().toISOString(),
+    });
+    return evaluateAccountRisk({ accountId, positions: preview, proposedVolume: volume, proposedSymbol: symbol });
+  }
+
+  private async bookPositions(accountId: string, order: ForexOrderRecord, exec: ForexExecutionRecord): Promise<void> {
+    if (!this.positions) return;
+    const fills = exec.fills.map((f) => ({
+      fillId: f.fillId,
+      accountId,
+      symbol: f.symbol,
+      side: f.side,
+      volume: f.volume,
+      price: f.price,
+      timestamp: f.timestamp,
+      executionId: f.executionId,
+      orderId: order.orderId,
+    }));
+    await this.positions.applyFills(fills);
   }
 
   private createRecord(accountId: string, req: ForexOrderRequest): ForexOrderRecord {
@@ -381,12 +431,20 @@ let orderSingleton: ForexOrderService | null = null;
 export function getForexOrderService(): ForexOrderService {
   if (!orderSingleton) {
     const pricing = getForexPricingService();
-    orderSingleton = new ForexOrderService(getForexExecutionService(pricing), new ForexOrderStore(), true);
+    orderSingleton = new ForexOrderService(
+      getForexExecutionService(pricing),
+      new ForexOrderStore(),
+      true,
+      getForexPositionService(pricing)
+    );
   }
   return orderSingleton;
 }
 
-export function resetForexOrderServiceForTests(execution: ForexExecutionService): ForexOrderService {
-  orderSingleton = new ForexOrderService(execution, new ForexOrderStore(), false);
+export function resetForexOrderServiceForTests(
+  execution: ForexExecutionService,
+  positions?: ForexPositionService
+): ForexOrderService {
+  orderSingleton = new ForexOrderService(execution, new ForexOrderStore(), false, positions);
   return orderSingleton;
 }

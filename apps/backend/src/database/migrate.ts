@@ -4400,6 +4400,62 @@ const migrations = [
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
   );`,
   `CREATE INDEX IF NOT EXISTS idx_forex_order_events_order ON forex_order_events(order_id, created_at);`,
+
+  // FOREX PHASE 5 — positions / fills / events (append-only, isolated from Crypto)
+  `CREATE TABLE IF NOT EXISTS forex_positions (
+    position_id UUID PRIMARY KEY,
+    account_id VARCHAR(64) NOT NULL,
+    symbol VARCHAR(16) NOT NULL,
+    side VARCHAR(8) NOT NULL CHECK (side IN ('long','short')),
+    volume NUMERIC(20,8) NOT NULL,
+    entry_price NUMERIC(20,8) NOT NULL,
+    current_price NUMERIC(20,8) NOT NULL,
+    contract_size NUMERIC(20,8) NOT NULL,
+    leverage NUMERIC(20,8) NOT NULL,
+    initial_margin NUMERIC(20,8) NOT NULL,
+    maintenance_margin NUMERIC(20,8) NOT NULL,
+    exposure NUMERIC(20,8) NOT NULL,
+    status VARCHAR(16) NOT NULL,
+    mode VARCHAR(16) NOT NULL DEFAULT 'NETTING',
+    version INTEGER NOT NULL DEFAULT 1,
+    applied_fills JSONB NOT NULL DEFAULT '[]'::jsonb,
+    source VARCHAR(16) NOT NULL DEFAULT 'SIMULATED',
+    opened_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    closed_at TIMESTAMPTZ,
+    CONSTRAINT forex_positions_volume_nonneg CHECK (volume >= 0)
+  );`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_forex_positions_open_netting
+     ON forex_positions(account_id, symbol) WHERE status = 'OPEN' AND mode = 'NETTING';`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_positions_account ON forex_positions(account_id, status, updated_at DESC);`,
+  `CREATE TABLE IF NOT EXISTS forex_position_fills (
+    fill_id UUID PRIMARY KEY,
+    position_id UUID NOT NULL,
+    account_id VARCHAR(64) NOT NULL,
+    side VARCHAR(4) NOT NULL,
+    volume NUMERIC(20,8) NOT NULL,
+    price NUMERIC(20,8) NOT NULL,
+    fill_timestamp TIMESTAMPTZ NOT NULL,
+    execution_id UUID,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_position_fills_pos ON forex_position_fills(position_id, created_at);`,
+  `CREATE TABLE IF NOT EXISTS forex_position_events (
+    id BIGSERIAL PRIMARY KEY,
+    event_id UUID NOT NULL UNIQUE,
+    position_id UUID NOT NULL,
+    account_id VARCHAR(64) NOT NULL,
+    symbol VARCHAR(16) NOT NULL,
+    side VARCHAR(8),
+    volume NUMERIC(20,8),
+    entry_price NUMERIC(20,8),
+    event_type VARCHAR(40) NOT NULL,
+    source_fill_id VARCHAR(80),
+    reason VARCHAR(40),
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_position_events_pos ON forex_position_events(position_id, created_at);`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

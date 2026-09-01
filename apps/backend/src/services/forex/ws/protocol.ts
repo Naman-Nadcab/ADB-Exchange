@@ -2,17 +2,12 @@
  * Dedicated Forex WS protocol. Must not be mixed with /api/v1/spot/ws.
  *
  * Public: fx.quote, fx.liquidity, fx.execution (SIMULATED).
- * Authenticated private: fx.order (SIMULATED).
- * Reserved: fx.position, fx.pnl, fx.margin, fx.risk.
+ * Authenticated private: fx.order, fx.position, fx.margin, fx.risk (SIMULATED).
+ * Reserved: fx.pnl.
  */
 
 export const FOREX_WS_PUBLIC_PREFIXES = ['fx.quote.', 'fx.liquidity.', 'fx.execution.'] as const;
-export const FOREX_WS_PRIVATE_PREFIXES = [
-  'fx.position.',
-  'fx.pnl.',
-  'fx.margin.',
-  'fx.risk.',
-] as const;
+export const FOREX_WS_PRIVATE_PREFIXES = ['fx.pnl.'] as const;
 
 export type ForexWsClientMessage =
   | { type: 'subscribe'; channel: string }
@@ -37,6 +32,21 @@ export function isReservedPrivateForexChannel(channel: string): boolean {
 
 export function isForexOrderChannel(channel: string): boolean {
   return channel === 'fx.order' || channel === 'fx.order.*' || channel.startsWith('fx.order.');
+}
+
+export function isForexAccountPrivateChannel(channel: string): boolean {
+  return (
+    isForexOrderChannel(channel) ||
+    channel === 'fx.position' ||
+    channel === 'fx.position.*' ||
+    channel.startsWith('fx.position.') ||
+    channel === 'fx.margin' ||
+    channel === 'fx.margin.*' ||
+    channel.startsWith('fx.margin.') ||
+    channel === 'fx.risk' ||
+    channel === 'fx.risk.*' ||
+    channel.startsWith('fx.risk.')
+  );
 }
 
 export function forexWsEnvelope(

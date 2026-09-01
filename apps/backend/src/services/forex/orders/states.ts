@@ -83,6 +83,7 @@ export const FOREX_ORDER_REASONS = [
   'FORBIDDEN',
   'OVERFILL',
   'INVALID_STATE_TRANSITION',
+  'RISK_REJECTED',
 ] as const;
 
 export type ForexOrderReason = (typeof FOREX_ORDER_REASONS)[number];

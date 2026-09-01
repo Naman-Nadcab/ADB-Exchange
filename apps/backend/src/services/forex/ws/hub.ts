@@ -1,5 +1,5 @@
 import type { WebSocket } from 'ws';
-import { forexWsEnvelope, isForexOrderChannel, isPublicForexChannel } from './protocol.js';
+import { forexWsEnvelope, isForexAccountPrivateChannel, isPublicForexChannel } from './protocol.js';
 import type { ForexQuoteDto } from '../types.js';
 import type { ForexRoutingSnapshot } from '../liquidity/snapshot.js';
 
@@ -27,7 +27,7 @@ class ForexWsHub {
   subscribe(id: string, channel: string): boolean {
     const conn = this.conns.get(id);
     if (!conn) return false;
-    if (isForexOrderChannel(channel)) {
+    if (isForexAccountPrivateChannel(channel)) {
       if (!conn.userId) return false;
       conn.channels.add(channel);
       return true;
@@ -54,10 +54,15 @@ class ForexWsHub {
   }
 
   publishOrder(userId: string, type: string, payload: unknown): void {
+    this.publishPrivate(userId, type, payload);
+  }
+
+  publishPrivate(userId: string, type: string, payload: unknown): void {
+    const root = type.split('.')[0] + '.' + type.split('.')[1];
     const message = forexWsEnvelope(type, type, payload);
     for (const conn of this.conns.values()) {
       if (conn.userId !== userId) continue;
-      if (conn.channels.has('fx.order') || conn.channels.has('fx.order.*') || conn.channels.has(type)) {
+      if (conn.channels.has(root) || conn.channels.has(`${root}.*`) || conn.channels.has(type)) {
         try {
           if (conn.socket.readyState === 1) conn.socket.send(message);
         } catch {

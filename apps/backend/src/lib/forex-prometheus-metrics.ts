@@ -208,3 +208,94 @@ export const forexOrderLatency = new Histogram({
   buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5],
   registers: [register],
 });
+
+export const forexPositionOpenedTotal = new Counter({
+  name: 'forex_position_opened_total',
+  help: 'Forex positions opened',
+  labelNames: ['symbol', 'side'],
+  registers: [register],
+});
+
+export const forexPositionIncreasedTotal = new Counter({
+  name: 'forex_position_increased_total',
+  help: 'Forex position increases',
+  labelNames: ['symbol'],
+  registers: [register],
+});
+
+export const forexPositionReducedTotal = new Counter({
+  name: 'forex_position_reduced_total',
+  help: 'Forex position reductions',
+  labelNames: ['symbol'],
+  registers: [register],
+});
+
+export const forexPositionClosedTotal = new Counter({
+  name: 'forex_position_closed_total',
+  help: 'Forex positions closed',
+  labelNames: ['symbol'],
+  registers: [register],
+});
+
+export const forexPositionReversalTotal = new Counter({
+  name: 'forex_position_reversal_total',
+  help: 'Forex position reversals',
+  labelNames: ['symbol'],
+  registers: [register],
+});
+
+export const forexPositionReconciliationErrorTotal = new Counter({
+  name: 'forex_position_reconciliation_error_total',
+  help: 'Forex fill/position reconciliation mismatches',
+  labelNames: ['symbol'],
+  registers: [register],
+});
+
+export const forexMarginCalculationTotal = new Counter({
+  name: 'forex_margin_calculation_total',
+  help: 'Forex margin calculations',
+  labelNames: ['symbol'],
+  registers: [register],
+});
+
+export const forexMarginWarningTotal = new Counter({
+  name: 'forex_margin_warning_total',
+  help: 'Forex margin WARNING states',
+  labelNames: ['account'],
+  registers: [register],
+});
+
+export const forexMarginCallTotal = new Counter({
+  name: 'forex_margin_call_total',
+  help: 'Forex MARGIN_CALL states',
+  labelNames: ['account'],
+  registers: [register],
+});
+
+export const forexStopOutReadyTotal = new Counter({
+  name: 'forex_stop_out_ready_total',
+  help: 'Forex STOP_OUT_READY states (no liquidation executed)',
+  labelNames: ['account'],
+  registers: [register],
+});
+
+export const forexRiskRejectionTotal = new Counter({
+  name: 'forex_risk_rejection_total',
+  help: 'Forex pre-trade risk rejections',
+  labelNames: ['reason'],
+  registers: [register],
+});
+
+export const forexExposure = new Gauge({
+  name: 'forex_exposure',
+  help: 'Gross Forex notional exposure (calculated, simulated)',
+  labelNames: ['account'],
+  registers: [register],
+});
+
+export const forexMarginUtilization = new Gauge({
+  name: 'forex_margin_utilization',
+  help: 'Used margin / simulated equity reference',
+  labelNames: ['account'],
+  registers: [register],
+});

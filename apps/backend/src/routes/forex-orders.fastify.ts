@@ -1,6 +1,6 @@
 /**
  * Customer Forex order API — registered under /api/v1/forex
- * Authenticated. SIMULATED / MOCK only. Does not move funds or create positions.
+ * Authenticated. SIMULATED / MOCK only. Does not move Crypto funds.
  */
 import type { FastifyInstance } from 'fastify';
 import { ForexOrderError, publicForexOrder } from '../services/forex/orders/models.js';

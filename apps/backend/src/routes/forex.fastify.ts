@@ -19,9 +19,10 @@ import type { ForexExecutionRequest } from '../services/forex/execution/request.
 import { startForexMarketDataWorker, stopForexMarketDataWorker } from '../services/forex/market-data/worker.js';
 import { forexWsHub } from '../services/forex/ws/hub.js';
 import { registerForexCustomerOrderRoutes } from './forex-orders.fastify.js';
+import { registerForexPositionRoutes } from './forex-positions.fastify.js';
 import {
   forexWsEnvelope,
-  isForexOrderChannel,
+  isForexAccountPrivateChannel,
   isPublicForexChannel,
   isReservedPrivateForexChannel,
 } from '../services/forex/ws/protocol.js';
@@ -130,6 +131,7 @@ export default async function forexRoutes(app: FastifyInstance) {
   });
 
   await registerForexCustomerOrderRoutes(app);
+  await registerForexPositionRoutes(app);
 
   app.get('/ws', { websocket: true }, async (socket, req) => {
     const rawUrl = (req as { url?: string }).url || '';
@@ -160,8 +162,8 @@ export default async function forexRoutes(app: FastifyInstance) {
         protocol: 'eda.forex.ws.v1',
         source: 'SIMULATED',
         events: ['fx.quote', 'fx.liquidity', 'fx.execution'],
-        authenticatedEvents: ['fx.order'],
-        reserved: ['fx.position', 'fx.pnl', 'fx.margin', 'fx.risk'],
+        authenticatedEvents: ['fx.order', 'fx.position', 'fx.margin', 'fx.risk'],
+        reserved: ['fx.pnl'],
       })
     );
 
@@ -191,18 +193,25 @@ export default async function forexRoutes(app: FastifyInstance) {
           );
           return;
         }
-        if (isForexOrderChannel(msg.channel)) {
+        if (isForexAccountPrivateChannel(msg.channel)) {
           if (!forexWsHub.subscribe(connId, msg.channel)) {
             socket.send(
               forexWsEnvelope('error', msg.channel, {
                 code: 'AUTH_REQUIRED',
-                message: 'fx.order requires an authenticated Forex WebSocket session',
+                message: 'Private Forex channels require an authenticated session',
               })
             );
             return;
           }
           socket.send(forexWsEnvelope('subscribed', msg.channel, { ok: true, source: 'SIMULATED' }));
-          socket.send(forexWsEnvelope('fx.order', msg.channel, { source: 'SIMULATED', status: 'SUBSCRIBED' }));
+          const root = msg.channel.startsWith('fx.position')
+            ? 'fx.position'
+            : msg.channel.startsWith('fx.margin')
+              ? 'fx.margin'
+              : msg.channel.startsWith('fx.risk')
+                ? 'fx.risk'
+                : 'fx.order';
+          socket.send(forexWsEnvelope(root, msg.channel, { source: 'SIMULATED', status: 'SUBSCRIBED' }));
           return;
         }
         if (!isPublicForexChannel(msg.channel) || !forexWsHub.subscribe(connId, msg.channel)) {
