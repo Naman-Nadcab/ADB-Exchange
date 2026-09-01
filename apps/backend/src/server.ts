@@ -77,6 +77,7 @@ import observabilityRoutes from './routes/observability.fastify.js';
 import pushRoutes from './routes/push.fastify.js';
 import supportUserRoutes from './routes/support-user.fastify.js';
 import publicRoutes from './routes/public.fastify.js';
+import forexRoutes from './routes/forex.fastify.js';
 import internalEngineRoutes from './routes/internal-engine.fastify.js';
 import latencyTracePlugin from './plugins/latencyTrace.plugin.js';
 import authDecisionPlugin from './plugins/authDecision.plugin.js';
@@ -929,6 +930,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(pushRoutes, { prefix: '/api/v1/push' });
   await app.register(supportUserRoutes, { prefix: '/api/v1/support' });
   await app.register(publicRoutes, { prefix: '/api/v1/public' });
+  await app.register(forexRoutes, { prefix: '/api/v1/forex' });
   await app.register(
     async (scope) => {
       const { internalEngineSecurityPreHandler } = await import(

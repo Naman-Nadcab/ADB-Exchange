@@ -4048,6 +4048,212 @@ const migrations = [
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   );`,
   `CREATE INDEX IF NOT EXISTS idx_settlement_quarantine_log_created ON settlement_quarantine_log(created_at DESC);`,
+
+  // ============================================
+  // FOREX DOMAIN (PHASE 1) — APPEND-ONLY
+  // Isolated from spot_*, p2p_*, user_balances, balance_ledger.
+  // ============================================
+  `CREATE TABLE IF NOT EXISTS forex_session_calendars (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code VARCHAR(40) NOT NULL UNIQUE,
+    name VARCHAR(120) NOT NULL,
+    timezone VARCHAR(64) NOT NULL DEFAULT 'UTC',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE TABLE IF NOT EXISTS forex_session_windows (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    calendar_id UUID NOT NULL REFERENCES forex_session_calendars(id) ON DELETE CASCADE,
+    session_name VARCHAR(32) NOT NULL,
+    day_of_week SMALLINT NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
+    open_time TIME NOT NULL,
+    close_time TIME NOT NULL,
+    timezone VARCHAR(64) NOT NULL DEFAULT 'UTC',
+    wraps_midnight BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT forex_session_windows_unique UNIQUE (calendar_id, session_name, day_of_week)
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_session_windows_calendar ON forex_session_windows(calendar_id, day_of_week);`,
+  `CREATE TABLE IF NOT EXISTS forex_session_exceptions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    calendar_id UUID NOT NULL REFERENCES forex_session_calendars(id) ON DELETE CASCADE,
+    instrument_id UUID,
+    exception_date DATE NOT NULL,
+    kind VARCHAR(32) NOT NULL CHECK (kind IN ('holiday','closure','special','dst_override')),
+    open_time TIME,
+    close_time TIME,
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_session_exceptions_cal_date ON forex_session_exceptions(calendar_id, exception_date);`,
+  `CREATE TABLE IF NOT EXISTS forex_lp_providers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code VARCHAR(32) NOT NULL UNIQUE,
+    name VARCHAR(120) NOT NULL,
+    kind VARCHAR(20) NOT NULL CHECK (kind IN ('market_data','execution','both')),
+    status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active','disabled')),
+    priority INTEGER NOT NULL DEFAULT 100,
+    encrypted_credentials TEXT,
+    max_exposure NUMERIC(30,8),
+    reject_rate_ewma NUMERIC(10,6),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE TABLE IF NOT EXISTS forex_instruments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    symbol VARCHAR(16) NOT NULL UNIQUE,
+    display_symbol VARCHAR(20) NOT NULL,
+    base_currency VARCHAR(8) NOT NULL,
+    quote_currency VARCHAR(8) NOT NULL,
+    asset_class VARCHAR(20) NOT NULL CHECK (asset_class IN ('fx_major','fx_cross','metal')),
+    digits SMALLINT NOT NULL,
+    price_precision SMALLINT NOT NULL,
+    pip_size NUMERIC(20,10) NOT NULL,
+    tick_size NUMERIC(20,10) NOT NULL,
+    contract_size NUMERIC(20,4) NOT NULL,
+    min_volume NUMERIC(20,8) NOT NULL,
+    max_volume NUMERIC(20,8) NOT NULL,
+    volume_step NUMERIC(20,8) NOT NULL,
+    trading_status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (trading_status IN ('active','halted','closed')),
+    session_calendar_id UUID REFERENCES forex_session_calendars(id),
+    max_leverage NUMERIC(10,2) NOT NULL DEFAULT 1,
+    margin_percent NUMERIC(10,4) NOT NULL DEFAULT 100,
+    commission NUMERIC(20,8) NOT NULL DEFAULT 0,
+    commission_type VARCHAR(20) NOT NULL DEFAULT 'per_lot' CHECK (commission_type IN ('per_lot','percentage','none')),
+    swap_long NUMERIC(20,8) NOT NULL DEFAULT 0,
+    swap_short NUMERIC(20,8) NOT NULL DEFAULT 0,
+    swap_3day NUMERIC(20,8) NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT forex_instruments_pip_positive CHECK (pip_size > 0),
+    CONSTRAINT forex_instruments_tick_positive CHECK (tick_size > 0),
+    CONSTRAINT forex_instruments_volume_step CHECK (volume_step > 0 AND min_volume > 0 AND max_volume >= min_volume)
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_instruments_status ON forex_instruments(asset_class, trading_status);`,
+  `CREATE TABLE IF NOT EXISTS forex_quotes (
+    instrument_id UUID PRIMARY KEY REFERENCES forex_instruments(id) ON DELETE CASCADE,
+    provider_id UUID REFERENCES forex_lp_providers(id),
+    bid NUMERIC(20,8) NOT NULL,
+    ask NUMERIC(20,8) NOT NULL,
+    mid NUMERIC(20,8) NOT NULL,
+    spread NUMERIC(20,8) NOT NULL,
+    spread_pips NUMERIC(20,8) NOT NULL,
+    spread_ticks NUMERIC(20,8) NOT NULL,
+    provider_timestamp TIMESTAMPTZ NOT NULL,
+    received_timestamp TIMESTAMPTZ NOT NULL,
+    provider_sequence NUMERIC(30,0) NOT NULL,
+    eda_receive_sequence NUMERIC(30,0) NOT NULL,
+    quality VARCHAR(16) NOT NULL CHECK (quality IN ('OK','STALE','CROSSED','HALTED','SIMULATED')),
+    status VARCHAR(16) NOT NULL CHECK (status IN ('TRADEABLE','HALTED','REJECTED','UNAVAILABLE')),
+    source VARCHAR(16) NOT NULL CHECK (source IN ('LIVE','SIMULATED')),
+    freshness VARCHAR(8) NOT NULL CHECK (freshness IN ('FRESH','STALE')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT forex_quotes_prices_positive CHECK (bid > 0 AND ask > 0 AND ask >= bid)
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_quotes_received ON forex_quotes(received_timestamp DESC);`,
+  `CREATE TABLE IF NOT EXISTS forex_lp_quotes (
+    provider_id UUID NOT NULL REFERENCES forex_lp_providers(id) ON DELETE CASCADE,
+    instrument_id UUID NOT NULL REFERENCES forex_instruments(id) ON DELETE CASCADE,
+    bid NUMERIC(20,8) NOT NULL,
+    ask NUMERIC(20,8) NOT NULL,
+    mid NUMERIC(20,8) NOT NULL,
+    spread NUMERIC(20,8) NOT NULL,
+    provider_timestamp TIMESTAMPTZ NOT NULL,
+    received_timestamp TIMESTAMPTZ NOT NULL,
+    provider_sequence NUMERIC(30,0) NOT NULL,
+    quality VARCHAR(16) NOT NULL,
+    status VARCHAR(16) NOT NULL,
+    source VARCHAR(16) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (provider_id, instrument_id)
+  );`,
+  `CREATE TABLE IF NOT EXISTS forex_quote_ticks (
+    id BIGSERIAL PRIMARY KEY,
+    instrument_id UUID NOT NULL REFERENCES forex_instruments(id) ON DELETE CASCADE,
+    provider_id UUID REFERENCES forex_lp_providers(id),
+    bid NUMERIC(20,8) NOT NULL,
+    ask NUMERIC(20,8) NOT NULL,
+    mid NUMERIC(20,8) NOT NULL,
+    spread NUMERIC(20,8) NOT NULL,
+    provider_timestamp TIMESTAMPTZ NOT NULL,
+    received_timestamp TIMESTAMPTZ NOT NULL,
+    provider_sequence NUMERIC(30,0) NOT NULL,
+    eda_receive_sequence NUMERIC(30,0) NOT NULL,
+    quality VARCHAR(16) NOT NULL,
+    status VARCHAR(16) NOT NULL,
+    source VARCHAR(16) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_quote_ticks_inst_recv ON forex_quote_ticks(instrument_id, received_timestamp DESC);`,
+  `CREATE TABLE IF NOT EXISTS forex_quote_rejections (
+    id BIGSERIAL PRIMARY KEY,
+    instrument_id UUID,
+    provider_id UUID,
+    symbol VARCHAR(16) NOT NULL,
+    reason VARCHAR(40) NOT NULL,
+    detail TEXT,
+    provider_sequence NUMERIC(30,0),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_quote_rejections_created ON forex_quote_rejections(created_at DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_quote_rejections_symbol ON forex_quote_rejections(symbol, created_at DESC);`,
+
+  `INSERT INTO forex_session_calendars (id, code, name, timezone)
+   VALUES ('f0000000-0000-4000-8000-0000000000c1', 'FX_WEEK_UTC', 'FX 24x5 UTC', 'UTC')
+   ON CONFLICT (id) DO NOTHING;`,
+  `INSERT INTO forex_lp_providers (id, code, name, kind, status, priority)
+   VALUES
+     ('f0000000-0000-4000-8000-0000000000a1', 'MOCK-A', 'EDA Mock Liquidity A', 'market_data', 'active', 10),
+     ('f0000000-0000-4000-8000-0000000000a2', 'MOCK-B', 'EDA Mock Liquidity B', 'market_data', 'active', 20),
+     ('f0000000-0000-4000-8000-0000000000a3', 'MOCK-C', 'EDA Mock Liquidity C', 'market_data', 'active', 30)
+   ON CONFLICT (code) DO NOTHING;`,
+  `INSERT INTO forex_session_windows (calendar_id, session_name, day_of_week, open_time, close_time, timezone, wraps_midnight)
+   SELECT 'f0000000-0000-4000-8000-0000000000c1', s.session_name, d.dow, s.open_time::time, s.close_time::time, 'UTC', s.wraps
+   FROM (VALUES
+     ('Sydney', '21:00:00', '06:00:00', TRUE),
+     ('Tokyo', '00:00:00', '09:00:00', FALSE),
+     ('London', '07:00:00', '16:00:00', FALSE),
+     ('New York', '12:00:00', '21:00:00', FALSE)
+   ) AS s(session_name, open_time, close_time, wraps)
+   CROSS JOIN (VALUES (0),(1),(2),(3),(4)) AS d(dow)
+   ON CONFLICT (calendar_id, session_name, day_of_week) DO NOTHING;`,
+  `INSERT INTO forex_instruments (
+     id, symbol, display_symbol, base_currency, quote_currency, asset_class,
+     digits, price_precision, pip_size, tick_size, contract_size,
+     min_volume, max_volume, volume_step, trading_status, session_calendar_id,
+     max_leverage, margin_percent, commission, commission_type, swap_long, swap_short, swap_3day
+   ) VALUES
+     ('f0000000-0000-4000-8000-00000000e001','EURUSD','EUR/USD','EUR','USD','fx_major',5,5,0.0001,0.00001,100000,0.01,100,0.01,'active','f0000000-0000-4000-8000-0000000000c1',50,2.00,0,'per_lot',0,0,0),
+     ('f0000000-0000-4000-8000-00000000e002','GBPUSD','GBP/USD','GBP','USD','fx_major',5,5,0.0001,0.00001,100000,0.01,100,0.01,'active','f0000000-0000-4000-8000-0000000000c1',50,2.00,0,'per_lot',0,0,0),
+     ('f0000000-0000-4000-8000-00000000e003','USDJPY','USD/JPY','USD','JPY','fx_major',3,3,0.01,0.001,100000,0.01,100,0.01,'active','f0000000-0000-4000-8000-0000000000c1',50,2.00,0,'per_lot',0,0,0),
+     ('f0000000-0000-4000-8000-00000000e004','USDCHF','USD/CHF','USD','CHF','fx_major',5,5,0.0001,0.00001,100000,0.01,100,0.01,'active','f0000000-0000-4000-8000-0000000000c1',50,2.00,0,'per_lot',0,0,0),
+     ('f0000000-0000-4000-8000-00000000e005','AUDUSD','AUD/USD','AUD','USD','fx_major',5,5,0.0001,0.00001,100000,0.01,100,0.01,'active','f0000000-0000-4000-8000-0000000000c1',50,2.00,0,'per_lot',0,0,0),
+     ('f0000000-0000-4000-8000-00000000e006','USDCAD','USD/CAD','USD','CAD','fx_major',5,5,0.0001,0.00001,100000,0.01,100,0.01,'active','f0000000-0000-4000-8000-0000000000c1',50,2.00,0,'per_lot',0,0,0),
+     ('f0000000-0000-4000-8000-00000000e007','NZDUSD','NZD/USD','NZD','USD','fx_major',5,5,0.0001,0.00001,100000,0.01,100,0.01,'active','f0000000-0000-4000-8000-0000000000c1',50,2.00,0,'per_lot',0,0,0),
+     ('f0000000-0000-4000-8000-00000000e008','EURGBP','EUR/GBP','EUR','GBP','fx_cross',5,5,0.0001,0.00001,100000,0.01,100,0.01,'active','f0000000-0000-4000-8000-0000000000c1',50,2.00,0,'per_lot',0,0,0),
+     ('f0000000-0000-4000-8000-00000000e009','EURJPY','EUR/JPY','EUR','JPY','fx_cross',3,3,0.01,0.001,100000,0.01,100,0.01,'active','f0000000-0000-4000-8000-0000000000c1',50,2.00,0,'per_lot',0,0,0),
+     ('f0000000-0000-4000-8000-00000000e00a','GBPJPY','GBP/JPY','GBP','JPY','fx_cross',3,3,0.01,0.001,100000,0.01,100,0.01,'active','f0000000-0000-4000-8000-0000000000c1',50,2.00,0,'per_lot',0,0,0),
+     ('f0000000-0000-4000-8000-00000000e00b','XAUUSD','XAU/USD','XAU','USD','metal',2,2,0.01,0.01,100,0.01,50,0.01,'active','f0000000-0000-4000-8000-0000000000c1',20,5.00,0,'per_lot',0,0,0),
+     ('f0000000-0000-4000-8000-00000000e00c','XAGUSD','XAG/USD','XAG','USD','metal',3,3,0.01,0.001,5000,0.01,50,0.01,'active','f0000000-0000-4000-8000-0000000000c1',20,5.00,0,'per_lot',0,0,0)
+   ON CONFLICT (symbol) DO UPDATE SET
+     display_symbol = EXCLUDED.display_symbol,
+     base_currency = EXCLUDED.base_currency,
+     quote_currency = EXCLUDED.quote_currency,
+     asset_class = EXCLUDED.asset_class,
+     digits = EXCLUDED.digits,
+     price_precision = EXCLUDED.price_precision,
+     pip_size = EXCLUDED.pip_size,
+     tick_size = EXCLUDED.tick_size,
+     contract_size = EXCLUDED.contract_size,
+     min_volume = EXCLUDED.min_volume,
+     max_volume = EXCLUDED.max_volume,
+     volume_step = EXCLUDED.volume_step,
+     session_calendar_id = EXCLUDED.session_calendar_id,
+     max_leverage = EXCLUDED.max_leverage,
+     margin_percent = EXCLUDED.margin_percent,
+     updated_at = CURRENT_TIMESTAMP;`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */
