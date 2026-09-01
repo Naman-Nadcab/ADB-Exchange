@@ -54,7 +54,7 @@ export default async function forexRoutes(app: FastifyInstance) {
     try {
       await startForexProtectionRuntime();
     } catch {
-      /* Forex trading stays not-ready. Crypto and public market-data continue. */
+      /* Logged in hydrate. Forex trading stays not-ready. Crypto and public MD continue. */
     }
   });
   app.addHook('preHandler', async (request, reply) => {

@@ -4,6 +4,7 @@
  */
 import { randomUUID } from 'node:crypto';
 import { forexHydrateTotal, forexRecoveryTotal } from '../../../lib/forex-prometheus-metrics.js';
+import { logger } from '../../../lib/logger.js';
 import type { ForexAccountingService } from '../accounting/service.js';
 import { persistReconciliationEvent } from '../advanced/persist.js';
 import { loadSwapEvents } from '../advanced/persist.js';
@@ -96,6 +97,7 @@ export async function hydrateForexEconomicState(args: {
     void recovered;
   } catch (err) {
     const message = err instanceof Error ? err.message : 'FOREX_HYDRATE_FAILED';
+    logger.error('Forex economic hydrate failed closed', { error: message });
     markForexEconomicFailed(message);
     forexHydrateTotal.inc({ result: 'fail' });
     forexRecoveryTotal.inc({ result: 'fail' });

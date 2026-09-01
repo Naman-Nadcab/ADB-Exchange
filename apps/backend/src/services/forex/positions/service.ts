@@ -204,10 +204,10 @@ export class ForexPositionService {
     if (!replayed || replayed.status === 'CLOSED') {
       return failRec(position, 'open position does not replay from fills');
     }
-    if (replayed.side !== position.side || replayed.volume !== position.volume) {
+    if (replayed.side !== position.side || !fxDecimal(replayed.volume).eq(position.volume)) {
       return failRec(position, `replay ${replayed.side} ${replayed.volume} != ${position.side} ${position.volume}`);
     }
-    if (replayed.entryPrice !== position.entryPrice) {
+    if (!fxDecimal(replayed.entryPrice).eq(position.entryPrice)) {
       return failRec(position, `entry ${replayed.entryPrice} != ${position.entryPrice}`);
     }
     return { ok: true };
