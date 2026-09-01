@@ -12,6 +12,7 @@ import {
   forexQuotesPayload,
   isForexExecutionTestAuthorized,
 } from '../services/forex/http.js';
+import { forexCandlesPayload } from '../services/forex/market-data/candles.service.js';
 import { getForexPricingService } from '../services/forex/quotes.service.js';
 import { ForexExecutionError } from '../services/forex/execution/models.js';
 import { getForexExecutionService } from '../services/forex/execution/service.js';
@@ -43,6 +44,7 @@ function isForexPublicReadPath(url: string): boolean {
     path.includes('/liquidity') ||
     path.includes('/sessions') ||
     path.includes('/trading-config') ||
+    path.includes('/candles') ||
     path.endsWith('/ws') ||
     path.includes('/forex/ws')
   );
@@ -79,6 +81,13 @@ export default async function forexRoutes(app: FastifyInstance) {
 
   app.get('/quotes', async (_request, reply) => {
     return reply.send(forexQuotesPayload(getForexPricingService()));
+  });
+
+  app.get<{
+    Querystring: { symbol?: string; timeframe?: string; from?: string; to?: string; limit?: string };
+  }>('/candles', async (request, reply) => {
+    const result = forexCandlesPayload(request.query ?? {});
+    return reply.status(result.status).send(result.body);
   });
 
   app.get<{ Params: { symbol: string } }>('/quotes/:symbol', async (request, reply) => {

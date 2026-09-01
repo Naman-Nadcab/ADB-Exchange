@@ -1,5 +1,6 @@
 import { api } from '@/lib/api';
 import { describeForexError, normalizeForexError } from '../models/errors';
+import type { ForexCandleQuery, ForexCandleResponse } from '../models/candles';
 import type {
   ForexAccountView,
   ForexError,
@@ -29,8 +30,8 @@ function unwrap<T>(res: { success: boolean; data?: T; error?: { code?: string; m
   return { ok: false, error: { ...error, message: describeForexError(error) } };
 }
 
-function fxGet<T>(path: string, skipAuth = false) {
-  return api.get<T>(`${FOREX_PREFIX}${path}`, { skipAuth, notifyOnError: false });
+function fxGet<T>(path: string, skipAuth = false, signal?: AbortSignal) {
+  return api.get<T>(`${FOREX_PREFIX}${path}`, { skipAuth, notifyOnError: false, signal });
 }
 
 export const forexApi = {
@@ -45,6 +46,15 @@ export const forexApi = {
   sessions: () => fxGet<ForexSessionSnapshot>('/sessions', true),
   tradingConfig: () => fxGet<ForexTradingConfig>('/trading-config', true),
   providersHealth: () => fxGet<{ source: string; providers: Array<{ status?: string }> }>('/providers/health', true),
+  candles: (query: ForexCandleQuery, signal?: AbortSignal) => {
+    const params = new URLSearchParams();
+    params.set('symbol', query.symbol);
+    if (query.timeframe) params.set('timeframe', query.timeframe);
+    if (query.from) params.set('from', query.from);
+    if (query.to) params.set('to', query.to);
+    if (query.limit != null) params.set('limit', String(query.limit));
+    return fxGet<ForexCandleResponse>(`/candles?${params.toString()}`, true, signal);
+  },
 
   account: () => fxGet<{ source: string; account: ForexAccountView; calculationStatus?: string }>('/account'),
   balance: () =>

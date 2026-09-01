@@ -1,102 +1,165 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useForexCandles } from '@/lib/forex/runtime/useForexCandles';
+import { isReservedForexTimeframe } from '@/lib/forex/models/candles';
 import { isQuoteStale } from '@/lib/forex/models/quotes';
+import { deriveDisplayConnection } from '@/lib/forex/selectors/connection';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
+import { ForexLightweightChart } from './ForexLightweightChart';
 import { fxNum } from './format';
 
-const TIMEFRAMES = ['1m', '5m', '15m', '1h', '4h', '1D'] as const;
+function useHtmlDark(): boolean {
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
+    const root = document.documentElement;
+    const sync = () => setDark(root.classList.contains('dark'));
+    sync();
+    const obs = new MutationObserver(sync);
+    obs.observe(root, { attributes: true, attributeFilter: ['class'] });
+    return () => obs.disconnect();
+  }, []);
+  return dark;
+}
 
 export function ForexChartFoundation() {
   const selected = useForexWorkspaceStore((s) => s.selectedSymbol);
-  const tf = useForexWorkspaceStore((s) => s.chartTimeframe);
+  const storedTf = useForexWorkspaceStore((s) => s.chartTimeframe);
   const setTf = useForexWorkspaceStore((s) => s.setChartTimeframe);
   const inst = useForexStore((s) => s.instruments[selected]);
   const quote = useForexStore((s) => s.quotes[selected]);
-  const [cross, setCross] = useState<{ x: number; y: number } | null>(null);
-  const stale = !quote || isQuoteStale(quote);
-  const digits = inst?.digits ?? 5;
+  const socketState = useForexStore((s) => s.socketState);
+  const quotes = useForexStore((s) => s.quotes);
+  const providers = useForexStore((s) => s.providerHealth);
+  const connection = deriveDisplayConnection({ socketState, quotes, selectedSymbol: selected, providers });
+  const dark = useHtmlDark();
+  const [expanded, setExpanded] = useState(false);
 
-  const scale = useMemo(() => {
+  const candleView = useForexCandles(selected, null);
+  const timeframes = candleView.supportedTimeframes.filter(isReservedForexTimeframe);
+  const activeTf = timeframes.includes(storedTf as (typeof timeframes)[number]) ? storedTf : null;
+
+  const staleQuote = !quote || isQuoteStale(quote);
+  const digits = inst?.digits ?? 5;
+  const quoteLevels = useMemo(() => {
     if (!quote) return null;
     const bid = Number(quote.bid);
     const ask = Number(quote.ask);
     if (!Number.isFinite(bid) || !Number.isFinite(ask)) return null;
-    const mid = (bid + ask) / 2;
-    const pad = Math.max((ask - bid) * 8, Number(inst?.tickSize ?? '0.0001') * 40);
-    return { min: mid - pad, max: mid + pad, bid, ask, mid };
-  }, [quote, inst?.tickSize]);
+    return { bid, ask };
+  }, [quote]);
 
-  const yPct = (price: number) => {
-    if (!scale) return 50;
-    return ((scale.max - price) / (scale.max - scale.min)) * 100;
-  };
+  const quoteFreshness =
+    connection === 'DISCONNECTED' || connection === 'CONNECTING' || connection === 'RECONNECTING'
+      ? 'DISCONNECTED'
+      : connection === 'STALE' || staleQuote
+        ? 'STALE'
+        : quote
+          ? 'LIVE'
+          : 'LOADING';
+
+  const banners: Array<{ tone: 'neutral' | 'warn' | 'error'; text: string }> = [];
+  if (candleView.status === 'LOADING') {
+    banners.push({ tone: 'neutral', text: `Loading ${inst?.displaySymbol ?? selected} history…` });
+  } else if (candleView.status === 'NO_HISTORY') {
+    banners.push({ tone: 'neutral', text: 'Historical Forex OHLC is currently unavailable.' });
+  } else if (candleView.status === 'INVALID' || candleView.status === 'ERROR') {
+    const err = candleView.error;
+    banners.push({
+      tone: 'error',
+      text: err ? `${err.code}: ${err.message}` : 'FOREX_CANDLES_INVALID: Candle payload failed validation.',
+    });
+  }
+  if (quoteFreshness === 'STALE') {
+    banners.push({ tone: 'warn', text: 'Market data is stale.' });
+  } else if (quoteFreshness === 'DISCONNECTED') {
+    banners.push({ tone: 'warn', text: 'Market data disconnected.' });
+  }
 
   return (
-    <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f7f6f3] dark:bg-[#0c0d0f]" aria-label="Forex live quote chart">
-      <div className="flex h-8 items-center gap-2 border-b border-stone-200 px-2 dark:border-stone-800">
-        <span className="font-mono text-[12px] font-medium">{inst?.displaySymbol ?? selected}</span>
+    <section
+      className={`flex min-h-0 min-w-0 flex-1 flex-col bg-[#f7f6f3] dark:bg-[#0c0d0f] ${
+        expanded ? 'fixed inset-0 z-40' : ''
+      }`}
+      aria-label="Forex market chart"
+    >
+      <div className="flex h-8 min-w-0 items-center gap-2 overflow-x-auto border-b border-stone-200 px-2 dark:border-stone-800">
+        <span className="shrink-0 font-mono text-[12px] font-medium">{inst?.displaySymbol ?? selected}</span>
+        {activeTf ? <span className="shrink-0 font-mono text-[11px] text-stone-500">{activeTf}</span> : null}
         {quote ? (
           <>
-            <span className="font-mono text-[11px] text-emerald-700 dark:text-emerald-400">BID {fxNum(quote.bid, digits)}</span>
-            <span className="font-mono text-[11px] text-rose-700 dark:text-rose-400">ASK {fxNum(quote.ask, digits)}</span>
-            <span className="font-mono text-[11px] text-stone-500">SPR {quote.spreadPips}</span>
-            <span className="font-mono text-[10px] text-stone-400">{quote.source} · {quote.freshness}</span>
+            <span className="shrink-0 font-mono text-[11px] text-emerald-700 dark:text-emerald-400">
+              BID {fxNum(quote.bid, digits)}
+            </span>
+            <span className="shrink-0 font-mono text-[11px] text-rose-700 dark:text-rose-400">
+              ASK {fxNum(quote.ask, digits)}
+            </span>
+            <span className="shrink-0 font-mono text-[11px] text-stone-500">SPR {quote.spreadPips}</span>
+            <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide text-stone-400">
+              {quoteFreshness}
+            </span>
           </>
         ) : (
           <span className="text-[11px] text-stone-500">Waiting for backend quote…</span>
         )}
-        <div className="ml-auto flex items-center gap-0.5" role="group" aria-label="Timeframe placeholders">
-          {TIMEFRAMES.map((t) => (
-            <button
-              key={t}
-              type="button"
-              aria-pressed={tf === t}
-              title="Timeframes apply when a Forex candle endpoint exists. Historical OHLC is not available."
-              onClick={() => setTf(t)}
-              className={`rounded px-1.5 py-0.5 font-mono text-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 ${
-                tf === t ? 'bg-stone-200 text-stone-800 dark:bg-stone-700 dark:text-white' : 'text-stone-400'
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+        {timeframes.length > 0 ? (
+          <div className="ml-2 flex items-center gap-0.5" role="group" aria-label="Forex timeframes">
+            {timeframes.map((t) => (
+              <button
+                key={t}
+                type="button"
+                aria-pressed={activeTf === t}
+                onClick={() => setTf(t)}
+                className={`rounded px-1.5 py-0.5 font-mono text-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 ${
+                  activeTf === t ? 'bg-stone-200 text-stone-800 dark:bg-stone-700 dark:text-white' : 'text-stone-400'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        <button
+          type="button"
+          className="ml-auto shrink-0 rounded px-1.5 py-0.5 text-[10px] text-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
+          onClick={() => setExpanded((v) => !v)}
+          aria-pressed={expanded}
+        >
+          {expanded ? 'Exit expand' : 'Expand'}
+        </button>
       </div>
 
-      <div
-        className="relative min-h-[220px] flex-1"
-        onMouseMove={(e) => {
-          const r = e.currentTarget.getBoundingClientRect();
-          setCross({ x: e.clientX - r.left, y: e.clientY - r.top });
-        }}
-        onMouseLeave={() => setCross(null)}
-      >
-        <svg className="absolute inset-0 h-full w-full" role="img" aria-label="Live bid and ask from Forex backend">
-          {scale ? (
-            <>
-              <line x1="0" y1={`${yPct(scale.bid)}%`} x2="100%" y2={`${yPct(scale.bid)}%`} stroke="#0f766e" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-              <line x1="0" y1={`${yPct(scale.ask)}%`} x2="100%" y2={`${yPct(scale.ask)}%`} stroke="#be123c" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-            </>
-          ) : null}
-          {cross ? (
-            <>
-              <line x1={cross.x} y1="0" x2={cross.x} y2="100%" stroke="currentColor" strokeOpacity="0.25" />
-              <line x1="0" y1={cross.y} x2="100%" y2={cross.y} stroke="currentColor" strokeOpacity="0.25" />
-            </>
-          ) : null}
-        </svg>
-        <div className="pointer-events-none absolute right-2 top-2 w-28 rounded border border-stone-200 bg-white/90 p-2 font-mono text-[10px] dark:border-stone-700 dark:bg-black/50">
-          <div className="text-stone-400">Price scale</div>
-          <div>Ask {quote ? fxNum(quote.ask, digits) : '—'}</div>
-          <div>Bid {quote ? fxNum(quote.bid, digits) : '—'}</div>
-          <div className="mt-1 text-stone-400">{stale ? 'Not live' : 'Live quote'}</div>
-        </div>
-        <div className="absolute bottom-3 left-3 right-3 rounded border border-stone-300 bg-white/95 px-3 py-2 text-[11px] leading-relaxed text-stone-600 dark:border-stone-700 dark:bg-black/70 dark:text-stone-300">
-          Historical Forex OHLC is not available. This pane shows the live simulated bid/ask from GET /quotes and fx.quote.
-          It is not candle history. Crypto GET /trading/candles is not used.
-        </div>
+      <div className="relative min-h-[220px] flex-1">
+        <ForexLightweightChart
+          candles={candleView.status === 'READY' ? candleView.candles : []}
+          quote={quoteLevels}
+          dark={dark}
+        />
+        {banners.length > 0 ? (
+          <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-1.5">
+            {banners.map((banner) => (
+              <div
+                key={banner.text}
+                role={banner.tone === 'error' ? 'alert' : 'status'}
+                className={`rounded border px-3 py-2 text-[11px] leading-relaxed ${
+                  banner.tone === 'error'
+                    ? 'border-rose-300 bg-rose-50 text-rose-900 dark:border-rose-900 dark:bg-rose-950/70 dark:text-rose-100'
+                    : banner.tone === 'warn'
+                      ? 'border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950/70 dark:text-amber-100'
+                      : 'border-stone-300 bg-white/95 text-stone-600 dark:border-stone-700 dark:bg-black/70 dark:text-stone-300'
+                }`}
+              >
+                {banner.text}
+                {banner.text.startsWith('Historical Forex OHLC') ? (
+                  <span className="mt-1 block text-stone-500 dark:text-stone-400">
+                    Live bid/ask continue from GET /quotes and fx.quote. Crypto GET /trading/candles is not used.
+                  </span>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   );

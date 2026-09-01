@@ -47,6 +47,19 @@ export function describeForexError(err: ForexError): string {
       return `${err.code}: ${err.message}`;
     case 'FOREX_NOT_READY':
       return `${err.code}: ${err.message}. Forex economic state is not hydrated.`;
+    case 'FOREX_CANDLES_UNAVAILABLE':
+    case 'NO_DURABLE_OHLC':
+      return `${err.code}: ${err.message}. Historical Forex OHLC is currently unavailable.`;
+    case 'FOREX_CANDLES_INVALID':
+    case 'FOREX_CANDLES_OHLC_INVALID':
+    case 'FOREX_CANDLES_ORDER_INVALID':
+    case 'FOREX_CANDLES_DUPLICATE_TIMESTAMP':
+    case 'FOREX_CANDLES_SYMBOL_MISMATCH':
+    case 'FOREX_CANDLES_TIMEFRAME_MISMATCH':
+    case 'FOREX_CANDLES_INVALID_TIMESTAMP':
+    case 'FOREX_TIMEFRAME_UNSUPPORTED':
+    case 'FOREX_SYMBOL_REQUIRED':
+      return `${err.code}: ${err.message}`;
     case 'NETWORK_ERROR':
       return `${err.code}: ${err.message}. Connection to the Forex API failed.`;
     default:
