@@ -1,6 +1,6 @@
 export const FOREX_ROUTES = {
   root: '/forex',
-  trade: '/forex',
+  trade: '/forex/trade',
   markets: '/forex/markets',
   portfolio: '/forex/portfolio',
   orders: '/forex/orders',
@@ -9,12 +9,24 @@ export const FOREX_ROUTES = {
   account: '/forex/account',
 } as const;
 
+export function isForexTradePath(pathname: string): boolean {
+  return pathname === FOREX_ROUTES.root || pathname === FOREX_ROUTES.trade;
+}
+
 export const FOREX_NAV = [
-  { href: FOREX_ROUTES.markets, label: 'Markets' },
   { href: FOREX_ROUTES.trade, label: 'Trade' },
+  { href: FOREX_ROUTES.markets, label: 'Markets' },
   { href: FOREX_ROUTES.portfolio, label: 'Portfolio' },
   { href: FOREX_ROUTES.orders, label: 'Orders' },
   { href: FOREX_ROUTES.analysis, label: 'Analysis' },
   { href: FOREX_ROUTES.alerts, label: 'Alerts' },
   { href: FOREX_ROUTES.account, label: 'Account' },
+] as const;
+
+export const FOREX_MOBILE_NAV = [
+  { href: FOREX_ROUTES.trade, label: 'Trade' },
+  { href: FOREX_ROUTES.markets, label: 'Markets' },
+  { href: FOREX_ROUTES.portfolio, label: 'Portfolio' },
+  { href: FOREX_ROUTES.orders, label: 'Orders' },
+  { href: FOREX_ROUTES.account, label: 'More' },
 ] as const;

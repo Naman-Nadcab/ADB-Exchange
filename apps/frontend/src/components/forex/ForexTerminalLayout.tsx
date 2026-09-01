@@ -11,6 +11,7 @@ import { ForexMarketStrip } from './ForexMarketStrip';
 import { ForexOrderTicket } from './ForexOrderTicket';
 import { ForexRiskBar } from './ForexRiskBar';
 import { ForexSessionBar } from './ForexSessionBar';
+import { ForexMobileNav } from './ForexMobileNav';
 import { ForexTopNav } from './ForexTopNav';
 import { ForexWatchlist } from './ForexWatchlist';
 import { ForexWorkspaceSwitch } from './ForexWorkspaceSwitch';
@@ -63,6 +64,7 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
       </div>
       <ForexRiskBar />
       <ForexAccountBar />
+      <ForexMobileNav />
     </div>
   );
 }
