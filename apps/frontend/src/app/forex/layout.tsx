@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { ForexTerminalLayout } from '@/components/forex/ForexTerminalLayout';
 
 export const metadata: Metadata = {
-  title: 'EDA Forex',
-  description: 'EDA Forex simulated client terminal. Backend-authoritative quotes, account, and risk.',
+  title: 'Forex | EDA EXCHANGE',
+  description: 'Professional FX trading on EDA — quotes, margin, positions and account visibility.',
 };
 
 export default function ForexLayout({ children }: { children: React.ReactNode }) {

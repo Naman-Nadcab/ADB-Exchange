@@ -54,5 +54,6 @@ assert(footer.includes('Markets'), 'footer Markets');
 assert(footer.includes('Legal'), 'footer Legal');
 assert(footer.includes('ROUTES.terms'), 'footer Terms uses real route');
 assert(footer.includes('FOREX_ROUTES.trade'), 'footer Forex uses real route');
+assert(home.includes('eda-tab'), 'home uses Market-page tab language');
 
 console.log('eda-public-home.test.ts ok');

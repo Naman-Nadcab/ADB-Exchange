@@ -191,7 +191,7 @@ export function ForexChartFoundation() {
                 aria-pressed={activeTf === t}
                 onClick={() => setTf(t)}
                 className={`rounded px-1.5 py-0.5 font-mono text-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                  activeTf === t ? 'bg-primary/15 text-primary' : 'text-muted-foreground'
+                  activeTf === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'
                 }`}
               >
                 {t}
@@ -256,7 +256,7 @@ export function ForexChartFoundation() {
                 {banner.text}
                 {banner.text.startsWith('Historical Forex OHLC') ? (
                   <span className="mt-1 block text-muted-foreground">
-                    Live bid/ask continue from GET /quotes and fx.quote. Crypto GET /trading/candles is not used.
+                    Live Bid/Ask continue from EDA quotes. Historical candles and live quotes are not merged into one forming bar.
                   </span>
                 ) : null}
               </div>

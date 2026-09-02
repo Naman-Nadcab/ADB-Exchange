@@ -232,10 +232,7 @@ export function EdaPublicHome() {
                     role="tab"
                     aria-selected={tab === t}
                     onClick={() => setTab(t)}
-                    className={cn(
-                      'rounded-md px-3 py-1.5 text-[12px] capitalize transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                      tab === t ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground'
-                    )}
+                    className={cn('eda-tab capitalize', tab === t && 'eda-tab-active')}
                   >
                     {t}
                   </button>

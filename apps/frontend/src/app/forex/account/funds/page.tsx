@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { ForexAccountNav } from '@/components/forex/ForexAccountNav';
 import { ForexMetric } from '@/components/forex/ForexMetric';
+import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { fxPlain } from '@/components/forex/format';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
-import { fxPlain } from '@/components/forex/format';
 
 export default function ForexFundsPage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -17,26 +19,15 @@ export default function ForexFundsPage() {
   const currency = account?.currency ?? balance?.currency ?? 'USD';
 
   return (
-    <div className="mx-auto max-w-5xl space-y-5 p-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-lg font-semibold">Funds</h1>
-          <p className="text-[12px] text-stone-500">
-            Forex cash position from the Forex ledger. Crypto wallet rails are not used.
-          </p>
-        </div>
-        <ForexAccountNav />
-      </div>
-
+    <ForexPageFrame
+      title="Funds"
+      subtitle="Forex funding rails are currently unavailable. Account balances and activity remain visible through Account and Ledger."
+      actions={<ForexAccountNav />}
+    >
       {!authed ? (
-        <p className="text-[13px] text-stone-500">
-          Sign in to view funds.{' '}
-          <Link href="/login?redirect=/forex/account/funds" className="underline">
-            Sign in
-          </Link>
-        </p>
+        <ForexSignInPrompt href="/login?redirect=/forex/account/funds" label="funds" />
       ) : (
-        <section className="grid grid-cols-2 gap-2 md:grid-cols-4">
+        <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <ForexMetric label="Available balance" value={account?.availableBalance ?? balance?.availableBalance} currency={currency} />
           <ForexMetric label="Ledger balance" value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
           <ForexMetric label="Equity" value={account?.equity ?? balance?.equity} currency={currency} />
@@ -44,46 +35,51 @@ export default function ForexFundsPage() {
         </section>
       )}
 
-      <section className="rounded border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-[#101214]">
-        <h2 className="text-sm font-medium">Deposit / withdrawal / transfer</h2>
-        <p className="mt-2 text-[13px] text-stone-600 dark:text-stone-300">Funding unavailable</p>
-        <p className="mt-1 text-[12px] text-stone-500">
-          There is no customer Forex deposit, withdrawal, or transfer API. POST /funding/test is a simulated test credit
-          and is not offered here.
+      <section className="eda-card-featured p-5">
+        <p className="text-[11px] uppercase tracking-[0.16em] text-primary">Funds</p>
+        <h2 className="mt-1 text-lg font-semibold">Forex funding rails are currently unavailable</h2>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          Deposit, withdrawal and transfer are not offered. Account balances and financial activity remain visible through
+          Account and Ledger.
         </p>
+        <Link href={FOREX_ROUTES.ledger} className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+          View Ledger
+        </Link>
       </section>
 
       {authed ? (
-        <section>
-          <h2 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-stone-500">Funding history · GET /funding</h2>
+        <section className="eda-card p-4">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Account activity</h2>
           {funding.length === 0 ? (
-            <p className="text-[13px] text-stone-500">No Forex account activity.</p>
+            <p className="mt-3 text-sm text-muted-foreground">No Forex account activity.</p>
           ) : (
-            <table className="w-full text-left font-mono text-[12px]">
-              <thead className="text-stone-500">
-                <tr>
-                  <th className="py-1 font-medium">Time</th>
-                  <th className="py-1 font-medium">Type</th>
-                  <th className="py-1 font-medium">Debit</th>
-                  <th className="py-1 font-medium">Credit</th>
-                  <th className="py-1 font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {funding.map((row) => (
-                  <tr key={row.transactionId} className="border-t border-stone-100 dark:border-stone-800">
-                    <td className="py-1">{fxPlain(row.timestamp)}</td>
-                    <td className="py-1">{fxPlain(row.type)}</td>
-                    <td className="py-1">{fxPlain(row.cashDebit ?? row.debit)}</td>
-                    <td className="py-1">{fxPlain(row.cashCredit ?? row.credit)}</td>
-                    <td className="py-1">{fxPlain(row.status)}</td>
+            <div className="eda-table-wrap mt-3">
+              <table className="eda-table font-mono text-[12px]">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Type</th>
+                    <th>Debit</th>
+                    <th>Credit</th>
+                    <th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {funding.map((row) => (
+                    <tr key={row.transactionId}>
+                      <td>{fxPlain(row.timestamp)}</td>
+                      <td>{fxPlain(row.type)}</td>
+                      <td>{fxPlain(row.cashDebit ?? row.debit)}</td>
+                      <td>{fxPlain(row.cashCredit ?? row.credit)}</td>
+                      <td>{fxPlain(row.status)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </section>
       ) : null}
-    </div>
+    </ForexPageFrame>
   );
 }

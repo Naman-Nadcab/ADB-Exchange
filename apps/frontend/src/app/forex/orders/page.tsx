@@ -30,19 +30,19 @@ export default function ForexOrdersPage() {
   const filtered = rows.filter((o) => classify(o.status) === tab);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4 p-4">
-      <h1 className="text-lg font-semibold">Orders</h1>
-      <p className="text-[12px] text-stone-500">GET /orders and GET /orders/pending. Fills below are GET /fills, not order history.</p>
+    <div className="mx-auto max-w-6xl space-y-5 px-4 py-6 sm:px-6">
+      <h1 className="text-2xl font-semibold tracking-tight">Orders</h1>
+      <p className="text-sm text-muted-foreground">Open, pending and completed Forex orders. Fills are executions, not the order list.</p>
       {!authed ? (
-        <p className="text-[13px] text-stone-500">
+        <p className="eda-card p-4 text-sm text-muted-foreground">
           Sign in to view orders.{' '}
-          <Link href="/login?redirect=/forex/orders" className="underline">
+          <Link href="/login?redirect=/forex/orders" className="text-primary underline underline-offset-2">
             Sign in
           </Link>
         </p>
       ) : (
         <>
-          <div className="flex flex-wrap gap-1" role="tablist">
+          <div className="flex flex-wrap gap-1.5" role="tablist">
             {TABS.map((t) => (
               <button
                 key={t}
@@ -50,20 +50,18 @@ export default function ForexOrdersPage() {
                 role="tab"
                 aria-selected={tab === t}
                 onClick={() => setTab(t)}
-                className={`rounded px-2.5 py-1 text-[12px] capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 ${
-                  tab === t ? 'bg-stone-200 dark:bg-stone-800' : 'text-stone-500'
-                }`}
+                className={`eda-tab capitalize ${tab === t ? 'eda-tab-active' : ''}`}
               >
                 {t}
               </button>
             ))}
           </div>
           {filtered.length === 0 ? (
-            <p className="text-[13px] text-stone-500">No active Forex orders.</p>
+            <p className="text-sm text-muted-foreground">No active Forex orders.</p>
           ) : (
-            <div className="overflow-x-auto rounded border border-stone-200 bg-white dark:border-stone-800 dark:bg-[#101214]">
-              <table className="min-w-[860px] w-full text-left font-mono text-[12px]">
-                <thead className="text-stone-500">
+            <div className="eda-table-wrap">
+              <table className="eda-table min-w-[860px] font-mono text-[12px]">
+                <thead>
                   <tr>
                     <th className="px-3 py-2 font-medium">Time</th>
                     <th className="px-3 py-2 font-medium">Symbol</th>
@@ -77,7 +75,7 @@ export default function ForexOrdersPage() {
                 </thead>
                 <tbody>
                   {filtered.map((o) => (
-                    <tr key={o.orderId} className="border-t border-stone-100 dark:border-stone-800">
+                    <tr key={o.orderId}>
                       <td className="px-3 py-2">
                         <button type="button" className="underline-offset-2 hover:underline" onClick={() => setDetail(o)}>
                           {new Date(o.updatedAt).toLocaleString()}
@@ -99,13 +97,13 @@ export default function ForexOrdersPage() {
             </div>
           )}
 
-          <section>
-            <h2 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-stone-500">Fills / trade history</h2>
+          <section className="eda-card p-4">
+            <h2 className="mb-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Fills</h2>
             {fills.length === 0 ? (
-              <p className="text-[13px] text-stone-500">No Forex executions yet.</p>
+              <p className="text-sm text-muted-foreground">No Forex executions yet.</p>
             ) : (
-              <table className="w-full text-left font-mono text-[12px]">
-                <thead className="text-stone-500">
+              <table className="eda-table font-mono text-[12px]">
+                <thead>
                   <tr>
                     <th className="py-1 font-medium">Time</th>
                     <th className="py-1 font-medium">Symbol</th>
@@ -118,7 +116,7 @@ export default function ForexOrdersPage() {
                 </thead>
                 <tbody>
                   {fills.map((f) => (
-                    <tr key={f.fillId} className="border-t border-stone-100 dark:border-stone-800">
+                    <tr key={f.fillId}>
                       <td className="py-1">{new Date(f.timestamp).toLocaleString()}</td>
                       <td className="py-1">{f.symbol}</td>
                       <td className="py-1">{f.side}</td>
@@ -137,23 +135,23 @@ export default function ForexOrdersPage() {
 
       {detail ? (
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/40 p-3 md:items-center" role="dialog" aria-modal>
-          <div className="w-full max-w-lg rounded border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-[#101214]">
+          <div className="w-full max-w-lg rounded-xl border border-border bg-card p-4">
             <div className="mb-2 flex justify-between">
               <h2 className="text-sm font-medium">Order detail</h2>
-              <button type="button" className="text-[12px] underline" onClick={() => setDetail(null)}>
+              <button type="button" className="text-[12px] text-primary underline" onClick={() => setDetail(null)}>
                 Close
               </button>
             </div>
             <dl className="grid grid-cols-2 gap-2 font-mono text-[12px]">
-              <dt className="text-stone-500">Order ID</dt>
+              <dt className="text-muted-foreground">Order ID</dt>
               <dd>{detail.orderId}</dd>
-              <dt className="text-stone-500">Client order ID</dt>
+              <dt className="text-muted-foreground">Client order ID</dt>
               <dd>{detail.clientOrderId}</dd>
-              <dt className="text-stone-500">Status</dt>
+              <dt className="text-muted-foreground">Status</dt>
               <dd>{detail.status}</dd>
-              <dt className="text-stone-500">Reason</dt>
+              <dt className="text-muted-foreground">Reason</dt>
               <dd>{detail.failureReason ?? '—'}</dd>
-              <dt className="text-stone-500">Execution ID</dt>
+              <dt className="text-muted-foreground">Execution ID</dt>
               <dd>{detail.executionId ?? '—'}</dd>
             </dl>
           </div>

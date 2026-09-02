@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import { fxMoney, fxSigned } from './format';
 
 export function ForexMetric(props: {
@@ -18,16 +19,17 @@ export function ForexMetric(props: {
       : fxMoney(props.value, props.currency ?? 'USD');
   const tone = signed?.tone;
   return (
-    <div className="min-w-[140px] rounded border border-stone-200 bg-white px-3 py-2 dark:border-stone-800 dark:bg-[#101214]">
-      <div className="text-[10px] uppercase tracking-wide text-stone-500">{props.label}</div>
+    <div className="eda-metric">
+      <div className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{props.label}</div>
       <div
-        className={`font-mono text-[15px] tabular-nums ${
-          tone === 'pos' ? 'text-emerald-700 dark:text-emerald-400' : tone === 'neg' ? 'text-rose-700 dark:text-rose-400' : 'text-stone-900 dark:text-stone-100'
-        }`}
+        className={cn(
+          'mt-1 font-mono text-[15px] tabular-nums',
+          tone === 'pos' ? 'text-buy' : tone === 'neg' ? 'text-sell' : 'text-foreground'
+        )}
       >
         {text}
       </div>
-      {props.hint ? <div className="text-[10px] text-stone-400">{props.hint}</div> : null}
+      {props.hint ? <div className="mt-0.5 text-[10px] text-muted-foreground">{props.hint}</div> : null}
     </div>
   );
 }

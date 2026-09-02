@@ -38,7 +38,7 @@ export function ForexWatchlist() {
   return (
     <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-r border-border bg-card" aria-label="Watchlist">
       <div className="flex h-8 items-center justify-between px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-        Watchlist
+        Favorites
       </div>
       <ForexSymbolSearch />
       <div className="min-h-0 flex-1 overflow-auto">

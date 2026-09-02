@@ -2,13 +2,14 @@
 
 import { ForexAccountNav } from '@/components/forex/ForexAccountNav';
 import { ForexMetric } from '@/components/forex/ForexMetric';
+import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { ForexPositionPanel } from '@/components/forex/ForexPositionPanel';
 import { fxMoney, fxNum, fxPlain } from '@/components/forex/format';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { positionUnrealizedPnl } from '@/lib/forex/models/position';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
-import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export default function ForexPortfolioPage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -25,82 +26,82 @@ export default function ForexPortfolioPage() {
   const rows = Object.values(positions);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5 p-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-lg font-semibold">Portfolio</h1>
-          <p className="text-[12px] text-stone-500">Positions, P&amp;L, and exposure from the Forex backend.</p>
-        </div>
-        <ForexAccountNav />
-      </div>
-
+    <ForexPageFrame
+      wide
+      title="Portfolio"
+      subtitle="Open positions, exposure, P&L and margin from the Forex account."
+      actions={<ForexAccountNav />}
+    >
       {!authed ? (
-        <p className="text-[13px] text-stone-500">
-          Sign in to view portfolio.{' '}
-          <Link href="/login?redirect=/forex/portfolio" className="underline">
-            Sign in
-          </Link>
-        </p>
+        <ForexSignInPrompt href="/login?redirect=/forex/portfolio" label="portfolio" />
       ) : (
         <>
-          <section className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-6">
+          <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
             <ForexMetric label="Balance" value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
             <ForexMetric label="Equity" value={account?.equity ?? balance?.equity} currency={currency} />
-            <ForexMetric label="Available" value={account?.availableBalance ?? balance?.availableBalance} currency={currency} />
             <ForexMetric label="Used margin" value={account?.usedMargin ?? margin?.usedMargin} currency={currency} />
             <ForexMetric label="Free margin" value={account?.freeMargin ?? margin?.freeMargin} currency={currency} />
-            <ForexMetric label="Unrealized" value={account?.unrealizedPnl ?? pnl?.unrealized} currency={currency} signed />
-          </section>
-
-          <section className="grid grid-cols-2 gap-2 md:grid-cols-4">
-            <ForexMetric label="Realized P&L" value={account?.realizedPnl ?? pnl?.realized} currency={currency} signed />
-            <ForexMetric label="Fees" value={fees?.total} currency={fees?.currency ?? currency} />
-            <ForexMetric label="Swaps" value={swaps?.total} currency={swaps?.currency ?? currency} />
+            <ForexMetric label="Unrealized P&L" value={account?.unrealizedPnl ?? pnl?.unrealized} currency={currency} signed />
             <ForexMetric label="Gross exposure" value={margin?.grossExposure} currency={currency} />
           </section>
 
-          <section className="overflow-x-auto rounded border border-stone-200 bg-white dark:border-stone-800 dark:bg-[#101214]">
-            <h2 className="border-b border-stone-200 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-stone-500 dark:border-stone-800">
+          <section className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            <ForexMetric label="Realized P&L" value={account?.realizedPnl ?? pnl?.realized} currency={currency} signed />
+            <ForexMetric label="Fees" value={fees?.total} currency={fees?.currency ?? currency} />
+            <ForexMetric label="Swaps" value={swaps?.total} currency={swaps?.currency ?? currency} />
+          </section>
+
+          <section className="eda-card overflow-hidden">
+            <h2 className="border-b border-border px-4 py-3 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
               Exposure
             </h2>
             {rows.length === 0 ? (
-              <p className="p-3 text-[13px] text-stone-500">No open Forex positions.</p>
+              <p className="p-4 text-sm text-muted-foreground">No open positions.</p>
             ) : (
-              <table className="min-w-[800px] w-full text-left font-mono text-[12px]">
-                <thead className="text-stone-500">
-                  <tr>
-                    <th className="px-3 py-2 font-medium">Symbol</th>
-                    <th className="px-3 py-2 font-medium">Side</th>
-                    <th className="px-3 py-2 font-medium">Volume</th>
-                    <th className="px-3 py-2 font-medium">Notional</th>
-                    <th className="px-3 py-2 font-medium">Entry</th>
-                    <th className="px-3 py-2 font-medium">Current</th>
-                    <th className="px-3 py-2 font-medium">P&amp;L</th>
-                    <th className="px-3 py-2 font-medium">Margin</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((p) => {
-                    const upnl = positionUnrealizedPnl(pnl, p);
-                    return (
-                      <tr key={p.positionId} className="border-t border-stone-100 dark:border-stone-800">
-                        <td className="px-3 py-2">{p.symbol}</td>
-                        <td className="px-3 py-2">{p.side}</td>
-                        <td className="px-3 py-2">{fxPlain(p.volume)}</td>
-                        <td className="px-3 py-2">{fxMoney(p.exposure, currency)}</td>
-                        <td className="px-3 py-2">{fxNum(p.entryPrice, 5)}</td>
-                        <td className="px-3 py-2">{fxNum(p.currentPrice, 5)}</td>
-                        <td className="px-3 py-2">{upnl.available ? fxMoney(upnl.value, upnl.currency ?? currency) : 'Unavailable'}</td>
-                        <td className="px-3 py-2">{fxMoney(p.initialMargin, currency)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <div className="eda-table-wrap border-0">
+                <table className="eda-table min-w-[800px] font-mono text-[12px]">
+                  <thead>
+                    <tr>
+                      <th>Symbol</th>
+                      <th>Side</th>
+                      <th>Volume</th>
+                      <th>Notional</th>
+                      <th>Entry</th>
+                      <th>Current</th>
+                      <th>P&amp;L</th>
+                      <th>Margin</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((p) => {
+                      const upnl = positionUnrealizedPnl(pnl, p);
+                      return (
+                        <tr key={p.positionId}>
+                          <td>{p.symbol}</td>
+                          <td className={cn(p.side === 'long' ? 'text-buy' : 'text-sell')}>{p.side}</td>
+                          <td>{fxPlain(p.volume)}</td>
+                          <td>{fxMoney(p.exposure, currency)}</td>
+                          <td>{fxNum(p.entryPrice, 5)}</td>
+                          <td>{fxNum(p.currentPrice, 5)}</td>
+                          <td>{upnl.available ? fxMoney(upnl.value, upnl.currency ?? currency) : 'Unavailable'}</td>
+                          <td>{fxMoney(p.initialMargin, currency)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
             {exposure ? (
-              <p className="border-t border-stone-100 px-3 py-2 text-[11px] text-stone-500 dark:border-stone-800">
-                Account net {fxPlain(typeof exposure.net === 'string' ? exposure.net : typeof exposure.accountNet === 'string' ? exposure.accountNet : null)} · GET /exposure
+              <p className="border-t border-border px-4 py-2 text-[11px] text-muted-foreground">
+                Account net{' '}
+                {fxPlain(
+                  typeof exposure.net === 'string'
+                    ? exposure.net
+                    : typeof exposure.accountNet === 'string'
+                      ? exposure.accountNet
+                      : null
+                )}
               </p>
             ) : null}
           </section>
@@ -108,6 +109,6 @@ export default function ForexPortfolioPage() {
           <ForexPositionPanel />
         </>
       )}
-    </div>
+    </ForexPageFrame>
   );
 }

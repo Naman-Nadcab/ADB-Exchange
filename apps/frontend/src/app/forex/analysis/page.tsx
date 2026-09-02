@@ -79,62 +79,62 @@ export default function ForexAnalysisPage() {
   const fmt = (n: number | null | undefined) => (n == null || !Number.isFinite(n) ? 'Unavailable' : n.toFixed(5));
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4 p-4">
-      <h1 className="text-lg font-semibold">Analysis</h1>
-      <p className="text-[12px] text-stone-500">
-        Chart uses GET /candles. Indicators are local analysis only and never affect execution, margin, or the ledger.
+    <div className="mx-auto max-w-6xl space-y-5 px-4 py-6 sm:px-6">
+      <h1 className="text-2xl font-semibold tracking-tight">Analysis</h1>
+      <p className="text-sm text-muted-foreground">
+        Chart, local indicators, economic calendar and financial news. Indicators never affect execution, margin or the ledger.
       </p>
-      <div className="h-[360px] overflow-hidden rounded border border-stone-200 dark:border-stone-800">
+      <div className="h-[360px] overflow-hidden rounded-xl border border-border bg-card">
         <ForexChartFoundation />
       </div>
 
-      <section className="rounded border border-stone-200 bg-white p-3 dark:border-stone-800 dark:bg-[#101214]">
-        <h2 className="text-[11px] font-medium uppercase tracking-wide text-stone-500">Indicators · analysis only</h2>
+      <section className="eda-card p-4">
+        <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Indicators · analysis only</h2>
         {candles.status !== 'READY' ? (
-          <p className="mt-2 text-[13px] text-stone-500">Historical market data unavailable.</p>
+          <p className="mt-2 text-[13px] text-muted-foreground">Historical market data unavailable.</p>
         ) : (
           <dl className="mt-2 grid grid-cols-2 gap-2 font-mono text-[12px] md:grid-cols-4">
             <div>
-              <dt className="text-stone-400">SMA 20</dt>
+              <dt className="text-muted-foreground">SMA 20</dt>
               <dd>{fmt(indicators?.sma20)}</dd>
             </div>
             <div>
-              <dt className="text-stone-400">EMA 20</dt>
+              <dt className="text-muted-foreground">EMA 20</dt>
               <dd>{fmt(indicators?.ema20)}</dd>
             </div>
             <div>
-              <dt className="text-stone-400">RSI 14</dt>
+              <dt className="text-muted-foreground">RSI 14</dt>
               <dd>{fmt(indicators?.rsi14)}</dd>
             </div>
             <div>
-              <dt className="text-stone-400">MACD</dt>
+              <dt className="text-muted-foreground">MACD</dt>
               <dd>{fmt(indicators?.macd)}</dd>
             </div>
             <div>
-              <dt className="text-stone-400">Bollinger mid</dt>
+              <dt className="text-muted-foreground">Bollinger mid</dt>
               <dd>{fmt(indicators?.bollinger?.mid)}</dd>
             </div>
             <div>
-              <dt className="text-stone-400">ATR 14</dt>
+              <dt className="text-muted-foreground">ATR 14</dt>
               <dd>{fmt(indicators?.atr14)}</dd>
             </div>
             <div>
-              <dt className="text-stone-400">Stochastic 14</dt>
+              <dt className="text-muted-foreground">Stochastic 14</dt>
               <dd>{fmt(indicators?.stoch14)}</dd>
             </div>
           </dl>
         )}
       </section>
 
-      <section className="rounded border border-stone-200 bg-white p-3 dark:border-stone-800 dark:bg-[#101214]">
-        <h2 className="text-[11px] font-medium uppercase tracking-wide text-stone-500">Economic calendar</h2>
+      <section className="eda-card p-4">
+        <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Economic calendar</h2>
         {calendar?.availability === 'UNAVAILABLE' || !calendar ? (
-          <p className="mt-2 text-[13px] text-stone-500">
+          <p className="mt-2 text-[13px] text-muted-foreground">
             Economic calendar unavailable{calendar?.reason ? ` (${calendar.reason})` : ''}.
           </p>
         ) : (
           <>
-            <p className="mt-1 text-[11px] text-stone-500">
+            <p className="mt-1 text-[11px] text-muted-foreground">
               Source {calendar.provider ?? 'external'} · this-week feed. Actual is shown only when the provider supplies it.
             </p>
             <div className="mt-2 flex flex-wrap gap-2 text-[12px]">
@@ -144,19 +144,17 @@ export default function ForexAnalysisPage() {
                   type="button"
                   aria-pressed={impactFilter === level}
                   onClick={() => setImpactFilter(level)}
-                  className={`rounded border px-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 ${
-                    impactFilter === level ? 'border-stone-800 dark:border-stone-200' : 'border-stone-300 dark:border-stone-700'
-                  }`}
+                  className={`eda-tab ${impactFilter === level ? 'eda-tab-active' : ''}`}
                 >
                   {level}
                 </button>
               ))}
               <label className="ml-auto flex items-center gap-1">
-                <span className="text-stone-500">Currency</span>
+                <span className="text-muted-foreground">Currency</span>
                 <select
                   value={currencyFilter}
                   onChange={(e) => setCurrencyFilter(e.target.value)}
-                  className="h-7 rounded border border-stone-300 bg-transparent px-1 dark:border-stone-700"
+                  className="h-7 rounded-lg border border-border bg-background px-1"
                 >
                   {currencies.map((c) => (
                     <option key={c} value={c}>
@@ -167,11 +165,11 @@ export default function ForexAnalysisPage() {
               </label>
             </div>
             {calendarRows.length === 0 ? (
-              <p className="mt-2 text-[13px] text-stone-500">No calendar events for this filter.</p>
+              <p className="mt-2 text-[13px] text-muted-foreground">No calendar events for this filter.</p>
             ) : (
               <div className="mt-2 overflow-x-auto">
                 <table className="min-w-[720px] w-full text-left font-mono text-[12px]">
-                  <thead className="text-stone-500">
+                  <thead className="text-muted-foreground">
                     <tr>
                       <th className="py-1 font-medium">Time</th>
                       <th className="py-1 font-medium">Currency</th>
@@ -184,7 +182,7 @@ export default function ForexAnalysisPage() {
                   </thead>
                   <tbody>
                     {calendarRows.slice(0, 80).map((ev, i) => (
-                      <tr key={`${ev.event}-${ev.time}-${i}`} className="border-t border-stone-100 dark:border-stone-800">
+                      <tr key={`${ev.event}-${ev.time}-${i}`}>
                         <td className="py-1">{ev.time ? new Date(ev.time).toLocaleString() : '—'}</td>
                         <td className="py-1">{ev.currency ?? '—'}</td>
                         <td className="py-1">{ev.event}</td>
@@ -202,17 +200,17 @@ export default function ForexAnalysisPage() {
         )}
       </section>
 
-      <section className="rounded border border-stone-200 bg-white p-3 dark:border-stone-800 dark:bg-[#101214]">
-        <h2 className="text-[11px] font-medium uppercase tracking-wide text-stone-500">
+      <section className="eda-card p-4">
+        <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
           News{news?.provider ? ` · ${news.provider}` : ''}
         </h2>
         {!news || news.availability === 'UNAVAILABLE' ? (
-          <p className="mt-2 text-[13px] text-stone-500">No market news available{news?.reason ? ` (${news.reason})` : ''}.</p>
+          <p className="mt-2 text-[13px] text-muted-foreground">No market news available{news?.reason ? ` (${news.reason})` : ''}.</p>
         ) : (
           <ul className="mt-2 space-y-2">
             {news.items.slice(0, 20).map((item, i) => (
               <li key={`${item.headline}-${i}`} className="text-[13px]">
-                <span className="font-mono text-[11px] text-stone-400">{item.time ? new Date(item.time).toLocaleString() : ''}</span>{' '}
+                <span className="font-mono text-[11px] text-muted-foreground">{item.time ? new Date(item.time).toLocaleString() : ''}</span>{' '}
                 {item.url ? (
                   <a href={item.url} className="underline underline-offset-2" target="_blank" rel="noreferrer">
                     {item.headline}
@@ -220,7 +218,7 @@ export default function ForexAnalysisPage() {
                 ) : (
                   item.headline
                 )}
-                <span className="text-stone-400"> · {item.source}</span>
+                <span className="text-muted-foreground"> · {item.source}</span>
               </li>
             ))}
           </ul>
