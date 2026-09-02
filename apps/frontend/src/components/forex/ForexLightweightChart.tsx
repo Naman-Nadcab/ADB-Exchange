@@ -729,9 +729,9 @@ export function ForexLightweightChart(props: {
     const host = hostRef.current;
     if (!host) return;
     host.classList.toggle('forex-drawings-hidden', Boolean(props.hideDrawings));
-    for (const node of host.querySelectorAll('svg')) {
+    Array.from(host.querySelectorAll('svg')).forEach((node) => {
       (node as SVGElement).style.visibility = props.hideDrawings ? 'hidden' : '';
-    }
+    });
   }, [props.hideDrawings, props.tool]);
 
   return (
