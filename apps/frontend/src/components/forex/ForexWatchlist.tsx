@@ -65,79 +65,89 @@ export function ForexWatchlist() {
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-x-1 border-b border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-muted-foreground">
-        <span />
-        <span>Symbol</span>
-        <span className="w-14 text-right">Bid</span>
-        <span className="w-14 text-right">Ask</span>
-        <span className="w-7 text-right">Spr</span>
-        <span className="w-8 text-right">Chg%</span>
-      </div>
       <div className="min-h-0 flex-1 overflow-auto" onClick={() => setMenu(null)}>
         {rows.length === 0 ? (
           <p className="px-2 py-3 text-[11px] text-muted-foreground">
             {mwFilter === 'favorites' ? 'No favorites yet. Star a symbol.' : 'No symbols in this filter.'}
           </p>
         ) : (
-          rows.map((symbol) => {
-            const inst = instruments[symbol];
-            const q = quotes[symbol];
-            const stale = !q || isQuoteStale(q);
-            const digits = inst?.digits ?? 5;
-            const active = selected === symbol;
-            const fav = favorites.includes(symbol);
-            return (
-              <button
-                key={symbol}
-                type="button"
-                onClick={() => focusSymbol(symbol)}
-                onDoubleClick={() => {
-                  focusSymbol(symbol);
-                  setPanel('ticket', true);
-                  setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'buy' });
-                }}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  focusSymbol(symbol);
-                  setMenu({ x: e.clientX, y: e.clientY, symbol });
-                }}
-                className={cn(
-                  'fx-mt5-row grid w-full grid-cols-[auto_1fr_auto_auto_auto_auto] items-center gap-x-1 border-l-2 border-t border-border/50 px-1 py-0.5 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring',
-                  active ? 'fx-mt5-row--active border-l-primary' : 'border-l-transparent'
-                )}
-              >
-                <span
-                  role="button"
-                  tabIndex={0}
-                  aria-label={fav ? 'Remove favorite' : 'Add favorite'}
-                  className={cn('w-3 text-[10px]', fav ? 'text-primary' : 'text-muted-foreground/50')}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(symbol);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
+          <div className="forex-mw-scroll min-w-0 overflow-x-auto">
+            <div className="inline-block min-w-full">
+              <div className="grid min-w-[320px] grid-cols-[16px_minmax(72px,max-content)_56px_56px_28px_32px] gap-x-1.5 border-b border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-muted-foreground">
+                <span />
+                <span>Symbol</span>
+                <span className="text-right">Bid</span>
+                <span className="text-right">Ask</span>
+                <span className="text-right">Spr</span>
+                <span className="text-right">Chg%</span>
+              </div>
+              {rows.map((symbol) => {
+                const inst = instruments[symbol];
+                const q = quotes[symbol];
+                const stale = !q || isQuoteStale(q);
+                const digits = inst?.digits ?? 5;
+                const active = selected === symbol;
+                const fav = favorites.includes(symbol);
+                const label = inst?.displaySymbol ?? symbol;
+                return (
+                  <button
+                    key={symbol}
+                    type="button"
+                    title={label}
+                    onClick={() => focusSymbol(symbol)}
+                    onDoubleClick={() => {
+                      focusSymbol(symbol);
+                      setPanel('ticket', true);
+                      setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'buy' });
+                    }}
+                    onContextMenu={(e) => {
                       e.preventDefault();
-                      e.stopPropagation();
-                      toggleFavorite(symbol);
-                    }
-                  }}
-                >
-                  {fav ? '★' : '☆'}
-                </span>
-                <span className="truncate font-mono text-[11px] tabular-nums">{inst?.displaySymbol ?? symbol}</span>
-                <span className="eda-quote w-14 text-right font-mono text-[11px] text-buy">{q ? fxNum(q.bid, digits) : '—'}</span>
-                <span className="eda-quote w-14 text-right font-mono text-[11px] text-sell">{q ? fxNum(q.ask, digits) : '—'}</span>
-                <span className="w-7 text-right font-mono text-[10px] text-muted-foreground">{q?.spreadPips ?? '—'}</span>
-                <span
-                  className={cn('w-8 text-right font-mono text-[9px]', stale ? 'text-primary' : 'text-muted-foreground')}
-                  title="Change % unavailable from quote feed"
-                >
-                  n/a
-                </span>
-              </button>
-            );
-          })
+                      focusSymbol(symbol);
+                      setMenu({ x: e.clientX, y: e.clientY, symbol });
+                    }}
+                    className={cn(
+                      'fx-mt5-row grid min-w-[320px] w-full grid-cols-[16px_minmax(72px,max-content)_56px_56px_28px_32px] items-center gap-x-1.5 border-l-2 border-t border-border/50 px-1.5 py-0.5 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring',
+                      active ? 'fx-mt5-row--active border-l-primary' : 'border-l-transparent'
+                    )}
+                  >
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      aria-label={fav ? 'Remove favorite' : 'Add favorite'}
+                      className={cn('text-[10px]', fav ? 'text-primary' : 'text-muted-foreground/50')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(symbol);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleFavorite(symbol);
+                        }
+                      }}
+                    >
+                      {fav ? '★' : '☆'}
+                    </span>
+                    <span className="whitespace-nowrap font-mono text-[11px] tabular-nums">{label}</span>
+                    <span className="eda-quote text-right font-mono text-[11px] text-buy">
+                      {q ? fxNum(q.bid, digits) : '—'}
+                    </span>
+                    <span className="eda-quote text-right font-mono text-[11px] text-sell">
+                      {q ? fxNum(q.ask, digits) : '—'}
+                    </span>
+                    <span className="text-right font-mono text-[10px] text-muted-foreground">{q?.spreadPips ?? '—'}</span>
+                    <span
+                      className={cn('text-right font-mono text-[9px]', stale ? 'text-primary' : 'text-muted-foreground')}
+                      title="Change % unavailable from quote feed"
+                    >
+                      n/a
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         )}
       </div>
       <div className="border-t border-border px-2 py-1 text-[9px] text-muted-foreground">

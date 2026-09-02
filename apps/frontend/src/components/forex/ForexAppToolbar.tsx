@@ -117,7 +117,7 @@ export function ForexAppToolbar() {
                 showRsi: false,
                 showMacd: false,
                 showSessions: false,
-                showLevels: true,
+                showLevels: false,
                 chartType: 'candles',
               });
             },

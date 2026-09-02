@@ -127,7 +127,7 @@ export function ForexChartFoundation(props?: {
   const [crosshair, setCrosshair] = useState<ForexChartCrosshair | null>(null);
   const [tool, setTool] = useState<ForexAnalysisTool>('none');
   const [showSessions, setShowSessions] = useState(false);
-  const [showLevels, setShowLevels] = useState(true);
+  const [showLevels, setShowLevels] = useState(false);
   const [showRsi, setShowRsi] = useState(false);
   const [showMacd, setShowMacd] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
