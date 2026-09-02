@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { fxNum, fxPlain } from '@/components/forex/format';
@@ -11,13 +12,14 @@ import { useForexStore } from '@/lib/forex/state/store';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { cn } from '@/lib/utils';
 
-type Filter = 'all' | ForexAssetClass;
+type Filter = 'all' | ForexAssetClass | 'watchlist';
 
 const FILTERS: Array<{ id: Filter; label: string }> = [
   { id: 'all', label: 'All' },
   { id: 'fx_major', label: 'Majors' },
   { id: 'fx_cross', label: 'Crosses' },
   { id: 'metal', label: 'Metals' },
+  { id: 'watchlist', label: 'Watchlist' },
 ];
 
 function metalsNote(symbol: string): string | undefined {
@@ -26,89 +28,231 @@ function metalsNote(symbol: string): string | undefined {
   return undefined;
 }
 
+function classLabel(assetClass: ForexAssetClass): string {
+  if (assetClass === 'fx_major') return 'Major';
+  if (assetClass === 'fx_cross') return 'Cross';
+  return 'Metal';
+}
+
 export default function ForexMarketsPage() {
   const instruments = useForexStore((s) => s.instruments);
   const quotes = useForexStore((s) => s.quotes);
   const sessions = useForexStore((s) => s.sessions);
+  const watchlist = useForexWorkspaceStore((s) => s.watchlist);
   const setSelected = useForexWorkspaceStore((s) => s.setSelectedSymbol);
+  const toggleWatch = useForexWorkspaceStore((s) => s.toggleWatchlistSymbol);
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('all');
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<'symbol' | 'spread'>('symbol');
+
+  const sessionOpen = sessions?.eligibility.open === true;
+  const sessionReason = sessions?.eligibility.reason ?? 'Unavailable';
+
   const rows = useMemo(() => {
-    return Object.values(instruments)
-      .filter((inst) => (filter === 'all' ? true : inst.assetClass === filter))
-      .sort((a, b) => a.symbol.localeCompare(b.symbol));
-  }, [instruments, filter]);
+    const q = query.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const list = Object.values(instruments).filter((inst) => {
+      if (filter === 'watchlist') return watchlist.includes(inst.symbol);
+      if (filter !== 'all' && inst.assetClass !== filter) return false;
+      if (!q) return true;
+      return (
+        inst.symbol.includes(q) ||
+        (inst.displaySymbol ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '').includes(q) ||
+        inst.baseCurrency?.toUpperCase().includes(q) ||
+        inst.quoteCurrency?.toUpperCase().includes(q)
+      );
+    });
+    list.sort((a, b) => {
+      if (sort === 'spread') {
+        const sa = Number(quotes[a.symbol]?.spreadPips);
+        const sb = Number(quotes[b.symbol]?.spreadPips);
+        const fa = Number.isFinite(sa) ? sa : Number.POSITIVE_INFINITY;
+        const fb = Number.isFinite(sb) ? sb : Number.POSITIVE_INFINITY;
+        if (fa !== fb) return fa - fb;
+      }
+      return a.symbol.localeCompare(b.symbol);
+    });
+    return list;
+  }, [instruments, filter, query, sort, watchlist, quotes]);
+
+  const liveCount = useMemo(
+    () => rows.filter((inst) => quotes[inst.symbol] && !isQuoteStale(quotes[inst.symbol]!)).length,
+    [rows, quotes]
+  );
+
+  const openTrade = (symbol: string) => {
+    setSelected(symbol);
+    router.push(FOREX_ROUTES.trade);
+  };
 
   return (
     <ForexPageFrame
       wide
       title="Markets"
       subtitle="Live Bid, Ask and spread from EDA Forex quotes. Change is not shown unless the quote feed provides it."
-    >
-      <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Instrument class">
-        {FILTERS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            aria-selected={filter === t.id}
-            onClick={() => setFilter(t.id)}
-            className={cn('eda-tab', filter === t.id && 'eda-tab-active')}
+      actions={
+        <div className="flex flex-wrap items-center gap-2 text-[11px]">
+          <span
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-medium',
+              sessionOpen ? 'border-buy/30 bg-buy/10 text-buy' : 'border-sell/30 bg-sell/10 text-sell'
+            )}
           >
-            {t.label}
-          </button>
-        ))}
+            <span className={cn('h-1.5 w-1.5 rounded-full', sessionOpen ? 'bg-buy' : 'bg-sell')} aria-hidden />
+            Session {sessionOpen ? 'Open' : 'Closed'}
+          </span>
+          <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">
+            {liveCount}/{rows.length} live
+          </span>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Instrument class">
+          {FILTERS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={filter === t.id}
+              onClick={() => setFilter(t.id)}
+              className={cn('eda-tab', filter === t.id && 'eda-tab-active')}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="sr-only" htmlFor="fx-markets-search">
+            Search symbols
+          </label>
+          <input
+            id="fx-markets-search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search EUR, XAU…"
+            className="h-9 w-full min-w-[180px] rounded-lg border border-border bg-card px-3 text-[12px] text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-56"
+          />
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as 'symbol' | 'spread')}
+            className="h-9 rounded-lg border border-border bg-card px-2 text-[12px] text-foreground"
+            aria-label="Sort markets"
+          >
+            <option value="symbol">Sort · Symbol</option>
+            <option value="spread">Sort · Spread</option>
+          </select>
+        </div>
       </div>
+
+      {!sessionOpen ? (
+        <p className="text-[12px] text-amber-400">Market session: {sessionReason}. Quotes may still stream in demo mode.</p>
+      ) : null}
+
       {rows.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{Object.keys(instruments).length ? 'No instruments for this filter.' : 'Loading market data…'}</p>
+        <p className="eda-card p-6 text-sm text-muted-foreground">
+          {Object.keys(instruments).length
+            ? filter === 'watchlist'
+              ? 'Watchlist is empty. Star a market card to add it.'
+              : 'No instruments for this filter.'
+            : 'Loading market data…'}
+        </p>
       ) : (
-        <div className="eda-table-wrap">
-          <table className="eda-table min-w-[860px] font-mono text-[12px]">
-            <thead>
-              <tr>
-                <th>Symbol</th>
-                <th>Bid</th>
-                <th>Ask</th>
-                <th>Spread</th>
-                <th>Status</th>
-                <th>Session</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((inst) => {
-                const q = quotes[inst.symbol];
-                const stale = !q || isQuoteStale(q);
-                const note = metalsNote(inst.symbol);
-                return (
-                  <tr key={inst.symbol}>
-                    <td>
-                      <button
-                        type="button"
-                        className="text-left text-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        onClick={() => {
-                          setSelected(inst.symbol);
-                          router.push(FOREX_ROUTES.trade);
-                        }}
-                      >
-                        {inst.displaySymbol ?? inst.symbol}
-                      </button>
-                      {note ? <span className="mt-0.5 block text-[10px] text-muted-foreground">{note}</span> : null}
-                    </td>
-                    <td className="eda-quote text-buy">{q ? fxNum(q.bid, inst.digits) : 'Unavailable'}</td>
-                    <td className="eda-quote text-sell">{q ? fxNum(q.ask, inst.digits) : 'Unavailable'}</td>
-                    <td>{q ? fxPlain(q.spreadPips) : 'Unavailable'}</td>
-                    <td>
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className={cn('h-1.5 w-1.5 rounded-full', !stale ? 'bg-buy' : 'bg-muted-foreground')} aria-hidden />
-                        {!q ? 'Unavailable' : stale ? 'Stale' : 'Live'}
-                      </span>
-                    </td>
-                    <td className="text-muted-foreground">{sessions?.eligibility.open ? 'Open' : sessions?.eligibility.reason ?? 'Unavailable'}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {rows.map((inst) => {
+            const q = quotes[inst.symbol];
+            const stale = !q || isQuoteStale(q);
+            const note = metalsNote(inst.symbol);
+            const starred = watchlist.includes(inst.symbol);
+            const mid =
+              q && Number.isFinite(Number(q.bid)) && Number.isFinite(Number(q.ask))
+                ? (Number(q.bid) + Number(q.ask)) / 2
+                : null;
+            return (
+              <article
+                key={inst.symbol}
+                className="eda-card-interactive group flex flex-col p-4"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <button
+                    type="button"
+                    className="min-w-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    onClick={() => openTrade(inst.symbol)}
+                  >
+                    <h2 className="truncate text-[15px] font-semibold tracking-tight text-foreground group-hover:text-primary">
+                      {inst.displaySymbol ?? inst.symbol}
+                    </h2>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {classLabel(inst.assetClass)} · {inst.digits} digits
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={starred ? 'Remove from watchlist' : 'Add to watchlist'}
+                    aria-pressed={starred}
+                    onClick={() => toggleWatch(inst.symbol)}
+                    className={cn(
+                      'rounded-md px-1.5 py-0.5 text-[16px] leading-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                      starred ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    ★
+                  </button>
+                </div>
+
+                <dl className="mt-4 grid grid-cols-2 gap-2">
+                  <div className="rounded-lg border border-buy/20 bg-buy/5 px-2.5 py-2">
+                    <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Bid</dt>
+                    <dd className="eda-quote mt-0.5 font-mono text-[15px] font-semibold text-buy">
+                      {q ? fxNum(q.bid, inst.digits) : '—'}
+                    </dd>
+                  </div>
+                  <div className="rounded-lg border border-sell/20 bg-sell/5 px-2.5 py-2">
+                    <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Ask</dt>
+                    <dd className="eda-quote mt-0.5 font-mono text-[15px] font-semibold text-sell">
+                      {q ? fxNum(q.ask, inst.digits) : '—'}
+                    </dd>
+                  </div>
+                </dl>
+
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-muted-foreground">
+                  <span>
+                    Spread <span className="text-foreground">{q ? fxPlain(q.spreadPips) : '—'}</span>
+                  </span>
+                  {mid != null ? (
+                    <span>
+                      Mid <span className="text-foreground">{fxNum(mid, inst.digits)}</span>
+                    </span>
+                  ) : null}
+                  <span className="inline-flex items-center gap-1">
+                    <span className={cn('h-1.5 w-1.5 rounded-full', !stale ? 'bg-buy' : 'bg-muted-foreground')} aria-hidden />
+                    <span className={!q ? 'text-muted-foreground' : stale ? 'text-amber-400' : 'text-buy'}>
+                      {!q ? 'Unavailable' : stale ? 'Stale' : 'Live'}
+                    </span>
+                  </span>
+                </div>
+
+                {note ? <p className="mt-2 text-[10px] text-amber-400/90">{note}</p> : null}
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => openTrade(inst.symbol)}
+                    className="inline-flex h-8 flex-1 items-center justify-center rounded-lg bg-primary px-3 text-[12px] font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    Trade
+                  </button>
+                  <Link
+                    href={`${FOREX_ROUTES.analysis}?symbol=${encodeURIComponent(inst.symbol)}`}
+                    onClick={() => setSelected(inst.symbol)}
+                    className="inline-flex h-8 items-center justify-center rounded-lg border border-border px-3 text-[12px] font-semibold text-foreground hover:border-primary/40 hover:bg-accent/50"
+                  >
+                    Analyze
+                  </Link>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </ForexPageFrame>
