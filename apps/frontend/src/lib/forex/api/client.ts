@@ -13,6 +13,7 @@ import type {
   ForexLedgerReconciliation,
   ForexLedgerRow,
   ForexMarginSnapshot,
+  ForexModifyOrderBody,
   ForexPlaceOrderBody,
   ForexPnlView,
   ForexPublicOrder,
@@ -150,6 +151,12 @@ export const forexApi = {
     api.post<{ source: string; order: ForexPublicOrder }>(
       `${FOREX_PREFIX}/orders/${encodeURIComponent(orderId)}/cancel`,
       undefined,
+      { notifyOnError: false }
+    ),
+  modifyOrder: (orderId: string, body: ForexModifyOrderBody) =>
+    api.patch<{ source: string; executionMode: string; order: ForexPublicOrder }>(
+      `${FOREX_PREFIX}/orders/${encodeURIComponent(orderId)}`,
+      body,
       { notifyOnError: false }
     ),
 };

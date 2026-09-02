@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { describeForexError } from '@/lib/forex/models/errors';
+import { useForexOrderEngine } from '@/lib/forex/runtime/useForexOrderEngine';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { cn } from '@/lib/utils';
@@ -18,8 +20,11 @@ const TABS: Array<{ id: Tab; label: string }> = [
   { id: 'risk', label: 'Risk' },
 ];
 
+const PENDING_STATUSES = new Set(['ACCEPTED', 'PENDING', 'NEW', 'TRIGGERING', 'VALIDATING', 'CANCEL_PENDING']);
+
 export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: boolean }) {
   const [tab, setTab] = useState<Tab>('positions');
+  const [cancelId, setCancelId] = useState<string | null>(null);
   const authed = hasForexPrivateSession();
   const orders = useForexStore((s) => s.orders);
   const fills = useForexStore((s) => s.fills);
@@ -30,7 +35,9 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
   const bottomCollapsed = useForexWorkspaceStore((s) => s.bottomCollapsed);
   const toggleBottomCollapsed = useForexWorkspaceStore((s) => s.toggleBottomCollapsed);
   const setBottomCollapsed = useForexWorkspaceStore((s) => s.setBottomCollapsed);
+  const setSelected = useForexWorkspaceStore((s) => s.setSelectedSymbol);
   const chartMode = useForexWorkspaceStore((s) => s.chartMode);
+  const engine = useForexOrderEngine();
 
   const orderRows = useMemo(
     () => Object.values(orders).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
@@ -97,36 +104,78 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
             </div>
           ) : tab === 'orders' ? (
             orderRows.length === 0 ? (
-              <p className="px-3 py-3 text-[12px] text-muted-foreground">No open orders.</p>
+              <p className="px-3 py-3 text-[12px] text-muted-foreground">No orders.</p>
             ) : (
-              <table className="w-full text-left font-mono text-[11px] tabular-nums">
-                <thead className="sticky top-0 bg-card text-[10px] uppercase tracking-wide text-muted-foreground">
-                  <tr>
-                    <th className="px-2 py-1.5 font-medium">Id</th>
-                    <th className="px-2 py-1.5 font-medium">Symbol</th>
-                    <th className="px-2 py-1.5 font-medium">Side</th>
-                    <th className="px-2 py-1.5 font-medium">Type</th>
-                    <th className="px-2 py-1.5 font-medium">Volume</th>
-                    <th className="px-2 py-1.5 font-medium">Status</th>
-                    <th className="px-2 py-1.5 font-medium">Reason</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orderRows.map((o) => (
-                    <tr key={o.orderId} className="border-t border-border/80 hover:bg-accent/40">
-                      <td className="px-2 py-1.5">{o.orderId.slice(0, 8)}</td>
-                      <td className="px-2 py-1.5">{o.symbol}</td>
-                      <td className={cn('px-2 py-1.5', o.side === 'buy' ? 'text-buy' : 'text-sell')}>{o.side}</td>
-                      <td className="px-2 py-1.5">{o.type}</td>
-                      <td className="px-2 py-1.5">
-                        {o.filledVolume}/{o.requestedVolume}
-                      </td>
-                      <td className="px-2 py-1.5">{o.status}</td>
-                      <td className="px-2 py-1.5 text-muted-foreground">{o.failureReason ?? ''}</td>
+              <div>
+                {engine.error ? (
+                  <p className="px-3 py-1.5 text-[11px] text-sell" role="alert">
+                    {describeForexError(engine.error)}
+                  </p>
+                ) : null}
+                <table className="w-full text-left font-mono text-[11px] tabular-nums">
+                  <thead className="sticky top-0 bg-card text-[10px] uppercase tracking-wide text-muted-foreground">
+                    <tr>
+                      <th className="px-2 py-1.5 font-medium">Id</th>
+                      <th className="px-2 py-1.5 font-medium">Symbol</th>
+                      <th className="px-2 py-1.5 font-medium">Side</th>
+                      <th className="px-2 py-1.5 font-medium">Type</th>
+                      <th className="px-2 py-1.5 font-medium">Price</th>
+                      <th className="px-2 py-1.5 font-medium">Vol</th>
+                      <th className="px-2 py-1.5 font-medium">Status</th>
+                      <th className="px-2 py-1.5 font-medium">Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {orderRows.map((o) => {
+                      const canCancel = PENDING_STATUSES.has(String(o.status).toUpperCase());
+                      return (
+                        <tr key={o.orderId} className="border-t border-border/80 hover:bg-accent/40">
+                          <td className="px-2 py-1.5">{o.orderId.slice(0, 8)}</td>
+                          <td className="px-2 py-1.5">
+                            <button
+                              type="button"
+                              className="text-primary hover:underline"
+                              onClick={() => setSelected(o.symbol)}
+                            >
+                              {o.symbol}
+                            </button>
+                          </td>
+                          <td className={cn('px-2 py-1.5', o.side === 'buy' ? 'text-buy' : 'text-sell')}>{o.side}</td>
+                          <td className="px-2 py-1.5">{o.type}</td>
+                          <td className="px-2 py-1.5">{o.requestedPrice ? fxNum(o.requestedPrice) : '—'}</td>
+                          <td className="px-2 py-1.5">
+                            {o.filledVolume}/{o.requestedVolume}
+                          </td>
+                          <td className="px-2 py-1.5">
+                            {o.status}
+                            {o.failureReason ? (
+                              <span className="block text-[10px] text-muted-foreground">{o.failureReason}</span>
+                            ) : null}
+                          </td>
+                          <td className="px-2 py-1.5">
+                            {canCancel ? (
+                              <button
+                                type="button"
+                                disabled={engine.busy || cancelId === o.orderId}
+                                className="rounded border border-border px-1.5 py-0.5 text-[10px] hover:border-sell/40 hover:text-sell disabled:opacity-50"
+                                onClick={() => {
+                                  if (!window.confirm(`Cancel order ${o.orderId.slice(0, 8)}…?`)) return;
+                                  setCancelId(o.orderId);
+                                  void engine.cancel(o.orderId).finally(() => setCancelId(null));
+                                }}
+                              >
+                                {cancelId === o.orderId ? '…' : 'Cancel'}
+                              </button>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )
           ) : tab === 'history' ? (
             <div className="p-2">

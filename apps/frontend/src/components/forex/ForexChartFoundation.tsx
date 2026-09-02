@@ -817,12 +817,57 @@ export function ForexChartFoundation(props?: { embedded?: boolean }) {
               }}
             />
             <CtxItem
-              label="Trade from price"
+              label="Trade from price (limit)"
               onClick={() => {
-                setTicketDraft({ nonce: Date.now(), price: String(ctxMenu.price) });
+                setTicketDraft({
+                  nonce: Date.now(),
+                  price: String(ctxMenu.price),
+                  orderType: 'limit',
+                  side: lastClose != null && ctxMenu.price < lastClose ? 'buy' : 'sell',
+                });
                 setCtxMenu(null);
               }}
             />
+            {quote ? (
+              <>
+                <CtxItem
+                  label={
+                    Number(quote.ask) > 0 && ctxMenu.price < Number(quote.ask)
+                      ? `Buy Limit @ ${fxNum(ctxMenu.price, digits)}`
+                      : `Buy Stop @ ${fxNum(ctxMenu.price, digits)}`
+                  }
+                  onClick={() => {
+                    const ask = Number(quote.ask);
+                    const isLimit = Number.isFinite(ask) && ask > 0 && ctxMenu.price < ask;
+                    setTicketDraft({
+                      nonce: Date.now(),
+                      price: String(ctxMenu.price),
+                      orderType: isLimit ? 'limit' : 'stop',
+                      side: 'buy',
+                    });
+                    setCtxMenu(null);
+                  }}
+                />
+                <CtxItem
+                  label={
+                    Number(quote.bid) > 0 && ctxMenu.price > Number(quote.bid)
+                      ? `Sell Limit @ ${fxNum(ctxMenu.price, digits)}`
+                      : `Sell Stop @ ${fxNum(ctxMenu.price, digits)}`
+                  }
+                  onClick={() => {
+                    const bid = Number(quote.bid);
+                    const isLimit = Number.isFinite(bid) && bid > 0 && ctxMenu.price > bid;
+                    setTicketDraft({
+                      nonce: Date.now(),
+                      price: String(ctxMenu.price),
+                      orderType: isLimit ? 'limit' : 'stop',
+                      side: 'sell',
+                    });
+                    setCtxMenu(null);
+                  }}
+                />
+              </>
+            ) : null}
             <button type="button" className="block w-full px-3 py-1 text-left text-muted-foreground" onClick={() => setCtxMenu(null)}>
               Dismiss
             </button>

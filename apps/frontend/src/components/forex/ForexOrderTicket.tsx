@@ -1,18 +1,24 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { forexApi, unwrap } from '@/lib/forex/api/client';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
 import { isPreviewParamComplete } from '@/lib/forex/models/preview';
 import { executablePrice, isQuoteStale } from '@/lib/forex/models/quotes';
 import type { ForexOrderType, ForexSide } from '@/lib/forex/models/types';
+import { useForexOrderEngine } from '@/lib/forex/runtime/useForexOrderEngine';
 import { useForexPreview } from '@/lib/forex/runtime/useForexPreview';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { cn } from '@/lib/utils';
 import { ForexRiskTools } from './ForexRiskTools';
 import { fxNum } from './format';
+
+const TYPE_LABEL: Record<ForexOrderType, string> = {
+  market: 'Market',
+  limit: 'Limit',
+  stop: 'Stop',
+};
 
 export function ForexOrderTicket() {
   const selected = useForexWorkspaceStore((s) => s.selectedSymbol);
@@ -22,12 +28,13 @@ export function ForexOrderTicket() {
   const sessions = useForexStore((s) => s.sessions);
   const risk = useForexStore((s) => s.riskStatus);
   const config = useForexStore((s) => s.tradingConfig);
-  const busy = useForexStore((s) => s.ticketBusy);
-  const last = useForexStore((s) => s.ticketLastOrder);
-  const lastError = useForexStore((s) => s.lastError);
+  const storeBusy = useForexStore((s) => s.ticketBusy);
+  const storeLast = useForexStore((s) => s.ticketLastOrder);
+  const storeError = useForexStore((s) => s.lastError);
   const account = useForexStore((s) => s.account);
   const hydratePhase = useForexStore((s) => s.hydratePhase);
 
+  const engine = useForexOrderEngine();
   const [side, setSide] = useState<ForexSide>('buy');
   const [type, setType] = useState<ForexOrderType>('market');
   const [volume, setVolume] = useState(inst?.minVolume ?? '0.01');
@@ -38,9 +45,11 @@ export function ForexOrderTicket() {
 
   useEffect(() => {
     if (!ticketDraft) return;
+    if (ticketDraft.side) setSide(ticketDraft.side);
+    if (ticketDraft.orderType) setType(ticketDraft.orderType);
     if (ticketDraft.price) {
       setPrice(ticketDraft.price);
-      setType((cur) => (cur === 'market' ? 'limit' : cur));
+      setType((cur) => ticketDraft.orderType ?? (cur === 'market' ? 'limit' : cur));
     }
     if (ticketDraft.sl) setSl(ticketDraft.sl);
     if (ticketDraft.tp) setTp(ticketDraft.tp);
@@ -59,6 +68,7 @@ export function ForexOrderTicket() {
     dealing?.symbol.enabled !== false;
   const sideEnabled = side === 'buy' ? dealing?.symbol.buyEnabled !== false : dealing?.symbol.sellEnabled !== false;
   const authed = hasForexPrivateSession();
+  const busy = storeBusy || engine.busy;
   const previewReq = {
     symbol: selected,
     side,
@@ -69,52 +79,49 @@ export function ForexOrderTicket() {
   const preview = useForexPreview(authed && isPreviewParamComplete(previewReq) ? previewReq : null, refreshNonce);
   const previewData = preview.data;
 
+  const pendingLabel = useMemo(() => {
+    if (type === 'market') return null;
+    if (type === 'limit') return side === 'buy' ? 'Buy Limit' : 'Sell Limit';
+    return side === 'buy' ? 'Buy Stop' : 'Sell Stop';
+  }, [type, side]);
+
   const blockReason = useMemo(() => {
     if (!authed) return 'Sign in to place Forex orders.';
     if (!sessionOpen) return `Market closed${sessions?.eligibility.reason ? ` · ${sessions.eligibility.reason}` : ''}.`;
-    if (stale) return quote ? 'Quote is stale. Execution is paused until the feed recovers.' : 'Quote unavailable.';
+    if (stale) return quote ? 'Quote is stale. Execution paused until feed recovers.' : 'Quote unavailable.';
     if (risk?.state === 'HALTED') return `Account halted${risk.reason ? ` · ${risk.reason}` : ''}.`;
     if (risk?.state === 'RESTRICTED' || risk?.state === 'LIQUIDATION_ONLY') {
-      return `Risk ${risk.state}${risk.reason ? ` · ${risk.reason}` : ''}. New risk-increasing orders are restricted.`;
+      return `Risk ${risk.state}${risk.reason ? ` · ${risk.reason}` : ''}. New risk-increasing orders restricted.`;
     }
     if (!newOrders) return 'New orders are currently disabled.';
     if (!sideEnabled) return `${side.toUpperCase()} is disabled for this symbol.`;
-    if ((type === 'limit' || type === 'stop') && !price.trim()) return 'Limit and stop orders require a price.';
+    if ((type === 'limit' || type === 'stop') && !price.trim()) return 'Limit and stop orders require a trigger/entry price.';
     return null;
   }, [authed, sessionOpen, sessions?.eligibility.reason, stale, quote, risk, newOrders, sideEnabled, side, type, price]);
 
   async function submit() {
     if (blockReason || busy) return;
-    const store = useForexStore.getState();
-    store.setTicketBusy(true);
-    store.setLastError(null);
-    const clientOrderId = `fx-${crypto.randomUUID()}`;
-    const body = {
-      clientOrderId,
+    await engine.place({
       symbol: selected,
       side,
       orderType: type,
       volume,
-      ...(type !== 'market' && price.trim() ? { requestedPrice: price.trim() } : {}),
-    };
-    const res = await forexApi.placeOrder(body);
-    const u = unwrap(res);
-    store.setTicketBusy(false);
-    if (!u.ok) {
-      store.setLastError(u.error);
-      return;
-    }
-    store.setTicketLastOrder(u.data.order);
-    store.applyPrivateHydrate({ orders: [u.data.order, ...Object.values(store.orders)] });
+      requestedPrice: type !== 'market' ? price.trim() : undefined,
+      stopLoss: sl.trim() || undefined,
+      takeProfit: tp.trim() || undefined,
+    });
   }
+
+  const last = engine.lastOrder ?? storeLast;
+  const lastError = engine.error ?? storeError;
 
   return (
     <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-l border-border bg-card" aria-label="Order ticket">
       <div className="flex h-9 items-center justify-between border-b border-border px-2.5">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Order ticket</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">New order</span>
         <span className="font-mono text-[11px] font-medium">{inst?.displaySymbol ?? selected}</span>
       </div>
-      <div className="grid grid-cols-3 gap-1 border-b border-border bg-muted/20 px-2 py-2 font-mono text-[11px]">
+      <div className="grid grid-cols-3 gap-1 border-b border-border bg-muted/20 px-2 py-1.5 font-mono text-[11px]">
         <div>
           <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Bid</p>
           <p className="eda-quote font-medium text-buy">{quote ? fxNum(quote.bid, digits) : '—'}</p>
@@ -128,7 +135,7 @@ export function ForexOrderTicket() {
           <p className="font-medium text-foreground">{quote?.spreadPips ?? '—'}</p>
         </div>
       </div>
-      <div className="min-h-0 flex-1 space-y-2.5 overflow-auto p-2.5">
+      <div className="min-h-0 flex-1 space-y-2 overflow-auto p-2.5">
         <div className="grid grid-cols-2 gap-1">
           {(['buy', 'sell'] as const).map((s) => (
             <button
@@ -153,45 +160,59 @@ export function ForexOrderTicket() {
               type="button"
               onClick={() => setType(t)}
               className={cn(
-                'h-7 flex-1 rounded-md border text-[11px] font-medium capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'h-7 flex-1 rounded-md border text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 type === t ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-muted-foreground hover:text-foreground'
               )}
             >
-              {t}
+              {TYPE_LABEL[t]}
             </button>
           ))}
         </div>
+        <p className="rounded border border-border/70 bg-muted/15 px-2 py-1 text-[10px] text-muted-foreground">
+          Stop Limit unavailable — backend supports Market / Limit / Stop only · SIMULATED / MOCK
+          {pendingLabel ? ` · ${pendingLabel}` : ''}
+        </p>
         <Field label="Volume (lots)" value={volume} onChange={setVolume} hint={inst ? `${inst.minVolume}–${inst.maxVolume} · step ${inst.volumeStep}` : undefined} />
         {type !== 'market' ? (
-          <Field label="Entry price" value={price} onChange={setPrice} />
+          <Field
+            label={type === 'stop' ? 'Trigger price' : 'Limit price'}
+            value={price}
+            onChange={setPrice}
+            hint={type === 'stop' ? 'Stop becomes active when market reaches this price.' : 'Limit rests until price is available.'}
+          />
         ) : null}
         <div className="grid grid-cols-2 gap-2">
           <Field label="Stop loss" value={sl} onChange={setSl} />
           <Field label="Take profit" value={tp} onChange={setTp} />
         </div>
-        <p className="text-[10px] leading-relaxed text-muted-foreground">SL/TP apply after fill through account protections.</p>
+        <p className="text-[10px] leading-relaxed text-muted-foreground">
+          SL/TP attach via protections after fill when a position exists. Pending: set from Positions after fill.
+        </p>
         <ForexRiskTools />
 
-        <dl className="grid grid-cols-2 gap-x-2 gap-y-1.5 rounded-lg border border-border bg-muted/20 px-2.5 py-2 font-mono text-[11px] text-muted-foreground">
+        <dl className="grid grid-cols-2 gap-x-2 gap-y-1 rounded-lg border border-border bg-muted/20 px-2.5 py-2 font-mono text-[11px] text-muted-foreground">
           <dt>Balance</dt>
           <dd className="text-right text-foreground">
-            {hydratePhase === 'hydrating' && !account ? 'Loading' : account ? fxNum(account.ledgerBalance, 2) : 'Unavailable'}
+            {hydratePhase === 'hydrating' && !account ? 'Loading' : account ? fxNum(account.ledgerBalance, 2) : '—'}
           </dd>
           <dt>Equity</dt>
           <dd className="text-right text-foreground">
-            {hydratePhase === 'hydrating' && !account ? 'Loading' : account ? fxNum(account.equity, 2) : 'Unavailable'}
+            {hydratePhase === 'hydrating' && !account ? 'Loading' : account ? fxNum(account.equity, 2) : '—'}
           </dd>
           <dt>Free margin</dt>
           <dd className="text-right text-foreground">
-            {hydratePhase === 'hydrating' && !account ? 'Loading' : account ? fxNum(account.freeMargin, 2) : 'Unavailable'}
+            {hydratePhase === 'hydrating' && !account ? 'Loading' : account ? fxNum(account.freeMargin, 2) : '—'}
+          </dd>
+          <dt>Used margin</dt>
+          <dd className="text-right text-foreground">
+            {account ? fxNum(account.usedMargin, 2) : '—'}
           </dd>
           <dt>Executable</dt>
           <dd className="text-right text-foreground">{exec ? fxNum(exec, digits) : '—'}</dd>
-          <dt>Session</dt>
-          <dd className="text-right text-foreground">{sessionOpen ? 'Open' : sessions?.eligibility.reason ?? '—'}</dd>
-          <dt>Risk</dt>
-          <dd className="text-right text-foreground">{risk?.state ?? '—'}</dd>
+          <dt>Mode</dt>
+          <dd className="text-right text-foreground">NETTING · MOCK</dd>
         </dl>
+
         <div className="rounded border border-border p-2" aria-live="polite">
           <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wide text-muted-foreground">
             <span>Preview · {preview.status}</span>
@@ -206,7 +227,7 @@ export function ForexOrderTicket() {
           {preview.status === 'LOADING' ? <p className="text-[11px] text-muted-foreground">Loading preview…</p> : null}
           {preview.status === 'IDLE' ? (
             <p className="text-[11px] text-muted-foreground">
-              {authed ? 'Enter volume to preview required margin.' : 'Sign in to preview and execute.'}
+              {authed ? 'Enter volume to preview margin.' : 'Sign in to preview and execute.'}
             </p>
           ) : null}
           {preview.status === 'ERROR' && preview.error ? (
@@ -214,66 +235,47 @@ export function ForexOrderTicket() {
               {preview.error.code}: {preview.error.message}
             </p>
           ) : null}
-          {preview.status === 'STALE' ? (
-            <p className="text-[11px] text-amber-800 dark:text-amber-200">Preview is stale. Refresh before submitting.</p>
-          ) : null}
           {previewData && (preview.status === 'READY' || preview.status === 'BLOCKED' || preview.status === 'STALE') ? (
             <dl className="mt-1 grid grid-cols-2 gap-x-2 gap-y-1 font-mono text-[11px] text-muted-foreground">
               {previewData.referencePrice ? (
                 <>
-                  <dt>Reference {previewData.referenceSide}</dt>
+                  <dt>Ref {previewData.referenceSide}</dt>
                   <dd className="text-right">{fxNum(previewData.referencePrice, digits)}</dd>
                 </>
               ) : null}
               {previewData.estimatedFee != null ? (
                 <>
-                  <dt>Estimated fee</dt>
-                  <dd className="text-right">{previewData.estimatedFee}{previewData.feeCurrency ? ` ${previewData.feeCurrency}` : ''}</dd>
+                  <dt>Est. fee</dt>
+                  <dd className="text-right">{previewData.estimatedFee}</dd>
                 </>
               ) : null}
               {previewData.requiredMargin != null ? (
                 <>
-                  <dt>Required margin</dt>
+                  <dt>Est. margin</dt>
                   <dd className="text-right">{previewData.requiredMargin}</dd>
-                </>
-              ) : null}
-              {previewData.freeMargin != null ? (
-                <>
-                  <dt>Free margin</dt>
-                  <dd className="text-right">{previewData.freeMargin}</dd>
                 </>
               ) : null}
               {previewData.projectedFreeMargin != null ? (
                 <>
-                  <dt>Free margin after</dt>
+                  <dt>Free after</dt>
                   <dd className="text-right">{previewData.projectedFreeMargin}</dd>
                 </>
               ) : null}
               {previewData.projectedMarginLevel != null ? (
                 <>
-                  <dt>Margin level</dt>
+                  <dt>Margin lvl</dt>
                   <dd className="text-right">{previewData.projectedMarginLevel}</dd>
-                </>
-              ) : null}
-              {previewData.spreadPips != null ? (
-                <>
-                  <dt>Spread (pips)</dt>
-                  <dd className="text-right">{previewData.spreadPips}</dd>
                 </>
               ) : null}
             </dl>
           ) : null}
           {preview.status === 'BLOCKED' && previewData?.reason ? (
             <p className="mt-1 text-[11px] text-amber-900 dark:text-amber-200" role="status">
-              {previewData.reason}: order is not currently allowed. Preview is indicative — submission still revalidates.
-            </p>
-          ) : null}
-          {preview.status === 'READY' ? (
-            <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
-              Indicative only. Buy uses Ask, sell uses Bid. Values revalidate on submit.
+              {previewData.reason} — not allowed. Submit still revalidates.
             </p>
           ) : null}
         </div>
+
         {blockReason ? (
           <p className="rounded border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200" role="status">
             {blockReason}
@@ -286,8 +288,13 @@ export function ForexOrderTicket() {
         ) : null}
         {last ? (
           <p className="font-mono text-[11px] text-muted-foreground" role="status">
-            Last order {last.orderId.slice(0, 8)}… {last.status}
+            Last {last.orderId.slice(0, 8)}… {last.status}
             {last.failureReason ? ` · ${last.failureReason}` : ''}
+          </p>
+        ) : null}
+        {engine.lastNote ? (
+          <p className="text-[10px] text-muted-foreground" role="status">
+            {engine.lastNote}
           </p>
         ) : null}
       </div>
@@ -301,7 +308,11 @@ export function ForexOrderTicket() {
             side === 'buy' ? 'bg-buy hover:bg-buy/90' : 'bg-sell hover:bg-sell/90'
           )}
         >
-          {busy ? 'Submitting…' : `${side === 'buy' ? 'Buy' : 'Sell'} ${inst?.displaySymbol ?? selected}`}
+          {busy
+            ? 'Submitting…'
+            : type === 'market'
+              ? `${side === 'buy' ? 'Buy' : 'Sell'} ${inst?.displaySymbol ?? selected}`
+              : `Place ${pendingLabel}`}
         </button>
       </div>
     </aside>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { ForexAssetClass } from '@/lib/forex/models/types';
 import { isQuoteStale } from '@/lib/forex/models/quotes';
 import { useForexStore } from '@/lib/forex/state/store';
@@ -23,7 +23,9 @@ export function ForexWatchlist() {
   const watchlist = useForexWorkspaceStore((s) => s.watchlist);
   const selected = useForexWorkspaceStore((s) => s.selectedSymbol);
   const setSelected = useForexWorkspaceStore((s) => s.setSelectedSymbol);
+  const setTicketDraft = useForexWorkspaceStore((s) => s.setTicketDraft);
   const marketOpen = sessions?.eligibility.open ?? false;
+  const [menu, setMenu] = useState<{ x: number; y: number; symbol: string } | null>(null);
 
   const groups = useMemo(() => {
     const by: Record<string, string[]> = { fx_major: [], fx_cross: [], metal: [], other: [] };
@@ -36,9 +38,9 @@ export function ForexWatchlist() {
   }, [instruments, watchlist]);
 
   return (
-    <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-r border-border bg-card" aria-label="Watchlist">
+    <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-r border-border bg-card" aria-label="Market watch">
       <div className="flex h-9 items-center justify-between border-b border-border px-2.5">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Favorites</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Market watch</span>
         <span className="font-mono text-[10px] text-muted-foreground">{watchlist.length}</span>
       </div>
       <ForexSymbolSearch />
@@ -49,7 +51,7 @@ export function ForexWatchlist() {
         <span className="w-8 text-right">Spr</span>
         <span className="w-9 text-right">Status</span>
       </div>
-      <div className="min-h-0 flex-1 overflow-auto">
+      <div className="min-h-0 flex-1 overflow-auto" onClick={() => setMenu(null)}>
         {watchlist.length === 0 ? (
           <p className="px-2.5 py-4 text-[11px] leading-relaxed text-muted-foreground">
             Search a Forex symbol to pin it here. Crypto symbols are not included.
@@ -75,6 +77,15 @@ export function ForexWatchlist() {
                       key={symbol}
                       type="button"
                       onClick={() => setSelected(symbol)}
+                      onDoubleClick={() => {
+                        setSelected(symbol);
+                        setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'buy' });
+                      }}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        setSelected(symbol);
+                        setMenu({ x: e.clientX, y: e.clientY, symbol });
+                      }}
                       className={cn(
                         'grid w-full grid-cols-[1fr_auto_auto_auto_auto] items-center gap-x-1 border-l-2 border-t border-border/70 px-2 py-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
                         active ? 'border-l-primary bg-primary/10' : 'border-l-transparent hover:bg-accent/60'
@@ -96,8 +107,64 @@ export function ForexWatchlist() {
         )}
       </div>
       <div className="border-t border-border px-2.5 py-1.5 text-[10px] text-muted-foreground">
-        Session {marketOpen ? 'open' : sessions?.eligibility.reason ?? '—'}. Change % unavailable from current quotes.
+        Session {marketOpen ? 'open' : sessions?.eligibility.reason ?? '—'} · Right-click for New order · Change % n/a
       </div>
+      {menu ? (
+        <div
+          className="fixed z-50 min-w-[150px] rounded-md border border-border bg-card py-1 text-[11px] shadow-lg"
+          style={{ left: menu.x, top: menu.y }}
+          role="menu"
+        >
+          <MenuItem
+            label="Focus chart"
+            onClick={() => {
+              setSelected(menu.symbol);
+              setMenu(null);
+            }}
+          />
+          <MenuItem
+            label="New market buy"
+            onClick={() => {
+              setSelected(menu.symbol);
+              setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'buy' });
+              setMenu(null);
+            }}
+          />
+          <MenuItem
+            label="New market sell"
+            onClick={() => {
+              setSelected(menu.symbol);
+              setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'sell' });
+              setMenu(null);
+            }}
+          />
+          <MenuItem
+            label="New limit order"
+            onClick={() => {
+              const q = quotes[menu.symbol];
+              setSelected(menu.symbol);
+              setTicketDraft({
+                nonce: Date.now(),
+                orderType: 'limit',
+                side: 'buy',
+                price: q?.bid ?? undefined,
+              });
+              setMenu(null);
+            }}
+          />
+          <button type="button" className="block w-full px-3 py-1 text-left text-muted-foreground" onClick={() => setMenu(null)}>
+            Dismiss
+          </button>
+        </div>
+      ) : null}
     </aside>
+  );
+}
+
+function MenuItem({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button type="button" role="menuitem" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={onClick}>
+      {label}
+    </button>
   );
 }

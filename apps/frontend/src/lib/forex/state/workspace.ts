@@ -29,7 +29,15 @@ export interface ForexWorkspaceState {
   chartMode: ForexChartMode;
   chartTimeframe: string;
   /** Chart → ticket draft. Not persisted. */
-  ticketDraft: { nonce: number; price?: string; sl?: string; tp?: string; volume?: string } | null;
+  ticketDraft: {
+    nonce: number;
+    price?: string;
+    sl?: string;
+    tp?: string;
+    volume?: string;
+    side?: 'buy' | 'sell';
+    orderType?: 'market' | 'limit' | 'stop';
+  } | null;
   setWorkspace: (w: ForexWorkspaceId) => void;
   setSelectedSymbol: (symbol: string) => void;
   setWatchlist: (symbols: string[]) => void;

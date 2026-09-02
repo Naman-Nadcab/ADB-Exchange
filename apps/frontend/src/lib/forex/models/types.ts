@@ -397,6 +397,16 @@ export interface ForexPlaceOrderBody {
   maxDeviation?: string;
 }
 
+/** Pending-order modify — SL/TP fields are audit metadata only (protections are separate). */
+export interface ForexModifyOrderBody {
+  requestedPrice?: string;
+  volume?: string;
+  stopLoss?: string;
+  takeProfit?: string;
+  expectedVersion?: number;
+  idempotencyKey?: string;
+}
+
 export interface ForexClosePositionBody {
   clientOrderId: string;
   volume?: string;
