@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import { isForexTradePath } from '@/lib/forex/routes';
+import { isForexTradePath, showForexMarketChrome } from '@/lib/forex/routes';
 import { useForexRuntime } from '@/lib/forex/runtime/useForexRuntime';
 import { useForexStore } from '@/lib/forex/state/store';
 import { resolveForexBottomHeight, useForexWorkspaceStore } from '@/lib/forex/state/workspace';
@@ -21,6 +21,7 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
   useForexRuntime();
   const pathname = usePathname() ?? '';
   const trade = isForexTradePath(pathname);
+  const marketChrome = showForexMarketChrome(pathname);
   const wlW = useForexWorkspaceStore((s) => s.watchlistWidth);
   const tkW = useForexWorkspaceStore((s) => s.ticketWidth);
   const bottomPreferred = useForexWorkspaceStore((s) => s.bottomHeight);
@@ -73,8 +74,8 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
       }`}
     >
       {!chromeHidden ? <ForexTopNav /> : null}
-      {!chromeHidden ? <ForexMarketStrip /> : null}
-      {!chromeHidden ? <ForexSessionBar /> : null}
+      {!chromeHidden && marketChrome ? <ForexMarketStrip /> : null}
+      {!chromeHidden && marketChrome ? <ForexSessionBar /> : null}
       {hydratePhase === 'error' && hydrateError ? (
         <div className="border-b border-sell/40 bg-sell/10 px-3 py-1 text-[11px] text-sell" role="alert">
           Unable to load Forex workspace. {hydrateError.message}

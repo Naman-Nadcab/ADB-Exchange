@@ -273,41 +273,40 @@ export default function ForexAnalysisPage() {
   return (
     <ForexPageFrame
       wide
+      dense
       title="Analysis"
-      subtitle="Tier-0 market intelligence workspace. Chart tools, derived studies, calendar and news — never used for execution, margin or ledger."
       actions={
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
           <Link
             href={FOREX_ROUTES.trade}
-            className="inline-flex h-9 items-center rounded-lg bg-primary px-3 text-[12px] font-semibold text-primary-foreground hover:bg-primary/90"
+            className="inline-flex h-7 items-center rounded-md bg-primary px-2.5 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90"
           >
             Trade {inst?.displaySymbol ?? symbol}
           </Link>
           <Link
             href={FOREX_ROUTES.markets}
-            className="inline-flex h-9 items-center rounded-lg border border-border px-3 text-[12px] font-semibold hover:border-primary/40"
+            className="inline-flex h-7 items-center rounded-md border border-border px-2.5 text-[11px] font-semibold hover:border-primary/40"
           >
             Markets
           </Link>
         </div>
       }
     >
-      {/* Symbol + quote strip */}
-      <section className="eda-card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Quick symbols">
+      {/* Compact instrument toolbar — commercial, one row */}
+      <section className="eda-card flex flex-wrap items-center gap-x-2 gap-y-1.5 px-2.5 py-1.5">
+        <div className="forex-chrome-strip flex min-w-0 flex-1 items-center gap-1 overflow-x-auto" role="group" aria-label="Quick symbols">
           {QUICK_SYMBOLS.map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => setSymbol(s)}
-              className={cn('eda-tab !normal-case !tracking-normal', symbol === s && 'eda-tab-active')}
+              className={cn('eda-tab shrink-0 !normal-case !tracking-normal', symbol === s && 'eda-tab-active')}
             >
               {s.slice(0, 3)}/{s.slice(3)}
             </button>
           ))}
         </div>
-        <div className="flex flex-wrap items-center gap-3 font-mono text-[12px]">
-          <span className="font-semibold text-foreground">{inst?.displaySymbol ?? symbol}</span>
+        <div className="flex shrink-0 flex-wrap items-center gap-2 font-mono text-[11px]">
           {quote ? (
             <>
               <span className="text-buy">BID {fxNum(quote.bid, digits)}</span>
@@ -315,16 +314,21 @@ export default function ForexAnalysisPage() {
               <span className="text-muted-foreground">SPR {quote.spreadPips}</span>
             </>
           ) : (
-            <span className="text-muted-foreground">Quote loading…</span>
+            <span className="text-muted-foreground">Quote…</span>
           )}
-          <span className={cn('rounded-full border px-2 py-0.5 text-[10px]', sessionOpen ? 'border-buy/30 text-buy' : 'border-sell/30 text-sell')}>
-            {sessionOpen ? 'Session open' : sessions?.eligibility.reason ?? 'Session closed'}
+          <span
+            className={cn(
+              'rounded-full border px-1.5 py-0.5 text-[9px]',
+              sessionOpen ? 'border-buy/30 text-buy' : 'border-sell/30 text-sell'
+            )}
+          >
+            {sessionOpen ? 'Open' : sessions?.eligibility.reason ?? 'Closed'}
           </span>
         </div>
       </section>
 
       {/* Chart — explicit flex height so LWC canvas is never 0px tall */}
-      <section className="flex h-[min(62vh,560px)] min-h-[480px] flex-col overflow-hidden rounded-xl border border-border bg-card">
+      <section className="flex h-[min(58vh,520px)] min-h-[420px] flex-col overflow-hidden rounded-xl border border-border bg-card">
         <ForexChartFoundation embedded />
       </section>
 
@@ -703,8 +707,8 @@ export default function ForexAnalysisPage() {
         ) : null}
       </section>
 
-      <p className="text-[11px] text-muted-foreground">
-        Analysis is non-authoritative for trading. Execution, margin and ledger remain on simulated Forex APIs while REAL FOREX is OFF.
+      <p className="text-[10px] text-muted-foreground">
+        Analysis only · not used for execution, margin or ledger · demo quotes / simulated execution.
       </p>
     </ForexPageFrame>
   );

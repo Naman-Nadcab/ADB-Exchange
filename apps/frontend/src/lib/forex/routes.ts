@@ -15,6 +15,15 @@ export function isForexTradePath(pathname: string): boolean {
   return pathname === FOREX_ROUTES.root || pathname === FOREX_ROUTES.trade;
 }
 
+export function isForexAnalysisPath(pathname: string): boolean {
+  return pathname === FOREX_ROUTES.analysis || pathname.startsWith(`${FOREX_ROUTES.analysis}/`);
+}
+
+/** Market strip + session bar: hide on Trade/Analysis (chart-first); keep on other Forex pages. */
+export function showForexMarketChrome(pathname: string): boolean {
+  return !isForexTradePath(pathname) && !isForexAnalysisPath(pathname);
+}
+
 export const FOREX_NAV = [
   { href: FOREX_ROUTES.trade, label: 'Trade' },
   { href: FOREX_ROUTES.markets, label: 'Markets' },
