@@ -132,6 +132,8 @@ export function ForexChartFoundation(props?: {
   const [showMacd, setShowMacd] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showIntel, setShowIntel] = useState(false);
+  /** Drawing toolbar collapsed by default — chart area first (MT5 workstation). */
+  const [toolsOpen, setToolsOpen] = useState(false);
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; price: number; time: number | null } | null>(null);
   const [calendarEvents, setCalendarEvents] = useState<
     Array<{ time?: string | null; currency?: string | null; event?: string; impact?: string; previous?: string | null; forecast?: string | null; actual?: string | null }>
@@ -581,8 +583,20 @@ export function ForexChartFoundation(props?: {
           <span className="text-[11px] text-muted-foreground">Loading quote…</span>
         )}
 
-        {ohlcDisplay ? (
-          <span className="ml-1 hidden items-center gap-2 font-mono text-[11px] lg:inline-flex">
+        <button
+          type="button"
+          aria-pressed={toolsOpen}
+          onClick={() => setToolsOpen((v) => !v)}
+          className={cn(
+            'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium',
+            toolsOpen ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          Tools
+        </button>
+
+        {ohlcDisplay && !props?.compactChrome ? (
+          <span className="ml-1 hidden items-center gap-2 font-mono text-[10px] xl:inline-flex">
             <span>
               O <span className="text-foreground">{fxNum(String(ohlcDisplay.open), digits)}</span>
             </span>
@@ -595,21 +609,6 @@ export function ForexChartFoundation(props?: {
             <span>
               C <span className="text-foreground">{fxNum(String(ohlcDisplay.close), digits)}</span>
             </span>
-            {hoverIndicators?.ema20 != null ? (
-              <span className="text-primary">EMA20 {hoverIndicators.ema20.toFixed(Math.min(digits, 5))}</span>
-            ) : null}
-            {hoverIndicators?.ema50 != null ? (
-              <span className="text-sky-400">EMA50 {hoverIndicators.ema50.toFixed(Math.min(digits, 5))}</span>
-            ) : null}
-            {hoverIndicators?.rsi != null ? (
-              <span className="text-muted-foreground">RSI {hoverIndicators.rsi.toFixed(1)}</span>
-            ) : null}
-            {hoverIndicators?.macd != null ? (
-              <span className="text-muted-foreground">MACD {hoverIndicators.macd.toFixed(5)}</span>
-            ) : null}
-            {candleView.status === 'READY' ? (
-              <span className="text-muted-foreground">{candleView.candles.length} bars</span>
-            ) : null}
           </span>
         ) : null}
 
@@ -721,7 +720,7 @@ export function ForexChartFoundation(props?: {
         <p className="border-b border-border px-2 py-0.5 text-[10px] text-muted-foreground">{orderEngine.lastNote}</p>
       ) : null}
 
-      {!props?.compactChrome || props?.active ? (
+      {toolsOpen && (!props?.compactChrome || props?.active) ? (
         <ForexChartToolbar
           tool={tool}
           onTool={(t) => {

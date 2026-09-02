@@ -130,11 +130,11 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
           {tab === 'positions' ? (
             <ForexPositionPanel />
           ) : !authed ? (
-            <div className="flex flex-col items-start justify-center gap-1.5 px-3 py-3">
-              <p className="text-[12px] font-medium">Private account data</p>
-              <p className="max-w-md text-[11px] text-muted-foreground">
-                Sign in to view orders, fills and risk for this Forex account.
-              </p>
+            <div className="flex items-center gap-3 px-3 py-2">
+              <p className="text-[11px] text-muted-foreground">Sign in for orders, fills and risk.</p>
+              <Link href="/login?redirect=/forex/trade" className="text-[11px] text-primary hover:underline">
+                Sign in
+              </Link>
             </div>
           ) : tab === 'orders' ? (
             workingOrders.length === 0 && orderRows.length === 0 ? (

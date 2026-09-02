@@ -11,7 +11,6 @@ import { useForexPreview } from '@/lib/forex/runtime/useForexPreview';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { cn } from '@/lib/utils';
-import { ForexRiskTools } from './ForexRiskTools';
 import { fxNum } from './format';
 
 const TYPE_LABEL: Record<ForexOrderType, string> = {
@@ -99,11 +98,28 @@ export function ForexOrderTicket() {
     return null;
   }, [authed, sessionOpen, sessions?.eligibility.reason, stale, quote, risk, newOrders, sideEnabled, side, type, price]);
 
-  async function submit() {
-    if (blockReason || busy) return;
+  const baseBlocked =
+    !authed ||
+    !sessionOpen ||
+    stale ||
+    risk?.state === 'HALTED' ||
+    risk?.state === 'RESTRICTED' ||
+    risk?.state === 'LIQUIDATION_ONLY' ||
+    !newOrders ||
+    ((type === 'limit' || type === 'stop') && !price.trim()) ||
+    busy ||
+    preview.status === 'STALE' ||
+    preview.status === 'BLOCKED' ||
+    preview.status === 'LOADING';
+
+  async function submit(useSide: ForexSide) {
+    setSide(useSide);
+    if (baseBlocked) return;
+    const sideOk = useSide === 'buy' ? dealing?.symbol.buyEnabled !== false : dealing?.symbol.sellEnabled !== false;
+    if (!sideOk) return;
     await engine.place({
       symbol: selected,
-      side,
+      side: useSide,
       orderType: type,
       volume,
       requestedPrice: type !== 'market' ? price.trim() : undefined,
@@ -114,235 +130,156 @@ export function ForexOrderTicket() {
 
   const last = engine.lastOrder ?? storeLast;
   const lastError = engine.error ?? storeError;
+  const canBuy = !baseBlocked && dealing?.symbol.buyEnabled !== false;
+  const canSell = !baseBlocked && dealing?.symbol.sellEnabled !== false;
 
   return (
     <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-l border-border bg-card" aria-label="Order ticket">
-      <div className="flex h-7 items-center justify-between border-b border-border px-2">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">New Order</span>
-        <span className="font-mono text-[11px] font-medium">{inst?.displaySymbol ?? selected}</span>
+      <div className="flex h-6 items-center justify-between border-b border-border px-2">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">New Order</span>
+        <span className="font-mono text-[11px] font-semibold">{inst?.displaySymbol ?? selected}</span>
       </div>
-      <div className="grid grid-cols-3 gap-1 border-b border-border bg-muted/20 px-2 py-1 font-mono text-[11px]">
-        <div>
-          <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Bid</p>
-          <p className="eda-quote font-medium text-buy">{quote ? fxNum(quote.bid, digits) : '—'}</p>
+
+      <div className="grid grid-cols-3 border-b border-border font-mono text-[11px]">
+        <div className="border-r border-border px-2 py-1">
+          <p className="text-[9px] text-muted-foreground">Bid</p>
+          <p className="eda-quote font-semibold text-buy">{quote ? fxNum(quote.bid, digits) : '—'}</p>
         </div>
-        <div>
-          <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Ask</p>
-          <p className="eda-quote font-medium text-sell">{quote ? fxNum(quote.ask, digits) : '—'}</p>
+        <div className="border-r border-border px-2 py-1">
+          <p className="text-[9px] text-muted-foreground">Ask</p>
+          <p className="eda-quote font-semibold text-sell">{quote ? fxNum(quote.ask, digits) : '—'}</p>
         </div>
-        <div>
-          <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Spread</p>
-          <p className="font-medium text-foreground">{quote?.spreadPips ?? '—'}</p>
+        <div className="px-2 py-1">
+          <p className="text-[9px] text-muted-foreground">Spr</p>
+          <p className="font-semibold">{quote?.spreadPips ?? '—'}</p>
         </div>
       </div>
-      <div className="min-h-0 flex-1 space-y-1.5 overflow-auto p-2">
-        <div className="grid grid-cols-2 gap-1">
-          {(['buy', 'sell'] as const).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setSide(s)}
-              className={cn(
-                'h-8 rounded font-mono text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                s === 'buy' && side === 'buy' && 'bg-buy text-white',
-                s === 'sell' && side === 'sell' && 'bg-sell text-white',
-                side !== s && 'bg-muted text-muted-foreground hover:text-foreground'
-              )}
-            >
-              {s.toUpperCase()}
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-1">
-          {allowedTypes.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setType(t)}
-              className={cn(
-                'h-7 flex-1 rounded-md border text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                type === t ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-muted-foreground hover:text-foreground'
-              )}
-            >
-              {TYPE_LABEL[t]}
-            </button>
-          ))}
-        </div>
-        <p className="rounded border border-border/70 bg-muted/15 px-2 py-1 text-[10px] text-muted-foreground">
-          Stop Limit unavailable — backend supports Market / Limit / Stop only · SIMULATED / MOCK
+
+      <div className="min-h-0 flex-1 space-y-1.5 overflow-auto px-2 py-1.5">
+        <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
+          <span className="w-14 shrink-0 uppercase">Type</span>
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value as ForexOrderType)}
+            className="fx-mt5-field h-7 flex-1 px-1.5 text-[11px]"
+          >
+            {allowedTypes.map((t) => (
+              <option key={t} value={t}>
+                {TYPE_LABEL[t]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="text-[9px] leading-snug text-muted-foreground">
+          Stop Limit unavailable · SIMULATED / MOCK
           {pendingLabel ? ` · ${pendingLabel}` : ''}
         </p>
-        <Field label="Volume (lots)" value={volume} onChange={setVolume} hint={inst ? `${inst.minVolume}–${inst.maxVolume} · step ${inst.volumeStep}` : undefined} />
-        {type !== 'market' ? (
-          <Field
-            label={type === 'stop' ? 'Trigger price' : 'Limit price'}
-            value={price}
-            onChange={setPrice}
-            hint={type === 'stop' ? 'Stop becomes active when market reaches this price.' : 'Limit rests until price is available.'}
-          />
-        ) : null}
-        <div className="grid grid-cols-2 gap-2">
-          <Field label="Stop loss" value={sl} onChange={setSl} />
-          <Field label="Take profit" value={tp} onChange={setTp} />
-        </div>
-        <p className="text-[10px] leading-relaxed text-muted-foreground">
-          SL/TP attach via protections after fill when a position exists. Pending: set from Positions after fill.
-        </p>
-        <ForexRiskTools />
 
-        <dl className="grid grid-cols-2 gap-x-2 gap-y-1 rounded-lg border border-border bg-muted/20 px-2.5 py-2 font-mono text-[11px] text-muted-foreground">
+        <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
+          <span className="w-14 shrink-0 uppercase">Volume</span>
+          <input
+            value={volume}
+            onChange={(e) => setVolume(e.target.value)}
+            className="fx-mt5-field h-7 flex-1 px-1.5 text-[12px]"
+            aria-label="Volume lots"
+          />
+        </label>
+        {inst ? (
+          <p className="pl-16 text-[9px] text-muted-foreground">
+            {inst.minVolume}–{inst.maxVolume} · step {inst.volumeStep}
+          </p>
+        ) : null}
+
+        {type !== 'market' ? (
+          <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
+            <span className="w-14 shrink-0 uppercase">{type === 'stop' ? 'Trigger' : 'Price'}</span>
+            <input
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="fx-mt5-field h-7 flex-1 px-1.5 text-[12px]"
+              aria-label={type === 'stop' ? 'Trigger price' : 'Limit price'}
+            />
+          </label>
+        ) : null}
+
+        <div className="grid grid-cols-2 gap-1.5">
+          <label className="text-[10px] text-muted-foreground">
+            <span className="mb-0.5 block uppercase">Stop Loss</span>
+            <input value={sl} onChange={(e) => setSl(e.target.value)} className="fx-mt5-field h-7 w-full px-1.5 text-[12px]" />
+          </label>
+          <label className="text-[10px] text-muted-foreground">
+            <span className="mb-0.5 block uppercase">Take Profit</span>
+            <input value={tp} onChange={(e) => setTp(e.target.value)} className="fx-mt5-field h-7 w-full px-1.5 text-[12px]" />
+          </label>
+        </div>
+        <p className="text-[9px] leading-snug text-muted-foreground">SL/TP attach after fill via protections.</p>
+
+        <dl className="grid grid-cols-2 gap-x-2 gap-y-0.5 border border-border px-2 py-1 font-mono text-[10px] text-muted-foreground">
           <dt>Balance</dt>
           <dd className="text-right text-foreground">
-            {hydratePhase === 'hydrating' && !account ? 'Loading' : account ? fxNum(account.ledgerBalance, 2) : '—'}
+            {hydratePhase === 'hydrating' && !account ? '…' : account ? fxNum(account.ledgerBalance, 2) : '—'}
           </dd>
-          <dt>Equity</dt>
+          <dt>Free</dt>
           <dd className="text-right text-foreground">
-            {hydratePhase === 'hydrating' && !account ? 'Loading' : account ? fxNum(account.equity, 2) : '—'}
+            {hydratePhase === 'hydrating' && !account ? '…' : account ? fxNum(account.freeMargin, 2) : '—'}
           </dd>
-          <dt>Free margin</dt>
-          <dd className="text-right text-foreground">
-            {hydratePhase === 'hydrating' && !account ? 'Loading' : account ? fxNum(account.freeMargin, 2) : '—'}
-          </dd>
-          <dt>Used margin</dt>
-          <dd className="text-right text-foreground">
-            {account ? fxNum(account.usedMargin, 2) : '—'}
-          </dd>
-          <dt>Executable</dt>
+          <dt>Exec</dt>
           <dd className="text-right text-foreground">{exec ? fxNum(exec, digits) : '—'}</dd>
           <dt>Mode</dt>
-          <dd className="text-right text-foreground">NETTING · MOCK</dd>
+          <dd className="text-right text-foreground">NETTING</dd>
+          <dt>Margin</dt>
+          <dd className="text-right text-foreground">{previewData?.requiredMargin ?? '—'}</dd>
+          <dt>Preview</dt>
+          <dd className="text-right">
+            <button type="button" className="text-primary hover:underline" onClick={() => setRefreshNonce((n) => n + 1)}>
+              {preview.status}
+            </button>
+          </dd>
         </dl>
 
-        <div className="rounded border border-border p-2" aria-live="polite">
-          <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wide text-muted-foreground">
-            <span>Preview · {preview.status}</span>
-            <button
-              type="button"
-              onClick={() => setRefreshNonce((n) => n + 1)}
-              className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              Refresh
-            </button>
-          </div>
-          {preview.status === 'LOADING' ? <p className="text-[11px] text-muted-foreground">Loading preview…</p> : null}
-          {preview.status === 'IDLE' ? (
-            <p className="text-[11px] text-muted-foreground">
-              {authed ? 'Enter volume to preview margin.' : 'Sign in to preview and execute.'}
-            </p>
-          ) : null}
-          {preview.status === 'ERROR' && preview.error ? (
-            <p className="text-[11px] text-sell" role="alert">
-              {preview.error.code}: {preview.error.message}
-            </p>
-          ) : null}
-          {previewData && (preview.status === 'READY' || preview.status === 'BLOCKED' || preview.status === 'STALE') ? (
-            <dl className="mt-1 grid grid-cols-2 gap-x-2 gap-y-1 font-mono text-[11px] text-muted-foreground">
-              {previewData.referencePrice ? (
-                <>
-                  <dt>Ref {previewData.referenceSide}</dt>
-                  <dd className="text-right">{fxNum(previewData.referencePrice, digits)}</dd>
-                </>
-              ) : null}
-              {previewData.estimatedFee != null ? (
-                <>
-                  <dt>Est. fee</dt>
-                  <dd className="text-right">{previewData.estimatedFee}</dd>
-                </>
-              ) : null}
-              {previewData.requiredMargin != null ? (
-                <>
-                  <dt>Est. margin</dt>
-                  <dd className="text-right">{previewData.requiredMargin}</dd>
-                </>
-              ) : null}
-              {previewData.projectedFreeMargin != null ? (
-                <>
-                  <dt>Free after</dt>
-                  <dd className="text-right">{previewData.projectedFreeMargin}</dd>
-                </>
-              ) : null}
-              {previewData.projectedMarginLevel != null ? (
-                <>
-                  <dt>Margin lvl</dt>
-                  <dd className="text-right">{previewData.projectedMarginLevel}</dd>
-                </>
-              ) : null}
-            </dl>
-          ) : null}
-          {preview.status === 'BLOCKED' && previewData?.reason ? (
-            <p className="mt-1 text-[11px] text-amber-900 dark:text-amber-200" role="status">
-              {previewData.reason} — not allowed. Submit still revalidates.
-            </p>
-          ) : null}
-        </div>
-
         {blockReason ? (
-          <p className="rounded border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200" role="status">
+          <p className="border border-amber-800/60 bg-amber-950/30 px-1.5 py-1 text-[10px] text-amber-200" role="status">
             {blockReason}
           </p>
         ) : null}
         {lastError ? (
-          <p className="rounded border border-rose-300 bg-rose-50 px-2 py-1.5 text-[11px] text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200" role="alert">
+          <p className="border border-rose-900/60 bg-rose-950/30 px-1.5 py-1 text-[10px] text-rose-200" role="alert">
             {describeForexError(normalizeForexError(lastError))}
           </p>
         ) : null}
         {last ? (
-          <p className="font-mono text-[11px] text-muted-foreground" role="status">
+          <p className="font-mono text-[10px] text-muted-foreground">
             Last {last.orderId.slice(0, 8)}… {last.status}
-            {last.failureReason ? ` · ${last.failureReason}` : ''}
           </p>
         ) : null}
-        {engine.lastNote ? (
-          <p className="text-[10px] text-muted-foreground" role="status">
-            {engine.lastNote}
-          </p>
-        ) : null}
+        {engine.lastNote ? <p className="text-[9px] text-muted-foreground">{engine.lastNote}</p> : null}
       </div>
-      <div className="border-t border-border p-2.5">
+
+      {/* MT5-style twin execution buttons — not a crypto CTA pill */}
+      <div className="grid grid-cols-2 gap-1 border-t border-border p-1.5">
         <button
           type="button"
-          disabled={Boolean(blockReason) || busy || preview.status === 'STALE' || preview.status === 'BLOCKED' || preview.status === 'LOADING'}
-          onClick={() => void submit()}
-          className={cn(
-            'h-10 w-full rounded-md font-mono text-[13px] font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
-            side === 'buy' ? 'bg-buy hover:bg-buy/90' : 'bg-sell hover:bg-sell/90'
-          )}
+          disabled={!canSell}
+          onClick={() => void submit('sell')}
+          className="fx-mt5-sell h-9 font-mono text-[12px] font-bold disabled:cursor-not-allowed"
         >
-          {busy
-            ? 'Submitting…'
-            : type === 'market'
-              ? `${side === 'buy' ? 'Buy' : 'Sell'} ${inst?.displaySymbol ?? selected}`
-              : `Place ${pendingLabel}`}
+          {busy && side === 'sell' ? '…' : 'SELL'}
+          <span className="mt-0.5 block text-[10px] font-medium opacity-90">
+            {quote ? fxNum(quote.bid, digits) : '—'}
+          </span>
+        </button>
+        <button
+          type="button"
+          disabled={!canBuy}
+          onClick={() => void submit('buy')}
+          className="fx-mt5-buy h-9 font-mono text-[12px] font-bold disabled:cursor-not-allowed"
+        >
+          {busy && side === 'buy' ? '…' : 'BUY'}
+          <span className="mt-0.5 block text-[10px] font-medium opacity-90">
+            {quote ? fxNum(quote.ask, digits) : '—'}
+          </span>
         </button>
       </div>
     </aside>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  hint,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  hint?: string;
-}) {
-  const id = label.replace(/\s+/g, '-').toLowerCase();
-  return (
-    <div>
-      <label htmlFor={id} className="mb-0.5 block text-[10px] uppercase tracking-wide text-muted-foreground">
-        {label}
-      </label>
-      <input
-        id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-8 w-full rounded border border-border bg-background px-2 font-mono text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      />
-      {hint ? <p className="mt-0.5 text-[10px] text-muted-foreground">{hint}</p> : null}
-    </div>
   );
 }

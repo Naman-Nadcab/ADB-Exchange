@@ -87,15 +87,15 @@ export function ForexWatchlist() {
                         setMenu({ x: e.clientX, y: e.clientY, symbol });
                       }}
                       className={cn(
-                        'grid w-full grid-cols-[1fr_auto_auto_auto_auto] items-center gap-x-1 border-l-2 border-t border-border/70 px-2 py-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
-                        active ? 'border-l-primary bg-primary/10' : 'border-l-transparent hover:bg-accent/60'
+                        'fx-mt5-row grid w-full grid-cols-[1fr_auto_auto_auto_auto] items-center gap-x-1 border-l-2 border-t border-border/50 px-1.5 py-0.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring',
+                        active ? 'fx-mt5-row--active border-l-primary' : 'border-l-transparent'
                       )}
                     >
-                      <span className="truncate font-mono text-[11px] font-medium tabular-nums">{inst?.displaySymbol ?? symbol}</span>
+                      <span className="truncate font-mono text-[11px] tabular-nums">{inst?.displaySymbol ?? symbol}</span>
                       <span className="eda-quote w-14 text-right font-mono text-[11px] text-buy">{q ? fxNum(q.bid, digits) : '—'}</span>
                       <span className="eda-quote w-14 text-right font-mono text-[11px] text-sell">{q ? fxNum(q.ask, digits) : '—'}</span>
-                      <span className="w-8 text-right font-mono text-[10px] text-muted-foreground">{q?.spreadPips ?? '—'}</span>
-                      <span className={cn('w-9 text-right font-mono text-[10px]', stale ? 'text-primary' : 'text-buy')}>
+                      <span className="w-7 text-right font-mono text-[10px] text-muted-foreground">{q?.spreadPips ?? '—'}</span>
+                      <span className={cn('w-8 text-right font-mono text-[9px]', stale ? 'text-primary' : 'text-buy')}>
                         {status}
                       </span>
                     </button>

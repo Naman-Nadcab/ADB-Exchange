@@ -49,11 +49,17 @@ export function ForexTopNav(props?: { compact?: boolean }) {
           })}
         </nav>
         <div className="ml-auto flex items-center gap-1.5">
-          <span className="hidden font-mono text-[9px] uppercase tracking-wide text-muted-foreground sm:inline">
-            SIMULATED
-          </span>
+          {compact ? (
+            <span className="hidden font-mono text-[9px] uppercase tracking-wide text-amber-200/90 sm:inline">
+              SIMULATED · MOCK
+            </span>
+          ) : (
+            <span className="hidden font-mono text-[9px] uppercase tracking-wide text-muted-foreground sm:inline">
+              SIMULATED
+            </span>
+          )}
           <ForexConnectionStatus />
-          <ThemeToggle size="sm" />
+          {!compact ? <ThemeToggle size="sm" /> : null}
         </div>
       </div>
     </header>

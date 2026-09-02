@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
+import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { isForexTradePath, showForexMarketChrome } from '@/lib/forex/routes';
 import { useForexRuntime } from '@/lib/forex/runtime/useForexRuntime';
 import { useForexStore } from '@/lib/forex/state/store';
@@ -48,9 +49,17 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
     return openPos || openOrd;
   }, [positions, orders]);
 
+  const authed = hasForexPrivateSession();
+
   useEffect(() => {
     if (hasTradingData) setBottomCollapsed(false);
   }, [hasTradingData, setBottomCollapsed]);
+
+  // Signed-out: keep toolbox compact so the chart dominates (MT5 workstation feel).
+  useEffect(() => {
+    if (!trade) return;
+    if (!authed && !hasTradingData) setBottomCollapsed(true);
+  }, [trade, authed, hasTradingData, setBottomCollapsed]);
 
   const bottomH = resolveForexBottomHeight({
     chartMode,
@@ -75,8 +84,8 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
   return (
     <div
       className={`dark terminal-shell exchange-ui flex h-[100dvh] flex-col bg-background text-foreground antialiased ${
-        chromeHidden ? 'fixed inset-0 z-50' : ''
-      }`}
+        trade ? 'forex-mt5' : ''
+      } ${chromeHidden ? 'fixed inset-0 z-50' : ''}`}
     >
       {!chromeHidden ? <ForexTopNav compact={trade} /> : null}
       {!chromeHidden && marketChrome ? <ForexMarketStrip /> : null}
