@@ -26,11 +26,11 @@ export function ForexConnectionStatus() {
     <span
       className={cn(
         'inline-flex items-center gap-1.5 font-mono text-[11px] tracking-wide',
-        state === 'CONNECTED' && 'text-emerald-700 dark:text-emerald-400',
-        state === 'STALE' && 'text-amber-700 dark:text-amber-400',
-        state === 'DEGRADED' && 'text-amber-800 dark:text-amber-300',
+        state === 'CONNECTED' && 'text-buy',
+        state === 'STALE' && 'text-primary',
+        state === 'DEGRADED' && 'text-primary',
         (state === 'DISCONNECTED' || state === 'RECONNECTING' || state === 'CONNECTING') &&
-          'text-stone-500 dark:text-stone-400'
+          'text-muted-foreground'
       )}
       role="status"
       aria-live="polite"
@@ -39,10 +39,10 @@ export function ForexConnectionStatus() {
         aria-hidden
         className={cn(
           'h-1.5 w-1.5 rounded-full',
-          state === 'CONNECTED' && 'bg-emerald-600',
-          state === 'STALE' && 'bg-amber-500',
-          state === 'DEGRADED' && 'bg-amber-600',
-          state !== 'CONNECTED' && state !== 'STALE' && state !== 'DEGRADED' && 'bg-stone-400'
+          state === 'CONNECTED' && 'bg-buy',
+          state === 'STALE' && 'bg-primary',
+          state === 'DEGRADED' && 'bg-primary',
+          state !== 'CONNECTED' && state !== 'STALE' && state !== 'DEGRADED' && 'bg-muted-foreground'
         )}
       />
       <span>{LABEL[state] ?? state}</span>

@@ -23,6 +23,8 @@ export function ForexOrderTicket() {
   const busy = useForexStore((s) => s.ticketBusy);
   const last = useForexStore((s) => s.ticketLastOrder);
   const lastError = useForexStore((s) => s.lastError);
+  const account = useForexStore((s) => s.account);
+  const hydratePhase = useForexStore((s) => s.hydratePhase);
 
   const [side, setSide] = useState<ForexSide>('buy');
   const [type, setType] = useState<ForexOrderType>('market');
@@ -94,8 +96,8 @@ export function ForexOrderTicket() {
   }
 
   return (
-    <aside className="flex h-full min-h-0 flex-col border-l border-stone-200 bg-white dark:border-stone-800 dark:bg-[#101214]" aria-label="Order ticket">
-      <div className="flex h-8 items-center justify-between px-2 text-[11px] font-medium uppercase tracking-wider text-stone-500">
+    <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-l border-border bg-card" aria-label="Order ticket">
+      <div className="flex h-8 items-center justify-between px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
         Order ticket
       </div>
       <div className="min-h-0 flex-1 space-y-3 overflow-auto p-2">
@@ -106,10 +108,10 @@ export function ForexOrderTicket() {
               type="button"
               onClick={() => setSide(s)}
               className={cn(
-                'h-8 rounded font-mono text-[12px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400',
-                s === 'buy' && side === 'buy' && 'bg-emerald-700 text-white',
-                s === 'sell' && side === 'sell' && 'bg-rose-700 text-white',
-                side !== s && 'bg-stone-100 text-stone-600 dark:bg-stone-800'
+                'h-8 rounded font-mono text-[12px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                s === 'buy' && side === 'buy' && 'bg-buy text-white',
+                s === 'sell' && side === 'sell' && 'bg-sell text-white',
+                side !== s && 'bg-muted text-muted-foreground'
               )}
             >
               {s.toUpperCase()}
@@ -123,8 +125,8 @@ export function ForexOrderTicket() {
               type="button"
               onClick={() => setType(t)}
               className={cn(
-                'h-7 flex-1 rounded border text-[11px] capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400',
-                type === t ? 'border-stone-800 bg-stone-800 text-white dark:border-stone-200 dark:bg-stone-200 dark:text-stone-900' : 'border-stone-200 dark:border-stone-700'
+                'h-7 flex-1 rounded border text-[11px] capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                type === t ? 'border-primary bg-primary/15 text-primary' : 'border-border text-muted-foreground'
               )}
             >
               {t}
@@ -135,37 +137,49 @@ export function ForexOrderTicket() {
         {type !== 'market' ? (
           <Field label="Requested price" value={price} onChange={setPrice} />
         ) : null}
-        <Field label="Stop loss (not sent with order)" value={sl} onChange={setSl} hint="SL/TP attach after a position exists via POST /protections." />
-        <Field label="Take profit (not sent with order)" value={tp} onChange={setTp} />
+        <Field label="Stop loss" value={sl} onChange={setSl} hint="Attached after a fill via backend protections. Not sent with the order." />
+        <Field label="Take profit" value={tp} onChange={setTp} />
 
-        <dl className="grid grid-cols-2 gap-x-2 gap-y-1 font-mono text-[11px] text-stone-600 dark:text-stone-400">
-          <dt>Bid</dt><dd className="text-right text-emerald-700 dark:text-emerald-400">{quote ? fxNum(quote.bid, digits) : '—'}</dd>
-          <dt>Ask</dt><dd className="text-right text-rose-700 dark:text-rose-400">{quote ? fxNum(quote.ask, digits) : '—'}</dd>
+        <dl className="grid grid-cols-2 gap-x-2 gap-y-1 font-mono text-[11px] text-muted-foreground">
+          <dt>Balance</dt>
+          <dd className="text-right text-foreground">
+            {hydratePhase === 'hydrating' && !account ? 'Loading' : account ? fxNum(account.ledgerBalance, 2) : 'Unavailable'}
+          </dd>
+          <dt>Equity</dt>
+          <dd className="text-right text-foreground">
+            {hydratePhase === 'hydrating' && !account ? 'Loading' : account ? fxNum(account.equity, 2) : 'Unavailable'}
+          </dd>
+          <dt>Free margin</dt>
+          <dd className="text-right text-foreground">
+            {hydratePhase === 'hydrating' && !account ? 'Loading' : account ? fxNum(account.freeMargin, 2) : 'Unavailable'}
+          </dd>
+          <dt>Bid</dt><dd className="text-right text-buy">{quote ? fxNum(quote.bid, digits) : '—'}</dd>
+          <dt>Ask</dt><dd className="text-right text-sell">{quote ? fxNum(quote.ask, digits) : '—'}</dd>
           <dt>Spread</dt><dd className="text-right">{quote?.spreadPips ?? '—'}</dd>
           <dt>Executable</dt><dd className="text-right">{exec ? fxNum(exec, digits) : '—'}</dd>
           <dt>Session</dt><dd className="text-right">{sessionOpen ? 'OPEN' : sessions?.eligibility.reason ?? '—'}</dd>
           <dt>Quote</dt><dd className="text-right">{quote ? `${quote.freshness}/${quote.status}` : '—'}</dd>
           <dt>Risk</dt><dd className="text-right">{risk?.state ?? '—'}</dd>
         </dl>
-        <div className="rounded border border-stone-200 p-2 dark:border-stone-800" aria-live="polite">
-          <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wide text-stone-500">
-            <span>Backend preview · {preview.status}</span>
+        <div className="rounded border border-border p-2" aria-live="polite">
+          <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wide text-muted-foreground">
+            <span>Preview · {preview.status}</span>
             <button
               type="button"
               onClick={() => setRefreshNonce((n) => n + 1)}
-              className="rounded px-1.5 py-0.5 text-[10px] text-stone-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 dark:text-stone-300"
+              className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Refresh
             </button>
           </div>
-          {preview.status === 'LOADING' ? <p className="text-[11px] text-stone-500">Loading preview…</p> : null}
+          {preview.status === 'LOADING' ? <p className="text-[11px] text-muted-foreground">Loading preview…</p> : null}
           {preview.status === 'IDLE' ? (
-            <p className="text-[11px] text-stone-500">
+            <p className="text-[11px] text-muted-foreground">
               {authed ? 'Enter a valid size to request an authoritative preview.' : 'Sign in to request a backend trade preview.'}
             </p>
           ) : null}
           {preview.status === 'ERROR' && preview.error ? (
-            <p className="text-[11px] text-rose-800 dark:text-rose-200" role="alert">
+            <p className="text-[11px] text-sell" role="alert">
               {preview.error.code}: {preview.error.message}
             </p>
           ) : null}
@@ -173,7 +187,7 @@ export function ForexOrderTicket() {
             <p className="text-[11px] text-amber-800 dark:text-amber-200">Preview is stale. Refresh before submitting.</p>
           ) : null}
           {previewData && (preview.status === 'READY' || preview.status === 'BLOCKED' || preview.status === 'STALE') ? (
-            <dl className="mt-1 grid grid-cols-2 gap-x-2 gap-y-1 font-mono text-[11px] text-stone-600 dark:text-stone-400">
+            <dl className="mt-1 grid grid-cols-2 gap-x-2 gap-y-1 font-mono text-[11px] text-muted-foreground">
               {previewData.referencePrice ? (
                 <>
                   <dt>Reference {previewData.referenceSide}</dt>
@@ -224,7 +238,7 @@ export function ForexOrderTicket() {
             </p>
           ) : null}
           {preview.status === 'READY' ? (
-            <p className="mt-1 text-[10px] leading-relaxed text-stone-400">
+            <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
               Indicative only. Quotes, margin, and risk can change before POST /orders. Buy uses ASK, sell uses BID.
             </p>
           ) : null}
@@ -246,14 +260,14 @@ export function ForexOrderTicket() {
           </p>
         ) : null}
       </div>
-      <div className="border-t border-stone-200 p-2 dark:border-stone-800">
+      <div className="border-t border-border p-2">
         <button
           type="button"
           disabled={Boolean(blockReason) || busy || preview.status === 'STALE' || preview.status === 'BLOCKED' || preview.status === 'LOADING'}
           onClick={() => void submit()}
           className={cn(
-            'h-9 w-full rounded font-mono text-[12px] font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 disabled:cursor-not-allowed disabled:opacity-50',
-            side === 'buy' ? 'bg-emerald-700 hover:bg-emerald-800' : 'bg-rose-700 hover:bg-rose-800'
+            'h-9 w-full rounded font-mono text-[12px] font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+            side === 'buy' ? 'bg-buy hover:bg-buy/90' : 'bg-sell hover:bg-sell/90'
           )}
         >
           {busy ? 'Submitting…' : `${side === 'buy' ? 'Buy' : 'Sell'} ${inst?.displaySymbol ?? selected}`}
@@ -277,16 +291,16 @@ function Field({
   const id = label.replace(/\s+/g, '-').toLowerCase();
   return (
     <div>
-      <label htmlFor={id} className="mb-0.5 block text-[10px] uppercase tracking-wide text-stone-500">
+      <label htmlFor={id} className="mb-0.5 block text-[10px] uppercase tracking-wide text-muted-foreground">
         {label}
       </label>
       <input
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-8 w-full rounded border border-stone-200 bg-white px-2 font-mono text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-stone-400 dark:border-stone-700 dark:bg-[#0e1012]"
+        className="h-8 w-full rounded border border-border bg-background px-2 font-mono text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
-      {hint ? <p className="mt-0.5 text-[10px] text-stone-400">{hint}</p> : null}
+      {hint ? <p className="mt-0.5 text-[10px] text-muted-foreground">{hint}</p> : null}
     </div>
   );
 }

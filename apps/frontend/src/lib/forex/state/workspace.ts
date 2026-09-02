@@ -34,7 +34,7 @@ export interface ForexWorkspaceState {
   setChartTimeframe: (tf: string) => void;
 }
 
-const DEFAULT_WATCHLIST = ['EURUSD', 'GBPUSD', 'USDJPY', 'XAUUSD'];
+const DEFAULT_WATCHLIST = ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'EURGBP', 'EURJPY', 'GBPJPY', 'XAUUSD', 'XAGUSD'];
 
 export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
   persist(

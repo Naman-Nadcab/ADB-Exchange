@@ -16,12 +16,12 @@ export function ForexMarketStrip() {
 
   return (
     <div
-      className="flex h-9 shrink-0 items-stretch gap-px overflow-x-auto border-b border-stone-200 bg-stone-100 dark:border-stone-800 dark:bg-stone-950"
+      className="flex h-9 shrink-0 items-stretch gap-px overflow-x-auto border-b border-border bg-muted/40"
       role="list"
       aria-label="Market strip"
     >
       {symbols.length === 0 ? (
-        <div className="flex items-center px-3 text-[11px] text-stone-500">Waiting for Forex instruments…</div>
+        <div className="flex items-center px-3 text-[11px] text-muted-foreground">Waiting for Forex instruments…</div>
       ) : (
         symbols.map((symbol) => {
           const q = quotes[symbol];
@@ -35,17 +35,15 @@ export function ForexMarketStrip() {
               role="listitem"
               onClick={() => setSelected(symbol)}
               className={cn(
-                'flex min-w-[148px] items-center gap-2 px-2.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-stone-400',
-                active ? 'bg-white dark:bg-[#16181b]' : 'bg-stone-50 hover:bg-white dark:bg-[#0e1012] dark:hover:bg-[#16181b]'
+                'flex min-w-[156px] items-center gap-2 px-2.5 text-left transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+                active ? 'bg-card' : 'bg-transparent hover:bg-accent'
               )}
             >
-              <span className="font-mono text-[11px] font-medium text-stone-800 dark:text-stone-200">
-                {inst?.displaySymbol ?? symbol}
-              </span>
-              <span className="font-mono text-[11px] text-emerald-700 dark:text-emerald-400">{q ? fxNum(q.bid, inst?.digits ?? 5) : '—'}</span>
-              <span className="font-mono text-[11px] text-rose-700 dark:text-rose-400">{q ? fxNum(q.ask, inst?.digits ?? 5) : '—'}</span>
-              <span className={cn('font-mono text-[10px]', stale ? 'text-amber-600' : 'text-stone-400')}>
-                {q ? (stale ? q.freshness : q.spreadPips) : ''}
+              <span className="font-mono text-[11px] font-medium">{inst?.displaySymbol ?? symbol}</span>
+              <span className="eda-quote font-mono text-[11px] text-buy">{q ? fxNum(q.bid, inst?.digits ?? 5) : '—'}</span>
+              <span className="eda-quote font-mono text-[11px] text-sell">{q ? fxNum(q.ask, inst?.digits ?? 5) : '—'}</span>
+              <span className={cn('font-mono text-[10px]', stale ? 'text-primary' : 'text-muted-foreground')}>
+                {q ? (stale ? 'Stale' : `Spr ${q.spreadPips}`) : ''}
               </span>
             </button>
           );

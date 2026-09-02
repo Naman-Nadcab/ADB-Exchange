@@ -7,8 +7,14 @@ import { isQuoteStale } from '@/lib/forex/models/quotes';
 import { deriveDisplayConnection } from '@/lib/forex/selectors/connection';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
+import { computeBollinger, computeEma, computeRsi, computeSma } from '@/components/trade/chart/indicators';
+import { lastAtr, lastMacd, lastStochastic, type FxBar } from '@/lib/forex/local-indicators';
+import { candleTimeMs } from '@/lib/forex/models/candles';
+import { activeProtectionsFor } from '@/lib/forex/models/position';
 import { ForexLightweightChart } from './ForexLightweightChart';
 import { fxNum } from './format';
+
+type StudyId = 'none' | 'sma20' | 'ema20' | 'bb20';
 
 function useHtmlDark(): boolean {
   const [dark, setDark] = useState(false);
@@ -42,6 +48,9 @@ export function ForexChartFoundation() {
   });
   const dark = useHtmlDark();
   const [expanded, setExpanded] = useState(false);
+  const [study, setStudy] = useState<StudyId>('none');
+  const positions = useForexStore((s) => s.positions);
+  const protections = useForexStore((s) => s.protections);
 
   const requestedTf = storedTf && isReservedForexTimeframe(storedTf) ? storedTf : '1D';
   const candleView = useForexCandles(selected, requestedTf);
@@ -57,6 +66,49 @@ export function ForexChartFoundation() {
     if (!Number.isFinite(bid) || !Number.isFinite(ask)) return null;
     return { bid, ask };
   }, [quote]);
+
+  const bars: FxBar[] = useMemo(() => {
+    if (candleView.status !== 'READY') return [];
+    const out: FxBar[] = [];
+    for (const c of candleView.candles) {
+      const ms = candleTimeMs(c.timestamp);
+      if (ms == null) continue;
+      const open = Number(c.open);
+      const high = Number(c.high);
+      const low = Number(c.low);
+      const close = Number(c.close);
+      if (![open, high, low, close].every(Number.isFinite)) continue;
+      out.push({ time: Math.floor(ms / 1000), open, high, low, close });
+    }
+    return out;
+  }, [candleView]);
+
+  const overlay = useMemo(() => {
+    if (study === 'sma20') return computeSma(bars, 20);
+    if (study === 'ema20') return computeEma(bars, 20);
+    if (study === 'bb20') return computeBollinger(bars, 20, 2).mid;
+    return [];
+  }, [bars, study]);
+  const bands = useMemo(() => (study === 'bb20' ? computeBollinger(bars, 20, 2) : undefined), [bars, study]);
+  const studyReady = study === 'none' || overlay.length > 0;
+  const rsi = computeRsi(bars, 14);
+  const atr = lastAtr(bars);
+  const macd = lastMacd(bars);
+  const stoch = lastStochastic(bars);
+
+  const levels = useMemo(() => {
+    const open = Object.values(positions).find((p) => p.status === 'OPEN' && p.symbol === selected);
+    if (!open) return undefined;
+    const prot = activeProtectionsFor(protections, open.positionId);
+    const entry = Number(open.averageEntryPrice || open.entryPrice);
+    const sl = prot.sl ? Number(prot.sl.triggerPrice) : undefined;
+    const tp = prot.tp ? Number(prot.tp.triggerPrice) : undefined;
+    return {
+      entry: Number.isFinite(entry) ? entry : undefined,
+      sl: sl != null && Number.isFinite(sl) ? sl : undefined,
+      tp: tp != null && Number.isFinite(tp) ? tp : undefined,
+    };
+  }, [positions, protections, selected]);
 
   const quoteFreshness =
     connection === 'DISCONNECTED' || connection === 'CONNECTING' || connection === 'RECONNECTING'
@@ -106,29 +158,29 @@ export function ForexChartFoundation() {
 
   return (
     <section
-      className={`flex min-h-0 min-w-0 flex-1 flex-col bg-[#f7f6f3] dark:bg-[#0c0d0f] ${
+      className={`flex min-h-0 min-w-0 flex-1 flex-col bg-background ${
         expanded ? 'fixed inset-0 z-40' : ''
       }`}
       aria-label="Forex market chart"
     >
-      <div className="flex h-8 min-w-0 items-center gap-2 overflow-x-auto border-b border-stone-200 px-2 dark:border-stone-800">
+      <div className="flex h-8 min-w-0 items-center gap-2 overflow-x-auto border-b border-border px-2">
         <span className="shrink-0 font-mono text-[12px] font-medium">{inst?.displaySymbol ?? selected}</span>
-        {activeTf ? <span className="shrink-0 font-mono text-[11px] text-stone-500">{activeTf}</span> : null}
+        {activeTf ? <span className="shrink-0 font-mono text-[11px] text-muted-foreground">{activeTf}</span> : null}
         {quote ? (
           <>
-            <span className="shrink-0 font-mono text-[11px] text-emerald-700 dark:text-emerald-400">
+            <span className="eda-quote shrink-0 font-mono text-[11px] text-buy">
               BID {fxNum(quote.bid, digits)}
             </span>
-            <span className="shrink-0 font-mono text-[11px] text-rose-700 dark:text-rose-400">
+            <span className="eda-quote shrink-0 font-mono text-[11px] text-sell">
               ASK {fxNum(quote.ask, digits)}
             </span>
-            <span className="shrink-0 font-mono text-[11px] text-stone-500">SPR {quote.spreadPips}</span>
-            <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide text-stone-400">
-              {quoteFreshness}
+            <span className="shrink-0 font-mono text-[11px] text-muted-foreground">SPR {quote.spreadPips}</span>
+            <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+              {quoteFreshness === 'LIVE' ? 'Live' : quoteFreshness === 'STALE' ? 'Stale' : quoteFreshness === 'LOADING' ? 'Connecting' : 'Unavailable'}
             </span>
           </>
         ) : (
-          <span className="text-[11px] text-stone-500">Waiting for backend quote…</span>
+          <span className="text-[11px] text-muted-foreground">Waiting for backend quote…</span>
         )}
         {timeframes.length > 0 ? (
           <div className="ml-2 flex items-center gap-0.5" role="group" aria-label="Forex timeframes">
@@ -138,8 +190,8 @@ export function ForexChartFoundation() {
                 type="button"
                 aria-pressed={activeTf === t}
                 onClick={() => setTf(t)}
-                className={`rounded px-1.5 py-0.5 font-mono text-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 ${
-                  activeTf === t ? 'bg-stone-200 text-stone-800 dark:bg-stone-700 dark:text-white' : 'text-stone-400'
+                className={`rounded px-1.5 py-0.5 font-mono text-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  activeTf === t ? 'bg-primary/15 text-primary' : 'text-muted-foreground'
                 }`}
               >
                 {t}
@@ -147,9 +199,30 @@ export function ForexChartFoundation() {
             ))}
           </div>
         ) : null}
+        <label className="ml-2 hidden items-center gap-1 text-[10px] text-muted-foreground sm:inline-flex">
+          Study
+          <select
+            value={study}
+            onChange={(e) => setStudy(e.target.value as StudyId)}
+            className="rounded border border-border bg-background px-1 py-0.5 text-[10px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="Chart study"
+          >
+            <option value="none">None</option>
+            <option value="sma20">SMA 20</option>
+            <option value="ema20">EMA 20</option>
+            <option value="bb20">Bollinger 20</option>
+          </select>
+        </label>
+        <span className="hidden font-mono text-[10px] text-muted-foreground lg:inline">
+          {rsi.length ? `RSI ${rsi[rsi.length - 1].value.toFixed(1)}` : 'RSI n/a'}
+          {atr != null ? ` · ATR ${atr.toFixed(Math.min(digits, 5))}` : ''}
+          {macd ? ` · MACD ${macd.macd.toFixed(5)}` : ''}
+          {stoch ? ` · Stoch ${stoch.k.toFixed(1)}` : ''}
+        </span>
+        {!studyReady ? <span className="text-[10px] text-muted-foreground">Insufficient history</span> : null}
         <button
           type="button"
-          className="ml-auto shrink-0 rounded px-1.5 py-0.5 text-[10px] text-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
+          className="ml-auto shrink-0 rounded px-1.5 py-0.5 text-[10px] text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={() => setExpanded((v) => !v)}
           aria-pressed={expanded}
         >
@@ -162,6 +235,9 @@ export function ForexChartFoundation() {
           candles={candleView.status === 'READY' ? candleView.candles : []}
           quote={quoteLevels}
           dark={dark}
+          overlay={overlay}
+          bands={bands}
+          levels={levels}
         />
         {banners.length > 0 ? (
           <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-1.5">
@@ -171,15 +247,15 @@ export function ForexChartFoundation() {
                 role={banner.tone === 'error' ? 'alert' : 'status'}
                 className={`rounded border px-3 py-2 text-[11px] leading-relaxed ${
                   banner.tone === 'error'
-                    ? 'border-rose-300 bg-rose-50 text-rose-900 dark:border-rose-900 dark:bg-rose-950/70 dark:text-rose-100'
+                    ? 'border-sell/40 bg-sell/10 text-sell'
                     : banner.tone === 'warn'
-                      ? 'border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950/70 dark:text-amber-100'
-                      : 'border-stone-300 bg-white/95 text-stone-600 dark:border-stone-700 dark:bg-black/70 dark:text-stone-300'
+                      ? 'border-primary/40 bg-primary/10 text-foreground'
+                      : 'border-border bg-card/95 text-muted-foreground'
                 }`}
               >
                 {banner.text}
                 {banner.text.startsWith('Historical Forex OHLC') ? (
-                  <span className="mt-1 block text-stone-500 dark:text-stone-400">
+                  <span className="mt-1 block text-muted-foreground">
                     Live bid/ask continue from GET /quotes and fx.quote. Crypto GET /trading/candles is not used.
                   </span>
                 ) : null}

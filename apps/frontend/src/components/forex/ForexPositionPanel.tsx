@@ -56,11 +56,11 @@ export function ForexPositionPanel() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       {status === 'SIGNED_OUT' ? (
-        <p className="p-3 text-[12px] text-stone-500">Sign in to view positions.</p>
+        <p className="p-3 text-[12px] text-muted-foreground">Sign in to view positions.</p>
       ) : status === 'LOADING' ? (
-        <p className="p-3 text-[12px] text-stone-500">Loading positions…</p>
+        <p className="p-3 text-[12px] text-muted-foreground">Loading positions…</p>
       ) : status === 'ERROR' && hydrateError ? (
-        <p className="p-3 text-[12px] text-rose-800 dark:text-rose-200" role="alert">
+        <p className="p-3 text-[12px] text-sell" role="alert">
           {hydrateError.code}: {hydrateError.message}
         </p>
       ) : status === 'DISCONNECTED' ? (
@@ -71,17 +71,17 @@ export function ForexPositionPanel() {
             <p className="px-3 pt-2 text-[11px] text-amber-800 dark:text-amber-200">Position data may be stale.</p>
           ) : null}
           {actions.actionError ? (
-            <p className="px-3 pt-2 text-[11px] text-rose-800 dark:text-rose-200" role="alert">
+            <p className="px-3 pt-2 text-[11px] text-sell" role="alert">
               {actions.actionError.code}: {actions.actionError.message}
             </p>
           ) : null}
           {status === 'EMPTY' && !confirm ? (
-            <p className="p-3 text-[12px] text-stone-500">No open Forex positions.</p>
+            <p className="p-3 text-[12px] text-muted-foreground">No open Forex positions.</p>
           ) : (
             <div className="min-h-0 flex-1 overflow-auto">
               <div className="hidden md:block">
                 <table className="w-full text-left font-mono text-[11px]">
-                  <thead className="text-stone-500">
+                  <thead className="text-muted-foreground">
                     <tr>
                       <th className="px-2 py-1 font-medium">Symbol</th>
                       <th className="px-2 py-1 font-medium">Side</th>
@@ -207,7 +207,7 @@ export function ForexPositionPanel() {
 }
 
 function PnlCell({ pnl }: { pnl: ReturnType<typeof positionUnrealizedPnl> }) {
-  if (!pnl.available) return <span className="text-stone-400">P&amp;L unavailable</span>;
+  if (!pnl.available) return <span className="text-muted-foreground">P&amp;L unavailable</span>;
   return <span>{fxNum(pnl.value, 2)}{pnl.currency ? ` ${pnl.currency}` : ''}</span>;
 }
 
@@ -232,7 +232,7 @@ function PositionRow(props: {
   const ui = positionUiStatus(p, props.closing, false);
   const ref = closeReferenceSide(p.side);
   return (
-    <tr className="border-t border-stone-100 align-top dark:border-stone-800">
+    <tr className="border-t border-border align-top">
       <td className="px-2 py-1.5">{p.symbol}</td>
       <td className="px-2 py-1.5 uppercase">{p.side}</td>
       <td className="px-2 py-1.5">{p.volume}</td>
@@ -240,10 +240,10 @@ function PositionRow(props: {
       <td className="px-2 py-1.5">
         {p.currentPrice ? (
           <>
-            {fxNum(p.currentPrice, props.digits)} <span className="text-stone-400">{ref}</span>
+            {fxNum(p.currentPrice, props.digits)} <span className="text-muted-foreground">{ref}</span>
           </>
         ) : (
-          <span className="text-stone-400">unavailable</span>
+          <span className="text-muted-foreground">unavailable</span>
         )}
       </td>
       <td className="px-2 py-1.5">
@@ -282,7 +282,7 @@ function PositionRow(props: {
           type="button"
           disabled={props.closing}
           onClick={() => props.onClose(p.volume)}
-          className="h-7 rounded border border-stone-300 px-2 text-[10px] uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-50 dark:border-stone-700"
+          className="h-7 rounded border border-border px-2 text-[10px] uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-50"
         >
           {props.closing ? 'Closing…' : 'Close'}
         </button>
@@ -296,14 +296,14 @@ function PositionCard(props: Parameters<typeof PositionRow>[0]) {
   const ui = positionUiStatus(p, props.closing, false);
   const ref = closeReferenceSide(p.side);
   return (
-    <article className="rounded border border-stone-200 bg-white p-3 dark:border-stone-800 dark:bg-[#101214]">
+    <article className="rounded border border-border bg-card p-3">
       <div className="mb-2 flex items-center justify-between">
         <div className="font-mono text-[13px]">
-          {p.symbol} <span className="uppercase text-stone-500">{p.side}</span> {p.volume}
+          {p.symbol} <span className="uppercase text-muted-foreground">{p.side}</span> {p.volume}
         </div>
-        <span className="text-[10px] uppercase text-stone-500">{ui}</span>
+        <span className="text-[10px] uppercase text-muted-foreground">{ui}</span>
       </div>
-      <dl className="grid grid-cols-2 gap-x-3 gap-y-1 font-mono text-[11px] text-stone-600 dark:text-stone-400">
+      <dl className="grid grid-cols-2 gap-x-3 gap-y-1 font-mono text-[11px] text-muted-foreground">
         <dt>Entry</dt>
         <dd className="text-right">{fxNum(p.averageEntryPrice || p.entryPrice, props.digits)}</dd>
         <dt>Close {ref}</dt>
@@ -343,7 +343,7 @@ function PositionCard(props: Parameters<typeof PositionRow>[0]) {
         type="button"
         disabled={props.closing}
         onClick={() => props.onClose(p.volume)}
-        className="mt-3 h-10 w-full rounded border border-stone-300 text-[12px] uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-50 dark:border-stone-700"
+        className="mt-3 h-10 w-full rounded border border-border text-[12px] uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-50"
       >
         {props.closing ? 'Closing…' : `Close ${p.volume} ${p.symbol}`}
       </button>
@@ -366,11 +366,11 @@ function ProtectionCell(props: {
   return (
     <div className="flex min-w-[9.5rem] flex-col gap-1">
       <div className="flex items-center gap-1">
-        <span className="w-6 text-[10px] text-stone-400">{props.kind}</span>
+        <span className="w-6 text-[10px] text-muted-foreground">{props.kind}</span>
         <span className="font-mono text-[11px]">{props.existing ? fxPlain(props.existing.triggerPrice) : '—'}</span>
       </div>
       {props.existing ? (
-        <p className={`text-[10px] leading-tight ${mismatch ? 'text-amber-800 dark:text-amber-300' : 'text-stone-400'}`}>
+        <p className={`text-[10px] leading-tight ${mismatch ? 'text-amber-800 dark:text-amber-300' : 'text-muted-foreground'}`}>
           Covers {fxPlain(props.existing.volume)} of {fxPlain(props.positionVolume)}
           {mismatch ? ' · does not cover remaining volume' : ''}
         </p>
@@ -381,14 +381,14 @@ function ProtectionCell(props: {
           onChange={(e) => props.onChange(e.target.value)}
           inputMode="decimal"
           aria-label={`${props.kind} price`}
-          className="h-7 w-20 rounded border border-stone-300 bg-transparent px-1 font-mono text-[11px] dark:border-stone-700"
+          className="h-7 w-20 rounded border border-border bg-transparent px-1 font-mono text-[11px]"
         />
         {props.existing ? (
           <>
             <button type="button" disabled={props.busy || !protectionInputOk(props.value)} onClick={props.onUpdate} className="h-7 rounded px-1.5 text-[10px] uppercase disabled:opacity-40">
               Set
             </button>
-            <button type="button" disabled={props.busy} onClick={props.onRemove} className="h-7 rounded px-1.5 text-[10px] uppercase text-stone-500 disabled:opacity-40">
+            <button type="button" disabled={props.busy} onClick={props.onRemove} className="h-7 rounded px-1.5 text-[10px] uppercase text-muted-foreground disabled:opacity-40">
               Off
             </button>
           </>
@@ -422,15 +422,15 @@ function CloseConfirm(props: {
     { label: '100%', vol: fractionCloseVolume(p.volume, 1) },
   ];
   return (
-    <div className="border-t border-stone-200 bg-stone-50 p-3 dark:border-stone-800 dark:bg-[#141618]" role="dialog" aria-label="Close position">
-      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-stone-500">Close position</h3>
+    <div className="border-t border-border bg-muted/40 p-3" role="dialog" aria-label="Close position">
+      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Close position</h3>
       <p className="font-mono text-[12px]">
         {p.symbol} {p.side.toUpperCase()} {p.volume}
       </p>
-      <p className="mt-1 font-mono text-[11px] text-stone-600 dark:text-stone-400">
+      <p className="mt-1 font-mono text-[11px] text-muted-foreground">
         Current {ref}: {p.currentPrice ? fxNum(p.currentPrice, props.digits) : 'unavailable'} · action {side.toUpperCase()}
       </p>
-      <p className="mt-1 font-mono text-[11px] text-stone-600 dark:text-stone-400">
+      <p className="mt-1 font-mono text-[11px] text-muted-foreground">
         P&amp;L: {props.pnl.available ? `${fxNum(props.pnl.value, 2)}${props.pnl.currency ? ` ${props.pnl.currency}` : ''}` : 'unavailable'}
       </p>
       <div className="mt-2 flex flex-wrap gap-1">
@@ -442,7 +442,7 @@ function CloseConfirm(props: {
               onClick={() => props.onVolume(x.vol!)}
               className={cn(
                 'h-8 rounded border px-2 text-[11px]',
-                props.volume === x.vol ? 'border-stone-800 dark:border-stone-200' : 'border-stone-300 dark:border-stone-700'
+                props.volume === x.vol ? 'border-primary bg-primary/10' : 'border-border'
               )}
             >
               Close {x.label}
@@ -450,27 +450,27 @@ function CloseConfirm(props: {
           ) : null
         )}
       </div>
-      <label className="mt-2 block text-[10px] uppercase text-stone-400">
+      <label className="mt-2 block text-[10px] uppercase text-muted-foreground">
         Volume
         <input
           value={props.volume}
           onChange={(e) => props.onVolume(e.target.value)}
-          className="mt-1 h-8 w-full rounded border border-stone-300 bg-white px-2 font-mono text-[12px] dark:border-stone-700 dark:bg-transparent"
+          className="mt-1 h-8 w-full rounded border border-border bg-background px-2 font-mono text-[12px]"
         />
       </label>
-      {!allowed.ok ? <p className="mt-1 text-[11px] text-rose-800 dark:text-rose-200">{allowed.reason}</p> : null}
-      <p className="mt-2 text-[10px] leading-relaxed text-stone-400">
+      {!allowed.ok ? <p className="mt-1 text-[11px] text-sell">{allowed.reason}</p> : null}
+      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
         Final execution price is determined by the backend. Close is reduce-only and will not reverse the position.
       </p>
       <div className="mt-3 flex gap-2">
-        <button type="button" onClick={props.onCancel} className="h-9 flex-1 rounded border border-stone-300 text-[12px] dark:border-stone-700">
+        <button type="button" onClick={props.onCancel} className="h-9 flex-1 rounded border border-border text-[12px]">
           Cancel
         </button>
         <button
           type="button"
           disabled={props.busy || !allowed.ok}
           onClick={props.onSubmit}
-          className="h-9 flex-1 rounded bg-stone-800 text-[12px] text-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-stone-200 dark:text-stone-900"
+          className="h-9 flex-1 rounded bg-primary text-[12px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
           {props.busy ? 'Submitting…' : `Close ${props.volume} ${p.symbol}`}
         </button>

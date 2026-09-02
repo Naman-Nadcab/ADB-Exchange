@@ -102,12 +102,12 @@ export function EdaPublicHome() {
             <span className="font-mono text-[11px] text-[#9CA3AF]">{stripStatus === 'CONNECTING' && !markets ? 'Connecting' : stripStatus}</span>
             {(markets?.crypto ?? []).map((r) => (
               <Link key={r.symbol} href={tradeSpotWithSymbol(r.symbol)} className="font-mono text-[12px] text-[#D1D5DB] hover:text-white">
-                {r.display} <span className="text-[#9CA3AF]">{r.price ?? 'Unavailable'}</span>
+                {r.display} <span className="eda-quote text-[#9CA3AF]">{r.price ?? 'Unavailable'}</span>
               </Link>
             ))}
             {(markets?.forex ?? []).slice(0, 3).map((r) => (
               <Link key={r.symbol} href={`${FOREX_ROUTES.trade}?symbol=${r.symbol}`} className="font-mono text-[12px] text-[#D1D5DB] hover:text-white">
-                {r.display} <span className="text-[#9CA3AF]">{r.bid ?? 'Unavailable'}</span>
+                {r.display} <span className="eda-quote text-[#9CA3AF]">{r.bid ?? 'Unavailable'}</span>
               </Link>
             ))}
           </div>
@@ -117,18 +117,29 @@ export function EdaPublicHome() {
           <div className="mx-auto max-w-[1320px] px-4 py-12 sm:px-6 lg:px-8">
             <p className="text-[11px] uppercase tracking-[0.16em] text-[#F5B800]">One platform. Multiple markets.</p>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <article className="flex flex-col rounded-xl border border-[#F5B8001F] bg-[#0D1118] p-6">
+              <article className="eda-surface-hover flex flex-col rounded-xl border border-[#F5B8001F] bg-[#0D1118] p-6">
                 <p className="text-[11px] uppercase tracking-[0.14em] text-[#9CA3AF]">Crypto</p>
                 <h2 className="mt-2 text-2xl font-semibold">Digital Asset Markets</h2>
                 <p className="mt-2 flex-1 text-sm text-[#9CA3AF]">Spot trading for digital assets. Existing Crypto terminal, wallet, and P2P remain unchanged.</p>
+                <ul className="mt-4 space-y-1 text-[12px] text-[#9CA3AF]">
+                  <li>Spot</li>
+                  <li>Wallet</li>
+                  <li>P2P</li>
+                </ul>
                 <Link href={SPOT_TRADE_HREF} className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg border border-[#F5B8001F] px-5 text-sm font-semibold hover:border-[#F5B80066]">
                   Explore Crypto
                 </Link>
               </article>
-              <article className="flex flex-col rounded-xl border border-[#F5B8001F] bg-[#0D1118] p-6">
+              <article className="eda-surface-hover flex flex-col rounded-xl border border-[#F5B8001F] bg-[#0D1118] p-6">
                 <p className="text-[11px] uppercase tracking-[0.14em] text-[#9CA3AF]">Forex</p>
                 <h2 className="mt-2 text-2xl font-semibold">Global FX Markets</h2>
                 <p className="mt-2 flex-1 text-sm text-[#9CA3AF]">Currency trading with a separate account, margin, and ledger. Simulated execution. Not a Crypto add-on.</p>
+                <ul className="mt-4 space-y-1 text-[12px] text-[#9CA3AF]">
+                  <li>FX Trading</li>
+                  <li>Margin</li>
+                  <li>Positions</li>
+                  <li>Risk</li>
+                </ul>
                 <Link href={FOREX_ROUTES.root} className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg border border-[#F5B8001F] px-5 text-sm font-semibold hover:border-[#F5B80066]">
                   Explore Forex
                 </Link>

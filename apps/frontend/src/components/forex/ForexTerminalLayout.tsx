@@ -28,13 +28,13 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
   const hydrateError = useForexStore((s) => s.hydrateError);
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-[#f4f3ef] text-stone-800 antialiased dark:bg-[#0a0b0c] dark:text-stone-100">
+    <div className="terminal-shell exchange-ui flex h-[100dvh] flex-col bg-background text-foreground antialiased">
       <ForexTopNav />
       <ForexMarketStrip />
       <ForexSessionBar />
       {hydratePhase === 'error' && hydrateError ? (
-        <div className="border-b border-rose-300 bg-rose-50 px-3 py-1 text-[11px] text-rose-900 dark:bg-rose-950/40 dark:text-rose-200" role="alert">
-          {hydrateError.code}: {hydrateError.message}
+        <div className="border-b border-sell/40 bg-sell/10 px-3 py-1 text-[11px] text-sell" role="alert">
+          Unable to load Forex workspace. {hydrateError.message}
         </div>
       ) : null}
 
@@ -58,11 +58,11 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       ) : (
-        <main className="min-h-0 flex-1 overflow-auto">{children}</main>
+        <main className="min-h-0 flex-1 overflow-auto bg-background">{children}</main>
       )}
 
       {trade ? (
-        <div className="min-h-0 flex-1 overflow-auto border-t border-stone-200 md:hidden dark:border-stone-800">
+        <div className="min-h-0 flex-1 overflow-auto border-t border-border md:hidden">
           {children}
           <ForexBottomPanels />
         </div>

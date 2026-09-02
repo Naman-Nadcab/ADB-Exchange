@@ -4,8 +4,11 @@ import { useEffect, useRef } from 'react';
 import type { IChartApi, IPriceLine, ISeriesApi, UTCTimestamp } from 'lightweight-charts';
 import type { ForexCandle } from '@/lib/forex/models/candles';
 import { candleTimeMs } from '@/lib/forex/models/candles';
+import { getDomChartThemeOptions, getTradingChartColors } from '@/components/trade/chart/cssTradingColors';
 
 type QuoteLevels = { bid: number; ask: number } | null;
+type ProtectionLevels = { entry?: number; sl?: number; tp?: number };
+type OverlayPoint = { time: number; value: number };
 
 function toBars(candles: ForexCandle[]) {
   const out: Array<{ time: UTCTimestamp; open: number; high: number; low: number; close: number }> = [];
@@ -22,16 +25,29 @@ function toBars(candles: ForexCandle[]) {
   return out;
 }
 
+function lineOpts(price: number, color: string, title: string) {
+  return { price, color, lineWidth: 1 as const, axisLabelVisible: true, title, lineStyle: 2 as const };
+}
+
 export function ForexLightweightChart(props: {
   candles: ForexCandle[];
   quote: QuoteLevels;
   dark: boolean;
+  overlay?: OverlayPoint[];
+  bands?: { upper: OverlayPoint[]; lower: OverlayPoint[] };
+  levels?: ProtectionLevels;
 }) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const overlayRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const upperRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const lowerRef = useRef<ISeriesApi<'Line'> | null>(null);
   const bidRef = useRef<IPriceLine | null>(null);
   const askRef = useRef<IPriceLine | null>(null);
+  const entryRef = useRef<IPriceLine | null>(null);
+  const slRef = useRef<IPriceLine | null>(null);
+  const tpRef = useRef<IPriceLine | null>(null);
   const quoteRef = useRef<QuoteLevels>(props.quote);
   const candlesRef = useRef(props.candles);
   quoteRef.current = props.quote;
@@ -41,32 +57,34 @@ export function ForexLightweightChart(props: {
     const el = hostRef.current;
     if (!el) return;
     let disposed = false;
+    const colors = getTradingChartColors();
+    const theme = getDomChartThemeOptions(props.dark ? 'dark' : 'light');
 
     void import('lightweight-charts').then((lwc) => {
       if (disposed || !hostRef.current) return;
       const chart = lwc.createChart(hostRef.current, {
         autoSize: true,
         layout: {
-          background: { type: lwc.ColorType.Solid, color: props.dark ? '#0c0d0f' : '#f7f6f3' },
-          textColor: props.dark ? '#a8a29e' : '#57534e',
+          background: { type: lwc.ColorType.Solid, color: theme.layout.background.color },
+          textColor: theme.layout.textColor,
           fontSize: 11,
         },
         grid: {
-          vertLines: { color: props.dark ? '#1c1917' : '#e7e5e4' },
-          horzLines: { color: props.dark ? '#1c1917' : '#e7e5e4' },
+          vertLines: { color: theme.grid.vertLines.color },
+          horzLines: { color: theme.grid.horzLines.color },
         },
         crosshair: { mode: lwc.CrosshairMode.Normal },
-        rightPriceScale: { borderColor: props.dark ? '#292524' : '#d6d3d1', entireTextOnly: true },
-        timeScale: { borderColor: props.dark ? '#292524' : '#d6d3d1', timeVisible: true, secondsVisible: false },
+        rightPriceScale: { borderColor: theme.rightPriceScale.borderColor, entireTextOnly: true },
+        timeScale: { borderColor: theme.timeScale.borderColor, timeVisible: true, secondsVisible: false },
         handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false },
         handleScale: { mouseWheel: true, pinch: true, axisPressedMouseMove: true },
       });
       const series = chart.addCandlestickSeries({
-        upColor: '#0f766e',
-        downColor: '#be123c',
+        upColor: colors.up,
+        downColor: colors.down,
         borderVisible: false,
-        wickUpColor: '#0f766e',
-        wickDownColor: '#be123c',
+        wickUpColor: colors.up,
+        wickDownColor: colors.down,
         autoscaleInfoProvider: (original: () => unknown) => {
           const base = original() as { priceRange?: { minValue: number; maxValue: number } } | null;
           const q = quoteRef.current;
@@ -86,23 +104,14 @@ export function ForexLightweightChart(props: {
       });
       chartRef.current = chart;
       seriesRef.current = series;
+      overlayRef.current = chart.addLineSeries({ color: '#F5B800', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+      upperRef.current = chart.addLineSeries({ color: 'rgba(156,163,175,0.7)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+      lowerRef.current = chart.addLineSeries({ color: 'rgba(156,163,175,0.7)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
       series.setData(toBars(candlesRef.current));
       const q = quoteRef.current;
       if (q) {
-        bidRef.current = series.createPriceLine({
-          price: q.bid,
-          color: '#0f766e',
-          lineWidth: 1,
-          axisLabelVisible: true,
-          title: 'BID',
-        });
-        askRef.current = series.createPriceLine({
-          price: q.ask,
-          color: '#be123c',
-          lineWidth: 1,
-          axisLabelVisible: true,
-          title: 'ASK',
-        });
+        bidRef.current = series.createPriceLine(lineOpts(q.bid, colors.up, 'BID'));
+        askRef.current = series.createPriceLine(lineOpts(q.ask, colors.down, 'ASK'));
       }
     });
 
@@ -110,6 +119,12 @@ export function ForexLightweightChart(props: {
       disposed = true;
       bidRef.current = null;
       askRef.current = null;
+      entryRef.current = null;
+      slRef.current = null;
+      tpRef.current = null;
+      overlayRef.current = null;
+      upperRef.current = null;
+      lowerRef.current = null;
       seriesRef.current = null;
       chartRef.current?.remove();
       chartRef.current = null;
@@ -121,38 +136,46 @@ export function ForexLightweightChart(props: {
   }, [props.candles]);
 
   useEffect(() => {
+    const map = (pts: OverlayPoint[]) =>
+      pts
+        .filter((p) => Number.isFinite(p.time) && Number.isFinite(p.value))
+        .map((p) => ({ time: p.time as UTCTimestamp, value: p.value }));
+    overlayRef.current?.setData(map(props.overlay ?? []));
+    upperRef.current?.setData(map(props.bands?.upper ?? []));
+    lowerRef.current?.setData(map(props.bands?.lower ?? []));
+  }, [props.overlay, props.bands]);
+
+  useEffect(() => {
     const series = seriesRef.current;
     if (!series) return;
+    const colors = getTradingChartColors();
+    const apply = (
+      ref: { current: IPriceLine | null },
+      price: number | undefined,
+      color: string,
+      title: string
+    ) => {
+      if (price == null || !Number.isFinite(price)) {
+        if (ref.current) series.removePriceLine(ref.current);
+        ref.current = null;
+        return;
+      }
+      if (!ref.current) ref.current = series.createPriceLine(lineOpts(price, color, title));
+      else ref.current.applyOptions({ price, color, title });
+    };
     if (!props.quote) {
       if (bidRef.current) series.removePriceLine(bidRef.current);
       if (askRef.current) series.removePriceLine(askRef.current);
       bidRef.current = null;
       askRef.current = null;
-      return;
-    }
-    if (!bidRef.current) {
-      bidRef.current = series.createPriceLine({
-        price: props.quote.bid,
-        color: '#0f766e',
-        lineWidth: 1,
-        axisLabelVisible: true,
-        title: 'BID',
-      });
     } else {
-      bidRef.current.applyOptions({ price: props.quote.bid });
+      apply(bidRef, props.quote.bid, colors.up, 'BID');
+      apply(askRef, props.quote.ask, colors.down, 'ASK');
     }
-    if (!askRef.current) {
-      askRef.current = series.createPriceLine({
-        price: props.quote.ask,
-        color: '#be123c',
-        lineWidth: 1,
-        axisLabelVisible: true,
-        title: 'ASK',
-      });
-    } else {
-      askRef.current.applyOptions({ price: props.quote.ask });
-    }
-  }, [props.quote]);
+    apply(entryRef, props.levels?.entry, 'rgba(245,184,0,0.85)', 'Entry');
+    apply(slRef, props.levels?.sl, colors.down, 'SL');
+    apply(tpRef, props.levels?.tp, colors.up, 'TP');
+  }, [props.quote, props.levels]);
 
   return <div ref={hostRef} className="absolute inset-0" role="img" aria-label="Forex chart" />;
 }

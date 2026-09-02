@@ -10,7 +10,7 @@ export function ForexMobileNav() {
 
   return (
     <nav
-      className="flex h-14 shrink-0 items-stretch border-t border-stone-200 bg-white dark:border-stone-800 dark:bg-[#0e1012] md:hidden"
+      className="flex h-14 shrink-0 items-stretch border-t border-border bg-card md:hidden"
       aria-label="Forex mobile"
     >
       {FOREX_MOBILE_NAV.map((item) => {
@@ -20,8 +20,8 @@ export function ForexMobileNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              'flex min-h-[44px] min-w-0 flex-1 items-center justify-center px-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-stone-400',
-              active ? 'text-stone-900 dark:text-white' : 'text-stone-500'
+              'flex min-h-[44px] min-w-0 flex-1 items-center justify-center px-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+              active ? 'text-primary' : 'text-muted-foreground'
             )}
           >
             {item.label}

@@ -17,6 +17,7 @@ import { SPOT_TRADE_HREF, isSpotTradePath } from '@/lib/tier1-canonical-routes';
 import { MARKETS_HREF, ORDERS_HREF, WALLET_HREF, P2P_HREF, ROUTES, LEGACY_PATH_PREFIXES } from '@/lib/routes';
 import { performLogout } from '@/lib/authLogout';
 import { BrandLogo } from '@/components/brand/BrandLogo';
+import { EdaProductSwitcher } from '@/components/eda/EdaProductSwitcher';
 
 const MAIN_NAV = [
   { label: 'Markets', href: MARKETS_HREF },
@@ -125,6 +126,7 @@ export function ExchangeHeader({
           {mobileMenuOpen ? <X className="h-[18px] w-[18px]" /> : <Menu className="h-[18px] w-[18px]" />}
         </button>
         <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} />
+        <EdaProductSwitcher variant="terminal" />
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Trading">
           {MAIN_NAV.map((item) => {
@@ -290,6 +292,9 @@ export function ExchangeHeader({
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/60" onClick={() => setMobileMenuOpen(false)} />
           <div className="absolute bottom-0 left-0 top-0 flex w-64 flex-col gap-1 border-r border-border bg-card p-4">
+            <div className="mb-2">
+              <EdaProductSwitcher variant="terminal" />
+            </div>
             {MAIN_NAV.map((item) => {
               const isActive = isMainNavActive(pathname, item.href);
               return (

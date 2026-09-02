@@ -43,6 +43,32 @@
     --dashboard-card-pad: 1rem;
     --dashboard-title-size: 1.625rem;
     --dashboard-muted-size: 0.875rem;
+
+    /* EDA semantic aliases — map onto existing Crypto tokens. Do not change token values. */
+    --eda-canvas: var(--background);
+    --eda-surface: var(--card);
+    --eda-surface-subtle: var(--muted);
+    --eda-surface-raised: var(--popover);
+    --eda-surface-hover: var(--accent);
+    --eda-surface-active: var(--secondary);
+    --eda-border-subtle: var(--border);
+    --eda-border-default: var(--border);
+    --eda-border-strong: var(--ring);
+    --eda-text-primary: var(--foreground);
+    --eda-text-secondary: var(--muted-foreground);
+    --eda-text-muted: var(--muted-foreground);
+    --eda-text-disabled: var(--muted-foreground);
+    --eda-brand: var(--primary);
+    --eda-brand-hover: var(--primary);
+    --eda-brand-active: var(--primary);
+    --eda-buy: var(--exchange-buy);
+    --eda-buy-soft: var(--exchange-buy);
+    --eda-sell: var(--exchange-sell);
+    --eda-sell-soft: var(--exchange-sell);
+    --eda-positive: var(--price-up);
+    --eda-negative: var(--price-down);
+    --eda-warning: 38 92% 50%;
+    --eda-info: 210 80% 56%;
   }
 
   /* Binance-adjacent dark terminal: deeper shell, elevated panels, readable muted labels */
@@ -325,6 +351,16 @@
     50% {
       opacity: 0.35;
     }
+  }
+  .eda-quote {
+    font-variant-numeric: tabular-nums;
+    transition: color 180ms ease, opacity 180ms ease;
+  }
+  .eda-surface-hover {
+    transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+  }
+  .eda-surface-hover:hover {
+    border-color: hsl(var(--primary) / 0.35);
   }
   @keyframes terminal-shimmer {
     0%,

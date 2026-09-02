@@ -9,10 +9,19 @@ export function ForexRiskBar() {
   const risk = useForexStore((s) => s.riskStatus);
   const margin = useForexStore((s) => s.margin);
   const exposure = useForexStore((s) => s.exposure);
+  const hydratePhase = useForexStore((s) => s.hydratePhase);
   const authed = hasForexPrivateSession();
   if (!authed) return null;
 
-  const state = risk?.state ?? '—';
+  if ((hydratePhase === 'idle' || hydratePhase === 'hydrating') && !risk && !margin) {
+    return (
+      <div className="flex h-7 shrink-0 items-center border-t border-border bg-muted/40 px-3 text-[10px] text-muted-foreground" role="status">
+        Loading risk…
+      </div>
+    );
+  }
+
+  const state = risk?.state;
   const exp =
     (typeof exposure?.accountNet === 'string' && exposure.accountNet) ||
     (typeof exposure?.net === 'string' && exposure.net) ||
@@ -20,25 +29,25 @@ export function ForexRiskBar() {
 
   return (
     <div
-      className="flex h-7 shrink-0 items-center gap-3 overflow-x-auto border-t border-stone-200 bg-stone-50 px-3 font-mono text-[10px] dark:border-stone-800 dark:bg-[#121416]"
+      className="flex h-7 shrink-0 items-center gap-3 overflow-x-auto border-t border-border bg-muted/40 px-3 font-mono text-[10px] tabular-nums"
       aria-label="Risk bar"
     >
       <span
         className={cn(
           'rounded px-1.5 py-0.5 font-medium',
-          state === 'NORMAL' && 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
-          (state === 'WARNING' || state === 'RESTRICTED') && 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200',
-          (state === 'LIQUIDATION_ONLY' || state === 'HALTED') && 'bg-rose-100 text-rose-900 dark:bg-rose-950 dark:text-rose-200',
-          state === '—' && 'text-stone-500'
+          state === 'NORMAL' && 'bg-buy/15 text-buy',
+          (state === 'WARNING' || state === 'RESTRICTED') && 'bg-primary/15 text-foreground',
+          (state === 'LIQUIDATION_ONLY' || state === 'HALTED') && 'bg-sell/15 text-sell',
+          !state && 'text-muted-foreground'
         )}
       >
-        {state}
+        {state ?? 'Unavailable'}
         {risk?.reason ? ` · ${risk.reason}` : ''}
       </span>
-      <span className="text-stone-500">Margin {margin?.status ?? '—'}</span>
+      <span className="text-muted-foreground">Margin {margin?.status ?? 'Unavailable'}</span>
       <span>Exposure {fxPlain(exp)}</span>
       <span>Maint {fxNum(margin?.maintenanceMargin, 2)}</span>
-      {risk?.liquidationLock ? <span className="text-rose-700">Liquidation lock</span> : null}
+      {risk?.liquidationLock ? <span className="text-sell">Liquidation lock</span> : null}
     </div>
   );
 }

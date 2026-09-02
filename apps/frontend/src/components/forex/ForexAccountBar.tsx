@@ -13,15 +13,32 @@ export function ForexAccountBar() {
   const balance = useForexStore((s) => s.balance);
   const margin = useForexStore((s) => s.margin);
   const pnl = useForexStore((s) => s.pnl);
+  const hydratePhase = useForexStore((s) => s.hydratePhase);
   const lastHydratedAt = useForexStore((s) => s.lastHydratedAt);
 
   if (!authed) {
     return (
-      <div className="flex h-9 items-center gap-4 overflow-x-auto border-t border-stone-200 bg-white px-3 text-[11px] text-stone-500 dark:border-stone-800 dark:bg-[#0e1012]">
+      <div className="flex h-9 items-center gap-4 overflow-x-auto border-t border-border bg-card px-3 text-[11px] text-muted-foreground">
         <span>Sign in to load Forex balance, equity, and margin from the backend.</span>
-        <Link href="/login?redirect=/forex/account" className="underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400">
+        <Link href="/login?redirect=/forex/account" className="underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           Sign in
         </Link>
+      </div>
+    );
+  }
+
+  if ((hydratePhase === 'idle' || hydratePhase === 'hydrating') && !account && !balance) {
+    return (
+      <div className="flex h-9 items-center border-t border-border bg-card px-3 text-[11px] text-muted-foreground" role="status">
+        Loading account…
+      </div>
+    );
+  }
+
+  if (hydratePhase === 'error' && !account && !balance) {
+    return (
+      <div className="flex h-9 items-center border-t border-border bg-card px-3 text-[11px] text-muted-foreground" role="alert">
+        Account unavailable
       </div>
     );
   }
@@ -32,12 +49,12 @@ export function ForexAccountBar() {
   const used = account?.usedMargin ?? margin?.usedMargin;
   const free = account?.freeMargin ?? margin?.freeMargin;
   const level = account?.marginLevel ?? margin?.marginLevel;
+  const realized = fxSigned(account?.realizedPnl ?? pnl?.realized);
   const u = fxSigned(account?.unrealizedPnl ?? pnl?.unrealized);
-  const status = account?.calculationStatus ?? balance?.calculationStatus ?? margin?.calculationStatus;
 
   return (
     <div
-      className="flex h-9 shrink-0 items-center gap-5 overflow-x-auto border-t border-stone-200 bg-white px-3 font-mono text-[11px] dark:border-stone-800 dark:bg-[#0e1012]"
+      className="flex h-9 shrink-0 items-center gap-5 overflow-x-auto border-t border-border bg-card px-3 font-mono text-[11px] tabular-nums"
       aria-label="Account bar"
     >
       <Item k="Balance" v={fxMoney(ledger, currency)} />
@@ -45,20 +62,10 @@ export function ForexAccountBar() {
       <Item k="Used margin" v={fxMoney(used, currency)} />
       <Item k="Free margin" v={fxMoney(free, currency)} />
       <Item k="Margin level" v={level == null || level === '' ? 'Unavailable' : `${fxPlain(Number(level).toFixed(2))}%`} />
-      <span>
-        <span className="mr-1 text-stone-400">Unrealized</span>
-        <span
-          className={
-            u.tone === 'pos' ? 'text-emerald-700 dark:text-emerald-400' : u.tone === 'neg' ? 'text-rose-700 dark:text-rose-400' : 'text-stone-800 dark:text-stone-100'
-          }
-        >
-          {u.text}
-        </span>
-        <span className="sr-only">{u.tone === 'pos' ? 'profit' : u.tone === 'neg' ? 'loss' : 'unchanged'}</span>
-      </span>
-      <span className="ml-auto text-stone-400">
-        {status ? `calc ${fxPlain(status)}` : ''}
-        {lastHydratedAt ? ` · ${new Date(lastHydratedAt).toLocaleTimeString()}` : ''}
+      <Signed k="Realized" value={realized} />
+      <Signed k="Unrealized" value={u} />
+      <span className="ml-auto text-muted-foreground">
+        {lastHydratedAt ? new Date(lastHydratedAt).toLocaleTimeString() : ''}
       </span>
     </div>
   );
@@ -67,8 +74,24 @@ export function ForexAccountBar() {
 function Item({ k, v }: { k: string; v: string }) {
   return (
     <span>
-      <span className="mr-1 text-stone-400">{k}</span>
-      <span className="text-stone-800 dark:text-stone-100">{v}</span>
+      <span className="mr-1 text-muted-foreground">{k}</span>
+      <span className="text-foreground">{v}</span>
+    </span>
+  );
+}
+
+function Signed({ k, value }: { k: string; value: { text: string; tone: 'pos' | 'neg' | 'flat' | 'na' } }) {
+  return (
+    <span>
+      <span className="mr-1 text-muted-foreground">{k}</span>
+      <span
+        className={
+          value.tone === 'pos' ? 'text-buy' : value.tone === 'neg' ? 'text-sell' : 'text-foreground'
+        }
+      >
+        {value.text}
+      </span>
+      <span className="sr-only">{value.tone === 'pos' ? 'profit' : value.tone === 'neg' ? 'loss' : 'unchanged'}</span>
     </span>
   );
 }

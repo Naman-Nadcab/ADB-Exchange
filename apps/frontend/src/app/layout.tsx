@@ -29,6 +29,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_API_URL || 'http://109.123.254.30'),
   title: BRAND_NAME_SHORT,
   description: `${BRAND_NAME_SHORT} — digital assets and global FX. Crypto spot and Forex on one professional platform.`,
   keywords: [BRAND_NAME_SHORT, 'crypto', 'forex', 'exchange', 'global markets', 'trading'],
