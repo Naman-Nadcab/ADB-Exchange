@@ -8,7 +8,7 @@ import { useForexStore } from '@/lib/forex/state/store';
 import { resolveForexBottomHeight, useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { ForexAccountBar } from './ForexAccountBar';
 import { ForexBottomPanels } from './ForexBottomPanels';
-import { ForexChartFoundation } from './ForexChartFoundation';
+import { ForexChartWorkspace } from './ForexChartWorkspace';
 import { ForexMarketStrip } from './ForexMarketStrip';
 import { ForexMobileNav } from './ForexMobileNav';
 import { ForexOrderTicket } from './ForexOrderTicket';
@@ -91,9 +91,9 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
           ) : null}
 
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            {/* Chart is the primary surface on all breakpoints */}
+            {/* MT5-class chart workspace + ticket */}
             <div className="flex min-h-0 min-w-0 flex-1">
-              <ForexChartFoundation />
+              <ForexChartWorkspace />
               {showTicket ? (
                 <div className="hidden min-h-0 shrink-0 border-l border-border lg:block" style={{ width: tkW }}>
                   <ForexOrderTicket />

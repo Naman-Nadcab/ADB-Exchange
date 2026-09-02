@@ -15,6 +15,7 @@ import { decideQuoteChartOverlay } from '@/lib/forex/market-data/quote-chart-ove
 import { deriveStructureLevels } from '@/lib/forex/chart/structure-levels';
 import { computeRiskReward, pipSizeFromInstrument, priceChangePct, priceDistancePips } from '@/lib/forex/chart/pip-math';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
+import { hydrateForexPrivate } from '@/lib/forex/runtime/hydrate';
 import {
   ForexLightweightChart,
   type ForexChartApi,
@@ -25,6 +26,8 @@ import { ForexChartToolbar, type ForexAnalysisTool } from './ForexChartToolbar';
 import { ForexIntelDrawer } from './ForexIntelDrawer';
 import { fxNum } from './format';
 import { cn } from '@/lib/utils';
+import { useForexOrderEngine } from '@/lib/forex/runtime/useForexOrderEngine';
+import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 
 type StudyId = 'none' | 'ema20_50' | 'sma20' | 'ema20' | 'wma20' | 'hma21' | 'bb20' | 'supertrend';
 
@@ -76,14 +79,35 @@ function loadAlerts(): LocalAlert[] {
   }
 }
 
-export function ForexChartFoundation(props?: { embedded?: boolean }) {
+export function ForexChartFoundation(props?: {
+  embedded?: boolean;
+  instanceId?: string;
+  symbol?: string;
+  timeframe?: string;
+  active?: boolean;
+  compactChrome?: boolean;
+  showOneClick?: boolean;
+  onActivate?: () => void;
+  onSymbolChange?: (symbol: string) => void;
+  onTimeframeChange?: (tf: string) => void;
+}) {
   const embedded = Boolean(props?.embedded);
-  const selected = useForexWorkspaceStore((s) => s.selectedSymbol);
+  const storeSymbol = useForexWorkspaceStore((s) => s.selectedSymbol);
   const storedTf = useForexWorkspaceStore((s) => s.chartTimeframe);
-  const setTf = useForexWorkspaceStore((s) => s.setChartTimeframe);
+  const setStoreTf = useForexWorkspaceStore((s) => s.setChartTimeframe);
+  const setStoreSymbol = useForexWorkspaceStore((s) => s.setSelectedSymbol);
   const chartMode = useForexWorkspaceStore((s) => s.chartMode);
   const setChartMode = useForexWorkspaceStore((s) => s.setChartMode);
   const setTicketDraft = useForexWorkspaceStore((s) => s.setTicketDraft);
+  const selected = (props?.symbol ?? storeSymbol).replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  const setTf = (tf: string) => {
+    if (props?.onTimeframeChange) props.onTimeframeChange(tf);
+    else setStoreTf(tf);
+  };
+  const activate = () => {
+    props?.onActivate?.();
+    setStoreSymbol(selected);
+  };
   const inst = useForexStore((s) => s.instruments[selected]);
   const quote = useForexStore((s) => s.quotes[selected]);
   const socketState = useForexStore((s) => s.socketState);
@@ -119,6 +143,7 @@ export function ForexChartFoundation(props?: { embedded?: boolean }) {
   const [rrPoints, setRrPoints] = useState<number[]>([]);
   const [measurePoints, setMeasurePoints] = useState<Array<{ price: number; time: number | null }>>([]);
   const chartApiRef = useRef<ForexChartApi | null>(null);
+  const orderEngine = useForexOrderEngine();
   const positions = useForexStore((s) => s.positions);
   const protections = useForexStore((s) => s.protections);
   const orders = useForexStore((s) => s.orders);
@@ -172,7 +197,13 @@ export function ForexChartFoundation(props?: { embedded?: boolean }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [chartMode, setChartMode]);
 
-  const requestedTf = storedTf && isReservedForexTimeframe(storedTf) ? storedTf : '15m';
+  const propTf = props?.timeframe;
+  const requestedTf =
+    propTf && isReservedForexTimeframe(propTf)
+      ? propTf
+      : storedTf && isReservedForexTimeframe(storedTf)
+        ? storedTf
+        : '15m';
   const candleView = useForexCandles(selected, requestedTf);
   const timeframes = orderedTimeframes(candleView.supportedTimeframes.filter(isReservedForexTimeframe));
   const activeTf = timeframes.includes(requestedTf) ? requestedTf : timeframes[0] ?? requestedTf;
@@ -482,15 +513,35 @@ export function ForexChartFoundation(props?: { embedded?: boolean }) {
       .slice(0, 8);
   }, [showCalendar, calendarEvents, selected]);
 
+  const oneClickBuy = () => {
+    if (!props?.showOneClick || !hasForexPrivateSession() || orderEngine.busy) return;
+    void orderEngine.place({
+      symbol: selected,
+      side: 'buy',
+      orderType: 'market',
+      volume: inst?.minVolume ?? '0.01',
+    });
+  };
+  const oneClickSell = () => {
+    if (!props?.showOneClick || !hasForexPrivateSession() || orderEngine.busy) return;
+    void orderEngine.place({
+      symbol: selected,
+      side: 'sell',
+      orderType: 'market',
+      volume: inst?.minVolume ?? '0.01',
+    });
+  };
+
   return (
     <section
       className={cn(
         'flex min-h-0 min-w-0 flex-col bg-background',
-        embedded ? 'h-full' : 'flex-1'
+        embedded || props?.instanceId ? 'h-full' : 'flex-1'
       )}
       aria-label="Forex market chart"
+      onMouseDown={activate}
     >
-      <div className="flex h-8 min-w-0 items-center gap-2 overflow-x-auto border-b border-border bg-card/95 px-2">
+      <div className="forex-chrome-strip flex h-8 min-w-0 items-center gap-2 overflow-x-auto border-b border-border bg-card/95 px-2">
         <span className="shrink-0 font-mono text-[13px] font-semibold tracking-tight">
           {inst?.displaySymbol ?? selected}
         </span>
@@ -612,7 +663,26 @@ export function ForexChartFoundation(props?: { embedded?: boolean }) {
         </span>
         {!studyReady ? <span className="text-[10px] text-muted-foreground">Insufficient history</span> : null}
 
-        {!embedded ? (
+        {props?.showOneClick ? (
+          <div className="ml-auto flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              disabled={orderEngine.busy || !hasForexPrivateSession()}
+              onClick={oneClickSell}
+              className="h-6 rounded bg-sell px-2 font-mono text-[10px] font-bold text-white disabled:opacity-40"
+            >
+              SELL
+            </button>
+            <button
+              type="button"
+              disabled={orderEngine.busy || !hasForexPrivateSession()}
+              onClick={oneClickBuy}
+              className="h-6 rounded bg-buy px-2 font-mono text-[10px] font-bold text-white disabled:opacity-40"
+            >
+              BUY
+            </button>
+          </div>
+        ) : !embedded && !props?.instanceId ? (
           <div className="ml-auto flex shrink-0 items-center gap-0.5">
             <button
               type="button"
@@ -637,35 +707,40 @@ export function ForexChartFoundation(props?: { embedded?: boolean }) {
           </span>
         )}
       </div>
+      {props?.showOneClick && orderEngine.lastNote ? (
+        <p className="border-b border-border px-2 py-0.5 text-[10px] text-muted-foreground">{orderEngine.lastNote}</p>
+      ) : null}
 
-      <ForexChartToolbar
-        tool={tool}
-        onTool={(t) => {
-          setTool(t);
-          if (t === 'rr') setRrPoints([]);
-          if (t === 'measure') setMeasurePoints([]);
-          chartApiRef.current?.setTool(t);
-        }}
-        showSessions={showSessions}
-        onSessions={setShowSessions}
-        showLevels={showLevels}
-        onLevels={setShowLevels}
-        showRsi={showRsi}
-        onRsi={setShowRsi}
-        showMacd={showMacd}
-        onMacd={setShowMacd}
-        showCalendar={showCalendar}
-        onCalendar={setShowCalendar}
-        showIntel={showIntel}
-        onIntel={setShowIntel}
-        onClearDrawings={() => chartApiRef.current?.clearDrawings()}
-        rrSummary={
-          rrResult
-            ? `Risk ${rrResult.riskPips.toFixed(1)}p · Reward ${rrResult.rewardPips.toFixed(1)}p · R:R ${rrResult.rr.toFixed(2)}`
-            : null
-        }
-        measureSummary={measureSummary}
-      />
+      {!props?.compactChrome || props?.active ? (
+        <ForexChartToolbar
+          tool={tool}
+          onTool={(t) => {
+            setTool(t);
+            if (t === 'rr') setRrPoints([]);
+            if (t === 'measure') setMeasurePoints([]);
+            chartApiRef.current?.setTool(t);
+          }}
+          showSessions={showSessions}
+          onSessions={setShowSessions}
+          showLevels={showLevels}
+          onLevels={setShowLevels}
+          showRsi={showRsi}
+          onRsi={setShowRsi}
+          showMacd={showMacd}
+          onMacd={setShowMacd}
+          showCalendar={showCalendar}
+          onCalendar={setShowCalendar}
+          showIntel={showIntel}
+          onIntel={setShowIntel}
+          onClearDrawings={() => chartApiRef.current?.clearDrawings()}
+          rrSummary={
+            rrResult
+              ? `Risk ${rrResult.riskPips.toFixed(1)}p · Reward ${rrResult.rewardPips.toFixed(1)}p · R:R ${rrResult.rr.toFixed(2)}`
+              : null
+          }
+          measureSummary={measureSummary}
+        />
+      ) : null}
 
       {showCalendar && calendarForSymbol.length > 0 ? (
         <div className="flex h-7 min-w-0 items-center gap-3 overflow-x-auto border-b border-border/70 bg-card/40 px-2 text-[10px] text-muted-foreground">
@@ -702,7 +777,7 @@ export function ForexChartFoundation(props?: { embedded?: boolean }) {
           orderOverlays={orderOverlays}
           calendarMarkers={calendarMarkers}
           tool={tool}
-          drawingsKey={`eda-forex-drawings:${selected}:${activeTf}`}
+          drawingsKey={`eda-forex-drawings:${props?.instanceId ?? 'main'}:${selected}:${activeTf}`}
           onCrosshair={setCrosshair}
           onPricePick={onPricePick}
           onContextMenuPrice={(price, time, x, y) => setCtxMenu({ price, time, x, y })}
@@ -863,6 +938,54 @@ export function ForexChartFoundation(props?: { embedded?: boolean }) {
                       orderType: isLimit ? 'limit' : 'stop',
                       side: 'sell',
                     });
+                    setCtxMenu(null);
+                  }}
+                />
+              </>
+            ) : null}
+            {levels?.entry != null ? (
+              <>
+                <CtxItem
+                  label={`Set SL @ ${fxNum(ctxMenu.price, digits)}`}
+                  onClick={() => {
+                    const open = Object.values(positions).find((p) => p.status === 'OPEN' && p.symbol === selected);
+                    if (!open) {
+                      setCtxMenu(null);
+                      return;
+                    }
+                    const existing = activeProtectionsFor(protections, open.positionId).sl;
+                    void (async () => {
+                      if (existing) await forexApi.cancelProtection(existing.protectionId);
+                      await forexApi.createProtection({
+                        clientProtectionId: `sl-chart-${Date.now()}`,
+                        positionId: open.positionId,
+                        type: 'STOP_LOSS',
+                        triggerPrice: String(ctxMenu.price),
+                      });
+                      await hydrateForexPrivate();
+                    })();
+                    setCtxMenu(null);
+                  }}
+                />
+                <CtxItem
+                  label={`Set TP @ ${fxNum(ctxMenu.price, digits)}`}
+                  onClick={() => {
+                    const open = Object.values(positions).find((p) => p.status === 'OPEN' && p.symbol === selected);
+                    if (!open) {
+                      setCtxMenu(null);
+                      return;
+                    }
+                    const existing = activeProtectionsFor(protections, open.positionId).tp;
+                    void (async () => {
+                      if (existing) await forexApi.cancelProtection(existing.protectionId);
+                      await forexApi.createProtection({
+                        clientProtectionId: `tp-chart-${Date.now()}`,
+                        positionId: open.positionId,
+                        type: 'TAKE_PROFIT',
+                        triggerPrice: String(ctxMenu.price),
+                      });
+                      await hydrateForexPrivate();
+                    })();
                     setCtxMenu(null);
                   }}
                 />

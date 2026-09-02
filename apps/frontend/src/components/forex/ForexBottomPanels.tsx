@@ -11,13 +11,14 @@ import { cn } from '@/lib/utils';
 import { ForexPositionPanel } from './ForexPositionPanel';
 import { fxNum, fxPlain } from './format';
 
-type Tab = 'positions' | 'orders' | 'history' | 'risk';
+type Tab = 'positions' | 'orders' | 'history' | 'risk' | 'dom';
 
 const TABS: Array<{ id: Tab; label: string }> = [
-  { id: 'positions', label: 'Positions' },
+  { id: 'positions', label: 'Trade' },
   { id: 'orders', label: 'Orders' },
-  { id: 'history', label: 'Fills' },
-  { id: 'risk', label: 'Risk' },
+  { id: 'history', label: 'Deals' },
+  { id: 'risk', label: 'Exposure' },
+  { id: 'dom', label: 'DOM' },
 ];
 
 const PENDING_STATUSES = new Set(['ACCEPTED', 'PENDING', 'NEW', 'TRIGGERING', 'VALIDATING', 'CANCEL_PENDING']);
@@ -35,7 +36,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
   const bottomCollapsed = useForexWorkspaceStore((s) => s.bottomCollapsed);
   const toggleBottomCollapsed = useForexWorkspaceStore((s) => s.toggleBottomCollapsed);
   const setBottomCollapsed = useForexWorkspaceStore((s) => s.setBottomCollapsed);
-  const setSelected = useForexWorkspaceStore((s) => s.setSelectedSymbol);
+  const focusSymbol = useForexWorkspaceStore((s) => s.focusSymbol);
   const chartMode = useForexWorkspaceStore((s) => s.chartMode);
   const engine = useForexOrderEngine();
 
@@ -135,7 +136,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
                             <button
                               type="button"
                               className="text-primary hover:underline"
-                              onClick={() => setSelected(o.symbol)}
+                              onClick={() => focusSymbol(o.symbol)}
                             >
                               {o.symbol}
                             </button>
@@ -154,18 +155,44 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
                           </td>
                           <td className="px-2 py-1.5">
                             {canCancel ? (
-                              <button
-                                type="button"
-                                disabled={engine.busy || cancelId === o.orderId}
-                                className="rounded border border-border px-1.5 py-0.5 text-[10px] hover:border-sell/40 hover:text-sell disabled:opacity-50"
-                                onClick={() => {
-                                  if (!window.confirm(`Cancel order ${o.orderId.slice(0, 8)}…?`)) return;
-                                  setCancelId(o.orderId);
-                                  void engine.cancel(o.orderId).finally(() => setCancelId(null));
-                                }}
-                              >
-                                {cancelId === o.orderId ? '…' : 'Cancel'}
-                              </button>
+                              <span className="inline-flex gap-1">
+                                <button
+                                  type="button"
+                                  disabled={engine.busy || cancelId === o.orderId}
+                                  className="rounded border border-border px-1.5 py-0.5 text-[10px] hover:border-primary/40 disabled:opacity-50"
+                                  onClick={() => {
+                                    const next = window.prompt(
+                                      'New trigger/limit price (leave blank to keep)',
+                                      o.requestedPrice ?? ''
+                                    );
+                                    if (next == null) return;
+                                    const vol = window.prompt('New volume (leave blank to keep)', o.requestedVolume);
+                                    if (vol == null) return;
+                                    setCancelId(o.orderId);
+                                    void engine
+                                      .modify(o.orderId, {
+                                        requestedPrice: next.trim() || undefined,
+                                        volume: vol.trim() || undefined,
+                                        expectedVersion: o.version,
+                                      })
+                                      .finally(() => setCancelId(null));
+                                  }}
+                                >
+                                  Modify
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={engine.busy || cancelId === o.orderId}
+                                  className="rounded border border-border px-1.5 py-0.5 text-[10px] hover:border-sell/40 hover:text-sell disabled:opacity-50"
+                                  onClick={() => {
+                                    if (!window.confirm(`Cancel order ${o.orderId.slice(0, 8)}…?`)) return;
+                                    setCancelId(o.orderId);
+                                    void engine.cancel(o.orderId).finally(() => setCancelId(null));
+                                  }}
+                                >
+                                  {cancelId === o.orderId ? '…' : 'Cancel'}
+                                </button>
+                              </span>
                             ) : (
                               <span className="text-muted-foreground">—</span>
                             )}
@@ -213,7 +240,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
                 </p>
               ) : null}
             </div>
-          ) : (
+          ) : tab === 'risk' ? (
             <div className="grid gap-2 p-3 sm:grid-cols-2 lg:grid-cols-4">
               <RiskCard label="Account risk" value={fxPlain(risk?.state)} note={risk?.reason} />
               <RiskCard
@@ -234,6 +261,15 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
                 }
               />
             </div>
+          ) : (
+            <div className="flex h-full flex-col items-start justify-center gap-2 px-4 py-4">
+              <p className="text-[12px] font-semibold text-foreground">Depth of Market unavailable</p>
+              <p className="max-w-lg text-[11px] leading-relaxed text-muted-foreground">
+                This Forex feed does not provide institutional order-book depth. Bid/Ask quotes are available in Market Watch
+                and the chart. DOM levels are not fabricated.
+              </p>
+              <p className="font-mono text-[10px] text-muted-foreground">Status · UNAVAILABLE · SIMULATED quotes only</p>
+            </div>
           )}
         </div>
       ) : (
@@ -245,7 +281,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
 
 function RiskCard(props: { label: string; value: string; note?: string | null }) {
   return (
-    <div className="eda-metric !min-w-0">
+    <div className="min-w-0 rounded-md border border-border/70 bg-muted/15 px-2.5 py-2">
       <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{props.label}</p>
       <p className="mt-1 font-mono text-[13px] tabular-nums text-foreground">{props.value}</p>
       {props.note ? <p className="mt-0.5 text-[10px] text-muted-foreground">{props.note}</p> : null}

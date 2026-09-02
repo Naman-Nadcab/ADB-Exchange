@@ -22,7 +22,7 @@ export function ForexWatchlist() {
   const sessions = useForexStore((s) => s.sessions);
   const watchlist = useForexWorkspaceStore((s) => s.watchlist);
   const selected = useForexWorkspaceStore((s) => s.selectedSymbol);
-  const setSelected = useForexWorkspaceStore((s) => s.setSelectedSymbol);
+  const focusSymbol = useForexWorkspaceStore((s) => s.focusSymbol);
   const setTicketDraft = useForexWorkspaceStore((s) => s.setTicketDraft);
   const marketOpen = sessions?.eligibility.open ?? false;
   const [menu, setMenu] = useState<{ x: number; y: number; symbol: string } | null>(null);
@@ -76,14 +76,14 @@ export function ForexWatchlist() {
                     <button
                       key={symbol}
                       type="button"
-                      onClick={() => setSelected(symbol)}
+                      onClick={() => focusSymbol(symbol)}
                       onDoubleClick={() => {
-                        setSelected(symbol);
+                        focusSymbol(symbol);
                         setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'buy' });
                       }}
                       onContextMenu={(e) => {
                         e.preventDefault();
-                        setSelected(symbol);
+                        focusSymbol(symbol);
                         setMenu({ x: e.clientX, y: e.clientY, symbol });
                       }}
                       className={cn(
@@ -118,14 +118,14 @@ export function ForexWatchlist() {
           <MenuItem
             label="Focus chart"
             onClick={() => {
-              setSelected(menu.symbol);
+              focusSymbol(menu.symbol);
               setMenu(null);
             }}
           />
           <MenuItem
             label="New market buy"
             onClick={() => {
-              setSelected(menu.symbol);
+              focusSymbol(menu.symbol);
               setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'buy' });
               setMenu(null);
             }}
@@ -133,7 +133,7 @@ export function ForexWatchlist() {
           <MenuItem
             label="New market sell"
             onClick={() => {
-              setSelected(menu.symbol);
+              focusSymbol(menu.symbol);
               setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'sell' });
               setMenu(null);
             }}
@@ -142,7 +142,7 @@ export function ForexWatchlist() {
             label="New limit order"
             onClick={() => {
               const q = quotes[menu.symbol];
-              setSelected(menu.symbol);
+              focusSymbol(menu.symbol);
               setTicketDraft({
                 nonce: Date.now(),
                 orderType: 'limit',
