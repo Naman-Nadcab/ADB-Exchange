@@ -29,7 +29,7 @@ export type ForexResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: ForexError; statusHint?: string };
 
-function unwrap<T>(res: { success: boolean; data?: T; error?: { code?: string; message?: string; source?: string } }): ForexResult<T> {
+export function unwrap<T>(res: { success: boolean; data?: T; error?: { code?: string; message?: string; source?: string } }): ForexResult<T> {
   if (res.success && res.data !== undefined) return { ok: true, data: res.data };
   const error = normalizeForexError(res.error ?? res);
   return { ok: false, error: { ...error, message: describeForexError(error) } };
@@ -153,5 +153,3 @@ export const forexApi = {
       { notifyOnError: false }
     ),
 };
-
-export { unwrap };

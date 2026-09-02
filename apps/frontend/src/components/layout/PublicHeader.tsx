@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Menu, Wallet, ClipboardList, User as UserIcon, LogOut, LayoutDashboard, Shield, ChevronDown } from 'lucide-react';
-import { ROUTES, SPOT_TRADE_HREF, WALLET_HREF, ORDERS_HREF } from '@/lib/routes';
+import { ROUTES, SPOT_TRADE_HREF, WALLET_HREF, ORDERS_HREF, walletPath } from '@/lib/routes';
+import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useAuthStore } from '@/store/auth';
 import { performLogout } from '@/lib/authLogout';
 import { BrandLogo } from '@/components/brand/BrandLogo';
+import { EdaProductSwitcher } from '@/components/eda/EdaProductSwitcher';
 
 /**
  * Global top header for public-viewable feature routes (markets, earn, p2p, trade).
@@ -32,7 +34,7 @@ export function PublicHeader() {
 
   const handleLogout = async () => {
     setUserOpen(false);
-    await performLogout('/login');
+    await performLogout('/');
   };
 
   const maskEmail = (email: string) => {
@@ -51,19 +53,63 @@ export function PublicHeader() {
           href={ROUTES.home}
         />
 
-        <nav className="hidden items-center gap-6 text-sm text-[#9CA3AF] lg:flex">
-          <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center transition hover:text-white">Markets</Link>
-          <Link href={SPOT_TRADE_HREF} prefetch className="tap-target inline-flex items-center transition hover:text-white">Trade</Link>
-          <Link href={ROUTES.p2p} prefetch className="tap-target inline-flex items-center transition hover:text-white">P2P</Link>
-          <Link href={ROUTES.earn} prefetch className="tap-target inline-flex items-center transition hover:text-white">Earn</Link>
-          <Link href={ROUTES.dashboard.api} prefetch className="tap-target inline-flex items-center transition hover:text-white">API</Link>
+        <nav className="hidden items-center gap-5 text-sm text-[#9CA3AF] lg:flex" aria-label="Primary">
+          {authed ? (
+            <>
+              <EdaProductSwitcher />
+              <Link href={ROUTES.home} prefetch className="tap-target inline-flex items-center transition hover:text-white">Overview</Link>
+              <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center transition hover:text-white">Markets</Link>
+              <div className="relative group">
+                <button type="button" className="tap-target inline-flex items-center transition hover:text-white" aria-haspopup="true">
+                  Trade
+                </button>
+                <div className="invisible absolute left-0 top-full z-40 mt-1 w-56 rounded-lg border border-[#F5B8001F] bg-[#0D1118] py-1 opacity-0 shadow-xl transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                  <Link href={SPOT_TRADE_HREF} className="block px-3 py-2 hover:bg-white/5 hover:text-white">
+                    Crypto Spot
+                    <span className="mt-0.5 block text-[11px] text-[#6B7280]">Digital asset trading</span>
+                  </Link>
+                  <Link href={FOREX_ROUTES.trade} className="block px-3 py-2 hover:bg-white/5 hover:text-white">
+                    Forex
+                    <span className="mt-0.5 block text-[11px] text-[#6B7280]">Global FX trading</span>
+                  </Link>
+                </div>
+              </div>
+              <Link href={WALLET_HREF} prefetch className="tap-target inline-flex items-center transition hover:text-white">Portfolio</Link>
+              <Link href={ORDERS_HREF} prefetch className="tap-target inline-flex items-center transition hover:text-white">Orders</Link>
+              <Link href={walletPath.history} prefetch className="tap-target inline-flex items-center transition hover:text-white">Activity</Link>
+            </>
+          ) : (
+            <>
+              <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center transition hover:text-white">Markets</Link>
+              <Link href={SPOT_TRADE_HREF} prefetch className="tap-target inline-flex items-center transition hover:text-white">Crypto</Link>
+              <Link href={FOREX_ROUTES.root} prefetch className="tap-target inline-flex items-center transition hover:text-white">Forex</Link>
+              <div className="relative group">
+                <button type="button" className="tap-target inline-flex items-center transition hover:text-white" aria-haspopup="true">
+                  Trade
+                </button>
+                <div className="invisible absolute left-0 top-full z-40 mt-1 w-56 rounded-lg border border-[#F5B8001F] bg-[#0D1118] py-1 opacity-0 shadow-xl transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                  <Link href={SPOT_TRADE_HREF} className="block px-3 py-2 hover:bg-white/5 hover:text-white">
+                    Crypto Spot
+                    <span className="mt-0.5 block text-[11px] text-[#6B7280]">Digital asset trading</span>
+                  </Link>
+                  <Link href={FOREX_ROUTES.trade} className="block px-3 py-2 hover:bg-white/5 hover:text-white">
+                    Forex
+                    <span className="mt-0.5 block text-[11px] text-[#6B7280]">Global FX trading</span>
+                  </Link>
+                </div>
+              </div>
+              <Link href={ROUTES.p2p} prefetch className="tap-target inline-flex items-center transition hover:text-white">P2P</Link>
+              <Link href={ROUTES.earn} prefetch className="tap-target inline-flex items-center transition hover:text-white">Earn</Link>
+              <Link href={ROUTES.dashboard.api} prefetch className="tap-target inline-flex items-center transition hover:text-white">API</Link>
+            </>
+          )}
         </nav>
 
         <div className="flex items-center gap-3">
           {authed ? (
             <>
               <Link href={WALLET_HREF} prefetch className="tap-target hidden items-center gap-2 rounded-lg border border-[#F5B8001F] px-3 py-2 text-sm text-[#9CA3AF] transition hover:text-white sm:inline-flex">
-                <Wallet className="h-4 w-4" /> <span className="hidden md:inline">Wallet</span>
+                <Wallet className="h-4 w-4" /> <span className="hidden md:inline">Funds</span>
               </Link>
               <Link href={ORDERS_HREF} prefetch className="tap-target hidden items-center gap-2 rounded-lg border border-[#F5B8001F] px-3 py-2 text-sm text-[#9CA3AF] transition hover:text-white sm:inline-flex">
                 <ClipboardList className="h-4 w-4" /> <span className="hidden md:inline">Orders</span>
@@ -127,7 +173,7 @@ export function PublicHeader() {
                 Log in
               </Link>
               <Link href={ROUTES.signup} prefetch className="tap-target inline-flex items-center rounded-lg bg-[#F5B800] px-4 py-2 text-sm font-semibold text-[#05070B] transition hover:bg-[#FFD54A]">
-                Register
+                Create account
               </Link>
             </>
           )}
@@ -146,17 +192,31 @@ export function PublicHeader() {
       {menuOpen ? (
         <div className="border-t border-[#F5B8001F] bg-[#0D1118] px-4 py-3 text-sm text-[#9CA3AF] lg:hidden">
           <div className="flex flex-wrap gap-4">
-            <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center">Markets</Link>
-            <Link href={SPOT_TRADE_HREF} prefetch className="tap-target inline-flex items-center">Trade</Link>
-            <Link href={ROUTES.p2p} prefetch className="tap-target inline-flex items-center">P2P</Link>
-            <Link href={ROUTES.earn} prefetch className="tap-target inline-flex items-center">Earn</Link>
-            <Link href={ROUTES.dashboard.api} prefetch className="tap-target inline-flex items-center">API</Link>
+            {authed ? (
+              <>
+                <Link href={ROUTES.home} prefetch className="tap-target inline-flex items-center">Overview</Link>
+                <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center">Markets</Link>
+                <Link href={SPOT_TRADE_HREF} prefetch className="tap-target inline-flex items-center">Crypto Spot</Link>
+                <Link href={FOREX_ROUTES.trade} prefetch className="tap-target inline-flex items-center">Forex</Link>
+                <Link href={WALLET_HREF} prefetch className="tap-target inline-flex items-center">Portfolio</Link>
+                <Link href={ORDERS_HREF} prefetch className="tap-target inline-flex items-center">Orders</Link>
+              </>
+            ) : (
+              <>
+                <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center">Markets</Link>
+                <Link href={SPOT_TRADE_HREF} prefetch className="tap-target inline-flex items-center">Crypto</Link>
+                <Link href={FOREX_ROUTES.root} prefetch className="tap-target inline-flex items-center">Forex</Link>
+                <Link href={ROUTES.p2p} prefetch className="tap-target inline-flex items-center">P2P</Link>
+                <Link href={ROUTES.earn} prefetch className="tap-target inline-flex items-center">Earn</Link>
+                <Link href={ROUTES.dashboard.api} prefetch className="tap-target inline-flex items-center">API</Link>
+                <Link href={ROUTES.login} prefetch className="tap-target inline-flex items-center">Log in</Link>
+                <Link href={ROUTES.signup} prefetch className="tap-target inline-flex items-center text-[#F5B800]">Create account</Link>
+              </>
+            )}
           </div>
           {authed ? (
             <div className="mt-3 flex flex-wrap gap-4 border-t border-[#F5B8001F] pt-3">
-              <Link href={ROUTES.dashboard.root} prefetch className="tap-target inline-flex items-center">Dashboard</Link>
-              <Link href={WALLET_HREF} prefetch className="tap-target inline-flex items-center">Wallet</Link>
-              <Link href={ORDERS_HREF} prefetch className="tap-target inline-flex items-center">Orders</Link>
+              <Link href={WALLET_HREF} prefetch className="tap-target inline-flex items-center">Funds</Link>
               <Link href={ROUTES.dashboard.account} prefetch className="tap-target inline-flex items-center">Account</Link>
               <button type="button" onClick={handleLogout} className="tap-target inline-flex items-center text-red-400">Logout</button>
             </div>

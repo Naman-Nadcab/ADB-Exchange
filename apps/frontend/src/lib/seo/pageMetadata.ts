@@ -19,8 +19,8 @@ function pageMeta(title: string, description: string): Metadata {
 /** Page-specific SEO metadata for public exchange routes. */
 export const PAGE_METADATA = {
   home: pageMeta(
-    BRAND_NAME_SHORT,
-    `Trade spot and P2P markets on ${BRAND_NAME_SHORT}. View live prices, manage your wallet, and access account security controls.`
+    `${BRAND_NAME_SHORT} — Global markets. One platform.`,
+    `Digital assets and global FX on ${BRAND_NAME_SHORT}. Crypto spot and Forex are first-class markets on one professional platform.`
   ),
   markets: pageMeta(
     `Crypto Markets — Live Prices & Pairs | ${BRAND_NAME_SHORT}`,

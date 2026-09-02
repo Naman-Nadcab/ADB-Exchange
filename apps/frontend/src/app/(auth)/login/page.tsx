@@ -68,7 +68,7 @@ export default function LoginPage() {
   }, [countdown]);
 
   useEffect(() => {
-    if (step === 'otp') router.prefetch(getStoredRedirect() || '/dashboard');
+    if (step === 'otp') router.prefetch(getStoredRedirect() || '/');
   }, [step, router]);
 
   useEffect(() => {

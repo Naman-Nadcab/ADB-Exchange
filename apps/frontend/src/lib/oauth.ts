@@ -129,12 +129,13 @@ export function resolvePostLoginRedirect(...candidates: (string | null | undefin
   for (const raw of candidates) {
     if (!raw || !raw.startsWith('/') || raw.startsWith('//')) continue;
     const pathOnly = raw.split('?')[0] ?? raw;
+    if (pathOnly === '/') return raw;
     const allowed = POST_LOGIN_PREFIXES.some(
       (p) => pathOnly === p || pathOnly.startsWith(`${p}/`),
     );
     if (allowed) return raw;
   }
-  return '/dashboard';
+  return '/';
 }
 
 /** Get redirect target from sessionStorage or fallback. Does NOT consume. Use after login. */

@@ -30,7 +30,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: BRAND_NAME_SHORT,
-  description: `${BRAND_NAME_SHORT} — spot and P2P crypto exchange with wallet, API access, and account security controls.`,
+  description: `${BRAND_NAME_SHORT} — digital assets and global FX. Crypto spot and Forex on one professional platform.`,
   keywords: [BRAND_NAME_SHORT, 'crypto', 'exchange', 'bitcoin', 'ethereum', 'trading'],
   applicationName: BRAND_NAME_SHORT,
   openGraph: {
