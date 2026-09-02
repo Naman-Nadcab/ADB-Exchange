@@ -52,6 +52,10 @@ export type ForexPreviewResult = {
   estimatedFee?: string;
   feeCurrency?: 'USD';
   feeModel?: string;
+  accountId?: string;
+  ledgerBalance?: string;
+  equity?: string;
+  accountingAvailable?: boolean;
 };
 
 export type ForexPreviewDeps = {
@@ -193,5 +197,9 @@ export function previewForexOrder(
     estimatedFee: fee?.amount,
     feeCurrency: fee?.currency,
     feeModel: fee?.model,
+    accountId,
+    ledgerBalance: inputs?.ledgerBalance,
+    equity: inputs?.equity,
+    accountingAvailable: inputs?.accountingAvailable,
   };
 }

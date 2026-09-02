@@ -73,7 +73,7 @@ export class ForexPositionService {
     this.liquidation = liquidation;
   }
 
-  riskAccountingInputs(accountId: string): { equity?: string; accountingAvailable: boolean } | undefined {
+  riskAccountingInputs(accountId: string): { equity?: string; accountingAvailable: boolean; ledgerBalance?: string } | undefined {
     return this.accounting?.riskInputs(accountId);
   }
 

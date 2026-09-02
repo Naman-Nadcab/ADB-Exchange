@@ -12,8 +12,16 @@ import type { ForexOrderModifyRequest } from '../services/forex/orders/models.js
 import type { ForexOrderRequest } from '../services/forex/orders/request.js';
 import { previewForexOrder } from '../services/forex/orders/preview.js';
 import { getForexOrderService } from '../services/forex/orders/service.js';
+import { getForexAccountingService } from '../services/forex/accounting/service.js';
 import { getForexPositionService } from '../services/forex/positions/service.js';
 import { getForexPricingService } from '../services/forex/quotes.service.js';
+
+function forexPreviewDeps() {
+  const pricing = getForexPricingService();
+  const positions = getForexPositionService(pricing);
+  getForexAccountingService(positions, pricing);
+  return { positions, pricing, orders: getForexOrderService() };
+}
 
 function accountIdFromRequest(request: { user?: { id?: string; userId?: string } }): string | null {
   const id = request.user?.id ?? request.user?.userId;
@@ -91,11 +99,7 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
         maxSlippage: body.maxSlippage != null ? String(body.maxSlippage) : undefined,
         maxDeviation: body.maxDeviation != null ? String(body.maxDeviation) : undefined,
       },
-      {
-        positions: getForexPositionService(),
-        pricing: getForexPricingService(),
-        orders: getForexOrderService(),
-      }
+      forexPreviewDeps()
     );
     return reply.send({
       success: true,

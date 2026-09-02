@@ -6,4 +6,5 @@ services:
     environment:
       FOREX_DEMO_FUNDING: "true"
       FOREX_DEMO_FUNDING_AMOUNT: "10000"
+      FOREX_DEMO_ZERO_SPREAD: "true"
       FOREX_FUNDING_TEST_API: "true"

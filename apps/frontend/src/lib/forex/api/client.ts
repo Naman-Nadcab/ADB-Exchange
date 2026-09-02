@@ -124,6 +124,15 @@ export const forexApi = {
       realForex: boolean;
       transaction: ForexLedgerRow;
     }>(`${FOREX_PREFIX}/funding/demo`, body ?? {}, { notifyOnError: false }),
+  /** DEMO / MOCK only. Pins Bid=Ask and moves the simulated quote. */
+  applyDemoPrice: (body: { symbol: string; price: string }) =>
+    api.post<{
+      source: string;
+      executionMode: string;
+      scope: string;
+      realForex: boolean;
+      quote: ForexQuoteDto;
+    }>(`${FOREX_PREFIX}/market-data/demo-price`, body, { notifyOnError: false }),
   liquidation: () => fxGet<Record<string, unknown>>('/liquidation'),
   news: () => fxGet<{ source: string; provider: string; availability: string; reason?: string; count: number; items: unknown[] }>('/news', true),
   calendar: () =>

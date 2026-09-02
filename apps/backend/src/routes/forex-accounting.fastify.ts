@@ -14,6 +14,8 @@ import { ForexPnlError } from '../services/forex/pnl/engine.js';
 import { getForexPositionService } from '../services/forex/positions/service.js';
 import { getForexPricingService } from '../services/forex/quotes.service.js';
 import { isForexFundingTestAuthorized } from '../services/forex/http.js';
+import { fxDecimal } from '../services/forex/decimal-fx.js';
+import { getForexInstrumentBySymbol } from '../services/forex/instruments.catalog.js';
 
 function accountIdFromRequest(request: { user?: { id?: string; userId?: string } }): string | null {
   const id = request.user?.id ?? request.user?.userId;
@@ -203,6 +205,67 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
     } catch (e) {
       return sendAccountingError(reply, e);
     }
+  });
+
+  /**
+   * DEMO / MOCK only. Moves the simulated quote so LIMIT/STOP can trigger.
+   * Bid = Ask. Never a real LP. Blocked when realForex would be enabled.
+   */
+  app.post('/market-data/demo-price', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
+    const accountId = accountIdFromRequest(request);
+    if (!accountId) {
+      return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+    }
+    const adminCfg = getForexAdminBackendConfig();
+    if (adminCfg.realForex === true) {
+      return reply.status(403).send({
+        success: false,
+        error: { code: 'FOREX_DEMO_PRICE_BLOCKED', message: 'Demo price apply is blocked when real Forex is enabled', source: 'SIMULATED' },
+      });
+    }
+    if (!forexConfig.demoFundingEnabled && !forexConfig.demoZeroSpread) {
+      return reply.status(403).send({
+        success: false,
+        error: { code: 'FOREX_DEMO_PRICE_DISABLED', message: 'Demo price apply is disabled', source: 'SIMULATED' },
+      });
+    }
+    const body = (request.body ?? {}) as { symbol?: string; price?: string };
+    const symbol = String(body.symbol ?? '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    const instrument = getForexInstrumentBySymbol(symbol);
+    if (!instrument) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'UNKNOWN_SYMBOL', message: 'Unknown Forex symbol', source: 'SIMULATED' },
+      });
+    }
+    let mid: string;
+    try {
+      const px = fxDecimal(String(body.price ?? ''));
+      if (!px.isFinite() || !px.gt(0)) throw new Error('invalid');
+      mid = px.toFixed();
+    } catch {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'INVALID_PRICE', message: 'Demo price must be a positive decimal', source: 'SIMULATED' },
+      });
+    }
+    const quote = getForexPricingService().applyDemoPrice(instrument.symbol, mid);
+    if (!quote) {
+      return reply.status(409).send({
+        success: false,
+        error: { code: 'FOREX_DEMO_PRICE_REJECTED', message: 'Simulated quote was not accepted', source: 'SIMULATED' },
+      });
+    }
+    return reply.send({
+      success: true,
+      data: {
+        source: 'SIMULATED',
+        executionMode: 'MOCK',
+        scope: 'DEMO',
+        realForex: false,
+        quote,
+      },
+    });
   });
 }
 

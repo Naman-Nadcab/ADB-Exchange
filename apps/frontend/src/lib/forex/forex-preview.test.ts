@@ -64,7 +64,7 @@ function testLoadingReadyBlocked(): void {
 
 function testStaleAndRace(): void {
   assert(isStalePreviewRequest({ key: 'a', generation: 2 }, { key: 'a', generation: 1 }), 'stale gen');
-  const stale = interpretForexPreviewResult({
+  const stillReady = interpretForexPreviewResult({
     request: req,
     ok: true,
     liveQuoteSequence: '11',
@@ -81,7 +81,7 @@ function testStaleAndRace(): void {
       quoteSequence: '10',
     },
   });
-  assert(stale.status === 'STALE', 'quote moved');
+  assert(stillReady.status === 'READY', 'allowed preview stays usable while MOCK ticks');
 }
 
 function testErrorNoLocalFinance(): void {
@@ -97,13 +97,14 @@ function testErrorNoLocalFinance(): void {
 }
 
 function testNoOptimisticFillInTicket(): void {
-  const src = require('node:fs').readFileSync(
-    require('node:path').join(__dirname, '../../components/forex/ForexOrderTicket.tsx'),
-    'utf8'
-  ) as string;
-  assert(src.includes('forexApi.placeOrder'), 'submit still uses POST /orders');
-  assert(!src.includes("status: 'FILLED'"), 'no client fill');
-  assert(src.includes('preview.status === \'STALE\''), 'stale blocks submit');
+  const fs = require('node:fs') as typeof import('node:fs');
+  const path = require('node:path') as typeof import('node:path');
+  const src = fs.readFileSync(path.join(__dirname, '../../components/forex/ForexOrderTicket.tsx'), 'utf8');
+  const engine = fs.readFileSync(path.join(__dirname, 'runtime/useForexOrderEngine.ts'), 'utf8');
+  assert(src.includes('engine.place'), 'ticket submits through the order engine');
+  assert(engine.includes('forexApi.placeOrder'), 'engine still uses POST /orders');
+  assert(!src.includes("status: 'FILLED'"), 'no client fill fabrication');
+  assert(!src.includes("preview.status === 'STALE'"), 'quote-sequence STALE must not disable BUY/SELL');
 }
 
 testRequestConstruction();

@@ -6,6 +6,8 @@ import { describeForexError, normalizeForexError } from '@/lib/forex/models/erro
 import { isPreviewParamComplete } from '@/lib/forex/models/preview';
 import { executablePrice, isQuoteStale } from '@/lib/forex/models/quotes';
 import type { ForexOrderType, ForexSide } from '@/lib/forex/models/types';
+import { forexApi } from '@/lib/forex/api/client';
+import { hydrateForexPrivate } from '@/lib/forex/runtime/hydrate';
 import { useForexOrderEngine } from '@/lib/forex/runtime/useForexOrderEngine';
 import { useForexPreview } from '@/lib/forex/runtime/useForexPreview';
 import { useForexStore } from '@/lib/forex/state/store';
@@ -36,11 +38,13 @@ export function ForexOrderTicket() {
   const engine = useForexOrderEngine();
   const [side, setSide] = useState<ForexSide>('buy');
   const [type, setType] = useState<ForexOrderType>('market');
-  const [volume, setVolume] = useState(inst?.minVolume ?? '0.01');
+  const [volume, setVolume] = useState('0.10');
   const [price, setPrice] = useState('');
   const [sl, setSl] = useState('');
   const [tp, setTp] = useState('');
   const [refreshNonce, setRefreshNonce] = useState(0);
+  const [demoBusy, setDemoBusy] = useState(false);
+  const [demoNote, setDemoNote] = useState<string | null>(null);
 
   useEffect(() => {
     if (!ticketDraft) return;
@@ -54,6 +58,14 @@ export function ForexOrderTicket() {
     if (ticketDraft.tp) setTp(ticketDraft.tp);
     if (ticketDraft.volume) setVolume(ticketDraft.volume);
   }, [ticketDraft]);
+
+  useEffect(() => {
+    const min = Number(inst?.minVolume ?? 0.01);
+    const max = Number(inst?.maxVolume ?? 100);
+    const preferred = 0.1;
+    setVolume(preferred >= min && preferred <= max ? '0.10' : inst?.minVolume ?? '0.01');
+    setPrice('');
+  }, [selected, inst?.minVolume, inst?.maxVolume]);
 
   const allowedTypes = config?.orderTypes ?? ['market', 'limit', 'stop'];
   const stale = !quote || isQuoteStale(quote);
@@ -98,6 +110,8 @@ export function ForexOrderTicket() {
     return null;
   }, [authed, sessionOpen, sessions?.eligibility.reason, stale, quote, risk, newOrders, sideEnabled, side, type, price]);
 
+  const previewRejected = preview.status === 'BLOCKED' && previewData?.allowed === false;
+  const previewLoadingNoData = preview.status === 'LOADING' && !previewData;
   const baseBlocked =
     !authed ||
     !sessionOpen ||
@@ -108,9 +122,8 @@ export function ForexOrderTicket() {
     !newOrders ||
     ((type === 'limit' || type === 'stop') && !price.trim()) ||
     busy ||
-    preview.status === 'STALE' ||
-    preview.status === 'BLOCKED' ||
-    preview.status === 'LOADING';
+    previewRejected ||
+    previewLoadingNoData;
 
   async function submit(useSide: ForexSide) {
     setSide(useSide);
@@ -132,6 +145,40 @@ export function ForexOrderTicket() {
   const lastError = engine.error ?? storeError;
   const canBuy = !baseBlocked && dealing?.symbol.buyEnabled !== false;
   const canSell = !baseBlocked && dealing?.symbol.sellEnabled !== false;
+  const actionLabel = busy
+    ? 'Executing'
+    : preview.status === 'LOADING' && !previewData
+      ? 'Previewing'
+      : lastError
+        ? 'Rejected'
+        : last?.status === 'FILLED'
+          ? 'Filled'
+          : last?.status === 'REJECTED' || last?.status === 'FAILED'
+            ? 'Rejected'
+            : last?.status === 'PENDING' || last?.status === 'ACCEPTED'
+              ? last.status
+              : null;
+
+  async function moveMockToTrigger() {
+    const px = price.trim();
+    if (!px || demoBusy) return;
+    setDemoBusy(true);
+    setDemoNote(null);
+    try {
+      const res = await forexApi.applyDemoPrice({ symbol: selected, price: px });
+      if (!res.success || !res.data?.quote) {
+        setDemoNote(describeForexError(normalizeForexError(res.error ?? res)));
+        return;
+      }
+      const q = res.data.quote;
+      setDemoNote(`SIMULATED tick · Bid ${q.bid} = Ask ${q.ask} · spread ${q.spread ?? '0'}`);
+      await hydrateForexPrivate();
+    } catch (e) {
+      setDemoNote(describeForexError(normalizeForexError(e)));
+    } finally {
+      setDemoBusy(false);
+    }
+  }
 
   return (
     <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-l border-border bg-card" aria-label="Order ticket">
@@ -230,7 +277,9 @@ export function ForexOrderTicket() {
             {previewData?.referencePrice ? fxNum(previewData.referencePrice, digits) : '—'}
           </dd>
           <dt>Spread</dt>
-          <dd className="text-right text-foreground">{previewData?.spreadPips ?? quote?.spreadPips ?? '—'}</dd>
+          <dd className="text-right text-foreground">{previewData?.spread ?? quote?.spread ?? previewData?.spreadPips ?? quote?.spreadPips ?? '—'}</dd>
+          <dt>Ledger</dt>
+          <dd className="text-right text-foreground">{previewData?.ledgerBalance ?? account?.ledgerBalance ?? '—'}</dd>
           <dt>Margin</dt>
           <dd className="text-right text-foreground">{previewData?.requiredMargin ?? '—'}</dd>
           <dt>Fee</dt>
@@ -243,9 +292,22 @@ export function ForexOrderTicket() {
             </button>
           </dd>
         </dl>
+        {type !== 'market' && price.trim() ? (
+          <button
+            type="button"
+            disabled={demoBusy || !authed}
+            onClick={() => void moveMockToTrigger()}
+            className="w-full border border-border px-1.5 py-1 text-left text-[10px] text-muted-foreground hover:border-primary/40 disabled:opacity-50"
+          >
+            {demoBusy ? 'Moving simulated price…' : 'Move mock price to trigger · DEMO / SIMULATED'}
+          </button>
+        ) : null}
+        {demoNote ? <p className="text-[9px] text-muted-foreground">{demoNote}</p> : null}
         {previewData && !previewData.allowed && previewData.reason ? (
           <p className="border border-rose-900/60 bg-rose-950/30 px-1.5 py-1 text-[10px] text-rose-200" role="status">
             Preview rejected · {previewData.reason}
+            {previewData.ledgerBalance != null ? ` · ledger ${previewData.ledgerBalance}` : ''}
+            {previewData.requiredMargin != null ? ` · required ${previewData.requiredMargin}` : ''}
           </p>
         ) : null}
 
@@ -265,6 +327,7 @@ export function ForexOrderTicket() {
           </p>
         ) : null}
         {engine.lastNote ? <p className="text-[9px] text-muted-foreground">{engine.lastNote}</p> : null}
+        {actionLabel ? <p className="text-[10px] font-semibold text-foreground">{actionLabel}</p> : null}
       </div>
 
       {/* MT5-style twin execution buttons — not a crypto CTA pill */}
@@ -275,7 +338,7 @@ export function ForexOrderTicket() {
           onClick={() => void submit('sell')}
           className="fx-mt5-sell h-9 font-mono text-[12px] font-bold disabled:cursor-not-allowed"
         >
-          {busy && side === 'sell' ? '…' : 'SELL'}
+          {busy && side === 'sell' ? 'Executing…' : preview.status === 'LOADING' && !previewData && side === 'sell' ? 'Previewing…' : 'SELL'}
           <span className="mt-0.5 block text-[10px] font-medium opacity-90">
             {quote ? fxNum(quote.bid, digits) : '—'}
           </span>
@@ -286,7 +349,7 @@ export function ForexOrderTicket() {
           onClick={() => void submit('buy')}
           className="fx-mt5-buy h-9 font-mono text-[12px] font-bold disabled:cursor-not-allowed"
         >
-          {busy && side === 'buy' ? '…' : 'BUY'}
+          {busy && side === 'buy' ? 'Executing…' : preview.status === 'LOADING' && !previewData && side === 'buy' ? 'Previewing…' : 'BUY'}
           <span className="mt-0.5 block text-[10px] font-medium opacity-90">
             {quote ? fxNum(quote.ask, digits) : '—'}
           </span>

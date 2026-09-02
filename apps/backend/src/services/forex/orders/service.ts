@@ -21,6 +21,7 @@ import type { ForexExecutionService } from '../execution/service.js';
 import { getForexExecutionService } from '../execution/service.js';
 import { getForexRiskService } from '../risk/service.js';
 import type { ForexPositionService } from '../positions/service.js';
+import { getForexAccountingService } from '../accounting/service.js';
 import { getForexPositionService } from '../positions/service.js';
 import { getForexPricingService, type ForexPricingService } from '../quotes.service.js';
 import type { ForexQuoteDto } from '../types.js';
@@ -883,11 +884,13 @@ let orderSingleton: ForexOrderService | null = null;
 export function getForexOrderService(): ForexOrderService {
   if (!orderSingleton) {
     const pricing = getForexPricingService();
+    const positions = getForexPositionService(pricing);
+    getForexAccountingService(positions, pricing);
     orderSingleton = new ForexOrderService(
       getForexExecutionService(pricing),
       new ForexOrderStore(),
       true,
-      getForexPositionService(pricing),
+      positions,
       pricing
     );
     pricing.onAcceptedQuote((q) => {

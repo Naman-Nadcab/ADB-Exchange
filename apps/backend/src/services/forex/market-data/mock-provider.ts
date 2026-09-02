@@ -1,3 +1,4 @@
+import { forexConfig } from '../config.js';
 import { fxDecimal, fxToPriceString } from '../decimal-fx.js';
 import {
   FOREX_INSTRUMENT_CATALOG,
@@ -27,21 +28,38 @@ export function deterministicOffsetTicks(symbol: string, sequence: bigint, ampli
   return Number(mixed % span) - amplitude;
 }
 
-/** Relative bid offset in ticks so A/B/C never print the same book. */
+/** Relative bid offset in ticks so A/B/C never print the same book. Zero in DEMO. */
 const PROVIDER_BID_OFFSET_TICKS = [0, 1, -1] as const;
+
+const demoPinnedMids = new Map<string, string>();
+
+function demoSymbolKey(symbol: string): string {
+  return symbol.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+}
+
+/** Pin subsequent MOCK ticks around this mid (DEMO trigger / scenario only). */
+export function pinForexDemoMid(symbol: string, mid: string): void {
+  demoPinnedMids.set(demoSymbolKey(symbol), mid);
+}
+
+export function unpinForexDemoMid(symbol: string): void {
+  demoPinnedMids.delete(demoSymbolKey(symbol));
+}
 
 export function mockPriceAt(symbol: string, sequence: bigint, providerIndex: number): { bid: string; ask: string } {
   const instrument = getForexInstrumentBySymbol(symbol);
-  const base = FOREX_MOCK_BASE_PRICES[symbol];
+  const pinned = demoPinnedMids.get(demoSymbolKey(symbol));
+  const base = pinned ?? FOREX_MOCK_BASE_PRICES[demoSymbolKey(symbol)] ?? FOREX_MOCK_BASE_PRICES[symbol];
   if (!instrument || !base) {
     throw new Error(`No mock base price for ${symbol}`);
   }
+  const demoFlat = forexConfig.demoZeroSpread;
   const idx = providerIndex === 0 || providerIndex === 1 || providerIndex === 2 ? providerIndex : 0;
-  const spreadTicks = FOREX_MOCK_SPREAD_TICKS[symbol] ?? 8;
+  const spreadTicks = demoFlat ? 0 : (FOREX_MOCK_SPREAD_TICKS[symbol] ?? 8);
   const tick = fxDecimal(instrument.tickSize);
   const walk = deterministicOffsetTicks(symbol, sequence, 8);
   const mid = fxDecimal(base).plus(tick.times(walk));
-  const bid = mid.plus(tick.times(PROVIDER_BID_OFFSET_TICKS[idx]));
+  const bid = demoFlat ? mid : mid.plus(tick.times(PROVIDER_BID_OFFSET_TICKS[idx]));
   const ask = bid.plus(tick.times(spreadTicks));
   return {
     bid: fxToPriceString(bid, instrument.pricePrecision),
@@ -78,6 +96,23 @@ export class MockForexProvider implements ForexMarketDataProvider {
   /** Test hook: provider_timestamp is this many ms before EDA receive. */
   setProviderLatencyMs(ms: number): void {
     this.providerLatencyMs = Math.max(0, ms);
+  }
+
+  /** DEMO/test: emit the next monotonic sequence at an explicit Bid/Ask. */
+  quoteAt(symbol: string, now: Date, bid: string, ask: string): ProviderRawQuote {
+    this.sequence += 1n;
+    this.lastQuoteTime = now;
+    this.quoteCount += 1;
+    return {
+      providerId: this.id,
+      providerCode: this.code,
+      symbol,
+      bid,
+      ask,
+      providerTimestamp: new Date(now.getTime() - this.providerLatencyMs),
+      providerSequence: this.sequence,
+      source: 'SIMULATED',
+    };
   }
 
   nextQuotes(now: Date): ProviderRawQuote[] {

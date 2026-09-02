@@ -31,6 +31,7 @@ import { ForexPositionService } from './positions/service.js';
 import { ForexPositionStore } from './positions/store.js';
 import { ForexProtectionService } from './protection/service.js';
 import { ForexProtectionStore } from './protection/store.js';
+import { mockPriceAt, unpinForexDemoMid } from './market-data/mock-provider.js';
 import { resetForexPricingServiceForTests, type ForexPricingService } from './quotes.service.js';
 import { calculateForexExposure } from './risk/exposure.js';
 import { resetForexDealingForTests } from './risk/dealing.js';
@@ -135,6 +136,21 @@ async function mark(name: string, fn: () => Promise<void> | void): Promise<void>
     RESULTS[name] = 'FAIL';
     throw e;
   }
+}
+
+async function testZeroSpreadSource(): Promise<void> {
+  if (forexConfig.demoZeroSpread) {
+    for (const idx of [0, 1, 2] as const) {
+      const px = mockPriceAt('EURUSD', 4n, idx);
+      assert.equal(px.bid, px.ask, `mock provider ${idx} must print Bid=Ask in DEMO`);
+    }
+  }
+  const pricing = resetForexPricingServiceForTests();
+  const dto = pricing.applyDemoPrice('EURUSD', '1.15778');
+  assert.ok(dto);
+  assert.equal(dto!.bid, dto!.ask);
+  assert.equal(Number(dto!.spread), 0);
+  unpinForexDemoMid('EURUSD');
 }
 
 async function testSafetyLocks(): Promise<void> {
@@ -510,6 +526,7 @@ async function testCryptoIsolationInSource(): Promise<void> {
 
 void (async () => {
   await mark('SAFETY_LOCKS', testSafetyLocks);
+  await mark('ZERO_SPREAD', testZeroSpreadSource);
   await mark('DEMO_HTTP_GATE', testDemoFundingHttpGate);
   await mark('PNL_FORMULA', testIndependentPnlFormula);
   await mark('DEMO_BUY', testMandatoryLongLifecycle);

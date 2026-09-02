@@ -14,15 +14,20 @@ import {
   type ForexPreviewView,
 } from '../models/preview';
 import { normalizeForexError } from '../models/errors';
-import { useForexStore } from '../state/store';
 
 const DEBOUNCE_MS = 400;
 
 export function useForexPreview(request: ForexPreviewRequest | null, refreshNonce = 0) {
   const [view, setView] = useState<ForexPreviewView>(idlePreviewView);
+  const [tickRefresh, setTickRefresh] = useState(0);
   const genRef = useRef(0);
   const keyRef = useRef('');
-  const liveSeq = useForexStore((s) => (request ? s.quotes[request.symbol]?.sequence : undefined));
+
+  useEffect(() => {
+    if (!request) return;
+    const id = window.setInterval(() => setTickRefresh((n) => n + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [request?.symbol, request?.side, request?.orderType, request?.volume, request?.requestedPrice]);
 
   useEffect(() => {
     if (!request || !isPreviewParamComplete(request) || !hasForexPrivateSession()) {
@@ -37,7 +42,12 @@ export function useForexPreview(request: ForexPreviewRequest | null, refreshNonc
     const generation = genRef.current;
     keyRef.current = key;
     const controller = new AbortController();
-    setView(loadingPreviewView(request));
+    setView((cur) => {
+      if (cur.data && cur.request && previewRequestKey(cur.request) === key) {
+        return cur;
+      }
+      return loadingPreviewView(request);
+    });
 
     const timer = window.setTimeout(() => {
       void (async () => {
@@ -46,14 +56,12 @@ export function useForexPreview(request: ForexPreviewRequest | null, refreshNonc
         const active = { key: keyRef.current, generation: genRef.current };
         if (isStalePreviewRequest(active, incoming)) return;
         const u = unwrap(res);
-        const quoteSeq = useForexStore.getState().quotes[request.symbol]?.sequence;
         setView(
           interpretForexPreviewResult({
             request,
             ok: u.ok,
             data: u.ok ? u.data : undefined,
             error: u.ok ? undefined : u.error,
-            liveQuoteSequence: quoteSeq,
           })
         );
       })().catch((err: unknown) => {
@@ -70,15 +78,7 @@ export function useForexPreview(request: ForexPreviewRequest | null, refreshNonc
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [request?.symbol, request?.side, request?.orderType, request?.volume, request?.requestedPrice, refreshNonce]);
-
-  useEffect(() => {
-    if (view.status !== 'READY' && view.status !== 'BLOCKED') return;
-    if (!liveSeq || !view.data?.quoteSequence) return;
-    if (liveSeq !== view.data.quoteSequence) {
-      setView((cur) => (cur.data ? { ...cur, status: 'STALE' } : cur));
-    }
-  }, [liveSeq, view.status, view.data?.quoteSequence]);
+  }, [request?.symbol, request?.side, request?.orderType, request?.volume, request?.requestedPrice, refreshNonce, tickRefresh]);
 
   return view;
 }

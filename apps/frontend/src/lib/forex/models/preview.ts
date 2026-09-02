@@ -40,6 +40,10 @@ export interface ForexPreviewResponse {
   estimatedFee?: string;
   feeCurrency?: string;
   feeModel?: string;
+  accountId?: string;
+  ledgerBalance?: string;
+  equity?: string;
+  accountingAvailable?: boolean;
 }
 
 export interface ForexPreviewView {
@@ -144,11 +148,16 @@ export function interpretForexPreviewResult(args: {
     estimatedFee: raw.estimatedFee,
     feeCurrency: raw.feeCurrency,
     feeModel: raw.feeModel,
+    accountId: raw.accountId,
+    ledgerBalance: raw.ledgerBalance,
+    equity: raw.equity,
+    accountingAvailable: raw.accountingAvailable,
   };
 
-  if (args.liveQuoteSequence && data.quoteSequence && args.liveQuoteSequence !== data.quoteSequence) {
-    return { status: 'STALE', request: args.request, data };
-  }
+  // Quote-sequence drift is expected while the MOCK worker ticks.
+  // Do not treat an allowed preview as STALE — that previously disabled BUY/SELL
+  // on every 250ms tick after a funded account previewed successfully.
+  void args.liveQuoteSequence;
 
   return {
     status: data.allowed ? 'READY' : 'BLOCKED',

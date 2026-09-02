@@ -14,10 +14,11 @@ import {
   forexRoutingDecisionTotal,
 } from '../../lib/forex-prometheus-metrics.js';
 import { forexConfig } from './config.js';
+import { fxDecimal, fxToPriceString } from './decimal-fx.js';
 import { getForexInstrumentBySymbol, listForexSymbols } from './instruments.catalog.js';
 import { ForexQuoteAggregator } from './market-data/aggregator.js';
 import { ForexProviderHealthRegistry } from './market-data/health.js';
-import { createMockProviders, MockForexProvider } from './market-data/mock-provider.js';
+import { createMockProviders, MockForexProvider, pinForexDemoMid } from './market-data/mock-provider.js';
 import { normalizeProviderQuote } from './market-data/normalize.js';
 import { EdaReceiveSequence, ProviderSequenceTracker } from './market-data/sequence.js';
 import { evaluateStaleness } from './market-data/staleness.js';
@@ -232,6 +233,24 @@ export class ForexPricingService {
       }
     }
     return accepted;
+  }
+
+  /**
+   * DEMO / MOCK only. Pins the simulated mid and ingests Bid=Ask so pending
+   * LIMIT/STOP orders can trigger without a real LP. Sequences stay monotonic.
+   */
+  applyDemoPrice(symbol: string, price: string): ForexQuoteDto | null {
+    const instrument = getForexInstrumentBySymbol(symbol);
+    if (!instrument) return null;
+    const mid = fxToPriceString(fxDecimal(price), instrument.pricePrecision);
+    pinForexDemoMid(instrument.symbol, mid);
+    const now = new Date();
+    let last: ForexQuoteDto | null = null;
+    for (const provider of this.providers) {
+      const dto = this.ingestRaw(provider.quoteAt(instrument.symbol, now, mid, mid), now);
+      if (dto) last = dto;
+    }
+    return last;
   }
 
   getQuote(symbol: string): ForexQuoteDto | undefined {

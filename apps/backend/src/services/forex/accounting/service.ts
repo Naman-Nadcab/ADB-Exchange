@@ -291,12 +291,18 @@ export class ForexAccountingService {
     return { items, ...sumUnrealized(items) };
   }
 
-  riskInputs(accountId: string): { equity?: string; accountingAvailable: boolean } {
+  riskInputs(accountId: string): { equity?: string; accountingAvailable: boolean; ledgerBalance: string } {
+    const cash = this.ledgerBalance(accountId);
+    const open = this.positions.listOwned(accountId, true);
+    // Flat funded accounts must use CUSTOMER_CASH even if mark-to-market is unavailable.
+    if (open.length === 0) {
+      return { equity: cash, accountingAvailable: true, ledgerBalance: cash };
+    }
     const view = this.tryAccountView(accountId);
     if (!view || view.calculationStatus !== 'CALCULATED') {
-      return { accountingAvailable: false };
+      return { accountingAvailable: false, ledgerBalance: cash };
     }
-    return { equity: view.equity, accountingAvailable: true };
+    return { equity: view.equity, accountingAvailable: true, ledgerBalance: cash };
   }
 
   accountView(accountId: string): ForexAccountView {

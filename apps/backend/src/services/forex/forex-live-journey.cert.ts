@@ -86,12 +86,41 @@ void (async () => {
       JSON.stringify(cfg.json.data?.orderTypes) === JSON.stringify(['market', 'limit', 'stop'])
   );
 
-  const quotes = await req<{ source: string; quotes: Array<{ symbol: string; bid: string; ask: string; spread: string }> }>(
+  const quotes = await req<{
+    source: string;
+    quotes: Array<{
+      symbol: string;
+      bid: string;
+      ask: string;
+      spread: string;
+      sequence?: string;
+      edaReceiveSequence?: string;
+    }>;
+  }>(
     'GET',
     '/api/v1/forex/quotes'
   );
   const eurusd = quotes.json.data?.quotes.find((q) => q.symbol === 'EURUSD');
   mark('MARKET_DATA', quotes.status === 200 && quotes.json.data?.source === 'SIMULATED' && Boolean(eurusd));
+  mark(
+    'ZERO_SPREAD',
+    Boolean(eurusd) && eurusd!.bid === eurusd!.ask && Math.abs(dec(eurusd!.spread)) === 0
+  );
+
+  await new Promise((r) => setTimeout(r, 500));
+  const quotes2 = await req<{ quotes: Array<{ symbol: string; bid: string; ask: string; sequence?: string; edaReceiveSequence?: string }> }>(
+    'GET',
+    '/api/v1/forex/quotes'
+  );
+  const eurusd2 = quotes2.json.data?.quotes.find((q) => q.symbol === 'EURUSD');
+  mark(
+    'REALTIME_TICKS',
+    Boolean(eurusd2) &&
+      eurusd2!.bid === eurusd2!.ask &&
+      (eurusd2!.edaReceiveSequence !== eurusd!.edaReceiveSequence ||
+        eurusd2!.sequence !== eurusd!.sequence ||
+        eurusd2!.bid !== eurusd!.bid)
+  );
 
   const candles = await req<{ availability: string; candles: unknown[]; timeframe: string }>(
     'GET',
@@ -161,20 +190,37 @@ void (async () => {
 
   const previewBuy = await req<{
     allowed: boolean;
+    reason?: string | null;
     referenceSide?: string;
     referencePrice?: string;
     requiredMargin?: string;
+    spread?: string;
+    ledgerBalance?: string;
+    accountId?: string;
+    equity?: string;
   }>('POST', '/api/v1/forex/orders/preview', token, {
     symbol: 'EURUSD',
     side: 'buy',
     orderType: 'market',
     volume: '0.10',
   });
+  if (previewBuy.json.data?.allowed !== true) {
+    console.error(
+      'preview-buy',
+      previewBuy.json.data?.reason ?? null,
+      previewBuy.json.data?.ledgerBalance ?? null,
+      previewBuy.json.data?.requiredMargin ?? null,
+      previewBuy.json.data?.accountId ?? null
+    );
+  }
   mark(
     'PREVIEW_BUY',
     previewBuy.status === 200 &&
       previewBuy.json.data?.allowed === true &&
-      previewBuy.json.data?.referenceSide === 'ASK'
+      previewBuy.json.data?.referenceSide === 'ASK' &&
+      dec(previewBuy.json.data?.ledgerBalance) > 0 &&
+      dec(previewBuy.json.data?.requiredMargin) < dec(previewBuy.json.data?.ledgerBalance) &&
+      Math.abs(dec(previewBuy.json.data?.spread ?? '0')) === 0
   );
 
   const buy = await req<{ order: { orderId: string; status: string; side: string; failureReason?: string | null } }>(
@@ -296,39 +342,84 @@ void (async () => {
     });
   }
 
-  const q = eurusd!;
-  const limitPx = (Number(q.ask) - 0.01).toFixed(5);
+  const liveQ = await req<{ quote: { bid: string; ask: string } }>('GET', '/api/v1/forex/quotes/EURUSD');
+  const mid = dec(liveQ.json.data?.quote.ask ?? eurusd2?.ask ?? eurusd!.ask);
+  const buyLimitPx = (mid - 0.01).toFixed(5);
+  const sellLimitPx = (mid + 0.01).toFixed(5);
+  const buyStopPx = (mid + 0.02).toFixed(5);
+  const sellStopPx = (mid - 0.02).toFixed(5);
+
   const pending = await req<{ order: { orderId: string; status: string } }>('POST', '/api/v1/forex/orders', token, {
     clientOrderId: `ui-lim-${Date.now()}`,
     symbol: 'EURUSD',
     side: 'buy',
     orderType: 'limit',
     volume: '0.10',
-    requestedPrice: limitPx,
+    requestedPrice: buyLimitPx,
   });
-  mark('LIMIT', pending.status === 200 && pending.json.data?.order.status === 'PENDING');
+  mark('LIMIT_BUY_PENDING', pending.status === 200 && pending.json.data?.order.status === 'PENDING');
   const oid = pending.json.data!.order.orderId;
   const mod = await req<{ order: { requestedPrice?: string } }>('PATCH', `/api/v1/forex/orders/${oid}`, token, {
-    requestedPrice: (Number(limitPx) - 0.001).toFixed(5),
+    requestedPrice: (Number(buyLimitPx) - 0.001).toFixed(5),
     idempotencyKey: `mod-${oid}`,
   });
   mark('LIMIT_MODIFY', mod.status === 200);
   const cancel = await req<{ order: { status: string } }>('POST', `/api/v1/forex/orders/${oid}/cancel`, token);
   mark('LIMIT_CANCEL', cancel.status === 200 && cancel.json.data?.order.status === 'CANCELLED');
 
-  const stop = await req<{ order: { status: string } }>('POST', '/api/v1/forex/orders', token, {
-    clientOrderId: `ui-stop-${Date.now()}`,
-    symbol: 'EURUSD',
-    side: 'buy',
-    orderType: 'stop',
-    volume: '0.10',
-    requestedPrice: (Number(q.ask) + 0.02).toFixed(5),
-  });
-  mark('STOP', stop.status === 200 && stop.json.data?.order.status === 'PENDING');
-  const stopId = (stop.json.data as { order?: { orderId?: string } } | undefined)?.order?.orderId;
-  if (stopId) {
-    await req('POST', `/api/v1/forex/orders/${stopId}/cancel`, token);
+  async function placePending(
+    side: 'buy' | 'sell',
+    orderType: 'limit' | 'stop',
+    price: string,
+    label: string
+  ): Promise<string> {
+    const created = await req<{ order: { orderId: string; status: string } }>('POST', '/api/v1/forex/orders', token, {
+      clientOrderId: `ui-${label}-${Date.now()}`,
+      symbol: 'EURUSD',
+      side,
+      orderType,
+      volume: '0.10',
+      requestedPrice: price,
+    });
+    mark(`${label}_PENDING`, created.status === 200 && created.json.data?.order.status === 'PENDING');
+    return created.json.data!.order.orderId;
   }
+
+  async function applyAndFill(orderId: string, price: string, label: string): Promise<void> {
+    const applied = await req<{ quote: { bid: string; ask: string; spread: string } }>(
+      'POST',
+      '/api/v1/forex/market-data/demo-price',
+      token,
+      { symbol: 'EURUSD', price }
+    );
+    mark(
+      `${label}_APPLY`,
+      applied.status === 200 &&
+        applied.json.data?.quote.bid === applied.json.data?.quote.ask &&
+        Math.abs(dec(applied.json.data?.quote.spread)) === 0
+    );
+    const got = await req<{ order: { status: string } }>('GET', `/api/v1/forex/orders/${orderId}`, token);
+    mark(`${label}_FILL`, got.status === 200 && got.json.data?.order.status === 'FILLED');
+    const pos = await req<{ positions: Array<{ positionId: string; status: string }> }>('GET', '/api/v1/forex/positions', token);
+    const openPos = (pos.json.data?.positions ?? []).find((p) => p.status === 'OPEN');
+    mark(`${label}_POSITION`, Boolean(openPos));
+    if (openPos) {
+      await req('POST', `/api/v1/forex/positions/${openPos.positionId}/close`, token, {
+        clientOrderId: `ui-${label}-close-${Date.now()}`,
+      });
+    }
+  }
+
+  const lb = await placePending('buy', 'limit', buyLimitPx, 'LIMIT_BUY');
+  await applyAndFill(lb, buyLimitPx, 'LIMIT_BUY');
+  const ls = await placePending('sell', 'limit', sellLimitPx, 'LIMIT_SELL');
+  await applyAndFill(ls, sellLimitPx, 'LIMIT_SELL');
+  const sb = await placePending('buy', 'stop', buyStopPx, 'STOP_BUY');
+  await applyAndFill(sb, buyStopPx, 'STOP_BUY');
+  const ss = await placePending('sell', 'stop', sellStopPx, 'STOP_SELL');
+  await applyAndFill(ss, sellStopPx, 'STOP_SELL');
+  mark('LIMIT', RESULTS.LIMIT_BUY_FILL === 'PASS' && RESULTS.LIMIT_SELL_FILL === 'PASS');
+  mark('STOP', RESULTS.STOP_BUY_FILL === 'PASS' && RESULTS.STOP_SELL_FILL === 'PASS');
 
   const reject = await req<{ order?: { status?: string } }>('POST', '/api/v1/forex/orders', token, {
     clientOrderId: `ui-huge-${Date.now()}`,

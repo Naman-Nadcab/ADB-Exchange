@@ -80,6 +80,11 @@ export const forexConfig = {
   demoFundingEnabled: envBool('FOREX_DEMO_FUNDING', false),
   demoFundingDefaultAmount: process.env.FOREX_DEMO_FUNDING_AMOUNT?.trim() || '10000',
   /**
+   * DEMO / MOCK only. Bid = Ask and spread = 0 at the quote source.
+   * Defaults on when demo funding is enabled. Never applies to a real LP.
+   */
+  demoZeroSpread: envBool('FOREX_DEMO_ZERO_SPREAD', envBool('FOREX_DEMO_FUNDING', false)),
+  /**
    * When true, UNCONFIGURED holiday coverage fail-closes customer trading.
    * Default false for MOCK: no invented holiday list; state stays explicit.
    */
