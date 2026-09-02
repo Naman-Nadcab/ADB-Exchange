@@ -71,16 +71,21 @@ export default function ForexAnalysisPage() {
     () => (candles.status === 'READY' ? latestIndicators(candles.candles) : null),
     [candles]
   );
-  const [news, setNews] = useState<{ availability: string; reason?: string; provider?: string; items: NewsItem[] } | null>(null);
-  const [calendar, setCalendar] = useState<{
-    availability: string;
-    reason?: string;
-    provider?: string;
-    events: CalendarEvent[];
-  } | null>(null);
+  type FeedState<T> =
+    | { status: 'loading' }
+    | { status: 'error'; reason?: string }
+    | { status: 'ready'; data: T };
+
+  const [news, setNews] = useState<
+    FeedState<{ availability: string; reason?: string; provider?: string; items: NewsItem[] }>
+  >({ status: 'loading' });
+  const [calendar, setCalendar] = useState<
+    FeedState<{ availability: string; reason?: string; provider?: string; events: CalendarEvent[] }>
+  >({ status: 'loading' });
   const [impactFilter, setImpactFilter] = useState<'ALL' | 'High' | 'Medium' | 'Low'>('ALL');
   const [currencyFilter, setCurrencyFilter] = useState('ALL');
   const [mtf, setMtf] = useState<MtfBias[]>([]);
+  const [mtfStatus, setMtfStatus] = useState<'loading' | 'ready'>('loading');
   const [intelTab, setIntelTab] = useState<'calendar' | 'news' | 'levels' | 'sessions'>('calendar');
 
   useEffect(() => {
@@ -93,81 +98,112 @@ export default function ForexAnalysisPage() {
   }, [setSymbol]);
 
   useEffect(() => {
-    void forexApi.news().then((res) => {
-      const u = unwrap(res);
-      if (u.ok)
+    let cancelled = false;
+    setNews({ status: 'loading' });
+    setCalendar({ status: 'loading' });
+    void (async () => {
+      const [newsRes, calRes] = await Promise.all([forexApi.news(), forexApi.calendar()]);
+      if (cancelled) return;
+      const n = unwrap(newsRes);
+      if (n.ok) {
         setNews({
-          availability: u.data.availability,
-          reason: u.data.reason,
-          provider: u.data.provider,
-          items: (u.data.items as NewsItem[]) ?? [],
+          status: 'ready',
+          data: {
+            availability: n.data.availability,
+            reason: n.data.reason,
+            provider: n.data.provider,
+            items: (n.data.items as NewsItem[]) ?? [],
+          },
         });
-    });
-    void forexApi.calendar().then((res) => {
-      const u = unwrap(res);
-      if (u.ok)
+      } else {
+        setNews({ status: 'error', reason: n.error.message });
+      }
+      const c = unwrap(calRes);
+      if (c.ok) {
         setCalendar({
-          availability: u.data.availability,
-          reason: u.data.reason,
-          provider: u.data.provider,
-          events: (u.data.events as CalendarEvent[]) ?? [],
+          status: 'ready',
+          data: {
+            availability: c.data.availability,
+            reason: c.data.reason,
+            provider: c.data.provider,
+            events: (c.data.events as CalendarEvent[]) ?? [],
+          },
         });
-    });
+      } else {
+        setCalendar({ status: 'error', reason: c.error.message });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Multi-timeframe EMA20 vs EMA50 — deterministic derived analysis only.
   useEffect(() => {
     let cancelled = false;
+    setMtfStatus('loading');
+    setMtf([]);
     void (async () => {
-      const results: MtfBias[] = [];
-      for (const timeframe of MTF_TFS) {
-        const res = await forexApi.candles({ symbol, timeframe, limit: 120 });
-        const u = unwrap(res);
-        if (!u.ok || u.data.availability !== 'AVAILABLE' || !u.data.candles?.length) {
-          results.push({ tf: timeframe, bias: 'n/a', detail: 'No history' });
-          continue;
-        }
-        const bars = u.data.candles
-          .map((c) => {
-            const ms = candleTimeMs(c.timestamp);
-            if (ms == null) return null;
-            const open = Number(c.open);
-            const high = Number(c.high);
-            const low = Number(c.low);
-            const close = Number(c.close);
-            if (![open, high, low, close].every((n) => Number.isFinite(n) && n > 0)) return null;
-            return { time: Math.floor(ms / 1000), open, high, low, close };
-          })
-          .filter((b): b is NonNullable<typeof b> => b != null);
-        const e20 = emaSeries(bars, 20);
-        const e50 = emaSeries(bars, 50);
-        const a = e20[e20.length - 1]?.value;
-        const b = e50[e50.length - 1]?.value;
-        if (a == null || b == null) {
-          results.push({ tf: timeframe, bias: 'n/a', detail: 'Insufficient bars' });
-        } else if (a > b) {
-          results.push({ tf: timeframe, bias: 'Bullish', detail: `EMA20 ${a.toFixed(5)} > EMA50 ${b.toFixed(5)}` });
-        } else if (a < b) {
-          results.push({ tf: timeframe, bias: 'Bearish', detail: `EMA20 ${a.toFixed(5)} < EMA50 ${b.toFixed(5)}` });
-        } else {
-          results.push({ tf: timeframe, bias: 'Neutral', detail: 'EMA20 = EMA50' });
-        }
+      const settled = await Promise.all(
+        MTF_TFS.map(async (timeframe) => {
+          try {
+            const res = await forexApi.candles({ symbol, timeframe, limit: 160 });
+            const u = unwrap(res);
+            if (!u.ok || u.data.availability !== 'AVAILABLE' || !u.data.candles?.length) {
+              return { tf: timeframe, bias: 'n/a' as const, detail: u.ok ? u.data.reason ?? 'No history' : u.error.message };
+            }
+            const bars = u.data.candles
+              .map((c) => {
+                const ms = candleTimeMs(c.timestamp);
+                if (ms == null) return null;
+                const open = Number(c.open);
+                const high = Number(c.high);
+                const low = Number(c.low);
+                const close = Number(c.close);
+                if (![open, high, low, close].every((n) => Number.isFinite(n) && n > 0)) return null;
+                return { time: Math.floor(ms / 1000), open, high, low, close };
+              })
+              .filter((b): b is NonNullable<typeof b> => b != null);
+            const e20 = emaSeries(bars, 20);
+            const e50 = emaSeries(bars, 50);
+            const a = e20[e20.length - 1]?.value;
+            const b = e50[e50.length - 1]?.value;
+            if (a == null || b == null) {
+              return { tf: timeframe, bias: 'n/a' as const, detail: `Need ≥50 bars (got ${bars.length})` };
+            }
+            if (a > b) return { tf: timeframe, bias: 'Bullish' as const, detail: `EMA20 ${a.toFixed(5)} > EMA50 ${b.toFixed(5)}` };
+            if (a < b) return { tf: timeframe, bias: 'Bearish' as const, detail: `EMA20 ${a.toFixed(5)} < EMA50 ${b.toFixed(5)}` };
+            return { tf: timeframe, bias: 'Neutral' as const, detail: 'EMA20 = EMA50' };
+          } catch (err) {
+            return {
+              tf: timeframe,
+              bias: 'n/a' as const,
+              detail: err instanceof Error ? err.message : 'Request failed',
+            };
+          }
+        })
+      );
+      if (!cancelled) {
+        setMtf(settled);
+        setMtfStatus('ready');
       }
-      if (!cancelled) setMtf(results);
     })();
     return () => {
       cancelled = true;
     };
   }, [symbol]);
 
+  const calendarData = calendar.status === 'ready' ? calendar.data : null;
+  const newsData = news.status === 'ready' ? news.data : null;
+
   const currencies = useMemo(() => {
-    const set = new Set((calendar?.events ?? []).map((e) => e.currency).filter((c): c is string => Boolean(c)));
+    const set = new Set((calendarData?.events ?? []).map((e) => e.currency).filter((c): c is string => Boolean(c)));
     return ['ALL', ...Array.from(set).sort()];
-  }, [calendar]);
+  }, [calendarData]);
 
   const calendarRows = useMemo(() => {
     const now = Date.now();
-    return (calendar?.events ?? [])
+    return (calendarData?.events ?? [])
       .filter((ev) => {
         const impact = (ev.impact ?? '').toLowerCase();
         if (impactFilter !== 'ALL') {
@@ -180,13 +216,12 @@ export default function ForexAnalysisPage() {
       .sort((a, b) => {
         const ta = a.time ? Date.parse(a.time) : 0;
         const tb = b.time ? Date.parse(b.time) : 0;
-        // Upcoming first, then recent
         const ua = ta >= now - 60_000 ? 0 : 1;
         const ub = tb >= now - 60_000 ? 0 : 1;
         if (ua !== ub) return ua - ub;
         return ta - tb;
       });
-  }, [calendar, impactFilter, currencyFilter]);
+  }, [calendarData, impactFilter, currencyFilter]);
 
   const levels = useMemo(
     () => (candles.status === 'READY' ? deriveStructureLevels(candles.candles) : []),
@@ -288,11 +323,9 @@ export default function ForexAnalysisPage() {
         </div>
       </section>
 
-      {/* Chart */}
-      <section className="overflow-hidden rounded-xl border border-border bg-card" style={{ height: 'min(62vh, 560px)' }}>
-        <div className="relative h-full min-h-[420px]">
-          <ForexChartFoundation />
-        </div>
+      {/* Chart — explicit flex height so LWC canvas is never 0px tall */}
+      <section className="flex h-[min(62vh,560px)] min-h-[480px] flex-col overflow-hidden rounded-xl border border-border bg-card">
+        <ForexChartFoundation embedded />
       </section>
 
       <div className="grid gap-4 xl:grid-cols-3">
@@ -301,20 +334,26 @@ export default function ForexAnalysisPage() {
           <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
             Indicators · {tf || '15m'} · analysis only
           </h2>
-          {candles.status !== 'READY' ? (
-            <p className="mt-2 text-[13px] text-muted-foreground">Historical market data unavailable.</p>
+          {candles.status === 'LOADING' ? (
+            <p className="mt-2 text-[13px] text-muted-foreground">Loading OHLC for indicators…</p>
+          ) : candles.status !== 'READY' ? (
+            <p className="mt-2 text-[13px] text-muted-foreground">
+              Historical data unavailable{candles.reason ? ` · ${candles.reason}` : ''}.
+            </p>
           ) : (
             <dl className="mt-3 grid grid-cols-2 gap-2">
               <Metric label="SMA 20" value={fmt(indicators?.sma20)} />
               <Metric label="EMA 20" value={fmt(indicators?.ema20)} />
               <Metric label="RSI 14" value={fmt(indicators?.rsi14)} className={rsiTone(indicators?.rsi14)} />
               <Metric label="MACD" value={fmt(indicators?.macd)} />
+              <Metric label="MACD sig" value={fmt(indicators?.macdSignal)} />
               <Metric label="BB mid" value={fmt(indicators?.bollinger?.mid)} />
               <Metric label="BB upper" value={fmt(indicators?.bollinger?.upper)} />
               <Metric label="BB lower" value={fmt(indicators?.bollinger?.lower)} />
               <Metric label="ATR 14" value={fmt(indicators?.atr14)} />
               <Metric label="Stoch 14" value={fmt(indicators?.stoch14)} />
               <Metric label="Bars" value={String(candles.candles.length)} />
+              <Metric label="Source" value={candles.source ?? '—'} />
             </dl>
           )}
           {volatility ? (
@@ -343,27 +382,29 @@ export default function ForexAnalysisPage() {
               Rule: EMA20 vs EMA50 on each TF. Not a prediction. Not AI.
             </p>
             <ul className="mt-3 space-y-1.5">
-              {mtf.length === 0 ? (
-                <li className="text-[12px] text-muted-foreground">Computing…</li>
+              {mtfStatus === 'loading' && mtf.length === 0 ? (
+                <li className="text-[12px] text-muted-foreground">Computing EMA20/EMA50 across timeframes…</li>
               ) : (
                 mtf.map((row) => (
-                  <li key={row.tf} className="flex items-center justify-between gap-2 rounded-lg border border-border/60 px-2.5 py-1.5">
-                    <button
-                      type="button"
-                      className="font-mono text-[12px] font-semibold text-primary hover:underline"
-                      onClick={() => setTf(row.tf)}
-                    >
-                      {row.tf}
-                    </button>
-                    <span
-                      className={cn(
-                        'text-[11px] font-semibold uppercase',
-                        row.bias === 'Bullish' ? 'text-buy' : row.bias === 'Bearish' ? 'text-sell' : 'text-muted-foreground'
-                      )}
-                      title={row.detail}
-                    >
-                      {row.bias}
-                    </span>
+                  <li key={row.tf} className="rounded-lg border border-border/60 px-2.5 py-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        className="font-mono text-[12px] font-semibold text-primary hover:underline"
+                        onClick={() => setTf(row.tf)}
+                      >
+                        {row.tf}
+                      </button>
+                      <span
+                        className={cn(
+                          'text-[11px] font-semibold uppercase',
+                          row.bias === 'Bullish' ? 'text-buy' : row.bias === 'Bearish' ? 'text-sell' : 'text-muted-foreground'
+                        )}
+                      >
+                        {row.bias}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">{row.detail}</p>
                   </li>
                 ))
               )}
@@ -396,7 +437,9 @@ export default function ForexAnalysisPage() {
           <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
             Important levels · from loaded OHLC
           </h2>
-          {levels.length === 0 ? (
+          {candles.status === 'LOADING' ? (
+            <p className="mt-2 text-[13px] text-muted-foreground">Loading OHLC to derive DO / PDH / PDL / WO / PWH / PWL / MO…</p>
+          ) : levels.length === 0 ? (
             <p className="mt-2 text-[13px] text-muted-foreground">Load history on the chart to derive DO / PDH / PDL / WO / PWH / PWL / MO.</p>
           ) : (
             <ul className="mt-3 space-y-1.5 font-mono text-[12px]">
@@ -452,14 +495,21 @@ export default function ForexAnalysisPage() {
 
         {intelTab === 'calendar' ? (
           <div className="mt-4">
-            {calendar?.availability === 'UNAVAILABLE' || !calendar ? (
+            {calendar.status === 'loading' ? (
+              <p className="text-[13px] text-muted-foreground">Loading economic calendar…</p>
+            ) : calendar.status === 'error' ? (
               <p className="text-[13px] text-muted-foreground">
-                Economic calendar unavailable{calendar?.reason ? ` (${calendar.reason})` : ''}.
+                Calendar request failed{calendar.reason ? ` · ${calendar.reason}` : ''}.
+              </p>
+            ) : !calendarData || calendarData.availability === 'UNAVAILABLE' ? (
+              <p className="text-[13px] text-muted-foreground">
+                Economic calendar unavailable{calendarData?.reason ? ` (${calendarData.reason})` : ''}.
               </p>
             ) : (
               <>
                 <p className="text-[11px] text-muted-foreground">
-                  Source {calendar.provider ?? 'external'} · this-week feed. Actual only when provider supplies it.
+                  Source {calendarData.provider ?? 'external'} · {calendarData.events.length} events this week · Actual only when
+                  provider supplies it.
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2 text-[12px]">
                   {(['ALL', 'High', 'Medium', 'Low'] as const).map((level) => (
@@ -492,7 +542,7 @@ export default function ForexAnalysisPage() {
                   <p className="mt-3 text-[13px] text-muted-foreground">No calendar events for this filter.</p>
                 ) : (
                   <div className="mt-3 grid gap-2 md:grid-cols-2">
-                    {calendarRows.slice(0, 40).map((ev, i) => (
+                    {calendarRows.slice(0, 60).map((ev, i) => (
                       <article key={`${ev.event}-${ev.time}-${i}`} className="eda-card-interactive px-3 py-2.5">
                         <div className="flex items-start justify-between gap-2">
                           <div>
@@ -533,17 +583,24 @@ export default function ForexAnalysisPage() {
 
         {intelTab === 'news' ? (
           <div className="mt-4">
-            {!news || news.availability === 'UNAVAILABLE' ? (
+            {news.status === 'loading' ? (
+              <p className="text-[13px] text-muted-foreground">Loading news…</p>
+            ) : news.status === 'error' ? (
               <p className="text-[13px] text-muted-foreground">
-                No market news available{news?.reason ? ` (${news.reason})` : ''}.
+                News request failed{news.reason ? ` · ${news.reason}` : ''}.
+              </p>
+            ) : !newsData || newsData.availability === 'UNAVAILABLE' ? (
+              <p className="text-[13px] text-muted-foreground">
+                No market news available{newsData?.reason ? ` (${newsData.reason})` : ''}.
               </p>
             ) : (
               <>
                 <p className="text-[11px] text-muted-foreground">
-                  Source {news.provider ?? 'rss'} · headlines are not auto-tagged to instruments unless currency is provided.
+                  Source {newsData.provider ?? 'rss'} · {newsData.items.length} headlines · not auto-tagged to instruments unless
+                  currency is provided.
                 </p>
                 <ul className="mt-3 grid gap-2 md:grid-cols-2">
-                  {news.items.slice(0, 24).map((item, i) => (
+                  {newsData.items.slice(0, 30).map((item, i) => (
                     <li key={`${item.headline}-${i}`} className="eda-card-interactive px-3 py-2.5 text-[13px]">
                       <p className="font-mono text-[10px] text-muted-foreground">
                         {item.time ? new Date(item.time).toLocaleString() : ''}
@@ -567,7 +624,9 @@ export default function ForexAnalysisPage() {
 
         {intelTab === 'levels' ? (
           <div className="mt-4">
-            {levels.length === 0 ? (
+            {candles.status === 'LOADING' ? (
+              <p className="text-[13px] text-muted-foreground">Loading OHLC to derive levels…</p>
+            ) : levels.length === 0 ? (
               <p className="text-[13px] text-muted-foreground">No levels yet — wait for chart history.</p>
             ) : (
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

@@ -24,6 +24,7 @@ import {
 import { ForexChartToolbar, type ForexAnalysisTool } from './ForexChartToolbar';
 import { ForexIntelDrawer } from './ForexIntelDrawer';
 import { fxNum } from './format';
+import { cn } from '@/lib/utils';
 
 type StudyId = 'none' | 'ema20_50' | 'sma20' | 'ema20' | 'wma20' | 'hma21' | 'bb20' | 'supertrend';
 
@@ -75,7 +76,8 @@ function loadAlerts(): LocalAlert[] {
   }
 }
 
-export function ForexChartFoundation() {
+export function ForexChartFoundation(props?: { embedded?: boolean }) {
+  const embedded = Boolean(props?.embedded);
   const selected = useForexWorkspaceStore((s) => s.selectedSymbol);
   const storedTf = useForexWorkspaceStore((s) => s.chartTimeframe);
   const setTf = useForexWorkspaceStore((s) => s.setChartTimeframe);
@@ -481,7 +483,13 @@ export function ForexChartFoundation() {
   }, [showCalendar, calendarEvents, selected]);
 
   return (
-    <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-background" aria-label="Forex market chart">
+    <section
+      className={cn(
+        'flex min-h-0 min-w-0 flex-col bg-background',
+        embedded ? 'h-full' : 'flex-1'
+      )}
+      aria-label="Forex market chart"
+    >
       <div className="flex h-8 min-w-0 items-center gap-2 overflow-x-auto border-b border-border bg-card/95 px-2">
         <span className="shrink-0 font-mono text-[13px] font-semibold tracking-tight">
           {inst?.displaySymbol ?? selected}
@@ -604,24 +612,30 @@ export function ForexChartFoundation() {
         </span>
         {!studyReady ? <span className="text-[10px] text-muted-foreground">Insufficient history</span> : null}
 
-        <div className="ml-auto flex shrink-0 items-center gap-0.5">
-          <button
-            type="button"
-            className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={() => setChartMode(chartMode === 'expand' ? 'normal' : 'expand')}
-            aria-pressed={chartMode === 'expand'}
-          >
-            {chartMode === 'expand' ? 'Restore' : 'Expand'}
-          </button>
-          <button
-            type="button"
-            className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={() => setChartMode(chartMode === 'fullscreen' ? 'normal' : 'fullscreen')}
-            aria-pressed={chartMode === 'fullscreen'}
-          >
-            {chartMode === 'fullscreen' ? 'Exit FS' : 'Fullscreen'}
-          </button>
-        </div>
+        {!embedded ? (
+          <div className="ml-auto flex shrink-0 items-center gap-0.5">
+            <button
+              type="button"
+              className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              onClick={() => setChartMode(chartMode === 'expand' ? 'normal' : 'expand')}
+              aria-pressed={chartMode === 'expand'}
+            >
+              {chartMode === 'expand' ? 'Restore' : 'Expand'}
+            </button>
+            <button
+              type="button"
+              className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              onClick={() => setChartMode(chartMode === 'fullscreen' ? 'normal' : 'fullscreen')}
+              aria-pressed={chartMode === 'fullscreen'}
+            >
+              {chartMode === 'fullscreen' ? 'Exit FS' : 'Fullscreen'}
+            </button>
+          </div>
+        ) : (
+          <span className="ml-auto shrink-0 font-mono text-[10px] text-muted-foreground">
+            {candleView.status === 'READY' ? `${candleView.candles.length} bars` : candleView.status}
+          </span>
+        )}
       </div>
 
       <ForexChartToolbar
@@ -666,7 +680,7 @@ export function ForexChartFoundation() {
         </div>
       ) : null}
 
-      <div className="relative min-h-0 flex-1">
+      <div className={cn('relative min-h-0 flex-1', embedded && 'min-h-[280px]')}>
         <ForexLightweightChart
           candles={candleView.status === 'READY' ? candleView.candles : []}
           quote={chartQuote}
