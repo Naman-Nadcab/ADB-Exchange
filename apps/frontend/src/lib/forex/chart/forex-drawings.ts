@@ -14,10 +14,17 @@ const FIB_RATIOS = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
 const HIT = 8;
 const HANDLE = 6;
 
+let idSeq = 0;
+
 function id(): string {
-  return typeof crypto !== 'undefined' && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `fxd-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const c = typeof globalThis !== 'undefined' ? (globalThis as { crypto?: Crypto }).crypto : undefined;
+  if (c && typeof c.randomUUID === 'function') return c.randomUUID();
+  if (c && typeof c.getRandomValues === 'function') {
+    const bytes = new Uint8Array(16);
+    c.getRandomValues(bytes);
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  }
+  return `fxd-${Date.now()}-${++idSeq}`;
 }
 
 function clipLine(

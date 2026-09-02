@@ -51,7 +51,7 @@ export function ForexTopNav(props?: { compact?: boolean }) {
         <div className="ml-auto flex items-center gap-1.5">
           {compact ? (
             <span className="hidden font-mono text-[9px] uppercase tracking-wide text-amber-200/90 sm:inline">
-              SIMULATED · MOCK
+              DEMO · SIMULATED
             </span>
           ) : (
             <span className="hidden font-mono text-[9px] uppercase tracking-wide text-muted-foreground sm:inline">

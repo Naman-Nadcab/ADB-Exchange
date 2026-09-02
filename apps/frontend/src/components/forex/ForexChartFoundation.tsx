@@ -231,7 +231,14 @@ export function ForexChartFoundation(props?: {
     return decideQuoteChartOverlay({ lastClose, bid, ask });
   }, [quote, lastClose]);
 
-  const chartQuote = quoteOverlay?.overlay ? { bid: quoteOverlay.bid, ask: quoteOverlay.ask } : null;
+  const liveBid = quote ? Number(quote.bid) : NaN;
+  const liveAsk = quote ? Number(quote.ask) : NaN;
+  const chartQuote =
+    Number.isFinite(liveBid) && Number.isFinite(liveAsk) && liveAsk >= liveBid
+      ? { bid: liveBid, ask: liveAsk }
+      : quoteOverlay?.overlay
+        ? { bid: quoteOverlay.bid, ask: quoteOverlay.ask }
+        : null;
 
   const bars: FxBar[] = useMemo(() => {
     if (candleView.status !== 'READY') return [];
@@ -426,15 +433,13 @@ export function ForexChartFoundation(props?: {
           : 'LOADING';
 
   const quoteModeLabel =
-    quoteFreshness === 'LIVE'
-      ? quote?.source === 'SIMULATED' || String(quote?.source ?? '').includes('SIMUL')
-        ? 'SIMULATED'
-        : 'LIVE'
-      : quoteFreshness === 'STALE'
-        ? 'STALE'
-        : quoteFreshness === 'LOADING'
-          ? 'CONNECTING'
-          : 'UNAVAILABLE';
+    quoteFreshness === 'LOADING'
+      ? 'CONNECTING'
+      : quoteFreshness === 'UNAVAILABLE' || quoteFreshness === 'DISCONNECTED'
+        ? 'UNAVAILABLE'
+        : quoteFreshness === 'STALE'
+          ? 'STALE · DEMO'
+          : 'DEMO · SIMULATED';
 
   const onPricePick = useCallback(
     (price: number, time: number | null) => {
@@ -578,7 +583,7 @@ export function ForexChartFoundation(props?: {
             <span className="shrink-0 font-mono text-[11px] text-muted-foreground">SPR {quote.spreadPips}</span>
             <span className="inline-flex shrink-0 items-center gap-1 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
               <span
-                className={`h-1.5 w-1.5 rounded-full ${quoteModeLabel === 'SIMULATED' || quoteModeLabel === 'LIVE' ? 'bg-buy' : 'bg-muted-foreground'}`}
+                className={`h-1.5 w-1.5 rounded-full ${quoteModeLabel.includes('DEMO') ? 'bg-amber-400' : 'bg-muted-foreground'}`}
                 aria-hidden
               />
               {quoteModeLabel}
@@ -612,27 +617,41 @@ export function ForexChartFoundation(props?: {
               L <span className="text-sell">{fxNum(String(ohlcDisplay.low), digits)}</span>
             </span>
             <span>
-              C <span className="text-foreground">{fxNum(String(ohlcDisplay.close), digits)}</span>
+              Candle C <span className="text-foreground">{fxNum(String(ohlcDisplay.close), digits)}</span>
             </span>
           </span>
         ) : null}
 
         {timeframes.length > 0 ? (
-          <div className="ml-1 flex items-center gap-0.5" role="group" aria-label="Forex timeframes">
-            {timeframes.map((t) => (
-              <button
-                key={t}
-                type="button"
-                aria-pressed={activeTf === t}
-                onClick={() => setTf(t)}
-                className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                  activeTf === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
+          <>
+            <select
+              aria-label="Forex timeframe"
+              className="fx-mt5-field ml-1 h-6 px-1 font-mono text-[10px] sm:hidden"
+              value={activeTf}
+              onChange={(e) => setTf(e.target.value)}
+            >
+              {timeframes.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <div className="ml-1 hidden items-center gap-0.5 sm:flex" role="group" aria-label="Forex timeframes">
+              {timeframes.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  aria-pressed={activeTf === t}
+                  onClick={() => setTf(t)}
+                  className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    activeTf === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </>
         ) : null}
 
         <div className="ml-1 hidden items-center gap-0.5 sm:flex" role="group" aria-label="Chart type">

@@ -370,7 +370,7 @@ export function ForexLightweightChart(props: {
         askRef.current = series.createPriceLine(lineOpts(q.ask, colors.down, 'ASK'));
       } else if (bars.length && 'createPriceLine' in series) {
         const last = bars[bars.length - 1].close;
-        lastRef.current = series.createPriceLine(lineOpts(last, 'rgba(245,184,0,0.75)', 'LAST'));
+        lastRef.current = series.createPriceLine(lineOpts(last, 'rgba(245,184,0,0.75)', 'CLOSE'));
       }
 
       chart.subscribeCrosshairMove((param: MouseEventParams) => {
@@ -520,7 +520,7 @@ export function ForexLightweightChart(props: {
       askRef.current = null;
       const bars = toBars(candlesRef.current);
       const last = bars.length ? bars[bars.length - 1].close : undefined;
-      apply(lastRef, last, 'rgba(245,184,0,0.75)', 'LAST');
+      apply(lastRef, last, 'rgba(245,184,0,0.75)', 'CLOSE');
     } else {
       if (lastRef.current) series.removePriceLine(lastRef.current);
       lastRef.current = null;

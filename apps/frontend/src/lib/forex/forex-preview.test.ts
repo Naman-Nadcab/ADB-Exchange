@@ -103,6 +103,8 @@ function testNoOptimisticFillInTicket(): void {
   const engine = fs.readFileSync(path.join(__dirname, 'runtime/useForexOrderEngine.ts'), 'utf8');
   assert(src.includes('engine.place'), 'ticket submits through the order engine');
   assert(engine.includes('forexApi.placeOrder'), 'engine still uses POST /orders');
+  assert(engine.includes('generateClientOrderId'), 'browser-safe clientOrderId');
+  assert(!engine.includes('crypto.randomUUID()'), 'no Node-only UUID in order engine');
   assert(!src.includes("status: 'FILLED'"), 'no client fill fabrication');
   assert(!src.includes("preview.status === 'STALE'"), 'quote-sequence STALE must not disable BUY/SELL');
 }

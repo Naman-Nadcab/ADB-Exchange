@@ -7,6 +7,12 @@ const FALLBACK: ForexError = {
 
 /** Map backend envelope / network failures. Never collapse to a generic-only string. */
 export function normalizeForexError(input: unknown, fallbackMessage?: string): ForexError {
+  if (input instanceof Error) {
+    return {
+      code: input.name === 'TypeError' ? 'FOREX_CLIENT_RUNTIME' : FALLBACK.code,
+      message: input.message || fallbackMessage || FALLBACK.message,
+    };
+  }
   if (!input || typeof input !== 'object') {
     return { ...FALLBACK, message: fallbackMessage ?? FALLBACK.message };
   }
@@ -86,6 +92,8 @@ export function describeForexError(err: ForexError): string {
     case 'STALE_MARKET':
     case 'RISK_REJECTED':
     case 'DEALING_RESTRICTED':
+      return `${err.code}: ${err.message}`;
+    case 'FOREX_CLIENT_RUNTIME':
       return `${err.code}: ${err.message}`;
     case 'NETWORK_ERROR':
       return `${err.code}: ${err.message}. Connection to the Forex API failed.`;

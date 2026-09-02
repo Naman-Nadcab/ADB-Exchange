@@ -12,6 +12,7 @@ import type {
   ForexSide,
 } from '../models/types';
 import { useForexStore } from '../state/store';
+import { generateClientOrderId } from './client-id';
 import { hydrateForexPrivate } from './hydrate';
 
 export type PlaceOrderInput = {
@@ -88,7 +89,7 @@ export function useForexOrderEngine() {
     store.setTicketBusy(true);
     store.setLastError(null);
     try {
-      const clientOrderId = `fx-${crypto.randomUUID()}`;
+      const clientOrderId = generateClientOrderId('fx');
       const body = {
         clientOrderId,
         symbol: input.symbol,

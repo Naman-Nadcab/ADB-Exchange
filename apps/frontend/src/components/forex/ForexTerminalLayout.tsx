@@ -63,6 +63,11 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
     if (!authed && !hasTradingData) setBottomCollapsed(true);
   }, [trade, authed, hasTradingData, setBottomCollapsed]);
 
+  useEffect(() => {
+    if (!trade || typeof window === 'undefined') return;
+    if (window.matchMedia('(max-width: 767px)').matches) setBottomCollapsed(true);
+  }, [trade, setBottomCollapsed]);
+
   const bottomH = resolveForexBottomHeight({
     chartMode,
     bottomCollapsed,
@@ -85,7 +90,7 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
 
   return (
     <div
-      className={`dark terminal-shell exchange-ui flex h-[100dvh] flex-col bg-background text-foreground antialiased ${
+      className={`dark terminal-shell exchange-ui flex h-[100dvh] max-w-[100vw] flex-col overflow-x-hidden bg-background text-foreground antialiased ${
         trade ? 'forex-mt5' : ''
       } ${chromeHidden ? 'fixed inset-0 z-50' : ''}`}
     >
@@ -121,8 +126,8 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
             </>
           ) : null}
 
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            <div className="flex min-h-0 min-w-0 flex-1">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
+            <div className="flex min-h-0 min-w-0 flex-1 overflow-x-hidden">
               <ForexChartWorkspace />
               {showTicket ? (
                 <>
@@ -180,9 +185,14 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
       )}
 
       {trade && chartMode === 'normal' ? (
-        <div className="max-h-[38vh] min-h-0 overflow-auto border-t border-border md:hidden">
-          {children}
-          <ForexBottomPanels compact={!hasTradingData} hasTradingData={hasTradingData} />
+        <div className="flex max-h-[46vh] min-h-0 min-w-0 flex-col overflow-x-hidden border-t border-border lg:hidden">
+          <div className="min-h-0 max-h-[28vh] shrink-0 overflow-y-auto overflow-x-hidden">
+            <ForexOrderTicket />
+          </div>
+          <div className="min-h-0 max-h-[18vh] overflow-y-auto overflow-x-hidden">
+            {children}
+            <ForexBottomPanels compact hasTradingData={hasTradingData} />
+          </div>
         </div>
       ) : null}
 

@@ -60,7 +60,7 @@ export function ForexAccountBar(props?: { compact?: boolean }) {
 
   return (
     <div
-      className={`flex ${h} shrink-0 items-center gap-4 overflow-x-auto border-t border-border bg-card px-2.5 font-mono text-[11px] tabular-nums`}
+      className={`flex ${h} w-full min-w-0 shrink-0 items-center gap-3 overflow-x-auto overflow-y-hidden border-t border-border bg-card px-2.5 font-mono text-[11px] tabular-nums`}
       aria-label="Account bar"
     >
       <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-200">
@@ -90,7 +90,7 @@ export function ForexAccountBar(props?: { compact?: boolean }) {
 
 function Item({ k, v }: { k: string; v: string }) {
   return (
-    <span className="inline-flex items-baseline gap-1.5">
+    <span className="inline-flex shrink-0 items-baseline gap-1.5">
       <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{k}</span>
       <span className="text-foreground">{v}</span>
     </span>
@@ -99,7 +99,7 @@ function Item({ k, v }: { k: string; v: string }) {
 
 function Signed({ k, value }: { k: string; value: { text: string; tone: 'pos' | 'neg' | 'flat' | 'na' } }) {
   return (
-    <span className="inline-flex items-baseline gap-1.5">
+    <span className="inline-flex shrink-0 items-baseline gap-1.5">
       <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{k}</span>
       <span className={value.tone === 'pos' ? 'text-buy' : value.tone === 'neg' ? 'text-sell' : 'text-foreground'}>
         {value.text}
