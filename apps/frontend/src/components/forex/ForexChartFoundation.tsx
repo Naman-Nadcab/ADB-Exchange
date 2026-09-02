@@ -435,7 +435,7 @@ export function ForexChartFoundation(props?: {
   const quoteModeLabel =
     quoteFreshness === 'LOADING'
       ? 'CONNECTING'
-      : quoteFreshness === 'UNAVAILABLE' || quoteFreshness === 'DISCONNECTED'
+      : quoteFreshness === 'DISCONNECTED'
         ? 'UNAVAILABLE'
         : quoteFreshness === 'STALE'
           ? 'STALE · DEMO'
