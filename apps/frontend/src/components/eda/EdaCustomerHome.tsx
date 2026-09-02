@@ -276,7 +276,7 @@ export function EdaCustomerHome() {
               loading={fxOrders.status === 'loading'}
               error={fxOrders.status === 'error'}
               empty={fxOrders.status === 'ready' && fxOrders.data.length === 0}
-              rows={fxOrders.status === 'ready' ? fxOrders.data.slice(0, 5).map((o) => `${o.symbol} ${o.side} ${o.volume}`) : []}
+              rows={fxOrders.status === 'ready' ? fxOrders.data.slice(0, 5).map((o) => `${o.symbol} ${o.side} ${o.requestedVolume}`) : []}
               href={FOREX_ROUTES.orders}
             />
             <ActivityCol

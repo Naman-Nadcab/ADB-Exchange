@@ -129,7 +129,7 @@ export function EdaPublicHome() {
                 <p className="text-[11px] uppercase tracking-[0.14em] text-[#9CA3AF]">Forex</p>
                 <h2 className="mt-2 text-2xl font-semibold">Global FX Markets</h2>
                 <p className="mt-2 flex-1 text-sm text-[#9CA3AF]">Currency trading with a separate account, margin, and ledger. Simulated execution. Not a Crypto add-on.</p>
-                <Link href={FOREX_ROUTES.root} className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg bg-[#F5B800] px-5 text-sm font-semibold text-[#05070B] hover:bg-[#FFD54A]">
+                <Link href={FOREX_ROUTES.root} className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg border border-[#F5B8001F] px-5 text-sm font-semibold hover:border-[#F5B80066]">
                   Explore Forex
                 </Link>
               </article>
