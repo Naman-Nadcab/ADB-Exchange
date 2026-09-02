@@ -4,7 +4,7 @@ import './globals.css';
 import { Providers } from '@/components/providers';
 import { DockerUserAppHint } from '@/components/DockerUserAppHint';
 import { Toaster } from '@/components/ui/toaster';
-import { BRAND_NAME_SHORT } from '@/lib/brand';
+import { BRAND_NAME, BRAND_NAME_SHORT, BRAND_PRODUCT } from '@/lib/brand';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -30,13 +30,13 @@ const ibmPlexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_API_URL || 'http://109.123.254.30'),
-  title: BRAND_NAME_SHORT,
-  description: `${BRAND_NAME_SHORT} — digital assets and global FX. Crypto spot and Forex on one professional platform.`,
-  keywords: [BRAND_NAME_SHORT, 'crypto', 'forex', 'exchange', 'global markets', 'trading'],
+  title: `${BRAND_NAME_SHORT} — ${BRAND_NAME}`,
+  description: `${BRAND_NAME} (${BRAND_NAME_SHORT}). ${BRAND_PRODUCT.crypto} and ${BRAND_PRODUCT.forex} on one professional platform.`,
+  keywords: [BRAND_NAME_SHORT, BRAND_NAME, 'crypto', 'forex', 'exchange', 'global markets', 'trading'],
   applicationName: BRAND_NAME_SHORT,
   openGraph: {
-    title: `${BRAND_NAME_SHORT} — Global markets. One platform.`,
-    description: `Digital assets and global FX on ${BRAND_NAME_SHORT}. Crypto spot and Forex are first-class markets on one professional platform.`,
+    title: `${BRAND_NAME_SHORT} — ${BRAND_NAME}`,
+    description: `${BRAND_PRODUCT.crypto} and ${BRAND_PRODUCT.forex} on ${BRAND_NAME}.`,
     siteName: BRAND_NAME_SHORT,
     type: 'website',
   },

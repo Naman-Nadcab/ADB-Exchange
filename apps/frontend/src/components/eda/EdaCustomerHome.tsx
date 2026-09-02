@@ -235,7 +235,7 @@ export function EdaCustomerHome() {
       <main className="mx-auto max-w-[1320px] space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.16em] text-primary">My EDA</p>
+            <p className="text-[11px] uppercase tracking-[0.16em] text-primary">My FDM</p>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight">Customer command center</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Crypto and Forex accounts stay separate. No combined total is calculated here.

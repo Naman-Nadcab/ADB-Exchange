@@ -55,7 +55,7 @@ export default function AuthSplitLayout({
             ))}
           </div>
         </div>
-        <p className="relative text-muted-foreground text-xs">© 2018-2026 Metherium. All rights reserved.</p>
+        <p className="relative text-muted-foreground text-xs">© 2018-2026 FDM — Fintech Digital Market. All rights reserved.</p>
       </div>
 
       {/* Right - Form area */}

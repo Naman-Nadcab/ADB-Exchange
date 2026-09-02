@@ -200,7 +200,7 @@ export default function ApiPage() {
                 <span className="text-2xl">🚀</span>
               </div>
               <div>
-                <h3 className="text-primary-foreground font-semibold">Metherium OpenAPI V5</h3>
+                <h3 className="text-primary-foreground font-semibold">FDM OpenAPI V5</h3>
                 <p className="text-primary-foreground/80 text-sm">Transition from legacy versions to our latest API with enhanced features</p>
               </div>
             </div>

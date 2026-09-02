@@ -26,7 +26,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
   return {
     ...config,
-    name: 'METHErium',
+    name: 'FDM',
     slug: 'metheorium-mobile',
     scheme: 'metheorium',
     extra: {
@@ -45,11 +45,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       associatedDomains: ['applinks:app.metheorium.com'],
       infoPlist: {
         NSFaceIDUsageDescription:
-          'METHErium uses Face ID to unlock the app and protect your account.',
+          'FDM uses Face ID to unlock the app and protect your account.',
         NSCameraUsageDescription:
-          'METHErium uses the camera for identity verification (KYC) when you choose to verify.',
+          'FDM uses the camera for identity verification (KYC) when you choose to verify.',
         NSPhotoLibraryUsageDescription:
-          'METHErium uses your photo library to update your profile avatar.',
+          'FDM uses your photo library to update your profile avatar.',
       },
     },
     android: {

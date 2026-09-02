@@ -127,7 +127,7 @@ export function AdDetailScreen({ navigation, route }: Props) {
     if (!ad) return;
     const price = formatAdPriceBlock(ad);
     await Share.share({
-      message: `P2P ${ad.crypto_symbol}/${ad.fiat_currency} — ${price.sym}${price.formatted} via METHErium`,
+      message: `P2P ${ad.crypto_symbol}/${ad.fiat_currency} — ${price.sym}${price.formatted} via FDM`,
     });
   };
 

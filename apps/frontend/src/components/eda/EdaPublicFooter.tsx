@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { BrandLogo } from '@/components/brand/BrandLogo';
+import { BRAND_NAME, BRAND_NAME_SHORT } from '@/lib/brand';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { ROUTES, SPOT_TRADE_HREF } from '@/lib/routes';
 
@@ -45,7 +46,12 @@ export function EdaPublicFooter() {
     <footer className="border-t border-border bg-card text-muted-foreground">
       <div className="mx-auto max-w-[1320px] px-4 py-10 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-center justify-between gap-4">
-          <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} />
+          <div>
+            <BrandLogo variant="horizontal" size="header" href={ROUTES.home} />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {BRAND_NAME_SHORT} — {BRAND_NAME}
+            </p>
+          </div>
           <p className="hidden text-[12px] sm:block">Global financial platform · Crypto and Forex</p>
         </div>
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -64,7 +70,9 @@ export function EdaPublicFooter() {
             </div>
           ))}
         </div>
-        <p className="mt-10 border-t border-border pt-5 text-[12px]">© 2026 EDA. Digital assets and global FX.</p>
+        <p className="mt-10 border-t border-border pt-5 text-[12px]">
+          © {new Date().getFullYear()} {BRAND_NAME_SHORT} — {BRAND_NAME}. Digital assets and global FX.
+        </p>
       </div>
     </footer>
   );

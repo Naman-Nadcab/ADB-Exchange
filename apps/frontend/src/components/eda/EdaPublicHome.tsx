@@ -98,11 +98,11 @@ export function EdaPublicHome() {
         <section className="eda-hero-grid border-b border-border">
           <div className="mx-auto grid max-w-[1320px] gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:px-8 lg:py-20">
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-primary">EDA · Global financial platform</p>
+              <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-primary">FDM · Fintech Digital Market</p>
               <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
-                Global markets.
+                Fintech Digital Market.
                 <br />
-                One platform.
+                Crypto and Forex.
               </h1>
               <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
                 Access digital assets and global FX through one professional financial platform built for precision,
@@ -369,7 +369,7 @@ export function EdaPublicHome() {
             <div className="mt-6 grid gap-3 md:grid-cols-3">
               <Link href={ROUTES.markets} className="eda-card-interactive p-5">
                 <h3 className="text-sm font-semibold">Market data</h3>
-                <p className="mt-2 text-sm text-muted-foreground">Live Crypto and FX instruments from EDA markets.</p>
+                <p className="mt-2 text-sm text-muted-foreground">Live Crypto and FX instruments from FDM markets.</p>
               </Link>
               <Link href={FOREX_ROUTES.analysis} className="eda-card-interactive p-5">
                 <h3 className="text-sm font-semibold">Economic calendar</h3>
@@ -386,7 +386,7 @@ export function EdaPublicHome() {
         <section>
           <div className="mx-auto max-w-[1320px] px-4 py-14 sm:px-6 lg:px-8">
             <h2 className="text-2xl font-semibold">Ready for the markets?</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Access digital assets and global FX through EDA.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Access digital assets and global FX through FDM.</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="#global-markets" className="inline-flex min-h-11 items-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
                 Explore Markets

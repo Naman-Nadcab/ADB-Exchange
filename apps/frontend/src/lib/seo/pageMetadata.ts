@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { BRAND_NAME_SHORT } from '@/lib/brand';
+import { BRAND_NAME, BRAND_NAME_SHORT, BRAND_PRODUCT } from '@/lib/brand';
 
 const SITE = BRAND_NAME_SHORT;
 
@@ -19,19 +19,19 @@ function pageMeta(title: string, description: string): Metadata {
 /** Page-specific SEO metadata for public exchange routes. */
 export const PAGE_METADATA = {
   home: pageMeta(
-    `${BRAND_NAME_SHORT} — Global markets. One platform.`,
-    `Digital assets and global FX on ${BRAND_NAME_SHORT}. Crypto spot and Forex are first-class markets on one professional platform.`
+    `${BRAND_NAME_SHORT} — ${BRAND_NAME}`,
+    `${BRAND_NAME} (${BRAND_NAME_SHORT}). ${BRAND_PRODUCT.crypto} and ${BRAND_PRODUCT.forex} are first-class products on one professional platform.`
   ),
   markets: pageMeta(
-    `Crypto Markets — Live Prices & Pairs | ${BRAND_NAME_SHORT}`,
+    `${BRAND_PRODUCT.crypto} — Markets`,
     `Browse live crypto market prices, 24h change, and volume across all spot trading pairs on ${BRAND_NAME_SHORT}.`
   ),
   trade: pageMeta(
-    `Spot Trading Terminal | ${BRAND_NAME_SHORT}`,
-    `Place spot orders with live charts, order book depth, and trade history on the ${BRAND_NAME_SHORT} exchange.`
+    `${BRAND_PRODUCT.crypto} — Trade`,
+    `Place spot orders with live charts, order book depth, and trade history on ${BRAND_NAME_SHORT}.`
   ),
   p2p: pageMeta(
-    `P2P Crypto Trading — Buy & Sell | ${BRAND_NAME_SHORT}`,
+    `${BRAND_PRODUCT.p2p} — Buy & Sell`,
     'Buy and sell crypto peer-to-peer with escrow protection, verified merchants, and local payment methods.'
   ),
   earn: pageMeta(
@@ -43,19 +43,19 @@ export const PAGE_METADATA = {
     `Swap between supported assets from your ${BRAND_NAME_SHORT} wallet with transparent rates and balance previews.`
   ),
   wallet: pageMeta(
-    `Crypto Wallet — Deposits & Withdrawals | ${BRAND_NAME_SHORT}`,
+    `${BRAND_PRODUCT.wallet} — Deposits & Withdrawals`,
     `Manage crypto deposits, withdrawals, transfers, and balances across your ${BRAND_NAME_SHORT} accounts.`
   ),
   api: pageMeta(
-    `API Keys — Trading Integration | ${BRAND_NAME_SHORT}`,
+    `${BRAND_PRODUCT.api} — Trading Integration`,
     `Create and manage ${BRAND_NAME_SHORT} API keys for automated spot trading, market data, and account integrations.`
   ),
   login: pageMeta(
     `Log In — ${BRAND_NAME_SHORT}`,
-    `Sign in to your ${BRAND_NAME_SHORT} account to trade spot, use P2P, and manage your wallet.`
+    `Sign in to your ${BRAND_NAME_SHORT} account to trade Crypto, Forex, use P2P, and manage your wallet.`
   ),
   register: pageMeta(
     `Create Account — ${BRAND_NAME_SHORT}`,
-    `Register for a ${BRAND_NAME_SHORT} account to access spot trading, P2P markets, wallet, and security controls.`
+    `Register for a ${BRAND_NAME_SHORT} account to access Crypto, Forex, P2P, wallet, and security controls.`
   ),
 } as const satisfies Record<string, Metadata>;

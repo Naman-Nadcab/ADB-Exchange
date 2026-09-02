@@ -146,7 +146,7 @@ export default function IdentityVerificationSuccessPage() {
       </main>
 
       <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>© 2018-2026 Metherium.com. All rights reserved.</p>
+        <p>© 2018-2026 FDM. All rights reserved.</p>
       </footer>
     </div>
   );

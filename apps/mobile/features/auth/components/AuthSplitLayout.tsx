@@ -102,7 +102,7 @@ export function AuthSplitLayout({ children, testID, showMarketingLogo, onBack }:
           },
         ]}
       >
-        © 2018–2026 Metherium
+        © 2018–2026 FDM
       </Text>
     </View>
   );

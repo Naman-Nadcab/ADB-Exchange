@@ -4,10 +4,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import {
+  BRAND_LOGO_ALT,
   BRAND_LOGO_INTRINSIC,
   BRAND_LOGO_SIZE_CLASS,
   BRAND_LOGO_SRC,
-  BRAND_NAME_SHORT,
   type BrandLogoSize,
   type BrandLogoVariant,
 } from '@/lib/brand';
@@ -43,7 +43,7 @@ function BrandLogoImage({
   return (
     <Image
       src={src}
-      alt={BRAND_NAME_SHORT}
+      alt={BRAND_LOGO_ALT}
       width={dims.width}
       height={dims.height}
       priority={priority}
@@ -58,7 +58,7 @@ function BrandLogoImage({
 }
 
 export function BrandLogo({
-  variant = 'horizontal-gold',
+  variant = 'horizontal',
   size,
   href,
   className,
@@ -71,18 +71,18 @@ export function BrandLogo({
     size ?? (marketingMaxWidth ? 'marketing' : header ? 'header' : variant === 'icon' ? 'icon' : 'header');
 
   const useResponsiveHeader =
-    variant === 'horizontal-gold' && resolvedSize === 'header';
+    (variant === 'horizontal' || variant === 'horizontal-gold') && resolvedSize === 'header';
 
   const img = useResponsiveHeader ? (
     <>
       <BrandLogoImage
-        variant="horizontal-compact-gold"
+        variant="horizontal-compact"
         size={resolvedSize}
         imageClassName={cn('sm:hidden', imageClassName)}
         priority={priority}
       />
       <BrandLogoImage
-        variant="horizontal-gold"
+        variant="horizontal"
         size={resolvedSize}
         imageClassName={cn('hidden sm:block', imageClassName)}
         priority={priority}

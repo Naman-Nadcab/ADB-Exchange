@@ -1,7 +1,7 @@
 {
-  "name": "EDA EXCHANGE",
-  "short_name": "EDA EXCHANGE",
-  "description": "EDA EXCHANGE — spot and P2P crypto exchange with wallet, API access, and account security controls.",
+  "name": "Fintech Digital Market",
+  "short_name": "FDM",
+  "description": "FDM — Fintech Digital Market. Crypto spot, Forex, P2P, wallet, and account security on one professional platform.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#05070B",

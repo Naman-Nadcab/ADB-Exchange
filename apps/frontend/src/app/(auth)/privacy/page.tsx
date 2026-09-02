@@ -40,7 +40,7 @@ export default function PrivacyPolicyPage() {
                 1. Introduction
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                Metherium ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our cryptocurrency trading platform and related services. Please read this policy carefully to understand our practices regarding your personal data.
+                FDM ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our cryptocurrency trading platform and related services. Please read this policy carefully to understand our practices regarding your personal data.
               </p>
             </section>
 
@@ -170,7 +170,7 @@ export default function PrivacyPolicyPage() {
                 <li><strong>Withdraw Consent:</strong> Withdraw previously given consent</li>
               </ul>
               <p className="text-muted-foreground leading-relaxed mt-4">
-                To exercise these rights, please contact us at privacy@metherium.com.
+                To exercise these rights, please contact us through the in-app Help Center.
               </p>
             </section>
 
@@ -228,13 +228,7 @@ export default function PrivacyPolicyPage() {
               </p>
               <div className="mt-4 p-4 bg-muted rounded-xl">
                 <p className="text-muted-foreground">
-                  Privacy Team: <a href="mailto:privacy@metherium.com" className="text-primary hover:underline">privacy@metherium.com</a>
-                </p>
-                <p className="text-muted-foreground mt-2">
-                  Data Protection Officer: <a href="mailto:dpo@metherium.com" className="text-primary hover:underline">dpo@metherium.com</a>
-                </p>
-                <p className="text-muted-foreground mt-2">
-                  General Support: <a href="mailto:support@metherium.com" className="text-primary hover:underline">support@metherium.com</a>
+                  Privacy / support requests: use the in-app Help Center (Account → Help). No public email domain is published here.
                 </p>
               </div>
             </section>

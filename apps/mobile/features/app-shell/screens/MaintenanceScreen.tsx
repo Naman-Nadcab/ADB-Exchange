@@ -5,7 +5,7 @@ export function MaintenanceScreen() {
     <ShellStateScreen
       testID="S-002"
       title="Maintenance"
-      message="METHErium is temporarily unavailable. Please try again later."
+      message="FDM is temporarily unavailable. Please try again later."
       icon="construct-outline"
     />
   );

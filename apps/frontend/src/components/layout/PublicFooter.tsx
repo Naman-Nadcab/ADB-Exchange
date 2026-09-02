@@ -1,17 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { ROUTES, SPOT_TRADE_HREF, walletPath } from '@/lib/routes';
 import { BrandLogo } from '@/components/brand/BrandLogo';
+import { BRAND_NAME, BRAND_NAME_SHORT, BRAND_PRODUCT } from '@/lib/brand';
+import { FOREX_ROUTES } from '@/lib/forex/routes';
+import { ROUTES, SPOT_TRADE_HREF, walletPath } from '@/lib/routes';
 
 export function PublicFooter() {
   return (
     <footer className="border-t border-[#F5B8001A] bg-[#05070B]">
       <div className="mx-auto grid max-w-[1320px] gap-8 px-4 py-11 sm:px-6 lg:grid-cols-[1.2fr_1fr_1fr_1fr_1fr_1fr] lg:gap-9 lg:px-8">
         <div>
-          <BrandLogo variant="horizontal-white" size="footer" className="mb-1" />
+          <BrandLogo variant="footer" size="footer" className="mb-1" />
+          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-white">{BRAND_NAME_SHORT}</p>
+          <p className="text-xs text-[#AEB6C4]">{BRAND_NAME}</p>
           <p className="mt-3 max-w-sm text-sm leading-6 text-[#AEB6C4]">
-            Spot and P2P crypto exchange with wallet, API access, and account security controls.
+            {BRAND_PRODUCT.crypto}, {BRAND_PRODUCT.forex}, P2P, wallet, and API on one professional platform.
           </p>
           <p className="mt-4 text-xs uppercase tracking-[0.1em] text-[#F5B800]">Service health monitored continuously</p>
         </div>
@@ -20,7 +24,8 @@ export function PublicFooter() {
           {
             title: 'Products',
             links: [
-              { label: 'Spot', href: SPOT_TRADE_HREF },
+              { label: 'Crypto', href: SPOT_TRADE_HREF },
+              { label: 'Forex', href: FOREX_ROUTES.trade },
               { label: 'P2P', href: ROUTES.p2p },
               { label: 'Earn', href: ROUTES.earn },
               { label: 'Convert', href: walletPath.convert },
@@ -78,7 +83,7 @@ export function PublicFooter() {
         ))}
       </div>
       <div className="border-t border-[#F5B80014] py-4 text-center text-xs text-[#AEB6C4]">
-        © {new Date().getFullYear()} Metherium. Spot, P2P, and wallet services on a monitored exchange platform.
+        © {new Date().getFullYear()} {BRAND_NAME_SHORT} — {BRAND_NAME}. Crypto, Forex, P2P, and wallet on one platform.
       </div>
     </footer>
   );

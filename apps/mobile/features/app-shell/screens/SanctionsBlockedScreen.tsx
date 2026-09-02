@@ -5,7 +5,7 @@ export function SanctionsBlockedScreen() {
     <ShellStateScreen
       testID="S-004"
       title="Access Restricted"
-      message="METHErium is not available in your region due to compliance requirements."
+      message="FDM is not available in your region due to compliance requirements."
       icon="globe-outline"
     />
   );

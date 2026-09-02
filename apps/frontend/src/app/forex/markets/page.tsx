@@ -89,7 +89,7 @@ export default function ForexMarketsPage() {
     <ForexPageFrame
       wide
       title="Markets"
-      subtitle="Live Bid, Ask and spread from EDA Forex quotes. Change is not shown unless the quote feed provides it."
+      subtitle="Live Bid, Ask and spread from FDM Forex quotes. Change is not shown unless the quote feed provides it."
       actions={
         <div className="flex flex-wrap items-center gap-2 text-[11px]">
           <span

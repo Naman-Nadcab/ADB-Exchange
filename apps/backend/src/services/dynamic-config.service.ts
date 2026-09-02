@@ -200,7 +200,7 @@ class DynamicConfigService {
 
     if (config.email.user && (config.email.password || process.env.SMTP_PASS)) {
       let fromEmail = config.email.from;
-      let fromName = 'Metherium';
+      let fromName = 'FDM';
       const angleMatch = fromEmail.match(/<([^>]+)>/);
       if (angleMatch) {
         fromName = fromEmail.replace(/<[^>]+>/, '').replace(/^["'\s]+|["'\s]+$/g, '').trim() || fromName;
@@ -634,7 +634,7 @@ class DynamicConfigService {
       user: p.apiKey,
       pass,
       fromEmail: extra.from_email || extra.from || config.email.from,
-      fromName: extra.from_name || 'Metherium',
+      fromName: extra.from_name || 'FDM',
     };
   }
 
@@ -649,7 +649,7 @@ class DynamicConfigService {
       user: row.api_key,
       pass,
       fromEmail: extra.from_email || extra.from || config.email.from,
-      fromName: extra.from_name || 'Metherium',
+      fromName: extra.from_name || 'FDM',
     };
   }
 

@@ -44,7 +44,7 @@
     --dashboard-title-size: 1.625rem;
     --dashboard-muted-size: 0.875rem;
 
-    /* EDA semantic aliases — map onto existing Crypto tokens. Do not change token values. */
+    /* FDM semantic aliases — map onto existing Crypto tokens. Do not change token values. */
     --eda-canvas: var(--background);
     --eda-surface: var(--card);
     --eda-surface-subtle: var(--muted);
@@ -434,7 +434,7 @@
     padding: 0.75rem 0.85rem;
     box-shadow: inset 0 1px 0 hsl(var(--foreground) / 0.04);
   }
-  /* Public EDA card system — Crypto token surfaces, homepage and Forex pages */
+  /* Public FDM card system — Crypto token surfaces, homepage and Forex pages */
   .eda-card {
     border: 1px solid hsl(var(--border) / 0.9);
     background: hsl(var(--card) / 0.92);

@@ -79,7 +79,7 @@ class Admin2FAService {
     return { secret: raw.toString('hex'), base32 };
   }
 
-  generateQRUrl(email: string, base32Secret: string, issuer = 'Metherium'): string {
+  generateQRUrl(email: string, base32Secret: string, issuer = 'FDM'): string {
     const encodedIssuer = encodeURIComponent(issuer);
     const encodedEmail = encodeURIComponent(email);
     return `otpauth://totp/${encodedIssuer}:${encodedEmail}?secret=${base32Secret}&issuer=${encodedIssuer}&algorithm=SHA1&digits=${TOTP_DIGITS}&period=${TOTP_PERIOD}`;

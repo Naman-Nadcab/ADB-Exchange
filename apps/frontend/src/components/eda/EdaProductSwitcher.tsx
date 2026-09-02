@@ -25,7 +25,7 @@ function currentProduct(pathname: string): ProductId {
 }
 
 function labelFor(product: ProductId, variant: EdaProductSwitcherVariant): string {
-  if (variant === 'terminal') return product === 'forex' ? 'Forex' : 'Crypto Spot';
+  if (variant === 'terminal') return product === 'forex' ? 'Forex' : 'Crypto';
   if (product === 'forex') return 'Forex';
   if (product === 'crypto') return 'Crypto';
   return 'All Markets';
@@ -74,10 +74,10 @@ export function EdaProductSwitcher({ variant = 'marketing' }: { variant?: EdaPro
 
   const items: Array<{ id: ProductId; href: string; title: string; hint: string }> = [
     ...(marketing
-      ? [{ id: 'all' as const, href: ROUTES.home, title: 'All Markets', hint: 'EDA overview' }]
+      ? [{ id: 'all' as const, href: ROUTES.home, title: 'All Markets', hint: 'FDM overview' }]
       : []),
-    { id: 'crypto', href: SPOT_TRADE_HREF, title: 'Crypto Spot', hint: 'Digital asset trading' },
-    { id: 'forex', href: FOREX_ROUTES.trade, title: 'Forex', hint: 'Global FX trading' },
+    { id: 'crypto', href: SPOT_TRADE_HREF, title: 'Crypto', hint: 'FDM Crypto — digital assets' },
+    { id: 'forex', href: FOREX_ROUTES.trade, title: 'Forex', hint: 'FDM Forex — global FX' },
   ];
 
   return (
@@ -97,20 +97,16 @@ export function EdaProductSwitcher({ variant = 'marketing' }: { variant?: EdaPro
           }
         }}
       >
-        {marketing ? (
-          <>
-            <span className="text-white/80">EDA</span>
-            <span className="text-[#F5B800]">/</span>
-            <span>{labelFor(product, variant)}</span>
-          </>
-        ) : (
-          <>
-            <span className="text-foreground">{labelFor(product, variant)}</span>
+        <>
+          <span className={marketing ? 'text-white/80' : 'font-semibold text-foreground'}>FDM</span>
+          <span className={marketing ? 'text-[#F5B800]' : 'text-muted-foreground'}>/</span>
+          <span className={marketing ? undefined : 'text-foreground'}>{labelFor(product, variant)}</span>
+          {!marketing ? (
             <span aria-hidden className={cn('text-[10px] transition-transform duration-150', open && 'rotate-180')}>
               ▼
             </span>
-          </>
-        )}
+          ) : null}
+        </>
       </button>
       {open ? (
         <div id={menuId} role="menu" aria-label="Products" className={menuClass}>

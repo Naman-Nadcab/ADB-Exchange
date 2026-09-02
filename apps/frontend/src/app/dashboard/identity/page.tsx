@@ -223,7 +223,7 @@ export default function IdentityVerificationPage() {
 
         {/* Footer */}
         <footer className="py-6 text-center text-sm text-muted-foreground">
-          <p>© 2018-2026 Metherium.com. All rights reserved.</p>
+          <p>© 2018-2026 FDM. All rights reserved.</p>
         </footer>
       </div>
     );
@@ -433,7 +433,7 @@ export default function IdentityVerificationPage() {
             <p className="text-muted-foreground">
               You can also continue on{' '}
               <Link href="/dashboard/help" className="text-foreground font-medium hover:underline inline-flex items-center gap-1">
-                📱 Metherium App
+                📱 FDM App
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </p>
@@ -443,7 +443,7 @@ export default function IdentityVerificationPage() {
 
       {/* Footer */}
       <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>© 2018-2026 Metherium.com. All rights reserved.</p>
+        <p>© 2018-2026 FDM. All rights reserved.</p>
         <div className="mt-2 flex items-center justify-center gap-4">
           <Link href="/terms" className="hover:text-foreground">Terms of Service</Link>
           <Link href="/privacy" className="hover:text-foreground">Privacy Policy</Link>
@@ -487,7 +487,7 @@ export default function IdentityVerificationPage() {
                 </div>
 
                 <p className="text-muted-foreground text-sm mb-4">
-                  Please provide your consent to share the following with <strong>Metherium</strong>:
+                  Please provide your consent to share the following with <strong>FDM</strong>:
                 </p>
 
                 {/* Documents List */}

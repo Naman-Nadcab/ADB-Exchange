@@ -1,5 +1,5 @@
 /**
- * EDA-normalized Forex market-data facade.
+ * FDM-normalized Forex market-data facade.
  * Frontend consumes this contract — not a vendor-specific format.
  */
 import { forexApi } from '../api/client';
@@ -24,7 +24,7 @@ export const ForexMarketDataProvider = {
 
 export const FOREX_MARKET_DATA_NOTES = {
   historicalProvider: 'EXTERNAL_YAHOO when FOREX_OHLC_PROVIDER=yahoo',
-  liveProvider: 'EDA simulated quote aggregator (MOCK venues)',
+  liveProvider: 'FDM simulated quote aggregator (MOCK venues)',
   candlePriceBasis: 'Yahoo OHLC as published; forming-candle mid only when history and ticks share a source',
   mergePolicy: 'Do not apply simulated ticks onto Yahoo OHLC',
   quoteOverlayPolicy: 'Bid/Ask chart lines only when quote mid is within 0.25% of last historical close',

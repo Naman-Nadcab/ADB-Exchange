@@ -698,7 +698,7 @@ export default function HomePageClient() {
               <div className="rounded-xl border border-[#F5B8001F] bg-[#05070B] p-3 text-xs text-[#9CA3AF]">
                 <span className="text-white">Market Insight: </span>
                 {topMover?.symbol
-                  ? `${topMover.symbol.replace('_', '/')} leads ${topMover.volumeSource === 'reference' ? 'reference market' : 'Metherium'} volume at ${compact(topMover.volume24h)}.`
+                  ? `${topMover.symbol.replace('_', '/')} leads ${topMover.volumeSource === 'reference' ? 'reference market' : 'FDM'} volume at ${compact(topMover.volume24h)}.`
                   : 'Market feed initializing.'}
               </div>
             </div>
@@ -709,28 +709,30 @@ export default function HomePageClient() {
           <StatNumber label={exchangeVolumeLabel()} target={Math.round(exchangeQuoteVolume)} prefix="$" compact />
           <StatNumber label={referenceVolumeLabel()} target={Math.round(referenceQuoteVolume)} prefix="$" compact />
           <StatNumber label="Trading Pairs" target={pairsCount} />
-          <StatNumber
-            label="Platform Uptime"
-            target={
-              platformMetrics?.uptime_percent != null
-                ? Math.floor(platformMetrics.uptime_percent)
-                : platformHealth?.status === 'healthy'
-                  ? 99
-                  : 0
-            }
-            suffix={
-              platformMetrics?.uptime_percent != null
-                ? `.${String(Math.round((platformMetrics.uptime_percent % 1) * 100)).padStart(2, '0')}%`
-                : platformHealth?.status === 'healthy'
-                  ? '.99%'
-                  : ''
-            }
-          />
-          <StatNumber
-            label="Matching Latency"
-            target={Math.round(platformMetrics?.matching_latency_p99_ms ?? 0)}
-            suffix="ms"
-          />
+          {platformMetrics?.uptime_percent != null ? (
+            <StatNumber
+              label="Platform Uptime"
+              target={Math.floor(platformMetrics.uptime_percent)}
+              suffix={`.${String(Math.round((platformMetrics.uptime_percent % 1) * 100)).padStart(2, '0')}%`}
+            />
+          ) : (
+            <article className="min-w-0 rounded-2xl border border-[#F5B8001F] bg-[#0D1118] p-4 sm:p-5">
+              <p className="text-xs uppercase tracking-[0.12em] text-[#9CA3AF]">Platform Uptime</p>
+              <p className="mt-2 text-2xl font-semibold text-[#9CA3AF]">Unavailable</p>
+            </article>
+          )}
+          {platformMetrics?.matching_latency_p99_ms != null ? (
+            <StatNumber
+              label="Matching Latency"
+              target={Math.round(platformMetrics.matching_latency_p99_ms)}
+              suffix="ms"
+            />
+          ) : (
+            <article className="min-w-0 rounded-2xl border border-[#F5B8001F] bg-[#0D1118] p-4 sm:p-5">
+              <p className="text-xs uppercase tracking-[0.12em] text-[#9CA3AF]">Matching Latency</p>
+              <p className="mt-2 text-2xl font-semibold text-[#9CA3AF]">Unavailable</p>
+            </article>
+          )}
         </section>
 
         <section className="rounded-2xl border border-[#F5B8001F] bg-[#0D1118] p-5 sm:p-6">
@@ -830,7 +832,7 @@ export default function HomePageClient() {
             { icon: Shield, title: 'Security', text: 'Multi-layer account protection with 2FA, session management, and withdrawal safeguards.' },
             { icon: Zap, title: 'Execution', text: 'Spot order entry with live order book, trades, and chart data on each pair.' },
             { icon: Activity, title: 'Reliability', text: 'Service health checks for core exchange components, shown on this page.' },
-            { icon: Database, title: 'Market Data', text: 'Live spot prices with separate labels for Metherium and reference volume.' },
+            { icon: Database, title: 'Market Data', text: 'Live spot prices with separate labels for FDM and reference volume.' },
             { icon: Sparkles, title: 'User Experience', text: 'Browse markets without an account; sign in to trade, fund, and manage orders.' },
             { icon: Server, title: 'Infrastructure', text: 'Matching engine, database, cache, and messaging monitored continuously.' },
           ].map((f) => (
@@ -872,21 +874,23 @@ export default function HomePageClient() {
             <h3 className="text-sm uppercase tracking-[0.12em] text-[#9CA3AF]">Security Dashboard Visualization</h3>
             <div className="mt-4 space-y-4">
               {[
-                { name: 'Wallet Risk Score', value: platformMetrics?.security_metrics?.wallet_risk_score ?? 0, healthy: true },
-                { name: 'Withdrawal Risk Score', value: platformMetrics?.security_metrics?.withdrawal_risk_score ?? 0, healthy: true },
-                { name: 'Behavioral Anomaly', value: platformMetrics?.security_metrics?.behavioral_anomaly ?? 0, healthy: true },
-                { name: 'Infrastructure Integrity', value: platformMetrics?.security_metrics?.infrastructure_integrity ?? 0, healthy: true },
+                { name: 'Wallet Risk Score', value: platformMetrics?.security_metrics?.wallet_risk_score ?? null },
+                { name: 'Withdrawal Risk Score', value: platformMetrics?.security_metrics?.withdrawal_risk_score ?? null },
+                { name: 'Behavioral Anomaly', value: platformMetrics?.security_metrics?.behavioral_anomaly ?? null },
+                { name: 'Infrastructure Integrity', value: platformMetrics?.security_metrics?.infrastructure_integrity ?? null },
               ].map((metric) => (
                 <div key={metric.name}>
                   <div className="mb-1 flex items-center justify-between text-xs">
                     <span className="text-[#9CA3AF]">{metric.name}</span>
-                    <span className={metric.healthy ? 'text-emerald-400' : 'text-rose-400'}>
-                      {metric.value}
-                      {metric.name.includes('Integrity') ? '%' : '/100'}
+                    <span className={metric.value == null ? 'text-[#9CA3AF]' : 'text-emerald-400'}>
+                      {metric.value == null ? 'Unavailable' : `${metric.value}${metric.name.includes('Integrity') ? '%' : '/100'}`}
                     </span>
                   </div>
                   <div className="h-2 rounded-full bg-white/10">
-                    <div className={`h-full rounded-full ${metric.name.includes('Integrity') ? 'bg-[#F5B800]' : 'bg-emerald-400'}`} style={{ width: `${metric.value}%` }} />
+                    <div
+                      className={`h-full rounded-full ${metric.name.includes('Integrity') ? 'bg-[#F5B800]' : 'bg-emerald-400'}`}
+                      style={{ width: metric.value == null ? '0%' : `${metric.value}%` }}
+                    />
                   </div>
                 </div>
               ))}
@@ -897,7 +901,7 @@ export default function HomePageClient() {
         <section className="rounded-2xl border border-[#F5B8001F] bg-[#0D1118] p-6">
           <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
             <div>
-              <p className="text-xs uppercase tracking-[0.12em] text-[#F5B800]">Earn on Metherium</p>
+              <p className="text-xs uppercase tracking-[0.12em] text-[#F5B800]">Earn on FDM</p>
               <h2 className="mt-2 text-2xl font-semibold sm:text-3xl">Yield products in phased rollout.</h2>
               <p className="mt-3 text-sm text-[#9CA3AF]">
                 Earn launches after internal validation with clear rate disclosures and risk controls. Track progress

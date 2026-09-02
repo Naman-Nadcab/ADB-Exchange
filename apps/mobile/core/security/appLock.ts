@@ -52,7 +52,7 @@ export const appLock = {
     return compatible && enrolled;
   },
 
-  async promptUnlock(reason = 'Unlock METHErium'): Promise<boolean> {
+  async promptUnlock(reason = 'Unlock FDM'): Promise<boolean> {
     const enabled = await this.isEnabled();
     if (!enabled) return true;
     const bio = await this.canUseBiometrics();

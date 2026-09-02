@@ -1,7 +1,7 @@
 {
-  "name": "EDA EXCHANGE Admin",
-  "short_name": "EDA EXCHANGE",
-  "description": "EDA EXCHANGE — secure spot trading, P2P, and institutional-grade exchange infrastructure",
+  "name": "FDM Admin",
+  "short_name": "FDM",
+  "description": "FDM — secure spot trading, P2P, and institutional-grade exchange infrastructure",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#05070B",

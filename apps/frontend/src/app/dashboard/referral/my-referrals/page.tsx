@@ -569,7 +569,7 @@ export default function MyReferralsPage() {
             <div>
               <h4 className="font-semibold mb-3 text-foreground">About</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/dashboard/help" className="hover:text-foreground">About Metherium</Link></li>
+                <li><Link href="/dashboard/help" className="hover:text-foreground">About FDM</Link></li>
                 <li><Link href="/dashboard/announcements" className="hover:text-foreground">Announcements</Link></li>
                 <li><Link href="/dashboard/fee-rates" className="hover:text-foreground">Fees & Transactions Overview</Link></li>
               </ul>
@@ -607,7 +607,7 @@ export default function MyReferralsPage() {
 
           {/* Copyright */}
           <div className="pt-6 border-t border-border flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
-            <span>© 2018-2026 Metherium.com. All rights reserved.</span>
+            <span>© 2018-2026 FDM. All rights reserved.</span>
             <Link href="/terms" className="hover:text-foreground">Terms of Service</Link>
             <Link href="/privacy" className="hover:text-foreground">Privacy Terms</Link>
           </div>

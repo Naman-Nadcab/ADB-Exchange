@@ -153,7 +153,7 @@ export async function deliverAlertToAllProviders(p: OpsAlertPayload): Promise<nu
 export function buildTestAlertPayload(): OpsAlertPayload {
   return {
     severity: 'info',
-    title: 'Metherium Alert Provider Test',
+    title: 'FDM Alert Provider Test',
     body: 'This is a test alert from the Admin Alert Providers panel. Safe to ignore.',
     dedupeKey: `test:${Date.now()}`,
     alertType: 'general',

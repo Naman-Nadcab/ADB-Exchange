@@ -112,11 +112,11 @@ class OTPService {
           await transporter.sendMail({
             from: fromAddress,
             to: email,
-            subject: 'Your Verification Code - Metherium',
+            subject: 'Your Verification Code - FDM',
             html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; text-align: center;">
-              <h1 style="color: white; margin: 0;">Metherium</h1>
+              <h1 style="color: white; margin: 0;">FDM</h1>
             </div>
             <div style="padding: 30px; background: #f9f9f9;">
               <h2 style="color: #333;">Verification Code</h2>
@@ -153,11 +153,11 @@ class OTPService {
       const sendPromise = emailCtx.transporter.sendMail({
         from: emailCtx.fromAddress,
         to: email,
-        subject: 'Your Verification Code - Metherium',
+        subject: 'Your Verification Code - FDM',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; text-align: center;">
-              <h1 style="color: white; margin: 0;">Metherium</h1>
+              <h1 style="color: white; margin: 0;">FDM</h1>
             </div>
             <div style="padding: 30px; background: #f9fafb;">
               <h2 style="color: #1f2937;">Verification Code</h2>
@@ -169,11 +169,11 @@ class OTPService {
               <p style="color: #6b7280; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
             </div>
             <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
-              © 2024 Metherium. All rights reserved.
+              © 2024 FDM. All rights reserved.
             </div>
           </div>
         `,
-        text: `Your Metherium verification code is: ${otp}. This code will expire in 10 minutes.`,
+        text: `Your FDM verification code is: ${otp}. This code will expire in 10 minutes.`,
       });
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('SMTP send timeout')), OTP_SEND_TIMEOUT_MS);
@@ -196,7 +196,7 @@ class OTPService {
    * Send OTP via SMS — reads config dynamically from DB (api_settings) with env fallback.
    */
   async sendSMSOTP(phone: string, otp: string): Promise<boolean> {
-    const message = `Your Metherium verification code is: ${otp}. Valid for 10 minutes.`;
+    const message = `Your FDM verification code is: ${otp}. Valid for 10 minutes.`;
     const providers = await dynamicConfig.getProviders('sms');
 
     if (providers.length > 0) {
@@ -247,7 +247,7 @@ class OTPService {
     }
 
     try {
-      const message = `Your Metherium verification code is: ${otp}. Valid for 10 minutes.`;
+      const message = `Your FDM verification code is: ${otp}. Valid for 10 minutes.`;
 
       switch (smsConfig.provider) {
         case 'twilio':

@@ -137,7 +137,7 @@ export default function ReferralProgramPage() {
   const referralCode = stats?.referralCode || user?.id?.slice(0, 8).toUpperCase() || 'LOADING...';
   const referralLink = `${appOrigin}/signup?ref=${referralCode}`;
 
-  const customText = `Join Metherium with my referral link and participate in the referral program when eligible rewards are available: ${referralLink}`;
+  const customText = `Join FDM with my referral link and participate in the referral program when eligible rewards are available: ${referralLink}`;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -177,8 +177,8 @@ export default function ReferralProgramPage() {
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % 4);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + 4) % 4);
 
-  const shareTitle = 'Join Metherium and earn crypto rewards!';
-  const shareText = `Join Metherium with my referral link and participate in the referral program when eligible rewards are available: ${referralLink}`;
+  const shareTitle = 'Join FDM and earn crypto rewards!';
+  const shareText = `Join FDM with my referral link and participate in the referral program when eligible rewards are available: ${referralLink}`;
 
   const saveImage = async () => {
     const canvas = document.createElement('canvas');
@@ -213,7 +213,7 @@ export default function ReferralProgramPage() {
       
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 24px Arial';
-      ctx.fillText('Metherium', 115, 85);
+      ctx.fillText('FDM', 115, 85);
       
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 32px Arial';
@@ -221,7 +221,7 @@ export default function ReferralProgramPage() {
       
       ctx.fillStyle = '#93c5fd';
       ctx.font = '18px Arial';
-      ctx.fillText('Refer friends to Metherium', 50, 230);
+      ctx.fillText('Refer friends to FDM', 50, 230);
       ctx.fillText('and earn eligible commissions.', 50, 260);
       
       ctx.font = '120px Arial';
@@ -234,7 +234,7 @@ export default function ReferralProgramPage() {
       
       ctx.fillStyle = '#93c5fd';
       ctx.font = '16px Arial';
-      ctx.fillText('Scan QR code and join me at Metherium!', 70, 800);
+      ctx.fillText('Scan QR code and join me at FDM!', 70, 800);
       
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 20px Arial';
@@ -250,7 +250,7 @@ export default function ReferralProgramPage() {
       ctx.fill();
       
       const link = document.createElement('a');
-      link.download = `metherium-referral-${referralCode}.png`;
+      link.download = `fdm-referral-${referralCode}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     }
@@ -565,7 +565,7 @@ export default function ReferralProgramPage() {
                   <Coins className="w-8 h-8 text-white" />
                 </div>
               </div>
-              <p className="text-muted-foreground">Invite a friend to Metherium Earn</p>
+              <p className="text-muted-foreground">Invite a friend to FDM Earn</p>
             </div>
 
             {/* Card 2 */}
@@ -580,7 +580,7 @@ export default function ReferralProgramPage() {
                   <CreditCard className="w-8 h-8 text-white" />
                 </div>
               </div>
-              <p className="text-muted-foreground">Refer a friend to Metherium Card</p>
+              <p className="text-muted-foreground">Refer a friend to FDM Card</p>
             </div>
 
             {/* Card 3 */}
@@ -749,7 +749,7 @@ export default function ReferralProgramPage() {
 
                       <h3 className="text-2xl font-bold text-white mb-2">Join & Earn Rewards!</h3>
                       <p className="text-blue-200">
-                        Refer friends and earn commissions when they trade eligible products on Metherium.
+                        Refer friends and earn commissions when they trade eligible products on FDM.
                       </p>
                     </div>
 
