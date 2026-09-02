@@ -18,7 +18,7 @@ function tick(ts: string, mid: string) {
 }
 
 function testTimeframes(): void {
-  for (const tf of ['1m', '5m', '15m', '1h', '4h', '1D'] as const) {
+  for (const tf of ['1m', '5m', '15m', '30m', '1h', '4h', '1D', '1W'] as const) {
     assert(timeframeBucketMs(tf) != null, `${tf} bucket`);
   }
 }

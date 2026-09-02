@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { ForexWorkspaceId } from '../models/types';
 
-const STORAGE_KEY = 'eda-forex-workspace-v1';
+const STORAGE_KEY = 'eda-forex-workspace-v2';
 
 export interface ForexPanelVisibility {
   watchlist: boolean;
@@ -54,7 +54,7 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
       watchlistWidth: 280,
       ticketWidth: 320,
       bottomHeight: 220,
-      chartTimeframe: '1m',
+      chartTimeframe: '15m',
       setWorkspace: (workspace) => set({ workspace }),
       setSelectedSymbol: (selectedSymbol) => set({ selectedSymbol: selectedSymbol.replace(/[^A-Za-z0-9]/g, '').toUpperCase() }),
       setWatchlist: (watchlist) => set({ watchlist }),

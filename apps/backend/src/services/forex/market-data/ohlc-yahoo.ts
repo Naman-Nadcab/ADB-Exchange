@@ -56,15 +56,34 @@ export function isYahooTimeframe(value: string): value is YahooForexTimeframe {
   return (YAHOO_SUPPORTED_TIMEFRAMES as readonly string[]).includes(value);
 }
 
+const THIRTY_M_MS = 30 * 60 * 1000;
 const FOUR_H_MS = 4 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** Roll valid 1h bars into UTC 4h buckets. Open first, high max, low min, close last. Never synthesizes missing hours. */
-export function aggregateHourlyTo4h(bars: ExternalOhlcBar[]): ExternalOhlcBar[] {
+/** Monday 00:00 UTC containing `ms` — used for 1W aggregation from daily bars. */
+export function weekStartUtcMs(ms: number): number {
+  const d = new Date(ms);
+  const day = d.getUTCDay(); // 0 = Sunday
+  const daysSinceMonday = (day + 6) % 7;
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - daysSinceMonday);
+}
+
+/**
+ * Roll valid bars into fixed UTC buckets.
+ * Open = first open, High = max, Low = min, Close = last close.
+ * Never synthesizes empty buckets.
+ */
+export function aggregateBarsToBucket(
+  bars: ExternalOhlcBar[],
+  bucketMs: number,
+  bucketFn: (ms: number) => number = (ms) => Math.floor(ms / bucketMs) * bucketMs
+): ExternalOhlcBar[] {
+  if (!Number.isFinite(bucketMs) || bucketMs <= 0) return [];
   const buckets = new Map<number, ExternalOhlcBar[]>();
   for (const bar of bars) {
     const ms = Date.parse(bar.timestamp);
     if (!Number.isFinite(ms)) continue;
-    const bucket = Math.floor(ms / FOUR_H_MS) * FOUR_H_MS;
+    const bucket = bucketFn(ms);
     const list = buckets.get(bucket) ?? [];
     list.push(bar);
     buckets.set(bucket, list);
@@ -93,6 +112,39 @@ export function aggregateHourlyTo4h(bars: ExternalOhlcBar[]): ExternalOhlcBar[] 
     if (isValidOhlcRelation(bar)) out.push(bar);
   }
   return out;
+}
+
+/** Align / dedupe bars onto timeframe boundaries (fixes Yahoo partial last bar seconds). */
+export function alignBarsToTimeframe(bars: ExternalOhlcBar[], timeframe: string): ExternalOhlcBar[] {
+  const size: Record<string, number> = {
+    '1m': 60_000,
+    '5m': 300_000,
+    '15m': 900_000,
+    '30m': THIRTY_M_MS,
+    '1h': 3_600_000,
+    '4h': FOUR_H_MS,
+    '1D': DAY_MS,
+    '1W': 7 * DAY_MS,
+  };
+  const ms = size[timeframe];
+  if (!ms) return bars;
+  if (timeframe === '1W') return aggregateBarsToBucket(bars, ms, weekStartUtcMs);
+  return aggregateBarsToBucket(bars, ms);
+}
+
+/** Roll valid 1h bars into UTC 4h buckets. */
+export function aggregateHourlyTo4h(bars: ExternalOhlcBar[]): ExternalOhlcBar[] {
+  return aggregateBarsToBucket(bars, FOUR_H_MS);
+}
+
+/** Roll valid 15m bars into UTC 30m buckets. */
+export function aggregateFifteenTo30m(bars: ExternalOhlcBar[]): ExternalOhlcBar[] {
+  return aggregateBarsToBucket(bars, THIRTY_M_MS);
+}
+
+/** Roll valid 1D bars into ISO weeks (Monday UTC). */
+export function aggregateDailyTo1W(bars: ExternalOhlcBar[]): ExternalOhlcBar[] {
+  return aggregateBarsToBucket(bars, 7 * DAY_MS, weekStartUtcMs);
 }
 
 function dec(n: unknown): string | null {

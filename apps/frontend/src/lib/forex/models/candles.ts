@@ -2,7 +2,7 @@ import { describeForexError, normalizeForexError } from './errors';
 import type { ForexError } from './types';
 
 /** Reserved names only. None are served until the backend advertises them. */
-export const FOREX_CANDLE_RESERVED_TIMEFRAMES = ['1m', '5m', '15m', '1h', '4h', '1D'] as const;
+export const FOREX_CANDLE_RESERVED_TIMEFRAMES = ['1m', '5m', '15m', '30m', '1h', '4h', '1D', '1W'] as const;
 export type ForexTimeframe = (typeof FOREX_CANDLE_RESERVED_TIMEFRAMES)[number];
 
 export type ForexCandleAvailability = 'AVAILABLE' | 'UNAVAILABLE';

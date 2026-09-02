@@ -12,7 +12,7 @@
  */
 import { getForexInstrumentBySymbol, normalizeForexSymbol } from '../instruments.catalog.js';
 
-export const FOREX_CANDLE_RESERVED_TIMEFRAMES = ['1m', '5m', '15m', '1h', '4h', '1D'] as const;
+export const FOREX_CANDLE_RESERVED_TIMEFRAMES = ['1m', '5m', '15m', '30m', '1h', '4h', '1D', '1W'] as const;
 export type ForexReservedTimeframe = (typeof FOREX_CANDLE_RESERVED_TIMEFRAMES)[number];
 
 /**
@@ -205,10 +205,36 @@ export async function forexCandlesResolve(query: ForexCandleQuery): Promise<{
   if (forexOhlcProviderName() !== 'yahoo') return base;
 
   const yahoo = await import('./ohlc-yahoo.js');
-  const supported = [...yahoo.YAHOO_SUPPORTED_TIMEFRAMES, '4h'] as const;
+  const supported = [...yahoo.YAHOO_SUPPORTED_TIMEFRAMES, '30m', '4h', '1W'] as const;
   const rawTf = query.timeframe?.trim() || '1D';
-  const isAggregated4h = rawTf === '4h';
-  if (!yahoo.isYahooTimeframe(rawTf) && !isAggregated4h) {
+  type AggPlan = {
+    sourceTf: '15m' | '1h' | '1D';
+    aggregate: (bars: import('./ohlc-yahoo.js').ExternalOhlcBar[]) => import('./ohlc-yahoo.js').ExternalOhlcBar[];
+    reason: string;
+    note: string;
+  };
+  const aggregated: Record<string, AggPlan> = {
+    '30m': {
+      sourceTf: '15m',
+      aggregate: yahoo.aggregateFifteenTo30m,
+      reason: 'EXTERNAL_YAHOO_AGGREGATED_30M',
+      note: '30m aggregated from valid 15m Yahoo OHLC',
+    },
+    '4h': {
+      sourceTf: '1h',
+      aggregate: yahoo.aggregateHourlyTo4h,
+      reason: 'EXTERNAL_YAHOO_AGGREGATED_4H',
+      note: '4h aggregated from valid 1h Yahoo OHLC',
+    },
+    '1W': {
+      sourceTf: '1D',
+      aggregate: yahoo.aggregateDailyTo1W,
+      reason: 'EXTERNAL_YAHOO_AGGREGATED_1W',
+      note: '1W aggregated from valid 1D Yahoo OHLC (Monday UTC weeks)',
+    },
+  };
+  const agg = aggregated[rawTf];
+  if (!yahoo.isYahooTimeframe(rawTf) && !agg) {
     return {
       status: 400,
       body: {
@@ -223,23 +249,27 @@ export async function forexCandlesResolve(query: ForexCandleQuery): Promise<{
   }
 
   try {
+    const fetchTf = agg ? agg.sourceTf : (rawTf as import('./ohlc-yahoo.js').YahooForexTimeframe);
     const fetched = await yahoo.fetchYahooOhlc({
       symbol: base.body.data.symbol,
-      timeframe: isAggregated4h ? '1h' : rawTf,
-      limit: isAggregated4h ? FOREX_CANDLE_MAX_LIMIT : base.body.data.limit,
+      timeframe: fetchTf,
+      limit: agg ? FOREX_CANDLE_MAX_LIMIT : base.body.data.limit,
       from: base.body.data.from ?? undefined,
       to: base.body.data.to ?? undefined,
     });
-    let bars = fetched.bars;
+    let bars = yahoo.alignBarsToTimeframe(fetched.bars, agg ? agg.sourceTf : rawTf);
     let reason = 'EXTERNAL_YAHOO';
     let providerNote = fetched.note;
-    if (isAggregated4h) {
-      bars = yahoo.aggregateHourlyTo4h(bars);
+    if (agg) {
+      bars = agg.aggregate(bars);
+      bars = yahoo.alignBarsToTimeframe(bars, rawTf);
       if (bars.length > base.body.data.limit) {
         bars = bars.slice(bars.length - base.body.data.limit);
       }
-      reason = 'EXTERNAL_YAHOO_AGGREGATED_4H';
-      providerNote = [fetched.note, '4h aggregated from valid 1h Yahoo OHLC'].filter(Boolean).join(' · ');
+      reason = agg.reason;
+      providerNote = [fetched.note, agg.note].filter(Boolean).join(' · ');
+    } else {
+      bars = yahoo.alignBarsToTimeframe(bars, rawTf);
     }
     if (bars.length === 0) {
       return {

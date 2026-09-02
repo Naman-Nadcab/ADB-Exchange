@@ -123,20 +123,25 @@ export function listForexSymbols(): string[] {
   return FOREX_INSTRUMENT_CATALOG.map((i) => i.symbol);
 }
 
-/** Deterministic mock mid anchors. Not live market data. */
+/**
+ * Deterministic mock mid anchors for SIMULATED LP quotes.
+ * Not live market data and not used for historical OHLC.
+ * Kept near current external FX/metal levels so demo Bid/Ask
+ * does not sit hundreds of pips away from Yahoo chart history.
+ */
 export const FOREX_MOCK_BASE_PRICES: Readonly<Record<string, string>> = {
-  EURUSD: '1.08500',
-  GBPUSD: '1.27000',
-  USDJPY: '149.500',
-  USDCHF: '0.88500',
-  AUDUSD: '0.65500',
-  USDCAD: '1.36000',
-  NZDUSD: '0.60500',
-  EURGBP: '0.85500',
-  EURJPY: '162.200',
-  GBPJPY: '189.800',
-  XAUUSD: '2320.50',
-  XAGUSD: '27.350',
+  EURUSD: '1.15780',
+  GBPUSD: '1.34965',
+  USDJPY: '160.080',
+  USDCHF: '0.81324',
+  AUDUSD: '0.71357',
+  USDCAD: '1.39213',
+  NZDUSD: '0.58299',
+  EURGBP: '0.85760',
+  EURJPY: '185.290',
+  GBPJPY: '216.051',
+  XAUUSD: '4354.00',
+  XAGUSD: '64.345',
 };
 
 /** Deterministic bid/ask width in ticks (instrument tick_size). */

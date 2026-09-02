@@ -25,6 +25,8 @@ export const ForexMarketDataProvider = {
 export const FOREX_MARKET_DATA_NOTES = {
   historicalProvider: 'EXTERNAL_YAHOO when FOREX_OHLC_PROVIDER=yahoo',
   liveProvider: 'EDA simulated quote aggregator (MOCK venues)',
-  candlePriceBasis: 'mid — only when history and ticks share a source',
+  candlePriceBasis: 'Yahoo OHLC as published; forming-candle mid only when history and ticks share a source',
   mergePolicy: 'Do not apply simulated ticks onto Yahoo OHLC',
+  quoteOverlayPolicy: 'Bid/Ask chart lines only when quote mid is within 0.25% of last historical close',
+  aggregatedTimeframes: '30m from 15m · 4h from 1h · 1W from 1D (Monday UTC)',
 } as const;
