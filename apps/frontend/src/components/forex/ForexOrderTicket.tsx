@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
@@ -11,10 +11,12 @@ import { useForexPreview } from '@/lib/forex/runtime/useForexPreview';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { cn } from '@/lib/utils';
+import { ForexRiskTools } from './ForexRiskTools';
 import { fxNum } from './format';
 
 export function ForexOrderTicket() {
   const selected = useForexWorkspaceStore((s) => s.selectedSymbol);
+  const ticketDraft = useForexWorkspaceStore((s) => s.ticketDraft);
   const inst = useForexStore((s) => s.instruments[selected]);
   const quote = useForexStore((s) => s.quotes[selected]);
   const sessions = useForexStore((s) => s.sessions);
@@ -33,6 +35,17 @@ export function ForexOrderTicket() {
   const [sl, setSl] = useState('');
   const [tp, setTp] = useState('');
   const [refreshNonce, setRefreshNonce] = useState(0);
+
+  useEffect(() => {
+    if (!ticketDraft) return;
+    if (ticketDraft.price) {
+      setPrice(ticketDraft.price);
+      setType((cur) => (cur === 'market' ? 'limit' : cur));
+    }
+    if (ticketDraft.sl) setSl(ticketDraft.sl);
+    if (ticketDraft.tp) setTp(ticketDraft.tp);
+    if (ticketDraft.volume) setVolume(ticketDraft.volume);
+  }, [ticketDraft]);
 
   const allowedTypes = config?.orderTypes ?? ['market', 'limit', 'stop'];
   const stale = !quote || isQuoteStale(quote);
@@ -157,6 +170,7 @@ export function ForexOrderTicket() {
           <Field label="Take profit" value={tp} onChange={setTp} />
         </div>
         <p className="text-[10px] leading-relaxed text-muted-foreground">SL/TP apply after fill through account protections.</p>
+        <ForexRiskTools />
 
         <dl className="grid grid-cols-2 gap-x-2 gap-y-1.5 rounded-lg border border-border bg-muted/20 px-2.5 py-2 font-mono text-[11px] text-muted-foreground">
           <dt>Balance</dt>

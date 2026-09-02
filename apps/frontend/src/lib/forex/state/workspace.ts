@@ -28,6 +28,8 @@ export interface ForexWorkspaceState {
   bottomCollapsed: boolean;
   chartMode: ForexChartMode;
   chartTimeframe: string;
+  /** Chart → ticket draft. Not persisted. */
+  ticketDraft: { nonce: number; price?: string; sl?: string; tp?: string; volume?: string } | null;
   setWorkspace: (w: ForexWorkspaceId) => void;
   setSelectedSymbol: (symbol: string) => void;
   setWatchlist: (symbols: string[]) => void;
@@ -40,6 +42,7 @@ export interface ForexWorkspaceState {
   toggleBottomCollapsed: () => void;
   setChartMode: (mode: ForexChartMode) => void;
   setChartTimeframe: (tf: string) => void;
+  setTicketDraft: (draft: ForexWorkspaceState['ticketDraft']) => void;
 }
 
 const DEFAULT_WATCHLIST = ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'EURGBP', 'EURJPY', 'GBPJPY', 'XAUUSD', 'XAGUSD'];
@@ -86,6 +89,7 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
       bottomCollapsed: true,
       chartMode: 'normal',
       chartTimeframe: '15m',
+      ticketDraft: null,
       setWorkspace: (workspace) => set({ workspace }),
       setSelectedSymbol: (selectedSymbol) =>
         set({ selectedSymbol: selectedSymbol.replace(/[^A-Za-z0-9]/g, '').toUpperCase() }),
@@ -106,6 +110,7 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
       toggleBottomCollapsed: () => set({ bottomCollapsed: !get().bottomCollapsed }),
       setChartMode: (chartMode) => set({ chartMode }),
       setChartTimeframe: (chartTimeframe) => set({ chartTimeframe }),
+      setTicketDraft: (ticketDraft) => set({ ticketDraft }),
     }),
     {
       name: STORAGE_KEY,
