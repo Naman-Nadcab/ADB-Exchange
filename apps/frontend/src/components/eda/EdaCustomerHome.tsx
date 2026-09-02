@@ -67,13 +67,13 @@ export function EdaCustomerHome() {
     loading: cryptoBalances.isPending,
     failed: Boolean(cryptoBalances.isError || cryptoBalances.data?.balanceError),
     value: cryptoBalances.data ? cryptoBalances.data.tradingBalance.totalUsd : null,
-    reason: cryptoBalances.data?.balanceError,
+    reason: cryptoBalances.data?.balanceError ?? undefined,
   });
   const fundingState: EdaMoneyState = moneyFromBackend({
     loading: cryptoBalances.isPending,
     failed: Boolean(cryptoBalances.isError || cryptoBalances.data?.balanceError),
     value: cryptoBalances.data ? cryptoBalances.data.fundingBalance.totalUsd : null,
-    reason: cryptoBalances.data?.balanceError,
+    reason: cryptoBalances.data?.balanceError ?? undefined,
   });
 
   const fxLoading = fxAccount.status === 'loading';
