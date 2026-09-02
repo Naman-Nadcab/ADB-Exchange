@@ -61,7 +61,7 @@ export default function ForexAnalysisPage() {
 
   const currencies = useMemo(() => {
     const set = new Set((calendar?.events ?? []).map((e) => e.currency).filter((c): c is string => Boolean(c)));
-    return ['ALL', ...[...set].sort()];
+    return ['ALL', ...Array.from(set).sort()];
   }, [calendar]);
 
   const calendarRows = useMemo(() => {

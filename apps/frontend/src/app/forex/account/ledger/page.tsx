@@ -38,7 +38,7 @@ export default function ForexLedgerPage() {
 
   const types = useMemo(() => {
     const set = new Set(ledger.map((r) => r.type));
-    return ['ALL', ...[...set].sort()];
+    return ['ALL', ...Array.from(set).sort()];
   }, [ledger]);
 
   const rows = useMemo(() => {
