@@ -278,7 +278,7 @@ export default function ForexAnalysisPage() {
       actions={
         <div className="flex flex-wrap items-center gap-1.5">
           <Link
-            href={FOREX_ROUTES.trade}
+            href={`${FOREX_ROUTES.trade}?symbol=${encodeURIComponent(symbol)}`}
             className="inline-flex h-7 items-center rounded-md bg-primary px-2.5 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90"
           >
             Trade {inst?.displaySymbol ?? symbol}
@@ -474,7 +474,7 @@ export default function ForexAnalysisPage() {
           )}
           <div className="mt-2 flex flex-wrap gap-1.5">
             <Link
-              href={FOREX_ROUTES.trade}
+              href={`${FOREX_ROUTES.trade}?symbol=${encodeURIComponent(symbol)}`}
               className="inline-flex h-7 items-center rounded-md bg-primary px-2.5 text-[10px] font-semibold text-primary-foreground"
             >
               Terminal
