@@ -99,6 +99,7 @@ export function ForexChartFoundation(props?: {
   const chartMode = useForexWorkspaceStore((s) => s.chartMode);
   const setChartMode = useForexWorkspaceStore((s) => s.setChartMode);
   const setTicketDraft = useForexWorkspaceStore((s) => s.setTicketDraft);
+  const setPanel = useForexWorkspaceStore((s) => s.setPanel);
   const selected = (props?.symbol ?? storeSymbol).replace(/[^A-Za-z0-9]/g, '').toUpperCase();
   const setTf = (tf: string) => {
     if (props?.onTimeframeChange) props.onTimeframeChange(tf);
@@ -123,6 +124,7 @@ export function ForexChartFoundation(props?: {
   });
   const dark = useTerminalChartDark();
   const [study, setStudy] = useState<StudyId>('ema20_50');
+  const [studyPeriod, setStudyPeriod] = useState(20);
   const [chartType, setChartType] = useState<ForexChartType>('candle');
   const [crosshair, setCrosshair] = useState<ForexChartCrosshair | null>(null);
   const [tool, setTool] = useState<ForexAnalysisTool>('none');
@@ -134,6 +136,7 @@ export function ForexChartFoundation(props?: {
   const [showIntel, setShowIntel] = useState(false);
   /** Drawing toolbar collapsed by default — chart area first (MT5 workstation). */
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [showDrawings, setShowDrawings] = useState(true);
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; price: number; time: number | null } | null>(null);
   const [calendarEvents, setCalendarEvents] = useState<
     Array<{ time?: string | null; currency?: string | null; event?: string; impact?: string; previous?: string | null; forecast?: string | null; actual?: string | null }>
@@ -261,20 +264,22 @@ export function ForexChartFoundation(props?: {
           }
         : null;
 
+  const period = Number.isFinite(studyPeriod) && studyPeriod >= 2 ? Math.min(Math.floor(studyPeriod), 400) : 20;
+  const slowPeriod = Math.max(period + 1, Math.round(period * 2.5));
   const overlay = useMemo(() => {
-    if (study === 'sma20') return sma(bars, 20);
-    if (study === 'ema20' || study === 'ema20_50') return ema(bars, 20);
-    if (study === 'wma20') return wma(bars, 20);
-    if (study === 'hma21') return hma(bars, 21);
-    if (study === 'bb20') return bollinger(bars, 20, 2).mid;
+    if (study === 'sma20') return sma(bars, period);
+    if (study === 'ema20' || study === 'ema20_50') return ema(bars, period);
+    if (study === 'wma20') return wma(bars, period);
+    if (study === 'hma21') return hma(bars, period);
+    if (study === 'bb20') return bollinger(bars, period, 2).mid;
     if (study === 'supertrend') return supertrend(bars);
     return [];
-  }, [bars, study]);
+  }, [bars, study, period]);
   const overlaySecondary = useMemo(
-    () => (study === 'ema20_50' ? ema(bars, 50) : []),
-    [bars, study]
+    () => (study === 'ema20_50' ? ema(bars, slowPeriod) : []),
+    [bars, study, slowPeriod]
   );
-  const bands = useMemo(() => (study === 'bb20' ? bollinger(bars, 20, 2) : undefined), [bars, study]);
+  const bands = useMemo(() => (study === 'bb20' ? bollinger(bars, period, 2) : undefined), [bars, study, period]);
   const studyReady = study === 'none' || overlay.length > 0;
   const rsiSeries = useMemo(() => rsi(bars, 14), [bars]);
   const macdLine = useMemo(() => macdSeries(bars).macd, [bars]);
@@ -654,16 +659,30 @@ export function ForexChartFoundation(props?: {
             className="rounded border border-border bg-background px-1 py-0.5 text-[10px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             aria-label="Chart study"
           >
-            <option value="ema20_50">EMA 20/50</option>
-            <option value="ema20">EMA 20</option>
-            <option value="sma20">SMA 20</option>
-            <option value="wma20">WMA 20</option>
-            <option value="hma21">HMA 21</option>
-            <option value="bb20">Bollinger 20</option>
+            <option value="ema20_50">EMA fast/slow</option>
+            <option value="ema20">EMA</option>
+            <option value="sma20">SMA</option>
+            <option value="wma20">WMA</option>
+            <option value="hma21">HMA</option>
+            <option value="bb20">Bollinger</option>
             <option value="supertrend">Supertrend</option>
             <option value="none">None</option>
           </select>
         </label>
+        {study !== 'none' && study !== 'supertrend' ? (
+          <label className="hidden items-center gap-1 text-[10px] text-muted-foreground md:inline-flex">
+            Period
+            <input
+              type="number"
+              min={2}
+              max={400}
+              value={studyPeriod}
+              onChange={(e) => setStudyPeriod(Number(e.target.value) || 20)}
+              className="w-12 rounded border border-border bg-background px-1 py-0.5 text-[10px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label="Study period"
+            />
+          </label>
+        ) : null}
 
         <span className="hidden font-mono text-[10px] text-muted-foreground xl:inline">
           {atr != null ? `ATR ${atr.toFixed(Math.min(digits, 5))}` : 'ATR n/a'}
@@ -742,6 +761,8 @@ export function ForexChartFoundation(props?: {
           showIntel={showIntel}
           onIntel={setShowIntel}
           onClearDrawings={() => chartApiRef.current?.clearDrawings()}
+          showDrawings={showDrawings}
+          onShowDrawings={setShowDrawings}
           rrSummary={
             rrResult
               ? `Risk ${rrResult.riskPips.toFixed(1)}p · Reward ${rrResult.rewardPips.toFixed(1)}p · R:R ${rrResult.rr.toFixed(2)}`
@@ -786,6 +807,7 @@ export function ForexChartFoundation(props?: {
           orderOverlays={orderOverlays}
           calendarMarkers={calendarMarkers}
           tool={tool}
+          hideDrawings={!showDrawings}
           drawingsKey={`eda-forex-drawings:${props?.instanceId ?? 'main'}:${selected}:${activeTf}`}
           onCrosshair={setCrosshair}
           onPricePick={onPricePick}
@@ -897,6 +919,22 @@ export function ForexChartFoundation(props?: {
                   }
                   return merged;
                 });
+                setCtxMenu(null);
+              }}
+            />
+            <CtxItem
+              label="Market BUY (ASK)"
+              onClick={() => {
+                setPanel('ticket', true);
+                setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'buy' });
+                setCtxMenu(null);
+              }}
+            />
+            <CtxItem
+              label="Market SELL (BID)"
+              onClick={() => {
+                setPanel('ticket', true);
+                setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'sell' });
                 setCtxMenu(null);
               }}
             />

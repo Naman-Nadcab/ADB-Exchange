@@ -171,7 +171,7 @@ export function ForexOrderTicket() {
           </select>
         </label>
         <p className="text-[9px] leading-snug text-muted-foreground">
-          Stop Limit unavailable · SIMULATED / MOCK
+          Stop Limit unavailable · Time in Force unavailable · SIMULATED / MOCK
           {pendingLabel ? ` · ${pendingLabel}` : ''}
         </p>
 
@@ -223,19 +223,31 @@ export function ForexOrderTicket() {
           <dd className="text-right text-foreground">
             {hydratePhase === 'hydrating' && !account ? '…' : account ? fxNum(account.freeMargin, 2) : '—'}
           </dd>
-          <dt>Exec</dt>
+          <dt>Exec {side === 'buy' ? 'ASK' : 'BID'}</dt>
           <dd className="text-right text-foreground">{exec ? fxNum(exec, digits) : '—'}</dd>
-          <dt>Mode</dt>
-          <dd className="text-right text-foreground">NETTING</dd>
+          <dt>Ref {previewData?.referenceSide ?? ''}</dt>
+          <dd className="text-right text-foreground">
+            {previewData?.referencePrice ? fxNum(previewData.referencePrice, digits) : '—'}
+          </dd>
+          <dt>Spread</dt>
+          <dd className="text-right text-foreground">{previewData?.spreadPips ?? quote?.spreadPips ?? '—'}</dd>
           <dt>Margin</dt>
           <dd className="text-right text-foreground">{previewData?.requiredMargin ?? '—'}</dd>
+          <dt>Fee</dt>
+          <dd className="text-right text-foreground">{previewData?.estimatedFee ?? '0'}</dd>
           <dt>Preview</dt>
           <dd className="text-right">
             <button type="button" className="text-primary hover:underline" onClick={() => setRefreshNonce((n) => n + 1)}>
               {preview.status}
+              {previewData ? (previewData.allowed ? ' · OK' : ' · BLOCKED') : ''}
             </button>
           </dd>
         </dl>
+        {previewData && !previewData.allowed && previewData.reason ? (
+          <p className="border border-rose-900/60 bg-rose-950/30 px-1.5 py-1 text-[10px] text-rose-200" role="status">
+            Preview rejected · {previewData.reason}
+          </p>
+        ) : null}
 
         {blockReason ? (
           <p className="border border-amber-800/60 bg-amber-950/30 px-1.5 py-1 text-[10px] text-amber-200" role="status">

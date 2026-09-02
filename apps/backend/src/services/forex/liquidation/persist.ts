@@ -1,4 +1,5 @@
 import { db } from '../../../lib/database.js';
+import { forexIsoTimestamp, forexStr } from '../durability/tx.js';
 import type { ForexLiquidationEvent, ForexLiquidationRecord } from './models.js';
 
 export async function persistLiquidation(l: ForexLiquidationRecord): Promise<void> {
@@ -30,14 +31,14 @@ export async function persistLiquidation(l: ForexLiquidationRecord): Promise<voi
       l.selectedPositionId,
       l.attempt,
       l.orderIds,
-      l.createdAt,
-      l.updatedAt,
+      forexIsoTimestamp(l.createdAt, new Date().toISOString()),
+      forexIsoTimestamp(l.updatedAt, new Date().toISOString()),
     ]
   );
 }
 
 function str(v: unknown): string {
-  return v == null ? '' : String(v);
+  return forexStr(v);
 }
 
 function rowToLiquidation(row: Record<string, unknown>): ForexLiquidationRecord {
@@ -85,7 +86,7 @@ export async function persistLiquidationEvent(event: ForexLiquidationEvent): Pro
       event.eventType,
       event.reason ?? null,
       JSON.stringify(event.metadata ?? {}),
-      event.timestamp,
+      forexIsoTimestamp(event.timestamp, new Date().toISOString()),
     ]
   );
 }

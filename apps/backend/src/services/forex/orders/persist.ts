@@ -1,5 +1,5 @@
 import { db } from '../../../lib/database.js';
-import { fxq, type ForexQueryable } from '../durability/tx.js';
+import { forexIsoTimestamp, forexStr, fxq, type ForexQueryable } from '../durability/tx.js';
 import type { ForexOrderEvent, ForexOrderRecord } from './models.js';
 import type { ForexOrderRequest } from './request.js';
 import type { ForexOrderReason, ForexOrderState } from './states.js';
@@ -59,13 +59,13 @@ export async function persistOrderEvent(event: ForexOrderEvent, client?: ForexQu
       event.reason ?? null,
       event.executionId ?? null,
       JSON.stringify(event.metadata ?? {}),
-      event.timestamp,
+      forexIsoTimestamp(event.timestamp, new Date().toISOString()),
     ]
   );
 }
 
 function str(v: unknown): string {
-  return v == null ? '' : String(v);
+  return forexStr(v);
 }
 
 function rowToOrder(row: Record<string, unknown>, events: ForexOrderEvent[] = []): ForexOrderRecord {

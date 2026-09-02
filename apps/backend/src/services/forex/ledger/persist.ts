@@ -2,7 +2,7 @@ import { ForexLedgerError } from './models.js';
 import type { ForexLedgerAccount, ForexLedgerTxType } from './accounts.js';
 import type { ForexAccountingEvent, ForexLedgerEntry, ForexLedgerTransaction } from './models.js';
 import { fxDecimal } from '../decimal-fx.js';
-import { fxq, type ForexQueryable } from '../durability/tx.js';
+import { forexIsoTimestamp, forexStr, fxq, type ForexQueryable } from '../durability/tx.js';
 
 export async function persistLedgerTransaction(
   tx: ForexLedgerTransaction,
@@ -24,7 +24,7 @@ export async function persistLedgerTransaction(
       tx.currency,
       tx.status,
       JSON.stringify(tx.metadata ?? {}),
-      tx.createdAt,
+      forexIsoTimestamp(tx.createdAt, new Date().toISOString()),
     ]
   );
   if ((header.rowCount ?? 0) === 0) {
@@ -57,7 +57,7 @@ export async function persistLedgerTransaction(
         e.currency,
         e.referenceType,
         e.referenceId,
-        e.timestamp,
+        forexIsoTimestamp(e.timestamp, new Date().toISOString()),
       ]
     );
   }
@@ -91,7 +91,7 @@ export async function persistAccountingEvent(event: ForexAccountingEvent, client
       event.fillId ?? null,
       event.reason ?? null,
       JSON.stringify(event.metadata ?? {}),
-      event.timestamp,
+      forexIsoTimestamp(event.timestamp, new Date().toISOString()),
     ]
   );
 }
@@ -106,7 +106,7 @@ function rowToTx(row: Record<string, unknown>, entries: ForexLedgerEntry[]): For
     currency: String(row.currency),
     status: row.status === 'REJECTED' ? 'REJECTED' : 'POSTED',
     entries,
-    createdAt: String(row.created_at),
+    createdAt: forexStr(row.created_at),
     metadata: (row.metadata as Record<string, unknown>) ?? {},
     source: 'SIMULATED',
   };
@@ -121,7 +121,7 @@ function mapEntries(rows: Record<string, unknown>[]): ForexLedgerEntry[] {
     debit: String(e.debit),
     credit: String(e.credit),
     currency: String(e.currency),
-    timestamp: String(e.created_at),
+    timestamp: forexStr(e.created_at),
     referenceType: e.reference_type == null ? null : String(e.reference_type),
     referenceId: e.reference_id == null ? null : String(e.reference_id),
   }));

@@ -1,4 +1,5 @@
 import { db } from '../../../lib/database.js';
+import { forexIsoTimestamp, forexStr } from '../durability/tx.js';
 import type { ForexProtectionEvent, ForexProtectionRecord } from './models.js';
 
 export async function persistProtection(p: ForexProtectionRecord): Promise<void> {
@@ -33,14 +34,14 @@ export async function persistProtection(p: ForexProtectionRecord): Promise<void>
       p.lastEvalSource,
       p.orderId,
       p.failureReason,
-      p.createdAt,
-      p.updatedAt,
+      forexIsoTimestamp(p.createdAt, new Date().toISOString()),
+      forexIsoTimestamp(p.updatedAt, new Date().toISOString()),
     ]
   );
 }
 
 function str(v: unknown): string {
-  return v == null ? '' : String(v);
+  return forexStr(v);
 }
 
 function rowToProtection(row: Record<string, unknown>): ForexProtectionRecord {
@@ -93,7 +94,7 @@ export async function persistProtectionEvent(event: ForexProtectionEvent): Promi
       event.quoteKey ?? null,
       event.reason ?? null,
       JSON.stringify(event.metadata ?? {}),
-      event.timestamp,
+      forexIsoTimestamp(event.timestamp, new Date().toISOString()),
     ]
   );
 }

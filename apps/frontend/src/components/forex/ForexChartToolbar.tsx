@@ -22,6 +22,8 @@ type Props = {
   showIntel: boolean;
   onIntel: (v: boolean) => void;
   onClearDrawings: () => void;
+  showDrawings: boolean;
+  onShowDrawings: (v: boolean) => void;
   rrSummary: string | null;
   measureSummary: string | null;
 };
@@ -68,6 +70,7 @@ export function ForexChartToolbar(props: Props) {
       >
         Clear drawings
       </button>
+      <Toggle label={props.showDrawings ? 'Hide drawings' : 'Show drawings'} pressed={!props.showDrawings} onClick={() => props.onShowDrawings(!props.showDrawings)} />
 
       <span className="mx-1 h-4 w-px shrink-0 bg-border" aria-hidden />
 

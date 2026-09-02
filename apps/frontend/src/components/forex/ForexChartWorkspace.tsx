@@ -76,6 +76,16 @@ export function ForexChartWorkspace() {
               activeChartId === slot.id && 'ring-1 ring-inset ring-primary/45'
             )}
             onMouseDown={() => setActiveChartId(slot.id)}
+            onDragOver={(e) => {
+              if ([...e.dataTransfer.types].includes('text/forex-symbol')) e.preventDefault();
+            }}
+            onDrop={(e) => {
+              const symbol = e.dataTransfer.getData('text/forex-symbol').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+              if (!symbol) return;
+              e.preventDefault();
+              setActiveChartId(slot.id);
+              updateChartSlot(slot.id, { symbol });
+            }}
           >
             <div className="absolute right-1 top-1 z-20 flex items-center gap-0.5">
               <select

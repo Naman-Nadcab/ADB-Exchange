@@ -1,4 +1,4 @@
-import { fxq, type ForexQueryable } from '../durability/tx.js';
+import { forexIsoTimestamp, forexStr, fxq, type ForexQueryable } from '../durability/tx.js';
 import type { ForexAppliedFill, ForexPositionEvent, ForexPositionRecord } from './models.js';
 import type { ForexPositionMode } from './mode.js';
 
@@ -49,9 +49,9 @@ export async function persistPosition(
         record.mode,
         record.version,
         JSON.stringify(record.appliedFills),
-        record.openedAt,
-        record.updatedAt,
-        record.closedAt,
+        forexIsoTimestamp(record.openedAt, new Date().toISOString()),
+        forexIsoTimestamp(record.updatedAt, new Date().toISOString()),
+        record.closedAt == null ? null : forexIsoTimestamp(record.closedAt),
       ]
     );
     return true;
@@ -74,8 +74,8 @@ export async function persistPosition(
       record.status,
       record.version,
       JSON.stringify(record.appliedFills),
-      record.updatedAt,
-      record.closedAt,
+      forexIsoTimestamp(record.updatedAt, new Date().toISOString()),
+      record.closedAt == null ? null : forexIsoTimestamp(record.closedAt),
       record.positionId,
       expectedVersion,
     ]
@@ -103,7 +103,7 @@ export async function persistPositionEvent(event: ForexPositionEvent, client?: F
       event.sourceFillId,
       event.reason,
       JSON.stringify(event.metadata ?? {}),
-      event.timestamp,
+      forexIsoTimestamp(event.timestamp, new Date().toISOString()),
     ]
   );
 }
@@ -120,7 +120,16 @@ export async function persistAppliedFill(
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
      ON CONFLICT (fill_id) DO NOTHING
      RETURNING fill_id`,
-    [fill.fillId, positionId, accountId, fill.side, fill.volume, fill.price, fill.timestamp, fill.executionId ?? null]
+    [
+      fill.fillId,
+      positionId,
+      accountId,
+      fill.side,
+      fill.volume,
+      fill.price,
+      forexIsoTimestamp(fill.timestamp, new Date().toISOString()),
+      fill.executionId ?? null,
+    ]
   );
   return (inserted.rowCount ?? 0) > 0;
 }
@@ -147,7 +156,7 @@ export async function loadPositionById(positionId: string, client?: ForexQueryab
 }
 
 function str(v: unknown): string {
-  return v == null ? '' : String(v);
+  return forexStr(v);
 }
 
 function rowToPosition(row: Record<string, unknown>): ForexPositionRecord {

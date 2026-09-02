@@ -95,6 +95,7 @@ export function ForexLightweightChart(props: {
   orderOverlays?: OrderOverlay[];
   calendarMarkers?: CalendarMarker[];
   tool?: ForexAnalysisTool;
+  hideDrawings?: boolean;
   drawingsKey?: string;
   onCrosshair?: (state: ForexChartCrosshair) => void;
   onPricePick?: (price: number, time: number | null) => void;
@@ -723,6 +724,15 @@ export function ForexLightweightChart(props: {
       .map((p) => ({ time: p.time as UTCTimestamp, value: p.value }));
     macdSeriesRef.current.setData(pts);
   }, [props.macd]);
+
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    host.classList.toggle('forex-drawings-hidden', Boolean(props.hideDrawings));
+    for (const node of host.querySelectorAll('svg')) {
+      (node as SVGElement).style.visibility = props.hideDrawings ? 'hidden' : '';
+    }
+  }, [props.hideDrawings, props.tool]);
 
   return (
     <div className="absolute inset-0 flex flex-col">

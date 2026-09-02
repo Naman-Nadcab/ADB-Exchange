@@ -1,5 +1,5 @@
 import { db } from '../../../lib/database.js';
-import { fxq, type ForexQueryable } from '../durability/tx.js';
+import { forexIsoTimestamp, forexStr, fxq, type ForexQueryable } from '../durability/tx.js';
 import type { ForexExecutionAttempt, ForexExecutionEvent, ForexExecutionRecord, ForexFill } from './models.js';
 import type { ForexExecutionRequest } from './request.js';
 import type { ForexExecReason, ForexExecutionState } from './states.js';
@@ -92,7 +92,7 @@ export async function persistFill(fill: ForexFill, client?: ForexQueryable): Pro
       fill.side,
       fill.price,
       fill.volume,
-      fill.timestamp,
+      forexIsoTimestamp(fill.timestamp, new Date().toISOString()),
     ]
   );
 }
@@ -111,13 +111,13 @@ export async function persistEvent(event: ForexExecutionEvent, client?: ForexQue
       event.provider ?? null,
       event.reason ?? null,
       JSON.stringify(event.metadata ?? {}),
-      event.timestamp,
+      forexIsoTimestamp(event.timestamp, new Date().toISOString()),
     ]
   );
 }
 
 function str(v: unknown): string {
-  return v == null ? '' : String(v);
+  return forexStr(v);
 }
 
 export async function loadAllExecutions(): Promise<ForexExecutionRecord[]> {

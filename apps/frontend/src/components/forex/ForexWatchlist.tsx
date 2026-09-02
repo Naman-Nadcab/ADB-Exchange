@@ -95,6 +95,11 @@ export function ForexWatchlist() {
                     type="button"
                     title={label}
                     onClick={() => focusSymbol(symbol)}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/forex-symbol', symbol);
+                      e.dataTransfer.effectAllowed = 'copy';
+                    }}
                     onDoubleClick={() => {
                       focusSymbol(symbol);
                       setPanel('ticket', true);
@@ -151,7 +156,7 @@ export function ForexWatchlist() {
         )}
       </div>
       <div className="border-t border-border px-2 py-1 text-[9px] text-muted-foreground">
-        Session {marketOpen ? 'open' : sessions?.eligibility.reason ?? '—'} · Dbl-click New Order · Chg% n/a
+        Session {marketOpen ? 'open' : sessions?.eligibility.reason ?? '—'} · Dbl-click New Order · Drag to chart · Chg% n/a
       </div>
       {menu ? (
         <div

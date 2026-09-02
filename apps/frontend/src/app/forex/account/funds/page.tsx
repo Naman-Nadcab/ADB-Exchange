@@ -76,14 +76,21 @@ export default function ForexFundsPage() {
         </p>
         {authed ? (
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => void claimDemo()}
-              className="inline-flex min-h-11 items-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-            >
-              {busy ? 'Crediting…' : needsDemo ? 'Claim $10,000 Demo Funds' : 'Replay Demo Credit (idempotent)'}
-            </button>
+            {needsDemo ? (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void claimDemo()}
+                className="inline-flex min-h-11 items-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                {busy ? 'Crediting…' : 'Claim $10,000 Demo Funds'}
+              </button>
+            ) : (
+              <p className="rounded-lg border border-buy/40 bg-buy/10 px-4 py-2 text-sm text-buy">
+                FOREX DEMO ACCOUNT funded · {fxPlain(account?.ledgerBalance ?? balance?.ledgerBalance)} {currency} ·
+                INITIAL_FUNDING · not real money. Additional claim is blocked (idempotent).
+              </p>
+            )}
             <Link
               href={FOREX_ROUTES.trade}
               className="inline-flex min-h-11 items-center rounded-lg border border-border px-5 text-sm font-semibold hover:border-primary/40"

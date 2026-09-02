@@ -38,6 +38,7 @@
     "test:forex-phase95": "FOREX_SILENT_LOG=1 tsx src/services/forex/forex-phase95.test.ts",
     "test:forex-phase96": "FOREX_SILENT_LOG=1 tsx src/services/forex/forex-phase96.test.ts",
     "test:forex-demo-cert": "FOREX_SILENT_LOG=1 FOREX_DEMO_FUNDING=true tsx src/services/forex/forex-demo-cert.test.ts",
+    "test:forex-live-journey": "FOREX_SILENT_LOG=1 tsx src/services/forex/forex-live-journey.cert.ts",
     "test:forex-phase105b": "FOREX_SILENT_LOG=1 tsx src/services/forex/forex-phase105b-close.test.ts",
     "test:forex-phase104": "FOREX_SILENT_LOG=1 tsx src/services/forex/forex-phase104-preview.test.ts",
     "test:tier1-alerts": "tsx scripts/tier1-alert-verify.ts",

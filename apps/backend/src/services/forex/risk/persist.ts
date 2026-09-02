@@ -1,4 +1,5 @@
 import { db } from '../../../lib/database.js';
+import { forexIsoTimestamp, forexStr } from '../durability/tx.js';
 import type { ForexAccountRiskRecord, ForexRiskEvent } from './models.js';
 import type { ForexAccountRiskState } from './states.js';
 
@@ -10,7 +11,7 @@ export async function persistAccountRiskState(row: ForexAccountRiskRecord): Prom
        state = EXCLUDED.state,
        reason = EXCLUDED.reason,
        updated_at = EXCLUDED.updated_at`,
-    [row.accountId, row.state, row.reason, row.updatedAt]
+    [row.accountId, row.state, row.reason, forexIsoTimestamp(row.updatedAt, new Date().toISOString())]
   );
 }
 
@@ -28,7 +29,7 @@ export async function persistRiskEvent(event: ForexRiskEvent): Promise<void> {
       event.fromState ?? null,
       event.toState ?? null,
       JSON.stringify(event.metadata ?? {}),
-      event.timestamp,
+      forexIsoTimestamp(event.timestamp, new Date().toISOString()),
     ]
   );
 }
@@ -39,6 +40,6 @@ export async function loadAllAccountRiskStates(): Promise<ForexAccountRiskRecord
     accountId: String(row.account_id),
     state: String(row.state) as ForexAccountRiskState,
     reason: row.reason == null ? null : String(row.reason),
-    updatedAt: String(row.updated_at),
+    updatedAt: forexStr(row.updated_at),
   }));
 }

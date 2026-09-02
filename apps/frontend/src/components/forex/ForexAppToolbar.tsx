@@ -107,9 +107,9 @@ export function ForexAppToolbar() {
             },
           },
           {
-            label: 'Save Chart Template',
+            label: 'Save Chart Study Preset',
             onClick: () => {
-              const name = window.prompt('Template name', 'Scalping');
+              const name = window.prompt('Study preset name (studies only — not drawings)', 'Scalping');
               if (!name?.trim()) return;
               saveChartTemplate({
                 name: name.trim(),
@@ -123,14 +123,14 @@ export function ForexAppToolbar() {
             },
           },
           {
-            label: 'Manage Templates…',
+            label: 'List Study Presets…',
             onClick: () => {
               const t = listChartTemplates();
               if (!t.length) {
-                window.alert('No chart templates saved.');
+                window.alert('No study presets saved. These store study/RSI/MACD flags only, not drawings.');
                 return;
               }
-              window.alert(t.map((x) => `• ${x.name} (${x.study})`).join('\n'));
+              window.alert(`Study presets (not full chart serialization):\n${t.map((x) => `• ${x.name} (${x.study})`).join('\n')}`);
             },
           },
         ]}

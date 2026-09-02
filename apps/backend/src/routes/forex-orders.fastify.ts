@@ -4,6 +4,9 @@
  */
 import type { FastifyInstance } from 'fastify';
 import { forexAuthenticate } from '../services/forex/auth/forex-authenticate.js';
+import { ForexLedgerError } from '../services/forex/ledger/models.js';
+import { ForexPnlError } from '../services/forex/pnl/engine.js';
+import { ForexPositionError } from '../services/forex/positions/models.js';
 import { ForexOrderError, publicForexOrder } from '../services/forex/orders/models.js';
 import type { ForexOrderModifyRequest } from '../services/forex/orders/models.js';
 import type { ForexOrderRequest } from '../services/forex/orders/request.js';
@@ -50,6 +53,19 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
           error: { code: e.reason, message: e.message, source: 'SIMULATED' },
         });
       }
+      if (e instanceof ForexPositionError || e instanceof ForexLedgerError) {
+        return reply.status(e.statusCode).send({
+          success: false,
+          error: { code: e.reason, message: e.message, source: 'SIMULATED' },
+        });
+      }
+      if (e instanceof ForexPnlError) {
+        return reply.status(409).send({
+          success: false,
+          error: { code: e.reason, message: e.message, source: 'SIMULATED' },
+        });
+      }
+      request.log.error({ err: e instanceof Error ? e.message : 'unknown' }, 'forex order place failed');
       return reply.status(500).send({
         success: false,
         error: { code: 'FOREX_ORDER_FAILED', message: 'Order failed', source: 'SIMULATED' },

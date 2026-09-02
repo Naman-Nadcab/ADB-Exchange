@@ -76,6 +76,7 @@ export async function registerForexPositionRoutes(app: FastifyInstance): Promise
           error: { code: e.reason, message: e.message, source: 'SIMULATED' },
         });
       }
+      request.log.error({ err: e instanceof Error ? e.message : 'unknown' }, 'forex position close failed');
       return reply.status(500).send({
         success: false,
         error: { code: 'FOREX_CLOSE_FAILED', message: 'Close failed', source: 'SIMULATED' },
