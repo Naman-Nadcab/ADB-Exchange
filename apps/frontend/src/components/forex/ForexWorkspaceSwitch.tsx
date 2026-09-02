@@ -11,6 +11,7 @@ const ITEMS: { id: ForexWorkspaceId; label: string }[] = [
   { id: 'custom', label: 'Custom' },
 ];
 
+/** Compact profile presets for panel visibility — used from chart workspace when needed. */
 export function ForexWorkspaceSwitch() {
   const workspace = useForexWorkspaceStore((s) => s.workspace);
   const setWorkspace = useForexWorkspaceStore((s) => s.setWorkspace);
@@ -18,8 +19,8 @@ export function ForexWorkspaceSwitch() {
   const setPanel = useForexWorkspaceStore((s) => s.setPanel);
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-stone-200 bg-stone-50 px-3 py-1 text-[11px] dark:border-stone-800 dark:bg-[#121416]">
-      <span className="text-stone-400">Workspace</span>
+    <div className="flex flex-wrap items-center gap-1 border-b border-border bg-card px-2 py-0.5 text-[10px]">
+      <span className="text-muted-foreground">Profile</span>
       {ITEMS.map((w) => (
         <button
           key={w.id}
@@ -42,15 +43,15 @@ export function ForexWorkspaceSwitch() {
             }
           }}
           className={cn(
-            'rounded px-2 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400',
-            workspace === w.id ? 'bg-white font-medium shadow-none dark:bg-stone-800' : 'text-stone-500'
+            'rounded px-1.5 py-0.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+            workspace === w.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
           )}
         >
           {w.label}
         </button>
       ))}
-      <span className="ml-auto text-stone-400">
-        Local only · {panels.watchlist ? 'WL' : ''} {panels.chart ? 'CH' : ''} {panels.ticket ? 'TK' : ''}
+      <span className="ml-auto font-mono text-[9px] text-muted-foreground">
+        {panels.watchlist ? 'MW' : ''} {panels.ticket ? 'TK' : ''} local
       </span>
     </div>
   );

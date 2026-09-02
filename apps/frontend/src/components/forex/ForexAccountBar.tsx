@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/auth';
 import { useForexStore } from '@/lib/forex/state/store';
 import { fxMoney, fxPlain, fxSigned } from './format';
 
-export function ForexAccountBar() {
+export function ForexAccountBar(props?: { compact?: boolean }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const account = useForexStore((s) => s.account);
@@ -15,10 +15,11 @@ export function ForexAccountBar() {
   const pnl = useForexStore((s) => s.pnl);
   const hydratePhase = useForexStore((s) => s.hydratePhase);
   const lastHydratedAt = useForexStore((s) => s.lastHydratedAt);
+  const h = props?.compact ? 'h-8' : 'h-10';
 
   if (!authed) {
     return (
-      <div className="flex h-10 items-center gap-4 overflow-x-auto border-t border-border bg-card px-3 text-[11px]">
+      <div className={`flex ${h} items-center gap-4 overflow-x-auto border-t border-border bg-card px-3 text-[11px]`}>
         <span className="text-muted-foreground">Sign in to view balance, equity and margin.</span>
         <Link
           href="/login?redirect=/forex/trade"
@@ -32,7 +33,7 @@ export function ForexAccountBar() {
 
   if ((hydratePhase === 'idle' || hydratePhase === 'hydrating') && !account && !balance) {
     return (
-      <div className="flex h-10 items-center border-t border-border bg-card px-3 text-[11px] text-muted-foreground" role="status">
+      <div className={`flex ${h} items-center border-t border-border bg-card px-3 text-[11px] text-muted-foreground`} role="status">
         Loading account…
       </div>
     );
@@ -40,7 +41,7 @@ export function ForexAccountBar() {
 
   if (hydratePhase === 'error' && !account && !balance) {
     return (
-      <div className="flex h-10 items-center border-t border-border bg-card px-3 text-[11px] text-sell" role="alert">
+      <div className={`flex ${h} items-center border-t border-border bg-card px-3 text-[11px] text-sell`} role="alert">
         Unable to load account.
       </div>
     );
@@ -57,7 +58,7 @@ export function ForexAccountBar() {
 
   return (
     <div
-      className="flex h-10 shrink-0 items-center gap-5 overflow-x-auto border-t border-border bg-card px-3 font-mono text-[11px] tabular-nums"
+      className={`flex ${h} shrink-0 items-center gap-4 overflow-x-auto border-t border-border bg-card px-2.5 font-mono text-[11px] tabular-nums`}
       aria-label="Account bar"
     >
       <Item k="Balance" v={fxMoney(ledger, currency)} />

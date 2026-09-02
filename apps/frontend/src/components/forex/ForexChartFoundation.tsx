@@ -541,8 +541,18 @@ export function ForexChartFoundation(props?: {
       aria-label="Forex market chart"
       onMouseDown={activate}
     >
-      <div className="forex-chrome-strip flex h-8 min-w-0 items-center gap-2 overflow-x-auto border-b border-border bg-card/95 px-2">
-        <span className="shrink-0 font-mono text-[13px] font-semibold tracking-tight">
+      <div
+        className={cn(
+          'forex-chrome-strip flex min-w-0 items-center gap-1.5 overflow-x-auto border-b border-border bg-card/95 px-1.5',
+          props?.compactChrome ? 'h-7' : 'h-8 gap-2 px-2'
+        )}
+      >
+        <span
+          className={cn(
+            'shrink-0 font-mono font-semibold tracking-tight',
+            props?.compactChrome ? 'text-[11px]' : 'text-[13px]'
+          )}
+        >
           {inst?.displaySymbol ?? selected}
         </span>
         {activeTf ? (
@@ -742,8 +752,8 @@ export function ForexChartFoundation(props?: {
         />
       ) : null}
 
-      {showCalendar && calendarForSymbol.length > 0 ? (
-        <div className="flex h-7 min-w-0 items-center gap-3 overflow-x-auto border-b border-border/70 bg-card/40 px-2 text-[10px] text-muted-foreground">
+      {showCalendar && calendarForSymbol.length > 0 && !props?.compactChrome ? (
+        <div className="flex h-6 min-w-0 items-center gap-3 overflow-x-auto border-b border-border/70 bg-card/40 px-2 text-[10px] text-muted-foreground">
           <span className="shrink-0 font-medium text-foreground">Calendar</span>
           {calendarForSymbol.map((ev, i) => (
             <span key={`${ev.time}-${i}`} className="shrink-0 whitespace-nowrap">

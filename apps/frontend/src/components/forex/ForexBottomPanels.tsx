@@ -4,28 +4,33 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { describeForexError } from '@/lib/forex/models/errors';
+import type { ForexPublicOrder } from '@/lib/forex/models/types';
 import { useForexOrderEngine } from '@/lib/forex/runtime/useForexOrderEngine';
 import { useForexStore } from '@/lib/forex/state/store';
-import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
+import { type ForexBottomTab, useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { cn } from '@/lib/utils';
 import { ForexPositionPanel } from './ForexPositionPanel';
 import { fxNum, fxPlain } from './format';
 
-type Tab = 'positions' | 'orders' | 'history' | 'risk' | 'dom';
-
-const TABS: Array<{ id: Tab; label: string }> = [
+const TABS: Array<{ id: ForexBottomTab; label: string }> = [
   { id: 'positions', label: 'Trade' },
   { id: 'orders', label: 'Orders' },
-  { id: 'history', label: 'Deals' },
+  { id: 'fills', label: 'Fills' },
+  { id: 'history', label: 'History' },
   { id: 'risk', label: 'Exposure' },
   { id: 'dom', label: 'DOM' },
 ];
 
-const PENDING_STATUSES = new Set(['ACCEPTED', 'PENDING', 'NEW', 'TRIGGERING', 'VALIDATING', 'CANCEL_PENDING']);
+const PENDING_STATUSES = new Set(['ACCEPTED', 'PENDING', 'NEW', 'TRIGGERING', 'VALIDATING', 'CANCEL_PENDING', 'WORKING', 'OPEN', 'PARTIAL']);
+const CLOSED_STATUSES = new Set(['FILLED', 'CANCELLED', 'CANCELED', 'REJECTED', 'EXPIRED', 'CLOSED']);
 
 export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: boolean }) {
-  const [tab, setTab] = useState<Tab>('positions');
-  const [cancelId, setCancelId] = useState<string | null>(null);
+  const tab = useForexWorkspaceStore((s) => s.bottomTab);
+  const setTab = useForexWorkspaceStore((s) => s.setBottomTab);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editPrice, setEditPrice] = useState('');
+  const [editVol, setEditVol] = useState('');
   const authed = hasForexPrivateSession();
   const orders = useForexStore((s) => s.orders);
   const fills = useForexStore((s) => s.fills);
@@ -44,14 +49,42 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
     () => Object.values(orders).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
     [orders]
   );
+  const workingOrders = useMemo(
+    () => orderRows.filter((o) => PENDING_STATUSES.has(String(o.status).toUpperCase())),
+    [orderRows]
+  );
+  const historyOrders = useMemo(
+    () => orderRows.filter((o) => CLOSED_STATUSES.has(String(o.status).toUpperCase())),
+    [orderRows]
+  );
   const compact = Boolean(props.compact) || bottomCollapsed || chartMode === 'expand';
+
+  function startEdit(o: (typeof orderRows)[number]) {
+    setEditId(o.orderId);
+    setEditPrice(o.requestedPrice ?? '');
+    setEditVol(o.requestedVolume);
+  }
+
+  async function submitEdit(o: (typeof orderRows)[number]) {
+    setBusyId(o.orderId);
+    try {
+      await engine.modify(o.orderId, {
+        requestedPrice: editPrice.trim() || undefined,
+        volume: editVol.trim() || undefined,
+        expectedVersion: o.version,
+      });
+      setEditId(null);
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   return (
     <section
       className="terminal-panel-subtle flex h-full min-h-0 flex-col border-t border-border bg-card"
-      aria-label="Positions orders history risk"
+      aria-label="Trade toolbox"
     >
-      <div className="flex h-12 shrink-0 items-center gap-1 border-b border-border px-2" role="tablist">
+      <div className="flex h-8 shrink-0 items-center gap-0.5 border-b border-border px-1.5" role="tablist">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -63,27 +96,27 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
               if (compact) setBottomCollapsed(false);
             }}
             className={cn(
-              'rounded-md px-2.5 py-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              'rounded px-2 py-0.5 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
               tab === t.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
             )}
           >
             {t.label}
           </button>
         ))}
-        <span className="ml-2 hidden text-[10px] text-muted-foreground sm:inline">
-          {props.hasTradingData ? 'Active' : 'No open activity'}
+        <span className="ml-1 hidden text-[9px] text-muted-foreground sm:inline">
+          {props.hasTradingData ? 'Active' : 'Idle'}
         </span>
         {!authed ? (
           <Link
             href="/login?redirect=/forex/trade"
-            className="ml-auto text-[11px] text-primary underline-offset-2 hover:underline"
+            className="ml-auto text-[10px] text-primary underline-offset-2 hover:underline"
           >
             Sign in
           </Link>
         ) : (
           <button
             type="button"
-            className="ml-auto rounded px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="ml-auto rounded px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             onClick={() => toggleBottomCollapsed()}
             aria-pressed={compact}
           >
@@ -97,15 +130,15 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
           {tab === 'positions' ? (
             <ForexPositionPanel />
           ) : !authed ? (
-            <div className="flex flex-col items-start justify-center gap-1.5 px-4 py-4">
+            <div className="flex flex-col items-start justify-center gap-1.5 px-3 py-3">
               <p className="text-[12px] font-medium">Private account data</p>
               <p className="max-w-md text-[11px] text-muted-foreground">
                 Sign in to view orders, fills and risk for this Forex account.
               </p>
             </div>
           ) : tab === 'orders' ? (
-            orderRows.length === 0 ? (
-              <p className="px-3 py-3 text-[12px] text-muted-foreground">No orders.</p>
+            workingOrders.length === 0 && orderRows.length === 0 ? (
+              <p className="px-3 py-3 text-[12px] text-muted-foreground">No working orders.</p>
             ) : (
               <div>
                 {engine.error ? (
@@ -113,162 +146,117 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
                     {describeForexError(engine.error)}
                   </p>
                 ) : null}
-                <table className="w-full text-left font-mono text-[11px] tabular-nums">
-                  <thead className="sticky top-0 bg-card text-[10px] uppercase tracking-wide text-muted-foreground">
-                    <tr>
-                      <th className="px-2 py-1.5 font-medium">Id</th>
-                      <th className="px-2 py-1.5 font-medium">Symbol</th>
-                      <th className="px-2 py-1.5 font-medium">Side</th>
-                      <th className="px-2 py-1.5 font-medium">Type</th>
-                      <th className="px-2 py-1.5 font-medium">Price</th>
-                      <th className="px-2 py-1.5 font-medium">Vol</th>
-                      <th className="px-2 py-1.5 font-medium">Status</th>
-                      <th className="px-2 py-1.5 font-medium">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orderRows.map((o) => {
-                      const canCancel = PENDING_STATUSES.has(String(o.status).toUpperCase());
-                      return (
-                        <tr key={o.orderId} className="border-t border-border/80 hover:bg-accent/40">
-                          <td className="px-2 py-1.5">{o.orderId.slice(0, 8)}</td>
-                          <td className="px-2 py-1.5">
-                            <button
-                              type="button"
-                              className="text-primary hover:underline"
-                              onClick={() => focusSymbol(o.symbol)}
-                            >
-                              {o.symbol}
-                            </button>
-                          </td>
-                          <td className={cn('px-2 py-1.5', o.side === 'buy' ? 'text-buy' : 'text-sell')}>{o.side}</td>
-                          <td className="px-2 py-1.5">{o.type}</td>
-                          <td className="px-2 py-1.5">{o.requestedPrice ? fxNum(o.requestedPrice) : '—'}</td>
-                          <td className="px-2 py-1.5">
-                            {o.filledVolume}/{o.requestedVolume}
-                          </td>
-                          <td className="px-2 py-1.5">
-                            {o.status}
-                            {o.failureReason ? (
-                              <span className="block text-[10px] text-muted-foreground">{o.failureReason}</span>
-                            ) : null}
-                          </td>
-                          <td className="px-2 py-1.5">
-                            {canCancel ? (
-                              <span className="inline-flex gap-1">
-                                <button
-                                  type="button"
-                                  disabled={engine.busy || cancelId === o.orderId}
-                                  className="rounded border border-border px-1.5 py-0.5 text-[10px] hover:border-primary/40 disabled:opacity-50"
-                                  onClick={() => {
-                                    const next = window.prompt(
-                                      'New trigger/limit price (leave blank to keep)',
-                                      o.requestedPrice ?? ''
-                                    );
-                                    if (next == null) return;
-                                    const vol = window.prompt('New volume (leave blank to keep)', o.requestedVolume);
-                                    if (vol == null) return;
-                                    setCancelId(o.orderId);
-                                    void engine
-                                      .modify(o.orderId, {
-                                        requestedPrice: next.trim() || undefined,
-                                        volume: vol.trim() || undefined,
-                                        expectedVersion: o.version,
-                                      })
-                                      .finally(() => setCancelId(null));
-                                  }}
-                                >
-                                  Modify
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={engine.busy || cancelId === o.orderId}
-                                  className="rounded border border-border px-1.5 py-0.5 text-[10px] hover:border-sell/40 hover:text-sell disabled:opacity-50"
-                                  onClick={() => {
-                                    if (!window.confirm(`Cancel order ${o.orderId.slice(0, 8)}…?`)) return;
-                                    setCancelId(o.orderId);
-                                    void engine.cancel(o.orderId).finally(() => setCancelId(null));
-                                  }}
-                                >
-                                  {cancelId === o.orderId ? '…' : 'Cancel'}
-                                </button>
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <OrderTable
+                  rows={workingOrders.length ? workingOrders : orderRows}
+                  focusSymbol={focusSymbol}
+                  editId={editId}
+                  editPrice={editPrice}
+                  editVol={editVol}
+                  setEditPrice={setEditPrice}
+                  setEditVol={setEditVol}
+                  startEdit={startEdit}
+                  submitEdit={submitEdit}
+                  cancelEdit={() => setEditId(null)}
+                  busyId={busyId}
+                  engineBusy={engine.busy}
+                  onCancel={(id) => {
+                    setBusyId(id);
+                    void engine.cancel(id).finally(() => setBusyId(null));
+                  }}
+                  showActions
+                />
               </div>
             )
-          ) : tab === 'history' ? (
-            <div className="p-2">
-              {fills.length === 0 ? (
-                <p className="px-1 py-3 text-[12px] text-muted-foreground">No fills yet.</p>
-              ) : (
-                <table className="w-full text-left font-mono text-[11px] tabular-nums">
-                  <thead className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                    <tr>
-                      <th className="px-2 py-1 font-medium">Fill</th>
-                      <th className="px-2 py-1 font-medium">Symbol</th>
-                      <th className="px-2 py-1 font-medium">Side</th>
-                      <th className="px-2 py-1 font-medium">Volume</th>
-                      <th className="px-2 py-1 font-medium">Price</th>
-                      <th className="px-2 py-1 font-medium">Time</th>
+          ) : tab === 'fills' ? (
+            fills.length === 0 ? (
+              <p className="px-3 py-3 text-[12px] text-muted-foreground">No fills yet.</p>
+            ) : (
+              <table className="w-full text-left font-mono text-[11px] tabular-nums">
+                <thead className="sticky top-0 bg-card text-[9px] uppercase tracking-wide text-muted-foreground">
+                  <tr>
+                    <th className="px-2 py-1 font-medium">Fill</th>
+                    <th className="px-2 py-1 font-medium">Order</th>
+                    <th className="px-2 py-1 font-medium">Symbol</th>
+                    <th className="px-2 py-1 font-medium">Side</th>
+                    <th className="px-2 py-1 font-medium">Vol</th>
+                    <th className="px-2 py-1 font-medium">Price</th>
+                    <th className="px-2 py-1 font-medium">Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fills.map((f) => (
+                    <tr key={f.fillId} className="border-t border-border/80 hover:bg-accent/40">
+                      <td className="px-2 py-1">{f.fillId.slice(0, 8)}</td>
+                      <td className="px-2 py-1">{f.orderId?.slice(0, 8) ?? '—'}</td>
+                      <td className="px-2 py-1">{f.symbol}</td>
+                      <td className={cn('px-2 py-1', f.side === 'buy' ? 'text-buy' : 'text-sell')}>{f.side}</td>
+                      <td className="px-2 py-1">{fxPlain(f.volume)}</td>
+                      <td className="px-2 py-1">{fxNum(f.price)}</td>
+                      <td className="px-2 py-1">{new Date(f.timestamp).toLocaleString()}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {fills.map((f) => (
-                      <tr key={f.fillId} className="border-t border-border/80 hover:bg-accent/40">
-                        <td className="px-2 py-1.5">{f.fillId.slice(0, 8)}</td>
-                        <td className="px-2 py-1.5">{f.symbol}</td>
-                        <td className="px-2 py-1.5">{f.side}</td>
-                        <td className="px-2 py-1.5">{fxPlain(f.volume)}</td>
-                        <td className="px-2 py-1.5">{fxNum(f.price)}</td>
-                        <td className="px-2 py-1.5">{new Date(f.timestamp).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  ))}
+                </tbody>
+              </table>
+            )
+          ) : tab === 'history' ? (
+            <div>
+              {historyOrders.length === 0 ? (
+                <p className="px-3 py-3 text-[12px] text-muted-foreground">No closed / cancelled orders yet.</p>
+              ) : (
+                <OrderTable
+                  rows={historyOrders}
+                  focusSymbol={focusSymbol}
+                  editId={null}
+                  editPrice=""
+                  editVol=""
+                  setEditPrice={() => undefined}
+                  setEditVol={() => undefined}
+                  startEdit={() => undefined}
+                  submitEdit={async () => undefined}
+                  cancelEdit={() => undefined}
+                  busyId={null}
+                  engineBusy={false}
+                  onCancel={() => undefined}
+                  showActions={false}
+                />
               )}
               {ledger.length ? (
-                <p className="mt-2 px-1 text-[10px] text-muted-foreground">
-                  {ledger.length} ledger rows available in Account → Ledger.
+                <p className="border-t border-border/60 px-2 py-1.5 text-[10px] text-muted-foreground">
+                  {ledger.length} ledger rows · Account → Ledger for full cash movements.
                 </p>
               ) : null}
             </div>
           ) : tab === 'risk' ? (
-            <div className="grid gap-2 p-3 sm:grid-cols-2 lg:grid-cols-4">
-              <RiskCard label="Account risk" value={fxPlain(risk?.state)} note={risk?.reason} />
-              <RiskCard
-                label="Margin"
-                value={fxPlain(margin?.status)}
-                note={margin?.marginLevel != null ? `Level ${fxPlain(margin.marginLevel)}` : undefined}
+            <div className="flex flex-wrap gap-x-5 gap-y-1 px-3 py-2 font-mono text-[11px] tabular-nums">
+              <RiskLine k="Risk" v={fxPlain(risk?.state)} note={risk?.reason} />
+              <RiskLine
+                k="Margin"
+                v={fxPlain(margin?.status)}
+                note={margin?.marginLevel != null ? `Lv ${fxPlain(margin.marginLevel)}` : undefined}
               />
-              <RiskCard label="Used / Free" value={`${fxNum(margin?.usedMargin, 2)} / ${fxNum(margin?.freeMargin, 2)}`} />
-              <RiskCard
-                label="Exposure"
-                value={fxPlain((exposure?.accountNet as string) ?? (exposure?.net as string) ?? margin?.netExposure)}
-                note={
-                  risk?.dealing
-                    ? risk.dealing.account.newOrderEnabled === false
-                      ? 'New orders disabled'
-                      : 'New orders enabled'
-                    : undefined
+              <RiskLine k="Used" v={fxNum(margin?.usedMargin, 2)} />
+              <RiskLine k="Free" v={fxNum(margin?.freeMargin, 2)} />
+              <RiskLine
+                k="Exposure"
+                v={fxPlain((exposure?.accountNet as string) ?? (exposure?.net as string) ?? margin?.netExposure)}
+              />
+              <RiskLine
+                k="Dealing"
+                v={
+                  risk?.dealing?.account.newOrderEnabled === false
+                    ? 'New orders OFF'
+                    : 'New orders ON'
                 }
               />
             </div>
           ) : (
-            <div className="flex h-full flex-col items-start justify-center gap-2 px-4 py-4">
-              <p className="text-[12px] font-semibold text-foreground">Depth of Market unavailable</p>
+            <div className="flex h-full flex-col items-start justify-center gap-1.5 px-3 py-3">
+              <p className="text-[12px] font-semibold">Depth of Market unavailable</p>
               <p className="max-w-lg text-[11px] leading-relaxed text-muted-foreground">
-                This Forex feed does not provide institutional order-book depth. Bid/Ask quotes are available in Market Watch
-                and the chart. DOM levels are not fabricated.
+                This Forex feed does not provide institutional order-book depth. Bid/Ask are in Market Watch and the
+                chart. DOM levels are not fabricated.
               </p>
-              <p className="font-mono text-[10px] text-muted-foreground">Status · UNAVAILABLE · SIMULATED quotes only</p>
+              <p className="font-mono text-[10px] text-muted-foreground">UNAVAILABLE · SIMULATED quotes</p>
             </div>
           )}
         </div>
@@ -279,12 +267,146 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
   );
 }
 
-function RiskCard(props: { label: string; value: string; note?: string | null }) {
+function RiskLine(props: { k: string; v: string; note?: string | null }) {
   return (
-    <div className="min-w-0 rounded-md border border-border/70 bg-muted/15 px-2.5 py-2">
-      <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{props.label}</p>
-      <p className="mt-1 font-mono text-[13px] tabular-nums text-foreground">{props.value}</p>
-      {props.note ? <p className="mt-0.5 text-[10px] text-muted-foreground">{props.note}</p> : null}
-    </div>
+    <span className="inline-flex items-baseline gap-1.5">
+      <span className="text-[9px] uppercase tracking-wide text-muted-foreground">{props.k}</span>
+      <span className="text-foreground">{props.v}</span>
+      {props.note ? <span className="text-[9px] text-muted-foreground">{props.note}</span> : null}
+    </span>
+  );
+}
+
+function OrderTable(props: {
+  rows: ForexPublicOrder[];
+  focusSymbol: (s: string) => void;
+  editId: string | null;
+  editPrice: string;
+  editVol: string;
+  setEditPrice: (v: string) => void;
+  setEditVol: (v: string) => void;
+  startEdit: (o: ForexPublicOrder) => void;
+  submitEdit: (o: ForexPublicOrder) => Promise<void>;
+  cancelEdit: () => void;
+  busyId: string | null;
+  engineBusy: boolean;
+  onCancel: (id: string) => void;
+  showActions: boolean;
+}) {
+  return (
+    <table className="w-full text-left font-mono text-[11px] tabular-nums">
+      <thead className="sticky top-0 bg-card text-[9px] uppercase tracking-wide text-muted-foreground">
+        <tr>
+          <th className="px-2 py-1 font-medium">Id</th>
+          <th className="px-2 py-1 font-medium">Symbol</th>
+          <th className="px-2 py-1 font-medium">Side</th>
+          <th className="px-2 py-1 font-medium">Type</th>
+          <th className="px-2 py-1 font-medium">Price</th>
+          <th className="px-2 py-1 font-medium">Vol</th>
+          <th className="px-2 py-1 font-medium">Status</th>
+          {props.showActions ? <th className="px-2 py-1 font-medium">Action</th> : null}
+        </tr>
+      </thead>
+      <tbody>
+        {props.rows.map((o) => {
+          const editing = props.editId === o.orderId;
+          const canAct = props.showActions && PENDING_STATUSES.has(String(o.status).toUpperCase());
+          return (
+            <tr key={o.orderId} className="border-t border-border/80 hover:bg-accent/40">
+              <td className="px-2 py-1">{o.orderId.slice(0, 8)}</td>
+              <td className="px-2 py-1">
+                <button
+                  type="button"
+                  className="text-primary hover:underline"
+                  onClick={() => props.focusSymbol(o.symbol)}
+                >
+                  {o.symbol}
+                </button>
+              </td>
+              <td className={cn('px-2 py-1', o.side === 'buy' ? 'text-buy' : 'text-sell')}>{o.side}</td>
+              <td className="px-2 py-1">{o.type}</td>
+              <td className="px-2 py-1">
+                {editing ? (
+                  <input
+                    value={props.editPrice}
+                    onChange={(e) => props.setEditPrice(e.target.value)}
+                    className="w-20 rounded border border-border bg-background px-1 py-0.5 text-[11px]"
+                    aria-label="Modify price"
+                  />
+                ) : o.requestedPrice ? (
+                  fxNum(o.requestedPrice)
+                ) : (
+                  '—'
+                )}
+              </td>
+              <td className="px-2 py-1">
+                {editing ? (
+                  <input
+                    value={props.editVol}
+                    onChange={(e) => props.setEditVol(e.target.value)}
+                    className="w-14 rounded border border-border bg-background px-1 py-0.5 text-[11px]"
+                    aria-label="Modify volume"
+                  />
+                ) : (
+                  `${o.filledVolume}/${o.requestedVolume}`
+                )}
+              </td>
+              <td className="px-2 py-1">
+                {o.status}
+                {o.failureReason ? (
+                  <span className="block text-[9px] text-muted-foreground">{o.failureReason}</span>
+                ) : null}
+              </td>
+              {props.showActions ? (
+                <td className="px-2 py-1">
+                  {canAct ? (
+                    editing ? (
+                      <span className="inline-flex gap-1">
+                        <button
+                          type="button"
+                          disabled={props.engineBusy || props.busyId === o.orderId}
+                          className="rounded border border-primary/40 px-1.5 py-0.5 text-[10px] text-primary disabled:opacity-50"
+                          onClick={() => void props.submitEdit(o)}
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded border border-border px-1.5 py-0.5 text-[10px]"
+                          onClick={props.cancelEdit}
+                        >
+                          Abort
+                        </button>
+                      </span>
+                    ) : (
+                      <span className="inline-flex gap-1">
+                        <button
+                          type="button"
+                          disabled={props.engineBusy || props.busyId === o.orderId}
+                          className="rounded border border-border px-1.5 py-0.5 text-[10px] hover:border-primary/40 disabled:opacity-50"
+                          onClick={() => props.startEdit(o)}
+                        >
+                          Modify
+                        </button>
+                        <button
+                          type="button"
+                          disabled={props.engineBusy || props.busyId === o.orderId}
+                          className="rounded border border-border px-1.5 py-0.5 text-[10px] hover:border-sell/40 hover:text-sell disabled:opacity-50"
+                          onClick={() => props.onCancel(o.orderId)}
+                        >
+                          {props.busyId === o.orderId ? '…' : 'Cancel'}
+                        </button>
+                      </span>
+                    )
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </td>
+              ) : null}
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
   );
 }

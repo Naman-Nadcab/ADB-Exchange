@@ -117,11 +117,11 @@ export function ForexOrderTicket() {
 
   return (
     <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-l border-border bg-card" aria-label="Order ticket">
-      <div className="flex h-9 items-center justify-between border-b border-border px-2.5">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">New order</span>
+      <div className="flex h-7 items-center justify-between border-b border-border px-2">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">New Order</span>
         <span className="font-mono text-[11px] font-medium">{inst?.displaySymbol ?? selected}</span>
       </div>
-      <div className="grid grid-cols-3 gap-1 border-b border-border bg-muted/20 px-2 py-1.5 font-mono text-[11px]">
+      <div className="grid grid-cols-3 gap-1 border-b border-border bg-muted/20 px-2 py-1 font-mono text-[11px]">
         <div>
           <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Bid</p>
           <p className="eda-quote font-medium text-buy">{quote ? fxNum(quote.bid, digits) : '—'}</p>
@@ -135,7 +135,7 @@ export function ForexOrderTicket() {
           <p className="font-medium text-foreground">{quote?.spreadPips ?? '—'}</p>
         </div>
       </div>
-      <div className="min-h-0 flex-1 space-y-2 overflow-auto p-2.5">
+      <div className="min-h-0 flex-1 space-y-1.5 overflow-auto p-2">
         <div className="grid grid-cols-2 gap-1">
           {(['buy', 'sell'] as const).map((s) => (
             <button
@@ -143,7 +143,7 @@ export function ForexOrderTicket() {
               type="button"
               onClick={() => setSide(s)}
               className={cn(
-                'h-9 rounded-md font-mono text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'h-8 rounded font-mono text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 s === 'buy' && side === 'buy' && 'bg-buy text-white',
                 s === 'sell' && side === 'sell' && 'bg-sell text-white',
                 side !== s && 'bg-muted text-muted-foreground hover:text-foreground'

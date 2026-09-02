@@ -39,9 +39,9 @@ export function ForexWatchlist() {
 
   return (
     <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-r border-border bg-card" aria-label="Market watch">
-      <div className="flex h-9 items-center justify-between border-b border-border px-2.5">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Market watch</span>
-        <span className="font-mono text-[10px] text-muted-foreground">{watchlist.length}</span>
+      <div className="flex h-7 items-center justify-between border-b border-border px-2">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Market Watch</span>
+        <span className="font-mono text-[9px] text-muted-foreground">{watchlist.length}</span>
       </div>
       <ForexSymbolSearch />
       <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-1 border-b border-border px-2 py-1 font-mono text-[9px] uppercase tracking-wide text-muted-foreground">

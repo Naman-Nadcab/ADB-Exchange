@@ -43,8 +43,8 @@ const DRAW_TOOLS: Array<{ id: ForexAnalysisTool; label: string }> = [
 
 export function ForexChartToolbar(props: Props) {
   return (
-    <div className="flex h-8 min-w-0 items-center gap-1 overflow-x-auto border-b border-border bg-card/80 px-2">
-      <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">Draw</span>
+    <div className="flex h-7 min-w-0 items-center gap-1 overflow-x-auto border-b border-border bg-card/80 px-1.5">
+      <span className="shrink-0 text-[9px] uppercase tracking-wide text-muted-foreground">Draw</span>
       <div className="flex items-center gap-0.5" role="group" aria-label="Drawing tools">
         {DRAW_TOOLS.map((t) => (
           <button
