@@ -16,8 +16,8 @@ export function ForexTopNav(props?: { compact?: boolean }) {
 
   return (
     <header className="mobile-app-topbar sticky top-0 z-40 shrink-0 border-b border-border bg-card/95 backdrop-blur-sm">
-      <div className={cn('flex items-center gap-2 px-2', compact ? 'h-9' : 'h-12 gap-3 px-3')}>
-        <BrandLogo variant="horizontal-gold" size={compact ? 'icon' : 'header'} href={ROUTES.home} />
+      <div className={cn('flex items-center gap-2 px-2', compact ? 'h-10' : 'h-12 gap-3 px-3')}>
+        <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} />
         <EdaProductSwitcher variant="terminal" />
         <nav
           className={cn(
