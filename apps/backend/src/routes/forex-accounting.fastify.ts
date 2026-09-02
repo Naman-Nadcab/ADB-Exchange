@@ -12,6 +12,7 @@ import { ForexLedgerError } from '../services/forex/ledger/models.js';
 import { ForexConversionError } from '../services/forex/pnl/conversion.js';
 import { ForexPnlError } from '../services/forex/pnl/engine.js';
 import { getForexPositionService } from '../services/forex/positions/service.js';
+import { getForexOrderService } from '../services/forex/orders/service.js';
 import { getForexPricingService } from '../services/forex/quotes.service.js';
 import { isForexFundingTestAuthorized } from '../services/forex/http.js';
 import { fxDecimal } from '../services/forex/decimal-fx.js';
@@ -256,6 +257,7 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
         error: { code: 'FOREX_DEMO_PRICE_REJECTED', message: 'Simulated quote was not accepted', source: 'SIMULATED' },
       });
     }
+    await getForexOrderService().evaluateQuote(quote);
     return reply.send({
       success: true,
       data: {

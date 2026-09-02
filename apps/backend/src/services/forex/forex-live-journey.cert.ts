@@ -398,8 +398,23 @@ void (async () => {
         applied.json.data?.quote.bid === applied.json.data?.quote.ask &&
         Math.abs(dec(applied.json.data?.quote.spread)) === 0
     );
-    const got = await req<{ order: { status: string } }>('GET', `/api/v1/forex/orders/${orderId}`, token);
-    mark(`${label}_FILL`, got.status === 200 && got.json.data?.order.status === 'FILLED');
+    let status = 'UNKNOWN';
+    for (let i = 0; i < 20; i += 1) {
+      const got = await req<{ order: { status: string; failureReason?: string | null } }>(
+        'GET',
+        `/api/v1/forex/orders/${orderId}`,
+        token
+      );
+      status = got.json.data?.order.status ?? 'UNKNOWN';
+      if (status === 'FILLED' || status === 'FAILED' || status === 'REJECTED') {
+        if (status !== 'FILLED') {
+          console.error(`${label}-fill`, status, got.json.data?.order.failureReason ?? null);
+        }
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 150));
+    }
+    mark(`${label}_FILL`, status === 'FILLED');
     const pos = await req<{ positions: Array<{ positionId: string; status: string }> }>('GET', '/api/v1/forex/positions', token);
     const openPos = (pos.json.data?.positions ?? []).find((p) => p.status === 'OPEN');
     mark(`${label}_POSITION`, Boolean(openPos));
