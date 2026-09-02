@@ -82,7 +82,7 @@ export default function ForexMarketsPage() {
 
   const openTrade = (symbol: string) => {
     setSelected(symbol);
-    router.push(FOREX_ROUTES.trade);
+    router.push(`${FOREX_ROUTES.trade}?symbol=${encodeURIComponent(symbol)}`);
   };
 
   return (

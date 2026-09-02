@@ -10,7 +10,17 @@ const TEMPLATES_KEY = 'eda-forex-chart-templates-v1';
 export type ForexChartMode = 'normal' | 'expand' | 'fullscreen';
 export type ForexChartLayout = '1' | '2h' | '2v' | '2x2' | '2x3' | '3x3';
 export type ForexLinkGroup = 'none' | 'A' | 'B';
-export type ForexBottomTab = 'positions' | 'orders' | 'fills' | 'history' | 'risk' | 'dom';
+export type ForexBottomTab =
+  | 'positions'
+  | 'orders'
+  | 'fills'
+  | 'history'
+  | 'risk'
+  | 'dom'
+  | 'news'
+  | 'calendar'
+  | 'journal';
+export type ForexMwFilter = 'all' | 'favorites' | 'fx_major' | 'fx_cross' | 'metal';
 
 export interface ForexChartSlot {
   id: string;
@@ -39,6 +49,8 @@ export interface ForexWorkspaceProfile {
 export interface ForexWorkspaceSnapshot {
   selectedSymbol: string;
   watchlist: string[];
+  favorites?: string[];
+  mwFilter?: ForexMwFilter;
   panels: ForexPanelVisibility;
   watchlistWidth: number;
   ticketWidth: number;
@@ -49,6 +61,7 @@ export interface ForexWorkspaceSnapshot {
   activeChartId: string;
   chartTimeframe: string;
   bottomTab: ForexBottomTab;
+  linkTimeframe?: boolean;
   oneClickAcked: boolean;
 }
 
@@ -68,6 +81,8 @@ export interface ForexWorkspaceState {
   workspace: ForexWorkspaceId;
   selectedSymbol: string;
   watchlist: string[];
+  favorites: string[];
+  mwFilter: ForexMwFilter;
   panels: ForexPanelVisibility;
   watchlistWidth: number;
   ticketWidth: number;
@@ -81,6 +96,7 @@ export interface ForexWorkspaceState {
   activeChartId: string;
   maximizedChartId: string | null;
   layoutBeforeMaximize: ForexChartLayout | null;
+  linkTimeframe: boolean;
   oneClickEnabled: boolean;
   oneClickAcked: boolean;
   /** Chart → ticket draft. Not persisted. */
@@ -97,8 +113,11 @@ export interface ForexWorkspaceState {
   setSelectedSymbol: (symbol: string) => void;
   /** Watchlist/Market focus — updates active chart (+ linked group) and ticket symbol. */
   focusSymbol: (symbol: string) => void;
+  applyDeepLink: (symbol?: string | null, timeframe?: string | null) => void;
   setWatchlist: (symbols: string[]) => void;
   toggleWatchlistSymbol: (symbol: string) => void;
+  toggleFavorite: (symbol: string) => void;
+  setMwFilter: (f: ForexMwFilter) => void;
   setPanel: (key: keyof ForexPanelVisibility, visible: boolean) => void;
   setWatchlistWidth: (n: number) => void;
   setTicketWidth: (n: number) => void;
@@ -111,6 +130,10 @@ export interface ForexWorkspaceState {
   setChartLayout: (layout: ForexChartLayout) => void;
   setActiveChartId: (id: string) => void;
   updateChartSlot: (id: string, patch: Partial<Pick<ForexChartSlot, 'symbol' | 'timeframe' | 'linkGroup'>>) => void;
+  setLinkTimeframe: (on: boolean) => void;
+  addChart: (symbol?: string) => void;
+  removeChart: (id: string) => void;
+  duplicateChart: (id: string) => void;
   maximizeChart: (id: string) => void;
   restoreMaximizedChart: () => void;
   setOneClickEnabled: (on: boolean) => void;
@@ -316,6 +339,8 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
       workspace: 'trading',
       selectedSymbol: 'EURUSD',
       watchlist: DEFAULT_WATCHLIST,
+      favorites: ['EURUSD', 'GBPUSD', 'XAUUSD'],
+      mwFilter: 'all',
       panels: DEFAULT_PANELS,
       watchlistWidth: 228,
       ticketWidth: 236,
@@ -329,6 +354,7 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
       activeChartId: 'c1',
       maximizedChartId: null,
       layoutBeforeMaximize: null,
+      linkTimeframe: false,
       oneClickEnabled: false,
       oneClickAcked: false,
       ticketDraft: null,
@@ -354,12 +380,40 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
           chartTimeframe: active?.timeframe ?? get().chartTimeframe,
         });
       },
+      applyDeepLink: (rawSymbol, rawTf) => {
+        const symbol = rawSymbol
+          ? String(rawSymbol)
+              .replace(/[^A-Za-z0-9]/g, '')
+              .toUpperCase()
+          : null;
+        const timeframe = rawTf ? String(rawTf).trim() : null;
+        if (symbol) get().focusSymbol(symbol);
+        if (timeframe) {
+          const { activeChartId, charts, linkTimeframe } = get();
+          const active = charts.find((c) => c.id === activeChartId);
+          const group = active?.linkGroup ?? 'none';
+          set({
+            chartTimeframe: timeframe,
+            charts: charts.map((c) => {
+              if (c.id === activeChartId) return { ...c, timeframe };
+              if (linkTimeframe && group !== 'none' && c.linkGroup === group) return { ...c, timeframe };
+              return c;
+            }),
+          });
+        }
+      },
       setWatchlist: (watchlist) => set({ watchlist }),
       toggleWatchlistSymbol: (symbol) => {
         const s = symbol.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
         const cur = get().watchlist;
         set({ watchlist: cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s] });
       },
+      toggleFavorite: (symbol) => {
+        const s = symbol.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        const cur = get().favorites;
+        set({ favorites: cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s] });
+      },
+      setMwFilter: (mwFilter) => set({ mwFilter }),
       setPanel: (key, visible) => set({ panels: { ...get().panels, [key]: visible } }),
       setWatchlistWidth: (watchlistWidth) =>
         set({ watchlistWidth: Math.min(FOREX_WATCHLIST_MAX, Math.max(FOREX_WATCHLIST_MIN, watchlistWidth)) }),
@@ -395,8 +449,20 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
         });
       },
       updateChartSlot: (id, patch) => {
-        const charts = get().charts.map((c) => (c.id === id ? { ...c, ...patch } : c));
-        const active = charts.find((c) => c.id === get().activeChartId);
+        const state = get();
+        let charts = state.charts.map((c) => (c.id === id ? { ...c, ...patch } : c));
+        const slot = charts.find((c) => c.id === id);
+        if (slot && patch.timeframe && state.linkTimeframe && slot.linkGroup !== 'none') {
+          charts = charts.map((c) =>
+            c.linkGroup === slot.linkGroup ? { ...c, timeframe: patch.timeframe as string } : c
+          );
+        }
+        if (slot && patch.symbol && slot.linkGroup !== 'none') {
+          charts = charts.map((c) =>
+            c.linkGroup === slot.linkGroup ? { ...c, symbol: patch.symbol as string } : c
+          );
+        }
+        const active = charts.find((c) => c.id === state.activeChartId);
         set({
           charts,
           ...(active && active.id === id
@@ -406,6 +472,65 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
               }
             : {}),
         });
+      },
+      setLinkTimeframe: (linkTimeframe) => set({ linkTimeframe }),
+      addChart: (symbol) => {
+        const { charts, chartLayout, selectedSymbol, chartTimeframe, activeChartId } = get();
+        const used = new Set(charts.map((c) => c.id));
+        let nextId = '';
+        for (let i = 1; i <= 9; i++) {
+          if (!used.has(`c${i}`)) {
+            nextId = `c${i}`;
+            break;
+          }
+        }
+        if (!nextId) return;
+        const slot: ForexChartSlot = {
+          id: nextId,
+          symbol: (symbol ?? selectedSymbol).replace(/[^A-Za-z0-9]/g, '').toUpperCase(),
+          timeframe: chartTimeframe,
+          linkGroup: 'none',
+        };
+        const nextCharts = [...charts, slot].slice(0, 9);
+        const n = nextCharts.length;
+        let layout = chartLayout;
+        if (n <= 1) layout = '1';
+        else if (n === 2) layout = chartLayout === '2v' ? '2v' : '2h';
+        else if (n <= 4) layout = '2x2';
+        else if (n <= 6) layout = '2x3';
+        else layout = '3x3';
+        set({ charts: nextCharts, chartLayout: layout, activeChartId: nextId || activeChartId });
+      },
+      removeChart: (id) => {
+        const { charts, activeChartId, chartLayout } = get();
+        if (charts.length <= 1) return;
+        const nextCharts = charts.filter((c) => c.id !== id);
+        if (nextCharts.length === 0) return;
+        const n = nextCharts.length;
+        let layout = chartLayout;
+        if (n === 1) layout = '1';
+        else if (n === 2) layout = chartLayout === '2v' ? '2v' : '2h';
+        else if (n <= 4) layout = n <= 2 ? layout : '2x2';
+        else if (n <= 6) layout = '2x3';
+        else layout = '3x3';
+        const nextActive = activeChartId === id ? nextCharts[0].id : activeChartId;
+        set({
+          charts: nextCharts,
+          chartLayout: layout,
+          activeChartId: nextActive,
+          maximizedChartId: null,
+          layoutBeforeMaximize: null,
+        });
+      },
+      duplicateChart: (id) => {
+        const src = get().charts.find((c) => c.id === id);
+        if (!src) return;
+        get().addChart(src.symbol);
+        const { charts, activeChartId } = get();
+        const created = charts.find((c) => c.id === activeChartId);
+        if (created) {
+          get().updateChartSlot(created.id, { timeframe: src.timeframe, linkGroup: 'none' });
+        }
       },
       maximizeChart: (id) => {
         const { chartLayout, maximizedChartId, layoutBeforeMaximize } = get();
@@ -441,6 +566,8 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
         return {
           selectedSymbol: s.selectedSymbol,
           watchlist: s.watchlist,
+          favorites: s.favorites,
+          mwFilter: s.mwFilter,
           panels: s.panels,
           watchlistWidth: s.watchlistWidth,
           ticketWidth: s.ticketWidth,
@@ -451,6 +578,7 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
           activeChartId: s.activeChartId,
           chartTimeframe: s.chartTimeframe,
           bottomTab: s.bottomTab,
+          linkTimeframe: s.linkTimeframe,
           oneClickAcked: s.oneClickAcked,
         };
       },
@@ -458,6 +586,8 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
         set({
           selectedSymbol: snap.selectedSymbol,
           watchlist: snap.watchlist,
+          favorites: snap.favorites ?? get().favorites,
+          mwFilter: snap.mwFilter ?? 'all',
           panels: snap.panels,
           watchlistWidth: snap.watchlistWidth,
           ticketWidth: snap.ticketWidth,
@@ -468,6 +598,7 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
           activeChartId: snap.activeChartId,
           chartTimeframe: snap.chartTimeframe,
           bottomTab: snap.bottomTab ?? 'positions',
+          linkTimeframe: snap.linkTimeframe ?? false,
           oneClickAcked: snap.oneClickAcked,
           maximizedChartId: null,
           layoutBeforeMaximize: null,
@@ -521,6 +652,8 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
         workspace: s.workspace,
         selectedSymbol: s.selectedSymbol,
         watchlist: s.watchlist,
+        favorites: s.favorites,
+        mwFilter: s.mwFilter,
         panels: s.panels,
         watchlistWidth: s.watchlistWidth,
         ticketWidth: s.ticketWidth,
@@ -532,6 +665,7 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
         chartLayout: s.maximizedChartId ? s.layoutBeforeMaximize ?? s.chartLayout : s.chartLayout,
         charts: s.charts,
         activeChartId: s.activeChartId,
+        linkTimeframe: s.linkTimeframe,
         oneClickAcked: s.oneClickAcked,
       }),
     }

@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { forexApi, unwrap } from '@/lib/forex/api/client';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { describeForexError } from '@/lib/forex/models/errors';
 import type { ForexPublicOrder } from '@/lib/forex/models/types';
@@ -19,6 +20,9 @@ const TABS: Array<{ id: ForexBottomTab; label: string }> = [
   { id: 'history', label: 'History' },
   { id: 'risk', label: 'Exposure' },
   { id: 'dom', label: 'DOM' },
+  { id: 'news', label: 'News' },
+  { id: 'calendar', label: 'Calendar' },
+  { id: 'journal', label: 'Journal' },
 ];
 
 const PENDING_STATUSES = new Set(['ACCEPTED', 'PENDING', 'NEW', 'TRIGGERING', 'VALIDATING', 'CANCEL_PENDING', 'WORKING', 'OPEN', 'PARTIAL']);
@@ -43,7 +47,84 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
   const setBottomCollapsed = useForexWorkspaceStore((s) => s.setBottomCollapsed);
   const focusSymbol = useForexWorkspaceStore((s) => s.focusSymbol);
   const chartMode = useForexWorkspaceStore((s) => s.chartMode);
+  const hydratePhase = useForexStore((s) => s.hydratePhase);
+  const lastHydratedAt = useForexStore((s) => s.lastHydratedAt);
+  const socketState = useForexStore((s) => s.socketState);
   const engine = useForexOrderEngine();
+  const [newsState, setNewsState] = useState<{
+    status: 'idle' | 'loading' | 'ready' | 'unavailable' | 'error';
+    items: Array<Record<string, unknown>>;
+    reason?: string;
+  }>({ status: 'idle', items: [] });
+  const [calState, setCalState] = useState<{
+    status: 'idle' | 'loading' | 'ready' | 'unavailable' | 'error';
+    events: Array<Record<string, unknown>>;
+    reason?: string;
+  }>({ status: 'idle', events: [] });
+
+  useEffect(() => {
+    if (tab !== 'news' || newsState.status === 'loading' || newsState.status === 'ready') return;
+    let cancelled = false;
+    setNewsState({ status: 'loading', items: [] });
+    void forexApi.news().then((raw) => {
+      if (cancelled) return;
+      const res = unwrap(raw);
+      if (!res.ok) {
+        setNewsState({ status: 'error', items: [], reason: res.error.message });
+        return;
+      }
+      const avail = String(res.data.availability ?? '').toUpperCase();
+      if (avail && avail !== 'AVAILABLE' && avail !== 'OK' && avail !== 'READY') {
+        setNewsState({
+          status: 'unavailable',
+          items: [],
+          reason: res.data.reason ?? res.data.availability,
+        });
+        return;
+      }
+      const items = Array.isArray(res.data.items) ? (res.data.items as Array<Record<string, unknown>>) : [];
+      setNewsState({
+        status: items.length ? 'ready' : 'unavailable',
+        items,
+        reason: items.length ? undefined : res.data.reason ?? 'No news items',
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, newsState.status]);
+
+  useEffect(() => {
+    if (tab !== 'calendar' || calState.status === 'loading' || calState.status === 'ready') return;
+    let cancelled = false;
+    setCalState({ status: 'loading', events: [] });
+    void forexApi.calendar().then((raw) => {
+      if (cancelled) return;
+      const res = unwrap(raw);
+      if (!res.ok) {
+        setCalState({ status: 'error', events: [], reason: res.error.message });
+        return;
+      }
+      const avail = String(res.data.availability ?? '').toUpperCase();
+      if (avail && avail !== 'AVAILABLE' && avail !== 'OK' && avail !== 'READY') {
+        setCalState({
+          status: 'unavailable',
+          events: [],
+          reason: res.data.reason ?? res.data.availability,
+        });
+        return;
+      }
+      const events = Array.isArray(res.data.events) ? (res.data.events as Array<Record<string, unknown>>) : [];
+      setCalState({
+        status: events.length ? 'ready' : 'unavailable',
+        events,
+        reason: events.length ? undefined : res.data.reason ?? 'No calendar events',
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, calState.status]);
 
   const orderRows = useMemo(
     () => Object.values(orders).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
@@ -249,7 +330,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
                 }
               />
             </div>
-          ) : (
+          ) : tab === 'dom' ? (
             <div className="flex h-full flex-col items-start justify-center gap-1.5 px-3 py-3">
               <p className="text-[12px] font-semibold">Depth of Market unavailable</p>
               <p className="max-w-lg text-[11px] leading-relaxed text-muted-foreground">
@@ -258,12 +339,86 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
               </p>
               <p className="font-mono text-[10px] text-muted-foreground">UNAVAILABLE · SIMULATED quotes</p>
             </div>
+          ) : tab === 'news' ? (
+            <IntelList
+              status={newsState.status}
+              reason={newsState.reason}
+              empty="No news items from provider."
+              rows={newsState.items.map((item, i) => ({
+                key: String(item.id ?? item.headline ?? i),
+                primary: String(item.headline ?? item.title ?? 'Headline unavailable'),
+                secondary: [item.source, item.time ?? item.publishedAt, item.currency ?? item.category]
+                  .filter(Boolean)
+                  .map(String)
+                  .join(' · '),
+              }))}
+            />
+          ) : tab === 'calendar' ? (
+            <IntelList
+              status={calState.status}
+              reason={calState.reason}
+              empty="No calendar events from provider."
+              rows={calState.events.map((ev, i) => ({
+                key: String(ev.id ?? `${ev.event}-${ev.time}-${i}`),
+                primary: String(ev.event ?? ev.title ?? 'Event unavailable'),
+                secondary: [ev.currency, ev.impact, ev.time, ev.actual != null ? `A ${ev.actual}` : 'A —', ev.forecast != null ? `F ${ev.forecast}` : null, ev.previous != null ? `P ${ev.previous}` : null]
+                  .filter(Boolean)
+                  .map(String)
+                  .join(' · '),
+              }))}
+            />
+          ) : (
+            <div className="space-y-1 px-3 py-2 font-mono text-[11px] text-muted-foreground">
+              <p className="text-[10px] uppercase tracking-wide">Journal · local session</p>
+              <p>Hydrate: {hydratePhase}</p>
+              <p>Socket: {socketState}</p>
+              <p>Last hydrate: {lastHydratedAt ? new Date(lastHydratedAt).toLocaleString() : '—'}</p>
+              <p>Orders in memory: {orderRows.length}</p>
+              <p>Fills in memory: {fills.length}</p>
+              <p className="text-[9px]">Server journal stream not exposed — showing client session facts only.</p>
+            </div>
           )}
         </div>
       ) : (
         <p className="sr-only">Bottom panel collapsed. Expand to view {tab}.</p>
       )}
     </section>
+  );
+}
+
+function IntelList(props: {
+  status: 'idle' | 'loading' | 'ready' | 'unavailable' | 'error';
+  reason?: string;
+  empty: string;
+  rows: Array<{ key: string; primary: string; secondary: string }>;
+}) {
+  if (props.status === 'loading' || props.status === 'idle') {
+    return <p className="px-3 py-3 text-[12px] text-muted-foreground">Loading…</p>;
+  }
+  if (props.status === 'error') {
+    return (
+      <p className="px-3 py-3 text-[12px] text-sell" role="alert">
+        {props.reason ?? 'Request failed'}
+      </p>
+    );
+  }
+  if (props.status === 'unavailable' || props.rows.length === 0) {
+    return (
+      <div className="px-3 py-3">
+        <p className="text-[12px] text-muted-foreground">{props.empty}</p>
+        {props.reason ? <p className="mt-1 text-[10px] text-muted-foreground">{props.reason}</p> : null}
+      </div>
+    );
+  }
+  return (
+    <ul className="divide-y divide-border/70">
+      {props.rows.slice(0, 80).map((r) => (
+        <li key={r.key} className="px-3 py-1.5">
+          <p className="text-[11px] text-foreground">{r.primary}</p>
+          {r.secondary ? <p className="font-mono text-[10px] text-muted-foreground">{r.secondary}</p> : null}
+        </li>
+      ))}
+    </ul>
   );
 }
 

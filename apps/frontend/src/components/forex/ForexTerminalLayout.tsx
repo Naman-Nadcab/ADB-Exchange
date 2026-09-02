@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, type ReactNode } from 'react';
+import { Suspense, useEffect, useMemo, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { isForexTradePath, showForexMarketChrome } from '@/lib/forex/routes';
@@ -8,8 +8,10 @@ import { useForexRuntime } from '@/lib/forex/runtime/useForexRuntime';
 import { useForexStore } from '@/lib/forex/state/store';
 import { resolveForexBottomHeight, useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { ForexAccountBar } from './ForexAccountBar';
+import { ForexAppToolbar } from './ForexAppToolbar';
 import { ForexBottomPanels } from './ForexBottomPanels';
 import { ForexChartWorkspace } from './ForexChartWorkspace';
+import { ForexDeepLinkSync } from './ForexDeepLinkSync';
 import { ForexMarketStrip } from './ForexMarketStrip';
 import { ForexMobileNav } from './ForexMobileNav';
 import { ForexOrderTicket } from './ForexOrderTicket';
@@ -88,6 +90,12 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
       } ${chromeHidden ? 'fixed inset-0 z-50' : ''}`}
     >
       {!chromeHidden ? <ForexTopNav compact={trade} /> : null}
+      {trade ? (
+        <Suspense fallback={null}>
+          <ForexDeepLinkSync />
+        </Suspense>
+      ) : null}
+      {trade && !chromeHidden ? <ForexAppToolbar /> : null}
       {!chromeHidden && marketChrome ? <ForexMarketStrip /> : null}
       {!chromeHidden && marketChrome ? <ForexSessionBar /> : null}
       {hydratePhase === 'error' && hydrateError ? (
