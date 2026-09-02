@@ -21,7 +21,7 @@ export function ForexSymbolSearch() {
   }, [instruments, q]);
 
   return (
-    <div className="border-b border-stone-200 p-2 dark:border-stone-800">
+    <div className="border-b border-border p-2">
       <label className="sr-only" htmlFor="fx-symbol-search">
         Search Forex symbols
       </label>
@@ -30,7 +30,7 @@ export function ForexSymbolSearch() {
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search EURUSD…"
-        className="h-8 w-full rounded border border-stone-200 bg-white px-2 font-mono text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-stone-400 dark:border-stone-700 dark:bg-[#0e1012]"
+        className="h-8 w-full rounded-md border border-border bg-background px-2 font-mono text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
         autoComplete="off"
       />
       {q.trim() ? (
@@ -39,7 +39,7 @@ export function ForexSymbolSearch() {
             <li key={i.symbol}>
               <button
                 type="button"
-                className="flex w-full items-center justify-between rounded px-1.5 py-1 text-left hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 dark:hover:bg-stone-800"
+                className="flex w-full items-center justify-between rounded-md px-1.5 py-1 text-left hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => {
                   setSelected(i.symbol);
                   if (!watchlist.includes(i.symbol)) toggle(i.symbol);
@@ -47,11 +47,11 @@ export function ForexSymbolSearch() {
                 }}
               >
                 <span className="font-mono">{i.displaySymbol}</span>
-                <span className="text-stone-400">{i.assetClass}</span>
+                <span className="text-[10px] uppercase text-muted-foreground">{i.assetClass.replace('fx_', '')}</span>
               </button>
             </li>
           ))}
-          {rows.length === 0 ? <li className="px-1.5 py-1 text-stone-500">No Forex instrument matches.</li> : null}
+          {rows.length === 0 ? <li className="px-1.5 py-1 text-muted-foreground">No Forex instrument matches.</li> : null}
         </ul>
       ) : null}
     </div>

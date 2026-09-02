@@ -37,74 +37,66 @@ export function ForexWatchlist() {
 
   return (
     <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-r border-border bg-card" aria-label="Watchlist">
-      <div className="flex h-8 items-center justify-between px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-        Favorites
+      <div className="flex h-9 items-center justify-between border-b border-border px-2.5">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Favorites</span>
+        <span className="font-mono text-[10px] text-muted-foreground">{watchlist.length}</span>
       </div>
       <ForexSymbolSearch />
+      <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-1 border-b border-border px-2 py-1 font-mono text-[9px] uppercase tracking-wide text-muted-foreground">
+        <span>Symbol</span>
+        <span className="w-14 text-right">Bid</span>
+        <span className="w-14 text-right">Ask</span>
+        <span className="w-8 text-right">Spr</span>
+        <span className="w-9 text-right">Status</span>
+      </div>
       <div className="min-h-0 flex-1 overflow-auto">
         {watchlist.length === 0 ? (
-          <p className="px-2 py-3 text-[11px] text-muted-foreground">Search a Forex symbol to add it. No Crypto symbols.</p>
+          <p className="px-2.5 py-4 text-[11px] leading-relaxed text-muted-foreground">
+            Search a Forex symbol to pin it here. Crypto symbols are not included.
+          </p>
         ) : (
           GROUP_ORDER.map((group) => {
             const rows = groups[group.id] ?? [];
             if (rows.length === 0) return null;
             return (
               <div key={group.id}>
-                <p className="sticky top-0 bg-muted/70 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                <p className="sticky top-0 z-[1] bg-muted/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground backdrop-blur">
                   {group.label}
                 </p>
-                <table className="w-full text-left text-[11px]">
-                  <thead className="sr-only">
-                    <tr>
-                      <th>Symbol</th>
-                      <th>Bid</th>
-                      <th>Ask</th>
-                      <th>Spread</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((symbol) => {
-                      const inst = instruments[symbol];
-                      const q = quotes[symbol];
-                      const stale = !q || isQuoteStale(q);
-                      const digits = inst?.digits ?? 5;
-                      const status = !q ? 'Unavailable' : stale ? 'Stale' : q.status === 'TRADEABLE' ? 'Live' : q.status;
-                      return (
-                        <tr
-                          key={symbol}
-                          className={cn(
-                            'cursor-pointer border-t border-border/70',
-                            selected === symbol && 'bg-accent'
-                          )}
-                        >
-                          <td className="px-2 py-1.5">
-                            <button
-                              type="button"
-                              className="w-full text-left font-mono tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                              onClick={() => setSelected(symbol)}
-                            >
-                              {inst?.displaySymbol ?? symbol}
-                            </button>
-                          </td>
-                          <td className="eda-quote px-1 py-1.5 font-mono text-buy">{q ? fxNum(q.bid, digits) : '—'}</td>
-                          <td className="eda-quote px-1 py-1.5 font-mono text-sell">{q ? fxNum(q.ask, digits) : '—'}</td>
-                          <td className="px-1 py-1.5 font-mono text-muted-foreground">{q?.spreadPips ?? '—'}</td>
-                          <td className={cn('px-1 py-1.5 font-mono', stale ? 'text-primary' : 'text-muted-foreground')}>
-                            {status}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                {rows.map((symbol) => {
+                  const inst = instruments[symbol];
+                  const q = quotes[symbol];
+                  const stale = !q || isQuoteStale(q);
+                  const digits = inst?.digits ?? 5;
+                  const status = !q ? '—' : stale ? 'Stale' : 'Live';
+                  const active = selected === symbol;
+                  return (
+                    <button
+                      key={symbol}
+                      type="button"
+                      onClick={() => setSelected(symbol)}
+                      className={cn(
+                        'grid w-full grid-cols-[1fr_auto_auto_auto_auto] items-center gap-x-1 border-l-2 border-t border-border/70 px-2 py-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+                        active ? 'border-l-primary bg-primary/10' : 'border-l-transparent hover:bg-accent/60'
+                      )}
+                    >
+                      <span className="truncate font-mono text-[11px] font-medium tabular-nums">{inst?.displaySymbol ?? symbol}</span>
+                      <span className="eda-quote w-14 text-right font-mono text-[11px] text-buy">{q ? fxNum(q.bid, digits) : '—'}</span>
+                      <span className="eda-quote w-14 text-right font-mono text-[11px] text-sell">{q ? fxNum(q.ask, digits) : '—'}</span>
+                      <span className="w-8 text-right font-mono text-[10px] text-muted-foreground">{q?.spreadPips ?? '—'}</span>
+                      <span className={cn('w-9 text-right font-mono text-[10px]', stale ? 'text-primary' : 'text-buy')}>
+                        {status}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             );
           })
         )}
       </div>
-      <div className="border-t border-border px-2 py-1 text-[10px] text-muted-foreground">
-        Session {marketOpen ? 'open' : sessions?.eligibility.reason ?? '—'}. Change % is not provided by the quote API.
+      <div className="border-t border-border px-2.5 py-1.5 text-[10px] text-muted-foreground">
+        Session {marketOpen ? 'open' : sessions?.eligibility.reason ?? '—'}. Change % unavailable from current quotes.
       </div>
     </aside>
   );

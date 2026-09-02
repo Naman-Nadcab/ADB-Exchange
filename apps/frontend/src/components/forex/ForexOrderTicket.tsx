@@ -57,16 +57,16 @@ export function ForexOrderTicket() {
   const previewData = preview.data;
 
   const blockReason = useMemo(() => {
-    if (!authed) return 'Sign in with a user JWT to place Forex orders.';
-    if (!sessionOpen) return `Market closed (${sessions?.eligibility.reason ?? 'SESSION'}).`;
-    if (stale) return quote ? `Quote is ${quote.freshness}/${quote.quality}/${quote.status}. Live execution disabled.` : 'No quote from backend.';
-    if (risk?.state === 'HALTED') return `Account halted (${risk.reason ?? 'FOREX_HALTED'}).`;
+    if (!authed) return 'Sign in to place Forex orders.';
+    if (!sessionOpen) return `Market closed${sessions?.eligibility.reason ? ` · ${sessions.eligibility.reason}` : ''}.`;
+    if (stale) return quote ? 'Quote is stale. Execution is paused until the feed recovers.' : 'Quote unavailable.';
+    if (risk?.state === 'HALTED') return `Account halted${risk.reason ? ` · ${risk.reason}` : ''}.`;
     if (risk?.state === 'RESTRICTED' || risk?.state === 'LIQUIDATION_ONLY') {
-      return `Risk ${risk.state}${risk.reason ? `: ${risk.reason}` : ''}. New risk-increasing orders are restricted.`;
+      return `Risk ${risk.state}${risk.reason ? ` · ${risk.reason}` : ''}. New risk-increasing orders are restricted.`;
     }
-    if (!newOrders) return 'Dealing desk has disabled new orders.';
+    if (!newOrders) return 'New orders are currently disabled.';
     if (!sideEnabled) return `${side.toUpperCase()} is disabled for this symbol.`;
-    if ((type === 'limit' || type === 'stop') && !price.trim()) return 'Limit and stop orders require requestedPrice.';
+    if ((type === 'limit' || type === 'stop') && !price.trim()) return 'Limit and stop orders require a price.';
     return null;
   }, [authed, sessionOpen, sessions?.eligibility.reason, stale, quote, risk, newOrders, sideEnabled, side, type, price]);
 
@@ -97,10 +97,25 @@ export function ForexOrderTicket() {
 
   return (
     <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-l border-border bg-card" aria-label="Order ticket">
-      <div className="flex h-8 items-center justify-between px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-        Order ticket
+      <div className="flex h-9 items-center justify-between border-b border-border px-2.5">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Order ticket</span>
+        <span className="font-mono text-[11px] font-medium">{inst?.displaySymbol ?? selected}</span>
       </div>
-      <div className="min-h-0 flex-1 space-y-3 overflow-auto p-2">
+      <div className="grid grid-cols-3 gap-1 border-b border-border bg-muted/20 px-2 py-2 font-mono text-[11px]">
+        <div>
+          <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Bid</p>
+          <p className="eda-quote font-medium text-buy">{quote ? fxNum(quote.bid, digits) : '—'}</p>
+        </div>
+        <div>
+          <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Ask</p>
+          <p className="eda-quote font-medium text-sell">{quote ? fxNum(quote.ask, digits) : '—'}</p>
+        </div>
+        <div>
+          <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Spread</p>
+          <p className="font-medium text-foreground">{quote?.spreadPips ?? '—'}</p>
+        </div>
+      </div>
+      <div className="min-h-0 flex-1 space-y-2.5 overflow-auto p-2.5">
         <div className="grid grid-cols-2 gap-1">
           {(['buy', 'sell'] as const).map((s) => (
             <button
@@ -108,10 +123,10 @@ export function ForexOrderTicket() {
               type="button"
               onClick={() => setSide(s)}
               className={cn(
-                'h-8 rounded font-mono text-[12px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'h-9 rounded-md font-mono text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 s === 'buy' && side === 'buy' && 'bg-buy text-white',
                 s === 'sell' && side === 'sell' && 'bg-sell text-white',
-                side !== s && 'bg-muted text-muted-foreground'
+                side !== s && 'bg-muted text-muted-foreground hover:text-foreground'
               )}
             >
               {s.toUpperCase()}
@@ -125,22 +140,25 @@ export function ForexOrderTicket() {
               type="button"
               onClick={() => setType(t)}
               className={cn(
-                'h-7 flex-1 rounded border text-[11px] capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                type === t ? 'border-primary bg-primary/15 text-primary' : 'border-border text-muted-foreground'
+                'h-7 flex-1 rounded-md border text-[11px] font-medium capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                type === t ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-muted-foreground hover:text-foreground'
               )}
             >
               {t}
             </button>
           ))}
         </div>
-        <Field label="Size (lots)" value={volume} onChange={setVolume} hint={inst ? `${inst.minVolume}–${inst.maxVolume} step ${inst.volumeStep}` : undefined} />
+        <Field label="Volume (lots)" value={volume} onChange={setVolume} hint={inst ? `${inst.minVolume}–${inst.maxVolume} · step ${inst.volumeStep}` : undefined} />
         {type !== 'market' ? (
-          <Field label="Requested price" value={price} onChange={setPrice} />
+          <Field label="Entry price" value={price} onChange={setPrice} />
         ) : null}
-        <Field label="Stop loss" value={sl} onChange={setSl} hint="Attached after a fill via backend protections. Not sent with the order." />
-        <Field label="Take profit" value={tp} onChange={setTp} />
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Stop loss" value={sl} onChange={setSl} />
+          <Field label="Take profit" value={tp} onChange={setTp} />
+        </div>
+        <p className="text-[10px] leading-relaxed text-muted-foreground">SL/TP apply after fill through account protections.</p>
 
-        <dl className="grid grid-cols-2 gap-x-2 gap-y-1 font-mono text-[11px] text-muted-foreground">
+        <dl className="grid grid-cols-2 gap-x-2 gap-y-1.5 rounded-lg border border-border bg-muted/20 px-2.5 py-2 font-mono text-[11px] text-muted-foreground">
           <dt>Balance</dt>
           <dd className="text-right text-foreground">
             {hydratePhase === 'hydrating' && !account ? 'Loading' : account ? fxNum(account.ledgerBalance, 2) : 'Unavailable'}
@@ -153,13 +171,12 @@ export function ForexOrderTicket() {
           <dd className="text-right text-foreground">
             {hydratePhase === 'hydrating' && !account ? 'Loading' : account ? fxNum(account.freeMargin, 2) : 'Unavailable'}
           </dd>
-          <dt>Bid</dt><dd className="text-right text-buy">{quote ? fxNum(quote.bid, digits) : '—'}</dd>
-          <dt>Ask</dt><dd className="text-right text-sell">{quote ? fxNum(quote.ask, digits) : '—'}</dd>
-          <dt>Spread</dt><dd className="text-right">{quote?.spreadPips ?? '—'}</dd>
-          <dt>Executable</dt><dd className="text-right">{exec ? fxNum(exec, digits) : '—'}</dd>
-          <dt>Session</dt><dd className="text-right">{sessionOpen ? 'OPEN' : sessions?.eligibility.reason ?? '—'}</dd>
-          <dt>Quote</dt><dd className="text-right">{quote ? `${quote.freshness}/${quote.status}` : '—'}</dd>
-          <dt>Risk</dt><dd className="text-right">{risk?.state ?? '—'}</dd>
+          <dt>Executable</dt>
+          <dd className="text-right text-foreground">{exec ? fxNum(exec, digits) : '—'}</dd>
+          <dt>Session</dt>
+          <dd className="text-right text-foreground">{sessionOpen ? 'Open' : sessions?.eligibility.reason ?? '—'}</dd>
+          <dt>Risk</dt>
+          <dd className="text-right text-foreground">{risk?.state ?? '—'}</dd>
         </dl>
         <div className="rounded border border-border p-2" aria-live="polite">
           <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -175,7 +192,7 @@ export function ForexOrderTicket() {
           {preview.status === 'LOADING' ? <p className="text-[11px] text-muted-foreground">Loading preview…</p> : null}
           {preview.status === 'IDLE' ? (
             <p className="text-[11px] text-muted-foreground">
-              {authed ? 'Enter a valid size to request an authoritative preview.' : 'Sign in to request a backend trade preview.'}
+              {authed ? 'Enter volume to preview required margin.' : 'Sign in to preview and execute.'}
             </p>
           ) : null}
           {preview.status === 'ERROR' && preview.error ? (
@@ -239,7 +256,7 @@ export function ForexOrderTicket() {
           ) : null}
           {preview.status === 'READY' ? (
             <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
-              Indicative only. Quotes, margin, and risk can change before POST /orders. Buy uses ASK, sell uses BID.
+              Indicative only. Buy uses Ask, sell uses Bid. Values revalidate on submit.
             </p>
           ) : null}
         </div>
@@ -254,19 +271,19 @@ export function ForexOrderTicket() {
           </p>
         ) : null}
         {last ? (
-          <p className="font-mono text-[11px] text-stone-600 dark:text-stone-300" role="status">
+          <p className="font-mono text-[11px] text-muted-foreground" role="status">
             Last order {last.orderId.slice(0, 8)}… {last.status}
             {last.failureReason ? ` · ${last.failureReason}` : ''}
           </p>
         ) : null}
       </div>
-      <div className="border-t border-border p-2">
+      <div className="border-t border-border p-2.5">
         <button
           type="button"
           disabled={Boolean(blockReason) || busy || preview.status === 'STALE' || preview.status === 'BLOCKED' || preview.status === 'LOADING'}
           onClick={() => void submit()}
           className={cn(
-            'h-9 w-full rounded font-mono text-[12px] font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+            'h-10 w-full rounded-md font-mono text-[13px] font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
             side === 'buy' ? 'bg-buy hover:bg-buy/90' : 'bg-sell hover:bg-sell/90'
           )}
         >

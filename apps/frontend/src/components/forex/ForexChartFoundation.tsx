@@ -16,14 +16,25 @@ import { fxNum } from './format';
 
 type StudyId = 'none' | 'sma20' | 'ema20' | 'bb20';
 
-function useHtmlDark(): boolean {
-  const [dark, setDark] = useState(false);
+function useTerminalChartDark(): boolean {
+  const [dark, setDark] = useState(true);
   useEffect(() => {
-    const root = document.documentElement;
-    const sync = () => setDark(root.classList.contains('dark'));
+    const sync = () => {
+      const root = document.documentElement;
+      if (root.classList.contains('dark')) {
+        setDark(true);
+        return;
+      }
+      if (root.classList.contains('light')) {
+        setDark(false);
+        return;
+      }
+      // Forex shell uses dark token surfaces even when html theme is unset.
+      setDark(Boolean(document.querySelector('.terminal-shell')));
+    };
     sync();
     const obs = new MutationObserver(sync);
-    obs.observe(root, { attributes: true, attributeFilter: ['class'] });
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => obs.disconnect();
   }, []);
   return dark;
@@ -46,7 +57,7 @@ export function ForexChartFoundation() {
     providers,
     hydratePhase,
   });
-  const dark = useHtmlDark();
+  const dark = useTerminalChartDark();
   const [expanded, setExpanded] = useState(false);
   const [study, setStudy] = useState<StudyId>('none');
   const positions = useForexStore((s) => s.positions);
@@ -163,35 +174,36 @@ export function ForexChartFoundation() {
       }`}
       aria-label="Forex market chart"
     >
-      <div className="flex h-8 min-w-0 items-center gap-2 overflow-x-auto border-b border-border px-2">
-        <span className="shrink-0 font-mono text-[12px] font-medium">{inst?.displaySymbol ?? selected}</span>
-        {activeTf ? <span className="shrink-0 font-mono text-[11px] text-muted-foreground">{activeTf}</span> : null}
+      <div className="flex h-9 min-w-0 items-center gap-2 overflow-x-auto border-b border-border bg-card/80 px-2">
+        <span className="shrink-0 font-mono text-[13px] font-semibold tracking-tight">{inst?.displaySymbol ?? selected}</span>
+        {activeTf ? <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">{activeTf}</span> : null}
         {quote ? (
           <>
-            <span className="eda-quote shrink-0 font-mono text-[11px] text-buy">
+            <span className="eda-quote shrink-0 font-mono text-[12px] font-medium text-buy">
               BID {fxNum(quote.bid, digits)}
             </span>
-            <span className="eda-quote shrink-0 font-mono text-[11px] text-sell">
+            <span className="eda-quote shrink-0 font-mono text-[12px] font-medium text-sell">
               ASK {fxNum(quote.ask, digits)}
             </span>
             <span className="shrink-0 font-mono text-[11px] text-muted-foreground">SPR {quote.spreadPips}</span>
-            <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+            <span className="inline-flex shrink-0 items-center gap-1 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+              <span className={`h-1.5 w-1.5 rounded-full ${quoteFreshness === 'LIVE' ? 'bg-buy' : 'bg-muted-foreground'}`} aria-hidden />
               {quoteFreshness === 'LIVE' ? 'Live' : quoteFreshness === 'STALE' ? 'Stale' : quoteFreshness === 'LOADING' ? 'Connecting' : 'Unavailable'}
             </span>
           </>
         ) : (
-          <span className="text-[11px] text-muted-foreground">Waiting for backend quote…</span>
+          <span className="text-[11px] text-muted-foreground">Loading quote…</span>
         )}
         {timeframes.length > 0 ? (
-          <div className="ml-2 flex items-center gap-0.5" role="group" aria-label="Forex timeframes">
+          <div className="ml-1 flex items-center gap-0.5" role="group" aria-label="Forex timeframes">
             {timeframes.map((t) => (
               <button
                 key={t}
                 type="button"
                 aria-pressed={activeTf === t}
                 onClick={() => setTf(t)}
-                className={`rounded px-1.5 py-0.5 font-mono text-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                  activeTf === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'
+                className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  activeTf === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {t}
@@ -235,6 +247,7 @@ export function ForexChartFoundation() {
           candles={candleView.status === 'READY' ? candleView.candles : []}
           quote={quoteLevels}
           dark={dark}
+          digits={digits}
           overlay={overlay}
           bands={bands}
           levels={levels}

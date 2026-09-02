@@ -56,7 +56,10 @@ export function ForexPositionPanel() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       {status === 'SIGNED_OUT' ? (
-        <p className="p-3 text-[12px] text-muted-foreground">Sign in to view positions.</p>
+        <div className="flex h-full min-h-[120px] flex-col items-start justify-center gap-2 px-4 py-6">
+          <p className="text-sm font-medium">No private session</p>
+          <p className="max-w-md text-[12px] text-muted-foreground">Sign in to view open positions, P&amp;L, SL/TP and close controls.</p>
+        </div>
       ) : status === 'LOADING' ? (
         <p className="p-3 text-[12px] text-muted-foreground">Loading positions…</p>
       ) : status === 'ERROR' && hydrateError ? (

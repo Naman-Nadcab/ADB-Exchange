@@ -39,7 +39,7 @@ export function ForexSessionBar() {
       })}
       <span className="ml-auto text-muted-foreground">
         Market {eligibility?.open ? 'open' : eligibility?.reason === 'OPEN' ? 'open' : 'closed'}
-        {simulated ? ' · Simulated execution' : ''}
+        {simulated ? ' · Demo quotes · Simulated execution' : ''}
       </span>
     </div>
   );

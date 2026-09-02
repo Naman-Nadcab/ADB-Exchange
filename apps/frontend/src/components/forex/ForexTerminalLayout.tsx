@@ -28,7 +28,7 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
   const hydrateError = useForexStore((s) => s.hydrateError);
 
   return (
-    <div className="terminal-shell exchange-ui flex h-[100dvh] flex-col bg-background text-foreground antialiased">
+    <div className="dark terminal-shell exchange-ui flex h-[100dvh] flex-col bg-background text-foreground antialiased">
       <ForexTopNav />
       <ForexMarketStrip />
       <ForexSessionBar />

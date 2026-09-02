@@ -27,7 +27,7 @@ export function ForexTopNav() {
                 href={item.href}
                 className={cn(
                   'tap-target inline-flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
-                  active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  active ? 'bg-primary/12 text-primary' : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 {item.label}

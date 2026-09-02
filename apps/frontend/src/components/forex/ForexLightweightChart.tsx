@@ -20,6 +20,7 @@ function toBars(candles: ForexCandle[]) {
     const low = Number(c.low);
     const close = Number(c.close);
     if (![open, high, low, close].every(Number.isFinite)) continue;
+    if (open <= 0 || high <= 0 || low <= 0 || close <= 0) continue;
     out.push({ time: Math.floor(ms / 1000) as UTCTimestamp, open, high, low, close });
   }
   return out;
@@ -29,10 +30,15 @@ function lineOpts(price: number, color: string, title: string) {
   return { price, color, lineWidth: 1 as const, axisLabelVisible: true, title, lineStyle: 2 as const };
 }
 
+function minMove(digits: number): number {
+  return Number(`1e-${Math.max(0, Math.min(digits, 8))}`);
+}
+
 export function ForexLightweightChart(props: {
   candles: ForexCandle[];
   quote: QuoteLevels;
   dark: boolean;
+  digits?: number;
   overlay?: OverlayPoint[];
   bands?: { upper: OverlayPoint[]; lower: OverlayPoint[] };
   levels?: ProtectionLevels;
@@ -50,8 +56,10 @@ export function ForexLightweightChart(props: {
   const tpRef = useRef<IPriceLine | null>(null);
   const quoteRef = useRef<QuoteLevels>(props.quote);
   const candlesRef = useRef(props.candles);
+  const digitsRef = useRef(props.digits ?? 5);
   quoteRef.current = props.quote;
   candlesRef.current = props.candles;
+  digitsRef.current = props.digits ?? 5;
 
   useEffect(() => {
     const el = hostRef.current;
@@ -59,6 +67,7 @@ export function ForexLightweightChart(props: {
     let disposed = false;
     const colors = getTradingChartColors();
     const theme = getDomChartThemeOptions(props.dark ? 'dark' : 'light');
+    const digits = digitsRef.current;
 
     void import('lightweight-charts').then((lwc) => {
       if (disposed || !hostRef.current) return;
@@ -74,7 +83,11 @@ export function ForexLightweightChart(props: {
           horzLines: { color: theme.grid.horzLines.color },
         },
         crosshair: { mode: lwc.CrosshairMode.Normal },
-        rightPriceScale: { borderColor: theme.rightPriceScale.borderColor, entireTextOnly: true },
+        rightPriceScale: {
+          borderColor: theme.rightPriceScale.borderColor,
+          entireTextOnly: true,
+          scaleMargins: { top: 0.08, bottom: 0.08 },
+        },
         timeScale: { borderColor: theme.timeScale.borderColor, timeVisible: true, secondsVisible: false },
         handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false },
         handleScale: { mouseWheel: true, pinch: true, axisPressedMouseMove: true },
@@ -85,29 +98,58 @@ export function ForexLightweightChart(props: {
         borderVisible: false,
         wickUpColor: colors.up,
         wickDownColor: colors.down,
+        priceFormat: { type: 'price', precision: digits, minMove: minMove(digits) },
         autoscaleInfoProvider: (original: () => unknown) => {
           const base = original() as { priceRange?: { minValue: number; maxValue: number } } | null;
           const q = quoteRef.current;
+          const bars = toBars(candlesRef.current);
+          if (bars.length > 0) {
+            let lo = Infinity;
+            let hi = -Infinity;
+            for (const b of bars) {
+              lo = Math.min(lo, b.low);
+              hi = Math.max(hi, b.high);
+            }
+            if (q) {
+              lo = Math.min(lo, q.bid, q.ask);
+              hi = Math.max(hi, q.bid, q.ask);
+            }
+            const span = Math.max(hi - lo, minMove(digitsRef.current) * 20);
+            const pad = span * 0.12;
+            return { priceRange: { minValue: lo - pad, maxValue: hi + pad } };
+          }
           if (!q) return base;
-          const pad = Math.max((q.ask - q.bid) * 4, 1e-6);
-          const minValue = q.bid - pad;
-          const maxValue = q.ask + pad;
-          if (!base?.priceRange) return { priceRange: { minValue, maxValue } };
-          return {
-            ...base,
-            priceRange: {
-              minValue: Math.min(base.priceRange.minValue, minValue),
-              maxValue: Math.max(base.priceRange.maxValue, maxValue),
-            },
-          };
+          const mid = (q.bid + q.ask) / 2;
+          const pad = Math.max(Math.abs(mid) * 0.0008, (q.ask - q.bid) * 20, minMove(digitsRef.current) * 50);
+          return { priceRange: { minValue: mid - pad, maxValue: mid + pad } };
         },
       });
       chartRef.current = chart;
       seriesRef.current = series;
-      overlayRef.current = chart.addLineSeries({ color: '#F5B800', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-      upperRef.current = chart.addLineSeries({ color: 'rgba(156,163,175,0.7)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-      lowerRef.current = chart.addLineSeries({ color: 'rgba(156,163,175,0.7)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-      series.setData(toBars(candlesRef.current));
+      overlayRef.current = chart.addLineSeries({
+        color: 'rgba(245,184,0,0.85)',
+        lineWidth: 1,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        priceFormat: { type: 'price', precision: digits, minMove: minMove(digits) },
+      });
+      upperRef.current = chart.addLineSeries({
+        color: 'rgba(156,163,175,0.55)',
+        lineWidth: 1,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        priceFormat: { type: 'price', precision: digits, minMove: minMove(digits) },
+      });
+      lowerRef.current = chart.addLineSeries({
+        color: 'rgba(156,163,175,0.55)',
+        lineWidth: 1,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        priceFormat: { type: 'price', precision: digits, minMove: minMove(digits) },
+      });
+      const bars = toBars(candlesRef.current);
+      series.setData(bars);
+      if (bars.length) chart.timeScale().fitContent();
       const q = quoteRef.current;
       if (q) {
         bidRef.current = series.createPriceLine(lineOpts(q.bid, colors.up, 'BID'));
@@ -129,16 +171,21 @@ export function ForexLightweightChart(props: {
       chartRef.current?.remove();
       chartRef.current = null;
     };
-  }, [props.dark]);
+  }, [props.dark, props.digits]);
 
   useEffect(() => {
-    seriesRef.current?.setData(toBars(props.candles));
+    const series = seriesRef.current;
+    const chart = chartRef.current;
+    if (!series || !chart) return;
+    const bars = toBars(props.candles);
+    series.setData(bars);
+    if (bars.length) chart.timeScale().fitContent();
   }, [props.candles]);
 
   useEffect(() => {
     const map = (pts: OverlayPoint[]) =>
       pts
-        .filter((p) => Number.isFinite(p.time) && Number.isFinite(p.value))
+        .filter((p) => Number.isFinite(p.time) && Number.isFinite(p.value) && p.value > 0)
         .map((p) => ({ time: p.time as UTCTimestamp, value: p.value }));
     overlayRef.current?.setData(map(props.overlay ?? []));
     upperRef.current?.setData(map(props.bands?.upper ?? []));
@@ -155,7 +202,7 @@ export function ForexLightweightChart(props: {
       color: string,
       title: string
     ) => {
-      if (price == null || !Number.isFinite(price)) {
+      if (price == null || !Number.isFinite(price) || price <= 0) {
         if (ref.current) series.removePriceLine(ref.current);
         ref.current = null;
         return;
