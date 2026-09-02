@@ -1,12 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { ForexAccountNav } from '@/components/forex/ForexAccountNav';
 import { ForexMetric } from '@/components/forex/ForexMetric';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { fxPlain } from '@/components/forex/format';
+import { forexApi } from '@/lib/forex/api/client';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
+import { hydrateForexPrivate } from '@/lib/forex/runtime/hydrate';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
 
@@ -17,11 +21,39 @@ export default function ForexFundsPage() {
   const balance = useForexStore((s) => s.balance);
   const funding = useForexStore((s) => s.funding);
   const currency = account?.currency ?? balance?.currency ?? 'USD';
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const ledger = Number(account?.ledgerBalance ?? balance?.ledgerBalance ?? 0);
+  const needsDemo = Number.isFinite(ledger) && ledger <= 0;
+
+  async function claimDemo() {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    setNote(null);
+    try {
+      const res = await forexApi.claimDemoFunds();
+      if (!res.success || !res.data) {
+        setError(describeForexError(normalizeForexError(res.error ?? res)));
+        return;
+      }
+      setNote(
+        `DEMO credit posted · ${res.data.transaction?.type ?? 'INITIAL_FUNDING'} · SIMULATED / MOCK · not real money`
+      );
+      await hydrateForexPrivate();
+    } catch (e) {
+      setError(describeForexError(normalizeForexError(e)));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <ForexPageFrame
       title="Funds"
-      subtitle="Forex funding rails are currently unavailable. Account balances and activity remain visible through Account and Ledger."
+      subtitle="FOREX DEMO ACCOUNT · SIMULATED / MOCK. Real Forex deposit rails are OFF. Crypto wallet is separate."
       actions={<ForexAccountNav />}
     >
       {!authed ? (
@@ -36,22 +68,55 @@ export default function ForexFundsPage() {
       )}
 
       <section className="eda-card-featured p-5">
-        <p className="text-[11px] uppercase tracking-[0.16em] text-primary">Funds</p>
-        <h2 className="mt-1 text-lg font-semibold">Forex funding rails are currently unavailable</h2>
+        <p className="text-[11px] uppercase tracking-[0.16em] text-primary">Forex Demo</p>
+        <h2 className="mt-1 text-lg font-semibold">Claim simulated demo funds</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Deposit, withdrawal and transfer are not offered. Account balances and financial activity remain visible through
-          Account and Ledger.
+          Credits the isolated Forex ledger only (default $10,000 USD). Does not touch Crypto balances, real deposits, or a
+          live LP. REAL FOREX remains OFF · EXECUTION MOCK · SOURCE SIMULATED.
         </p>
-        <Link href={FOREX_ROUTES.ledger} className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
-          View Ledger
-        </Link>
+        {authed ? (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void claimDemo()}
+              className="inline-flex min-h-11 items-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {busy ? 'Crediting…' : needsDemo ? 'Claim $10,000 Demo Funds' : 'Replay Demo Credit (idempotent)'}
+            </button>
+            <Link
+              href={FOREX_ROUTES.trade}
+              className="inline-flex min-h-11 items-center rounded-lg border border-border px-5 text-sm font-semibold hover:border-primary/40"
+            >
+              Open Trade
+            </Link>
+            <Link href={FOREX_ROUTES.ledger} className="inline-flex min-h-11 items-center px-3 text-sm text-primary hover:underline">
+              View Ledger
+            </Link>
+          </div>
+        ) : null}
+        {note ? <p className="mt-3 text-sm text-buy">{note}</p> : null}
+        {error ? (
+          <p className="mt-3 text-sm text-sell" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </section>
+
+      <section className="eda-card p-4">
+        <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Real funding rails</p>
+        <h2 className="mt-1 text-base font-semibold">Unavailable</h2>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          Deposit, withdrawal and transfer to real Forex money are not offered. Demo credits are ledger-only and labelled
+          INITIAL_FUNDING / DEMO.
+        </p>
       </section>
 
       {authed ? (
         <section className="eda-card p-4">
           <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Account activity</h2>
           {funding.length === 0 ? (
-            <p className="mt-3 text-sm text-muted-foreground">No Forex account activity.</p>
+            <p className="mt-3 text-sm text-muted-foreground">No Forex account activity yet. Claim demo funds to begin.</p>
           ) : (
             <div className="eda-table-wrap mt-3">
               <table className="eda-table font-mono text-[12px]">

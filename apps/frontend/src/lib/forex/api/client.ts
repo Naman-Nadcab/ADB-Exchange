@@ -115,6 +115,15 @@ export const forexApi = {
       '/ledger'
     ),
   funding: () => fxGet<{ source: string; count: number; transactions: ForexLedgerRow[] }>('/funding'),
+  /** SIMULATED / MOCK demo credit only. Never touches Crypto. */
+  claimDemoFunds: (body?: { idempotencyKey?: string }) =>
+    api.post<{
+      source: string;
+      executionMode: string;
+      scope: string;
+      realForex: boolean;
+      transaction: ForexLedgerRow;
+    }>(`${FOREX_PREFIX}/funding/demo`, body ?? {}, { notifyOnError: false }),
   liquidation: () => fxGet<Record<string, unknown>>('/liquidation'),
   news: () => fxGet<{ source: string; provider: string; availability: string; reason?: string; count: number; items: unknown[] }>('/news', true),
   calendar: () =>

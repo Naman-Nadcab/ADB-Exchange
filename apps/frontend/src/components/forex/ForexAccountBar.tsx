@@ -55,12 +55,17 @@ export function ForexAccountBar(props?: { compact?: boolean }) {
   const level = account?.marginLevel ?? margin?.marginLevel;
   const realized = fxSigned(account?.realizedPnl ?? pnl?.realized);
   const u = fxSigned(account?.unrealizedPnl ?? pnl?.unrealized);
+  const ledgerNum = Number(ledger ?? 0);
+  const needsDemo = Number.isFinite(ledgerNum) && ledgerNum <= 0;
 
   return (
     <div
       className={`flex ${h} shrink-0 items-center gap-4 overflow-x-auto border-t border-border bg-card px-2.5 font-mono text-[11px] tabular-nums`}
       aria-label="Account bar"
     >
+      <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-200">
+        DEMO
+      </span>
       <Item k="Balance" v={fxMoney(ledger, currency)} />
       <Item k="Equity" v={fxMoney(equity, currency)} />
       <Item k="Used" v={fxMoney(used, currency)} />
@@ -68,6 +73,14 @@ export function ForexAccountBar(props?: { compact?: boolean }) {
       <Item k="Level" v={level == null || level === '' ? 'Unavailable' : `${fxPlain(Number(level).toFixed(2))}%`} />
       <Signed k="Realized" value={realized} />
       <Signed k="Unrealized" value={u} />
+      {needsDemo ? (
+        <Link
+          href="/forex/account/funds"
+          className="shrink-0 rounded-md bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground hover:bg-primary/90"
+        >
+          Claim demo funds
+        </Link>
+      ) : null}
       <span className="ml-auto text-[10px] text-muted-foreground">
         {lastHydratedAt ? new Date(lastHydratedAt).toLocaleTimeString() : ''}
       </span>

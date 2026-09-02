@@ -6,6 +6,8 @@ import type { FastifyInstance } from 'fastify';
 import { forexAuthenticate } from '../services/forex/auth/forex-authenticate.js';
 import { publicLedgerRow } from '../services/forex/accounting/service.js';
 import { getForexAccountingService } from '../services/forex/accounting/service.js';
+import { getForexAdminBackendConfig } from '../services/forex/admin/config.js';
+import { forexConfig } from '../services/forex/config.js';
 import { ForexLedgerError } from '../services/forex/ledger/models.js';
 import { ForexConversionError } from '../services/forex/pnl/conversion.js';
 import { ForexPnlError } from '../services/forex/pnl/engine.js';
@@ -146,6 +148,57 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
       return reply.send({
         success: true,
         data: { source: 'SIMULATED', scope: 'TEST_ONLY', transaction: publicLedgerRow(tx) },
+      });
+    } catch (e) {
+      return sendAccountingError(reply, e);
+    }
+  });
+
+  /**
+   * Customer DEMO funding for SIMULATED / MOCK Forex only.
+   * Same ledger credit path as /funding/test. Never touches Crypto.
+   * Disabled unless FOREX_DEMO_FUNDING=true and realForex remains false.
+   */
+  app.post('/funding/demo', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
+    const accountId = accountIdFromRequest(request);
+    if (!accountId) {
+      return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+    }
+    const adminCfg = getForexAdminBackendConfig();
+    if (adminCfg.realForex === true) {
+      return reply.status(403).send({
+        success: false,
+        error: { code: 'FOREX_DEMO_FUNDING_BLOCKED', message: 'Demo funding is blocked when real Forex is enabled', source: 'SIMULATED' },
+      });
+    }
+    if (!forexConfig.demoFundingEnabled && !forexConfig.fundingTestApiEnabled) {
+      return reply.status(403).send({
+        success: false,
+        error: {
+          code: 'FOREX_DEMO_FUNDING_DISABLED',
+          message: 'Forex demo funding is disabled',
+          source: 'SIMULATED',
+        },
+      });
+    }
+    const body = (request.body ?? {}) as { idempotencyKey?: string };
+    const amount = forexConfig.demoFundingDefaultAmount;
+    try {
+      const tx = await accounting().credit({
+        accountId,
+        amount,
+        idempotencyKey: String(body.idempotencyKey?.trim() || `DEMO_INITIAL_FUNDING:${accountId}`),
+        type: 'INITIAL_FUNDING',
+      });
+      return reply.send({
+        success: true,
+        data: {
+          source: 'SIMULATED',
+          executionMode: 'MOCK',
+          scope: 'DEMO',
+          realForex: false,
+          transaction: publicLedgerRow(tx),
+        },
       });
     } catch (e) {
       return sendAccountingError(reply, e);

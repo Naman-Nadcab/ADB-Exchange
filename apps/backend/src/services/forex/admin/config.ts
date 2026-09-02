@@ -50,6 +50,7 @@ export function getForexAdminBackendConfig() {
     accountRestrictions: {
       killSwitch: forexConfig.killSwitch,
       fundingTestApiEnabled: forexConfig.fundingTestApiEnabled,
+      demoFundingEnabled: forexConfig.demoFundingEnabled,
       executionTestApiEnabled: forexConfig.executionTestApiEnabled,
     },
     holiday: {

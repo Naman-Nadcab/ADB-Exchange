@@ -74,6 +74,12 @@ export const forexConfig = {
   /** Test-only Forex credit API. Cannot move real money. */
   fundingTestApiEnabled: envBool('FOREX_FUNDING_TEST_API', false),
   /**
+   * Customer DEMO funding (SIMULATED/MOCK only). Credits Forex ledger only.
+   * Never touches Crypto balances. Blocked when realForex would be enabled.
+   */
+  demoFundingEnabled: envBool('FOREX_DEMO_FUNDING', false),
+  demoFundingDefaultAmount: process.env.FOREX_DEMO_FUNDING_AMOUNT?.trim() || '10000',
+  /**
    * When true, UNCONFIGURED holiday coverage fail-closes customer trading.
    * Default false for MOCK: no invented holiday list; state stays explicit.
    */

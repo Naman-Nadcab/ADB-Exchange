@@ -1,0 +1,9 @@
+# Overlay: enable isolated Forex DEMO funding on the API only.
+# Usage: docker compose -p m-live -f docker-compose.production.yml -f docker-compose.forex-demo.yml up -d --no-deps backend
+# Never enables a real LP. realForex remains hardcoded false.
+services:
+  backend:
+    environment:
+      FOREX_DEMO_FUNDING: "true"
+      FOREX_DEMO_FUNDING_AMOUNT: "10000"
+      FOREX_FUNDING_TEST_API: "true"

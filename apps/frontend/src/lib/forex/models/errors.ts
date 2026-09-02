@@ -75,6 +75,9 @@ export function describeForexError(err: ForexError): string {
     case 'TRIGGER_ALREADY_MET':
     case 'DUPLICATE_PROTECTION':
     case 'PROTECTION_NOT_FOUND':
+    case 'FOREX_DEMO_FUNDING_DISABLED':
+    case 'FOREX_DEMO_FUNDING_BLOCKED':
+    case 'FOREX_FUNDING_TEST_FORBIDDEN':
     case 'INSUFFICIENT_MARGIN':
     case 'INSUFFICIENT_FOREX_BALANCE':
     case 'INVALID_VOLUME':

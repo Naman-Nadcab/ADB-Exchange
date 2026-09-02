@@ -26,7 +26,7 @@ export default function ForexAccountPage() {
   return (
     <ForexPageFrame
       title="Account"
-      subtitle="Balance, equity, margin and P&L from your Forex account."
+      subtitle="FOREX DEMO ACCOUNT · SIMULATED / MOCK. Not real money. Real Forex and live LP remain OFF."
       actions={<ForexAccountNav />}
     >
       {!authed ? (

@@ -460,39 +460,39 @@ function harness() {
   await acc.credit({ accountId: USER, amount: '1000', idempotencyKey: 'DEPOSIT:api', type: 'DEPOSIT' });
   const app = Fastify();
   let uid: string | null = USER;
-  app.decorate(
-    'authenticate',
-    (async (request: { user?: { id: string; role: string; sessionId: string } }, reply: { status: (n: number) => { send: (b: unknown) => unknown } }) => {
-      if (!uid) {
-        reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED' } });
-        return;
-      }
-      request.user = { id: uid, role: 'user', sessionId: 's' };
-    }) as never
-  );
+  app.decorate('jwt', {
+    verify: () => {
+      if (!uid) throw new Error('unauthenticated');
+      return { userId: uid, role: 'user', sessionId: 's', type: 'impersonation', impersonatedBy: 'phase6-test' };
+    },
+  });
   await registerForexAccountingRoutes(app);
   await app.ready();
 
-  const mine = await app.inject({ method: 'GET', url: '/account' });
+  const auth = { authorization: 'Bearer test-token' };
+  const mine = await app.inject({ method: 'GET', url: '/account', headers: auth });
   assert.equal(mine.statusCode, 200);
   assert.equal(mine.json().data.source, 'SIMULATED');
   assert.equal(mine.json().data.account.ledgerBalance, '1000');
   assert.equal(mine.json().data.account.currency, 'USD');
 
   uid = USER_B;
-  const leakAccount = await app.inject({ method: 'GET', url: '/account' });
+  const leakAccount = await app.inject({ method: 'GET', url: '/account', headers: auth });
   assert.equal(leakAccount.statusCode, 200);
   assert.equal(leakAccount.json().data.account.ledgerBalance, '0');
-  const leakLedger = await app.inject({ method: 'GET', url: '/ledger' });
+  const leakLedger = await app.inject({ method: 'GET', url: '/ledger', headers: auth });
   assert.equal(leakLedger.json().data.transactions.length, 0);
-  const leakPnl = await app.inject({ method: 'GET', url: '/pnl' });
+  const leakPnl = await app.inject({ method: 'GET', url: '/pnl', headers: auth });
   assert.equal(leakPnl.json().data.pnl.realized, '0');
-  const leakFund = await app.inject({ method: 'GET', url: '/funding' });
+  const leakFund = await app.inject({ method: 'GET', url: '/funding', headers: auth });
   assert.equal(leakFund.json().data.transactions.length, 0);
 
   uid = null;
-  const unauth = await app.inject({ method: 'GET', url: '/balance' });
+  const unauth = await app.inject({ method: 'GET', url: '/balance', headers: auth });
   assert.equal(unauth.statusCode, 401);
+
+  const demoUnauth = await app.inject({ method: 'POST', url: '/funding/demo', payload: {} });
+  assert.equal(demoUnauth.statusCode, 401);
   await app.close();
 
   class FakeSock {
@@ -543,3 +543,4 @@ function harness() {
 }
 
 console.log('forex-phase6.test: ok');
+process.exit(0);
