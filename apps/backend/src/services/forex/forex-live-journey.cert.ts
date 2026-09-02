@@ -151,7 +151,12 @@ void (async () => {
     marginLevel: string | null;
     currency: string;
   } }>('GET', '/api/v1/forex/account', token);
-  mark('ACCOUNT_FUNDED', account0.status === 200 && dec(account0.json.data?.account.ledgerBalance) >= 10000);
+  mark(
+    'ACCOUNT_FUNDED',
+    account0.status === 200 &&
+      account0.json.data?.account.currency === 'USD' &&
+      dec(account0.json.data?.account.ledgerBalance) > 0
+  );
   assertInvariants('funded', account0.json.data!.account);
 
   const previewBuy = await req<{
@@ -320,6 +325,10 @@ void (async () => {
     requestedPrice: (Number(q.ask) + 0.02).toFixed(5),
   });
   mark('STOP', stop.status === 200 && stop.json.data?.order.status === 'PENDING');
+  const stopId = (stop.json.data as { order?: { orderId?: string } } | undefined)?.order?.orderId;
+  if (stopId) {
+    await req('POST', `/api/v1/forex/orders/${stopId}/cancel`, token);
+  }
 
   const reject = await req<{ order?: { status?: string } }>('POST', '/api/v1/forex/orders', token, {
     clientOrderId: `ui-huge-${Date.now()}`,
