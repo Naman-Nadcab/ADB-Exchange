@@ -328,156 +328,169 @@ export default function ForexAnalysisPage() {
         <ForexChartFoundation embedded />
       </section>
 
-      <div className="grid gap-4 xl:grid-cols-3">
+      {/* Dense Tier-0 intel strip — card chips, no empty metric slabs */}
+      <div className="grid gap-3 lg:grid-cols-12">
         {/* Indicators */}
-        <section className="eda-card p-4 xl:col-span-1">
-          <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
-            Indicators · {tf || '15m'} · analysis only
-          </h2>
+        <section className="eda-card p-3 lg:col-span-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
+              Indicators · {tf || '15m'}
+            </h2>
+            <span className="font-mono text-[10px] text-muted-foreground">
+              {candles.status === 'READY'
+                ? `${candles.candles.length} bars · ${candles.source ?? '—'}`
+                : candles.status}
+            </span>
+          </div>
           {candles.status === 'LOADING' ? (
-            <p className="mt-2 text-[13px] text-muted-foreground">Loading OHLC for indicators…</p>
+            <p className="mt-2 text-[12px] text-muted-foreground">Loading OHLC for indicators…</p>
           ) : candles.status !== 'READY' ? (
-            <p className="mt-2 text-[13px] text-muted-foreground">
+            <p className="mt-2 text-[12px] text-muted-foreground">
               Historical data unavailable{candles.reason ? ` · ${candles.reason}` : ''}.
             </p>
           ) : (
-            <dl className="mt-3 grid grid-cols-2 gap-2">
+            <dl className="mt-2 grid grid-cols-3 gap-1.5 sm:grid-cols-4">
               <Metric label="SMA 20" value={fmt(indicators?.sma20)} />
               <Metric label="EMA 20" value={fmt(indicators?.ema20)} />
               <Metric label="RSI 14" value={fmt(indicators?.rsi14)} className={rsiTone(indicators?.rsi14)} />
+              <Metric label="Stoch 14" value={fmt(indicators?.stoch14)} />
               <Metric label="MACD" value={fmt(indicators?.macd)} />
               <Metric label="MACD sig" value={fmt(indicators?.macdSignal)} />
               <Metric label="BB mid" value={fmt(indicators?.bollinger?.mid)} />
               <Metric label="BB upper" value={fmt(indicators?.bollinger?.upper)} />
               <Metric label="BB lower" value={fmt(indicators?.bollinger?.lower)} />
               <Metric label="ATR 14" value={fmt(indicators?.atr14)} />
-              <Metric label="Stoch 14" value={fmt(indicators?.stoch14)} />
-              <Metric label="Bars" value={String(candles.candles.length)} />
-              <Metric label="Source" value={candles.source ?? '—'} />
+              <Metric
+                label="ATR pips"
+                value={volatility?.atrPips != null ? volatility.atrPips.toFixed(1) : '—'}
+              />
+              <Metric
+                label="Day rng"
+                value={volatility?.dayRange != null ? `${volatility.dayRange.toFixed(1)}p` : '—'}
+              />
             </dl>
           )}
-          {volatility ? (
-            <div className="mt-3 rounded-lg border border-border/70 bg-muted/20 px-3 py-2 font-mono text-[11px]">
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Volatility (OHLC-derived)</p>
-              <p className="mt-1 text-foreground">
-                ATR ≈ {volatility.atrPips != null ? `${volatility.atrPips.toFixed(1)} pips` : 'n/a'}
-              </p>
-              <p className="text-foreground">
-                Today range ≈ {volatility.dayRange != null ? `${volatility.dayRange.toFixed(1)} pips` : 'n/a'}
-              </p>
-              <p className="mt-1 text-[10px] text-muted-foreground">
-                Methodology: ATR14 = avg true range ÷ instrument pip size. Today = UTC day high−low in pips.
-              </p>
-            </div>
-          ) : null}
+          <p className="mt-2 text-[10px] text-muted-foreground">
+            Analysis only · ATR/day range from OHLC ÷ pip size · not for margin or execution.
+          </p>
         </section>
 
-        {/* MTF + Sessions */}
-        <section className="eda-card space-y-4 p-4 xl:col-span-1">
-          <div>
+        {/* MTF bias cards */}
+        <section className="eda-card p-3 lg:col-span-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
-              Multi-timeframe · Derived analysis
+              Multi-timeframe
             </h2>
-            <p className="mt-1 text-[10px] text-muted-foreground">
-              Rule: EMA20 vs EMA50 on each TF. Not a prediction. Not AI.
-            </p>
-            <ul className="mt-3 space-y-1.5">
-              {mtfStatus === 'loading' && mtf.length === 0 ? (
-                <li className="text-[12px] text-muted-foreground">Computing EMA20/EMA50 across timeframes…</li>
-              ) : (
-                mtf.map((row) => (
-                  <li key={row.tf} className="rounded-lg border border-border/60 px-2.5 py-1.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <button
-                        type="button"
-                        className="font-mono text-[12px] font-semibold text-primary hover:underline"
-                        onClick={() => setTf(row.tf)}
-                      >
-                        {row.tf}
-                      </button>
+            <span className="text-[10px] text-muted-foreground">EMA20 vs EMA50 · not AI</span>
+          </div>
+          {mtfStatus === 'loading' && mtf.length === 0 ? (
+            <p className="mt-2 text-[12px] text-muted-foreground">Computing bias across TFs…</p>
+          ) : (
+            <ul className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
+              {mtf.map((row) => (
+                <li key={row.tf}>
+                  <button
+                    type="button"
+                    onClick={() => setTf(row.tf)}
+                    className={cn(
+                      'eda-card-interactive flex w-full flex-col gap-0.5 px-2 py-1.5 text-left',
+                      row.bias === 'Bullish' && 'border-buy/35',
+                      row.bias === 'Bearish' && 'border-sell/35'
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="font-mono text-[12px] font-semibold text-primary">{row.tf}</span>
                       <span
                         className={cn(
-                          'text-[11px] font-semibold uppercase',
+                          'text-[10px] font-bold uppercase tracking-wide',
                           row.bias === 'Bullish' ? 'text-buy' : row.bias === 'Bearish' ? 'text-sell' : 'text-muted-foreground'
                         )}
                       >
                         {row.bias}
                       </span>
                     </div>
-                    <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">{row.detail}</p>
-                  </li>
-                ))
-              )}
+                    <span className="truncate font-mono text-[9px] text-muted-foreground">{row.detail}</span>
+                  </button>
+                </li>
+              ))}
             </ul>
-          </div>
-          <div>
-            <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Sessions</h2>
-            <dl className="mt-2 space-y-1 font-mono text-[12px] text-muted-foreground">
-              <div className="flex justify-between">
-                <dt>Active</dt>
-                <dd className="text-foreground">
-                  {sessions?.eligibility.sessions?.length ? sessions.eligibility.sessions.join(', ') : '—'}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt>London / NY overlap</dt>
-                <dd className={overlap ? 'text-buy' : 'text-muted-foreground'}>{overlap ? 'Active (12–16 UTC)' : 'Inactive'}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt>Eligibility</dt>
-                <dd className={sessionOpen ? 'text-buy' : 'text-sell'}>{sessions?.eligibility.reason ?? '—'}</dd>
-              </div>
-            </dl>
-            <p className="mt-2 text-[10px] text-muted-foreground">Backend sessions remain authoritative. UTC overlap is textbook guidance.</p>
+          )}
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            <span
+              className={cn(
+                'rounded-full border px-2 py-0.5 font-mono text-[10px]',
+                sessionOpen ? 'border-buy/30 text-buy' : 'border-sell/30 text-sell'
+              )}
+            >
+              {sessionOpen ? 'Open' : 'Closed'}
+            </span>
+            <span className="rounded-full border border-border px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
+              {sessions?.eligibility.sessions?.length ? sessions.eligibility.sessions.join(' · ') : 'No session'}
+            </span>
+            <span
+              className={cn(
+                'rounded-full border px-2 py-0.5 font-mono text-[10px]',
+                overlap ? 'border-buy/30 text-buy' : 'border-border text-muted-foreground'
+              )}
+            >
+              L/NY {overlap ? 'overlap' : 'off'}
+            </span>
           </div>
         </section>
 
         {/* Levels */}
-        <section className="eda-card p-4 xl:col-span-1">
-          <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
-            Important levels · from loaded OHLC
-          </h2>
+        <section className="eda-card p-3 lg:col-span-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Levels</h2>
+            <span className="text-[10px] text-muted-foreground">OHLC-derived</span>
+          </div>
           {candles.status === 'LOADING' ? (
-            <p className="mt-2 text-[13px] text-muted-foreground">Loading OHLC to derive DO / PDH / PDL / WO / PWH / PWL / MO…</p>
+            <p className="mt-2 text-[12px] text-muted-foreground">Deriving levels…</p>
           ) : levels.length === 0 ? (
-            <p className="mt-2 text-[13px] text-muted-foreground">Load history on the chart to derive DO / PDH / PDL / WO / PWH / PWL / MO.</p>
+            <p className="mt-2 text-[12px] text-muted-foreground">Wait for chart history.</p>
           ) : (
-            <ul className="mt-3 space-y-1.5 font-mono text-[12px]">
+            <ul className="mt-2 grid grid-cols-2 gap-1.5">
               {levels.map((lv) => (
-                <li key={lv.id} className="flex items-center justify-between rounded-lg border border-border/60 px-2.5 py-1.5">
+                <li
+                  key={lv.id}
+                  className="flex items-center justify-between gap-1 rounded-md border border-border/70 bg-muted/15 px-2 py-1.5 font-mono text-[11px]"
+                >
                   <span
                     className={cn(
-                      'font-semibold',
+                      'text-[10px] font-bold uppercase',
                       lv.id.includes('H') ? 'text-buy' : lv.id.includes('L') ? 'text-sell' : 'text-primary'
                     )}
                   >
                     {lv.label}
                   </span>
-                  <span className="text-foreground">{fxNum(lv.price, digits)}</span>
+                  <span className="tabular-nums text-foreground">{fxNum(lv.price, digits)}</span>
                 </li>
               ))}
             </ul>
           )}
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-2 flex flex-wrap gap-1.5">
             <Link
-              href={`${FOREX_ROUTES.trade}`}
-              className="inline-flex h-8 items-center rounded-lg bg-primary px-3 text-[11px] font-semibold text-primary-foreground"
+              href={FOREX_ROUTES.trade}
+              className="inline-flex h-7 items-center rounded-md bg-primary px-2.5 text-[10px] font-semibold text-primary-foreground"
             >
-              Open in terminal
+              Terminal
             </Link>
             <button
               type="button"
-              className="inline-flex h-8 items-center rounded-lg border border-border px-3 text-[11px] font-semibold"
-              onClick={() => setCurrencyFilter(symbolCcys[0] ?? 'ALL')}
+              className="inline-flex h-7 items-center rounded-md border border-border px-2.5 text-[10px] font-semibold"
+              onClick={() => {
+                setCurrencyFilter(symbolCcys[0] ?? 'ALL');
+                setIntelTab('calendar');
+              }}
             >
-              Filter calendar {symbolCcys[0]}
+              Cal {symbolCcys[0]}
             </button>
           </div>
         </section>
       </div>
 
-      {/* Intel tabs */}
-      <section className="eda-card p-4">
+      {/* Intel tabs — dense calendar / news cards */}
+      <section className="eda-card p-3">
         <div className="flex flex-wrap items-center gap-1.5" role="tablist">
           {(['calendar', 'news', 'levels', 'sessions'] as const).map((t) => (
             <button
@@ -494,24 +507,24 @@ export default function ForexAnalysisPage() {
         </div>
 
         {intelTab === 'calendar' ? (
-          <div className="mt-4">
+          <div className="mt-3">
             {calendar.status === 'loading' ? (
-              <p className="text-[13px] text-muted-foreground">Loading economic calendar…</p>
+              <p className="text-[12px] text-muted-foreground">Loading economic calendar…</p>
             ) : calendar.status === 'error' ? (
-              <p className="text-[13px] text-muted-foreground">
+              <p className="text-[12px] text-muted-foreground">
                 Calendar request failed{calendar.reason ? ` · ${calendar.reason}` : ''}.
               </p>
             ) : !calendarData || calendarData.availability === 'UNAVAILABLE' ? (
-              <p className="text-[13px] text-muted-foreground">
+              <p className="text-[12px] text-muted-foreground">
                 Economic calendar unavailable{calendarData?.reason ? ` (${calendarData.reason})` : ''}.
               </p>
             ) : (
               <>
-                <p className="text-[11px] text-muted-foreground">
-                  Source {calendarData.provider ?? 'external'} · {calendarData.events.length} events this week · Actual only when
-                  provider supplies it.
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2 text-[12px]">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <p className="mr-auto text-[10px] text-muted-foreground">
+                    {calendarData.provider ?? 'external'} · {calendarRows.length}/{calendarData.events.length} shown · Actual when
+                    supplied
+                  </p>
                   {(['ALL', 'High', 'Medium', 'Low'] as const).map((level) => (
                     <button
                       key={level}
@@ -523,12 +536,12 @@ export default function ForexAnalysisPage() {
                       {level}
                     </button>
                   ))}
-                  <label className="ml-auto flex items-center gap-1">
-                    <span className="text-muted-foreground">Currency</span>
+                  <label className="flex items-center gap-1 text-[11px]">
+                    <span className="text-muted-foreground">Ccy</span>
                     <select
                       value={currencyFilter}
                       onChange={(e) => setCurrencyFilter(e.target.value)}
-                      className="h-8 rounded-lg border border-border bg-background px-2"
+                      className="h-7 rounded-md border border-border bg-background px-1.5 text-[11px]"
                     >
                       {currencies.map((c) => (
                         <option key={c} value={c}>
@@ -539,39 +552,37 @@ export default function ForexAnalysisPage() {
                   </label>
                 </div>
                 {calendarRows.length === 0 ? (
-                  <p className="mt-3 text-[13px] text-muted-foreground">No calendar events for this filter.</p>
+                  <p className="mt-2 text-[12px] text-muted-foreground">No calendar events for this filter.</p>
                 ) : (
-                  <div className="mt-3 grid gap-2 md:grid-cols-2">
+                  <div className="mt-2 grid gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
                     {calendarRows.slice(0, 60).map((ev, i) => (
-                      <article key={`${ev.event}-${ev.time}-${i}`} className="eda-card-interactive px-3 py-2.5">
+                      <article key={`${ev.event}-${ev.time}-${i}`} className="eda-card-interactive px-2.5 py-2">
                         <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <p className="text-[13px] font-medium text-foreground">
+                          <div className="min-w-0">
+                            <p className="truncate text-[12px] font-medium text-foreground">
                               {ev.currency ? `${ev.currency} · ` : ''}
                               {ev.event}
                             </p>
-                            <p className="mt-0.5 text-[11px] text-muted-foreground">
-                              {ev.time ? new Date(ev.time).toLocaleString() : 'Time unavailable'}
+                            <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                              {ev.time ? new Date(ev.time).toLocaleString() : 'Time n/a'}
                             </p>
                           </div>
-                          <span className={cn('shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase', impactTone(ev.impact))}>
+                          <span
+                            className={cn(
+                              'shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase',
+                              impactTone(ev.impact)
+                            )}
+                          >
                             {ev.impact ?? 'n/a'}
                           </span>
                         </div>
-                        <dl className="mt-2 grid grid-cols-3 gap-1 font-mono text-[10px] text-muted-foreground">
-                          <div>
-                            <dt>Prev</dt>
-                            <dd className="text-foreground">{ev.previous ?? '—'}</dd>
-                          </div>
-                          <div>
-                            <dt>Fcst</dt>
-                            <dd className="text-foreground">{ev.forecast ?? '—'}</dd>
-                          </div>
-                          <div>
-                            <dt>Act</dt>
-                            <dd className="text-foreground">{ev.actual ?? '—'}</dd>
-                          </div>
-                        </dl>
+                        <p className="mt-1.5 font-mono text-[10px] text-muted-foreground">
+                          P <span className="text-foreground">{ev.previous ?? '—'}</span>
+                          <span className="mx-1.5 text-border">|</span>
+                          F <span className="text-foreground">{ev.forecast ?? '—'}</span>
+                          <span className="mx-1.5 text-border">|</span>
+                          A <span className="text-foreground">{ev.actual ?? '—'}</span>
+                        </p>
                       </article>
                     ))}
                   </div>
@@ -582,37 +593,41 @@ export default function ForexAnalysisPage() {
         ) : null}
 
         {intelTab === 'news' ? (
-          <div className="mt-4">
+          <div className="mt-3">
             {news.status === 'loading' ? (
-              <p className="text-[13px] text-muted-foreground">Loading news…</p>
+              <p className="text-[12px] text-muted-foreground">Loading news…</p>
             ) : news.status === 'error' ? (
-              <p className="text-[13px] text-muted-foreground">
+              <p className="text-[12px] text-muted-foreground">
                 News request failed{news.reason ? ` · ${news.reason}` : ''}.
               </p>
             ) : !newsData || newsData.availability === 'UNAVAILABLE' ? (
-              <p className="text-[13px] text-muted-foreground">
+              <p className="text-[12px] text-muted-foreground">
                 No market news available{newsData?.reason ? ` (${newsData.reason})` : ''}.
               </p>
             ) : (
               <>
-                <p className="text-[11px] text-muted-foreground">
-                  Source {newsData.provider ?? 'rss'} · {newsData.items.length} headlines · not auto-tagged to instruments unless
-                  currency is provided.
+                <p className="text-[10px] text-muted-foreground">
+                  {newsData.provider ?? 'rss'} · {newsData.items.length} headlines · not auto-tagged unless currency provided
                 </p>
-                <ul className="mt-3 grid gap-2 md:grid-cols-2">
-                  {newsData.items.slice(0, 30).map((item, i) => (
-                    <li key={`${item.headline}-${i}`} className="eda-card-interactive px-3 py-2.5 text-[13px]">
-                      <p className="font-mono text-[10px] text-muted-foreground">
+                <ul className="mt-2 grid gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
+                  {newsData.items.slice(0, 36).map((item, i) => (
+                    <li key={`${item.headline}-${i}`} className="eda-card-interactive px-2.5 py-2 text-[12px]">
+                      <p className="font-mono text-[9px] text-muted-foreground">
                         {item.time ? new Date(item.time).toLocaleString() : ''}
                         {item.source ? ` · ${item.source}` : ''}
                         {item.currency ? ` · ${item.currency}` : ''}
                       </p>
                       {item.url ? (
-                        <a href={item.url} className="mt-1 block font-medium text-foreground underline-offset-2 hover:text-primary hover:underline" target="_blank" rel="noreferrer">
+                        <a
+                          href={item.url}
+                          className="mt-0.5 line-clamp-2 block font-medium text-foreground underline-offset-2 hover:text-primary hover:underline"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
                           {item.headline}
                         </a>
                       ) : (
-                        <p className="mt-1 font-medium text-foreground">{item.headline}</p>
+                        <p className="mt-0.5 line-clamp-2 font-medium text-foreground">{item.headline}</p>
                       )}
                     </li>
                   ))}
@@ -623,17 +638,27 @@ export default function ForexAnalysisPage() {
         ) : null}
 
         {intelTab === 'levels' ? (
-          <div className="mt-4">
+          <div className="mt-3">
             {candles.status === 'LOADING' ? (
-              <p className="text-[13px] text-muted-foreground">Loading OHLC to derive levels…</p>
+              <p className="text-[12px] text-muted-foreground">Loading OHLC to derive levels…</p>
             ) : levels.length === 0 ? (
-              <p className="text-[13px] text-muted-foreground">No levels yet — wait for chart history.</p>
+              <p className="text-[12px] text-muted-foreground">No levels yet — wait for chart history.</p>
             ) : (
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
                 {levels.map((lv) => (
-                  <div key={lv.id} className="eda-metric !min-w-0">
-                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{lv.label}</p>
-                    <p className="mt-1 font-mono text-[14px] text-foreground">{fxNum(lv.price, digits)}</p>
+                  <div
+                    key={lv.id}
+                    className="rounded-md border border-border/70 bg-muted/15 px-2 py-1.5"
+                  >
+                    <p
+                      className={cn(
+                        'text-[9px] font-bold uppercase tracking-wide',
+                        lv.id.includes('H') ? 'text-buy' : lv.id.includes('L') ? 'text-sell' : 'text-primary'
+                      )}
+                    >
+                      {lv.label}
+                    </p>
+                    <p className="mt-0.5 font-mono text-[12px] tabular-nums text-foreground">{fxNum(lv.price, digits)}</p>
                   </div>
                 ))}
               </div>
@@ -642,25 +667,38 @@ export default function ForexAnalysisPage() {
         ) : null}
 
         {intelTab === 'sessions' ? (
-          <div className="mt-4 space-y-2 text-[13px] text-muted-foreground">
-            <p>
-              Current UTC hour: <span className="text-foreground">{hour}:00</span>
-            </p>
-            <p>
-              Reported sessions:{' '}
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            <span className="rounded-md border border-border bg-muted/15 px-2.5 py-1.5 font-mono text-[11px]">
+              UTC <span className="text-foreground">{hour}:00</span>
+            </span>
+            <span className="rounded-md border border-border bg-muted/15 px-2.5 py-1.5 font-mono text-[11px]">
+              Active{' '}
               <span className="text-foreground">
-                {sessions?.eligibility.sessions?.length ? sessions.eligibility.sessions.join(', ') : 'Unavailable'}
+                {sessions?.eligibility.sessions?.length ? sessions.eligibility.sessions.join(', ') : '—'}
               </span>
-            </p>
-            <p>
+            </span>
+            <span
+              className={cn(
+                'rounded-md border px-2.5 py-1.5 font-mono text-[11px]',
+                overlap ? 'border-buy/30 bg-buy/10 text-buy' : 'border-border bg-muted/15 text-muted-foreground'
+              )}
+            >
+              L/NY {overlap ? 'overlap 12–16' : 'off'}
+            </span>
+            <span
+              className={cn(
+                'rounded-md border px-2.5 py-1.5 font-mono text-[11px]',
+                sessionOpen ? 'border-buy/30 bg-buy/10 text-buy' : 'border-sell/30 bg-sell/10 text-sell'
+              )}
+            >
+              {sessions?.eligibility.reason ?? (sessionOpen ? 'OPEN' : 'CLOSED')}
+            </span>
+            <span className="rounded-md border border-border bg-muted/15 px-2.5 py-1.5 text-[10px] text-muted-foreground">
               Overlaps:{' '}
-              <span className="text-foreground">
-                {sessions?.eligibility.overlaps?.length
-                  ? sessions.eligibility.overlaps.map((o) => o.join('/')).join(', ')
-                  : 'None reported'}
-              </span>
-            </p>
-            <p className="text-[11px]">Use chart Sessions toggle for subtle boundary markers on the OHLC canvas.</p>
+              {sessions?.eligibility.overlaps?.length
+                ? sessions.eligibility.overlaps.map((o) => o.join('/')).join(', ')
+                : 'none'}
+            </span>
           </div>
         ) : null}
       </section>
@@ -674,9 +712,11 @@ export default function ForexAnalysisPage() {
 
 function Metric(props: { label: string; value: string; className?: string }) {
   return (
-    <div className="eda-metric !min-w-0">
-      <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{props.label}</dt>
-      <dd className={cn('mt-1 font-mono text-[12px]', props.className)}>{props.value}</dd>
+    <div className="min-w-0 rounded-md border border-border/70 bg-muted/15 px-2 py-1.5">
+      <dt className="text-[9px] uppercase tracking-wide text-muted-foreground">{props.label}</dt>
+      <dd className={cn('mt-0.5 font-mono text-[12px] font-semibold tabular-nums leading-tight', props.className)}>
+        {props.value}
+      </dd>
     </div>
   );
 }
