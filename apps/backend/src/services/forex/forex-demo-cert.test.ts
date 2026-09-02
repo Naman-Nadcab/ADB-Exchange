@@ -289,7 +289,7 @@ async function testMandatoryLongLifecycle(): Promise<void> {
   assert.ok(trail.transactions.some((t) => t.type === 'INITIAL_FUNDING'));
   assert.ok(trail.transactions.some((t) => t.type === 'REALIZED_PNL'));
   if (trail.reconciliation) {
-    assert.equal(trail.reconciliation.status === 'MATCH' || trail.reconciliation.ok !== false, true);
+    assert.equal(trail.reconciliation.status, 'MATCH');
   }
 }
 

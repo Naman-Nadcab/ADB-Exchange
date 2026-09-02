@@ -460,12 +460,15 @@ function harness() {
   await acc.credit({ accountId: USER, amount: '1000', idempotencyKey: 'DEPOSIT:api', type: 'DEPOSIT' });
   const app = Fastify();
   let uid: string | null = USER;
-  app.decorate('jwt', {
-    verify: () => {
-      if (!uid) throw new Error('unauthenticated');
-      return { userId: uid, role: 'user', sessionId: 's', type: 'impersonation', impersonatedBy: 'phase6-test' };
-    },
-  });
+  app.decorate(
+    'jwt',
+    {
+      verify: () => {
+        if (!uid) throw new Error('unauthenticated');
+        return { userId: uid, role: 'user', sessionId: 's', type: 'impersonation', impersonatedBy: 'phase6-test' };
+      },
+    } as never
+  );
   await registerForexAccountingRoutes(app);
   await app.ready();
 
