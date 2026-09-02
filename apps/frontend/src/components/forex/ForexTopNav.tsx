@@ -15,7 +15,7 @@ export function ForexTopNav() {
 
   return (
     <header className="mobile-app-topbar sticky top-0 z-40 shrink-0 border-b border-border bg-card/95 backdrop-blur-sm">
-      <div className="flex h-14 items-center gap-3 px-3">
+      <div className="flex h-12 items-center gap-3 px-3">
         <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} />
         <EdaProductSwitcher variant="terminal" />
         <nav className="hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto md:flex" aria-label="Forex terminal">

@@ -56,6 +56,7 @@ export function ForexLightweightChart(props: {
   digits?: number;
   chartType?: ForexChartType;
   overlay?: OverlayPoint[];
+  overlaySecondary?: OverlayPoint[];
   bands?: { upper: OverlayPoint[]; lower: OverlayPoint[] };
   levels?: ProtectionLevels;
   onCrosshair?: (state: ForexChartCrosshair) => void;
@@ -67,6 +68,7 @@ export function ForexLightweightChart(props: {
   );
   const seriesKindRef = useRef<ForexChartType>('candle');
   const overlayRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const overlay2Ref = useRef<ISeriesApi<'Line'> | null>(null);
   const upperRef = useRef<ISeriesApi<'Line'> | null>(null);
   const lowerRef = useRef<ISeriesApi<'Line'> | null>(null);
   const bidRef = useRef<IPriceLine | null>(null);
@@ -216,7 +218,14 @@ export function ForexLightweightChart(props: {
       seriesRef.current = series;
       seriesKindRef.current = kind;
       overlayRef.current = chart.addLineSeries({
-        color: 'rgba(245,184,0,0.85)',
+        color: 'rgba(245,184,0,0.9)',
+        lineWidth: 1,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        priceFormat,
+      });
+      overlay2Ref.current = chart.addLineSeries({
+        color: 'rgba(96,165,250,0.85)',
         lineWidth: 1,
         priceLineVisible: false,
         lastValueVisible: false,
@@ -285,6 +294,7 @@ export function ForexLightweightChart(props: {
       slRef.current = null;
       tpRef.current = null;
       overlayRef.current = null;
+      overlay2Ref.current = null;
       upperRef.current = null;
       lowerRef.current = null;
       seriesRef.current = null;
@@ -308,9 +318,10 @@ export function ForexLightweightChart(props: {
         .filter((p) => Number.isFinite(p.time) && Number.isFinite(p.value) && p.value > 0)
         .map((p) => ({ time: p.time as UTCTimestamp, value: p.value }));
     overlayRef.current?.setData(map(props.overlay ?? []));
+    overlay2Ref.current?.setData(map(props.overlaySecondary ?? []));
     upperRef.current?.setData(map(props.bands?.upper ?? []));
     lowerRef.current?.setData(map(props.bands?.lower ?? []));
-  }, [props.overlay, props.bands]);
+  }, [props.overlay, props.overlaySecondary, props.bands]);
 
   useEffect(() => {
     const series = seriesRef.current;

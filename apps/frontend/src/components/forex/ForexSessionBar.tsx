@@ -15,7 +15,7 @@ export function ForexSessionBar() {
 
   return (
     <div
-      className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border bg-card px-3 py-1.5 text-[11px]"
+      className="flex h-7 flex-wrap items-center gap-x-3 gap-y-0 overflow-hidden border-b border-border bg-card px-3 text-[10px]"
       aria-label="Forex sessions"
     >
       <span className="font-medium text-muted-foreground">Sessions</span>

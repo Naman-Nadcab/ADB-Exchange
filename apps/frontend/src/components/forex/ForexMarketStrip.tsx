@@ -16,7 +16,7 @@ export function ForexMarketStrip() {
 
   return (
     <div
-      className="flex h-10 shrink-0 items-stretch gap-px overflow-x-auto border-b border-border bg-muted/30"
+      className="flex h-8 shrink-0 items-stretch gap-px overflow-x-auto border-b border-border bg-muted/30"
       role="list"
       aria-label="Market strip"
     >
