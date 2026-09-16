@@ -40,6 +40,13 @@ import {
   parseForexAdminAuditQuery,
   parseForexAdminJournalQuery,
 } from '../services/forex/admin/journal-audit.js';
+import { buildForexAdminLedgerSnapshot } from '../services/forex/admin/ledger-recon.js';
+import {
+  exportForexAdminExecutionsCsv,
+  exportForexAdminJournalCsv,
+  exportForexAdminOrdersCsv,
+} from '../services/forex/admin/exports.js';
+import { adminForceCancelForexOrder } from '../services/forex/admin/ops-actions.js';
 
 type ForexAdminPolicyPatchBody = {
   leverage?: { global_max?: string; default_account?: string };
@@ -460,4 +467,75 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
       });
     }
   });
+
+  app.get('/forex/ledger', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    const data = await buildForexAdminLedgerSnapshot();
+    return reply.send({ success: true, data });
+  });
+
+  app.get<{ Querystring: ForexAdminListQuerystring }>('/forex/orders/export', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    const csv = await exportForexAdminOrdersCsv(request.query);
+    return reply.header('Content-Type', 'text/csv; charset=utf-8').header('Content-Disposition', 'attachment; filename="forex-orders.csv"').send(csv);
+  });
+
+  app.get<{ Querystring: ForexAdminListQuerystring }>('/forex/executions/export', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    const csv = await exportForexAdminExecutionsCsv(request.query);
+    return reply
+      .header('Content-Type', 'text/csv; charset=utf-8')
+      .header('Content-Disposition', 'attachment; filename="forex-executions.csv"')
+      .send(csv);
+  });
+
+  app.get<{ Querystring: { account_id?: string } }>('/forex/journal/export', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    const csv = await exportForexAdminJournalCsv(request.query);
+    return reply
+      .header('Content-Type', 'text/csv; charset=utf-8')
+      .header('Content-Disposition', 'attachment; filename="forex-journal.csv"')
+      .send(csv);
+  });
+
+  app.post<{ Params: { orderId: string }; Body: { reason?: string } }>(
+    '/forex/orders/:orderId/force-cancel',
+    async (request, reply) => {
+      const admin = await getAdminWithPermission(app, request, reply, 'control:trading');
+      if (!admin) return;
+
+      const reason = (request.body?.reason ?? '').trim();
+      if (reason.length < 8) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'REASON_REQUIRED', message: 'Reason (min 8 characters) is required.' },
+        });
+      }
+
+      try {
+        const result = await adminForceCancelForexOrder(request.params.orderId);
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'forex_admin_force_cancel',
+          resourceType: 'forex_order',
+          resourceId: result.order_id,
+          oldValue: { status: result.previous_status, reason },
+          newValue: { status: result.next_status, reason },
+        });
+        return reply.send({ success: true, data: result });
+      } catch (e) {
+        const code = e instanceof Error ? e.message : 'CANCEL_FAILED';
+        const status = code === 'ORDER_NOT_FOUND' ? 404 : 400;
+        return reply.status(status).send({
+          success: false,
+          error: { code, message: 'Force cancel failed.' },
+        });
+      }
+    },
+  );
 }

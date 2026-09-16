@@ -1,4 +1,6 @@
-import { adminFetch } from '@/lib/api';
+import { adminFetch, getAdminApiBaseUrl } from '@/lib/api';
+
+const ADMIN_PREFIX = '/api/v1/admin';
 
 export type ForexAdminConfigResponse = {
   config: Record<string, unknown>;
@@ -398,4 +400,65 @@ export type ForexAdminUserForexSummary = {
 
 export function getForexAdminUserSummary(token: string | null, userId: string) {
   return adminFetch<ForexAdminUserForexSummary>(`/forex/users/${encodeURIComponent(userId)}/summary`, { token });
+}
+
+export type ForexAdminLedgerSnapshot = {
+  accounts: Array<{
+    account_id: string;
+    user_id: string | null;
+    currency: string;
+    status: string;
+    customer_cash_balance: string;
+  }>;
+  reconciliation: Array<{
+    event_id: string;
+    account_id: string;
+    kind: string;
+    ok: boolean;
+    reason: string | null;
+    detail: string | null;
+    created_at: string;
+  }>;
+  totals: { accounts: number; reconciliationEvents: number };
+  note: string;
+};
+
+export function getForexAdminLedger(token: string | null) {
+  return adminFetch<ForexAdminLedgerSnapshot>('/forex/ledger', { token });
+}
+
+export function forceCancelForexAdminOrder(token: string | null, orderId: string, body: { reason: string }) {
+  return adminFetch<{
+    order_id: string;
+    account_id: string;
+    previous_status: string;
+    next_status: string;
+  }>(`/forex/orders/${encodeURIComponent(orderId)}/force-cancel`, { method: 'POST', token, body });
+}
+
+export async function downloadForexAdminCsv(
+  token: string | null,
+  path: '/forex/orders/export' | '/forex/executions/export' | '/forex/journal/export',
+  filename: string,
+  params?: Record<string, string | undefined>,
+): Promise<void> {
+  if (!token) throw new Error('Not authenticated');
+  let url = `${getAdminApiBaseUrl()}${ADMIN_PREFIX}${path}`;
+  if (params) {
+    const search = new URLSearchParams();
+    for (const [k, v] of Object.entries(params)) {
+      if (v) search.set(k, v);
+    }
+    const q = search.toString();
+    if (q) url += `?${q}`;
+  }
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new Error(`Export failed (${res.status})`);
+  const blob = await res.blob();
+  const href = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = href;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(href);
 }

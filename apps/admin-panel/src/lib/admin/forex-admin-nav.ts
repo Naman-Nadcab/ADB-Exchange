@@ -160,7 +160,7 @@ export const FOREX_ADMIN_ROUTES: ForexAdminRoute[] = [
     href: '/forex/margin-risk',
     icon: Gauge,
     description: 'Pre-trade gates, utilization, symbol exposure, policy snapshots.',
-    phase: 'F2',
+    phase: 'F4',
     sidebar: true,
   },
   {

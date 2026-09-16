@@ -11,6 +11,8 @@ import { ForexGlobalControlsPanel } from '@/components/forex/ForexGlobalControls
 import { ForexPolicyPanel } from '@/components/forex/ForexPolicyPanel';
 import { ForexExecutionPanel } from '@/components/forex/ForexExecutionPanel';
 import { ForexJournalAuditPanel } from '@/components/forex/ForexJournalAuditPanel';
+import { ForexLedgerPanel } from '@/components/forex/ForexLedgerPanel';
+import { ForexMarketDataPanel } from '@/components/forex/ForexMarketDataPanel';
 import { controlGroupsForRoute } from '@/lib/admin/forex-control-registry';
 import type { ForexAdminRoute } from '@/lib/admin/forex-admin-nav';
 import { FOREX_ADMIN_PHASES } from '@/lib/admin/forex-admin-nav';
@@ -22,7 +24,8 @@ const F2_LIVE_SECTIONS = new Set(['orders', 'executions', 'positions']);
 const F3_LIVE_SECTIONS = new Set(['controls']);
 const F4_LIVE_SECTIONS = new Set(['fees-swaps', 'margin-risk']);
 const F5_LIVE_SECTIONS = new Set(['lp-execution']);
-const F6_LIVE_SECTIONS = new Set(['journal-audit']);
+const F6_LIVE_SECTIONS = new Set(['journal-audit', 'ledger', 'accounts']);
+const F2_MARKET_DATA = new Set(['market-data']);
 
 const F2_TABLE_KIND: Record<string, ForexOpsTableKind> = {
   orders: 'orders',
@@ -40,7 +43,8 @@ export function ForexSectionPage({ route }: { route: ForexAdminRoute }) {
   const f4Live = F4_LIVE_SECTIONS.has(route.id);
   const f5Live = F5_LIVE_SECTIONS.has(route.id);
   const f6Live = F6_LIVE_SECTIONS.has(route.id);
-  const liveReadOnly = f1Live || f2Live;
+  const marketDataLive = F2_MARKET_DATA.has(route.id);
+  const liveReadOnly = f1Live || f2Live || marketDataLive;
   const liveSection = f3Live || f4Live || f5Live || f6Live || liveReadOnly;
 
   const configQ = useQuery({
@@ -104,8 +108,10 @@ export function ForexSectionPage({ route }: { route: ForexAdminRoute }) {
       quickActions={
         <Badge variant="info" className="font-normal">
           {f6Live
-            ? 'F6 live journal & audit'
-            : f5Live
+            ? 'F6 live journal, ledger & audit'
+            : marketDataLive
+              ? 'F2 live market data'
+              : f5Live
               ? 'F5 live LP gate'
               : f4Live
               ? 'F4 live policy'
@@ -121,8 +127,12 @@ export function ForexSectionPage({ route }: { route: ForexAdminRoute }) {
         </Badge>
       }
     >
-      {f6Live ? (
+      {route.id === 'ledger' || route.id === 'accounts' ? (
+        <ForexLedgerPanel />
+      ) : route.id === 'journal-audit' ? (
         <ForexJournalAuditPanel />
+      ) : marketDataLive ? (
+        <ForexMarketDataPanel />
       ) : f5Live ? (
         <ForexExecutionPanel />
       ) : f4Live ? (
@@ -158,7 +168,7 @@ export function ForexSectionPage({ route }: { route: ForexAdminRoute }) {
         </Card>
       )}
 
-      <ForexControlGrid groups={groups.length ? groups : controlGroupsForRoute('/forex')} compact />
+      {!liveSection ? <ForexControlGrid groups={groups.length ? groups : controlGroupsForRoute('/forex')} compact /> : null}
     </AdminPageFrame>
   );
 }

@@ -56,7 +56,7 @@ export function ForexPostureBanner(props: { className?: string }) {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(139,92,246,0.15),_transparent_55%)]" />
       <div className="relative flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-violet-300/90">Forex FDM · Control plane (F1 live)</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-violet-300/90">Forex FDM · F0–F6 live · MOCK / SIMULATED only</p>
           <p className="text-sm text-admin-muted">
             {isLoading
               ? 'Loading posture from admin API…'

@@ -7,6 +7,7 @@ import { forexAuthenticate } from '../services/forex/auth/forex-authenticate.js'
 import { publicLedgerRow } from '../services/forex/accounting/service.js';
 import { getForexAccountingService } from '../services/forex/accounting/service.js';
 import { getForexAdminBackendConfig } from '../services/forex/admin/config.js';
+import { effectiveForexRuntimeFlags } from '../services/forex/admin/runtime-controls.js';
 import { forexConfig } from '../services/forex/config.js';
 import { ForexLedgerError } from '../services/forex/ledger/models.js';
 import { ForexConversionError } from '../services/forex/pnl/conversion.js';
@@ -174,7 +175,7 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
         error: { code: 'FOREX_DEMO_FUNDING_BLOCKED', message: 'Demo funding is blocked when real Forex is enabled', source: 'SIMULATED' },
       });
     }
-    if (!forexConfig.demoFundingEnabled && !forexConfig.fundingTestApiEnabled) {
+    if (!effectiveForexRuntimeFlags().demoFundingEnabled && !effectiveForexRuntimeFlags().fundingTestApiEnabled) {
       return reply.status(403).send({
         success: false,
         error: {
@@ -224,7 +225,7 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
         error: { code: 'FOREX_DEMO_PRICE_BLOCKED', message: 'Demo price apply is blocked when real Forex is enabled', source: 'SIMULATED' },
       });
     }
-    if (!forexConfig.demoFundingEnabled && !forexConfig.demoZeroSpread) {
+    if (!effectiveForexRuntimeFlags().demoFundingEnabled && !forexConfig.demoZeroSpread) {
       return reply.status(403).send({
         success: false,
         error: { code: 'FOREX_DEMO_PRICE_DISABLED', message: 'Demo price apply is disabled', source: 'SIMULATED' },

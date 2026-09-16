@@ -1,6 +1,6 @@
 /**
  * Maximum control catalog for Forex FDM admin — UI maps every planned knob.
- * `wired: false` until backend `/api/v1/admin/forex/*` implements the action.
+ * `wired: true` when `/api/v1/admin/forex/*` or section UI implements the control.
  */
 import type { ForexAdminPhase } from '@/lib/admin/forex-admin-nav';
 
@@ -29,10 +29,10 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     title: 'Runtime posture',
     sectionRoute: '/forex',
     controls: [
-      { id: 'source', label: 'Quote source', description: 'SIMULATED vs live LP feed', kind: 'readonly', phase: 'F1', wired: false },
-      { id: 'execution_mode', label: 'Execution mode', description: 'MOCK venue vs broker bridge', kind: 'readonly', phase: 'F1', wired: false },
+      { id: 'source', label: 'Quote source', description: 'SIMULATED vs live LP feed', kind: 'readonly', phase: 'F1', wired: true },
+      { id: 'execution_mode', label: 'Execution mode', description: 'MOCK venue vs broker bridge', kind: 'readonly', phase: 'F1', wired: true },
       { id: 'real_forex', label: 'REAL_FOREX master gate', description: 'Blocks real-money path when OFF', kind: 'readonly', phase: 'F5', wired: true },
-      { id: 'economic_ready', label: 'Economic hydration', description: 'Forex ready for trading routes', kind: 'readonly', phase: 'F1', wired: false },
+      { id: 'economic_ready', label: 'Economic hydration', description: 'Forex ready for trading routes', kind: 'readonly', phase: 'F1', wired: true },
     ],
   },
   {
@@ -53,7 +53,7 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     title: 'Instruments',
     sectionRoute: '/forex/instruments',
     controls: [
-      { id: 'catalog', label: 'Instrument catalog', description: 'Symbols, digits, contract size', kind: 'table', phase: 'F1', wired: false },
+      { id: 'catalog', label: 'Instrument catalog', description: 'Symbols, digits, contract size', kind: 'table', phase: 'F1', wired: true },
       { id: 'trading_status', label: 'Per-symbol trading status', description: 'active / close-only / halted', kind: 'select', phase: 'F3', wired: true },
       { id: 'leverage_cap', label: 'Max leverage per symbol', description: 'Instrument leverage ceiling', kind: 'number', phase: 'F4', wired: true },
       { id: 'volume_bands', label: 'Min / max volume', description: 'Lot size constraints', kind: 'number', phase: 'F4', wired: false },
@@ -64,7 +64,7 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     title: 'Sessions & calendar',
     sectionRoute: '/forex/sessions',
     controls: [
-      { id: 'session_snapshot', label: 'Session eligibility', description: 'Open / closed by symbol', kind: 'readonly', phase: 'F1', wired: false },
+      { id: 'session_snapshot', label: 'Session eligibility', description: 'Open / closed by symbol', kind: 'readonly', phase: 'F1', wired: true },
       { id: 'holiday_calendar', label: 'Holiday calendar', description: 'DST-safe holiday coverage', kind: 'table', phase: 'F4', wired: false },
       { id: 'day_order_expiry', label: 'DAY order expiry', description: 'Expire working orders on session close', kind: 'toggle', phase: 'F4', wired: false },
     ],
@@ -74,8 +74,8 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     title: 'Market data',
     sectionRoute: '/forex/market-data',
     controls: [
-      { id: 'mock_providers', label: 'MOCK LP providers', description: 'MOCK-A/B/C health & failover', kind: 'table', phase: 'F2', wired: false },
-      { id: 'quote_persist', label: 'Quote persistence', description: 'forex_quotes write load & retention', kind: 'readonly', phase: 'F2', wired: false },
+      { id: 'mock_providers', label: 'MOCK LP providers', description: 'MOCK-A/B/C health & failover', kind: 'table', phase: 'F5', wired: true },
+      { id: 'quote_persist', label: 'Quote persistence', description: 'forex_quotes write load & retention', kind: 'readonly', phase: 'F2', wired: true },
       { id: 'external_candles', label: 'External candles', description: 'Yahoo reference — non-execution', kind: 'readonly', phase: 'F1', wired: false },
     ],
   },
@@ -84,10 +84,10 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     title: 'Trading operations',
     sectionRoute: '/forex/orders',
     controls: [
-      { id: 'open_orders', label: 'Open & pending orders', description: 'Search, filter, export', kind: 'table', phase: 'F2', wired: false },
-      { id: 'cancel_order', label: 'Force cancel (ops)', description: 'Cancel stuck working order', kind: 'action', phase: 'F3', wired: false, dangerous: true },
-      { id: 'executions', label: 'Execution attempts', description: 'MOCK fill audit trail', kind: 'table', phase: 'F2', wired: false },
-      { id: 'positions', label: 'Open positions', description: 'Exposure by account & symbol', kind: 'table', phase: 'F2', wired: false },
+      { id: 'open_orders', label: 'Open & pending orders', description: 'Search, filter, export', kind: 'table', phase: 'F2', wired: true },
+      { id: 'cancel_order', label: 'Force cancel (ops)', description: 'Cancel stuck working order', kind: 'action', phase: 'F3', wired: true, dangerous: true },
+      { id: 'executions', label: 'Execution attempts', description: 'MOCK fill audit trail', kind: 'table', phase: 'F2', wired: true },
+      { id: 'positions', label: 'Open positions', description: 'Exposure by account & symbol', kind: 'table', phase: 'F2', wired: true },
     ],
   },
   {
@@ -95,8 +95,8 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     title: 'Margin & risk',
     sectionRoute: '/forex/margin-risk',
     controls: [
-      { id: 'pretrade', label: 'Pre-trade checks', description: 'Margin, exposure, kill switch', kind: 'readonly', phase: 'F2', wired: false },
-      { id: 'policy_snapshot', label: 'Risk policy snapshot', description: 'Limits from risk service', kind: 'readonly', phase: 'F1', wired: false },
+      { id: 'pretrade', label: 'Pre-trade checks', description: 'Margin, exposure, kill switch', kind: 'readonly', phase: 'F2', wired: true },
+      { id: 'policy_snapshot', label: 'Risk policy snapshot', description: 'Limits from risk service', kind: 'readonly', phase: 'F4', wired: true },
       { id: 'global_leverage', label: 'Global max leverage', description: 'Platform ceiling', kind: 'number', phase: 'F4', wired: true },
       { id: 'margin_levels', label: 'Margin call / stop-out', description: 'Warning, call, stop-out %', kind: 'number', phase: 'F4', wired: true },
     ],
@@ -140,12 +140,21 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     ],
   },
   {
+    id: 'ledger',
+    title: 'Ledger & recon',
+    sectionRoute: '/forex/ledger',
+    controls: [
+      { id: 'ledger_accounts', label: 'Ledger accounts', description: 'CUSTOMER_CASH balances', kind: 'table', phase: 'F6', wired: true },
+      { id: 'recon_events', label: 'Reconciliation events', description: 'Accounting / execution recon tail', kind: 'table', phase: 'F6', wired: true },
+    ],
+  },
+  {
     id: 'system',
     title: 'System',
     sectionRoute: '/forex/system',
     controls: [
-      { id: 'hydrate_status', label: 'Hydration / recovery', description: 'Last hydrate result & duration', kind: 'readonly', phase: 'F1', wired: false },
-      { id: 'worker_tick', label: 'Market-data worker', description: 'Interval, symbols, provider list', kind: 'readonly', phase: 'F1', wired: false },
+      { id: 'hydrate_status', label: 'Hydration / recovery', description: 'Last hydrate result & duration', kind: 'readonly', phase: 'F1', wired: true },
+      { id: 'worker_tick', label: 'Market-data worker', description: 'Interval, symbols, provider list', kind: 'readonly', phase: 'F1', wired: true },
       { id: 'prometheus', label: 'Forex metrics', description: 'Hydrate, recovery, order counters', kind: 'readonly', phase: 'F2', wired: false },
     ],
   },

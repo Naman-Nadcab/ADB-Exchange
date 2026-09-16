@@ -14,7 +14,9 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { RefreshCw } from 'lucide-react';
+import { Download, RefreshCw } from 'lucide-react';
+import { ProtectedAction } from '@/components/rbac/ProtectedAction';
+import { downloadForexAdminCsv } from '@/lib/admin/forex-api';
 
 function JournalTable(props: { rows: ForexAdminJournalRow[]; tableReady: boolean }) {
   if (!props.tableReady) {
@@ -145,6 +147,19 @@ export function ForexJournalAuditPanel() {
             <Button type="button" size="sm" variant="ghost" onClick={() => void journalQ.refetch()}>
               <RefreshCw className={`h-3.5 w-3.5 ${journalQ.isFetching ? 'animate-spin' : ''}`} />
             </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() =>
+                void downloadForexAdminCsv(token, '/forex/journal/export', 'forex-journal.csv', {
+                  account_id: accountId.trim() || undefined,
+                }).catch((e) => alert(e instanceof Error ? e.message : 'Export failed'))
+              }
+            >
+              <Download className="h-3 w-3" />
+              CSV
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -191,32 +206,37 @@ export function ForexJournalAuditPanel() {
           </Badge>
         </CardHeader>
         <CardContent>
-          {auditQ.isError ? (
-            <p className="text-sm text-red-500">{auditQ.error instanceof Error ? auditQ.error.message : 'Load failed'}</p>
-          ) : (
-            <>
-              <AuditTable rows={auditQ.data?.rows ?? []} />
-              {auditQ.data && auditQ.data.pagination.totalPages > 1 ? (
-                <div className="mt-3 flex items-center gap-2 text-xs">
-                  <Button type="button" size="sm" variant="secondary" disabled={auditPage <= 1} onClick={() => setAuditPage((p) => p - 1)}>
-                    Prev
-                  </Button>
-                  <span className="text-admin-muted">
-                    Page {auditPage} / {auditQ.data.pagination.totalPages}
-                  </span>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="secondary"
-                    disabled={auditPage >= auditQ.data.pagination.totalPages}
-                    onClick={() => setAuditPage((p) => p + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
-              ) : null}
-            </>
-          )}
+          <ProtectedAction
+            permission="audit:view"
+            fallback={<p className="text-sm text-admin-muted">Forex config audit requires the audit:view permission.</p>}
+          >
+            {auditQ.isError ? (
+              <p className="text-sm text-red-500">{auditQ.error instanceof Error ? auditQ.error.message : 'Load failed'}</p>
+            ) : (
+              <>
+                <AuditTable rows={auditQ.data?.rows ?? []} />
+                {auditQ.data && auditQ.data.pagination.totalPages > 1 ? (
+                  <div className="mt-3 flex items-center gap-2 text-xs">
+                    <Button type="button" size="sm" variant="secondary" disabled={auditPage <= 1} onClick={() => setAuditPage((p) => p - 1)}>
+                      Prev
+                    </Button>
+                    <span className="text-admin-muted">
+                      Page {auditPage} / {auditQ.data.pagination.totalPages}
+                    </span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      disabled={auditPage >= auditQ.data.pagination.totalPages}
+                      onClick={() => setAuditPage((p) => p + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                ) : null}
+              </>
+            )}
+          </ProtectedAction>
         </CardContent>
       </Card>
 

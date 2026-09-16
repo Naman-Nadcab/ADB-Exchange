@@ -1,13 +1,15 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useAdminAuthStore } from '@/store/auth';
 import {
   getForexAdminExecutions,
   getForexAdminOrders,
   getForexAdminPositions,
+  forceCancelForexAdminOrder,
+  downloadForexAdminCsv,
   type ForexAdminExecutionRow,
   type ForexAdminOrderRow,
   type ForexAdminPositionRow,
@@ -16,7 +18,8 @@ import { DataTable } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { ProtectedAction } from '@/components/rbac/ProtectedAction';
+import { ChevronLeft, ChevronRight, Download, RefreshCw } from 'lucide-react';
 
 export type ForexOpsTableKind = 'orders' | 'executions' | 'positions';
 
@@ -60,9 +63,13 @@ function SideBadge({ side }: { side: string }) {
   );
 }
 
+const TERMINAL_ORDER = new Set(['FILLED', 'REJECTED', 'CANCELLED', 'FAILED']);
+
 export function ForexAdminOpsTable({ kind }: { kind: ForexOpsTableKind }) {
   const token = useAdminAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
   const [page, setPage] = useState(1);
+  const [opsReason, setOpsReason] = useState('');
   const [symbol, setSymbol] = useState('');
   const [accountId, setAccountId] = useState('');
   const [status, setStatus] = useState('all');
@@ -99,6 +106,15 @@ export function ForexAdminOpsTable({ kind }: { kind: ForexOpsTableKind }) {
     staleTime: 15_000,
   });
 
+  const cancelM = useMutation({
+    mutationFn: async (orderId: string) => {
+      const res = await forceCancelForexAdminOrder(token, orderId, { reason: opsReason });
+      if (!res.success || !res.data) throw new Error(res.error?.message ?? 'Cancel failed');
+      return res.data;
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin', 'forex', kind] }),
+  });
+
   const orderColumns = useMemo<ColumnDef<ForexAdminOrderRow>[]>(
     () => [
       { accessorKey: 'created_at', header: 'Time', cell: ({ getValue }) => fmtTime(String(getValue())) },
@@ -110,8 +126,29 @@ export function ForexAdminOpsTable({ kind }: { kind: ForexOpsTableKind }) {
       { accessorKey: 'filled_volume', header: 'Filled' },
       { accessorKey: 'account_id', header: 'Account', cell: ({ getValue }) => shortId(String(getValue())) },
       { accessorKey: 'order_id', header: 'Order', cell: ({ getValue }) => <span className="font-mono text-xs">{shortId(String(getValue()))}</span> },
+      {
+        id: 'ops',
+        header: 'Ops',
+        cell: ({ row }) => {
+          const st = row.original.status.toUpperCase();
+          if (TERMINAL_ORDER.has(st)) return <span className="text-admin-muted">—</span>;
+          return (
+            <ProtectedAction permission="control:trading" fallback="disabled">
+              <Button
+                type="button"
+                size="sm"
+                variant="danger"
+                disabled={cancelM.isPending || opsReason.trim().length < 8}
+                onClick={() => cancelM.mutate(row.original.order_id)}
+              >
+                Force cancel
+              </Button>
+            </ProtectedAction>
+          );
+        },
+      },
     ],
-    [],
+    [cancelM.isPending, opsReason, cancelM],
   );
 
   const execColumns = useMemo<ColumnDef<ForexAdminExecutionRow>[]>(
@@ -163,8 +200,17 @@ export function ForexAdminOpsTable({ kind }: { kind: ForexOpsTableKind }) {
           { value: 'REJECTED', label: 'Rejected' },
         ];
 
+  const exportPath =
+    kind === 'orders' ? '/forex/orders/export' : kind === 'executions' ? '/forex/executions/export' : null;
+
   return (
     <div className="space-y-3">
+      {kind === 'orders' ? (
+        <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-3">
+          <label className="mb-1 block text-xs text-admin-muted">Force-cancel audit reason (min 8 chars)</label>
+          <Input value={opsReason} onChange={(e) => setOpsReason(e.target.value)} placeholder="Ops ticket reference" className="h-9 max-w-md" />
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-end gap-2 rounded-lg border border-violet-500/20 bg-admin-card/50 p-3">
         <div className="min-w-[7rem] flex-1">
           <label className="mb-1 block text-xs text-admin-muted">Symbol</label>
@@ -227,7 +273,28 @@ export function ForexAdminOpsTable({ kind }: { kind: ForexOpsTableKind }) {
           <RefreshCw className="h-3.5 w-3.5" />
           Refresh
         </Button>
+        {exportPath ? (
+          <Button
+            type="button"
+            variant="secondary"
+            className="h-9 gap-1"
+            onClick={() =>
+              void downloadForexAdminCsv(token, exportPath, `forex-${kind}.csv`, {
+                symbol: symbol || undefined,
+                account_id: accountId || undefined,
+                status: status === 'all' ? undefined : status,
+                side: side === 'all' ? undefined : side,
+              }).catch((e) => alert(e instanceof Error ? e.message : 'Export failed'))
+            }
+          >
+            <Download className="h-3.5 w-3.5" />
+            Export CSV
+          </Button>
+        ) : null}
       </div>
+      {cancelM.isError ? (
+        <p className="text-sm text-red-400">{cancelM.error instanceof Error ? cancelM.error.message : 'Cancel failed'}</p>
+      ) : null}
 
       {kind === 'orders' ? (
         <DataTable columns={orderColumns} data={rows as ForexAdminOrderRow[]} loading={listQ.isLoading} sortable={false} compact />

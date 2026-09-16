@@ -42,7 +42,7 @@ export default function ForexAdminOverviewPage() {
   return (
     <AdminPageFrame
       title="Forex FDM Overview"
-      description="F1: live read-only posture, KPIs, and config mirror from /api/v1/admin/forex/*."
+      description="F0–F6: live Forex FDM ops — posture, trading tables, controls, policy, LP gate, journal & ledger."
       status={overviewQ.data?.readiness.economicReady ? 'active' : 'warning'}
       error={overviewQ.isError ? (overviewQ.error instanceof Error ? overviewQ.error.message : 'Load failed') : null}
       onRetry={() => overviewQ.refetch()}
