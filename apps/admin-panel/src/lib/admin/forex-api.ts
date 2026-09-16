@@ -283,3 +283,61 @@ export function patchForexInstrumentTradingStatus(
     { method: 'PATCH', token, body },
   );
 }
+
+export type ForexAdminExecutionSnapshot = {
+  posture: {
+    source: string;
+    executionMode: string;
+    realForex: false;
+    killSwitch: boolean;
+  };
+  routing: { rules: Array<Record<string, unknown>>; mockProvidersOnly: boolean };
+  providers: Array<{
+    providerId: string;
+    providerCode: string;
+    health: {
+      status: string;
+      quoteCount: number;
+      rejectRate: number;
+    } | null;
+    rule: { enabled: boolean; priority: number } | null;
+  }>;
+  marketData: ForexAdminConfigResponse['runtime']['marketData'];
+  realForexGate: {
+    effectiveRealForex: false;
+    armRequested: boolean;
+    envRealForexAllowed: boolean;
+    releaseBlocked: boolean;
+    releaseBlockReason: string;
+    checklistComplete: boolean;
+    checklist: Array<{ id: string; label: string; pass: boolean; detail: string }>;
+  };
+  fillRecon: {
+    windowHours: number;
+    totals: { executions: number; filled: number; failed: number; partial: number };
+    byProvider: Array<{ provider: string; count: number }>;
+    note: string;
+  };
+};
+
+export function getForexAdminExecution(token: string | null) {
+  return adminFetch<ForexAdminExecutionSnapshot>('/forex/execution', { token });
+}
+
+export function patchForexAdminRouting(
+  token: string | null,
+  providerId: string,
+  body: { reason: string; enabled?: boolean; priority?: number; failover_enabled?: boolean },
+) {
+  return adminFetch<{ snapshot: ForexAdminExecutionSnapshot }>(
+    `/forex/execution/routing/${encodeURIComponent(providerId)}`,
+    { method: 'PATCH', token, body },
+  );
+}
+
+export function patchForexRealForexArm(token: string | null, body: { requested: boolean; reason: string }) {
+  return adminFetch<{ previous: boolean; next: boolean; gate: ForexAdminExecutionSnapshot['realForexGate']; snapshot: ForexAdminExecutionSnapshot }>(
+    '/forex/execution/real-forex',
+    { method: 'PATCH', token, body },
+  );
+}

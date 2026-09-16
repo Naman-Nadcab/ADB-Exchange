@@ -28,6 +28,11 @@ import { forexConfig } from '../services/forex/config.js';
 import { forexReadinessSnapshot } from '../services/forex/durability/ready.js';
 import { forexMarketDataWorkerSnapshot } from '../services/forex/market-data/worker.js';
 import { listForexSymbols } from '../services/forex/instruments.catalog.js';
+import {
+  applyForexAdminRoutingPatch,
+  applyForexRealForexArmPatch,
+  buildForexAdminExecutionSnapshot,
+} from '../services/forex/admin/execution.js';
 
 type ForexAdminPolicyPatchBody = {
   leverage?: { global_max?: string; default_account?: string };
@@ -325,6 +330,103 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
       return reply.status(400).send({
         success: false,
         error: { code, message: 'Instrument policy update failed.' },
+      });
+    }
+  });
+
+  app.get('/forex/execution', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    const data = await buildForexAdminExecutionSnapshot();
+    return reply.send({ success: true, data });
+  });
+
+  app.patch<{
+    Params: { providerId: string };
+    Body: { reason?: string; enabled?: boolean; priority?: number; failover_enabled?: boolean };
+  }>('/forex/execution/routing/:providerId', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'control:trading');
+    if (!admin) return;
+
+    const reason = (request.body?.reason ?? '').trim();
+    const patch = {
+      enabled: request.body?.enabled,
+      priority: request.body?.priority,
+      failover_enabled: request.body?.failover_enabled,
+    };
+    const hasChange = Object.values(patch).some((v) => v !== undefined);
+    if (!hasChange) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'NO_CHANGES', message: 'Provide enabled, priority, or failover_enabled.' },
+      });
+    }
+    if (reason.length < 8) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'REASON_REQUIRED', message: 'Reason (min 8 characters) is required.' },
+      });
+    }
+
+    try {
+      const result = applyForexAdminRoutingPatch(request.params.providerId, patch);
+      await logAuditFromRequest(request, {
+        actorType: 'admin',
+        actorId: admin.adminId,
+        action: 'forex_lp_routing_update',
+        resourceType: 'forex_routing',
+        resourceId: result.providerId,
+        oldValue: { ...result.previous, reason },
+        newValue: { ...result.next, reason },
+      });
+      const snapshot = await buildForexAdminExecutionSnapshot();
+      return reply.send({ success: true, data: { ...result, snapshot } });
+    } catch (e) {
+      const code = e instanceof Error ? e.message : 'ROUTING_UPDATE_FAILED';
+      const status = code === 'LIVE_LP_FORBIDDEN' ? 403 : 400;
+      return reply.status(status).send({
+        success: false,
+        error: { code, message: 'Routing update rejected.' },
+      });
+    }
+  });
+
+  app.patch<{ Body: { requested?: boolean; reason?: string } }>('/forex/execution/real-forex', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'control:trading');
+    if (!admin) return;
+
+    const reason = (request.body?.reason ?? '').trim();
+    if (typeof request.body?.requested !== 'boolean') {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'INVALID_BODY', message: 'requested (boolean) is required.' },
+      });
+    }
+    if (reason.length < 8) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'REASON_REQUIRED', message: 'Reason (min 8 characters) is required.' },
+      });
+    }
+
+    try {
+      const result = applyForexRealForexArmPatch(request.body.requested);
+      await logAuditFromRequest(request, {
+        actorType: 'admin',
+        actorId: admin.adminId,
+        action: 'forex_real_forex_arm',
+        resourceType: 'forex_runtime',
+        resourceId: 'real_forex_arm',
+        oldValue: { armRequested: result.previous, effectiveRealForex: false, reason },
+        newValue: { armRequested: result.next, effectiveRealForex: false, reason },
+      });
+      const snapshot = await buildForexAdminExecutionSnapshot();
+      return reply.send({ success: true, data: { ...result, snapshot } });
+    } catch (e) {
+      const code = e instanceof Error ? e.message : 'ARM_FAILED';
+      return reply.status(400).send({
+        success: false,
+        error: { code, message: 'REAL_FOREX arm request rejected.' },
       });
     }
   });

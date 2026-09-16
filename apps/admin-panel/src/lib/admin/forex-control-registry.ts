@@ -31,7 +31,7 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     controls: [
       { id: 'source', label: 'Quote source', description: 'SIMULATED vs live LP feed', kind: 'readonly', phase: 'F1', wired: false },
       { id: 'execution_mode', label: 'Execution mode', description: 'MOCK venue vs broker bridge', kind: 'readonly', phase: 'F1', wired: false },
-      { id: 'real_forex', label: 'REAL_FOREX master gate', description: 'Blocks real-money path when OFF', kind: 'readonly', phase: 'F5', wired: false },
+      { id: 'real_forex', label: 'REAL_FOREX master gate', description: 'Blocks real-money path when OFF', kind: 'readonly', phase: 'F5', wired: true },
       { id: 'economic_ready', label: 'Economic hydration', description: 'Forex ready for trading routes', kind: 'readonly', phase: 'F1', wired: false },
     ],
   },
@@ -125,9 +125,9 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     title: 'LP & execution',
     sectionRoute: '/forex/lp-execution',
     controls: [
-      { id: 'lp_routing', label: 'LP routing table', description: 'Primary / backup LP', kind: 'table', phase: 'F5', wired: false },
-      { id: 'enable_real_forex', label: 'Enable REAL_FOREX', description: 'Requires certification checklist', kind: 'toggle', phase: 'F5', wired: false, dangerous: true },
-      { id: 'fill_recon', label: 'Fill reconciliation', description: 'LP vs internal fills', kind: 'table', phase: 'F5', wired: false },
+      { id: 'lp_routing', label: 'LP routing table', description: 'Primary / backup LP', kind: 'table', phase: 'F5', wired: true },
+      { id: 'enable_real_forex', label: 'Enable REAL_FOREX', description: 'Requires certification checklist', kind: 'toggle', phase: 'F5', wired: true, dangerous: true },
+      { id: 'fill_recon', label: 'Fill reconciliation', description: 'LP vs internal fills', kind: 'table', phase: 'F5', wired: true },
     ],
   },
   {
