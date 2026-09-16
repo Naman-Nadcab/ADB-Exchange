@@ -4,6 +4,7 @@
  *
  * Hierarchy (strictest wins): GLOBAL → INSTRUMENT → ACCOUNT → POSITION
  */
+import { effectiveDefaultAccountLeverage, effectiveGlobalMaxLeverage } from '../admin/effective-config.js';
 import { effectiveForexRuntimeFlags } from '../admin/runtime-controls.js';
 import { forexConfig } from '../config.js';
 import { fxDecimal } from '../decimal-fx.js';
@@ -54,7 +55,7 @@ export function defaultGlobalLimits(): ForexLimitSlice {
     maxAccountGrossExposure: forexConfig.maxTotalExposure,
     maxAccountNetExposure: forexConfig.maxTotalExposure,
     maxAggregateForexExposure: forexConfig.maxTotalExposure,
-    maxLeverage: forexConfig.globalMaxLeverage,
+    maxLeverage: effectiveGlobalMaxLeverage(),
     maxMarginUtilization: forexConfig.maxMarginUtilization,
     maxOpenPositions: Number.parseInt(process.env.FOREX_MAX_OPEN_POSITIONS ?? '20', 10) || 20,
     maxOrdersPerSymbol: Number.parseInt(process.env.FOREX_MAX_ORDERS_PER_SYMBOL ?? '10', 10) || 10,
@@ -126,9 +127,9 @@ export function resolveEffectiveLimits(args: { symbol: string; accountId: string
   const sources: ForexResolvedLimits['sources'] = {};
   const instrument = getForexInstrumentBySymbol(args.symbol);
   const maxLeverage = effectiveLeverage({
-    globalMax: g.maxLeverage ?? forexConfig.globalMaxLeverage,
-    accountMax: a.maxLeverage ?? forexConfig.defaultAccountLeverage,
-    instrumentMax: i.maxLeverage ?? instrument?.maxLeverage ?? forexConfig.defaultAccountLeverage,
+    globalMax: g.maxLeverage ?? effectiveGlobalMaxLeverage(),
+    accountMax: a.maxLeverage ?? effectiveDefaultAccountLeverage(),
+    instrumentMax: i.maxLeverage ?? instrument?.maxLeverage ?? effectiveDefaultAccountLeverage(),
   });
   sources.maxLeverage = 'GLOBAL';
   if (a.maxLeverage && fxDecimal(a.maxLeverage).lte(maxLeverage)) sources.maxLeverage = 'ACCOUNT';

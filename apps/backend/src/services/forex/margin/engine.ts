@@ -1,3 +1,8 @@
+import {
+  effectiveMarginCallLevel,
+  effectiveMarginWarningLevel,
+  effectiveStopOutLevel,
+} from '../admin/effective-config.js';
 import { forexConfig } from '../config.js';
 import { fxDecimal } from '../decimal-fx.js';
 import { getForexInstrumentBySymbol } from '../instruments.catalog.js';
@@ -65,9 +70,9 @@ export function positionMarginSnapshot(args: {
 export function classifyMarginLevel(marginLevel: string | null): ForexMarginStatus {
   if (marginLevel == null) return 'NORMAL';
   const lvl = fxDecimal(marginLevel);
-  const stop = fxDecimal(forexConfig.stopOutLevel);
-  const call = fxDecimal(forexConfig.marginCallLevel);
-  const warn = fxDecimal(forexConfig.marginWarningLevel);
+  const stop = fxDecimal(effectiveStopOutLevel());
+  const call = fxDecimal(effectiveMarginCallLevel());
+  const warn = fxDecimal(effectiveMarginWarningLevel());
   if (lvl.lte(stop)) return 'STOP_OUT_READY';
   if (lvl.lte(call)) return 'MARGIN_CALL';
   if (lvl.lte(warn)) return 'WARNING';

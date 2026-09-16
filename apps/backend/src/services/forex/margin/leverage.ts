@@ -1,5 +1,6 @@
 import { fxDecimal } from '../decimal-fx.js';
 import { getForexInstrumentBySymbol } from '../instruments.catalog.js';
+import { effectiveDefaultAccountLeverage, effectiveGlobalMaxLeverage } from '../admin/effective-config.js';
 import { forexConfig } from '../config.js';
 
 export interface LeverageInputs {
@@ -27,8 +28,8 @@ export function effectiveLeverage(inputs: LeverageInputs): string {
 export function resolveEffectiveLeverage(symbol: string, accountMaxLeverage?: string): string {
   const instrument = getForexInstrumentBySymbol(symbol);
   return effectiveLeverage({
-    globalMax: forexConfig.globalMaxLeverage,
-    accountMax: accountMaxLeverage ?? forexConfig.defaultAccountLeverage,
-    instrumentMax: instrument?.maxLeverage ?? forexConfig.defaultAccountLeverage,
+    globalMax: effectiveGlobalMaxLeverage(),
+    accountMax: accountMaxLeverage ?? effectiveDefaultAccountLeverage(),
+    instrumentMax: instrument?.maxLeverage ?? effectiveDefaultAccountLeverage(),
   });
 }

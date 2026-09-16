@@ -207,6 +207,72 @@ export function patchForexAdminControls(
   });
 }
 
+export type ForexAdminPolicySnapshot = {
+  leverage: {
+    effective: { globalMax: string; defaultAccount: string };
+    envBaseline: { globalMaxLeverage: string; defaultAccountLeverage: string };
+    runtimeOverrides: Record<string, string>;
+  };
+  margin: {
+    effective: { warningLevel: string; callLevel: string; stopOutLevel: string; maintenanceRatio: string };
+    envBaseline: Record<string, string>;
+    runtimeOverrides: Record<string, string>;
+  };
+  commission: { global: { model: string; rate: string; minimum?: string }; instruments: unknown[]; accounts: unknown[] };
+  swaps: {
+    global: {
+      longSwap: string;
+      shortSwap: string;
+      rolloverTime: string;
+      timezone: string;
+      tripleSwapDay: number;
+      model: string;
+    };
+    instruments: unknown[];
+  };
+  instruments: Array<{
+    symbol: string;
+    displaySymbol: string;
+    catalog: { maxLeverage: string; minVolume: string; maxVolume: string };
+    effective: { maxLeverage: string; minVolume: string; maxVolume: string };
+    overridden: boolean;
+  }>;
+  riskLimits: Record<string, unknown>;
+};
+
+export function getForexAdminPolicy(token: string | null) {
+  return adminFetch<ForexAdminPolicySnapshot>('/forex/policy', { token });
+}
+
+export function patchForexAdminPolicy(
+  token: string | null,
+  body: {
+    reason: string;
+    leverage?: { global_max?: string; default_account?: string };
+    margin?: { warning_level?: string; call_level?: string; stop_out_level?: string; maintenance_ratio?: string };
+    commission?: { model?: string; rate?: string; minimum?: string };
+    swap?: { long_swap?: string; short_swap?: string; rollover_time?: string; timezone?: string; triple_swap_day?: number };
+  },
+) {
+  return adminFetch<{ changes: unknown[]; snapshot: ForexAdminPolicySnapshot }>('/forex/policy', {
+    method: 'PATCH',
+    token,
+    body,
+  });
+}
+
+export function patchForexInstrumentPolicy(
+  token: string | null,
+  symbol: string,
+  body: { reason: string; max_leverage?: string; min_volume?: string; max_volume?: string },
+) {
+  return adminFetch<{ snapshot: ForexAdminPolicySnapshot }>(`/forex/policy/instruments/${encodeURIComponent(symbol)}`, {
+    method: 'PATCH',
+    token,
+    body,
+  });
+}
+
 export function patchForexInstrumentTradingStatus(
   token: string | null,
   symbol: string,

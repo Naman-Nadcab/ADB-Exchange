@@ -8,6 +8,7 @@ import { ForexControlGrid } from '@/components/forex/ForexControlGrid';
 import { ForexJsonPanel } from '@/components/forex/ForexJsonPanel';
 import { ForexAdminOpsTable, type ForexOpsTableKind } from '@/components/forex/ForexAdminOpsTable';
 import { ForexGlobalControlsPanel } from '@/components/forex/ForexGlobalControlsPanel';
+import { ForexPolicyPanel } from '@/components/forex/ForexPolicyPanel';
 import { controlGroupsForRoute } from '@/lib/admin/forex-control-registry';
 import type { ForexAdminRoute } from '@/lib/admin/forex-admin-nav';
 import { FOREX_ADMIN_PHASES } from '@/lib/admin/forex-admin-nav';
@@ -17,6 +18,7 @@ import { Badge } from '@/components/ui/Badge';
 const F1_LIVE_SECTIONS = new Set(['command', 'instruments', 'sessions', 'system']);
 const F2_LIVE_SECTIONS = new Set(['orders', 'executions', 'positions']);
 const F3_LIVE_SECTIONS = new Set(['controls']);
+const F4_LIVE_SECTIONS = new Set(['fees-swaps', 'margin-risk']);
 
 const F2_TABLE_KIND: Record<string, ForexOpsTableKind> = {
   orders: 'orders',
@@ -31,8 +33,9 @@ export function ForexSectionPage({ route }: { route: ForexAdminRoute }) {
   const f1Live = F1_LIVE_SECTIONS.has(route.id);
   const f2Live = F2_LIVE_SECTIONS.has(route.id);
   const f3Live = F3_LIVE_SECTIONS.has(route.id);
+  const f4Live = F4_LIVE_SECTIONS.has(route.id);
   const liveReadOnly = f1Live || f2Live;
-  const liveSection = f3Live || liveReadOnly;
+  const liveSection = f3Live || f4Live || liveReadOnly;
 
   const configQ = useQuery({
     queryKey: ['admin', 'forex', 'config', token],
@@ -88,12 +91,23 @@ export function ForexSectionPage({ route }: { route: ForexAdminRoute }) {
       }}
       quickActions={
         <Badge variant="info" className="font-normal">
-          {f3Live ? 'F3 live controls' : f2Live ? 'F2 live read-only' : f1Live ? 'F1 live read-only' : `Rollout ${route.phase}`} —{' '}
+          {f4Live
+            ? 'F4 live policy'
+            : f3Live
+              ? 'F3 live controls'
+              : f2Live
+                ? 'F2 live read-only'
+                : f1Live
+                  ? 'F1 live read-only'
+                  : `Rollout ${route.phase}`}{' '}
+          —{' '}
           {phaseMeta?.title ?? route.phase}
         </Badge>
       }
     >
-      {f3Live ? (
+      {f4Live ? (
+        <ForexPolicyPanel mode={route.id === 'fees-swaps' ? 'fees-swaps' : 'margin-risk'} />
+      ) : f3Live ? (
         <ForexGlobalControlsPanel />
       ) : f2Live ? (
         <ForexAdminOpsTable kind={F2_TABLE_KIND[route.id] ?? 'orders'} />

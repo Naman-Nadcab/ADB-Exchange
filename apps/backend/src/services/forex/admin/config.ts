@@ -3,6 +3,14 @@
  * Future Admin UI reads this contract. Routes must not hardcode policy values.
  * This is not an Admin UI and does not expose mutation APIs.
  */
+import {
+  effectiveDefaultAccountLeverage,
+  effectiveGlobalMaxLeverage,
+  effectiveMaintenanceRatio,
+  effectiveMarginCallLevel,
+  effectiveMarginWarningLevel,
+  effectiveStopOutLevel,
+} from './effective-config.js';
 import { effectiveForexRuntimeFlags } from './runtime-controls.js';
 import { forexConfig } from '../config.js';
 import { listForexCommissionPolicies } from '../fees/policy.js';
@@ -26,28 +34,28 @@ export function getForexAdminBackendConfig() {
       return {
         symbol: i.symbol,
         tradingStatus: resolved?.tradingStatus ?? i.tradingStatus,
-        maxLeverage: i.maxLeverage,
+        maxLeverage: resolved?.maxLeverage ?? i.maxLeverage,
+        minVolume: resolved?.minVolume ?? i.minVolume,
+        maxVolume: resolved?.maxVolume ?? i.maxVolume,
         marginPercent: i.marginPercent,
         commission: i.commission,
         commissionType: i.commissionType,
         swapLong: i.swapLong,
         swapShort: i.swapShort,
-        minVolume: i.minVolume,
-        maxVolume: i.maxVolume,
       };
     }),
     sessions,
     fees: listForexCommissionPolicies(),
     swaps: listForexSwapPolicies(),
     leverage: {
-      globalMax: forexConfig.globalMaxLeverage,
-      defaultAccount: forexConfig.defaultAccountLeverage,
+      globalMax: effectiveGlobalMaxLeverage(),
+      defaultAccount: effectiveDefaultAccountLeverage(),
     },
     margin: {
-      maintenanceRatio: forexConfig.maintenanceRatio,
-      warningLevel: forexConfig.marginWarningLevel,
-      callLevel: forexConfig.marginCallLevel,
-      stopOutLevel: forexConfig.stopOutLevel,
+      maintenanceRatio: effectiveMaintenanceRatio(),
+      warningLevel: effectiveMarginWarningLevel(),
+      callLevel: effectiveMarginCallLevel(),
+      stopOutLevel: effectiveStopOutLevel(),
     },
     riskLimits: snapshotForexRiskPolicy(),
     dealing: getForexDealingSnapshot('', ''),

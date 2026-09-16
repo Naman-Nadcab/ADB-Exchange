@@ -55,7 +55,7 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     controls: [
       { id: 'catalog', label: 'Instrument catalog', description: 'Symbols, digits, contract size', kind: 'table', phase: 'F1', wired: false },
       { id: 'trading_status', label: 'Per-symbol trading status', description: 'active / close-only / halted', kind: 'select', phase: 'F3', wired: true },
-      { id: 'leverage_cap', label: 'Max leverage per symbol', description: 'Instrument leverage ceiling', kind: 'number', phase: 'F4', wired: false },
+      { id: 'leverage_cap', label: 'Max leverage per symbol', description: 'Instrument leverage ceiling', kind: 'number', phase: 'F4', wired: true },
       { id: 'volume_bands', label: 'Min / max volume', description: 'Lot size constraints', kind: 'number', phase: 'F4', wired: false },
     ],
   },
@@ -97,8 +97,8 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     controls: [
       { id: 'pretrade', label: 'Pre-trade checks', description: 'Margin, exposure, kill switch', kind: 'readonly', phase: 'F2', wired: false },
       { id: 'policy_snapshot', label: 'Risk policy snapshot', description: 'Limits from risk service', kind: 'readonly', phase: 'F1', wired: false },
-      { id: 'global_leverage', label: 'Global max leverage', description: 'Platform ceiling', kind: 'number', phase: 'F4', wired: false },
-      { id: 'margin_levels', label: 'Margin call / stop-out', description: 'Warning, call, stop-out %', kind: 'number', phase: 'F4', wired: false },
+      { id: 'global_leverage', label: 'Global max leverage', description: 'Platform ceiling', kind: 'number', phase: 'F4', wired: true },
+      { id: 'margin_levels', label: 'Margin call / stop-out', description: 'Warning, call, stop-out %', kind: 'number', phase: 'F4', wired: true },
     ],
   },
   {
@@ -116,8 +116,8 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     title: 'Fees & swaps',
     sectionRoute: '/forex/fees-swaps',
     controls: [
-      { id: 'commission_policies', label: 'Commission policies', description: 'Per-lot / percent models', kind: 'table', phase: 'F4', wired: false },
-      { id: 'swap_policies', label: 'Swap / rollover', description: 'Rollover time & triple swap', kind: 'table', phase: 'F4', wired: false },
+      { id: 'commission_policies', label: 'Commission policies', description: 'Per-lot / percent models', kind: 'table', phase: 'F4', wired: true },
+      { id: 'swap_policies', label: 'Swap / rollover', description: 'Rollover time & triple swap', kind: 'table', phase: 'F4', wired: true },
     ],
   },
   {

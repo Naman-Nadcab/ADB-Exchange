@@ -1,4 +1,5 @@
 import type { ForexInstrument } from './types.js';
+import { getForexInstrumentPolicyOverride } from './admin/effective-config.js';
 import { getForexInstrumentTradingStatusOverride } from './admin/runtime-controls.js';
 
 /** Default FX session calendar (24x5 UTC). Holidays/DST/exceptions are additive later. */
@@ -112,7 +113,18 @@ export function getForexInstrumentBySymbol(symbol: string): ForexInstrument | un
   const base = bySymbol.get(normalizeForexSymbol(symbol));
   if (!base) return undefined;
   const tradingStatus = getForexInstrumentTradingStatusOverride(symbol);
-  return tradingStatus ? { ...base, tradingStatus } : base;
+  const policy = getForexInstrumentPolicyOverride(symbol);
+  let out = base;
+  if (tradingStatus) out = { ...out, tradingStatus };
+  if (policy) {
+    out = {
+      ...out,
+      ...(policy.maxLeverage != null ? { maxLeverage: policy.maxLeverage } : {}),
+      ...(policy.minVolume != null ? { minVolume: policy.minVolume } : {}),
+      ...(policy.maxVolume != null ? { maxVolume: policy.maxVolume } : {}),
+    };
+  }
+  return out;
 }
 
 export function getForexInstrumentById(id: string): ForexInstrument | undefined {

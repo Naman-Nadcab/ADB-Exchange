@@ -9,6 +9,11 @@ import {
   applyForexInstrumentStatusPatch,
   buildForexAdminControlsSnapshot,
 } from '../services/forex/admin/controls.js';
+import {
+  applyForexAdminPolicyPatch,
+  applyForexInstrumentPolicyPatch,
+  buildForexAdminPolicySnapshot,
+} from '../services/forex/admin/policy.js';
 import { effectiveForexRuntimeFlags } from '../services/forex/admin/runtime-controls.js';
 import { logAuditFromRequest } from '../services/audit-log.service.js';
 import { getForexAdminBackendConfig } from '../services/forex/admin/config.js';
@@ -23,6 +28,13 @@ import { forexConfig } from '../services/forex/config.js';
 import { forexReadinessSnapshot } from '../services/forex/durability/ready.js';
 import { forexMarketDataWorkerSnapshot } from '../services/forex/market-data/worker.js';
 import { listForexSymbols } from '../services/forex/instruments.catalog.js';
+
+type ForexAdminPolicyPatchBody = {
+  leverage?: { global_max?: string; default_account?: string };
+  margin?: { warning_level?: string; call_level?: string; stop_out_level?: string; maintenance_ratio?: string };
+  commission?: { model?: string; rate?: string; minimum?: string };
+  swap?: { long_swap?: string; short_swap?: string; rollover_time?: string; timezone?: string; triple_swap_day?: number };
+};
 
 type ForexAdminListQuerystring = {
   page?: string;
@@ -220,6 +232,99 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
       return reply.status(400).send({
         success: false,
         error: { code: 'INVALID_TRADING_STATUS', message: 'trading_status must be active, halted, or closed.' },
+      });
+    }
+  });
+
+  app.get('/forex/policy', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    return reply.send({ success: true, data: buildForexAdminPolicySnapshot() });
+  });
+
+  app.patch<{ Body: Record<string, unknown> }>('/forex/policy', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'settings:edit');
+    if (!admin) return;
+
+    const reason = String(request.body?.reason ?? '').trim();
+    if (reason.length < 8) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'REASON_REQUIRED', message: 'Reason (min 8 characters) is required.' },
+      });
+    }
+
+    try {
+      const changes = applyForexAdminPolicyPatch({
+        reason,
+        leverage: request.body?.leverage as ForexAdminPolicyPatchBody['leverage'],
+        margin: request.body?.margin as ForexAdminPolicyPatchBody['margin'],
+        commission: request.body?.commission as ForexAdminPolicyPatchBody['commission'],
+        swap: request.body?.swap as ForexAdminPolicyPatchBody['swap'],
+      });
+      if (!changes.length) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'NO_CHANGES', message: 'No policy fields to update.' },
+        });
+      }
+      for (const ch of changes) {
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'forex_admin_policy_update',
+          resourceType: 'forex_policy',
+          resourceId: ch.field,
+          oldValue: { value: ch.previous as string | Record<string, unknown> | null },
+          newValue: { value: ch.next as string | Record<string, unknown> | null, reason },
+        });
+      }
+      return reply.send({ success: true, data: { changes, snapshot: buildForexAdminPolicySnapshot() } });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'POLICY_UPDATE_FAILED';
+      return reply.status(400).send({
+        success: false,
+        error: { code: msg, message: 'Policy update rejected.' },
+      });
+    }
+  });
+
+  app.patch<{
+    Params: { symbol: string };
+    Body: { reason?: string; max_leverage?: string; min_volume?: string; max_volume?: string };
+  }>('/forex/policy/instruments/:symbol', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'settings:edit');
+    if (!admin) return;
+
+    const reason = (request.body?.reason ?? '').trim();
+    if (reason.length < 8) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'REASON_REQUIRED', message: 'Reason (min 8 characters) is required.' },
+      });
+    }
+
+    try {
+      const result = applyForexInstrumentPolicyPatch(request.params.symbol, {
+        max_leverage: request.body?.max_leverage,
+        min_volume: request.body?.min_volume,
+        max_volume: request.body?.max_volume,
+      });
+      await logAuditFromRequest(request, {
+        actorType: 'admin',
+        actorId: admin.adminId,
+        action: 'forex_instrument_policy_update',
+        resourceType: 'forex_instrument',
+        resourceId: result.symbol,
+        oldValue: { ...result.previous, reason },
+        newValue: { ...result.next, reason },
+      });
+      return reply.send({ success: true, data: { ...result, snapshot: buildForexAdminPolicySnapshot() } });
+    } catch (e) {
+      const code = e instanceof Error ? e.message : 'UPDATE_FAILED';
+      return reply.status(400).send({
+        success: false,
+        error: { code, message: 'Instrument policy update failed.' },
       });
     }
   });
