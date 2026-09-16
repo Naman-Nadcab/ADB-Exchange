@@ -341,3 +341,61 @@ export function patchForexRealForexArm(token: string | null, body: { requested: 
     { method: 'PATCH', token, body },
   );
 }
+
+export type ForexAdminJournalRow = {
+  id: string;
+  account_id: string;
+  severity: string;
+  category: string;
+  event_type: string;
+  order_id: string | null;
+  position_id: string | null;
+  reference_id: string | null;
+  message: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+};
+
+export type ForexAdminAuditRow = {
+  created_at: string;
+  actor_type: string;
+  actor_id: string | null;
+  action: string;
+  resource_type: string | null;
+  resource_id: string | null;
+  old_value: string | null;
+  new_value: string | null;
+  request_id: string | null;
+};
+
+export function getForexAdminJournal(
+  token: string | null,
+  params?: { page?: number; limit?: number; account_id?: string },
+) {
+  return adminFetch<{
+    rows: ForexAdminJournalRow[];
+    pagination: ForexAdminPagination;
+    tableReady: boolean;
+  }>('/forex/journal', { token, params });
+}
+
+export function getForexAdminAudit(token: string | null, params?: { page?: number; limit?: number; action?: string }) {
+  return adminFetch<{ rows: ForexAdminAuditRow[]; pagination: ForexAdminPagination }>('/forex/audit', { token, params });
+}
+
+export type ForexAdminUserForexSummary = {
+  userId: string;
+  accounts: Array<{
+    account_id: string;
+    currency: string;
+    status: string;
+    open_orders: number;
+    open_positions: number;
+  }>;
+  journalTableReady: boolean;
+  recentJournal: ForexAdminJournalRow[];
+};
+
+export function getForexAdminUserSummary(token: string | null, userId: string) {
+  return adminFetch<ForexAdminUserForexSummary>(`/forex/users/${encodeURIComponent(userId)}/summary`, { token });
+}

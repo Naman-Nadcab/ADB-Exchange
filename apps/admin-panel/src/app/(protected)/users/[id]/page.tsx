@@ -16,14 +16,15 @@ import {
   ArrowLeft, ArrowDownToLine, ArrowUpFromLine, TrendingUp, BarChart3,
   Repeat, Mail, Globe, Calendar, Shield, ShieldOff, Ban, KeyRound,
   User, Wallet, Clock, Activity, Key, AlertTriangle, Copy, Check,
-  DollarSign, X, Tag, StickyNote, Link2, ChevronRight,
+  DollarSign, X, Tag, StickyNote, Link2, ChevronRight, LineChart,
 } from 'lucide-react';
+import { UserForexTab } from '@/components/users/UserForexTab';
 import { cn } from '@/lib/cn';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
 import { useAdminToast } from '@/components/admin-shell/AdminToast';
 import { formatSaveError } from '@/lib/admin-save-feedback';
 
-type TabId = 'overview' | 'wallets' | 'orders' | 'trades' | 'deposits' | 'withdrawals' | 'p2p' | 'activity' | 'security' | 'api-keys' | 'risk-timeline';
+type TabId = 'overview' | 'wallets' | 'orders' | 'trades' | 'deposits' | 'withdrawals' | 'p2p' | 'activity' | 'security' | 'api-keys' | 'risk-timeline' | 'forex';
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'overview', label: 'Overview', icon: User },
@@ -37,6 +38,7 @@ const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'security', label: 'Security', icon: Shield },
   { id: 'api-keys', label: 'API Keys', icon: Key },
   { id: 'risk-timeline', label: 'Risk', icon: AlertTriangle },
+  { id: 'forex', label: 'Forex', icon: LineChart },
 ];
 
 function fmtCurrency(val: string | number | undefined): string {
@@ -598,6 +600,8 @@ export default function UserDetailPage() {
               </div>
             )
           )}
+
+          {activeTab === 'forex' && <UserForexTab userId={id} token={token} />}
         </div>
       </div>
 

@@ -4809,6 +4809,33 @@ const migrations = [
     notes TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
   );`,
+
+  // FOREX FDM F6 — append-only account journal (observability; no secrets)
+  `CREATE TABLE IF NOT EXISTS forex_journal_events (
+    id UUID PRIMARY KEY,
+    account_id VARCHAR(64) NOT NULL,
+    severity VARCHAR(16) NOT NULL DEFAULT 'info',
+    category VARCHAR(32) NOT NULL,
+    event_type VARCHAR(64) NOT NULL,
+    order_id VARCHAR(64),
+    position_id VARCHAR(64),
+    reference_id VARCHAR(128),
+    message TEXT NOT NULL,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_journal_events_account_created
+     ON forex_journal_events(account_id, created_at DESC);`,
+  `CREATE OR REPLACE FUNCTION forex_journal_events_append_only()
+     RETURNS TRIGGER AS $$
+     BEGIN
+       RAISE EXCEPTION 'forex_journal_events is append-only';
+     END;
+     $$ LANGUAGE plpgsql;`,
+  `DROP TRIGGER IF EXISTS trg_forex_journal_events_append_only ON forex_journal_events;`,
+  `CREATE TRIGGER trg_forex_journal_events_append_only
+     BEFORE UPDATE OR DELETE ON forex_journal_events
+     FOR EACH ROW EXECUTE FUNCTION forex_journal_events_append_only();`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

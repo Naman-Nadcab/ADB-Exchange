@@ -135,8 +135,8 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     title: 'Journal & audit',
     sectionRoute: '/forex/journal-audit',
     controls: [
-      { id: 'customer_journal', label: 'Customer journal tail', description: 'Per-account event stream', kind: 'table', phase: 'F6', wired: false },
-      { id: 'config_audit', label: 'Forex config audit', description: 'Who changed policy & when', kind: 'table', phase: 'F6', wired: false },
+      { id: 'customer_journal', label: 'Customer journal tail', description: 'Per-account event stream', kind: 'table', phase: 'F6', wired: true },
+      { id: 'config_audit', label: 'Forex config audit', description: 'Who changed policy & when', kind: 'table', phase: 'F6', wired: true },
     ],
   },
   {

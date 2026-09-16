@@ -33,6 +33,13 @@ import {
   applyForexRealForexArmPatch,
   buildForexAdminExecutionSnapshot,
 } from '../services/forex/admin/execution.js';
+import {
+  listForexAdminConfigAudit,
+  listForexAdminJournalEvents,
+  loadForexAdminUserForexSnapshot,
+  parseForexAdminAuditQuery,
+  parseForexAdminJournalQuery,
+} from '../services/forex/admin/journal-audit.js';
 
 type ForexAdminPolicyPatchBody = {
   leverage?: { global_max?: string; default_account?: string };
@@ -389,6 +396,29 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
         error: { code, message: 'Routing update rejected.' },
       });
     }
+  });
+
+  app.get<{ Querystring: { page?: string; limit?: string; account_id?: string } }>('/forex/journal', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    const q = parseForexAdminJournalQuery(request.query);
+    const data = await listForexAdminJournalEvents(q);
+    return reply.send({ success: true, data });
+  });
+
+  app.get<{ Querystring: { page?: string; limit?: string; action?: string } }>('/forex/audit', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'audit:view');
+    if (!admin) return;
+    const q = parseForexAdminAuditQuery(request.query);
+    const data = await listForexAdminConfigAudit(q);
+    return reply.send({ success: true, data });
+  });
+
+  app.get<{ Params: { userId: string } }>('/forex/users/:userId/summary', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+    const data = await loadForexAdminUserForexSnapshot(request.params.userId);
+    return reply.send({ success: true, data });
   });
 
   app.patch<{ Body: { requested?: boolean; reason?: string } }>('/forex/execution/real-forex', async (request, reply) => {
