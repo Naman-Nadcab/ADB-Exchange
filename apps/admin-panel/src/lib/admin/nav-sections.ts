@@ -59,6 +59,7 @@ import {
   Server,
 } from 'lucide-react';
 import { ADMIN_FEATURE_FLAGS } from '@/lib/admin/featureFlags';
+import { forexSidebarItems } from '@/lib/admin/forex-admin-nav';
 
 export type NavItem = { label: string; href: string; icon: LucideIcon };
 export type NavSection = { title: string; items: NavItem[] };
@@ -104,6 +105,14 @@ export function buildSidebarSections(): NavSection[] {
         { label: 'MM Desk', href: '/admin/mm-control', icon: SlidersHorizontal },
         { label: 'P2P Trading', href: '/p2p', icon: Repeat },
       ],
+    },
+    {
+      title: 'Forex (FDM)',
+      items: forexSidebarItems().map((r) => ({
+        label: r.label,
+        href: r.href,
+        icon: r.icon,
+      })),
     },
     {
       title: 'Finance',
@@ -181,5 +190,6 @@ export function isSidebarNavActive(pathname: string, href: string): boolean {
   if (href === '/admin/mm-control' && pathname.startsWith('/admin/mm-control')) return true;
   if (href === '/dashboard') return pathname === '/dashboard';
   if (href === '/p2p' && pathname.startsWith('/p2p')) return true;
+  if (href === '/forex' && pathname.startsWith('/forex')) return true;
   return pathname.startsWith(href + '/');
 }
