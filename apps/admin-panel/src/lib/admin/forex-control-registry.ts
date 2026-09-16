@@ -40,10 +40,10 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     title: 'Emergency & global',
     sectionRoute: '/forex/controls',
     controls: [
-      { id: 'kill_switch', label: 'Global kill switch', description: 'Reject new forex orders platform-wide', kind: 'toggle', phase: 'F3', wired: false, dangerous: true },
-      { id: 'demo_funding', label: 'Demo funding API', description: 'Allow demo ledger credits', kind: 'toggle', phase: 'F3', wired: false },
-      { id: 'funding_test_api', label: 'Funding test API', description: 'Ops-only funding test header', kind: 'toggle', phase: 'F3', wired: false },
-      { id: 'execution_test_api', label: 'Execution test API', description: 'Simulated test execution endpoint', kind: 'toggle', phase: 'F3', wired: false },
+      { id: 'kill_switch', label: 'Global kill switch', description: 'Reject new forex orders platform-wide', kind: 'toggle', phase: 'F3', wired: true, dangerous: true },
+      { id: 'demo_funding', label: 'Demo funding API', description: 'Allow demo ledger credits', kind: 'toggle', phase: 'F3', wired: true },
+      { id: 'funding_test_api', label: 'Funding test API', description: 'Ops-only funding test header', kind: 'toggle', phase: 'F3', wired: true },
+      { id: 'execution_test_api', label: 'Execution test API', description: 'Simulated test execution endpoint', kind: 'toggle', phase: 'F3', wired: true },
       { id: 'order_types_policy', label: 'Customer order types', description: 'market / limit / stop / stop_limit', kind: 'select', phase: 'F4', wired: false },
       { id: 'tif_policy', label: 'Time in force', description: 'GTC / IOC / FOK / DAY', kind: 'select', phase: 'F4', wired: false },
     ],
@@ -54,7 +54,7 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     sectionRoute: '/forex/instruments',
     controls: [
       { id: 'catalog', label: 'Instrument catalog', description: 'Symbols, digits, contract size', kind: 'table', phase: 'F1', wired: false },
-      { id: 'trading_status', label: 'Per-symbol trading status', description: 'active / close-only / halted', kind: 'select', phase: 'F3', wired: false },
+      { id: 'trading_status', label: 'Per-symbol trading status', description: 'active / close-only / halted', kind: 'select', phase: 'F3', wired: true },
       { id: 'leverage_cap', label: 'Max leverage per symbol', description: 'Instrument leverage ceiling', kind: 'number', phase: 'F4', wired: false },
       { id: 'volume_bands', label: 'Min / max volume', description: 'Lot size constraints', kind: 'number', phase: 'F4', wired: false },
     ],

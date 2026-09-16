@@ -7,6 +7,7 @@ import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
 import { ForexControlGrid } from '@/components/forex/ForexControlGrid';
 import { ForexJsonPanel } from '@/components/forex/ForexJsonPanel';
 import { ForexAdminOpsTable, type ForexOpsTableKind } from '@/components/forex/ForexAdminOpsTable';
+import { ForexGlobalControlsPanel } from '@/components/forex/ForexGlobalControlsPanel';
 import { controlGroupsForRoute } from '@/lib/admin/forex-control-registry';
 import type { ForexAdminRoute } from '@/lib/admin/forex-admin-nav';
 import { FOREX_ADMIN_PHASES } from '@/lib/admin/forex-admin-nav';
@@ -15,6 +16,7 @@ import { Badge } from '@/components/ui/Badge';
 
 const F1_LIVE_SECTIONS = new Set(['command', 'instruments', 'sessions', 'system']);
 const F2_LIVE_SECTIONS = new Set(['orders', 'executions', 'positions']);
+const F3_LIVE_SECTIONS = new Set(['controls']);
 
 const F2_TABLE_KIND: Record<string, ForexOpsTableKind> = {
   orders: 'orders',
@@ -28,7 +30,9 @@ export function ForexSectionPage({ route }: { route: ForexAdminRoute }) {
   const token = useAdminAuthStore((s) => s.accessToken);
   const f1Live = F1_LIVE_SECTIONS.has(route.id);
   const f2Live = F2_LIVE_SECTIONS.has(route.id);
+  const f3Live = F3_LIVE_SECTIONS.has(route.id);
   const liveReadOnly = f1Live || f2Live;
+  const liveSection = f3Live || liveReadOnly;
 
   const configQ = useQuery({
     queryKey: ['admin', 'forex', 'config', token],
@@ -75,7 +79,7 @@ export function ForexSectionPage({ route }: { route: ForexAdminRoute }) {
     <AdminPageFrame
       title={route.label}
       description={route.description}
-      status={route.phase === 'F5' ? 'warning' : liveReadOnly && configQ.data?.readiness.economicReady === false ? 'warning' : 'active'}
+      status={route.phase === 'F5' ? 'warning' : liveSection && configQ.data?.readiness.economicReady === false ? 'warning' : 'active'}
       error={loadError instanceof Error ? loadError.message : loadError ? String(loadError) : null}
       onRetry={() => {
         void configQ.refetch();
@@ -84,12 +88,14 @@ export function ForexSectionPage({ route }: { route: ForexAdminRoute }) {
       }}
       quickActions={
         <Badge variant="info" className="font-normal">
-          {f2Live ? 'F2 live read-only' : f1Live ? 'F1 live read-only' : `Rollout ${route.phase}`} —{' '}
+          {f3Live ? 'F3 live controls' : f2Live ? 'F2 live read-only' : f1Live ? 'F1 live read-only' : `Rollout ${route.phase}`} —{' '}
           {phaseMeta?.title ?? route.phase}
         </Badge>
       }
     >
-      {f2Live ? (
+      {f3Live ? (
+        <ForexGlobalControlsPanel />
+      ) : f2Live ? (
         <ForexAdminOpsTable kind={F2_TABLE_KIND[route.id] ?? 'orders'} />
       ) : f1Live ? (
         <div className="grid gap-4 lg:grid-cols-2">

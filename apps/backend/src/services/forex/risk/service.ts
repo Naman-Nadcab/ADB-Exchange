@@ -11,6 +11,7 @@ import {
   forexRiskRejectionTotal,
   forexRiskStateChangeTotal,
 } from '../../../lib/forex-prometheus-metrics.js';
+import { effectiveForexRuntimeFlags } from '../admin/runtime-controls.js';
 import { forexConfig } from '../config.js';
 import { isForexAccountLiquidationLocked } from '../liquidation/lock.js';
 import type { ForexOrderIntent } from '../orders/request.js';
@@ -54,7 +55,7 @@ export class ForexRiskService {
       liquidationLocked: isForexAccountLiquidationLocked(accountId),
       emergencyHalt: dealing.emergencyHalt,
       tradingDisabled: limits.tradingDisabled,
-      killSwitch: forexConfig.killSwitch,
+      killSwitch: effectiveForexRuntimeFlags().killSwitch,
       accountEnabled: dealing.account.enabled,
     });
     const prev = this.store.get(accountId);

@@ -1,3 +1,4 @@
+import { effectiveForexRuntimeFlags } from './admin/runtime-controls.js';
 import { forexConfig } from './config.js';
 import { getForexInstrumentBySymbol, normalizeForexSymbol } from './instruments.catalog.js';
 import { instrumentToApi, listForexInstruments } from './instruments.service.js';
@@ -99,13 +100,13 @@ export function forexQuoteBySymbolPayload(svc: ForexPricingService, rawSymbol: s
 }
 
 export function isForexExecutionTestAuthorized(header: string | string[] | undefined): boolean {
-  if (!forexConfig.executionTestApiEnabled) return false;
+  if (!effectiveForexRuntimeFlags().executionTestApiEnabled) return false;
   const v = Array.isArray(header) ? header[0] : header;
   return v === 'SIMULATED';
 }
 
 export function isForexFundingTestAuthorized(header: string | string[] | undefined): boolean {
-  if (!forexConfig.fundingTestApiEnabled) return false;
+  if (!effectiveForexRuntimeFlags().fundingTestApiEnabled) return false;
   const v = Array.isArray(header) ? header[0] : header;
   return v === 'SIMULATED';
 }

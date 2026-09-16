@@ -3,9 +3,10 @@
  * Future Admin UI reads this contract. Routes must not hardcode policy values.
  * This is not an Admin UI and does not expose mutation APIs.
  */
+import { effectiveForexRuntimeFlags } from './runtime-controls.js';
 import { forexConfig } from '../config.js';
 import { listForexCommissionPolicies } from '../fees/policy.js';
-import { FOREX_INSTRUMENT_CATALOG } from '../instruments.catalog.js';
+import { FOREX_INSTRUMENT_CATALOG, getForexInstrumentBySymbol } from '../instruments.catalog.js';
 import { snapshotForexRiskPolicy } from '../risk/policy.js';
 import { getForexDealingSnapshot } from '../risk/dealing.js';
 import { forexSessionSnapshot } from '../sessions/eligibility.js';
@@ -20,18 +21,21 @@ export function getForexAdminBackendConfig() {
     executionMode: 'MOCK' as const,
     realForex: false,
     orderTypes: [...FOREX_CUSTOMER_ORDER_TYPES],
-    instruments: FOREX_INSTRUMENT_CATALOG.map((i) => ({
-      symbol: i.symbol,
-      tradingStatus: i.tradingStatus,
-      maxLeverage: i.maxLeverage,
-      marginPercent: i.marginPercent,
-      commission: i.commission,
-      commissionType: i.commissionType,
-      swapLong: i.swapLong,
-      swapShort: i.swapShort,
-      minVolume: i.minVolume,
-      maxVolume: i.maxVolume,
-    })),
+    instruments: FOREX_INSTRUMENT_CATALOG.map((i) => {
+      const resolved = getForexInstrumentBySymbol(i.symbol);
+      return {
+        symbol: i.symbol,
+        tradingStatus: resolved?.tradingStatus ?? i.tradingStatus,
+        maxLeverage: i.maxLeverage,
+        marginPercent: i.marginPercent,
+        commission: i.commission,
+        commissionType: i.commissionType,
+        swapLong: i.swapLong,
+        swapShort: i.swapShort,
+        minVolume: i.minVolume,
+        maxVolume: i.maxVolume,
+      };
+    }),
     sessions,
     fees: listForexCommissionPolicies(),
     swaps: listForexSwapPolicies(),
@@ -48,10 +52,10 @@ export function getForexAdminBackendConfig() {
     riskLimits: snapshotForexRiskPolicy(),
     dealing: getForexDealingSnapshot('', ''),
     accountRestrictions: {
-      killSwitch: forexConfig.killSwitch,
-      fundingTestApiEnabled: forexConfig.fundingTestApiEnabled,
-      demoFundingEnabled: forexConfig.demoFundingEnabled,
-      executionTestApiEnabled: forexConfig.executionTestApiEnabled,
+      killSwitch: effectiveForexRuntimeFlags().killSwitch,
+      fundingTestApiEnabled: effectiveForexRuntimeFlags().fundingTestApiEnabled,
+      demoFundingEnabled: effectiveForexRuntimeFlags().demoFundingEnabled,
+      executionTestApiEnabled: effectiveForexRuntimeFlags().executionTestApiEnabled,
     },
     holiday: {
       coverage: sessions.holidayCoverage,

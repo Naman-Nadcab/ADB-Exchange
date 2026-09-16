@@ -1,4 +1,5 @@
 import type { ForexInstrument } from './types.js';
+import { getForexInstrumentTradingStatusOverride } from './admin/runtime-controls.js';
 
 /** Default FX session calendar (24x5 UTC). Holidays/DST/exceptions are additive later. */
 export const FOREX_DEFAULT_CALENDAR_ID = 'f0000000-0000-4000-8000-0000000000c1';
@@ -108,7 +109,10 @@ const bySymbol = new Map(FOREX_INSTRUMENT_CATALOG.map((i) => [i.symbol, i]));
 const byId = new Map(FOREX_INSTRUMENT_CATALOG.map((i) => [i.id, i]));
 
 export function getForexInstrumentBySymbol(symbol: string): ForexInstrument | undefined {
-  return bySymbol.get(normalizeForexSymbol(symbol));
+  const base = bySymbol.get(normalizeForexSymbol(symbol));
+  if (!base) return undefined;
+  const tradingStatus = getForexInstrumentTradingStatusOverride(symbol);
+  return tradingStatus ? { ...base, tradingStatus } : base;
 }
 
 export function getForexInstrumentById(id: string): ForexInstrument | undefined {

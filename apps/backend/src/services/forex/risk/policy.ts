@@ -4,6 +4,7 @@
  *
  * Hierarchy (strictest wins): GLOBAL → INSTRUMENT → ACCOUNT → POSITION
  */
+import { effectiveForexRuntimeFlags } from '../admin/runtime-controls.js';
 import { forexConfig } from '../config.js';
 import { fxDecimal } from '../decimal-fx.js';
 import { effectiveLeverage } from '../margin/leverage.js';
@@ -58,7 +59,7 @@ export function defaultGlobalLimits(): ForexLimitSlice {
     maxOpenPositions: Number.parseInt(process.env.FOREX_MAX_OPEN_POSITIONS ?? '20', 10) || 20,
     maxOrdersPerSymbol: Number.parseInt(process.env.FOREX_MAX_ORDERS_PER_SYMBOL ?? '10', 10) || 10,
     maxSpread: process.env.FOREX_MAX_QUOTE_SPREAD?.trim() || '0.05000',
-    tradingDisabled: forexConfig.killSwitch,
+    tradingDisabled: effectiveForexRuntimeFlags().killSwitch,
   };
 }
 

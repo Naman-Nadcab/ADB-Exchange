@@ -1,4 +1,5 @@
 import { forexConfig } from '../config.js';
+import { effectiveForexRuntimeFlags } from '../admin/runtime-controls.js';
 import { fxDecimal } from '../decimal-fx.js';
 import { classifyMarginLevel, marginLevel, type ForexMarginStatus } from '../margin/engine.js';
 import type { ForexPositionRecord } from '../positions/models.js';
@@ -57,7 +58,7 @@ export function getForexAccountPolicy(accountId: string): ForexAccountPolicy {
     maxTotalExposure: patch.maxTotalExposure ?? forexConfig.maxTotalExposure,
     maxMarginUtilization: patch.maxMarginUtilization ?? forexConfig.maxMarginUtilization,
     balanceReference: patch.balanceReference ?? forexConfig.simulatedBalanceReference,
-    killSwitch: patch.killSwitch ?? forexConfig.killSwitch,
+    killSwitch: patch.killSwitch ?? effectiveForexRuntimeFlags().killSwitch,
   };
 }
 
@@ -129,7 +130,7 @@ export function evaluateAccountRisk(args: {
     return { ...base, ok: false, reason: 'INSUFFICIENT_FOREX_BALANCE' };
   }
 
-  if (policy.killSwitch || forexConfig.killSwitch) {
+  if (policy.killSwitch || effectiveForexRuntimeFlags().killSwitch) {
     return { ...base, ok: false, reason: 'FOREX_KILL_SWITCH' };
   }
   if (args.proposedVolume && fxDecimal(args.proposedVolume).gt(policy.maxOrderVolume)) {

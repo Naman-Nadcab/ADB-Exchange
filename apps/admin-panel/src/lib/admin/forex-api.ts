@@ -155,3 +155,65 @@ export function getForexAdminPositions(token: string | null, params?: ForexAdmin
     params: listParams(params),
   });
 }
+
+export type ForexAdminControlsSnapshot = {
+  effective: {
+    killSwitch: boolean;
+    demoFundingEnabled: boolean;
+    fundingTestApiEnabled: boolean;
+    executionTestApiEnabled: boolean;
+    marketDataEnabled: boolean;
+    realForex: false;
+    executionMode: string;
+    source: string;
+  };
+  envBaseline: {
+    killSwitch: boolean;
+    demoFundingEnabled: boolean;
+    fundingTestApiEnabled: boolean;
+    executionTestApiEnabled: boolean;
+    marketDataEnabled: boolean;
+  };
+  runtimeOverrides: Record<string, boolean>;
+  instruments: Array<{
+    symbol: string;
+    displaySymbol: string;
+    tradingStatus: string;
+    catalogDefault: string;
+    overridden: boolean;
+  }>;
+  readiness: ForexAdminConfigResponse['readiness'];
+  dealing: Record<string, unknown>;
+};
+
+export function getForexAdminControls(token: string | null) {
+  return adminFetch<ForexAdminControlsSnapshot>('/forex/controls', { token });
+}
+
+export function patchForexAdminControls(
+  token: string | null,
+  body: {
+    reason?: string;
+    kill_switch?: boolean;
+    demo_funding?: boolean;
+    funding_test_api?: boolean;
+    execution_test_api?: boolean;
+  },
+) {
+  return adminFetch<{ changes: unknown[]; snapshot: ForexAdminControlsSnapshot }>('/forex/controls', {
+    method: 'PATCH',
+    token,
+    body,
+  });
+}
+
+export function patchForexInstrumentTradingStatus(
+  token: string | null,
+  symbol: string,
+  body: { trading_status: string; reason: string },
+) {
+  return adminFetch<{ symbol: string; previous: string | null; next: string; snapshot: ForexAdminControlsSnapshot }>(
+    `/forex/instruments/${encodeURIComponent(symbol)}/trading-status`,
+    { method: 'PATCH', token, body },
+  );
+}

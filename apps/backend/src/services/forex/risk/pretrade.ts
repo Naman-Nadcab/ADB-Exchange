@@ -5,6 +5,7 @@
  * Reuses: quoteUsableForTrigger, checkPriceDeviation, evaluateAccountRisk,
  * Phase-6 margin inputs, Phase-7 liquidation lock.
  */
+import { effectiveForexRuntimeFlags } from '../admin/runtime-controls.js';
 import { forexConfig } from '../config.js';
 import { fxDecimal } from '../decimal-fx.js';
 import { checkPriceDeviation } from '../execution/guards.js';
@@ -96,7 +97,8 @@ export function evaluatePreTradeRisk(args: {
     liquidationLocked: locked,
     emergencyHalt: dealing.emergencyHalt,
     tradingDisabled: limits.tradingDisabled,
-    killSwitch: forexConfig.killSwitch || getForexAccountPolicy(args.accountId).killSwitch,
+    killSwitch:
+      effectiveForexRuntimeFlags().killSwitch || getForexAccountPolicy(args.accountId).killSwitch,
     accountEnabled: dealing.account.enabled,
   });
   let state = derived.state;
