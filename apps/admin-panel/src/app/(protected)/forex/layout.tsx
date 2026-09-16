@@ -1,7 +1,6 @@
-import { ForexAdminShell } from '@/components/forex/ForexAdminShell';
+'use client';
 
-/** Auth-gated ops UI — avoid static prerender/timeouts during `next build`. */
-export const dynamic = 'force-dynamic';
+import { ForexAdminShell } from '@/components/forex/ForexAdminShell';
 
 export default function ForexAdminLayout({ children }: { children: React.ReactNode }) {
   return <ForexAdminShell>{children}</ForexAdminShell>;

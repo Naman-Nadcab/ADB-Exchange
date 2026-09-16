@@ -148,7 +148,7 @@ export function ForexAdminOpsTable({ kind }: { kind: ForexOpsTableKind }) {
         },
       },
     ],
-    [cancelM.isPending, opsReason, cancelM],
+    [cancelM.isPending, opsReason],
   );
 
   const execColumns = useMemo<ColumnDef<ForexAdminExecutionRow>[]>(

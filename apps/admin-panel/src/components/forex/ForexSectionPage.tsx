@@ -15,7 +15,6 @@ import { ForexLedgerPanel } from '@/components/forex/ForexLedgerPanel';
 import { ForexMarketDataPanel } from '@/components/forex/ForexMarketDataPanel';
 import { controlGroupsForRoute } from '@/lib/admin/forex-control-registry';
 import { FOREX_ADMIN_PHASES, FOREX_ADMIN_ROUTES } from '@/lib/admin/forex-admin-nav';
-import { notFound } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 
@@ -33,20 +32,26 @@ const F2_TABLE_KIND: Record<string, ForexOpsTableKind> = {
   positions: 'positions',
 };
 
-export function ForexSectionPage({ sectionId }: { sectionId: string }) {
-  const route = FOREX_ADMIN_ROUTES.find((r) => r.id === sectionId);
-  if (!route) notFound();
+function LoadingBlock(props: { label?: string }) {
+  return (
+    <Card className="border-admin-border/60">
+      <CardContent className="py-8 text-center text-sm text-admin-muted">{props.label ?? 'Loading…'}</CardContent>
+    </Card>
+  );
+}
 
-  const groups = controlGroupsForRoute(route.href);
-  const phaseMeta = FOREX_ADMIN_PHASES.find((p) => p.id === route.phase);
+export function ForexSectionPage({ sectionId }: { sectionId: string }) {
   const token = useAdminAuthStore((s) => s.accessToken);
-  const f1Live = F1_LIVE_SECTIONS.has(route.id);
-  const f2Live = F2_LIVE_SECTIONS.has(route.id);
-  const f3Live = F3_LIVE_SECTIONS.has(route.id);
-  const f4Live = F4_LIVE_SECTIONS.has(route.id);
-  const f5Live = F5_LIVE_SECTIONS.has(route.id);
-  const f6Live = F6_LIVE_SECTIONS.has(route.id);
-  const marketDataLive = F2_MARKET_DATA.has(route.id);
+  const route = FOREX_ADMIN_ROUTES.find((r) => r.id === sectionId);
+
+  const routeId = route?.id ?? sectionId;
+  const f1Live = F1_LIVE_SECTIONS.has(routeId);
+  const f2Live = F2_LIVE_SECTIONS.has(routeId);
+  const f3Live = F3_LIVE_SECTIONS.has(routeId);
+  const f4Live = F4_LIVE_SECTIONS.has(routeId);
+  const f5Live = F5_LIVE_SECTIONS.has(routeId);
+  const f6Live = F6_LIVE_SECTIONS.has(routeId);
+  const marketDataLive = F2_MARKET_DATA.has(routeId);
   const liveReadOnly = f1Live || f2Live || marketDataLive;
   const liveSection = f3Live || f4Live || f5Live || f6Live || liveReadOnly;
 
@@ -68,7 +73,7 @@ export function ForexSectionPage({ sectionId }: { sectionId: string }) {
       if (!res.success || !res.data) throw new Error(res.error?.message ?? 'Failed');
       return res.data;
     },
-    enabled: !!token && route.id === 'command',
+    enabled: !!token && routeId === 'command',
     staleTime: 15_000,
   });
 
@@ -79,9 +84,25 @@ export function ForexSectionPage({ sectionId }: { sectionId: string }) {
       if (!res.success || !res.data) throw new Error(res.error?.message ?? 'Failed');
       return res.data;
     },
-    enabled: !!token && (route.id === 'system' || route.id === 'command'),
+    enabled: !!token && (routeId === 'system' || routeId === 'command'),
     staleTime: 15_000,
   });
+
+  if (!route) {
+    return (
+      <AdminPageFrame title="Forex section" error={`Unknown section: ${sectionId}`}>
+        <p className="text-sm text-admin-muted">This Forex admin route is not registered.</p>
+      </AdminPageFrame>
+    );
+  }
+
+  if (!token) {
+    return (
+      <AdminPageFrame title={route.label} description={route.description}>
+        <LoadingBlock label="Waiting for admin session…" />
+      </AdminPageFrame>
+    );
+  }
 
   const loadError = configQ.isError
     ? configQ.error
@@ -90,6 +111,9 @@ export function ForexSectionPage({ sectionId }: { sectionId: string }) {
       : systemQ.isError
         ? systemQ.error
         : null;
+
+  const phaseMeta = FOREX_ADMIN_PHASES.find((p) => p.id === route.phase);
+  const groups = controlGroupsForRoute(route.href);
 
   return (
     <AdminPageFrame
@@ -115,18 +139,17 @@ export function ForexSectionPage({ sectionId }: { sectionId: string }) {
             : marketDataLive
               ? 'F2 live market data'
               : f5Live
-              ? 'F5 live LP gate'
-              : f4Live
-              ? 'F4 live policy'
-              : f3Live
-                ? 'F3 live controls'
-                : f2Live
-                  ? 'F2 live read-only'
-                  : f1Live
-                    ? 'F1 live read-only'
-                    : `Rollout ${route.phase}`}{' '}
-          —{' '}
-          {phaseMeta?.title ?? route.phase}
+                ? 'F5 live LP gate'
+                : f4Live
+                  ? 'F4 live policy'
+                  : f3Live
+                    ? 'F3 live controls'
+                    : f2Live
+                      ? 'F2 live read-only'
+                      : f1Live
+                        ? 'F1 live read-only'
+                        : `Rollout ${route.phase}`}{' '}
+          — {phaseMeta?.title ?? route.phase}
         </Badge>
       }
     >
@@ -146,6 +169,9 @@ export function ForexSectionPage({ sectionId }: { sectionId: string }) {
         <ForexAdminOpsTable kind={F2_TABLE_KIND[route.id] ?? 'orders'} />
       ) : f1Live ? (
         <div className="grid gap-4 lg:grid-cols-2">
+          {configQ.isLoading && (route.id === 'instruments' || route.id === 'sessions') ? (
+            <LoadingBlock label="Loading config…" />
+          ) : null}
           {route.id === 'instruments' && configQ.data ? (
             <ForexJsonPanel title="Instrument catalog" data={configQ.data.config.instruments} className="lg:col-span-2" />
           ) : null}
@@ -153,13 +179,21 @@ export function ForexSectionPage({ sectionId }: { sectionId: string }) {
             <ForexJsonPanel title="Sessions & holidays" data={configQ.data.config.sessions} className="lg:col-span-2" />
           ) : null}
           {route.id === 'command' ? (
-            <>
-              {overviewQ.data ? <ForexJsonPanel title="Live KPIs & posture" data={overviewQ.data} /> : null}
-              {systemQ.data ? <ForexJsonPanel title="System flags" data={systemQ.data} /> : null}
-            </>
+            overviewQ.isLoading && systemQ.isLoading ? (
+              <LoadingBlock label="Loading command desk…" />
+            ) : (
+              <>
+                {overviewQ.data ? <ForexJsonPanel title="Live KPIs & posture" data={overviewQ.data} /> : null}
+                {systemQ.data ? <ForexJsonPanel title="System flags" data={systemQ.data} /> : null}
+              </>
+            )
           ) : null}
-          {route.id === 'system' && systemQ.data ? (
-            <ForexJsonPanel title="System diagnostics" data={systemQ.data} className="lg:col-span-2" />
+          {route.id === 'system' ? (
+            systemQ.isLoading ? (
+              <LoadingBlock label="Loading system diagnostics…" />
+            ) : systemQ.data ? (
+              <ForexJsonPanel title="System diagnostics" data={systemQ.data} className="lg:col-span-2" />
+            ) : null
           ) : null}
         </div>
       ) : (
