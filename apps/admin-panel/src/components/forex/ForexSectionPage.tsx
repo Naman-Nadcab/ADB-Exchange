@@ -1,38 +1,111 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
+import { useAdminAuthStore } from '@/store/auth';
+import { getForexAdminConfig, getForexAdminOverview, getForexAdminSystem } from '@/lib/admin/forex-api';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
 import { ForexControlGrid } from '@/components/forex/ForexControlGrid';
+import { ForexJsonPanel } from '@/components/forex/ForexJsonPanel';
 import { controlGroupsForRoute } from '@/lib/admin/forex-control-registry';
 import type { ForexAdminRoute } from '@/lib/admin/forex-admin-nav';
 import { FOREX_ADMIN_PHASES } from '@/lib/admin/forex-admin-nav';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 
+const F1_LIVE_SECTIONS = new Set(['command', 'instruments', 'sessions', 'system']);
+
 export function ForexSectionPage({ route }: { route: ForexAdminRoute }) {
   const groups = controlGroupsForRoute(route.href);
   const phaseMeta = FOREX_ADMIN_PHASES.find((p) => p.id === route.phase);
+  const token = useAdminAuthStore((s) => s.accessToken);
+  const f1Live = F1_LIVE_SECTIONS.has(route.id);
+
+  const configQ = useQuery({
+    queryKey: ['admin', 'forex', 'config', token],
+    queryFn: async () => {
+      const res = await getForexAdminConfig(token);
+      if (!res.success || !res.data) throw new Error(res.error?.message ?? 'Failed');
+      return res.data;
+    },
+    enabled: !!token && f1Live,
+    staleTime: 30_000,
+  });
+
+  const overviewQ = useQuery({
+    queryKey: ['admin', 'forex', 'overview', token],
+    queryFn: async () => {
+      const res = await getForexAdminOverview(token);
+      if (!res.success || !res.data) throw new Error(res.error?.message ?? 'Failed');
+      return res.data;
+    },
+    enabled: !!token && route.id === 'command',
+    staleTime: 15_000,
+  });
+
+  const systemQ = useQuery({
+    queryKey: ['admin', 'forex', 'system', token],
+    queryFn: async () => {
+      const res = await getForexAdminSystem(token);
+      if (!res.success || !res.data) throw new Error(res.error?.message ?? 'Failed');
+      return res.data;
+    },
+    enabled: !!token && (route.id === 'system' || route.id === 'command'),
+    staleTime: 15_000,
+  });
+
+  const loadError = configQ.isError
+    ? configQ.error
+    : overviewQ.isError
+      ? overviewQ.error
+      : systemQ.isError
+        ? systemQ.error
+        : null;
 
   return (
     <AdminPageFrame
       title={route.label}
       description={route.description}
-      status={route.phase === 'F5' ? 'warning' : 'active'}
+      status={route.phase === 'F5' ? 'warning' : f1Live && configQ.data?.readiness.economicReady === false ? 'warning' : 'active'}
+      error={loadError instanceof Error ? loadError.message : loadError ? String(loadError) : null}
+      onRetry={() => {
+        void configQ.refetch();
+        void overviewQ.refetch();
+        void systemQ.refetch();
+      }}
       quickActions={
         <Badge variant="info" className="font-normal">
-          Rollout: {route.phase} — {phaseMeta?.title ?? route.phase}
+          {f1Live ? 'F1 live read-only' : `Rollout ${route.phase}`} — {phaseMeta?.title ?? route.phase}
         </Badge>
       }
     >
-      <Card className="border-dashed border-violet-500/25 bg-violet-500/5">
-        <CardContent className="py-3 text-sm text-admin-muted">
-          This section is part of the <strong className="text-foreground">Forex admin layout (F0)</strong>.
-          Controls below are the full planned surface; wiring to{' '}
-          <code className="text-xs text-violet-300">/api/v1/admin/forex/*</code> lands in phase{' '}
-          <strong className="text-foreground">{route.phase}</strong> and later.
-        </CardContent>
-      </Card>
+      {f1Live ? (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {route.id === 'instruments' && configQ.data ? (
+            <ForexJsonPanel title="Instrument catalog" data={configQ.data.config.instruments} className="lg:col-span-2" />
+          ) : null}
+          {route.id === 'sessions' && configQ.data ? (
+            <ForexJsonPanel title="Sessions & holidays" data={configQ.data.config.sessions} className="lg:col-span-2" />
+          ) : null}
+          {route.id === 'command' ? (
+            <>
+              {overviewQ.data ? <ForexJsonPanel title="Live KPIs & posture" data={overviewQ.data} /> : null}
+              {systemQ.data ? <ForexJsonPanel title="System flags" data={systemQ.data} /> : null}
+            </>
+          ) : null}
+          {route.id === 'system' && systemQ.data ? (
+            <ForexJsonPanel title="System diagnostics" data={systemQ.data} className="lg:col-span-2" />
+          ) : null}
+        </div>
+      ) : (
+        <Card className="border-dashed border-violet-500/25 bg-violet-500/5">
+          <CardContent className="py-3 text-sm text-admin-muted">
+            Planned controls for phase <strong className="text-foreground">{route.phase}</strong>. F1 read-only data is
+            available on Command Desk, Instruments, Sessions, and System.
+          </CardContent>
+        </Card>
+      )}
 
-      <ForexControlGrid groups={groups.length ? groups : controlGroupsForRoute('/forex')} />
+      <ForexControlGrid groups={groups.length ? groups : controlGroupsForRoute('/forex')} compact />
     </AdminPageFrame>
   );
 }

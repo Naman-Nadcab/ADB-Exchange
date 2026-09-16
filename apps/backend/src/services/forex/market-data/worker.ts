@@ -35,6 +35,25 @@ export function startForexMarketDataWorker(): void {
   });
 }
 
+/** Admin / ops read-only snapshot (F1). */
+export function forexMarketDataWorkerSnapshot(): {
+  enabled: boolean;
+  running: boolean;
+  intervalMs: number;
+  symbols: number;
+  providers: string[];
+  source: 'SIMULATED';
+} {
+  return {
+    enabled: forexConfig.marketDataEnabled,
+    running: timer != null,
+    intervalMs: forexConfig.marketDataIntervalMs,
+    symbols: listForexSymbols().length,
+    providers: ['MOCK-A', 'MOCK-B', 'MOCK-C'],
+    source: 'SIMULATED',
+  };
+}
+
 export function stopForexMarketDataWorker(): void {
   if (timer) {
     clearInterval(timer);
