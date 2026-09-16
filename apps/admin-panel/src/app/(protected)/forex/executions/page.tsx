@@ -1,3 +1,7 @@
-import { makeForexSectionPage } from '../_lib/makeForexPage';
+'use client';
 
-export default makeForexSectionPage('executions');
+import { ForexSectionPage } from '@/components/forex/ForexSectionPage';
+
+export default function Page() {
+  return <ForexSectionPage sectionId="executions" />;
+}

@@ -14,8 +14,8 @@ import { ForexJournalAuditPanel } from '@/components/forex/ForexJournalAuditPane
 import { ForexLedgerPanel } from '@/components/forex/ForexLedgerPanel';
 import { ForexMarketDataPanel } from '@/components/forex/ForexMarketDataPanel';
 import { controlGroupsForRoute } from '@/lib/admin/forex-control-registry';
-import type { ForexAdminRoute } from '@/lib/admin/forex-admin-nav';
-import { FOREX_ADMIN_PHASES } from '@/lib/admin/forex-admin-nav';
+import { FOREX_ADMIN_PHASES, FOREX_ADMIN_ROUTES } from '@/lib/admin/forex-admin-nav';
+import { notFound } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 
@@ -33,7 +33,10 @@ const F2_TABLE_KIND: Record<string, ForexOpsTableKind> = {
   positions: 'positions',
 };
 
-export function ForexSectionPage({ route }: { route: ForexAdminRoute }) {
+export function ForexSectionPage({ sectionId }: { sectionId: string }) {
+  const route = FOREX_ADMIN_ROUTES.find((r) => r.id === sectionId);
+  if (!route) notFound();
+
   const groups = controlGroupsForRoute(route.href);
   const phaseMeta = FOREX_ADMIN_PHASES.find((p) => p.id === route.phase);
   const token = useAdminAuthStore((s) => s.accessToken);
