@@ -6,6 +6,7 @@ import { getForexAdminConfig, getForexAdminOverview, getForexAdminSystem } from 
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
 import { ForexControlGrid } from '@/components/forex/ForexControlGrid';
 import { ForexJsonPanel } from '@/components/forex/ForexJsonPanel';
+import { ForexAdminOpsTable, type ForexOpsTableKind } from '@/components/forex/ForexAdminOpsTable';
 import { controlGroupsForRoute } from '@/lib/admin/forex-control-registry';
 import type { ForexAdminRoute } from '@/lib/admin/forex-admin-nav';
 import { FOREX_ADMIN_PHASES } from '@/lib/admin/forex-admin-nav';
@@ -13,12 +14,21 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 
 const F1_LIVE_SECTIONS = new Set(['command', 'instruments', 'sessions', 'system']);
+const F2_LIVE_SECTIONS = new Set(['orders', 'executions', 'positions']);
+
+const F2_TABLE_KIND: Record<string, ForexOpsTableKind> = {
+  orders: 'orders',
+  executions: 'executions',
+  positions: 'positions',
+};
 
 export function ForexSectionPage({ route }: { route: ForexAdminRoute }) {
   const groups = controlGroupsForRoute(route.href);
   const phaseMeta = FOREX_ADMIN_PHASES.find((p) => p.id === route.phase);
   const token = useAdminAuthStore((s) => s.accessToken);
   const f1Live = F1_LIVE_SECTIONS.has(route.id);
+  const f2Live = F2_LIVE_SECTIONS.has(route.id);
+  const liveReadOnly = f1Live || f2Live;
 
   const configQ = useQuery({
     queryKey: ['admin', 'forex', 'config', token],
@@ -65,7 +75,7 @@ export function ForexSectionPage({ route }: { route: ForexAdminRoute }) {
     <AdminPageFrame
       title={route.label}
       description={route.description}
-      status={route.phase === 'F5' ? 'warning' : f1Live && configQ.data?.readiness.economicReady === false ? 'warning' : 'active'}
+      status={route.phase === 'F5' ? 'warning' : liveReadOnly && configQ.data?.readiness.economicReady === false ? 'warning' : 'active'}
       error={loadError instanceof Error ? loadError.message : loadError ? String(loadError) : null}
       onRetry={() => {
         void configQ.refetch();
@@ -74,11 +84,14 @@ export function ForexSectionPage({ route }: { route: ForexAdminRoute }) {
       }}
       quickActions={
         <Badge variant="info" className="font-normal">
-          {f1Live ? 'F1 live read-only' : `Rollout ${route.phase}`} — {phaseMeta?.title ?? route.phase}
+          {f2Live ? 'F2 live read-only' : f1Live ? 'F1 live read-only' : `Rollout ${route.phase}`} —{' '}
+          {phaseMeta?.title ?? route.phase}
         </Badge>
       }
     >
-      {f1Live ? (
+      {f2Live ? (
+        <ForexAdminOpsTable kind={F2_TABLE_KIND[route.id] ?? 'orders'} />
+      ) : f1Live ? (
         <div className="grid gap-4 lg:grid-cols-2">
           {route.id === 'instruments' && configQ.data ? (
             <ForexJsonPanel title="Instrument catalog" data={configQ.data.config.instruments} className="lg:col-span-2" />
@@ -99,8 +112,8 @@ export function ForexSectionPage({ route }: { route: ForexAdminRoute }) {
       ) : (
         <Card className="border-dashed border-violet-500/25 bg-violet-500/5">
           <CardContent className="py-3 text-sm text-admin-muted">
-            Planned controls for phase <strong className="text-foreground">{route.phase}</strong>. F1 read-only data is
-            available on Command Desk, Instruments, Sessions, and System.
+            Planned controls for phase <strong className="text-foreground">{route.phase}</strong>. F1/F2 read-only data is
+            on Command Desk, Instruments, Sessions, System, Orders, Executions, and Positions.
           </CardContent>
         </Card>
       )}

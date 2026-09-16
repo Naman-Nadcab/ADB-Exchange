@@ -1,15 +1,30 @@
 /**
- * Admin Forex FDM — read-only ops (F1). Mounted at /api/v1/admin.
+ * Admin Forex FDM — read-only ops (F1–F2). Mounted at /api/v1/admin.
  * Admin JWT required. Does not mutate forex policy or customer state.
  */
 import type { FastifyInstance } from 'fastify';
 import { getAdminFromRequest } from './admin.fastify.js';
 import { getForexAdminBackendConfig } from '../services/forex/admin/config.js';
+import {
+  listForexAdminExecutions,
+  listForexAdminOrders,
+  listForexAdminPositions,
+  parseForexAdminListQuery,
+} from '../services/forex/admin/lists.js';
 import { loadForexAdminOverviewCounts } from '../services/forex/admin/overview.js';
 import { forexConfig } from '../services/forex/config.js';
 import { forexReadinessSnapshot } from '../services/forex/durability/ready.js';
 import { forexMarketDataWorkerSnapshot } from '../services/forex/market-data/worker.js';
 import { listForexSymbols } from '../services/forex/instruments.catalog.js';
+
+type ForexAdminListQuerystring = {
+  page?: string;
+  limit?: string;
+  symbol?: string;
+  status?: string;
+  account_id?: string;
+  side?: string;
+};
 
 export default async function adminForexRoutes(app: FastifyInstance): Promise<void> {
   app.get('/forex/config', async (request, reply) => {
@@ -73,5 +88,32 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
         },
       },
     });
+  });
+
+  app.get<{ Querystring: ForexAdminListQuerystring }>('/forex/orders', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+
+    const q = parseForexAdminListQuery(request.query);
+    const data = await listForexAdminOrders(q);
+    return reply.send({ success: true, data });
+  });
+
+  app.get<{ Querystring: ForexAdminListQuerystring }>('/forex/executions', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+
+    const q = parseForexAdminListQuery(request.query);
+    const data = await listForexAdminExecutions(q);
+    return reply.send({ success: true, data });
+  });
+
+  app.get<{ Querystring: ForexAdminListQuerystring }>('/forex/positions', async (request, reply) => {
+    const admin = await getAdminFromRequest(app, request, reply, false);
+    if (!admin) return;
+
+    const q = parseForexAdminListQuery(request.query);
+    const data = await listForexAdminPositions(q);
+    return reply.send({ success: true, data });
   });
 }
