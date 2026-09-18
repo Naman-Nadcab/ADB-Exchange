@@ -82,6 +82,7 @@ export function GlobalActionBar() {
         queryClient.invalidateQueries({ queryKey: ['admin', TIER1_QUERY_KEY] }),
         queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard-summary'] }),
         queryClient.invalidateQueries({ queryKey: ['admin', 'treasury'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin', 'forex'] }),
       ]);
       toast.success(queued ? `Action ${vars.action} queued for maker-checker approval.` : `Action ${vars.action} executed.`);
     },

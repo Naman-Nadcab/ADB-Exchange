@@ -59,10 +59,15 @@ import {
   Server,
 } from 'lucide-react';
 import { ADMIN_FEATURE_FLAGS } from '@/lib/admin/featureFlags';
-import { forexSidebarItems } from '@/lib/admin/forex-admin-nav';
+import { buildForexSidebarNavGroups, type ForexSidebarNavGroup } from '@/lib/admin/forex-sidebar-nav';
 
 export type NavItem = { label: string; href: string; icon: LucideIcon };
-export type NavSection = { title: string; items: NavItem[] };
+export type NavSection = {
+  title: string;
+  items?: NavItem[];
+  /** Forex domain groups — rendered collapsible inside the primary sidebar only. */
+  forexGroups?: ForexSidebarNavGroup[];
+};
 
 export function buildSidebarSections(): NavSection[] {
   const incidentsItem = ADMIN_FEATURE_FLAGS.ADMIN_INCIDENT_SYSTEM
@@ -107,12 +112,8 @@ export function buildSidebarSections(): NavSection[] {
       ],
     },
     {
-      title: 'Forex (FDM)',
-      items: forexSidebarItems().map((r) => ({
-        label: r.label,
-        href: r.href,
-        icon: r.icon,
-      })),
+      title: 'Forex',
+      forexGroups: buildForexSidebarNavGroups(),
     },
     {
       title: 'Finance',

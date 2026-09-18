@@ -1,107 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
+import type { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
 import { useAdminAuthStore } from '@/store/auth';
 import {
   getForexAdminAudit,
   getForexAdminJournal,
+  downloadForexAdminCsv,
   type ForexAdminAuditRow,
   type ForexAdminJournalRow,
 } from '@/lib/admin/forex-api';
 import { Input } from '@/components/ui/Input';
-import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Download, RefreshCw } from 'lucide-react';
+import { DataTable } from '@/components/ui/DataTable';
+import { ForexPanelShell } from '@/components/forex/primitives/ForexPanelShell';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
-import { downloadForexAdminCsv } from '@/lib/admin/forex-api';
-
-function JournalTable(props: { rows: ForexAdminJournalRow[]; tableReady: boolean }) {
-  if (!props.tableReady) {
-    return (
-      <p className="text-sm text-admin-muted">
-        Journal table not migrated yet. Run backend migrate to create <code className="text-xs">forex_journal_events</code>.
-      </p>
-    );
-  }
-  if (!props.rows.length) {
-    return <p className="text-sm text-admin-muted">No journal events in this page.</p>;
-  }
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[720px] text-left text-xs">
-        <thead>
-          <tr className="border-b border-admin-border text-admin-muted">
-            <th className="py-2 pr-2">Time</th>
-            <th className="py-2 pr-2">Account</th>
-            <th className="py-2 pr-2">Severity</th>
-            <th className="py-2 pr-2">Type</th>
-            <th className="py-2">Message</th>
-          </tr>
-        </thead>
-        <tbody>
-          {props.rows.map((r) => (
-            <tr key={r.id} className="border-b border-admin-border/50 align-top">
-              <td className="py-2 pr-2 whitespace-nowrap">{new Date(r.created_at).toLocaleString()}</td>
-              <td className="py-2 pr-2 font-mono text-[11px]">{r.account_id}</td>
-              <td className="py-2 pr-2">
-                <Badge variant={r.severity === 'error' ? 'danger' : r.severity === 'warn' ? 'warning' : 'default'} className="font-normal">
-                  {r.severity}
-                </Badge>
-              </td>
-              <td className="py-2 pr-2">{r.event_type}</td>
-              <td className="py-2">{r.message}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function AuditTable(props: { rows: ForexAdminAuditRow[] }) {
-  if (!props.rows.length) {
-    return <p className="text-sm text-admin-muted">No Forex admin audit entries on this page.</p>;
-  }
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[800px] text-left text-xs">
-        <thead>
-          <tr className="border-b border-admin-border text-admin-muted">
-            <th className="py-2 pr-2">Time</th>
-            <th className="py-2 pr-2">Admin</th>
-            <th className="py-2 pr-2">Action</th>
-            <th className="py-2 pr-2">Resource</th>
-            <th className="py-2">Change</th>
-          </tr>
-        </thead>
-        <tbody>
-          {props.rows.map((r, i) => (
-            <tr key={`${r.created_at}-${i}`} className="border-b border-admin-border/50 align-top">
-              <td className="py-2 pr-2 whitespace-nowrap">{new Date(r.created_at).toLocaleString()}</td>
-              <td className="py-2 pr-2 font-mono text-[11px]">{r.actor_id ?? '—'}</td>
-              <td className="py-2 pr-2">{r.action}</td>
-              <td className="py-2 pr-2">
-                {r.resource_type}/{r.resource_id}
-              </td>
-              <td className="py-2 max-w-md truncate" title={r.new_value ?? ''}>
-                {r.new_value ?? '—'}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
+import { Download, RefreshCw } from 'lucide-react';
 
 export function ForexJournalAuditPanel() {
   const token = useAdminAuthStore((s) => s.accessToken);
+  const searchParams = useSearchParams();
   const [accountId, setAccountId] = useState('');
   const [journalPage, setJournalPage] = useState(1);
   const [auditPage, setAuditPage] = useState(1);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const ac = searchParams.get('account_id')?.trim();
+    if (ac) {
+      setAccountId(ac);
+      setJournalPage(1);
+    }
+  }, [searchParams]);
 
   const journalQ = useQuery({
     queryKey: ['admin', 'forex', 'journal', token, accountId, journalPage],
@@ -129,20 +63,93 @@ export function ForexJournalAuditPanel() {
     staleTime: 15_000,
   });
 
+  const journalColumns = useMemo<ColumnDef<ForexAdminJournalRow>[]>(
+    () => [
+      {
+        accessorKey: 'created_at',
+        header: 'Time',
+        cell: ({ row }) => (
+          <span className="whitespace-nowrap text-xs">{new Date(row.original.created_at).toLocaleString()}</span>
+        ),
+      },
+      {
+        accessorKey: 'account_id',
+        header: 'Account',
+        cell: ({ row }) => <span className="font-mono text-[11px]">{row.original.account_id}</span>,
+      },
+      {
+        accessorKey: 'severity',
+        header: 'Severity',
+        cell: ({ row }) => (
+          <Badge
+            variant={row.original.severity === 'error' ? 'danger' : row.original.severity === 'warn' ? 'warning' : 'default'}
+            className="font-normal"
+          >
+            {row.original.severity}
+          </Badge>
+        ),
+      },
+      { accessorKey: 'event_type', header: 'Type' },
+      { accessorKey: 'message', header: 'Message' },
+    ],
+    [],
+  );
+
+  const auditColumns = useMemo<ColumnDef<ForexAdminAuditRow>[]>(
+    () => [
+      {
+        accessorKey: 'created_at',
+        header: 'Time',
+        cell: ({ row }) => (
+          <span className="whitespace-nowrap text-xs">{new Date(row.original.created_at).toLocaleString()}</span>
+        ),
+      },
+      {
+        accessorKey: 'actor_id',
+        header: 'Admin',
+        cell: ({ row }) => <span className="font-mono text-[11px]">{row.original.actor_id ?? '—'}</span>,
+      },
+      { accessorKey: 'action', header: 'Action' },
+      {
+        id: 'resource',
+        header: 'Resource',
+        cell: ({ row }) => (
+          <span className="text-xs">
+            {row.original.resource_type}/{row.original.resource_id}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'new_value',
+        header: 'Change',
+        cell: ({ row }) => (
+          <span className="max-w-xs truncate text-xs text-admin-muted" title={row.original.new_value ?? ''}>
+            {row.original.new_value ?? '—'}
+          </span>
+        ),
+      },
+    ],
+    [],
+  );
+
+  const tableReady = journalQ.data?.tableReady ?? false;
+  const journalRows = tableReady ? (journalQ.data?.rows ?? []) : [];
+
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-2">
-          <span className="text-sm font-medium">Customer journal tail</span>
+      <ForexPanelShell
+        title="Customer journal"
+        description="Tail of forex_journal_events · filter by account"
+        actions={
           <div className="flex flex-wrap items-center gap-2">
             <Input
-              placeholder="Filter account_id"
+              placeholder="Account ID"
               value={accountId}
               onChange={(e) => {
                 setAccountId(e.target.value);
                 setJournalPage(1);
               }}
-              className="h-8 w-48 text-xs"
+              className="h-8 w-44 text-xs"
             />
             <Button type="button" size="sm" variant="ghost" onClick={() => void journalQ.refetch()}>
               <RefreshCw className={`h-3.5 w-3.5 ${journalQ.isFetching ? 'animate-spin' : ''}`} />
@@ -151,43 +158,76 @@ export function ForexJournalAuditPanel() {
               type="button"
               size="sm"
               variant="secondary"
-              onClick={() =>
+              className="gap-1"
+              onClick={() => {
+                setExportError(null);
                 void downloadForexAdminCsv(token, '/forex/journal/export', 'forex-journal.csv', {
                   account_id: accountId.trim() || undefined,
-                }).catch((e) => alert(e instanceof Error ? e.message : 'Export failed'))
-              }
+                }).catch((e) => setExportError(e instanceof Error ? e.message : 'Export failed'));
+              }}
             >
               <Download className="h-3 w-3" />
-              CSV
+              Export CSV
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          {journalQ.isError ? (
-            <p className="text-sm text-red-500">{journalQ.error instanceof Error ? journalQ.error.message : 'Load failed'}</p>
+        }
+        noPadding
+      >
+        {exportError ? <p className="px-4 pt-4 text-sm text-red-400">{exportError}</p> : null}
+        {journalQ.isError ? (
+          <p className="p-4 text-sm text-red-400">{journalQ.error instanceof Error ? journalQ.error.message : 'Load failed'}</p>
+        ) : !tableReady ? (
+          <p className="p-4 text-sm text-admin-muted">
+            Journal table not migrated yet. Run backend migrate to create forex_journal_events.
+          </p>
+        ) : (
+          <DataTable columns={journalColumns} data={journalRows} loading={journalQ.isLoading} compact sortable={false} />
+        )}
+        {journalQ.data && journalQ.data.pagination.totalPages > 1 ? (
+          <div className="flex items-center gap-2 border-t border-admin-border px-4 py-3 text-xs">
+            <Button type="button" size="sm" variant="secondary" disabled={journalPage <= 1} onClick={() => setJournalPage((p) => p - 1)}>
+              Prev
+            </Button>
+            <span className="text-admin-muted">
+              Page {journalPage} / {journalQ.data.pagination.totalPages}
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              disabled={journalPage >= journalQ.data.pagination.totalPages}
+              onClick={() => setJournalPage((p) => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        ) : null}
+      </ForexPanelShell>
+
+      <ForexPanelShell title="Forex config audit" description="Immutable admin change log · audit:view required" noPadding>
+        <ProtectedAction
+          permission="audit:view"
+          fallback={<p className="p-4 text-sm text-admin-muted">Forex config audit requires the audit:view permission.</p>}
+        >
+          {auditQ.isError ? (
+            <p className="p-4 text-sm text-red-400">{auditQ.error instanceof Error ? auditQ.error.message : 'Load failed'}</p>
           ) : (
             <>
-              <JournalTable rows={journalQ.data?.rows ?? []} tableReady={journalQ.data?.tableReady ?? false} />
-              {journalQ.data && journalQ.data.pagination.totalPages > 1 ? (
-                <div className="mt-3 flex items-center gap-2 text-xs">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="secondary"
-                    disabled={journalPage <= 1}
-                    onClick={() => setJournalPage((p) => p - 1)}
-                  >
+              <DataTable columns={auditColumns} data={auditQ.data?.rows ?? []} loading={auditQ.isLoading} compact sortable={false} />
+              {auditQ.data && auditQ.data.pagination.totalPages > 1 ? (
+                <div className="flex items-center gap-2 border-t border-admin-border px-4 py-3 text-xs">
+                  <Button type="button" size="sm" variant="secondary" disabled={auditPage <= 1} onClick={() => setAuditPage((p) => p - 1)}>
                     Prev
                   </Button>
                   <span className="text-admin-muted">
-                    Page {journalPage} / {journalQ.data.pagination.totalPages}
+                    Page {auditPage} / {auditQ.data.pagination.totalPages}
                   </span>
                   <Button
                     type="button"
                     size="sm"
                     variant="secondary"
-                    disabled={journalPage >= journalQ.data.pagination.totalPages}
-                    onClick={() => setJournalPage((p) => p + 1)}
+                    disabled={auditPage >= auditQ.data.pagination.totalPages}
+                    onClick={() => setAuditPage((p) => p + 1)}
                   >
                     Next
                   </Button>
@@ -195,57 +235,14 @@ export function ForexJournalAuditPanel() {
               ) : null}
             </>
           )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <span className="text-sm font-medium">Forex config audit (immutable log)</span>
-          <Badge variant="info" className="font-normal text-[10px]">
-            Requires audit:view
-          </Badge>
-        </CardHeader>
-        <CardContent>
-          <ProtectedAction
-            permission="audit:view"
-            fallback={<p className="text-sm text-admin-muted">Forex config audit requires the audit:view permission.</p>}
-          >
-            {auditQ.isError ? (
-              <p className="text-sm text-red-500">{auditQ.error instanceof Error ? auditQ.error.message : 'Load failed'}</p>
-            ) : (
-              <>
-                <AuditTable rows={auditQ.data?.rows ?? []} />
-                {auditQ.data && auditQ.data.pagination.totalPages > 1 ? (
-                  <div className="mt-3 flex items-center gap-2 text-xs">
-                    <Button type="button" size="sm" variant="secondary" disabled={auditPage <= 1} onClick={() => setAuditPage((p) => p - 1)}>
-                      Prev
-                    </Button>
-                    <span className="text-admin-muted">
-                      Page {auditPage} / {auditQ.data.pagination.totalPages}
-                    </span>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      disabled={auditPage >= auditQ.data.pagination.totalPages}
-                      onClick={() => setAuditPage((p) => p + 1)}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                ) : null}
-              </>
-            )}
-          </ProtectedAction>
-        </CardContent>
-      </Card>
+        </ProtectedAction>
+      </ForexPanelShell>
 
       <p className="text-xs text-admin-muted">
-        User-level Forex snapshot: open a user profile → <strong>Forex</strong> tab. Full journal filter:{' '}
-        <Link href="/forex/journal-audit" className="text-primary underline">
-          Journal &amp; Audit
+        Per-user snapshot: user profile → Forex tab.{' '}
+        <Link href="/users" className="text-violet-300 hover:underline">
+          Users
         </Link>
-        .
       </p>
     </div>
   );

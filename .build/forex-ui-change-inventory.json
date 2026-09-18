@@ -1,0 +1,703 @@
+{
+  "generatedAt": "2026-09-18T08:13:17.296Z",
+  "git_head": "8ef599983974e84679bf44010ca3d8154785665a",
+  "note": "panels/ is largely untracked WIP — live Docker build includes working tree. Prior GREEN cert used weak string markers only.",
+  "panels_directory_git": "untracked",
+  "routes": [
+    {
+      "route": "/forex",
+      "route_id": "overview",
+      "page_component": "forex/page.tsx + ForexCommandDeskPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexCommandDeskPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        },
+        {
+          "path": "apps/admin-panel/src/app/(protected)/forex/page.tsx",
+          "git_status": "modified",
+          "diff_lines_vs_head": 210,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex.png"
+    },
+    {
+      "route": "/forex/command",
+      "route_id": "command",
+      "page_component": "ForexSectionPage → ForexCommandDeskPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/ForexSectionPage.tsx",
+          "git_status": "modified",
+          "diff_lines_vs_head": 347,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_command.png"
+    },
+    {
+      "route": "/forex/notifications",
+      "route_id": "notifications",
+      "page_component": "ForexNotificationsPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexNotificationsPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_notifications.png"
+    },
+    {
+      "route": "/forex/compliance",
+      "route_id": "compliance",
+      "page_component": "ForexCompliancePanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexCompliancePanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_compliance.png"
+    },
+    {
+      "route": "/forex/automation",
+      "route_id": "automation",
+      "page_component": "ForexAutomationPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexAutomationPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_automation.png"
+    },
+    {
+      "route": "/forex/instruments",
+      "route_id": "instruments",
+      "page_component": "ForexInstrumentsPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexInstrumentsPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_instruments.png"
+    },
+    {
+      "route": "/forex/sessions",
+      "route_id": "sessions",
+      "page_component": "ForexSessionsPanel + ForexHolidayCalendarPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexSessionsPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_sessions.png"
+    },
+    {
+      "route": "/forex/market-data",
+      "route_id": "market-data",
+      "page_component": "ForexMarketDataPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/ForexMarketDataPanel.tsx",
+          "git_status": "modified",
+          "diff_lines_vs_head": 199,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [
+        "GET /forex/market-data/quotes"
+      ],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_market-data.png"
+    },
+    {
+      "route": "/forex/orders",
+      "route_id": "orders",
+      "page_component": "ForexAdminOpsTable",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/ForexAdminOpsTable.tsx",
+          "git_status": "modified",
+          "diff_lines_vs_head": 228,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_orders.png"
+    },
+    {
+      "route": "/forex/executions",
+      "route_id": "executions",
+      "page_component": "ForexAdminOpsTable",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/ForexAdminOpsTable.tsx",
+          "git_status": "modified",
+          "diff_lines_vs_head": 228,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_executions.png"
+    },
+    {
+      "route": "/forex/positions",
+      "route_id": "positions",
+      "page_component": "ForexAdminOpsTable",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/ForexAdminOpsTable.tsx",
+          "git_status": "modified",
+          "diff_lines_vs_head": 228,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_positions.png"
+    },
+    {
+      "route": "/forex/protection",
+      "route_id": "protection",
+      "page_component": "ForexProtectionPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexProtectionPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_protection.png"
+    },
+    {
+      "route": "/forex/margin-risk",
+      "route_id": "margin-risk",
+      "page_component": "ForexPolicyPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/ForexPolicyPanel.tsx",
+          "git_status": "modified",
+          "diff_lines_vs_head": 561,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_margin-risk.png"
+    },
+    {
+      "route": "/forex/liquidation",
+      "route_id": "liquidation",
+      "page_component": "ForexLiquidationPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexLiquidationPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_liquidation.png"
+    },
+    {
+      "route": "/forex/dealing",
+      "route_id": "dealing",
+      "page_component": "ForexDealingDeskPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexDealingDeskPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_dealing.png"
+    },
+    {
+      "route": "/forex/fees-swaps",
+      "route_id": "fees-swaps",
+      "page_component": "ForexPolicyPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/ForexPolicyPanel.tsx",
+          "git_status": "modified",
+          "diff_lines_vs_head": 561,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_fees-swaps.png"
+    },
+    {
+      "route": "/forex/accounts",
+      "route_id": "accounts",
+      "page_component": "ForexTradingAccountsPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexTradingAccountsPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [
+        "GET /forex/accounts/list"
+      ],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_accounts.png"
+    },
+    {
+      "route": "/forex/account-groups",
+      "route_id": "account-groups",
+      "page_component": "ForexAccountGroupsPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexAccountGroupsPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_account-groups.png"
+    },
+    {
+      "route": "/forex/crm/home",
+      "route_id": "crm-home",
+      "page_component": "ForexCrmHomePanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexCrmHomePanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_crm_home.png"
+    },
+    {
+      "route": "/forex/crm/my-clients",
+      "route_id": "crm-my-clients",
+      "page_component": "ForexCrmMyClientsPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexCrmMyClientsPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_crm_my-clients.png"
+    },
+    {
+      "route": "/forex/crm/leads",
+      "route_id": "crm-leads",
+      "page_component": "ForexCrmLeadsPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexCrmLeadsPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_crm_leads.png"
+    },
+    {
+      "route": "/forex/crm/clients",
+      "route_id": "crm-clients",
+      "page_component": "ForexCrmClientsPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexCrmClientsPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_crm_clients.png"
+    },
+    {
+      "route": "/forex/crm/finance",
+      "route_id": "crm-finance",
+      "page_component": "ForexCrmFinancePanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexCrmFinancePanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_crm_finance.png"
+    },
+    {
+      "route": "/forex/crm/tasks",
+      "route_id": "crm-tasks",
+      "page_component": "ForexCrmTasksPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexCrmTasksPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_crm_tasks.png"
+    },
+    {
+      "route": "/forex/crm/segments",
+      "route_id": "crm-segments",
+      "page_component": "ForexCrmSegmentsPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexCrmSegmentsPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_crm_segments.png"
+    },
+    {
+      "route": "/forex/crm/pipeline",
+      "route_id": "crm-pipeline",
+      "page_component": "ForexCrmPipelinePanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexCrmPipelinePanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_crm_pipeline.png"
+    },
+    {
+      "route": "/forex/reporting",
+      "route_id": "forex-reporting",
+      "page_component": "ForexReportingPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexReportingPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_reporting.png"
+    },
+    {
+      "route": "/forex/risk-control",
+      "route_id": "risk-control",
+      "page_component": "ForexRiskControlPanel + ForexRiskHubPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexRiskControlPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_risk-control.png"
+    },
+    {
+      "route": "/forex/partners",
+      "route_id": "forex-partners",
+      "page_component": "ForexPartnersPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexPartnersPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_partners.png"
+    },
+    {
+      "route": "/forex/ledger",
+      "route_id": "ledger",
+      "page_component": "ForexLedgerPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/ForexLedgerPanel.tsx",
+          "git_status": "modified",
+          "diff_lines_vs_head": 172,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_ledger.png"
+    },
+    {
+      "route": "/forex/controls",
+      "route_id": "controls",
+      "page_component": "ForexGlobalControlsPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/ForexGlobalControlsPanel.tsx",
+          "git_status": "modified",
+          "diff_lines_vs_head": 396,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_controls.png"
+    },
+    {
+      "route": "/forex/lp-execution",
+      "route_id": "lp-execution",
+      "page_component": "ForexExecutionPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/ForexExecutionPanel.tsx",
+          "git_status": "modified",
+          "diff_lines_vs_head": 358,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_lp-execution.png"
+    },
+    {
+      "route": "/forex/liquidity/routing",
+      "route_id": "liquidity-routing",
+      "page_component": "ForexRoutingDeskPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexRoutingDeskPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_liquidity_routing.png"
+    },
+    {
+      "route": "/forex/integrations",
+      "route_id": "integrations",
+      "page_component": "ForexIntegrationsPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexIntegrationsPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_integrations.png"
+    },
+    {
+      "route": "/forex/journal-audit",
+      "route_id": "journal-audit",
+      "page_component": "ForexJournalAuditPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/ForexJournalAuditPanel.tsx",
+          "git_status": "modified",
+          "diff_lines_vs_head": 389,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_journal-audit.png"
+    },
+    {
+      "route": "/forex/system",
+      "route_id": "system",
+      "page_component": "ForexSystemPanel",
+      "files": [
+        {
+          "path": "apps/admin-panel/src/components/forex/panels/ForexSystemPanel.tsx",
+          "git_status": "untracked",
+          "diff_lines_vs_head": 0,
+          "exists": true
+        }
+      ],
+      "meaningful_ui_change_in_git": true,
+      "ui_depth_claim": "TIER1_CANDIDATE",
+      "certification_status": "VISUAL_TIER1",
+      "api_changes": [],
+      "visual_defects": [],
+      "screenshot": ".build/forex-ui-screenshots/forex_system.png"
+    }
+  ],
+  "visual_audit_tier1": 36
+}

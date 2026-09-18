@@ -27,10 +27,19 @@ export const ADMIN_IMPLICIT_ROLE_PERMISSIONS: Record<string, string[]> = {
     'users:view',
     'users:edit',
     'control:trading',
+    'forex:view',
+    'forex:control',
+    'forex:controls:manage',
+    'forex:crm:view',
+    'forex:crm:manage',
+    'forex:orders:manage',
+    'forex:liquidity:manage',
+    'forex:risk:manage',
     'markets:manage',
     'risk:export',
     'analytics:view',
     'audit:view',
+    'forex:audit:view',
   ],
   finance_ops: [
     'withdrawals:approve',
@@ -43,9 +52,71 @@ export const ADMIN_IMPLICIT_ROLE_PERMISSIONS: Record<string, string[]> = {
     'treasury:sweep',
     'analytics:view',
     'audit:view',
+    'forex:view',
+    'forex:finance:view',
   ],
   support: ['users:view', 'users:edit', 'deposits:view', 'withdrawals:view', 'p2p:disputes', 'monitoring:view'],
-  compliance: ['kyc:review', 'aml:view', 'aml:escalate', 'audit:view', 'monitoring:view', 'users:view', 'settings:edit'],
+  dealer: [
+    'forex:view',
+    'forex:dealing:view',
+    'forex:dealing:manage',
+    'forex:orders:view',
+    'forex:positions:view',
+    'forex:audit:view',
+    'audit:view',
+    'monitoring:view',
+  ],
+  senior_dealer: [
+    'forex:view',
+    'forex:dealing:view',
+    'forex:dealing:manage',
+    'forex:orders:view',
+    'forex:orders:manage',
+    'forex:positions:view',
+    'forex:risk:view',
+    'forex:audit:view',
+    'audit:view',
+    'monitoring:view',
+  ],
+  dealer_manager: [
+    'forex:view',
+    'forex:dealing:view',
+    'forex:dealing:manage',
+    'forex:orders:view',
+    'forex:orders:manage',
+    'forex:controls:view',
+    'forex:audit:view',
+    'audit:view',
+    'monitoring:view',
+  ],
+  sales: ['forex:view', 'forex:crm:view', 'forex:crm:manage', 'users:view', 'audit:view'],
+  account_manager: ['forex:view', 'forex:crm:view', 'forex:crm:manage', 'forex:accounts:view', 'users:view'],
+  ib_manager: ['forex:view', 'forex:crm:view', 'forex:finance:view', 'forex:controls:manage', 'audit:view'],
+  operations: [
+    'forex:view',
+    'forex:crm:view',
+    'forex:accounts:view',
+    'forex:orders:view',
+    'forex:finance:view',
+    'forex:compliance:view',
+    'forex:audit:view',
+    'monitoring:view',
+    'audit:view',
+  ],
+  technical_admin: ['forex:view', 'forex:integrations:view', 'forex:controls:view', 'monitoring:view', 'settings:view'],
+  compliance: [
+    'kyc:review',
+    'aml:view',
+    'aml:escalate',
+    'audit:view',
+    'monitoring:view',
+    'users:view',
+    'settings:edit',
+    'forex:view',
+    'forex:crm:view',
+    'forex:compliance:view',
+    'forex:compliance:manage',
+  ],
   auditor: [
     'audit:view',
     'monitoring:view',
@@ -55,6 +126,7 @@ export const ADMIN_IMPLICIT_ROLE_PERMISSIONS: Record<string, string[]> = {
     'deposits:view',
     'settings:view',
     'risk:export',
+    'forex:view',
   ],
   withdrawal_approver: ['withdrawals:approve'],
   kyc_reviewer: ['kyc:review'],
@@ -71,11 +143,21 @@ export const ADMIN_LEGACY_ROLE_PERMISSION: Record<string, string> = {
   compliance_officer: 'aml:view',
 };
 
+const LEGACY_FOREX_CONTROL_ALIASES: Record<string, string[]> = {
+  'forex:controls:manage': ['forex:controls:manage', 'forex:control', 'control:trading'],
+  'forex:control': ['forex:control', 'forex:controls:manage', 'control:trading'],
+};
+
 export function hasAdminRbacPermission(role: string, permission: string): boolean {
   const normalizedRole = normalizeRole(role);
   if (SUPER_ROLES.some((r) => r.toLowerCase().replace(/\s+/g, '_') === normalizedRole)) return true;
   const perms = ADMIN_IMPLICIT_ROLE_PERMISSIONS[normalizedRole] || [];
-  return perms.includes('all') || perms.includes(permission);
+  if (perms.includes('all') || perms.includes(permission)) return true;
+  const aliases = LEGACY_FOREX_CONTROL_ALIASES[permission];
+  if (aliases) {
+    return aliases.some((p) => perms.includes(p));
+  }
+  return false;
 }
 
 export function getImplicitRolePermissions(normalizedRole: string): string[] {
@@ -124,6 +206,8 @@ const ADMIN_ROUTE_RULES: Array<{ pattern: RegExp; read: string; write: string }>
     write: 'settings:edit',
   },
   { pattern: /^\/incidents\b/, read: 'monitoring:view', write: 'settings:edit' },
+  /** Forex admin — read forex:view; writes require forex:controls:manage (legacy forex:control / control:trading mapped in hasForexAdminPermission). */
+  { pattern: /^\/forex\b/, read: 'forex:view', write: 'forex:controls:manage' },
 ];
 
 export function isSuperAdminRole(role: string): boolean {

@@ -4,35 +4,58 @@ import { useQuery } from '@tanstack/react-query';
 import { useAdminAuthStore } from '@/store/auth';
 import { getForexAdminConfig, getForexAdminOverview, getForexAdminSystem } from '@/lib/admin/forex-api';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
-import { ForexControlGrid } from '@/components/forex/ForexControlGrid';
-import { ForexJsonPanel } from '@/components/forex/ForexJsonPanel';
 import { ForexAdminOpsTable, type ForexOpsTableKind } from '@/components/forex/ForexAdminOpsTable';
 import { ForexGlobalControlsPanel } from '@/components/forex/ForexGlobalControlsPanel';
 import { ForexPolicyPanel } from '@/components/forex/ForexPolicyPanel';
 import { ForexExecutionPanel } from '@/components/forex/ForexExecutionPanel';
 import { ForexJournalAuditPanel } from '@/components/forex/ForexJournalAuditPanel';
 import { ForexLedgerPanel } from '@/components/forex/ForexLedgerPanel';
+import { ForexTradingAccountsPanel } from '@/components/forex/panels/ForexTradingAccountsPanel';
 import { ForexMarketDataPanel } from '@/components/forex/ForexMarketDataPanel';
-import { controlGroupsForRoute } from '@/lib/admin/forex-control-registry';
-import { FOREX_ADMIN_PHASES, FOREX_ADMIN_ROUTES } from '@/lib/admin/forex-admin-nav';
+import { ForexCommandDeskPanel } from '@/components/forex/panels/ForexCommandDeskPanel';
+import { ForexInstrumentsPanel } from '@/components/forex/panels/ForexInstrumentsPanel';
+import { ForexSessionsPanel } from '@/components/forex/panels/ForexSessionsPanel';
+import { ForexSystemPanel } from '@/components/forex/panels/ForexSystemPanel';
+import { ForexDealingDeskPanel } from '@/components/forex/panels/ForexDealingDeskPanel';
+import { ForexProtectionPanel } from '@/components/forex/panels/ForexProtectionPanel';
+import { ForexLiquidationPanel } from '@/components/forex/panels/ForexLiquidationPanel';
+import { ForexIntegrationsPanel } from '@/components/forex/panels/ForexIntegrationsPanel';
+import { ForexCrmClientsPanel } from '@/components/forex/panels/ForexCrmClientsPanel';
+import { ForexCrmFinancePanel } from '@/components/forex/panels/ForexCrmFinancePanel';
+import { ForexCrmLeadsPanel } from '@/components/forex/panels/ForexCrmLeadsPanel';
+import { ForexAccountGroupsPanel } from '@/components/forex/panels/ForexAccountGroupsPanel';
+import { ForexCrmTasksPanel } from '@/components/forex/panels/ForexCrmTasksPanel';
+import { ForexCrmPipelinePanel } from '@/components/forex/panels/ForexCrmPipelinePanel';
+import { ForexReportingPanel } from '@/components/forex/panels/ForexReportingPanel';
+import { ForexRiskControlPanel } from '@/components/forex/panels/ForexRiskControlPanel';
+import { ForexRiskHubPanel } from '@/components/forex/panels/ForexRiskHubPanel';
+import { ForexPartnersPanel } from '@/components/forex/panels/ForexPartnersPanel';
+import { ForexRoutingDeskPanel } from '@/components/forex/panels/ForexRoutingDeskPanel';
+import { ForexNotificationsPanel } from '@/components/forex/panels/ForexNotificationsPanel';
+import { ForexCompliancePanel } from '@/components/forex/panels/ForexCompliancePanel';
+import { ForexAutomationPanel } from '@/components/forex/panels/ForexAutomationPanel';
+import { ForexHolidayCalendarPanel } from '@/components/forex/panels/ForexHolidayCalendarPanel';
+import { ForexCrmHomePanel } from '@/components/forex/panels/ForexCrmHomePanel';
+import { ForexCrmMyClientsPanel } from '@/components/forex/panels/ForexCrmMyClientsPanel';
+import { ForexCrmSegmentsPanel } from '@/components/forex/panels/ForexCrmSegmentsPanel';
+import { KpiSkeleton } from '@/components/ui/Skeleton';
+import { FOREX_ADMIN_ROUTES } from '@/lib/admin/forex-admin-nav';
+import { forexRouteMaturity } from '@/lib/admin/forex-nav-groups';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { ForexWorkspaceHeader } from '@/components/forex/primitives/ForexWorkspaceHeader';
 
-const F1_LIVE_SECTIONS = new Set(['command', 'instruments', 'sessions', 'system']);
-const F2_LIVE_SECTIONS = new Set(['orders', 'executions', 'positions']);
-const F3_LIVE_SECTIONS = new Set(['controls']);
-const F4_LIVE_SECTIONS = new Set(['fees-swaps', 'margin-risk']);
-const F5_LIVE_SECTIONS = new Set(['lp-execution']);
-const F6_LIVE_SECTIONS = new Set(['journal-audit', 'ledger', 'accounts']);
-const F2_MARKET_DATA = new Set(['market-data']);
+/** Panels that render their own workspace header (avoid duplicate). */
+const PANEL_OWN_WORKSPACE_HEADER = new Set(['command', 'dealing', 'market-data', 'accounts', 'automation']);
 
-const F2_TABLE_KIND: Record<string, ForexOpsTableKind> = {
+const OPS_TABLE_KIND: Record<string, ForexOpsTableKind> = {
   orders: 'orders',
   executions: 'executions',
   positions: 'positions',
 };
 
-function LoadingBlock(props: { label?: string }) {
+function LoadingBlock(props: { label?: string; variant?: 'kpi' | 'text' }) {
+  if (props.variant === 'kpi') return <KpiSkeleton count={4} />;
   return (
     <Card className="border-admin-border/60">
       <CardContent className="py-8 text-center text-sm text-admin-muted">{props.label ?? 'Loading…'}</CardContent>
@@ -40,20 +63,21 @@ function LoadingBlock(props: { label?: string }) {
   );
 }
 
+function maturityQuickBadge(routeId: string) {
+  const m = forexRouteMaturity(routeId);
+  if (m === 'production') return <Badge variant="success">Production</Badge>;
+  if (m === 'beta') return <Badge variant="info">Beta</Badge>;
+  return <Badge variant="default">Roadmap</Badge>;
+}
+
 export function ForexSectionPage({ sectionId }: { sectionId: string }) {
   const token = useAdminAuthStore((s) => s.accessToken);
   const route = FOREX_ADMIN_ROUTES.find((r) => r.id === sectionId);
-
   const routeId = route?.id ?? sectionId;
-  const f1Live = F1_LIVE_SECTIONS.has(routeId);
-  const f2Live = F2_LIVE_SECTIONS.has(routeId);
-  const f3Live = F3_LIVE_SECTIONS.has(routeId);
-  const f4Live = F4_LIVE_SECTIONS.has(routeId);
-  const f5Live = F5_LIVE_SECTIONS.has(routeId);
-  const f6Live = F6_LIVE_SECTIONS.has(routeId);
-  const marketDataLive = F2_MARKET_DATA.has(routeId);
-  const liveReadOnly = f1Live || f2Live || marketDataLive;
-  const liveSection = f3Live || f4Live || f5Live || f6Live || liveReadOnly;
+
+  const needsConfig = routeId === 'sessions' || routeId === 'system' || routeId === 'command';
+  const needsOverview = routeId === 'command';
+  const needsSystem = routeId === 'system' || routeId === 'command';
 
   const configQ = useQuery({
     queryKey: ['admin', 'forex', 'config', token],
@@ -62,7 +86,7 @@ export function ForexSectionPage({ sectionId }: { sectionId: string }) {
       if (!res.success || !res.data) throw new Error(res.error?.message ?? 'Failed');
       return res.data;
     },
-    enabled: !!token && f1Live,
+    enabled: !!token && needsConfig,
     staleTime: 30_000,
   });
 
@@ -73,7 +97,7 @@ export function ForexSectionPage({ sectionId }: { sectionId: string }) {
       if (!res.success || !res.data) throw new Error(res.error?.message ?? 'Failed');
       return res.data;
     },
-    enabled: !!token && routeId === 'command',
+    enabled: !!token && needsOverview,
     staleTime: 15_000,
   });
 
@@ -84,7 +108,7 @@ export function ForexSectionPage({ sectionId }: { sectionId: string }) {
       if (!res.success || !res.data) throw new Error(res.error?.message ?? 'Failed');
       return res.data;
     },
-    enabled: !!token && (routeId === 'system' || routeId === 'command'),
+    enabled: !!token && needsSystem,
     staleTime: 15_000,
   });
 
@@ -112,100 +136,129 @@ export function ForexSectionPage({ sectionId }: { sectionId: string }) {
         ? systemQ.error
         : null;
 
-  const phaseMeta = FOREX_ADMIN_PHASES.find((p) => p.id === route.phase);
-  const groups = controlGroupsForRoute(route.href);
+  const notReady = configQ.data?.readiness.economicReady === false;
+
+  function renderBody() {
+    switch (routeId) {
+      case 'command':
+        return overviewQ.isLoading && systemQ.isLoading ? (
+          <LoadingBlock variant="kpi" />
+        ) : (
+          <ForexCommandDeskPanel
+            overview={overviewQ.data}
+            system={systemQ.data}
+            loading={overviewQ.isLoading || systemQ.isLoading}
+          />
+        );
+      case 'instruments':
+        return <ForexInstrumentsPanel />;
+      case 'sessions':
+        return configQ.isLoading ? (
+          <LoadingBlock label="Loading sessions…" />
+        ) : (
+          <>
+            <ForexSessionsPanel sessions={configQ.data?.config.sessions} holiday={configQ.data?.readiness.holiday} />
+            <ForexHolidayCalendarPanel />
+          </>
+        );
+      case 'system':
+        return systemQ.isLoading && configQ.isLoading ? (
+          <LoadingBlock label="Loading system…" />
+        ) : (
+          <ForexSystemPanel system={systemQ.data} config={configQ.data} loading={systemQ.isLoading} />
+        );
+      case 'market-data':
+        return <ForexMarketDataPanel />;
+      case 'orders':
+      case 'executions':
+      case 'positions':
+        return <ForexAdminOpsTable kind={OPS_TABLE_KIND[routeId] ?? 'orders'} />;
+      case 'protection':
+        return <ForexProtectionPanel />;
+      case 'liquidation':
+        return <ForexLiquidationPanel />;
+      case 'controls':
+        return <ForexGlobalControlsPanel />;
+      case 'fees-swaps':
+        return <ForexPolicyPanel mode="fees-swaps" />;
+      case 'margin-risk':
+        return <ForexPolicyPanel mode="margin-risk" />;
+      case 'dealing':
+        return <ForexDealingDeskPanel />;
+      case 'notifications':
+        return <ForexNotificationsPanel />;
+      case 'compliance':
+        return <ForexCompliancePanel />;
+      case 'automation':
+        return <ForexAutomationPanel />;
+      case 'lp-execution':
+        return <ForexExecutionPanel />;
+      case 'integrations':
+        return <ForexIntegrationsPanel />;
+      case 'crm-home':
+        return <ForexCrmHomePanel />;
+      case 'crm-my-clients':
+        return <ForexCrmMyClientsPanel />;
+      case 'crm-segments':
+        return <ForexCrmSegmentsPanel />;
+      case 'crm-leads':
+        return <ForexCrmLeadsPanel />;
+      case 'crm-clients':
+        return <ForexCrmClientsPanel />;
+      case 'crm-finance':
+        return <ForexCrmFinancePanel />;
+      case 'crm-tasks':
+        return <ForexCrmTasksPanel />;
+      case 'crm-pipeline':
+        return <ForexCrmPipelinePanel />;
+      case 'forex-reporting':
+        return <ForexReportingPanel />;
+      case 'risk-control':
+        return (
+          <>
+            <ForexRiskControlPanel />
+            <ForexRiskHubPanel />
+          </>
+        );
+      case 'forex-partners':
+        return <ForexPartnersPanel />;
+      case 'account-groups':
+        return <ForexAccountGroupsPanel />;
+      case 'liquidity-routing':
+        return <ForexRoutingDeskPanel />;
+      case 'accounts':
+        return <ForexTradingAccountsPanel />;
+      case 'ledger':
+        return <ForexLedgerPanel />;
+      case 'journal-audit':
+        return <ForexJournalAuditPanel />;
+      default:
+        return <LoadingBlock label="Section unavailable." />;
+    }
+  }
 
   return (
     <AdminPageFrame
       title={route.label}
       description={route.description}
-      status={
-        f5Live || f6Live
-          ? 'warning'
-          : liveSection && configQ.data?.readiness.economicReady === false
-            ? 'warning'
-            : 'active'
-      }
+      status={routeId === 'lp-execution' || notReady ? 'warning' : 'active'}
       error={loadError instanceof Error ? loadError.message : loadError ? String(loadError) : null}
       onRetry={() => {
         void configQ.refetch();
         void overviewQ.refetch();
         void systemQ.refetch();
       }}
-      quickActions={
-        <Badge variant="info" className="font-normal">
-          {f6Live
-            ? 'F6 live journal, ledger & audit'
-            : marketDataLive
-              ? 'F2 live market data'
-              : f5Live
-                ? 'F5 live LP gate'
-                : f4Live
-                  ? 'F4 live policy'
-                  : f3Live
-                    ? 'F3 live controls'
-                    : f2Live
-                      ? 'F2 live read-only'
-                      : f1Live
-                        ? 'F1 live read-only'
-                        : `Rollout ${route.phase}`}{' '}
-          — {phaseMeta?.title ?? route.phase}
-        </Badge>
-      }
+      quickActions={maturityQuickBadge(routeId)}
     >
-      {route.id === 'ledger' || route.id === 'accounts' ? (
-        <ForexLedgerPanel />
-      ) : route.id === 'journal-audit' ? (
-        <ForexJournalAuditPanel />
-      ) : marketDataLive ? (
-        <ForexMarketDataPanel />
-      ) : f5Live ? (
-        <ForexExecutionPanel />
-      ) : f4Live ? (
-        <ForexPolicyPanel mode={route.id === 'fees-swaps' ? 'fees-swaps' : 'margin-risk'} />
-      ) : f3Live ? (
-        <ForexGlobalControlsPanel />
-      ) : f2Live ? (
-        <ForexAdminOpsTable kind={F2_TABLE_KIND[route.id] ?? 'orders'} />
-      ) : f1Live ? (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {configQ.isLoading && (route.id === 'instruments' || route.id === 'sessions') ? (
-            <LoadingBlock label="Loading config…" />
-          ) : null}
-          {route.id === 'instruments' && configQ.data ? (
-            <ForexJsonPanel title="Instrument catalog" data={configQ.data.config.instruments} className="lg:col-span-2" />
-          ) : null}
-          {route.id === 'sessions' && configQ.data ? (
-            <ForexJsonPanel title="Sessions & holidays" data={configQ.data.config.sessions} className="lg:col-span-2" />
-          ) : null}
-          {route.id === 'command' ? (
-            overviewQ.isLoading && systemQ.isLoading ? (
-              <LoadingBlock label="Loading command desk…" />
-            ) : (
-              <>
-                {overviewQ.data ? <ForexJsonPanel title="Live KPIs & posture" data={overviewQ.data} /> : null}
-                {systemQ.data ? <ForexJsonPanel title="System flags" data={systemQ.data} /> : null}
-              </>
-            )
-          ) : null}
-          {route.id === 'system' ? (
-            systemQ.isLoading ? (
-              <LoadingBlock label="Loading system diagnostics…" />
-            ) : systemQ.data ? (
-              <ForexJsonPanel title="System diagnostics" data={systemQ.data} className="lg:col-span-2" />
-            ) : null
-          ) : null}
-        </div>
-      ) : (
-        <Card className="border-dashed border-violet-500/25 bg-violet-500/5">
-          <CardContent className="py-3 text-sm text-admin-muted">
-            Planned controls for phase <strong className="text-foreground">{route.phase}</strong>. F1/F2 read-only data is
-            on Command Desk, Instruments, Sessions, System, Orders, Executions, and Positions.
-          </CardContent>
-        </Card>
-      )}
-
-      {!liveSection ? <ForexControlGrid groups={groups.length ? groups : controlGroupsForRoute('/forex')} compact /> : null}
+      {!PANEL_OWN_WORKSPACE_HEADER.has(routeId) ? (
+        <ForexWorkspaceHeader
+          title={route.label}
+          purpose={route.description}
+          dataSource="Admin Forex API · PostgreSQL (MOCK/SIMULATED venue)"
+          posture="MOCK"
+        />
+      ) : null}
+      {renderBody()}
     </AdminPageFrame>
   );
 }

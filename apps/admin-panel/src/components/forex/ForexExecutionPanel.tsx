@@ -12,9 +12,15 @@ import {
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Card, CardContent, CardHeader } from '@/components/ui/Card';
+import { SafeActionModal } from '@/components/ui/SafeActionModal';
+import { ForexConfirmModal } from '@/components/forex/primitives/ForexConfirmModal';
+import { ForexPanelShell } from '@/components/forex/primitives/ForexPanelShell';
 import { AlertTriangle, RefreshCw, ShieldAlert } from 'lucide-react';
+import {
+  extractForexApprovalPending,
+  ForexApprovalPendingNotice,
+  type ForexApprovalPendingInfo,
+} from '@/components/forex/primitives/ForexApprovalPendingNotice';
 
 function ChecklistRow(props: { label: string; pass: boolean; detail: string }) {
   return (
@@ -22,7 +28,7 @@ function ChecklistRow(props: { label: string; pass: boolean; detail: string }) {
       <div className="flex flex-wrap items-center gap-2">
         <span>{props.label}</span>
         <Badge variant={props.pass ? 'success' : 'danger'} className="font-normal text-[10px]">
-          {props.pass ? 'PASS' : 'FAIL'}
+          {props.pass ? 'Pass' : 'Fail'}
         </Badge>
       </div>
       <p className="text-xs text-admin-muted">{props.detail}</p>
@@ -33,7 +39,12 @@ function ChecklistRow(props: { label: string; pass: boolean; detail: string }) {
 export function ForexExecutionPanel() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const qc = useQueryClient();
-  const [reason, setReason] = useState('');
+  const [armOpen, setArmOpen] = useState(false);
+  const [disarmOpen, setDisarmOpen] = useState(false);
+  const [routingPending, setRoutingPending] = useState<{ providerId: string; code: string; enabled: boolean } | null>(
+    null,
+  );
+  const [approvalNotice, setApprovalNotice] = useState<ForexApprovalPendingInfo | null>(null);
 
   const execQ = useQuery({
     queryKey: ['admin', 'forex', 'execution', token],
@@ -50,96 +61,114 @@ export function ForexExecutionPanel() {
   const invalidate = () => void qc.invalidateQueries({ queryKey: ['admin', 'forex', 'execution'] });
 
   const routingMut = useMutation({
-    mutationFn: async (args: { providerId: string; enabled: boolean }) => {
+    mutationFn: async (args: { providerId: string; enabled: boolean; reason: string }) => {
       const res = await patchForexAdminRouting(token, args.providerId, {
-        reason,
+        reason: args.reason,
         enabled: args.enabled,
       });
       if (!res.success) throw new Error(res.error?.message ?? 'Update failed');
-      return res.data;
+      return res;
     },
-    onSuccess: invalidate,
+    onSuccess: (res) => {
+      const pending = extractForexApprovalPending(res.data, res.meta?.httpStatus);
+      setApprovalNotice(pending);
+      if (!pending) invalidate();
+      setRoutingPending(null);
+    },
   });
 
   const armMut = useMutation({
-    mutationFn: async (requested: boolean) => {
-      const res = await patchForexRealForexArm(token, { requested, reason });
+    mutationFn: async (args: { requested: boolean; reason: string }) => {
+      const res = await patchForexRealForexArm(token, { requested: args.requested, reason: args.reason });
       if (!res.success) throw new Error(res.error?.message ?? 'Arm failed');
       return res.data;
     },
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      setArmOpen(false);
+      setDisarmOpen(false);
+    },
   });
 
   const data: ForexAdminExecutionSnapshot | undefined = execQ.data;
   const gate = data?.realForexGate;
   const pending = routingMut.isPending || armMut.isPending;
-  const reasonOk = reason.trim().length >= 8;
 
   return (
     <div className="space-y-4">
-      <Card className="border-amber-500/30 bg-amber-500/5">
-        <CardHeader className="pb-2">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <ShieldAlert className="h-4 w-4 text-amber-500" />
-            REAL_FOREX gate (F5)
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          {execQ.isLoading ? (
-            <p className="text-admin-muted">Loading execution posture…</p>
-          ) : gate ? (
-            <>
+      <ForexApprovalPendingNotice info={approvalNotice} onDismiss={() => setApprovalNotice(null)} />
+      <ForexPanelShell
+        title="Live money path gate"
+        description="REAL_FOREX remains blocked in production until certification completes"
+        className="border-amber-500/30 bg-amber-500/[0.03]"
+      >
+        <div className="mb-2 flex items-center gap-2 text-amber-500">
+          <ShieldAlert className="h-4 w-4" />
+          <span className="text-xs font-medium uppercase tracking-wide">High impact</span>
+        </div>
+        {execQ.isLoading ? (
+          <p className="text-sm text-admin-muted">Loading execution posture…</p>
+        ) : gate ? (
+          <div className="space-y-3 text-sm">
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="success">Effective path OFF</Badge>
+              <Badge variant={gate.armRequested ? 'warning' : 'default'}>
+                Arm requested: {gate.armRequested ? 'Yes' : 'No'}
+              </Badge>
+              <Badge variant={gate.checklistComplete ? 'success' : 'danger'}>
+                Checklist {gate.checklistComplete ? 'complete' : 'incomplete'}
+              </Badge>
+            </div>
+            <p className="text-xs text-admin-muted">{gate.releaseBlockReason}</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {gate.checklist.map((item) => (
+                <ChecklistRow key={item.id} label={item.label} pass={item.pass} detail={item.detail} />
+              ))}
+            </div>
+            <ProtectedAction permission="forex:control" fallback="disabled">
               <div className="flex flex-wrap gap-2">
-                <Badge variant="success">Effective REAL_FOREX OFF</Badge>
-                <Badge variant={gate.armRequested ? 'warning' : 'default'}>
-                  Arm requested: {gate.armRequested ? 'YES' : 'NO'}
-                </Badge>
-                <Badge variant={gate.checklistComplete ? 'success' : 'danger'}>
-                  Checklist {gate.checklistComplete ? 'complete' : 'incomplete'}
-                </Badge>
+                <Button
+                  type="button"
+                  variant="danger"
+                  size="sm"
+                  disabled={pending || !gate.checklistComplete || gate.armRequested}
+                  onClick={() => setArmOpen(true)}
+                >
+                  Record arm intent
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  disabled={pending || !gate.armRequested}
+                  onClick={() => setDisarmOpen(true)}
+                >
+                  Disarm intent
+                </Button>
               </div>
-              <p className="text-xs text-admin-muted">{gate.releaseBlockReason}</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {gate.checklist.map((item) => (
-                  <ChecklistRow key={item.id} label={item.label} pass={item.pass} detail={item.detail} />
-                ))}
-              </div>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-                <div className="flex-1">
-                  <label className="text-xs text-admin-muted">Audit reason (min 8 chars)</label>
-                  <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Change reason…" className="mt-1" />
-                </div>
-                <ProtectedAction permission="control:trading" fallback="disabled">
-                  <Button
-                    type="button"
-                    variant="danger"
-                    size="sm"
-                    disabled={!reasonOk || pending || !gate.checklistComplete}
-                    onClick={() => armMut.mutate(!gate.armRequested)}
-                  >
-                    {gate.armRequested ? 'Disarm REAL_FOREX intent' : 'Record REAL_FOREX arm intent'}
-                  </Button>
-                </ProtectedAction>
-              </div>
-              {!gate.checklistComplete ? (
-                <p className="flex items-center gap-1 text-xs text-amber-600">
-                  <AlertTriangle className="h-3.5 w-3.5" />
-                  Complete all checklist items before recording arm intent.
-                </p>
-              ) : null}
-            </>
-          ) : null}
-        </CardContent>
-      </Card>
+            </ProtectedAction>
+            {!gate.checklistComplete ? (
+              <p className="flex items-center gap-1 text-xs text-amber-500">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Complete all checklist items before recording arm intent.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+        {armMut.isError ? (
+          <p className="mt-2 text-sm text-red-400">{armMut.error instanceof Error ? armMut.error.message : 'Update failed'}</p>
+        ) : null}
+      </ForexPanelShell>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <span className="text-sm font-medium">MOCK LP routing & health</span>
+      <ForexPanelShell
+        title="MOCK LP routing & health"
+        actions={
           <Button type="button" size="sm" variant="ghost" onClick={() => void execQ.refetch()} disabled={execQ.isFetching}>
             <RefreshCw className={`h-3.5 w-3.5 ${execQ.isFetching ? 'animate-spin' : ''}`} />
           </Button>
-        </CardHeader>
-        <CardContent className="space-y-2">
+        }
+      >
+        <div className="space-y-2">
           {data?.providers.map((row) => (
             <div
               key={row.providerId}
@@ -166,51 +195,98 @@ export function ForexExecutionPanel() {
                   {row.health ? `${(row.health.rejectRate * 100).toFixed(1)}%` : '—'}
                 </p>
               </div>
-              <ProtectedAction permission="control:trading" fallback="disabled">
+              <ProtectedAction permission="forex:control" fallback="disabled">
                 <Button
                   type="button"
                   size="sm"
                   variant="secondary"
-                  disabled={!reasonOk || pending || !row.rule}
-                  onClick={() => routingMut.mutate({ providerId: row.providerId, enabled: !row.rule?.enabled })}
+                  disabled={pending || !row.rule}
+                  onClick={() =>
+                    setRoutingPending({
+                      providerId: row.providerId,
+                      code: row.providerCode,
+                      enabled: !row.rule?.enabled,
+                    })
+                  }
                 >
                   {row.rule?.enabled ? 'Disable' : 'Enable'}
                 </Button>
               </ProtectedAction>
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+        {routingMut.isError ? (
+          <p className="mt-2 text-sm text-red-400">
+            {routingMut.error instanceof Error ? routingMut.error.message : 'Routing update failed'}
+          </p>
+        ) : null}
+      </ForexPanelShell>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <span className="text-sm font-medium">Fill reconciliation (24h summary)</span>
-        </CardHeader>
-        <CardContent className="text-sm">
-          {data?.fillRecon ? (
-            <>
-              <p className="text-xs text-admin-muted mb-2">{data.fillRecon.note}</p>
-              <p>
-                Executions: <strong>{data.fillRecon.totals.executions}</strong> · filled {data.fillRecon.totals.filled} · failed{' '}
-                {data.fillRecon.totals.failed} · partial {data.fillRecon.totals.partial}
-              </p>
-              {data.fillRecon.byProvider.length ? (
-                <ul className="mt-2 space-y-1 text-xs text-admin-muted">
-                  {data.fillRecon.byProvider.map((r) => (
-                    <li key={r.provider}>
-                      {r.provider}: {r.count}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-2 text-xs text-admin-muted">No executions in window.</p>
-              )}
-            </>
-          ) : (
-            <p className="text-admin-muted">—</p>
-          )}
-        </CardContent>
-      </Card>
+      <ForexPanelShell title="Fill reconciliation (24h)">
+        {data?.fillRecon ? (
+          <>
+            <p className="mb-2 text-xs text-admin-muted">{data.fillRecon.note}</p>
+            <p className="text-sm">
+              Executions: <strong>{data.fillRecon.totals.executions}</strong> · filled {data.fillRecon.totals.filled} · failed{' '}
+              {data.fillRecon.totals.failed} · partial {data.fillRecon.totals.partial}
+            </p>
+            {data.fillRecon.byProvider.length ? (
+              <ul className="mt-2 space-y-1 text-xs text-admin-muted">
+                {data.fillRecon.byProvider.map((r) => (
+                  <li key={r.provider}>
+                    {r.provider}: {r.count}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-xs text-admin-muted">No executions in window.</p>
+            )}
+          </>
+        ) : (
+          <p className="text-sm text-admin-muted">—</p>
+        )}
+      </ForexPanelShell>
+
+      <SafeActionModal
+        open={armOpen}
+        onClose={() => setArmOpen(false)}
+        title="Record REAL_FOREX arm intent"
+        description="This records administrative intent only — effective live money path stays OFF until certified release."
+        impactWarning="Do not use unless compliance and engineering have signed off on REAL_FOREX readiness."
+        severity="critical"
+        confirmWord="ARM"
+        confirmLabel="Record intent"
+        requiredPermission="forex:control"
+        onConfirm={async () => {
+          await armMut.mutateAsync({ requested: true, reason: 'REAL_FOREX arm intent via admin safe action' });
+        }}
+      />
+
+      <ForexConfirmModal
+        open={disarmOpen}
+        onClose={() => setDisarmOpen(false)}
+        title="Disarm REAL_FOREX intent"
+        description="Clears the recorded arm intent flag."
+        loading={armMut.isPending}
+        onConfirm={async (reason) => {
+          await armMut.mutateAsync({ requested: false, reason });
+        }}
+      />
+
+      <ForexConfirmModal
+        open={!!routingPending}
+        onClose={() => setRoutingPending(null)}
+        title={routingPending ? `${routingPending.enabled ? 'Enable' : 'Disable'} ${routingPending.code}` : 'Routing'}
+        loading={routingMut.isPending}
+        onConfirm={async (reason) => {
+          if (!routingPending) return;
+          await routingMut.mutateAsync({
+            providerId: routingPending.providerId,
+            enabled: routingPending.enabled,
+            reason,
+          });
+        }}
+      />
     </div>
   );
 }

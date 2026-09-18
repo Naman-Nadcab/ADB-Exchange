@@ -1,6 +1,8 @@
 /**
  * Page metadata resolver — maps pathnames to titles and breadcrumbs.
  */
+import { forexRouteByHref, isForexAdminPath } from '@/lib/admin/forex-admin-nav';
+import { forexGroupForPathname, forexRoutesInGroup } from '@/lib/admin/forex-nav-groups';
 
 interface PageMeta {
   title: string;
@@ -84,12 +86,32 @@ const PAGE_TITLES: Record<string, string> = {
   '/forex/ledger': 'Forex Ledger & Recon',
   '/forex/controls': 'Forex Global Controls',
   '/forex/lp-execution': 'Forex LP & Execution',
+  '/forex/liquidity/routing': 'Forex Routing Desk',
+  '/forex/crm/clients': 'Forex CRM — Clients',
+  '/forex/crm/finance': 'Forex CRM — Finance',
+  '/forex/integrations': 'Forex Integrations',
   '/forex/journal-audit': 'Forex Journal & Audit',
   '/forex/system': 'Forex System',
 };
 
 export function getPageMeta(pathname: string | null): PageMeta {
   if (!pathname) return { title: 'Admin', breadcrumbs: [{ label: 'Admin' }] };
+
+  if (isForexAdminPath(pathname)) {
+    const route = forexRouteByHref(pathname);
+    const group = forexGroupForPathname(pathname);
+    const pageLabel = route?.label ?? PAGE_TITLES[pathname] ?? 'Forex';
+    const groupHome = forexRoutesInGroup(group.id)[0]?.href ?? '/forex';
+    const crumbs: PageMeta['breadcrumbs'] = [
+      { label: 'Admin', href: '/dashboard' },
+      { label: 'Forex', href: '/forex' },
+    ];
+    if (pathname !== '/forex') {
+      crumbs.push({ label: group.label, href: groupHome });
+      if (route && route.href !== '/forex') crumbs.push({ label: pageLabel });
+    }
+    return { title: pageLabel, breadcrumbs: crumbs };
+  }
 
   const exactTitle = PAGE_TITLES[pathname];
   if (exactTitle) {

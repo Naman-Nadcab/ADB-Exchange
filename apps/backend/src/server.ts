@@ -74,6 +74,9 @@ import adminPhase24Routes from './routes/admin-phase2-4.fastify.js';
 import adminMmControlRoutes from './routes/admin-mm-control.fastify.js';
 import adminHybridRoutes from './routes/admin-hybrid.fastify.js';
 import adminForexRoutes from './routes/admin-forex.fastify.js';
+import adminForexCrmRoutes from './routes/admin-forex-crm.fastify.js';
+import adminForexGroupsRoutes from './routes/admin-forex-groups.fastify.js';
+import adminForexOpsRoutes from './routes/admin-forex-ops.fastify.js';
 import observabilityRoutes from './routes/observability.fastify.js';
 import pushRoutes from './routes/push.fastify.js';
 import supportUserRoutes from './routes/support-user.fastify.js';
@@ -90,6 +93,8 @@ export async function buildServer(): Promise<FastifyInstance> {
   setPrometheusInstanceId(config.nodeId);
 
   const app = Fastify({
+    /** Forex economic hydrate can exceed default 10s on loaded DB — avoid crash loop on onReady. */
+    pluginTimeout: 120_000,
     logger: {
       level: config.logging.level,
       transport: {
@@ -497,14 +502,18 @@ export async function buildServer(): Promise<FastifyInstance> {
     let staleMarkets: string[] = [];
     try {
       const { getStaleMarkets } = await import('./services/stale-feed.service.js');
-      const list = await getStaleMarkets();
+      const list = await withTimeout(getStaleMarkets(), HEALTH_DEP_TIMEOUT_MS, 'health.stale_markets');
       staleMarkets = list.map((m) => m.market);
     } catch { /* ignore */ }
 
     let orderbookWriter: Record<string, unknown> | null = null;
     try {
       const { getOrderbookWriterHealthSnapshot } = await import('./services/spot-orderbook-writer-health.service.js');
-      orderbookWriter = await getOrderbookWriterHealthSnapshot();
+      orderbookWriter = await withTimeout(
+        getOrderbookWriterHealthSnapshot(),
+        HEALTH_DEP_TIMEOUT_MS,
+        'health.orderbook_writer'
+      );
     } catch { /* ignore */ }
 
     const payload = {
@@ -578,9 +587,69 @@ export async function buildServer(): Promise<FastifyInstance> {
       deepHealthInFlight = null;
     }
   };
+
+  /** Readiness: DB + Redis + matching engine only. Never waits on deep extras. */
+  const readyHealthHandler = async (_request: FastifyRequest, reply: FastifyReply) => {
+    const { withTimeout } = await import('./lib/async-timeout.js');
+    const { pingDatabaseWithRetries } = await import('./lib/health-db-ping.js');
+    const READY_TIMEOUT_MS = Number(process.env.HEALTH_READY_DEP_TIMEOUT_MS || 800);
+    const started = Date.now();
+    const checks: {
+      database: { ok: boolean; latency_ms: number | null; error?: string };
+      redis: { ok: boolean; latency_ms: number | null; error?: string };
+      matching_engine: { ok: boolean; latency_ms: number | null; error?: string };
+    } = {
+      database: { ok: false, latency_ms: null },
+      redis: { ok: false, latency_ms: null },
+      matching_engine: { ok: true, latency_ms: null },
+    };
+
+    const dbPing = await pingDatabaseWithRetries(db, {
+      timeoutMsPerAttempt: READY_TIMEOUT_MS,
+      maxAttempts: 1,
+      retryBaseMs: 0,
+      label: 'ready.db_ping',
+    });
+    checks.database = {
+      ok: dbPing.ok,
+      latency_ms: dbPing.ok ? dbPing.latency_ms : READY_TIMEOUT_MS,
+      ...(dbPing.ok ? {} : { error: dbPing.error }),
+    };
+
+    const redisStart = Date.now();
+    const redisOk = await withTimeout(redis.ping(), READY_TIMEOUT_MS, 'ready.redis_ping')
+      .then(() => true)
+      .catch(() => false);
+    checks.redis = { ok: redisOk, latency_ms: Date.now() - redisStart };
+
+    if (config.rustMatchingEngine.enabled && config.health.requireMatchingEngine) {
+      const { probeMatchingEngineHttp } = await import('./services/matching-engine-health.service.js');
+      const engineStart = Date.now();
+      const engineProbe = await withTimeout(probeMatchingEngineHttp(), READY_TIMEOUT_MS, 'ready.matching_engine')
+        .catch((e) => ({ ok: false as const, error: e instanceof Error ? e.message : String(e) }));
+      const engineCheck: { ok: boolean; latency_ms: number | null; error?: string } = {
+        ok: Boolean(engineProbe.ok),
+        latency_ms: Date.now() - engineStart,
+      };
+      if (!engineProbe.ok && 'error' in engineProbe) {
+        engineCheck.error = String(engineProbe.error);
+      }
+      checks.matching_engine = engineCheck;
+    }
+
+    const ready = checks.database.ok && checks.redis.ok && checks.matching_engine.ok;
+    reply.status(ready ? 200 : 503);
+    return {
+      status: ready ? 'ready' : 'not_ready',
+      timestamp: new Date().toISOString(),
+      probe: { duration_ms: Date.now() - started },
+      checks,
+    };
+  };
+
   app.get('/health', deepHealthHandler);
   app.get('/health/deep', deepHealthHandler);
-  app.get('/health/ready', deepHealthHandler);
+  app.get('/health/ready', readyHealthHandler);
 
   // Prometheus metrics (GET /metrics) — includes SLO gauges + exchange-domain metrics
   app.get('/metrics', async (_request, reply) => {
@@ -928,6 +997,9 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(adminMmControlRoutes, { prefix: '/api/v1/admin' });
   await app.register(adminHybridRoutes, { prefix: '/api/v1/admin' });
   await app.register(adminForexRoutes, { prefix: '/api/v1/admin' });
+  await app.register(adminForexCrmRoutes, { prefix: '/api/v1/admin' });
+  await app.register(adminForexGroupsRoutes, { prefix: '/api/v1/admin' });
+  await app.register(adminForexOpsRoutes, { prefix: '/api/v1/admin' });
   await app.register(observabilityRoutes, { prefix: '/api/v1/observability' });
   await app.register(pushRoutes, { prefix: '/api/v1/push' });
   await app.register(supportUserRoutes, { prefix: '/api/v1/support' });

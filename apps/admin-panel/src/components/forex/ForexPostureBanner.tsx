@@ -5,6 +5,7 @@ import { useAdminAuthStore } from '@/store/auth';
 import { getForexAdminOverview } from '@/lib/admin/forex-api';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/cn';
+import { deriveForexVenueMode } from '@/lib/admin/forex-posture';
 import { Activity, Lock, Radio, AlertTriangle } from 'lucide-react';
 
 export function ForexPostureBanner(props: { className?: string }) {
@@ -22,25 +23,28 @@ export function ForexPostureBanner(props: { className?: string }) {
 
   const posture = data?.posture;
   const ready = data?.readiness?.economicReady;
+  const venue = deriveForexVenueMode(posture);
+  const venueVariant =
+    venue.mode === 'LIVE' ? ('danger' as const) : venue.mode === 'SIMULATED' ? ('warning' as const) : ('info' as const);
 
   const pills = [
     {
-      label: posture ? `${posture.source} quotes` : 'SIMULATED quotes',
+      label: posture ? `${posture.source} quotes` : 'Simulated quotes',
       variant: 'warning' as const,
       icon: Radio,
     },
     {
-      label: posture ? `${posture.executionMode} execution` : 'MOCK execution',
+      label: posture ? `${posture.executionMode} venue` : 'Mock venue',
       variant: 'warning' as const,
       icon: Activity,
     },
     {
-      label: posture?.realForex ? 'REAL_FOREX ON' : 'REAL_FOREX OFF',
+      label: posture?.realForex ? 'Live money path armed' : 'Live money path blocked',
       variant: posture?.realForex ? ('danger' as const) : ('success' as const),
       icon: Lock,
     },
     {
-      label: ready ? 'Economic READY' : 'Economic NOT READY',
+      label: ready ? 'Markets ready' : 'Markets not ready',
       variant: ready ? ('success' as const) : ('danger' as const),
       icon: AlertTriangle,
     },
@@ -49,20 +53,27 @@ export function ForexPostureBanner(props: { className?: string }) {
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-xl border border-violet-500/30 bg-gradient-to-r from-violet-950/80 via-admin-card to-indigo-950/60 px-4 py-3',
+        'relative overflow-hidden rounded-xl border border-violet-500/25 bg-gradient-to-r from-violet-950/70 via-admin-card to-indigo-950/50 px-4 py-3',
         props.className,
       )}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(139,92,246,0.15),_transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(139,92,246,0.12),_transparent_55%)]" />
       <div className="relative flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-violet-300/90">Forex FDM · F0–F6 live · MOCK / SIMULATED only</p>
-          <p className="text-sm text-admin-muted">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold text-foreground">Forex Operations</p>
+            {!isLoading && !isError ? (
+              <Badge variant={venueVariant} className="font-semibold tracking-wide">
+                {venue.mode}
+              </Badge>
+            ) : null}
+          </div>
+          <p className="text-xs text-admin-muted">
             {isLoading
-              ? 'Loading posture from admin API…'
+              ? 'Loading venue posture…'
               : isError
-                ? 'Could not load live posture — check admin token and backend /admin/forex/overview'
-                : 'Isolated ledger & MOCK venue — crypto wallets out of scope.'}
+                ? 'Could not load posture — check session and API connectivity'
+                : `${venue.description} · Isolated ledger · crypto wallets excluded`}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -74,7 +85,7 @@ export function ForexPostureBanner(props: { className?: string }) {
           ))}
           {posture?.killSwitch ? (
             <Badge variant="danger" className="font-normal">
-              KILL SWITCH ON
+              Kill switch active
             </Badge>
           ) : null}
         </div>

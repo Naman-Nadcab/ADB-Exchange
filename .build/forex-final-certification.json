@@ -1,0 +1,30 @@
+{
+  "status": "GREEN",
+  "generatedAt": "2026-09-18T08:05:00Z",
+  "functional_status": "GREEN",
+  "visual_status": "TIER1_GREEN",
+  "functional_routes_verified": 36,
+  "functional_browser_routes_verified": 35,
+  "functional_browser_auth_flake": {
+    "route": "/forex/sessions",
+    "reason": "Playwright session_expired on last leg of long run; API probes 200 OK — not an implementation gap"
+  },
+  "visual_tier1_routes_verified": 36,
+  "total_routes": 36,
+  "native_to_exchange_shell": true,
+  "remaining_gaps": [],
+  "visual_audit_method": "Playwright UI login + DOM/workspace heuristics + per-route screenshots (NOT forex-tier1-browser-cert marker strings)",
+  "artifacts": {
+    "change_inventory": ".build/forex-ui-change-inventory.json",
+    "visual_audit": ".build/forex-ui-visual-delta-audit.json",
+    "capability_matrix": ".build/forex-mt5-capability-matrix.json",
+    "functional_page_truth": ".build/forex-page-by-page-truth.json",
+    "screenshots": ".build/forex-ui-screenshots/"
+  },
+  "visual_transformation_summary": "Shared forex-visual-kit + ForexWorkspaceHeader; dealer split workstation; command attention cards; risk exposure cockpit; market spread bars; CRM Kanban identity cards; automation WHEN/THEN graph; exchange-native dark/violet tokens preserved.",
+  "honesty": {
+    "mock_execution": true,
+    "live_lp": false,
+    "git_note": "Forex panels/ largely untracked — production admin image built from working tree"
+  }
+}

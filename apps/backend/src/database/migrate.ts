@@ -4388,6 +4388,9 @@ const migrations = [
   );`,
   `CREATE INDEX IF NOT EXISTS idx_forex_orders_account ON forex_orders(account_id, created_at DESC);`,
   `CREATE INDEX IF NOT EXISTS idx_forex_orders_status ON forex_orders(status, created_at DESC);`,
+  // Phase 1C order persist: stop_limit limit leg + TIF (align with orders/persist.ts)
+  `ALTER TABLE forex_orders ADD COLUMN IF NOT EXISTS limit_price NUMERIC(20,8);`,
+  `ALTER TABLE forex_orders ADD COLUMN IF NOT EXISTS time_in_force VARCHAR(8) NOT NULL DEFAULT 'GTC';`,
   `CREATE TABLE IF NOT EXISTS forex_order_events (
     id BIGSERIAL PRIMARY KEY,
     event_id UUID NOT NULL UNIQUE,
@@ -4836,6 +4839,311 @@ const migrations = [
   `CREATE TRIGGER trg_forex_journal_events_append_only
      BEFORE UPDATE OR DELETE ON forex_journal_events
      FOR EACH ROW EXECUTE FUNCTION forex_journal_events_append_only();`,
+
+  // ============================================
+  // FOREX ADMIN CONTROL PLANE — schema alignment + CRM foundation (additive)
+  // ============================================
+  `ALTER TABLE forex_accounts ADD COLUMN IF NOT EXISTS position_mode VARCHAR(16) NOT NULL DEFAULT 'NETTING'
+     CHECK (position_mode IN ('NETTING', 'HEDGING'));`,
+  `UPDATE forex_accounts SET position_mode = 'NETTING'
+     WHERE position_mode IS NULL OR TRIM(position_mode) = '';`,
+
+  `CREATE TABLE IF NOT EXISTS forex_crm_lead_stages (
+    stage_id VARCHAR(32) PRIMARY KEY,
+    label VARCHAR(64) NOT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    is_terminal BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `INSERT INTO forex_crm_lead_stages (stage_id, label, sort_order, is_terminal) VALUES
+     ('new', 'New', 10, FALSE),
+     ('contacted', 'Contacted', 20, FALSE),
+     ('qualified', 'Qualified', 30, FALSE),
+     ('kyc_started', 'KYC started', 40, FALSE),
+     ('kyc_approved', 'KYC approved', 50, FALSE),
+     ('account_created', 'Account created', 60, FALSE),
+     ('funded', 'Funded', 70, FALSE),
+     ('first_trade', 'First trade', 80, FALSE),
+     ('active', 'Active', 90, FALSE),
+     ('lost', 'Lost', 100, TRUE)
+   ON CONFLICT (stage_id) DO NOTHING;`,
+
+  `CREATE TABLE IF NOT EXISTS forex_crm_lead_sources (
+    source_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code VARCHAR(32) NOT NULL UNIQUE,
+    label VARCHAR(128) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+
+  `CREATE TABLE IF NOT EXISTS forex_crm_leads (
+    lead_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id VARCHAR(64),
+    email VARCHAR(320),
+    phone VARCHAR(32),
+    full_name VARCHAR(256),
+    stage_id VARCHAR(32) NOT NULL DEFAULT 'new' REFERENCES forex_crm_lead_stages(stage_id),
+    source_id UUID REFERENCES forex_crm_lead_sources(source_id),
+    campaign_code VARCHAR(64),
+    owner_admin_id UUID REFERENCES admin_users(id),
+    priority VARCHAR(16) NOT NULL DEFAULT 'normal' CHECK (priority IN ('low','normal','high','urgent')),
+    status VARCHAR(16) NOT NULL DEFAULT 'open' CHECK (status IN ('open','converted','disqualified','duplicate')),
+    follow_up_at TIMESTAMPTZ,
+    converted_account_id VARCHAR(64),
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_by_admin_id UUID REFERENCES admin_users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_crm_leads_stage ON forex_crm_leads(stage_id, status);`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_crm_leads_owner ON forex_crm_leads(owner_admin_id) WHERE status = 'open';`,
+
+  `CREATE TABLE IF NOT EXISTS forex_crm_client_profiles (
+    account_id VARCHAR(64) PRIMARY KEY,
+    user_id VARCHAR(64) NOT NULL,
+    assigned_sales_admin_id UUID REFERENCES admin_users(id),
+    assigned_support_admin_id UUID REFERENCES admin_users(id),
+    lead_id UUID REFERENCES forex_crm_leads(lead_id),
+    source_code VARCHAR(64),
+    campaign_code VARCHAR(64),
+    tags_cache TEXT[] NOT NULL DEFAULT '{}',
+    internal_status VARCHAR(32) NOT NULL DEFAULT 'active',
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_crm_profiles_user ON forex_crm_client_profiles(user_id);`,
+
+  `CREATE TABLE IF NOT EXISTS forex_crm_tags (
+    tag_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    slug VARCHAR(64) NOT NULL UNIQUE,
+    label VARCHAR(128) NOT NULL,
+    color VARCHAR(16),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+
+  `CREATE TABLE IF NOT EXISTS forex_crm_client_tags (
+    account_id VARCHAR(64) NOT NULL,
+    tag_id UUID NOT NULL REFERENCES forex_crm_tags(tag_id) ON DELETE CASCADE,
+    assigned_by_admin_id UUID REFERENCES admin_users(id),
+    assigned_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (account_id, tag_id)
+  );`,
+
+  `CREATE TABLE IF NOT EXISTS forex_crm_notes (
+    note_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    account_id VARCHAR(64) NOT NULL,
+    user_id VARCHAR(64),
+    body TEXT NOT NULL,
+    visibility VARCHAR(16) NOT NULL DEFAULT 'internal' CHECK (visibility IN ('internal','compliance','sales')),
+    created_by_admin_id UUID NOT NULL REFERENCES admin_users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_crm_notes_account ON forex_crm_notes(account_id, created_at DESC) WHERE deleted_at IS NULL;`,
+
+  `CREATE TABLE IF NOT EXISTS forex_crm_tasks (
+    task_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    account_id VARCHAR(64),
+    lead_id UUID REFERENCES forex_crm_leads(lead_id),
+    title VARCHAR(256) NOT NULL,
+    description TEXT,
+    status VARCHAR(16) NOT NULL DEFAULT 'open' CHECK (status IN ('open','in_progress','done','cancelled')),
+    due_at TIMESTAMPTZ,
+    owner_admin_id UUID REFERENCES admin_users(id),
+    created_by_admin_id UUID NOT NULL REFERENCES admin_users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMPTZ
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_crm_tasks_owner ON forex_crm_tasks(owner_admin_id, status);`,
+
+  `CREATE TABLE IF NOT EXISTS forex_crm_activities (
+    activity_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    account_id VARCHAR(64),
+    lead_id UUID,
+    user_id VARCHAR(64),
+    kind VARCHAR(32) NOT NULL,
+    summary TEXT NOT NULL,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    actor_admin_id UUID REFERENCES admin_users(id),
+    correlation_id VARCHAR(64),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_crm_activities_account ON forex_crm_activities(account_id, created_at DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_crm_activities_lead ON forex_crm_activities(lead_id, created_at DESC);`,
+
+  `CREATE TABLE IF NOT EXISTS forex_account_groups (
+    group_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code VARCHAR(32) NOT NULL UNIQUE,
+    label VARCHAR(128) NOT NULL,
+    leverage_default VARCHAR(16) NOT NULL DEFAULT '100',
+    position_mode_default VARCHAR(16) NOT NULL DEFAULT 'NETTING' CHECK (position_mode_default IN ('NETTING','HEDGING')),
+    spread_profile JSONB NOT NULL DEFAULT '{}'::jsonb,
+    commission_profile JSONB NOT NULL DEFAULT '{}'::jsonb,
+    swap_profile JSONB NOT NULL DEFAULT '{}'::jsonb,
+    risk_profile JSONB NOT NULL DEFAULT '{}'::jsonb,
+    routing_profile JSONB NOT NULL DEFAULT '{}'::jsonb,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+
+  `ALTER TABLE forex_accounts ADD COLUMN IF NOT EXISTS group_id UUID REFERENCES forex_account_groups(group_id);`,
+  `ALTER TABLE forex_accounts ADD COLUMN IF NOT EXISTS leverage_override VARCHAR(16);`,
+  `ALTER TABLE forex_crm_tasks ADD COLUMN IF NOT EXISTS task_type VARCHAR(32) NOT NULL DEFAULT 'OTHER';`,
+
+  `CREATE TABLE IF NOT EXISTS forex_partner_profiles (
+    partner_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code VARCHAR(32) NOT NULL UNIQUE,
+    label VARCHAR(128) NOT NULL,
+    parent_partner_id UUID REFERENCES forex_partner_profiles(partner_id),
+    commission_plan_code VARCHAR(64),
+    status VARCHAR(16) NOT NULL DEFAULT 'active' CHECK (status IN ('active','inactive','suspended')),
+    attribution_policy JSONB NOT NULL DEFAULT '{}'::jsonb,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE TABLE IF NOT EXISTS forex_partner_attributions (
+    attribution_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    partner_id UUID NOT NULL REFERENCES forex_partner_profiles(partner_id),
+    account_id VARCHAR(64),
+    lead_id UUID,
+    user_id VARCHAR(64),
+    effective_from TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    effective_to TIMESTAMPTZ,
+    created_by_admin_id UUID REFERENCES admin_users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_partner_attr_account ON forex_partner_attributions(account_id);`,
+
+  `CREATE TABLE IF NOT EXISTS forex_partner_commission_accruals (
+    accrual_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    partner_id UUID NOT NULL REFERENCES forex_partner_profiles(partner_id),
+    account_id VARCHAR(64),
+    volume_lots NUMERIC(20,8) NOT NULL DEFAULT 0,
+    commission_amount NUMERIC(20,8) NOT NULL CHECK (commission_amount >= 0),
+    currency VARCHAR(8) NOT NULL DEFAULT 'USD',
+    period_start TIMESTAMPTZ,
+    period_end TIMESTAMPTZ,
+    status VARCHAR(16) NOT NULL DEFAULT 'ACCRUED' CHECK (status IN ('ACCRUED','ALLOCATED','PAID','REVERSED')),
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_partner_accrual_partner ON forex_partner_commission_accruals(partner_id, status);`,
+
+  `CREATE TABLE IF NOT EXISTS forex_partner_payout_requests (
+    payout_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    partner_id UUID NOT NULL REFERENCES forex_partner_profiles(partner_id),
+    amount NUMERIC(20,8) NOT NULL CHECK (amount > 0),
+    currency VARCHAR(8) NOT NULL DEFAULT 'USD',
+    status VARCHAR(16) NOT NULL DEFAULT 'PENDING',
+    reason TEXT NOT NULL,
+    requested_by UUID NOT NULL REFERENCES admin_users(id),
+    approval_request_id UUID REFERENCES admin_approval_requests(id),
+    ledger_transaction_id UUID,
+    external_rail_status VARCHAR(24) NOT NULL DEFAULT 'NOT_CONFIGURED',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_partner_payout_partner ON forex_partner_payout_requests(partner_id, status);`,
+
+  // FOREX MT5-CLASS OPS PLANE (isolated from Crypto; cert-safe)
+  `CREATE TABLE IF NOT EXISTS forex_dealing_actions (
+    action_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id VARCHAR(64) NOT NULL,
+    account_id VARCHAR(64) NOT NULL,
+    action VARCHAR(16) NOT NULL CHECK (action IN ('ACCEPT','REJECT','ESCALATE','NOTE')),
+    reason TEXT NOT NULL,
+    dealer_admin_id UUID NOT NULL REFERENCES admin_users(id),
+    escalation_admin_id UUID REFERENCES admin_users(id),
+    mock_simulation BOOLEAN NOT NULL DEFAULT TRUE,
+    result_status VARCHAR(32),
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_dealing_actions_order ON forex_dealing_actions(order_id, created_at DESC);`,
+
+  `CREATE TABLE IF NOT EXISTS forex_operator_notifications (
+    notification_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    category VARCHAR(32) NOT NULL,
+    severity VARCHAR(16) NOT NULL DEFAULT 'info',
+    title VARCHAR(256) NOT NULL,
+    body TEXT,
+    resource_type VARCHAR(64),
+    resource_id VARCHAR(128),
+    owner_admin_id UUID REFERENCES admin_users(id),
+    acknowledged_at TIMESTAMPTZ,
+    acknowledged_by UUID REFERENCES admin_users(id),
+    resolved_at TIMESTAMPTZ,
+    resolved_by UUID REFERENCES admin_users(id),
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_op_notifications_open ON forex_operator_notifications(created_at DESC) WHERE resolved_at IS NULL;`,
+
+  `CREATE TABLE IF NOT EXISTS forex_finance_requests (
+    request_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    account_id VARCHAR(64) NOT NULL,
+    kind VARCHAR(32) NOT NULL CHECK (kind IN ('DEPOSIT','WITHDRAWAL','TRANSFER','ADJUSTMENT','CREDIT','DEBIT','FEE','REVERSAL')),
+    amount NUMERIC(20,8) NOT NULL CHECK (amount > 0),
+    currency VARCHAR(8) NOT NULL DEFAULT 'USD',
+    status VARCHAR(16) NOT NULL DEFAULT 'PENDING',
+    reason TEXT NOT NULL,
+    requested_by UUID NOT NULL REFERENCES admin_users(id),
+    approval_request_id UUID REFERENCES admin_approval_requests(id),
+    ledger_transaction_id UUID,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_finance_req_account ON forex_finance_requests(account_id, status);`,
+
+  `CREATE TABLE IF NOT EXISTS forex_automation_workflows (
+    workflow_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code VARCHAR(64) NOT NULL UNIQUE,
+    name VARCHAR(128) NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    trigger_type VARCHAR(64) NOT NULL,
+    conditions JSONB NOT NULL DEFAULT '[]'::jsonb,
+    actions JSONB NOT NULL DEFAULT '[]'::jsonb,
+    requires_approval BOOLEAN NOT NULL DEFAULT FALSE,
+    created_by UUID REFERENCES admin_users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE TABLE IF NOT EXISTS forex_automation_runs (
+    run_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workflow_id UUID NOT NULL REFERENCES forex_automation_workflows(workflow_id) ON DELETE CASCADE,
+    trigger_payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+    status VARCHAR(16) NOT NULL DEFAULT 'PENDING',
+    started_at TIMESTAMPTZ,
+    finished_at TIMESTAMPTZ,
+    error_message TEXT,
+    actions_executed JSONB NOT NULL DEFAULT '[]'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_automation_runs_workflow ON forex_automation_runs(workflow_id, created_at DESC);`,
+
+  `CREATE TABLE IF NOT EXISTS forex_compliance_cases (
+    case_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    subject_type VARCHAR(16) NOT NULL CHECK (subject_type IN ('CLIENT','ACCOUNT','LEAD')),
+    subject_id VARCHAR(128) NOT NULL,
+    case_type VARCHAR(32) NOT NULL,
+    status VARCHAR(16) NOT NULL DEFAULT 'OPEN',
+    priority VARCHAR(16) NOT NULL DEFAULT 'medium',
+    assignee_admin_id UUID REFERENCES admin_users(id),
+    summary TEXT NOT NULL,
+    decision TEXT,
+    opened_by UUID REFERENCES admin_users(id),
+    closed_at TIMESTAMPTZ,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_compliance_cases_subject ON forex_compliance_cases(subject_type, subject_id);`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

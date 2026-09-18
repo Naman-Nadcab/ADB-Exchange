@@ -420,6 +420,10 @@ export const ADMIN_PERMISSION_MATRIX: Record<string, string[]> = {
   'settings:view': ['settings:view', 'settings:edit', 'all'],
   'control:commands': ['control:commands', 'all'],
   'control:trading': ['control:trading', 'control:commands', 'all'],
+  'forex:controls:manage': ['forex:controls:manage', 'forex:control', 'control:trading', 'all'],
+  'forex:crm:manage': ['forex:crm:manage', 'users:edit', 'all'],
+  'forex:crm:view': ['forex:crm:view', 'forex:view', 'all'],
+  'forex:audit:view': ['forex:audit:view', 'audit:view', 'all'],
   'audit:view': ['audit:view', 'all'],
   'analytics:view': ['analytics:view', 'all'],
   'treasury:sweep': ['treasury:sweep', 'all'],
@@ -474,7 +478,32 @@ export async function getAdminWithPermission(
   if (ADMIN_LEGACY_ROLE_PERMISSION[role] === requiredPermission) return admin;
 
   const allowedPerms = ADMIN_PERMISSION_MATRIX[requiredPermission];
-  if (!allowedPerms) return admin;
+  if (!allowedPerms) {
+    if (String(requiredPermission).startsWith('forex:')) {
+      const { hasForexAdminPermission } = await import('../lib/forex-admin-rbac.js');
+      if (
+        !hasForexAdminPermission(
+          admin.role,
+          requiredPermission as import('../lib/forex-admin-rbac.js').ForexAdminPermission
+        )
+      ) {
+        reply.status(403).send({
+          success: false,
+          error: {
+            code: 'FORBIDDEN',
+            message: `This action requires Forex permission: ${requiredPermission}.`,
+          },
+        });
+        return null;
+      }
+      return admin;
+    }
+    reply.status(403).send({
+      success: false,
+      error: { code: 'FORBIDDEN', message: `Unknown permission scope: ${requiredPermission}.` },
+    });
+    return null;
+  }
   const permRow = await db.query<{ permissions: string[] }>(
     `SELECT permissions FROM admin_users WHERE id = $1`,
     [admin.adminId]

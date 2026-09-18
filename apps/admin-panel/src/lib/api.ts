@@ -12,6 +12,8 @@ export interface AdminApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: { code?: string; message?: string; hint?: string; actionable?: boolean };
+  /** Set on successful HTTP responses (includes 202 Accepted). */
+  meta?: { httpStatus: number };
 }
 
 export class AdminApiError extends Error {
@@ -175,7 +177,7 @@ export async function adminFetch<T = unknown>(
         json.error?.actionable,
       );
     }
-    return json;
+    return { ...json, meta: { httpStatus: res.status } };
   } catch (err) {
     /** Normalize abort → cleaner error for React Query; keep original for timeout. */
     if (err instanceof DOMException && err.name === 'AbortError') {

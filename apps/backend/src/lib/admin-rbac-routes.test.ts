@@ -46,6 +46,14 @@ const routeCases: RouteCase[] = [
   { role: 'finance_ops', method: 'GET', path: '/external-liquidity/providers', allowed: true, mapped: true },
   { role: 'finance_ops', method: 'PATCH', path: '/external-liquidity/providers/id', allowed: true, mapped: true },
   { role: 'compliance', method: 'GET', path: '/unknown/new-surface', allowed: false, mapped: false },
+
+  { role: 'risk_manager', method: 'GET', path: '/forex/overview', allowed: true, mapped: true },
+  { role: 'risk_manager', method: 'PATCH', path: '/forex/controls', allowed: true, mapped: true },
+  { role: 'finance_ops', method: 'GET', path: '/forex/ledger', allowed: true, mapped: true },
+  { role: 'finance_ops', method: 'PATCH', path: '/forex/controls', allowed: false, mapped: true },
+  { role: 'auditor', method: 'GET', path: '/forex/journal', allowed: true, mapped: true },
+  { role: 'auditor', method: 'GET', path: '/forex/integrations', allowed: true, mapped: true },
+  { role: 'support', method: 'GET', path: '/forex/orders', allowed: false, mapped: true },
 ];
 
 function run(): void {

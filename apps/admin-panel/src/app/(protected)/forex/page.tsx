@@ -3,16 +3,17 @@
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useAdminAuthStore } from '@/store/auth';
-import { getForexAdminOverview, getForexAdminConfig } from '@/lib/admin/forex-api';
+import { getForexAdminOverview, getForexAdminConfig, getForexAdminExecution } from '@/lib/admin/forex-api';
 import { AdminPageFrame } from '@/components/admin-shell/AdminPageFrame';
-import { ForexControlGrid } from '@/components/forex/ForexControlGrid';
-import { ForexJsonPanel } from '@/components/forex/ForexJsonPanel';
 import { StatCard } from '@/components/dashboard/StatCard';
-import { FOREX_ADMIN_PHASES, FOREX_ADMIN_ROUTES } from '@/lib/admin/forex-admin-nav';
-import { FOREX_CONTROL_GROUPS } from '@/lib/admin/forex-control-registry';
-import { Card, CardContent, CardHeader } from '@/components/ui/Card';
+import { FOREX_NAV_GROUPS, forexRoutesInGroup } from '@/lib/admin/forex-nav-groups';
+import { ForexCommandDeskPanel } from '@/components/forex/panels/ForexCommandDeskPanel';
+import { ForexOverviewCharts } from '@/components/forex/panels/ForexOverviewCharts';
 import { Badge } from '@/components/ui/Badge';
-import { ChevronRight, Layers, ShoppingCart, Users } from 'lucide-react';
+import { KpiSkeleton } from '@/components/ui/Skeleton';
+import { deriveForexVenueMode } from '@/lib/admin/forex-posture';
+import { ChevronRight, Layers, Radio, Shield, ShoppingCart, SlidersHorizontal, Users } from 'lucide-react';
+import { ForexWorkspaceHeader } from '@/components/forex/primitives/ForexWorkspaceHeader';
 
 export default function ForexAdminOverviewPage() {
   const token = useAdminAuthStore((s) => s.accessToken);
@@ -36,81 +37,129 @@ export default function ForexAdminOverviewPage() {
     enabled: !!token,
     staleTime: 30_000,
   });
+  const execQ = useQuery({
+    queryKey: ['admin', 'forex', 'execution', 'overview-chart', token],
+    queryFn: async () => {
+      const res = await getForexAdminExecution(token);
+      if (!res.success || !res.data) throw new Error(res.error?.message ?? 'Failed');
+      return res.data;
+    },
+    enabled: !!token,
+    staleTime: 20_000,
+  });
 
   const counts = overviewQ.data?.counts;
+  const ready = overviewQ.data?.readiness.economicReady;
+  const posture = overviewQ.data?.posture;
+  const venue = deriveForexVenueMode(posture);
+  const venueBadgeVariant =
+    venue.mode === 'LIVE' ? 'danger' : venue.mode === 'SIMULATED' ? 'warning' : 'info';
 
   return (
     <AdminPageFrame
-      title="Forex FDM Overview"
-      description="F0–F6: live Forex FDM ops — posture, trading tables, controls, policy, LP gate, journal & ledger."
-      status={overviewQ.data?.readiness.economicReady ? 'active' : 'warning'}
+      title="Forex overview"
+      description="Operator home — posture, volume, and shortcuts into each desk."
+      status={ready ? 'active' : 'warning'}
       error={overviewQ.isError ? (overviewQ.error instanceof Error ? overviewQ.error.message : 'Load failed') : null}
       onRetry={() => overviewQ.refetch()}
+      quickActions={
+        overviewQ.data ? (
+          <Badge variant={venueBadgeVariant} className="font-semibold">
+            {venue.mode} venue
+          </Badge>
+        ) : undefined
+      }
       metrics={
         counts ? (
           <>
-            <StatCard title="Open orders" value={String(counts.openOrders)} icon={ShoppingCart} />
-            <StatCard title="Open positions" value={String(counts.openPositions)} icon={Layers} />
-            <StatCard title="Ledger accounts" value={String(counts.ledgerAccounts)} icon={Users} />
+            <StatCard title="Open orders" value={String(counts.openOrders)} icon={ShoppingCart} href="/forex/orders" />
+            <StatCard title="Open positions" value={String(counts.openPositions)} icon={Layers} href="/forex/positions" />
+            <StatCard title="Ledger accounts" value={String(counts.ledgerAccounts)} icon={Users} href="/forex/accounts" />
             <StatCard
-              title="Market worker"
+              title="Quote worker"
               value={configQ.data?.runtime.marketData.running ? 'Running' : 'Stopped'}
-              icon={Layers}
+              icon={Radio}
+              href="/forex/market-data"
             />
           </>
+        ) : overviewQ.isLoading ? (
+          <KpiSkeleton count={4} />
         ) : undefined
       }
     >
-      <section>
-        <h2 className="text-base font-semibold text-foreground mb-3">Rollout phases</h2>
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {FOREX_ADMIN_PHASES.map((p) => (
-            <Card key={p.id} className="border-admin-border bg-admin-card/90">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold">{p.title}</span>
-                  <Badge variant={p.id === 'F0' ? 'success' : 'default'}>{p.id}</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="text-sm text-admin-muted">{p.summary}</CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
+      <ForexWorkspaceHeader
+        title="Forex overview"
+        purpose="Operator home — posture, volume KPIs, attention queue, and desk shortcuts."
+        dataSource="GET /forex/overview · GET /forex/config"
+        posture={venue.mode === 'LIVE' ? 'LIVE' : venue.mode === 'SIMULATED' ? 'SIMULATED' : 'MOCK'}
+        kpis={
+          counts
+            ? [
+                { label: 'Open orders', value: String(counts.openOrders) },
+                { label: 'Open positions', value: String(counts.openPositions) },
+                { label: 'Ledger accounts', value: String(counts.ledgerAccounts) },
+              ]
+            : undefined
+        }
+      />
+      {counts ? (
+        <ForexOverviewCharts
+          openOrders={counts.openOrders}
+          openPositions={counts.openPositions}
+          ledgerAccounts={counts.ledgerAccounts}
+          filled24h={execQ.data?.fillRecon?.totals.filled}
+          failed24h={execQ.data?.fillRecon?.totals.failed}
+          killSwitch={posture?.killSwitch}
+          economicReady={ready}
+        />
+      ) : null}
+
+      <ForexCommandDeskPanel overview={overviewQ.data} system={undefined} loading={overviewQ.isLoading} />
 
       <section>
-        <h2 className="text-base font-semibold text-foreground mb-3">All admin sections</h2>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {FOREX_ADMIN_ROUTES.filter((r) => r.id !== 'overview').map((r) => {
-            const Icon = r.icon;
+        <h2 className="mb-3 text-base font-semibold text-foreground">Desks</h2>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {FOREX_NAV_GROUPS.filter((g) => g.id !== 'command').map((group) => {
+            const routes = forexRoutesInGroup(group.id);
+            const Icon =
+              group.id === 'markets'
+                ? Radio
+                : group.id === 'trading'
+                  ? ShoppingCart
+                  : group.id === 'risk'
+                    ? Shield
+                    : group.id === 'accounts'
+                      ? Users
+                      : group.id === 'liquidity'
+                        ? Radio
+                        : SlidersHorizontal;
             return (
-              <Link
-                key={r.id}
-                href={r.href}
-                className="group flex items-center gap-3 rounded-xl border border-admin-border bg-admin-card/50 p-3 transition hover:border-violet-500/40 hover:bg-violet-500/5"
+              <div
+                key={group.id}
+                className="rounded-xl border border-admin-border bg-admin-card/80 p-4 transition hover:border-violet-500/30"
               >
-                <Icon className="h-5 w-5 text-violet-400" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{r.label}</p>
-                  <p className="truncate text-xs text-admin-muted">{r.phase}</p>
+                <div className="mb-2 flex items-center gap-2">
+                  <Icon className="h-4 w-4 text-violet-400" />
+                  <h3 className="text-sm font-semibold">{group.label}</h3>
                 </div>
-                <ChevronRight className="h-4 w-4 shrink-0 text-admin-muted group-hover:text-violet-300" />
-              </Link>
+                <p className="mb-3 text-xs text-admin-muted">{group.description}</p>
+                <ul className="space-y-1">
+                  {routes.slice(0, 4).map((r) => (
+                    <li key={r.id}>
+                      <Link
+                        href={r.href}
+                        className="group flex items-center justify-between rounded-md px-2 py-1.5 text-xs text-admin-muted hover:bg-white/5 hover:text-foreground"
+                      >
+                        <span>{r.label}</span>
+                        <ChevronRight className="h-3.5 w-3.5 opacity-0 transition group-hover:opacity-100" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             );
           })}
         </div>
-      </section>
-
-      {configQ.data ? (
-        <section className="grid gap-4 lg:grid-cols-2">
-          <ForexJsonPanel title="Admin config snapshot" data={configQ.data.config} />
-          <ForexJsonPanel title="Runtime & readiness" data={{ readiness: configQ.data.readiness, runtime: configQ.data.runtime }} />
-        </section>
-      ) : null}
-
-      <section>
-        <h2 className="text-base font-semibold text-foreground mb-3">Full control catalog (F0 map)</h2>
-        <ForexControlGrid groups={FOREX_CONTROL_GROUPS} />
       </section>
     </AdminPageFrame>
   );

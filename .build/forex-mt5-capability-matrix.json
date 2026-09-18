@@ -1,0 +1,666 @@
+{
+  "generatedAt": "2026-09-18T08:13:17.299Z",
+  "domains": [
+    "Command Center",
+    "Compliance",
+    "Automation",
+    "Markets",
+    "Trading",
+    "Risk",
+    "Accounts",
+    "CRM",
+    "Reporting",
+    "Partners",
+    "Finance",
+    "Liquidity",
+    "System"
+  ],
+  "capabilities": [
+    {
+      "capability": "Overview",
+      "operator_workflow": "Manage overview from /forex",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex",
+      "current_backend_service": "/forex/overview, /forex/config",
+      "current_api": [
+        "/forex/overview",
+        "/forex/config"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Command Desk",
+      "operator_workflow": "Manage command desk from /forex/command",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/command",
+      "current_backend_service": "/forex/overview, /forex/system, /forex/command/attention",
+      "current_api": [
+        "/forex/overview",
+        "/forex/system",
+        "/forex/command/attention"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Alerts & Notifications",
+      "operator_workflow": "Manage alerts & notifications from /forex/notifications",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/notifications",
+      "current_backend_service": "/forex/notifications?limit=5",
+      "current_api": [
+        "/forex/notifications?limit=5"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Compliance",
+      "operator_workflow": "Manage compliance from /forex/compliance",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/compliance",
+      "current_backend_service": "/forex/compliance/cases?limit=5",
+      "current_api": [
+        "/forex/compliance/cases?limit=5"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Automation",
+      "operator_workflow": "Manage automation from /forex/automation",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/automation",
+      "current_backend_service": "/forex/automation/workflows",
+      "current_api": [
+        "/forex/automation/workflows"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Instruments",
+      "operator_workflow": "Manage instruments from /forex/instruments",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/instruments",
+      "current_backend_service": "/forex/config, /forex/controls",
+      "current_api": [
+        "/forex/config",
+        "/forex/controls"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Sessions & Holidays",
+      "operator_workflow": "Manage sessions & holidays from /forex/sessions",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/sessions",
+      "current_backend_service": "/forex/config, /forex/holidays",
+      "current_api": [
+        "/forex/config",
+        "/forex/holidays"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Market Data",
+      "operator_workflow": "Manage market data from /forex/market-data",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/market-data",
+      "current_backend_service": "/forex/config, /forex/execution",
+      "current_api": [
+        "/forex/config",
+        "/forex/execution"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Orders",
+      "operator_workflow": "Manage orders from /forex/orders",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/orders",
+      "current_backend_service": "/forex/orders?limit=1",
+      "current_api": [
+        "/forex/orders?limit=1"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Executions & Fills",
+      "operator_workflow": "Manage executions & fills from /forex/executions",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/executions",
+      "current_backend_service": "/forex/executions?limit=1",
+      "current_api": [
+        "/forex/executions?limit=1"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Positions",
+      "operator_workflow": "Manage positions from /forex/positions",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/positions",
+      "current_backend_service": "/forex/positions?limit=1",
+      "current_api": [
+        "/forex/positions?limit=1"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Protection",
+      "operator_workflow": "Manage protection from /forex/protection",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/protection",
+      "current_backend_service": "/forex/orders?limit=5",
+      "current_api": [
+        "/forex/orders?limit=5"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Risk overview",
+      "operator_workflow": "Manage risk overview from /forex/margin-risk",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/margin-risk",
+      "current_backend_service": "/forex/policy, /forex/risk/hub",
+      "current_api": [
+        "/forex/policy",
+        "/forex/risk/hub"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Liquidation",
+      "operator_workflow": "Manage liquidation from /forex/liquidation",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/liquidation",
+      "current_backend_service": "/forex/policy, /forex/journal?limit=5",
+      "current_api": [
+        "/forex/policy",
+        "/forex/journal?limit=5"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Dealing Desk",
+      "operator_workflow": "Manage dealing desk from /forex/dealing",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/dealing",
+      "current_backend_service": "/forex/dealing/queue, /forex/controls",
+      "current_api": [
+        "/forex/dealing/queue",
+        "/forex/controls"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Fees & Swaps",
+      "operator_workflow": "Manage fees & swaps from /forex/fees-swaps",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/fees-swaps",
+      "current_backend_service": "/forex/policy",
+      "current_api": [
+        "/forex/policy"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Accounts",
+      "operator_workflow": "Manage accounts from /forex/accounts",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/accounts",
+      "current_backend_service": "/forex/ledger",
+      "current_api": [
+        "/forex/ledger"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Account Groups",
+      "operator_workflow": "Manage account groups from /forex/account-groups",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/account-groups",
+      "current_backend_service": "/forex/account-groups",
+      "current_api": [
+        "/forex/account-groups"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "CRM Home",
+      "operator_workflow": "Manage crm home from /forex/crm/home",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/crm/home",
+      "current_backend_service": "/forex/crm/home",
+      "current_api": [
+        "/forex/crm/home"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "My Clients",
+      "operator_workflow": "Manage my clients from /forex/crm/my-clients",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/crm/my-clients",
+      "current_backend_service": "/forex/crm/workspace",
+      "current_api": [
+        "/forex/crm/workspace"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "CRM — Leads",
+      "operator_workflow": "Manage crm — leads from /forex/crm/leads",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/crm/leads",
+      "current_backend_service": "/forex/crm/leads?limit=1, /forex/crm/leads/summary",
+      "current_api": [
+        "/forex/crm/leads?limit=1",
+        "/forex/crm/leads/summary"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "CRM — Clients",
+      "operator_workflow": "Manage crm — clients from /forex/crm/clients",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/crm/clients",
+      "current_backend_service": "/forex/crm/clients?limit=1",
+      "current_api": [
+        "/forex/crm/clients?limit=1"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "CRM — Finance",
+      "operator_workflow": "Manage crm — finance from /forex/crm/finance",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/crm/finance",
+      "current_backend_service": "/forex/crm/finance/accounts?limit=1",
+      "current_api": [
+        "/forex/crm/finance/accounts?limit=1"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "CRM — Tasks",
+      "operator_workflow": "Manage crm — tasks from /forex/crm/tasks",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/crm/tasks",
+      "current_backend_service": "/forex/crm/tasks?limit=1",
+      "current_api": [
+        "/forex/crm/tasks?limit=1"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "CRM — Segments",
+      "operator_workflow": "Manage crm — segments from /forex/crm/segments",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/crm/segments",
+      "current_backend_service": "/forex/crm/segments",
+      "current_api": [
+        "/forex/crm/segments"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "CRM — Pipeline",
+      "operator_workflow": "Manage crm — pipeline from /forex/crm/pipeline",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/crm/pipeline",
+      "current_backend_service": "/forex/crm/pipeline",
+      "current_api": [
+        "/forex/crm/pipeline"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Reporting",
+      "operator_workflow": "Manage reporting from /forex/reporting",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/reporting",
+      "current_backend_service": "/forex/reporting/snapshot",
+      "current_api": [
+        "/forex/reporting/snapshot"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Risk controls",
+      "operator_workflow": "Manage risk controls from /forex/risk-control",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/risk-control",
+      "current_backend_service": "/forex/risk/control-plane",
+      "current_api": [
+        "/forex/risk/control-plane"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Partners / IB",
+      "operator_workflow": "Manage partners / ib from /forex/partners",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/partners",
+      "current_backend_service": "/forex/partners",
+      "current_api": [
+        "/forex/partners"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Ledger & Recon",
+      "operator_workflow": "Manage ledger & recon from /forex/ledger",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/ledger",
+      "current_backend_service": "/forex/ledger",
+      "current_api": [
+        "/forex/ledger"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Global Controls",
+      "operator_workflow": "Manage global controls from /forex/controls",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/controls",
+      "current_backend_service": "/forex/controls",
+      "current_api": [
+        "/forex/controls"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "LP & Execution",
+      "operator_workflow": "Manage lp & execution from /forex/lp-execution",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/lp-execution",
+      "current_backend_service": "/forex/execution",
+      "current_api": [
+        "/forex/execution"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Routing desk",
+      "operator_workflow": "Manage routing desk from /forex/liquidity/routing",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/liquidity/routing",
+      "current_backend_service": "/forex/routing/desk",
+      "current_api": [
+        "/forex/routing/desk"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Integrations",
+      "operator_workflow": "Manage integrations from /forex/integrations",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/integrations",
+      "current_backend_service": "/forex/integrations",
+      "current_api": [
+        "/forex/integrations"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Journal & Audit",
+      "operator_workflow": "Manage journal & audit from /forex/journal-audit",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/journal-audit",
+      "current_backend_service": "/forex/journal?limit=5",
+      "current_api": [
+        "/forex/journal?limit=5"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "System",
+      "operator_workflow": "Manage system from /forex/system",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/system",
+      "current_backend_service": "/forex/system",
+      "current_api": [
+        "/forex/system"
+      ],
+      "db_tables": [],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Maintain Tier-1 polish",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    },
+    {
+      "capability": "Command attention queue",
+      "operator_workflow": "Surface cross-domain items requiring operator action now",
+      "benchmark_reference": "MT5",
+      "current_route": "/forex/command",
+      "current_backend_service": "command-attention.ts",
+      "current_api": [
+        "/forex/command/attention"
+      ],
+      "db_tables": [
+        "forex_orders",
+        "forex_finance_requests",
+        "forex_compliance_cases",
+        "forex_crm_tasks",
+        "forex_crm_leads"
+      ],
+      "ui_depth": "TIER1_VISUAL",
+      "runtime_status": "LIVE_API",
+      "gap_type": "NONE",
+      "action": "Drill-through verified",
+      "verification": "VISUAL_DOM_GREEN",
+      "visual_defects": []
+    }
+  ],
+  "visual_audit_ref": ".build/forex-ui-visual-delta-audit.json"
+}

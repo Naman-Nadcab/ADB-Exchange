@@ -1,0 +1,1964 @@
+{
+  "generatedAt": "2026-09-18T08:18:03.323Z",
+  "operator_url": "http://109.123.254.30/admin",
+  "api_base": "http://127.0.0.1:4000/api/v1/admin",
+  "crypto_regression": "FROZEN_OUT_OF_SCOPE",
+  "note": "NETWORK_TRANSIENT is not an implementation gap. AUTH_BLOCKED requires operator session seeding.",
+  "pages": [
+    {
+      "route": "/forex",
+      "route_id": "overview",
+      "page_component": "forex/page.tsx",
+      "api_endpoints": [
+        "/forex/overview",
+        "/forex/config"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/overview",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        },
+        {
+          "path": "/forex/config",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:20.600Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/command",
+      "route_id": "command",
+      "page_component": "ForexSectionPage:command",
+      "api_endpoints": [
+        "/forex/overview",
+        "/forex/system",
+        "/forex/command/attention"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/overview",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        },
+        {
+          "path": "/forex/system",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        },
+        {
+          "path": "/forex/command/attention",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:23.881Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/command",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/notifications",
+      "route_id": "notifications",
+      "page_component": "ForexNotificationsPanel",
+      "api_endpoints": [
+        "/forex/notifications?limit=5"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/notifications?limit=5",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:24.892Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/notifications",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/compliance",
+      "route_id": "compliance",
+      "page_component": "ForexCompliancePanel",
+      "api_endpoints": [
+        "/forex/compliance/cases?limit=5"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/compliance/cases?limit=5",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:25.780Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/compliance",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/automation",
+      "route_id": "automation",
+      "page_component": "ForexAutomationPanel",
+      "api_endpoints": [
+        "/forex/automation/workflows"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/automation/workflows",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:26.508Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/automation",
+        "session_expired": false,
+        "aside_count": 0,
+        "main_width": null,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007"
+        ],
+        "empty_valid": false,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/instruments",
+      "route_id": "instruments",
+      "page_component": "ForexInstrumentsPanel",
+      "api_endpoints": [
+        "/forex/config",
+        "/forex/controls"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/config",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        },
+        {
+          "path": "/forex/controls",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "CLEAN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:28.239Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/instruments",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/sessions",
+      "route_id": "sessions",
+      "page_component": "ForexSectionPage:sessions",
+      "api_endpoints": [
+        "/forex/config",
+        "/forex/holidays"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/config",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        },
+        {
+          "path": "/forex/holidays",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "FAIL",
+      "browser_console_status": "WARN",
+      "visual_status": "WARN",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:30.319Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": false,
+        "final_url": "http://109.123.254.30/login?next=%2Fadmin%2Fforex%2Fsessions&reason=session_expired",
+        "session_expired": true,
+        "aside_count": 0,
+        "main_width": null,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": false,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "AUTH_BLOCKED"
+    },
+    {
+      "route": "/forex/market-data",
+      "route_id": "market-data",
+      "page_component": "ForexMarketDataPanel",
+      "api_endpoints": [
+        "/forex/config",
+        "/forex/market-data/quotes"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/config",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        },
+        {
+          "path": "/forex/market-data/quotes",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:32.737Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/market-data",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/orders",
+      "route_id": "orders",
+      "page_component": "ForexAdminOpsTable:orders",
+      "api_endpoints": [
+        "/forex/orders?limit=1"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/orders?limit=1",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:35.866Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/orders",
+        "session_expired": false,
+        "aside_count": 0,
+        "main_width": null,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+        ],
+        "empty_valid": false,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/executions",
+      "route_id": "executions",
+      "page_component": "ForexAdminOpsTable:executions",
+      "api_endpoints": [
+        "/forex/executions?limit=1"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/executions?limit=1",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:37.410Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/executions",
+        "session_expired": false,
+        "aside_count": 0,
+        "main_width": null,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007"
+        ],
+        "empty_valid": false,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/positions",
+      "route_id": "positions",
+      "page_component": "ForexAdminOpsTable:positions",
+      "api_endpoints": [
+        "/forex/positions?limit=1"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/positions?limit=1",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:38.049Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/positions",
+        "session_expired": false,
+        "aside_count": 0,
+        "main_width": null,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007"
+        ],
+        "empty_valid": false,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/protection",
+      "route_id": "protection",
+      "page_component": "ForexProtectionPanel",
+      "api_endpoints": [
+        "/forex/orders?limit=5"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/orders?limit=5",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:39.434Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/protection",
+        "session_expired": false,
+        "aside_count": 0,
+        "main_width": null,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007"
+        ],
+        "empty_valid": false,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/margin-risk",
+      "route_id": "margin-risk",
+      "page_component": "ForexPolicyPanel:margin-risk",
+      "api_endpoints": [
+        "/forex/policy",
+        "/forex/risk/hub"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/policy",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        },
+        {
+          "path": "/forex/risk/hub",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:40.555Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/margin-risk",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/liquidation",
+      "route_id": "liquidation",
+      "page_component": "ForexLiquidationPanel",
+      "api_endpoints": [
+        "/forex/policy",
+        "/forex/journal?limit=5"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/policy",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        },
+        {
+          "path": "/forex/journal?limit=5",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:41.484Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/liquidation",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/dealing",
+      "route_id": "dealing",
+      "page_component": "ForexDealingDeskPanel",
+      "api_endpoints": [
+        "/forex/dealing/queue",
+        "/forex/controls"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/dealing/queue",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        },
+        {
+          "path": "/forex/controls",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:41.538Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/dealing",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/fees-swaps",
+      "route_id": "fees-swaps",
+      "page_component": "ForexPolicyPanel:fees-swaps",
+      "api_endpoints": [
+        "/forex/policy"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/policy",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:42.420Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/fees-swaps",
+        "session_expired": false,
+        "aside_count": 0,
+        "main_width": null,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": false,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/accounts",
+      "route_id": "accounts",
+      "page_component": "ForexLedgerPanel",
+      "api_endpoints": [
+        "/forex/accounts/list?limit=1"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/accounts/list?limit=1",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "CLEAN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:43.237Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/accounts",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/account-groups",
+      "route_id": "account-groups",
+      "page_component": "ForexAccountGroupsPanel",
+      "api_endpoints": [
+        "/forex/account-groups"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/account-groups",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "CLEAN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:43.893Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/account-groups",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/crm/home",
+      "route_id": "crm-home",
+      "page_component": "ForexCrmHomePanel",
+      "api_endpoints": [
+        "/forex/crm/home"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/crm/home",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "SCHEMA_PRESENT",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:47.054Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/crm/home",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/crm/my-clients",
+      "route_id": "crm-my-clients",
+      "page_component": "ForexCrmMyClientsPanel",
+      "api_endpoints": [
+        "/forex/crm/workspace"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/crm/workspace",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "SCHEMA_PRESENT",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:48.235Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/crm/my-clients",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/crm/leads",
+      "route_id": "crm-leads",
+      "page_component": "ForexCrmLeadsPanel",
+      "api_endpoints": [
+        "/forex/crm/leads?limit=1",
+        "/forex/crm/leads/summary"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/crm/leads?limit=1",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        },
+        {
+          "path": "/forex/crm/leads/summary",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "SCHEMA_PRESENT",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:49.491Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/crm/leads",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/crm/clients",
+      "route_id": "crm-clients",
+      "page_component": "ForexCrmClientsPanel",
+      "api_endpoints": [
+        "/forex/crm/clients?limit=1"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/crm/clients?limit=1",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "SCHEMA_PRESENT",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:50.284Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/crm/clients",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/crm/finance",
+      "route_id": "crm-finance",
+      "page_component": "ForexCrmFinancePanel",
+      "api_endpoints": [
+        "/forex/crm/finance/accounts?limit=1"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/crm/finance/accounts?limit=1",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "SCHEMA_PRESENT",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:50.920Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/crm/finance",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": false,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/crm/tasks",
+      "route_id": "crm-tasks",
+      "page_component": "ForexCrmTasksPanel",
+      "api_endpoints": [
+        "/forex/crm/tasks?limit=1"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/crm/tasks?limit=1",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "SCHEMA_PRESENT",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:51.780Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/crm/tasks",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/crm/segments",
+      "route_id": "crm-segments",
+      "page_component": "ForexCrmSegmentsPanel",
+      "api_endpoints": [
+        "/forex/crm/segments"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/crm/segments",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "SCHEMA_PRESENT",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:52.641Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/crm/segments",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/crm/pipeline",
+      "route_id": "crm-pipeline",
+      "page_component": "ForexCrmPipelinePanel",
+      "api_endpoints": [
+        "/forex/crm/pipeline"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/crm/pipeline",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "SCHEMA_PRESENT",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:53.209Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/crm/pipeline",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/reporting",
+      "route_id": "forex-reporting",
+      "page_component": "ForexReportingPanel",
+      "api_endpoints": [
+        "/forex/reporting/snapshot"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/reporting/snapshot",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:53.785Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/reporting",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/risk-control",
+      "route_id": "risk-control",
+      "page_component": "ForexRiskControlPanel + ForexRiskHubPanel",
+      "api_endpoints": [
+        "/forex/risk/control-plane"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/risk/control-plane",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:54.051Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/risk-control",
+        "session_expired": false,
+        "aside_count": 0,
+        "main_width": null,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007"
+        ],
+        "empty_valid": false,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/partners",
+      "route_id": "forex-partners",
+      "page_component": "ForexPartnersPanel",
+      "api_endpoints": [
+        "/forex/partners"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/partners",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:55.069Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/partners",
+        "session_expired": false,
+        "aside_count": 0,
+        "main_width": null,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007"
+        ],
+        "empty_valid": false,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/ledger",
+      "route_id": "ledger",
+      "page_component": "ForexLedgerPanel",
+      "api_endpoints": [
+        "/forex/ledger"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/ledger",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "CLEAN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:56.832Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/ledger",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/controls",
+      "route_id": "controls",
+      "page_component": "ForexGlobalControlsPanel",
+      "api_endpoints": [
+        "/forex/controls"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/controls",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:57.746Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/controls",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/lp-execution",
+      "route_id": "lp-execution",
+      "page_component": "ForexExecutionPanel",
+      "api_endpoints": [
+        "/forex/execution"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/execution",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:17:58.838Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/lp-execution",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/control-center. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/liquidity/routing",
+      "route_id": "liquidity-routing",
+      "page_component": "ForexRoutingDeskPanel",
+      "api_endpoints": [
+        "/forex/routing/desk"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/routing/desk",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:18:00.163Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/liquidity/routing",
+        "session_expired": false,
+        "aside_count": 0,
+        "main_width": null,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/dashboard. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75007"
+        ],
+        "empty_valid": false,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/integrations",
+      "route_id": "integrations",
+      "page_component": "ForexIntegrationsPanel",
+      "api_endpoints": [
+        "/forex/integrations"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/integrations",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:18:01.505Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/integrations",
+        "session_expired": false,
+        "aside_count": 0,
+        "main_width": null,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring/infrastructure. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/monitoring. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": false,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/journal-audit",
+      "route_id": "journal-audit",
+      "page_component": "ForexJournalAuditPanel",
+      "api_endpoints": [
+        "/forex/journal?limit=5"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/journal?limit=5",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "CLEAN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:18:03.298Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/journal-audit",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    },
+    {
+      "route": "/forex/system",
+      "route_id": "system",
+      "page_component": "ForexSectionPage:system",
+      "api_endpoints": [
+        "/forex/system"
+      ],
+      "api_checks": [
+        {
+          "path": "/forex/system",
+          "http": 200,
+          "success": true,
+          "errorCode": null
+        }
+      ],
+      "api_status": "OK",
+      "auth_status": "OK",
+      "db_status": "N/A",
+      "data_status": "LOADS",
+      "ui_render_status": "RENDERS",
+      "browser_console_status": "WARN",
+      "visual_status": "PASS_SHELL",
+      "live_deployment": {
+        "frontend": "exchange-admin",
+        "backend": "CRM_ROUTES_IN_IMAGE",
+        "probed_at": "2026-09-18T08:18:03.322Z"
+      },
+      "repo": {
+        "component_exists": true
+      },
+      "live_backend": true,
+      "browser": {
+        "render_ok": true,
+        "final_url": "http://109.123.254.30/admin/forex/system",
+        "session_expired": false,
+        "aside_count": 1,
+        "main_width": 1360,
+        "has_failed_banner": false,
+        "has_object_object": false,
+        "react_error": false,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "Failed to fetch RSC payload for http://109.123.254.30/admin/admin-control. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:41696)\n    at http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55494\n    at Object.o [as task] (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30179)\n    at c.s (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30884)\n    at c.enqueue (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:30309)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:55457)\n    at f (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:64114)\n    at Object.action (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:75373)\n    at c (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74398)\n    at i (http://109.123.254.30/admin/_next/static/chunks/4938-7145b67249049cdf.js:1:74186)"
+        ],
+        "empty_valid": true,
+        "functional_hint": true,
+        "network_transient": false
+      },
+      "overall_status": "FUNCTIONAL"
+    }
+  ],
+  "summary": {
+    "total_routes": 36,
+    "by_status": {
+      "FUNCTIONAL": 35,
+      "AUTH_BLOCKED": 1
+    }
+  }
+}
