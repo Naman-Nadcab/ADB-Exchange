@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 
 const ITEMS = [
   { href: FOREX_ROUTES.account, label: 'Overview' },
+  { href: FOREX_ROUTES.accounts, label: 'Accounts' },
   { href: FOREX_ROUTES.funds, label: 'Funds' },
   { href: FOREX_ROUTES.ledger, label: 'Ledger' },
   { href: FOREX_ROUTES.portfolio, label: 'Portfolio' },

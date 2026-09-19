@@ -28,9 +28,11 @@ import { resetForexPricingServiceForTests } from './quotes.service.js';
 import { resetForexAccountPoliciesForTests, setForexAccountPolicy } from './risk/engine.js';
 import { forexWsHub } from './ws/hub.js';
 import { isForexAccountPrivateChannel, isReservedPrivateForexChannel } from './ws/protocol.js';
+import { resetForexSessionExceptionsForTests, setForexSessionNowForTests } from './sessions/eligibility.js';
 import type { ForexQuoteDto, ProviderRawQuote } from './types.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const OPEN_SESSION_CLOCK = new Date('2026-09-07T16:00:00.000Z');
 const backendRoot = path.resolve(__dirname, '../..');
 const USER = 'user-a';
 const USER_B = 'user-b';
@@ -56,6 +58,8 @@ function fill(overrides: Partial<ForexPositionFillInput> & Pick<ForexPositionFil
 function harness() {
   resetForexAccountPoliciesForTests();
   resetForexLiquidationLocksForTests();
+  resetForexSessionExceptionsForTests();
+  setForexSessionNowForTests(OPEN_SESSION_CLOCK);
   const pricing = seedBook();
   const positions = new ForexPositionService(new ForexPositionStore(), pricing, false);
   const exec = new ForexExecutionService(pricing, createMockExecutionVenues(), new ForexExecutionStore(), false);
@@ -323,8 +327,8 @@ function quotePatch(base: ForexQuoteDto, patch: Partial<ForexQuoteDto>): ForexQu
   }
   const a = new FakeSock();
   const b = new FakeSock();
-  const idA = forexWsHub.register(a as unknown as import('ws').WebSocket, USER);
-  const idB = forexWsHub.register(b as unknown as import('ws').WebSocket, USER_B);
+  const idA = forexWsHub.register(a as unknown as import('ws').WebSocket, USER, USER);
+  const idB = forexWsHub.register(b as unknown as import('ws').WebSocket, USER_B, USER_B);
   assert.equal(forexWsHub.subscribe(idA, 'fx.protection'), true);
   assert.equal(forexWsHub.subscribe(idB, 'fx.liquidation'), true);
   forexWsHub.publishPrivate(USER, 'fx.protection', { source: 'SIMULATED', secret: 'a-only' });
@@ -348,4 +352,6 @@ function quotePatch(base: ForexQuoteDto, patch: Partial<ForexQuoteDto>): ForexQu
   }
 }
 
+setForexSessionNowForTests(null);
+resetForexSessionExceptionsForTests();
 console.log('forex-phase7.test: ok');

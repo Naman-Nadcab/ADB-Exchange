@@ -609,8 +609,8 @@ function usableQuote(pricing: ReturnType<typeof seedBook>, patch: Partial<ForexQ
   }
   const a = new FakeSock();
   const b = new FakeSock();
-  const idA = forexWsHub.register(a as unknown as import('ws').WebSocket, USER);
-  const idB = forexWsHub.register(b as unknown as import('ws').WebSocket, USER_B);
+  const idA = forexWsHub.register(a as unknown as import('ws').WebSocket, USER, USER);
+  const idB = forexWsHub.register(b as unknown as import('ws').WebSocket, USER_B, USER_B);
   assert.equal(forexWsHub.subscribe(idA, 'fx.fill'), true);
   assert.equal(forexWsHub.subscribe(idB, 'fx.fill'), true);
   forexWsHub.publishPrivate(USER, 'fx.fill', { source: 'SIMULATED', secret: 'fill-a' });

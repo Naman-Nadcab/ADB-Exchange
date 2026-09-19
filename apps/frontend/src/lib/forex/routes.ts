@@ -9,6 +9,7 @@ export const FOREX_ROUTES = {
   account: '/forex/account',
   funds: '/forex/account/funds',
   ledger: '/forex/account/ledger',
+  accounts: '/forex/account/accounts',
 } as const;
 
 export function isForexTradePath(pathname: string): boolean {

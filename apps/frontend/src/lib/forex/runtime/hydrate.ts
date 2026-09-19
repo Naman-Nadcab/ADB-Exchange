@@ -3,6 +3,7 @@ import { setForexActiveAccountId } from '../api/account-context';
 import { hasForexPrivateSession } from '../api/auth-token';
 import { normalizeForexError } from '../models/errors';
 import { useForexStore } from '../state/store';
+import { forexWsManager } from '../websocket/manager';
 
 export async function hydrateForexPublic(signal?: AbortSignal): Promise<void> {
   void signal;
@@ -176,6 +177,7 @@ export async function switchForexActiveAccount(accountId: string): Promise<boole
   useForexStore.getState().setHydratePhase('hydrating');
   const ok = await hydrateForexPrivate();
   useForexStore.getState().setHydratePhase(ok ? 'ready' : 'error');
+  forexWsManager.refreshAccountContext();
   return ok;
 }
 
@@ -190,6 +192,7 @@ export async function createForexDemoAccountAndActivate(): Promise<boolean> {
   useForexStore.getState().setHydratePhase('hydrating');
   const ok = await hydrateForexPrivate();
   useForexStore.getState().setHydratePhase(ok ? 'ready' : 'error');
+  forexWsManager.refreshAccountContext();
   return ok;
 }
 

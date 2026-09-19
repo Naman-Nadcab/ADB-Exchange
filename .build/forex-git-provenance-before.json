@@ -1,0 +1,19 @@
+{
+  "generatedAt": "2026-09-19T21:10:00+05:30",
+  "branch": "release/exchange-production-baseline",
+  "localHead": "397aebe9cc5a8eef6c4fc612b6a34a9b983940f9",
+  "remoteTrackingHead": "397aebe9cc5a8eef6c4fc612b6a34a9b983940f9",
+  "mergeBaseWithOrigin": "397aebe9cc5a8eef6c4fc612b6a34a9b983940f9",
+  "originMainHead": "af55da7765eb856829f1cdf5929dc2edca53c549",
+  "verdict": {
+    "originAheadOfLocalOnTrackingBranch": false,
+    "localAheadOfOriginOnTrackingBranch": false,
+    "historiesDivergedOnTrackingBranch": false,
+    "onlyLocalCommits": [],
+    "onlyRemoteCommitsOnTrackingBranch": [],
+    "af55da7Note": "af55da7 is origin/main packaging commit, NOT origin/release/exchange-production-baseline; prior audit compared wrong ref"
+  },
+  "safeToImplement": true,
+  "dirtyWorktree": true,
+  "dirtyIncludesUnrelatedCryptoSpotIndex": true
+}

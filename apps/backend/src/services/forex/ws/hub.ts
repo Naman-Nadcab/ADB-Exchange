@@ -7,16 +7,18 @@ interface ForexWsConn {
   socket: WebSocket;
   channels: Set<string>;
   userId?: string;
+  /** Active Forex account for private event fan-out (server-resolved). */
+  forexAccountId?: string;
 }
 
 class ForexWsHub {
   private readonly conns = new Map<string, ForexWsConn>();
   private n = 0;
 
-  register(socket: WebSocket, userId?: string): string {
+  register(socket: WebSocket, userId?: string, forexAccountId?: string): string {
     this.n += 1;
     const id = `fxws-${this.n}`;
-    this.conns.set(id, { socket, channels: new Set(), userId });
+    this.conns.set(id, { socket, channels: new Set(), userId, forexAccountId });
     return id;
   }
 
@@ -24,11 +26,16 @@ class ForexWsHub {
     this.conns.delete(id);
   }
 
+  setForexAccount(id: string, forexAccountId: string | undefined): void {
+    const conn = this.conns.get(id);
+    if (conn) conn.forexAccountId = forexAccountId;
+  }
+
   subscribe(id: string, channel: string): boolean {
     const conn = this.conns.get(id);
     if (!conn) return false;
     if (isForexAccountPrivateChannel(channel)) {
-      if (!conn.userId) return false;
+      if (!conn.userId || !conn.forexAccountId) return false;
       conn.channels.add(channel);
       return true;
     }
@@ -53,15 +60,20 @@ class ForexWsHub {
     this.fanout('fx.execution', 'fx.execution.*', 'fx.execution', payload);
   }
 
-  publishOrder(userId: string, type: string, payload: unknown): void {
-    this.publishPrivate(userId, type, payload);
+  publishOrder(accountId: string, type: string, payload: unknown): void {
+    this.publishPrivate(accountId, type, payload);
   }
 
-  publishPrivate(userId: string, type: string, payload: unknown): void {
-    const root = type.split('.')[0] + '.' + type.split('.')[1];
-    const message = forexWsEnvelope(type, type, payload);
+  /** Private events are delivered only to connections whose active Forex account matches. */
+  publishPrivate(accountId: string, type: string, payload: unknown): void {
+    const enriched =
+      payload && typeof payload === 'object'
+        ? { ...(payload as Record<string, unknown>), accountId }
+        : { accountId, payload };
+    const root = type.split('.')[0] + '.' + (type.split('.')[1] ?? type);
+    const message = forexWsEnvelope(type, type, enriched);
     for (const conn of this.conns.values()) {
-      if (conn.userId !== userId) continue;
+      if (conn.forexAccountId !== accountId) continue;
       if (conn.channels.has(root) || conn.channels.has(`${root}.*`) || conn.channels.has(type)) {
         try {
           if (conn.socket.readyState === 1) conn.socket.send(message);

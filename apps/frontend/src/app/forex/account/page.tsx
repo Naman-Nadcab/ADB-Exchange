@@ -70,8 +70,12 @@ export default function ForexAccountPage() {
               </div>
             </dl>
             <p className="mt-3 text-[11px] text-muted-foreground">
-              Use the account switcher on the terminal bar to change the active Forex account. Orders, positions, ledger,
-              history, risk, margin, and alerts always follow the account selected on the server (not UI-only filtering).
+              Manage demo accounts on{' '}
+              <Link href={FOREX_ROUTES.accounts} className="text-primary underline underline-offset-2">
+                Forex accounts
+              </Link>
+              . Use the terminal bar switcher for quick changes. Orders, positions, ledger, history, risk, margin, and
+              alerts always follow the server-selected active account.
             </p>
           </section>
 

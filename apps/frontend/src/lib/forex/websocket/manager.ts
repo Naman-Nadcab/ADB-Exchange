@@ -144,6 +144,13 @@ class ForexWsManager {
     });
   }
 
+  /** After REST account switch — server re-resolves cookie/header active account. */
+  refreshAccountContext(): void {
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify({ type: 'refresh_account' }));
+    }
+  }
+
   private handleRaw(raw: unknown): void {
     let parsed: Record<string, unknown>;
     try {

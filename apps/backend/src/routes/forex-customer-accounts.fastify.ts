@@ -42,6 +42,7 @@ export async function registerForexCustomerAccountsRoutes(app: FastifyInstance):
           accountKind: a.accountKind,
           label: `${a.accountKind} · ${a.currency}`,
           positionMode: a.positionMode,
+          leverageOverride: a.leverageOverride,
           createdAt: a.createdAt,
         })),
       },

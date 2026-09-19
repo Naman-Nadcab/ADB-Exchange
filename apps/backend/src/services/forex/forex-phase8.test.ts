@@ -29,9 +29,11 @@ import { resetForexRiskServiceForTests } from './risk/service.js';
 import { canAccountRiskTransition } from './risk/states.js';
 import { forexWsHub } from './ws/hub.js';
 import { isForexAccountPrivateChannel } from './ws/protocol.js';
+import { resetForexSessionExceptionsForTests, setForexSessionNowForTests } from './sessions/eligibility.js';
 import type { ForexQuoteDto, ProviderRawQuote } from './types.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const OPEN_SESSION_CLOCK = new Date('2026-09-07T16:00:00.000Z');
 const backendRoot = path.resolve(__dirname, '../..');
 const USER = 'user-a';
 const USER_B = 'user-b';
@@ -59,6 +61,8 @@ function harness() {
   resetForexLiquidationLocksForTests();
   resetForexRiskLimitsForTests();
   resetForexDealingForTests();
+  resetForexSessionExceptionsForTests();
+  setForexSessionNowForTests(OPEN_SESSION_CLOCK);
   const pricing = seedBook();
   const positions = new ForexPositionService(new ForexPositionStore(), pricing, false);
   const exec = new ForexExecutionService(pricing, createMockExecutionVenues(), new ForexExecutionStore(), false);
@@ -449,8 +453,8 @@ function quoteOf(pricing: ReturnType<typeof seedBook>): ForexQuoteDto {
   }
   const a = new FakeSock();
   const b = new FakeSock();
-  const idA = forexWsHub.register(a as unknown as import('ws').WebSocket, USER);
-  const idB = forexWsHub.register(b as unknown as import('ws').WebSocket, USER_B);
+  const idA = forexWsHub.register(a as unknown as import('ws').WebSocket, USER, USER);
+  const idB = forexWsHub.register(b as unknown as import('ws').WebSocket, USER_B, USER_B);
   assert.equal(forexWsHub.subscribe(idA, 'fx.restriction'), true);
   assert.equal(forexWsHub.subscribe(idB, 'fx.exposure'), true);
   forexWsHub.publishPrivate(USER, 'fx.restriction', { source: 'SIMULATED', secret: 'a-only' });
@@ -490,4 +494,6 @@ function quoteOf(pricing: ReturnType<typeof seedBook>): ForexQuoteDto {
   }
 }
 
+setForexSessionNowForTests(null);
+resetForexSessionExceptionsForTests();
 console.log('forex-phase8.test: ok');

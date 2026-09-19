@@ -252,6 +252,33 @@ export const useForexStore = create<ForexDomainState>((set, get) => ({
     if (isSubscribeStub(msg.data)) return;
 
     const data = (msg.data ?? {}) as Record<string, unknown>;
+    const wsAccountId = typeof data.accountId === 'string' ? data.accountId : undefined;
+    const activeAccount = get().activeForexAccountId;
+    const privateTypes = [
+      'fx.order',
+      'fx.fill',
+      'fx.position',
+      'fx.margin',
+      'fx.risk',
+      'fx.account',
+      'fx.balance',
+      'fx.pnl',
+      'fx.equity',
+      'fx.funding',
+      'fx.protection',
+      'fx.liquidation',
+      'fx.exposure',
+      'fx.dealing',
+      'fx.restriction',
+    ];
+    if (
+      privateTypes.some((p) => msg.type === p || msg.type.startsWith(`${p}.`)) &&
+      wsAccountId &&
+      activeAccount &&
+      wsAccountId !== activeAccount
+    ) {
+      return;
+    }
 
     if (msg.type === 'fx.quote' && data.symbol) {
       const q = data as unknown as ForexQuoteDto;

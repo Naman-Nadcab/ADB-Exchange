@@ -23,10 +23,14 @@ import {
   resetForexAccountPoliciesForTests,
   setForexAccountPolicy,
 } from './risk/engine.js';
+import { resetForexSessionExceptionsForTests, setForexSessionNowForTests } from './sessions/eligibility.js';
 import { forexWsHub } from './ws/hub.js';
 import type { ProviderRawQuote } from './types.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const OPEN_SESSION_CLOCK = new Date('2026-09-07T16:00:00.000Z');
+setForexSessionNowForTests(OPEN_SESSION_CLOCK);
+resetForexSessionExceptionsForTests();
 const backendRoot = path.resolve(__dirname, '../..');
 const USER = 'user-a';
 const USER_B = 'user-b';
@@ -229,6 +233,26 @@ function pos() {
 
   const replay = replayNetting([{ fillId: 'a', side: 'buy', volume: '1.00', price: '1.1', timestamp: 't' }]);
   assert.equal(replay?.volume, '1');
+  const avgReplay = replayNetting([
+    { fillId: '1', side: 'buy', volume: '0.1', price: '1.15783', timestamp: 't' },
+    { fillId: '2', side: 'buy', volume: '0.1', price: '1.15774', timestamp: 't' },
+    { fillId: '3', side: 'buy', volume: '0.1', price: '1.15776', timestamp: 't' },
+    { fillId: '4', side: 'sell', volume: '0.1', price: '1.15778', timestamp: 't' },
+    { fillId: '5', side: 'buy', volume: '0.1', price: '1.15778', timestamp: 't' },
+    { fillId: '6', side: 'buy', volume: '0.1', price: '1.15774', timestamp: 't' },
+    { fillId: '7', side: 'sell', volume: '0.1', price: '1.15774', timestamp: 't' },
+  ]);
+  assert.ok(avgReplay);
+  const persisted = { ...p, side: 'long' as const, volume: '0.30000000', entryPrice: '1.15776834', status: 'OPEN' as const, appliedFills: [
+    { fillId: '1', side: 'buy' as const, volume: '0.1', price: '1.15783', timestamp: 't' },
+    { fillId: '2', side: 'buy' as const, volume: '0.1', price: '1.15774', timestamp: 't' },
+    { fillId: '3', side: 'buy' as const, volume: '0.1', price: '1.15776', timestamp: 't' },
+    { fillId: '4', side: 'sell' as const, volume: '0.1', price: '1.15778', timestamp: 't' },
+    { fillId: '5', side: 'buy' as const, volume: '0.1', price: '1.15778', timestamp: 't' },
+    { fillId: '6', side: 'buy' as const, volume: '0.1', price: '1.15774', timestamp: 't' },
+    { fillId: '7', side: 'sell' as const, volume: '0.1', price: '1.15774', timestamp: 't' },
+  ] };
+  assert.equal(s.reconcile(persisted).ok, true);
   const net = applyNettingFill(null, { fillId: 'z', side: 'sell', volume: '0.25', price: '1.2', timestamp: 't' });
   assert.equal(net.after.side, 'short');
 }
@@ -285,8 +309,8 @@ function pos() {
   }
   const a = new FakeSock();
   const b = new FakeSock();
-  const idA = forexWsHub.register(a as unknown as import('ws').WebSocket, USER);
-  const idB = forexWsHub.register(b as unknown as import('ws').WebSocket, USER_B);
+  const idA = forexWsHub.register(a as unknown as import('ws').WebSocket, USER, USER);
+  const idB = forexWsHub.register(b as unknown as import('ws').WebSocket, USER_B, USER_B);
   assert.equal(forexWsHub.subscribe(idA, 'fx.position'), true);
   assert.equal(forexWsHub.subscribe(idB, 'fx.position'), true);
   assert.equal(forexWsHub.subscribe(idA, 'fx.margin'), true);
@@ -318,4 +342,6 @@ function pos() {
   }
 }
 
+setForexSessionNowForTests(null);
+resetForexSessionExceptionsForTests();
 console.log('forex-phase5.test: ok');

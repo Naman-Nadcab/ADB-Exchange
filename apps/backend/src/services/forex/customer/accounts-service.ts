@@ -14,6 +14,7 @@ export type ForexCustomerAccountRow = {
   status: string;
   accountKind: string;
   positionMode: string;
+  leverageOverride: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -26,6 +27,7 @@ function rowToAccount(r: Record<string, unknown>): ForexCustomerAccountRow {
     status: String(r.status ?? 'ACTIVE'),
     accountKind: String(r.account_kind ?? 'DEMO'),
     positionMode: String(r.position_mode ?? 'NETTING'),
+    leverageOverride: r.leverage_override != null ? String(r.leverage_override) : null,
     createdAt: String(r.created_at),
     updatedAt: String(r.updated_at),
   };
@@ -37,6 +39,7 @@ export async function listForexAccountsForUser(userId: string): Promise<ForexCus
     `SELECT account_id, user_id, currency, status,
             COALESCE(account_kind, 'DEMO') AS account_kind,
             COALESCE(position_mode, 'NETTING') AS position_mode,
+            leverage_override,
             created_at, updated_at
      FROM forex_accounts
      WHERE user_id = $1

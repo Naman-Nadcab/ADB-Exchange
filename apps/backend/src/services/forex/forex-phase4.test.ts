@@ -332,8 +332,8 @@ const USER_B = 'user-b';
   }
   const a = new FakeSock();
   const b = new FakeSock();
-  const idA = forexWsHub.register(a as unknown as import('ws').WebSocket, USER);
-  const idB = forexWsHub.register(b as unknown as import('ws').WebSocket, USER_B);
+  const idA = forexWsHub.register(a as unknown as import('ws').WebSocket, USER, USER);
+  const idB = forexWsHub.register(b as unknown as import('ws').WebSocket, USER_B, USER_B);
   assert.equal(forexWsHub.subscribe(idA, 'fx.order'), true);
   assert.equal(forexWsHub.subscribe(idB, 'fx.order'), true);
   forexWsHub.publishOrder(USER, 'fx.order.created', { source: 'SIMULATED', orderId: 'only-a' });
@@ -376,6 +376,8 @@ const USER_B = 'user-b';
     filledVolume: '0',
     remainingVolume: '1.00',
     requestedPrice: null,
+    limitPrice: null,
+    timeInForce: 'GTC',
     maxSlippage: null,
     maxDeviation: null,
     status: 'NEW',

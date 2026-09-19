@@ -40,6 +40,7 @@ export type ForexCustomerAccountSummary = {
   accountKind: string;
   label: string;
   positionMode: string;
+  leverageOverride?: string | null;
   createdAt: string;
 };
 

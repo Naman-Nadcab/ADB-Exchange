@@ -32,6 +32,8 @@ import { registerForexPositionRoutes } from './forex-positions.fastify.js';
 import { registerForexProtectionRoutes } from './forex-protection.fastify.js';
 import { registerForexRiskRoutes } from './forex-risk.fastify.js';
 import { resolveForexWsUserId } from '../services/forex/auth/forex-authenticate.js';
+import { getForexActiveAccountFromRequest } from '../services/forex/auth/forex-account-cookie.js';
+import { resolveForexAccountIdForUser } from '../services/forex/customer/accounts-service.js';
 import {
   forexWsEnvelope,
   isForexAccountPrivateChannel,
@@ -213,8 +215,21 @@ export default async function forexRoutes(app: FastifyInstance) {
     }
 
     const userId = await resolveForexWsUserId(app, req);
+    let forexAccountId: string | undefined;
+    if (userId) {
+      try {
+        const hint = getForexActiveAccountFromRequest(req);
+        forexAccountId = await resolveForexAccountIdForUser(userId, hint);
+      } catch {
+        forexAccountId = undefined;
+      }
+    }
 
-    const connId = forexWsHub.register(socket as unknown as import('ws').WebSocket, userId);
+    const connId = forexWsHub.register(
+      socket as unknown as import('ws').WebSocket,
+      userId,
+      forexAccountId
+    );
     socket.send(
       forexWsEnvelope('welcome', undefined, {
         protocol: 'eda.forex.ws.v1',
@@ -239,6 +254,27 @@ export default async function forexRoutes(app: FastifyInstance) {
       }
       if (msg.type === 'ping') {
         socket.send(JSON.stringify({ type: 'pong', timestamp: Date.now(), client_ts: msg.client_ts }));
+        return;
+      }
+      if (msg.type === 'refresh_account' && userId) {
+        try {
+          const hint = getForexActiveAccountFromRequest(req);
+          const nextAccount = await resolveForexAccountIdForUser(userId, hint);
+          forexWsHub.setForexAccount(connId, nextAccount);
+          socket.send(
+            forexWsEnvelope('account_context', undefined, {
+              source: 'SIMULATED',
+              accountId: nextAccount,
+            })
+          );
+        } catch {
+          socket.send(
+            forexWsEnvelope('error', undefined, {
+              code: 'FOREX_ACCOUNT_FORBIDDEN',
+              message: 'Could not refresh Forex account context',
+            })
+          );
+        }
         return;
       }
       if (msg.type === 'subscribe' && msg.channel) {

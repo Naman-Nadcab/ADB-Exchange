@@ -507,8 +507,8 @@ function harness() {
   }
   const a = new FakeSock();
   const b = new FakeSock();
-  const idA = forexWsHub.register(a as unknown as import('ws').WebSocket, USER);
-  const idB = forexWsHub.register(b as unknown as import('ws').WebSocket, USER_B);
+  const idA = forexWsHub.register(a as unknown as import('ws').WebSocket, USER, USER);
+  const idB = forexWsHub.register(b as unknown as import('ws').WebSocket, USER_B, USER_B);
   assert.equal(isForexAccountPrivateChannel('fx.pnl'), true);
   assert.equal(isForexAccountPrivateChannel('fx.liquidation'), true);
   assert.equal(isReservedPrivateForexChannel('fx.copy.x'), true);
