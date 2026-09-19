@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-09-19T21:30:00+05:30",
+  "git": {
+    "branch": "release/exchange-production-baseline",
+    "head": "6e154827a0be63a9d7f4eb74d9fb0bd8797e9842",
+    "remoteReleaseBranch": "6e154827a0be63a9d7f4eb74d9fb0bd8797e9842",
+    "aligned": true,
+    "originMainNote": "af55da7 is origin/main only — not release branch"
+  },
+  "preDeployImages": {
+    "exchangeBackend": "sha256:05d1e9b8dba2ca14d1b031e0d6494cf89740a2ef74d9a9a9376c16e30d958737",
+    "exchangeFrontend": "sha256:6c33c32166ec2f3a3e40b5efcfc99726634993933a857e84fe52f643d4f12124",
+    "exchangeMatchingEngine": "m-live-matching-engine (unchanged target)"
+  },
+  "spotFastifySha256OnDisk": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+  "realForex": "OFF (unset in exchange-backend container)",
+  "database": "exchange @ exchange-postgres",
+  "health": {
+    "forexReadiness": 200,
+    "spotTradePage": 200
+  },
+  "deployGap": "Runtime images pre-date 6e15482 (Account Center + WS scoping + reverse UI not yet in running containers)"
+}

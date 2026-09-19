@@ -257,24 +257,26 @@ export default async function forexRoutes(app: FastifyInstance) {
         return;
       }
       if (msg.type === 'refresh_account' && userId) {
-        try {
-          const hint = getForexActiveAccountFromRequest(req);
-          const nextAccount = await resolveForexAccountIdForUser(userId, hint);
-          forexWsHub.setForexAccount(connId, nextAccount);
-          socket.send(
-            forexWsEnvelope('account_context', undefined, {
-              source: 'SIMULATED',
-              accountId: nextAccount,
-            })
-          );
-        } catch {
-          socket.send(
-            forexWsEnvelope('error', undefined, {
-              code: 'FOREX_ACCOUNT_FORBIDDEN',
-              message: 'Could not refresh Forex account context',
-            })
-          );
-        }
+        void (async () => {
+          try {
+            const hint = getForexActiveAccountFromRequest(req);
+            const nextAccount = await resolveForexAccountIdForUser(userId, hint);
+            forexWsHub.setForexAccount(connId, nextAccount);
+            socket.send(
+              forexWsEnvelope('account_context', undefined, {
+                source: 'SIMULATED',
+                accountId: nextAccount,
+              })
+            );
+          } catch {
+            socket.send(
+              forexWsEnvelope('error', undefined, {
+                code: 'FOREX_ACCOUNT_FORBIDDEN',
+                message: 'Could not refresh Forex account context',
+              })
+            );
+          }
+        })();
         return;
       }
       if (msg.type === 'subscribe' && msg.channel) {
