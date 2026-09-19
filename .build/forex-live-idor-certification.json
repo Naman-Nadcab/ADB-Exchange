@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-19T15:01:39.818Z",
+  "generatedAt": "2026-09-19T16:13:48.348Z",
   "summary": {
     "identities": "A=qa_trader_a@local.exchange userId=14e57a8f-bbd2-4b48-9b60-6bccede41176 A1=14e57a8f-bbd2-4b48-9b60-6bccede41176 A2=FX46AD54BD06; B=qa_trader_b@local.exchange userId=dc606f80-223e-41e5-b68f-2a39e328f526 B1=dc606f80-223e-41e5-b68f-2a39e328f526",
     "idor": "PASS",
@@ -85,7 +85,7 @@
     {
       "test": "same_user_orders",
       "actor": "A1 order on A2 list",
-      "account": "ma-live-a1-1789830099358",
+      "account": "ma-live-a1-1789834427485",
       "mechanism": "header",
       "status": 200,
       "pass": true
@@ -93,7 +93,7 @@
     {
       "test": "same_user_order_detail",
       "actor": "A1 order GET as A2",
-      "account": "a0248454-1776-4564-8eb5-863ea7ab2aec",
+      "account": "0b6c1b4d-b053-48d6-8dcd-3c51f1b3e791",
       "mechanism": "header",
       "status": 404,
       "code": "FORBIDDEN",

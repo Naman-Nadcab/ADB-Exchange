@@ -1,0 +1,26 @@
+{
+  "baseUrl": "http://109.123.254.30",
+  "results": {
+    "login": {
+      "ok": true,
+      "detail": ""
+    },
+    "accountsPageLoads": {
+      "ok": true,
+      "detail": "http://109.123.254.30/forex/account/accounts"
+    },
+    "accountsTableOrEmpty": {
+      "ok": true,
+      "detail": ""
+    },
+    "createDemoVisible": {
+      "ok": true,
+      "detail": ""
+    },
+    "mobile390NoOverflow": {
+      "ok": true,
+      "detail": ""
+    }
+  },
+  "generatedAt": "2026-09-19T16:18:56.060Z"
+}

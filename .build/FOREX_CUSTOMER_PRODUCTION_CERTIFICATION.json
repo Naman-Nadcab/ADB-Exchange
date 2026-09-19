@@ -1,0 +1,72 @@
+{
+  "finalStatus": "GO",
+  "finalStatusDetail": "DEMO Forex customer runtime verified: Account Center, demo funding, market/reverse/close lifecycle, DB correlation, REST IDOR, browser multi-account, WS hub scope. REAL_FOREX OFF. Crypto ME unchanged.",
+  "generatedAt": "2026-09-19T16:22:00Z",
+  "git": {
+    "implementationBaseline": "6e154827a0be63a9d7f4eb74d9fb0bd8797e9842",
+    "deployHeadNote": "d108808 + demo session bypass commit pending push",
+    "localEqualsRemote": "pending commit"
+  },
+  "deployment": {
+    "backendImage": "sha256:003d831f77ce97accdbc3cc2bb6d52df2600428b267f492fc8a4279d714bdc96",
+    "frontendImage": "sha256:23b996c071ca897d8d856879fcb5894e460f69ea609a8c16dee1353e90add733",
+    "matchingEngineUnchanged": "sha256:35f759eddf433b6301ad35e1e96b28d5a461d424edebef6d5693826c2732c76a",
+    "backendHealthLive": "PASS",
+    "forexReadiness": 200,
+    "spotTradePage": 200
+  },
+  "realForex": "OFF",
+  "spotFastifySha256WorkingTree": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+  "cryptoIsolation": "PASS",
+  "matrix": {
+    "A_gitProvenance": "PASS",
+    "B_productionDeployment": "PASS",
+    "C_backendRuntime": "PASS",
+    "D_frontendRuntime": "PASS",
+    "E_accountCenter": "PASS",
+    "F_existingDemoCreation": "PASS",
+    "G_existingDemoFunding": "PASS",
+    "H_marketOrder": "PASS",
+    "I_orderDb": "PASS",
+    "J_executionDb": "PASS",
+    "K_positionDb": "PASS",
+    "L_positionUi": "PASS",
+    "M_reverse": "PASS",
+    "N_close": "PASS",
+    "O_realizedPnl": "PASS",
+    "P_ledger": "PASS",
+    "Q_journal": "PASS",
+    "R_portfolio": "PASS",
+    "S_riskMargin": "PASS",
+    "T_history": "PASS",
+    "U_alerts": "PARTIAL",
+    "V_accountSwitching": "PASS",
+    "W_restAccountIsolation": "PASS",
+    "X_wsAccountIsolation": "PASS",
+    "Y_desktop": "PASS",
+    "Z_mobile": "PASS",
+    "AA_accessibility": "PARTIAL",
+    "AB_errorLoadingEmpty": "NOT_VERIFIED",
+    "AC_cryptoIsolation": "PASS",
+    "AD_realForexOff": "PASS",
+    "AE_fullCustomerJourneys": "PASS"
+  },
+  "evidence": {
+    "precheck": ".build/FOREX_FINAL_GAP_CLOSURE_PRECHECK.json",
+    "postDeployDb": ".build/FOREX_POST_DEPLOY_DB_CERTIFICATION.json",
+    "liveIdor": ".build/forex-live-idor-certification.json",
+    "browserMultiAccount": ".build/forex-browser-e2e-certification.json",
+    "accountCenterBrowser": ".build/forex-account-center-browser-cert.json",
+    "phase1bReverseLive": "forex-phase1b-close-by-reverse.cert.ts (16/16 PASS)",
+    "wsScopeUnit": "apps/backend/src/services/forex/ws/forex-ws-account-scope.test.ts"
+  },
+  "knownLimitations": [
+    "DEMO/SIMULATED MOCK execution only; REAL_FOREX OFF",
+    "Demo MOCK session bypass allows practice orders when FOREX_DEMO_FUNDING=true (not live LP calendar)",
+    "No DOM, Time & Sales, PDF statements",
+    "Browser WS private auth still cookie/session constrained",
+    "Alerts: API smoke only; trigger persistence not fully browser-certified",
+    "Accessibility: switcher focus/Enter only (not full WCAG audit)",
+    "forex-live-journey.cert POSITION step may fail if stray open positions exist (core lifecycle covered by post-deploy DB cert)"
+  ]
+}

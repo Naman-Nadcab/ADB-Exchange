@@ -1,20 +1,79 @@
 {
-  "generatedAt": "2026-09-19T15:05:00Z",
+  "generatedAt": "2026-09-19T16:18:39.097Z",
   "baseUrl": "http://109.123.254.30",
-  "login": {
-    "user": "qa_trader_a@local.exchange",
-    "result": "PASS",
-    "redirect": "/forex/trade"
-  },
-  "accountSwitcher": {
-    "visible": true,
-    "accountsListed": ["14e57a8f-bbd2-4b48-9b60-6bccede41176", "FX46AD54BD06"],
-    "listboxRoles": true,
-    "switchClick": "PARTIAL — option click intercepted before pointer-events fix"
-  },
-  "refresh": "NOT_RUN",
-  "logoutLogin": "NOT_RUN",
-  "raceStaleState": "NOT_RUN",
-  "responsive": "NOT_RUN",
-  "accessibility": "PARTIAL — Active Forex account button aria-expanded; listbox/option roles present"
+  "user": "qa_trader_a@local.exchange",
+  "results": {
+    "login": {
+      "ok": true,
+      "detail": "http://109.123.254.30/"
+    },
+    "switcherVisible": {
+      "ok": true,
+      "detail": "FX46AD54BD06"
+    },
+    "twoAccountsListed": {
+      "ok": true,
+      "detail": "count=2"
+    },
+    "accountSwitch": {
+      "ok": true,
+      "detail": "FX46AD54BD06 → 14e57a8f-bbd2-4b48-9b60-6bccede41176 (expected 14e57a8f-bbd2-4b48-9b60-6bccede41176)"
+    },
+    "apiActiveMatchesUiAfterSwitch": {
+      "ok": true,
+      "detail": "api=14e57a8f-bbd2-4b48-9b60-6bccede41176 ui=14e57a8f-bbd2-4b48-9b60-6bccede41176"
+    },
+    "refreshPersistsAccount": {
+      "ok": true,
+      "detail": "after reload 14e57a8f-bbd2-4b48-9b60-6bccede41176"
+    },
+    "hardRefreshPersistsAccount": {
+      "ok": true,
+      "detail": "after hard reload 14e57a8f-bbd2-4b48-9b60-6bccede41176"
+    },
+    "switchBack": {
+      "ok": true,
+      "detail": "api aligned"
+    },
+    "raceStaleState": {
+      "ok": true,
+      "detail": "ui=FX46AD54BD06 api=FX46AD54BD06"
+    },
+    "navigateAwayReturn": {
+      "ok": true,
+      "detail": "ui=FX46AD54BD06 api=FX46AD54BD06"
+    },
+    "logout": {
+      "ok": true,
+      "detail": "http://109.123.254.30/login"
+    },
+    "loginRestoresForexContext": {
+      "ok": true,
+      "detail": "FX46AD54BD06"
+    },
+    "responsive_desktop1440": {
+      "ok": true,
+      "detail": "ok"
+    },
+    "responsive_laptop1280": {
+      "ok": true,
+      "detail": "ok"
+    },
+    "responsive_tablet768": {
+      "ok": true,
+      "detail": "ok"
+    },
+    "responsive_mobile390": {
+      "ok": true,
+      "detail": "ok"
+    },
+    "a11y_focusSwitcher": {
+      "ok": true,
+      "detail": "keyboard focus on switcher"
+    },
+    "a11y_keyboardOpenListbox": {
+      "ok": true,
+      "detail": "aria-expanded=true"
+    }
+  }
 }

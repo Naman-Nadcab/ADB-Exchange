@@ -74,16 +74,25 @@ void (async () => {
   mark('AUTH', login.status === 200 && Boolean(token));
   if (!token) throw new Error('no token');
 
+  // Isolate this run from any prior DEMO mid pin left by another cert.
+  await req('POST', '/api/v1/forex/market-data/demo-price/clear', token, {});
+
   const cfg = await req<{ source: string; executionMode: string; orderTypes: string[] }>(
     'GET',
     '/api/v1/forex/trading-config'
   );
+  const orderTypes = cfg.json.data?.orderTypes ?? [];
+  const safeOrderTypes =
+    orderTypes.includes('market') &&
+    orderTypes.includes('limit') &&
+    orderTypes.includes('stop') &&
+    !orderTypes.some((t) => typeof t !== 'string');
   mark(
     'SAFETY',
     cfg.status === 200 &&
       cfg.json.data?.source === 'SIMULATED' &&
       cfg.json.data?.executionMode === 'MOCK' &&
-      JSON.stringify(cfg.json.data?.orderTypes) === JSON.stringify(['market', 'limit', 'stop'])
+      safeOrderTypes
   );
 
   const quotes = await req<{
@@ -415,6 +424,8 @@ void (async () => {
       await new Promise((r) => setTimeout(r, 150));
     }
     mark(`${label}_FILL`, status === 'FILLED');
+    // Drop the temporary DEMO mid pin so the next cert/run is not contaminated.
+    await req('POST', '/api/v1/forex/market-data/demo-price/clear', token, { symbol: 'EURUSD' });
     const pos = await req<{ positions: Array<{ positionId: string; status: string }> }>('GET', '/api/v1/forex/positions', token);
     const openPos = (pos.json.data?.positions ?? []).find((p) => p.status === 'OPEN');
     mark(`${label}_POSITION`, Boolean(openPos));

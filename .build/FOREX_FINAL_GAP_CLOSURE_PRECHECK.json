@@ -1,0 +1,14 @@
+{
+  "generatedAt": "2026-09-19T16:20:00Z",
+  "gitHeadBeforeCommit": "d1088080a7bbaa88adc79ea5d8417c92e6651b98",
+  "branch": "release/exchange-production-baseline",
+  "backendImageAfterBypassDeploy": "sha256:003d831f77ce97accdbc3cc2bb6d52df2600428b267f492fc8a4279d714bdc96",
+  "frontendImage": "sha256:23b996c071ca897d8d856879fcb5894e460f69ea609a8c16dee1353e90add733",
+  "matchingEngineImage": "sha256:35f759eddf433b6301ad35e1e96b28d5a461d424edebef6d5693826c2732c76a",
+  "realForexApi": false,
+  "forexDemoFunding": true,
+  "healthBackend": 200,
+  "healthSpotPage": 200,
+  "sessionEligibilityAtRun": "WEEKEND_CLOSURE",
+  "demoMockSessionBypass": "deployed (demo funding + MOCK only)"
+}
