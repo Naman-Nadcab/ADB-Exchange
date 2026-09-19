@@ -1,4 +1,5 @@
 import { forexApi, unwrap } from '../api/client';
+import { setForexActiveAccountId } from '../api/account-context';
 import { hasForexPrivateSession } from '../api/auth-token';
 import { normalizeForexError } from '../models/errors';
 import { useForexStore } from '../state/store';
@@ -38,9 +39,25 @@ export async function hydrateForexPublic(signal?: AbortSignal): Promise<void> {
   });
 }
 
+export async function syncForexAccountsFromServer(): Promise<boolean> {
+  if (!hasForexPrivateSession()) return false;
+  const res = unwrap(await forexApi.listAccounts());
+  if (!res.ok) {
+    useForexStore.getState().setLastError(res.error);
+    return false;
+  }
+  setForexActiveAccountId(res.data.activeAccountId);
+  useForexStore.getState().applyForexAccounts({
+    accounts: res.data.accounts,
+    activeAccountId: res.data.activeAccountId,
+  });
+  return true;
+}
+
 export async function hydrateForexPrivate(): Promise<boolean> {
   if (!hasForexPrivateSession()) return false;
   const store = useForexStore.getState();
+  await syncForexAccountsFromServer();
 
   const [
     account,
@@ -146,6 +163,34 @@ export async function hydrateForexPrivate(): Promise<boolean> {
     liquidation: liq.ok ? liq.data : undefined,
   });
   return true;
+}
+
+export async function switchForexActiveAccount(accountId: string): Promise<boolean> {
+  const sel = unwrap(await forexApi.selectAccount(accountId));
+  if (!sel.ok) {
+    useForexStore.getState().setLastError(sel.error);
+    return false;
+  }
+  setForexActiveAccountId(sel.data.activeAccountId);
+  useForexStore.getState().clearPrivateForexData();
+  useForexStore.getState().setHydratePhase('hydrating');
+  const ok = await hydrateForexPrivate();
+  useForexStore.getState().setHydratePhase(ok ? 'ready' : 'error');
+  return ok;
+}
+
+export async function createForexDemoAccountAndActivate(): Promise<boolean> {
+  const created = unwrap(await forexApi.createDemoAccount());
+  if (!created.ok) {
+    useForexStore.getState().setLastError(created.error);
+    return false;
+  }
+  setForexActiveAccountId(created.data.activeAccountId);
+  useForexStore.getState().clearPrivateForexData();
+  useForexStore.getState().setHydratePhase('hydrating');
+  const ok = await hydrateForexPrivate();
+  useForexStore.getState().setHydratePhase(ok ? 'ready' : 'error');
+  return ok;
 }
 
 export async function hydrateForexAll(): Promise<void> {

@@ -1,0 +1,37 @@
+{
+  "generatedAtUtc": "2026-09-19T15:30:00Z",
+  "phase": 0,
+  "userIdEqualsAccountIdAssumptions": [
+    {"location": "apps/backend/src/routes/forex-accounting.fastify.ts", "fn": "accountIdFromRequest → user.id", "scope": "all accounting routes"},
+    {"location": "apps/backend/src/routes/forex-orders.fastify.ts", "fn": "accountIdFromRequest → user.id", "scope": "orders CRUD"},
+    {"location": "apps/backend/src/routes/forex-positions.fastify.ts", "fn": "accountIdFromRequest", "scope": "positions"},
+    {"location": "apps/backend/src/routes/forex-advanced.fastify.ts", "fn": "accountIdFromRequest", "scope": "alerts, fills, exports"},
+    {"location": "apps/backend/src/routes/forex-protection.fastify.ts", "fn": "accountIdFromRequest", "scope": "protections"},
+    {"location": "apps/backend/src/routes/forex-risk.fastify.ts", "fn": "accountIdFromRequest", "scope": "risk"},
+    {"location": "apps/backend/src/routes/forex-liquidation.fastify.ts", "fn": "accountIdFromRequest", "scope": "liquidation"},
+    {"location": "apps/backend/src/routes/forex-journal.fastify.ts", "fn": "accountIdFromRequest", "scope": "journal"},
+    {"location": "apps/backend/src/services/forex/accounting/service.ts", "fn": "ensureAccount(userId) sets accountId=userId", "scope": "in-memory account registry"},
+    {"location": "apps/backend/src/services/forex/admin/crm-leads.ts", "fn": "convert lead accountId=userId", "scope": "admin CRM"},
+    {"location": "apps/backend/src/services/forex/ws/hub.ts", "fn": "publishPrivate(userId)", "scope": "WS fanout by user not account"},
+    {"location": "apps/frontend/src/lib/forex/runtime/useForexSession.ts", "fn": "accountId = user?.id", "scope": "UI session hint only"}
+  ],
+  "database": {
+    "forex_accounts": "PK account_id, user_id indexed, status, currency USD, position_mode, group_id, leverage_override",
+    "forex_ledger_transactions": "account_id column — already account-scoped",
+    "forex_customer_alerts": "account_id column — already account-scoped",
+    "forex_customer_active_account": "MISSING — to be added"
+  },
+  "dataIsolation": {
+    "orders": "persisted with account_id in order service",
+    "positions": "account_id keyed",
+    "ledger": "DB persist by account_id",
+    "alerts": "DB by account_id",
+    "inMemoryEngine": "keyed by accountId string passed from routes"
+  },
+  "implementationPlan": {
+    "activeAccount": "DB table forex_customer_active_account + HttpOnly cookie mlive_fx_ac + header X-Forex-Account-Id",
+    "resolution": "Shared preHandler after forexAuthenticate on all customer routes",
+    "backwardCompat": "Default account_id=userId row if exists else first account else create legacy row",
+    "ws": "PARTIAL — remain user-scoped; REST authoritative per account header"
+  }
+}

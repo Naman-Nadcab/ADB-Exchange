@@ -3,7 +3,8 @@
  * Account-scoped. Never expose another user's ledger. SIMULATED source only.
  */
 import type { FastifyInstance } from 'fastify';
-import { forexAuthenticate } from '../services/forex/auth/forex-authenticate.js';
+import { getForexAccountIdFromRequest } from '../services/forex/customer/account-context.js';
+import { forexCustomerPreHandlers } from './forex-customer-prehandlers.js';
 import { publicLedgerRow } from '../services/forex/accounting/service.js';
 import { getForexAccountingService } from '../services/forex/accounting/service.js';
 import { getForexAdminBackendConfig } from '../services/forex/admin/config.js';
@@ -18,11 +19,12 @@ import { getForexPricingService } from '../services/forex/quotes.service.js';
 import { isForexFundingTestAuthorized } from '../services/forex/http.js';
 import { fxDecimal } from '../services/forex/decimal-fx.js';
 import { getForexInstrumentBySymbol } from '../services/forex/instruments.catalog.js';
+import {
+  getAccountPositionMode,
+  parseForexPositionMode,
+  setAccountPositionModeDurable,
+} from '../services/forex/positions/account-mode.js';
 
-function accountIdFromRequest(request: { user?: { id?: string; userId?: string } }): string | null {
-  const id = request.user?.id ?? request.user?.userId;
-  return id && id.trim() ? id.trim() : null;
-}
 
 function accounting() {
   const pricing = getForexPricingService();
@@ -30,8 +32,8 @@ function accounting() {
 }
 
 export async function registerForexAccountingRoutes(app: FastifyInstance): Promise<void> {
-  app.get('/account', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.get('/account', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -49,8 +51,8 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
     });
   });
 
-  app.get('/balance', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.get('/balance', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -69,8 +71,8 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
     });
   });
 
-  app.get('/ledger', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.get('/ledger', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -86,8 +88,8 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
     });
   });
 
-  app.get('/pnl', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.get('/pnl', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -95,8 +97,8 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
     return reply.send({ success: true, data: { source: 'SIMULATED', pnl } });
   });
 
-  app.get('/equity', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.get('/equity', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -115,8 +117,8 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
     });
   });
 
-  app.get('/funding', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.get('/funding', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -130,8 +132,8 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
   /**
    * Simulated test credit only. No payment rail. Cannot move Crypto or real money.
    */
-  app.post('/funding/test', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.post('/funding/test', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -163,8 +165,8 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
    * Same ledger credit path as /funding/test. Never touches Crypto.
    * Disabled unless FOREX_DEMO_FUNDING=true and realForex remains false.
    */
-  app.post('/funding/demo', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.post('/funding/demo', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -213,8 +215,8 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
    * DEMO / MOCK only. Moves the simulated quote so LIMIT/STOP can trigger.
    * Bid = Ask. Never a real LP. Blocked when realForex would be enabled.
    */
-  app.post('/market-data/demo-price', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.post('/market-data/demo-price', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -268,6 +270,77 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
         realForex: false,
         quote,
       },
+    });
+  });
+
+  app.post('/account/position-mode', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
+    if (!accountId) {
+      return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+    }
+    const adminCfg = getForexAdminBackendConfig();
+    if (adminCfg.realForex === true) {
+      return reply.status(403).send({
+        success: false,
+        error: { code: 'POSITION_MODE_BLOCKED', message: 'Position mode changes blocked when real Forex is enabled', source: 'SIMULATED' },
+      });
+    }
+    const body = (request.body ?? {}) as { mode?: string };
+    const mode = parseForexPositionMode(body.mode);
+    if (!mode) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'INVALID_POSITION_MODE', message: 'mode must be NETTING or HEDGING', source: 'SIMULATED' },
+      });
+    }
+    const pricing = getForexPricingService();
+    const open = getForexPositionService(pricing).listOwned(accountId, true);
+    if (open.length > 0) {
+      return reply.status(409).send({
+        success: false,
+        error: { code: 'OPEN_POSITIONS', message: 'Close all positions before changing position mode', source: 'SIMULATED' },
+      });
+    }
+    const pendingOrders = getForexOrderService().listPending(accountId);
+    if (pendingOrders.length > 0) {
+      return reply.status(409).send({
+        success: false,
+        error: {
+          code: 'PENDING_ORDERS',
+          message: 'Cancel all pending orders before changing position mode',
+          source: 'SIMULATED',
+        },
+      });
+    }
+    try {
+      const positionMode = await setAccountPositionModeDurable(accountId, mode);
+      return reply.send({
+        success: true,
+        data: {
+          source: 'SIMULATED',
+          executionMode: 'MOCK',
+          positionMode,
+          account: { accountId, positionMode },
+        },
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'POSITION_MODE_FAILED';
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'POSITION_MODE_PERSIST_FAILED', message: msg, source: 'SIMULATED' },
+      });
+    }
+  });
+
+  app.get('/account/position-mode', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
+    if (!accountId) {
+      return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+    }
+    const positionMode = getAccountPositionMode(accountId);
+    return reply.send({
+      success: true,
+      data: { source: 'SIMULATED', positionMode, account: { accountId, positionMode } },
     });
   });
 }

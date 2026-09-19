@@ -1,0 +1,99 @@
+{
+  "certification": "GREEN_WITH_EXPLICIT_LIMITATIONS",
+  "generatedAt": "2026-09-19T14:15:00Z",
+  "realForex": false,
+  "deployment": {
+    "backend": "READY_NOT_DEPLOYED",
+    "reason": "BACKEND READY — DEPLOYMENT BLOCKED BY CRYPTO WORKTREE PROVENANCE",
+    "frontend": "BUILD_OK_NOT_DEPLOYED",
+    "servicesRestarted": false
+  },
+  "cryptoIsolation": {
+    "spotFastifySha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "spotFastifyModifiedThisSession": false,
+    "cryptoRoutesTouched": false
+  },
+  "architecture": {
+    "ownership": "forex_accounts.user_id owns forex_accounts.account_id",
+    "activeAccountStore": "forex_customer_active_account (user_id → account_id)",
+    "clientHint": "X-Forex-Account-Id header + HttpOnly mlive_fx_ac cookie on select/create",
+    "backwardCompat": "Default account_id = user_id row when present; no ledger rewrite",
+    "legacyMappingRemovedFromRoutes": "Customer Forex routes use getForexAccountIdFromRequest, not user.id"
+  },
+  "apis": {
+    "list": "GET /api/v1/forex/accounts",
+    "createDemo": "POST /api/v1/forex/accounts { kind: DEMO }",
+    "get": "GET /api/v1/forex/accounts/:accountId",
+    "select": "POST /api/v1/forex/accounts/:accountId/select"
+  },
+  "scopedRoutes": [
+    "forex-accounting.fastify.ts",
+    "forex-orders.fastify.ts",
+    "forex-positions.fastify.ts",
+    "forex-advanced.fastify.ts",
+    "forex-protection.fastify.ts",
+    "forex-risk.fastify.ts",
+    "forex-liquidation.fastify.ts",
+    "forex-journal.fastify.ts"
+  ],
+  "database": {
+    "migration": "additive in migrate.ts: account_kind, forex_customer_active_account",
+    "destructiveOps": false,
+    "appliedInProduction": false
+  },
+  "websocket": {
+    "status": "PARTIAL",
+    "detail": "Private channels remain userId-keyed; REST + account header authoritative"
+  },
+  "securityIdorMatrix": {
+    "expected": {
+      "A_to_A1": 200,
+      "A_to_A2": 200,
+      "A_to_B1": "403/404",
+      "B_to_A1": "403/404"
+    },
+    "automatedVerification": "header parse PASS; full matrix SKIP (database unreachable in cert env)"
+  },
+  "tests": {
+    "backendTsc": "PASS",
+    "forexMultiAccountIntegration": "SKIP_DB_UNREACHABLE",
+    "frontendBuild": "PASS",
+    "browserE2e": "NOT_RUN"
+  },
+  "frontend": {
+    "accountSwitcher": "ForexAccountSwitcher in ForexAccountBar",
+    "headerOnPrivateCalls": true,
+    "clearPrivateOnSwitch": true
+  },
+  "limitations": [
+    "Backend multi-account code not live until deploy + migrate",
+    "Integration IDOR tests require PostgreSQL",
+    "WebSocket not account-filtered",
+    "Browser E2E switch A↔B not executed in this environment"
+  ],
+  "forexOnlyChangedFilesThisFeature": [
+    "apps/backend/src/database/migrate.ts",
+    "apps/backend/src/routes/forex.fastify.ts",
+    "apps/backend/src/routes/forex-accounting.fastify.ts",
+    "apps/backend/src/routes/forex-advanced.fastify.ts",
+    "apps/backend/src/routes/forex-journal.fastify.ts",
+    "apps/backend/src/routes/forex-liquidation.fastify.ts",
+    "apps/backend/src/routes/forex-orders.fastify.ts",
+    "apps/backend/src/routes/forex-positions.fastify.ts",
+    "apps/backend/src/routes/forex-protection.fastify.ts",
+    "apps/backend/src/routes/forex-risk.fastify.ts",
+    "apps/backend/src/routes/forex-customer-accounts.fastify.ts",
+    "apps/backend/src/routes/forex-customer-prehandlers.ts",
+    "apps/backend/src/services/forex/auth/forex-account-cookie.ts",
+    "apps/backend/src/services/forex/customer/accounts-service.ts",
+    "apps/backend/src/services/forex/customer/account-context.ts",
+    "apps/backend/src/services/forex/forex-multi-account.integration.test.ts",
+    "apps/frontend/src/lib/forex/api/account-context.ts",
+    "apps/frontend/src/lib/forex/api/client.ts",
+    "apps/frontend/src/lib/forex/runtime/hydrate.ts",
+    "apps/frontend/src/lib/forex/state/store.ts",
+    "apps/frontend/src/components/forex/ForexAccountBar.tsx",
+    "apps/frontend/src/components/forex/ForexAccountSwitcher.tsx",
+    "apps/frontend/src/app/forex/account/page.tsx"
+  ]
+}

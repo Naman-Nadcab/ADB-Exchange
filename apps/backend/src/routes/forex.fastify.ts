@@ -18,17 +18,20 @@ import { getForexPricingService } from '../services/forex/quotes.service.js';
 import { ForexExecutionError } from '../services/forex/execution/models.js';
 import { getForexExecutionService } from '../services/forex/execution/service.js';
 import type { ForexExecutionRequest } from '../services/forex/execution/request.js';
-import { forexNotReadyReason, isForexEconomicReady } from '../services/forex/durability/ready.js';
+import { forexNotReadyReason, forexReadinessSnapshot, isForexEconomicReady } from '../services/forex/durability/ready.js';
 import { startForexMarketDataWorker, stopForexMarketDataWorker } from '../services/forex/market-data/worker.js';
 import { startForexProtectionRuntime, stopForexAdvancedRuntime } from '../services/forex/protection/runtime.js';
 import { registerForexAdvancedRoutes } from './forex-advanced.fastify.js';
+import { registerForexCustomerAccountsRoutes } from './forex-customer-accounts.fastify.js';
 import { forexWsHub } from '../services/forex/ws/hub.js';
 import { registerForexAccountingRoutes } from './forex-accounting.fastify.js';
 import { registerForexLiquidationRoutes } from './forex-liquidation.fastify.js';
+import { registerForexJournalRoutes } from './forex-journal.fastify.js';
 import { registerForexCustomerOrderRoutes } from './forex-orders.fastify.js';
 import { registerForexPositionRoutes } from './forex-positions.fastify.js';
 import { registerForexProtectionRoutes } from './forex-protection.fastify.js';
 import { registerForexRiskRoutes } from './forex-risk.fastify.js';
+import { resolveForexWsUserId } from '../services/forex/auth/forex-authenticate.js';
 import {
   forexWsEnvelope,
   isForexAccountPrivateChannel,
@@ -39,12 +42,14 @@ import {
 function isForexPublicReadPath(url: string): boolean {
   const path = (url.split('?')[0] ?? '').replace(/\/+$/, '');
   return (
+    path.endsWith('/readiness') ||
     path.endsWith('/instruments') ||
     path.includes('/quotes') ||
     path.includes('/providers') ||
     path.includes('/liquidity') ||
     path.includes('/sessions') ||
     path.includes('/trading-config') ||
+    path.includes('/capabilities') ||
     path.includes('/candles') ||
     path.includes('/news') ||
     path.includes('/calendar') ||
@@ -55,12 +60,12 @@ function isForexPublicReadPath(url: string): boolean {
 
 export default async function forexRoutes(app: FastifyInstance) {
   app.addHook('onReady', async () => {
-    startForexMarketDataWorker();
     try {
       await startForexProtectionRuntime();
     } catch {
       /* Logged in hydrate. Forex trading stays not-ready. Crypto and public MD continue. */
     }
+    startForexMarketDataWorker();
   });
   app.addHook('preHandler', async (request, reply) => {
     if (isForexPublicReadPath(request.url)) return;
@@ -76,6 +81,10 @@ export default async function forexRoutes(app: FastifyInstance) {
   app.addHook('onClose', async () => {
     stopForexMarketDataWorker();
     stopForexAdvancedRuntime();
+  });
+
+  app.get('/readiness', async (_request, reply) => {
+    return reply.send({ success: true, data: forexReadinessSnapshot() });
   });
 
   app.get('/instruments', async (_request, reply) => {
@@ -180,6 +189,7 @@ export default async function forexRoutes(app: FastifyInstance) {
     return reply.send({ success: true, data: { source: 'SIMULATED', scope: 'TEST_ONLY', execution: record } });
   });
 
+  await registerForexCustomerAccountsRoutes(app);
   await registerForexCustomerOrderRoutes(app);
   await registerForexPositionRoutes(app);
   await registerForexAccountingRoutes(app);
@@ -187,6 +197,7 @@ export default async function forexRoutes(app: FastifyInstance) {
   await registerForexLiquidationRoutes(app);
   await registerForexRiskRoutes(app);
   await registerForexAdvancedRoutes(app);
+  await registerForexJournalRoutes(app);
   await registerForexInfoRoutes(app);
 
   app.get('/ws', { websocket: true }, async (socket, req) => {
@@ -201,16 +212,7 @@ export default async function forexRoutes(app: FastifyInstance) {
       /* ignore */
     }
 
-    let userId: string | undefined;
-    const upgradeReq = req as typeof req & { jwtVerify?: () => Promise<void>; user?: { id?: string; userId?: string } };
-    try {
-      if (typeof upgradeReq.jwtVerify === 'function' && req.headers.authorization) {
-        await upgradeReq.jwtVerify();
-        userId = upgradeReq.user?.id ?? upgradeReq.user?.userId;
-      }
-    } catch {
-      userId = undefined;
-    }
+    const userId = await resolveForexWsUserId(app, req);
 
     const connId = forexWsHub.register(socket as unknown as import('ws').WebSocket, userId);
     socket.send(

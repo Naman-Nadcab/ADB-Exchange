@@ -3,13 +3,14 @@
  * Authenticated. SIMULATED / MOCK only. Does not move Crypto funds.
  */
 import type { FastifyInstance } from 'fastify';
-import { forexAuthenticate } from '../services/forex/auth/forex-authenticate.js';
+import { getForexAccountIdFromRequest } from '../services/forex/customer/account-context.js';
+import { forexCustomerPreHandlers } from './forex-customer-prehandlers.js';
 import { ForexLedgerError } from '../services/forex/ledger/models.js';
 import { ForexPnlError } from '../services/forex/pnl/engine.js';
 import { ForexPositionError } from '../services/forex/positions/models.js';
 import { ForexOrderError, publicForexOrder } from '../services/forex/orders/models.js';
 import type { ForexOrderModifyRequest } from '../services/forex/orders/models.js';
-import type { ForexOrderRequest } from '../services/forex/orders/request.js';
+import type { ForexOrderRequest, ForexTimeInForce } from '../services/forex/orders/request.js';
 import { previewForexOrder } from '../services/forex/orders/preview.js';
 import { getForexOrderService } from '../services/forex/orders/service.js';
 import { getForexAccountingService } from '../services/forex/accounting/service.js';
@@ -23,9 +24,12 @@ function forexPreviewDeps() {
   return { positions, pricing, orders: getForexOrderService() };
 }
 
-function accountIdFromRequest(request: { user?: { id?: string; userId?: string } }): string | null {
-  const id = request.user?.id ?? request.user?.userId;
-  return id && id.trim() ? id.trim() : null;
+const FOREX_BODY_ORDER_TYPES = ['market', 'limit', 'stop', 'stop_limit'] as const;
+
+function bodyOrderType(value: unknown): ForexOrderRequest['orderType'] {
+  return (FOREX_BODY_ORDER_TYPES as readonly string[]).includes(String(value ?? ''))
+    ? (String(value) as ForexOrderRequest['orderType'])
+    : (String(value ?? '') as 'market');
 }
 
 function orderBody(body: unknown): ForexOrderRequest {
@@ -34,17 +38,23 @@ function orderBody(body: unknown): ForexOrderRequest {
     clientOrderId: String(b.clientOrderId ?? ''),
     symbol: String(b.symbol ?? ''),
     side: b.side === 'sell' ? 'sell' : b.side === 'buy' ? 'buy' : (String(b.side ?? '') as 'buy'),
-    orderType: b.orderType === 'limit' ? 'limit' : b.orderType === 'stop' ? 'stop' : b.orderType === 'market' ? 'market' : (String(b.orderType ?? '') as 'market'),
+    orderType: bodyOrderType(b.orderType),
     volume: String(b.volume ?? ''),
     requestedPrice: b.requestedPrice != null ? String(b.requestedPrice) : undefined,
+    limitPrice: b.limitPrice != null ? String(b.limitPrice) : undefined,
+    timeInForce: b.timeInForce != null ? (String(b.timeInForce).toUpperCase() as ForexTimeInForce) : undefined,
     maxSlippage: b.maxSlippage != null ? String(b.maxSlippage) : undefined,
     maxDeviation: b.maxDeviation != null ? String(b.maxDeviation) : undefined,
+    stopLoss: b.stopLoss != null ? String(b.stopLoss) : undefined,
+    takeProfit: b.takeProfit != null ? String(b.takeProfit) : undefined,
+    comment: b.comment != null ? String(b.comment) : undefined,
+    expireAt: b.expireAt != null ? String(b.expireAt) : undefined,
   };
 }
 
 export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Promise<void> {
-  app.post('/orders', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.post('/orders', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -81,8 +91,8 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
     }
   });
 
-  app.post('/orders/preview', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.post('/orders/preview', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -92,10 +102,11 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
       {
         symbol: String(body.symbol ?? ''),
         side: body.side === 'sell' ? 'sell' : 'buy',
-        orderType:
-          body.orderType === 'limit' ? 'limit' : body.orderType === 'stop' ? 'stop' : 'market',
+        orderType: bodyOrderType(body.orderType),
         volume: String(body.volume ?? ''),
         requestedPrice: body.requestedPrice != null ? String(body.requestedPrice) : undefined,
+        limitPrice: body.limitPrice != null ? String(body.limitPrice) : undefined,
+        timeInForce: body.timeInForce != null ? (String(body.timeInForce).toUpperCase() as ForexTimeInForce) : undefined,
         maxSlippage: body.maxSlippage != null ? String(body.maxSlippage) : undefined,
         maxDeviation: body.maxDeviation != null ? String(body.maxDeviation) : undefined,
       },
@@ -107,8 +118,8 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
     });
   });
 
-  app.get('/orders', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.get('/orders', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -119,8 +130,8 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
     });
   });
 
-  app.get('/orders/pending', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.get('/orders/pending', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -131,14 +142,15 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
     });
   });
 
-  app.patch<{ Params: { orderId: string } }>('/orders/:orderId', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.patch<{ Params: { orderId: string } }>('/orders/:orderId', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
     const b = (request.body ?? {}) as Record<string, unknown>;
     const patch: ForexOrderModifyRequest = {
       requestedPrice: b.requestedPrice != null ? String(b.requestedPrice) : undefined,
+      limitPrice: b.limitPrice != null ? String(b.limitPrice) : undefined,
       volume: b.volume != null ? String(b.volume) : undefined,
       stopLoss: b.stopLoss != null ? String(b.stopLoss) : undefined,
       takeProfit: b.takeProfit != null ? String(b.takeProfit) : undefined,
@@ -162,8 +174,8 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
     }
   });
 
-  app.get<{ Params: { orderId: string } }>('/orders/:orderId', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.get<{ Params: { orderId: string } }>('/orders/:orderId', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -184,8 +196,8 @@ export async function registerForexCustomerOrderRoutes(app: FastifyInstance): Pr
     }
   });
 
-  app.post<{ Params: { orderId: string } }>('/orders/:orderId/cancel', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.post<{ Params: { orderId: string } }>('/orders/:orderId/cancel', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }

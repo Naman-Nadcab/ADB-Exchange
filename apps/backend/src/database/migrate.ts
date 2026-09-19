@@ -4391,6 +4391,36 @@ const migrations = [
   // Phase 1C order persist: stop_limit limit leg + TIF (align with orders/persist.ts)
   `ALTER TABLE forex_orders ADD COLUMN IF NOT EXISTS limit_price NUMERIC(20,8);`,
   `ALTER TABLE forex_orders ADD COLUMN IF NOT EXISTS time_in_force VARCHAR(8) NOT NULL DEFAULT 'GTC';`,
+  `ALTER TABLE forex_orders ADD COLUMN IF NOT EXISTS expire_at TIMESTAMPTZ;`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_orders_gtd_expire ON forex_orders(expire_at) WHERE time_in_force = 'GTD' AND status IN ('PENDING','ACCEPTED','NEW','WORKING','TRIGGERING','VALIDATING');`,
+  `CREATE TABLE IF NOT EXISTS forex_customer_alerts (
+    alert_id UUID PRIMARY KEY,
+    account_id VARCHAR(64) NOT NULL,
+    alert_type VARCHAR(32) NOT NULL,
+    symbol VARCHAR(16),
+    condition_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    cooldown_seconds INT NOT NULL DEFAULT 60,
+    last_triggered_at TIMESTAMPTZ,
+    delivery_web BOOLEAN NOT NULL DEFAULT true,
+    delivery_push BOOLEAN NOT NULL DEFAULT false,
+    delivery_email BOOLEAN NOT NULL DEFAULT false,
+    delivery_webhook BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_customer_alerts_account ON forex_customer_alerts(account_id, enabled);`,
+  `CREATE TABLE IF NOT EXISTS forex_customer_alert_events (
+    event_id UUID PRIMARY KEY,
+    alert_id UUID NOT NULL,
+    account_id VARCHAR(64) NOT NULL,
+    delivery_channel VARCHAR(16) NOT NULL,
+    status VARCHAR(16) NOT NULL,
+    message TEXT NOT NULL,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_customer_alert_events_alert ON forex_customer_alert_events(alert_id, created_at DESC);`,
   `CREATE TABLE IF NOT EXISTS forex_order_events (
     id BIGSERIAL PRIMARY KEY,
     event_id UUID NOT NULL UNIQUE,
@@ -4992,6 +5022,13 @@ const migrations = [
 
   `ALTER TABLE forex_accounts ADD COLUMN IF NOT EXISTS group_id UUID REFERENCES forex_account_groups(group_id);`,
   `ALTER TABLE forex_accounts ADD COLUMN IF NOT EXISTS leverage_override VARCHAR(16);`,
+  `ALTER TABLE forex_accounts ADD COLUMN IF NOT EXISTS account_kind VARCHAR(16) NOT NULL DEFAULT 'DEMO';`,
+  `CREATE TABLE IF NOT EXISTS forex_customer_active_account (
+    user_id VARCHAR(64) PRIMARY KEY,
+    account_id VARCHAR(64) NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_customer_active_account_account ON forex_customer_active_account(account_id);`,
   `ALTER TABLE forex_crm_tasks ADD COLUMN IF NOT EXISTS task_type VARCHAR(32) NOT NULL DEFAULT 'OTHER';`,
 
   `CREATE TABLE IF NOT EXISTS forex_partner_profiles (
@@ -5152,6 +5189,27 @@ function touchesLegacyBalancesTable(sql: string): boolean {
   return /\bbalances\b/i.test(normalized) && !/user_balances/i.test(normalized);
 }
 
+async function verifyForexCustomerSchema(pool: { query: (sql: string, params?: unknown[]) => Promise<{ rowCount: number | null }> }): Promise<void> {
+  const col = async (table: string, column: string) => {
+    const r = await pool.query(
+      `SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = $1 AND column_name = $2 LIMIT 1`,
+      [table, column]
+    );
+    if ((r.rowCount ?? 0) === 0) throw new Error(`FOREX_SCHEMA_INCOMPLETE: missing ${table}.${column}`);
+  };
+  const tbl = async (table: string) => {
+    const r = await pool.query(
+      `SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = $1 LIMIT 1`,
+      [table]
+    );
+    if ((r.rowCount ?? 0) === 0) throw new Error(`FOREX_SCHEMA_INCOMPLETE: missing table ${table}`);
+  };
+  await col('forex_orders', 'expire_at');
+  await col('forex_orders', 'time_in_force');
+  await tbl('forex_customer_alerts');
+  await tbl('forex_customer_alert_events');
+}
+
 async function migrate(direction: 'up' | 'down' = 'up'): Promise<void> {
   logger.info(`Running database migrations (${direction})...`);
   const pool = db.getPool();
@@ -5175,6 +5233,8 @@ async function migrate(direction: 'up' | 'down' = 'up'): Promise<void> {
           throw error;
         }
       }
+      await verifyForexCustomerSchema(pool);
+      logger.info('Forex customer schema markers verified (GTD + alerts)');
     } else {
       // Drop all tables (for development only)
       const dropTables = `

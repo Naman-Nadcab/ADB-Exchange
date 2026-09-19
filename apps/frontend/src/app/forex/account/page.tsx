@@ -21,6 +21,7 @@ export default function ForexAccountPage() {
   const swaps = useForexStore((s) => s.swaps);
   const risk = useForexStore((s) => s.riskStatus);
   const lastHydratedAt = useForexStore((s) => s.lastHydratedAt);
+  const activeForexAccountId = useForexStore((s) => s.activeForexAccountId);
   const currency = account?.currency ?? balance?.currency ?? 'USD';
 
   return (
@@ -54,6 +55,24 @@ export default function ForexAccountPage() {
             <ForexMetric label="Fees" value={fees?.total} currency={fees?.currency ?? currency} />
             <ForexMetric label="Swaps" value={swaps?.total} currency={swaps?.currency ?? currency} />
             <ForexMetric label="Available" value={account?.availableBalance ?? balance?.availableBalance} currency={currency} />
+          </section>
+
+          <section className="eda-card p-4 text-sm" aria-label="Trading account identity">
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Trading account</h2>
+            <dl className="mt-3 grid grid-cols-1 gap-2 font-mono text-[12px] md:grid-cols-2">
+              <div>
+                <dt className="text-muted-foreground">Account ID (server)</dt>
+                <dd>{fxPlain(account?.accountId ?? activeForexAccountId)}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Mode</dt>
+                <dd>SIMULATED / MOCK · server-scoped active account</dd>
+              </div>
+            </dl>
+            <p className="mt-3 text-[11px] text-muted-foreground">
+              Use the account switcher on the terminal bar to change the active Forex account. Orders, positions, ledger,
+              history, risk, margin, and alerts always follow the account selected on the server (not UI-only filtering).
+            </p>
           </section>
 
           <section className="eda-card p-4 text-sm">

@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-09-19T14:45:00Z",
+  "branch": "release/exchange-production-baseline",
+  "head": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "remote": "origin git@github.com:Naman-Nadcab/m-live.git",
+  "spotFastifySha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+  "knownBaselineSpotSha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+  "spotMatchesBaseline": true,
+  "workingTreeSummary": {
+    "modifiedTrackedApprox": 116,
+    "untrackedBuildArtifacts": "multiple .build/forex-* audit files"
+  },
+  "classification": {
+    "A_preExisting": ["apps/backend/src/routes/spot.fastify.ts (modified in index, on-disk hash = baseline)", "admin-panel forex pages", "many backend forex services unrelated to multi-account-only"],
+    "B_forexMultiAccountTask": "listed in forex-final-changeset.json",
+    "C_crypto": ["apps/backend/src/routes/spot.fastify.ts index dirty"],
+    "D_unknown": "remaining dirty files not staged in Forex commit"
+  }
+}

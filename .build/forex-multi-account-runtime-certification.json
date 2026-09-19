@@ -1,0 +1,101 @@
+{
+  "certification": "GREEN_WITH_EXPLICIT_LIMITATIONS",
+  "generatedAt": "2026-09-19T14:35:00Z",
+  "finalStatusReason": "PostgreSQL migration + inject/IDOR + alert isolation PASS on worktree code; deployed exchange-backend still returns 404 for /forex/accounts; browser E2E and full order/position same-user isolation not completed on live stack.",
+  "worktree": {
+    "branch": "release/exchange-production-baseline",
+    "head": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "spotFastifySha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "spotFastifyMatchesKnownBaseline": true,
+    "gitShowsSpotFastifyModified": true,
+    "cryptoWorktreeDirty": true,
+    "note": "On-disk spot.fastify.ts hash matches known baseline; index still dirty from pre-existing Crypto provenance."
+  },
+  "database": {
+    "identity": {
+      "name": "exchange",
+      "engine": "PostgreSQL 16.14",
+      "container": "exchange-postgres",
+      "hostExposure": "127.0.0.1:5432"
+    },
+    "migration": {
+      "executed": true,
+      "method": "additive_sql_only (not full migrate.ts runner)",
+      "statements": [
+        "ALTER TABLE forex_accounts ADD COLUMN IF NOT EXISTS account_kind ...",
+        "CREATE TABLE IF NOT EXISTS forex_customer_active_account ...",
+        "CREATE INDEX IF NOT EXISTS idx_forex_customer_active_account_account ..."
+      ],
+      "preForexAccountsCount": 1,
+      "postForexAccountsCount": 1,
+      "legacyRowPreserved": {
+        "accountId": "14e57a8f-bbd2-4b48-9b60-6bccede41176",
+        "userId": "14e57a8f-bbd2-4b48-9b60-6bccede41176",
+        "accountKind": "DEMO"
+      },
+      "accountKindColumn": true,
+      "forexCustomerActiveAccountTable": true
+    }
+  },
+  "deployedRuntime": {
+    "exchangeBackendHealthy": true,
+    "forexAccountsRouteOnPort4000": 404,
+    "forexAccountsRouteViaNginx": 404,
+    "forexCertBackendPort4100Accounts": 404,
+    "conclusion": "Multi-account API not present in running backend images"
+  },
+  "authorization": {
+    "idorMatrixInjectDbBacked": {
+      "A_to_A1": "PASS (200 balance)",
+      "A_to_A2": "PASS (ownership resolve)",
+      "A_to_B1": "PASS (403 FOREX_ACCOUNT_FORBIDDEN on balance; 404 on GET account)",
+      "B_to_B1": "PASS (ownership in service layer test)",
+      "B_to_A1": "PASS (404 on cross-account GET)"
+    },
+    "headerContext": "PASS",
+    "cookieContext": "PASS (mlive_fx_ac on select; GET /accounts activeAccountId)",
+    "malformedAccount": "NOT_EXPLICITLY_TESTED"
+  },
+  "sameUserIsolation": {
+    "alerts": "PASS (A1 alert invisible on A2 header)",
+    "orders": "NOT_RUN",
+    "positions": "NOT_RUN",
+    "ledgerBalance": "NOT_RUN (distinct demo funding not exercised)",
+    "financialFields": "NOT_RUN on deployed API"
+  },
+  "accountApiInject": {
+    "listAccounts": "PASS",
+    "selectAccount": "PASS",
+    "createDemo": "NOT_RUN (runtime cert used seeded rows)"
+  },
+  "websocket": {
+    "status": "PARTIAL",
+    "detail": "publishPrivate uses accountId in order/position/risk paths; hub subscription auth remains session/user-oriented; account switch on WS not certified on deployed stack"
+  },
+  "automatedTests": {
+    "forex-multi-account.integration.test.ts": "PASS (PostgreSQL via 127.0.0.1, process exit 124 due timeout after PASS — Redis reconnect noise on host)",
+    "forex-multi-account.runtime-cert.ts": "PASS (Docker network, Redis+Postgres)",
+    "customer-alerts.test.ts": "PASS",
+    "forex-workstation-ui.test.ts": "PASS",
+    "frontendBuild": "PASS (prior session)",
+    "browserE2e": "NOT_RUN (browser automation could not load localhost in cert runner)"
+  },
+  "deploymentGate": {
+    "allowed": false,
+    "status": "BACKEND READY — DEPLOYMENT BLOCKED",
+    "blockers": [
+      "spot.fastify.ts / Crypto worktree provenance unresolved",
+      "Forex multi-account code not in running exchange-backend image",
+      "Full browser E2E against deployed stack not completed"
+    ],
+    "backendDeployed": false,
+    "frontendDeployed": false,
+    "servicesRestarted": false,
+    "realForex": false
+  },
+  "cryptoIsolation": {
+    "spotFastifyModifiedThisCertSession": false,
+    "cryptoMigrationExecuted": false,
+    "cryptoTablesMutated": false
+  }
+}

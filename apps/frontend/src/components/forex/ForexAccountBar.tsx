@@ -1,20 +1,40 @@
 'use client';
 
 import Link from 'next/link';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
-import { useAuthStore } from '@/store/auth';
+import { useMemo } from 'react';
+import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
+import { composeAccountMetrics } from '@/lib/forex/models/account-metrics';
+import { livePositionValuation, sumLiveFloating } from '@/lib/forex/models/live-valuation';
 import { useForexStore } from '@/lib/forex/state/store';
-import { fxMoney, fxPlain, fxSigned } from './format';
+import { fxMoney, fxSigned } from './format';
+import { ForexPositionModeSwitch } from './ForexPositionModeSwitch';
+import { ForexAccountSwitcher } from './ForexAccountSwitcher';
 
 export function ForexAccountBar(props?: { compact?: boolean }) {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const authed = useForexPrivateSession();
   const account = useForexStore((s) => s.account);
   const balance = useForexStore((s) => s.balance);
   const margin = useForexStore((s) => s.margin);
   const pnl = useForexStore((s) => s.pnl);
   const hydratePhase = useForexStore((s) => s.hydratePhase);
   const lastHydratedAt = useForexStore((s) => s.lastHydratedAt);
+  const quotes = useForexStore((s) => s.quotes);
+  const instruments = useForexStore((s) => s.instruments);
+  const positions = useForexStore((s) => s.positions);
+  const fees = useForexStore((s) => s.fees);
+  const swaps = useForexStore((s) => s.swaps);
+  const liveFloat = useMemo(() => {
+    const open = Object.values(positions).filter((p) => p.status === 'OPEN');
+    return sumLiveFloating(
+      open.map((p) =>
+        livePositionValuation({
+          position: p,
+          quote: quotes[p.symbol],
+          instrument: instruments[p.symbol],
+        })
+      )
+    );
+  }, [positions, quotes, instruments]);
   const h = props?.compact ? 'h-8' : 'h-10';
 
   if (!authed) {
@@ -48,14 +68,21 @@ export function ForexAccountBar(props?: { compact?: boolean }) {
   }
 
   const currency = account?.currency ?? balance?.currency ?? 'USD';
-  const ledger = account?.ledgerBalance ?? balance?.ledgerBalance;
-  const equity = account?.equity ?? balance?.equity ?? margin?.equityReference;
-  const used = account?.usedMargin ?? margin?.usedMargin;
-  const free = account?.freeMargin ?? margin?.freeMargin;
-  const level = account?.marginLevel ?? margin?.marginLevel;
-  const realized = fxSigned(account?.realizedPnl ?? pnl?.realized);
-  const u = fxSigned(account?.unrealizedPnl ?? pnl?.unrealized);
-  const ledgerNum = Number(ledger ?? 0);
+  const metrics = composeAccountMetrics({
+    currency,
+    balance: account?.ledgerBalance ?? balance?.ledgerBalance,
+    equity: account?.equity ?? balance?.equity ?? margin?.equityReference,
+    usedMargin: account?.usedMargin ?? margin?.usedMargin,
+    freeMargin: account?.freeMargin ?? margin?.freeMargin,
+    floating: liveFloat.available ? liveFloat.value : account?.unrealizedPnl ?? pnl?.unrealized,
+    realized: account?.realizedPnl ?? pnl?.realized,
+    commission: fees?.total ?? '0',
+    swap: swaps?.total ?? '0',
+  });
+  const realized = fxSigned(metrics.realized);
+  const u = fxSigned(metrics.floating);
+  const net = fxSigned(metrics.net);
+  const ledgerNum = Number(metrics.balance ?? 0);
   const needsDemo = Number.isFinite(ledgerNum) && ledgerNum <= 0;
 
   return (
@@ -63,16 +90,27 @@ export function ForexAccountBar(props?: { compact?: boolean }) {
       className={`flex ${h} w-full min-w-0 shrink-0 items-center gap-3 overflow-x-auto overflow-y-hidden border-t border-border bg-card px-2.5 font-mono text-[11px] tabular-nums`}
       aria-label="Account bar"
     >
+      <ForexAccountSwitcher compact={props?.compact} />
       <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-200">
-        DEMO
+        SIMULATED
       </span>
-      <Item k="Balance" v={fxMoney(ledger, currency)} />
-      <Item k="Equity" v={fxMoney(equity, currency)} />
-      <Item k="Used" v={fxMoney(used, currency)} />
-      <Item k="Free" v={fxMoney(free, currency)} />
-      <Item k="Level" v={level == null || level === '' ? 'Unavailable' : `${fxPlain(Number(level).toFixed(2))}%`} />
+      <span
+        className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground"
+        title="Server-authoritative position mode"
+      >
+        {account?.positionMode === 'HEDGING' ? 'Hedging' : 'Netting'}
+      </span>
+      <ForexPositionModeSwitch />
+      <Item k="Balance" v={fxMoney(metrics.balance, currency)} />
+      <Item k="Equity" v={fxMoney(metrics.equity, currency)} />
+      <Item k="Used" v={fxMoney(metrics.usedMargin, currency)} />
+      <Item k="Free" v={fxMoney(metrics.freeMargin, currency)} />
+      <Item k="Level" v={metrics.marginLevel} />
+      <Signed k="Floating" value={u} />
       <Signed k="Realized" value={realized} />
-      <Signed k="Unrealized" value={u} />
+      <Item k="Comm" v={fxMoney(metrics.commission, currency)} />
+      <Item k="Swap" v={fxMoney(metrics.swap, currency)} />
+      <Signed k="Net" value={net} />
       {needsDemo ? (
         <Link
           href="/forex/account/funds"

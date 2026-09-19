@@ -1,0 +1,35 @@
+{
+  "commitEligibleForexMultiAccount": [
+    {"path": "apps/backend/src/database/migrate.ts", "cryptoTouch": false, "forexTouch": true, "reason": "additive forex_orders GTD, customer alerts, multi-account tables"},
+    {"path": "apps/backend/src/routes/forex.fastify.ts", "cryptoTouch": false, "forexTouch": true, "reason": "register customer accounts routes"},
+    {"path": "apps/backend/src/routes/forex-customer-accounts.fastify.ts", "cryptoTouch": false, "forexTouch": true, "reason": "accounts API"},
+    {"path": "apps/backend/src/routes/forex-customer-prehandlers.ts", "cryptoTouch": false, "forexTouch": true, "reason": "auth + account context"},
+    {"path": "apps/backend/src/services/forex/auth/forex-account-cookie.ts", "cryptoTouch": false, "forexTouch": true, "reason": "mlive_fx_ac cookie"},
+    {"path": "apps/backend/src/services/forex/customer/account-context.ts", "cryptoTouch": false, "forexTouch": true, "reason": "X-Forex-Account-Id resolution"},
+    {"path": "apps/backend/src/services/forex/customer/accounts-service.ts", "cryptoTouch": false, "forexTouch": true, "reason": "list/create/select accounts"},
+    {"path": "apps/backend/src/routes/forex-accounting.fastify.ts", "cryptoTouch": false, "forexTouch": true, "reason": "account-scoped preHandlers"},
+    {"path": "apps/backend/src/routes/forex-orders.fastify.ts", "cryptoTouch": false, "forexTouch": true, "reason": "account-scoped routes + customer order body"},
+    {"path": "apps/backend/src/routes/forex-positions.fastify.ts", "cryptoTouch": false, "forexTouch": true, "reason": "account-scoped routes"},
+    {"path": "apps/backend/src/routes/forex-advanced.fastify.ts", "cryptoTouch": false, "forexTouch": true, "reason": "alerts/history account-scoped"},
+    {"path": "apps/backend/src/routes/forex-protection.fastify.ts", "cryptoTouch": false, "forexTouch": true, "reason": "account-scoped"},
+    {"path": "apps/backend/src/routes/forex-risk.fastify.ts", "cryptoTouch": false, "forexTouch": true, "reason": "account-scoped"},
+    {"path": "apps/backend/src/routes/forex-liquidation.fastify.ts", "cryptoTouch": false, "forexTouch": true, "reason": "account-scoped"},
+    {"path": "apps/backend/src/routes/forex-journal.fastify.ts", "cryptoTouch": false, "forexTouch": true, "reason": "account-scoped"},
+    {"path": "apps/backend/src/services/forex/forex-multi-account.integration.test.ts", "cryptoTouch": false, "forexTouch": true, "reason": "IDOR tests"},
+    {"path": "apps/backend/src/services/forex/forex-multi-account.runtime-cert.ts", "cryptoTouch": false, "forexTouch": true, "reason": "runtime cert harness"},
+    {"path": "apps/frontend/src/lib/forex/api/account-context.ts", "cryptoTouch": false, "forexTouch": true, "reason": "client account header"},
+    {"path": "apps/frontend/src/lib/forex/api/client.ts", "cryptoTouch": false, "forexTouch": true, "reason": "accounts API + headers"},
+    {"path": "apps/frontend/src/lib/forex/runtime/hydrate.ts", "cryptoTouch": false, "forexTouch": true, "reason": "switch/clear/hydrate"},
+    {"path": "apps/frontend/src/lib/forex/state/store.ts", "cryptoTouch": false, "forexTouch": true, "reason": "forexAccounts state"},
+    {"path": "apps/frontend/src/components/forex/ForexAccountBar.tsx", "cryptoTouch": false, "forexTouch": true, "reason": "switcher host"},
+    {"path": "apps/frontend/src/components/forex/ForexAccountSwitcher.tsx", "cryptoTouch": false, "forexTouch": true, "reason": "UI switcher"},
+    {"path": "apps/frontend/src/app/forex/account/page.tsx", "cryptoTouch": false, "forexTouch": true, "reason": "account disclosure copy"}
+  ],
+  "explicitlyExcluded": [
+    "apps/backend/src/routes/spot.fastify.ts",
+    "apps/admin-panel/**",
+    "apps/backend/src/services/maker-checker-execute.service.ts",
+    ".env",
+    "docker-compose.production.yml dirty sections unless required"
+  ]
+}

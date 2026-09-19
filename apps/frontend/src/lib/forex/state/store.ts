@@ -20,6 +20,7 @@ import type {
   ForexTradingConfig,
 } from '../models/types';
 import type { ForexWsEnvelope } from '../websocket/channels';
+import type { ForexCustomerAccountSummary } from '../api/client';
 
 export type ForexHydratePhase = 'idle' | 'hydrating' | 'ready' | 'error';
 
@@ -38,6 +39,9 @@ export interface ForexDomainState {
   providerHealth: Array<{ status?: string; providerCode?: string }>;
   sessions: ForexSessionSnapshot | null;
   tradingConfig: ForexTradingConfig | null;
+
+  forexAccounts: ForexCustomerAccountSummary[];
+  activeForexAccountId: string | null;
 
   account: ForexAccountView | null;
   margin: ForexMarginSnapshot | null;
@@ -68,6 +72,8 @@ export interface ForexDomainState {
     sessions?: ForexSessionSnapshot;
     tradingConfig?: ForexTradingConfig;
   }) => void;
+  applyForexAccounts: (p: { accounts: ForexCustomerAccountSummary[]; activeAccountId: string }) => void;
+  clearPrivateForexData: () => void;
   applyPrivateHydrate: (p: {
     account?: ForexAccountView;
     margin?: ForexMarginSnapshot;
@@ -126,6 +132,8 @@ export const useForexStore = create<ForexDomainState>((set, get) => ({
   providerHealth: [],
   sessions: null,
   tradingConfig: null,
+  forexAccounts: [],
+  activeForexAccountId: null,
   account: null,
   margin: null,
   riskStatus: null,
@@ -162,6 +170,34 @@ export const useForexStore = create<ForexDomainState>((set, get) => ({
       tradingConfig: p.tradingConfig ?? s.tradingConfig,
       lastHydratedAt: Date.now(),
     })),
+
+  applyForexAccounts: (p) =>
+    set({
+      forexAccounts: p.accounts,
+      activeForexAccountId: p.activeAccountId,
+    }),
+
+  clearPrivateForexData: () =>
+    set({
+      account: null,
+      balance: null,
+      margin: null,
+      riskStatus: null,
+      risk: null,
+      exposure: null,
+      pnl: null,
+      orders: {},
+      positions: {},
+      fills: [],
+      protections: {},
+      fees: null,
+      swaps: null,
+      ledger: [],
+      ledgerReconciliation: null,
+      funding: [],
+      liquidation: null,
+      ticketLastOrder: null,
+    }),
 
   applyPrivateHydrate: (p) =>
     set((s) => ({

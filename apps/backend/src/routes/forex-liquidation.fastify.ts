@@ -3,7 +3,8 @@
  * Does not start live customer liquidation from HTTP.
  */
 import type { FastifyInstance } from 'fastify';
-import { forexAuthenticate } from '../services/forex/auth/forex-authenticate.js';
+import { getForexAccountIdFromRequest } from '../services/forex/customer/account-context.js';
+import { forexCustomerPreHandlers } from './forex-customer-prehandlers.js';
 import { getForexAccountingService } from '../services/forex/accounting/service.js';
 import { ForexLiquidationError, publicForexLiquidation } from '../services/forex/liquidation/models.js';
 import { getForexLiquidationService } from '../services/forex/liquidation/service.js';
@@ -11,10 +12,6 @@ import { getForexOrderService } from '../services/forex/orders/service.js';
 import { getForexPositionService } from '../services/forex/positions/service.js';
 import { getForexPricingService } from '../services/forex/quotes.service.js';
 
-function accountIdFromRequest(request: { user?: { id?: string; userId?: string } }): string | null {
-  const id = request.user?.id ?? request.user?.userId;
-  return id && id.trim() ? id.trim() : null;
-}
 
 function liq() {
   const pricing = getForexPricingService();
@@ -24,16 +21,16 @@ function liq() {
 }
 
 export async function registerForexLiquidationRoutes(app: FastifyInstance): Promise<void> {
-  app.get('/liquidation', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.get('/liquidation', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
     return reply.send({ success: true, data: liq().status(accountId) });
   });
 
-  app.get<{ Params: { liquidationId: string } }>('/liquidation/:liquidationId', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.get<{ Params: { liquidationId: string } }>('/liquidation/:liquidationId', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }

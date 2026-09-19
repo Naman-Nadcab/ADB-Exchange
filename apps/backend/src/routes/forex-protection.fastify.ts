@@ -2,7 +2,8 @@
  * Authenticated Forex SL/TP protections. SIMULATED / MOCK. JWT identity only.
  */
 import type { FastifyInstance } from 'fastify';
-import { forexAuthenticate } from '../services/forex/auth/forex-authenticate.js';
+import { getForexAccountIdFromRequest } from '../services/forex/customer/account-context.js';
+import { forexCustomerPreHandlers } from './forex-customer-prehandlers.js';
 import { ForexProtectionError, publicForexProtection } from '../services/forex/protection/models.js';
 import { getForexProtectionService } from '../services/forex/protection/service.js';
 import { ForexPositionError } from '../services/forex/positions/models.js';
@@ -10,10 +11,6 @@ import { getForexPositionService } from '../services/forex/positions/service.js'
 import { getForexOrderService } from '../services/forex/orders/service.js';
 import { getForexPricingService } from '../services/forex/quotes.service.js';
 
-function accountIdFromRequest(request: { user?: { id?: string; userId?: string } }): string | null {
-  const id = request.user?.id ?? request.user?.userId;
-  return id && id.trim() ? id.trim() : null;
-}
 
 function protections() {
   const pricing = getForexPricingService();
@@ -21,8 +18,8 @@ function protections() {
 }
 
 export async function registerForexProtectionRoutes(app: FastifyInstance): Promise<void> {
-  app.post('/protections', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.post('/protections', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -40,6 +37,7 @@ export async function registerForexProtectionRoutes(app: FastifyInstance): Promi
         type: body.type,
         triggerPrice: String(body.triggerPrice ?? ''),
         volume: body.volume != null ? String(body.volume) : undefined,
+        trailingDistance: body.trailingDistance != null ? String(body.trailingDistance) : undefined,
       });
       return reply.send({
         success: true,
@@ -50,8 +48,8 @@ export async function registerForexProtectionRoutes(app: FastifyInstance): Promi
     }
   });
 
-  app.get('/protections', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.get('/protections', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -59,8 +57,8 @@ export async function registerForexProtectionRoutes(app: FastifyInstance): Promi
     return reply.send({ success: true, data: { source: 'SIMULATED', executionMode: 'MOCK', count: list.length, protections: list } });
   });
 
-  app.get<{ Params: { protectionId: string } }>('/protections/:protectionId', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.get<{ Params: { protectionId: string } }>('/protections/:protectionId', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
@@ -72,8 +70,35 @@ export async function registerForexProtectionRoutes(app: FastifyInstance): Promi
     }
   });
 
-  app.delete<{ Params: { protectionId: string } }>('/protections/:protectionId', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
-    const accountId = accountIdFromRequest(request);
+  app.patch<{ Params: { protectionId: string } }>('/protections/:protectionId', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
+    if (!accountId) {
+      return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+    }
+    const body = (request.body ?? {}) as Record<string, unknown>;
+    try {
+      const protection = publicForexProtection(
+        await protections().update(accountId, request.params.protectionId, {
+          triggerPrice: body.triggerPrice != null ? String(body.triggerPrice) : undefined,
+          trailingDistance:
+            body.trailingDistance === null
+              ? null
+              : body.trailingDistance != null
+                ? String(body.trailingDistance)
+                : undefined,
+        })
+      );
+      return reply.send({
+        success: true,
+        data: { source: 'SIMULATED', executionMode: 'MOCK', protection },
+      });
+    } catch (e) {
+      return sendErr(reply, e);
+    }
+  });
+
+  app.delete<{ Params: { protectionId: string } }>('/protections/:protectionId', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
+    const accountId = getForexAccountIdFromRequest(request);
     if (!accountId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
