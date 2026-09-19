@@ -1,0 +1,126 @@
+{
+  "generatedAt": "2026-09-19T15:01:39.818Z",
+  "summary": {
+    "identities": "A=qa_trader_a@local.exchange userId=14e57a8f-bbd2-4b48-9b60-6bccede41176 A1=14e57a8f-bbd2-4b48-9b60-6bccede41176 A2=FX46AD54BD06; B=qa_trader_b@local.exchange userId=dc606f80-223e-41e5-b68f-2a39e328f526 B1=dc606f80-223e-41e5-b68f-2a39e328f526",
+    "idor": "PASS",
+    "sameUser": "PASS",
+    "apiBase": "http://localhost"
+  },
+  "rows": [
+    {
+      "test": "idor_balance_header",
+      "actor": "A→A1",
+      "account": "14e57a8f-bbd2-4b48-9b60-6bccede41176",
+      "mechanism": "X-Forex-Account-Id",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "test": "idor_balance_header",
+      "actor": "A→A2",
+      "account": "FX46AD54BD06",
+      "mechanism": "X-Forex-Account-Id",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "test": "idor_balance_header",
+      "actor": "B→B1",
+      "account": "dc606f80-223e-41e5-b68f-2a39e328f526",
+      "mechanism": "X-Forex-Account-Id",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "test": "idor_balance_header",
+      "actor": "A→B1",
+      "account": "dc606f80-223e-41e5-b68f-2a39e328f526",
+      "mechanism": "X-Forex-Account-Id",
+      "status": 403,
+      "code": "FOREX_ACCOUNT_FORBIDDEN",
+      "pass": true
+    },
+    {
+      "test": "idor_balance_header",
+      "actor": "B→A1",
+      "account": "14e57a8f-bbd2-4b48-9b60-6bccede41176",
+      "mechanism": "X-Forex-Account-Id",
+      "status": 403,
+      "code": "FOREX_ACCOUNT_FORBIDDEN",
+      "pass": true
+    },
+    {
+      "test": "idor_balance_header",
+      "actor": "B→A2",
+      "account": "FX46AD54BD06",
+      "mechanism": "X-Forex-Account-Id",
+      "status": 403,
+      "code": "FOREX_ACCOUNT_FORBIDDEN",
+      "pass": true
+    },
+    {
+      "test": "cookie_context",
+      "actor": "A→A2",
+      "account": "FX46AD54BD06",
+      "mechanism": "mlive_fx_ac",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "test": "precedence_header_over_cookie",
+      "actor": "A",
+      "account": "14e57a8f-bbd2-4b48-9b60-6bccede41176+cookie(A2)",
+      "mechanism": "header+cookie",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "test": "query_manipulation",
+      "actor": "A",
+      "account": "dc606f80-223e-41e5-b68f-2a39e328f526",
+      "mechanism": "query accountId ignored",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "test": "same_user_orders",
+      "actor": "A1 order on A2 list",
+      "account": "ma-live-a1-1789830099358",
+      "mechanism": "header",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "test": "same_user_order_detail",
+      "actor": "A1 order GET as A2",
+      "account": "a0248454-1776-4564-8eb5-863ea7ab2aec",
+      "mechanism": "header",
+      "status": 404,
+      "code": "FORBIDDEN",
+      "pass": true
+    },
+    {
+      "test": "same_user_alerts",
+      "actor": "A1 alert visible on A2",
+      "account": "14e57a8f-bbd2-4b48-9b60-6bccede41176",
+      "mechanism": "header",
+      "status": 200,
+      "pass": true
+    }
+  ],
+  "isolation": {
+    "ordersA1HasTag": true,
+    "ordersA2LeakA1": false,
+    "positionsA1Status": 200,
+    "positionsA2Status": 200,
+    "ledgerA1Status": 200,
+    "ledgerA2Status": 200,
+    "marginA1Status": 200,
+    "marginA2Status": 200,
+    "riskA1Status": 200,
+    "riskA2Status": 200,
+    "alertsA1Status": 200,
+    "alertsA2Status": 200,
+    "alertsA2Count": 0
+  }
+}

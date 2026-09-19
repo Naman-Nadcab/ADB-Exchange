@@ -1,0 +1,20 @@
+{
+  "generatedAt": "2026-09-19T15:05:00Z",
+  "baseUrl": "http://109.123.254.30",
+  "login": {
+    "user": "qa_trader_a@local.exchange",
+    "result": "PASS",
+    "redirect": "/forex/trade"
+  },
+  "accountSwitcher": {
+    "visible": true,
+    "accountsListed": ["14e57a8f-bbd2-4b48-9b60-6bccede41176", "FX46AD54BD06"],
+    "listboxRoles": true,
+    "switchClick": "PARTIAL — option click intercepted before pointer-events fix"
+  },
+  "refresh": "NOT_RUN",
+  "logoutLogin": "NOT_RUN",
+  "raceStaleState": "NOT_RUN",
+  "responsive": "NOT_RUN",
+  "accessibility": "PARTIAL — Active Forex account button aria-expanded; listbox/option roles present"
+}

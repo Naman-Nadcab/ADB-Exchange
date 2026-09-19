@@ -80,10 +80,10 @@ export function ForexAccountSwitcher(props?: { compact?: boolean }) {
               }`}
               onClick={() => void onSelect(a.accountId)}
             >
-              <span className="font-medium">
+              <span className="pointer-events-none font-medium">
                 {a.accountKind === 'DEMO' ? 'Demo' : a.accountKind} · {a.currency}
               </span>
-              <span className="font-mono text-[10px] text-muted-foreground">#{a.accountId}</span>
+              <span className="pointer-events-none font-mono text-[10px] text-muted-foreground">#{a.accountId}</span>
             </button>
           ))}
           <div className="my-1 border-t border-border" />
