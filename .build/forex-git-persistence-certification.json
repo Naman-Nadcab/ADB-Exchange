@@ -1,0 +1,14 @@
+{
+  "branch": "release/exchange-production-baseline",
+  "local_head": "dc6f7e7da316d86f5a6d74a9f5f873700ef3bf12",
+  "remote_head": "dc6f7e7da316d86f5a6d74a9f5f873700ef3bf12",
+  "local_equals_remote": true,
+  "commit_created": true,
+  "commit_pushed": true,
+  "pushed_at": "2026-09-19T14:46:00Z",
+  "commit_message": "feat(forex): multi-account customer API, context, and UI switcher",
+  "files_committed_count": 32,
+  "excluded_files": ["apps/backend/src/routes/spot.fastify.ts", "admin-panel/**", "remaining dirty worktree files"],
+  "spot_fastify_sha": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+  "git_status_after_push": "dirty (pre-existing non-Forex files remain unstaged)"
+}
