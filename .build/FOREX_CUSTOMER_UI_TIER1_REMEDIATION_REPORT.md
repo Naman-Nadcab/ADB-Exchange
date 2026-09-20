@@ -85,10 +85,11 @@ cd apps/frontend && npm run lint   → success (pre-existing warnings only)
 ## 17. Git commit
 
 - Message: `feat(forex-ui): unify customer forex visual system`
+- **SHA:** `603140f3a10bede94145b37bee0e06bde08e2416`
 
 ## 18. Remote SHA
 
-- _(filled after push)_
+- `origin/release/exchange-production-baseline` = `603140f3a10bede94145b37bee0e06bde08e2416` (matches HEAD)
 
 ## 19. Remaining findings
 
