@@ -31,6 +31,17 @@ export function formatForexError(err: ForexError): string {
   return `${err.code}: ${err.message}`;
 }
 
+function forexAuthUserMessage(err: ForexError): string {
+  if (err.code === 'SESSION_EXPIRED') {
+    return 'Your session has expired. Please sign in again.';
+  }
+  const msg = err.message?.trim();
+  if (msg && !/jwt|bearer|authorization header|invalid token/i.test(msg)) {
+    return `${msg} Please sign in to continue.`;
+  }
+  return 'Please sign in to access your Forex account.';
+}
+
 export function describeForexError(err: ForexError): string {
   switch (err.code) {
     case 'UNAUTHORIZED':
@@ -38,7 +49,7 @@ export function describeForexError(err: ForexError): string {
     case 'SESSION_EXPIRED':
     case 'AUTH_REQUIRED':
     case 'INVALID_TOKEN':
-      return `${err.code}: ${err.message}. Sign in with a user JWT to use private Forex.`;
+      return forexAuthUserMessage(err);
     case 'SESSION_CLOSED':
     case 'HOLIDAY_UNCONFIGURED':
       return `${err.code}: ${err.message}. Market is not eligible for new orders.`;

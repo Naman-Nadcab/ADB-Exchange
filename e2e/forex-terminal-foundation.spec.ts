@@ -16,7 +16,9 @@ test.describe('Forex terminal foundation', () => {
 
   test('unauthenticated private panels stay explicit', async ({ page }) => {
     await page.goto('/forex', { waitUntil: 'domcontentloaded', timeout: 20_000 });
-    await expect(page.getByText(/Sign in to load Forex account|Bearer JWT|user JWT/i).first()).toBeVisible({
+    await expect(
+      page.getByText(/Sign in to load Forex account|Please sign in to access your Forex account|Please sign in to continue/i).first()
+    ).toBeVisible({
       timeout: 10_000,
     });
   });

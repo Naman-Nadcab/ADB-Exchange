@@ -56,6 +56,10 @@ function testErrors(): void {
   assert(e.code === 'SESSION_CLOSED', 'code preserved');
   assert(describeForexError(e).includes('SESSION_CLOSED'), 'message includes code');
   assert(!describeForexError(e).includes('Something went wrong'), 'no generic-only copy');
+  const auth = normalizeForexError({ code: 'UNAUTHORIZED', message: 'Missing credentials' });
+  const authMsg = describeForexError(auth);
+  assert(!/jwt|bearer/i.test(authMsg), 'auth copy must not mention JWT');
+  assert(authMsg.includes('sign in'), 'auth copy is user-facing');
 }
 
 function testConnection(): void {

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ForexAccountNav } from '@/components/forex/ForexAccountNav';
+import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
@@ -56,24 +57,13 @@ export default function ForexLedgerPage() {
   }, [ledger, typeFilter, fromDate, toDate]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5 px-4 py-6 sm:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Ledger</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Forex cash movements with backend running balances. Reconciliation uses account values, not frontend math.
-          </p>
-        </div>
-        <ForexAccountNav />
-      </div>
-
+    <ForexPageFrame
+      title="Ledger"
+      subtitle="Forex cash movements with backend running balances. Reconciliation uses account values, not frontend math."
+      actions={<ForexAccountNav />}
+    >
       {!authed ? (
-        <p className="eda-card p-4 text-sm text-muted-foreground">
-          Sign in to view the ledger.{' '}
-          <Link href="/login?redirect=/forex/account/ledger" className="text-primary underline underline-offset-2">
-            Sign in
-          </Link>
-        </p>
+        <ForexSignInPrompt href="/login?redirect=/forex/account/ledger" label="ledger" />
       ) : (
         <>
           <div className="flex flex-wrap items-end gap-3 text-[12px]">
@@ -279,6 +269,6 @@ export default function ForexLedgerPage() {
           </div>
         </div>
       ) : null}
-    </div>
+    </ForexPageFrame>
   );
 }
