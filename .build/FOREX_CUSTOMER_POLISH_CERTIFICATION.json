@@ -1,0 +1,46 @@
+{
+  "finalStatus": "GO",
+  "finalDecision": "FOREX CUSTOMER PRODUCTION READY — GO (polish phase)",
+  "generatedAt": "2026-09-20T06:32:00Z",
+  "git": {
+    "localSha": "pending commit",
+    "remoteSha": "pending commit",
+    "baseline": "6feec8999f47449e36152fd588208d328adb56ff"
+  },
+  "deployment": {
+    "backendDigest": "sha256:4da707b77f541193604f95f6968a30954130fadfda542b4fa6a8a373364bf14f",
+    "frontendDigest": "sha256:8b5154ca135670010001ed6e8f2de35e82cf345aac4f3377c6db552279a83d4a",
+    "matchingEngineUnchanged": true
+  },
+  "realForex": "OFF",
+  "cryptoSpotSha256WorkingTree": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+  "alerts": "PASS",
+  "accessibility": "PARTIAL",
+  "errorEmptyStates": "PARTIAL",
+  "chart": "PASS",
+  "drawings": "PASS",
+  "demoRegression": "PASS",
+  "accountIsolation": "PASS",
+  "database": "PASS",
+  "desktop": "PASS",
+  "mobile": "PASS",
+  "evidence": {
+    "alertsCert": ".build/forex-customer-alerts-certification.json",
+    "drawingBrowser": ".build/forex-chart-drawing-browser-certification.json",
+    "demoDbLifecycle": ".build/FOREX_POST_DEPLOY_DB_CERTIFICATION.json",
+    "multiAccountBrowser": ".build/forex-browser-e2e-certification.json"
+  },
+  "drawingMatrixSummary": {
+    "hline": { "Create": "PASS", "Refresh": "PASS", "Mobile": "PASS" },
+    "trend": { "Create": "PASS", "Mobile": "PASS" },
+    "fib": { "Create": "PASS", "Mobile": "PASS" },
+    "ray": { "Create": "PASS", "Mobile": "PASS" }
+  },
+  "remainingLimitations": [
+    "Full WCAG audit not performed; targeted Forex a11y labels/focus added",
+    "All route empty/error matrix not exhaustively browser-tested",
+    "Drawings are localStorage per symbol+timeframe (not server); document in UI",
+    "Alert PUSH/EMAIL/WEBHOOK adapters show NOT_CONFIGURED until providers enabled",
+    "Move/resize/delete drawing steps certified via unit keyboard paths; browser matrix covers create+persistence"
+  ]
+}

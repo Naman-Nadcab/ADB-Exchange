@@ -35,9 +35,26 @@ const DRAW_TOOLS: Array<{ id: ForexAnalysisTool; label: string }> = [
   { id: 'trend', label: 'Trend' },
   { id: 'ray', label: 'Ray' },
   { id: 'extended', label: 'Extend' },
+  { id: 'fib', label: 'Fib' },
+  { id: 'channel', label: 'P.Channel' },
+  { id: 'regchannel', label: 'Reg.Ch' },
+  { id: 'fib2', label: 'Fib Retr' },
+  { id: 'fibext', label: 'Fib Ext' },
+  { id: 'fibexp', label: 'Fib Exp' },
+  { id: 'fibtime', label: 'Fib Time' },
+  { id: 'fibchan', label: 'Fib Ch' },
+  { id: 'gannfan', label: 'Gann Fan' },
+  { id: 'ganngrid', label: 'Gann Grid' },
+  { id: 'gannline', label: 'Gann' },
   { id: 'rect', label: 'Rect' },
+  { id: 'ellipse', label: 'Ellipse' },
+  { id: 'triangle', label: 'Tri' },
+  { id: 'polygon', label: 'Poly' },
   { id: 'arrow', label: 'Arrow' },
-  { id: 'fib2', label: 'Fib' },
+  { id: 'text', label: 'Text' },
+  { id: 'callout', label: 'Callout' },
+  { id: 'pricelabel', label: 'Price' },
+  { id: 'sr', label: 'S/R' },
   { id: 'measure', label: 'Measure' },
   { id: 'rr', label: 'R:R' },
   { id: 'alert', label: 'Alert' },
@@ -52,6 +69,8 @@ export function ForexChartToolbar(props: Props) {
           <button
             key={t.id}
             type="button"
+            aria-label={`Drawing tool: ${t.label}`}
+            title={t.label}
             aria-pressed={props.tool === t.id}
             onClick={() => props.onTool(t.id)}
             className={cn(
@@ -65,6 +84,7 @@ export function ForexChartToolbar(props: Props) {
       </div>
       <button
         type="button"
+        aria-label="Clear all chart drawings"
         onClick={props.onClearDrawings}
         className="ml-1 rounded px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
@@ -88,7 +108,7 @@ export function ForexChartToolbar(props: Props) {
         <span className="ml-2 shrink-0 font-mono text-[10px] text-muted-foreground">{props.measureSummary}</span>
       ) : null}
 
-      <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">LOCAL drawings · Del removes</span>
+      <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">H hide · L lock · Del · Ctrl+Z/Y</span>
     </div>
   );
 }

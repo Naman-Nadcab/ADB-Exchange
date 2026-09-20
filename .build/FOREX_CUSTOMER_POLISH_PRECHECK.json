@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-09-20T06:30:00Z",
+  "gitHead": "6feec8999f47449e36152fd588208d328adb56ff",
+  "architecture": {
+    "alerts": {
+      "persistence": "server DB forex_customer_alerts + forex_customer_alert_events",
+      "evaluator": "alert-engine.ts quote/account/session hooks",
+      "ui": "ForexServerAlertsPanel + /forex/alerts",
+      "rootCausePriorFailure": "cert used invalid payload (PRICE_ABOVE); UI uses alertType + condition.side/price"
+    },
+    "drawings": {
+      "nativeTools": "DrawingToolManager (hline, vline, trend, fib)",
+      "extraTools": "ForexDrawingEngine (ray, rect, channel, fib2, etc.)",
+      "persistence": "localStorage per eda-forex-drawings:{instance}:{symbol}:{timeframe}",
+      "chart": "ForexLightweightChart + lightweight-charts"
+    }
+  }
+}

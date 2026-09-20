@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "api": "http://127.0.0.1:4000",
+  "results": {
+    "CREATE_REQUIRES_TYPE": "PASS",
+    "ACTIVE_ACCOUNT": "PASS",
+    "CREATE_UI_PAYLOAD": "PASS",
+    "LIST_PERSIST": "PASS",
+    "PATCH_DISABLE": "PASS",
+    "ACCOUNT_ISOLATION": "PASS",
+    "DELETE": "PASS",
+    "DELIVERY_STATUS": "PASS"
+  },
+  "generatedAt": "2026-09-20T06:18:42.114Z"
+}

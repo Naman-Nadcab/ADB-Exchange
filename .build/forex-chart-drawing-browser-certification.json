@@ -1,0 +1,87 @@
+{
+  "generatedAt": "2026-09-20T06:32:52.532Z",
+  "base": "http://109.123.254.30",
+  "results": {
+    "login": {
+      "ok": true,
+      "detail": ""
+    },
+    "viewport_desktop1440": {
+      "ok": true,
+      "detail": "1440x900"
+    },
+    "desktop1440_hline": {
+      "ok": true,
+      "detail": ""
+    },
+    "desktop1440_trend": {
+      "ok": true,
+      "detail": ""
+    },
+    "desktop1440_fib": {
+      "ok": true,
+      "detail": ""
+    },
+    "desktop1440_ray": {
+      "ok": true,
+      "detail": ""
+    },
+    "desktop1440_escape": {
+      "ok": true,
+      "detail": ""
+    },
+    "desktop1440_persistence": {
+      "ok": true,
+      "detail": "keys=1 drawings=2"
+    },
+    "viewport_mobile390": {
+      "ok": true,
+      "detail": "390x844"
+    },
+    "mobile390_hline": {
+      "ok": true,
+      "detail": ""
+    },
+    "mobile390_trend": {
+      "ok": true,
+      "detail": ""
+    },
+    "mobile390_fib": {
+      "ok": true,
+      "detail": ""
+    },
+    "mobile390_ray": {
+      "ok": true,
+      "detail": ""
+    },
+    "mobile390_escape": {
+      "ok": true,
+      "detail": ""
+    },
+    "mobile390_persistence": {
+      "ok": true,
+      "detail": "keys=1 drawings=4"
+    }
+  },
+  "matrix": {
+    "hline": {
+      "Create": "PASS",
+      "Refresh": "NOT VERIFIED"
+    },
+    "trend": {
+      "Create": "PASS",
+      "Refresh": "NOT VERIFIED"
+    },
+    "fib": {
+      "Create": "PASS",
+      "Refresh": "NOT VERIFIED"
+    },
+    "ray": {
+      "Create": "PASS",
+      "Refresh": "NOT VERIFIED"
+    },
+    "aggregate": {
+      "Refresh": "PASS"
+    }
+  }
+}

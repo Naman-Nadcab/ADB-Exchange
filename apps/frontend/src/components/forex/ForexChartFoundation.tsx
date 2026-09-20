@@ -8,11 +8,19 @@ import { deriveDisplayConnection } from '@/lib/forex/selectors/connection';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { lastAtr, lastMacd, lastStochastic, type FxBar } from '@/lib/forex/local-indicators';
+import {
+  FOREX_INDICATOR_REGISTRY,
+  getForexIndicatorDefinition,
+  type StoredForexIndicator,
+} from '@/lib/forex/chart/indicator-registry';
+import { loadScopedForexIndicators, saveScopedForexIndicators } from '@/lib/forex/chart/indicator-state';
+import type { OscillatorPaneSpec } from './ForexOscillatorPaneStack';
 import { bollinger, ema, hma, macdSeries, nearestStudy, rsi, sma, supertrend, wma } from '@/lib/forex/chart/studies';
 import { candleTimeMs } from '@/lib/forex/models/candles';
 import { activeProtectionsFor } from '@/lib/forex/models/position';
 import { decideQuoteChartOverlay } from '@/lib/forex/market-data/quote-chart-overlay';
 import { deriveStructureLevels } from '@/lib/forex/chart/structure-levels';
+import { buildDraggablePendingLines, FOREX_CHART_PENDING_STATUSES } from '@/lib/forex/chart/pending-order-lines';
 import { computeRiskReward, pipSizeFromInstrument, priceChangePct, priceDistancePips } from '@/lib/forex/chart/pip-math';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
 import { hydrateForexPrivate } from '@/lib/forex/runtime/hydrate';
@@ -27,7 +35,9 @@ import { ForexIntelDrawer } from './ForexIntelDrawer';
 import { fxNum } from './format';
 import { cn } from '@/lib/utils';
 import { useForexOrderEngine } from '@/lib/forex/runtime/useForexOrderEngine';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { useForexPositionActions } from '@/lib/forex/runtime/useForexPositionActions';
+import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
+import type { ForexProtectionType } from '@/lib/forex/models/types';
 
 type StudyId = 'none' | 'ema20_50' | 'sma20' | 'ema20' | 'wma20' | 'hma21' | 'bb20' | 'supertrend';
 
@@ -100,6 +110,7 @@ export function ForexChartFoundation(props?: {
   const setChartMode = useForexWorkspaceStore((s) => s.setChartMode);
   const setTicketDraft = useForexWorkspaceStore((s) => s.setTicketDraft);
   const setPanel = useForexWorkspaceStore((s) => s.setPanel);
+  const setBottomTab = useForexWorkspaceStore((s) => s.setBottomTab);
   const selected = (props?.symbol ?? storeSymbol).replace(/[^A-Za-z0-9]/g, '').toUpperCase();
   const setTf = (tf: string) => {
     if (props?.onTimeframeChange) props.onTimeframeChange(tf);
@@ -125,6 +136,31 @@ export function ForexChartFoundation(props?: {
   const dark = useTerminalChartDark();
   const [study, setStudy] = useState<StudyId>('ema20_50');
   const [studyPeriod, setStudyPeriod] = useState(20);
+  const [indicatorStack, setIndicatorStack] = useState<StoredForexIndicator[]>([]);
+
+  const addRegistryIndicator = useCallback((id: string) => {
+    if (id === 'none') return;
+    const def = getForexIndicatorDefinition(id);
+    if (!def) return;
+    const params = Object.fromEntries(def.params.map((p) => [p.key, p.default]));
+    setIndicatorStack((cur) => [...cur.filter((c) => c.id !== id), { id, enabled: true, params }]);
+    if (def.pane === 'overlay') {
+      if (id === 'ema') setStudy('ema20');
+      else if (id === 'sma') setStudy('sma20');
+      else if (id === 'wma') setStudy('wma20');
+      else if (id === 'bb') setStudy('bb20');
+    }
+  }, []);
+
+  const removeRegistryIndicator = useCallback((id: string) => {
+    setIndicatorStack((cur) => cur.filter((c) => c.id !== id));
+  }, []);
+
+  const updateRegistryIndicatorParam = useCallback((id: string, key: string, value: number) => {
+    setIndicatorStack((cur) =>
+      cur.map((row) => (row.id === id ? { ...row, params: { ...row.params, [key]: value } } : row))
+    );
+  }, []);
   const [chartType, setChartType] = useState<ForexChartType>('candle');
   const [crosshair, setCrosshair] = useState<ForexChartCrosshair | null>(null);
   const [tool, setTool] = useState<ForexAnalysisTool>('none');
@@ -147,8 +183,11 @@ export function ForexChartFoundation(props?: {
   const [alerts, setAlerts] = useState<LocalAlert[]>([]);
   const [rrPoints, setRrPoints] = useState<number[]>([]);
   const [measurePoints, setMeasurePoints] = useState<Array<{ price: number; time: number | null }>>([]);
+  const [protectionNote, setProtectionNote] = useState<string | null>(null);
   const chartApiRef = useRef<ForexChartApi | null>(null);
   const orderEngine = useForexOrderEngine();
+  const positionActions = useForexPositionActions();
+  const chartAuthed = useForexPrivateSession();
   const positions = useForexStore((s) => s.positions);
   const protections = useForexStore((s) => s.protections);
   const orders = useForexStore((s) => s.orders);
@@ -213,6 +252,14 @@ export function ForexChartFoundation(props?: {
   const timeframes = orderedTimeframes(candleView.supportedTimeframes.filter(isReservedForexTimeframe));
   const activeTf = timeframes.includes(requestedTf) ? requestedTf : timeframes[0] ?? requestedTf;
 
+  useEffect(() => {
+    setIndicatorStack(loadScopedForexIndicators(selected, activeTf));
+  }, [selected, activeTf]);
+
+  useEffect(() => {
+    saveScopedForexIndicators(selected, activeTf, indicatorStack);
+  }, [indicatorStack, selected, activeTf]);
+
   const staleQuote = !quote || isQuoteStale(quote);
   const digits = inst?.digits ?? 5;
   const pipSize = pipSizeFromInstrument({ pipSize: inst?.pipSize, digits });
@@ -273,7 +320,45 @@ export function ForexChartFoundation(props?: {
 
   const period = Number.isFinite(studyPeriod) && studyPeriod >= 2 ? Math.min(Math.floor(studyPeriod), 400) : 20;
   const slowPeriod = Math.max(period + 1, Math.round(period * 2.5));
-  const overlay = useMemo(() => {
+
+  const registryOverlayBundle = useMemo(() => {
+    const palette = [
+      'rgba(96,165,250,0.85)',
+      'rgba(245,184,0,0.85)',
+      'rgba(52,211,153,0.8)',
+      'rgba(167,139,250,0.8)',
+    ];
+    type Pt = { time: number; value: number };
+    const toOverlay = (pts: Pt[]) => pts.map((p) => ({ time: p.time, value: p.value }));
+    let primary: Pt[] = [];
+    let secondary: Pt[] = [];
+    let bands: { upper: Pt[]; lower: Pt[] } | undefined;
+    const extras: Array<{ color: string; points: Pt[] }> = [];
+    const rows = indicatorStack.filter((r) => r.enabled && getForexIndicatorDefinition(r.id)?.pane === 'overlay');
+    for (const row of rows) {
+      const def = getForexIndicatorDefinition(row.id);
+      if (!def) continue;
+      const { lines } = def.compute(bars, row.params);
+      if (row.id === 'bb') {
+        const upper = lines.find((l) => l.id === 'upper')?.points ?? [];
+        const lower = lines.find((l) => l.id === 'lower')?.points ?? [];
+        const mid = lines.find((l) => l.id === 'mid')?.points ?? [];
+        bands = { upper: toOverlay(upper), lower: toOverlay(lower) };
+        if (mid.length) primary = toOverlay(mid);
+        continue;
+      }
+      for (const line of lines) {
+        const pts = toOverlay(line.points);
+        if (!pts.length) continue;
+        if (!primary.length) primary = pts;
+        else if (!secondary.length) secondary = pts;
+        else extras.push({ color: palette[extras.length % palette.length]!, points: pts });
+      }
+    }
+    return { active: rows.length > 0, primary, secondary, bands, extras };
+  }, [indicatorStack, bars]);
+
+  const legacyOverlay = useMemo(() => {
     if (study === 'sma20') return sma(bars, period);
     if (study === 'ema20' || study === 'ema20_50') return ema(bars, period);
     if (study === 'wma20') return wma(bars, period);
@@ -282,14 +367,60 @@ export function ForexChartFoundation(props?: {
     if (study === 'supertrend') return supertrend(bars);
     return [];
   }, [bars, study, period]);
-  const overlaySecondary = useMemo(
+  const legacyOverlaySecondary = useMemo(
     () => (study === 'ema20_50' ? ema(bars, slowPeriod) : []),
     [bars, study, slowPeriod]
   );
-  const bands = useMemo(() => (study === 'bb20' ? bollinger(bars, period, 2) : undefined), [bars, study, period]);
+  const legacyBands = useMemo(() => (study === 'bb20' ? bollinger(bars, period, 2) : undefined), [bars, study, period]);
+  const overlay = registryOverlayBundle.active ? registryOverlayBundle.primary : legacyOverlay;
+  const overlaySecondary = registryOverlayBundle.active ? registryOverlayBundle.secondary : legacyOverlaySecondary;
+  const bands = registryOverlayBundle.active ? registryOverlayBundle.bands : legacyBands;
   const studyReady = study === 'none' || overlay.length > 0;
   const rsiSeries = useMemo(() => rsi(bars, 14), [bars]);
   const macdLine = useMemo(() => macdSeries(bars).macd, [bars]);
+
+  const oscillatorPanes = useMemo((): OscillatorPaneSpec[] => {
+    const lineColor = (id: string, idx: number) => {
+      const map: Record<string, string> = {
+        rsi: 'rgba(245,184,0,0.9)',
+        macd: 'rgba(96,165,250,0.9)',
+        signal: 'rgba(245,184,0,0.75)',
+        hist: 'rgba(148,163,184,0.55)',
+        k: 'rgba(96,165,250,0.9)',
+        d: 'rgba(245,184,0,0.8)',
+      };
+      return map[id] ?? `hsl(${(idx * 53) % 360} 65% 58%)`;
+    };
+    const panes: OscillatorPaneSpec[] = [];
+    for (const row of indicatorStack.filter((r) => r.enabled)) {
+      const def = getForexIndicatorDefinition(row.id);
+      if (!def || def.pane !== 'oscillator') continue;
+      const { lines } = def.compute(bars, row.params);
+      if (lines.every((l) => l.points.length === 0)) continue;
+      panes.push({
+        key: `${row.id}-${JSON.stringify(row.params)}`,
+        label: def.name,
+        series: lines.map((l, idx) => ({
+          id: l.id,
+          color: lineColor(l.id, idx),
+          points: l.points.map((p) => ({ time: p.time, value: p.value })),
+        })),
+        referenceLines:
+          row.id === 'rsi'
+            ? [
+                { value: 70, color: 'rgba(244,63,94,0.35)' },
+                { value: 30, color: 'rgba(34,197,94,0.35)' },
+              ]
+            : row.id === 'stochastic'
+              ? [
+                  { value: 80, color: 'rgba(244,63,94,0.3)' },
+                  { value: 20, color: 'rgba(34,197,94,0.3)' },
+                ]
+              : undefined,
+      });
+    }
+    return panes;
+  }, [indicatorStack, bars]);
   const atr = lastAtr(bars);
   const macd = lastMacd(bars);
   const stoch = lastStochastic(bars);
@@ -339,21 +470,44 @@ export function ForexChartFoundation(props?: {
     });
   }, [rrResult, rrLevels, setTicketDraft]);
 
+  const draggablePendingLines = useMemo(
+    () => buildDraggablePendingLines(orders, selected),
+    [orders, selected]
+  );
+
   const orderOverlays = useMemo(() => {
     const out: Array<{ price: number; title: string }> = [];
     for (const o of Object.values(orders)) {
       if (o.symbol !== selected) continue;
       const st = String(o.status ?? '').toUpperCase();
-      if (!['NEW', 'PARTIAL', 'OPEN', 'WORKING', 'ACCEPTED'].includes(st)) continue;
-      const price = Number(o.requestedPrice);
-      if (!Number.isFinite(price) || price <= 0) continue;
-      out.push({
-        price,
-        title: `${o.side.toUpperCase()} ${String(o.type).toUpperCase()} ${price}`,
-      });
+      if (!FOREX_CHART_PENDING_STATUSES.has(st)) continue;
+      const isPendingType = o.type === 'limit' || o.type === 'stop' || o.type === 'stop_limit';
+      if (!isPendingType) {
+        const price = Number(o.requestedPrice);
+        if (Number.isFinite(price) && price > 0) {
+          out.push({ price, title: `${o.side.toUpperCase()} ${String(o.type).toUpperCase()}` });
+        }
+      }
+      const sl = Number(o.stopLoss);
+      if (Number.isFinite(sl) && sl > 0) out.push({ price: sl, title: `PENDING SL` });
+      const tp = Number(o.takeProfit);
+      if (Number.isFinite(tp) && tp > 0) out.push({ price: tp, title: `PENDING TP` });
+    }
+    for (const p of Object.values(positions)) {
+      if (p.symbol !== selected || p.status !== 'OPEN') continue;
+      const entry = Number(p.averageEntryPrice || p.entryPrice);
+      if (Number.isFinite(entry) && entry > 0) {
+        out.push({ price: entry, title: `${p.side === 'long' ? 'BUY' : 'SELL'} OPEN` });
+      }
+    }
+    for (const pr of Object.values(protections)) {
+      if (pr.symbol !== selected || pr.status !== 'ACTIVE') continue;
+      const px = Number(pr.triggerPrice);
+      if (!Number.isFinite(px) || px <= 0) continue;
+      out.push({ price: px, title: pr.type === 'STOP_LOSS' ? 'SL' : 'TP' });
     }
     return out;
-  }, [orders, selected]);
+  }, [orders, positions, protections, selected]);
 
   const calendarMarkers = useMemo(() => {
     if (!showCalendar) return [];
@@ -409,19 +563,122 @@ export function ForexChartFoundation(props?: {
     return parts.join(' · ') || null;
   }, [measurePoints, pipSize, bars]);
 
+  const openPosition = useMemo(
+    () => Object.values(positions).find((p) => p.status === 'OPEN' && p.symbol === selected) ?? null,
+    [positions, selected]
+  );
+
   const levels = useMemo(() => {
-    const open = Object.values(positions).find((p) => p.status === 'OPEN' && p.symbol === selected);
-    if (!open) return undefined;
-    const prot = activeProtectionsFor(protections, open.positionId);
-    const entry = Number(open.averageEntryPrice || open.entryPrice);
+    if (!openPosition) return undefined;
+    const prot = activeProtectionsFor(protections, openPosition.positionId);
+    const entry = Number(openPosition.averageEntryPrice || openPosition.entryPrice);
+    const entryOk = Number.isFinite(entry) && entry > 0;
     const sl = prot.sl ? Number(prot.sl.triggerPrice) : undefined;
     const tp = prot.tp ? Number(prot.tp.triggerPrice) : undefined;
+    // Ghost levels give an unprotected position something to grab: dragging one
+    // creates the protection instead of updating it.
+    const ghost = (pips: number) =>
+      entryOk ? entry + (openPosition.side === 'long' ? -pips : pips) * pipSize : undefined;
     return {
-      entry: Number.isFinite(entry) ? entry : undefined,
+      entry: entryOk ? entry : undefined,
       sl: sl != null && Number.isFinite(sl) ? sl : undefined,
       tp: tp != null && Number.isFinite(tp) ? tp : undefined,
+      slGhost: ghost(20),
+      tpGhost: ghost(-40),
     };
-  }, [positions, protections, selected]);
+  }, [openPosition, protections, pipSize]);
+
+  const levelDragEnabled = Boolean(openPosition) && chartAuthed;
+  const pendingDragEnabled = draggablePendingLines.length > 0 && chartAuthed && !orderEngine.busy;
+
+  const commitPendingOrderDrag = useCallback(
+    async (payload: {
+      orderId: string;
+      field: 'requestedPrice' | 'limitPrice';
+      price: string;
+      title: string;
+    }): Promise<boolean> => {
+      if (!chartAuthed) {
+        setProtectionNote('Pending modify not sent — sign in.');
+        return false;
+      }
+      const order = orders[payload.orderId];
+      if (!order) {
+        setProtectionNote('Order no longer on chart — refresh.');
+        return false;
+      }
+      const label = payload.field === 'limitPrice' ? 'Limit price' : 'Trigger price';
+      const ok = window.confirm(`Modify ${payload.title}\n${label} → ${payload.price}?`);
+      if (!ok) {
+        setProtectionNote('Pending modify cancelled.');
+        return false;
+      }
+      setProtectionNote(`${payload.title} → ${payload.price} · sending modify…`);
+      const patch =
+        payload.field === 'limitPrice'
+          ? { limitPrice: payload.price, expectedVersion: order.version }
+          : { requestedPrice: payload.price, expectedVersion: order.version };
+      const res = await orderEngine.modify(payload.orderId, patch);
+      if (!res.ok) {
+        setProtectionNote(res.error.message);
+        return false;
+      }
+      setProtectionNote(`Modified ${payload.title} @ ${payload.price}`);
+      return true;
+    },
+    [chartAuthed, orders, orderEngine]
+  );
+
+  /**
+   * Chart SL/TP drag commit. The drag is only a preview — the level shown on the
+   * chart is whatever the protection store reports after the server responds.
+   */
+  const commitProtectionDrag = useCallback(
+    async (type: ForexProtectionType, price: string): Promise<boolean> => {
+      const label = type === 'STOP_LOSS' ? 'SL' : 'TP';
+      if (!openPosition) {
+        setProtectionNote(`${label} not applied — no open ${selected} position.`);
+        return false;
+      }
+      if (!chartAuthed) {
+        setProtectionNote(`${label} not applied — sign in to modify protections.`);
+        return false;
+      }
+      const px = Number(price);
+      if (!Number.isFinite(px) || px <= 0) {
+        setProtectionNote(`${label} not applied — invalid price.`);
+        return false;
+      }
+      const long = openPosition.side === 'long';
+      // A long exits on the bid, a short on the ask; fall back to entry if no quote.
+      const exit = quote ? Number(long ? quote.bid : quote.ask) : NaN;
+      const mark =
+        Number.isFinite(exit) && exit > 0 ? exit : Number(openPosition.averageEntryPrice || openPosition.entryPrice);
+      if (Number.isFinite(mark) && mark > 0) {
+        const wantAbove = long ? type === 'TAKE_PROFIT' : type === 'STOP_LOSS';
+        if (px === mark || (px > mark) !== wantAbove) {
+          setProtectionNote(
+            `${label} rejected — a ${long ? 'long' : 'short'} ${label} must sit ${wantAbove ? 'above' : 'below'} ${fxNum(mark, digits)}.`
+          );
+          return false;
+        }
+      }
+      const current = activeProtectionsFor(protections, openPosition.positionId)[
+        type === 'STOP_LOSS' ? 'sl' : 'tp'
+      ];
+      setProtectionNote(`${label} → ${fxNum(price, digits)} · sending to server…`);
+      const ok = current
+        ? await positionActions.updateProtection(openPosition, type, current.protectionId, price)
+        : await positionActions.createProtection(openPosition, type, price);
+      setProtectionNote(
+        ok
+          ? `${label} confirmed by server at ${fxNum(price, digits)}.`
+          : `${label} rejected by server — level reverted to the last confirmed price.`
+      );
+      return ok;
+    },
+    [openPosition, chartAuthed, quote, protections, positionActions, selected, digits]
+  );
 
   const quoteFreshness =
     connection === 'DISCONNECTED' || connection === 'CONNECTING' || connection === 'RECONNECTING'
@@ -493,6 +750,15 @@ export function ForexChartFoundation(props?: {
       text: 'Historical data available · Live forming candle unavailable · Alerts LOCAL only.',
     });
   }
+  // The executable quote and the reference candle series must share one price
+  // universe. Surface any drift instead of letting the chart imply a stale price.
+  if (quoteOverlay?.overlay && !quoteOverlay.aligned && lastClose != null) {
+    const relPct = (Math.abs((quoteOverlay.bid + quoteOverlay.ask) / 2 - lastClose) / lastClose) * 100;
+    banners.push({
+      tone: 'warn',
+      text: `Live quote is ${relPct.toFixed(2)}% away from the reference candle series. The executable price is the Live quote, not the candle close.`,
+    });
+  }
   if (tool === 'rr') {
     banners.push({
       tone: 'neutral',
@@ -512,6 +778,24 @@ export function ForexChartFoundation(props?: {
       text: measurePoints.length === 0 ? 'Measure: click start price.' : 'Measure: click end price.',
     });
   }
+  if (tool === 'channel') {
+    banners.push({
+      tone: 'neutral',
+      text: 'Channel (LOCAL): click two points for the base line, then a third to set the channel width.',
+    });
+  }
+  if (tool === 'fibext') {
+    banners.push({
+      tone: 'neutral',
+      text: 'Fib Extension (LOCAL): click swing A, then B, then the retracement point C — 127.2 / 161.8 / 200 / 261.8 project from C.',
+    });
+  }
+  if (tool === 'sr') {
+    banners.push({ tone: 'neutral', text: 'S/R (LOCAL): click a price to drop a labelled support/resistance level.' });
+  }
+  if (tool === 'text') {
+    banners.push({ tone: 'neutral', text: 'Text (LOCAL): click the chart, then type the annotation.' });
+  }
 
   const calendarForSymbol = useMemo(() => {
     if (!showCalendar || !calendarEvents.length) return [];
@@ -526,7 +810,7 @@ export function ForexChartFoundation(props?: {
   }, [showCalendar, calendarEvents, selected]);
 
   const oneClickBuy = () => {
-    if (!props?.showOneClick || !hasForexPrivateSession() || orderEngine.busy) return;
+    if (!props?.showOneClick || !chartAuthed || orderEngine.busy) return;
     void orderEngine.place({
       symbol: selected,
       side: 'buy',
@@ -535,7 +819,7 @@ export function ForexChartFoundation(props?: {
     });
   };
   const oneClickSell = () => {
-    if (!props?.showOneClick || !hasForexPrivateSession() || orderEngine.busy) return;
+    if (!props?.showOneClick || !chartAuthed || orderEngine.busy) return;
     void orderEngine.place({
       symbol: selected,
       side: 'sell',
@@ -596,9 +880,10 @@ export function ForexChartFoundation(props?: {
         <button
           type="button"
           aria-pressed={toolsOpen}
+          aria-label={toolsOpen ? 'Hide chart drawing tools' : 'Show chart drawing tools'}
           onClick={() => setToolsOpen((v) => !v)}
           className={cn(
-            'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium',
+            'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             toolsOpen ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
           )}
         >
@@ -619,6 +904,14 @@ export function ForexChartFoundation(props?: {
             <span>
               Candle C <span className="text-foreground">{fxNum(String(ohlcDisplay.close), digits)}</span>
             </span>
+            {chartQuote ? (
+              <span title="Current executable quote (SIMULATED). Historical candles are reference data.">
+                Live{' '}
+                <span className="font-bold text-foreground">
+                  {fxNum(String((chartQuote.bid + chartQuote.ask) / 2), digits)}
+                </span>
+              </span>
+            ) : null}
           </span>
         ) : null}
 
@@ -671,7 +964,63 @@ export function ForexChartFoundation(props?: {
         </div>
 
         <label className="ml-1 hidden items-center gap-1 text-[10px] text-muted-foreground md:inline-flex">
-          Study
+          Add indicator
+          <select
+            defaultValue=""
+            onChange={(e) => {
+              const id = e.target.value;
+              if (id) addRegistryIndicator(id);
+              e.target.value = '';
+            }}
+            className="rounded border border-border bg-background px-1 py-0.5 text-[10px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="Add chart indicator"
+          >
+            <option value="">—</option>
+            {FOREX_INDICATOR_REGISTRY.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name} ({d.pane})
+              </option>
+            ))}
+          </select>
+        </label>
+        {indicatorStack.length > 0 ? (
+          <span className="hidden flex-wrap items-center gap-1 lg:inline-flex">
+            {indicatorStack.map((row) => {
+              const def = getForexIndicatorDefinition(row.id);
+              return (
+                <span key={row.id} className="inline-flex flex-wrap items-center gap-0.5 rounded bg-muted/80 px-1 py-0.5">
+                  <button
+                    type="button"
+                    className="text-[9px] font-medium text-foreground"
+                    onClick={() => removeRegistryIndicator(row.id)}
+                    title="Remove indicator"
+                  >
+                    {row.id} ×
+                  </button>
+                  {def?.params.map((p) => (
+                    <label key={p.key} className="inline-flex items-center gap-0.5 text-[9px] text-muted-foreground">
+                      {p.label}
+                      <input
+                        type="number"
+                        min={p.min}
+                        max={p.max}
+                        step={p.key === 'step' || p.key === 'mult' ? 0.01 : 1}
+                        value={row.params[p.key] ?? p.default}
+                        onChange={(e) =>
+                          updateRegistryIndicatorParam(row.id, p.key, Number(e.target.value) || p.default)
+                        }
+                        className="w-10 rounded border border-border bg-background px-0.5 text-[9px] text-foreground"
+                        aria-label={`${def.name} ${p.label}`}
+                      />
+                    </label>
+                  ))}
+                </span>
+              );
+            })}
+          </span>
+        ) : null}
+        <label className="ml-1 hidden items-center gap-1 text-[10px] text-muted-foreground lg:inline-flex">
+          Legacy study
           <select
             value={study}
             onChange={(e) => setStudy(e.target.value as StudyId)}
@@ -714,7 +1063,7 @@ export function ForexChartFoundation(props?: {
           <div className="ml-auto flex shrink-0 items-center gap-1">
             <button
               type="button"
-              disabled={orderEngine.busy || !hasForexPrivateSession()}
+              disabled={orderEngine.busy || !chartAuthed}
               onClick={oneClickSell}
               className="h-6 rounded bg-sell px-2 font-mono text-[10px] font-bold text-white disabled:opacity-40"
             >
@@ -722,7 +1071,7 @@ export function ForexChartFoundation(props?: {
             </button>
             <button
               type="button"
-              disabled={orderEngine.busy || !hasForexPrivateSession()}
+              disabled={orderEngine.busy || !chartAuthed}
               onClick={oneClickBuy}
               className="h-6 rounded bg-buy px-2 font-mono text-[10px] font-bold text-white disabled:opacity-40"
             >
@@ -757,6 +1106,12 @@ export function ForexChartFoundation(props?: {
       {props?.showOneClick && orderEngine.lastNote ? (
         <p className="border-b border-border px-2 py-0.5 text-[10px] text-muted-foreground">{orderEngine.lastNote}</p>
       ) : null}
+      {protectionNote ? (
+        <p role="status" className="border-b border-border px-2 py-0.5 text-[10px] text-muted-foreground">
+          {protectionNote}
+          {positionActions.actionError ? ` ${positionActions.actionError.message}` : ''}
+        </p>
+      ) : null}
 
       {toolsOpen && (!props?.compactChrome || props?.active) ? (
         <ForexChartToolbar
@@ -771,10 +1126,10 @@ export function ForexChartFoundation(props?: {
           onSessions={setShowSessions}
           showLevels={showLevels}
           onLevels={setShowLevels}
-          showRsi={showRsi}
-          onRsi={setShowRsi}
-          showMacd={showMacd}
-          onMacd={setShowMacd}
+          showRsi={indicatorStack.some((i) => i.id === 'rsi' && i.enabled)}
+          onRsi={(v) => (v ? addRegistryIndicator('rsi') : removeRegistryIndicator('rsi'))}
+          showMacd={indicatorStack.some((i) => i.id === 'macd' && i.enabled)}
+          onMacd={(v) => (v ? addRegistryIndicator('macd') : removeRegistryIndicator('macd'))}
           showCalendar={showCalendar}
           onCalendar={setShowCalendar}
           showIntel={showIntel}
@@ -814,20 +1169,28 @@ export function ForexChartFoundation(props?: {
           overlay={overlay}
           overlaySecondary={overlaySecondary}
           bands={bands}
+          overlayExtras={registryOverlayBundle.extras}
           levels={levels}
           structureLevels={structureLevels}
           alertPrices={alertPrices}
           rrLevels={rrLevels}
           showSessions={showSessions}
-          showRsi={showRsi}
+          showRsi={false}
           rsi={rsiSeries}
-          showMacd={showMacd}
+          showMacd={false}
           macd={macdLine}
+          oscillatorPanes={oscillatorPanes}
           orderOverlays={orderOverlays}
           calendarMarkers={calendarMarkers}
           tool={tool}
           hideDrawings={!showDrawings}
           drawingsKey={`eda-forex-drawings:${props?.instanceId ?? 'main'}:${selected}:${activeTf}`}
+          levelDrag={levelDragEnabled}
+          onDragSl={(price) => commitProtectionDrag('STOP_LOSS', price)}
+          onDragTp={(price) => commitProtectionDrag('TAKE_PROFIT', price)}
+          pendingDrag={pendingDragEnabled}
+          draggablePendingLines={draggablePendingLines}
+          onDragPendingLine={(p) => commitPendingOrderDrag(p)}
           onCrosshair={setCrosshair}
           onPricePick={onPricePick}
           onContextMenuPrice={(price, time, x, y) => setCtxMenu({ price, time, x, y })}
@@ -960,6 +1323,7 @@ export function ForexChartFoundation(props?: {
             <CtxItem
               label="Trade from price (limit)"
               onClick={() => {
+                setPanel('ticket', true);
                 setTicketDraft({
                   nonce: Date.now(),
                   price: String(ctxMenu.price),
@@ -972,36 +1336,78 @@ export function ForexChartFoundation(props?: {
             {quote ? (
               <>
                 <CtxItem
-                  label={
-                    Number(quote.ask) > 0 && ctxMenu.price < Number(quote.ask)
-                      ? `Buy Limit @ ${fxNum(ctxMenu.price, digits)}`
-                      : `Buy Stop @ ${fxNum(ctxMenu.price, digits)}`
-                  }
+                  label={`Buy Limit @ ${fxNum(ctxMenu.price, digits)}`}
                   onClick={() => {
-                    const ask = Number(quote.ask);
-                    const isLimit = Number.isFinite(ask) && ask > 0 && ctxMenu.price < ask;
+                    setPanel('ticket', true);
                     setTicketDraft({
                       nonce: Date.now(),
                       price: String(ctxMenu.price),
-                      orderType: isLimit ? 'limit' : 'stop',
+                      orderType: 'limit',
                       side: 'buy',
                     });
                     setCtxMenu(null);
                   }}
                 />
                 <CtxItem
-                  label={
-                    Number(quote.bid) > 0 && ctxMenu.price > Number(quote.bid)
-                      ? `Sell Limit @ ${fxNum(ctxMenu.price, digits)}`
-                      : `Sell Stop @ ${fxNum(ctxMenu.price, digits)}`
-                  }
+                  label={`Buy Stop @ ${fxNum(ctxMenu.price, digits)}`}
                   onClick={() => {
-                    const bid = Number(quote.bid);
-                    const isLimit = Number.isFinite(bid) && bid > 0 && ctxMenu.price > bid;
+                    setPanel('ticket', true);
                     setTicketDraft({
                       nonce: Date.now(),
                       price: String(ctxMenu.price),
-                      orderType: isLimit ? 'limit' : 'stop',
+                      orderType: 'stop',
+                      side: 'buy',
+                    });
+                    setCtxMenu(null);
+                  }}
+                />
+                <CtxItem
+                  label={`Sell Limit @ ${fxNum(ctxMenu.price, digits)}`}
+                  onClick={() => {
+                    setPanel('ticket', true);
+                    setTicketDraft({
+                      nonce: Date.now(),
+                      price: String(ctxMenu.price),
+                      orderType: 'limit',
+                      side: 'sell',
+                    });
+                    setCtxMenu(null);
+                  }}
+                />
+                <CtxItem
+                  label={`Sell Stop @ ${fxNum(ctxMenu.price, digits)}`}
+                  onClick={() => {
+                    setPanel('ticket', true);
+                    setTicketDraft({
+                      nonce: Date.now(),
+                      price: String(ctxMenu.price),
+                      orderType: 'stop',
+                      side: 'sell',
+                    });
+                    setCtxMenu(null);
+                  }}
+                />
+                <CtxItem
+                  label={`Buy Stop Limit @ ${fxNum(ctxMenu.price, digits)} (set limit on ticket)`}
+                  onClick={() => {
+                    setPanel('ticket', true);
+                    setTicketDraft({
+                      nonce: Date.now(),
+                      price: String(ctxMenu.price),
+                      orderType: 'stop_limit',
+                      side: 'buy',
+                    });
+                    setCtxMenu(null);
+                  }}
+                />
+                <CtxItem
+                  label={`Sell Stop Limit @ ${fxNum(ctxMenu.price, digits)} (set limit on ticket)`}
+                  onClick={() => {
+                    setPanel('ticket', true);
+                    setTicketDraft({
+                      nonce: Date.now(),
+                      price: String(ctxMenu.price),
+                      orderType: 'stop_limit',
                       side: 'sell',
                     });
                     setCtxMenu(null);
@@ -1009,6 +1415,33 @@ export function ForexChartFoundation(props?: {
                 />
               </>
             ) : null}
+            {(() => {
+              const near = Object.values(orders).find((o) => {
+                const st = String(o.status).toUpperCase();
+                if (o.symbol !== selected || !['ACCEPTED', 'PENDING', 'NEW', 'WORKING', 'OPEN'].includes(st)) return false;
+                const px = Number(o.requestedPrice);
+                return Number.isFinite(px) && Math.abs(px - ctxMenu.price) <= Math.pow(10, -(digits - 1));
+              });
+              if (!near) return null;
+              return (
+                <>
+                  <CtxItem
+                    label={`Pending ${near.orderId.slice(0, 8)} · ${near.type} ${near.requestedVolume}`}
+                    onClick={() => {
+                      setBottomTab('orders');
+                      setCtxMenu(null);
+                    }}
+                  />
+                  <CtxItem
+                    label="Cancel pending (server)"
+                    onClick={() => {
+                      void orderEngine.cancel(near.orderId);
+                      setCtxMenu(null);
+                    }}
+                  />
+                </>
+              );
+            })()}
             {levels?.entry != null ? (
               <>
                 <CtxItem
