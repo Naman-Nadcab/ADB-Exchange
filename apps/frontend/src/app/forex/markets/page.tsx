@@ -171,7 +171,7 @@ export default function ForexMarketsPage() {
             return (
               <article
                 key={inst.symbol}
-                className="eda-card-interactive group flex flex-col p-4"
+                className="eda-card-interactive group flex flex-col p-3"
               >
                 <div className="flex items-start justify-between gap-2">
                   <button
@@ -179,7 +179,7 @@ export default function ForexMarketsPage() {
                     className="min-w-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     onClick={() => openTrade(inst.symbol)}
                   >
-                    <h2 className="truncate text-[15px] font-semibold tracking-tight text-foreground group-hover:text-primary">
+                    <h2 className="truncate font-mono text-[14px] font-semibold tabular-nums tracking-tight text-foreground">
                       {inst.displaySymbol ?? inst.symbol}
                     </h2>
                     <p className="mt-0.5 text-[11px] text-muted-foreground">
@@ -234,18 +234,23 @@ export default function ForexMarketsPage() {
 
                 {note ? <p className="mt-2 text-[10px] text-amber-400/90">{note}</p> : null}
 
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {!sessionOpen ? (
+                    <span className="text-[11px] font-medium uppercase tracking-wide text-amber-400/95">
+                      Session closed
+                    </span>
+                  ) : null}
                   <button
                     type="button"
                     onClick={() => openTrade(inst.symbol)}
-                    className="inline-flex h-8 flex-1 items-center justify-center rounded-lg bg-primary px-3 text-[12px] font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="ml-auto inline-flex h-7 items-center justify-center border border-border bg-[#1a1f26] px-2.5 text-[11px] font-medium text-foreground hover:border-primary/35 hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     Trade
                   </button>
                   <Link
                     href={`${FOREX_ROUTES.analysis}?symbol=${encodeURIComponent(inst.symbol)}`}
                     onClick={() => setSelected(inst.symbol)}
-                    className="inline-flex h-8 items-center justify-center rounded-lg border border-border px-3 text-[12px] font-semibold text-foreground hover:border-primary/40 hover:bg-accent/50"
+                    className="inline-flex h-7 items-center justify-center border border-border px-2.5 text-[11px] font-medium text-muted-foreground hover:border-primary/40 hover:text-foreground"
                   >
                     Analyze
                   </Link>

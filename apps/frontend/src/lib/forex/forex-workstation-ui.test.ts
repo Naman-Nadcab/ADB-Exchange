@@ -31,8 +31,10 @@ function testEngineUuid(): void {
 
 function testMobileTicket(): void {
   const layout = readFileSync(join(root, 'ForexTerminalLayout.tsx'), 'utf8');
+  const tradePage = readFileSync(join(__dirname, '../../app/forex/page.tsx'), 'utf8');
   assert(layout.includes('overflow-x-hidden'), 'no page overflow');
-  assert(layout.includes('lg:hidden'), 'mobile ticket/toolbox path');
+  assert(tradePage.includes('ForexOrderTicket'), 'mobile companion owns order ticket');
+  assert(!/lg:hidden[\s\S]*<ForexOrderTicket/.test(layout), 'layout must not duplicate mobile ticket');
 }
 
 function testChartAlwaysUsesQuote(): void {
@@ -41,9 +43,36 @@ function testChartAlwaysUsesQuote(): void {
   assert(foundation.includes('DEMO · SIMULATED'), 'honest chart status');
 }
 
+function testP0Surfaces(): void {
+  const positions = readFileSync(join(root, 'ForexPositionPanel.tsx'), 'utf8');
+  assert(positions.includes('livePositionValuation'), 'live quote P&L');
+  assert(positions.includes('onTrailSet'), 'trailing control');
+  const ticket = readFileSync(join(root, 'ForexOrderTicket.tsx'), 'utf8');
+  assert(ticket.includes('estimateTicketRisk'), 'ticket risk estimates');
+  const bottom = readFileSync(join(root, 'ForexBottomPanels.tsx'), 'utf8');
+  assert(bottom.includes("id: 'analytics'"), 'risk analytics tab');
+  assert(bottom.includes("id: 'alerts'"), 'alerts tab');
+}
+
+function testPendingCancelSurfaces(): void {
+  const bottom = readFileSync(join(root, 'ForexBottomPanels.tsx'), 'utf8');
+  assert(bottom.includes('Cancel'), 'toolbox Orders Cancel');
+  assert(bottom.includes('sticky left-0'), 'Cancel sticky discoverable');
+  assert(bottom.includes('data-testid={`cancel-order-'), 'Cancel test id');
+  const tradePage = readFileSync(join(__dirname, '../../app/forex/page.tsx'), 'utf8');
+  assert(tradePage.includes('compact={bottomCollapsed}'), 'mobile toolbox respects workspace collapse');
+  assert(tradePage.includes('ForexBottomPanels'), 'mobile toolbox exposes Cancel surfaces');
+  const ordersPage = readFileSync(join(__dirname, '../../app/forex/orders/page.tsx'), 'utf8');
+  assert(ordersPage.includes('Cancel'), 'Orders page Cancel');
+  assert(ordersPage.includes('useForexOrderEngine'), 'Orders page uses order engine');
+  assert(ordersPage.includes('Modify'), 'Orders page Modify');
+}
+
 testNoBareLiveLabel();
 testNoLastAsCurrent();
 testEngineUuid();
 testMobileTicket();
 testChartAlwaysUsesQuote();
+testP0Surfaces();
+testPendingCancelSurfaces();
 console.log('forex-workstation-ui.test.ts ok');

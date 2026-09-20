@@ -12,19 +12,30 @@ export function ForexPageFrame(props: {
   /** Compact commercial header — less vertical chrome */
   dense?: boolean;
 }) {
+  const dense = props.dense !== false;
   return (
     <div
       className={cn(
         props.wide ? 'mx-auto max-w-[1400px]' : 'mx-auto max-w-6xl',
-        props.dense ? 'space-y-3 px-3 py-3 sm:px-4' : 'space-y-5 px-4 py-6 sm:px-6',
+        dense ? 'space-y-3 px-3 py-3 sm:px-4' : 'space-y-5 px-4 py-6 sm:px-6',
         props.className
       )}
     >
-      <div className={cn('flex flex-wrap items-center justify-between', props.dense ? 'gap-2' : 'items-end gap-3')}>
+      <div className={cn('flex flex-wrap items-center justify-between gap-2', !dense && 'items-end gap-3')}>
         <div className="min-w-0">
-          <h1 className={cn('font-semibold tracking-tight', props.dense ? 'text-lg' : 'text-2xl')}>{props.title}</h1>
-          {props.subtitle && !props.dense ? (
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{props.subtitle}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Forex</p>
+          <h1
+            className={cn(
+              'font-semibold uppercase tracking-[0.08em] text-foreground',
+              dense ? 'text-[13px]' : 'text-2xl normal-case tracking-tight'
+            )}
+          >
+            {props.title}
+          </h1>
+          {props.subtitle ? (
+            <p className={cn('max-w-2xl text-muted-foreground', dense ? 'mt-0.5 text-[11px]' : 'mt-1 text-sm')}>
+              {props.subtitle}
+            </p>
           ) : null}
         </div>
         {props.actions}

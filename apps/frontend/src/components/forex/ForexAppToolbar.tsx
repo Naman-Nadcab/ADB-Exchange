@@ -68,199 +68,218 @@ export function ForexAppToolbar() {
     setOneClickEnabled(true);
   }
 
+  const fileItems = [
+    {
+      label: 'New Order',
+      onClick: () => {
+        setPanel('ticket', true);
+        setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'buy' });
+      },
+    },
+    {
+      label: 'Save Workspace',
+      onClick: () => {
+        const name = window.prompt('Workspace name', 'My Workspace');
+        if (!name?.trim()) return;
+        saveWorkspaceProfile(name.trim(), captureSnapshot());
+      },
+    },
+    {
+      label: 'Load Workspace…',
+      onClick: () => {
+        const profiles = listWorkspaceProfiles();
+        if (!profiles.length) {
+          window.alert('No saved workspaces.');
+          return;
+        }
+        const names = profiles.map((p, i) => `${i + 1}. ${p.name}`).join('\n');
+        const pick = window.prompt(`Load workspace:\n${names}\n\nEnter number`, '1');
+        const idx = Number(pick) - 1;
+        if (!profiles[idx]) return;
+        applySnapshot(profiles[idx].snapshot);
+      },
+    },
+    {
+      label: 'Save Chart Study Preset',
+      onClick: () => {
+        const name = window.prompt('Study preset name (studies only — not drawings)', 'Scalping');
+        if (!name?.trim()) return;
+        saveChartTemplate({
+          name: name.trim(),
+          study: 'ema20_50',
+          showRsi: false,
+          showMacd: false,
+          showSessions: false,
+          showLevels: false,
+          chartType: 'candles',
+        });
+      },
+    },
+    {
+      label: 'List Study Presets…',
+      onClick: () => {
+        const t = listChartTemplates();
+        if (!t.length) {
+          window.alert('No study presets saved. These store study/RSI/MACD flags only, not drawings.');
+          return;
+        }
+        window.alert(
+          `Study presets (not full chart serialization):\n${t.map((x) => `• ${x.name} (${x.study})`).join('\n')}`
+        );
+      },
+    },
+  ];
+
+  const viewItems = [
+    {
+      label: panels.watchlist ? 'Hide Market Watch' : 'Show Market Watch',
+      onClick: () => setPanel('watchlist', !panels.watchlist),
+    },
+    {
+      label: panels.ticket ? 'Hide Order Ticket' : 'Show Order Ticket',
+      onClick: () => setPanel('ticket', !panels.ticket),
+    },
+    {
+      label: bottomCollapsed ? 'Expand Toolbox' : 'Collapse Toolbox',
+      onClick: () => setBottomCollapsed(!bottomCollapsed),
+    },
+    {
+      label: chartMode === 'expand' ? 'Restore Panels' : 'Chart Expand',
+      onClick: () => setChartMode(chartMode === 'expand' ? 'normal' : 'expand'),
+    },
+    {
+      label: chartMode === 'fullscreen' ? 'Exit Fullscreen' : 'Fullscreen Chart',
+      onClick: () => setChartMode(chartMode === 'fullscreen' ? 'normal' : 'fullscreen'),
+    },
+    {
+      label: maximizedChartId ? 'Unmaximize Chart' : '—',
+      onClick: () => {
+        if (maximizedChartId) restoreMaximizedChart();
+      },
+      disabled: !maximizedChartId,
+    },
+  ];
+
+  const chartsItems = [
+    { label: 'Add Chart', onClick: () => addChart(selectedSymbol) },
+    { label: 'Duplicate Active', onClick: () => duplicateChart(activeChartId) },
+    { label: 'Remove Active', onClick: () => removeChart(activeChartId) },
+    {
+      label: linkTimeframe ? 'Unlink Timeframes' : 'Link Timeframes (group)',
+      onClick: () => setLinkTimeframe(!linkTimeframe),
+    },
+  ];
+
+  const tradingItems = [
+    {
+      label: 'New Order',
+      onClick: () => {
+        setPanel('ticket', true);
+        setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'buy' });
+      },
+    },
+    { label: oneClickEnabled ? 'Disable One-Click' : 'Enable One-Click…', onClick: toggleOneClick },
+    {
+      label: 'Open Positions',
+      onClick: () => {
+        setBottomCollapsed(false);
+        setBottomTab('positions');
+      },
+    },
+    {
+      label: 'Working Orders',
+      onClick: () => {
+        setBottomCollapsed(false);
+        setBottomTab('orders');
+      },
+    },
+  ];
+
+  const toolsItems = [
+    {
+      label: 'DOM (Depth)',
+      onClick: () => {
+        setBottomCollapsed(false);
+        setBottomTab('dom');
+      },
+    },
+    {
+      label: 'News',
+      onClick: () => {
+        setBottomCollapsed(false);
+        setBottomTab('news');
+      },
+    },
+    {
+      label: 'Calendar',
+      onClick: () => {
+        setBottomCollapsed(false);
+        setBottomTab('calendar');
+      },
+    },
+    {
+      label: 'Journal',
+      onClick: () => {
+        setBottomCollapsed(false);
+        setBottomTab('journal');
+      },
+    },
+    {
+      label: 'Delete Last Template',
+      onClick: () => {
+        const t = listChartTemplates()[0];
+        if (t) deleteChartTemplate(t.id);
+      },
+    },
+  ];
+
+  type ToolbarItem = { label: string; onClick: () => void; disabled?: boolean };
+  const withGroup = (group: string, items: ToolbarItem[]) => items.map((i) => ({ ...i, group }));
+
+  const mobileOverflowItems = [
+    ...withGroup('File', fileItems),
+    ...withGroup('View', viewItems),
+    ...withGroup('Charts', chartsItems),
+    ...withGroup('Trading', tradingItems),
+    ...withGroup('Tools', toolsItems),
+  ];
+
   return (
-    <div className="flex h-7 shrink-0 items-center gap-1 border-b border-border bg-[#15181d] px-1.5 text-[11px]">
+    <div className="relative flex h-7 shrink-0 items-center gap-1 border-b border-border bg-[#15181d] px-1.5 text-[11px]">
+      <Menu
+        id="mobile"
+        label="Menu"
+        open={menu}
+        setOpen={setMenu}
+        className="md:hidden"
+        items={mobileOverflowItems.map((item) => ({
+          label: `${item.group} · ${item.label}`,
+          onClick: item.onClick,
+          disabled: item.disabled,
+        }))}
+      />
       <Menu
         id="file"
         label="File"
+        className="hidden md:block"
         open={menu}
         setOpen={setMenu}
-        items={[
-          {
-            label: 'New Order',
-            onClick: () => {
-              setPanel('ticket', true);
-              setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'buy' });
-            },
-          },
-          {
-            label: 'Save Workspace',
-            onClick: () => {
-              const name = window.prompt('Workspace name', 'My Workspace');
-              if (!name?.trim()) return;
-              saveWorkspaceProfile(name.trim(), captureSnapshot());
-            },
-          },
-          {
-            label: 'Load Workspace…',
-            onClick: () => {
-              const profiles = listWorkspaceProfiles();
-              if (!profiles.length) {
-                window.alert('No saved workspaces.');
-                return;
-              }
-              const names = profiles.map((p, i) => `${i + 1}. ${p.name}`).join('\n');
-              const pick = window.prompt(`Load workspace:\n${names}\n\nEnter number`, '1');
-              const idx = Number(pick) - 1;
-              if (!profiles[idx]) return;
-              applySnapshot(profiles[idx].snapshot);
-            },
-          },
-          {
-            label: 'Save Chart Study Preset',
-            onClick: () => {
-              const name = window.prompt('Study preset name (studies only — not drawings)', 'Scalping');
-              if (!name?.trim()) return;
-              saveChartTemplate({
-                name: name.trim(),
-                study: 'ema20_50',
-                showRsi: false,
-                showMacd: false,
-                showSessions: false,
-                showLevels: false,
-                chartType: 'candles',
-              });
-            },
-          },
-          {
-            label: 'List Study Presets…',
-            onClick: () => {
-              const t = listChartTemplates();
-              if (!t.length) {
-                window.alert('No study presets saved. These store study/RSI/MACD flags only, not drawings.');
-                return;
-              }
-              window.alert(`Study presets (not full chart serialization):\n${t.map((x) => `• ${x.name} (${x.study})`).join('\n')}`);
-            },
-          },
-        ]}
+        items={fileItems}
       />
-      <Menu
-        id="view"
-        label="View"
-        open={menu}
-        setOpen={setMenu}
-        items={[
-          {
-            label: panels.watchlist ? 'Hide Market Watch' : 'Show Market Watch',
-            onClick: () => setPanel('watchlist', !panels.watchlist),
-          },
-          {
-            label: panels.ticket ? 'Hide Order Ticket' : 'Show Order Ticket',
-            onClick: () => setPanel('ticket', !panels.ticket),
-          },
-          {
-            label: bottomCollapsed ? 'Expand Toolbox' : 'Collapse Toolbox',
-            onClick: () => setBottomCollapsed(!bottomCollapsed),
-          },
-          {
-            label: chartMode === 'expand' ? 'Restore Panels' : 'Chart Expand',
-            onClick: () => setChartMode(chartMode === 'expand' ? 'normal' : 'expand'),
-          },
-          {
-            label: chartMode === 'fullscreen' ? 'Exit Fullscreen' : 'Fullscreen Chart',
-            onClick: () => setChartMode(chartMode === 'fullscreen' ? 'normal' : 'fullscreen'),
-          },
-          {
-            label: maximizedChartId ? 'Unmaximize Chart' : '—',
-            onClick: () => {
-              if (maximizedChartId) restoreMaximizedChart();
-            },
-            disabled: !maximizedChartId,
-          },
-        ]}
-      />
-      <Menu
-        id="charts"
-        label="Charts"
-        open={menu}
-        setOpen={setMenu}
-        items={[
-          { label: 'Add Chart', onClick: () => addChart(selectedSymbol) },
-          { label: 'Duplicate Active', onClick: () => duplicateChart(activeChartId) },
-          { label: 'Remove Active', onClick: () => removeChart(activeChartId) },
-          {
-            label: linkTimeframe ? 'Unlink Timeframes' : 'Link Timeframes (group)',
-            onClick: () => setLinkTimeframe(!linkTimeframe),
-          },
-        ]}
-      />
+      <Menu id="view" label="View" className="hidden md:block" open={menu} setOpen={setMenu} items={viewItems} />
+      <Menu id="charts" label="Charts" className="hidden md:block" open={menu} setOpen={setMenu} items={chartsItems} />
       <Menu
         id="trading"
         label="Trading"
+        className="hidden md:block"
         open={menu}
         setOpen={setMenu}
-        items={[
-          {
-            label: 'New Order',
-            onClick: () => {
-              setPanel('ticket', true);
-              setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'buy' });
-            },
-          },
-          { label: oneClickEnabled ? 'Disable One-Click' : 'Enable One-Click…', onClick: toggleOneClick },
-          {
-            label: 'Open Positions',
-            onClick: () => {
-              setBottomCollapsed(false);
-              setBottomTab('positions');
-            },
-          },
-          {
-            label: 'Working Orders',
-            onClick: () => {
-              setBottomCollapsed(false);
-              setBottomTab('orders');
-            },
-          },
-        ]}
+        items={tradingItems}
       />
-      <Menu
-        id="tools"
-        label="Tools"
-        open={menu}
-        setOpen={setMenu}
-        items={[
-          {
-            label: 'DOM (Depth)',
-            onClick: () => {
-              setBottomCollapsed(false);
-              setBottomTab('dom');
-            },
-          },
-          {
-            label: 'News',
-            onClick: () => {
-              setBottomCollapsed(false);
-              setBottomTab('news');
-            },
-          },
-          {
-            label: 'Calendar',
-            onClick: () => {
-              setBottomCollapsed(false);
-              setBottomTab('calendar');
-            },
-          },
-          {
-            label: 'Journal',
-            onClick: () => {
-              setBottomCollapsed(false);
-              setBottomTab('journal');
-            },
-          },
-          {
-            label: 'Delete Last Template',
-            onClick: () => {
-              const t = listChartTemplates()[0];
-              if (t) deleteChartTemplate(t.id);
-            },
-          },
-        ]}
-      />
+      <Menu id="tools" label="Tools" className="hidden md:block" open={menu} setOpen={setMenu} items={toolsItems} />
 
-      <span className="mx-1 h-3.5 w-px bg-border" aria-hidden />
-      <div className="flex items-center gap-px" role="group" aria-label="Chart layout">
+      <span className="mx-1 hidden h-3.5 w-px bg-border md:inline" aria-hidden />
+      <div className="hidden items-center gap-px sm:flex" role="group" aria-label="Chart layout">
         {LAYOUTS.map((l) => (
           <button
             key={l.id}
@@ -286,13 +305,16 @@ export function ForexAppToolbar() {
         aria-pressed={oneClickEnabled}
         onClick={toggleOneClick}
         className={cn(
-          'ml-1 rounded px-1.5 py-0.5 text-[10px] font-semibold',
-          oneClickEnabled ? 'bg-sell/25 text-sell' : 'text-muted-foreground hover:text-foreground'
+          'ml-1 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold',
+          oneClickEnabled
+            ? 'bg-sell/25 text-sell ring-1 ring-sell/40'
+            : 'border border-border/80 bg-[#1a1f26] text-foreground'
         )}
+        title={oneClickEnabled ? 'One-click trading enabled' : 'One-click trading disabled (default)'}
       >
         1-Click {oneClickEnabled ? 'ON' : 'OFF'}
       </button>
-      <span className="ml-auto font-mono text-[9px] uppercase tracking-wide text-amber-200/80">
+      <span className="ml-auto hidden min-w-0 truncate font-mono text-[9px] uppercase tracking-wide text-amber-200/80 sm:inline">
         {selectedSymbol} · SIMULATED
       </span>
     </div>
@@ -305,10 +327,11 @@ function Menu(props: {
   open: string | null;
   setOpen: (id: string | null) => void;
   items: Array<{ label: string; onClick: () => void; disabled?: boolean }>;
+  className?: string;
 }) {
   const open = props.open === props.id;
   return (
-    <div className="relative">
+    <div className={cn('relative shrink-0', props.className)}>
       <button
         type="button"
         className={cn(

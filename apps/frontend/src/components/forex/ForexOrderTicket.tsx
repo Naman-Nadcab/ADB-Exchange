@@ -1,11 +1,27 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
 import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
 import { isPreviewParamComplete } from '@/lib/forex/models/preview';
 import { executablePrice, isQuoteStale } from '@/lib/forex/models/quotes';
-import type { ForexOrderType, ForexSide } from '@/lib/forex/models/types';
+import { estimateTicketRisk } from '@/lib/forex/models/ticket-risk';
+import {
+  availableOrderTypes,
+  availableTimeInForce,
+  coerceTimeInForce,
+  describeCustomerOrder,
+  FOREX_ORDER_TYPE_LABEL,
+  FOREX_TIME_IN_FORCE_LABEL,
+  isPendingOrderType,
+  isTimeInForceAllowed,
+  orderKindHelp,
+  requiresLimitPrice,
+  requiresTriggerPrice,
+  timeInForceBlockedReason,
+  unavailableTicketFeatures,
+} from '@/lib/forex/models/order-type-tif';
+import type { ForexSide, ForexOrderType, ForexTimeInForce } from '@/lib/forex/models/types';
 import { forexApi } from '@/lib/forex/api/client';
 import { hydrateForexPrivate } from '@/lib/forex/runtime/hydrate';
 import { useForexOrderEngine } from '@/lib/forex/runtime/useForexOrderEngine';
@@ -14,12 +30,6 @@ import { useForexStore } from '@/lib/forex/state/store';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { cn } from '@/lib/utils';
 import { fxNum } from './format';
-
-const TYPE_LABEL: Record<ForexOrderType, string> = {
-  market: 'Market',
-  limit: 'Limit',
-  stop: 'Stop',
-};
 
 export function ForexOrderTicket() {
   const selected = useForexWorkspaceStore((s) => s.selectedSymbol);
@@ -40,6 +50,9 @@ export function ForexOrderTicket() {
   const [type, setType] = useState<ForexOrderType>('market');
   const [volume, setVolume] = useState('0.10');
   const [price, setPrice] = useState('');
+  const [limitPrice, setLimitPrice] = useState('');
+  const [tif, setTif] = useState<ForexTimeInForce>('GTC');
+  const [expireAt, setExpireAt] = useState('');
   const [sl, setSl] = useState('');
   const [tp, setTp] = useState('');
   const [refreshNonce, setRefreshNonce] = useState(0);
@@ -54,6 +67,7 @@ export function ForexOrderTicket() {
       setPrice(ticketDraft.price);
       setType((cur) => ticketDraft.orderType ?? (cur === 'market' ? 'limit' : cur));
     }
+    if (ticketDraft.limitPrice) setLimitPrice(ticketDraft.limitPrice);
     if (ticketDraft.sl) setSl(ticketDraft.sl);
     if (ticketDraft.tp) setTp(ticketDraft.tp);
     if (ticketDraft.volume) setVolume(ticketDraft.volume);
@@ -65,9 +79,28 @@ export function ForexOrderTicket() {
     const preferred = 0.1;
     setVolume(preferred >= min && preferred <= max ? '0.10' : inst?.minVolume ?? '0.01');
     setPrice('');
+    setLimitPrice('');
   }, [selected, inst?.minVolume, inst?.maxVolume]);
 
-  const allowedTypes = config?.orderTypes ?? ['market', 'limit', 'stop'];
+  const allowedTypes = useMemo(() => availableOrderTypes(config), [config]);
+  const tifOptions = useMemo(() => availableTimeInForce(config), [config]);
+  const tifUnsupported = tifOptions.length <= 1;
+  const missingFeatures = useMemo(() => unavailableTicketFeatures(config), [config]);
+
+  // A type change can invalidate the selected TIF — never submit a combination
+  // the server is guaranteed to reject.
+  useEffect(() => {
+    setTif((cur) => coerceTimeInForce(type, cur, tifOptions));
+  }, [type, tifOptions]);
+
+  useEffect(() => {
+    if (!requiresLimitPrice(type)) setLimitPrice('');
+  }, [type]);
+
+  useEffect(() => {
+    setType((cur) => (allowedTypes.includes(cur) ? cur : allowedTypes[0] ?? 'market'));
+  }, [allowedTypes]);
+
   const stale = !quote || isQuoteStale(quote);
   const sessionOpen = sessions?.eligibility.open === true;
   const digits = inst?.digits ?? 5;
@@ -78,23 +111,41 @@ export function ForexOrderTicket() {
     dealing?.symbol.newOrderEnabled !== false &&
     dealing?.symbol.enabled !== false;
   const sideEnabled = side === 'buy' ? dealing?.symbol.buyEnabled !== false : dealing?.symbol.sellEnabled !== false;
-  const authed = hasForexPrivateSession();
+  const authed = useForexPrivateSession();
   const busy = storeBusy || engine.busy;
   const previewReq = {
     symbol: selected,
     side,
     orderType: type,
     volume,
-    ...(type !== 'market' && price.trim() ? { requestedPrice: price.trim() } : {}),
+    ...(requiresTriggerPrice(type) && price.trim() ? { requestedPrice: price.trim() } : {}),
+    ...(requiresLimitPrice(type) && limitPrice.trim() ? { limitPrice: limitPrice.trim() } : {}),
+    ...(tifUnsupported ? {} : { timeInForce: tif }),
+    ...(tif === 'GTD' && expireAt ? { expireAt: new Date(expireAt).toISOString() } : {}),
   };
   const preview = useForexPreview(authed && isPreviewParamComplete(previewReq) ? previewReq : null, refreshNonce);
   const previewData = preview.data;
+  const ticketRisk = useMemo(
+    () =>
+      estimateTicketRisk({
+        instrument: inst,
+        side,
+        // stop_limit fills at its limit, so that is the honest entry estimate.
+        entry: !isPendingOrderType(type)
+          ? exec
+          : (requiresLimitPrice(type) ? limitPrice.trim() : price.trim()) || exec,
+        sl,
+        tp,
+        volume,
+      }),
+    [inst, side, type, exec, price, limitPrice, sl, tp, volume]
+  );
 
-  const pendingLabel = useMemo(() => {
-    if (type === 'market') return null;
-    if (type === 'limit') return side === 'buy' ? 'Buy Limit' : 'Sell Limit';
-    return side === 'buy' ? 'Buy Stop' : 'Sell Stop';
-  }, [type, side]);
+  const orderActionLabel = useMemo(() => describeCustomerOrder(side, type), [side, type]);
+  const kindHelp = useMemo(() => orderKindHelp(type, side), [type, side]);
+  const positionMode = account?.positionMode ?? 'NETTING';
+
+  const tifNote = timeInForceBlockedReason(type, tif);
 
   const blockReason = useMemo(() => {
     if (!authed) return 'Sign in to place Forex orders.';
@@ -106,9 +157,15 @@ export function ForexOrderTicket() {
     }
     if (!newOrders) return 'New orders are currently disabled.';
     if (!sideEnabled) return `${side.toUpperCase()} is disabled for this symbol.`;
-    if ((type === 'limit' || type === 'stop') && !price.trim()) return 'Limit and stop orders require a trigger/entry price.';
+    if (requiresTriggerPrice(type) && !price.trim()) {
+      return type === 'stop_limit'
+        ? 'Stop Limit orders require a stop price.'
+        : 'Limit and stop orders require a trigger/entry price.';
+    }
+    if (requiresLimitPrice(type) && !limitPrice.trim()) return 'Stop Limit orders require a limit price.';
+    if (tifNote) return tifNote;
     return null;
-  }, [authed, sessionOpen, sessions?.eligibility.reason, stale, quote, risk, newOrders, sideEnabled, side, type, price]);
+  }, [authed, sessionOpen, sessions?.eligibility.reason, stale, quote, risk, newOrders, sideEnabled, side, type, price, limitPrice, tifNote]);
 
   const previewRejected = preview.status === 'BLOCKED' && previewData?.allowed === false;
   const previewLoadingNoData = preview.status === 'LOADING' && !previewData;
@@ -120,7 +177,9 @@ export function ForexOrderTicket() {
     risk?.state === 'RESTRICTED' ||
     risk?.state === 'LIQUIDATION_ONLY' ||
     !newOrders ||
-    ((type === 'limit' || type === 'stop') && !price.trim()) ||
+    (requiresTriggerPrice(type) && !price.trim()) ||
+    (requiresLimitPrice(type) && !limitPrice.trim()) ||
+    Boolean(tifNote) ||
     busy ||
     previewRejected ||
     previewLoadingNoData;
@@ -135,7 +194,10 @@ export function ForexOrderTicket() {
       side: useSide,
       orderType: type,
       volume,
-      requestedPrice: type !== 'market' ? price.trim() : undefined,
+      requestedPrice: requiresTriggerPrice(type) ? price.trim() : undefined,
+      limitPrice: requiresLimitPrice(type) ? limitPrice.trim() : undefined,
+      timeInForce: tifUnsupported ? undefined : tif,
+      expireAt: tif === 'GTD' && expireAt ? new Date(expireAt).toISOString() : undefined,
       stopLoss: sl.trim() || undefined,
       takeProfit: tp.trim() || undefined,
     });
@@ -186,6 +248,10 @@ export function ForexOrderTicket() {
         <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">New Order</span>
         <span className="font-mono text-[11px] font-semibold">{inst?.displaySymbol ?? selected}</span>
       </div>
+      <div className="flex items-center justify-between border-b border-border px-2 py-0.5 text-[9px] text-muted-foreground">
+        <span title="Authoritative account position accounting mode">Mode · {positionMode}</span>
+        <span className="font-medium text-foreground">{orderActionLabel}</span>
+      </div>
 
       <div className="grid grid-cols-3 border-b border-border font-mono text-[11px]">
         <div className="border-r border-border px-2 py-1">
@@ -203,23 +269,87 @@ export function ForexOrderTicket() {
       </div>
 
       <div className="min-h-0 flex-1 space-y-1.5 overflow-auto px-2 py-1.5">
+        <div className="grid grid-cols-2 gap-1">
+          <button
+            type="button"
+            aria-pressed={side === 'sell'}
+            onClick={() => setSide('sell')}
+            className={cn(
+              'h-7 rounded border font-mono text-[11px] font-semibold',
+              side === 'sell' ? 'border-sell bg-sell/15 text-sell' : 'border-border text-muted-foreground'
+            )}
+          >
+            SELL
+          </button>
+          <button
+            type="button"
+            aria-pressed={side === 'buy'}
+            onClick={() => setSide('buy')}
+            className={cn(
+              'h-7 rounded border font-mono text-[11px] font-semibold',
+              side === 'buy' ? 'border-buy bg-buy/15 text-buy' : 'border-border text-muted-foreground'
+            )}
+          >
+            BUY
+          </button>
+        </div>
         <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
-          <span className="w-14 shrink-0 uppercase">Type</span>
+          <span className="w-14 shrink-0 uppercase">Kind</span>
           <select
             value={type}
             onChange={(e) => setType(e.target.value as ForexOrderType)}
             className="fx-mt5-field h-7 flex-1 px-1.5 text-[11px]"
+            aria-label="Order kind"
           >
             {allowedTypes.map((t) => (
               <option key={t} value={t}>
-                {TYPE_LABEL[t]}
+                {FOREX_ORDER_TYPE_LABEL[t]}
               </option>
             ))}
           </select>
         </label>
+        <p className="text-[9px] leading-snug text-muted-foreground">{kindHelp}</p>
+
+        <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
+          <span className="w-14 shrink-0 uppercase">TIF</span>
+          <select
+            value={tif}
+            disabled={tifUnsupported}
+            onChange={(e) => setTif(e.target.value as ForexTimeInForce)}
+            className="fx-mt5-field h-7 flex-1 px-1.5 text-[11px] disabled:opacity-50"
+            aria-label="Time in force"
+          >
+            {tifOptions.map((t) => (
+              <option key={t} value={t} disabled={!isTimeInForceAllowed(type, t)}>
+                {FOREX_TIME_IN_FORCE_LABEL[t]}
+                {isTimeInForceAllowed(type, t) ? '' : ' · n/a for this type'}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="pl-16 text-[9px] leading-snug text-muted-foreground">
+          {tifUnsupported
+            ? 'Backend advertises GTC only.'
+            : isPendingOrderType(type)
+              ? 'GTC rests until cancelled · DAY expires at session close · GTD uses server expireAt.'
+              : 'GTC / IOC / FOK execute now · DAY/GTD apply to pending orders only.'}
+        </p>
+
+        {tif === 'GTD' && isPendingOrderType(type) ? (
+          <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
+            <span className="w-14 shrink-0 uppercase">Expires</span>
+            <input
+              type="datetime-local"
+              value={expireAt}
+              onChange={(e) => setExpireAt(e.target.value)}
+              className="fx-mt5-field h-7 flex-1 px-1.5 text-[11px]"
+              aria-label="GTD expiry"
+            />
+          </label>
+        ) : null}
+
         <p className="text-[9px] leading-snug text-muted-foreground">
-          Stop Limit unavailable · Time in Force unavailable · SIMULATED / MOCK
-          {pendingLabel ? ` · ${pendingLabel}` : ''}
+          {[...missingFeatures, 'SIMULATED / MOCK'].join(' · ')}
         </p>
 
         <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
@@ -237,30 +367,67 @@ export function ForexOrderTicket() {
           </p>
         ) : null}
 
-        {type !== 'market' ? (
+        {requiresTriggerPrice(type) ? (
           <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
-            <span className="w-14 shrink-0 uppercase">{type === 'stop' ? 'Trigger' : 'Price'}</span>
+            <span className="w-14 shrink-0 uppercase">
+              {type === 'limit' ? 'Price' : type === 'stop_limit' ? 'Stop' : 'Trigger'}
+            </span>
             <input
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               className="fx-mt5-field h-7 flex-1 px-1.5 text-[12px]"
-              aria-label={type === 'stop' ? 'Trigger price' : 'Limit price'}
+              aria-label={type === 'limit' ? 'Limit price' : type === 'stop_limit' ? 'Stop price' : 'Trigger price'}
             />
           </label>
         ) : null}
 
+        {requiresLimitPrice(type) ? (
+          <>
+            <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
+              <span className="w-14 shrink-0 uppercase">Limit</span>
+              <input
+                value={limitPrice}
+                onChange={(e) => setLimitPrice(e.target.value)}
+                className="fx-mt5-field h-7 flex-1 px-1.5 text-[12px]"
+                aria-label="Stop limit price"
+              />
+            </label>
+            <p className="pl-16 text-[9px] leading-snug text-muted-foreground">
+              {side === 'buy'
+                ? 'Buy Stop Limit: limit must be at or below the stop.'
+                : 'Sell Stop Limit: limit must be at or above the stop.'}{' '}
+              Once the stop is hit the order works as a limit at this price.
+            </p>
+          </>
+        ) : null}
+
         <div className="grid grid-cols-2 gap-1.5">
-          <label className="text-[10px] text-muted-foreground">
+          <label className="text-[10px] text-muted-foreground" htmlFor="fx-ticket-sl">
             <span className="mb-0.5 block uppercase">Stop Loss</span>
-            <input value={sl} onChange={(e) => setSl(e.target.value)} className="fx-mt5-field h-7 w-full px-1.5 text-[12px]" />
+            <input
+              id="fx-ticket-sl"
+              value={sl}
+              onChange={(e) => setSl(e.target.value)}
+              aria-label="Stop loss price"
+              className="fx-mt5-field h-7 w-full px-1.5 text-[12px]"
+            />
           </label>
-          <label className="text-[10px] text-muted-foreground">
+          <label className="text-[10px] text-muted-foreground" htmlFor="fx-ticket-tp">
             <span className="mb-0.5 block uppercase">Take Profit</span>
-            <input value={tp} onChange={(e) => setTp(e.target.value)} className="fx-mt5-field h-7 w-full px-1.5 text-[12px]" />
+            <input
+              id="fx-ticket-tp"
+              value={tp}
+              onChange={(e) => setTp(e.target.value)}
+              aria-label="Take profit price"
+              className="fx-mt5-field h-7 w-full px-1.5 text-[12px]"
+            />
           </label>
         </div>
-        <p className="text-[9px] leading-snug text-muted-foreground">SL/TP attach after fill via protections.</p>
+        <p className="text-[11px] leading-snug text-muted-foreground">SL/TP attach after fill via protections.</p>
 
+        <p className="text-[11px] leading-snug text-muted-foreground">
+          SL/TP distances and R:R are Estimated. Margin from server preview is Actual when READY.
+        </p>
         <dl className="grid grid-cols-2 gap-x-2 gap-y-0.5 border border-border px-2 py-1 font-mono text-[10px] text-muted-foreground">
           <dt>Balance</dt>
           <dd className="text-right text-foreground">
@@ -284,6 +451,26 @@ export function ForexOrderTicket() {
           <dd className="text-right text-foreground">{previewData?.requiredMargin ?? '—'}</dd>
           <dt>Fee</dt>
           <dd className="text-right text-foreground">{previewData?.estimatedFee ?? '0'}</dd>
+          <dt>Est. exposure</dt>
+          <dd className="text-right text-foreground">
+            {ticketRisk.estimatedExposure != null ? fxNum(ticketRisk.estimatedExposure, 0) : '—'}
+          </dd>
+          <dt>Est. SL</dt>
+          <dd className="text-right text-foreground">
+            {ticketRisk.slDistancePips != null ? `${ticketRisk.slDistancePips.toFixed(1)}p` : '—'}
+            {ticketRisk.estimatedRisk != null ? ` · ${fxNum(ticketRisk.estimatedRisk, 2)}` : ''}
+          </dd>
+          <dt>Est. TP</dt>
+          <dd className="text-right text-foreground">
+            {ticketRisk.tpDistancePips != null ? `${ticketRisk.tpDistancePips.toFixed(1)}p` : '—'}
+            {ticketRisk.estimatedReward != null ? ` · ${fxNum(ticketRisk.estimatedReward, 2)}` : ''}
+          </dd>
+          <dt>Est. R:R</dt>
+          <dd className="text-right text-foreground">
+            {ticketRisk.riskReward != null ? ticketRisk.riskReward.toFixed(2) : '—'}
+          </dd>
+          <dt>Free after</dt>
+          <dd className="text-right text-foreground">{previewData?.projectedFreeMargin ?? '—'}</dd>
           <dt>Preview</dt>
           <dd className="text-right">
             <button type="button" className="text-primary hover:underline" onClick={() => setRefreshNonce((n) => n + 1)}>
@@ -292,7 +479,7 @@ export function ForexOrderTicket() {
             </button>
           </dd>
         </dl>
-        {type !== 'market' && price.trim() ? (
+        {requiresTriggerPrice(type) && price.trim() ? (
           <button
             type="button"
             disabled={demoBusy || !authed}
@@ -302,9 +489,9 @@ export function ForexOrderTicket() {
             {demoBusy ? 'Moving simulated price…' : 'Move mock price to trigger · DEMO / SIMULATED'}
           </button>
         ) : null}
-        {demoNote ? <p className="text-[9px] text-muted-foreground">{demoNote}</p> : null}
+        {demoNote ? <p className="text-[11px] text-muted-foreground">{demoNote}</p> : null}
         {previewData && !previewData.allowed && previewData.reason ? (
-          <p className="border border-rose-900/60 bg-rose-950/30 px-1.5 py-1 text-[10px] text-rose-200" role="status">
+          <p className="border border-rose-900/60 bg-rose-950/30 px-1.5 py-1 text-[11px] text-rose-200" role="status">
             Preview rejected · {previewData.reason}
             {previewData.ledgerBalance != null ? ` · ledger ${previewData.ledgerBalance}` : ''}
             {previewData.requiredMargin != null ? ` · required ${previewData.requiredMargin}` : ''}
@@ -312,12 +499,12 @@ export function ForexOrderTicket() {
         ) : null}
 
         {blockReason ? (
-          <p className="border border-amber-800/60 bg-amber-950/30 px-1.5 py-1 text-[10px] text-amber-200" role="status">
+          <p className="border border-amber-800/60 bg-amber-950/30 px-1.5 py-1 text-[11px] text-amber-200" role="status">
             {blockReason}
           </p>
         ) : null}
         {lastError ? (
-          <p className="border border-rose-900/60 bg-rose-950/30 px-1.5 py-1 text-[10px] text-rose-200" role="alert">
+          <p className="border border-rose-900/60 bg-rose-950/30 px-1.5 py-1 text-[11px] text-rose-200" role="alert">
             {describeForexError(normalizeForexError(lastError))}
           </p>
         ) : null}
@@ -326,34 +513,45 @@ export function ForexOrderTicket() {
             Last {last.orderId.slice(0, 8)}… {last.status}
           </p>
         ) : null}
-        {engine.lastNote ? <p className="text-[9px] text-muted-foreground">{engine.lastNote}</p> : null}
+        {engine.lastNote ? <p className="text-[11px] text-muted-foreground">{engine.lastNote}</p> : null}
         {actionLabel ? <p className="text-[10px] font-semibold text-foreground">{actionLabel}</p> : null}
       </div>
 
-      {/* MT5-style twin execution buttons — not a crypto CTA pill */}
-      <div className="grid grid-cols-2 gap-1 border-t border-border p-1.5">
-        <button
-          type="button"
-          disabled={!canSell}
-          onClick={() => void submit('sell')}
-          className="fx-mt5-sell h-9 font-mono text-[12px] font-bold disabled:cursor-not-allowed"
-        >
-          {busy && side === 'sell' ? 'Executing…' : preview.status === 'LOADING' && !previewData && side === 'sell' ? 'Previewing…' : 'SELL'}
-          <span className="mt-0.5 block text-[10px] font-medium opacity-90">
-            {quote ? fxNum(quote.bid, digits) : '—'}
-          </span>
-        </button>
-        <button
-          type="button"
-          disabled={!canBuy}
-          onClick={() => void submit('buy')}
-          className="fx-mt5-buy h-9 font-mono text-[12px] font-bold disabled:cursor-not-allowed"
-        >
-          {busy && side === 'buy' ? 'Executing…' : preview.status === 'LOADING' && !previewData && side === 'buy' ? 'Previewing…' : 'BUY'}
-          <span className="mt-0.5 block text-[10px] font-medium opacity-90">
-            {quote ? fxNum(quote.ask, digits) : '—'}
-          </span>
-        </button>
+      <div className="border-t border-border p-1.5">
+        {type === 'market' ? (
+          <div className="grid grid-cols-2 gap-1">
+            <button
+              type="button"
+              disabled={!canSell}
+              onClick={() => void submit('sell')}
+              className="fx-mt5-sell h-9 font-mono text-[12px] font-bold disabled:cursor-not-allowed"
+            >
+              {busy && side === 'sell' ? 'Executing…' : preview.status === 'LOADING' && !previewData && side === 'sell' ? 'Previewing…' : 'Market Sell'}
+              <span className="mt-0.5 block text-[10px] font-medium opacity-90">{quote ? fxNum(quote.bid, digits) : '—'}</span>
+            </button>
+            <button
+              type="button"
+              disabled={!canBuy}
+              onClick={() => void submit('buy')}
+              className="fx-mt5-buy h-9 font-mono text-[12px] font-bold disabled:cursor-not-allowed"
+            >
+              {busy && side === 'buy' ? 'Executing…' : preview.status === 'LOADING' && !previewData && side === 'buy' ? 'Previewing…' : 'Market Buy'}
+              <span className="mt-0.5 block text-[10px] font-medium opacity-90">{quote ? fxNum(quote.ask, digits) : '—'}</span>
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            disabled={side === 'buy' ? !canBuy : !canSell}
+            onClick={() => void submit(side)}
+            className={cn(
+              'h-9 w-full font-mono text-[12px] font-bold disabled:cursor-not-allowed',
+              side === 'buy' ? 'fx-mt5-buy' : 'fx-mt5-sell'
+            )}
+          >
+            {busy ? 'Submitting…' : preview.status === 'LOADING' && !previewData ? 'Previewing…' : `Place ${orderActionLabel}`}
+          </button>
+        )}
       </div>
     </aside>
   );

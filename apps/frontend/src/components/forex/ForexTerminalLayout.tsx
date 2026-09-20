@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
 import { isForexTradePath, showForexMarketChrome } from '@/lib/forex/routes';
 import { useForexRuntime } from '@/lib/forex/runtime/useForexRuntime';
 import { useForexStore } from '@/lib/forex/state/store';
@@ -20,6 +20,7 @@ import { ForexRiskBar } from './ForexRiskBar';
 import { ForexSessionBar } from './ForexSessionBar';
 import { ForexTopNav } from './ForexTopNav';
 import { ForexWatchlist } from './ForexWatchlist';
+import { ForexCommandCenter } from './ForexCommandCenter';
 
 export function ForexTerminalLayout({ children }: { children: ReactNode }) {
   useForexRuntime();
@@ -51,7 +52,7 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
     return openPos || openOrd;
   }, [positions, orders]);
 
-  const authed = hasForexPrivateSession();
+  const authed = useForexPrivateSession();
 
   useEffect(() => {
     if (hasTradingData) setBottomCollapsed(false);
@@ -91,7 +92,7 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
   return (
     <div
       className={`dark terminal-shell exchange-ui flex h-[100dvh] max-w-[100vw] flex-col overflow-x-hidden bg-background text-foreground antialiased ${
-        trade ? 'forex-mt5' : ''
+        trade ? 'forex-mt5' : 'forex-hub'
       } ${chromeHidden ? 'fixed inset-0 z-50' : ''}`}
     >
       {!chromeHidden ? <ForexTopNav compact={trade} /> : null}
@@ -185,20 +186,20 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
       )}
 
       {trade && chartMode === 'normal' ? (
-        <div className="flex max-h-[46vh] min-h-0 min-w-0 flex-col overflow-x-hidden border-t border-border lg:hidden">
-          <div className="min-h-0 max-h-[28vh] shrink-0 overflow-y-auto overflow-x-hidden">
-            <ForexOrderTicket />
-          </div>
-          <div className="min-h-0 max-h-[18vh] overflow-y-auto overflow-x-hidden">
-            {children}
-            <ForexBottomPanels compact hasTradingData={hasTradingData} />
-          </div>
+        <div
+          className={`flex min-h-0 min-w-0 flex-col overflow-x-hidden border-t border-border lg:hidden ${
+            bottomCollapsed ? 'max-h-[46vh]' : 'max-h-[70vh]'
+          }`}
+        >
+          {/* Mobile companion (forex/page.tsx) owns order ticket + toolbox — avoid duplicate surfaces (FFX-001). */}
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">{children}</div>
         </div>
       ) : null}
 
       {trade && chartMode === 'normal' ? <ForexRiskBar /> : null}
       {!chromeHidden ? <ForexAccountBar compact={trade} /> : null}
       {!chromeHidden ? <ForexMobileNav /> : null}
+      <ForexCommandCenter />
     </div>
   );
 }

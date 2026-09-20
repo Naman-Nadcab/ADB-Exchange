@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ForexOrderTicket } from '@/components/forex/ForexOrderTicket';
 import { ForexWatchlist } from '@/components/forex/ForexWatchlist';
 import { ForexBottomPanels } from '@/components/forex/ForexBottomPanels';
+import { useForexStore } from '@/lib/forex/state/store';
+import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { cn } from '@/lib/utils';
 
 type MobileTab = 'watch' | 'ticket' | 'toolbox';
@@ -11,6 +13,17 @@ type MobileTab = 'watch' | 'ticket' | 'toolbox';
 /** Mobile companion panels under the chart (desktop uses ForexTerminalLayout docks). */
 export default function ForexTradePage() {
   const [tab, setTab] = useState<MobileTab>('ticket');
+  const positions = useForexStore((s) => s.positions);
+  const orders = useForexStore((s) => s.orders);
+  const bottomCollapsed = useForexWorkspaceStore((s) => s.bottomCollapsed);
+  const hasTradingData = useMemo(() => {
+    const openPos = Object.values(positions).some((p) => p.status === 'OPEN');
+    const openOrd = Object.values(orders).some((o) => {
+      const st = String(o.status ?? '').toUpperCase();
+      return st === 'NEW' || st === 'PARTIAL' || st === 'OPEN' || st === 'WORKING' || st === 'ACCEPTED';
+    });
+    return openPos || openOrd;
+  }, [positions, orders]);
 
   return (
     <div className="grid gap-0 md:hidden">
@@ -40,7 +53,9 @@ export default function ForexTradePage() {
       <div className="min-h-[280px] max-h-[42vh] overflow-hidden">
         {tab === 'watch' ? <ForexWatchlist /> : null}
         {tab === 'ticket' ? <ForexOrderTicket /> : null}
-        {tab === 'toolbox' ? <ForexBottomPanels hasTradingData={false} /> : null}
+        {tab === 'toolbox' ? (
+          <ForexBottomPanels compact={bottomCollapsed} hasTradingData={hasTradingData} />
+        ) : null}
       </div>
     </div>
   );

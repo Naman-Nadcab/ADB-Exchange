@@ -1107,3 +1107,47 @@ input[type="number"] {
   background: #243041 !important;
   border-left-color: #c9a227 !important;
 }
+
+/* Forex hub — secondary customer pages (Markets, Portfolio, Account, …) */
+.forex-hub.terminal-shell {
+  background: #121417;
+  color: #d7dde5;
+}
+.forex-hub .eda-card,
+.forex-hub .eda-card-interactive,
+.forex-hub .eda-card-elevated,
+.forex-hub .eda-card-featured,
+.forex-hub .eda-card-product {
+  border-radius: 3px;
+  border-color: #2a3038;
+  background: #171a1f;
+  box-shadow: none;
+}
+.forex-hub .eda-card-interactive:hover {
+  border-color: #3d4654;
+  background: #1e242c;
+}
+.forex-hub .eda-metric {
+  border-radius: 3px;
+  border-color: #2a3038;
+  background: #171a1f;
+  box-shadow: none;
+  padding: 0.5rem 0.65rem;
+}
+.forex-hub .eda-tab {
+  border-radius: 2px;
+  font-size: 11px;
+}
+.forex-hub .eda-table-wrap {
+  border-radius: 3px;
+  border-color: #2a3038;
+}
+.forex-hub input,
+.forex-hub select {
+  border-radius: 2px;
+}
+.forex-hub .rounded-lg,
+.forex-hub .rounded-xl,
+.forex-hub .rounded-2xl {
+  border-radius: 3px !important;
+}
