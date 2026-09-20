@@ -13,7 +13,7 @@
 | Pre-audit remediation commit | `603140f3a10bede94145b37bee0e06bde08e2416` (`feat(forex-ui): unify customer forex visual system`) |
 | Prior audit | `.build/FOREX_CUSTOMER_UI_FORENSIC_AUDIT.md` |
 | Audit HEAD (start) | `895d88585d8c1dc606ce2c3e36e0df221d29f7d9` |
-| Post-closure commit | _(see §18 after push)_ |
+| Post-closure commit | `4ba7033bf4d48da12f4d42c97b6abb8f75f6795e` |
 
 **Pre-existing dirty tree:** Hundreds of unrelated admin/backend/`.build` files — not staged or reverted.
 
