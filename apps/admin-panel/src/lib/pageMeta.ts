@@ -13,7 +13,7 @@ interface PageMeta {
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/control-center': 'Control Center',
-  '/admin-control': 'Exchange Controls',
+  '/admin-control': 'Advanced Exchange Controls',
   '/monitoring': 'Monitoring',
   '/monitoring/infrastructure': 'Infrastructure Center',
   '/alerts': 'Alert Center',

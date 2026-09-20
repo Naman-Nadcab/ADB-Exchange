@@ -66,7 +66,7 @@ const NAV_COMMANDS: CommandEntry[] = [
   { id: 'nav-integrations-center', label: 'Integrations Center', description: 'KYC, AML, RPC & third-party providers', category: 'navigate', icon: 'Plug', href: '/system/integrations', keywords: ['integration', 'provider', 'kyc', 'aml', 'rpc', 'api key'], group: 'System' },
   { id: 'nav-settings', label: 'Settings', description: 'Global configuration', category: 'navigate', icon: 'Settings', href: '/settings', keywords: ['setting', 'config', 'preference'], group: 'System' },
   { id: 'nav-operations', label: 'Operations', description: 'Ops management', category: 'navigate', icon: 'Cog', href: '/operations', keywords: ['operation', 'ops', 'maintenance'], group: 'System' },
-  { id: 'nav-admin-control', label: 'Admin Control', description: 'Admin permissions', category: 'navigate', icon: 'Gauge', href: '/admin-control', keywords: ['admin', 'control', 'permission', 'role'], group: 'System' },
+  { id: 'nav-admin-control', label: 'Advanced Exchange Controls', description: 'Legacy exchange circuit breakers and emergency levels', category: 'navigate', icon: 'Gauge', href: '/admin-control', keywords: ['admin', 'control', 'circuit', 'emergency', 'legacy'], group: 'System' },
 ];
 
 /* ------------------------------------------------------------------ */

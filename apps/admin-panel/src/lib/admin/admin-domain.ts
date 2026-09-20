@@ -1,6 +1,9 @@
 /**
  * Admin workspace domains — Control Center, Crypto, Forex.
- * UI routing + permission gates (backend remains authoritative).
+ *
+ * Workspace access (top-level tabs) is separate from operational capabilities
+ * (e.g. withdrawals:approve) so specialized roles are not promoted to full
+ * Crypto/Forex workspaces. Backend RBAC remains authoritative.
  */
 import { hasAnyPermission, hasPermission, isSuperAdmin, type Permission } from '@/lib/rbac';
 
@@ -37,14 +40,14 @@ const CRYPTO_PREFIXES = [
   '/dashboard',
 ];
 
-const CRYPTO_ACCESS: Permission[] = [
+/** Permissions that grant the Crypto workspace tab (broad ops), not single-task roles. */
+const CRYPTO_WORKSPACE_ACCESS: Permission[] = [
   'monitoring:view',
   'monitoring:control',
   'markets:manage',
   'deposits:view',
   'deposits:credit',
   'withdrawals:view',
-  'withdrawals:approve',
   'p2p:disputes',
   'p2p:escrow',
   'mm:view',
@@ -55,7 +58,26 @@ const CRYPTO_ACCESS: Permission[] = [
   'control:trading',
 ];
 
-const FOREX_ACCESS: Permission[] = [
+/** Narrow crypto routes allowed without full workspace (capability-only roles). */
+const CRYPTO_ROUTE_CAPABILITIES: Array<{
+  match: (path: string) => boolean;
+  permissions: Permission[];
+}> = [
+  {
+    match: (path) => path === '/withdrawals' || path.startsWith('/withdrawals/'),
+    permissions: ['withdrawals:approve', 'withdrawals:view'],
+  },
+  {
+    match: (path) => path === '/deposits' || path.startsWith('/deposits/'),
+    permissions: ['deposits:view', 'deposits:credit'],
+  },
+  {
+    match: (path) => path === '/approvals' || path.startsWith('/approvals/'),
+    permissions: ['withdrawals:approve'],
+  },
+];
+
+const FOREX_WORKSPACE_ACCESS: Permission[] = [
   'forex:view',
   'forex:control',
   'forex:controls:view',
@@ -80,6 +102,22 @@ export function pathnameToAdminDomain(pathname: string): AdminDomain {
   return 'control';
 }
 
+export function canAccessCryptoWorkspace(
+  role: string | undefined,
+  explicitPermissions: string[] | undefined,
+): boolean {
+  if (isSuperAdmin(role)) return true;
+  return hasAnyPermission(role, explicitPermissions, CRYPTO_WORKSPACE_ACCESS);
+}
+
+export function canAccessForexWorkspace(
+  role: string | undefined,
+  explicitPermissions: string[] | undefined,
+): boolean {
+  if (isSuperAdmin(role)) return true;
+  return hasAnyPermission(role, explicitPermissions, FOREX_WORKSPACE_ACCESS);
+}
+
 export function canAccessAdminDomain(
   role: string | undefined,
   explicitPermissions: string[] | undefined,
@@ -87,8 +125,21 @@ export function canAccessAdminDomain(
 ): boolean {
   if (isSuperAdmin(role)) return true;
   if (domain === 'control') return true;
-  if (domain === 'crypto') return hasAnyPermission(role, explicitPermissions, CRYPTO_ACCESS);
-  return hasAnyPermission(role, explicitPermissions, FOREX_ACCESS);
+  if (domain === 'crypto') return canAccessCryptoWorkspace(role, explicitPermissions);
+  return canAccessForexWorkspace(role, explicitPermissions);
+}
+
+function canAccessCryptoPathByCapability(
+  role: string | undefined,
+  explicitPermissions: string[] | undefined,
+  path: string,
+): boolean {
+  for (const rule of CRYPTO_ROUTE_CAPABILITIES) {
+    if (rule.match(path) && hasAnyPermission(role, explicitPermissions, rule.permissions)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function canAccessAdminPath(
@@ -97,8 +148,12 @@ export function canAccessAdminPath(
   pathname: string,
 ): boolean {
   if (isSuperAdmin(role)) return true;
-  const domain = pathnameToAdminDomain(pathname);
-  return canAccessAdminDomain(role, explicitPermissions, domain);
+  const path = pathname.split('?')[0] ?? '';
+  const domain = pathnameToAdminDomain(path);
+  if (domain === 'control') return true;
+  if (domain === 'forex') return canAccessForexWorkspace(role, explicitPermissions);
+  if (canAccessCryptoWorkspace(role, explicitPermissions)) return true;
+  return canAccessCryptoPathByCapability(role, explicitPermissions, path);
 }
 
 /** First landing page the admin may use after login or when denied a route. */

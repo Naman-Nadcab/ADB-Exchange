@@ -685,7 +685,10 @@ export default function AdminControlPage() {
   });
 
   return (
-    <AdminPageFrame title="Exchange Controls" description="Control exchange operations, circuit breakers, asset freezes, and emergency actions.">
+    <AdminPageFrame
+      title="Advanced Exchange Controls"
+      description="Legacy exchange control plane: circuit breakers, settlement/matching controls, asset freezes, and tiered emergency levels. Crypto spot scope — Forex kill switch remains under Forex → Controls."
+    >
 
       {/* Quick status strip */}
       {status && (

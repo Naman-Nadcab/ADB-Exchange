@@ -129,7 +129,7 @@ function buildAllSidebarSections(): NavSection[] {
       items: [
         { label: 'Dashboard', href: '/dashboard', icon: Zap },
         { label: 'Control Center', href: '/control-center', icon: LayoutGrid },
-        { label: 'Exchange Controls', href: '/admin-control', icon: Gauge },
+        { label: 'Advanced Exchange Controls', href: '/admin-control', icon: Gauge },
         { label: 'Monitoring', href: '/monitoring', icon: Activity },
         { label: 'Infrastructure', href: '/monitoring/infrastructure', icon: Server },
         { label: 'Alert Center', href: '/alerts', icon: BellRing },

@@ -340,12 +340,29 @@ export default function ControlCenterPage() {
 
         <ExchangeHealthTier1Banner token={token} />
 
-        {/* ── Zone 1: Emergency + live toggles (one row on xl) ── */}
+        <div
+          className="rounded-xl border border-admin-border bg-admin-bg/50 px-4 py-3 text-xs text-admin-muted leading-relaxed"
+          role="note"
+        >
+          <span className="font-semibold text-admin-text">Control plane scope — </span>
+          Platform safe mode targets spot exchange services (matching, wallets, API flags). Crypto channel toggles below
+          affect spot/P2P/wallet rails only — not Forex execution (
+          <Link href="/forex/controls" className="text-admin-primary hover:underline">
+            Forex controls
+          </Link>
+          ). Circuit breakers and tiered emergency levels live under{' '}
+          <Link href="/admin-control" className="text-admin-primary hover:underline">
+            Advanced Exchange Controls
+          </Link>
+          .
+        </div>
+
+        {/* ── Zone 1: Platform safe mode + Crypto operational toggles ── */}
         <section className="space-y-4">
           <ZoneHeader
-            step="01 · Emergency"
-            title="Safe mode & live services"
-            subtitle="Kill switch first, then per-service toggles. Changes apply immediately."
+            step="01 · Platform"
+            title="Exchange safe mode"
+            subtitle="Platform-wide spot exchange suspend (does not toggle Forex kill switch)."
           />
           <div className="grid gap-4 xl:grid-cols-12 xl:items-stretch">
             <div className="xl:col-span-4 flex">
@@ -367,9 +384,9 @@ export default function ControlCenterPage() {
                       <ShieldAlert className={cn('h-5 w-5', safeMode ? 'text-red-400 subtle-pulse' : 'text-admin-muted')} />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="text-sm font-bold text-admin-text">Safe mode</h3>
+                      <h3 className="text-sm font-bold text-admin-text">Platform safe mode</h3>
                       <p className="text-[11px] text-admin-muted mt-1 leading-relaxed">
-                        Halts trading, withdrawals, and API access in one action.
+                        Halts spot trading, crypto withdrawals, and API trading flags in one action (exchange platform).
                       </p>
                       <div className="flex flex-wrap items-center gap-2 mt-2">
                         <Badge variant={safeMode ? 'danger' : 'success'}>{safeMode ? 'ON' : 'Off'}</Badge>
@@ -395,8 +412,8 @@ export default function ControlCenterPage() {
               <Section
                 className="w-full"
                 icon={Zap}
-                title="Live system controls"
-                description={`${activeSystems}/4 channels operational`}
+                title="Crypto operations · live channels"
+                description={`Spot/P2P/wallet rails · ${activeSystems}/4 channels operational`}
                 iconBg="bg-admin-danger/10 text-red-400"
                 action={
                   <div className="flex items-center gap-1" title="Per-service status">

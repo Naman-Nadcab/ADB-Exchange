@@ -29,8 +29,8 @@ const BOOL_META: Record<
   { label: string; description: string; dangerous?: boolean; snapEffective: (s: ForexAdminControlsSnapshot) => boolean; snapEnv: (s: ForexAdminControlsSnapshot) => boolean }
 > = {
   kill_switch: {
-    label: 'Global kill switch',
-    description: 'Reject new Forex orders platform-wide (mock venue).',
+    label: 'Forex kill switch',
+    description: 'Reject new Forex customer orders (Forex module only; does not halt Crypto spot).',
     dangerous: true,
     snapEffective: (s) => s.effective.killSwitch,
     snapEnv: (s) => s.envBaseline.killSwitch,
