@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-09-20T10:15:00Z",
+  "certification": "ADMIN SHELL / DOMAIN SEPARATION",
+  "baseSha": "a4d922ee1b30f3bbb0aadebfbc7ac2027bc82623",
+  "branch": "release/exchange-production-baseline",
+  "build": { "status": "PASS", "command": "npm run build @ apps/admin-panel" },
+  "browserAutomation": {
+    "status": "NOT_VERIFIED",
+    "reason": "Playwright browsers not installed in environment; live admin container not rebuilt with this commit during cert pass"
+  },
+  "manualChecks": {
+    "loginLandingControlCenter": "IMPLEMENTED — login/page.tsx → /control-center",
+    "domainTabs": "IMPLEMENTED — AdminDomainContextBar",
+    "sidebarScoping": "IMPLEMENTED — buildSidebarSectionsForDomain",
+    "routeGuard": "IMPLEMENTED — AdminDomainRouteGuard (UI layer)",
+    "backendRbac": "NOT_MODIFIED — existing admin-rbac-routes.ts authoritative"
+  },
+  "cryptoRegression": { "status": "NOT_VERIFIED", "note": "No crypto backend/UI files changed except admin shell" },
+  "forexRegression": { "status": "NOT_VERIFIED", "note": "Forex pages unchanged; nav context only" },
+  "database": { "status": "NOT_APPLICABLE", "mutations": false },
+  "deployment": { "status": "NOT_VERIFIED", "note": "Commit push required; container image not rebuilt in this pass" },
+  "overall": "PARTIAL"
+}

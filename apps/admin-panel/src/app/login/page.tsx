@@ -92,8 +92,8 @@ export default function LoginPage() {
           permissions: Array.isArray(admin.permissions) ? admin.permissions : [],
         });
         prefetchCriticalData(accessToken);
-        router.prefetch('/dashboard');
-        router.push('/dashboard');
+        router.prefetch('/control-center');
+        router.push('/control-center');
       } else {
         setError('Invalid response from server');
       }

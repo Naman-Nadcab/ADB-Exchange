@@ -7,7 +7,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ChevronDown, ChevronRight, PanelLeftClose, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { useSidebarState } from './SidebarContext';
-import { buildSidebarSections, isSidebarNavActive, type NavItem } from '@/lib/admin/nav-sections';
+import { buildSidebarSectionsForDomain, isSidebarNavActive, type NavItem } from '@/lib/admin/nav-sections';
+import { pathnameToAdminDomain } from '@/lib/admin/admin-domain';
 import { forexGroupForPathname } from '@/lib/admin/forex-nav-groups';
 import { prefetchRouteData } from '@/lib/route-prefetch';
 import { useAdminAuthStore } from '@/store/auth';
@@ -83,7 +84,8 @@ export function UnifiedSidebar() {
     [router, queryClient, token],
   );
 
-  const sections = useMemo(() => buildSidebarSections(), []);
+  const domain = pathnameToAdminDomain(pathname);
+  const sections = useMemo(() => buildSidebarSectionsForDomain(domain), [domain]);
 
   const widthClass = collapsed ? 'w-60 lg:w-[72px]' : 'w-60';
 
@@ -111,7 +113,7 @@ export function UnifiedSidebar() {
             collapsed && 'lg:justify-center lg:px-2',
           )}
         >
-          <AdminBrandLogo collapsed={collapsed} href="/dashboard" />
+          <AdminBrandLogo collapsed={collapsed} href="/control-center" />
           <button
             type="button"
             onClick={toggle}

@@ -3,6 +3,7 @@
  */
 import { forexRouteByHref, isForexAdminPath } from '@/lib/admin/forex-admin-nav';
 import { forexGroupForPathname, forexRoutesInGroup } from '@/lib/admin/forex-nav-groups';
+import { pathnameToAdminDomain, adminDomainContextTitle } from '@/lib/admin/admin-domain';
 
 interface PageMeta {
   title: string;
@@ -103,8 +104,7 @@ export function getPageMeta(pathname: string | null): PageMeta {
     const pageLabel = route?.label ?? PAGE_TITLES[pathname] ?? 'Forex';
     const groupHome = forexRoutesInGroup(group.id)[0]?.href ?? '/forex';
     const crumbs: PageMeta['breadcrumbs'] = [
-      { label: 'Admin', href: '/dashboard' },
-      { label: 'Forex', href: '/forex' },
+      { label: adminDomainContextTitle('forex'), href: '/forex' },
     ];
     if (pathname !== '/forex') {
       crumbs.push({ label: group.label, href: groupHome });
@@ -113,19 +113,24 @@ export function getPageMeta(pathname: string | null): PageMeta {
     return { title: pageLabel, breadcrumbs: crumbs };
   }
 
+  const domain = pathnameToAdminDomain(pathname);
+  const domainRoot =
+    domain === 'forex' ? '/forex' : domain === 'crypto' ? '/dashboard' : '/control-center';
+  const domainLabel = adminDomainContextTitle(domain);
+
   const exactTitle = PAGE_TITLES[pathname];
   if (exactTitle) {
     return {
       title: exactTitle,
       breadcrumbs: [
-        { label: 'Admin', href: '/dashboard' },
+        { label: domainLabel, href: domainRoot },
         { label: exactTitle },
       ],
     };
   }
 
   const segments = pathname.split('/').filter(Boolean);
-  const breadcrumbs = [{ label: 'Admin', href: '/dashboard' }];
+  const breadcrumbs = [{ label: domainLabel, href: domainRoot }];
   let path = '';
   for (const seg of segments) {
     path += '/' + seg;

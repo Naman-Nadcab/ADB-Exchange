@@ -60,6 +60,7 @@ import {
 } from 'lucide-react';
 import { ADMIN_FEATURE_FLAGS } from '@/lib/admin/featureFlags';
 import { buildForexSidebarNavGroups, type ForexSidebarNavGroup } from '@/lib/admin/forex-sidebar-nav';
+import type { AdminDomain } from '@/lib/admin/admin-domain';
 
 export type NavItem = { label: string; href: string; icon: LucideIcon };
 export type NavSection = {
@@ -70,6 +71,54 @@ export type NavSection = {
 };
 
 export function buildSidebarSections(): NavSection[] {
+  return buildSidebarSectionsForDomain('control');
+}
+
+/** Domain-scoped sidebar — preserves all hrefs; only filters/grouping changes. */
+export function buildSidebarSectionsForDomain(domain: AdminDomain): NavSection[] {
+  const all = buildAllSidebarSections();
+  if (domain === 'forex') {
+    const forex = all.find((s) => s.forexGroups);
+    return forex ? [{ title: 'Forex Operations', forexGroups: forex.forexGroups }] : [];
+  }
+  if (domain === 'crypto') {
+    const trading = all.find((s) => s.title === 'Trading');
+    const finance = all.find((s) => s.title === 'Finance');
+    const sections: NavSection[] = [];
+    if (trading?.items) {
+      sections.push({
+        title: 'Crypto Operations',
+        items: [
+          { label: 'Overview', href: '/dashboard', icon: Zap },
+          ...trading.items,
+        ],
+      });
+    }
+    if (finance?.items) {
+      sections.push({ title: 'Finance', items: finance.items });
+    }
+    return sections;
+  }
+  return all
+    .filter((s) => s.title !== 'Trading' && s.title !== 'Forex' && s.title !== 'Finance')
+    .map((section) => {
+      if (section.title !== 'Command Center' || !section.items) return section;
+      const items = section.items
+        .filter((item) => item.href !== '/dashboard')
+        .map((item) =>
+          item.href === '/control-center'
+            ? { ...item, label: 'Platform Overview', icon: Zap }
+            : item,
+        );
+      const hasPlatform = items.some((i) => i.href === '/control-center');
+      const merged = hasPlatform
+        ? items
+        : [{ label: 'Platform Overview', href: '/control-center', icon: Zap }, ...items];
+      return { ...section, title: 'Control Center', items: merged };
+    });
+}
+
+function buildAllSidebarSections(): NavSection[] {
   const incidentsItem = ADMIN_FEATURE_FLAGS.ADMIN_INCIDENT_SYSTEM
     ? [{ label: 'Incidents', href: '/incidents', icon: Siren }]
     : [];

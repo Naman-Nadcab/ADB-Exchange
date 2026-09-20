@@ -8,6 +8,8 @@ import { SidebarProvider, useSidebarState } from './SidebarContext';
 import { UnifiedSidebar } from './UnifiedSidebar';
 import { UnifiedTopbar } from './UnifiedTopbar';
 import { GlobalActionBar } from './GlobalActionBar';
+import { AdminDomainContextBar } from './AdminDomainContextBar';
+import { AdminDomainRouteGuard } from './AdminDomainRouteGuard';
 import { LegacyWrapper } from './LegacyWrapper';
 import { NewPageWrapper } from './NewPageWrapper';
 import { cn } from '@/lib/cn';
@@ -49,10 +51,13 @@ function AppShellInner({ children }: AppShellProps) {
 
       <div className={cn('transition-all duration-200', collapsed ? 'lg:pl-[72px]' : 'lg:pl-60')}>
         <UnifiedTopbar />
+        <AdminDomainContextBar />
         <GlobalActionBar />
 
         <main className="min-h-screen">
-          <LegacyWrapper>{children}</LegacyWrapper>
+          <AdminDomainRouteGuard>
+            <LegacyWrapper>{children}</LegacyWrapper>
+          </AdminDomainRouteGuard>
         </main>
       </div>
 
