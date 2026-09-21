@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useState, useRef } from 'react';
 import { Clock } from 'lucide-react';
 
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export function P2PTimer({ expiresAtIso, active, onExpire }: Props) {
+  const tp = useTranslations('p2p');
   const [leftSec, setLeftSec] = useState<number | null>(null);
   const fired = useRef(false);
 
@@ -53,7 +55,7 @@ export function P2PTimer({ expiresAtIso, active, onExpire }: Props) {
         : 'border-amber-500/20 bg-amber-500/5 text-amber-500'
     }`}>
       <Clock className="h-4 w-4 shrink-0" />
-      <span className="font-medium">Payment window</span>
+      <span className="font-medium">{tp('timer.paymentWindow')}</span>
       <span className="numeric ml-auto text-lg font-bold">
         {leftSec == null ? '—' : `${m}:${s.toString().padStart(2, '0')}`}
       </span>

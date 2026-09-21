@@ -91,5 +91,60 @@
     "completed": "Selesai",
     "cancelled": "Dibatalkan",
     "disputed": "Sengketa"
+  },
+  "timer": { "paymentWindow": "Jendela pembayaran" },
+  "orderStatus": {
+    "payment_pending": "Menunggu pembayaran",
+    "payment_confirmed": "Dibayar — menunggu pelepasan",
+    "completed": "Selesai",
+    "cancelled": "Dibatalkan",
+    "expired": "Kedaluwarsa",
+    "disputed": "Sengketa"
+  },
+  "orderVerification": {
+    "pending": "Pemeriksaan pembayaran: menunggu",
+    "verified": "Pembayaran terverifikasi",
+    "rejected": "Bukti ditolak"
+  },
+  "orderSummary": {
+    "title": "Detail pesanan",
+    "notSignedIn": "Belum masuk",
+    "proofLoadFailed": "Gagal memuat bukti",
+    "reloadProof": "Muat ulang bukti",
+    "viewProof": "Lihat bukti pembayaran",
+    "openImage": "Buka gambar",
+    "proofAlt": "Bukti pembayaran"
+  },
+  "ordersPage": {
+    "title": "Pesanan P2P saya",
+    "subtitle": "Trade dilindungi escrow. Selesaikan pembayaran atau lepaskan kripto sebelum jendela berakhir.",
+    "statsOrders": "{count} pesanan",
+    "statsActive": "{count} aktif",
+    "filterStatus": "Status",
+    "filterAria": "Filter pesanan berdasarkan status",
+    "filterAll": "Semua",
+    "filterPending": "Menunggu",
+    "filterConfirmed": "Dikonfirmasi",
+    "filterDone": "Selesai",
+    "filterCancelled": "Dibatalkan",
+    "filterExpired": "Kedaluwarsa",
+    "filterDispute": "Sengketa",
+    "loadFailed": "Tidak dapat memuat pesanan",
+    "emptyPreviewTitle": "Pratinjau — daftar pesanan Anda",
+    "emptyPreviewBody": "Masuk untuk melihat pesanan P2P live yang terhubung ke akun Anda.",
+    "emptyTitle": "Belum ada pesanan",
+    "emptyBody": "Ambil iklan dari marketplace untuk memulai trade.",
+    "emptyCta": "Ke marketplace",
+    "tableCaption": "Pesanan P2P Anda",
+    "colOrder": "Pesanan",
+    "colSide": "Sisi",
+    "colPair": "Pasangan",
+    "colAmount": "Jumlah",
+    "colPrice": "Harga",
+    "colCounterparty": "Rekan",
+    "colStatus": "Status",
+    "colTime": "Waktu",
+    "detailLink": "Detail",
+    "proofAttached": "Bukti pembayaran terlampir"
   }
 }

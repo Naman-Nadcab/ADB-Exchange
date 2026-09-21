@@ -91,5 +91,62 @@
     "completed": "Completed",
     "cancelled": "Cancelled",
     "disputed": "Disputed"
+  },
+  "timer": {
+    "paymentWindow": "Payment window"
+  },
+  "orderStatus": {
+    "payment_pending": "Awaiting Payment",
+    "payment_confirmed": "Paid — Awaiting Release",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "expired": "Expired",
+    "disputed": "In Dispute"
+  },
+  "orderVerification": {
+    "pending": "Payment check: pending",
+    "verified": "Payment verified",
+    "rejected": "Proof rejected"
+  },
+  "orderSummary": {
+    "title": "Order Details",
+    "notSignedIn": "Not signed in",
+    "proofLoadFailed": "Failed to load proof",
+    "reloadProof": "Reload proof",
+    "viewProof": "View payment proof",
+    "openImage": "Open image",
+    "proofAlt": "Payment proof"
+  },
+  "ordersPage": {
+    "title": "My P2P orders",
+    "subtitle": "Your buys and sells with other users. Open a row for payment time, proof, and release — escrow until the trade completes.",
+    "statsOrders": "{count} orders",
+    "statsActive": "{count} active",
+    "filterStatus": "Status",
+    "filterAria": "Filter orders by status",
+    "filterAll": "All",
+    "filterPending": "Pending",
+    "filterConfirmed": "Confirmed",
+    "filterDone": "Done",
+    "filterCancelled": "Cancelled",
+    "filterExpired": "Expired",
+    "filterDispute": "Dispute",
+    "loadFailed": "Could not load orders",
+    "emptyPreviewTitle": "Preview — your order list",
+    "emptyPreviewBody": "After you start a trade, each row shows pair, counterparty, amounts, and status here.",
+    "emptyTitle": "No orders yet",
+    "emptyBody": "Take an ad from the marketplace to start a trade.",
+    "emptyCta": "Go to marketplace",
+    "tableCaption": "Your P2P orders",
+    "colOrder": "Order",
+    "colSide": "Side",
+    "colPair": "Pair",
+    "colAmount": "Amount",
+    "colPrice": "Price",
+    "colCounterparty": "Counterparty",
+    "colStatus": "Status",
+    "colTime": "Time",
+    "detailLink": "Detail",
+    "proofAttached": "Payment proof attached"
   }
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import RequireAuth from '@/components/RequireAuth';
@@ -127,8 +128,21 @@ export default function P2PV2OrdersPage() {
 }
 
 function OrdersInner() {
+  const tp = useTranslations('p2p');
   useListTimeTicker();
   const user = useAuthStore((s) => s.user);
+  const filterLabel = (s: string) => {
+    switch (s) {
+      case '': return tp('ordersPage.filterAll');
+      case 'payment_pending': return tp('ordersPage.filterPending');
+      case 'payment_confirmed': return tp('ordersPage.filterConfirmed');
+      case 'completed': return tp('ordersPage.filterDone');
+      case 'cancelled': return tp('ordersPage.filterCancelled');
+      case 'expired': return tp('ordersPage.filterExpired');
+      case 'disputed': return tp('ordersPage.filterDispute');
+      default: return s;
+    }
+  };
   const userId = user?.id;
 
   const [filter, setFilter] = useState('');
@@ -158,7 +172,7 @@ function OrdersInner() {
         <header className="flex flex-col gap-3 border-b border-border/20 py-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">My P2P orders</h1>
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">{tp('ordersPage.title')}</h1>
               {!isLoading && !isError && sorted.length > 0 && (
                 <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary ring-1 ring-primary/20">
                   <ListOrdered className="h-3.5 w-3.5 shrink-0" />
@@ -171,26 +185,24 @@ function OrdersInner() {
                 </span>
               )}
             </div>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              Your buys and sells with other users. Open a row for payment time, proof, and release — escrow until the trade completes.
-            </p>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">{tp('ordersPage.subtitle')}</p>
           </div>
           <Link
             href="/p2p"
             className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-border/40 px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
           >
             <ShoppingBag className="h-4 w-4" />
-            <span>Marketplace</span>
+            <span>{tp('nav.marketplace')}</span>
           </Link>
         </header>
 
         {/* Match marketplace filter bar spacing */}
         <div className="border-b border-border/10 py-4">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</p>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{tp('ordersPage.filterStatus')}</p>
           <nav
             className="flex flex-wrap items-center gap-1 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             role="tablist"
-            aria-label="Filter orders by status"
+            aria-label={tp('ordersPage.filterAria')}
           >
             {STATUSES.map((s) => {
               const active = filter === s;
@@ -207,7 +219,7 @@ function OrdersInner() {
                       : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                   }`}
                 >
-                  {FILTER_LABEL[s] ?? s}
+                  {filterLabel(s)}
                 </button>
               );
             })}
@@ -253,7 +265,7 @@ function OrdersInner() {
             {isError && (
               <div className="py-8">
                 <ErrorState
-                  title="Could not load orders"
+                  title={tp('ordersPage.loadFailed')}
                   message={error instanceof Error ? error.message : undefined}
                   onRetry={() => void refetch()}
                 />
@@ -264,10 +276,8 @@ function OrdersInner() {
               <div className="space-y-4">
                 <div className="overflow-hidden rounded-xl border border-dashed border-border/40 bg-muted/10">
                   <div className="border-b border-border/20 bg-muted/20 px-4 py-3 sm:px-5">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Preview — your order list</p>
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                      After you start a trade, each row shows pair, counterparty, amounts, and status here.
-                    </p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{tp('ordersPage.emptyPreviewTitle')}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{tp('ordersPage.emptyPreviewBody')}</p>
                   </div>
                   <div className="hidden overflow-x-auto md:block">
                     <table className="w-full min-w-[1000px] text-left text-sm">

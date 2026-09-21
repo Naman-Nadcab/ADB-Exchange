@@ -91,5 +91,60 @@
     "completed": "已完成",
     "cancelled": "已取消",
     "disputed": "申诉中"
+  },
+  "timer": { "paymentWindow": "付款时限" },
+  "orderStatus": {
+    "payment_pending": "待付款",
+    "payment_confirmed": "已付款 — 待放币",
+    "completed": "已完成",
+    "cancelled": "已取消",
+    "expired": "已过期",
+    "disputed": "申诉中"
+  },
+  "orderVerification": {
+    "pending": "付款核验：待处理",
+    "verified": "付款已确认",
+    "rejected": "凭证被拒绝"
+  },
+  "orderSummary": {
+    "title": "订单详情",
+    "notSignedIn": "未登录",
+    "proofLoadFailed": "无法加载凭证",
+    "reloadProof": "重新加载凭证",
+    "viewProof": "查看付款凭证",
+    "openImage": "打开图片",
+    "proofAlt": "付款凭证"
+  },
+  "ordersPage": {
+    "title": "我的 P2P 订单",
+    "subtitle": "与其他用户的买卖记录。打开行查看付款时限、凭证与放币 — 完成前由托管保护。",
+    "statsOrders": "{count} 笔订单",
+    "statsActive": "{count} 笔进行中",
+    "filterStatus": "状态",
+    "filterAria": "按状态筛选订单",
+    "filterAll": "全部",
+    "filterPending": "待付款",
+    "filterConfirmed": "已确认",
+    "filterDone": "已完成",
+    "filterCancelled": "已取消",
+    "filterExpired": "已过期",
+    "filterDispute": "申诉",
+    "loadFailed": "无法加载订单",
+    "emptyPreviewTitle": "预览 — 您的订单列表",
+    "emptyPreviewBody": "开始交易后，每行将显示交易对、对手方、数量与状态。",
+    "emptyTitle": "暂无订单",
+    "emptyBody": "从市场选择广告开始交易。",
+    "emptyCta": "前往市场",
+    "tableCaption": "您的 P2P 订单",
+    "colOrder": "订单",
+    "colSide": "方向",
+    "colPair": "交易对",
+    "colAmount": "数量",
+    "colPrice": "价格",
+    "colCounterparty": "对手方",
+    "colStatus": "状态",
+    "colTime": "时间",
+    "detailLink": "详情",
+    "proofAttached": "已附付款凭证"
   }
 }

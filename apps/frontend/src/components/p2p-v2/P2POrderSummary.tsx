@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import type { P2POrderRow } from '@/lib/p2pApi';
 import { formatFiatSymbol } from '@/lib/p2p-v2-utils';
@@ -9,16 +10,12 @@ import { Loader2 } from 'lucide-react';
 import { CoinIcon } from '@/components/ui/CoinIcon';
 
 /* ── Helpers ── */
-function statusLabel(s: string): string {
-  switch (s) {
-    case 'payment_pending': return 'Awaiting Payment';
-    case 'payment_confirmed': return 'Paid — Awaiting Release';
-    case 'completed': return 'Completed';
-    case 'cancelled': return 'Cancelled';
-    case 'expired': return 'Expired';
-    case 'disputed': return 'In Dispute';
-    default: return s;
+function statusLabel(s: string, tp: (key: string) => string): string {
+  const key = `orderStatus.${s}` as const;
+  if (['payment_pending', 'payment_confirmed', 'completed', 'cancelled', 'expired', 'disputed'].includes(s)) {
+    return tp(key);
   }
+  return s;
 }
 
 const STATUS_CLS: Record<string, string> = {
@@ -30,18 +27,22 @@ const STATUS_CLS: Record<string, string> = {
   disputed: 'bg-[#f6465d]/10 text-[#f6465d]',
 };
 
-function verificationBadge(pvs: string | null | undefined): { label: string; cls: string } | null {
+function verificationBadge(
+  pvs: string | null | undefined,
+  tp: (key: string) => string
+): { label: string; cls: string } | null {
   if (pvs == null || pvs === '') return null;
   switch (pvs) {
-    case 'pending': return { label: 'Payment check: pending', cls: 'bg-amber-500/10 text-amber-500' };
-    case 'verified': return { label: 'Payment verified', cls: 'bg-[#0ecb81]/10 text-[#0ecb81]' };
-    case 'rejected': return { label: 'Proof rejected', cls: 'bg-[#f6465d]/10 text-[#f6465d]' };
+    case 'pending': return { label: tp('orderVerification.pending'), cls: 'bg-amber-500/10 text-amber-500' };
+    case 'verified': return { label: tp('orderVerification.verified'), cls: 'bg-[#0ecb81]/10 text-[#0ecb81]' };
+    case 'rejected': return { label: tp('orderVerification.rejected'), cls: 'bg-[#f6465d]/10 text-[#f6465d]' };
     default: return { label: String(pvs), cls: 'bg-muted text-muted-foreground' };
   }
 }
 
 /* ── Payment proof viewer (logic unchanged) ── */
 function PaymentProofViewer({ orderId, paymentProofUrl }: { orderId: string; paymentProofUrl: string }) {
+  const tp = useTranslations('p2p');
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -54,7 +55,7 @@ function PaymentProofViewer({ orderId, paymentProofUrl }: { orderId: string; pay
       : paymentProofUrl;
 
   const loadSecure = async () => {
-    if (!accessToken) { setErr('Not signed in'); return; }
+    if (!accessToken) { setErr(tp('orderSummary.notSignedIn')); return; }
     setLoading(true);
     setErr(null);
     try {
@@ -68,7 +69,7 @@ function PaymentProofViewer({ orderId, paymentProofUrl }: { orderId: string; pay
       const u = URL.createObjectURL(b);
       setBlobUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return u; });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Failed to load proof');
+      setErr(e instanceof Error ? e.message : tp('orderSummary.proofLoadFailed'));
     } finally {
       setLoading(false);
     }
@@ -86,17 +87,17 @@ function PaymentProofViewer({ orderId, paymentProofUrl }: { orderId: string; pay
           className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline disabled:opacity-50"
         >
           {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-          {blobUrl ? 'Reload proof' : 'View payment proof'}
+          {blobUrl ? tp('orderSummary.reloadProof') : tp('orderSummary.viewProof')}
         </button>
         {err && <p className="text-xs text-[#f6465d]">{err}</p>}
-        {blobUrl && <img src={blobUrl} alt="Payment proof" className="max-h-48 max-w-full rounded-lg border border-border/30" />}
+        {blobUrl && <img src={blobUrl} alt={tp('orderSummary.proofAlt')} className="max-h-48 max-w-full rounded-lg border border-border/30" />}
       </div>
     );
   }
 
   return (
     <a href={legacyHref} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-primary hover:underline">
-      Open image
+      {tp('orderSummary.openImage')}
     </a>
   );
 }
@@ -105,9 +106,10 @@ function PaymentProofViewer({ orderId, paymentProofUrl }: { orderId: string; pay
 type Props = { order: P2POrderRow; isBuyer: boolean };
 
 export function P2POrderSummary({ order, isBuyer }: Props) {
+  const tp = useTranslations('p2p');
   const fiat = order.fiat_currency ?? 'USD';
   const sym = formatFiatSymbol(fiat);
-  const vBadge = verificationBadge(order.payment_verification_status);
+  const vBadge = verificationBadge(order.payment_verification_status, tp);
   const isSeller = !isBuyer;
   const sCls = STATUS_CLS[order.status] ?? 'bg-muted text-muted-foreground';
 
@@ -115,10 +117,10 @@ export function P2POrderSummary({ order, isBuyer }: Props) {
     <div className="rounded-lg border border-border/30 bg-card">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/20 px-4 py-3">
-        <h2 className="text-base font-semibold tracking-tight text-foreground">Order Details</h2>
+        <h2 className="text-base font-semibold tracking-tight text-foreground">{tp('orderSummary.title')}</h2>
         <div className="flex flex-wrap items-center gap-1.5">
           <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${sCls}`}>
-            {statusLabel(order.status)}
+            {statusLabel(order.status, tp)}
           </span>
           {vBadge && (
             <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${vBadge.cls}`}>{vBadge.label}</span>
