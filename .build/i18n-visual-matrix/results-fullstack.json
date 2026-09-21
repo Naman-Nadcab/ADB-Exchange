@@ -1,0 +1,3048 @@
+{
+  "generatedAt": "2026-09-21T16:32:25.190Z",
+  "baseUrl": "http://127.0.0.1",
+  "authEnabled": true,
+  "total": 314,
+  "pass": 144,
+  "fail": 170,
+  "hydrationIssues": 0,
+  "overflowCases": 0,
+  "rows": [
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/login?returnUrl=%2Fwallet%2Fdeposit%2Fcrypto. Falling back to browser navigation. TypeError: network error",
+        "Failed to fetch RSC payload for http://127.0.0.1/forgot-password. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/static",
+        "Failed to fetch RSC payload for http://127.0.0.1/cookies. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next",
+        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/account/ledger. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (",
+        "Failed to fetch RSC payload for http://127.0.0.1/login?redirect=%2Fforex%2Fportfolio. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Objec",
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/account. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://",
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/account/accounts. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task]",
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/account/funds. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (h"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/account",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/forgot-password. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/cookies. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next",
+        "Failed to fetch RSC payload for http://127.0.0.1/. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/static"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/cookies. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next",
+        "Failed to fetch RSC payload for http://127.0.0.1/. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/static",
+        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/forgot-password. Falling back to browser navigation. TypeError: network error"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/forgot-password. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/cookies. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next",
+        "Failed to fetch RSC payload for http://127.0.0.1/. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/static",
+        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/static",
+        "Failed to fetch RSC payload for http://127.0.0.1/forgot-password. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/cookies. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next",
+        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/static",
+        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/cookies. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next",
+        "Failed to fetch RSC payload for http://127.0.0.1/forgot-password. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/static",
+        "Failed to fetch RSC payload for http://127.0.0.1/forgot-password. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/cookies. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next",
+        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "FAIL",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "redirected to login"
+    }
+  ]
+}
