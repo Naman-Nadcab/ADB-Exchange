@@ -89,7 +89,13 @@ No migrations, seeds, provisioning, or production deploy.
 
 ## Git
 
-(To be filled after commit/push.)
+| Item | SHA |
+|------|-----|
+| This pass commit | `6f200f9` — feat(i18n): complete crypto spot locale coverage |
+| Prior slice | `b86cdfb`, docs `4814932` |
+| Rollback | `7cd6bc7` / `backup/language-master-baseline-7cd6bc7` |
+
+Remote HEAD: verify after push (`git rev-parse origin/release/exchange-production-baseline`).
 
 ## Remaining for FULL PLATFORM LANGUAGE CERTIFIED
 
