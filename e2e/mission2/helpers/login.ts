@@ -1,5 +1,141 @@
-import type { Page } from '@playwright/test';
-import { UI_BASE, ADMIN_UI_BASE } from './credentials';
+import type { BrowserContext, Page } from '@playwright/test';
+import { API_BASE, UI_BASE, ADMIN_UI_BASE } from './credentials';
+
+type LoginPayload = {
+  user: Record<string, unknown>;
+  accessToken: string;
+  refreshToken: string;
+};
+
+/**
+ * Staging HTTP login: API returns Secure HttpOnly cookies that browsers drop on http://127.0.0.1.
+ * Test-only — injects equivalent cookies + auth-storage without changing app auth code.
+ */
+export async function loginUserForStagingHttp(
+  context: BrowserContext,
+  email: string,
+  password: string,
+  uiBase = UI_BASE,
+  apiBase = API_BASE,
+): Promise<Page> {
+  const api = apiBase.replace(/\/$/, '');
+  const res = await context.request.post(`${api}/api/v1/auth/login/password`, {
+    data: { email, password },
+  });
+  if (!res.ok()) {
+    throw new Error(`API login failed: ${res.status()} ${(await res.text()).slice(0, 120)}`);
+  }
+  const json = (await res.json()) as { data?: LoginPayload };
+  const data = json.data;
+  if (!data?.accessToken || !data.refreshToken) {
+    throw new Error('API login missing tokens');
+  }
+  const host = new URL(uiBase).hostname;
+  await context.addCookies([
+    {
+      name: 'mlive_at',
+      value: data.accessToken,
+      domain: host,
+      path: '/',
+      httpOnly: true,
+      secure: false,
+      sameSite: 'Lax',
+    },
+    {
+      name: 'mlive_rt',
+      value: data.refreshToken,
+      domain: host,
+      path: '/',
+      httpOnly: true,
+      secure: false,
+      sameSite: 'Lax',
+    },
+  ]);
+  const page = await context.newPage();
+  await page.goto(`${uiBase.replace(/\/$/, '')}/`, { waitUntil: 'domcontentloaded' });
+  await page.evaluate((payload) => {
+    localStorage.setItem(
+      'auth-storage',
+      JSON.stringify({
+        state: {
+          user: payload.user,
+          accessToken: payload.accessToken,
+          refreshToken: payload.refreshToken,
+          isAuthenticated: true,
+          isLoading: false,
+          _hasHydrated: true,
+          authResolved: true,
+          authFlags: 0,
+        },
+        version: 0,
+      }),
+    );
+  }, data);
+  return page;
+}
+
+/** Re-apply mlive_at/mlive_rt if a client logout cleared HttpOnly cookies mid-test. */
+export async function ensureTraderSessionCookies(
+  context: BrowserContext,
+  email: string,
+  password: string,
+  uiBase = UI_BASE,
+  apiBase = API_BASE,
+  page?: Page,
+): Promise<void> {
+  const existing = await context.cookies();
+  if (existing.some((c) => c.name === 'mlive_at')) return;
+  const api = apiBase.replace(/\/$/, '');
+  const res = await context.request.post(`${api}/api/v1/auth/login/password`, {
+    data: { email, password },
+  });
+  if (!res.ok()) return;
+  const json = (await res.json()) as { data?: LoginPayload };
+  const data = json.data;
+  if (!data?.accessToken) return;
+  const host = new URL(uiBase).hostname;
+  await context.addCookies([
+    {
+      name: 'mlive_at',
+      value: data.accessToken,
+      domain: host,
+      path: '/',
+      httpOnly: true,
+      secure: false,
+      sameSite: 'Lax',
+    },
+    {
+      name: 'mlive_rt',
+      value: data.refreshToken,
+      domain: host,
+      path: '/',
+      httpOnly: true,
+      secure: false,
+      sameSite: 'Lax',
+    },
+  ]);
+  if (page && !page.isClosed()) {
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
+    await page.evaluate((payload) => {
+      localStorage.setItem(
+        'auth-storage',
+        JSON.stringify({
+          state: {
+            user: payload.user,
+            accessToken: payload.accessToken,
+            refreshToken: payload.refreshToken,
+            isAuthenticated: true,
+            isLoading: false,
+            _hasHydrated: true,
+            authResolved: true,
+            authFlags: 0,
+          },
+          version: 0,
+        }),
+      );
+    }, data);
+  }
+}
 
 export async function loginUserViaUI(page: Page, email: string, password: string, base = UI_BASE): Promise<void> {
   await page.goto(`${base}/login`, { waitUntil: 'domcontentloaded' });

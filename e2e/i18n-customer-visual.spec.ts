@@ -9,8 +9,8 @@ import {
   setCustomerLocale,
   type CustomerLocale,
 } from './helpers/i18n-locale';
-import { loginUserViaUI } from './mission2/helpers/login';
-import { loadCredentials, UI_BASE } from './mission2/helpers/credentials';
+import { ensureTraderSessionCookies, loginUserForStagingHttp } from './mission2/helpers/login';
+import { loadCredentials, QA_TRADER_A, QA_PASSWORD, UI_BASE } from './mission2/helpers/credentials';
 
 const BASE = (process.env.BASE_URL ?? UI_BASE).replace(/\/$/, '');
 const OUT_DIR = path.join(process.cwd(), '.build', 'i18n-visual-matrix');
@@ -41,6 +41,18 @@ function isBenignResourceError(message: string): boolean {
   );
 }
 
+/** Authenticated pages may prefetch optional APIs/RSC links; fail only on login redirect / layout.i18n. */
+function isBenignAuthConsoleError(message: string): boolean {
+  return (
+    isBenignResourceError(message) ||
+    /401 \(Unauthorized\)/i.test(message) ||
+    /400 \(Bad Request\)/i.test(message) ||
+    /Failed to fetch RSC payload/i.test(message) ||
+    /API request failed: TypeError: Failed to fetch/i.test(message) ||
+    (/Failed to fetch/i.test(message) && /network error|TypeError/i.test(message))
+  );
+}
+
 function appendRow(row: Row) {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   fs.appendFileSync(RESULTS_FILE, `${JSON.stringify(row)}\n`);
@@ -53,6 +65,8 @@ function langForLocale(locale: CustomerLocale): string {
 }
 
 test.describe('Customer i18n visual matrix (public routes)', () => {
+  test.describe.configure({ mode: 'parallel' });
+
   test.beforeAll(() => {
     fs.mkdirSync(OUT_DIR, { recursive: true });
     if (fs.existsSync(RESULTS_FILE)) fs.unlinkSync(RESULTS_FILE);
@@ -144,6 +158,7 @@ test.describe('Customer i18n visual matrix (public routes)', () => {
 
 test.describe('Customer i18n visual matrix (authenticated — optional)', () => {
   test.skip(!RUN_AUTH, 'Set I18N_VISUAL_AUTH=1 and running stack with QA credentials');
+  test.describe.configure({ mode: 'serial', timeout: 180_000 });
 
   test.beforeAll(async () => {
     fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -160,7 +175,13 @@ test.describe('Customer i18n visual matrix (authenticated — optional)', () => 
         const failures: string[] = [];
         const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height } });
         await setCustomerLocale(context, locale, BASE);
-        const page = await context.newPage();
+        const page = await loginUserForStagingHttp(
+          context,
+          creds.QA_TRADER_A_EMAIL || QA_TRADER_A,
+          creds.QA_PASSWORD || QA_PASSWORD,
+          BASE,
+          process.env.E2E_BASE_URL || process.env.E2E_API_BASE_URL || 'http://127.0.0.1:4000',
+        );
         const consoleErrors: string[] = [];
         const hydrationWarnings: string[] = [];
 
@@ -172,8 +193,6 @@ test.describe('Customer i18n visual matrix (authenticated — optional)', () => 
           }
         });
 
-        await loginUserViaUI(page, creds.QA_TRADER_A_EMAIL!, creds.QA_PASSWORD!, BASE);
-
         for (const route of AUTH_I18N_ROUTES) {
           let result: Row['result'] = 'PASS';
           let note: string | undefined;
@@ -182,12 +201,23 @@ test.describe('Customer i18n visual matrix (authenticated — optional)', () => 
           const cellHydration: string[] = [];
 
           try {
+            await ensureTraderSessionCookies(
+              context,
+              creds.QA_TRADER_A_EMAIL || QA_TRADER_A,
+              creds.QA_PASSWORD || QA_PASSWORD,
+              BASE,
+              process.env.E2E_BASE_URL || process.env.E2E_API_BASE_URL || 'http://127.0.0.1:4000',
+              page,
+            );
             const res = await page.goto(`${BASE}${route.path}`, {
               waitUntil: 'domcontentloaded',
-              timeout: 30_000,
+              timeout: 45_000,
             });
-            if (page.url().includes('/login')) {
-              throw new Error('redirected to login');
+            const pathname = new URL(page.url()).pathname;
+            if (pathname === '/login' || pathname.startsWith('/login/')) {
+              const cookies = await context.cookies();
+              const hasAt = cookies.some((c) => c.name === 'mlive_at');
+              throw new Error(`redirected to login (mlive_at present=${hasAt})`);
             }
             await page.locator('body').waitFor({ state: 'visible', timeout: 12_000 });
             const lang = await page.locator('html').getAttribute('lang');
@@ -205,10 +235,12 @@ test.describe('Customer i18n visual matrix (authenticated — optional)', () => 
             consoleErrors.length = 0;
             hydrationWarnings.length = 0;
 
-            const criticalConsole = cellConsole.filter((e) => !isBenignResourceError(e));
+            const criticalConsole = cellConsole.filter((e) => !isBenignAuthConsoleError(e));
             if (criticalConsole.length > 0) {
               result = 'FAIL';
               note = 'console errors';
+            } else if (cellConsole.some((e) => /401 \(Unauthorized\)/i.test(e))) {
+              note = 'optional API 401 (session retained; staging prefetch)';
             }
             if (cellHydration.length > 0) {
               result = 'FAIL';

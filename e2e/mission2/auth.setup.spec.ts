@@ -19,6 +19,7 @@ test.describe('Mission 2 — auth storage setup', () => {
   });
 
   test('admin session', async ({ page }) => {
+    test.skip(!process.env.E2E_ADMIN_TOTP?.trim(), 'Set E2E_ADMIN_TOTP for admin auth storage (trader E2E does not require this)');
     const creds = loadCredentials();
     await loginAdminViaUI(
       page,
