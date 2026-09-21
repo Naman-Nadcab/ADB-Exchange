@@ -1,7 +1,7 @@
 # Phase 3 Customer I18N — Final Certification
 
 **Branch:** `release/exchange-production-baseline`  
-**HEAD (harness closure):** `ddbcf2826695d5df5c14fb9f925a9009a03490c5`  
+**HEAD (closure):** `6d41200` (harness `ddbcf28`)  
 **Runtime:** nginx `http://127.0.0.1` → frontend image `434b83181ff4`, backend `:4000` healthy  
 
 ---
@@ -135,7 +135,7 @@ Production untouched; no production deploy or container changes.
 
 ## 17. Git
 
-Harness commit intended on `release/exchange-production-baseline` (stage only e2e harness + this doc).
+**Local = remote:** `6d41200` on `release/exchange-production-baseline`.
 
 ---
 
