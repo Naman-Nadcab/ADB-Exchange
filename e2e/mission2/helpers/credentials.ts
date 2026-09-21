@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 export type E2ECredentials = {
@@ -49,4 +49,47 @@ export function bearerHeaders(jwt: string): Record<string, string> {
 
 export function apiKeyHeaders(key: string): Record<string, string> {
   return { 'Content-Type': 'application/json', 'X-API-Key': key };
+}
+
+type LoginResponse = { success?: boolean; data?: { accessToken?: string } };
+
+/**
+ * Refresh E2E_JWT fields via staging login API (no DB seed/provision).
+ * Preserves existing API keys and emails in e2e/.e2e-credentials.json.
+ */
+export async function refreshE2eJwtsFromStagingLogin(
+  uiBase = UI_BASE,
+  creds = loadCredentials(),
+): Promise<void> {
+  const base = uiBase.replace(/\/$/, '');
+  const login = async (email: string, password: string): Promise<string> => {
+    const res = await fetch(`${base}/api/v1/auth/login/password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!res.ok) {
+      throw new Error(`staging login failed for ${email}: HTTP ${res.status}`);
+    }
+    const json = (await res.json()) as LoginResponse;
+    const token = json.data?.accessToken;
+    if (!token) throw new Error(`staging login missing accessToken for ${email}`);
+    return token;
+  };
+
+  const emailA = creds.QA_TRADER_A_EMAIL || QA_TRADER_A;
+  const emailB = creds.QA_TRADER_B_EMAIL || QA_TRADER_B;
+  const password = creds.QA_PASSWORD || QA_PASSWORD;
+
+  const [jwtA, jwtB] = await Promise.all([login(emailA, password), login(emailB, password)]);
+
+  const next: E2ECredentials = {
+    ...creds,
+    E2E_JWT: jwtA,
+    E2E_COUNTERPARTY_JWT: jwtB,
+    QA_TRADER_A_EMAIL: emailA,
+    QA_TRADER_B_EMAIL: emailB,
+    QA_PASSWORD: password,
+  };
+  writeFileSync(CRED_FILE, `${JSON.stringify(next, null, 2)}\n`, 'utf8');
 }

@@ -9,7 +9,7 @@ import {
   setCustomerLocale,
   type CustomerLocale,
 } from './helpers/i18n-locale';
-import { ensureTraderSessionCookies, loginUserForStagingHttp } from './mission2/helpers/login';
+import { loginUserForStagingHttp, waitForAuthenticatedRoute } from './mission2/helpers/login';
 import { loadCredentials, QA_TRADER_A, QA_PASSWORD, UI_BASE } from './mission2/helpers/credentials';
 
 const BASE = (process.env.BASE_URL ?? UI_BASE).replace(/\/$/, '');
@@ -158,7 +158,7 @@ test.describe('Customer i18n visual matrix (public routes)', () => {
 
 test.describe('Customer i18n visual matrix (authenticated — optional)', () => {
   test.skip(!RUN_AUTH, 'Set I18N_VISUAL_AUTH=1 and running stack with QA credentials');
-  test.describe.configure({ mode: 'serial', timeout: 180_000 });
+  test.describe.configure({ timeout: 180_000 });
 
   test.beforeAll(async () => {
     fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -201,18 +201,11 @@ test.describe('Customer i18n visual matrix (authenticated — optional)', () => 
           const cellHydration: string[] = [];
 
           try {
-            await ensureTraderSessionCookies(
-              context,
-              creds.QA_TRADER_A_EMAIL || QA_TRADER_A,
-              creds.QA_PASSWORD || QA_PASSWORD,
-              BASE,
-              process.env.E2E_BASE_URL || process.env.E2E_API_BASE_URL || 'http://127.0.0.1:4000',
-              page,
-            );
             const res = await page.goto(`${BASE}${route.path}`, {
               waitUntil: 'domcontentloaded',
               timeout: 45_000,
             });
+            await waitForAuthenticatedRoute(page, context);
             const pathname = new URL(page.url()).pathname;
             if (pathname === '/login' || pathname.startsWith('/login/')) {
               const cookies = await context.cookies();

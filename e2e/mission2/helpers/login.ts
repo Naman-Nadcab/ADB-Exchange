@@ -1,6 +1,53 @@
 import type { BrowserContext, Page } from '@playwright/test';
 import { API_BASE, UI_BASE, ADMIN_UI_BASE } from './credentials';
 
+/** Prefer nginx same-origin `/api` on staging so cookies and Playwright share one host. */
+export function resolveStagingLoginApiBase(uiBase = UI_BASE, apiBase = API_BASE): string {
+  const ui = uiBase.replace(/\/$/, '');
+  try {
+    const host = new URL(ui).hostname;
+    if (host === '127.0.0.1' || host === 'localhost') return ui;
+  } catch {
+    /* fall through */
+  }
+  return apiBase.replace(/\/$/, '');
+}
+
+/** Wait until UI + cookies show an authenticated session (no seeded-storage shortcut). */
+export async function waitForAuthenticatedRoute(
+  page: Page,
+  context: BrowserContext,
+  timeoutMs = 25_000,
+): Promise<void> {
+  const pathname = new URL(page.url()).pathname;
+  if (pathname === '/login' || pathname.startsWith('/login/')) {
+    throw new Error('redirected to login before auth wait');
+  }
+
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const cookies = await context.cookies();
+    if (!cookies.some((c) => c.name === 'mlive_at')) {
+      throw new Error('mlive_at cookie missing after route load');
+    }
+    const onLogin = new URL(page.url()).pathname.startsWith('/login');
+    if (onLogin) throw new Error('redirected to login');
+    const authed = await page.evaluate(() => {
+      try {
+        const raw = localStorage.getItem('auth-storage');
+        if (!raw) return false;
+        const j = JSON.parse(raw) as { state?: { isAuthenticated?: boolean; user?: { email?: string } | null } };
+        return j.state?.isAuthenticated === true && Boolean(j.state?.user);
+      } catch {
+        return false;
+      }
+    });
+    if (authed) return;
+    await page.waitForTimeout(200);
+  }
+  throw new Error('session not authenticated after route load (auth-storage)');
+}
+
 type LoginPayload = {
   user: Record<string, unknown>;
   accessToken: string;
@@ -18,7 +65,7 @@ export async function loginUserForStagingHttp(
   uiBase = UI_BASE,
   apiBase = API_BASE,
 ): Promise<Page> {
-  const api = apiBase.replace(/\/$/, '');
+  const api = resolveStagingLoginApiBase(uiBase, apiBase);
   const res = await context.request.post(`${api}/api/v1/auth/login/password`, {
     data: { email, password },
   });
@@ -30,30 +77,27 @@ export async function loginUserForStagingHttp(
   if (!data?.accessToken || !data.refreshToken) {
     throw new Error('API login missing tokens');
   }
-  const host = new URL(uiBase).hostname;
+  const origin = uiBase.replace(/\/$/, '');
   await context.addCookies([
     {
+      url: `${origin}/`,
       name: 'mlive_at',
       value: data.accessToken,
-      domain: host,
-      path: '/',
       httpOnly: true,
       secure: false,
       sameSite: 'Lax',
     },
     {
+      url: `${origin}/`,
       name: 'mlive_rt',
       value: data.refreshToken,
-      domain: host,
-      path: '/',
       httpOnly: true,
       secure: false,
       sameSite: 'Lax',
     },
   ]);
-  const page = await context.newPage();
-  await page.goto(`${uiBase.replace(/\/$/, '')}/`, { waitUntil: 'domcontentloaded' });
-  await page.evaluate((payload) => {
+  // HttpOnly cookies are invisible to document.cookie; AuthProvider skips /me without stored bearer (same as UI login).
+  await context.addInitScript((payload) => {
     localStorage.setItem(
       'auth-storage',
       JSON.stringify({
@@ -61,16 +105,32 @@ export async function loginUserForStagingHttp(
           user: payload.user,
           accessToken: payload.accessToken,
           refreshToken: payload.refreshToken,
-          isAuthenticated: true,
+          isAuthenticated: false,
           isLoading: false,
           _hasHydrated: true,
-          authResolved: true,
+          authResolved: false,
           authFlags: 0,
         },
         version: 0,
       }),
     );
-  }, data);
+  }, { user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken });
+  const page = await context.newPage();
+  let meStatus: number | null = null;
+  page.on('response', (r) => {
+    if (r.url().includes('/api/v1/auth/me')) meStatus = r.status();
+  });
+  const meOk = page.waitForResponse((r) => r.url().includes('/api/v1/auth/me'), { timeout: 30_000 });
+  await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded' });
+  const meRes = await meOk.catch(() => null);
+  if (!meRes || meRes.status() !== 200) {
+    const jar = await context.cookies();
+    const hasAt = jar.some((c) => c.name === 'mlive_at');
+    throw new Error(
+      `staging login: /auth/me status=${meStatus ?? meRes?.status() ?? 'none'} mlive_at=${hasAt}`,
+    );
+  }
+  await waitForAuthenticatedRoute(page, context, 15_000);
   return page;
 }
 
@@ -85,7 +145,7 @@ export async function ensureTraderSessionCookies(
 ): Promise<void> {
   const existing = await context.cookies();
   if (existing.some((c) => c.name === 'mlive_at')) return;
-  const api = apiBase.replace(/\/$/, '');
+  const api = resolveStagingLoginApiBase(uiBase, apiBase);
   const res = await context.request.post(`${api}/api/v1/auth/login/password`, {
     data: { email, password },
   });
@@ -93,22 +153,20 @@ export async function ensureTraderSessionCookies(
   const json = (await res.json()) as { data?: LoginPayload };
   const data = json.data;
   if (!data?.accessToken) return;
-  const host = new URL(uiBase).hostname;
+  const origin = uiBase.replace(/\/$/, '');
   await context.addCookies([
     {
+      url: `${origin}/`,
       name: 'mlive_at',
       value: data.accessToken,
-      domain: host,
-      path: '/',
       httpOnly: true,
       secure: false,
       sameSite: 'Lax',
     },
     {
+      url: `${origin}/`,
       name: 'mlive_rt',
       value: data.refreshToken,
-      domain: host,
-      path: '/',
       httpOnly: true,
       secure: false,
       sameSite: 'Lax',
