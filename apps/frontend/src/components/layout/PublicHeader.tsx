@@ -48,25 +48,25 @@ export function PublicHeader() {
   };
 
   return (
-    <header className="mobile-app-topbar sticky top-0 z-50 border-b border-[#F5B8001F] bg-[#05070B]/90 backdrop-blur">
-      <div className="mx-auto flex max-w-[1320px] items-center justify-between px-3 py-3.5 sm:px-6 lg:px-8">
+    <header className="mobile-app-topbar sticky top-0 z-50 overflow-x-clip border-b border-[#F5B8001F] bg-[#05070B]/90 backdrop-blur">
+      <div className="mx-auto flex max-w-[1320px] min-w-0 items-center justify-between px-3 py-3.5 sm:px-6 lg:px-8">
         <BrandLogo
           variant="horizontal-gold"
           size="header"
           href={ROUTES.home}
         />
 
-        <nav className="hidden items-center gap-5 text-sm text-[#9CA3AF] lg:flex" aria-label="Primary">
+        <nav className="hidden min-w-0 items-center gap-5 overflow-x-clip text-sm text-[#9CA3AF] lg:flex" aria-label="Primary">
           {authed ? (
             <>
               <EdaProductSwitcher />
               <Link href={ROUTES.home} prefetch className="tap-target inline-flex items-center transition hover:text-white">{tn('overview')}</Link>
               <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center transition hover:text-white">{tn('markets')}</Link>
-              <div className="relative group">
+              <div className="relative shrink-0 group">
                 <button type="button" className="tap-target inline-flex items-center transition hover:text-white" aria-haspopup="true">
                   {tn('trade')}
                 </button>
-                <div className="invisible absolute left-0 top-full z-40 mt-1 w-56 rounded-lg border border-[#F5B8001F] bg-[#0D1118] py-1 opacity-0 shadow-xl transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                <div className="invisible absolute left-0 top-full z-40 mt-1 w-56 max-w-[min(14rem,calc(100vw-2rem))] rounded-lg border border-[#F5B8001F] bg-[#0D1118] py-1 opacity-0 shadow-xl transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
                   <Link href={SPOT_TRADE_HREF} className="block px-3 py-2 hover:bg-white/5 hover:text-white">
                     {tn('cryptoSpot')}
                     <span className="mt-0.5 block text-[11px] text-[#6B7280]">{tn('digitalAssetTrading')}</span>
@@ -86,11 +86,11 @@ export function PublicHeader() {
               <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center transition hover:text-white">Markets</Link>
               <Link href={SPOT_TRADE_HREF} prefetch className="tap-target inline-flex items-center transition hover:text-white">Crypto</Link>
               <Link href={FOREX_ROUTES.root} prefetch className="tap-target inline-flex items-center transition hover:text-white">Forex</Link>
-              <div className="relative group">
+              <div className="relative shrink-0 group">
                 <button type="button" className="tap-target inline-flex items-center transition hover:text-white" aria-haspopup="true">
                   {tn('trade')}
                 </button>
-                <div className="invisible absolute left-0 top-full z-40 mt-1 w-56 rounded-lg border border-[#F5B8001F] bg-[#0D1118] py-1 opacity-0 shadow-xl transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                <div className="invisible absolute left-0 top-full z-40 mt-1 w-56 max-w-[min(14rem,calc(100vw-2rem))] rounded-lg border border-[#F5B8001F] bg-[#0D1118] py-1 opacity-0 shadow-xl transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
                   <Link href={SPOT_TRADE_HREF} className="block px-3 py-2 hover:bg-white/5 hover:text-white">
                     {tn('cryptoSpot')}
                     <span className="mt-0.5 block text-[11px] text-[#6B7280]">{tn('digitalAssetTrading')}</span>

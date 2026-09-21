@@ -93,8 +93,8 @@ function PortfolioMiniChart({
   const fmtUsdFn = typeof formatUsd === 'function' ? formatUsd : formatUsdDefault;
   if (data.length < 2) {
     return (
-      <div className="w-full" style={{ maxWidth: width }}>
-        <div className="flex items-center justify-center rounded-lg border border-border bg-muted/20 text-xs text-muted-foreground" style={{ width, height }}>
+      <div className="w-full min-w-0 max-w-full">
+        <div className="flex h-[120px] w-full min-w-0 max-w-[360px] items-center justify-center rounded-lg border border-border bg-muted/20 text-xs text-muted-foreground">
           <div className="text-center px-2">
             <BarChart3 className="mx-auto mb-1 h-5 w-5 text-muted-foreground/40" />
             <p>{tw('overview.collectingData')}</p>
@@ -120,8 +120,8 @@ function PortfolioMiniChart({
   const first = vals[0];
   const last = vals[vals.length - 1];
   return (
-    <div className="w-full" style={{ maxWidth: width }}>
-      <svg width={width} height={height} className="shrink-0 rounded-lg w-full max-w-full" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+    <div className="w-full min-w-0 max-w-[360px]">
+      <svg width="100%" height={height} className="block w-full max-w-full shrink-0 rounded-lg" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={color} stopOpacity={0.2} />
@@ -610,9 +610,9 @@ export default function AssetsOverviewPage() {
         ) : null}
 
         {/* ── Balance Card ── */}
-        <div className="mb-8 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex-1 space-y-5">
+        <div className="mb-8 min-w-0 overflow-x-clip rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+          <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0 flex-1 space-y-5">
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">{tw('overview.totalBalance')}</p>
                 {isLoading ? (
@@ -674,8 +674,8 @@ export default function AssetsOverviewPage() {
             </div>
 
             {/* Portfolio value chart */}
-            <div className="flex flex-col items-end gap-3 lg:min-w-[380px]">
-              <div className="flex gap-1 rounded-lg bg-muted/50 p-1">
+            <div className="flex w-full min-w-0 flex-col items-stretch gap-3 sm:items-end lg:min-w-0 lg:w-[min(380px,100%)] lg:max-w-[380px]">
+              <div className="flex flex-wrap justify-end gap-1 rounded-lg bg-muted/50 p-1">
                 {(['24h', '7d', '30d', '90d', '1y'] as const).map((p) => (
                   <button key={p} type="button" onClick={() => setChartPeriod(p)}
                     className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${chartPeriod === p ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
