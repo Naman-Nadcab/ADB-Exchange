@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
 import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
@@ -24,28 +25,31 @@ import { ForexPositionPanel } from './ForexPositionPanel';
 import { ForexServerAlertsPanel } from './ForexServerAlertsPanel';
 import { fxMoney, fxNum, fxPlain, fxSigned } from './format';
 
-const TABS: Array<{ id: ForexBottomTab; label: string }> = [
-  { id: 'positions', label: 'Trade' },
-  { id: 'orders', label: 'Orders' },
-  { id: 'fills', label: 'Fills' },
-  { id: 'history', label: 'History' },
-  { id: 'risk', label: 'Exposure' },
-  { id: 'analytics', label: 'Risk' },
-  { id: 'alerts', label: 'Alerts' },
-  { id: 'dom', label: 'DOM' },
-  { id: 'tape', label: 'Tape' },
-  { id: 'news', label: 'News' },
-  { id: 'calendar', label: 'Calendar' },
-  { id: 'journal', label: 'Journal' },
-];
-
 const PRIMARY_BOTTOM_TABS = new Set<ForexBottomTab>(['positions', 'orders', 'history']);
-const OVERFLOW_BOTTOM_TABS = TABS.filter((t) => !PRIMARY_BOTTOM_TABS.has(t.id));
 
 const PENDING_STATUSES = new Set(['ACCEPTED', 'PENDING', 'NEW', 'TRIGGERING', 'VALIDATING', 'CANCEL_PENDING', 'WORKING', 'OPEN', 'PARTIAL']);
 const CLOSED_STATUSES = new Set(['FILLED', 'CANCELLED', 'CANCELED', 'REJECTED', 'EXPIRED', 'CLOSED']);
 
 export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: boolean }) {
+  const tf = useTranslations('forex');
+  const TABS: Array<{ id: ForexBottomTab; label: string }> = useMemo(
+    () => [
+      { id: 'positions', label: tf('bottomTabs.positions') },
+      { id: 'orders', label: tf('bottomTabs.orders') },
+      { id: 'fills', label: tf('bottomTabs.fills') },
+      { id: 'history', label: tf('bottomTabs.history') },
+      { id: 'risk', label: tf('bottomTabs.risk') },
+      { id: 'analytics', label: tf('bottomTabs.analytics') },
+      { id: 'alerts', label: tf('bottomTabs.alerts') },
+      { id: 'dom', label: tf('bottomTabs.dom') },
+      { id: 'tape', label: tf('bottomTabs.tape') },
+      { id: 'news', label: tf('bottomTabs.news') },
+      { id: 'calendar', label: tf('bottomTabs.calendar') },
+      { id: 'journal', label: tf('bottomTabs.journal') },
+    ],
+    [tf]
+  );
+  const OVERFLOW_BOTTOM_TABS = useMemo(() => TABS.filter((t) => !PRIMARY_BOTTOM_TABS.has(t.id)), [TABS]);
   const tab = useForexWorkspaceStore((s) => s.bottomTab);
   const setTab = useForexWorkspaceStore((s) => s.setBottomTab);
   const [busyId, setBusyId] = useState<string | null>(null);

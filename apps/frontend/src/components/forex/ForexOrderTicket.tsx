@@ -247,27 +247,27 @@ export function ForexOrderTicket() {
   }
 
   return (
-    <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-l border-border bg-card" aria-label="Order ticket">
+    <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-l border-border bg-card" aria-label={tf('ticketPanel.ariaLabel')}>
       <div className="flex h-6 items-center justify-between border-b border-border px-2">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">New Order</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{tf('ticketPanel.newOrder')}</span>
         <span className="font-mono text-[11px] font-semibold">{inst?.displaySymbol ?? selected}</span>
       </div>
       <div className="flex items-center justify-between border-b border-border px-2 py-0.5 text-[9px] text-muted-foreground">
-        <span title="Authoritative account position accounting mode">Mode · {positionMode}</span>
+        <span title={tf('ticketPanel.modeTitle')}>{tf('ticketPanel.modePrefix')} {positionMode}</span>
         <span className="font-medium text-foreground">{orderActionLabel}</span>
       </div>
 
       <div className="grid grid-cols-3 border-b border-border font-mono text-[11px]">
         <div className="border-r border-border px-2 py-1">
-          <p className="text-[9px] text-muted-foreground">Bid</p>
+          <p className="text-[9px] text-muted-foreground">{tf('ticketPanel.bid')}</p>
           <p className="eda-quote font-semibold text-buy">{quote ? fxNum(quote.bid, digits) : '—'}</p>
         </div>
         <div className="border-r border-border px-2 py-1">
-          <p className="text-[9px] text-muted-foreground">Ask</p>
+          <p className="text-[9px] text-muted-foreground">{tf('ticketPanel.ask')}</p>
           <p className="eda-quote font-semibold text-sell">{quote ? fxNum(quote.ask, digits) : '—'}</p>
         </div>
         <div className="px-2 py-1">
-          <p className="text-[9px] text-muted-foreground">Spr</p>
+          <p className="text-[9px] text-muted-foreground">{tf('ticketPanel.spread')}</p>
           <p className="font-semibold">{quote?.spreadPips ?? '—'}</p>
         </div>
       </div>
@@ -283,7 +283,7 @@ export function ForexOrderTicket() {
               side === 'sell' ? 'border-sell bg-sell/15 text-sell' : 'border-border text-muted-foreground'
             )}
           >
-            SELL
+            {tf('ticketPanel.sell')}
           </button>
           <button
             type="button"
@@ -294,16 +294,16 @@ export function ForexOrderTicket() {
               side === 'buy' ? 'border-buy bg-buy/15 text-buy' : 'border-border text-muted-foreground'
             )}
           >
-            BUY
+            {tf('ticketPanel.buy')}
           </button>
         </div>
         <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
-          <span className="w-14 shrink-0 uppercase">Kind</span>
+          <span className="w-14 shrink-0 uppercase">{tf('ticketPanel.kind')}</span>
           <select
             value={type}
             onChange={(e) => setType(e.target.value as ForexOrderType)}
             className="fx-mt5-field h-7 flex-1 px-1.5 text-[11px]"
-            aria-label="Order kind"
+            aria-label={tf('ticketPanel.kindAria')}
           >
             {allowedTypes.map((t) => (
               <option key={t} value={t}>
@@ -315,18 +315,18 @@ export function ForexOrderTicket() {
         <p className="text-[9px] leading-snug text-muted-foreground">{kindHelp}</p>
 
         <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
-          <span className="w-14 shrink-0 uppercase">TIF</span>
+          <span className="w-14 shrink-0 uppercase">{tf('ticketPanel.tif')}</span>
           <select
             value={tif}
             disabled={tifUnsupported}
             onChange={(e) => setTif(e.target.value as ForexTimeInForce)}
             className="fx-mt5-field h-7 flex-1 px-1.5 text-[11px] disabled:opacity-50"
-            aria-label="Time in force"
+            aria-label={tf('ticketPanel.tifAria')}
           >
             {tifOptions.map((t) => (
               <option key={t} value={t} disabled={!isTimeInForceAllowed(type, t)}>
                 {FOREX_TIME_IN_FORCE_LABEL[t]}
-                {isTimeInForceAllowed(type, t) ? '' : ' · n/a for this type'}
+                {isTimeInForceAllowed(type, t) ? '' : tf('ticketPanel.tifNaSuffix')}
               </option>
             ))}
           </select>
@@ -341,13 +341,13 @@ export function ForexOrderTicket() {
 
         {tif === 'GTD' && isPendingOrderType(type) ? (
           <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
-            <span className="w-14 shrink-0 uppercase">Expires</span>
+            <span className="w-14 shrink-0 uppercase">{tf('ticketPanel.expires')}</span>
             <input
               type="datetime-local"
               value={expireAt}
               onChange={(e) => setExpireAt(e.target.value)}
               className="fx-mt5-field h-7 flex-1 px-1.5 text-[11px]"
-              aria-label="GTD expiry"
+              aria-label={tf('ticketPanel.expiresAria')}
             />
           </label>
         ) : null}
@@ -357,12 +357,12 @@ export function ForexOrderTicket() {
         </p>
 
         <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
-          <span className="w-14 shrink-0 uppercase">Volume</span>
+          <span className="w-14 shrink-0 uppercase">{tf('ticketPanel.volume')}</span>
           <input
             value={volume}
             onChange={(e) => setVolume(e.target.value)}
             className="fx-mt5-field h-7 flex-1 px-1.5 text-[12px]"
-            aria-label="Volume lots"
+            aria-label={tf('ticketPanel.volumeAria')}
           />
         </label>
         {inst ? (
@@ -374,7 +374,7 @@ export function ForexOrderTicket() {
         {requiresTriggerPrice(type) ? (
           <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
             <span className="w-14 shrink-0 uppercase">
-              {type === 'limit' ? 'Price' : type === 'stop_limit' ? 'Stop' : 'Trigger'}
+              {type === 'limit' ? tf('ticketPanel.price') : type === 'stop_limit' ? tf('ticketPanel.stop') : tf('ticketPanel.trigger')}
             </span>
             <input
               value={price}
@@ -388,12 +388,12 @@ export function ForexOrderTicket() {
         {requiresLimitPrice(type) ? (
           <>
             <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
-              <span className="w-14 shrink-0 uppercase">Limit</span>
+              <span className="w-14 shrink-0 uppercase">{tf('ticketPanel.limit')}</span>
               <input
                 value={limitPrice}
                 onChange={(e) => setLimitPrice(e.target.value)}
                 className="fx-mt5-field h-7 flex-1 px-1.5 text-[12px]"
-                aria-label="Stop limit price"
+                aria-label={tf('ticketPanel.limitAria')}
               />
             </label>
             <p className="pl-16 text-[9px] leading-snug text-muted-foreground">
@@ -407,33 +407,31 @@ export function ForexOrderTicket() {
 
         <div className="grid grid-cols-2 gap-1.5">
           <label className="text-[10px] text-muted-foreground" htmlFor="fx-ticket-sl">
-            <span className="mb-0.5 block uppercase">Stop Loss</span>
+            <span className="mb-0.5 block uppercase">{tf('ticketPanel.stopLoss')}</span>
             <input
               id="fx-ticket-sl"
               value={sl}
               onChange={(e) => setSl(e.target.value)}
-              aria-label="Stop loss price"
+              aria-label={tf('ticketPanel.stopLossAria')}
               className="fx-mt5-field h-7 w-full px-1.5 text-[12px]"
             />
           </label>
           <label className="text-[10px] text-muted-foreground" htmlFor="fx-ticket-tp">
-            <span className="mb-0.5 block uppercase">Take Profit</span>
+            <span className="mb-0.5 block uppercase">{tf('ticketPanel.takeProfit')}</span>
             <input
               id="fx-ticket-tp"
               value={tp}
               onChange={(e) => setTp(e.target.value)}
-              aria-label="Take profit price"
+              aria-label={tf('ticketPanel.takeProfitAria')}
               className="fx-mt5-field h-7 w-full px-1.5 text-[12px]"
             />
           </label>
         </div>
-        <p className="text-[11px] leading-snug text-muted-foreground">SL/TP attach after fill via protections.</p>
+        <p className="text-[11px] leading-snug text-muted-foreground">{tf('ticketPanel.slTpAttach')}</p>
 
-        <p className="text-[11px] leading-snug text-muted-foreground">
-          SL/TP distances and R:R are Estimated. Margin from server preview is Actual when READY.
-        </p>
+        <p className="text-[11px] leading-snug text-muted-foreground">{tf('ticketPanel.slTpEstimated')}</p>
         <dl className="grid grid-cols-2 gap-x-2 gap-y-0.5 border border-border px-2 py-1 font-mono text-[10px] text-muted-foreground">
-          <dt>Balance</dt>
+          <dt>{tf('ticketPanel.balance')}</dt>
           <dd className="text-right text-foreground">
             {hydratePhase === 'hydrating' && !account ? '…' : account ? fxNum(account.ledgerBalance, 2) : '—'}
           </dd>
