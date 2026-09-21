@@ -1,7 +1,7 @@
 # Phase 3 Customer I18N — Staging Readiness Audit
 
 **Branch:** `release/exchange-production-baseline`  
-**Audit HEAD:** `57d0e1dbf78f622c52895a3926b4c4c4a5bc16d4`  
+**Audit HEAD:** `70d283e` (see `git rev-parse HEAD`)  
 **Prior checkpoint:** `2b2d31da435aaf41adcc8e01377457f022aad2ed`  
 **Production deployed:** NO  
 **DB changed:** NO  
@@ -30,7 +30,7 @@ Customer Phase 3 presentation work is **implementation-complete** for the scoped
 | **CRYPTO REGRESSION** | **PARTIAL** (spot route loads body; spot grid toasts frozen Phase 1) |
 | **P2P REGRESSION** | **PARTIAL** (public `/p2p` in matrix; order detail needs auth) |
 | **WALLET / ACCOUNT** | **PARTIAL** (localized; auth routes not matrix-tested) |
-| **GIT** | **PASS** (`HEAD` == `origin/release/exchange-production-baseline` @ `57d0e1d`) |
+| **GIT** | **PASS** (`HEAD` == `origin/release/exchange-production-baseline`) |
 | **PROTECTED PATHS** | **UNCHANGED** (0-line diff on backend/matching-engine/DB/migrations since `2b2d31d`) |
 | **STAGING READINESS** | **NOT READY** for full authenticated visual sign-off; **READY** for staging deploy *smoke* of i18n catalogs + frontend build |
 
