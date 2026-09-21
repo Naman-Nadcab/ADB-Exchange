@@ -1,7 +1,7 @@
 # Phase 3 Customer I18N — Final Certification
 
 **Branch:** `release/exchange-production-baseline`  
-**HEAD (harness closure):** see Git section below  
+**HEAD (harness closure):** `ddbcf2826695d5df5c14fb9f925a9009a03490c5`  
 **Runtime:** nginx `http://127.0.0.1` → frontend image `434b83181ff4`, backend `:4000` healthy  
 
 ---
