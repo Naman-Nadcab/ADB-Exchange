@@ -405,5 +405,82 @@
     "supportTitle": "7×24 支持",
     "supportDesc": "可提供争议处理",
     "marginPlaceholder": "0"
+  },
+  "paymentMethodsPage": {
+    "kicker": "P2P · 收付款",
+    "title": "收款方式",
+    "subtitle": "添加 P2P 交易中接收法币的方式。在与对手方匹配之前，详情不会对外显示。",
+    "addMethod": "添加方式",
+    "summaryActive": "启用",
+    "summaryDisabled": "已停用",
+    "summaryPrivacy": "仅在活跃交易中显示",
+    "formTitle": "添加收款方式",
+    "closeFormAria": "关闭表单",
+    "paymentTypeLabel": "支付类型",
+    "paymentTypeHint": "选择买家向您发送法币的方式。",
+    "platformTypeTitle": "{name}（{code}）",
+    "displayNameLabel": "显示名称（可选）",
+    "displayNameHint": "仅在列表中供您识别 — 非必填。",
+    "displayNamePlaceholder": "例如：我的{name}账户",
+    "displayNameFallback": "支付",
+    "adding": "添加中…",
+    "saveMethod": "保存方式",
+    "encryptedInTransit": "传输加密",
+    "yourMethods": "我的方式",
+    "listSubtitle": "管理 P2P 订单的收款账户。展开一行即可在需要时复制详情。",
+    "emptyTitle": "暂无收款方式",
+    "emptyBody": "请至少添加一种接收法币的方式，以便发布广告并参与交易。详情已加密，仅在订单进行中对对手方可见。",
+    "statusActive": "启用",
+    "statusDisabled": "已停用",
+    "privateUntilTrade": "交易前保密",
+    "updatedOn": "更新于 {date}",
+    "hideDetailsAria": "隐藏详情",
+    "showDetailsAria": "显示详情",
+    "disable": "停用",
+    "enable": "启用",
+    "deleteConfirm": "确认",
+    "deleteTitle": "删除",
+    "deleteAria": "删除收款方式",
+    "accountDetails": "账户详情",
+    "copyTitle": "复制",
+    "backupTitle": "添加备用方式",
+    "backupBody": "若某家银行或应用在交易中不可用，备用收款方式可派上用场。",
+    "addAnother": "再添加一个",
+    "beforeTradeTitle": "交易前须知",
+    "beforeTradeTip1": "请使用与银行或 UPI KYC 一致的法定姓名。",
+    "beforeTradeTip2": "仔细核对账号与 IFSC — 买家将向这些详情付款。",
+    "beforeTradeTip3": "若可能再次使用，请停用而非删除该方式。",
+    "securityTitle": "安全",
+    "securityBody": "收款详情经 TLS 传输。仅在订单活跃时对对手方可见 — 不会在公开市场展示。",
+    "addFailed": "添加失败",
+    "toastDeleteFailed": "删除失败",
+    "toastCopyFailedTitle": "复制失败",
+    "toastCopyFailedDesc": "无法复制到剪贴板。"
+  },
+  "paymentMethodsFields": {
+    "account_name": {
+      "label": "账户持有人姓名",
+      "placeholder": "与银行账户一致的姓名"
+    },
+    "bank_name": {
+      "label": "银行名称",
+      "placeholder": "例如：中国工商银行"
+    },
+    "account_number": {
+      "label": "账号",
+      "placeholder": "银行账号"
+    },
+    "ifsc": {
+      "label": "IFSC 代码",
+      "placeholder": "例如：SBIN0001234"
+    },
+    "upi_id": {
+      "label": "UPI ID",
+      "placeholder": "例如：yourname@upi"
+    },
+    "swift": {
+      "label": "SWIFT / BIC",
+      "placeholder": "SWIFT 代码"
+    }
   }
 }

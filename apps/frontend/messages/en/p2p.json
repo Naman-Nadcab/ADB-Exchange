@@ -407,5 +407,82 @@
     "supportTitle": "24/7 Support",
     "supportDesc": "Dispute resolution available",
     "marginPlaceholder": "0"
+  },
+  "paymentMethodsPage": {
+    "kicker": "P2P · Payments",
+    "title": "Payment methods",
+    "subtitle": "Add how you receive fiat for P2P trades. Details stay private until you match with a counterparty.",
+    "addMethod": "Add method",
+    "summaryActive": "active",
+    "summaryDisabled": "disabled",
+    "summaryPrivacy": "Shown only during active trades",
+    "formTitle": "Add payment method",
+    "closeFormAria": "Close form",
+    "paymentTypeLabel": "Payment type",
+    "paymentTypeHint": "Choose how buyers will send you fiat.",
+    "platformTypeTitle": "{name} ({code})",
+    "displayNameLabel": "Display name (optional)",
+    "displayNameHint": "Shown to you in the list — not required.",
+    "displayNamePlaceholder": "e.g. My {name} account",
+    "displayNameFallback": "payment",
+    "adding": "Adding…",
+    "saveMethod": "Save method",
+    "encryptedInTransit": "Encrypted in transit",
+    "yourMethods": "Your methods",
+    "listSubtitle": "Manage payout accounts for P2P orders. Expand a row to copy details when you need them.",
+    "emptyTitle": "No payment methods yet",
+    "emptyBody": "Add at least one way to receive fiat so you can publish ads and take trades. Details are encrypted and only shown to your counterparty during an order.",
+    "statusActive": "Active",
+    "statusDisabled": "Disabled",
+    "privateUntilTrade": "Private until trade",
+    "updatedOn": "Updated {date}",
+    "hideDetailsAria": "Hide details",
+    "showDetailsAria": "Show details",
+    "disable": "Disable",
+    "enable": "Enable",
+    "deleteConfirm": "Confirm",
+    "deleteTitle": "Delete",
+    "deleteAria": "Delete payment method",
+    "accountDetails": "Account details",
+    "copyTitle": "Copy",
+    "backupTitle": "Add a backup method",
+    "backupBody": "A second payout option helps if one bank or app is down during a trade.",
+    "addAnother": "Add another",
+    "beforeTradeTitle": "Before you trade",
+    "beforeTradeTip1": "Use the legal name that matches your bank or UPI KYC.",
+    "beforeTradeTip2": "Double-check account numbers and IFSC — buyers pay to these details.",
+    "beforeTradeTip3": "Disable a method instead of deleting it if you might use it again.",
+    "securityTitle": "Security",
+    "securityBody": "Payout details are sent over TLS. They are only visible to your counterparty while an order is active — not on the public marketplace.",
+    "addFailed": "Add failed",
+    "toastDeleteFailed": "Delete failed",
+    "toastCopyFailedTitle": "Copy failed",
+    "toastCopyFailedDesc": "Unable to copy details to clipboard."
+  },
+  "paymentMethodsFields": {
+    "account_name": {
+      "label": "Account Holder Name",
+      "placeholder": "Full name as on bank account"
+    },
+    "bank_name": {
+      "label": "Bank Name",
+      "placeholder": "e.g. State Bank of India"
+    },
+    "account_number": {
+      "label": "Account Number",
+      "placeholder": "Bank account number"
+    },
+    "ifsc": {
+      "label": "IFSC Code",
+      "placeholder": "e.g. SBIN0001234"
+    },
+    "upi_id": {
+      "label": "UPI ID",
+      "placeholder": "e.g. yourname@upi"
+    },
+    "swift": {
+      "label": "SWIFT / BIC",
+      "placeholder": "SWIFT code"
+    }
   }
 }

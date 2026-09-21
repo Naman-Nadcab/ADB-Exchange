@@ -405,5 +405,82 @@
     "supportTitle": "Dukungan 24/7",
     "supportDesc": "Penyelesaian sengketa tersedia",
     "marginPlaceholder": "0"
+  },
+  "paymentMethodsPage": {
+    "kicker": "P2P · Pembayaran",
+    "title": "Metode pembayaran",
+    "subtitle": "Tambahkan cara Anda menerima fiat untuk trade P2P. Detail tetap privat hingga Anda cocok dengan lawan.",
+    "addMethod": "Tambah metode",
+    "summaryActive": "aktif",
+    "summaryDisabled": "nonaktif",
+    "summaryPrivacy": "Hanya ditampilkan saat trade aktif",
+    "formTitle": "Tambah metode pembayaran",
+    "closeFormAria": "Tutup formulir",
+    "paymentTypeLabel": "Jenis pembayaran",
+    "paymentTypeHint": "Pilih cara pembeli mengirim fiat kepada Anda.",
+    "platformTypeTitle": "{name} ({code})",
+    "displayNameLabel": "Nama tampilan (opsional)",
+    "displayNameHint": "Hanya untuk Anda di daftar — tidak wajib.",
+    "displayNamePlaceholder": "mis. Akun {name} saya",
+    "displayNameFallback": "pembayaran",
+    "adding": "Menambahkan…",
+    "saveMethod": "Simpan metode",
+    "encryptedInTransit": "Terenkripsi saat transit",
+    "yourMethods": "Metode Anda",
+    "listSubtitle": "Kelola akun pencairan untuk pesanan P2P. Perluas baris untuk menyalin detail saat diperlukan.",
+    "emptyTitle": "Belum ada metode pembayaran",
+    "emptyBody": "Tambahkan minimal satu cara menerima fiat agar bisa memublikasikan iklan dan trade. Detail dienkripsi dan hanya terlihat oleh lawan selama pesanan berlangsung.",
+    "statusActive": "Aktif",
+    "statusDisabled": "Nonaktif",
+    "privateUntilTrade": "Privat hingga trade",
+    "updatedOn": "Diperbarui {date}",
+    "hideDetailsAria": "Sembunyikan detail",
+    "showDetailsAria": "Tampilkan detail",
+    "disable": "Nonaktifkan",
+    "enable": "Aktifkan",
+    "deleteConfirm": "Konfirmasi",
+    "deleteTitle": "Hapus",
+    "deleteAria": "Hapus metode pembayaran",
+    "accountDetails": "Detail akun",
+    "copyTitle": "Salin",
+    "backupTitle": "Tambah metode cadangan",
+    "backupBody": "Opsi pencairan kedua membantu jika satu bank atau aplikasi tidak tersedia saat trade.",
+    "addAnother": "Tambah lagi",
+    "beforeTradeTitle": "Sebelum trade",
+    "beforeTradeTip1": "Gunakan nama legal yang sesuai KYC bank atau UPI Anda.",
+    "beforeTradeTip2": "Periksa ulang nomor rekening dan IFSC — pembeli membayar ke detail ini.",
+    "beforeTradeTip3": "Nonaktifkan metode alih-alih menghapus jika mungkin dipakai lagi.",
+    "securityTitle": "Keamanan",
+    "securityBody": "Detail pencairan dikirim via TLS. Hanya terlihat oleh lawan saat pesanan aktif — bukan di marketplace publik.",
+    "addFailed": "Gagal menambahkan",
+    "toastDeleteFailed": "Gagal menghapus",
+    "toastCopyFailedTitle": "Gagal menyalin",
+    "toastCopyFailedDesc": "Tidak dapat menyalin detail ke clipboard."
+  },
+  "paymentMethodsFields": {
+    "account_name": {
+      "label": "Nama pemegang rekening",
+      "placeholder": "Nama lengkap sesuai rekening bank"
+    },
+    "bank_name": {
+      "label": "Nama bank",
+      "placeholder": "mis. Bank Central Asia"
+    },
+    "account_number": {
+      "label": "Nomor rekening",
+      "placeholder": "Nomor rekening bank"
+    },
+    "ifsc": {
+      "label": "Kode IFSC",
+      "placeholder": "mis. SBIN0001234"
+    },
+    "upi_id": {
+      "label": "ID UPI",
+      "placeholder": "mis. namamu@upi"
+    },
+    "swift": {
+      "label": "SWIFT / BIC",
+      "placeholder": "Kode SWIFT"
+    }
   }
 }
