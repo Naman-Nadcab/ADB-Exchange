@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import {
   fetchP2POrderMessages,
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export function P2PChat({ orderId, enabled }: Props) {
+  const tp = useTranslations('p2p.chat');
   const queryClient = useQueryClient();
   const { accessToken, _hasHydrated, user } = useAuthStore();
   const [text, setText] = useState('');
@@ -107,7 +109,7 @@ export function P2PChat({ orderId, enabled }: Props) {
     return (
       <div className="flex items-center gap-3 rounded-lg border border-border/30 bg-card p-4 text-sm text-muted-foreground">
         <MessageCircle className="h-4 w-4 text-muted-foreground/40" />
-        Chat available when the order is open.
+        {tp('closedHint')}
       </div>
     );
   }
@@ -118,12 +120,12 @@ export function P2PChat({ orderId, enabled }: Props) {
       <div className="flex items-center justify-between border-b border-border/20 px-4 py-3">
         <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
           <MessageCircle className="h-4 w-4 text-primary" />
-          Chat
+          {tp('title')}
         </span>
         <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
           wsConnected ? 'bg-[#0ecb81]/10 text-[#0ecb81]' : 'bg-amber-500/10 text-amber-500'
         }`}>
-          {wsConnected ? 'Live' : 'Reconnecting…'}
+          {wsConnected ? tp('live') : tp('reconnecting')}
         </span>
       </div>
 
@@ -140,7 +142,7 @@ export function P2PChat({ orderId, enabled }: Props) {
         {!isLoading && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center py-12">
             <MessageCircle className="h-7 w-7 text-muted-foreground/15 mb-2" />
-            <p className="text-sm text-muted-foreground">No messages yet</p>
+            <p className="text-sm text-muted-foreground">{tp('empty')}</p>
           </div>
         )}
 
@@ -190,7 +192,7 @@ export function P2PChat({ orderId, enabled }: Props) {
           value={text}
           onChange={(e) => onChangeText(e.target.value)}
           maxLength={2000}
-          placeholder="Type a message…"
+          placeholder={tp('inputPlaceholder')}
           className="min-w-0 flex-1 rounded-lg border border-border/40 bg-background px-3 py-2.5 text-sm text-foreground transition-colors focus:border-primary/40 focus:outline-none"
         />
         <button
@@ -202,7 +204,7 @@ export function P2PChat({ orderId, enabled }: Props) {
         </button>
       </form>
       {sendMut.isError && (
-        <p className="px-3 pb-2 text-xs text-[#f6465d]">Failed to send. Try again.</p>
+        <p className="px-3 pb-2 text-xs text-[#f6465d]">{tp('sendFailed')}</p>
       )}
     </div>
   );

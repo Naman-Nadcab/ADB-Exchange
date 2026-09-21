@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { P2POrderRow } from '@/lib/p2pApi';
@@ -29,6 +30,8 @@ function paymentVerificationGate(order: P2POrderRow): boolean {
 }
 
 export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
+  const ta = useTranslations('p2p.actions');
+  const tc = useTranslations('p2p.common');
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
@@ -62,25 +65,25 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
     },
     onSuccess: (res) => {
       if (res.success) {
-        setOk('Payment marked as paid. The seller will verify and release.');
+        setOk(ta('successPaid'));
         setErr(null); setPayFile(null); setTxRef('');
         invalidate();
-      } else { setErr(res.error?.message ?? 'Mark paid failed'); }
+      } else { setErr(res.error?.message ?? ta('errMarkPaid')); }
     },
     onError: (e: unknown) => {
-      if (e instanceof Error && e.message === 'FILE_REQUIRED') { setErr('Upload a PNG or JPEG payment proof.'); return; }
-      if (e instanceof Error && e.message === 'REF_REQUIRED') { setErr('Enter your transaction reference (1–256 characters).'); return; }
-      setErr('Network error marking paid');
+      if (e instanceof Error && e.message === 'FILE_REQUIRED') { setErr(ta('errFileRequired')); return; }
+      if (e instanceof Error && e.message === 'REF_REQUIRED') { setErr(ta('errRefRequired')); return; }
+      setErr(ta('errNetworkPaid'));
     },
   });
 
   const verifyMut = useMutation({
     mutationFn: () => verifySellerPayment(order.id),
     onSuccess: (res) => {
-      if (res.success) { setOk('Payment verified. You can release crypto when ready.'); setErr(null); invalidate(); }
-      else { setErr(res.error?.message ?? 'Verify failed'); }
+      if (res.success) { setOk(ta('successVerified')); setErr(null); invalidate(); }
+      else { setErr(res.error?.message ?? ta('errVerify')); }
     },
-    onError: () => setErr('Network error verifying payment'),
+    onError: () => setErr(ta('errNetworkVerify')),
   });
 
   const releaseMut = useMutation({
@@ -89,13 +92,13 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
       return releaseOrder(order.id, releaseKeyRef.current);
     },
     onSuccess: (res) => {
-      if (res.success) { setOk('Crypto released.'); setErr(null); invalidate(); }
+      if (res.success) { setOk(ta('successReleased')); setErr(null); invalidate(); }
       else {
-        setErr(res.error?.message ?? 'Release failed');
+        setErr(res.error?.message ?? ta('errRelease'));
         if (res.error?.code === 'PAYMENT_NOT_VERIFIED') releaseKeyRef.current = null;
       }
     },
-    onError: () => setErr('Network error releasing'),
+    onError: () => setErr(ta('errNetworkRelease')),
   });
 
   const cancelMut = useMutation({
@@ -104,22 +107,22 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
       return cancelOrder(order.id, reason, cancelKeyRef.current);
     },
     onSuccess: (res) => {
-      if (res.success) { setOk('Order cancelled.'); setErr(null); invalidate(); }
-      else { setErr(res.error?.message ?? 'Cancel failed'); }
+      if (res.success) { setOk(ta('successCancelled')); setErr(null); invalidate(); }
+      else { setErr(res.error?.message ?? ta('errCancel')); }
     },
-    onError: () => setErr('Network error cancelling'),
+    onError: () => setErr(ta('errNetworkCancel')),
   });
 
   const disputeMut = useMutation({
     mutationFn: (reason: string) => openDispute(order.id, reason),
     onSuccess: (res) => {
       if (res.success) {
-        setOk('Dispute opened.'); setErr(null); invalidate();
+        setOk(ta('successDispute')); setErr(null); invalidate();
         const id = res.data && typeof res.data === 'object' && res.data != null && 'id' in res.data ? String((res.data as { id: string }).id) : '';
         if (id) router.push(`/p2p/disputes/${id}`);
-      } else { setErr(res.error?.message ?? 'Dispute failed'); }
+      } else { setErr(res.error?.message ?? ta('errDispute')); }
     },
-    onError: () => setErr('Network error opening dispute'),
+    onError: () => setErr(ta('errNetworkDispute')),
   });
 
   const st = order.status;
@@ -138,7 +141,7 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
 
   return (
     <div className="space-y-3 rounded-lg border border-border/30 bg-card p-4">
-      <h3 className="text-sm font-semibold text-foreground">Actions</h3>
+      <h3 className="text-sm font-semibold text-foreground">{ta('title')}</h3>
 
       {err && (
         <div className="rounded-md bg-[#f6465d]/5 border border-[#f6465d]/15 px-3 py-2 text-sm font-medium text-[#f6465d]">{err}</div>
@@ -150,7 +153,7 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
       {canPay && (
         <div className="space-y-3">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Upload a screenshot of your transfer and enter the transaction ID from your bank or payment app.
+            {ta('payHint')}
           </p>
           <div className="rounded-lg border border-dashed border-border/40 p-3.5 text-center transition-colors hover:border-primary/20">
             <Upload className="mx-auto h-5 w-5 text-muted-foreground/30 mb-1.5" />
@@ -166,7 +169,7 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
             type="text"
             value={txRef}
             onChange={(e) => setTxRef(e.target.value)}
-            placeholder="Transaction reference (as shown on receipt)"
+            placeholder={ta('txRefPlaceholder')}
             maxLength={256}
             className={inputCls}
           />
@@ -176,14 +179,14 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
             onClick={() => payMut.mutate()}
             className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
           >
-            {payMut.isPending ? 'Submitting…' : 'Mark as Paid'}
+            {payMut.isPending ? ta('submitting') : ta('markPaid')}
           </button>
         </div>
       )}
 
       {isSeller && st === 'payment_confirmed' && pvs === 'pending' && (
         <div className="rounded-md bg-amber-500/5 border border-amber-500/15 px-3 py-2 text-xs text-amber-500 leading-relaxed">
-          Check your account for the buyer&apos;s payment, review their proof and reference, then verify before releasing.
+          {ta('sellerVerifyBanner')}
         </div>
       )}
 
@@ -195,7 +198,7 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
           className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-40"
         >
           <Shield className="h-3.5 w-3.5" />
-          {verifyMut.isPending ? 'Verifying…' : 'Verify Payment Received'}
+          {verifyMut.isPending ? ta('verifying') : ta('verifyPayment')}
         </button>
       )}
 
@@ -212,22 +215,25 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
               className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#0ecb81] py-3 text-sm font-semibold text-white transition-colors hover:bg-[#0ecb81]/90 disabled:opacity-40"
             >
               <CheckCircle className="h-3.5 w-3.5" />
-              Prepare Release
+              {ta('prepareRelease')}
             </button>
           ) : (
             <div className="space-y-2 rounded-lg border border-amber-500/25 bg-amber-500/5 p-3">
               <p className="text-xs text-amber-300">
-                Confirm payment is received before releasing escrow.
+                {ta('releaseConfirmWarning')}
               </p>
               <p className="text-xs text-muted-foreground">
-                Order: <span className="font-mono">{order.id.slice(0, 10)}</span> · Amount: {order.quantity}{' '}
-                {order.crypto_symbol ?? ''}
+                {ta('releaseOrderLine', {
+                  id: order.id.slice(0, 10),
+                  qty: String(order.quantity),
+                  symbol: order.crypto_symbol ?? '',
+                })}
               </p>
               <input
                 type="text"
                 value={releaseTyped}
                 onChange={(e) => setReleaseTyped(e.target.value)}
-                placeholder='Type RELEASE to continue'
+                placeholder={ta('releaseTypeConfirm')}
                 className={inputCls}
               />
               <div className="grid grid-cols-2 gap-2">
@@ -239,7 +245,7 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
                     setReleaseTyped('');
                   }}
                 >
-                  Cancel
+                  {tc('cancel')}
                 </button>
                 <button
                   type="button"
@@ -247,7 +253,7 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
                   onClick={() => releaseMut.mutate()}
                   className="rounded-lg bg-[#0ecb81] py-2 text-sm font-semibold text-white disabled:opacity-40"
                 >
-                  {releaseMut.isPending ? 'Releasing…' : 'Release Crypto'}
+                  {releaseMut.isPending ? ta('releasing') : ta('releaseCrypto')}
                 </button>
               </div>
             </div>
@@ -260,7 +266,7 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
           <input
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}
-            placeholder="Cancel reason (required)"
+            placeholder={ta('cancelReasonPlaceholder')}
             className={inputCls}
           />
           <button
@@ -270,9 +276,9 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
             className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#f6465d]/25 py-3 text-sm font-semibold text-[#f6465d] transition-colors hover:bg-[#f6465d]/5 disabled:opacity-40"
           >
             <XCircle className="h-3.5 w-3.5" />
-            Cancel Order
+            {ta('cancelOrder')}
           </button>
-          <p className="text-xs text-muted-foreground">Only available before payment is marked as paid.</p>
+          <p className="text-xs text-muted-foreground">{ta('cancelHint')}</p>
         </div>
       )}
 
@@ -281,7 +287,7 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
           <textarea
             value={disputeReason}
             onChange={(e) => setDisputeReason(e.target.value)}
-            placeholder="Describe the issue (10–1000 characters)"
+            placeholder={ta('disputeReasonPlaceholder')}
             rows={3}
             className={`${inputCls} resize-none`}
           />
@@ -293,12 +299,12 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
               className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-amber-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-amber-700 disabled:opacity-40"
             >
               <AlertTriangle className="h-3.5 w-3.5" />
-              Review Dispute
+              {ta('reviewDispute')}
             </button>
           ) : (
             <div className="space-y-2 rounded-lg border border-amber-500/25 bg-amber-500/5 p-3">
               <p className="text-xs text-amber-300">
-                Dispute escalation is irreversible for this order and will involve support review.
+                {ta('disputeIrreversible')}
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <button
@@ -306,7 +312,7 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
                   className="rounded-lg border border-border/40 py-2 text-sm font-medium text-muted-foreground"
                   onClick={() => setDisputeConfirmOpen(false)}
                 >
-                  Back
+                  {ta('back')}
                 </button>
                 <button
                   type="button"
@@ -314,7 +320,7 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
                   onClick={() => disputeMut.mutate(disputeReason.trim())}
                   className="rounded-lg bg-amber-600 py-2 text-sm font-semibold text-white disabled:opacity-40"
                 >
-                  {disputeMut.isPending ? 'Submitting…' : 'Raise Dispute'}
+                  {disputeMut.isPending ? ta('submitting') : ta('raiseDispute')}
                 </button>
               </div>
             </div>
@@ -324,7 +330,7 @@ export function P2PActionButtons({ order, isBuyer, isSeller }: Props) {
 
       {st === 'disputed' && (
         <div className="rounded-md bg-amber-500/5 border border-amber-500/15 px-3 py-2 text-xs text-amber-500 leading-relaxed">
-          This order is under dispute. Support will review. You cannot cancel or release from here.
+          {ta('disputeActiveNotice')}
         </div>
       )}
     </div>

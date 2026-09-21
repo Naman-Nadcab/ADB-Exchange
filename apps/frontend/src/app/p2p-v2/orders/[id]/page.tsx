@@ -4,6 +4,7 @@ import { Fragment } from 'react';
 import { useParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import RequireAuth from '@/components/RequireAuth';
 import { fetchOrderById, P2P_V2_ORDER_KEY } from '@/lib/p2pApi';
 import { useAuthStore } from '@/store/auth';
@@ -17,14 +18,6 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { ArrowLeft, Check, Circle } from 'lucide-react';
 
-/* ── Status timeline ── */
-const STEPS = [
-  { label: 'Created' },
-  { label: 'Payment' },
-  { label: 'Confirmed' },
-  { label: 'Completed' },
-];
-
 const STATUS_STEP: Record<string, number> = {
   payment_pending: 1,
   payment_confirmed: 2,
@@ -35,15 +28,22 @@ const STATUS_STEP: Record<string, number> = {
 };
 
 function StatusTimeline({ status }: { status: string }) {
+  const tp = useTranslations('p2p.orderDetail');
+  const steps = [
+    tp('timelineCreated'),
+    tp('timelinePayment'),
+    tp('timelineConfirmed'),
+    tp('timelineCompleted'),
+  ];
   const currentStep = STATUS_STEP[status] ?? 0;
   const failed = status === 'cancelled' || status === 'expired';
 
   return (
     <div className="flex items-center gap-0 py-4">
-      {STEPS.map((step, i) => {
+      {steps.map((label, i) => {
         const done = currentStep > 0 && i < currentStep;
         const active = currentStep > 0 && i === currentStep;
-        const last = i === STEPS.length - 1;
+        const last = i === steps.length - 1;
 
         return (
           <Fragment key={i}>
@@ -62,7 +62,7 @@ function StatusTimeline({ status }: { status: string }) {
               <span className={`text-xs font-medium whitespace-nowrap ${
                 done || active ? 'text-foreground' : 'text-muted-foreground/50'
               }`}>
-                {step.label}
+                {label}
               </span>
             </div>
             {!last && (
@@ -75,7 +75,6 @@ function StatusTimeline({ status }: { status: string }) {
   );
 }
 
-/* ── Loading skeleton ── */
 function OrderSkeleton() {
   return (
     <div className="space-y-4">
@@ -99,7 +98,6 @@ function OrderSkeleton() {
   );
 }
 
-/* ── Main export ── */
 export default function P2PV2OrderDetailPage() {
   return (
     <RequireAuth>
@@ -109,6 +107,7 @@ export default function P2PV2OrderDetailPage() {
 }
 
 function OrderDetailInner() {
+  const tp = useTranslations('p2p.orderDetail');
   const params = useParams();
   const orderId =
     typeof params?.id === 'string'
@@ -144,7 +143,7 @@ function OrderDetailInner() {
   });
 
   if (!orderId) {
-    return <p className="text-sm text-muted-foreground">Invalid order</p>;
+    return <p className="text-sm text-muted-foreground">{tp('invalidOrder')}</p>;
   }
 
   if (isLoading) return <OrderSkeleton />;
@@ -152,7 +151,7 @@ function OrderDetailInner() {
   if (isError) {
     return (
       <ErrorState
-        title="Could not load this order"
+        title={tp('loadFailed')}
         message={error instanceof Error ? error.message : undefined}
         onRetry={() => void refetch()}
       />
@@ -162,8 +161,8 @@ function OrderDetailInner() {
   if (!order) {
     return (
       <ErrorState
-        title="Order not found"
-        message="It may have been removed or you don't have access."
+        title={tp('notFoundTitle')}
+        message={tp('notFoundMessage')}
         onRetry={() => void refetch()}
       />
     );
@@ -172,7 +171,7 @@ function OrderDetailInner() {
   const isBuyer = user?.id === order.buyer_id;
   const isSeller = user?.id === order.seller_id;
   if (!isBuyer && !isSeller) {
-    return <p className="text-sm text-[#f6465d]">You do not have access to this order.</p>;
+    return <p className="text-sm text-[#f6465d]">{tp('forbidden')}</p>;
   }
 
   const chatEnabled = !['completed', 'cancelled', 'expired'].includes(order.status);
@@ -180,16 +179,14 @@ function OrderDetailInner() {
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
-      {/* Header */}
       <div className="flex items-center justify-between border-b border-border/20 py-3">
         <Link href="/p2p/orders" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
           <ArrowLeft className="h-3.5 w-3.5" />
-          Orders
+          {tp('backOrders')}
         </Link>
         <span className="font-mono text-sm text-muted-foreground">#{orderId.slice(0, 12)}</span>
       </div>
 
-      {/* Timer */}
       <div className="mt-3">
         <P2PTimer
           expiresAtIso={order.expires_at}
@@ -198,12 +195,9 @@ function OrderDetailInner() {
         />
       </div>
 
-      {/* Status timeline */}
       <StatusTimeline status={order.status} />
 
-      {/* Two-column layout: Left (order + actions) / Right (chat) */}
       <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
-        {/* Left panel */}
         <div className="space-y-4">
           <P2POrderSummary order={order} isBuyer={isBuyer} />
 
@@ -214,7 +208,6 @@ function OrderDetailInner() {
           <P2PActionButtons order={order} isBuyer={isBuyer} isSeller={isSeller} />
         </div>
 
-        {/* Right panel: Chat */}
         <div className="lg:sticky lg:top-20 lg:self-start">
           <P2PChat orderId={orderId} enabled={chatEnabled} />
         </div>

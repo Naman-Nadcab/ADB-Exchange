@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { AlertTriangle, Copy, Check } from 'lucide-react';
 import { toast } from '@/components/ui/toaster';
 
@@ -25,6 +26,8 @@ type Props = {
 };
 
 export function P2PPaymentInstructions({ details, displayName }: Props) {
+  const tp = useTranslations('p2p.paymentInstructions');
+  const tc = useTranslations('p2p.common');
   const [copied, setCopied] = useState<string | null>(null);
 
   const copy = async (label: string, value: string) => {
@@ -34,7 +37,7 @@ export function P2PPaymentInstructions({ details, displayName }: Props) {
       setCopied(label);
       setTimeout(() => setCopied(null), 2000);
     } catch {
-      toast({ title: 'Copy failed', description: 'Could not copy payment details.', variant: 'destructive' });
+      toast({ title: tp('copyFailedTitle'), description: tp('copyFailedDesc'), variant: 'destructive' });
     }
   };
 
@@ -74,7 +77,7 @@ export function P2PPaymentInstructions({ details, displayName }: Props) {
             type="button"
             onClick={() => copy(copyKey, value)}
             className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted/30 hover:text-foreground"
-            title="Copy"
+            title={tc('copy')}
           >
             {copied === copyKey ? <Check className="h-3.5 w-3.5 text-[#0ecb81]" /> : <Copy className="h-3.5 w-3.5" />}
           </button>
@@ -88,33 +91,33 @@ export function P2PPaymentInstructions({ details, displayName }: Props) {
       <div className="flex gap-2 rounded-md border border-amber-500/15 bg-amber-500/5 px-3 py-3 text-sm text-amber-500">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
         <div className="space-y-1.5">
-          <p className="font-semibold">Payment Safety</p>
+          <p className="font-semibold">{tp('safetyTitle')}</p>
           <ul className="list-inside list-disc text-xs leading-relaxed opacity-90">
-            <li>Do not write &quot;crypto&quot;, &quot;Bitcoin&quot;, or exchange names in the bank transfer note.</li>
-            <li>Only release crypto after you confirm the fiat arrived in your account.</li>
+            <li>{tp('safetyBullet1')}</li>
+            <li>{tp('safetyBullet2')}</li>
           </ul>
         </div>
       </div>
 
       <div>
-        <h3 className="mb-2 text-base font-semibold tracking-tight text-foreground">Send Payment To</h3>
+        <h3 className="mb-2 text-base font-semibold tracking-tight text-foreground">{tp('sendToTitle')}</h3>
         {displayName && (
           <p className="mb-1.5 text-sm text-muted-foreground">
-            Method: <span className="font-semibold text-foreground">{displayName}</span>
+            {tp('methodLabel')} <span className="font-semibold text-foreground">{displayName}</span>
           </p>
         )}
         <div className="rounded-lg border border-border/25 bg-card px-3.5">
-          <Row label="Account Name" value={accountName} copyKey="account_name" mono={false} />
-          <Row label="Bank / Institution" value={bankName} copyKey="bank" mono={false} />
-          <Row label="Account Number / UPI" value={accountNumber} copyKey="account" />
-          {iban && <Row label="IBAN" value={iban} copyKey="iban" />}
-          <Row label="IFSC / Routing / SWIFT" value={routing} copyKey="routing" />
+          <Row label={tp('accountName')} value={accountName} copyKey="account_name" mono={false} />
+          <Row label={tp('bankInstitution')} value={bankName} copyKey="bank" mono={false} />
+          <Row label={tp('accountNumberUpi')} value={accountNumber} copyKey="account" />
+          {iban && <Row label={tp('iban')} value={iban} copyKey="iban" />}
+          <Row label={tp('routing')} value={routing} copyKey="routing" />
         </div>
       </div>
 
       {extras.length > 0 && (
         <div className="rounded-md border border-border/20 bg-muted/10 px-3.5 py-2.5">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Additional Details</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{tp('additionalDetails')}</p>
           <dl className="space-y-1.5 text-sm">
             {extras.map(([k, v]) => (
               <div key={k} className="flex justify-between gap-2">

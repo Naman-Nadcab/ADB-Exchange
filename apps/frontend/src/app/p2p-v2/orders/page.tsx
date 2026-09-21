@@ -407,7 +407,7 @@ function OrdersInner() {
                                   {o.id.slice(0, 8)}…
                                 </span>
                                 {o.payment_proof_url ? (
-                                  <span title="Payment proof attached" className="text-primary/80">
+                                  <span title={tp('orders.proofAttached')} className="text-primary/80">
                                     <Paperclip className="h-3 w-3" />
                                   </span>
                                 ) : null}

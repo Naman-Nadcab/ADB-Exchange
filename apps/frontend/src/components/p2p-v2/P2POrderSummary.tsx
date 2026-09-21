@@ -107,6 +107,7 @@ type Props = { order: P2POrderRow; isBuyer: boolean };
 
 export function P2POrderSummary({ order, isBuyer }: Props) {
   const tp = useTranslations('p2p');
+  const tf = useTranslations('p2p.orderSummaryFields');
   const fiat = order.fiat_currency ?? 'USD';
   const sym = formatFiatSymbol(fiat);
   const vBadge = verificationBadge(order.payment_verification_status, tp);
@@ -130,31 +131,31 @@ export function P2POrderSummary({ order, isBuyer }: Props) {
 
       {isSeller && order.status === 'payment_confirmed' && order.payment_verification_status === 'pending' && (
         <p className="mx-4 mt-3 rounded-md border border-amber-500/15 bg-amber-500/5 px-3 py-2 text-sm text-amber-500">
-          Confirm the fiat arrived in your account before releasing. Use &quot;Verify payment received&quot; after checking.
+          {tf('sellerVerifyHint')}
         </p>
       )}
 
       {/* Info grid */}
       <div className="m-3 grid grid-cols-2 gap-px overflow-hidden rounded-lg bg-border/10 p-px">
         <div className="bg-card p-3.5">
-          <p className="mb-1 text-xs font-medium text-muted-foreground">Role</p>
-          <p className="text-sm font-semibold text-foreground">{isBuyer ? 'Buyer' : 'Seller'}</p>
+          <p className="mb-1 text-xs font-medium text-muted-foreground">{tf('role')}</p>
+          <p className="text-sm font-semibold text-foreground">{isBuyer ? tf('buyer') : tf('seller')}</p>
         </div>
         <div className="bg-card p-3.5">
-          <p className="mb-1 text-xs font-medium text-muted-foreground">Counterparty</p>
+          <p className="mb-1 text-xs font-medium text-muted-foreground">{tf('counterparty')}</p>
           <p className="truncate text-sm font-medium text-foreground">
             {isBuyer ? order.seller_username ?? '—' : order.buyer_username ?? '—'}
           </p>
         </div>
         <div className="bg-card p-3.5">
-          <p className="mb-1 text-xs font-medium text-muted-foreground">Crypto</p>
+          <p className="mb-1 text-xs font-medium text-muted-foreground">{tf('crypto')}</p>
           <p className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
             {order.crypto_symbol && <CoinIcon symbol={order.crypto_symbol} size={18} />}
             <span className="numeric">{order.quantity}</span> {order.crypto_symbol ?? ''}
           </p>
         </div>
         <div className="bg-card p-3.5">
-          <p className="mb-1 text-xs font-medium text-muted-foreground">Fiat</p>
+          <p className="mb-1 text-xs font-medium text-muted-foreground">{tf('fiat')}</p>
           <p className="numeric text-sm font-semibold text-foreground">
             {sym}{order.fiat_amount ?? '—'} {fiat}
           </p>
@@ -164,13 +165,13 @@ export function P2POrderSummary({ order, isBuyer }: Props) {
       {/* Transaction reference & proof */}
       {!isBuyer && order.status === 'payment_confirmed' && order.transaction_reference && (
         <div className="mx-4 mb-3 rounded-md bg-muted/10 border border-border/15 px-3 py-2.5">
-          <p className="mb-1 text-xs font-medium text-muted-foreground">Buyer Transaction Reference</p>
+          <p className="mb-1 text-xs font-medium text-muted-foreground">{tf('buyerTxRef')}</p>
           <p className="numeric break-all text-sm text-foreground">{order.transaction_reference}</p>
         </div>
       )}
       {!isBuyer && order.status === 'payment_confirmed' && order.payment_proof_url && (
         <div className="mx-4 mb-3 rounded-md bg-muted/10 border border-border/15 px-3 py-2.5">
-          <p className="mb-1 text-xs font-medium text-muted-foreground">Payment Proof</p>
+          <p className="mb-1 text-xs font-medium text-muted-foreground">{tf('paymentProof')}</p>
           <PaymentProofViewer orderId={order.id} paymentProofUrl={order.payment_proof_url} />
         </div>
       )}
