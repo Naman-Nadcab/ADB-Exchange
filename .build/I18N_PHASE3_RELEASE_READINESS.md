@@ -1,7 +1,7 @@
 # Phase 3 Customer I18N — Staging Readiness Audit
 
 **Branch:** `release/exchange-production-baseline`  
-**Audit HEAD:** `f698a05cc06824647f26a211d956b60802122c55` (implementation) + pending QA harness commit  
+**Audit HEAD:** `57d0e1dbf78f622c52895a3926b4c4c4a5bc16d4`  
 **Prior checkpoint:** `2b2d31da435aaf41adcc8e01377457f022aad2ed`  
 **Production deployed:** NO  
 **DB changed:** NO  
@@ -30,7 +30,7 @@ Customer Phase 3 presentation work is **implementation-complete** for the scoped
 | **CRYPTO REGRESSION** | **PARTIAL** (spot route loads body; spot grid toasts frozen Phase 1) |
 | **P2P REGRESSION** | **PARTIAL** (public `/p2p` in matrix; order detail needs auth) |
 | **WALLET / ACCOUNT** | **PARTIAL** (localized; auth routes not matrix-tested) |
-| **GIT** | **PASS** (implementation commits pushed; QA harness commit pending this run) |
+| **GIT** | **PASS** (`HEAD` == `origin/release/exchange-production-baseline` @ `57d0e1d`) |
 | **PROTECTED PATHS** | **UNCHANGED** (0-line diff on backend/matching-engine/DB/migrations since `2b2d31d`) |
 | **STAGING READINESS** | **NOT READY** for full authenticated visual sign-off; **READY** for staging deploy *smoke* of i18n catalogs + frontend build |
 
@@ -42,6 +42,7 @@ Customer Phase 3 presentation work is **implementation-complete** for the scoped
 |-----|---------|
 | `d12c0c0fcc8480781609deea2e5e495126b6e1fd` | Remaining static surfaces (events, fee-rates labels, transfer, forex widgets, etc.) |
 | `f698a05cc06824647f26a211d956b60802122c55` | Customer help center (`account.help`) |
+| `57d0e1dbf78f622c52895a3926b4c4c4a5bc16d4` | I18n visual matrix harness, smoke/forex e2e relaxations, gap/release docs + matrix artifact |
 
 ## Prior closure chain (reference)
 
