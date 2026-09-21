@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { TerminalStatusChip, streamPhaseToChip } from './TerminalStatusChip';
 import type { SpotWsStreamPhase } from '@/hooks/useSpotWs';
 
@@ -43,6 +44,7 @@ export function SpotTerminalStatusRow({
   marketContext: MarketContext;
   marketPulse: MarketPulse;
 }) {
+  const t = useTranslations('crypto');
   const stream = streamPhaseToChip(streamPhase);
   const streamTitle =
     streamPhase === 'live' && lastRttMs != null && lastRttMs >= 0
@@ -71,23 +73,23 @@ export function SpotTerminalStatusRow({
         <TerminalStatusChip label="Adaptive" tone="sync" title={liteHint ?? 'Reduced stream rate'} pulse />
       ) : streamPhase === 'live' ? (
         <TerminalStatusChip
-          label={lastRttMs != null && lastRttMs >= 0 ? `${lastRttMs}ms` : 'Full rate'}
+          label={lastRttMs != null && lastRttMs >= 0 ? `${lastRttMs}ms` : t('status.fullRate')}
           tone="neutral"
-          title="Stream latency"
+          title={t('status.streamLatency')}
         />
       ) : null}
       {isAuth && streamPhase === 'live' && !privateChannelsReady ? (
-        <TerminalStatusChip label="Account syncing" tone="sync" pulse title="Private order/trade updates reconnecting" />
+        <TerminalStatusChip label={t('status.accountSyncing')} tone="sync" pulse title={t('status.accountSyncingTitle')} />
       ) : null}
       {isAuth && streamPhase === 'live' && preferencesSyncIssue && privateChannelsReady ? (
         <TerminalStatusChip
-          label="Prefs delayed"
+          label={t('status.prefsDelayed')}
           tone="warn"
           title="Preference sync delayed. Default confirmation rules are active."
         />
       ) : null}
       {streamPhase === 'live' && bootstrapIssue && privateChannelsReady && !preferencesSyncIssue ? (
-        <TerminalStatusChip label="Bootstrap notice" tone="warn" title={bootstrapIssue} />
+        <TerminalStatusChip label={t('status.bootstrapNotice')} tone="warn" title={bootstrapIssue} />
       ) : null}
       {marketContext ? (
         <div className="ml-auto flex flex-wrap items-center gap-2 terminal-text-meta leading-none text-muted-foreground">

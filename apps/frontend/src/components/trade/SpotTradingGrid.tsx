@@ -8,9 +8,10 @@ import { useAuthStore } from '@/store/auth';
 import { useThemeStore } from '@/store/theme';
 import { useBalancesByAccount } from '@/lib/balances';
 import { useSpotFavorites } from '@/hooks/useSpotFavorites';
-import { getMessageFromApiError } from '@/lib/errorMessages';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { toast } from '@/components/ui/toaster';
+import { useTranslations } from 'next-intl';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { SpotMarketDataProvider, useSpotMarketOrderbook, useSpotMarketTicker } from './SpotMarketDataContext';
 import { SpotTradingGridTerminal } from './SpotTradingGridTerminal';
 import type { OrderUpdateMessage } from '@/hooks/useSpotWs';
@@ -55,20 +56,23 @@ function toPositiveNumber(value: string): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-function spotOrderTypePlacementLabel(t: SpotGridOrderType): string {
-  switch (t) {
+function spotOrderTypePlacementLabel(
+  tr: ReturnType<typeof useTranslations<'crypto'>>,
+  orderType: SpotGridOrderType
+): string {
+  switch (orderType) {
     case 'market':
-      return 'Market';
+      return tr('trading.market');
     case 'limit':
-      return 'Limit';
+      return tr('trading.limit');
     case 'stop_loss':
-      return 'Stop';
+      return tr('trading.stop');
     case 'stop_limit':
-      return 'Stop-limit';
+      return tr('orderTypes.stopLimitShort');
     case 'trailing_stop_market':
-      return 'Trailing stop';
+      return tr('trading.trailing');
     default:
-      return t;
+      return orderType;
   }
 }
 
@@ -111,6 +115,8 @@ export function SpotTradingGrid() {
   const { resolvedTheme } = useThemeStore();
   const isAuth = authResolved && isAuthenticated;
   const chartTheme = resolvedTheme === 'dark' ? 'dark' : 'light';
+  const tc = useTranslations('crypto');
+  const { fromApi, networkUnreachable } = useApiErrorMessage();
   const [chartIntervalSeconds, setChartIntervalSeconds] = useState(() => {
     if (typeof window === 'undefined') return 60;
     const raw = Number(window.localStorage.getItem(CHART_INTERVAL_LS_KEY));
@@ -417,32 +423,43 @@ export function SpotTradingGrid() {
         setOrdersVersion((v) => v + 1);
         queryClient.invalidateQueries({ queryKey: ['balances'] });
         refetchBalances();
-        const baseDesc = `${sd === 'buy' ? 'Buy' : 'Sell'} ${qtySnap} ${base} · ${spotOrderTypePlacementLabel(ot)}`;
+        const sideLabel = sd === 'buy' ? tc('toasts.sideBuy') : tc('toasts.sideSell');
+        const baseDesc = `${sideLabel} ${qtySnap} ${base} · ${spotOrderTypePlacementLabel(tc, ot)}`;
         if (st === 'FILLED') {
-          toast({ title: 'Filled', description: `${baseDesc} — fully matched.`, variant: 'success' });
+          toast({
+            title: tc('toasts.filled'),
+            description: tc('toasts.filledFullDesc', { desc: baseDesc }),
+            variant: 'success',
+          });
         } else if (st === 'PARTIALLY_FILLED') {
           const fq = d?.filled_quantity?.trim();
           toast({
-            title: 'Partially filled',
-            description: fq ? `${baseDesc} — ${fq} filled so far.` : `${baseDesc} — partially filled.`,
+            title: tc('toasts.partiallyFilled'),
+            description: fq
+              ? tc('toasts.partiallyFilledDesc', { desc: baseDesc, filled: fq })
+              : tc('toasts.partiallyFilledGeneric', { desc: baseDesc }),
             variant: 'default',
           });
         } else if (st === 'REJECTED') {
-          toast({ title: 'Order rejected', description: `${baseDesc} was not accepted.`, variant: 'destructive' });
+          toast({
+            title: tc('toasts.orderRejected'),
+            description: tc('toasts.orderRejectedDesc', { desc: baseDesc }),
+            variant: 'destructive',
+          });
         } else {
           toast({
-            title: 'Order accepted',
-            description: `${baseDesc}. Status: ${label}. Open Orders updates live; fills notify here.`,
+            title: tc('toasts.orderAccepted'),
+            description: tc('toasts.orderAcceptedDesc', { desc: baseDesc, status: label }),
             variant: 'success',
           });
         }
       } else {
         const code = res.error?.code ? ` (${res.error.code})` : '';
-        const msg = getMessageFromApiError(res.error) ?? res.error?.message ?? 'Order was not accepted';
+        const msg = fromApi(res, 'generic.unknown');
         const detail = `${msg}${code}`;
         setSubmitError(detail);
         toast({
-          title: 'Order not placed',
+          title: tc('toasts.orderNotPlaced'),
           description: detail,
           variant: 'destructive',
         });
@@ -457,10 +474,9 @@ export function SpotTradingGrid() {
       if (e instanceof Error && e.message === 'Cannot submit order') {
         throw e;
       }
-      const msg =
-        e instanceof Error ? e.message : 'Could not reach the server. Check your connection and try again.';
+      const msg = e instanceof Error ? e.message : networkUnreachable();
       setSubmitError(msg);
-      toast({ title: 'Order not placed', description: msg, variant: 'destructive' });
+      toast({ title: tc('toasts.orderNotPlaced'), description: msg, variant: 'destructive' });
       throw e;
     } finally {
       setSubmitting(false);
@@ -481,48 +497,69 @@ export function SpotTradingGrid() {
     validateOrderInput,
     queryClient,
     refetchBalances,
+    tc,
+    fromApi,
+    networkUnreachable,
   ]);
 
-  const onOrderStreamStatus = useCallback((data: OrderUpdateMessage) => {
-    const st = (data.status || '').toUpperCase();
-    const mkt = data.market ? `${data.market} — ` : '';
-    const disp = data.displayStatus ? String(data.displayStatus) : st;
-    if (st === 'PENDING_TRIGGER') {
-      toast({ title: 'Pending trigger', description: `${mkt}Activates when stop conditions are met.`, variant: 'default' });
-      return;
-    }
-    if (st === 'FILLED') {
-      toast({
-        title: 'Filled',
-        description: data.market
-          ? `${data.market} — order fully matched. Balances update automatically.`
-          : 'Order fully matched.',
-        variant: 'success',
-      });
-      return;
-    }
-    if (st === 'PARTIALLY_FILLED') {
-      const fq = data.filled_quantity?.trim();
-      const q = data.quantity?.trim();
-      const detail =
-        fq && q
-          ? `${fq} of ${q} filled; remainder stays on the book unless cancelled.`
-          : disp || 'Part of your order matched.';
-      toast({
-        title: 'Partial fill',
-        description: detail,
-        variant: 'default',
-      });
-      return;
-    }
-    if (st === 'CANCELLED') {
-      toast({ title: 'Cancelled', description: `${mkt}Order removed from the book.`, variant: 'default' });
-      return;
-    }
-    if (st === 'REJECTED') {
-      toast({ title: 'Rejected', description: `${mkt}${disp || 'Order was rejected.'}`, variant: 'destructive' });
-    }
-  }, []);
+  const onOrderStreamStatus = useCallback(
+    (data: OrderUpdateMessage) => {
+      const st = (data.status || '').toUpperCase();
+      const mkt = data.market ? `${data.market} — ` : '';
+      const disp = data.displayStatus ? String(data.displayStatus) : st;
+      if (st === 'PENDING_TRIGGER') {
+        toast({
+          title: tc('toasts.pendingTrigger'),
+          description: tc('toasts.pendingTriggerDesc', { market: mkt }),
+          variant: 'default',
+        });
+        return;
+      }
+      if (st === 'FILLED') {
+        toast({
+          title: tc('toasts.filled'),
+          description: data.market
+            ? tc('toasts.filledWsDesc', { market: `${data.market} — ` })
+            : tc('toasts.filledWsGeneric'),
+          variant: 'success',
+        });
+        return;
+      }
+      if (st === 'PARTIALLY_FILLED') {
+        const fq = data.filled_quantity?.trim();
+        const q = data.quantity?.trim();
+        const detail =
+          fq && q
+            ? tc('toasts.partialFillDetail', { filled: fq, total: q })
+            : disp || tc('toasts.partialFillGeneric');
+        toast({
+          title: tc('toasts.partialFill'),
+          description: detail,
+          variant: 'default',
+        });
+        return;
+      }
+      if (st === 'CANCELLED') {
+        toast({
+          title: tc('toasts.cancelled'),
+          description: tc('toasts.cancelledDesc', { market: mkt }),
+          variant: 'default',
+        });
+        return;
+      }
+      if (st === 'REJECTED') {
+        toast({
+          title: tc('toasts.rejected'),
+          description: tc('toasts.rejectedDesc', {
+            market: mkt,
+            detail: disp || tc('toasts.rejectedGeneric'),
+          }),
+          variant: 'destructive',
+        });
+      }
+    },
+    [tc]
+  );
 
   const fetchMarkets = useCallback(
     async (signal?: AbortSignal, opts?: { silent?: boolean }) => {

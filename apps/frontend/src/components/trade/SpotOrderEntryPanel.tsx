@@ -282,9 +282,9 @@ export function SpotOrderEntryPanel({
       {/* Header — Bybit-style: title + activity shortcut (theme: blue) */}
       <div className="flex flex-shrink-0 items-center justify-between border-b border-border/90 px-2.5 py-1.5 dark:border-border/90">
         <div className="flex items-center gap-2">
-          <span className="terminal-text-label font-semibold uppercase tracking-[0.06em] text-foreground">Trade</span>
+          <span className="terminal-text-label font-semibold uppercase tracking-[0.06em] text-foreground">{tc('terminal.trade')}</span>
           <span className="rounded-md bg-primary/15 px-1.5 py-0.5 text-label font-bold uppercase tracking-wide text-primary">
-            Spot
+            {tc('terminal.spot')}
           </span>
         </div>
         <div className="flex items-center gap-1">
@@ -300,7 +300,7 @@ export function SpotOrderEntryPanel({
             href={walletPath.convert}
             className="rounded-md px-2 py-1 text-label font-bold text-primary hover:bg-primary/10 dark:text-primary dark:hover:bg-primary/15"
           >
-            Convert
+            {tc('terminal.convert')}
           </Link>
         </div>
       </div>

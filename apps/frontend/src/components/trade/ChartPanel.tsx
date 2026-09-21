@@ -23,6 +23,7 @@ import { classifyTickerVolumeSource } from '@/lib/volumeMetrics';
 import type { SpotWsStreamPhase } from '@/hooks/useSpotWs';
 import type { OverlayStudyId } from './chart/indicators';
 import type { ChartExtensionsConfig, DrawingToolMode, SerializedDrawing } from './chart/extension/types';
+import { useTranslations } from 'next-intl';
 
 const CHART_DRAWINGS_LS_PREFIX = 'exchange.chart.drawings.v1.';
 const CHART_UI_PREFS_LS_KEY = 'exchange.chart.ui.v1';
@@ -144,6 +145,7 @@ function ChartPanelInner({
   wsLastRttMs,
   tradeFreshnessSec,
 }: ChartPanelProps) {
+  const t = useTranslations('crypto');
   const { adapterRef, chartError, chartLoading, chartEmpty, chartStale, chartStaleReason, chartLastUpdatedAtMs, retryChart } = useChartAdapter(
     symbol,
     intervalSeconds,
@@ -541,7 +543,14 @@ function ChartPanelInner({
   const phaseLabel =
     phase === 'live' ? 'Live' : phase === 'reconnecting' ? 'Reconnecting' : phase === 'disconnected' ? 'Offline' : 'Connecting';
   const freshSec = tradeFreshnessSec != null && Number.isFinite(tradeFreshnessSec) ? Math.max(0, Math.floor(tradeFreshnessSec)) : null;
-  const freshnessLabel = freshSec == null ? 'No tape' : freshSec <= 2 ? 'Fresh' : freshSec <= 8 ? 'Syncing' : 'Delayed';
+  const freshnessLabel =
+    freshSec == null
+      ? t('chart.noTape')
+      : freshSec <= 2
+        ? t('chart.fresh')
+        : freshSec <= 8
+          ? t('chart.syncing')
+          : t('chart.delayed');
   const freshnessTone =
     freshSec == null ? 'text-muted-foreground' : freshSec <= 2 ? 'text-buy' : freshSec <= 8 ? 'text-amber-400' : 'text-sell';
   const marketPulse =
@@ -698,7 +707,7 @@ function ChartPanelInner({
                 } ${TB_FOCUS}`}
               >
                 <CandlestickChart className="h-3.5 w-3.5" />
-                Chart
+                {t('chart.chart')}
               </button>
               <button
                 type="button"
@@ -709,7 +718,7 @@ function ChartPanelInner({
                 } ${TB_FOCUS}`}
               >
                 <BarChart3 className="h-3.5 w-3.5" />
-                Depth
+                {t('chart.depth')}
               </button>
             </div>
           )}

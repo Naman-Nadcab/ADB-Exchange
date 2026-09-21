@@ -17,6 +17,7 @@ import { CoinIcon } from '@/components/ui/CoinIcon';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SPOT_TRADE_HREF, loginWithRedirect } from '@/lib/routes';
+import { useTranslations } from 'next-intl';
 import { ExchangeHeader } from '@/components/layout/ExchangeHeader';
 import { PairHeader } from './PairHeader';
 import { ChartPanel } from './ChartPanel';
@@ -407,21 +408,24 @@ const RecentTradesPanel = memo(function RecentTradesPanel({
   );
   const topTrades = trades.slice(0, 30);
   const isInitialLoading = topTrades.length === 0 && streamPhase !== 'live';
+  const t = useTranslations('crypto');
 
   return (
     <div className="exchange-ui flex h-full min-h-0 flex-col overflow-hidden antialiased">
       <div className="flex shrink-0 items-center border-b border-border px-2 py-1">
-        <span className="terminal-text-label font-semibold leading-none tracking-tight text-foreground">Market Trades</span>
+        <span className="terminal-text-label font-semibold leading-none tracking-tight text-foreground">
+          {t('terminal.marketTrades')}
+        </span>
       </div>
       <div className="flex shrink-0 items-center border-b border-border px-2 py-1 terminal-text-label font-semibold uppercase leading-none text-muted-foreground">
-        <span className="min-w-0 flex-1 truncate" title={`Price (${quoteAsset})`}>
-          Price
+        <span className="min-w-0 flex-1 truncate" title={t('terminal.priceColumn', { asset: quoteAsset })}>
+          {t('trading.price')}
         </span>
-        <span className="min-w-0 flex-1 truncate text-right" title={`Amount (${baseAsset})`}>
-          Qty
+        <span className="min-w-0 flex-1 truncate text-right" title={t('terminal.amountColumn', { asset: baseAsset })}>
+          {t('terminal.qty')}
         </span>
-        <span className="w-[52px] shrink-0 truncate text-right" title="Time">
-          Time
+        <span className="w-[52px] shrink-0 truncate text-right" title={t('terminal.time')}>
+          {t('terminal.time')}
         </span>
       </div>
       <div className="spot-rail-scroll flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden pr-0.5" tabIndex={0}>
@@ -637,14 +641,6 @@ function TopMoversSection({
   );
 }
 
-const ORDER_TYPE_LABELS: Record<string, string> = {
-  limit: 'Limit',
-  market: 'Market',
-  stop_limit: 'Stop Limit',
-  stop_loss: 'Stop',
-  trailing_stop_market: 'Trailing',
-};
-
 const SLIDER_PCTS = [0, 25, 50, 75, 100];
 
 function BinanceInsetField({ label, suffix, children }: { label: string; suffix: string; children: React.ReactNode }) {
@@ -705,6 +701,18 @@ function BinanceOrderEntrySection({
   const [sellSlider, setSellSlider] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingOrder, setPendingOrder] = useState<{ side: 'buy' | 'sell'; qty: string } | null>(null);
+  const t = useTranslations('crypto');
+  const tCommon = useTranslations('common');
+  const orderTypeLabels = useMemo(
+    () => ({
+      limit: t('trading.limit'),
+      market: t('trading.market'),
+      stop_limit: t('trading.stopLimit'),
+      stop_loss: t('trading.stop'),
+      trailing_stop_market: t('trading.trailing'),
+    }),
+    [t]
+  );
 
   const lastPrice = resolveSpotDisplayLastPrice({
     tickerLast: ticker?.last_price,
@@ -757,19 +765,19 @@ function BinanceOrderEntrySection({
   const sellFeeQuote = sellNotional > 0 ? sellNotional * estimatedFeeRate : 0;
   const buyNetBase = buyQtyNum > 0 ? buyQtyNum * Math.max(0, 1 - estimatedFeeRate) : 0;
   const sellNetQuote = sellNotional > 0 ? sellNotional - sellFeeQuote : 0;
-  const executionMode = orderType === 'limit' && postOnly ? 'Maker' : 'Taker';
+  const executionMode = orderType === 'limit' && postOnly ? t('terminal.maker') : t('terminal.taker');
   const executionHint =
     orderType === 'market'
-      ? 'Top-of-book est.'
+      ? t('executionHints.topOfBookEst')
       : orderType === 'limit'
         ? postOnly
-          ? 'Post-only maker'
-          : 'Limit on book'
+          ? t('executionHints.postOnlyMaker')
+          : t('executionHints.limitOnBook')
         : orderType === 'stop_limit'
-          ? 'Triggered limit'
+          ? t('executionHints.triggeredLimit')
           : orderType === 'stop_loss'
-            ? 'Triggered market'
-            : 'Trailing trigger';
+            ? t('executionHints.triggeredMarket')
+            : t('executionHints.trailingTrigger');
 
   const handleBuySlider = (pct: number) => {
     setBuySlider(pct);
@@ -840,43 +848,45 @@ function BinanceOrderEntrySection({
     >
       {/* Product + order type + execution meta — compact single chrome stack */}
       <div className="flex h-8 shrink-0 items-end gap-0 border-b border-border px-2">
-        <span className="mr-1.5 pb-2 terminal-text-label font-semibold uppercase leading-none tracking-wide text-muted-foreground">Order Entry</span>
+        <span className="mr-1.5 pb-2 terminal-text-label font-semibold uppercase leading-none tracking-wide text-muted-foreground">
+          {t('terminal.orderEntry')}
+        </span>
         <span className="mb-2 h-2.5 w-px shrink-0 bg-border" aria-hidden />
-        <span className="mr-1.5 pb-2 text-label font-bold leading-none tracking-wide text-primary">Spot</span>
+        <span className="mr-1.5 pb-2 text-label font-bold leading-none tracking-wide text-primary">{t('terminal.spot')}</span>
         <span className="mb-2 h-2.5 w-px shrink-0 bg-border" aria-hidden />
-        {(['limit', 'market'] as const).map((t) => (
+        {(['limit', 'market'] as const).map((typeKey) => (
           <button
-            key={t}
+            key={typeKey}
             type="button"
-            onClick={() => setOrderType(t)}
+            onClick={() => setOrderType(typeKey)}
             className={`relative px-2 pb-2 pt-1 text-label font-semibold leading-none transition-colors ${
-              orderType === t
+              orderType === typeKey
                 ? 'text-foreground after:absolute after:bottom-0 after:left-1 after:right-1 after:h-0.5 after:rounded-sm after:bg-primary'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            {ORDER_TYPE_LABELS[t]}
+            {orderTypeLabels[typeKey]}
           </button>
         ))}
-        {advancedTypes.map((t) => (
+        {advancedTypes.map((tKey) => (
           <button
-            key={t}
+            key={tKey}
             type="button"
-            onClick={() => setOrderType(t)}
+            onClick={() => setOrderType(tKey)}
             className={`relative px-1.5 pb-2 pt-1 text-label font-semibold leading-none transition-colors ${
-              orderType === t
+              orderType === tKey
                 ? 'text-foreground after:absolute after:bottom-0 after:left-1 after:right-1 after:h-0.5 after:rounded-sm after:bg-primary'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            {ORDER_TYPE_LABELS[t]}
+            {orderTypeLabels[tKey]}
           </button>
         ))}
       </div>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-border bg-muted/20 px-2 py-1">
         {showTifControls && (
           <>
-            <span className="terminal-text-label font-semibold uppercase leading-none text-muted-foreground">TIF</span>
+            <span className="terminal-text-label font-semibold uppercase leading-none text-muted-foreground">{t('terminal.tif')}</span>
             {(['gtc', 'ioc', 'fok'] as const).map((tif) => (
               <button
                 key={tif}
@@ -899,23 +909,25 @@ function BinanceOrderEntrySection({
                   onChange={(e) => setPostOnly(e.target.checked)}
                   className="h-3.5 w-3.5 rounded border-border accent-primary"
                 />
-                Post Only
+                {t('terminal.postOnly')}
               </label>
             )}
             <span className="hidden h-3 w-px bg-border sm:inline-block" aria-hidden />
           </>
         )}
         <TerminalStatusChip
-          label={tradingEnabled ? 'Orders ready' : 'Feed syncing'}
+          label={tradingEnabled ? t('terminal.ordersReady') : t('terminal.feedSyncing')}
           tone={tradingEnabled ? 'live' : 'sync'}
           pulse={!tradingEnabled}
-          title={tradingEnabled ? 'Market stream live — orders enabled' : 'Waiting for live market stream'}
+          title={tradingEnabled ? t('terminal.ordersReadyTitle') : t('terminal.feedSyncingTitle')}
         />
         <span className={`terminal-text-meta leading-none text-muted-foreground ${showTifControls ? '' : 'ml-auto'}`}>
-          Fee <span className="numeric font-medium text-foreground">{(estimatedFeeRate * 100).toFixed(3)}%</span>
+          {t('terminal.fee')}{' '}
+          <span className="numeric font-medium text-foreground">{(estimatedFeeRate * 100).toFixed(3)}%</span>
         </span>
         <span className="terminal-text-meta leading-none text-muted-foreground">
-          Mode <span className="numeric font-medium text-foreground">{executionMode}</span>
+          {t('terminal.mode')}{' '}
+          <span className="numeric font-medium text-foreground">{executionMode}</span>
         </span>
       </div>
 
@@ -925,7 +937,9 @@ function BinanceOrderEntrySection({
         <div className="rounded-md border border-buy/35 bg-buy/[0.05] p-2 shadow-[inset_0_1px_0_hsl(var(--exchange-buy)/0.08)] transition-colors duration-150">
           <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-2">
-            <span className="terminal-text-primary font-semibold tracking-tight text-foreground">Buy {baseAsset}</span>
+            <span className="terminal-text-primary font-semibold tracking-tight text-foreground">
+              {t('terminal.buyAsset', { asset: baseAsset })}
+            </span>
             <span className="numeric terminal-text-secondary text-muted-foreground">
               {formatValueFixedTrim(quoteBalance, quoteFormDisplayDp)} {quoteAsset}
             </span>
@@ -1011,7 +1025,9 @@ function BinanceOrderEntrySection({
         <div className="rounded-md border border-sell/35 bg-sell/[0.045] p-2 shadow-[inset_0_1px_0_hsl(var(--exchange-sell)/0.08)] transition-colors duration-150">
           <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-2">
-            <span className="terminal-text-primary font-semibold tracking-tight text-foreground">Sell {baseAsset}</span>
+            <span className="terminal-text-primary font-semibold tracking-tight text-foreground">
+              {t('terminal.sellAsset', { asset: baseAsset })}
+            </span>
             <span className="numeric terminal-text-secondary text-muted-foreground">
               {formatValueFixedTrim(baseBalance, qtyPrecision)} {baseAsset}
             </span>
@@ -1109,31 +1125,32 @@ function BinanceOrderEntrySection({
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Confirm order</DialogTitle>
-            <DialogDescription>Review order details before placing.</DialogDescription>
+            <DialogTitle>{t('terminal.confirmOrder')}</DialogTitle>
+            <DialogDescription>{t('terminal.confirmOrderDesc')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-1.5 text-sm">
             <p>
-              <span className="text-muted-foreground">Side:</span>{' '}
+              <span className="text-muted-foreground">{t('trading.buy')}/{t('trading.sell')}:</span>{' '}
               <span className={pendingOrder?.side === 'buy' ? 'text-buy font-semibold' : 'text-sell font-semibold'}>
-                {(pendingOrder?.side ?? side).toUpperCase()}
+                {(pendingOrder?.side ?? side) === 'buy' ? t('trading.buy') : t('trading.sell')}
               </span>
             </p>
             <p>
-              <span className="text-muted-foreground">Type:</span> {ORDER_TYPE_LABELS[orderType]}
+              <span className="text-muted-foreground">{t('terminal.typeLabel')}:</span> {orderTypeLabels[orderType]}
             </p>
             {(orderType === 'limit' || orderType === 'stop_limit') && (
               <p>
-                <span className="text-muted-foreground">Price:</span> {price || '—'} {quoteAsset}
+                <span className="text-muted-foreground">{t('terminal.priceLabel')}:</span> {price || '—'} {quoteAsset}
               </p>
             )}
             {(orderType === 'stop_loss' || orderType === 'stop_limit') && (
               <p>
-                <span className="text-muted-foreground">Trigger:</span> {stopPrice || '—'} {quoteAsset}
+                <span className="text-muted-foreground">{t('terminal.triggerLabel')}:</span> {stopPrice || '—'} {quoteAsset}
               </p>
             )}
             <p>
-              <span className="text-muted-foreground">Quantity:</span> {pendingOrder?.qty || '—'} {baseAsset}
+              <span className="text-muted-foreground">{t('terminal.quantityLabel')}:</span> {pendingOrder?.qty || '—'}{' '}
+              {baseAsset}
             </p>
           </div>
           <DialogFooter>
@@ -1142,7 +1159,7 @@ function BinanceOrderEntrySection({
               className="rounded border border-border px-3 py-2 text-sm"
               onClick={() => setConfirmOpen(false)}
             >
-              Cancel
+              {tCommon('actions.cancel')}
             </button>
             <button
               type="button"
@@ -1153,7 +1170,7 @@ function BinanceOrderEntrySection({
                 void submitOrder(pendingOrder.side, pendingOrder.qty);
               }}
             >
-              {submitting ? 'Placing...' : 'Confirm'}
+              {submitting ? t('trading.executing') : tCommon('actions.confirm')}
             </button>
           </DialogFooter>
         </DialogContent>
