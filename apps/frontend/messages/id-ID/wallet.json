@@ -10,11 +10,39 @@
   },
   "deposit": {
     "title": "Deposit kripto",
+    "description": "Kirim aset ke dompet funding dari dompet eksternal. Pilih koin, jaringan, lalu salin alamat deposit.",
+    "buyWithFiat": "Beli dengan fiat (P2P)",
+    "step1": "Pilih koin untuk deposit",
+    "step2": "Pilih jaringan",
+    "step2Hint": "Jaringan yang mendukung {symbol}",
+    "step3": "Konfirmasi detail deposit",
     "selectNetwork": "Pilih jaringan",
+    "selectChain": "Pilih chain",
+    "pleaseSelect": "Silakan pilih",
+    "searchCoin": "Cari koin",
+    "noTokens": "Koin tidak ditemukan",
     "address": "Alamat deposit",
+    "depositAddressLabel": "Alamat Deposit",
     "confirmations": "Konfirmasi",
-    "warningWrongNetwork": "Kirim hanya di jaringan yang dipilih. Deposit jaringan salah dapat hilang.",
-    "irreversible": "Transfer blockchain tidak dapat dibatalkan."
+    "confirmationsRequired": "Konfirmasi Diperlukan",
+    "networkLabel": "Jaringan",
+    "blocks": "blok",
+    "blockConfirms": "{count} konfirmasi blok",
+    "warningWrongNetworkTitle": "Jaringan harus cocok",
+    "warningWrongNetworkBody": "Hanya kirim {symbol} di {network}. Jaringan salah dapat menyebabkan kerugian permanen.",
+    "warningMemoTitle": "Memo / Tag wajib",
+    "warningMemoBody": "Deposit {symbol} memerlukan memo atau destination tag yang benar. Tanpa itu deposit mungkin tidak dikreditkan.",
+    "important": "Penting",
+    "irreversible": "Transfer blockchain tidak dapat dibatalkan.",
+    "loadingAddress": "Memuat alamat deposit…",
+    "selectCoinChainHint": "Pilih koin dan jaringan untuk melihat alamat deposit",
+    "retry": "Coba lagi",
+    "faqTitle": "FAQ",
+    "faqHowTo": "Cara Melakukan Deposit",
+    "faqRecovery": "Aturan Pemulihan Deposit Jaringan Tidak Didukung",
+    "faqCrypto": "FAQ — Deposit Kripto",
+    "addressCopiedTitle": "Alamat disalin",
+    "addressCopiedDesc": "Alamat deposit disalin ke clipboard."
   },
   "withdraw": {
     "title": "Tarik",
@@ -29,7 +57,9 @@
     "failed": "Gagal"
   },
   "overview": {
+    "title": "Ringkasan Aset",
     "totalBalance": "Total saldo",
-    "collectingData": "Mengumpulkan data…"
+    "collectingData": "Mengumpulkan data…",
+    "activityLoadError": "Tidak dapat memuat aktivitas terbaru"
   }
 }

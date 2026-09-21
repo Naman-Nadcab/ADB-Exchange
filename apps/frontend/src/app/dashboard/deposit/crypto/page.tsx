@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth';
@@ -90,6 +91,7 @@ const MEMO_TAG_COINS = new Set(['XRP', 'XLM', 'ATOM', 'EOS', 'HBAR', 'STX', 'TON
 const POPULAR_TOKENS = ['BTC', 'ETH', 'USDT', 'USDC', 'BNB', 'SOL', 'TRX'];
 
 export default function DepositCryptoPage() {
+  const tw = useTranslations('wallet');
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -350,7 +352,7 @@ export default function DepositCryptoPage() {
     if (depositAddress?.address) {
       navigator.clipboard.writeText(depositAddress.address);
       setCopied(true);
-      toast({ title: 'Address copied', description: 'Deposit address copied to clipboard.', variant: 'success' });
+      toast({ title: tw('deposit.addressCopiedTitle'), description: tw('deposit.addressCopiedDesc'), variant: 'success' });
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -388,8 +390,8 @@ export default function DepositCryptoPage() {
   return (
     <>
       <WalletOperationsShell
-        title="Deposit crypto"
-        description="Send assets to your funding wallet from an external wallet. Select coin, network, then copy your deposit address."
+        title={tw('deposit.title')}
+        description={tw('deposit.description')}
         headerRight={
           <Link
             href="/p2p"
@@ -398,7 +400,7 @@ export default function DepositCryptoPage() {
             <span className="text-amber-500" aria-hidden>
               💰
             </span>
-            Buy with fiat (P2P)
+            {tw('deposit.buyWithFiat')}
           </Link>
         }
       >
@@ -410,7 +412,7 @@ export default function DepositCryptoPage() {
               <div className="mb-6">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center font-medium">1</span>
-                  <span className="font-medium text-foreground">Choose coin to deposit</span>
+                  <span className="font-medium text-foreground">{tw('deposit.step1')}</span>
                 </div>
 
                 {/* Token Dropdown */}
@@ -430,7 +432,7 @@ export default function DepositCryptoPage() {
                         </div>
                       </div>
                     ) : (
-                      <span className="text-muted-foreground">Please Select</span>
+                      <span className="text-muted-foreground">{tw('deposit.pleaseSelect')}</span>
                     )}
                     <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${showTokenDropdown ? 'rotate-180' : ''}`} />
                   </button>
@@ -445,7 +447,7 @@ export default function DepositCryptoPage() {
                             type="text"
                             value={tokenSearch}
                             onChange={(e) => setTokenSearch(e.target.value)}
-                            placeholder="Search coin"
+                            placeholder={tw('deposit.searchCoin')}
                             className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
                             autoFocus
                           />
@@ -475,7 +477,7 @@ export default function DepositCryptoPage() {
                             </button>
                           ))
                         ) : (
-                          <div className="py-8 text-center text-muted-foreground">No tokens found</div>
+                          <div className="py-8 text-center text-muted-foreground">{tw('deposit.noTokens')}</div>
                         )}
                       </div>
                     </div>
@@ -511,10 +513,10 @@ export default function DepositCryptoPage() {
               <div className="mb-6">
                 <div className="flex items-center gap-2 mb-3">
                   <span className={`w-6 h-6 rounded-full text-white text-sm flex items-center justify-center font-medium ${selectedToken ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>2</span>
-                  <span className={`font-medium ${selectedToken ? 'text-foreground' : 'text-muted-foreground'}`}>Choose a Chain</span>
+                  <span className={`font-medium ${selectedToken ? 'text-foreground' : 'text-muted-foreground'}`}>{tw('deposit.step2')}</span>
                 </div>
                 {selectedToken && (
-                  <p className="text-xs text-muted-foreground mb-2">Chains that support {selectedToken.symbol}</p>
+                  <p className="text-xs text-muted-foreground mb-2">{tw('deposit.step2Hint', { symbol: selectedToken.symbol })}</p>
                 )}
 
                 <div className="relative">
@@ -542,7 +544,7 @@ export default function DepositCryptoPage() {
                         <span className="font-medium text-foreground">{selectedChain.name}</span>
                       </div>
                     ) : (
-                      <span className="text-muted-foreground">Select chain</span>
+                      <span className="text-muted-foreground">{tw('deposit.selectChain')}</span>
                     )}
                     <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${showChainDropdown ? 'rotate-180' : ''}`} />
                   </button>
@@ -599,10 +601,12 @@ export default function DepositCryptoPage() {
                   <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
                     <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
                     <div className="text-sm text-amber-900 dark:text-amber-100">
-                      <p className="font-medium">Network must match</p>
+                      <p className="font-medium">{tw('deposit.warningWrongNetworkTitle')}</p>
                       <p className="mt-0.5">
-                        Only send <span className="font-semibold">{selectedToken.symbol}</span> on{' '}
-                        <span className="font-semibold">{selectedChain.name}</span>. Sending on the wrong network may result in permanent loss.
+                        {tw('deposit.warningWrongNetworkBody', {
+                          symbol: selectedToken.symbol,
+                          network: selectedChain.name,
+                        })}
                       </p>
                     </div>
                   </div>
@@ -610,9 +614,9 @@ export default function DepositCryptoPage() {
                     <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
                       <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
                       <div className="text-sm text-red-900 dark:text-red-100">
-                        <p className="font-medium">Memo / Tag required</p>
+                        <p className="font-medium">{tw('deposit.warningMemoTitle')}</p>
                         <p className="mt-0.5">
-                          {selectedToken.symbol} deposits require the correct memo or destination tag. Deposits without it may not be credited.
+                          {tw('deposit.warningMemoBody', { symbol: selectedToken.symbol })}
                         </p>
                       </div>
                     </div>
@@ -624,7 +628,7 @@ export default function DepositCryptoPage() {
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <span className={`w-6 h-6 rounded-full text-white text-sm flex items-center justify-center font-medium ${selectedChain ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>3</span>
-                  <span className={`font-medium ${selectedChain ? 'text-foreground' : 'text-muted-foreground'}`}>Confirm deposit details</span>
+                  <span className={`font-medium ${selectedChain ? 'text-foreground' : 'text-muted-foreground'}`}>{tw('deposit.step3')}</span>
                 </div>
 
                 {addressLoading ? (
@@ -639,7 +643,7 @@ export default function DepositCryptoPage() {
                       onClick={() => selectedChain && fetchDepositAddress(selectedChain.id)}
                       className="mt-3 text-sm font-medium text-amber-600 dark:text-amber-400 hover:underline"
                     >
-                      Retry
+                      {tw('deposit.retry')}
                     </button>
                   </div>
                 ) : depositAddress ? (
@@ -660,7 +664,7 @@ export default function DepositCryptoPage() {
 
                     {/* Address */}
                     <div className="mb-4">
-                      <p className="text-sm text-muted-foreground mb-2">Deposit Address</p>
+                      <p className="text-sm text-muted-foreground mb-2">{tw('deposit.depositAddressLabel')}</p>
                       <div className="flex items-center gap-2 bg-card rounded-lg p-3 border border-border">
                         <span className="flex-1 text-sm font-mono text-foreground break-all">
                           {depositAddress.address}
@@ -682,11 +686,11 @@ export default function DepositCryptoPage() {
                     {selectedChain && (
                       <div className="grid grid-cols-2 gap-3 text-xs">
                         <div className="bg-muted rounded-lg p-3">
-                          <p className="text-muted-foreground mb-0.5">Confirmations Required</p>
-                          <p className="text-foreground font-medium">{selectedChain.confirmations_required ?? '—'} blocks</p>
+                          <p className="text-muted-foreground mb-0.5">{tw('deposit.confirmationsRequired')}</p>
+                          <p className="text-foreground font-medium">{selectedChain.confirmations_required ?? '—'} {tw('deposit.blocks')}</p>
                         </div>
                         <div className="bg-muted rounded-lg p-3">
-                          <p className="text-muted-foreground mb-0.5">Network</p>
+                          <p className="text-muted-foreground mb-0.5">{tw('deposit.networkLabel')}</p>
                           <p className="text-foreground font-medium">{selectedChain.name} ({selectedChain.type})</p>
                         </div>
                       </div>
@@ -696,14 +700,14 @@ export default function DepositCryptoPage() {
                     <div className="flex items-start gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                       <AlertTriangle className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
                       <div className="text-sm text-yellow-800 dark:text-yellow-200">
-                        <p className="font-medium mb-1">Important</p>
+                        <p className="font-medium mb-1">{tw('deposit.important')}</p>
                         <p>{depositAddress.notice}</p>
                       </div>
                     </div>
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
-                    {selectedChain ? 'Loading deposit address…' : 'Select a coin and chain to see the deposit address'}
+                    {selectedChain ? tw('deposit.loadingAddress') : tw('deposit.selectCoinChainHint')}
                   </div>
                 )}
               </div>
@@ -713,25 +717,25 @@ export default function DepositCryptoPage() {
           {/* Right Section - FAQ */}
           <div className="lg:col-span-1">
             <div className="bg-card rounded-xl p-6 border border-border dark:border-transparent">
-              <h3 className="text-lg font-semibold text-foreground mb-4">FAQ</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-4">{tw('deposit.faqTitle')}</h3>
               
               <ul className="space-y-3">
                 <li>
                   <Link href="/dashboard/help#deposit-how-to" className="text-sm text-muted-foreground hover:text-primary dark:hover:text-blue-400 flex items-start gap-1">
                     <span className="mt-1">•</span>
-                    <span>How to Make a Deposit</span>
+                    <span>{tw('deposit.faqHowTo')}</span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/dashboard/help#deposit-recovery" className="text-sm text-muted-foreground hover:text-primary dark:hover:text-blue-400 flex items-start gap-1">
                     <span className="mt-1">•</span>
-                    <span>Unsupported Deposit Recovery Procedure Rules</span>
+                    <span>{tw('deposit.faqRecovery')}</span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/dashboard/help#deposit-faq" className="text-sm text-muted-foreground hover:text-primary dark:hover:text-blue-400 flex items-start gap-1">
                     <span className="mt-1">•</span>
-                    <span>FAQ — Crypto Deposit</span>
+                    <span>{tw('deposit.faqCrypto')}</span>
                   </Link>
                 </li>
                 <li>

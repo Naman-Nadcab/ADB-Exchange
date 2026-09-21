@@ -10,11 +10,39 @@
   },
   "deposit": {
     "title": "充值加密货币",
+    "description": "从外部钱包向资金账户充值。选择币种、网络后复制充值地址。",
+    "buyWithFiat": "法币购买 (P2P)",
+    "step1": "选择充值币种",
+    "step2": "选择网络",
+    "step2Hint": "支持 {symbol} 的网络",
+    "step3": "确认充值信息",
     "selectNetwork": "选择网络",
+    "selectChain": "选择链",
+    "pleaseSelect": "请选择",
+    "searchCoin": "搜索币种",
+    "noTokens": "未找到币种",
     "address": "充值地址",
+    "depositAddressLabel": "充值地址",
     "confirmations": "确认数",
-    "warningWrongNetwork": "请仅在所选网络转账。错误网络可能导致资产丢失。",
-    "irreversible": "链上转账不可撤销。"
+    "confirmationsRequired": "所需确认数",
+    "networkLabel": "网络",
+    "blocks": "区块",
+    "blockConfirms": "{count} 个区块确认",
+    "warningWrongNetworkTitle": "网络必须一致",
+    "warningWrongNetworkBody": "请仅在 {network} 网络发送 {symbol}。错误网络可能导致资产永久丢失。",
+    "warningMemoTitle": "必须填写 Memo / Tag",
+    "warningMemoBody": "{symbol} 充值须填写正确的 memo 或 destination tag，否则可能无法到账。",
+    "important": "重要提示",
+    "irreversible": "链上转账不可撤销。",
+    "loadingAddress": "正在加载充值地址…",
+    "selectCoinChainHint": "选择币种和网络以显示充值地址",
+    "retry": "重试",
+    "faqTitle": "常见问题",
+    "faqHowTo": "如何充值",
+    "faqRecovery": "不支持网络的充值找回规则",
+    "faqCrypto": "常见问题 — 加密货币充值",
+    "addressCopiedTitle": "地址已复制",
+    "addressCopiedDesc": "充值地址已复制到剪贴板。"
   },
   "withdraw": {
     "title": "提现",
@@ -29,7 +57,9 @@
     "failed": "失败"
   },
   "overview": {
+    "title": "资产总览",
     "totalBalance": "总余额",
-    "collectingData": "正在收集数据…"
+    "collectingData": "正在收集数据…",
+    "activityLoadError": "无法加载近期活动"
   }
 }

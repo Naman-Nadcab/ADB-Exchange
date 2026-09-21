@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, useId } from 'react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import { api } from '@/lib/api';
@@ -85,6 +86,7 @@ function PortfolioMiniChart({
   maskStr?: (s: string) => string;
   formatUsd?: (n: number) => string;
 }) {
+  const tw = useTranslations('wallet');
   const gradId = useId().replace(/:/g, '');
   const maskFn = typeof maskStr === 'function' ? maskStr : maskStrDefault;
   const fmtUsdFn = typeof formatUsd === 'function' ? formatUsd : formatUsdDefault;
@@ -94,7 +96,7 @@ function PortfolioMiniChart({
         <div className="flex items-center justify-center rounded-lg border border-border bg-muted/20 text-xs text-muted-foreground" style={{ width, height }}>
           <div className="text-center px-2">
             <BarChart3 className="mx-auto mb-1 h-5 w-5 text-muted-foreground/40" />
-            <p>Collecting data…</p>
+            <p>{tw('overview.collectingData')}</p>
             <p className="mt-1 text-xs text-muted-foreground/80">{periodLabel} range</p>
           </div>
         </div>
@@ -225,6 +227,7 @@ function AllocationDonut({
 }
 
 export default function AssetsOverviewPage() {
+  const tw = useTranslations('wallet');
   const router = useRouter();
   const { accessToken, _hasHydrated } = useAuthStore();
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
@@ -572,7 +575,7 @@ export default function AssetsOverviewPage() {
         {/* ── Header ── */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-foreground">Assets Overview</h1>
+            <h1 className="text-2xl font-bold text-foreground">{tw('overview.title')}</h1>
             <button type="button" onClick={() => setShowBalance((v) => !v)} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors" aria-label="Toggle balance visibility">
               {showBalance ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
             </button>
@@ -1048,7 +1051,7 @@ export default function AssetsOverviewPage() {
             {recentTxError ? (
               <div className="px-6 py-8">
                 <ErrorState
-                  title="Could not load recent activity"
+                  title={tw('overview.activityLoadError')}
                   message={recentTxError}
                   onRetry={() => void fetchRecentTransactions()}
                 />

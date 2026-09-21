@@ -10,11 +10,39 @@
   },
   "deposit": {
     "title": "Deposit crypto",
+    "description": "Send assets to your funding wallet from an external wallet. Select coin, network, then copy your deposit address.",
+    "buyWithFiat": "Buy with fiat (P2P)",
+    "step1": "Choose coin to deposit",
+    "step2": "Choose a Chain",
+    "step2Hint": "Chains that support {symbol}",
+    "step3": "Confirm deposit details",
     "selectNetwork": "Select network",
+    "selectChain": "Select chain",
+    "pleaseSelect": "Please Select",
+    "searchCoin": "Search coin",
+    "noTokens": "No tokens found",
     "address": "Deposit address",
+    "depositAddressLabel": "Deposit Address",
     "confirmations": "Confirmations",
-    "warningWrongNetwork": "Send only on the selected network. Wrong network deposits may be lost.",
-    "irreversible": "Blockchain transfers are irreversible."
+    "confirmationsRequired": "Confirmations Required",
+    "networkLabel": "Network",
+    "blocks": "blocks",
+    "blockConfirms": "{count} block confirms",
+    "warningWrongNetworkTitle": "Network must match",
+    "warningWrongNetworkBody": "Only send {symbol} on {network}. Sending on the wrong network may result in permanent loss.",
+    "warningMemoTitle": "Memo / Tag required",
+    "warningMemoBody": "{symbol} deposits require the correct memo or destination tag. Deposits without it may not be credited.",
+    "important": "Important",
+    "irreversible": "Blockchain transfers are irreversible.",
+    "loadingAddress": "Loading deposit address…",
+    "selectCoinChainHint": "Select a coin and chain to see the deposit address",
+    "retry": "Retry",
+    "faqTitle": "FAQ",
+    "faqHowTo": "How to Make a Deposit",
+    "faqRecovery": "Unsupported Deposit Recovery Procedure Rules",
+    "faqCrypto": "FAQ — Crypto Deposit",
+    "addressCopiedTitle": "Address copied",
+    "addressCopiedDesc": "Deposit address copied to clipboard."
   },
   "withdraw": {
     "title": "Withdraw",
@@ -29,7 +57,9 @@
     "failed": "Failed"
   },
   "overview": {
+    "title": "Assets Overview",
     "totalBalance": "Total balance",
-    "collectingData": "Collecting data…"
+    "collectingData": "Collecting data…",
+    "activityLoadError": "Could not load recent activity"
   }
 }
