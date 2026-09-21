@@ -12,9 +12,10 @@ function resolveIntlLocale(locale?: PresentationLocale): string {
 
 /** Display-only formatting — never used for ledger / order math. */
 export function formatPrice(
-  value: number | string,
+  value: number | string | null | undefined,
   options?: { locale?: PresentationLocale; currency?: string; minimumFractionDigits?: number; maximumFractionDigits?: number }
 ): string {
+  if (value == null || value === '') return '—';
   const n = typeof value === 'string' ? Number(value) : value;
   if (!Number.isFinite(n)) return '—';
   const locale = resolveIntlLocale(options?.locale);

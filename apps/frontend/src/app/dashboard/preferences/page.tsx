@@ -64,7 +64,8 @@ const currencies = [
 
 const languages = [
   { value: 'en', label: 'English', flag: '🇺🇸' },
-  { value: 'zh', label: '中文', flag: '🇨🇳' },
+  { value: 'zh', label: '简体中文', flag: '🇨🇳' },
+  { value: 'id', label: 'Bahasa Indonesia', flag: '🇮🇩' },
   { value: 'ja', label: '日本語', flag: '🇯🇵' },
   { value: 'ko', label: '한국어', flag: '🇰🇷' },
   { value: 'ru', label: 'Русский', flag: '🇷🇺' },

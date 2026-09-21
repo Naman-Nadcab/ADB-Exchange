@@ -2,6 +2,12 @@
   "forex": {
     "marginInsufficient": "Insufficient margin for this order"
   },
+  "crypto": {
+    "invalidPrice": "Invalid price for this order"
+  },
+  "auth": {
+    "otpInvalid": "Invalid verification code"
+  },
   "generic": {
     "unknown": "Something went wrong. Please try again."
   }

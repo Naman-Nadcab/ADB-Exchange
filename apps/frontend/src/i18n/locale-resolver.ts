@@ -19,6 +19,21 @@ export type LocaleResolutionInput = {
   acceptLanguage?: string | null;
 };
 
+/** How the effective UI locale was chosen (presentation only). */
+export type LocaleSource =
+  | 'manual'
+  | 'account'
+  | 'cookie'
+  | 'region'
+  | 'browser'
+  | 'default';
+
+export type ResolvedLocale = {
+  effectiveLocale: AppLocale;
+  localeSource: LocaleSource;
+  isExplicit: boolean;
+};
+
 const REGION_LOCALE_MAP: Record<string, AppLocale> = {
   CN: 'zh-CN',
   HK: 'zh-CN',
@@ -45,39 +60,53 @@ export function parseAcceptLanguage(header: string | null | undefined): AppLocal
 }
 
 /**
- * Deterministic locale resolution (pure — safe for unit tests).
+ * Deterministic locale resolution with source metadata.
  *
  * Priority:
- * 1. Saved account preference
- * 2. Explicit user-selected locale (manual selector)
- * 3. Coarse region suggestion (first-visit default only)
- * 4. Browser Accept-Language
- * 5. English
- *
- * Region and browser signals must not override explicit manual selection
- * (callers pass `explicitSelection` and omit region when explicit is set).
+ * 1. Explicit manual selection
+ * 2. Saved account preference
+ * 3. Existing locale cookie
+ * 4. Coarse region
+ * 5. Accept-Language
+ * 6. English
  */
-export function resolveLocale(input: LocaleResolutionInput): AppLocale {
+export function resolveLocaleWithSource(input: LocaleResolutionInput): ResolvedLocale {
+  const isExplicit = Boolean(input.explicitSelection);
+
+  if (isExplicit) {
+    const manual = coerceToAppLocale(input.localeCookie);
+    if (manual) {
+      return { effectiveLocale: manual, localeSource: 'manual', isExplicit: true };
+    }
+  }
+
   const saved =
     coerceToAppLocale(input.savedPreference) ??
     coerceToAppLocale(input.preferenceCookie);
-  if (saved) return saved;
-
-  if (input.explicitSelection) {
-    const explicit = coerceToAppLocale(input.localeCookie);
-    if (explicit) return explicit;
+  if (saved) {
+    return { effectiveLocale: saved, localeSource: 'account', isExplicit: false };
   }
 
   const cookieLocale = coerceToAppLocale(input.localeCookie);
-  if (cookieLocale) return cookieLocale;
+  if (cookieLocale) {
+    return { effectiveLocale: cookieLocale, localeSource: 'cookie', isExplicit: false };
+  }
 
   const fromRegion = regionCodeToSuggestedLocale(input.regionCode);
-  if (fromRegion) return fromRegion;
+  if (fromRegion) {
+    return { effectiveLocale: fromRegion, localeSource: 'region', isExplicit: false };
+  }
 
   const fromBrowser = parseAcceptLanguage(input.acceptLanguage);
-  if (fromBrowser) return fromBrowser;
+  if (fromBrowser) {
+    return { effectiveLocale: fromBrowser, localeSource: 'browser', isExplicit: false };
+  }
 
-  return DEFAULT_LOCALE;
+  return { effectiveLocale: DEFAULT_LOCALE, localeSource: 'default', isExplicit: false };
+}
+
+export function resolveLocale(input: LocaleResolutionInput): AppLocale {
+  return resolveLocaleWithSource(input).effectiveLocale;
 }
 
 /** Initial bootstrap when no locale cookies exist yet. */

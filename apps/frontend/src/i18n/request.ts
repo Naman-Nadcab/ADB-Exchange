@@ -9,7 +9,8 @@ import {
   type AppLocale,
   isAppLocale,
 } from './config';
-import { resolveLocale } from './locale-resolver';
+import { parseExplicitFlag, parseLocaleCookieValue } from './cookie-locale';
+import { resolveLocaleWithSource } from './locale-resolver';
 import { loadMessagesForLocale } from './load-messages';
 
 function readRegionCode(headerStore: Headers): string | null {
@@ -26,11 +27,11 @@ export default getRequestConfig(async () => {
   const cookieStore = await cookies();
   const headerStore = await headers();
 
-  const explicitSelection = cookieStore.get(LOCALE_EXPLICIT_COOKIE)?.value === '1';
-  const localeCookie = cookieStore.get(LOCALE_COOKIE)?.value ?? null;
-  const preferenceCookie = cookieStore.get(LOCALE_PREF_COOKIE)?.value ?? null;
+  const explicitSelection = parseExplicitFlag(cookieStore.get(LOCALE_EXPLICIT_COOKIE)?.value);
+  const localeCookie = parseLocaleCookieValue(cookieStore.get(LOCALE_COOKIE)?.value);
+  const preferenceCookie = parseLocaleCookieValue(cookieStore.get(LOCALE_PREF_COOKIE)?.value);
 
-  const resolved = resolveLocale({
+  const { effectiveLocale } = resolveLocaleWithSource({
     preferenceCookie,
     localeCookie,
     explicitSelection,
@@ -38,7 +39,7 @@ export default getRequestConfig(async () => {
     acceptLanguage: headerStore.get('accept-language'),
   });
 
-  const locale: AppLocale = isAppLocale(resolved) ? resolved : DEFAULT_LOCALE;
+  const locale: AppLocale = isAppLocale(effectiveLocale) ? effectiveLocale : DEFAULT_LOCALE;
   const messages = await loadMessagesForLocale(locale);
 
   return {

@@ -53,7 +53,9 @@ export function coerceToAppLocale(raw: string | null | undefined): AppLocale | n
   if (isAppLocale(v)) return v;
   const lower = v.toLowerCase();
   if (lower === 'en' || lower.startsWith('en-')) return 'en';
-  if (lower === 'zh' || lower === 'zh-cn' || lower === 'zh_cn') return 'zh-CN';
+  if (lower === 'zh' || lower === 'zh-cn' || lower === 'zh_cn' || lower === 'zh-tw' || lower === 'zh-hans') {
+    return 'zh-CN';
+  }
   if (lower === 'id' || lower === 'id-id' || lower === 'id_id') return 'id-ID';
   return null;
 }

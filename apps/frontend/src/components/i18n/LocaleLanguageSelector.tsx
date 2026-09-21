@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useTransition } from 'react';
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { Check, ChevronDown, Globe } from 'lucide-react';
@@ -11,6 +11,8 @@ import {
   isAppLocale,
 } from '@/i18n/config';
 import { setLocaleAction } from '@/i18n/actions/set-locale';
+import { persistPlatformLocalePreference } from '@/lib/i18n/persist-platform-locale';
+import { useAuthStore } from '@/store/auth';
 import { cn } from '@/lib/utils';
 
 type LocaleLanguageSelectorProps = {
@@ -23,8 +25,11 @@ export function LocaleLanguageSelector({ className = '', variant = 'default' }: 
   const t = useTranslations('common.languageSelector');
   const locale = useLocale();
   const router = useRouter();
+  const { accessToken, isAuthenticated, _hasHydrated } = useAuthStore();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [focusIndex, setFocusIndex] = useState(0);
+  const listRef = useRef<HTMLUListElement>(null);
 
   const activeLocale: AppLocale = isAppLocale(locale) ? locale : 'en';
   const activeLabel = LOCALE_LABELS[activeLocale];
@@ -36,13 +41,60 @@ export function LocaleLanguageSelector({ className = '', variant = 'default' }: 
         return;
       }
       startTransition(async () => {
-        await setLocaleAction(next, { explicit: true });
+        const result = await setLocaleAction(next, { explicit: true });
+        if (result.ok && _hasHydrated && isAuthenticated && accessToken) {
+          await persistPlatformLocalePreference(accessToken, next);
+        }
         setOpen(false);
         router.refresh();
       });
     },
-    [activeLocale, router]
+    [activeLocale, router, _hasHydrated, isAuthenticated, accessToken]
   );
+
+  useEffect(() => {
+    if (!open) return;
+    const idx = APP_LOCALES.indexOf(activeLocale);
+    setFocusIndex(idx >= 0 ? idx : 0);
+  }, [open, activeLocale]);
+
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!open) {
+        if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setOpen(true);
+        }
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setOpen(false);
+        return;
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setFocusIndex((i) => (i + 1) % APP_LOCALES.length);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setFocusIndex((i) => (i - 1 + APP_LOCALES.length) % APP_LOCALES.length);
+        return;
+      }
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onSelect(APP_LOCALES[focusIndex]!);
+      }
+    },
+    [open, focusIndex, onSelect]
+  );
+
+  useEffect(() => {
+    if (!open || !listRef.current) return;
+    const el = listRef.current.querySelector<HTMLButtonElement>(`[data-locale-index="${focusIndex}"]`);
+    el?.focus();
+  }, [open, focusIndex]);
 
   return (
     <div className={cn('relative', className)}>
@@ -57,6 +109,7 @@ export function LocaleLanguageSelector({ className = '', variant = 'default' }: 
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
+        onKeyDown={onKeyDown}
         disabled={pending}
       >
         <Globe className={variant === 'compact' ? 'h-3.5 w-3.5 shrink-0 opacity-80' : 'h-4 w-4 shrink-0 opacity-80'} aria-hidden />
@@ -71,21 +124,25 @@ export function LocaleLanguageSelector({ className = '', variant = 'default' }: 
             className="fixed inset-0 z-40 cursor-default bg-transparent"
             aria-label={t('menuLabel')}
             onClick={() => setOpen(false)}
+            tabIndex={-1}
           />
           <ul
+            ref={listRef}
             role="listbox"
             aria-label={t('menuLabel')}
+            aria-activedescendant={`locale-option-${APP_LOCALES[focusIndex]}`}
             className="absolute right-0 top-[calc(100%+4px)] z-50 min-w-[11rem] overflow-hidden rounded-lg border border-border bg-popover py-1 shadow-lg animate-in fade-in slide-in-from-top-1 duration-150"
           >
-            {APP_LOCALES.map((code) => {
+            {APP_LOCALES.map((code, index) => {
               const selected = code === activeLocale;
               return (
-                <li key={code} role="option" aria-selected={selected}>
+                <li key={code} id={`locale-option-${code}`} role="option" aria-selected={selected}>
                   <button
                     type="button"
+                    data-locale-index={index}
                     className={cn(
                       'flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none',
-                      selected && 'bg-accent/60 font-medium'
+                      (selected || index === focusIndex) && 'bg-accent/60 font-medium'
                     )}
                     onClick={() => onSelect(code)}
                   >

@@ -1,7 +1,19 @@
 /**
  * Central terminology keys for future professional translation.
  * Keys are stable identifiers — not user-facing copy.
+ * Use contextual keys when semantics differ (e.g. close modal vs close position).
  */
+
+export const COMMON_UI_TERMINOLOGY = {
+  actions: {
+    save: 'common.actions.save',
+    cancel: 'common.actions.cancel',
+    confirm: 'common.actions.confirm',
+    retry: 'common.actions.retry',
+  },
+  closeModal: 'common.close.modal',
+  closePanel: 'common.close.panel',
+} as const;
 
 export const FOREX_TERMINOLOGY = {
   bid: 'forex.terminology.bid',
@@ -22,6 +34,8 @@ export const FOREX_TERMINOLOGY = {
   long: 'forex.terminology.long',
   short: 'forex.terminology.short',
   liquidation: 'forex.terminology.liquidation',
+  closePosition: 'forex.actions.closePosition',
+  closeOrder: 'forex.actions.closeOrder',
 } as const;
 
 export const CRYPTO_TERMINOLOGY = {
@@ -34,6 +48,14 @@ export const CRYPTO_TERMINOLOGY = {
   p2p: 'crypto.terminology.p2p',
   escrow: 'crypto.terminology.escrow',
   networkFee: 'crypto.terminology.networkFee',
+  cancelOrder: 'crypto.actions.cancelOrder',
+} as const;
+
+export const P2P_TERMINOLOGY = {
+  escrow: 'p2p.terminology.escrow',
+  dispute: 'p2p.terminology.dispute',
+  release: 'p2p.actions.release',
+  confirmPayment: 'p2p.actions.confirmPayment',
 } as const;
 
 export type ForexTerminologyKey = keyof typeof FOREX_TERMINOLOGY;

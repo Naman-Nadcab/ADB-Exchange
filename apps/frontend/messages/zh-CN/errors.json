@@ -2,6 +2,12 @@
   "forex": {
     "marginInsufficient": "保证金不足，无法提交此订单"
   },
+  "crypto": {
+    "invalidPrice": "订单价格无效"
+  },
+  "auth": {
+    "otpInvalid": "验证码无效"
+  },
   "generic": {
     "unknown": "出现错误，请稍后重试。"
   }

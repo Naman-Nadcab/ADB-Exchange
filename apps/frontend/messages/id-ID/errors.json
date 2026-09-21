@@ -2,6 +2,12 @@
   "forex": {
     "marginInsufficient": "Margin tidak mencukupi untuk order ini"
   },
+  "crypto": {
+    "invalidPrice": "Harga order tidak valid"
+  },
+  "auth": {
+    "otpInvalid": "Kode verifikasi tidak valid"
+  },
   "generic": {
     "unknown": "Terjadi kesalahan. Silakan coba lagi."
   }

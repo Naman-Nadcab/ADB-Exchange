@@ -12,7 +12,7 @@
     "lint": "next lint",
     "clean": "rm -rf .next",
     "verify:routes": "node scripts/verify-routes.mjs",
-    "test:i18n": "tsx src/i18n/locale-resolver.test.ts"
+    "test:i18n": "tsx src/i18n/locale-resolver.test.ts && tsx src/i18n/catalog-parity.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
