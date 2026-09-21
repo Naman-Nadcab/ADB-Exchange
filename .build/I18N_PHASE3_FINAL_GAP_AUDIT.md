@@ -1,8 +1,9 @@
 # Phase 3 — Final gap audit (customer toasts slice)
 
-**Status:** PHASE 3 — **PARTIAL / NOT CERTIFIED** (customer toast/error slice **CLOSED** for in-scope surfaces)  
+**Status:** **IMPLEMENTATION COMPLETE — VISUAL VERIFICATION INCOMPLETE** (not certified)  
 **Branch:** `release/exchange-production-baseline`  
-**Baseline HEAD (orchestrator):** `1b10e23ef9bd1c221868bdd63eafe63cfe4098eb`
+**Closure HEAD:** `26aec3e23e3477880a141c8c9b6503b204b81d15`  
+**Checkpoint (pre-closure pass):** `d3021d37193e85d1e0e3afa4fcb2fc500f58ff08`
 
 ---
 
