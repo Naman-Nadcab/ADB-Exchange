@@ -497,7 +497,7 @@ function MyAdsInner() {
                         <input placeholder={tm('minPlaceholder')} value={ep.min_amount} onChange={(e) => setEp({ ...ep, min_amount: e.target.value })} className={inputCls} />
                         <input placeholder={tm('maxPlaceholder')} value={ep.max_amount} onChange={(e) => setEp({ ...ep, max_amount: e.target.value })} className={inputCls} />
                       </div>
-                      <input placeholder="Remarks" value={ep.remarks} onChange={(e) => setEp({ ...ep, remarks: e.target.value })} className={inputCls} />
+                      <input placeholder={tm('remarksPlaceholder')} value={ep.remarks} onChange={(e) => setEp({ ...ep, remarks: e.target.value })} className={inputCls} />
                       <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
