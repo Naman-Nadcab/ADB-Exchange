@@ -2,7 +2,7 @@
 
 **Status:** PHASE 3 — **PARTIAL / NOT CERTIFIED**  
 **Branch:** `release/exchange-production-baseline`  
-**Latest HEAD:** `2c5a53416033330e85f6e6726a31975444567b12` (local == remote)
+**Latest HEAD:** `93c2d9e544775cc5b9c3f3b292ee23ef23812ee3` (local == remote)
 
 ## Commits (Phase 3)
 
@@ -11,7 +11,11 @@
 | `6e597522…` | Partial customer domains (crypto/forex/p2p/wallet nav) |
 | `1734350b…` | Slice A — account / security hub / preferences |
 | `3702fbd…` | Slice B (partial) — wallet deposit + overview shell |
-| _(pending)_ | Slice B (complete) — wallet withdraw + overview customer copy |
+| `2c5a534…` | Slice B (complete) — wallet withdraw + overview customer copy |
+| `f2430d7` | Wallet fiat (INR) withdrawal |
+| `4910ade` | P2P marketplace (filters, ads table, modal, page) |
+| `3fa4a56` | P2P order flows (orders list, summary, timer) — partial |
+| `93c2d9e` | Forex ticket panel + bottom tabs — partial |
 
 ---
 
@@ -27,6 +31,10 @@
 | Wallet withdraw crypto (form, **irreversibility banner**, confirm step, limits, recent records) | `dashboard/withdraw/crypto/page.tsx` + `wallet.withdraw.*` |
 | Wallet withdraw nav tabs | `WalletWithdrawNav.tsx` + `wallet.nav.withdrawCrypto` / `withdrawFiatInr` |
 | Withdrawal status presentation (enum → label) | `wallet-transaction-status.ts` + `wallet.transactions.*` |
+| Wallet fiat (INR) withdrawal | `dashboard/withdraw/fiat/page.tsx` + `wallet.withdrawFiat.*` |
+| P2P marketplace core | `p2p-v2/page`, `P2PFilters`, `P2PAdsTable` |
+| P2P orders list + summary + timer (partial order flow) | `orders/page`, `P2POrderSummary`, `P2PTimer` |
+| Forex ticket panel + bottom tab labels (partial) | `ForexOrderTicket`, `ForexBottomPanels` |
 | Catalog parity | `npm run test:i18n` PASS after each slice |
 | Build | `npm run build` PASS after each slice |
 | Git isolation | Exact-path staging; dirty tree not committed |
@@ -40,10 +48,9 @@
 | 1 | Preferences: push/Telegram section headers, browser push button labels |
 | 2 | Security: modal titles and sub-page flows (2FA, sessions, passkeys, etc.) |
 | 3 | Account: delete modal body, toast strings |
-| 4 | Wallet withdraw **fiat** page body (INR) |
-| 5 | Wallet history / transfer / convert pages (outside Slice B) |
-| 6 | P2P marketplace, modals, order detail |
-| 7 | Forex ticket remaining fields + bottom panels |
+| 4 | 5 | Wallet history / transfer / convert pages |
+| 6 | P2P create-ad, payment-methods, my-ads, order `[id]`, action buttons, chat, disputes |
+| 7 | Forex bottom panel bodies, TIF/kind help text, remaining terminal chrome |
 | 8 | Global customer-domain error wiring on all surfaces |
 | 9 | Full preferences/security modal localization |
 | 10 | Overview chart Start/End labels (mini chart footer) |
