@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import RequireAuth from '@/components/RequireAuth';
 import { fetchMyP2PAds, patchMyP2PAd, deleteMyP2PAd, P2P_V2_MY_ADS_KEY } from '@/lib/p2pApi';
@@ -47,6 +48,8 @@ export default function P2PV2MyAdsPage() {
 }
 
 function MyAdsInner() {
+  const tm = useTranslations('p2p.myAds');
+  const tc = useTranslations('p2p.common');
   const qc = useQueryClient();
   const [editing, setEditing] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -62,7 +65,7 @@ function MyAdsInner() {
       patchMyP2PAd(id, { status: paused ? 'paused' : 'active' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: P2P_V2_MY_ADS_KEY }),
     onError: (err: Error) => {
-      toast({ title: 'Update failed', description: err.message, variant: 'destructive' });
+      toast({ title: tm('toastUpdateFailed'), description: err.message, variant: 'destructive' });
     },
   });
 
@@ -73,7 +76,7 @@ function MyAdsInner() {
       qc.invalidateQueries({ queryKey: P2P_V2_MY_ADS_KEY });
     },
     onError: (err: Error) => {
-      toast({ title: 'Delete failed', description: err.message, variant: 'destructive' });
+      toast({ title: tm('toastDeleteFailed'), description: err.message, variant: 'destructive' });
     },
   });
 
@@ -85,7 +88,7 @@ function MyAdsInner() {
       setEditing(null);
     },
     onError: (err: Error) => {
-      toast({ title: 'Save failed', description: err.message, variant: 'destructive' });
+      toast({ title: tm('toastSaveFailed'), description: err.message, variant: 'destructive' });
     },
   });
 
@@ -98,13 +101,13 @@ function MyAdsInner() {
   return (
     <div className="mx-auto max-w-[1200px] px-4 pb-10 sm:px-6">
       <header className="flex flex-col gap-3 border-b border-border/20 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">My ads</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{tm('title')}</h1>
         <Link
           href="/p2p/create-ad"
           className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
         >
           <PlusCircle className="h-4 w-4" />
-          New ad
+          {tm('newAd')}
         </Link>
       </header>
 
@@ -127,14 +130,14 @@ function MyAdsInner() {
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-border/50 bg-muted/30 text-muted-foreground/50">
             <Megaphone className="h-8 w-8" />
           </div>
-          <p className="text-base font-semibold tracking-tight text-foreground">No ads yet</p>
-          <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">Create your first ad to start trading on the marketplace.</p>
+          <p className="text-base font-semibold tracking-tight text-foreground">{tm('emptyTitle')}</p>
+          <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">{tm('emptyBody')}</p>
           <Link
             href="/p2p/create-ad"
             className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
             <PlusCircle className="h-4 w-4" />
-            Create ad
+            {tm('emptyCta')}
           </Link>
         </div>
       )}
@@ -147,15 +150,15 @@ function MyAdsInner() {
             <table className="w-full min-w-[860px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border/25 bg-muted/30 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <th className="whitespace-nowrap py-3.5 pl-4 pr-3">Pair</th>
-                  <th className="whitespace-nowrap px-3 py-3.5">Type</th>
-                  <th className="whitespace-nowrap px-3 py-3.5 text-right">Price</th>
-                  <th className="whitespace-nowrap px-3 py-3.5 text-right">Limits (crypto)</th>
-                  <th className="whitespace-nowrap px-3 py-3.5 text-right">Available</th>
-                  <th className="whitespace-nowrap px-3 py-3.5">Payments</th>
-                  <th className="whitespace-nowrap px-3 py-3.5">Status</th>
-                  <th className="whitespace-nowrap px-3 py-3.5">Updated</th>
-                  <th className="whitespace-nowrap py-3.5 pl-3 pr-4 text-right">Actions</th>
+                  <th className="whitespace-nowrap py-3.5 pl-4 pr-3">{tm('colPair')}</th>
+                  <th className="whitespace-nowrap px-3 py-3.5">{tm('colType')}</th>
+                  <th className="whitespace-nowrap px-3 py-3.5 text-right">{tm('colPrice')}</th>
+                  <th className="whitespace-nowrap px-3 py-3.5 text-right">{tm('colLimitsCrypto')}</th>
+                  <th className="whitespace-nowrap px-3 py-3.5 text-right">{tm('colAvailable')}</th>
+                  <th className="whitespace-nowrap px-3 py-3.5">{tm('colPayments')}</th>
+                  <th className="whitespace-nowrap px-3 py-3.5">{tm('colStatus')}</th>
+                  <th className="whitespace-nowrap px-3 py-3.5">{tm('colUpdated')}</th>
+                  <th className="whitespace-nowrap py-3.5 pl-3 pr-4 text-right">{tm('colActions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -198,7 +201,7 @@ function MyAdsInner() {
                             </>
                           )}
                           {price !== '—' && sym ? (
-                            <span className="mt-0.5 block text-xs font-normal text-muted-foreground">per {sym}</span>
+                            <span className="mt-0.5 block text-xs font-normal text-muted-foreground">{tm('perUnit', { sym })}</span>
                           ) : null}
                         </span>
                       </td>
@@ -260,8 +263,8 @@ function MyAdsInner() {
                                 }
                               }}
                               className={iconBtn}
-                              title="Edit"
-                              aria-label="Edit ad"
+                              title={tm('edit')}
+                              aria-label={tm('editAd')}
                             >
                               <Pencil className="h-4 w-4" />
                             </button>
@@ -270,8 +273,8 @@ function MyAdsInner() {
                                 type="button"
                                 onClick={() => pauseMut.mutate({ id, paused: true })}
                                 className={`${iconBtn} text-amber-600 hover:border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-600 dark:text-amber-500`}
-                                title="Pause"
-                                aria-label="Pause ad"
+                                title={tm('pause')}
+                                aria-label={tm('pauseAd')}
                               >
                                 <Pause className="h-4 w-4" />
                               </button>
@@ -281,8 +284,8 @@ function MyAdsInner() {
                                 type="button"
                                 onClick={() => pauseMut.mutate({ id, paused: false })}
                                 className={`${iconBtn} text-[#0ecb81] hover:border-[#0ecb81]/30 hover:bg-[#0ecb81]/10`}
-                                title="Resume"
-                                aria-label="Resume ad"
+                                title={tm('resume')}
+                                aria-label={tm('resumeAd')}
                               >
                                 <Play className="h-4 w-4" />
                               </button>
@@ -294,14 +297,14 @@ function MyAdsInner() {
                                   onClick={() => delMut.mutate(id)}
                                   className="rounded-lg border border-[#f6465d]/35 px-2 py-1 text-xs font-semibold text-[#f6465d] hover:bg-[#f6465d]/10"
                                 >
-                                  Confirm
+                                  {tm('confirmDelete')}
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => setDeleteConfirmId(null)}
                                   className="rounded-lg border border-border/40 px-2 py-1 text-xs text-muted-foreground hover:bg-muted/40"
                                 >
-                                  Cancel
+                                  {tc('cancel')}
                                 </button>
                               </>
                             ) : (
@@ -309,8 +312,8 @@ function MyAdsInner() {
                                 type="button"
                                 onClick={() => setDeleteConfirmId(id)}
                                 className={`${iconBtn} text-[#f6465d] hover:border-[#f6465d]/30 hover:bg-[#f6465d]/10`}
-                                title="Delete"
-                                aria-label="Delete ad"
+                                title={tm('delete')}
+                                aria-label={tm('deleteAd')}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
@@ -318,10 +321,10 @@ function MyAdsInner() {
                           </div>
                           {isEditing && (
                             <div className="mt-1 flex w-full max-w-md flex-wrap items-end justify-end gap-2 border-t border-border/20 pt-3">
-                              <input placeholder="Price" value={ep.price} onChange={(e) => setEp({ ...ep, price: e.target.value })} className={`${inputCls} w-28`} />
-                              <input placeholder="Min" value={ep.min_amount} onChange={(e) => setEp({ ...ep, min_amount: e.target.value })} className={`${inputCls} w-24`} />
-                              <input placeholder="Max" value={ep.max_amount} onChange={(e) => setEp({ ...ep, max_amount: e.target.value })} className={`${inputCls} w-24`} />
-                              <input placeholder="Remarks" value={ep.remarks} onChange={(e) => setEp({ ...ep, remarks: e.target.value })} className={`${inputCls} min-w-[7rem] flex-1`} />
+                              <input placeholder={tm('pricePlaceholder')} value={ep.price} onChange={(e) => setEp({ ...ep, price: e.target.value })} className={`${inputCls} w-28`} />
+                              <input placeholder={tm('minPlaceholder')} value={ep.min_amount} onChange={(e) => setEp({ ...ep, min_amount: e.target.value })} className={`${inputCls} w-24`} />
+                              <input placeholder={tm('maxPlaceholder')} value={ep.max_amount} onChange={(e) => setEp({ ...ep, max_amount: e.target.value })} className={`${inputCls} w-24`} />
+                              <input placeholder={tm('remarksPlaceholder')} value={ep.remarks} onChange={(e) => setEp({ ...ep, remarks: e.target.value })} className={`${inputCls} min-w-[7rem] flex-1`} />
                               <button
                                 type="button"
                                 disabled={patchMut.isPending}
@@ -334,7 +337,7 @@ function MyAdsInner() {
                                   if (Object.keys(body).length) patchMut.mutate({ id, body });
                                 }}
                                 className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
-                                aria-label="Save"
+                                aria-label={tm('saveAria')}
                               >
                                 <Check className="h-4 w-4" />
                               </button>
@@ -342,7 +345,7 @@ function MyAdsInner() {
                                 type="button"
                                 onClick={() => setEditing(null)}
                                 className={iconBtn}
-                                aria-label="Cancel"
+                                aria-label={tm('cancelEditAria')}
                               >
                                 <X className="h-4 w-4" />
                               </button>
@@ -490,9 +493,9 @@ function MyAdsInner() {
                   {editing === id && (
                     <div className="mt-4 space-y-2 border-t border-border/20 pt-4">
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                        <input placeholder="Price" value={ep.price} onChange={(e) => setEp({ ...ep, price: e.target.value })} className={inputCls} />
-                        <input placeholder="Min" value={ep.min_amount} onChange={(e) => setEp({ ...ep, min_amount: e.target.value })} className={inputCls} />
-                        <input placeholder="Max" value={ep.max_amount} onChange={(e) => setEp({ ...ep, max_amount: e.target.value })} className={inputCls} />
+                        <input placeholder={tm('pricePlaceholder')} value={ep.price} onChange={(e) => setEp({ ...ep, price: e.target.value })} className={inputCls} />
+                        <input placeholder={tm('minPlaceholder')} value={ep.min_amount} onChange={(e) => setEp({ ...ep, min_amount: e.target.value })} className={inputCls} />
+                        <input placeholder={tm('maxPlaceholder')} value={ep.max_amount} onChange={(e) => setEp({ ...ep, max_amount: e.target.value })} className={inputCls} />
                       </div>
                       <input placeholder="Remarks" value={ep.remarks} onChange={(e) => setEp({ ...ep, remarks: e.target.value })} className={inputCls} />
                       <div className="flex flex-wrap gap-2">

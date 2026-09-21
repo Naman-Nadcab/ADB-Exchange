@@ -15,25 +15,6 @@ import { formatFiatSymbol, formatP2pFiatPrice, formatP2pCryptoQty } from '@/lib/
 
 const STATUSES = ['', 'payment_pending', 'payment_confirmed', 'completed', 'cancelled', 'expired', 'disputed'] as const;
 
-const FILTER_LABEL: Record<string, string> = {
-  '': 'All',
-  payment_pending: 'Pending',
-  payment_confirmed: 'Confirmed',
-  completed: 'Done',
-  cancelled: 'Cancelled',
-  expired: 'Expired',
-  disputed: 'Dispute',
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  payment_pending: 'Paying',
-  payment_confirmed: 'Confirm',
-  completed: 'Done',
-  cancelled: 'Off',
-  expired: 'Expired',
-  disputed: 'Dispute',
-};
-
 const STATUS_CLS: Record<string, string> = {
   payment_pending: 'bg-amber-500/14 text-amber-500 ring-1 ring-amber-500/25',
   payment_confirmed: 'bg-blue-500/14 text-blue-400 ring-1 ring-blue-500/25',
@@ -60,10 +41,10 @@ function truncate(s: string, max: number) {
   return `${t.slice(0, max - 1)}…`;
 }
 
-function orderSide(o: P2POrderRow, userId: string | undefined): 'Buy' | 'Sell' | null {
+function orderSide(o: P2POrderRow, userId: string | undefined): 'buy' | 'sell' | null {
   if (!userId) return null;
-  if (o.buyer_id === userId) return 'Buy';
-  if (o.seller_id === userId) return 'Sell';
+  if (o.buyer_id === userId) return 'buy';
+  if (o.seller_id === userId) return 'sell';
   return null;
 }
 
@@ -131,6 +112,18 @@ function OrdersInner() {
   const tp = useTranslations('p2p');
   useListTimeTicker();
   const user = useAuthStore((s) => s.user);
+  const statusChip = (s: string) => {
+    switch (s) {
+      case 'payment_pending': return tp('ordersPage.statusChipPaying');
+      case 'payment_confirmed': return tp('ordersPage.statusChipConfirm');
+      case 'completed': return tp('ordersPage.statusChipDone');
+      case 'cancelled': return tp('ordersPage.statusChipOff');
+      case 'expired': return tp('ordersPage.filterExpired');
+      case 'disputed': return tp('ordersPage.filterDispute');
+      default: return s;
+    }
+  };
+
   const filterLabel = (s: string) => {
     switch (s) {
       case '': return tp('ordersPage.filterAll');
@@ -176,10 +169,10 @@ function OrdersInner() {
               {!isLoading && !isError && sorted.length > 0 && (
                 <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary ring-1 ring-primary/20">
                   <ListOrdered className="h-3.5 w-3.5 shrink-0" />
-                  <span className="tabular-nums">{stats.total}</span> orders
+                  {tp('ordersPage.statsOrders', { count: stats.total })}
                   {stats.inProgress > 0 && (
                     <span className="text-amber-600 dark:text-amber-500">
-                      · <span className="tabular-nums">{stats.inProgress}</span> active
+                      · {tp('ordersPage.statsActive', { count: stats.inProgress })}
                     </span>
                   )}
                 </span>
@@ -231,12 +224,12 @@ function OrdersInner() {
             {!isLoading && !isError && sorted.length > 0 && (
               <div className="mb-4 flex flex-wrap gap-2 md:hidden">
                 <span className="rounded-lg bg-muted/40 px-2.5 py-1 text-xs font-semibold text-foreground">
-                  <span className="tabular-nums">{stats.total}</span> orders
+                  {tp('ordersPage.statsOrders', { count: stats.total })}
                 </span>
                 {stats.inProgress > 0 && (
                   <span className="inline-flex items-center gap-1 rounded-lg border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 dark:text-amber-500">
                     <Clock className="h-3.5 w-3.5" />
-                    <span className="tabular-nums">{stats.inProgress}</span> active
+                    {tp('ordersPage.statsActive', { count: stats.inProgress })}
                   </span>
                 )}
               </div>
@@ -283,16 +276,16 @@ function OrdersInner() {
                     <table className="w-full min-w-[1000px] text-left text-sm">
                       <thead>
                         <tr className="border-b border-border/25 bg-muted/30 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          <th className="whitespace-nowrap py-2.5 pl-4 pr-2">Order</th>
-                          <th className="whitespace-nowrap px-2 py-2.5">Side</th>
-                          <th className="whitespace-nowrap px-2 py-2.5">Pair</th>
-                          <th className="whitespace-nowrap px-2 py-2.5">Counterparty</th>
-                          <th className="whitespace-nowrap px-2 py-2.5 text-right">Qty</th>
-                          <th className="whitespace-nowrap px-2 py-2.5 text-right">Total</th>
-                          <th className="whitespace-nowrap px-2 py-2.5 text-right">Unit</th>
-                          <th className="whitespace-nowrap px-2 py-2.5">Payment</th>
-                          <th className="whitespace-nowrap px-2 py-2.5">Time left</th>
-                          <th className="whitespace-nowrap px-2 py-2.5">Status</th>
+                          <th className="whitespace-nowrap py-2.5 pl-4 pr-2">{tp('ordersPage.colOrder')}</th>
+                          <th className="whitespace-nowrap px-2 py-2.5">{tp('ordersPage.colSide')}</th>
+                          <th className="whitespace-nowrap px-2 py-2.5">{tp('ordersPage.colPair')}</th>
+                          <th className="whitespace-nowrap px-2 py-2.5">{tp('ordersPage.colCounterparty')}</th>
+                          <th className="whitespace-nowrap px-2 py-2.5 text-right">{tp('ordersPage.colQty')}</th>
+                          <th className="whitespace-nowrap px-2 py-2.5 text-right">{tp('ordersPage.colTotal')}</th>
+                          <th className="whitespace-nowrap px-2 py-2.5 text-right">{tp('ordersPage.colUnit')}</th>
+                          <th className="whitespace-nowrap px-2 py-2.5">{tp('ordersPage.colPayment')}</th>
+                          <th className="whitespace-nowrap px-2 py-2.5">{tp('ordersPage.colTimeLeft')}</th>
+                          <th className="whitespace-nowrap px-2 py-2.5">{tp('ordersPage.colStatus')}</th>
                           <th className="whitespace-nowrap py-2.5 pl-2 pr-4 text-right" />
                         </tr>
                       </thead>
@@ -354,16 +347,16 @@ function OrdersInner() {
                   <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-border/50 bg-muted/30 text-muted-foreground/50">
                     <ClipboardList className="h-8 w-8" strokeWidth={1.5} />
                   </div>
-                  <p className="text-base font-semibold tracking-tight text-foreground">No orders yet</p>
+                  <p className="text-base font-semibold tracking-tight text-foreground">{tp('ordersPage.emptyTitle')}</p>
                   <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                    Go to the marketplace to buy or sell. Every trade you open will show up in this list.
+                    {tp('ordersPage.emptyBody')}
                   </p>
                   <Link
                     href="/p2p"
                     className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                   >
                     <ShoppingBag className="h-4 w-4" />
-                    Go to marketplace
+                    {tp('ordersPage.emptyCta')}
                   </Link>
                 </div>
               </div>
@@ -374,19 +367,19 @@ function OrdersInner() {
                 <div className="hidden md:block">
                   <div className="max-h-[min(72vh,780px)] overflow-auto rounded-xl border border-border/25">
                   <table className="relative w-full min-w-[1080px] border-collapse text-left text-sm">
-                    <caption className="sr-only">Your P2P orders</caption>
+                    <caption className="sr-only">{tp('ordersPage.tableCaption')}</caption>
                     <thead>
                       <tr className="sticky top-0 z-10 border-b border-border/25 bg-muted/30 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        <th className="whitespace-nowrap py-3.5 pl-4 pr-2">Order</th>
-                        <th className="whitespace-nowrap px-3 py-3.5">Side</th>
-                        <th className="whitespace-nowrap px-3 py-3.5">Pair</th>
-                        <th className="whitespace-nowrap px-3 py-3.5">Counterparty</th>
-                        <th className="whitespace-nowrap px-3 py-3.5 text-right">Quantity</th>
-                        <th className="whitespace-nowrap px-3 py-3.5 text-right">Total</th>
-                        <th className="whitespace-nowrap px-3 py-3.5 text-right">Unit price</th>
-                        <th className="whitespace-nowrap px-3 py-3.5">Payment</th>
-                        <th className="whitespace-nowrap px-3 py-3.5">Time left</th>
-                        <th className="whitespace-nowrap px-3 py-3.5">Status</th>
+                        <th className="whitespace-nowrap py-3.5 pl-4 pr-2">{tp('ordersPage.colOrder')}</th>
+                        <th className="whitespace-nowrap px-3 py-3.5">{tp('ordersPage.colSide')}</th>
+                        <th className="whitespace-nowrap px-3 py-3.5">{tp('ordersPage.colPair')}</th>
+                        <th className="whitespace-nowrap px-3 py-3.5">{tp('ordersPage.colCounterparty')}</th>
+                        <th className="whitespace-nowrap px-3 py-3.5 text-right">{tp('ordersPage.colQuantity')}</th>
+                        <th className="whitespace-nowrap px-3 py-3.5 text-right">{tp('ordersPage.colTotal')}</th>
+                        <th className="whitespace-nowrap px-3 py-3.5 text-right">{tp('ordersPage.colUnitPrice')}</th>
+                        <th className="whitespace-nowrap px-3 py-3.5">{tp('ordersPage.colPayment')}</th>
+                        <th className="whitespace-nowrap px-3 py-3.5">{tp('ordersPage.colTimeLeft')}</th>
+                        <th className="whitespace-nowrap px-3 py-3.5">{tp('ordersPage.colStatus')}</th>
                         <th className="whitespace-nowrap py-3.5 pl-3 pr-4 text-right"> </th>
                       </tr>
                     </thead>
@@ -407,7 +400,7 @@ function OrdersInner() {
                                   {o.id.slice(0, 8)}…
                                 </span>
                                 {o.payment_proof_url ? (
-                                  <span title={tp('orders.proofAttached')} className="text-primary/80">
+                                  <span title={tp('ordersPage.proofAttached')} className="text-primary/80">
                                     <Paperclip className="h-3 w-3" />
                                   </span>
                                 ) : null}
@@ -417,12 +410,12 @@ function OrdersInner() {
                               {side ? (
                                 <span
                                   className={`inline-block rounded-md px-2 py-0.5 text-xs font-semibold ${
-                                    side === 'Buy'
+                                    side === 'buy'
                                       ? 'bg-[#0ecb81]/16 text-[#0ecb81]'
                                       : 'bg-[#f6465d]/14 text-[#f6465d]'
                                   }`}
                                 >
-                                  {side}
+                                  {side === 'buy' ? tp('common.buy') : tp('common.sell')}
                                 </span>
                               ) : (
                                 <span className="text-muted-foreground">—</span>
@@ -473,7 +466,7 @@ function OrdersInner() {
                             </td>
                             <td className="whitespace-nowrap px-3 py-4 align-middle">
                               <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${sCls}`}>
-                                {STATUS_LABEL[o.status] ?? o.status}
+                                {statusChip(o.status)}
                               </span>
                             </td>
                             <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right align-middle">
@@ -481,7 +474,7 @@ function OrdersInner() {
                                 href={`/p2p/orders/${o.id}`}
                                 className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary/80"
                               >
-                                Detail
+                                {tp('ordersPage.detailLink')}
                                 <ArrowRight className="h-3.5 w-3.5" />
                               </Link>
                             </td>
@@ -513,14 +506,14 @@ function OrdersInner() {
                             {side ? (
                               <span
                                 className={`rounded-md px-2 py-0.5 text-xs font-semibold ${
-                                  side === 'Buy' ? 'bg-[#0ecb81]/16 text-[#0ecb81]' : 'bg-[#f6465d]/14 text-[#f6465d]'
+                                  side === 'buy' ? 'bg-[#0ecb81]/16 text-[#0ecb81]' : 'bg-[#f6465d]/14 text-[#f6465d]'
                                 }`}
                               >
-                                {side}
+                                {side === 'buy' ? tp('common.buy') : tp('common.sell')}
                               </span>
                             ) : null}
                             <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${sCls}`}>
-                              {STATUS_LABEL[o.status] ?? o.status}
+                              {statusChip(o.status)}
                             </span>
                           </div>
                           <p className="mt-1 text-sm font-semibold text-foreground">

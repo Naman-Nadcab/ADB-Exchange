@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { fetchP2PAds, P2P_V2_ADS_KEY } from '@/lib/p2pApi';
 import { p2pAdDisplayPrice, p2pAdSide, formatFiatSymbol } from '@/lib/p2p-v2-utils';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -10,6 +11,8 @@ import { CoinIcon } from '@/components/ui/CoinIcon';
 import { ArrowLeft, ShieldCheck, Store } from 'lucide-react';
 
 export default function P2PV2MerchantProfilePage() {
+  const tm = useTranslations('p2p.merchantProfile');
+  const tc = useTranslations('p2p.common');
   const params = useParams();
   const merchantId =
     typeof params?.id === 'string'
@@ -36,7 +39,7 @@ export default function P2PV2MerchantProfilePage() {
       <div className="flex items-center border-b border-border/20 py-3">
         <Link href="/p2p" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3.5 w-3.5" />
-          Marketplace
+          {tm('backMarketplace')}
         </Link>
       </div>
 
@@ -50,7 +53,7 @@ export default function P2PV2MerchantProfilePage() {
       {!isLoading && !head && (
         <div className="flex flex-col items-center py-16 text-center">
           <Store className="h-8 w-8 text-muted-foreground/20 mb-2" />
-          <p className="text-sm text-muted-foreground">No active ads for this merchant.</p>
+          <p className="text-sm text-muted-foreground">{tm('emptyAds')}</p>
         </div>
       )}
 
@@ -63,23 +66,23 @@ export default function P2PV2MerchantProfilePage() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-lg font-semibold text-foreground truncate">{head.username || 'Merchant'}</span>
+                <span className="text-lg font-semibold text-foreground truncate">{head.username || tm('merchantFallback')}</span>
                 {verified && <ShieldCheck className="h-4 w-4 shrink-0 text-[#0ecb81]" />}
               </div>
-              <p className="text-xs text-muted-foreground">{orders} orders · {completion} completion</p>
+              <p className="text-xs text-muted-foreground">{tm('statsLine', { orders, completion })}</p>
             </div>
           </div>
 
           {/* Ads table */}
-          <h2 className="text-sm font-semibold text-foreground">Active Ads</h2>
+          <h2 className="text-sm font-semibold text-foreground">{tm('activeAdsTitle')}</h2>
           <div className="rounded-lg border border-border/30 bg-card overflow-hidden">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-border/15 text-xs text-muted-foreground/60">
-                  <th className="py-2.5 pl-4 pr-3 font-medium">Asset</th>
-                  <th className="px-3 py-2.5 font-medium">Side</th>
-                  <th className="px-3 py-2.5 font-medium">Price</th>
-                  <th className="px-3 py-2.5 font-medium">Available</th>
+                  <th className="py-2.5 pl-4 pr-3 font-medium">{tm('colAsset')}</th>
+                  <th className="px-3 py-2.5 font-medium">{tm('colSide')}</th>
+                  <th className="px-3 py-2.5 font-medium">{tm('colPrice')}</th>
+                  <th className="px-3 py-2.5 font-medium">{tm('colAvailable')}</th>
                   <th className="py-2.5 pl-3 pr-4 font-medium" />
                 </tr>
               </thead>
@@ -100,7 +103,7 @@ export default function P2PV2MerchantProfilePage() {
                         <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${
                           isBuy ? 'bg-[#0ecb81]/10 text-[#0ecb81]' : 'bg-[#f6465d]/10 text-[#f6465d]'
                         }`}>
-                          {isBuy ? 'Buy' : 'Sell'}
+                          {isBuy ? tc('buy') : tc('sell')}
                         </span>
                       </td>
                       <td className="px-3 py-3">
@@ -113,7 +116,7 @@ export default function P2PV2MerchantProfilePage() {
                       </td>
                       <td className="py-3 pl-3 pr-4 text-right">
                         <Link href="/p2p" className="text-sm font-medium text-primary hover:underline">
-                          Trade
+                          {tm('trade')}
                         </Link>
                       </td>
                     </tr>
