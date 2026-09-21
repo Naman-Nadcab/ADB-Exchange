@@ -1382,7 +1382,7 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
           style={{
             display: 'grid',
             gridTemplateColumns: 'var(--spot-terminal-left-width) 1fr var(--spot-terminal-right-width)',
-            gridTemplateRows: '60px auto minmax(0, 1fr)',
+            gridTemplateRows: '40px auto minmax(0, 1fr)',
           }}
         >
           {/* HEADER */}
@@ -1390,7 +1390,13 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
             className="spot-terminal-header terminal-panel border-b border-border bg-card"
             style={{ gridColumn: '1 / -1', gridRow: '1' }}
           >
-            <ExchangeHeader showPairSearch currentSymbol={symbol} symbols={markets.map((m) => m.symbol)} onSymbolSelect={setSymbolAndUrl} />
+            <ExchangeHeader
+              terminalChrome
+              showPairSearch
+              currentSymbol={symbol}
+              symbols={markets.map((m) => m.symbol)}
+              onSymbolSelect={setSymbolAndUrl}
+            />
           </div>
 
           {/* PAIR HEADER (orderbook + center only; sidebar aligns to full main height) */}

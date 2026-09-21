@@ -20,6 +20,7 @@ import { BrandLogo } from '@/components/brand/BrandLogo';
 import { EdaProductSwitcher } from '@/components/eda/EdaProductSwitcher';
 import { LocaleLanguageSelector } from '@/components/i18n/LocaleLanguageSelector';
 import { useTranslations } from 'next-intl';
+import { cn } from '@/lib/utils';
 
 const MAIN_NAV = [
   { labelKey: 'markets' as const, href: MARKETS_HREF },
@@ -60,6 +61,8 @@ interface ExchangeHeaderProps {
   symbols?: string[];
   onSymbolSelect?: (symbol: string) => void;
   showPairSearch?: boolean;
+  /** Compact chrome for Crypto Spot terminal grid (Forex-density header band). */
+  terminalChrome?: boolean;
 }
 
 export function ExchangeHeader({
@@ -67,6 +70,7 @@ export function ExchangeHeader({
   symbols = [],
   onSymbolSelect,
   showPairSearch = false,
+  terminalChrome = false,
 }: ExchangeHeaderProps) {
   const tn = useTranslations('navigation');
   const tc = useTranslations('common');
@@ -119,8 +123,13 @@ export function ExchangeHeader({
   }, [user?.id]);
 
   return (
-    <header className="mobile-app-topbar sticky top-0 z-40 flex h-14 flex-shrink-0 items-center justify-between gap-3 border-b border-border bg-card/95 px-3 backdrop-blur-sm">
-      <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+    <header
+      className={cn(
+        'mobile-app-topbar sticky top-0 z-40 flex flex-shrink-0 items-center justify-between border-b border-border bg-card/95 backdrop-blur-sm',
+        terminalChrome ? 'h-10 min-h-10 gap-2 px-2' : 'h-14 gap-3 px-3'
+      )}
+    >
+      <div className={cn('flex min-w-0 items-center', terminalChrome ? 'gap-2 sm:gap-2.5' : 'gap-3 sm:gap-4')}>
         <button
           type="button"
           className="tap-target rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 lg:hidden"
@@ -139,7 +148,11 @@ export function ExchangeHeader({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`tap-target inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                className={cn(
+                  'tap-target inline-flex items-center rounded-md font-medium transition-colors',
+                  terminalChrome ? 'px-2 py-1 text-xs' : 'rounded-lg px-3 py-1.5 text-sm',
+                  isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                )}
               >
                 {tn(item.labelKey)}
               </Link>

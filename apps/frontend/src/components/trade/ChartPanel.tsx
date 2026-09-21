@@ -669,7 +669,7 @@ function ChartPanelInner({
       )}
 
       {/* Single scroll row + fixed actions (Option A); studies row only when expanded */}
-      <div className="flex h-9 flex-shrink-0 flex-col border-b border-border bg-card px-1">
+      <div className="flex h-7 max-md:h-9 flex-shrink-0 flex-col border-b border-border bg-card px-1">
         <div className="flex h-full w-full min-w-0 flex-row items-center gap-1 px-2">
         <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto overflow-y-hidden [-ms-overflow-style:none] [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1">
           {hideDuplicatePairSummary && viewMode === 'chart' && (
@@ -693,7 +693,7 @@ function ChartPanelInner({
                 type="button"
                 onClick={() => onViewModeChange('chart')}
                 aria-pressed={viewMode === 'chart'}
-                className={`inline-flex min-h-8 touch-manipulation items-center gap-1 px-2.5 py-1.5 text-price font-bold transition-colors ${
+                className={`inline-flex h-7 min-h-7 max-md:min-h-8 touch-manipulation items-center gap-1 px-2 py-0 text-label font-semibold transition-colors ${
                   viewMode === 'chart' ? TB_SEG_ON : TB_SEG_OFF
                 } ${TB_FOCUS}`}
               >
@@ -704,7 +704,7 @@ function ChartPanelInner({
                 type="button"
                 onClick={() => onViewModeChange('depth')}
                 aria-pressed={viewMode === 'depth'}
-                className={`inline-flex min-h-[40px] touch-manipulation items-center gap-1 border-l border-border px-2.5 py-1.5 text-price font-bold transition-colors ${
+                className={`inline-flex h-7 min-h-7 max-md:min-h-10 touch-manipulation items-center gap-1 border-l border-border px-2 py-0 text-label font-semibold transition-colors ${
                   viewMode === 'depth' ? TB_SEG_ON : TB_SEG_OFF
                 } ${TB_FOCUS}`}
               >

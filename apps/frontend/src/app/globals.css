@@ -593,6 +593,28 @@
   background: linear-gradient(to bottom, transparent, hsl(var(--card)));
 }
 
+/* Crypto Spot terminal — scoped flat workstation skin (Forex-density parity) */
+.spot-terminal-grid .terminal-panel,
+.spot-terminal-grid .terminal-panel-elevated,
+.spot-terminal-grid .terminal-panel-subtle {
+  border-radius: 2px;
+  box-shadow: none;
+  background: hsl(var(--card));
+}
+
+.spot-terminal-grid .spot-terminal-header {
+  border-radius: 0;
+}
+
+.spot-terminal-grid .spot-terminal-trade-pane {
+  box-shadow: inset 0 1px 0 hsl(var(--border) / 0.9);
+}
+
+.spot-terminal-grid .spot-terminal-header .mobile-app-topbar {
+  position: relative;
+  border-bottom: none;
+}
+
 /** Chart pane bottom fade — signals order entry continues below (visual only). */
 .spot-terminal-chart-pane::after {
   content: '';
@@ -751,7 +773,7 @@ input[type="number"] {
 
   .spot-terminal-grid {
     grid-template-columns: 1fr !important;
-    grid-template-rows: 60px auto minmax(0, 1fr) 52px !important;
+    grid-template-rows: 40px auto minmax(0, 1fr) 52px !important;
   }
 
   .spot-terminal-header {

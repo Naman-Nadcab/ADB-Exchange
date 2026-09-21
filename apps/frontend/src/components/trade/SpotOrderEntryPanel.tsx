@@ -280,9 +280,9 @@ export function SpotOrderEntryPanel({
   return (
     <div id="spot-order-entry-panel" className="flex h-full min-h-0 flex-col bg-card">
       {/* Header — Bybit-style: title + activity shortcut (theme: blue) */}
-      <div className="flex flex-shrink-0 items-center justify-between border-b border-border/90 px-2.5 py-2 dark:border-border/90">
+      <div className="flex flex-shrink-0 items-center justify-between border-b border-border/90 px-2.5 py-1.5 dark:border-border/90">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-bold tracking-tight text-foreground">Trade</span>
+          <span className="terminal-text-label font-semibold uppercase tracking-[0.06em] text-foreground">Trade</span>
           <span className="rounded-md bg-primary/15 px-1.5 py-0.5 text-label font-bold uppercase tracking-wide text-primary">
             Spot
           </span>
@@ -307,12 +307,12 @@ export function SpotOrderEntryPanel({
 
       {/* Buy / Sell — pill segment (theme colors) */}
       <div className="flex-shrink-0 px-2 pb-1.5 pt-0.5">
-        <div className="grid grid-cols-2 gap-1 rounded-full bg-accent/90 p-0.5 dark:bg-accent/90">
+        <div className="grid grid-cols-2 gap-0.5 rounded-md bg-accent/90 p-0.5 dark:bg-accent/90">
           <button
             type="button"
             onClick={() => onSideChange('buy')}
             aria-pressed={side === 'buy'}
-            className={`rounded-full py-1.5 text-sm font-bold transition-all ${
+            className={`h-9 rounded-sm py-0 text-label font-bold transition-all max-md:min-h-10 ${
               side === 'buy'
                 ? 'bg-buy text-foreground shadow-sm ring-1 ring-black/5 dark:ring-white/10'
                 : 'text-muted-foreground hover:text-foreground dark:text-muted-foreground dark:hover:text-foreground/90'
@@ -324,7 +324,7 @@ export function SpotOrderEntryPanel({
             type="button"
             onClick={() => onSideChange('sell')}
             aria-pressed={side === 'sell'}
-            className={`rounded-full py-1.5 text-sm font-bold transition-all ${
+            className={`h-9 rounded-sm py-0 text-label font-bold transition-all max-md:min-h-10 ${
               side === 'sell'
                 ? 'bg-sell text-foreground shadow-sm ring-1 ring-black/5 dark:ring-white/10'
                 : 'text-muted-foreground hover:text-foreground dark:text-muted-foreground dark:hover:text-foreground/90'
@@ -671,7 +671,7 @@ export function SpotOrderEntryPanel({
         {!isAuth ? (
           <Link
             href={loginWithRedirect(SPOT_TRADE_HREF)}
-            className="flex min-h-[48px] h-12 w-full items-center justify-center rounded-md bg-primary text-sm font-bold text-foreground transition-colors hover:bg-primary/85 sm:h-11 sm:min-h-0"
+            className="flex h-9 min-h-9 w-full items-center justify-center rounded-sm bg-primary text-label font-bold text-foreground transition-colors hover:bg-primary/85 max-md:min-h-10 max-md:h-10"
           >
             Sign in to trade
           </Link>
@@ -682,7 +682,7 @@ export function SpotOrderEntryPanel({
             disabled={!canSubmit || loading}
             onClick={() => setConfirmOpen(true)}
             aria-busy={loading}
-            className={`flex min-h-[48px] h-12 w-full items-center justify-center gap-2 rounded-md text-sm font-medium tracking-wide text-neutral-950 shadow-sm ring-1 ring-black/10 transition-[transform,opacity,background-color] duration-200 active:scale-[0.99] active:brightness-95 dark:ring-white/10 sm:h-11 sm:min-h-0 ${
+            className={`flex h-9 min-h-9 w-full items-center justify-center gap-2 rounded-sm text-label font-semibold tracking-wide text-neutral-950 ring-1 ring-black/10 transition-[transform,opacity,background-color] duration-200 active:scale-[0.99] active:brightness-95 dark:ring-white/10 max-md:min-h-10 max-md:h-10 ${
               side === 'buy'
                 ? 'bg-buy/90 hover:bg-buy disabled:saturate-50'
                 : 'bg-sell/90 hover:bg-sell disabled:saturate-50'
