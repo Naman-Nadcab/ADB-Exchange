@@ -12,6 +12,7 @@ const STATUS_KEYS: Record<string, string> = {
   signed: 'transactions.signed',
   broadcasted: 'transactions.broadcasted',
   confirmed: 'transactions.confirmed',
+  approved: 'transactions.approved',
 };
 
 /** Presentation-only label for wallet withdrawal/activity status enums. */
