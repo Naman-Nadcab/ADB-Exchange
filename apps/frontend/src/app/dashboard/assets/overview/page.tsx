@@ -22,6 +22,7 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { toast } from '@/components/ui/toaster';
 import { useDisplayCurrency } from '@/context/DisplayCurrencyProvider';
 import { walletPath, ROUTES } from '@/lib/routes';
+import { walletTransactionStatusLabel } from '@/lib/i18n/wallet-transaction-status';
 
 /* ── Types ── */
 interface Transaction {
@@ -97,7 +98,7 @@ function PortfolioMiniChart({
           <div className="text-center px-2">
             <BarChart3 className="mx-auto mb-1 h-5 w-5 text-muted-foreground/40" />
             <p>{tw('overview.collectingData')}</p>
-            <p className="mt-1 text-xs text-muted-foreground/80">{periodLabel} range</p>
+            <p className="mt-1 text-xs text-muted-foreground/80">{tw('overview.chartRange', { period: periodLabel })}</p>
           </div>
         </div>
       </div>
@@ -170,6 +171,7 @@ function AllocationDonut({
   maskStr?: (s: string) => string;
   formatUsd?: (n: number) => string;
 }) {
+  const tw = useTranslations('wallet');
   const maskFn = typeof maskStr === 'function' ? maskStr : maskStrDefault;
   const fmtUsdFn = typeof formatUsd === 'function' ? formatUsd : formatUsdDefault;
   const r = size / 2 - 6;
@@ -202,9 +204,9 @@ function AllocationDonut({
           <circle cx={cx} cy={cy} r={r * 0.52} className="fill-card" />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center px-2 text-center pointer-events-none">
-          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Portfolio</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{tw('overview.portfolioLabel')}</span>
           <span className="numeric mt-0.5 text-sm font-bold text-foreground">{maskFn(fmtUsdFn(centerUsd))}</span>
-          <span className="mt-0.5 text-xs text-muted-foreground">{items.length} assets</span>
+          <span className="mt-0.5 text-xs text-muted-foreground">{tw('overview.assetsCount', { count: items.length })}</span>
         </div>
       </div>
 
@@ -521,13 +523,13 @@ export default function AssetsOverviewPage() {
       }
     } catch {
       toast({
-        title: 'Dust conversion failed',
-        description: 'Could not convert small balances right now.',
+        title: tw('overview.dustFailedTitle'),
+        description: tw('overview.dustFailedDesc'),
         variant: 'destructive',
       });
     }
     setDustLoading(false);
-  }, [refetchSummary]);
+  }, [refetchSummary, tw]);
 
   const handleExportStatement = useCallback(async () => {
     setStatementLoading(true);
@@ -537,13 +539,13 @@ export default function AssetsOverviewPage() {
       window.open(`${base}/api/v1/wallet/statement?year=${year}&format=csv`, '_blank');
     } catch {
       toast({
-        title: 'Statement export failed',
-        description: 'Could not start the statement download.',
+        title: tw('overview.statementFailedTitle'),
+        description: tw('overview.statementFailedDesc'),
         variant: 'destructive',
       });
     }
     setStatementLoading(false);
-  }, []);
+  }, [tw]);
 
   const toggleSort = (field: typeof sortField) => {
     if (sortField === field) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -576,22 +578,22 @@ export default function AssetsOverviewPage() {
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-foreground">{tw('overview.title')}</h1>
-            <button type="button" onClick={() => setShowBalance((v) => !v)} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors" aria-label="Toggle balance visibility">
+            <button type="button" onClick={() => setShowBalance((v) => !v)} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors" aria-label={tw('overview.toggleBalanceAria')}>
               {showBalance ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
             <Link href={walletPath.depositCrypto} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors">
-              <Download className="h-4 w-4" /> Deposit
+              <Download className="h-4 w-4" /> {tw('actions.deposit')}
             </Link>
             <Link href={walletPath.withdraw} className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors">
-              <Upload className="h-4 w-4" /> Withdraw
+              <Upload className="h-4 w-4" /> {tw('actions.withdraw')}
             </Link>
             <Link href={walletPath.transfer} className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors">
-              <ArrowLeftRight className="h-4 w-4" /> Transfer
+              <ArrowLeftRight className="h-4 w-4" /> {tw('actions.transfer')}
             </Link>
             <Link href={walletPath.convert} className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors">
-              <RefreshCw className="h-4 w-4" /> Convert
+              <RefreshCw className="h-4 w-4" /> {tw('actions.convert')}
             </Link>
           </div>
         </div>
@@ -600,7 +602,7 @@ export default function AssetsOverviewPage() {
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
             <span>{balanceErrorMsg}</span>
             <button type="button" onClick={() => void refetchSummary()} className="font-medium text-primary hover:underline">
-              Retry
+              {tw('actions.retry')}
             </button>
           </div>
         ) : null}
@@ -610,7 +612,7 @@ export default function AssetsOverviewPage() {
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex-1 space-y-5">
               <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Balance</p>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">{tw('overview.totalBalance')}</p>
                 {isLoading ? (
                   <Skeleton className="h-12 w-56" />
                 ) : (
@@ -632,7 +634,7 @@ export default function AssetsOverviewPage() {
                 <span className={`numeric text-sm font-semibold ${todayPnl.amount >= 0 ? 'text-buy' : 'text-sell'}`}>
                   {mask(`${todayPnl.amount >= 0 ? '+' : ''}${fmtUsd(todayPnl.amount)} (${todayPnl.percent >= 0 ? '+' : ''}${todayPnl.percent.toFixed(2)}%)`)}
                 </span>
-                <span className="text-xs text-muted-foreground">{chartPeriod} P&L</span>
+                <span className="text-xs text-muted-foreground">{tw('overview.pnlPeriod', { period: chartPeriod })}</span>
               </div>
 
               {/* Funding / Trading split */}
@@ -641,18 +643,18 @@ export default function AssetsOverviewPage() {
                   <div className="flex-1 rounded-xl border border-border bg-muted/30 p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Wallet className="h-4 w-4 text-primary" />
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Funding</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{tw('overview.funding')}</p>
                     </div>
                     <p className="numeric text-xl font-bold text-foreground">{mask(fmtUsd(fundingTotal))}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Deposits & P2P</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{tw('overview.fundingHint')}</p>
                   </div>
                   <div className="flex-1 rounded-xl border border-border bg-muted/30 p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <BarChart3 className="h-4 w-4 text-primary" />
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Spot / Trading</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{tw('overview.spotTrading')}</p>
                     </div>
                     <p className="numeric text-xl font-bold text-foreground">{mask(fmtUsd(tradingTotal))}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Open orders & trades</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{tw('overview.spotTradingHint')}</p>
                   </div>
                 </div>
                 {/* Distribution bar */}
@@ -662,8 +664,8 @@ export default function AssetsOverviewPage() {
                     <div className="rounded-r-full bg-primary/40 transition-all duration-500" style={{ width: `${100 - fundingPct}%` }} />
                   </div>
                   <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-                    <span>Funding {fundingPct.toFixed(0)}%</span>
-                    <span>Trading {(100 - fundingPct).toFixed(0)}%</span>
+                    <span>{tw('overview.fundingPct', { percent: fundingPct.toFixed(0) })}</span>
+                    <span>{tw('overview.tradingPct', { percent: (100 - fundingPct).toFixed(0) })}</span>
                   </div>
                 </div>
               </div>
@@ -694,10 +696,10 @@ export default function AssetsOverviewPage() {
                   onClick={() => void fetchPortfolioHistory()}
                   className="text-xs font-medium text-primary hover:underline"
                 >
-                  {portfolioError} Retry
+                  {portfolioError} {tw('actions.retry')}
                 </button>
               ) : null}
-              <p className="text-xs text-muted-foreground">Portfolio value · {chartPeriod}</p>
+              <p className="text-xs text-muted-foreground">{tw('overview.portfolioValue', { period: chartPeriod })}</p>
             </div>
           </div>
         </div>
@@ -710,15 +712,13 @@ export default function AssetsOverviewPage() {
                 <Banknote className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">INR balance</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{tw('overview.inrBalance')}</p>
                 <p className="numeric mt-1 text-2xl font-bold text-foreground">
                   {fiatBalanceQuery.isLoading
                     ? '—'
                     : mask(`₹${Number(inrAvailable).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
                 </p>
-                <p className="mt-1 max-w-md text-xs text-muted-foreground">
-                  Fiat ledger is separate from crypto. INR is credited after bank transfer verification (admin) or via P2P sell — self-serve INR deposit is not live yet.
-                </p>
+                <p className="mt-1 max-w-md text-xs text-muted-foreground">{tw('overview.inrHint')}</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -726,19 +726,19 @@ export default function AssetsOverviewPage() {
                 href={walletPath.withdrawFiat}
                 className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
               >
-                <Upload className="h-4 w-4" /> Withdraw INR
+                <Upload className="h-4 w-4" /> {tw('overview.withdrawInr')}
               </Link>
               <Link
                 href={walletPath.paymentMethods}
                 className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
               >
-                <Building2 className="h-4 w-4" /> Bank accounts
+                <Building2 className="h-4 w-4" /> {tw('overview.bankAccounts')}
               </Link>
               <Link
                 href={walletPath.depositCrypto}
                 className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
               >
-                <Download className="h-4 w-4" /> Crypto deposit
+                <Download className="h-4 w-4" /> {tw('overview.cryptoDeposit')}
               </Link>
             </div>
           </div>
@@ -753,7 +753,7 @@ export default function AssetsOverviewPage() {
                 <button key={tab} type="button" onClick={() => setActiveTab(tab)}
                   className={`border-b-2 px-1 pb-3 text-sm font-semibold capitalize transition-colors ${activeTab === tab ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                 >
-                  {tab}
+                  {tab === 'account' ? tw('overview.tabAccount') : tw('overview.tabAsset')}
                 </button>
               ))}
             </div>
@@ -766,8 +766,8 @@ export default function AssetsOverviewPage() {
                     <div className="flex items-center gap-3">
                       <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><Wallet className="h-5 w-5" /></div>
                       <div>
-                        <p className="text-base font-semibold text-foreground">Funding Account</p>
-                        <p className="text-xs text-muted-foreground">Deposits, P2P payouts, withdrawals</p>
+                        <p className="text-base font-semibold text-foreground">{tw('overview.fundingAccount')}</p>
+                        <p className="text-xs text-muted-foreground">{tw('overview.fundingAccountHint')}</p>
                       </div>
                     </div>
                     <div className="text-right flex items-center gap-2">
@@ -780,7 +780,7 @@ export default function AssetsOverviewPage() {
                   </div>
                   {topFunding.length > 0 && (
                     <div className="rounded-xl bg-muted/30 p-4">
-                      <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Top Holdings</p>
+                      <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{tw('overview.topHoldings')}</p>
                       <div className="space-y-2.5">
                         {topFunding.map((h) => (
                           <div key={h.symbol} className="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3">
@@ -806,8 +806,8 @@ export default function AssetsOverviewPage() {
                     <div className="flex items-center gap-3">
                       <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500"><BarChart3 className="h-5 w-5" /></div>
                       <div>
-                        <p className="text-base font-semibold text-foreground">Spot / Trading Account</p>
-                        <p className="text-xs text-muted-foreground">Used for spot trading orders</p>
+                        <p className="text-base font-semibold text-foreground">{tw('overview.spotTradingAccount')}</p>
+                        <p className="text-xs text-muted-foreground">{tw('overview.spotTradingAccountHint')}</p>
                       </div>
                     </div>
                     <div className="text-right flex items-center gap-2">
@@ -820,7 +820,7 @@ export default function AssetsOverviewPage() {
                   </div>
                   {topTrading.length > 0 && (
                     <div className="rounded-xl bg-muted/30 p-4">
-                      <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Top Holdings</p>
+                      <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{tw('overview.topHoldings')}</p>
                       <div className="space-y-2.5">
                         {topTrading.map((h) => (
                           <div key={h.symbol} className="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3">
@@ -847,17 +847,17 @@ export default function AssetsOverviewPage() {
                   <div className="relative flex-1 max-w-xs">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <input type="text" value={coinSearch} onChange={(e) => setCoinSearch(e.target.value)}
-                      placeholder="Search coin…" className="h-10 w-full rounded-lg border border-border bg-background pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                      placeholder={tw('overview.searchCoin')} className="h-10 w-full rounded-lg border border-border bg-background pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
                   </div>
                   <div className="flex items-center gap-3">
                     <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
                       <input type="checkbox" checked={hideSmall} onChange={(e) => setHideSmall(e.target.checked)} className="h-4 w-4 rounded border-border accent-primary" />
-                      Hide small balances
+                      {tw('overview.hideSmallBalances')}
                     </label>
                     <button type="button" onClick={handleDustConvert} disabled={dustLoading}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-50 transition-colors"
                     >
-                      <Sparkles className="h-3.5 w-3.5" /> {dustLoading ? 'Converting…' : 'Convert Dust'}
+                      <Sparkles className="h-3.5 w-3.5" /> {dustLoading ? tw('overview.converting') : tw('overview.convertDust')}
                     </button>
                   </div>
                 </div>
@@ -867,23 +867,23 @@ export default function AssetsOverviewPage() {
                     <thead className="border-b border-border bg-muted/40">
                       <tr>
                         <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer select-none" onClick={() => toggleSort('symbol')}>
-                          Coin {sortField === 'symbol' && (sortDir === 'asc' ? '↑' : '↓')}
+                          {tw('overview.tableCoin')} {sortField === 'symbol' && (sortDir === 'asc' ? '↑' : '↓')}
                         </th>
-                        <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-right">Total</th>
-                        <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-right">Funding</th>
-                        <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-right">Trading</th>
+                        <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-right">{tw('overview.tableTotal')}</th>
+                        <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-right">{tw('overview.tableFunding')}</th>
+                        <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-right">{tw('overview.tableTrading')}</th>
                         <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-right cursor-pointer select-none" onClick={() => toggleSort('usd')}>
-                          {displayCurrency} Value {sortField === 'usd' && (sortDir === 'asc' ? '↑' : '↓')}
+                          {tw('overview.tableValue', { currency: displayCurrency })} {sortField === 'usd' && (sortDir === 'asc' ? '↑' : '↓')}
                         </th>
                         <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-right cursor-pointer select-none" onClick={() => toggleSort('change')}>
-                          24h {sortField === 'change' && (sortDir === 'asc' ? '↑' : '↓')}
+                          {tw('overview.table24h')} {sortField === 'change' && (sortDir === 'asc' ? '↑' : '↓')}
                         </th>
-                        <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-right">Action</th>
+                        <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-right">{tw('overview.tableAction')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filtered.length === 0 ? (
-                        <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">No assets found</td></tr>
+                        <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">{tw('overview.noAssetsFound')}</td></tr>
                       ) : filtered.map((a) => (
                         <tr key={a.symbol} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => router.push(`${ROUTES.wallet}/${a.symbol}`)}>
                           <td className="py-3.5 px-4">
@@ -904,9 +904,9 @@ export default function AssetsOverviewPage() {
                           </td>
                           <td className="py-3.5 px-4 text-right">
                             <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                              <Link href={`/trade/spot?symbol=${a.symbol}_USDT`} className="rounded-md px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors">Trade</Link>
-                              <Link href={`${walletPath.depositCrypto}?coin=${a.symbol}`} className="rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">Deposit</Link>
-                              <Link href={`${walletPath.withdrawCrypto}?coin=${a.symbol}`} className="rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">Withdraw</Link>
+                              <Link href={`/trade/spot?symbol=${a.symbol}_USDT`} className="rounded-md px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors">{tw('actions.trade')}</Link>
+                              <Link href={`${walletPath.depositCrypto}?coin=${a.symbol}`} className="rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">{tw('actions.deposit')}</Link>
+                              <Link href={`${walletPath.withdrawCrypto}?coin=${a.symbol}`} className="rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">{tw('actions.withdraw')}</Link>
                             </div>
                           </td>
                         </tr>
@@ -923,14 +923,14 @@ export default function AssetsOverviewPage() {
             {/* Portfolio Allocation */}
             <div className="overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-semibold text-foreground">Portfolio Allocation</h3>
-                <span className="text-xs text-muted-foreground">{allocation.length} assets</span>
+                <h3 className="text-base font-semibold text-foreground">{tw('overview.portfolioAllocation')}</h3>
+                <span className="text-xs text-muted-foreground">{tw('overview.assetsCount', { count: allocation.length })}</span>
               </div>
               {allocation.length === 0 ? (
                 <div className="py-8 text-center">
                   <Wallet className="mx-auto mb-2 h-8 w-8 text-muted-foreground/30" />
-                  <p className="text-sm text-muted-foreground">No assets yet</p>
-                  <Link href={walletPath.depositCrypto} className="mt-2 inline-block text-sm font-medium text-primary hover:underline">Make your first deposit</Link>
+                  <p className="text-sm text-muted-foreground">{tw('overview.noAssetsYet')}</p>
+                  <Link href={walletPath.depositCrypto} className="mt-2 inline-block text-sm font-medium text-primary hover:underline">{tw('overview.firstDeposit')}</Link>
                 </div>
               ) : (
                 <AllocationDonut
@@ -945,7 +945,7 @@ export default function AssetsOverviewPage() {
 
             {/* Quick Tools — card-based */}
             <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-              <h3 className="mb-4 text-base font-semibold text-foreground">Quick Tools</h3>
+              <h3 className="mb-4 text-base font-semibold text-foreground">{tw('overview.quickTools')}</h3>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
                 <button type="button" onClick={handleDustConvert} disabled={dustLoading}
                   className="flex min-h-[4.5rem] w-full flex-col justify-center gap-1 rounded-xl border border-border bg-muted/20 p-3 text-left transition-colors hover:bg-muted/50 disabled:opacity-50 sm:min-h-[5rem]">
@@ -954,8 +954,8 @@ export default function AssetsOverviewPage() {
                       <Sparkles className="h-4 w-4 text-primary" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-foreground">{dustLoading ? 'Converting…' : 'Convert dust'}</p>
-                      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">Small balances → USDT</p>
+                      <p className="text-sm font-medium text-foreground">{dustLoading ? tw('overview.converting') : tw('overview.convertDustTitle')}</p>
+                      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{tw('overview.convertDustHint')}</p>
                     </div>
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </div>
@@ -967,8 +967,8 @@ export default function AssetsOverviewPage() {
                       <FileText className="h-4 w-4 text-primary" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-foreground">{statementLoading ? 'Exporting…' : 'Statement'}</p>
-                      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">CSV download</p>
+                      <p className="text-sm font-medium text-foreground">{statementLoading ? tw('overview.exporting') : tw('overview.statement')}</p>
+                      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{tw('overview.statementHint')}</p>
                     </div>
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </div>
@@ -979,8 +979,8 @@ export default function AssetsOverviewPage() {
                       <TrendingUp className="h-4 w-4 text-buy" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-foreground">P&L</p>
-                      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">Profit & loss</p>
+                      <p className="text-sm font-medium text-foreground">{tw('overview.pnl')}</p>
+                      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{tw('overview.pnlHint')}</p>
                     </div>
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </div>
@@ -991,8 +991,8 @@ export default function AssetsOverviewPage() {
                       <FileText className="h-4 w-4 text-primary" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-foreground">History</p>
-                      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">All movements</p>
+                      <p className="text-sm font-medium text-foreground">{tw('overview.history')}</p>
+                      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{tw('overview.historyHint')}</p>
                     </div>
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </div>
@@ -1007,8 +1007,8 @@ export default function AssetsOverviewPage() {
                   <Shield className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-foreground">Security</h3>
-                  <p className="text-xs text-muted-foreground">From your account</p>
+                  <h3 className="text-sm font-semibold text-foreground">{tw('overview.security')}</h3>
+                  <p className="text-xs text-muted-foreground">{tw('overview.securityFromAccount')}</p>
                 </div>
               </div>
               {security.loading ? (
@@ -1019,21 +1019,21 @@ export default function AssetsOverviewPage() {
               ) : (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between rounded-lg bg-muted/30 px-3 py-2.5">
-                    <span className="text-sm text-foreground">Authenticator (2FA)</span>
+                    <span className="text-sm text-foreground">{tw('overview.authenticator')}</span>
                     <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${security.totp ? 'bg-buy/10 text-buy' : 'bg-muted text-muted-foreground'}`}>
-                      {security.totp ? 'On' : 'Off'}
+                      {security.totp ? tw('overview.on') : tw('overview.off')}
                     </span>
                   </div>
                   <div className="flex items-center justify-between rounded-lg bg-muted/30 px-3 py-2.5">
-                    <span className="text-sm text-foreground">Email on file</span>
+                    <span className="text-sm text-foreground">{tw('overview.emailOnFile')}</span>
                     <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${security.hasEmail ? 'bg-buy/10 text-buy' : 'bg-sell/10 text-sell'}`}>
-                      {security.hasEmail ? 'Yes' : 'Add'}
+                      {security.hasEmail ? tw('overview.yes') : tw('overview.add')}
                     </span>
                   </div>
                 </div>
               )}
               <Link href="/dashboard/security" className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
-                Manage security <ChevronRight className="h-3 w-3" />
+                {tw('overview.manageSecurity')} <ChevronRight className="h-3 w-3" />
               </Link>
             </div>
           </div>
@@ -1042,9 +1042,9 @@ export default function AssetsOverviewPage() {
         {/* ── Recent Activity ── */}
         <div className="rounded-2xl border border-border bg-card shadow-sm">
           <div className="flex items-center justify-between border-b border-border px-5 py-4 sm:px-6">
-            <h3 className="text-base font-semibold text-foreground">Recent Activity</h3>
+            <h3 className="text-base font-semibold text-foreground">{tw('overview.recentActivity')}</h3>
             <Link href={walletPath.history} className="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80">
-              View all <ArrowRight className="h-3.5 w-3.5" />
+              {tw('actions.viewAll')} <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
           <div className="divide-y divide-border">
@@ -1059,8 +1059,8 @@ export default function AssetsOverviewPage() {
             ) : recentTxs.length === 0 ? (
               <div className="px-6 py-12 text-center">
                 <FileText className="mx-auto mb-2 h-8 w-8 text-muted-foreground/30" />
-                <p className="text-sm font-medium text-foreground">No recent activity</p>
-                <p className="mt-1 text-xs text-muted-foreground">Your deposits, withdrawals, and transfers will appear here.</p>
+                <p className="text-sm font-medium text-foreground">{tw('overview.noRecentActivity')}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{tw('overview.noRecentActivityHint')}</p>
               </div>
             ) : recentTxs.slice(0, 6).map((tx) => {
               const isDeposit = tx.type === 'deposit';
@@ -1073,7 +1073,13 @@ export default function AssetsOverviewPage() {
                       {isDeposit ? <Download className="h-4 w-4 text-buy" /> : isWithdraw ? <Upload className="h-4 w-4 text-sell" /> : <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-foreground capitalize">{tx.type}</p>
+                      <p className="text-sm font-medium text-foreground">
+                        {tx.type === 'deposit'
+                          ? tw('transactions.typeDeposit')
+                          : tx.type === 'withdrawal'
+                            ? tw('transactions.typeWithdrawal')
+                            : tw('transactions.typeTransfer')}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {tx.symbol} · {tx.created_at ? new Date(tx.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                       </p>
@@ -1089,7 +1095,7 @@ export default function AssetsOverviewPage() {
                       tx.status === 'pending' ? 'bg-amber-500/10 text-amber-500' :
                       tx.status === 'failed' ? 'bg-sell/10 text-sell' : 'bg-muted text-muted-foreground'
                     }`}>
-                      {tx.status}
+                      {walletTransactionStatusLabel(tx.status, tw)}
                     </span>
                   </div>
                 </div>

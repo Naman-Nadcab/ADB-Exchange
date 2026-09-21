@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth';
@@ -30,6 +31,7 @@ import {
 import { WalletOperationsShell } from '@/components/wallet/WalletOperationsShell';
 import { WalletWithdrawNav } from '@/components/wallet/WalletWithdrawNav';
 import { toast } from '@/components/ui/toaster';
+import { walletTransactionStatusLabel } from '@/lib/i18n/wallet-transaction-status';
 
 interface Chain {
   id: string;
@@ -115,15 +117,18 @@ function getExplorerUrl(txHash: string, chain?: string): string {
   return `https://etherscan.io/tx/${txHash}`;
 }
 
-const FAQ_LINKS = [
-  { title: 'Crypto Withdrawal FAQs', href: '/dashboard/help' },
-  { title: 'How to Withdraw Through Internal Transfer', href: '/wallet/transfer' },
-  { title: 'View the Deposit/Withdrawal Status of All Coins', href: '/wallet/history' },
-  { title: 'How to Change Your Withdrawal Limit', href: '/dashboard/security/withdrawal-limits' },
-  { title: 'How to Manage Your Withdrawal Address Book', href: '/dashboard/address-book' },
-];
-
 export default function WithdrawCryptoPage() {
+  const tw = useTranslations('wallet');
+  const faqLinks = useMemo(
+    () => [
+      { title: tw('withdraw.faqCryptoWithdraw'), href: '/dashboard/help' },
+      { title: tw('withdraw.faqInternalTransfer'), href: '/wallet/transfer' },
+      { title: tw('withdraw.faqDepositWithdrawStatus'), href: '/wallet/history' },
+      { title: tw('withdraw.faqChangeLimit'), href: '/dashboard/security/withdrawal-limits' },
+      { title: tw('withdraw.faqAddressBook'), href: '/dashboard/address-book' },
+    ],
+    [tw]
+  );
   const router = useRouter();
   const searchParams = useSearchParams();
   const coinParam = searchParams.get('coin');
@@ -470,17 +475,17 @@ export default function WithdrawCryptoPage() {
     if (submitting) return;
     const isInternal = withdrawType === 'internal';
     if (!selectedToken || !amount) {
-      setError('Please select a coin and enter amount');
+      setError(tw('withdraw.errors.selectCoinAmount'));
       return;
     }
     if (isInternal) {
       if (!internalRecipient.trim()) {
-        setError('Please enter recipient (email, UID, or phone)');
+        setError(tw('withdraw.errors.recipientRequired'));
         return;
       }
     } else {
       if (!selectedChain || !toAddress.trim()) {
-        setError('Please select chain and enter wallet address');
+        setError(tw('withdraw.errors.chainAddressRequired'));
         return;
       }
     }
@@ -529,37 +534,37 @@ export default function WithdrawCryptoPage() {
         const status = data.data?.status;
         const type = data.data?.type;
         if (type === 'internal' && status === 'completed') {
-          setSuccessMessage('Transfer completed.');
+          setSuccessMessage(tw('withdraw.successTransferCompleted'));
         } else if (status === 'pending_approval') {
-          setSuccessMessage('Withdrawal submitted for approval.');
+          setSuccessMessage(tw('withdraw.successPendingApproval'));
         } else {
-          setSuccessMessage('Withdrawal submitted.');
+          setSuccessMessage(tw('withdraw.successSubmitted'));
         }
         setTimeout(() => setSuccessMessage(null), 5000);
       } else {
         const code = data.error?.code;
         if (code === '2FA_REQUIRED') {
-          setError('Two-factor code is required for withdrawal. Enter your 2FA code above.');
+          setError(tw('withdraw.errors.twoFaRequired'));
         } else if (code === 'FUND_PASSWORD_REQUIRED') {
-          setError('Fund password is required for withdrawal. Enter your fund password above.');
+          setError(tw('withdraw.errors.fundPasswordRequired'));
         } else if (code === 'INVALID_2FA' || code === 'INVALID_FUND_PASSWORD') {
-          setError(data.error?.message || 'Invalid code or password. Please try again.');
+          setError(data.error?.message || tw('withdraw.errors.invalidCodeOrPassword'));
         } else if (code === 'BELOW_MINIMUM') {
-          setError(data.error?.message || 'Amount is below the minimum withdrawal for this coin.');
+          setError(data.error?.message || tw('withdraw.errors.belowMinimum'));
         } else if (code === 'INSUFFICIENT_BALANCE' || code === 'INSUFFICIENT_FUNDS') {
-          setError(data.error?.message || 'Insufficient balance in the selected account.');
+          setError(data.error?.message || tw('withdraw.errors.insufficientBalance'));
         } else if (code === 'NETWORK_ERROR') {
-          setError('Connection issue. Your request may not have reached the server. Safe to try again.');
+          setError(tw('withdraw.errors.networkError'));
         } else {
-          setError(data.error?.message || 'Withdrawal could not be submitted. Check amount, address, and limits, then try again.');
+          setError(data.error?.message || tw('withdraw.errors.submitFailed'));
         }
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : '';
       setError(
         msg.includes('JSON') || msg.includes('fetch')
-          ? 'Connection issue. Your request may not have reached the server. Safe to try again.'
-          : msg || 'Connection issue. Your request may not have reached the server. Safe to try again.'
+          ? tw('withdraw.errors.networkError')
+          : msg || tw('withdraw.errors.networkError')
       );
     } finally {
       setSubmitting(false);
@@ -583,11 +588,11 @@ export default function WithdrawCryptoPage() {
         queryClient.invalidateQueries({ queryKey: ['balances'] });
         fetchRecentWithdrawals();
       } else {
-        setCancelError(data.error?.message || 'Could not cancel withdrawal. It may already be processing. Try again or contact support.');
+        setCancelError(data.error?.message || tw('withdraw.errors.cancelFailed'));
       }
     } catch (error) {
       console.error('Failed to cancel withdrawal:', error);
-      setCancelError('Connection issue. Safe to try again.');
+      setCancelError(tw('withdraw.errors.connectionRetry'));
     }
   };
 
@@ -621,8 +626,8 @@ export default function WithdrawCryptoPage() {
   return (
     <>
       <WalletOperationsShell
-        title="Withdraw crypto"
-        description="Send assets to an external wallet. Double-check the address and network — on-chain transfers are irreversible."
+        title={tw('withdraw.titleCrypto')}
+        description={tw('withdraw.description')}
       >
         <div className="mb-6 max-w-4xl">
           <WalletWithdrawNav />
@@ -630,8 +635,8 @@ export default function WithdrawCryptoPage() {
         <div className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-200/80 bg-amber-50/90 p-4 dark:border-amber-800/40 dark:bg-amber-950/25">
             <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-amber-800 dark:text-amber-200">On-chain withdrawals cannot be reversed</p>
-              <p className="text-xs text-amber-700 dark:text-amber-300/90 mt-1">Verify the address and network before submitting. Wrong address or network will result in permanent loss of funds.</p>
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-200">{tw('withdraw.bannerIrreversibleTitle')}</p>
+              <p className="text-xs text-amber-700 dark:text-amber-300/90 mt-1">{tw('withdraw.bannerIrreversibleBody')}</p>
             </div>
         </div>
 
@@ -644,8 +649,8 @@ export default function WithdrawCryptoPage() {
                   {/* Select Coin */}
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
-                      <label className="text-sm font-medium text-foreground/80">Select Coin</label>
-                      <span className="text-xs text-muted-foreground">Coin</span>
+                      <label className="text-sm font-medium text-foreground/80">{tw('withdraw.selectCoin')}</label>
+                      <span className="text-xs text-muted-foreground">{tw('withdraw.coinShort')}</span>
                     </div>
                     <div className="relative">
                       <button
@@ -661,7 +666,7 @@ export default function WithdrawCryptoPage() {
                             </div>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground">Please Select</span>
+                          <span className="text-muted-foreground">{tw('withdraw.pleaseSelect')}</span>
                         )}
                         <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${showTokenDropdown ? 'rotate-180' : ''}`} />
                       </button>
@@ -675,7 +680,7 @@ export default function WithdrawCryptoPage() {
                                 type="text"
                                 value={tokenSearch}
                                 onChange={(e) => setTokenSearch(e.target.value)}
-                                placeholder="Search coin..."
+                                placeholder={tw('withdraw.searchCoin')}
                                 className="w-full pl-10 pr-4 py-2.5 bg-muted dark:bg-[#2b2f36] border-0 rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary outline-none"
                                 autoFocus
                               />
@@ -708,7 +713,7 @@ export default function WithdrawCryptoPage() {
                                 </button>
                               ))
                             ) : (
-                              <div className="py-8 text-center text-muted-foreground text-sm">No tokens found</div>
+                              <div className="py-8 text-center text-muted-foreground text-sm">{tw('withdraw.noTokens')}</div>
                             )}
                           </div>
                         </div>
@@ -718,7 +723,7 @@ export default function WithdrawCryptoPage() {
 
                   {/* Withdraw To Tabs */}
                   <div className="mb-6">
-                    <label className="text-sm font-medium text-foreground/80 mb-3 block">Withdraw to</label>
+                    <label className="text-sm font-medium text-foreground/80 mb-3 block">{tw('withdraw.withdrawTo')}</label>
                     <div className="flex gap-1 p-1 bg-accent dark:bg-[#2b2f36] rounded-xl w-fit">
                       <button
                         onClick={() => setWithdrawType('on-chain')}
@@ -728,7 +733,7 @@ export default function WithdrawCryptoPage() {
                             : 'text-muted-foreground hover:text-foreground/80 dark:hover:text-gray-300'
                         }`}
                       >
-                        On-chain Withdrawal
+                        {tw('withdraw.onChain')}
                       </button>
                       <button
                         onClick={() => setWithdrawType('internal')}
@@ -738,7 +743,7 @@ export default function WithdrawCryptoPage() {
                             : 'text-muted-foreground hover:text-foreground/80 dark:hover:text-gray-300'
                         }`}
                       >
-                        Internal Transfer
+                        {tw('withdraw.internalTransfer')}
                       </button>
                     </div>
                   </div>
@@ -748,7 +753,7 @@ export default function WithdrawCryptoPage() {
                       {/* Address Book Picker */}
                       {selectedToken && selectedChain && matchingAddresses.length > 0 && (
                         <div className="mb-4">
-                          <label className="text-sm text-muted-foreground mb-2 block">Use saved address</label>
+                          <label className="text-sm text-muted-foreground mb-2 block">{tw('withdraw.savedAddress')}</label>
                           <select
                             value=""
                             onChange={(e) => {
@@ -760,7 +765,7 @@ export default function WithdrawCryptoPage() {
                             }}
                             className="w-full px-4 py-2.5 bg-muted dark:bg-[#2b2f36] border border-border rounded-xl text-foreground text-sm focus:border-blue-500 outline-none"
                           >
-                            <option value="">Select from address book...</option>
+                            <option value="">{tw('withdraw.selectFromAddressBook')}</option>
                             {matchingAddresses.map((addr, i) => (
                               <option key={addr.id} value={i}>
                                 {addr.note || addr.address.slice(0, 12) + '…'}
@@ -771,18 +776,18 @@ export default function WithdrawCryptoPage() {
                       )}
                       {/* Wallet Address */}
                       <div className="mb-6">
-                        <label className="text-sm text-muted-foreground mb-2 block">Wallet Address</label>
+                        <label className="text-sm text-muted-foreground mb-2 block">{tw('withdraw.walletAddress')}</label>
                         <div className="relative">
                           <input
                             type="text"
                             value={toAddress}
                             onChange={(e) => setToAddress(e.target.value)}
-                            placeholder="Please enter or select from address book"
+                            placeholder={tw('withdraw.addressPlaceholder')}
                             className="w-full px-4 py-3.5 pr-12 bg-muted dark:bg-[#2b2f36] border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:border-blue-500 focus:ring-1 focus:ring-primary/20 outline-none transition-all"
                           />
                           <button
                             type="button"
-                            onClick={() => toast({ title: 'QR Scanner', description: 'Paste a wallet address or use your camera app to scan a QR code.' })}
+                            onClick={() => toast({ title: tw('withdraw.qrScannerTitle'), description: tw('withdraw.qrScannerDesc') })}
                             className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-accent rounded-lg transition-colors"
                           >
                             <QrCode className="w-5 h-5 text-muted-foreground" />
@@ -790,19 +795,19 @@ export default function WithdrawCryptoPage() {
                         </div>
                       </div>
                       <div className="mb-6">
-                        <label className="text-sm text-muted-foreground mb-2 block">Memo (optional, for XLM/XRP etc.)</label>
+                        <label className="text-sm text-muted-foreground mb-2 block">{tw('withdraw.memoOptional')}</label>
                         <input
                           type="text"
                           value={withdrawMemo}
                           onChange={(e) => setWithdrawMemo(e.target.value)}
-                          placeholder="Leave empty if not required"
+                          placeholder={tw('withdraw.memoPlaceholder')}
                           className="w-full px-4 py-2.5 bg-muted dark:bg-[#2b2f36] border border-border rounded-xl text-foreground text-sm"
                         />
                       </div>
 
                       {/* Chain Type */}
                       <div className="mb-6">
-                        <label className="text-sm text-muted-foreground mb-2 block">Chain Type</label>
+                        <label className="text-sm text-muted-foreground mb-2 block">{tw('withdraw.chainType')}</label>
                         <div className="relative">
                           <button
                             onClick={() => selectedToken && setShowChainDropdown(!showChainDropdown)}
@@ -827,7 +832,7 @@ export default function WithdrawCryptoPage() {
                                 )}
                               </div>
                             ) : (
-                              <span className="text-muted-foreground">Select chain</span>
+                              <span className="text-muted-foreground">{tw('withdraw.selectChain')}</span>
                             )}
                             <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${showChainDropdown ? 'rotate-180' : ''}`} />
                           </button>
@@ -859,7 +864,7 @@ export default function WithdrawCryptoPage() {
                                   </button>
                                 ))
                               ) : (
-                                <div className="py-6 text-center text-muted-foreground text-sm">No chains available</div>
+                                <div className="py-6 text-center text-muted-foreground text-sm">{tw('withdraw.noChains')}</div>
                               )}
                             </div>
                           )}
@@ -868,12 +873,12 @@ export default function WithdrawCryptoPage() {
                     </>
                   ) : (
                     <div className="mb-6">
-                      <label className="text-sm text-muted-foreground mb-2 block">Recipient (UID / Email / Phone)</label>
+                      <label className="text-sm text-muted-foreground mb-2 block">{tw('withdraw.recipientLabel')}</label>
                       <input
                         type="text"
                         value={internalRecipient}
                         onChange={(e) => setInternalRecipient(e.target.value)}
-                        placeholder="Enter UID, email, or phone number"
+                        placeholder={tw('withdraw.recipientPlaceholder')}
                         className="w-full px-4 py-3.5 bg-muted dark:bg-[#2b2f36] border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:border-blue-500 focus:ring-1 focus:ring-primary/20 outline-none transition-all"
                       />
                     </div>
@@ -882,15 +887,18 @@ export default function WithdrawCryptoPage() {
                   {/* Amount */}
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
-                      <label className="text-sm text-muted-foreground">Withdrawable Amount</label>
+                      <label className="text-sm text-muted-foreground">{tw('withdraw.withdrawableAmount')}</label>
                       <div className="flex items-center gap-2">
                         {selectedToken && (
                           <span className="text-xs text-muted-foreground">
-                            Available: {getAvailableBalance().toFixed(8)} {selectedToken.symbol}
+                            {tw('withdraw.available', {
+                              amount: getAvailableBalance().toFixed(8),
+                              symbol: selectedToken.symbol,
+                            })}
                           </span>
                         )}
-                        <span className="text-xs text-muted-foreground">Amount</span>
-                        <Link href="/dashboard/security/withdrawal-limits" className="text-xs text-primary hover:text-primary/85 font-medium">Raise Limit</Link>
+                        <span className="text-xs text-muted-foreground">{tw('withdraw.amountShort')}</span>
+                        <Link href="/dashboard/security/withdrawal-limits" className="text-xs text-primary hover:text-primary/85 font-medium">{tw('withdraw.raiseLimit')}</Link>
                       </div>
                     </div>
                     <div className="relative">
@@ -905,14 +913,14 @@ export default function WithdrawCryptoPage() {
                         onClick={setMaxAmount}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-primary hover:text-primary/85 font-medium"
                       >
-                        All
+                        {tw('withdraw.maxAll')}
                       </button>
                     </div>
 
                     {/* Account Selection */}
                     <div className="mt-4 p-4 bg-muted dark:bg-[#2b2f36] rounded-xl">
                       <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
-                        <span>Select account ({selectedAccounts.funding || selectedAccounts.trading ? 1 : 0})</span>
+                        <span>{tw('withdraw.selectAccount', { count: selectedAccounts.funding || selectedAccounts.trading ? 1 : 0 })}</span>
                         <span className="font-medium text-foreground">
                           {selectedToken ? getAvailableBalance().toFixed(8) : '0'}
                         </span>
@@ -929,7 +937,7 @@ export default function WithdrawCryptoPage() {
                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
                               <Wallet className="w-4 h-4 text-white" />
                             </div>
-                            <span className="text-foreground/80 font-medium">Funding</span>
+                            <span className="text-foreground/80 font-medium">{tw('withdraw.funding')}</span>
                           </div>
                           <span className="text-muted-foreground">
                             {(selectedToken && (balances || []).find(b => (b?.symbol || '').toUpperCase() === (selectedToken.symbol || '').toUpperCase())?.funding) ?? '0'}
@@ -946,7 +954,7 @@ export default function WithdrawCryptoPage() {
                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
                               <TrendingUp className="w-4 h-4 text-white" />
                             </div>
-                            <span className="text-foreground/80 font-medium">Unified Trading</span>
+                            <span className="text-foreground/80 font-medium">{tw('withdraw.unifiedTrading')}</span>
                           </div>
                           <span className="text-muted-foreground">
                             {(selectedToken && (balances || []).find(b => (b?.symbol || '').toUpperCase() === (selectedToken.symbol || '').toUpperCase())?.trading) ?? '0'}
@@ -959,7 +967,7 @@ export default function WithdrawCryptoPage() {
                   {/* Fee & Received (from preview when amount entered) */}
                   <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-100 dark:border-blue-800/30 mb-6">
                     <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-muted-foreground">Transaction Fee</span>
+                      <span className="text-muted-foreground">{tw('withdraw.transactionFee')}</span>
                       <span className="font-medium text-foreground">
                         {withdrawType === 'internal'
                           ? `0 ${selectedToken?.symbol || ''}`
@@ -969,7 +977,7 @@ export default function WithdrawCryptoPage() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Amount Received</span>
+                      <span className="text-muted-foreground">{tw('withdraw.amountReceived')}</span>
                       <span className="font-semibold text-foreground">
                         {withdrawType === 'internal'
                           ? (amount ? `${amount} ${selectedToken?.symbol || ''}` : '--')
@@ -980,12 +988,12 @@ export default function WithdrawCryptoPage() {
                     </div>
                     {previewData?.min_withdrawal && parseFloat(previewData.min_withdrawal) > 0 && (
                       <div className="flex items-center justify-between text-sm mt-2 pt-2 border-t border-border/50">
-                        <span className="text-muted-foreground">Min. Withdrawal</span>
+                        <span className="text-muted-foreground">{tw('withdraw.minWithdrawal')}</span>
                         <span className="text-foreground">{previewData.min_withdrawal} {selectedToken?.symbol || ''}</span>
                       </div>
                     )}
                     {previewData?.fee_exceeds_amount && (
-                      <p className="text-amber-600 dark:text-amber-400 text-sm mt-2">Fee exceeds amount. Increase amount or choose another option.</p>
+                      <p className="text-amber-600 dark:text-amber-400 text-sm mt-2">{tw('withdraw.feeExceedsAmount')}</p>
                     )}
                   </div>
 
@@ -1007,43 +1015,43 @@ export default function WithdrawCryptoPage() {
                   {/* Confirmation step: summary + Back / Confirm */}
                   {showConfirmStep && selectedToken && (
                     <div className="mb-6 p-4 rounded-xl bg-background border border-border">
-                      <p className="text-sm font-medium text-foreground/80 mb-3">Review withdrawal</p>
+                      <p className="text-sm font-medium text-foreground/80 mb-3">{tw('withdraw.reviewTitle')}</p>
                       <dl className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <dt className="text-muted-foreground">Coin</dt>
+                          <dt className="text-muted-foreground">{tw('withdraw.labelCoin')}</dt>
                           <dd className="font-medium text-foreground">{selectedToken.symbol}</dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-muted-foreground">Amount</dt>
+                          <dt className="text-muted-foreground">{tw('withdraw.labelAmount')}</dt>
                           <dd className="font-mono text-foreground">{amount} {selectedToken.symbol}</dd>
                         </div>
                         {withdrawType === 'on-chain' && selectedChain && (
                           <>
                             <div className="flex justify-between">
-                              <dt className="text-muted-foreground">Network</dt>
+                              <dt className="text-muted-foreground">{tw('withdraw.network')}</dt>
                               <dd className="font-medium text-foreground">{selectedChain.name}</dd>
                             </div>
                             <div className="flex justify-between">
-                              <dt className="text-muted-foreground">Fee</dt>
+                              <dt className="text-muted-foreground">{tw('withdraw.fee')}</dt>
                               <dd className="font-mono text-foreground">{getWithdrawFee().toFixed(8)} {selectedToken.symbol}</dd>
                             </div>
                             <div className="flex justify-between items-start gap-2">
-                              <dt className="text-muted-foreground shrink-0">Address</dt>
+                              <dt className="text-muted-foreground shrink-0">{tw('withdraw.labelAddress')}</dt>
                               <dd className="font-mono text-xs text-foreground break-all text-right">{toAddress.trim()}</dd>
                             </div>
                           </>
                         )}
                         {withdrawType === 'internal' && (
                           <div className="flex justify-between">
-                            <dt className="text-muted-foreground">Recipient</dt>
+                            <dt className="text-muted-foreground">{tw('withdraw.labelRecipient')}</dt>
                             <dd className="font-medium text-foreground">{internalRecipient.trim()}</dd>
                           </div>
                         )}
                       </dl>
-                      <p className="text-xs text-muted-foreground mt-3 mb-2">If you have 2FA or fund password enabled, enter them below.</p>
+                      <p className="text-xs text-muted-foreground mt-3 mb-2">{tw('withdraw.securityHint')}</p>
                       <div className="space-y-3 mt-2">
                         <div>
-                          <label htmlFor="withdraw-2fa" className="block text-xs font-medium text-muted-foreground mb-1">2FA code (if enabled)</label>
+                          <label htmlFor="withdraw-2fa" className="block text-xs font-medium text-muted-foreground mb-1">{tw('withdraw.twoFaLabel')}</label>
                           <input
                             id="withdraw-2fa"
                             type="text"
@@ -1054,11 +1062,11 @@ export default function WithdrawCryptoPage() {
                             value={twoFactorCode}
                             onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
                             className="w-full px-3 py-2 bg-card dark:bg-[#2b2f36] border border-border rounded-lg text-foreground text-sm font-mono focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none"
-                            aria-label="Two-factor authentication code for withdrawal"
+                            aria-label={tw('withdraw.twoFaAria')}
                           />
                         </div>
                         <div>
-                          <label htmlFor="withdraw-fund-password" className="block text-xs font-medium text-muted-foreground mb-1">Fund password (if set)</label>
+                          <label htmlFor="withdraw-fund-password" className="block text-xs font-medium text-muted-foreground mb-1">{tw('withdraw.fundPasswordLabel')}</label>
                           <input
                             id="withdraw-fund-password"
                             type="password"
@@ -1067,7 +1075,7 @@ export default function WithdrawCryptoPage() {
                             value={fundPassword}
                             onChange={(e) => setFundPassword(e.target.value)}
                             className="w-full px-3 py-2 bg-card dark:bg-[#2b2f36] border border-border rounded-lg text-foreground text-sm focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none"
-                            aria-label="Fund password for withdrawal"
+                            aria-label={tw('withdraw.fundPasswordAria')}
                           />
                         </div>
                       </div>
@@ -1076,21 +1084,21 @@ export default function WithdrawCryptoPage() {
                           type="button"
                           onClick={() => setShowConfirmStep(false)}
                           disabled={submitting}
-                          aria-label="Back to edit withdrawal details"
+                          aria-label={tw('withdraw.backAria')}
                           className="flex-1 py-2.5 rounded-xl font-medium border border-border dark:border-gray-600 text-foreground/80 hover:bg-accent disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                         >
-                          Back
+                          {tw('withdraw.back')}
                         </button>
                         <button
                           type="button"
                           onClick={handleSubmit}
                           disabled={submitting}
                           aria-busy={submitting}
-                          aria-label="Confirm and submit withdrawal"
+                          aria-label={tw('withdraw.confirmSubmitAria')}
                           className="flex-1 py-2.5 rounded-xl font-semibold bg-primary hover:bg-primary/85 text-white disabled:opacity-50 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                         >
                           {submitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : null}
-                          Confirm withdrawal
+                          {tw('withdraw.confirmWithdrawal')}
                         </button>
                       </div>
                     </div>
@@ -1115,14 +1123,14 @@ export default function WithdrawCryptoPage() {
                         type="button"
                         onClick={() => setShowConfirmStep(true)}
                         disabled={!isValid}
-                        aria-label="Review withdrawal details before submitting"
+                        aria-label={tw('withdraw.reviewButtonAria')}
                         className={`w-full py-3.5 rounded-xl font-semibold transition-all ${
                           isValid
                             ? 'bg-primary hover:bg-primary/85 text-white shadow-lg shadow-blue-500/25'
                             : 'bg-accent text-muted-foreground cursor-not-allowed'
                         }`}
                       >
-                        Review withdrawal
+                        {tw('withdraw.reviewButton')}
                       </button>
                     );
                   })()}
@@ -1134,9 +1142,9 @@ export default function WithdrawCryptoPage() {
             <div className="space-y-6">
               {/* FAQ */}
               <div className="bg-card rounded-xl border border-border p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">FAQ</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">{tw('deposit.faqTitle')}</h3>
                 <ul className="space-y-3">
-                  {FAQ_LINKS.map((link, index) => (
+                  {faqLinks.map((link, index) => (
                     <li key={index}>
                       <Link href={link.href} className="flex items-start gap-2 text-sm text-muted-foreground hover:text-primary dark:hover:text-blue-400 transition-colors">
                         <span className="text-primary mt-0.5">•</span>
@@ -1151,7 +1159,7 @@ export default function WithdrawCryptoPage() {
               {withdrawalLimits && (
                 <div className="bg-card rounded-xl border border-border p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm text-muted-foreground">Daily Remaining Limit</p>
+                    <p className="text-sm text-muted-foreground">{tw('withdraw.dailyRemainingLimit')}</p>
                     <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-primary rounded-full font-medium">
                       VIP {withdrawalLimits.vipLevel}
                     </span>
@@ -1164,7 +1172,9 @@ export default function WithdrawCryptoPage() {
                   </div>
                   <div className="flex items-center justify-between text-sm mb-4">
                     <span className="font-semibold text-primary">
-                      {((1 - withdrawalLimits.daily.percentage / 100) * 100).toFixed(0)}% remaining
+                      {tw('withdraw.percentRemaining', {
+                        percent: ((1 - withdrawalLimits.daily.percentage / 100) * 100).toFixed(0),
+                      })}
                     </span>
                     <span className="text-muted-foreground">
                       <span className="font-semibold text-foreground">
@@ -1177,7 +1187,7 @@ export default function WithdrawCryptoPage() {
                     href="/dashboard/security/withdrawal-limits"
                     className="flex items-center gap-1 text-sm text-primary hover:text-primary/85 font-medium"
                   >
-                    Manage Limit
+                    {tw('withdraw.manageLimit')}
                     <ChevronRight className="w-4 h-4" />
                   </Link>
                 </div>
@@ -1190,16 +1200,16 @@ export default function WithdrawCryptoPage() {
             {cancelError && (
               <div className="mb-4 flex items-center justify-between gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
                 <span className="min-w-0 flex-1">{cancelError}</span>
-                <button type="button" onClick={() => setCancelError(null)} className="flex-shrink-0 p-1 rounded hover:bg-red-200/50 dark:hover:bg-red-800/30 transition-colors" aria-label="Dismiss">×</button>
+                <button type="button" onClick={() => setCancelError(null)} className="flex-shrink-0 p-1 rounded hover:bg-red-200/50 dark:hover:bg-red-800/30 transition-colors" aria-label={tw('withdraw.dismiss')}>×</button>
               </div>
             )}
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-foreground">Recent Withdrawal Records</h2>
+              <h2 className="text-xl font-semibold text-foreground">{tw('withdraw.recentRecords')}</h2>
               <Link
                 href="/wallet/history?tab=withdraw"
                 className="text-sm text-primary hover:text-primary/85 font-medium flex items-center gap-1"
               >
-                View All
+                {tw('withdraw.viewAll')}
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
@@ -1207,14 +1217,14 @@ export default function WithdrawCryptoPage() {
             <div className="bg-card rounded-lg border border-border overflow-hidden">
               {/* Table Header */}
               <div className="grid grid-cols-8 gap-4 px-6 py-4 bg-background border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                <span>Coin</span>
-                <span>Chain Type</span>
-                <span>Qty</span>
-                <span>Fee</span>
-                <span>Address</span>
-                <span>Txid</span>
-                <span>Status</span>
-                <span>Date & Time</span>
+                <span>{tw('withdraw.tableCoin')}</span>
+                <span>{tw('withdraw.tableChain')}</span>
+                <span>{tw('withdraw.tableQty')}</span>
+                <span>{tw('withdraw.tableFee')}</span>
+                <span>{tw('withdraw.tableAddress')}</span>
+                <span>{tw('withdraw.tableTxid')}</span>
+                <span>{tw('withdraw.tableStatus')}</span>
+                <span>{tw('withdraw.tableDateTime')}</span>
               </div>
 
               {/* Table Body */}
@@ -1225,11 +1235,13 @@ export default function WithdrawCryptoPage() {
                     const chainLabel = withdrawal.chain_type ?? withdrawal.chain_name ?? '—';
                     const qty = withdrawal.quantity ?? withdrawal.amount ?? '0';
                     const toLabel = withdrawal.withdrawal_type === 'internal'
-                      ? (withdrawal.internal_recipient_email ?? 'Internal')
+                      ? (withdrawal.internal_recipient_email ?? tw('withdraw.internalRecipientShort'))
                       : (withdrawal.address ?? withdrawal.to_address ?? '—');
                     const txHash = withdrawal.txid ?? withdrawal.tx_hash;
                     const dateStr = withdrawal.date_time ?? withdrawal.created_at ?? '';
-                    const displayStatus = withdrawal.displayStatus ?? (withdrawal.status ? withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1).replace(/_/g, ' ') : '—');
+                    const displayStatus = withdrawal.displayStatus
+                      ? withdrawal.displayStatus
+                      : walletTransactionStatusLabel(withdrawal.status, tw);
                     return (
                     <div key={withdrawal.id} className="grid grid-cols-8 gap-4 px-6 py-4 text-sm items-center hover:bg-accent/50 transition-colors">
                       <div className="flex items-center gap-2">
@@ -1282,14 +1294,14 @@ export default function WithdrawCryptoPage() {
                                 onClick={() => setCancelConfirmId(null)}
                                 className="text-xs text-muted-foreground hover:text-foreground font-medium"
                               >
-                                Keep
+                                {tw('withdraw.keep')}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => void cancelWithdrawal(withdrawal.id)}
                                 className="text-xs text-red-500 hover:text-red-600 font-semibold"
                               >
-                                Confirm cancel
+                                {tw('withdraw.confirmCancel')}
                               </button>
                             </div>
                           ) : (
@@ -1298,7 +1310,7 @@ export default function WithdrawCryptoPage() {
                               onClick={() => setCancelConfirmId(withdrawal.id)}
                               className="text-xs text-red-500 hover:text-red-600 font-medium"
                             >
-                              Cancel
+                              {tw('withdraw.cancel')}
                             </button>
                           )
                         )}
@@ -1312,8 +1324,8 @@ export default function WithdrawCryptoPage() {
                   <div className="w-20 h-20 bg-accent rounded-xl flex items-center justify-center mb-4">
                     <Clock className="w-10 h-10 text-gray-300 dark:text-muted-foreground" />
                   </div>
-                  <p className="text-muted-foreground font-medium">No withdrawal records found</p>
-                  <p className="text-sm text-muted-foreground mt-1">Your recent withdrawals will appear here</p>
+                  <p className="text-muted-foreground font-medium">{tw('withdraw.noRecords')}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{tw('withdraw.noRecordsHint')}</p>
                 </div>
               )}
             </div>
@@ -1322,7 +1334,7 @@ export default function WithdrawCryptoPage() {
 
       <Link
         href="/dashboard/help#withdraw-crypto"
-        aria-label="Withdrawal help"
+        aria-label={tw('withdraw.helpAria')}
         className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
       >
         <HelpCircle className="h-6 w-6" />

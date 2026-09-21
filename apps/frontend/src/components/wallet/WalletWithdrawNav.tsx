@@ -2,16 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Banknote, Coins } from 'lucide-react';
 import { walletPath } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
-const TABS = [
-  { id: 'crypto', label: 'Crypto', href: walletPath.withdrawCrypto, icon: Coins },
-  { id: 'fiat', label: 'INR (Fiat)', href: walletPath.withdrawFiat, icon: Banknote },
-] as const;
-
 export function WalletWithdrawNav() {
+  const tw = useTranslations('wallet');
+  const TABS = [
+    { id: 'crypto' as const, labelKey: 'nav.withdrawCrypto' as const, href: walletPath.withdrawCrypto, icon: Coins },
+    { id: 'fiat' as const, labelKey: 'nav.withdrawFiatInr' as const, href: walletPath.withdrawFiat, icon: Banknote },
+  ];
   const pathname = usePathname();
   const active = pathname?.includes('/withdraw/fiat') ? 'fiat' : pathname?.includes('/withdraw/crypto') ? 'crypto' : null;
 
@@ -32,7 +33,7 @@ export function WalletWithdrawNav() {
             )}
           >
             <Icon className="h-4 w-4 shrink-0" aria-hidden />
-            {tab.label}
+            {tw(tab.labelKey)}
           </Link>
         );
       })}

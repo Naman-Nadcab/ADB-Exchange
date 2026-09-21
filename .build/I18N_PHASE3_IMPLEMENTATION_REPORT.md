@@ -127,7 +127,11 @@ See `.build/I18N_PHASE3_DOMAIN_INVENTORY.md` (UI vs PROTECTED).
 
 ## 27–28. Commits / remote
 
-- Commits: _pending user-approved git staging_ (exact-path stage only; pre-existing dirty tree excluded).
+| Item | SHA |
+|------|-----|
+| Phase 3 commit | `6e597522f46bc168dd51919a22e6b6d691238a21` |
+| Remote `release/exchange-production-baseline` | `6e597522f46bc168dd51919a22e6b6d691238a21` |
+| Local HEAD == remote | YES |
 
 ---
 
@@ -151,3 +155,44 @@ See `.build/I18N_PHASE3_DOMAIN_INVENTORY.md` (UI vs PROTECTED).
 3. Forex ticket + bottom panel label pass without layout changes.
 4. Add Playwright smoke per locale for `/forex/trade`, `/trade/spot`, `/p2p`, `/wallet/deposit/crypto`.
 5. Domain-isolated commits + push after each slice passes `test:i18n` + `build`.
+
+---
+
+## 31. Slice B completion (wallet withdraw + overview)
+
+**Checkpoint:** `3702fbdb013d62fe9a472d5a7f975d0c254128d0`  
+**Commit:** _(see git log after push)_  
+**Status:** Slice B customer wallet surfaces — **PASS** (Phase 3 overall still **PARTIAL / NOT CERTIFIED**)
+
+### Wired UI
+
+| Surface | Files |
+|---------|--------|
+| Withdraw crypto | `dashboard/withdraw/crypto/page.tsx`, `WalletWithdrawNav.tsx` |
+| Assets overview | `dashboard/assets/overview/page.tsx` |
+| Status labels | `lib/i18n/wallet-transaction-status.ts` |
+| Catalogs | `messages/{en,zh-CN,id-ID}/wallet.json` |
+
+### Withdrawal safety copy
+
+- Irreversibility banner, review/confirm step labels, fee/receive/min rows, memo/address **labels** (values unchanged).
+- Client validation + known API error codes → `wallet.withdraw.errors.*`; unknown/backend `error.message` shown as returned (boundary documented in gap audit).
+
+### Deposit (from prior partial B)
+
+- Remains localized via `wallet.deposit.*` — not regressed.
+
+### Tests (Slice B)
+
+| Test | Result |
+|------|--------|
+| `npm run test:i18n` | PASS |
+| `npm run build` | PASS |
+
+### Visual verification
+
+**NOT VERIFIED** (Playwright wallet matrix not run this slice).
+
+### DB / production / financial
+
+- No schema, production, or business-logic changes in staged diff.
