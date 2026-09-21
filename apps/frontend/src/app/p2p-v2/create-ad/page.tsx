@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useMutation } from '@tanstack/react-query';
 import RequireAuth from '@/components/RequireAuth';
 import { useP2pReferencePrice } from '@/hooks/useP2pReferencePrice';
@@ -24,6 +25,9 @@ export default function P2PV2CreateAdPage() {
 }
 
 function CreateAdForm() {
+  const t = useTranslations('p2p.createAd');
+  const tn = useTranslations('p2p.nav');
+  const tl = useTranslations('p2p.common');
   const router = useRouter();
   const [side, setSide] = useState<'buy' | 'sell'>('sell');
   const [crypto, setCrypto] = useState('USDT');
@@ -65,7 +69,7 @@ function CreateAdForm() {
         pricing === 'floating'
           ? (computedFloating != null ? String(computedFloating.toFixed(4)) : '')
           : fixedPrice.trim();
-      if (!priceStr) throw new Error('Set a valid price');
+      if (!priceStr) throw new Error(t('errInvalidPrice'));
       return createAd({
         type: side,
         currency: crypto,
@@ -87,7 +91,7 @@ function CreateAdForm() {
       if (res.success) {
         router.push('/p2p/my-ads');
       } else {
-        setErr(res.error?.message ?? 'Failed');
+        setErr(res.error?.message ?? t('submitFailed'));
       }
     },
     onError: (e: Error) => setErr(e.message),
@@ -99,6 +103,9 @@ function CreateAdForm() {
       : null;
 
   const sym = formatFiatSymbol(fiat);
+  const sideWord = side === 'sell' ? t('sideWordSell') : t('sideWordBuy');
+  const pairLabel = `${crypto}/${fiat}`;
+  const proTipKeys = ['tip1', 'tip2', 'tip3', 'tip4', 'tip5'] as const;
 
   /* ── derived display price for preview ── */
   const displayPrice = useMemo(() => {
@@ -137,16 +144,16 @@ function CreateAdForm() {
     <div className="mx-auto max-w-[1200px] px-4 pb-10 sm:px-6">
       <header className="flex flex-col gap-3 border-b border-border/20 py-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Post new ad</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t('title')}</h1>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-            Create a {side} ad for {crypto}/{fiat}. Your ad will be visible to all traders.
+            {t('subtitle', { side: sideWord, pair: pairLabel })}
           </p>
         </div>
         <Link
           href="/p2p"
           className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-border/40 px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
         >
-          Marketplace
+          {tn('marketplace')}
         </Link>
       </header>
 
@@ -158,7 +165,7 @@ function CreateAdForm() {
           <div className="rounded-2xl border border-border/40 bg-card p-6 shadow-sm space-y-5">
             <h2 className="flex items-center gap-2.5 text-sm font-bold text-foreground">
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary shadow-sm shadow-primary/10">1</span>
-              Asset & Type
+              {t('sectionAssetType')}
             </h2>
             <div className="flex gap-2">
               {(['sell', 'buy'] as const).map((s) => (
@@ -166,7 +173,7 @@ function CreateAdForm() {
                   key={s}
                   type="button"
                   onClick={() => setSide(s)}
-                  className={`flex-1 rounded-xl px-5 py-3 text-sm font-bold capitalize transition-all duration-200 sm:flex-none sm:min-w-[120px] ${
+                  className={`flex-1 rounded-xl px-5 py-3 text-sm font-bold transition-all duration-200 sm:flex-none sm:min-w-[120px] ${
                     side === s
                       ? s === 'sell'
                         ? 'bg-[#f6465d]/10 text-[#f6465d] ring-1 ring-[#f6465d]/20 shadow-sm'
@@ -174,19 +181,19 @@ function CreateAdForm() {
                       : 'bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
                 >
-                  I want to {s}
+                  {s === 'sell' ? t('wantToSell') : t('wantToBuy')}
                 </button>
               ))}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={labelCls}>Crypto Asset</label>
+                <label className={labelCls}>{t('cryptoAsset')}</label>
                 <select value={crypto} onChange={(e) => setCrypto(e.target.value)} className={inputCls}>
                   {['USDT', 'BTC', 'ETH', 'USDC'].map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div>
-                <label className={labelCls}>Fiat Currency</label>
+                <label className={labelCls}>{t('fiatCurrency')}</label>
                 <select value={fiat} onChange={(e) => setFiat(e.target.value)} className={inputCls}>
                   {['INR', 'USD', 'EUR', 'GBP'].map((f) => <option key={f} value={f}>{f}</option>)}
                 </select>
@@ -198,7 +205,7 @@ function CreateAdForm() {
           <div className="rounded-2xl border border-border/40 bg-card p-6 shadow-sm space-y-5">
             <h2 className="flex items-center gap-2.5 text-sm font-bold text-foreground">
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary shadow-sm shadow-primary/10">2</span>
-              Pricing Strategy
+              {t('sectionPricing')}
             </h2>
             <div className="flex gap-2">
               {(['fixed', 'floating'] as const).map((p) => (
@@ -206,13 +213,13 @@ function CreateAdForm() {
                   key={p}
                   type="button"
                   onClick={() => setPricing(p)}
-                  className={`rounded-full px-5 py-2 text-sm font-bold capitalize transition-all duration-200 ${
+                  className={`rounded-full px-5 py-2 text-sm font-bold transition-all duration-200 ${
                     pricing === p
                       ? 'bg-primary/15 text-primary ring-1 ring-primary/25 shadow-[0_0_12px_hsl(var(--primary)/0.1)]'
                       : 'border border-border/40 text-muted-foreground hover:text-foreground hover:border-border'
                   }`}
                 >
-                  {p} price
+                  {p === 'fixed' ? t('pricingFixed') : t('pricingFloating')}
                 </button>
               ))}
             </div>
@@ -222,23 +229,23 @@ function CreateAdForm() {
               <div className="rounded-xl border border-primary/10 bg-primary/[0.03] p-4">
                 <p className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary">
                   <Sparkles className="h-3.5 w-3.5" />
-                  Smart Price Suggestions
+                  {t('smartSuggestionsTitle')}
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { label: 'Best Price', val: priceSuggestions.bestPrice, desc: 'Max profit' },
-                    { label: 'Market', val: priceSuggestions.competitive, desc: 'Competitive' },
-                    { label: 'Fast Fill', val: priceSuggestions.fastFill, desc: 'Quick match' },
-                  ].map(({ label, val, desc }) => (
+                    { id: 'best' as const, labelKey: 'suggestBestPrice' as const, descKey: 'suggestBestDesc' as const, val: priceSuggestions.bestPrice },
+                    { id: 'market' as const, labelKey: 'suggestMarket' as const, descKey: 'suggestMarketDesc' as const, val: priceSuggestions.competitive },
+                    { id: 'fast' as const, labelKey: 'suggestFastFill' as const, descKey: 'suggestFastDesc' as const, val: priceSuggestions.fastFill },
+                  ].map(({ id, labelKey, descKey, val }) => (
                     <button
-                      key={label}
+                      key={id}
                       type="button"
                       onClick={() => setFixedPrice(val.toFixed(4))}
                       className="group rounded-lg border border-border/30 bg-background/60 px-3 py-2.5 text-left transition-all duration-200 hover:border-primary/30 hover:shadow-sm"
                     >
-                      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">{label}</p>
+                      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">{t(labelKey)}</p>
                       <p className="numeric font-mono text-sm font-semibold tabular-nums text-foreground mt-0.5">{sym}{formatP2pFiatPrice(String(val), fiat)}</p>
-                      <p className="text-xs text-muted-foreground/60">{desc}</p>
+                      <p className="text-xs text-muted-foreground/60">{t(descKey)}</p>
                     </button>
                   ))}
                 </div>
@@ -248,16 +255,16 @@ function CreateAdForm() {
             {pricing === 'floating' && (
               <div className="rounded-xl border border-border/30 bg-muted/20 p-5 space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">Reference price</p>
+                  <p className="text-sm text-muted-foreground">{t('referencePrice')}</p>
                   <span className="numeric font-mono text-sm font-semibold tabular-nums text-foreground">{marketPrice != null ? `${sym}${formatP2pFiatPrice(String(marketPrice), fiat)}` : '—'}</span>
                 </div>
                 <div>
-                  <label className={labelCls}>Margin %</label>
-                  <input type="number" value={marginPct} onChange={(e) => setMarginPct(e.target.value)} className={`${inputCls} font-mono`} placeholder="0" />
+                  <label className={labelCls}>{t('marginPct')}</label>
+                  <input type="number" value={marginPct} onChange={(e) => setMarginPct(e.target.value)} className={`${inputCls} font-mono`} placeholder={t('marginPlaceholder')} />
                 </div>
                 {computedFloating != null && (
                   <div className="flex items-center justify-between rounded-lg bg-background/60 px-4 py-3">
-                    <span className="text-xs text-muted-foreground">Your ad price</span>
+                    <span className="text-xs text-muted-foreground">{t('yourAdPrice')}</span>
                     <div className="text-right">
                       <span className="numeric font-mono text-base font-semibold tabular-nums text-foreground">{sym}{formatP2pFiatPrice(String(computedFloating), fiat)}</span>
                       {diffPct != null && (
@@ -275,15 +282,15 @@ function CreateAdForm() {
 
             {pricing === 'fixed' && (
               <div>
-                <label className={labelCls}>Price ({fiat} per 1 {crypto})</label>
-                <input value={fixedPrice} onChange={(e) => setFixedPrice(e.target.value)} placeholder={marketPrice != null ? `e.g. ${formatP2pFiatPrice(String(marketPrice), fiat)}` : '0.00'} className={`${inputCls} font-mono text-base`} />
+                <label className={labelCls}>{t('pricePerUnit', { fiat, crypto })}</label>
+                <input value={fixedPrice} onChange={(e) => setFixedPrice(e.target.value)} placeholder={marketPrice != null ? t('priceExamplePlaceholder', { example: formatP2pFiatPrice(String(marketPrice), fiat) }) : t('priceFallbackPlaceholder')} className={`${inputCls} font-mono text-base`} />
                 {displayPrice != null && marketPrice != null && marketPrice > 0 && (
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {((displayPrice - marketPrice) / marketPrice * 100) >= 0 ? 'Premium' : 'Discount'}:{' '}
+                    {((displayPrice - marketPrice) / marketPrice * 100) >= 0 ? t('premium') : t('discount')}:{' '}
                     <span className={`font-bold ${((displayPrice - marketPrice) / marketPrice * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                       {((displayPrice - marketPrice) / marketPrice * 100).toFixed(2)}%
                     </span>
-                    {' '}vs market
+                    {' '}{t('vsMarket')}
                   </p>
                 )}
               </div>
@@ -294,20 +301,20 @@ function CreateAdForm() {
           <div className="rounded-2xl border border-border/40 bg-card p-6 shadow-sm space-y-5">
             <h2 className="flex items-center gap-2.5 text-sm font-bold text-foreground">
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary shadow-sm shadow-primary/10">3</span>
-              Order Limits
+              {t('sectionLimits')}
             </h2>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className={labelCls}>Min ({fiat})</label>
-                <input value={minAmt} onChange={(e) => setMinAmt(e.target.value)} placeholder="100" className={`${inputCls} font-mono`} />
+                <label className={labelCls}>{t('minFiat', { fiat })}</label>
+                <input value={minAmt} onChange={(e) => setMinAmt(e.target.value)} placeholder={t('minPlaceholder')} className={`${inputCls} font-mono`} />
               </div>
               <div>
-                <label className={labelCls}>Max ({fiat})</label>
-                <input value={maxAmt} onChange={(e) => setMaxAmt(e.target.value)} placeholder="50,000" className={`${inputCls} font-mono`} />
+                <label className={labelCls}>{t('maxFiat', { fiat })}</label>
+                <input value={maxAmt} onChange={(e) => setMaxAmt(e.target.value)} placeholder={t('maxPlaceholder')} className={`${inputCls} font-mono`} />
               </div>
               <div>
-                <label className={labelCls}>Total ({crypto})</label>
-                <input value={totalAmt} onChange={(e) => setTotalAmt(e.target.value)} placeholder="1,000" className={`${inputCls} font-mono`} />
+                <label className={labelCls}>{t('totalCrypto', { crypto })}</label>
+                <input value={totalAmt} onChange={(e) => setTotalAmt(e.target.value)} placeholder={t('totalPlaceholder')} className={`${inputCls} font-mono`} />
               </div>
             </div>
           </div>
@@ -316,24 +323,24 @@ function CreateAdForm() {
           <div className="rounded-2xl border border-border/40 bg-card p-6 shadow-sm space-y-5">
             <h2 className="flex items-center gap-2.5 text-sm font-bold text-foreground">
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary shadow-sm shadow-primary/10">4</span>
-              Payment Settings
+              {t('sectionPayment')}
             </h2>
             <div>
-              <label className={labelCls}>Payment Window (minutes)</label>
+              <label className={labelCls}>{t('paymentWindow')}</label>
               <input type="number" min={5} max={120} value={timeLimit} onChange={(e) => setTimeLimit(Number(e.target.value))} className={inputCls} />
-              <p className="mt-1.5 text-xs text-muted-foreground">Buyer must pay within this time or order expires.</p>
+              <p className="mt-1.5 text-xs text-muted-foreground">{t('paymentWindowHint')}</p>
             </div>
             <div>
               <p className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <CreditCard className="h-3.5 w-3.5" />
-                Accepted Methods
+                {t('acceptedMethods')}
                 {selectedPm.length > 0 && (
                   <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-bold text-primary">{selectedPm.length}</span>
                 )}
               </p>
               <div className="max-h-48 space-y-1 overflow-y-auto rounded-xl border border-border/30 bg-muted/10 p-3">
                 {myPm.length === 0 && (
-                  <p className="text-xs text-muted-foreground py-4 text-center">No saved methods. Add one in Payment Methods.</p>
+                  <p className="text-xs text-muted-foreground py-4 text-center">{t('noSavedMethods')}</p>
                 )}
                 {myPm.map((m) => {
                   const checked = selectedPm.includes(m.id);
@@ -359,7 +366,7 @@ function CreateAdForm() {
                 })}
               </div>
               {platformPm.length > 0 && (
-                <p className="mt-2 text-xs text-muted-foreground">Platform types: {platformPm.map((p) => p.code).filter(Boolean).join(', ')}</p>
+                <p className="mt-2 text-xs text-muted-foreground">{t('platformTypes', { types: platformPm.map((p) => p.code).filter(Boolean).join(', ') })}</p>
               )}
             </div>
           </div>
@@ -368,22 +375,22 @@ function CreateAdForm() {
           <div className="rounded-2xl border border-border/40 bg-card p-6 shadow-sm space-y-5">
             <h2 className="flex items-center gap-2.5 text-sm font-bold text-foreground">
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary shadow-sm shadow-primary/10">5</span>
-              Conditions & Messaging
+              {t('sectionConditions')}
             </h2>
             <label className="flex items-center gap-3 rounded-xl border border-border/30 bg-muted/10 px-4 py-3.5 text-sm cursor-pointer transition-all duration-200 hover:bg-muted/20">
               <input type="checkbox" checked={autoRel} onChange={(e) => setAutoRel(e.target.checked)} className="rounded border-border accent-primary" />
               <div>
-                <span className="font-medium text-foreground">Auto-release on payment confirmation</span>
-                <p className="text-xs text-muted-foreground mt-0.5">Crypto is released automatically when the buyer marks paid.</p>
+                <span className="font-medium text-foreground">{t('autoReleaseTitle')}</span>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('autoReleaseHint')}</p>
               </div>
             </label>
             <div>
-              <label className={labelCls}>Terms / Remarks (visible to buyers)</label>
-              <textarea value={remarks} onChange={(e) => setRemarks(e.target.value)} rows={2} placeholder="e.g. Only verified accounts, no third-party payments…" className={`${inputCls} resize-none`} />
+              <label className={labelCls}>{t('termsLabel')}</label>
+              <textarea value={remarks} onChange={(e) => setRemarks(e.target.value)} rows={2} placeholder={t('termsPlaceholder')} className={`${inputCls} resize-none`} />
             </div>
             <div>
-              <label className={labelCls}>Auto-reply Message</label>
-              <textarea value={autoReply} onChange={(e) => setAutoReply(e.target.value)} rows={2} placeholder="Sent automatically when someone takes your ad…" className={`${inputCls} resize-none`} />
+              <label className={labelCls}>{t('autoReplyLabel')}</label>
+              <textarea value={autoReply} onChange={(e) => setAutoReply(e.target.value)} rows={2} placeholder={t('autoReplyPlaceholder')} className={`${inputCls} resize-none`} />
             </div>
           </div>
 
@@ -401,7 +408,7 @@ function CreateAdForm() {
             onClick={() => { setErr(null); mut.mutate(); }}
             className="w-full rounded-xl bg-primary py-4 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 disabled:opacity-50 active:scale-[0.99]"
           >
-            {mut.isPending ? 'Publishing…' : 'Publish Ad'}
+            {mut.isPending ? t('publishing') : t('publishAd')}
           </button>
         </div>
 
@@ -416,17 +423,17 @@ function CreateAdForm() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 shadow-sm shadow-primary/10">
                   <BarChart3 className="h-4 w-4 text-primary" />
                 </div>
-                Market Insights
+                {t('marketInsights')}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl bg-muted/20 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/60">Market Price</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/60">{t('marketPrice')}</p>
                   <p className="numeric font-mono text-lg font-semibold tabular-nums text-foreground mt-1">
                     {marketPrice != null ? `${sym}${formatP2pFiatPrice(String(marketPrice), fiat)}` : '—'}
                   </p>
                 </div>
                 <div className="rounded-xl bg-muted/20 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/60">Your Price</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/60">{t('yourPrice')}</p>
                   <p className="numeric font-mono text-lg font-semibold tabular-nums text-foreground mt-1">
                     {displayPrice != null ? `${sym}${formatP2pFiatPrice(String(displayPrice), fiat)}` : '—'}
                   </p>
@@ -436,7 +443,7 @@ function CreateAdForm() {
                 <div className="flex items-center justify-between rounded-xl bg-background/60 px-3 py-2.5">
                   <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <ArrowUpDown className="h-3 w-3" />
-                    Spread
+                    {t('spread')}
                   </span>
                   <span className={`numeric rounded-md px-2 py-0.5 font-mono text-sm font-semibold tabular-nums ${
                     ((displayPrice - marketPrice) / marketPrice) >= 0
@@ -448,7 +455,7 @@ function CreateAdForm() {
                   </span>
                 </div>
               )}
-              <p className="text-xs text-muted-foreground">{crypto}/{fiat} · updated every 4s</p>
+              <p className="text-xs text-muted-foreground">{t('pairUpdatedEvery4s', { pair: pairLabel })}</p>
             </div>
           </div>
 
@@ -458,41 +465,41 @@ function CreateAdForm() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
                 <Eye className="h-4 w-4 text-blue-500" />
               </div>
-              Live Preview
+              {t('livePreview')}
             </div>
             <div className="rounded-xl border border-border/30 bg-muted/10 p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <CoinIcon symbol={crypto} size={24} />
                   <div>
-                    <p className="text-sm font-bold text-foreground">{crypto}/{fiat}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{side} ad</p>
+                    <p className="text-sm font-bold text-foreground">{pairLabel}</p>
+                    <p className="text-xs text-muted-foreground">{t('previewSideAd', { side: sideWord })}</p>
                   </div>
                 </div>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold capitalize ${
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
                   side === 'sell' ? 'bg-[#f6465d]/10 text-[#f6465d]' : 'bg-[#0ecb81]/10 text-[#0ecb81]'
-                }`}>{side}</span>
+                }`}>{sideWord}</span>
               </div>
               <div className="h-px bg-border/30" />
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Price</span>
+                <span className="text-muted-foreground">{t('price')}</span>
                 <span className="numeric font-mono font-semibold tabular-nums text-foreground">{displayPrice != null ? `${sym}${formatP2pFiatPrice(String(displayPrice), fiat)}` : '—'}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Limits</span>
+                <span className="text-muted-foreground">{tl('limits')}</span>
                 <span className="font-mono text-foreground">{minAmt || '—'} – {maxAmt || '—'} {fiat}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Available</span>
+                <span className="text-muted-foreground">{t('available')}</span>
                 <span className="font-mono text-foreground">{totalAmt || '—'} {crypto}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Methods</span>
-                <span className="text-foreground">{selectedPm.length || '0'} selected</span>
+                <span className="text-muted-foreground">{t('methods')}</span>
+                <span className="text-foreground">{t('methodsSelected', { count: selectedPm.length || 0 })}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Window</span>
-                <span className="text-foreground">{timeLimit} min</span>
+                <span className="text-muted-foreground">{t('window')}</span>
+                <span className="text-foreground">{t('minutesShort', { count: timeLimit })}</span>
               </div>
             </div>
           </div>
@@ -504,18 +511,18 @@ function CreateAdForm() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0ecb81]/10">
                   <Target className="h-4 w-4 text-[#0ecb81]" />
                 </div>
-                Ad Score
+                {t('adScore')}
               </div>
               {[
-                { label: 'Speed', value: perfIndicators.speed, icon: Zap, color: '#0ecb81' },
-                { label: 'Visibility', value: perfIndicators.visibility, icon: Eye, color: 'hsl(var(--primary))' },
-                { label: 'Profit', value: perfIndicators.profit, icon: TrendingUp, color: '#3b82f6' },
-              ].map(({ label, value, icon: Icon, color }) => (
-                <div key={label} className="space-y-1.5">
+                { labelKey: 'scoreSpeed' as const, value: perfIndicators.speed, icon: Zap, color: '#0ecb81' },
+                { labelKey: 'scoreVisibility' as const, value: perfIndicators.visibility, icon: Eye, color: 'hsl(var(--primary))' },
+                { labelKey: 'scoreProfit' as const, value: perfIndicators.profit, icon: TrendingUp, color: '#3b82f6' },
+              ].map(({ labelKey, value, icon: Icon, color }) => (
+                <div key={labelKey} className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Icon className="h-3 w-3" style={{ color }} />
-                      {label}
+                      {t(labelKey)}
                     </span>
                     <span className="text-xs font-bold tabular-nums text-foreground">{value}%</span>
                   </div>
@@ -536,19 +543,13 @@ function CreateAdForm() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10">
                 <Lightbulb className="h-4 w-4 text-amber-500" />
               </div>
-              Pro Tips
+              {t('proTipsTitle')}
             </div>
             <ul className="space-y-2.5 text-xs text-muted-foreground leading-relaxed">
-              {[
-                'Set competitive prices to attract more orders',
-                'Wider limits increase your visibility to buyers',
-                'Add multiple payment methods for faster trades',
-                'Auto-reply helps buyers know what to expect',
-                'Keep payment window between 15–30 min for best results',
-              ].map((tip, i) => (
-                <li key={i} className="flex gap-2">
+              {proTipKeys.map((key) => (
+                <li key={key} className="flex gap-2">
                   <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
-                  {tip}
+                  {t(key)}
                 </li>
               ))}
             </ul>
@@ -559,22 +560,22 @@ function CreateAdForm() {
             <div className="flex items-center gap-2.5 rounded-xl border border-[#0ecb81]/15 bg-[#0ecb81]/[0.04] px-4 py-3">
               <Shield className="h-4 w-4 text-[#0ecb81]" />
               <div>
-                <p className="text-xs font-bold text-foreground">Escrow Protected</p>
-                <p className="text-xs text-muted-foreground">Funds locked until confirmed</p>
+                <p className="text-xs font-bold text-foreground">{t('escrowProtectedTitle')}</p>
+                <p className="text-xs text-muted-foreground">{t('escrowProtectedDesc')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2.5 rounded-xl border border-blue-500/15 bg-blue-500/[0.04] px-4 py-3">
               <CheckCircle2 className="h-4 w-4 text-blue-500" />
               <div>
-                <p className="text-xs font-bold text-foreground">Secure Trade</p>
-                <p className="text-xs text-muted-foreground">End-to-end encrypted chat</p>
+                <p className="text-xs font-bold text-foreground">{t('secureTradeTitle')}</p>
+                <p className="text-xs text-muted-foreground">{t('secureTradeDesc')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2.5 rounded-xl border border-primary/15 bg-primary/[0.04] px-4 py-3">
               <Clock className="h-4 w-4 text-primary" />
               <div>
-                <p className="text-xs font-bold text-foreground">24/7 Support</p>
-                <p className="text-xs text-muted-foreground">Dispute resolution available</p>
+                <p className="text-xs font-bold text-foreground">{t('supportTitle')}</p>
+                <p className="text-xs text-muted-foreground">{t('supportDesc')}</p>
               </div>
             </div>
           </div>
