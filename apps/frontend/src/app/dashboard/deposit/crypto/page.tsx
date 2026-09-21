@@ -12,7 +12,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { CoinIcon } from '@/components/ui/CoinIcon';
 import { QRCodeSVG } from 'qrcode.react';
-import { notifyError } from '@/lib/notifyError';
+import { useLocalizedNotify } from '@/hooks/useLocalizedNotify';
 import { toast } from '@/components/ui/toaster';
 import {
   ChevronDown,
@@ -92,6 +92,8 @@ const POPULAR_TOKENS = ['BTC', 'ETH', 'USDT', 'USDC', 'BNB', 'SOL', 'TRX'];
 
 export default function DepositCryptoPage() {
   const tw = useTranslations('wallet');
+  const tt = useTranslations('account.toasts');
+  const { error: notifyError } = useLocalizedNotify();
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -220,7 +222,7 @@ export default function DepositCryptoPage() {
         }
       }
     } catch (error) {
-      notifyError('Failed to load tokens. Please try again.');
+      notifyError(tt('loadTokensFailed'));
     } finally {
       setLoading(false);
     }
@@ -234,7 +236,7 @@ export default function DepositCryptoPage() {
         setKycStatus(result.data);
       }
     } catch (error) {
-      notifyError('Failed to load KYC status. Please try again.');
+      notifyError(tt('loadKycFailed'));
     }
   };
 
@@ -255,7 +257,7 @@ export default function DepositCryptoPage() {
         setChainsError(result.error?.message || 'Could not load chains for this asset.');
       }
     } catch (error) {
-      notifyError('Failed to load chains. Please try again.');
+      notifyError(tt('loadChainsFailed'));
       setAvailableChains([]);
       setChainsError('Network error. Try again.');
     } finally {
@@ -295,7 +297,7 @@ export default function DepositCryptoPage() {
     } catch (error) {
       setDepositAddress(null);
       setAddressError('Network error. Check backend and try again.');
-      notifyError('Failed to load deposit address. Please try again.');
+      notifyError(tt('loadDepositAddressFailed'));
     } finally {
       setAddressLoading(false);
     }
@@ -341,7 +343,7 @@ export default function DepositCryptoPage() {
         setRecentDeposits([]);
       }
     } catch (error) {
-      notifyError('Failed to load deposit history. Please try again.');
+      notifyError(tt('loadDepositHistoryFailed'));
       setRecentDeposits([]);
     } finally {
       setRecentDepositsLoading(false);

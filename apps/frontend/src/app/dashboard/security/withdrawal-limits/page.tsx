@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -20,6 +22,8 @@ interface WithdrawalLimits {
 }
 
 export default function WithdrawalLimitsPage() {
+  const tn = useTranslations('common.notifications');
+  const tt = useTranslations('account.toasts');
   const router = useRouter();
   const { accessToken } = useAuthStore();
   const apiUrl = getApiBaseUrl();
@@ -121,12 +125,12 @@ export default function WithdrawalLimitsPage() {
     const monthly = parseFloat(monthlyInput) || 0;
 
     if (daily < 0 || daily > limits.maxDailyLimit) {
-      toast({ title: 'Validation', description: `Daily limit must be between 0 and ${limits.maxDailyLimit.toLocaleString()}`, variant: 'destructive' });
+      toast({ title: tn('validationTitle'), description: tt('dailyLimitRange', { max: limits.maxDailyLimit.toLocaleString() }), variant: 'destructive' });
       return;
     }
 
     if (monthly < 0 || monthly > limits.maxMonthlyLimit) {
-      toast({ title: 'Validation', description: `Monthly limit must be between 0 and ${limits.maxMonthlyLimit.toLocaleString()}`, variant: 'destructive' });
+      toast({ title: tn('validationTitle'), description: tt('monthlyLimitRange', { max: limits.maxMonthlyLimit.toLocaleString() }), variant: 'destructive' });
       return;
     }
 
@@ -153,11 +157,11 @@ export default function WithdrawalLimitsPage() {
         setSmsOtpTimer(60);
         setSmsCheckbox(true);
       } else {
-        toast({ title: 'Error', description: result.error?.message || 'Failed to send verification code', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message || tt('verificationCodeSendFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to send SMS OTP:', error);
-      toast({ title: 'Error', description: 'Failed to send verification code', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('verificationCodeSendFailed'), variant: 'destructive' });
     } finally {
       setSendingSmsOtp(false);
     }
@@ -165,12 +169,12 @@ export default function WithdrawalLimitsPage() {
 
   const verifyAndSubmit = async () => {
     if (!smsOtp) {
-      toast({ title: 'Validation', description: 'Please enter the SMS verification code', variant: 'destructive' });
+      toast({ title: tn('validationTitle'), description: tt('smsCodeRequired'), variant: 'destructive' });
       return;
     }
 
     if (user2faEnabled && !google2faCode) {
-      toast({ title: 'Validation', description: 'Please enter the Google 2FA code', variant: 'destructive' });
+      toast({ title: tn('validationTitle'), description: tt('google2faCodeRequired'), variant: 'destructive' });
       return;
     }
 
@@ -192,7 +196,7 @@ export default function WithdrawalLimitsPage() {
       const verifyResult = await verifyRes.json();
 
       if (!verifyResult.success) {
-        toast({ title: 'Error', description: verifyResult.error?.message || 'Invalid verification code', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: verifyResult.error?.message || tt('invalidVerificationCode'), variant: 'destructive' });
         setVerifying(false);
         return;
       }
@@ -210,7 +214,7 @@ export default function WithdrawalLimitsPage() {
         const twoFaResult = await twoFaRes.json();
 
         if (!twoFaResult.success) {
-          toast({ title: 'Error', description: twoFaResult.error?.message || 'Invalid 2FA code', variant: 'destructive' });
+          toast({ title: tn('errorTitle'), description: twoFaResult.error?.message || tt('invalid2faCode'), variant: 'destructive' });
           setVerifying(false);
           return;
         }
@@ -234,7 +238,7 @@ export default function WithdrawalLimitsPage() {
       const result = await response.json();
 
       if (result.success) {
-        toast({ title: 'Success', description: 'Withdrawal limits updated successfully', variant: 'success' });
+        toast({ title: tn('successTitle'), description: tt('limitsUpdatedSuccess'), variant: 'success' });
         setLimits({
           ...limits,
           dailyLimit: daily,
@@ -242,11 +246,11 @@ export default function WithdrawalLimitsPage() {
         });
         closeModal();
       } else {
-        toast({ title: 'Error', description: result.error?.message || 'Failed to update limits', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message || tt('limitsUpdateFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to update limits:', error);
-      toast({ title: 'Error', description: 'Failed to update withdrawal limits', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('limitsUpdateFailedFull'), variant: 'destructive' });
     } finally {
       setVerifying(false);
     }

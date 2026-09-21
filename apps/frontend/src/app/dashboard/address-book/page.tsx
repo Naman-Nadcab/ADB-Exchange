@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -37,6 +39,8 @@ interface Asset {
 }
 
 export default function AddressBookPage() {
+  const tn = useTranslations('common.notifications');
+  const tt = useTranslations('account.toasts');
   const router = useRouter();
   const { user, accessToken } = useAuthStore();
   const apiUrl = getApiBaseUrl();
@@ -297,13 +301,13 @@ export default function AddressBookPage() {
 
       if (result.success) {
         setWhitelistEmailOtpTimer(120);
-        toast({ title: 'Verification code sent', description: 'Check your email', variant: 'success' });
+        toast({ title: tt('verificationCodeSent'), description: tt('checkEmail'), variant: 'success' });
       } else {
-        toast({ title: 'Error', description: result.error?.message || 'Failed to send verification code', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message || tt('verificationCodeSendFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to send OTP:', error);
-      toast({ title: 'Error', description: 'Failed to send verification code', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('verificationCodeSendFailed'), variant: 'destructive' });
     } finally {
       setSendingWhitelistOtp(false);
     }
@@ -312,12 +316,12 @@ export default function AddressBookPage() {
   // Verify and update whitelist setting
   const verifyAndUpdateWhitelist = async () => {
     if (!whitelistEmailOtp) {
-      toast({ title: 'Validation', description: 'Please enter the email verification code', variant: 'destructive' });
+      toast({ title: tn('validationTitle'), description: tt('emailCodeRequired'), variant: 'destructive' });
       return;
     }
 
     if (user2faEnabled && !whitelistGoogle2faCode) {
-      toast({ title: 'Validation', description: 'Please enter the Google 2FA code', variant: 'destructive' });
+      toast({ title: tn('validationTitle'), description: tt('google2faCodeRequired'), variant: 'destructive' });
       return;
     }
 
@@ -335,7 +339,7 @@ export default function AddressBookPage() {
       const otpResult = await verifyOtpRes.json();
 
       if (!otpResult.success) {
-        toast({ title: 'Error', description: otpResult.error?.message || 'Invalid email verification code', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: otpResult.error?.message || tt('invalidEmailVerificationCode'), variant: 'destructive' });
         setVerifyingWhitelist(false);
         return;
       }
@@ -353,7 +357,7 @@ export default function AddressBookPage() {
         const faResult = await verify2faRes.json();
 
         if (!faResult.success) {
-          toast({ title: 'Error', description: faResult.error?.message || 'Invalid 2FA code', variant: 'destructive' });
+          toast({ title: tn('errorTitle'), description: faResult.error?.message || tt('invalid2faCode'), variant: 'destructive' });
           setVerifyingWhitelist(false);
           return;
         }
@@ -377,13 +381,13 @@ export default function AddressBookPage() {
         setWhitelistEmailOtp('');
         setWhitelistGoogle2faCode('');
         setWhitelistEmailOtpTimer(0);
-        toast({ title: 'Success', description: `Withdrawal Address Whitelist ${newValue ? 'enabled' : 'disabled'} successfully`, variant: 'success' });
+        toast({ title: tn('successTitle'), description: tt('whitelistUpdated', { status: newValue ? tt('whitelistEnabled') : tt('whitelistDisabled') }), variant: 'success' });
       } else {
-        toast({ title: 'Error', description: result.error?.message || 'Failed to update setting', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message || tt('settingUpdateFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to update whitelist:', error);
-      toast({ title: 'Error', description: 'Failed to update setting', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('settingUpdateFailed'), variant: 'destructive' });
     } finally {
       setVerifyingWhitelist(false);
     }
@@ -399,12 +403,12 @@ export default function AddressBookPage() {
   const handleAddAddress = async () => {
     if (addModalTab === 'onchain') {
       if (!newAddress.asset || !newAddress.network || !newAddress.address) {
-        toast({ title: 'Validation', description: 'Please fill in all required fields', variant: 'destructive' });
+        toast({ title: tn('validationTitle'), description: tt('fillRequiredFields'), variant: 'destructive' });
         return;
       }
     } else {
       if (!newAddress.recipientAccount) {
-        toast({ title: 'Validation', description: 'Please enter recipient account', variant: 'destructive' });
+        toast({ title: tn('validationTitle'), description: tt('recipientAccountRequired'), variant: 'destructive' });
         return;
       }
     }
@@ -430,9 +434,9 @@ export default function AddressBookPage() {
           setShowAddModal(false);
           resetAddForm();
           fetchAddresses();
-          toast({ title: 'Updated', description: 'Address updated successfully.' });
+          toast({ title: tt('updatedTitle'), description: tt('addressUpdated') });
         } else {
-          toast({ title: 'Error', description: result.error?.message || 'Failed to update address', variant: 'destructive' });
+          toast({ title: tn('errorTitle'), description: result.error?.message || tt('addressUpdateFailed'), variant: 'destructive' });
         }
         return;
       }
@@ -470,11 +474,11 @@ export default function AddressBookPage() {
         resetAddForm();
         fetchAddresses();
       } else {
-        toast({ title: 'Error', description: result.error?.message || 'Failed to add address', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message || tt('addressAddFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to add address:', error);
-      toast({ title: 'Error', description: 'Failed to add address', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('addressAddFailed'), variant: 'destructive' });
     } finally {
       setAddingAddress(false);
     }
@@ -529,11 +533,11 @@ export default function AddressBookPage() {
         setDeleteConfirmId(null);
         fetchAddresses();
       } else {
-        toast({ title: 'Error', description: result.error?.message || 'Failed to delete address', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message || tt('addressDeleteFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to delete address:', error);
-      toast({ title: 'Error', description: 'Failed to delete address', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('addressDeleteFailed'), variant: 'destructive' });
     }
   };
 

@@ -5,11 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { useTranslations } from 'next-intl';
 import { toast } from '@/components/ui/toaster';
 import { ChevronRight, Loader2, Info, Key, Shield, Check, AlertTriangle, Copy } from 'lucide-react';
 import { APIPermissionSummary } from '@/components/api/APIPermissionSummary';
 
 function CreateApiKeyContent() {
+  const tn = useTranslations('common.notifications');
+  const tt = useTranslations('account.toasts');
   const router = useRouter();
   const searchParams = useSearchParams();
   const keyType = searchParams.get('type') as 'system' | 'self' || 'system';
@@ -68,12 +71,12 @@ function CreateApiKeyContent() {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      toast({ title: 'Validation', description: 'Please enter a name for the API key', variant: 'destructive' });
+      toast({ title: tn('validationTitle'), description: tt('apiKeyNameRequired'), variant: 'destructive' });
       return;
     }
 
     if (keyType === 'self' && !publicKey.trim()) {
-      toast({ title: 'Validation', description: 'Please enter your public key', variant: 'destructive' });
+      toast({ title: tn('validationTitle'), description: tt('apiKeyPublicKeyRequired'), variant: 'destructive' });
       return;
     }
 
@@ -107,11 +110,11 @@ function CreateApiKeyContent() {
         });
         setShowSuccess(true);
       } else {
-        toast({ title: 'Error', description: result.error?.message || 'Failed to create API key', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message || tt('apiKeyCreateFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to create API key:', error);
-      toast({ title: 'Error', description: 'Failed to create API key', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('apiKeyCreateFailed'), variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }

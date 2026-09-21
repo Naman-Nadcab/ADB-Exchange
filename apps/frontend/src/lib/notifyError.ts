@@ -1,6 +1,7 @@
 /**
  * Centralized notifications.
  * Use instead of alert() for consistent UX (toast).
+ * For localized customer copy, prefer `useLocalizedNotify()` (localized error title).
  */
 
 export function notifyError(

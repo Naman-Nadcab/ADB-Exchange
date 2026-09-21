@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -29,6 +31,8 @@ interface ApiKey {
 }
 
 export default function ApiPage() {
+  const tn = useTranslations('common.notifications');
+  const tt = useTranslations('account.toasts');
   const router = useRouter();
   const { accessToken } = useAuthStore();
   const apiUrl = getApiBaseUrl();
@@ -62,7 +66,7 @@ export default function ApiPage() {
         ? editIpInput.split(',').map((s) => s.trim()).filter(Boolean)
         : [];
     if (editIpRestriction === 'ip_only' && ipAddresses.length === 0) {
-      toast({ title: 'IP required', description: 'Add at least one IP address or choose no restriction', variant: 'destructive' });
+      toast({ title: tt('ipRequiredTitle'), description: tt('ipRequiredDesc'), variant: 'destructive' });
       return;
     }
     setSavingEdit(true);
@@ -87,12 +91,12 @@ export default function ApiPage() {
           )
         );
         setEditKey(null);
-        toast({ title: 'API key updated', description: 'Your changes have been saved', variant: 'success' });
+        toast({ title: tt('apiKeyUpdatedTitle'), description: tt('apiKeyUpdatedDesc'), variant: 'success' });
       } else {
-        toast({ title: 'Error', description: result.error?.message || 'Failed to update API key', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message || tt('apiKeyUpdateFailed'), variant: 'destructive' });
       }
     } catch {
-      toast({ title: 'Error', description: 'Failed to update API key', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('apiKeyUpdateFailed'), variant: 'destructive' });
     } finally {
       setSavingEdit(false);
     }
@@ -176,13 +180,13 @@ export default function ApiPage() {
       if (result.success) {
         setApiKeys((prev) => prev.filter((k) => k.id !== key.id));
         setRevokeConfirmId(null);
-        toast({ title: 'API key deleted', description: 'Access has been revoked', variant: 'success' });
+        toast({ title: tt('apiKeyDeletedTitle'), description: tt('apiKeyDeletedDesc'), variant: 'success' });
       } else {
-        toast({ title: 'Error', description: result.error?.message || 'Failed to delete API key', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message || tt('apiKeyDeleteFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Delete API key error:', error);
-      toast({ title: 'Error', description: 'Failed to delete API key', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('apiKeyDeleteFailed'), variant: 'destructive' });
     } finally {
       setDeletingId(null);
     }

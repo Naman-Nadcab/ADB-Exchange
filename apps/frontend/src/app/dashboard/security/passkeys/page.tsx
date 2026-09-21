@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '@/store/auth';
 import Link from 'next/link';
@@ -28,6 +30,8 @@ interface Passkey {
 }
 
 export default function PasskeysPage() {
+  const tn = useTranslations('common.notifications');
+  const tt = useTranslations('account.toasts');
   const { user, accessToken } = useAuthStore();
   const [passkeys, setPasskeys] = useState<Passkey[]>([]);
   const [loading, setLoading] = useState(true);
@@ -171,11 +175,11 @@ export default function PasskeysPage() {
         setVerifyCode(['', '', '', '', '', '']);
         await createPasskey();
       } else {
-        toast({ title: 'Error', description: result.error?.message || 'Invalid 2FA code', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message || tt('invalid2faCode'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('2FA verification failed:', error);
-      toast({ title: 'Error', description: 'Verification failed', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('verificationFailed'), variant: 'destructive' });
     } finally {
       setVerifying(false);
     }
@@ -288,18 +292,18 @@ export default function PasskeysPage() {
         if (passkeysResult.success) {
           setPasskeys(passkeysResult.data.passkeys || []);
         }
-        toast({ title: 'Passkey added successfully', variant: 'success' });
+        toast({ title: tt('passkeyAdded'), variant: 'success' });
       } else {
         throw new Error(registerResult.error?.message || 'Failed to register passkey');
       }
     } catch (error: any) {
       console.error('Failed to create passkey:', error);
       if (error.name === 'NotAllowedError') {
-        toast({ title: 'Cancelled', description: 'Passkey creation was cancelled or not allowed', variant: 'destructive' });
+        toast({ title: tn('cancelledTitle'), description: tt('passkeyCreationCancelled'), variant: 'destructive' });
       } else if (error.name === 'NotSupportedError') {
-        toast({ title: 'Not supported', description: 'Passkeys are not supported on this device', variant: 'destructive' });
+        toast({ title: tn('notSupportedTitle'), description: tt('passkeysUnsupportedDevice'), variant: 'destructive' });
       } else {
-        toast({ title: 'Error', description: error.message || 'Failed to create passkey', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: error.message || tt('passkeyCreateFailed'), variant: 'destructive' });
       }
     } finally {
       setCreating(false);
@@ -333,11 +337,11 @@ export default function PasskeysPage() {
         setRenamePasskeyId('');
         setRenameName('');
       } else {
-        toast({ title: 'Error', description: result.error?.message || 'Failed to rename passkey', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message || tt('passkeyRenameFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to rename passkey:', error);
-      toast({ title: 'Error', description: 'Failed to rename passkey', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('passkeyRenameFailed'), variant: 'destructive' });
     } finally {
       setRenaming(false);
     }
@@ -394,7 +398,7 @@ export default function PasskeysPage() {
       const verifyEmailResult = await verifyEmailRes.json();
 
       if (!verifyEmailResult.success) {
-        toast({ title: 'Error', description: verifyEmailResult.error?.message || 'Invalid email verification code', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: verifyEmailResult.error?.message || tt('invalidEmailVerificationCode'), variant: 'destructive' });
         setDeleting(false);
         return;
       }
@@ -412,7 +416,7 @@ export default function PasskeysPage() {
         const verify2faResult = await verify2faRes.json();
 
         if (!verify2faResult.success) {
-          toast({ title: 'Error', description: verify2faResult.error?.message || 'Invalid 2FA code', variant: 'destructive' });
+          toast({ title: tn('errorTitle'), description: verify2faResult.error?.message || tt('invalid2faCode'), variant: 'destructive' });
           setDeleting(false);
           return;
         }
@@ -433,11 +437,11 @@ export default function PasskeysPage() {
           // Already handled by the UI
         }
       } else {
-        toast({ title: 'Error', description: result.error?.message || 'Failed to delete passkey', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message || tt('passkeyDeleteFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to delete passkey:', error);
-      toast({ title: 'Error', description: 'Failed to delete passkey', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('passkeyDeleteFailed'), variant: 'destructive' });
     } finally {
       setDeleting(false);
     }

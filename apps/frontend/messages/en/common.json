@@ -32,6 +32,19 @@
   "notifications": {
     "errorTitle": "Error",
     "successTitle": "Success",
-    "actionFailed": "Action failed. Please try again."
+    "actionFailed": "Action failed. Please try again.",
+    "validationTitle": "Validation",
+    "notSupportedTitle": "Not supported",
+    "notAvailableTitle": "Not available",
+    "sessionExpiredTitle": "Session expired",
+    "cancelledTitle": "Cancelled",
+    "copiedTitle": "Copied",
+    "partialSuccessTitle": "Partial success",
+    "verificationTitle": "Verification",
+    "savedTitle": "Saved",
+    "phoneVerifiedTitle": "Phone verified",
+    "invalidCodeTitle": "Invalid code",
+    "sessionsTitle": "Sessions",
+    "activityTitle": "Activity"
   }
 }

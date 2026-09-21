@@ -54,6 +54,8 @@ interface UserProfile {
 
 export default function AccountInfoPage() {
   const ta = useTranslations('account');
+  const tn = useTranslations('common.notifications');
+  const tt = useTranslations('account.toasts');
   const router = useRouter();
   const { user, accessToken, _hasHydrated, updateUser } = useAuthStore();
   const [copiedUID, setCopiedUID] = useState(false);
@@ -149,11 +151,11 @@ export default function AccountInfoPage() {
       if (json.success && json.data?.url) {
         window.location.href = json.data.url;
       } else {
-        toast({ title: 'Cannot link', description: json.error?.message || 'Google sign-in is not configured.', variant: 'destructive' });
+        toast({ title: tt('cannotLinkGoogle'), description: json.error?.message || tt('googleNotConfigured'), variant: 'destructive' });
         setLinking(false);
       }
     } catch {
-      toast({ title: 'Error', description: 'Failed to start Google linking.', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('googleLinkStartFailed'), variant: 'destructive' });
       setLinking(false);
     }
   };
@@ -169,13 +171,13 @@ export default function AccountInfoPage() {
       });
       const json = await res.json();
       if (json.success) {
-        toast({ title: 'Google unlinked', variant: 'success' });
+        toast({ title: tt('googleUnlinked'), variant: 'success' });
         await fetchLinkedProviders();
       } else {
-        toast({ title: 'Cannot unlink', description: json.error?.message || 'Failed to unlink.', variant: 'destructive' });
+        toast({ title: tt('cannotUnlink'), description: json.error?.message || tt('googleUnlinkFailed'), variant: 'destructive' });
       }
     } catch {
-      toast({ title: 'Error', description: 'Failed to unlink Google.', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('googleUnlinkError'), variant: 'destructive' });
     } finally {
       setLinking(false);
     }
@@ -197,15 +199,15 @@ export default function AccountInfoPage() {
         setDeletePassword('');
         setDelete2fa('');
         toast({
-          title: 'Account scheduled for deletion',
-          description: 'You can cancel any time during the 7-day grace period.',
+          title: tt('scheduledDeletionTitle'),
+          description: tt('scheduledDeletionDesc'),
           variant: 'default',
         });
       } else {
-        toast({ title: 'Could not request deletion', description: json.error?.message || 'Please try again.', variant: 'destructive' });
+        toast({ title: tt('couldNotRequestDeletion'), description: json.error?.message || tt('pleaseTryAgain'), variant: 'destructive' });
       }
     } catch {
-      toast({ title: 'Error', description: 'Failed to request account deletion.', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('deletionRequestFailed'), variant: 'destructive' });
     } finally {
       setDeleting(false);
     }
@@ -222,12 +224,12 @@ export default function AccountInfoPage() {
       const json = await res.json();
       if (json.success) {
         setDeletionScheduledAt(null);
-        toast({ title: 'Deletion cancelled', description: 'Your account will not be deleted.', variant: 'success' });
+        toast({ title: tt('deletionCancelledTitle'), description: tt('deletionCancelledDesc'), variant: 'success' });
       } else {
-        toast({ title: 'Error', description: json.error?.message || 'Failed to cancel.', variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: json.error?.message || tt('cancelDeletionFailed'), variant: 'destructive' });
       }
     } catch {
-      toast({ title: 'Error', description: 'Failed to cancel deletion.', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('cancelDeletionError'), variant: 'destructive' });
     } finally {
       setCancellingDeletion(false);
     }
@@ -307,7 +309,7 @@ export default function AccountInfoPage() {
     if (file) e.target.value = '';
     if (!file || !accessToken) return;
     if (file.size > 2 * 1024 * 1024) {
-      toast({ title: 'Image too large', description: 'Please choose an image under 2MB.', variant: 'destructive' });
+      toast({ title: tt('imageTooLargeTitle'), description: tt('imageTooLargeDesc'), variant: 'destructive' });
       return;
     }
     setUploadingAvatar(true);
@@ -322,12 +324,12 @@ export default function AccountInfoPage() {
       const json = await res.json();
       if (json.success && json.data?.avatarUrl) {
         updateUser({ avatarUrl: json.data.avatarUrl });
-        toast({ title: 'Profile picture updated', variant: 'success' });
+        toast({ title: tt('profilePictureUpdated'), variant: 'success' });
       } else {
-        toast({ title: 'Upload failed', description: json.error?.message || 'Could not update profile picture.', variant: 'destructive' });
+        toast({ title: tt('uploadFailedTitle'), description: json.error?.message || tt('profilePictureUpdateFailed'), variant: 'destructive' });
       }
     } catch {
-      toast({ title: 'Error', description: 'Failed to upload profile picture.', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('profilePictureUploadFailed'), variant: 'destructive' });
     } finally {
       setUploadingAvatar(false);
     }

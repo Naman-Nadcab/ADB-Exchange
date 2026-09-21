@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
@@ -138,6 +140,8 @@ function isSuspiciousActivityType(type: string): boolean {
 }
 
 export default function SecuritySessionsPage() {
+  const tn = useTranslations('common.notifications');
+  const tt = useTranslations('account.toasts');
   const { accessToken } = useAuthStore();
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
   const [activity, setActivity] = useState<ActivityEntry[]>([]);
@@ -160,7 +164,7 @@ export default function SecuritySessionsPage() {
       } else {
         setSessions([]);
         if (!sessionsRes.success && sessionsRes.error?.message) {
-          toast({ title: 'Sessions', description: sessionsRes.error.message, variant: 'destructive' });
+          toast({ title: tn('sessionsTitle'), description: sessionsRes.error.message, variant: 'destructive' });
         }
       }
 
@@ -171,7 +175,7 @@ export default function SecuritySessionsPage() {
       } else {
         setActivity([]);
         if (!activityRes.success && activityRes.error?.message) {
-          toast({ title: 'Activity', description: activityRes.error.message, variant: 'destructive' });
+          toast({ title: tn('activityTitle'), description: activityRes.error.message, variant: 'destructive' });
         }
       }
     } finally {
@@ -195,13 +199,13 @@ export default function SecuritySessionsPage() {
       const res = await api.post('/api/v1/auth/logout-all-other', undefined, { notifyOnError: false });
       if (res.success) {
         toast({
-          title: 'Sessions ended',
-          description: 'All other devices have been signed out.',
+          title: tt('sessionsEndedTitle'),
+          description: tt('sessionsEndedDesc'),
           variant: 'success',
         });
         await loadData();
       } else if (res.error?.message) {
-        toast({ title: 'Could not sign out', description: res.error.message, variant: 'destructive' });
+        toast({ title: tt('couldNotSignOut'), description: res.error.message, variant: 'destructive' });
       }
     } finally {
       setTerminating(false);

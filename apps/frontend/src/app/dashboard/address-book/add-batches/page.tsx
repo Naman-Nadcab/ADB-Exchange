@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
@@ -44,6 +46,8 @@ interface Chain {
 }
 
 export default function AddBatchesPage() {
+  const tn = useTranslations('common.notifications');
+  const tt = useTranslations('account.toasts');
   const router = useRouter();
   const { accessToken } = useAuthStore();
   const apiUrl = getApiBaseUrl();
@@ -185,7 +189,7 @@ export default function AddBatchesPage() {
         : internalAddresses.filter(a => a.recipient);
 
       if (addressesToSubmit.length === 0) {
-        toast({ title: 'Validation', description: 'Please add at least one valid address', variant: 'destructive' });
+        toast({ title: tn('validationTitle'), description: tt('batchAddressRequired'), variant: 'destructive' });
         setSubmitting(false);
         return;
       }
@@ -228,14 +232,14 @@ export default function AddBatchesPage() {
       const allSuccessful = results.every(r => r.ok);
 
       if (allSuccessful) {
-        toast({ title: 'Success', description: 'All addresses added successfully', variant: 'success' });
+        toast({ title: tn('successTitle'), description: tt('batchAddressesAdded'), variant: 'success' });
         router.push('/dashboard/address-book');
       } else {
-        toast({ title: 'Partial success', description: 'Some addresses failed to add. Please try again.', variant: 'destructive' });
+        toast({ title: tn('partialSuccessTitle'), description: tt('batchPartialFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to submit addresses:', error);
-      toast({ title: 'Error', description: 'Failed to add addresses', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('batchAddFailed'), variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }

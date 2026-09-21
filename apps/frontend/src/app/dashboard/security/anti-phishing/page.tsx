@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -9,6 +11,8 @@ import { useAuthStore } from '@/store/auth';
 import { toast } from '@/components/ui/toaster';
 
 export default function AntiPhishingPage() {
+  const tn = useTranslations('common.notifications');
+  const tt = useTranslations('account.toasts');
   const router = useRouter();
   const { accessToken } = useAuthStore();
   const [loading, setLoading] = useState(true);
@@ -41,14 +45,14 @@ export default function AntiPhishingPage() {
   const handleSubmit = async () => {
     if (newCode.length < 4 || newCode.length > 20) {
       toast({
-        title: 'Invalid code',
-        description: 'Use 4–20 characters (letters, numbers, underscores).',
+        title: tn('invalidCodeTitle'),
+        description: tt('antiPhishingInvalidDesc'),
         variant: 'destructive',
       });
       return;
     }
     if (hasCode && oldCode !== existingCode) {
-      toast({ title: 'Verification', description: 'Current code does not match.', variant: 'destructive' });
+      toast({ title: tn('verificationTitle'), description: tt('antiPhishingMismatch'), variant: 'destructive' });
       return;
     }
     setSubmitting(true);
@@ -56,7 +60,7 @@ export default function AntiPhishingPage() {
     const res = await api.post('/api/v1/auth/anti-phishing/set', body);
     setSubmitting(false);
     if (res.success) {
-      toast({ title: 'Saved', description: 'Anti-phishing code updated.', variant: 'success' });
+      toast({ title: tn('savedTitle'), description: tt('antiPhishingSavedDesc'), variant: 'success' });
       setExistingCode(newCode);
       setOldCode('');
       setNewCode('');

@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState, useEffect } from 'react';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import Link from 'next/link';
@@ -48,6 +50,8 @@ interface ReferralData {
 }
 
 export default function MyReferralsPage() {
+  const tn = useTranslations('common.notifications');
+  const tt = useTranslations('account.toasts');
   const router = useRouter();
   const { accessToken, _hasHydrated } = useAuthStore();
   const [signupTab, setSignupTab] = useState<SignupTab>('signups');
@@ -103,13 +107,13 @@ export default function MyReferralsPage() {
       }).then((r) => r.json());
       if (res.success && res.data) {
         const summary = (res.data.claimed as ClaimableRow[]).map((c) => `${c.amount} ${c.currency}`).join(', ');
-        toast({ title: 'Earnings claimed', description: `Credited to your funding balance: ${summary}`, variant: 'success' });
+        toast({ title: tt('earningsClaimedTitle'), description: tt('earningsClaimedDesc', { summary }), variant: 'success' });
         await loadData();
       } else {
-        toast({ title: 'Nothing to claim', description: res.error?.message || 'You have no claimable referral earnings.', variant: 'default' });
+        toast({ title: tt('nothingToClaimTitle'), description: res.error?.message || tt('noClaimableEarnings'), variant: 'default' });
       }
     } catch {
-      toast({ title: 'Error', description: 'Failed to claim referral earnings.', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('claimEarningsFailed'), variant: 'destructive' });
     } finally {
       setClaiming(false);
     }

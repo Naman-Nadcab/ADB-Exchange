@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Sparkles, Gift, Trophy, Zap, Clock, ArrowRight, Bell, BellOff, Loader2 } from 'lucide-react';
@@ -14,6 +16,8 @@ const UPCOMING = [
 ];
 
 export default function EventsPage() {
+  const tn = useTranslations('common.notifications');
+  const tt = useTranslations('account.toasts');
   const { accessToken } = useAuthStore();
   const [pushStatus, setPushStatus] = useState<PushStatus>({ supported: false, permission: 'default', subscribed: false });
   const [pushBusy, setPushBusy] = useState(false);
@@ -24,15 +28,15 @@ export default function EventsPage() {
 
   const handleTogglePush = async () => {
     if (!accessToken) {
-      toast({ title: 'Sign in required', description: 'Please log in to manage notifications.', variant: 'default' });
+      toast({ title: tt('signInRequiredTitle'), description: tt('signInForNotifications'), variant: 'default' });
       return;
     }
     if (!pushStatus.supported) {
-      toast({ title: 'Not supported', description: "This browser doesn't support push notifications.", variant: 'destructive' });
+      toast({ title: tn('notSupportedTitle'), description: tt('pushNotSupportedDesc'), variant: 'destructive' });
       return;
     }
     if (pushStatus.permission === 'denied') {
-      toast({ title: 'Notifications blocked', description: 'Allow notifications for this site in your browser settings.', variant: 'destructive' });
+      toast({ title: tt('notificationsBlockedTitle'), description: tt('notificationsBlockedDesc'), variant: 'destructive' });
       return;
     }
     setPushBusy(true);
@@ -40,16 +44,16 @@ export default function EventsPage() {
       if (pushStatus.subscribed) {
         const r = await disablePushNotifications(accessToken);
         if (r.ok) {
-          toast({ title: 'Notifications disabled', variant: 'success' });
+          toast({ title: tt('notificationsDisabledTitle'), variant: 'success' });
         } else {
-          toast({ title: 'Error', description: r.error || 'Failed to disable notifications', variant: 'destructive' });
+          toast({ title: tn('errorTitle'), description: r.error || tt('settingUpdateFailed'), variant: 'destructive' });
         }
       } else {
         const r = await enablePushNotifications(accessToken);
         if (r.ok) {
-          toast({ title: 'Notifications enabled', description: "You'll be notified about new events.", variant: 'success' });
+          toast({ title: tt('notificationsEnabledTitle'), description: tt('notificationsEnabledDesc'), variant: 'success' });
         } else {
-          toast({ title: 'Could not enable', description: r.error || 'Failed to enable notifications', variant: 'destructive' });
+          toast({ title: tt('couldNotEnableTitle'), description: r.error || tt('settingUpdateFailed'), variant: 'destructive' });
         }
       }
       setPushStatus(await getPushStatus());

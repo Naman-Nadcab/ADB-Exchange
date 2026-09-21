@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { ChevronDown, ChevronUp, Loader2, Info, Settings, Bell, Mail, Globe, DollarSign, TrendingUp, Wallet, MessageCircle, Check } from 'lucide-react';
-import { notifyError } from '@/lib/notifyError';
+import { useLocalizedNotify } from '@/hooks/useLocalizedNotify';
 import {
   disablePushNotifications,
   enablePushNotifications,
@@ -79,6 +79,8 @@ const languages = [
 
 export default function PreferencesPage() {
   const ta = useTranslations('account');
+  const tt = useTranslations('account.toasts');
+  const { error: notifyError } = useLocalizedNotify();
   const priceChangeOptions = [
     { value: '24h', label: ta('preferences.priceChange.24h') },
     { value: '1h', label: ta('preferences.priceChange.1h') },
@@ -218,7 +220,7 @@ export default function PreferencesPage() {
         setSettings(prev => ({ ...prev, ...result.data, displayCurrency: display, equivalentCurrency: display }));
       }
     } catch (error) {
-      notifyError('Failed to load preferences. Please try again.');
+      notifyError(tt('loadPreferencesFailed'));
     } finally {
       setLoading(false);
     }
@@ -241,11 +243,11 @@ export default function PreferencesPage() {
       });
       if (!response.ok) {
         setSettings((prev) => ({ ...prev, [key]: previousValue }));
-        notifyError('Failed to update preference. Please try again.');
+        notifyError(tt('updatePreferenceFailed'));
       }
     } catch (error) {
       setSettings((prev) => ({ ...prev, [key]: previousValue }));
-      notifyError('Failed to update preference. Please try again.');
+      notifyError(tt('updatePreferenceFailed'));
     } finally {
       setTimeout(() => setSaving(null), 500);
     }

@@ -230,6 +230,8 @@ function AllocationDonut({
 
 export default function AssetsOverviewPage() {
   const tw = useTranslations('wallet');
+  const tn = useTranslations('common.notifications');
+  const tt = useTranslations('account.toasts');
   const router = useRouter();
   const { accessToken, _hasHydrated } = useAuthStore();
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
@@ -297,8 +299,8 @@ export default function AssetsOverviewPage() {
     } catch {
       setPortfolioError('Portfolio history is temporarily unavailable.');
       toast({
-        title: 'Portfolio history unavailable',
-        description: 'Could not load your performance chart. Try again.',
+        title: tt('portfolioHistoryUnavailable'),
+        description: tt('portfolioHistoryUnavailableDesc'),
         variant: 'destructive',
       });
     }
@@ -319,8 +321,8 @@ export default function AssetsOverviewPage() {
         .catch(() => {
           if (cancelled) return;
           toast({
-            title: 'Market data unavailable',
-            description: 'Live ticker data could not be loaded.',
+            title: tt('marketDataUnavailable'),
+            description: tt('marketDataUnavailableDesc'),
             variant: 'destructive',
           });
         });
@@ -359,8 +361,8 @@ export default function AssetsOverviewPage() {
       setRecentTxError('Recent activity is temporarily unavailable.');
       setRecentTxs([]);
       toast({
-        title: 'Recent activity unavailable',
-        description: 'Could not load wallet activity. Try again.',
+        title: tt('recentActivityUnavailable'),
+        description: tt('recentActivityUnavailableDesc'),
         variant: 'destructive',
       });
     }

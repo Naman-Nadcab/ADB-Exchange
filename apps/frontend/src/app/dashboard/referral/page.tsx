@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/store/auth';
 import Link from 'next/link';
@@ -48,6 +50,8 @@ interface ReferralStats {
 }
 
 export default function ReferralProgramPage() {
+  const tn = useTranslations('common.notifications');
+  const tt = useTranslations('account.toasts');
   const { user, accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -120,7 +124,7 @@ export default function ReferralProgramPage() {
     } catch {
       setFetchError('Network error. Please try again.');
       toast({
-        title: 'Referral data unavailable',
+        title: tt('referralDataUnavailableTitle'),
         description: 'Could not load referral stats.',
         variant: 'destructive',
       });
@@ -156,7 +160,7 @@ export default function ReferralProgramPage() {
     try {
       await navigator.clipboard.writeText(referralCode);
     } catch {
-      toast({ title: 'Copy failed', description: 'Could not copy referral code.', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('copyReferralCodeFailed'), variant: 'destructive' });
       return;
     }
     setModalCopiedCode(true);
@@ -167,7 +171,7 @@ export default function ReferralProgramPage() {
     try {
       await navigator.clipboard.writeText(referralLink);
     } catch {
-      toast({ title: 'Copy failed', description: 'Could not copy referral link.', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('copyReferralLinkFailed'), variant: 'destructive' });
       return;
     }
     setModalCopiedLink(true);
@@ -299,7 +303,7 @@ export default function ReferralProgramPage() {
       }
     } else {
       navigator.clipboard.writeText(shareText);
-      toast({ title: 'Link copied to clipboard', variant: 'success' });
+      toast({ title: tt('linkCopiedClipboard'), variant: 'success' });
     }
   };
 
@@ -307,7 +311,7 @@ export default function ReferralProgramPage() {
     try {
       await navigator.clipboard.writeText(referralCode);
     } catch {
-      toast({ title: 'Copy failed', description: 'Could not copy referral code.', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('copyReferralCodeFailed'), variant: 'destructive' });
       return;
     }
     setCopiedCode(true);
@@ -318,7 +322,7 @@ export default function ReferralProgramPage() {
     try {
       await navigator.clipboard.writeText(referralLink);
     } catch {
-      toast({ title: 'Copy failed', description: 'Could not copy referral link.', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('copyReferralLinkFailed'), variant: 'destructive' });
       return;
     }
     setCopiedLink(true);

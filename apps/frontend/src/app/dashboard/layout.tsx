@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
@@ -91,6 +93,9 @@ function isNavItemActive(pathname: string | null, href: string): boolean {
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+
+  const tn = useTranslations('common.notifications');
+  const tt = useTranslations('account.toasts');
   const pathname = usePathname();
   const { user, accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
@@ -179,7 +184,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       throw new Error(data?.error?.message || 'Unable to fetch notifications.');
     } catch {
       setNotificationsError('Unable to fetch notifications right now.');
-      toast({ title: 'Notifications unavailable', description: 'Unable to fetch notifications. Try again.', variant: 'destructive' });
+      toast({ title: tt('notificationsUnavailableTitle'), description: tt('notificationsUnavailableDesc'), variant: 'destructive' });
     } finally {
       setNotificationsLoading(false);
     }
@@ -204,7 +209,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setUnreadCount(0);
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     } catch {
-      toast({ title: 'Action failed', description: 'Could not mark notifications as read.', variant: 'destructive' });
+      toast({ title: tn('errorTitle'), description: tt('markReadFailedDesc'), variant: 'destructive' });
     } finally {
       setMarkingNotificationsRead(false);
     }
@@ -225,7 +230,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (user?.id) {
       navigator.clipboard.writeText(user.id);
       setUidCopied(true);
-      toast({ title: 'Copied', description: 'User ID copied to clipboard', variant: 'default' });
+      toast({ title: tn('copiedTitle'), description: tt('userIdCopiedDesc'), variant: 'default' });
       setTimeout(() => setUidCopied(false), 2000);
     }
   };
