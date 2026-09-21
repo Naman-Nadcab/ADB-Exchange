@@ -7,8 +7,7 @@ import {
 } from './config';
 import { parseExplicitFlag, parseLocaleCookieValue } from './cookie-locale';
 import { resolveInitialLocale } from './locale-resolver';
-
-const ONE_YEAR = 60 * 60 * 24 * 365;
+import { localeCookieSetOptions } from './locale-cookie-options';
 
 function readRegionCode(request: NextRequest): string | null {
   return (
@@ -38,12 +37,11 @@ export function applyLocaleCookies(request: NextRequest, response: NextResponse)
     acceptLanguage: request.headers.get('accept-language'),
   });
 
-  response.cookies.set(LOCALE_COOKIE, locale, {
-    path: '/',
-    maxAge: ONE_YEAR,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-  });
+  response.cookies.set(
+    LOCALE_COOKIE,
+    locale,
+    localeCookieSetOptions(request.headers.get('x-forwarded-proto'))
+  );
 
   return response;
 }
