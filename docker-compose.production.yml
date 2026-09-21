@@ -254,6 +254,9 @@ services:
       retries: 3
       start_period: 10s
     restart: unless-stopped
+    networks:
+      - default
+      - exchange_network
 
   # One-shot DB migration (production image — compiled migrate.js)
   migrate:

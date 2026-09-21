@@ -93,14 +93,13 @@ services:
       context: ./apps/backend
       dockerfile: Dockerfile
     container_name: exchange-backend
+    env_file:
+      - .env
     ports:
       - "4000:4000"
     environment:
-      - NODE_ENV=production
-      - PORT=4000
-      - DATABASE_URL=postgresql://exchange:exchange_secret@postgres:5432/exchange
-      - REDIS_URL=redis://redis:6379
-      - RABBITMQ_URL=amqp://exchange:exchange_secret@rabbitmq:5672
+      NODE_ENV: production
+      PORT: "4000"
     depends_on:
       postgres:
         condition: service_healthy
