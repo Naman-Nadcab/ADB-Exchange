@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import type { StructureLevel } from '@/lib/forex/chart/structure-levels';
 import { isLondonNyOverlapUtc } from '@/lib/forex/chart/session-markers';
@@ -37,6 +38,7 @@ export function ForexIntelDrawer(props: {
   dailyRangePips: number | null;
   sessionLabel: string;
 }) {
+  const ti = useTranslations('forex.intelDrawer');
   const [tab, setTab] = useState<'calendar' | 'news' | 'sessions' | 'levels' | 'vol'>('calendar');
   const [impact, setImpact] = useState<'all' | 'high' | 'medium' | 'low'>('all');
   const hour = new Date().getUTCHours();
@@ -55,26 +57,26 @@ export function ForexIntelDrawer(props: {
   return (
     <aside className="absolute inset-y-0 right-0 z-20 flex w-[min(320px,92vw)] flex-col border-l border-border bg-card/95 shadow-xl backdrop-blur-sm">
       <div className="flex h-8 items-center justify-between border-b border-border px-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Market intel</span>
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{ti('title')}</span>
         <button
           type="button"
           onClick={props.onClose}
           className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
         >
-          Close
+          {ti('close')}
         </button>
       </div>
       <div className="flex gap-0.5 overflow-x-auto border-b border-border px-1 py-1">
-        {(['calendar', 'news', 'sessions', 'levels', 'vol'] as const).map((t) => (
+        {(['calendar', 'news', 'sessions', 'levels', 'vol'] as const).map((tabKey) => (
           <button
-            key={t}
+            key={tabKey}
             type="button"
-            onClick={() => setTab(t)}
+            onClick={() => setTab(tabKey)}
             className={`rounded px-1.5 py-0.5 text-[10px] capitalize ${
-              tab === t ? 'bg-muted text-foreground' : 'text-muted-foreground'
+              tab === tabKey ? 'bg-muted text-foreground' : 'text-muted-foreground'
             }`}
           >
-            {t === 'vol' ? 'Volatility' : t}
+            {tabKey === 'vol' ? ti('tabs.volatility') : ti(`tabs.${tabKey}`)}
           </button>
         ))}
       </div>
@@ -91,14 +93,18 @@ export function ForexIntelDrawer(props: {
                     impact === i ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'
                   }`}
                 >
-                  {i}
+                  {i === 'all' ? ti('impactAll') : i}
                 </button>
               ))}
             </div>
             {!props.calendarAvailable ? (
-              <p className="text-muted-foreground">Calendar unavailable{props.calendarReason ? ` · ${props.calendarReason}` : ''}.</p>
+              <p className="text-muted-foreground">
+                {ti('calendarUnavailable', {
+                  reason: props.calendarReason ? ` · ${props.calendarReason}` : '',
+                })}
+              </p>
             ) : filtered.length === 0 ? (
-              <p className="text-muted-foreground">No events for this filter.</p>
+              <p className="text-muted-foreground">{ti('noEventsFilter')}</p>
             ) : (
               filtered.slice(0, 24).map((ev, i) => (
                 <div key={`${ev.time}-${i}`} className="rounded border border-border/70 px-2 py-1.5">
@@ -109,7 +115,11 @@ export function ForexIntelDrawer(props: {
                     {ev.impact} {ev.time ? `· ${new Date(ev.time).toLocaleString()}` : ''}
                   </p>
                   <p className="font-mono text-[10px] text-muted-foreground">
-                    Prev {ev.previous ?? '—'} · Fcst {ev.forecast ?? '—'} · Act {ev.actual ?? '—'}
+                    {ti('prevFcstAct', {
+                      previous: ev.previous ?? '—',
+                      forecast: ev.forecast ?? '—',
+                      actual: ev.actual ?? '—',
+                    })}
                   </p>
                 </div>
               ))
@@ -119,8 +129,9 @@ export function ForexIntelDrawer(props: {
         {tab === 'news' ? (
           !props.newsAvailable ? (
             <p className="text-muted-foreground">
-              News stays in Analysis when instrument mapping is unreliable.
-              {props.newsReason ? ` ${props.newsReason}` : ''}
+              {ti('newsUnavailable', {
+                reason: props.newsReason ? ` ${props.newsReason}` : '',
+              })}
             </p>
           ) : (
             <div className="space-y-2">
@@ -140,15 +151,18 @@ export function ForexIntelDrawer(props: {
         {tab === 'sessions' ? (
           <div className="space-y-2 text-muted-foreground">
             <p>
-              Current (UTC hour {hour}): <span className="text-foreground">{props.sessionLabel}</span>
+              {ti('sessionCurrent', { hour })}{' '}
+              <span className="text-foreground">{props.sessionLabel}</span>
             </p>
-            <p>London / New York overlap (12:00–16:00 UTC): {overlap ? 'Active' : 'Inactive'}</p>
-            <p className="text-[10px]">Session windows are textbook UTC approximations, not venue authority.</p>
+            <p>
+              {ti('overlap')} {overlap ? ti('overlapActive') : ti('overlapInactive')}
+            </p>
+            <p className="text-[10px]">{ti('sessionDisclaimer')}</p>
           </div>
         ) : null}
         {tab === 'levels' ? (
           props.levels.length === 0 ? (
-            <p className="text-muted-foreground">Load history to derive OHLC levels.</p>
+            <p className="text-muted-foreground">{ti('levelsEmpty')}</p>
           ) : (
             <ul className="space-y-1 font-mono">
               {props.levels.map((lv) => (
@@ -162,11 +176,15 @@ export function ForexIntelDrawer(props: {
         ) : null}
         {tab === 'vol' ? (
           <div className="space-y-1 font-mono text-muted-foreground">
-            <p>ATR: {props.atrPips != null ? `${props.atrPips.toFixed(1)} pips` : 'n/a'}</p>
-            <p>Today range: {props.dailyRangePips != null ? `${props.dailyRangePips.toFixed(1)} pips` : 'n/a'}</p>
-            <p className="font-sans text-[10px]">
-              ATR = 14-period average true range from loaded OHLC. Daily range = today high−low in pips.
+            <p>
+              {ti('atr')}{' '}
+              {props.atrPips != null ? ti('pips', { value: props.atrPips.toFixed(1) }) : ti('na')}
             </p>
+            <p>
+              {ti('todayRange')}{' '}
+              {props.dailyRangePips != null ? ti('pips', { value: props.dailyRangePips.toFixed(1) }) : ti('na')}
+            </p>
+            <p className="font-sans text-[10px]">{ti('volDisclaimer')}</p>
           </div>
         ) : null}
       </div>

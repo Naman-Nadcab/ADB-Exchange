@@ -65,12 +65,12 @@ function normalizeActivity(row: Record<string, unknown>, index: number): Activit
 }
 
 /** Human-readable browser + OS from a User-Agent string */
-function parseUserAgent(ua: string): { label: string; isMobile: boolean } {
+function parseUserAgent(ua: string, unknownBrowser = 'Unknown browser'): { label: string; isMobile: boolean } {
   if (!ua || !ua.trim()) {
-    return { label: 'Unknown browser', isMobile: false };
+    return { label: unknownBrowser, isMobile: false };
   }
 
-  let browser = 'Unknown browser';
+  let browser = unknownBrowser;
   if (/Edg\//.test(ua)) browser = 'Microsoft Edge';
   else if (/OPR\/|Opera/.test(ua)) browser = 'Opera';
   else if (/Chrome\//.test(ua) && !/Chromium/.test(ua)) browser = 'Chrome';
@@ -140,6 +140,7 @@ function isSuspiciousActivityType(type: string): boolean {
 }
 
 export default function SecuritySessionsPage() {
+  const ts = useTranslations('account.sessionsDevices');
   const tn = useTranslations('common.notifications');
   const tt = useTranslations('account.toasts');
   const { accessToken } = useAuthStore();
@@ -215,7 +216,7 @@ export default function SecuritySessionsPage() {
   if (!accessToken) {
     return (
       <div className="flex min-h-[400px] items-center justify-center p-6">
-        <p className="text-sm text-muted-foreground">Please sign in to manage sessions.</p>
+        <p className="text-sm text-muted-foreground">{ts('signInPrompt')}</p>
       </div>
     );
   }
@@ -224,17 +225,17 @@ export default function SecuritySessionsPage() {
     <div className="mx-auto max-w-5xl p-4 lg:p-6">
       <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
         <Link href="/dashboard/security" className="hover:text-primary">
-          Security
+          {ts('breadcrumbSecurity')}
         </Link>
         <ChevronRight className="h-4 w-4 shrink-0" />
-        <span className="text-foreground">Sessions &amp; devices</span>
+        <span className="text-foreground">{ts('title')}</span>
       </div>
 
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-foreground">Sessions &amp; devices</h1>
+          <h1 className="text-xl font-semibold text-foreground">{ts('title')}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            See where you&apos;re signed in and review recent account activity.
+            {ts('subtitle')}
           </p>
         </div>
         <button
@@ -248,14 +249,14 @@ export default function SecuritySessionsPage() {
           ) : (
             <LogOut className="h-4 w-4 text-muted-foreground" />
           )}
-          Terminate all other sessions
+          {ts('terminateOthers')}
         </button>
       </div>
 
       <section className="mb-10">
         <div className="mb-4 flex items-center gap-2">
           <Shield className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">Active sessions</h2>
+          <h2 className="text-lg font-semibold text-foreground">{ts('activeSessions')}</h2>
         </div>
 
         {loading ? (
@@ -264,12 +265,12 @@ export default function SecuritySessionsPage() {
           </div>
         ) : sessions.length === 0 ? (
           <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
-            No active sessions found.
+            {ts('noSessions')}
           </div>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2">
             {sessions.map((session) => {
-              const { label, isMobile } = parseUserAgent(session.userAgent);
+              const { label, isMobile } = parseUserAgent(session.userAgent, ts('unknownBrowser'));
               const DeviceIcon = isMobile ? Smartphone : Monitor;
               return (
                 <li
@@ -292,17 +293,17 @@ export default function SecuritySessionsPage() {
                         <div className="mt-2 flex flex-col gap-1 text-xs text-muted-foreground">
                           <span className="inline-flex items-center gap-1">
                             <Clock className="h-3.5 w-3.5 shrink-0" />
-                            Last active {formatDateTime(session.lastActiveAt || session.createdAt)}
+                            {ts('lastActive', { time: formatDateTime(session.lastActiveAt || session.createdAt) })}
                           </span>
                           {session.createdAt && (
-                            <span>Signed in {formatDateTime(session.createdAt)}</span>
+                            <span>{ts('signedIn', { time: formatDateTime(session.createdAt) })}</span>
                           )}
                         </div>
                       </div>
                     </div>
                     {session.isCurrent && (
                       <span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-primary">
-                        Current
+                        {ts('currentBadge')}
                       </span>
                     )}
                   </div>
@@ -316,7 +317,7 @@ export default function SecuritySessionsPage() {
       <section>
         <div className="mb-4 flex items-center gap-2">
           <Clock className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">Recent login activity</h2>
+          <h2 className="text-lg font-semibold text-foreground">{ts('recentActivity')}</h2>
         </div>
 
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -324,11 +325,11 @@ export default function SecuritySessionsPage() {
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/50">
-                  <th className="px-4 py-3 font-medium text-foreground">Date</th>
-                  <th className="px-4 py-3 font-medium text-foreground">Activity type</th>
-                  <th className="px-4 py-3 font-medium text-foreground">IP address</th>
-                  <th className="px-4 py-3 font-medium text-foreground">Device / browser</th>
-                  <th className="px-4 py-3 font-medium text-foreground">Location</th>
+                  <th className="px-4 py-3 font-medium text-foreground">{ts('colDate')}</th>
+                  <th className="px-4 py-3 font-medium text-foreground">{ts('colActivityType')}</th>
+                  <th className="px-4 py-3 font-medium text-foreground">{ts('colIp')}</th>
+                  <th className="px-4 py-3 font-medium text-foreground">{ts('colDevice')}</th>
+                  <th className="px-4 py-3 font-medium text-foreground">{ts('colLocation')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -341,13 +342,13 @@ export default function SecuritySessionsPage() {
                 ) : activity.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">
-                      No activity recorded yet.
+                      {ts('noActivity')}
                     </td>
                   </tr>
                 ) : (
                   activity.map((row) => {
                     const suspicious = isSuspiciousActivityType(row.type);
-                    const { label } = parseUserAgent(row.userAgent);
+                    const { label } = parseUserAgent(row.userAgent, ts('unknownBrowser'));
                     const location = extractLocation(row.details);
                     const rowClass = suspicious ? 'text-sell' : 'text-foreground';
                     return (

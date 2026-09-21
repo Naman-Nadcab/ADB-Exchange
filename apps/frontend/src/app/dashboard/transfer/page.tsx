@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth';
@@ -38,6 +40,10 @@ interface TransferHistory {
 }
 
 export default function TransferPage() {
+  const tw = useTranslations('wallet.transferPage');
+  const twa = useTranslations('wallet.actions');
+  const tc = useTranslations('account.common');
+  const tt = useTranslations('account.toasts');
   const queryClient = useQueryClient();
   const { accessToken, _hasHydrated } = useAuthStore();
 
@@ -78,8 +84,8 @@ export default function TransferPage() {
     } catch {
       setHistoryError('Could not load transfer history. Retry in a moment.');
       toast({
-        title: 'History unavailable',
-        description: 'Transfer history could not be loaded.',
+        title: tt('transferHistoryUnavailableTitle'),
+        description: tt('transferHistoryUnavailableDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -159,9 +165,9 @@ export default function TransferPage() {
   const getAccountLabel = (account: string) => {
     switch (account) {
       case 'funding':
-        return 'Funding Account';
+        return tw('fundingAccount');
       case 'trading':
-        return 'Trading Account';
+        return tw('tradingAccount');
       default:
         return account;
     }
@@ -185,15 +191,15 @@ export default function TransferPage() {
   return (
     <>
     <WalletOperationsShell
-      title="Internal transfer"
-      description="Move assets between your funding and trading wallets instantly. No network fees."
+      title={tw('title')}
+      description={tw('description')}
       headerRight={
         <Link
           href="/wallet/history?tab=transfer"
           className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/35 hover:bg-accent"
         >
           <Clock className="h-4 w-4 shrink-0" />
-          Transfer history
+          {tw('transferHistory')}
         </Link>
       }
     >
@@ -206,7 +212,7 @@ export default function TransferPage() {
                   <div className="flex items-center gap-4">
                     {/* From Account */}
                     <div className="flex-1">
-                      <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">From</label>
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{tw('from')}</label>
                       <div className="relative">
                         <button
                           onClick={() => {
@@ -219,7 +225,7 @@ export default function TransferPage() {
                           {getAccountIcon(fromAccount)}
                           <div className="flex-1 text-left">
                             <p className="text-foreground font-semibold">{getAccountLabel(fromAccount)}</p>
-                            <p className="text-xs text-muted-foreground">Available for transfer</p>
+                            <p className="text-xs text-muted-foreground">{tw('availableForTransfer')}</p>
                           </div>
                           <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${showFromDropdown ? 'rotate-180' : ''}`} />
                         </button>
@@ -263,7 +269,7 @@ export default function TransferPage() {
 
                     {/* To Account */}
                     <div className="flex-1">
-                      <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">To</label>
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{tw('to')}</label>
                       <div className="relative">
                         <button
                           onClick={() => {
@@ -276,7 +282,7 @@ export default function TransferPage() {
                           {getAccountIcon(toAccount)}
                           <div className="flex-1 text-left">
                             <p className="text-foreground font-semibold">{getAccountLabel(toAccount)}</p>
-                            <p className="text-xs text-muted-foreground">Receive assets</p>
+                            <p className="text-xs text-muted-foreground">{tw('receiveAssets')}</p>
                           </div>
                           <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${showToDropdown ? 'rotate-180' : ''}`} />
                         </button>
@@ -313,7 +319,7 @@ export default function TransferPage() {
 
                 {/* Coin Selection */}
                 <div className="mb-6">
-                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Coin</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{tw('coin')}</label>
                   <div className="relative">
                     <button
                       onClick={() => {
@@ -337,7 +343,7 @@ export default function TransferPage() {
                             <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
                               <Search className="w-4 h-4 text-muted-foreground" />
                             </div>
-                            <span className="text-muted-foreground">Select coin</span>
+                            <span className="text-muted-foreground">{tw('selectCoin')}</span>
                           </>
                         )}
                       </div>
@@ -351,7 +357,7 @@ export default function TransferPage() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <input
                               type="text"
-                              placeholder="Search coins..."
+                              placeholder={tw('searchCoins')}
                               value={searchQuery}
                               onChange={(e) => setSearchQuery(e.target.value)}
                               className="w-full pl-10 pr-4 py-2.5 bg-muted border-0 rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary outline-none"
@@ -362,13 +368,13 @@ export default function TransferPage() {
                           {loading ? (
                             <div className="flex items-center justify-center gap-2 p-8">
                               <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                              <span className="text-sm text-muted-foreground">Loading...</span>
+                              <span className="text-sm text-muted-foreground">{tc('loading')}</span>
                             </div>
                           ) : balancesError ? (
                             <div className="p-8 text-center">
                               <p className="text-sm text-destructive">{balancesFetchError instanceof Error ? balancesFetchError.message : 'Could not load balances'}</p>
                               <button type="button" onClick={() => refetchBalances()} className="mt-3 text-sm font-medium text-primary hover:underline">
-                                Retry
+                                {twa('retry')}
                               </button>
                             </div>
                           ) : filteredTokens.length === 0 ? (
@@ -407,7 +413,7 @@ export default function TransferPage() {
 
                 {/* Transferable Amount */}
                 <div className="flex items-center justify-between text-sm py-3 px-4 bg-muted rounded-xl mb-6">
-                  <span className="text-muted-foreground">Transferable Amount</span>
+                  <span className="text-muted-foreground">{tw('transferableAmount')}</span>
                   <span className="font-semibold text-foreground">
                     {selectedToken
                       ? `${parseFloat(selectedToken.availableBalance ?? '0').toFixed(6)} ${selectedToken.symbol}`
@@ -418,7 +424,7 @@ export default function TransferPage() {
                 {/* Amount Input */}
                 {selectedToken && (
                   <div className="mb-6">
-                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Amount</label>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{tw('amount')}</label>
                     <div className="relative">
                       <input
                         type="text"
@@ -430,7 +436,7 @@ export default function TransferPage() {
                             setError('');
                           }
                         }}
-                        placeholder="Enter amount"
+                        placeholder={tw('enterAmount')}
                         className="w-full px-4 py-4 pr-24 bg-muted border border-border rounded-xl text-lg font-semibold text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all"
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -438,7 +444,7 @@ export default function TransferPage() {
                           onClick={handleSetMax}
                           className="text-sm font-semibold text-primary hover:text-primary/85"
                         >
-                          MAX
+                          {tw('max')}
                         </button>
                         <span className="text-sm font-medium text-muted-foreground border-l border-border pl-2">
                           {selectedToken.symbol}
@@ -451,11 +457,11 @@ export default function TransferPage() {
                 {/* Transfer Info */}
                 <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-100 dark:border-blue-800/30 mb-6">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Transfer Fee</span>
-                    <span className="font-semibold text-buy">Free</span>
+                    <span className="text-muted-foreground">{tw('transferFee')}</span>
+                    <span className="font-semibold text-buy">{tw('free')}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm mt-2">
-                    <span className="text-muted-foreground">You will receive</span>
+                    <span className="text-muted-foreground">{tw('youWillReceive')}</span>
                     <span className="font-semibold text-foreground">
                       {amount ? `${parseFloat(amount).toFixed(6)} ${selectedToken?.symbol || ''}` : '0.00'}
                     </span>
@@ -492,10 +498,10 @@ export default function TransferPage() {
                   {submitting ? (
                     <span className="flex items-center justify-center gap-2">
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      Processing...
+                      {tw('processing')}
                     </span>
                   ) : (
-                    'Confirm Transfer'
+                    tw('confirmTransfer')
                   )}
                 </button>
               </div>
@@ -510,29 +516,29 @@ export default function TransferPage() {
                     <ArrowLeftRight className="w-5 h-5 text-primary-foreground" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">Internal Transfer</h3>
-                    <p className="text-xs text-muted-foreground">Quick & Free</p>
+                    <h3 className="font-semibold text-foreground">{tw('internalTransfer')}</h3>
+                    <p className="text-xs text-muted-foreground">{tw('quickAndFree')}</p>
                   </div>
                 </div>
                 <ul className="space-y-3 text-sm">
                   <li className="flex items-start gap-2 text-muted-foreground">
                     <CheckCircle2 className="w-4 h-4 text-buy mt-0.5 flex-shrink-0" />
-                    <span>Instant transfers between accounts</span>
+                    <span>{tw('benefitInstant')}</span>
                   </li>
                   <li className="flex items-start gap-2 text-muted-foreground">
                     <CheckCircle2 className="w-4 h-4 text-buy mt-0.5 flex-shrink-0" />
-                    <span>No transaction fees</span>
+                    <span>{tw('benefitNoFees')}</span>
                   </li>
                   <li className="flex items-start gap-2 text-muted-foreground">
                     <CheckCircle2 className="w-4 h-4 text-buy mt-0.5 flex-shrink-0" />
-                    <span>Available 24/7</span>
+                    <span>{tw('benefit247')}</span>
                   </li>
                 </ul>
               </div>
 
               {/* Quick Links */}
               <div className="bg-card rounded-xl border border-border p-6">
-                <h3 className="font-semibold text-foreground mb-4">Quick Links</h3>
+                <h3 className="font-semibold text-foreground mb-4">{tw('quickLinks')}</h3>
                 <div className="space-y-2">
                   <Link
                     href="/wallet/deposit/crypto"
@@ -540,7 +546,7 @@ export default function TransferPage() {
                   >
                     <div className="flex items-center gap-3">
                       <TrendingUp className="w-5 h-5 text-primary" />
-                      <span className="text-sm font-medium text-foreground/80">Deposit Crypto</span>
+                      <span className="text-sm font-medium text-foreground/80">{tw('depositCrypto')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </Link>
@@ -550,7 +556,7 @@ export default function TransferPage() {
                   >
                     <div className="flex items-center gap-3">
                       <Send className="w-5 h-5 text-primary" />
-                      <span className="text-sm font-medium text-foreground/80">Withdraw Crypto</span>
+                      <span className="text-sm font-medium text-foreground/80">{tw('withdrawCrypto')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </Link>
@@ -560,7 +566,7 @@ export default function TransferPage() {
                   >
                     <div className="flex items-center gap-3">
                       <ArrowRight className="w-5 h-5 text-primary" />
-                      <span className="text-sm font-medium text-foreground/80">Convert Assets</span>
+                      <span className="text-sm font-medium text-foreground/80">{tw('convertAssets')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </Link>
@@ -573,7 +579,7 @@ export default function TransferPage() {
           {(transferHistory.length > 0 || historyLoading || historyError) && (
             <div className="mt-8">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-foreground">Recent Transfers</h2>
+                <h2 className="text-xl font-semibold text-foreground">{tw('recentTransfers')}</h2>
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
@@ -581,13 +587,13 @@ export default function TransferPage() {
                     disabled={historyLoading}
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
                   >
-                    {historyLoading ? 'Refreshing…' : 'Refresh'}
+                    {historyLoading ? tw('refreshing') : tw('refresh')}
                   </button>
                   <Link
                     href="/wallet/history?tab=transfer"
                     className="text-sm text-primary hover:text-primary/85 font-medium flex items-center gap-1"
                   >
-                    View All
+                    {tw('viewAll')}
                     <ChevronRight className="w-4 h-4" />
                   </Link>
                 </div>
@@ -600,16 +606,16 @@ export default function TransferPage() {
                   </div>
                 ) : null}
                 <div className="grid grid-cols-6 gap-4 px-6 py-4 bg-background border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  <span>Coin</span>
-                  <span>From</span>
-                  <span>To</span>
-                  <span>Amount</span>
-                  <span>Status</span>
-                  <span>Date</span>
+                  <span>{tw('tableCoin')}</span>
+                  <span>{tw('tableFrom')}</span>
+                  <span>{tw('tableTo')}</span>
+                  <span>{tw('tableAmount')}</span>
+                  <span>{tw('tableStatus')}</span>
+                  <span>{tw('tableDate')}</span>
                 </div>
                 <div className="divide-y divide-border">
                   {historyLoading && transferHistory.length === 0 ? (
-                    <div className="px-6 py-8 text-sm text-muted-foreground">Loading transfer history…</div>
+                    <div className="px-6 py-8 text-sm text-muted-foreground">{tw('loadingHistory')}</div>
                   ) : transferHistory.map((transfer) => (
                     <div key={transfer.id} className="grid grid-cols-6 gap-4 px-6 py-4 text-sm items-center">
                       <div className="flex items-center gap-2">

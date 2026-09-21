@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
+
+import { useMemo, useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import Link from 'next/link';
@@ -55,6 +57,8 @@ interface VolumeFeeTier {
 }
 
 export default function FeeRatesPage() {
+  const tf = useTranslations('account.feeRates');
+  const tt = useTranslations('account.toasts');
   const { accessToken } = useAuthStore();
   const [activeTab, setActiveTab] = useState<TabType>('trading');
   const [loading, setLoading] = useState(true);
@@ -89,7 +93,7 @@ export default function FeeRatesPage() {
           setMntDiscountEnabled(result.data.mntDiscount || false);
         }
       } catch (error) {
-        notifyError('Failed to load fee rates. Please try again.');
+        notifyError(tt('loadFeeRatesFailed'));
       } finally {
         setLoading(false);
       }
@@ -130,18 +134,18 @@ export default function FeeRatesPage() {
 
       if (!response.ok) {
         const msg = response.status === 404
-          ? 'MNT discount is not available yet.'
-          : (result?.error?.message || 'Failed to update MNT discount.');
+          ? tt('mntDiscountNotAvailable')
+          : (result?.error?.message || tt('updateMntDiscountFailed'));
         notifyError(msg);
         return;
       }
       if (result.success) {
         setMntDiscountEnabled(!mntDiscountEnabled);
       } else {
-        notifyError(result.error?.message || 'Failed to update MNT discount.');
+        notifyError(result.error?.message || tt('updateMntDiscountFailed'));
       }
     } catch {
-      notifyError('Failed to update MNT discount. Please try again.');
+      notifyError(tt('updateMntDiscountRetry'));
     }
   };
 
@@ -152,36 +156,39 @@ export default function FeeRatesPage() {
   };
 
   // VIP requirements for next level
-  const vipRequirements: VipRequirement[] = [
-    {
-      id: 'spot-volume',
-      title: '30-Day Spot Trading Volume (USD)',
-      helpText: 'Your total spot trading volume in the last 30 days',
-      current: feeData.tradingVolume30d,
-      required: 1000000,
-      unit: 'USD',
-      link: '/orders',
-      linkText: 'Spot Trade History',
-    },
-    {
-      id: 'total-equity',
-      title: 'Total Equity (USD)',
-      current: feeData.totalEquity,
-      required: 100000,
-      unit: 'USD',
-      link: '/wallet',
-      linkText: 'Wallet Balance (Earn Account)',
-    },
-    {
-      id: 'avg-equity',
-      title: '30D Avg. Equity (USD)',
-      current: feeData.avgEquity30d,
-      required: 100000,
-      unit: 'USD',
-      link: '/wallet',
-      linkText: 'Wallet Balance (Earn Account)',
-    },
-  ];
+  const vipRequirements: VipRequirement[] = useMemo(
+    () => [
+      {
+        id: 'spot-volume',
+        title: tf('requirements.spot-volume.title'),
+        helpText: tf('requirements.spot-volume.helpText'),
+        current: feeData.tradingVolume30d,
+        required: 1000000,
+        unit: 'USD',
+        link: '/orders',
+        linkText: tf('requirements.spot-volume.linkText'),
+      },
+      {
+        id: 'total-equity',
+        title: tf('requirements.total-equity.title'),
+        current: feeData.totalEquity,
+        required: 100000,
+        unit: 'USD',
+        link: '/wallet',
+        linkText: tf('requirements.total-equity.linkText'),
+      },
+      {
+        id: 'avg-equity',
+        title: tf('requirements.avg-equity.title'),
+        current: feeData.avgEquity30d,
+        required: 100000,
+        unit: 'USD',
+        link: '/wallet',
+        linkText: tf('requirements.avg-equity.linkText'),
+      },
+    ],
+    [feeData.tradingVolume30d, feeData.totalEquity, feeData.avgEquity30d, tf],
+  );
 
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -228,29 +235,32 @@ export default function FeeRatesPage() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-xl font-semibold text-foreground">My Fee Rates</h1>
+          <h1 className="text-xl font-semibold text-foreground">{tf('title')}</h1>
         </div>
 
         {/* Volume-based spot tier (from fee_tiers table) */}
         {volumeTier && (
           <div className="mb-6 p-4 rounded-xl bg-card border border-border" aria-label="Spot volume fee tier">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Spot volume tier</h3>
-            <p className="text-lg font-semibold text-foreground">{volumeTier.tierName ?? `Tier ${volumeTier.tierLevel}`}</p>
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">{tf('spotVolumeTier')}</h3>
+            <p className="text-lg font-semibold text-foreground">{volumeTier.tierName ?? tf('tierFallback', { level: volumeTier.tierLevel })}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Maker: {(Number(volumeTier.maker) * 100).toFixed(2)}% · Taker: {(Number(volumeTier.taker) * 100).toFixed(2)}%
+              {tf('makerTaker', {
+                maker: (Number(volumeTier.maker) * 100).toFixed(2),
+                taker: (Number(volumeTier.taker) * 100).toFixed(2),
+              })}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              30d volume: {formatNumber(Number(volumeTier.volume30d))} USD
+              {tf('volume30d', { volume: formatNumber(Number(volumeTier.volume30d)) })}
             </p>
             {volumeTier.nextTierMinVolume && (
               <div className="mt-2">
-                <p className="text-xs text-muted-foreground">Progress to next tier</p>
+                <p className="text-xs text-muted-foreground">{tf('progressNextTier')}</p>
                 <ProgressBar
                   current={Number(volumeTier.volume30d)}
                   required={Number(volumeTier.nextTierMinVolume)}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Next tier at {formatNumber(Number(volumeTier.nextTierMinVolume))} USD
+                  {tf('nextTierAt', { volume: formatNumber(Number(volumeTier.nextTierMinVolume)) })}
                 </p>
               </div>
             )}
@@ -267,7 +277,7 @@ export default function FeeRatesPage() {
                   <Award className="w-8 h-8 text-white dark:text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-blue-100 dark:text-muted-foreground">My Fee Level</p>
+                  <p className="text-sm text-blue-100 dark:text-muted-foreground">{tf('myFeeLevel')}</p>
                   <h2 className="text-2xl font-bold text-white">{feeData.vipLevelName}</h2>
                 </div>
               </div>
@@ -283,7 +293,7 @@ export default function FeeRatesPage() {
                     : 'text-blue-200 dark:text-muted-foreground hover:text-white dark:hover:text-gray-300'
                 }`}
               >
-                Trading Fees
+                {tf('tabTrading')}
                 {activeTab === 'trading' && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-card dark:bg-primary" />
                 )}
@@ -296,7 +306,7 @@ export default function FeeRatesPage() {
                     : 'text-blue-200 dark:text-muted-foreground hover:text-white dark:hover:text-gray-300'
                 }`}
               >
-                Interest Rates
+                {tf('tabInterest')}
                 {activeTab === 'interest' && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-card dark:bg-primary" />
                 )}
@@ -315,9 +325,9 @@ export default function FeeRatesPage() {
               <div className="bg-card rounded-xl p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-lg font-bold text-foreground">Spot</h3>
+                    <h3 className="text-lg font-bold text-foreground">{tf('spot')}</h3>
                     <div className="flex items-center gap-3 mt-2">
-                      <span className="text-sm text-muted-foreground">MNT 25% fee discount</span>
+                      <span className="text-sm text-muted-foreground">{tf('mntDiscount')}</span>
                       <Toggle enabled={mntDiscountEnabled} onChange={toggleMntDiscount} />
                     </div>
                   </div>
@@ -326,13 +336,13 @@ export default function FeeRatesPage() {
                 {/* Fee Table */}
                 <div className="grid grid-cols-2 gap-8 mb-6">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Maker</p>
+                    <p className="text-sm text-muted-foreground mb-1">{tf('maker')}</p>
                     <p className="text-xl font-bold text-foreground">
                       {formatFee(getDiscountedFee(feeData.spotFees.maker, mntDiscountEnabled ? 25 : 0))}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Taker</p>
+                    <p className="text-sm text-muted-foreground mb-1">{tf('taker')}</p>
                     <p className="text-xl font-bold text-foreground">
                       {formatFee(getDiscountedFee(feeData.spotFees.taker, mntDiscountEnabled ? 25 : 0))}
                     </p>
@@ -343,13 +353,13 @@ export default function FeeRatesPage() {
                 {feeData.spotFees.fiatMaker !== undefined && (
                   <div className="grid grid-cols-2 gap-8 mb-6 pt-4 border-t border-border">
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Fiat Pairs Maker</p>
+                      <p className="text-sm text-muted-foreground mb-1">{tf('fiatPairsMaker')}</p>
                       <p className="text-xl font-bold text-foreground">
                         {formatFee(getDiscountedFee(feeData.spotFees.fiatMaker || 0.15, mntDiscountEnabled ? 25 : 0))}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Fiat Pairs Taker</p>
+                      <p className="text-sm text-muted-foreground mb-1">{tf('fiatPairsTaker')}</p>
                       <p className="text-xl font-bold text-foreground">
                         {formatFee(getDiscountedFee(feeData.spotFees.fiatTaker || 0.2, mntDiscountEnabled ? 25 : 0))}
                       </p>
@@ -362,28 +372,28 @@ export default function FeeRatesPage() {
                   href="/trade/spot"
                   className="inline-flex items-center gap-1 text-primary hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium"
                 >
-                  Trade Spot <ChevronRight className="w-4 h-4" />
+                  {tf('tradeSpot')} <ChevronRight className="w-4 h-4" />
                 </Link>
               </div>
 
               {/* Info Notes */}
               <div className="mt-6 space-y-3 text-sm text-muted-foreground">
                 <p>
-                  Your VIP Level and fees will be updated at 7AM UTC if you meet the respective requirements.
+                  {tf('vipUpdateNote')}
                   <Link href="/dashboard/help#vip-requirements" className="text-primary hover:underline ml-1">
-                    Check out the requirements.
+                    {tf('checkRequirements')}
                   </Link>
                 </p>
                 <p>
-                  View Fiat Trading Fees
+                  {tf('viewFiatFees')}
                   <Link href="/dashboard/help#fiat-fees" className="text-primary hover:underline ml-1">
-                    Find out the details.
+                    {tf('findOutDetails')}
                   </Link>
                 </p>
                 <p>
-                  The MNT discount is only applicable to Spot (incl. fiat pairs) trading.
+                  {tf('mntDiscountNote')}
                   <Link href="/dashboard/help#mnt-discount" className="text-primary hover:underline ml-1">
-                    Find out the details.
+                    {tf('findOutDetails')}
                   </Link>
                 </p>
               </div>
@@ -391,39 +401,39 @@ export default function FeeRatesPage() {
           ) : (
             <div className="px-6 lg:px-8 pb-8">
               <div className="bg-card rounded-xl p-6">
-                <h3 className="text-lg font-bold text-foreground mb-4">Deposit & Withdrawal Fees</h3>
+                <h3 className="text-lg font-bold text-foreground mb-4">{tf('depositWithdrawTitle')}</h3>
                 <p className="text-muted-foreground text-sm mb-6">
-                  Deposits are free. Withdrawal fees cover network (gas) costs and vary by chain. All fees are deducted from the withdrawal amount.
+                  {tf('depositWithdrawDesc')}
                 </p>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">Asset</th>
-                        <th className="text-right py-3 text-sm font-medium text-muted-foreground">Deposit Fee</th>
-                        <th className="text-right py-3 text-sm font-medium text-muted-foreground">Withdrawal Fee</th>
-                        <th className="text-right py-3 text-sm font-medium text-muted-foreground">Min. Withdrawal</th>
+                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">{tf('colAsset')}</th>
+                        <th className="text-right py-3 text-sm font-medium text-muted-foreground">{tf('colDepositFee')}</th>
+                        <th className="text-right py-3 text-sm font-medium text-muted-foreground">{tf('colWithdrawalFee')}</th>
+                        <th className="text-right py-3 text-sm font-medium text-muted-foreground">{tf('colMinWithdrawal')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {[
-                        { asset: 'BTC', deposit: 'Free', withdrawal: 'Network fee', min: 'Varies by network' },
-                        { asset: 'ETH', deposit: 'Free', withdrawal: 'Network fee', min: 'Varies by network' },
-                        { asset: 'USDT', deposit: 'Free', withdrawal: 'Network fee', min: 'Varies by network' },
-                        { asset: 'USDC', deposit: 'Free', withdrawal: 'Network fee', min: 'Varies by network' },
+                        { asset: 'BTC' },
+                        { asset: 'ETH' },
+                        { asset: 'USDT' },
+                        { asset: 'USDC' },
                       ].map((row) => (
                         <tr key={row.asset} className="border-b border-border/50">
                           <td className="py-4 font-medium text-foreground">{row.asset}</td>
-                          <td className="py-4 text-right text-buy">{row.deposit}</td>
-                          <td className="py-4 text-right text-muted-foreground">{row.withdrawal}</td>
-                          <td className="py-4 text-right text-muted-foreground">{row.min}</td>
+                          <td className="py-4 text-right text-buy">{tf('depositFree')}</td>
+                          <td className="py-4 text-right text-muted-foreground">{tf('withdrawalNetworkFee')}</td>
+                          <td className="py-4 text-right text-muted-foreground">{tf('minVaries')}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
                 <p className="text-xs text-muted-foreground mt-4">
-                  Exact fees are shown on the withdrawal page after selecting a network. Fees are set dynamically based on blockchain conditions.
+                  {tf('exactFeesNote')}
                 </p>
               </div>
             </div>
@@ -433,12 +443,12 @@ export default function FeeRatesPage() {
         {/* Enjoy Even Lower Fees Section */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-2xl font-bold text-foreground">Enjoy Even Lower Fees</h2>
+            <h2 className="text-2xl font-bold text-foreground">{tf('lowerFeesTitle')}</h2>
             <HelpCircle className="w-5 h-5 text-muted-foreground" />
           </div>
           <p className="text-muted-foreground">
-            Meet any of the following requirements to level up to{' '}
-            <span className="text-primary font-medium">VIP 1</span> and enjoy lower fee rates.
+            {tf('lowerFeesDesc')}{' '}
+            <span className="text-primary font-medium">{tf('vip1')}</span> {tf('lowerFeesSuffix')}
           </p>
         </div>
 
@@ -477,7 +487,7 @@ export default function FeeRatesPage() {
               {index < vipRequirements.length - 1 && (
                 <div className="hidden md:flex absolute -right-2 top-1/2 -translate-y-1/2 z-10">
                   <span className="px-2 py-1 bg-accent text-muted-foreground text-xs font-medium rounded">
-                    OR
+                    {tf('orBadge')}
                   </span>
                 </div>
               )}
@@ -489,18 +499,18 @@ export default function FeeRatesPage() {
         <div className="border-t border-border pt-8">
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
             <Link href="/markets" className="hover:text-foreground dark:hover:text-white">
-              Market Overview
+              {tf('footerMarketOverview')}
             </Link>
             <Link href="/dashboard/fee-rates" className="hover:text-foreground dark:hover:text-white">
-              Trading Fee
+              {tf('footerTradingFee')}
             </Link>
             <Link href="/dashboard/api" className="hover:text-foreground dark:hover:text-white">
-              API
+              {tf('footerApi')}
             </Link>
             <Link href="/dashboard/help" className="hover:text-foreground dark:hover:text-white">
-              Help Center
+              {tf('footerHelpCenter')}
             </Link>
-            <span>© 2026 FDM</span>
+            <span>{tf('footerCopyright')}</span>
           </div>
         </div>
       </div>

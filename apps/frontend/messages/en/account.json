@@ -355,6 +355,154 @@
     "unverified": "Unverified",
     "notStarted": "Not started"
   },
+  "events": {
+    "title": "Events & Promotions",
+    "noActiveTitle": "No active events right now",
+    "noActiveDesc": "We're preparing exciting events for you. Enable notifications to be the first to know.",
+    "disableNotifications": "Disable Notifications",
+    "enableNotifications": "Enable Notifications",
+    "comingSoon": "Coming Soon",
+    "soonBadge": "Soon",
+    "backToDashboard": "Back to Dashboard",
+    "upcoming": {
+      "tradingCompetition": {
+        "title": "Trading Competition",
+        "desc": "Top traders by volume win exclusive rewards. Stay tuned for launch."
+      },
+      "referralBonus": {
+        "title": "Referral Bonus Event",
+        "desc": "Invite friends and earn boosted commissions during the event period."
+      },
+      "listingAirdrops": {
+        "title": "New Listing Airdrops",
+        "desc": "Get free tokens when new coins are listed. Hold qualifying assets to participate."
+      }
+    }
+  },
+  "feeRates": {
+    "title": "My Fee Rates",
+    "spotVolumeTier": "Spot volume tier",
+    "tierFallback": "Tier {level}",
+    "makerTaker": "Maker: {maker}% · Taker: {taker}%",
+    "volume30d": "30d volume: {volume} USD",
+    "progressNextTier": "Progress to next tier",
+    "nextTierAt": "Next tier at {volume} USD",
+    "myFeeLevel": "My Fee Level",
+    "tabTrading": "Trading Fees",
+    "tabInterest": "Interest Rates",
+    "spot": "Spot",
+    "mntDiscount": "MNT 25% fee discount",
+    "maker": "Maker",
+    "taker": "Taker",
+    "fiatPairsMaker": "Fiat Pairs Maker",
+    "fiatPairsTaker": "Fiat Pairs Taker",
+    "tradeSpot": "Trade Spot",
+    "vipUpdateNote": "Your VIP Level and fees will be updated at 7AM UTC if you meet the respective requirements.",
+    "checkRequirements": "Check out the requirements.",
+    "viewFiatFees": "View Fiat Trading Fees",
+    "findOutDetails": "Find out the details.",
+    "mntDiscountNote": "The MNT discount is only applicable to Spot (incl. fiat pairs) trading.",
+    "depositWithdrawTitle": "Deposit & Withdrawal Fees",
+    "depositWithdrawDesc": "Deposits are free. Withdrawal fees cover network (gas) costs and vary by chain. All fees are deducted from the withdrawal amount.",
+    "colAsset": "Asset",
+    "colDepositFee": "Deposit Fee",
+    "colWithdrawalFee": "Withdrawal Fee",
+    "colMinWithdrawal": "Min. Withdrawal",
+    "depositFree": "Free",
+    "withdrawalNetworkFee": "Network fee",
+    "minVaries": "Varies by network",
+    "exactFeesNote": "Exact fees are shown on the withdrawal page after selecting a network. Fees are set dynamically based on blockchain conditions.",
+    "lowerFeesTitle": "Enjoy Even Lower Fees",
+    "lowerFeesDesc": "Meet any of the following requirements to level up to",
+    "vip1": "VIP 1",
+    "lowerFeesSuffix": "and enjoy lower fee rates.",
+    "reqSpotVolume": "30-Day Spot Trading Volume (USD)",
+    "reqSpotVolumeHelp": "Your total spot trading volume in the last 30 days",
+    "reqTotalEquity": "Total Equity (USD)",
+    "reqAvgEquity": "30D Avg. Equity (USD)",
+    "linkSpotHistory": "Spot Trade History",
+    "linkWalletBalance": "Wallet Balance (Earn Account)",
+    "orBadge": "OR",
+    "footerMarketOverview": "Market Overview",
+    "footerTradingFee": "Trading Fee",
+    "footerApi": "API",
+    "footerHelpCenter": "Help Center",
+    "footerCopyright": "© 2026 FDM",
+    "requirements": {
+      "spot-volume": {
+        "title": "30-Day Spot Trading Volume (USD)",
+        "helpText": "Your total spot trading volume in the last 30 days",
+        "linkText": "Spot Trade History"
+      },
+      "total-equity": {
+        "title": "Total Equity (USD)",
+        "linkText": "Wallet Balance (Earn Account)"
+      },
+      "avg-equity": {
+        "title": "30D Avg. Equity (USD)",
+        "linkText": "Wallet Balance (Earn Account)"
+      }
+    }
+  },
+  "identitySuccess": {
+    "title": "Verification successful",
+    "subtitle": "Your identity has been verified. You now have full access to platform features that require KYC.",
+    "nextStepsTitle": "Next steps",
+    "rewardsTitle": "Your rewards",
+    "rewardBonuses": "Any applicable bonuses will be credited to your account",
+    "rewardLimits": "Increased withdrawal limits",
+    "rewardTrading": "Access to all trading features",
+    "depositCta": "Make a deposit",
+    "dashboardCta": "Go to dashboard",
+    "redirecting": "Redirecting to dashboard in 5 seconds…",
+    "footerCopyright": "© 2018-2026 FDM. All rights reserved.",
+    "steps": {
+      "fund": {
+        "title": "Fund your account",
+        "description": "Deposit crypto or fiat to start trading."
+      },
+      "dashboard": {
+        "title": "Explore the dashboard",
+        "description": "Review balances, orders, and account settings."
+      },
+      "trade": {
+        "title": "Trade with confidence",
+        "description": "Spot and P2P are available with your verified status."
+      }
+    }
+  },
+  "sessionsDevices": {
+    "signInPrompt": "Please sign in to manage sessions.",
+    "breadcrumbSecurity": "Security",
+    "title": "Sessions & devices",
+    "subtitle": "See where you're signed in and review recent account activity.",
+    "terminateOthers": "Terminate all other sessions",
+    "activeSessions": "Active sessions",
+    "noSessions": "No active sessions found.",
+    "currentBadge": "Current",
+    "lastActive": "Last active {time}",
+    "signedIn": "Signed in {time}",
+    "recentActivity": "Recent login activity",
+    "colDate": "Date",
+    "colActivityType": "Activity type",
+    "colIp": "IP address",
+    "colDevice": "Device / browser",
+    "colLocation": "Location",
+    "noActivity": "No activity recorded yet.",
+    "unknownBrowser": "Unknown browser"
+  },
+  "antiPhishingPage": {
+    "signInPrompt": "Please sign in to set an anti-phishing code.",
+    "breadcrumbSecurity": "Security",
+    "breadcrumbCurrent": "Anti-phishing code",
+    "title": "Anti-phishing code",
+    "subtitle": "This phrase appears in official emails from us so you can spot fakes.",
+    "currentCodeLabel": "Current code",
+    "currentCodePlaceholder": "Enter your current code",
+    "newCodeLabel": "New code",
+    "newCodeInitialLabel": "Code (4–20 characters)",
+    "newCodePlaceholder": "Letters, numbers, underscores only"
+  },
   "toasts": {
     "addPhoneFirst": "Please add a phone number first",
     "smsAuthUpdateFailed": "Failed to update SMS authentication",
@@ -504,6 +652,14 @@
     "apiKeyUpdateFailed": "Failed to update API key",
     "apiKeyDeletedTitle": "API key deleted",
     "apiKeyDeletedDesc": "Access has been revoked",
-    "apiKeyDeleteFailed": "Failed to delete API key"
+    "apiKeyDeleteFailed": "Failed to delete API key",
+    "loadFeeRatesFailed": "Failed to load fee rates. Please try again.",
+    "mntDiscountNotAvailable": "MNT discount is not available yet.",
+    "updateMntDiscountFailed": "Failed to update MNT discount.",
+    "updateMntDiscountRetry": "Failed to update MNT discount. Please try again.",
+    "assetHistoryUnavailableTitle": "History unavailable",
+    "assetHistoryUnavailableDesc": "Could not load {symbol} transactions. Retry to refresh.",
+    "transferHistoryUnavailableTitle": "History unavailable",
+    "transferHistoryUnavailableDesc": "Transfer history could not be loaded."
   }
 }

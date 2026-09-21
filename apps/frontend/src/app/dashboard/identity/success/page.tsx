@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -9,6 +11,7 @@ import { Check, ArrowRight, Shield, Gift, Wallet, LayoutDashboard, ListOrdered, 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function IdentityVerificationSuccessPage() {
+  const ti = useTranslations('account.identitySuccess');
   const router = useRouter();
 
   // Auto redirect after 5 seconds
@@ -22,20 +25,17 @@ export default function IdentityVerificationSuccessPage() {
 
   const nextSteps = [
     {
-      title: 'Fund your account',
-      description: 'Deposit crypto or fiat to start trading.',
+      key: 'fund' as const,
       href: '/wallet/deposit/crypto',
       icon: Wallet,
     },
     {
-      title: 'Explore the dashboard',
-      description: 'Review balances, orders, and account settings.',
+      key: 'dashboard' as const,
       href: '/dashboard',
       icon: LayoutDashboard,
     },
     {
-      title: 'Trade with confidence',
-      description: 'Spot and P2P are available with your verified status.',
+      key: 'trade' as const,
       href: '/trade/spot',
       icon: TrendingUp,
     },
@@ -58,10 +58,10 @@ export default function IdentityVerificationSuccessPage() {
               </div>
               <div className="space-y-2">
                 <CardTitle className="text-2xl font-bold text-foreground sm:text-3xl">
-                  Verification successful
+                  {ti('title')}
                 </CardTitle>
                 <CardDescription className="text-base text-muted-foreground">
-                  Your identity has been verified. You now have full access to platform features that require KYC.
+                  {ti('subtitle')}
                 </CardDescription>
               </div>
             </CardHeader>
@@ -72,10 +72,10 @@ export default function IdentityVerificationSuccessPage() {
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-card text-primary ring-1 ring-border">
                     <ListOrdered className="h-4 w-4" aria-hidden />
                   </span>
-                  Next steps
+                  {ti('nextStepsTitle')}
                 </h3>
                 <ul className="space-y-3">
-                  {nextSteps.map(({ title, description, href, icon: Icon }) => (
+                  {nextSteps.map(({ key, href, icon: Icon }) => (
                     <li key={href}>
                       <Link
                         href={href}
@@ -85,8 +85,8 @@ export default function IdentityVerificationSuccessPage() {
                           <Icon className="h-4 w-4" aria-hidden />
                         </span>
                         <span className="min-w-0 text-left">
-                          <span className="block font-medium text-foreground group-hover:text-primary">{title}</span>
-                          <span className="mt-0.5 block text-sm text-muted-foreground">{description}</span>
+                          <span className="block font-medium text-foreground group-hover:text-primary">{ti(`steps.${key}.title`)}</span>
+                          <span className="mt-0.5 block text-sm text-muted-foreground">{ti(`steps.${key}.description`)}</span>
                         </span>
                       </Link>
                     </li>
@@ -97,26 +97,26 @@ export default function IdentityVerificationSuccessPage() {
               <div className="rounded-xl border border-border bg-muted/40 p-5 text-left">
                 <h3 className="mb-4 flex items-center gap-2 font-semibold text-foreground">
                   <Gift className="h-5 w-5 text-primary" aria-hidden />
-                  Your rewards
+                  {ti('rewardsTitle')}
                 </h3>
                 <ul className="space-y-3">
                   <li className="flex items-center gap-3 text-muted-foreground">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-primary ring-1 ring-border">
                       <Wallet className="h-4 w-4" aria-hidden />
                     </span>
-                    <span>Any applicable bonuses will be credited to your account</span>
+                    <span>{ti('rewardBonuses')}</span>
                   </li>
                   <li className="flex items-center gap-3 text-muted-foreground">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-primary ring-1 ring-border">
                       <Shield className="h-4 w-4" aria-hidden />
                     </span>
-                    <span>Increased withdrawal limits</span>
+                    <span>{ti('rewardLimits')}</span>
                   </li>
                   <li className="flex items-center gap-3 text-muted-foreground">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-buy-light text-buy ring-1 ring-buy/20">
                       <Check className="h-4 w-4" aria-hidden />
                     </span>
-                    <span>Access to all trading features</span>
+                    <span>{ti('rewardTrading')}</span>
                   </li>
                 </ul>
               </div>
@@ -126,19 +126,19 @@ export default function IdentityVerificationSuccessPage() {
                   href="/wallet/deposit/crypto"
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/85"
                 >
-                  Make a deposit
+                  {ti('depositCta')}
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
                 <Link
                   href="/dashboard"
                   className="inline-flex w-full items-center justify-center rounded-xl border border-border bg-card py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
                 >
-                  Go to dashboard
+                  {ti('dashboardCta')}
                 </Link>
               </div>
 
               <p className="text-center text-sm text-muted-foreground">
-                Redirecting to dashboard in 5 seconds…
+                {ti('redirecting')}
               </p>
             </CardContent>
           </Card>
@@ -146,7 +146,7 @@ export default function IdentityVerificationSuccessPage() {
       </main>
 
       <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>© 2018-2026 FDM. All rights reserved.</p>
+        <p>{ti('footerCopyright')}</p>
       </footer>
     </div>
   );

@@ -722,6 +722,49 @@
     "disconnected": "Disconnected",
     "srOnly": "Forex connection {state}"
   },
+  "symbolSearch": {
+    "label": "Search Forex symbols",
+    "placeholder": "Search EURUSD…",
+    "noMatches": "No Forex instrument matches."
+  },
+  "accountBar": {
+    "ariaLabel": "Account bar",
+    "signInPrompt": "Sign in to view balance, equity and margin.",
+    "signIn": "Sign in",
+    "loading": "Loading account…",
+    "loadFailed": "Unable to load account.",
+    "claimDemoFunds": "Claim demo funds",
+    "positionModeTitle": "Server-authoritative position mode",
+    "hedging": "Hedging",
+    "netting": "Netting"
+  },
+  "intelDrawer": {
+    "title": "Market intel",
+    "close": "Close",
+    "tabs": {
+      "calendar": "Calendar",
+      "news": "News",
+      "sessions": "Sessions",
+      "levels": "Levels",
+      "volatility": "Volatility"
+    },
+    "impactAll": "all",
+    "calendarUnavailable": "Calendar unavailable{reason}.",
+    "noEventsFilter": "No events for this filter.",
+    "newsUnavailable": "News stays in Analysis when instrument mapping is unreliable.{reason}",
+    "sessionCurrent": "Current (UTC hour {hour}):",
+    "overlap": "London / New York overlap (12:00–16:00 UTC):",
+    "overlapActive": "Active",
+    "overlapInactive": "Inactive",
+    "sessionDisclaimer": "Session windows are textbook UTC approximations, not venue authority.",
+    "levelsEmpty": "Load history to derive OHLC levels.",
+    "atr": "ATR:",
+    "todayRange": "Today range:",
+    "na": "n/a",
+    "pips": "{value} pips",
+    "volDisclaimer": "ATR = 14-period average true range from loaded OHLC. Daily range = today high−low in pips.",
+    "prevFcstAct": "Prev {previous} · Fcst {forecast} · Act {actual}"
+  },
   "commandCenter": {
     "ariaLabel": "Forex command center",
     "placeholder": "Search Forex commands…",

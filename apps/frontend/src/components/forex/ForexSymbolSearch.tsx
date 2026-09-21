@@ -1,10 +1,12 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 
 export function ForexSymbolSearch() {
+  const t = useTranslations('forex.symbolSearch');
   const instruments = useForexStore((s) => s.instruments);
   const setSelected = useForexWorkspaceStore((s) => s.setSelectedSymbol);
   const toggle = useForexWorkspaceStore((s) => s.toggleWatchlistSymbol);
@@ -23,13 +25,13 @@ export function ForexSymbolSearch() {
   return (
     <div className="border-b border-border p-2">
       <label className="sr-only" htmlFor="fx-symbol-search">
-        Search Forex symbols
+        {t('label')}
       </label>
       <input
         id="fx-symbol-search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Search EURUSD…"
+        placeholder={t('placeholder')}
         className="h-8 w-full rounded-md border border-border bg-background px-2 font-mono text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
         autoComplete="off"
       />
@@ -51,7 +53,7 @@ export function ForexSymbolSearch() {
               </button>
             </li>
           ))}
-          {rows.length === 0 ? <li className="px-1.5 py-1 text-muted-foreground">No Forex instrument matches.</li> : null}
+          {rows.length === 0 ? <li className="px-1.5 py-1 text-muted-foreground">{t('noMatches')}</li> : null}
         </ul>
       ) : null}
     </div>

@@ -722,6 +722,49 @@
     "disconnected": "Terputus",
     "srOnly": "Koneksi Forex {state}"
   },
+  "symbolSearch": {
+    "label": "Cari simbol Forex",
+    "placeholder": "Cari EURUSD…",
+    "noMatches": "Tidak ada instrumen Forex yang cocok."
+  },
+  "accountBar": {
+    "ariaLabel": "Bar akun",
+    "signInPrompt": "Masuk untuk melihat saldo, ekuitas, dan margin.",
+    "signIn": "Masuk",
+    "loading": "Memuat akun…",
+    "loadFailed": "Tidak dapat memuat akun.",
+    "claimDemoFunds": "Klaim dana demo",
+    "positionModeTitle": "Mode posisi otoritatif server",
+    "hedging": "Hedging",
+    "netting": "Netting"
+  },
+  "intelDrawer": {
+    "title": "Intel pasar",
+    "close": "Tutup",
+    "tabs": {
+      "calendar": "Kalender",
+      "news": "Berita",
+      "sessions": "Sesi",
+      "levels": "Level",
+      "volatility": "Volatilitas"
+    },
+    "impactAll": "semua",
+    "calendarUnavailable": "Kalender tidak tersedia{reason}.",
+    "noEventsFilter": "Tidak ada acara untuk filter ini.",
+    "newsUnavailable": "Berita tetap di Analysis jika pemetaan instrumen tidak andal.{reason}",
+    "sessionCurrent": "Saat ini (jam UTC {hour}):",
+    "overlap": "Overlap London / New York (12:00–16:00 UTC):",
+    "overlapActive": "Aktif",
+    "overlapInactive": "Tidak aktif",
+    "sessionDisclaimer": "Jendela sesi adalah perkiraan UTC teksbook, bukan otoritas venue.",
+    "levelsEmpty": "Muat riwayat untuk menurunkan level OHLC.",
+    "atr": "ATR:",
+    "todayRange": "Rentang hari ini:",
+    "na": "n/a",
+    "pips": "{value} pips",
+    "volDisclaimer": "ATR = rata-rata true range 14 periode dari OHLC yang dimuat. Rentang harian = high−low hari ini dalam pips.",
+    "prevFcstAct": "Prev {previous} · Fcst {forecast} · Act {actual}"
+  },
   "commandCenter": {
     "ariaLabel": "Pusat perintah Forex",
     "placeholder": "Cari perintah Forex…",

@@ -722,6 +722,49 @@
     "disconnected": "已断开",
     "srOnly": "外汇连接 {state}"
   },
+  "symbolSearch": {
+    "label": "搜索外汇品种",
+    "placeholder": "搜索 EURUSD…",
+    "noMatches": "没有匹配的外汇品种。"
+  },
+  "accountBar": {
+    "ariaLabel": "账户栏",
+    "signInPrompt": "登录以查看余额、净值与保证金。",
+    "signIn": "登录",
+    "loading": "加载账户中…",
+    "loadFailed": "无法加载账户。",
+    "claimDemoFunds": "领取模拟资金",
+    "positionModeTitle": "服务端权威持仓模式",
+    "hedging": "对冲",
+    "netting": "净额"
+  },
+  "intelDrawer": {
+    "title": "市场情报",
+    "close": "关闭",
+    "tabs": {
+      "calendar": "日历",
+      "news": "新闻",
+      "sessions": "时段",
+      "levels": "价位",
+      "volatility": "波动"
+    },
+    "impactAll": "全部",
+    "calendarUnavailable": "日历不可用{reason}。",
+    "noEventsFilter": "此筛选下无事件。",
+    "newsUnavailable": "品种映射不可靠时，新闻保留在分析页。{reason}",
+    "sessionCurrent": "当前（UTC 小时 {hour}）：",
+    "overlap": "伦敦 / 纽约重叠（UTC 12:00–16:00）：",
+    "overlapActive": "活跃",
+    "overlapInactive": "未活跃",
+    "sessionDisclaimer": "交易时段为 UTC 近似值，非交易所权威数据。",
+    "levelsEmpty": "加载历史以推导 OHLC 价位。",
+    "atr": "ATR：",
+    "todayRange": "今日区间：",
+    "na": "无",
+    "pips": "{value} 点",
+    "volDisclaimer": "ATR = 已加载 OHLC 的 14 期平均真实波幅。日区间 = 今日高低点之差（点）。",
+    "prevFcstAct": "前值 {previous} · 预测 {forecast} · 实际 {actual}"
+  },
   "commandCenter": {
     "ariaLabel": "外汇命令面板",
     "placeholder": "搜索外汇命令…",

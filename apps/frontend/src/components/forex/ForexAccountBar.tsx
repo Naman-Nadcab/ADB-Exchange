@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
@@ -11,6 +13,7 @@ import { ForexPositionModeSwitch } from './ForexPositionModeSwitch';
 import { ForexAccountSwitcher } from './ForexAccountSwitcher';
 
 export function ForexAccountBar(props?: { compact?: boolean }) {
+  const t = useTranslations('forex.accountBar');
   const authed = useForexPrivateSession();
   const account = useForexStore((s) => s.account);
   const balance = useForexStore((s) => s.balance);
@@ -40,12 +43,12 @@ export function ForexAccountBar(props?: { compact?: boolean }) {
   if (!authed) {
     return (
       <div className={`flex ${h} items-center gap-4 overflow-x-auto border-t border-border bg-card px-3 text-[11px]`}>
-        <span className="text-muted-foreground">Sign in to view balance, equity and margin.</span>
+        <span className="text-muted-foreground">{t('signInPrompt')}</span>
         <Link
           href="/login?redirect=/forex/trade"
           className="rounded-md bg-primary px-2.5 py-1 font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          Sign in
+          {t('signIn')}
         </Link>
       </div>
     );
@@ -54,7 +57,7 @@ export function ForexAccountBar(props?: { compact?: boolean }) {
   if ((hydratePhase === 'idle' || hydratePhase === 'hydrating') && !account && !balance) {
     return (
       <div className={`flex ${h} items-center border-t border-border bg-card px-3 text-[11px] text-muted-foreground`} role="status">
-        Loading account…
+        {t('loading')}
       </div>
     );
   }
@@ -62,7 +65,7 @@ export function ForexAccountBar(props?: { compact?: boolean }) {
   if (hydratePhase === 'error' && !account && !balance) {
     return (
       <div className={`flex ${h} items-center border-t border-border bg-card px-3 text-[11px] text-sell`} role="alert">
-        Unable to load account.
+        {t('loadFailed')}
       </div>
     );
   }
@@ -88,7 +91,7 @@ export function ForexAccountBar(props?: { compact?: boolean }) {
   return (
     <div
       className={`flex ${h} w-full min-w-0 shrink-0 items-center gap-3 overflow-x-auto overflow-y-hidden border-t border-border bg-card px-2.5 font-mono text-[11px] tabular-nums`}
-      aria-label="Account bar"
+      aria-label={t('ariaLabel')}
     >
       <ForexAccountSwitcher compact={props?.compact} />
       <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-200">
@@ -96,9 +99,9 @@ export function ForexAccountBar(props?: { compact?: boolean }) {
       </span>
       <span
         className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground"
-        title="Server-authoritative position mode"
+        title={t('positionModeTitle')}
       >
-        {account?.positionMode === 'HEDGING' ? 'Hedging' : 'Netting'}
+        {account?.positionMode === 'HEDGING' ? t('hedging') : t('netting')}
       </span>
       <ForexPositionModeSwitch />
       <Item k="Balance" v={fxMoney(metrics.balance, currency)} />
@@ -116,7 +119,7 @@ export function ForexAccountBar(props?: { compact?: boolean }) {
           href="/forex/account/funds"
           className="shrink-0 rounded-md bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground hover:bg-primary/90"
         >
-          Claim demo funds
+          {t('claimDemoFunds')}
         </Link>
       ) : null}
       <span className="ml-auto text-[10px] text-muted-foreground">

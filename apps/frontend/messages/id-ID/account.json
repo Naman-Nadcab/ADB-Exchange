@@ -355,6 +355,154 @@
     "unverified": "Belum terverifikasi",
     "notStarted": "Belum dimulai"
   },
+  "events": {
+    "title": "Acara & Promosi",
+    "noActiveTitle": "Belum ada acara aktif saat ini",
+    "noActiveDesc": "Kami menyiapkan acara menarik untuk Anda. Aktifkan notifikasi agar menjadi yang pertama tahu.",
+    "disableNotifications": "Nonaktifkan notifikasi",
+    "enableNotifications": "Aktifkan notifikasi",
+    "comingSoon": "Segera hadir",
+    "soonBadge": "Segera",
+    "backToDashboard": "Kembali ke Dashboard",
+    "upcoming": {
+      "tradingCompetition": {
+        "title": "Kompetisi Trading",
+        "desc": "Trader teratas berdasarkan volume memenangkan reward eksklusif. Nantikan peluncurannya."
+      },
+      "referralBonus": {
+        "title": "Acara Bonus Referral",
+        "desc": "Undang teman dan dapatkan komisi lebih tinggi selama periode acara."
+      },
+      "listingAirdrops": {
+        "title": "Airdrop Listing Baru",
+        "desc": "Dapatkan token gratis saat koin baru dilisting. Pegang aset yang memenuhi syarat untuk ikut."
+      }
+    }
+  },
+  "feeRates": {
+    "title": "Tarif Fee Saya",
+    "spotVolumeTier": "Tier volume spot",
+    "tierFallback": "Tier {level}",
+    "makerTaker": "Maker: {maker}% · Taker: {taker}%",
+    "volume30d": "Volume 30 hari: {volume} USD",
+    "progressNextTier": "Progres ke tier berikutnya",
+    "nextTierAt": "Tier berikutnya di {volume} USD",
+    "myFeeLevel": "Level Fee Saya",
+    "tabTrading": "Fee Trading",
+    "tabInterest": "Suku Bunga",
+    "spot": "Spot",
+    "mntDiscount": "Diskon fee MNT 25%",
+    "maker": "Maker",
+    "taker": "Taker",
+    "fiatPairsMaker": "Fiat Pairs Maker",
+    "fiatPairsTaker": "Fiat Pairs Taker",
+    "tradeSpot": "Trade Spot",
+    "vipUpdateNote": "Level VIP dan fee Anda diperbarui pukul 07:00 UTC jika memenuhi persyaratan.",
+    "checkRequirements": "Lihat persyaratannya.",
+    "viewFiatFees": "Lihat Fee Trading Fiat",
+    "findOutDetails": "Pelajari detailnya.",
+    "mntDiscountNote": "Diskon MNT hanya berlaku untuk trading Spot (termasuk pasangan fiat).",
+    "depositWithdrawTitle": "Fee Deposit & Penarikan",
+    "depositWithdrawDesc": "Deposit gratis. Fee penarikan menutup biaya jaringan (gas) dan bervariasi per chain. Semua fee dipotong dari jumlah penarikan.",
+    "colAsset": "Aset",
+    "colDepositFee": "Fee Deposit",
+    "colWithdrawalFee": "Fee Penarikan",
+    "colMinWithdrawal": "Min. Penarikan",
+    "depositFree": "Gratis",
+    "withdrawalNetworkFee": "Fee jaringan",
+    "minVaries": "Bervariasi per jaringan",
+    "exactFeesNote": "Fee pasti ditampilkan di halaman penarikan setelah memilih jaringan. Fee disesuaikan dinamis dengan kondisi blockchain.",
+    "lowerFeesTitle": "Nikmati Fee Lebih Rendah",
+    "lowerFeesDesc": "Penuhi salah satu persyaratan berikut untuk naik ke",
+    "vip1": "VIP 1",
+    "lowerFeesSuffix": "dan nikmati tarif fee lebih rendah.",
+    "reqSpotVolume": "Volume Trading Spot 30 Hari (USD)",
+    "reqSpotVolumeHelp": "Total volume trading spot Anda dalam 30 hari terakhir",
+    "reqTotalEquity": "Total Ekuitas (USD)",
+    "reqAvgEquity": "Rata-rata Ekuitas 30H (USD)",
+    "linkSpotHistory": "Riwayat Trade Spot",
+    "linkWalletBalance": "Saldo Wallet (Akun Earn)",
+    "orBadge": "ATAU",
+    "footerMarketOverview": "Ringkasan Pasar",
+    "footerTradingFee": "Fee Trading",
+    "footerApi": "API",
+    "footerHelpCenter": "Pusat Bantuan",
+    "footerCopyright": "© 2026 FDM",
+    "requirements": {
+      "spot-volume": {
+        "title": "Volume Trading Spot 30 Hari (USD)",
+        "helpText": "Total volume trading spot Anda dalam 30 hari terakhir",
+        "linkText": "Riwayat Trade Spot"
+      },
+      "total-equity": {
+        "title": "Total Ekuitas (USD)",
+        "linkText": "Saldo Wallet (Akun Earn)"
+      },
+      "avg-equity": {
+        "title": "Rata-rata Ekuitas 30H (USD)",
+        "linkText": "Saldo Wallet (Akun Earn)"
+      }
+    }
+  },
+  "identitySuccess": {
+    "title": "Verifikasi berhasil",
+    "subtitle": "Identitas Anda telah diverifikasi. Anda kini memiliki akses penuh ke fitur platform yang memerlukan KYC.",
+    "nextStepsTitle": "Langkah selanjutnya",
+    "rewardsTitle": "Reward Anda",
+    "rewardBonuses": "Bonus yang berlaku akan dikreditkan ke akun Anda",
+    "rewardLimits": "Limit penarikan lebih tinggi",
+    "rewardTrading": "Akses ke semua fitur trading",
+    "depositCta": "Lakukan deposit",
+    "dashboardCta": "Ke dashboard",
+    "redirecting": "Mengalihkan ke dashboard dalam 5 detik…",
+    "footerCopyright": "© 2018-2026 FDM. Hak cipta dilindungi.",
+    "steps": {
+      "fund": {
+        "title": "Danai akun Anda",
+        "description": "Deposit kripto atau fiat untuk mulai trading."
+      },
+      "dashboard": {
+        "title": "Jelajahi dashboard",
+        "description": "Tinjau saldo, order, dan pengaturan akun."
+      },
+      "trade": {
+        "title": "Trading dengan percaya diri",
+        "description": "Spot dan P2P tersedia dengan status terverifikasi Anda."
+      }
+    }
+  },
+  "sessionsDevices": {
+    "signInPrompt": "Masuk untuk mengelola sesi.",
+    "breadcrumbSecurity": "Keamanan",
+    "title": "Sesi & perangkat",
+    "subtitle": "Lihat tempat Anda masuk dan tinjau aktivitas akun terbaru.",
+    "terminateOthers": "Akhiri semua sesi lain",
+    "activeSessions": "Sesi aktif",
+    "noSessions": "Tidak ada sesi aktif.",
+    "currentBadge": "Saat ini",
+    "lastActive": "Terakhir aktif {time}",
+    "signedIn": "Masuk {time}",
+    "recentActivity": "Aktivitas login terbaru",
+    "colDate": "Tanggal",
+    "colActivityType": "Jenis aktivitas",
+    "colIp": "Alamat IP",
+    "colDevice": "Perangkat / browser",
+    "colLocation": "Lokasi",
+    "noActivity": "Belum ada aktivitas tercatat.",
+    "unknownBrowser": "Browser tidak dikenal"
+  },
+  "antiPhishingPage": {
+    "signInPrompt": "Masuk untuk mengatur kode anti-phishing.",
+    "breadcrumbSecurity": "Keamanan",
+    "breadcrumbCurrent": "Kode anti-phishing",
+    "title": "Kode anti-phishing",
+    "subtitle": "Frasa ini muncul di email resmi kami agar Anda dapat mengenali email palsu.",
+    "currentCodeLabel": "Kode saat ini",
+    "currentCodePlaceholder": "Masukkan kode saat ini",
+    "newCodeLabel": "Kode baru",
+    "newCodeInitialLabel": "Kode (4–20 karakter)",
+    "newCodePlaceholder": "Hanya huruf, angka, dan garis bawah"
+  },
   "toasts": {
     "addPhoneFirst": "Tambahkan nomor telepon terlebih dahulu",
     "smsAuthUpdateFailed": "Gagal memperbarui autentikasi SMS",
@@ -504,6 +652,14 @@
     "recentActivityUnavailableDesc": "Tidak dapat memuat aktivitas dompet. Coba lagi.",
     "apiKeyNameRequired": "Masukkan nama untuk kunci API",
     "apiKeyPublicKeyRequired": "Masukkan kunci publik Anda",
-    "apiKeyCreateFailed": "Gagal membuat kunci API"
+    "apiKeyCreateFailed": "Gagal membuat kunci API",
+    "loadFeeRatesFailed": "Gagal memuat tarif fee. Silakan coba lagi.",
+    "mntDiscountNotAvailable": "Diskon MNT belum tersedia.",
+    "updateMntDiscountFailed": "Gagal memperbarui diskon MNT.",
+    "updateMntDiscountRetry": "Gagal memperbarui diskon MNT. Silakan coba lagi.",
+    "assetHistoryUnavailableTitle": "Riwayat tidak tersedia",
+    "assetHistoryUnavailableDesc": "Tidak dapat memuat transaksi {symbol}. Coba muat ulang.",
+    "transferHistoryUnavailableTitle": "Riwayat tidak tersedia",
+    "transferHistoryUnavailableDesc": "Riwayat transfer tidak dapat dimuat."
   }
 }

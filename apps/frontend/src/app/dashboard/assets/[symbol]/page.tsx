@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -136,6 +138,8 @@ function resolveSymbol(row: Record<string, unknown>): string {
 // ---------------------------------------------------------------------------
 
 export default function AssetSymbolPage() {
+  const tw = useTranslations('wallet.assetDetail');
+  const tt = useTranslations('account.toasts');
   const params = useParams();
   const { accessToken, _hasHydrated } = useAuthStore();
   const { formatFromUsdt } = useDisplayCurrency();
@@ -185,13 +189,13 @@ export default function AssetSymbolPage() {
           setTickerLoadError(null);
         }
       } catch {
-        if (!cancelled) setTickerLoadError('Live price feed unavailable.');
+        if (!cancelled) setTickerLoadError(tw('livePriceFeedUnavailable'));
       }
     };
     load();
     const iv = setInterval(load, 5_000);
     return () => { cancelled = true; clearInterval(iv); };
-  }, [symbol]);
+  }, [symbol, tw]);
 
   const livePrice = ticker?.last_price ? parseFloat(ticker.last_price) : null;
   const change24h = ticker?.change_pct ?? null;
@@ -238,13 +242,13 @@ export default function AssetSymbolPage() {
     } catch {
       setTxLoadError('Could not load transaction history.');
       toast({
-        title: 'History unavailable',
-        description: `Could not load ${symbol} transactions. Retry to refresh.`,
+        title: tt('assetHistoryUnavailableTitle'),
+        description: tt('assetHistoryUnavailableDesc', { symbol }),
         variant: 'destructive',
       });
     }
     finally { setTxLoading(false); }
-  }, [ready, symbol]);
+  }, [ready, symbol, tt]);
 
   useEffect(() => { loadTransactions(); }, [loadTransactions]);
 
@@ -265,9 +269,9 @@ export default function AssetSymbolPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <p className="text-muted-foreground text-sm">Invalid asset symbol.</p>
+          <p className="text-muted-foreground text-sm">{tw('invalidSymbol')}</p>
           <Link href={walletPath.overview} className="mt-3 inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-            <ArrowLeft className="w-4 h-4" /> Back to Assets
+            <ArrowLeft className="w-4 h-4" /> {tw('backToAssets')}
           </Link>
         </div>
       </div>
@@ -315,7 +319,7 @@ export default function AssetSymbolPage() {
                   )}
                 </>
               ) : (
-                <span className="text-sm text-muted-foreground">Price unavailable</span>
+                <span className="text-sm text-muted-foreground">{tw('priceUnavailable')}</span>
               )}
               {tickerLoadError ? (
                 <span className="text-xs text-amber-600 dark:text-amber-400">{tickerLoadError}</span>
@@ -474,7 +478,7 @@ export default function AssetSymbolPage() {
           </>
         ) : (
           <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
-            <Info className="w-4 h-4" /> Market data unavailable for {symbol}
+            <Info className="w-4 h-4" /> {tw('marketDataUnavailable', { symbol })}
           </div>
         )}
       </div>

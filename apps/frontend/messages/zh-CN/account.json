@@ -355,6 +355,154 @@
     "unverified": "未认证",
     "notStarted": "未开始"
   },
+  "events": {
+    "title": "活动与促销",
+    "noActiveTitle": "当前暂无进行中的活动",
+    "noActiveDesc": "我们正在为您准备精彩活动。开启通知以便第一时间获知。",
+    "disableNotifications": "关闭通知",
+    "enableNotifications": "开启通知",
+    "comingSoon": "即将推出",
+    "soonBadge": "即将",
+    "backToDashboard": "返回控制台",
+    "upcoming": {
+      "tradingCompetition": {
+        "title": "交易竞赛",
+        "desc": "按成交量排名前列的交易者可获专属奖励，敬请期待上线。"
+      },
+      "referralBonus": {
+        "title": "推荐奖励活动",
+        "desc": "邀请好友，活动期间享受更高佣金。"
+      },
+      "listingAirdrops": {
+        "title": "新币上线空投",
+        "desc": "新币上线时可领取免费代币，持有符合条件的资产即可参与。"
+      }
+    }
+  },
+  "feeRates": {
+    "title": "我的费率",
+    "spotVolumeTier": "现货成交量档位",
+    "tierFallback": "档位 {level}",
+    "makerTaker": "Maker：{maker}% · Taker：{taker}%",
+    "volume30d": "30 日成交量：{volume} USD",
+    "progressNextTier": "距下一档位进度",
+    "nextTierAt": "下一档位需 {volume} USD",
+    "myFeeLevel": "我的费率等级",
+    "tabTrading": "交易手续费",
+    "tabInterest": "利率",
+    "spot": "现货",
+    "mntDiscount": "MNT 25% 手续费折扣",
+    "maker": "Maker",
+    "taker": "Taker",
+    "fiatPairsMaker": "法币对 Maker",
+    "fiatPairsTaker": "法币对 Taker",
+    "tradeSpot": "现货交易",
+    "vipUpdateNote": "若满足相应条件，您的 VIP 等级与费率将于 UTC 7:00 更新。",
+    "checkRequirements": "查看要求。",
+    "viewFiatFees": "查看法币交易费率",
+    "findOutDetails": "了解详情。",
+    "mntDiscountNote": "MNT 折扣仅适用于现货（含法币对）交易。",
+    "depositWithdrawTitle": "充值与提现手续费",
+    "depositWithdrawDesc": "充值免费。提现手续费用于覆盖网络（Gas）成本，因链而异，均从提现金额中扣除。",
+    "colAsset": "资产",
+    "colDepositFee": "充值费",
+    "colWithdrawalFee": "提现费",
+    "colMinWithdrawal": "最低提现",
+    "depositFree": "免费",
+    "withdrawalNetworkFee": "网络费",
+    "minVaries": "因网络而异",
+    "exactFeesNote": "选择网络后，提现页会显示确切费用。费用根据链上情况动态调整。",
+    "lowerFeesTitle": "享受更低费率",
+    "lowerFeesDesc": "满足以下任一条件即可升级至",
+    "vip1": "VIP 1",
+    "lowerFeesSuffix": "并享受更低费率。",
+    "reqSpotVolume": "30 日现货成交量（USD）",
+    "reqSpotVolumeHelp": "过去 30 日现货成交总量",
+    "reqTotalEquity": "总权益（USD）",
+    "reqAvgEquity": "30 日平均权益（USD）",
+    "linkSpotHistory": "现货成交记录",
+    "linkWalletBalance": "钱包余额（理财账户）",
+    "orBadge": "或",
+    "footerMarketOverview": "市场概览",
+    "footerTradingFee": "交易手续费",
+    "footerApi": "API",
+    "footerHelpCenter": "帮助中心",
+    "footerCopyright": "© 2026 FDM",
+    "requirements": {
+      "spot-volume": {
+        "title": "30 日现货成交量（USD）",
+        "helpText": "过去 30 日现货成交总量",
+        "linkText": "现货成交记录"
+      },
+      "total-equity": {
+        "title": "总权益（USD）",
+        "linkText": "钱包余额（理财账户）"
+      },
+      "avg-equity": {
+        "title": "30 日平均权益（USD）",
+        "linkText": "钱包余额（理财账户）"
+      }
+    }
+  },
+  "identitySuccess": {
+    "title": "验证成功",
+    "subtitle": "您的身份已通过验证，现已可使用需要 KYC 的全部平台功能。",
+    "nextStepsTitle": "下一步",
+    "rewardsTitle": "您的权益",
+    "rewardBonuses": "符合条件的奖励将计入您的账户",
+    "rewardLimits": "提高提现限额",
+    "rewardTrading": "使用全部交易功能",
+    "depositCta": "去充值",
+    "dashboardCta": "前往控制台",
+    "redirecting": "5 秒后跳转至控制台…",
+    "footerCopyright": "© 2018-2026 FDM. 保留所有权利。",
+    "steps": {
+      "fund": {
+        "title": "为账户充值",
+        "description": "充值加密货币或法币开始交易。"
+      },
+      "dashboard": {
+        "title": "浏览控制台",
+        "description": "查看余额、订单与账户设置。"
+      },
+      "trade": {
+        "title": "安心交易",
+        "description": "验证状态下可使用现货与 P2P。"
+      }
+    }
+  },
+  "sessionsDevices": {
+    "signInPrompt": "请登录以管理会话。",
+    "breadcrumbSecurity": "安全",
+    "title": "会话与设备",
+    "subtitle": "查看登录位置并审阅近期账户活动。",
+    "terminateOthers": "终止其他所有会话",
+    "activeSessions": "活跃会话",
+    "noSessions": "未找到活跃会话。",
+    "currentBadge": "当前",
+    "lastActive": "最近活跃 {time}",
+    "signedIn": "登录于 {time}",
+    "recentActivity": "近期登录活动",
+    "colDate": "日期",
+    "colActivityType": "活动类型",
+    "colIp": "IP 地址",
+    "colDevice": "设备 / 浏览器",
+    "colLocation": "位置",
+    "noActivity": "暂无活动记录。",
+    "unknownBrowser": "未知浏览器"
+  },
+  "antiPhishingPage": {
+    "signInPrompt": "请登录以设置反钓鱼码。",
+    "breadcrumbSecurity": "安全",
+    "breadcrumbCurrent": "反钓鱼码",
+    "title": "反钓鱼码",
+    "subtitle": "该短语会出现在我们的官方邮件中，便于识别伪造邮件。",
+    "currentCodeLabel": "当前代码",
+    "currentCodePlaceholder": "输入当前代码",
+    "newCodeLabel": "新代码",
+    "newCodeInitialLabel": "代码（4–20 个字符）",
+    "newCodePlaceholder": "仅字母、数字与下划线"
+  },
   "toasts": {
     "addPhoneFirst": "请先添加手机号码",
     "smsAuthUpdateFailed": "更新短信验证失败",
@@ -504,6 +652,14 @@
     "recentActivityUnavailableDesc": "无法加载钱包活动，请重试。",
     "apiKeyNameRequired": "请输入 API 密钥名称",
     "apiKeyPublicKeyRequired": "请输入公钥",
-    "apiKeyCreateFailed": "创建 API 密钥失败"
+    "apiKeyCreateFailed": "创建 API 密钥失败",
+    "loadFeeRatesFailed": "加载费率失败，请重试。",
+    "mntDiscountNotAvailable": "MNT 折扣暂不可用。",
+    "updateMntDiscountFailed": "更新 MNT 折扣失败。",
+    "updateMntDiscountRetry": "更新 MNT 折扣失败，请重试。",
+    "assetHistoryUnavailableTitle": "历史不可用",
+    "assetHistoryUnavailableDesc": "无法加载 {symbol} 交易记录，请重试刷新。",
+    "transferHistoryUnavailableTitle": "历史不可用",
+    "transferHistoryUnavailableDesc": "无法加载划转记录。"
   }
 }
