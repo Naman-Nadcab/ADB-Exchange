@@ -1,9 +1,48 @@
 {
   "forex": {
-    "marginInsufficient": "保证金不足，无法提交此订单"
+    "marginInsufficient": "保证金不足，无法提交此订单",
+    "sessionExpired": "会话已过期，请重新登录。",
+    "authRequired": "请登录后访问外汇账户。",
+    "sessionClosed": "当前不可提交新订单。",
+    "staleMarket": "报价已过期，已禁用实时成交。",
+    "networkFailed": "连接外汇 API 失败。",
+    "codes": {
+      "INSUFFICIENT_MARGIN": "保证金不足，无法提交此订单。",
+      "INSUFFICIENT_FOREX_BALANCE": "外汇余额不足。",
+      "SESSION_CLOSED": "交易时段已关闭。",
+      "STALE_MARKET": "市场报价已过期。",
+      "UNAUTHORIZED": "请先登录后继续。",
+      "SESSION_EXPIRED": "会话已过期，请重新登录。"
+    }
   },
   "crypto": {
-    "invalidPrice": "订单价格无效"
+    "invalidPrice": "订单价格无效",
+    "codes": {
+      "INVALID_PRICE": "订单价格无效。",
+      "INSUFFICIENT_BALANCE": "余额不足。"
+    }
+  },
+  "p2p": {
+    "paymentExpired": "付款时间已过期。",
+    "orderCancelled": "该 P2P 订单已取消。",
+    "codes": {
+      "P2P_PAYMENT_EXPIRED": "付款时间已过期。",
+      "P2P_ORDER_CANCELLED": "该 P2P 订单已取消。"
+    }
+  },
+  "wallet": {
+    "networkMismatch": "所选网络与该资产不匹配。",
+    "withdrawBlocked": "提币暂时不可用。",
+    "codes": {
+      "WRONG_NETWORK": "提现所选网络错误。",
+      "WITHDRAW_BLOCKED": "提币暂时不可用。"
+    }
+  },
+  "account": {
+    "sessionExpired": "会话已过期，请重新登录。",
+    "codes": {
+      "SESSION_EXPIRED": "会话已过期，请重新登录。"
+    }
   },
   "auth": {
     "codes": {

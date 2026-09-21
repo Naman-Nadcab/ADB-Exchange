@@ -1,1 +1,8 @@
-{}
+{
+  "title": "订单",
+  "spot": "现货",
+  "history": "历史",
+  "open": "未成交",
+  "filled": "已成交",
+  "cancelled": "已撤销"
+}

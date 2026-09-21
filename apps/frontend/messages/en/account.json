@@ -1,0 +1,29 @@
+{
+  "profile": {
+    "title": "Account",
+    "subtitle": "Profile, verification status, and account identifiers.",
+    "uid": "UID",
+    "email": "Email",
+    "phone": "Phone",
+    "verification": "Verification",
+    "editProfile": "Edit profile"
+  },
+  "security": {
+    "title": "Security",
+    "subtitle": "Password, 2FA, devices, and withdrawal protection.",
+    "twoFactor": "Two-factor authentication",
+    "sessions": "Active sessions",
+    "fundPassword": "Fund password"
+  },
+  "preferences": {
+    "title": "Preferences",
+    "subtitle": "Display, notifications, and language.",
+    "language": "Language",
+    "displayCurrency": "Display currency"
+  },
+  "verification": {
+    "verified": "Verified",
+    "pending": "Pending review",
+    "notStarted": "Not started"
+  }
+}

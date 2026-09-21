@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { ForexChartFoundation } from '@/components/forex/ForexChartFoundation';
 import { ForexPageFrame } from '@/components/forex/ForexPageFrame';
@@ -59,6 +60,7 @@ function rsiTone(v: number | null | undefined): string {
 }
 
 export default function ForexAnalysisPage() {
+  const tForex = useTranslations('forex');
   const symbol = useForexWorkspaceStore((s) => s.selectedSymbol);
   const setSymbol = useForexWorkspaceStore((s) => s.setSelectedSymbol);
   const tf = useForexWorkspaceStore((s) => s.chartTimeframe);
@@ -274,7 +276,7 @@ export default function ForexAnalysisPage() {
     <ForexPageFrame
       wide
       dense
-      title="Analysis"
+      title={tForex('pages.analysis.title')}
       actions={
         <div className="flex flex-wrap items-center gap-1.5">
           <Link

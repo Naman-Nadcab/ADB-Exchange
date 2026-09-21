@@ -1,1 +1,55 @@
-{}
+{
+  "trading": {
+    "buy": "Beli",
+    "sell": "Jual",
+    "limit": "Limit",
+    "market": "Market",
+    "stop": "Stop",
+    "stopLimit": "Stop Limit",
+    "trailing": "Trailing",
+    "price": "Harga",
+    "quantity": "Kuantitas",
+    "total": "Total",
+    "available": "Tersedia",
+    "placeOrder": "Tempatkan order",
+    "loginToTrade": "Masuk untuk trading",
+    "executing": "Mengirim…",
+    "tif": {
+      "gtc": "Good-Til-Cancelled",
+      "ioc": "Immediate or Cancel",
+      "fok": "Fill or Kill"
+    }
+  },
+  "bottomPanel": {
+    "tabs": {
+      "open": "Terbuka",
+      "history": "Riwayat",
+      "trades": "Trade",
+      "assets": "Aset",
+      "positions": "Posisi"
+    },
+    "openOrders": "Order Terbuka",
+    "orderHistory": "Riwayat Order",
+    "tradeHistory": "Riwayat Trade",
+    "assets": "Aset",
+    "positions": "Posisi",
+    "exportOrderHistoryCsv": "Ekspor Riwayat Order sebagai CSV",
+    "cancelAll": "Batalkan semua",
+    "refresh": "Muat ulang"
+  },
+  "orders": {
+    "status": {
+      "open": "Terbuka",
+      "pendingTrigger": "Menunggu Trigger",
+      "partiallyFilled": "Terisi Sebagian",
+      "rejected": "Ditolak",
+      "cancelled": "Dibatalkan",
+      "filled": "Terisi",
+      "unknown": "Tidak diketahui"
+    }
+  },
+  "empty": {
+    "noOpenOrders": "Tidak ada order terbuka",
+    "signInForOrders": "Masuk untuk melihat order Anda"
+  }
+}

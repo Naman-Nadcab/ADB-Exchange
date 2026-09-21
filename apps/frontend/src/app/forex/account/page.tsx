@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { ForexAccountNav } from '@/components/forex/ForexAccountNav';
 import { ForexMetric } from '@/components/forex/ForexMetric';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
@@ -11,6 +12,7 @@ import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
 
 export default function ForexAccountPage() {
+  const tf = useTranslations('forex');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const account = useForexStore((s) => s.account);
@@ -26,12 +28,12 @@ export default function ForexAccountPage() {
 
   return (
     <ForexPageFrame
-      title="Account"
-      subtitle="FOREX DEMO ACCOUNT · SIMULATED / MOCK. Not real money. Real Forex and live LP remain OFF."
+      title={tf('pages.account.title')}
+      subtitle={tf('pages.account.subtitle')}
       actions={<ForexAccountNav />}
     >
       {!authed ? (
-        <ForexSignInPrompt href="/login?redirect=/forex/account" label="your Forex account" />
+        <ForexSignInPrompt href="/login?redirect=/forex/account" sectionKey="yourForexAccount" />
       ) : !account && !balance ? (
         <p className="text-sm text-muted-foreground">Loading account…</p>
       ) : (

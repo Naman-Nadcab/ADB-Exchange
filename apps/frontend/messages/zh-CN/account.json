@@ -1,0 +1,29 @@
+{
+  "profile": {
+    "title": "账户",
+    "subtitle": "个人资料、认证状态与账户标识。",
+    "uid": "UID",
+    "email": "邮箱",
+    "phone": "手机",
+    "verification": "身份认证",
+    "editProfile": "编辑资料"
+  },
+  "security": {
+    "title": "安全",
+    "subtitle": "密码、双重验证、设备与提币保护。",
+    "twoFactor": "双重验证",
+    "sessions": "活跃会话",
+    "fundPassword": "资金密码"
+  },
+  "preferences": {
+    "title": "偏好设置",
+    "subtitle": "显示、通知与语言。",
+    "language": "语言",
+    "displayCurrency": "显示货币"
+  },
+  "verification": {
+    "verified": "已认证",
+    "pending": "审核中",
+    "notStarted": "未开始"
+  }
+}

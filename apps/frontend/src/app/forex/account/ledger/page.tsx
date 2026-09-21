@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { ForexAccountNav } from '@/components/forex/ForexAccountNav';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
@@ -25,6 +26,7 @@ function cashCredit(row: ForexLedgerRow): string {
 }
 
 export default function ForexLedgerPage() {
+  const tf = useTranslations('forex');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const ledger = useForexStore((s) => s.ledger);
@@ -58,12 +60,12 @@ export default function ForexLedgerPage() {
 
   return (
     <ForexPageFrame
-      title="Ledger"
-      subtitle="Forex cash movements with backend running balances. Reconciliation uses account values, not frontend math."
+      title={tf('pages.ledger.title')}
+      subtitle={tf('pages.ledger.subtitle')}
       actions={<ForexAccountNav />}
     >
       {!authed ? (
-        <ForexSignInPrompt href="/login?redirect=/forex/account/ledger" label="ledger" />
+        <ForexSignInPrompt href="/login?redirect=/forex/account/ledger" sectionKey="ledger" />
       ) : (
         <>
           <div className="flex flex-wrap items-end gap-3 text-[12px]">

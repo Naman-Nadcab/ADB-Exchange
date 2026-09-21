@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useEffect, type ReactNode } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Loader2, Plus, Info, ArrowRight, ClipboardList, ChevronDown } from 'lucide-react';
 import { formatValueFixedTrim } from './terminalFormat';
 import { CoinIcon } from '@/components/ui/CoinIcon';
@@ -182,6 +183,7 @@ export function SpotOrderEntryPanel({
   maxBuyBaseEstimate,
   maxSellQuoteEstimate,
 }: SpotOrderEntryPanelProps) {
+  const tc = useTranslations('crypto');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   useEffect(() => {
@@ -316,7 +318,7 @@ export function SpotOrderEntryPanel({
                 : 'text-muted-foreground hover:text-foreground dark:text-muted-foreground dark:hover:text-foreground/90'
             }`}
           >
-            Buy
+            {tc('trading.buy')}
           </button>
           <button
             type="button"
@@ -328,7 +330,7 @@ export function SpotOrderEntryPanel({
                 : 'text-muted-foreground hover:text-foreground dark:text-muted-foreground dark:hover:text-foreground/90'
             }`}
           >
-            Sell
+            {tc('trading.sell')}
           </button>
         </div>
       </div>
@@ -337,7 +339,7 @@ export function SpotOrderEntryPanel({
       <div className="flex-shrink-0 border-b border-border/90 px-2.5 pb-0 dark:border-border/90">
         <div className="flex items-stretch gap-0">
           {(['limit', 'market'] as const).map((t) => {
-            const label = t === 'limit' ? 'Limit' : 'Market';
+            const label = t === 'limit' ? tc('trading.limit') : tc('trading.market');
             const active = orderType === t;
             return (
               <button

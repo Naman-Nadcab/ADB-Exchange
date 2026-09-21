@@ -1,1 +1,121 @@
-{}
+{
+  "domainLabel": "Forex",
+  "nav": {
+    "trade": "Trade",
+    "markets": "Markets",
+    "portfolio": "Portfolio",
+    "orders": "Orders",
+    "analysis": "Analysis",
+    "alerts": "Alerts",
+    "account": "Account",
+    "more": "More"
+  },
+  "chrome": {
+    "simulated": "SIMULATED",
+    "demoSimulated": "DEMO · SIMULATED",
+    "terminalNavAria": "Forex terminal",
+    "mobileNavAria": "Forex mobile"
+  },
+  "pages": {
+    "markets": {
+      "title": "Markets",
+      "subtitle": "Live Bid, Ask and spread from FDM Forex quotes. Change is not shown unless the quote feed provides it."
+    },
+    "portfolio": {
+      "title": "Portfolio",
+      "subtitle": "Open positions, exposure, P&L and margin from the Forex account."
+    },
+    "orders": {
+      "title": "Orders",
+      "subtitle": "Open, pending and completed Forex orders. Pending rows expose Modify and Cancel (server-authoritative)."
+    },
+    "analysis": {
+      "title": "Analysis"
+    },
+    "alerts": {
+      "title": "Alerts",
+      "subtitle": "Server-evaluated Forex alerts for your account."
+    },
+    "account": {
+      "title": "Account",
+      "subtitle": "FOREX DEMO ACCOUNT · SIMULATED / MOCK. Not real money. Real Forex and live LP remain OFF."
+    },
+    "funds": {
+      "title": "Funds",
+      "subtitle": "FOREX DEMO ACCOUNT · SIMULATED / MOCK. Real Forex deposit rails are OFF. Crypto wallet is separate."
+    },
+    "ledger": {
+      "title": "Ledger",
+      "subtitle": "Forex cash movements with backend running balances. Reconciliation uses account values, not frontend math."
+    },
+    "accounts": {
+      "title": "Forex accounts",
+      "subtitle": "SIMULATED demo accounts only. Live account opening is not available while REAL_FOREX is off."
+    }
+  },
+  "markets": {
+    "filters": {
+      "all": "All",
+      "majors": "Majors",
+      "crosses": "Crosses",
+      "metals": "Metals",
+      "watchlist": "Watchlist"
+    },
+    "classLabels": {
+      "major": "Major",
+      "cross": "Cross",
+      "metal": "Metal"
+    },
+    "sessionUnavailable": "Unavailable"
+  },
+  "signIn": {
+    "prompt": "Sign in to view {section}.",
+    "link": "Sign in",
+    "sections": {
+      "ledger": "the ledger",
+      "orders": "orders",
+      "portfolio": "portfolio",
+      "yourForexAccount": "your Forex account",
+      "funds": "funds",
+      "forexAccounts": "Forex accounts"
+    }
+  },
+  "ticket": {
+    "buy": "Buy",
+    "sell": "Sell",
+    "marketBuy": "Market Buy",
+    "marketSell": "Market Sell",
+    "executing": "Executing…",
+    "previewing": "Previewing…",
+    "submitting": "Submitting…",
+    "placeOrder": "Place {action}",
+    "margin": "Margin",
+    "fee": "Fee",
+    "estExposure": "Est. exposure",
+    "estSl": "Est. SL",
+    "estTp": "Est. TP",
+    "estRr": "Est. R:R",
+    "freeAfter": "Free after",
+    "preview": "Preview",
+    "stopLimitBuyHint": "Buy Stop Limit: limit must be at or below the stop.",
+    "stopLimitSellHint": "Sell Stop Limit: limit must be at or above the stop."
+  },
+  "orderTypes": {
+    "MARKET": "Market",
+    "LIMIT": "Limit",
+    "STOP": "Stop",
+    "STOP_LIMIT": "Stop Limit"
+  },
+  "accountNav": {
+    "overview": "Overview",
+    "accounts": "Accounts",
+    "funds": "Funds",
+    "ledger": "Ledger",
+    "portfolio": "Portfolio",
+    "sectionsAria": "Account sections"
+  },
+  "alertsPage": {
+    "intro": "Primary trading alerts are managed here and in the",
+    "tradeTerminal": "trade terminal"
+  }
+}

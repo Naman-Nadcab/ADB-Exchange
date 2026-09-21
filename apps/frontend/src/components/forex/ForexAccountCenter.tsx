@@ -78,7 +78,7 @@ export function ForexAccountCenter() {
   }
 
   if (!authed) {
-    return <ForexSignInPrompt href={`/login?redirect=${FOREX_ROUTES.accounts}`} label="Forex accounts" />;
+    return <ForexSignInPrompt href={`/login?redirect=${FOREX_ROUTES.accounts}`} sectionKey="forexAccounts" />;
   }
 
   return (

@@ -35,6 +35,7 @@ export const MESSAGE_NAMESPACES = [
   'p2p',
   'wallet',
   'orders',
+  'account',
   'errors',
   'notifications',
 ] as const;

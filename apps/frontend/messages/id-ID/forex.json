@@ -1,1 +1,121 @@
-{}
+{
+  "domainLabel": "Forex",
+  "nav": {
+    "trade": "Trade",
+    "markets": "Pasar",
+    "portfolio": "Portofolio",
+    "orders": "Order",
+    "analysis": "Analisis",
+    "alerts": "Alert",
+    "account": "Akun",
+    "more": "Lainnya"
+  },
+  "chrome": {
+    "simulated": "SIMULASI",
+    "demoSimulated": "DEMO · SIMULASI",
+    "terminalNavAria": "Navigasi terminal Forex",
+    "mobileNavAria": "Navigasi mobile Forex"
+  },
+  "pages": {
+    "markets": {
+      "title": "Pasar",
+      "subtitle": "Bid, Ask, dan spread live dari kuotasi Forex FDM. Perubahan harga tidak ditampilkan kecuali feed menyediakannya."
+    },
+    "portfolio": {
+      "title": "Portofolio",
+      "subtitle": "Posisi terbuka, eksposur, P&L, dan margin dari akun Forex."
+    },
+    "orders": {
+      "title": "Order",
+      "subtitle": "Order Forex terbuka, pending, dan selesai. Baris pending mendukung Ubah dan Batalkan (otoritatif server)."
+    },
+    "analysis": {
+      "title": "Analisis"
+    },
+    "alerts": {
+      "title": "Alert",
+      "subtitle": "Alert Forex akun Anda dievaluasi di server."
+    },
+    "account": {
+      "title": "Akun",
+      "subtitle": "AKUN DEMO FOREX · SIMULASI / MOCK. Bukan uang riil. Forex riil dan LP live tetap OFF."
+    },
+    "funds": {
+      "title": "Dana",
+      "subtitle": "AKUN DEMO FOREX · SIMULASI / MOCK. Rel deposit Forex riil OFF. Dompet kripto terpisah."
+    },
+    "ledger": {
+      "title": "Buku besar",
+      "subtitle": "Pergerakan kas Forex dengan saldo berjalan backend. Rekonsiliasi memakai nilai akun, bukan perhitungan frontend."
+    },
+    "accounts": {
+      "title": "Akun Forex",
+      "subtitle": "Hanya akun demo simulasi. Pembukaan akun live tidak tersedia saat REAL_FOREX off."
+    }
+  },
+  "markets": {
+    "filters": {
+      "all": "Semua",
+      "majors": "Major",
+      "crosses": "Cross",
+      "metals": "Logam",
+      "watchlist": "Watchlist"
+    },
+    "classLabels": {
+      "major": "Major",
+      "cross": "Cross",
+      "metal": "Logam"
+    },
+    "sessionUnavailable": "Tidak tersedia"
+  },
+  "signIn": {
+    "prompt": "Masuk untuk melihat {section}.",
+    "link": "Masuk",
+    "sections": {
+      "ledger": "buku besar",
+      "orders": "order",
+      "portfolio": "portofolio",
+      "yourForexAccount": "akun Forex Anda",
+      "funds": "dana",
+      "forexAccounts": "akun Forex"
+    }
+  },
+  "ticket": {
+    "buy": "Beli",
+    "sell": "Jual",
+    "marketBuy": "Market Beli",
+    "marketSell": "Market Jual",
+    "executing": "Menjalankan…",
+    "previewing": "Pratinjau…",
+    "submitting": "Mengirim…",
+    "placeOrder": "Tempatkan {action}",
+    "margin": "Margin",
+    "fee": "Biaya",
+    "estExposure": "Est. eksposur",
+    "estSl": "Est. SL",
+    "estTp": "Est. TP",
+    "estRr": "Est. R:R",
+    "freeAfter": "Bebas setelah",
+    "preview": "Pratinjau",
+    "stopLimitBuyHint": "Buy Stop Limit: limit harus di bawah atau sama dengan stop.",
+    "stopLimitSellHint": "Sell Stop Limit: limit harus di atas atau sama dengan stop."
+  },
+  "orderTypes": {
+    "MARKET": "Market",
+    "LIMIT": "Limit",
+    "STOP": "Stop",
+    "STOP_LIMIT": "Stop Limit"
+  },
+  "accountNav": {
+    "overview": "Ringkasan",
+    "accounts": "Akun",
+    "funds": "Dana",
+    "ledger": "Buku besar",
+    "portfolio": "Portofolio",
+    "sectionsAria": "Bagian akun"
+  },
+  "alertsPage": {
+    "intro": "Alert trading utama dikelola di sini dan di",
+    "tradeTerminal": "terminal trade"
+  }
+}

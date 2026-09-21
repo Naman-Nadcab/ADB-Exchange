@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Loader2, X, RefreshCw, Trash2, Download } from 'lucide-react';
 import { CoinIcon } from '@/components/ui/CoinIcon';
 import { ordersToCsv, tradesToCsv, downloadCsv } from '@/lib/exportCsv';
@@ -45,17 +46,17 @@ function formatOrderPrice(value: string | null | undefined, decimals: number): s
   return formatValueFixedTrim(value, decimals);
 }
 
-function displayStatus(s: string): string {
-  if (s === 'OPEN' || s === 'NEW') return 'Open';
-  if (s === 'PENDING_TRIGGER') return 'Pending Trigger';
-  if (s === 'PARTIALLY_FILLED') return 'Partially Filled';
-  if (s === 'REJECTED') return 'Rejected';
-  if (s === 'CANCELLED') return 'Cancelled';
-  if (s === 'FILLED') return 'Filled';
-  return s || 'Unknown';
+function displayStatusLocalized(s: string, tc: (key: string) => string): string {
+  if (s === 'OPEN' || s === 'NEW') return tc('orders.status.open');
+  if (s === 'PENDING_TRIGGER') return tc('orders.status.pendingTrigger');
+  if (s === 'PARTIALLY_FILLED') return tc('orders.status.partiallyFilled');
+  if (s === 'REJECTED') return tc('orders.status.rejected');
+  if (s === 'CANCELLED') return tc('orders.status.cancelled');
+  if (s === 'FILLED') return tc('orders.status.filled');
+  return s || tc('orders.status.unknown');
 }
 
-function executionStatusPill(status: string) {
+function executionStatusPill(status: string, tc: (key: string) => string) {
   const u = (status || '').toUpperCase();
   const base =
     'inline-flex items-center rounded-full px-2 py-0.5 text-label font-bold uppercase tracking-wide transition-colors duration-300';
@@ -65,7 +66,7 @@ function executionStatusPill(status: string) {
         className={`${base} bg-buy/15 text-buy`}
         title="Working order"
       >
-        Open
+        {tc('orders.status.open')}
       </span>
     );
   }
@@ -75,26 +76,26 @@ function executionStatusPill(status: string) {
         className={`${base} bg-primary/12 text-foreground`}
         title="Partially filled"
       >
-        Partial
+        {tc('orders.status.partiallyFilled')}
       </span>
     );
   }
   if (u === 'FILLED') {
     return (
       <span className={`${base} bg-buy/15 text-buy`} title="Filled">
-        Filled
+        {tc('orders.status.filled')}
       </span>
     );
   }
   if (u === 'PENDING_TRIGGER') {
-    return <span className={`${base} bg-muted/60 text-muted-foreground`}>Trigger</span>;
+    return <span className={`${base} bg-muted/60 text-muted-foreground`}>{tc('orders.status.pendingTrigger')}</span>;
   }
   if (u === 'CANCELLED' || u === 'REJECTED') {
     return (
-      <span className={`${base} bg-muted/60 text-muted-foreground`}>{displayStatus(status)}</span>
+      <span className={`${base} bg-muted/60 text-muted-foreground`}>{displayStatusLocalized(status, tc)}</span>
     );
   }
-  return <span className={`${base} bg-muted/50 text-muted-foreground`}>{displayStatus(status)}</span>;
+  return <span className={`${base} bg-muted/50 text-muted-foreground`}>{displayStatusLocalized(status, tc)}</span>;
 }
 
 function OpenOrderRow({
@@ -110,6 +111,7 @@ function OpenOrderRow({
   priceDecimals: number;
   qtyDecimals: number;
 }) {
+  const tc = useTranslations('crypto');
   const [pulse, setPulse] = useState(false);
   const prev = useRef({ status: o.status, filled: o.filled_quantity });
   useEffect(() => {
@@ -153,7 +155,7 @@ function OpenOrderRow({
         {formatOrderPrice(o.stop_price ?? null, priceDecimals)}
       </td>
       <td className="numeric py-1.5 px-2 align-middle text-label text-muted-foreground">{filledQtyStr}</td>
-      <td className="py-1 px-2 align-middle">{executionStatusPill(o.status)}</td>
+      <td className="py-1 px-2 align-middle">{executionStatusPill(o.status, tc)}</td>
       <td className="py-1 px-2 align-middle">
         {canCancel && (
           <button
@@ -184,6 +186,7 @@ function displayOrderType(t: string | undefined): string {
 }
 
 export function SpotBottomPanel(props: SpotBottomPanelProps) {
+  const tc = useTranslations('crypto');
   const {
     symbol,
     isAuth,
@@ -281,7 +284,15 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
     return (
       <div className="flex min-h-[320px] w-full flex-col bg-card">
         <div className="flex min-h-10 items-center gap-1 border-b border-border bg-muted/35 px-2">
-          {['Open Orders', 'Order History', 'Trade History', 'Assets', 'Positions'].map((label) => (
+          {(
+            [
+              tc('bottomPanel.openOrders'),
+              tc('bottomPanel.orderHistory'),
+              tc('bottomPanel.tradeHistory'),
+              tc('bottomPanel.assets'),
+              tc('bottomPanel.positions'),
+            ] as const
+          ).map((label) => (
             <span
               key={label}
               className="inline-flex min-h-[36px] items-center rounded border border-border/70 bg-muted/40 px-2.5 terminal-text-label font-semibold uppercase tracking-[0.04em] text-muted-foreground"
@@ -303,7 +314,7 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
           ))}
         </div>
         <div className="border-t border-border px-4 py-3 text-center text-[12px] text-muted-foreground">
-          Sign in to unlock live orders, trade history, assets, and position tracking.
+          {tc('empty.signInForOrders')}
         </div>
       </div>
     );
@@ -323,11 +334,11 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
     <div id="spot-terminal-activity" className="flex h-[min(50vh,560px)] min-h-[320px] w-full flex-col bg-card">
       <div className="flex min-h-9 flex-wrap items-center justify-between gap-1 border-b border-border bg-muted/40 px-1">
         <div className="flex flex-wrap items-center gap-0.5 sm:gap-1">
-          <button type="button" onClick={() => data.setTab('open')} className={tabBtn(data.tab === 'open')}>Open ({data.openOrders.length})</button>
-          <button type="button" onClick={() => data.setTab('orders')} className={tabBtn(data.tab === 'orders')}>History</button>
-          <button type="button" onClick={() => data.setTab('trades')} className={tabBtn(data.tab === 'trades')}>Trades</button>
-          <button type="button" onClick={() => data.setTab('assets')} className={tabBtn(data.tab === 'assets')}>Assets</button>
-          <button type="button" onClick={() => data.setTab('positions')} className={tabBtn(data.tab === 'positions')}>Positions</button>
+          <button type="button" onClick={() => data.setTab('open')} className={tabBtn(data.tab === 'open')}>{tc('bottomPanel.tabs.open')} ({data.openOrders.length})</button>
+          <button type="button" onClick={() => data.setTab('orders')} className={tabBtn(data.tab === 'orders')}>{tc('bottomPanel.tabs.history')}</button>
+          <button type="button" onClick={() => data.setTab('trades')} className={tabBtn(data.tab === 'trades')}>{tc('bottomPanel.tabs.trades')}</button>
+          <button type="button" onClick={() => data.setTab('assets')} className={tabBtn(data.tab === 'assets')}>{tc('bottomPanel.tabs.assets')}</button>
+          <button type="button" onClick={() => data.setTab('positions')} className={tabBtn(data.tab === 'positions')}>{tc('bottomPanel.tabs.positions')}</button>
         </div>
         <div className="flex items-center gap-2 pr-2">
           {(data.tab === 'open' || data.tab === 'orders' || data.tab === 'trades') && (
@@ -446,7 +457,7 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
                         {formatOrderPrice(o.stop_price ?? null, pq.price)}
                       </td>
                       <td className="numeric py-1 px-2 align-middle text-muted-foreground">{filledQtyStr}</td>
-                      <td className="py-1 px-2 align-middle">{executionStatusPill(o.status)}</td>
+                      <td className="py-1 px-2 align-middle">{executionStatusPill(o.status, tc)}</td>
                     </tr>
                   );
                 })}

@@ -1,1 +1,25 @@
-{}
+{
+  "nav": {
+    "marketplace": "市场",
+    "postAd": "发布广告",
+    "myAds": "我的广告",
+    "orders": "订单",
+    "payments": "收付款",
+    "dashboard": "商户面板",
+    "sectionsAria": "P2P 分区"
+  },
+  "marketplace": {
+    "title": "P2P 市场",
+    "buyCrypto": "购买加密货币",
+    "sellCrypto": "出售加密货币",
+    "escrowProtected": "托管保护",
+    "orderFailed": "下单失败"
+  },
+  "order": {
+    "paymentPending": "待付款",
+    "awaitingRelease": "待放币",
+    "completed": "已完成",
+    "cancelled": "已取消",
+    "disputed": "申诉中"
+  }
+}

@@ -1,1 +1,35 @@
-{}
+{
+  "nav": {
+    "overview": "总览",
+    "deposit": "充值",
+    "withdraw": "提现",
+    "transfer": "划转",
+    "convert": "兑换",
+    "history": "历史",
+    "operationsAria": "钱包操作"
+  },
+  "deposit": {
+    "title": "充值加密货币",
+    "selectNetwork": "选择网络",
+    "address": "充值地址",
+    "confirmations": "确认数",
+    "warningWrongNetwork": "请仅在所选网络转账。错误网络可能导致资产丢失。",
+    "irreversible": "链上转账不可撤销。"
+  },
+  "withdraw": {
+    "title": "提现",
+    "network": "网络",
+    "fee": "网络手续费",
+    "confirmWithdrawal": "确认提现"
+  },
+  "transactions": {
+    "pending": "待处理",
+    "processing": "处理中",
+    "completed": "已完成",
+    "failed": "失败"
+  },
+  "overview": {
+    "totalBalance": "总余额",
+    "collectingData": "正在收集数据…"
+  }
+}

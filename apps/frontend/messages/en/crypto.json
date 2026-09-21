@@ -1,1 +1,55 @@
-{}
+{
+  "trading": {
+    "buy": "Buy",
+    "sell": "Sell",
+    "limit": "Limit",
+    "market": "Market",
+    "stop": "Stop",
+    "stopLimit": "Stop Limit",
+    "trailing": "Trailing",
+    "price": "Price",
+    "quantity": "Quantity",
+    "total": "Total",
+    "available": "Available",
+    "placeOrder": "Place order",
+    "loginToTrade": "Log in to trade",
+    "executing": "Submitting…",
+    "tif": {
+      "gtc": "Good-Til-Cancelled",
+      "ioc": "Immediate or Cancel",
+      "fok": "Fill or Kill"
+    }
+  },
+  "bottomPanel": {
+    "tabs": {
+      "open": "Open",
+      "history": "History",
+      "trades": "Trades",
+      "assets": "Assets",
+      "positions": "Positions"
+    },
+    "openOrders": "Open Orders",
+    "orderHistory": "Order History",
+    "tradeHistory": "Trade History",
+    "assets": "Assets",
+    "positions": "Positions",
+    "exportOrderHistoryCsv": "Export Order History as CSV",
+    "cancelAll": "Cancel all",
+    "refresh": "Refresh"
+  },
+  "orders": {
+    "status": {
+      "open": "Open",
+      "pendingTrigger": "Pending Trigger",
+      "partiallyFilled": "Partially Filled",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled",
+      "filled": "Filled",
+      "unknown": "Unknown"
+    }
+  },
+  "empty": {
+    "noOpenOrders": "No open orders",
+    "signInForOrders": "Sign in to view your orders"
+  }
+}

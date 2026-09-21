@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ForexPageFrame } from '@/components/forex/ForexPageFrame';
@@ -14,12 +15,12 @@ import { cn } from '@/lib/utils';
 
 type Filter = 'all' | ForexAssetClass | 'watchlist';
 
-const FILTERS: Array<{ id: Filter; label: string }> = [
-  { id: 'all', label: 'All' },
-  { id: 'fx_major', label: 'Majors' },
-  { id: 'fx_cross', label: 'Crosses' },
-  { id: 'metal', label: 'Metals' },
-  { id: 'watchlist', label: 'Watchlist' },
+const FILTERS: Array<{ id: Filter; labelKey: string }> = [
+  { id: 'all', labelKey: 'markets.filters.all' },
+  { id: 'fx_major', labelKey: 'markets.filters.majors' },
+  { id: 'fx_cross', labelKey: 'markets.filters.crosses' },
+  { id: 'metal', labelKey: 'markets.filters.metals' },
+  { id: 'watchlist', labelKey: 'markets.filters.watchlist' },
 ];
 
 function metalsNote(symbol: string): string | undefined {
@@ -28,13 +29,13 @@ function metalsNote(symbol: string): string | undefined {
   return undefined;
 }
 
-function classLabel(assetClass: ForexAssetClass): string {
-  if (assetClass === 'fx_major') return 'Major';
-  if (assetClass === 'fx_cross') return 'Cross';
-  return 'Metal';
-}
-
 export default function ForexMarketsPage() {
+  const tf = useTranslations('forex');
+  const classLabel = (assetClass: ForexAssetClass): string => {
+    if (assetClass === 'fx_major') return tf('markets.classLabels.major');
+    if (assetClass === 'fx_cross') return tf('markets.classLabels.cross');
+    return tf('markets.classLabels.metal');
+  };
   const instruments = useForexStore((s) => s.instruments);
   const quotes = useForexStore((s) => s.quotes);
   const sessions = useForexStore((s) => s.sessions);
@@ -47,7 +48,7 @@ export default function ForexMarketsPage() {
   const [sort, setSort] = useState<'symbol' | 'spread'>('symbol');
 
   const sessionOpen = sessions?.eligibility.open === true;
-  const sessionReason = sessions?.eligibility.reason ?? 'Unavailable';
+  const sessionReason = sessions?.eligibility.reason ?? tf('markets.sessionUnavailable');
 
   const rows = useMemo(() => {
     const q = query.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -88,8 +89,8 @@ export default function ForexMarketsPage() {
   return (
     <ForexPageFrame
       wide
-      title="Markets"
-      subtitle="Live Bid, Ask and spread from FDM Forex quotes. Change is not shown unless the quote feed provides it."
+      title={tf('pages.markets.title')}
+      subtitle={tf('pages.markets.subtitle')}
       actions={
         <div className="flex flex-wrap items-center gap-2 text-[11px]">
           <span
@@ -109,16 +110,16 @@ export default function ForexMarketsPage() {
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Instrument class">
-          {FILTERS.map((t) => (
+          {FILTERS.map((f) => (
             <button
-              key={t.id}
+              key={f.id}
               type="button"
               role="tab"
-              aria-selected={filter === t.id}
-              onClick={() => setFilter(t.id)}
-              className={cn('eda-tab', filter === t.id && 'eda-tab-active')}
+              aria-selected={filter === f.id}
+              onClick={() => setFilter(f.id)}
+              className={cn('eda-tab', filter === f.id && 'eda-tab-active')}
             >
-              {t.label}
+              {tf(f.labelKey)}
             </button>
           ))}
         </div>

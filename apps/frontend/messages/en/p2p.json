@@ -1,1 +1,25 @@
-{}
+{
+  "nav": {
+    "marketplace": "Marketplace",
+    "postAd": "Post Ad",
+    "myAds": "My Ads",
+    "orders": "Orders",
+    "payments": "Payments",
+    "dashboard": "Dashboard",
+    "sectionsAria": "P2P sections"
+  },
+  "marketplace": {
+    "title": "P2P Marketplace",
+    "buyCrypto": "Buy crypto",
+    "sellCrypto": "Sell crypto",
+    "escrowProtected": "Escrow protected",
+    "orderFailed": "Order failed"
+  },
+  "order": {
+    "paymentPending": "Payment pending",
+    "awaitingRelease": "Awaiting release",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "disputed": "Disputed"
+  }
+}

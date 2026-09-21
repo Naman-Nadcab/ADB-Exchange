@@ -1,0 +1,481 @@
+ M .build/ADMIN_DOMAIN_RBAC_EMERGENCY_PLANE_CERTIFICATION.md
+ M .build/ADMIN_SHELL_DOMAIN_SEPARATION_CERTIFICATION.json
+ M .build/FOREX_CUSTOMER_PRODUCTION_CERTIFICATION.json
+ M .build/FOREX_CUSTOMER_UI_FINAL_CERTIFICATION_AUDIT.md
+ M .build/FOREX_FINAL_CERTIFICATION.json
+ M .build/FOREX_FINAL_CERTIFICATION.md
+ M .build/FOREX_POST_DEPLOY_DB_CERTIFICATION.json
+ M .build/FOREX_POST_DEPLOY_DB_CERTIFICATION.md
+ M .build/forex-live-idor-certification.md
+ M .deploy-rev
+ M apps/admin-panel/src/app/(protected)/compliance-policy/page.tsx
+ M apps/admin-panel/src/app/(protected)/forex/page.tsx
+ M apps/admin-panel/src/components/forex/ForexAdminOpsTable.tsx
+ M apps/admin-panel/src/components/forex/ForexPolicyPanel.tsx
+ M apps/admin-panel/src/components/forex/ForexSectionPage.tsx
+ M apps/admin-panel/src/components/forex/panels/ForexCommandDeskPanel.tsx
+ M apps/admin-panel/src/components/forex/panels/ForexCrmHomePanel.tsx
+ M apps/admin-panel/src/components/forex/panels/ForexInstrumentsPanel.tsx
+ M apps/admin-panel/src/components/forex/panels/ForexNotificationsPanel.tsx
+ M apps/admin-panel/src/components/forex/panels/ForexProtectionPanel.tsx
+ M apps/admin-panel/src/components/forex/panels/ForexSystemPanel.tsx
+ M apps/admin-panel/src/components/forex/primitives/ForexPanelShell.tsx
+ M apps/admin-panel/src/components/forex/primitives/ForexWorkspaceHeader.tsx
+ M apps/admin-panel/src/components/forex/primitives/forex-visual-kit.tsx
+ M apps/backend/package.json
+ M apps/backend/src/routes/admin-phase1-compliance.fastify.ts
+ M apps/backend/src/routes/spot.fastify.ts
+ M apps/backend/src/services/admin-approval.service.ts
+ M apps/backend/src/services/forex/accounting/models.ts
+ M apps/backend/src/services/forex/accounting/service.ts
+ M apps/backend/src/services/forex/admin/config.ts
+ M apps/backend/src/services/forex/auth/forex-authenticate.ts
+ M apps/backend/src/services/forex/config.ts
+ M apps/backend/src/services/forex/durability/hydrate.ts
+ M apps/backend/src/services/forex/execution/persist.ts
+ M apps/backend/src/services/forex/execution/service.ts
+ M apps/backend/src/services/forex/forex-demo-cert.test.ts
+ M apps/backend/src/services/forex/forex-phase103-candles.test.ts
+ M apps/backend/src/services/forex/forex-phase104-preview.test.ts
+ M apps/backend/src/services/forex/forex-phase95.test.ts
+ M apps/backend/src/services/forex/forex-phase96.test.ts
+ M apps/backend/src/services/forex/ledger/accounts.ts
+ M apps/backend/src/services/forex/liquidation/service.ts
+ M apps/backend/src/services/forex/market-data/candles.service.ts
+ M apps/backend/src/services/forex/market-data/mock-provider.ts
+ M apps/backend/src/services/forex/market-data/ohlc-yahoo.ts
+ M apps/backend/src/services/forex/market-data/persist.ts
+ M apps/backend/src/services/forex/market-data/worker.ts
+ M apps/backend/src/services/forex/orders/close.ts
+ M apps/backend/src/services/forex/orders/models.ts
+ M apps/backend/src/services/forex/orders/pending.ts
+ M apps/backend/src/services/forex/orders/persist.ts
+ M apps/backend/src/services/forex/orders/preview.ts
+ M apps/backend/src/services/forex/orders/request.ts
+ M apps/backend/src/services/forex/orders/states.ts
+ M apps/backend/src/services/forex/positions/mode.ts
+ M apps/backend/src/services/forex/positions/models.ts
+ M apps/backend/src/services/forex/positions/service.ts
+ M apps/backend/src/services/forex/positions/store.ts
+ M apps/backend/src/services/forex/protection/models.ts
+ M apps/backend/src/services/forex/protection/persist.ts
+ M apps/backend/src/services/forex/protection/runtime.ts
+ M apps/backend/src/services/forex/protection/service.ts
+ M apps/backend/src/services/forex/quotes.service.ts
+ M apps/backend/src/services/forex/risk/policy.ts
+ M apps/backend/src/services/forex/risk/pretrade.ts
+ M apps/backend/src/services/forex/risk/service.ts
+ M apps/backend/src/services/forex/swap/engine.ts
+ M apps/backend/src/services/forex/swap/policy.ts
+ M apps/backend/src/services/forex/swap/service.ts
+ M apps/backend/src/services/maker-checker-execute.service.ts
+ M apps/backend/src/services/platform-public-metrics.service.ts
+ M apps/backend/tsconfig.json
+ M apps/frontend/package.json
+ M apps/frontend/src/components/forex/ForexRiskBar.tsx
+ M apps/frontend/src/components/forex/ForexWatchlist.tsx
+ M apps/frontend/src/lib/forex/forex-preview.test.ts
+ M apps/frontend/src/lib/forex/market-data/provider.ts
+ M apps/frontend/src/lib/forex/models/candles.ts
+ M apps/frontend/src/lib/forex/models/position.ts
+ M apps/frontend/src/lib/forex/models/preview.ts
+ M apps/frontend/src/lib/forex/models/types.ts
+ M apps/frontend/src/lib/forex/runtime/useForexOrderEngine.ts
+ M apps/frontend/src/lib/forex/runtime/useForexPositionActions.ts
+ M apps/frontend/src/lib/forex/runtime/useForexPreview.ts
+ M apps/frontend/src/lib/forex/state/workspace.ts
+ M docker-compose.production.yml
+ M infra/docker-compose.monitoring.yml
+ M package.json
+ M scripts/vps-backup-db.sh
+ M scripts/vps-migrate.sh
+?? .build/ADMIN_CERTIFICATION_GAP_FORENSIC_AUDIT.json
+?? .build/ADMIN_CERTIFICATION_GAP_FORENSIC_AUDIT.md
+?? .build/ADMIN_CRYPTO_SAFETY_MAP.json
+?? .build/ADMIN_DATABASE_AUTHORITY_MAP.json
+?? .build/ADMIN_DOMAIN_BOUNDARY_MATRIX.json
+?? .build/ADMIN_FEATURE_MATRIX.json
+?? .build/ADMIN_FORENSIC_AUDIT.json
+?? .build/ADMIN_FORENSIC_AUDIT.md
+?? .build/ADMIN_FOREX_SAFETY_MAP.json
+?? .build/ADMIN_GAP_REGISTER.json
+?? .build/ADMIN_ISOLATED_RBAC_CERTIFICATION.json
+?? .build/ADMIN_ISOLATED_RBAC_UI_MATRIX.json
+?? .build/ADMIN_RBAC_MATRIX.json
+?? .build/ADMIN_REFACTOR_PLAN.md
+?? .build/ADMIN_REPOSITORY_MAP.json
+?? .build/ADMIN_ROUTE_MAP.json
+?? .build/ADMIN_RUNTIME_CERTIFICATION.json
+?? .build/ADMIN_RUNTIME_CLOSURE_CERTIFICATION.md
+?? .build/ADMIN_SECURITY_AUDIT.json
+?? .build/ADMIN_SHARED_CONTROL_MAP.json
+?? .build/ADMIN_SHELL_RUNTIME_CERTIFICATION.md
+?? .build/ADMIN_TARGET_ARCHITECTURE.md
+?? .build/ADMIN_UI_ROUTE_MAP.json
+?? .build/FINAL_ADMIN_SHELL_CERTIFICATION.md
+?? .build/FINAL_ADMIN_SHELL_CLOSURE_CERT.json
+?? .build/FOREX_COMPLETE_BUILD_FINAL_REPORT.md
+?? .build/FOREX_CUSTOMER_CAPABILITY_MATRIX.md
+?? .build/FOREX_CUSTOMER_JOURNEYS.md
+?? .build/FOREX_CUSTOMER_UI_FORENSIC_AUDIT.json
+?? .build/FOREX_CUSTOMER_UI_FORENSIC_AUDIT.md
+?? .build/FOREX_FINAL_AUTONOMOUS_COMPLETION_REPORT.md
+?? .build/FOREX_FINAL_AUTONOMOUS_E2E_MATRIX.md
+?? .build/FOREX_FINAL_AUTONOMOUS_GAP_REGISTER.json
+?? .build/FOREX_MT5_GAP_MATRIX.md
+?? .build/FOREX_PASS3_FINAL_COMPLETION_MATRIX.md
+?? .build/FOREX_PREDEPLOYMENT_SNAPSHOT.md
+?? .build/FOREX_PRODUCTION_FRONTEND_REDEPLOY_REPORT.md
+?? .build/I18N_FORENSIC_AUDIT.md
+?? .build/I18N_PHASE1_1_HARDENING_REPORT.md
+?? .build/I18N_PHASE1_IMPLEMENTATION_REPORT.md
+?? .build/I18N_PHASE2_IMPLEMENTATION_REPORT.md
+?? .build/ISOLATED_ADMIN_RBAC_UI_CERTIFICATION.md
+?? .build/SAFE_POINT_PRE_I18N_20260921-125800.md
+?? .build/_PHASE1_1_BEFORE_status.txt
+?? .build/_PHASE1_I18N_BEFORE_manifest.txt
+?? .build/_PHASE1_I18N_BEFORE_status.txt
+?? .build/_PHASE2_BEFORE_status.txt
+?? .build/_PHASE3_BEFORE_status.txt
+?? .build/_SAFE_POINT_PRE_I18N_20260921-125800_manifest.txt
+?? .build/admin-cert-screenshots/
+?? .build/admin-isolated-rbac-matrix-cert.mjs
+?? .build/admin-isolated-rbac-ui-cert.mjs
+?? .build/admin-login-diagnose.json
+?? .build/admin-login-diagnose.mjs
+?? .build/admin-runtime-closure-cert.mjs
+?? .build/admin-shell-viewport-cert.mjs
+?? .build/config-f2-baseline.ts
+?? .build/config-f3-baseline.ts
+?? .build/config.ts.wip-backup
+?? .build/deploy-git-sha.txt
+?? .build/final-admin-shell-closure-cert.mjs
+?? .build/forex-admin-exhaustive-idor.json
+?? .build/forex-admin-page-health.json
+?? .build/forex-admin-system-map.json
+?? .build/forex-admin-ui-e2e.out
+?? .build/forex-admin-ui-e2e.pid
+?? .build/forex-cert-admin-ui.pid
+?? .build/forex-cert-api-suite.json
+?? .build/forex-cert-idor-matrix-run.json
+?? .build/forex-cert-idor-matrix.json
+?? .build/forex-complete-build-inventory.json
+?? .build/forex-complete-gap-register.json
+?? .build/forex-crypto-regression.json
+?? .build/forex-customer-deep-audit.json
+?? .build/forex-customer-deep-audit.md
+?? .build/forex-customer-ecosystem-final-audit.json
+?? .build/forex-customer-ecosystem-final-audit.md
+?? .build/forex-customer-ecosystem-gap-matrix.json
+?? .build/forex-customer-ecosystem-gap-matrix.md
+?? .build/forex-customer-terminal-completion.json
+?? .build/forex-customer-terminal-completion.md
+?? .build/forex-customer-terminal-fresh-forensic-audit.json
+?? .build/forex-customer-terminal-fresh-forensic-audit.md
+?? .build/forex-customer-terminal-second-confirmation-audit.json
+?? .build/forex-customer-terminal-second-confirmation-audit.md
+?? .build/forex-customer-ui-certification.json
+?? .build/forex-customer-ui-certification.md
+?? .build/forex-customer-ui-gap-matrix.json
+?? .build/forex-customer-ui-gap-matrix.md
+?? .build/forex-customer-ui-phase2-verification.json
+?? .build/forex-customer-ui-phase2-verification.md
+?? .build/forex-customer-ui-screenshots.mjs
+?? .build/forex-deployment-diff.json
+?? .build/forex-execution-capability-matrix.json
+?? .build/forex-final-completion-baseline.json
+?? .build/forex-final-completion-baseline.md
+?? .build/forex-final-gap-elimination-pass.json
+?? .build/forex-final-gap-elimination-pass.md
+?? .build/forex-final-green-closure-baseline.json
+?? .build/forex-final-green-closure-baseline.md
+?? .build/forex-final-green-closure-certification.json
+?? .build/forex-final-green-closure-certification.md
+?? .build/forex-final-system-discovery.json
+?? .build/forex-final-terminal-completion.json
+?? .build/forex-final-terminal-completion.md
+?? .build/forex-final-terminal-green-candidate.json
+?? .build/forex-final-terminal-green-candidate.md
+?? .build/forex-gtd-alert-persistence-state.json
+?? .build/forex-gtd-alert-persistence.json
+?? .build/forex-leads-shell-check.png
+?? .build/forex-live-ui-verification.json
+?? .build/forex-market-runtime-deferred.json
+?? .build/forex-market-runtime-deferred.md
+?? .build/forex-master-gap-register.json
+?? .build/forex-master-phase4-phase5-status.json
+?? .build/forex-master-phase4-phase5-status.md
+?? .build/forex-master-roadmap-baseline.json
+?? .build/forex-master-roadmap-baseline.md
+?? .build/forex-master-roadmap-certification.json
+?? .build/forex-master-roadmap-certification.md
+?? .build/forex-master-system-inventory.json
+?? .build/forex-mt5-admin-inventory.json
+?? .build/forex-mt5-capability-audit.json
+?? .build/forex-mt5-capability-audit.md
+?? .build/forex-mt5-capability-final.json
+?? .build/forex-mt5-capability-final.md
+?? .build/forex-mt5-execution-journal.md
+?? .build/forex-mt5-market-dependent-gap-register.json
+?? .build/forex-mt5-market-dependent-gap-register.md
+?? .build/forex-mt5-parity-audit.json
+?? .build/forex-mt5-parity-audit.md
+?? .build/forex-mt5-parity-baseline.json
+?? .build/forex-mt5-parity-baseline.md
+?? .build/forex-mt5-parity-final.json
+?? .build/forex-mt5-parity-final.md
+?? .build/forex-multi-account-runtime-cert-runner.ts
+?? .build/forex-p0-p1-final.json
+?? .build/forex-p0-p1-final.md
+?? .build/forex-p0-p1-gap-register.json
+?? .build/forex-p0-p1-gap-register.md
+?? .build/forex-p3b-qa-reconcile-fix.json
+?? .build/forex-p3b-qa-reconcile-fix.md
+?? .build/forex-pass3-account-lifecycle-e2e.json
+?? .build/forex-pass3-automation-e2e.json
+?? .build/forex-pass3-crm-convert-e2e.json
+?? .build/forex-pass3-finance-e2e.json
+?? .build/forex-pass3-gap-register.json
+?? .build/forex-pass3-ib-payout-e2e.json
+?? .build/forex-pass3-regression-summary.json
+?? .build/forex-phase1-market-data-contract-implementation.json
+?? .build/forex-phase1-market-data-contract-implementation.md
+?? .build/forex-phase1-runtime-verification.json
+?? .build/forex-phase1-runtime-verification.md
+?? .build/forex-phase11-runtime-certification.json
+?? .build/forex-phase11-runtime-certification.md
+?? .build/forex-phase2-capability-runtime-lock.json
+?? .build/forex-phase2-capability-runtime-lock.md
+?? .build/forex-phase2-deployment-manifest.json
+?? .build/forex-phase2-deployment-manifest.md
+?? .build/forex-phase2-final-certification.json
+?? .build/forex-phase2-final-certification.md
+?? .build/forex-phase2-journal-lockdown-b-evidence.json
+?? .build/forex-phase2-journal-lockdown-b-run.py
+?? .build/forex-phase2-journal-runtime-certification.json
+?? .build/forex-phase2-journal-runtime-certification.md
+?? .build/forex-phase2-lockdown-qa-journeys.json
+?? .build/forex-phase2-lockdown-trade-ui.png
+?? .build/forex-phase2-lockdown-trading-config-post-cert.json
+?? .build/forex-phase2-lockdown-trading-config-pre-cert.json
+?? .build/forex-phase2-lockdown-ui-evidence.json
+?? .build/forex-phase2-predeploy.json
+?? .build/forex-phase2-predeploy.md
+?? .build/forex-phase3-customer-execution-cert-results.json
+?? .build/forex-phase3-day-expiry-live-certification.json
+?? .build/forex-phase3-day-expiry-live-certification.md
+?? .build/forex-phase3-deployment-manifest.json
+?? .build/forex-phase3-deployment-manifest.md
+?? .build/forex-phase3-final-certification.json
+?? .build/forex-phase3-final-certification.md
+?? .build/forex-phase3-final-green-certification.json
+?? .build/forex-phase3-final-green-certification.md
+?? .build/forex-phase3-p3a-browser-desktop.png
+?? .build/forex-phase3-p3a-browser-evidence.json
+?? .build/forex-phase3-p3b-cleanup.json
+?? .build/forex-phase3-p3b-cleanup.md
+?? .build/forex-phase3-p3b-natural-close-certification.json
+?? .build/forex-phase3-p3b-natural-close-certification.md
+?? .build/forex-phase3-p3b-run-aborted-safely.json
+?? .build/forex-phase3-p3b-run-aborted-safely.md
+?? .build/forex-phase3-predeploy.json
+?? .build/forex-phase3-predeploy.md
+?? .build/forex-phase3-remaining-gaps-final-lock.json
+?? .build/forex-phase3-remaining-gaps-final-lock.md
+?? .build/forex-phase4-deployment-manifest.md
+?? .build/forex-phase4-development-complete.json
+?? .build/forex-phase4-development-complete.md
+?? .build/forex-phase4-final-certification.json
+?? .build/forex-phase4-final-certification.md
+?? .build/forex-phase4-final-deployment.md
+?? .build/forex-phase4-final-predeploy.md
+?? .build/forex-phase4-gap-register.json
+?? .build/forex-phase4-live-cert-blocked.json
+?? .build/forex-phase4-market-only-final-checkpoint.json
+?? .build/forex-phase4-market-only-final-checkpoint.md
+?? .build/forex-phase4-market-runtime-checkpoint.json
+?? .build/forex-phase4-market-runtime-checkpoint.md
+?? .build/forex-phase4-master-gap-register.json
+?? .build/forex-phase4-predeploy.md
+?? .build/forex-phase4-preflight.json
+?? .build/forex-phase4-preflight.md
+?? .build/forex-phase4-runtime-evidence.json
+?? .build/forex-phase4-runtime-evidence.md
+?? .build/forex-phase5-development-complete.json
+?? .build/forex-phase5-development-complete.md
+?? .build/forex-phase5-final-certification.json
+?? .build/forex-phase5-final-certification.md
+?? .build/forex-phase5-gap-register.json
+?? .build/forex-phase5-market-only-final-checkpoint.json
+?? .build/forex-phase5-market-only-final-checkpoint.md
+?? .build/forex-phase5-market-runtime-checkpoint.json
+?? .build/forex-phase5-market-runtime-checkpoint.md
+?? .build/forex-phase5-preflight.md
+?? .build/forex-pre-market-browser.json
+?? .build/forex-pre-market-cert.json
+?? .build/forex-pre-market-desktop.png
+?? .build/forex-pre-market-finalization.json
+?? .build/forex-pre-market-finalization.md
+?? .build/forex-pre-market-mobile.png
+?? .build/forex-pre-market-tablet.png
+?? .build/forex-remaining-gaps-final.json
+?? .build/forex-remaining-gaps-final.md
+?? .build/forex-remaining-gaps-revalidation.json
+?? .build/forex-remaining-gaps-revalidation.md
+?? .build/forex-repository-capability-inventory.json
+?? .build/forex-shell-regression-fix-verification.json
+?? .build/forex-tier1-gap-register.json
+?? .build/forex-tier1-ui-completion-inventory.json
+?? .build/forex-ui-screenshots-post-cert.mjs
+?? .build/forex-ui-screenshots-post-cert/
+?? .build/forex-ui-screenshots/
+?? .build/fx-p1b-fe-parity/
+?? .build/fx-phase1c-be/
+?? .build/fx-phase1c-fe/
+?? .deploy-admin-backup-20260916T124404Z.id
+?? .deploy-admin-rollback-tag
+?? .deploy-admin-rollback.sh
+?? .deploy-backup-point-20260916T210450Z.md
+?? .deploy-backup-point-latest.md
+?? .deploy-restore-backup-point.sh
+?? FDM_FOREX_FINAL_MASTER_CERTIFICATION.md
+?? FOREX_ADMIN_TIER1_COMPLETION_REPORT.md
+?? FOREX_ADMIN_TIER1_FINAL_CERTIFICATION_REPORT.md
+?? FOREX_ADMIN_TIER1_FINAL_MASTER_AUDIT.md
+?? FOREX_ADMIN_TIER1_FINAL_RUNTIME_CERTIFICATION_REPORT.md
+?? FOREX_ADMIN_TIER1_FINAL_VERIFICATION_REPORT.md
+?? FOREX_BASELINE_CERT.md
+?? FOREX_CHANGE_BOUNDARY.md
+?? FOREX_MT5_CLASS_FINAL_MATRIX.md
+?? FOREX_MT5_CLASS_FINAL_RELEASE_CERTIFICATION.md
+?? FOREX_MT5_GAP_BASELINE_POST_PHASE1B.md
+?? FOREX_PHASE0_QUOTE_AUTHORITY_CERT.md
+?? FOREX_PHASE1A_HEDGING_CERT.md
+?? FOREX_PHASE1B_CLOSEBY_REVERSE_CERT.md
+?? FOREX_PHASE1B_FE_PARITY_CERT.md
+?? FOREX_PRE_IMPLEMENTATION_CHECKPOINT.md
+?? FOREX_S5_STAGING_CERT.md
+?? PHASE1A_CURRENT_STATE.md
+?? apps/admin-panel/.build/
+?? apps/admin-panel/src/app/(protected)/forex/overview/
+?? apps/admin-panel/src/components/forex/panels/ForexCommandCenterView.tsx
+?? apps/admin-panel/src/components/forex/primitives/ForexListWorkspace.tsx
+?? apps/admin-panel/src/components/forex/primitives/ForexRouteWorkspace.tsx
+?? apps/admin-panel/src/components/forex/primitives/forex-semantic-system.tsx
+?? apps/backend/.build/
+?? apps/backend/scripts/forex-admin-page-health.ts
+?? apps/backend/scripts/forex-admin-system-map.ts
+?? apps/backend/scripts/forex-cert-api-suite.ts
+?? apps/backend/scripts/forex-cert-db-guard.ts
+?? apps/backend/scripts/forex-cert-exhaustive-idor.ts
+?? apps/backend/scripts/forex-cert-idor-matrix.ts
+?? apps/backend/scripts/forex-cert-isolated-db.sh
+?? apps/backend/scripts/forex-cert-run-all.sh
+?? apps/backend/scripts/forex-cert-runtime-suite.ts
+?? apps/backend/scripts/forex-cert-seed.ts
+?? apps/backend/scripts/forex-master-system-inventory.ts
+?? apps/backend/scripts/forex-mt5-admin-inventory.ts
+?? apps/backend/scripts/forex-pass2-gap-register.ts
+?? apps/backend/scripts/forex-pass3-account-lifecycle-e2e.ts
+?? apps/backend/scripts/forex-pass3-automation-e2e.ts
+?? apps/backend/scripts/forex-pass3-crm-convert-e2e.ts
+?? apps/backend/scripts/forex-pass3-finance-e2e.ts
+?? apps/backend/scripts/forex-pass3-gap-register.ts
+?? apps/backend/scripts/forex-pass3-ib-payout-e2e.ts
+?? apps/backend/scripts/forex-tier1-ui-inventory.ts
+?? apps/backend/src/services/forex/account/
+?? apps/backend/src/services/forex/adapters/
+?? apps/backend/src/services/forex/auth/forex-ws-auth.test.ts
+?? apps/backend/src/services/forex/capabilities/
+?? apps/backend/src/services/forex/customer/alert-delivery.ts
+?? apps/backend/src/services/forex/customer/alert-engine.ts
+?? apps/backend/src/services/forex/customer/drawdown-metrics.ts
+?? apps/backend/src/services/forex/customer/forex-alert-engine.test.ts
+?? apps/backend/src/services/forex/customer/history-export.ts
+?? apps/backend/src/services/forex/customer/session-alert-watch.test.ts
+?? apps/backend/src/services/forex/customer/session-alert-watch.ts
+?? apps/backend/src/services/forex/forex-gtd.test.ts
+?? apps/backend/src/services/forex/forex-phase-a-orders.test.ts
+?? apps/backend/src/services/forex/forex-phase1a-hedging.cert.ts
+?? apps/backend/src/services/forex/forex-phase1a-hedging.test.ts
+?? apps/backend/src/services/forex/forex-phase1b-close-by-reverse.cert.ts
+?? apps/backend/src/services/forex/forex-phase1b-close-by-reverse.test.ts
+?? apps/backend/src/services/forex/forex-phase1c-stoplimit-tif.cert.ts
+?? apps/backend/src/services/forex/forex-phase1c-stoplimit-tif.test.ts
+?? apps/backend/src/services/forex/forex-phase2-customer-terminal.test.ts
+?? apps/backend/src/services/forex/forex-phase3-customer-execution.cert.ts
+?? apps/backend/src/services/forex/forex-price-consistency.cert.ts
+?? apps/backend/src/services/forex/journal/
+?? apps/backend/src/services/forex/market-data/anchor.test.ts
+?? apps/backend/src/services/forex/market-data/anchor.ts
+?? apps/backend/src/services/forex/market-data/candle-timeframe-plans.ts
+?? apps/backend/src/services/forex/market-data/demo-pin.test.ts
+?? apps/backend/src/services/forex/market-data/mock-authority.test.ts
+?? apps/backend/src/services/forex/market-data/mock-authority.ts
+?? apps/backend/src/services/forex/market-data/provider-contracts.ts
+?? apps/backend/src/services/forex/market-data/timeframe-registry.ts
+?? apps/backend/src/services/forex/orders/close-by.ts
+?? apps/backend/src/services/forex/orders/reverse.ts
+?? apps/backend/src/services/forex/positions/account-mode-persist.ts
+?? apps/backend/src/services/forex/positions/account-mode.ts
+?? apps/backend/src/services/forex/positions/entry-price-reconcile.test.ts
+?? apps/backend/src/services/forex/positions/hedging.ts
+?? apps/backend/src/services/forex/protection/trailing.test.ts
+?? apps/backend/src/services/forex/protection/trailing.ts
+?? apps/frontend/.build/
+?? apps/frontend/src/components/forex/ForexCommandCenter.tsx
+?? apps/frontend/src/components/forex/ForexOscillatorPaneStack.tsx
+?? apps/frontend/src/components/forex/ForexPositionModeSwitch.tsx
+?? apps/frontend/src/lib/forex/chart/forex-drawings.test.ts
+?? apps/frontend/src/lib/forex/chart/indicator-registry.test.ts
+?? apps/frontend/src/lib/forex/chart/indicator-registry.ts
+?? apps/frontend/src/lib/forex/chart/indicator-state.ts
+?? apps/frontend/src/lib/forex/chart/pending-order-lines.test.ts
+?? apps/frontend/src/lib/forex/chart/pending-order-lines.ts
+?? apps/frontend/src/lib/forex/chart/studies-extended.ts
+?? apps/frontend/src/lib/forex/models/account-metrics.ts
+?? apps/frontend/src/lib/forex/models/change-pct.ts
+?? apps/frontend/src/lib/forex/models/customer-alerts.test.ts
+?? apps/frontend/src/lib/forex/models/customer-alerts.ts
+?? apps/frontend/src/lib/forex/models/exposure-view.ts
+?? apps/frontend/src/lib/forex/models/forex-p0-p1.test.ts
+?? apps/frontend/src/lib/forex/models/forex-phase-a-ui.test.ts
+?? apps/frontend/src/lib/forex/models/history-analytics.ts
+?? apps/frontend/src/lib/forex/models/journal.ts
+?? apps/frontend/src/lib/forex/models/live-valuation.test.ts
+?? apps/frontend/src/lib/forex/models/live-valuation.ts
+?? apps/frontend/src/lib/forex/models/order-type-tif.test.ts
+?? apps/frontend/src/lib/forex/models/order-type-tif.ts
+?? apps/frontend/src/lib/forex/models/price-consistency.test.ts
+?? apps/frontend/src/lib/forex/models/ticket-risk.ts
+?? apps/frontend/src/lib/forex/runtime/useForexChangeReference.ts
+?? apps/frontend/src/lib/forex/runtime/useForexSession.ts
+?? scripts/classify-aml-alerts.sql
+?? scripts/classify-settlement-dlq.sql
+?? scripts/forex-account-center-browser-cert.mjs
+?? scripts/forex-browser-cert.mjs
+?? scripts/forex-cert-admin-ui-e2e.sh
+?? scripts/forex-gtd-alert-persistence.mjs
+?? scripts/forex-mt5-parity-program.mjs
+?? scripts/forex-multi-account-browser-cert.mjs
+?? scripts/forex-p0-p1-gap-program.mjs
+?? scripts/forex-phase1b-browser-cert.mjs
+?? scripts/forex-phase1b-fe-parity-browser.mjs
+?? scripts/forex-phase1c-browser-cert.mjs
+?? scripts/forex-phase3-p3a-browser-cert.mjs
+?? scripts/forex-phase3-p3b-natural-close-cert.mjs
+?? scripts/forex-phase3-p3b-natural-close-green-cert.mjs
+?? scripts/forex-phase4-live-green-cert.mjs
+?? scripts/forex-phase4-runtime-cert.mjs
+?? scripts/forex-phase4-wait-and-green-cert.sh
+?? scripts/forex-pre-market-browser.mjs
+?? scripts/forex-pre-market-cert.mjs
+?? scripts/forex-s5-smoke-and-killswitch.mjs
+?? scripts/forex-s5-staging-cert-internal.mjs
+?? scripts/forex-s5-staging-cert.mjs
+?? scripts/forex-safe-crypto-regression.sh
+?? scripts/forex-system-discovery.mjs
+?? scripts/forex-tier1-browser-cert.mjs
+?? scripts/fx-mobile-cancel-once.mjs
+?? scripts/vps-backup-cron.sh
+?? scripts/vps-restore-isolated-test.sh

@@ -1,9 +1,48 @@
 {
   "forex": {
-    "marginInsufficient": "Insufficient margin for this order"
+    "marginInsufficient": "Insufficient margin for this order",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "authRequired": "Please sign in to access your Forex account.",
+    "sessionClosed": "Market is not eligible for new orders.",
+    "staleMarket": "Quote is stale — live execution is disabled.",
+    "networkFailed": "Connection to the Forex API failed.",
+    "codes": {
+      "INSUFFICIENT_MARGIN": "Insufficient margin for this order.",
+      "INSUFFICIENT_FOREX_BALANCE": "Insufficient Forex balance.",
+      "SESSION_CLOSED": "Trading session is closed.",
+      "STALE_MARKET": "Market quote is stale.",
+      "UNAUTHORIZED": "Please sign in to continue.",
+      "SESSION_EXPIRED": "Your session has expired. Please sign in again."
+    }
   },
   "crypto": {
-    "invalidPrice": "Invalid price for this order"
+    "invalidPrice": "Invalid price for this order",
+    "codes": {
+      "INVALID_PRICE": "Invalid price for this order.",
+      "INSUFFICIENT_BALANCE": "Insufficient balance."
+    }
+  },
+  "p2p": {
+    "paymentExpired": "Payment window has expired.",
+    "orderCancelled": "This P2P order was cancelled.",
+    "codes": {
+      "P2P_PAYMENT_EXPIRED": "Payment window has expired.",
+      "P2P_ORDER_CANCELLED": "This P2P order was cancelled."
+    }
+  },
+  "wallet": {
+    "networkMismatch": "Selected network does not match this asset.",
+    "withdrawBlocked": "Withdrawal is temporarily unavailable.",
+    "codes": {
+      "WRONG_NETWORK": "Wrong network selected for this withdrawal.",
+      "WITHDRAW_BLOCKED": "Withdrawal is temporarily unavailable."
+    }
+  },
+  "account": {
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "codes": {
+      "SESSION_EXPIRED": "Your session has expired. Please sign in again."
+    }
   },
   "auth": {
     "codes": {

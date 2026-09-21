@@ -1,9 +1,48 @@
 {
   "forex": {
-    "marginInsufficient": "Margin tidak mencukupi untuk order ini"
+    "marginInsufficient": "Margin tidak mencukupi untuk order ini",
+    "sessionExpired": "Sesi Anda telah berakhir. Silakan masuk kembali.",
+    "authRequired": "Silakan masuk untuk mengakses akun Forex Anda.",
+    "sessionClosed": "Pasar tidak memenuhi syarat untuk order baru.",
+    "staleMarket": "Kuotasi kedaluwarsa — eksekusi live dinonaktifkan.",
+    "networkFailed": "Koneksi ke API Forex gagal.",
+    "codes": {
+      "INSUFFICIENT_MARGIN": "Margin tidak mencukupi untuk order ini.",
+      "INSUFFICIENT_FOREX_BALANCE": "Saldo Forex tidak mencukupi.",
+      "SESSION_CLOSED": "Sesi trading ditutup.",
+      "STALE_MARKET": "Kuotasi pasar kedaluwarsa.",
+      "UNAUTHORIZED": "Silakan masuk untuk melanjutkan.",
+      "SESSION_EXPIRED": "Sesi Anda telah berakhir. Silakan masuk kembali."
+    }
   },
   "crypto": {
-    "invalidPrice": "Harga order tidak valid"
+    "invalidPrice": "Harga order tidak valid",
+    "codes": {
+      "INVALID_PRICE": "Harga order tidak valid.",
+      "INSUFFICIENT_BALANCE": "Saldo tidak mencukupi."
+    }
+  },
+  "p2p": {
+    "paymentExpired": "Batas waktu pembayaran telah habis.",
+    "orderCancelled": "Order P2P ini dibatalkan.",
+    "codes": {
+      "P2P_PAYMENT_EXPIRED": "Batas waktu pembayaran telah habis.",
+      "P2P_ORDER_CANCELLED": "Order P2P ini dibatalkan."
+    }
+  },
+  "wallet": {
+    "networkMismatch": "Jaringan yang dipilih tidak cocok dengan aset ini.",
+    "withdrawBlocked": "Penarikan sementara tidak tersedia.",
+    "codes": {
+      "WRONG_NETWORK": "Jaringan salah untuk penarikan ini.",
+      "WITHDRAW_BLOCKED": "Penarikan sementara tidak tersedia."
+    }
+  },
+  "account": {
+    "sessionExpired": "Sesi Anda telah berakhir. Silakan masuk kembali.",
+    "codes": {
+      "SESSION_EXPIRED": "Sesi Anda telah berakhir. Silakan masuk kembali."
+    }
   },
   "auth": {
     "codes": {

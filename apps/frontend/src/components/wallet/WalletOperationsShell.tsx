@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import {
   LayoutGrid,
@@ -24,16 +25,16 @@ export type WalletOpsNavId =
 
 const NAV_ITEMS: {
   id: WalletOpsNavId;
-  label: string;
+  labelKey: 'overview' | 'deposit' | 'withdraw' | 'transfer' | 'convert' | 'history';
   href: string;
   icon: typeof LayoutGrid;
 }[] = [
-  { id: 'overview', label: 'Overview', href: walletPath.overview, icon: LayoutGrid },
-  { id: 'deposit', label: 'Deposit', href: walletPath.depositCrypto, icon: Download },
-  { id: 'withdraw', label: 'Withdraw', href: walletPath.withdraw, icon: Send },
-  { id: 'transfer', label: 'Transfer', href: walletPath.transfer, icon: ArrowLeftRight },
-  { id: 'convert', label: 'Convert', href: walletPath.convert, icon: RefreshCw },
-  { id: 'history', label: 'History', href: walletPath.history, icon: Clock },
+  { id: 'overview', labelKey: 'overview', href: walletPath.overview, icon: LayoutGrid },
+  { id: 'deposit', labelKey: 'deposit', href: walletPath.depositCrypto, icon: Download },
+  { id: 'withdraw', labelKey: 'withdraw', href: walletPath.withdraw, icon: Send },
+  { id: 'transfer', labelKey: 'transfer', href: walletPath.transfer, icon: ArrowLeftRight },
+  { id: 'convert', labelKey: 'convert', href: walletPath.convert, icon: RefreshCw },
+  { id: 'history', labelKey: 'history', href: walletPath.history, icon: Clock },
 ];
 
 export function getWalletOpsActiveId(pathname: string | null): WalletOpsNavId | undefined {
@@ -84,6 +85,7 @@ export function WalletOperationsShell({
   children,
 }: WalletOperationsShellProps) {
   const pathname = usePathname();
+  const tw = useTranslations('wallet');
   const activeId = getWalletOpsActiveId(pathname);
 
   return (
@@ -91,7 +93,7 @@ export function WalletOperationsShell({
       <div className="rounded-2xl border border-border bg-card/90 p-1.5 shadow-sm backdrop-blur-sm supports-[backdrop-filter]:bg-card/75">
         <nav
           className="flex gap-1 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          aria-label="Wallet"
+          aria-label={tw('nav.operationsAria')}
         >
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -108,7 +110,7 @@ export function WalletOperationsShell({
                 )}
               >
                 <Icon className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
-                {item.label}
+                {tw(`nav.${item.labelKey}`)}
               </Link>
             );
           })}

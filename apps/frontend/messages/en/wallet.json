@@ -1,1 +1,35 @@
-{}
+{
+  "nav": {
+    "overview": "Overview",
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "transfer": "Transfer",
+    "convert": "Convert",
+    "history": "History",
+    "operationsAria": "Wallet operations"
+  },
+  "deposit": {
+    "title": "Deposit crypto",
+    "selectNetwork": "Select network",
+    "address": "Deposit address",
+    "confirmations": "Confirmations",
+    "warningWrongNetwork": "Send only on the selected network. Wrong network deposits may be lost.",
+    "irreversible": "Blockchain transfers are irreversible."
+  },
+  "withdraw": {
+    "title": "Withdraw",
+    "network": "Network",
+    "fee": "Network fee",
+    "confirmWithdrawal": "Confirm withdrawal"
+  },
+  "transactions": {
+    "pending": "Pending",
+    "processing": "Processing",
+    "completed": "Completed",
+    "failed": "Failed"
+  },
+  "overview": {
+    "totalBalance": "Total balance",
+    "collectingData": "Collecting data…"
+  }
+}

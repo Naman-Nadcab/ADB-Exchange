@@ -1,5 +1,8 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 
 export function ForexPageFrame(props: {
@@ -12,6 +15,7 @@ export function ForexPageFrame(props: {
   /** Compact commercial header — less vertical chrome */
   dense?: boolean;
 }) {
+  const tf = useTranslations('forex');
   const dense = props.dense !== false;
   return (
     <div
@@ -23,7 +27,7 @@ export function ForexPageFrame(props: {
     >
       <div className={cn('flex flex-wrap items-center justify-between gap-2', !dense && 'items-end gap-3')}>
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Forex</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{tf('domainLabel')}</p>
           <h1
             className={cn(
               'font-semibold uppercase tracking-[0.08em] text-foreground',
@@ -45,12 +49,28 @@ export function ForexPageFrame(props: {
   );
 }
 
-export function ForexSignInPrompt({ href, label }: { href: string; label: string }) {
+export type ForexSignInSectionKey =
+  | 'ledger'
+  | 'orders'
+  | 'portfolio'
+  | 'yourForexAccount'
+  | 'funds'
+  | 'forexAccounts';
+
+export function ForexSignInPrompt({
+  href,
+  sectionKey,
+}: {
+  href: string;
+  sectionKey: ForexSignInSectionKey;
+}) {
+  const tf = useTranslations('forex');
+  const section = tf(`signIn.sections.${sectionKey}`);
   return (
     <p className="eda-card p-4 text-sm text-muted-foreground">
-      Sign in to view {label}.{' '}
+      {tf('signIn.prompt', { section })}{' '}
       <Link href={href} className="text-primary underline underline-offset-2">
-        Sign in
+        {tf('signIn.link')}
       </Link>
     </p>
   );

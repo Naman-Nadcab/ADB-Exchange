@@ -1,1 +1,8 @@
-{}
+{
+  "title": "Order",
+  "spot": "Spot",
+  "history": "Riwayat",
+  "open": "Terbuka",
+  "filled": "Terisi",
+  "cancelled": "Dibatalkan"
+}

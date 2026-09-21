@@ -1,1 +1,121 @@
-{}
+{
+  "domainLabel": "外汇",
+  "nav": {
+    "trade": "交易",
+    "markets": "市场",
+    "portfolio": "持仓",
+    "orders": "订单",
+    "analysis": "分析",
+    "alerts": "提醒",
+    "account": "账户",
+    "more": "更多"
+  },
+  "chrome": {
+    "simulated": "模拟",
+    "demoSimulated": "演示 · 模拟",
+    "terminalNavAria": "外汇终端导航",
+    "mobileNavAria": "外汇移动端导航"
+  },
+  "pages": {
+    "markets": {
+      "title": "市场",
+      "subtitle": "来自 FDM 外汇报价的实时买价、卖价与点差。除非报价源提供，否则不显示涨跌幅。"
+    },
+    "portfolio": {
+      "title": "持仓",
+      "subtitle": "外汇账户的持仓、敞口、盈亏与保证金。"
+    },
+    "orders": {
+      "title": "订单",
+      "subtitle": "未成交、待触发与已完成的外汇订单。待处理订单可修改或撤销（以服务端为准）。"
+    },
+    "analysis": {
+      "title": "分析"
+    },
+    "alerts": {
+      "title": "提醒",
+      "subtitle": "由服务端评估的账户外汇提醒。"
+    },
+    "account": {
+      "title": "账户",
+      "subtitle": "外汇演示账户 · 模拟 /  MOCK。非真实资金。真实外汇与 live LP 仍关闭。"
+    },
+    "funds": {
+      "title": "资金",
+      "subtitle": "外汇演示账户 · 模拟 / MOCK。真实外汇入金通道关闭。加密钱包独立。"
+    },
+    "ledger": {
+      "title": "流水",
+      "subtitle": "外汇资金变动及后端余额。对账以后端账户值为准，非前端计算。"
+    },
+    "accounts": {
+      "title": "外汇账户",
+      "subtitle": "仅模拟演示账户。REAL_FOREX 关闭时不可开立真实账户。"
+    }
+  },
+  "markets": {
+    "filters": {
+      "all": "全部",
+      "majors": "主要货币对",
+      "crosses": "交叉盘",
+      "metals": "贵金属",
+      "watchlist": "自选"
+    },
+    "classLabels": {
+      "major": "主要",
+      "cross": "交叉",
+      "metal": "贵金属"
+    },
+    "sessionUnavailable": "不可用"
+  },
+  "signIn": {
+    "prompt": "登录后查看{section}。",
+    "link": "登录",
+    "sections": {
+      "ledger": "流水",
+      "orders": "订单",
+      "portfolio": "持仓",
+      "yourForexAccount": "您的外汇账户",
+      "funds": "资金",
+      "forexAccounts": "外汇账户"
+    }
+  },
+  "ticket": {
+    "buy": "买入",
+    "sell": "卖出",
+    "marketBuy": "市价买入",
+    "marketSell": "市价卖出",
+    "executing": "执行中…",
+    "previewing": "预览中…",
+    "submitting": "提交中…",
+    "placeOrder": "下达{action}",
+    "margin": "保证金",
+    "fee": "手续费",
+    "estExposure": "预估敞口",
+    "estSl": "预估止损",
+    "estTp": "预估止盈",
+    "estRr": "预估盈亏比",
+    "freeAfter": "成交后可用",
+    "preview": "预览",
+    "stopLimitBuyHint": "买入止损限价：限价须低于或等于触发价。",
+    "stopLimitSellHint": "卖出止损限价：限价须高于或等于触发价。"
+  },
+  "orderTypes": {
+    "MARKET": "市价",
+    "LIMIT": "限价",
+    "STOP": "止损",
+    "STOP_LIMIT": "止损限价"
+  },
+  "accountNav": {
+    "overview": "总览",
+    "accounts": "账户",
+    "funds": "资金",
+    "ledger": "流水",
+    "portfolio": "持仓",
+    "sectionsAria": "账户分区"
+  },
+  "alertsPage": {
+    "intro": "主要交易提醒在此及",
+    "tradeTerminal": "交易终端"
+  }
+}

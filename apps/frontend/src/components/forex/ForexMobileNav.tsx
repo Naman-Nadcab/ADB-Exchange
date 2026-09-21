@@ -1,17 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { FOREX_MOBILE_NAV, FOREX_ROUTES, isForexTradePath } from '@/lib/forex/routes';
 import { cn } from '@/lib/utils';
 
 export function ForexMobileNav() {
   const pathname = usePathname() ?? '';
+  const tf = useTranslations('forex');
 
   return (
     <nav
       className="flex h-14 shrink-0 items-stretch border-t border-border bg-card md:hidden"
-      aria-label="Forex mobile"
+      aria-label={tf('chrome.mobileNavAria')}
     >
       {FOREX_MOBILE_NAV.map((item) => {
         const active = item.href === FOREX_ROUTES.trade ? isForexTradePath(pathname) : pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -24,7 +26,7 @@ export function ForexMobileNav() {
               active ? 'text-primary' : 'text-muted-foreground'
             )}
           >
-            {item.label}
+            {tf(item.labelKey)}
           </Link>
         );
       })}

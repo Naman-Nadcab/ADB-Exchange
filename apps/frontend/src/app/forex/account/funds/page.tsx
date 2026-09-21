@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { ForexAccountNav } from '@/components/forex/ForexAccountNav';
 import { ForexMetric } from '@/components/forex/ForexMetric';
@@ -15,6 +16,7 @@ import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
 
 export default function ForexFundsPage() {
+  const tf = useTranslations('forex');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const account = useForexStore((s) => s.account);
@@ -52,12 +54,12 @@ export default function ForexFundsPage() {
 
   return (
     <ForexPageFrame
-      title="Funds"
-      subtitle="FOREX DEMO ACCOUNT · SIMULATED / MOCK. Real Forex deposit rails are OFF. Crypto wallet is separate."
+      title={tf('pages.funds.title')}
+      subtitle={tf('pages.funds.subtitle')}
       actions={<ForexAccountNav />}
     >
       {!authed ? (
-        <ForexSignInPrompt href="/login?redirect=/forex/account/funds" label="funds" />
+        <ForexSignInPrompt href="/login?redirect=/forex/account/funds" sectionKey="funds" />
       ) : (
         <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <ForexMetric label="Available balance" value={account?.availableBalance ?? balance?.availableBalance} currency={currency} />

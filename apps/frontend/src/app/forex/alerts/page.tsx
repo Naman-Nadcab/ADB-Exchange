@@ -1,18 +1,20 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexServerAlertsPanel } from '@/components/forex/ForexServerAlertsPanel';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 
 export default function ForexAlertsPage() {
+  const tf = useTranslations('forex');
   return (
-    <ForexPageFrame title="Alerts" subtitle="Server-evaluated Forex alerts for your account." wide>
+    <ForexPageFrame title={tf('pages.alerts.title')} subtitle={tf('pages.alerts.subtitle')} wide>
       <div className="mx-auto max-w-3xl space-y-3">
         <p className="text-[11px] text-muted-foreground">
-          Primary trading alerts are managed here and in the{' '}
+          {tf('alertsPage.intro')}{' '}
           <Link href={FOREX_ROUTES.trade} className="text-primary underline">
-            trade terminal
+            {tf('alertsPage.tradeTerminal')}
           </Link>{' '}
           (Alerts tab). PUSH, EMAIL, and WEBHOOK channels show as not configured until providers are enabled on the
           server.

@@ -1,0 +1,17 @@
+Phase 3 baseline manifest
+Generated: 2026-09-21 (session)
+
+branch: release/exchange-production-baseline
+HEAD: 92363dc067144e5c44ff8e9cdf90ff4809857b76
+origin/release/exchange-production-baseline: 92363dc067144e5c44ff8e9cdf90ff4809857b76
+local HEAD == remote HEAD: YES
+
+safe-point/pre-i18n-20260921-125800 -> e07b4ecf18912e9c098f27e12027cdffb46ed1fc
+
+Phase 2 commit: 92363dc067144e5c44ff8e9cdf90ff4809857b76 feat(i18n): localize auth common and errors
+
+dirty file count (pre-Phase-3): 481
+dirty snapshot: .build/_PHASE3_BEFORE_status.txt
+
+production frontend image (reference, no deploy in Phase 3):
+sha256:06af39659d07f5a22935352f9e927dc95031d0fbf4d2736f848eb2966b14d80a

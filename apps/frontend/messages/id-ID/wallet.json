@@ -1,1 +1,35 @@
-{}
+{
+  "nav": {
+    "overview": "Ringkasan",
+    "deposit": "Deposit",
+    "withdraw": "Tarik",
+    "transfer": "Transfer",
+    "convert": "Konversi",
+    "history": "Riwayat",
+    "operationsAria": "Operasi dompet"
+  },
+  "deposit": {
+    "title": "Deposit kripto",
+    "selectNetwork": "Pilih jaringan",
+    "address": "Alamat deposit",
+    "confirmations": "Konfirmasi",
+    "warningWrongNetwork": "Kirim hanya di jaringan yang dipilih. Deposit jaringan salah dapat hilang.",
+    "irreversible": "Transfer blockchain tidak dapat dibatalkan."
+  },
+  "withdraw": {
+    "title": "Tarik",
+    "network": "Jaringan",
+    "fee": "Biaya jaringan",
+    "confirmWithdrawal": "Konfirmasi penarikan"
+  },
+  "transactions": {
+    "pending": "Menunggu",
+    "processing": "Diproses",
+    "completed": "Selesai",
+    "failed": "Gagal"
+  },
+  "overview": {
+    "totalBalance": "Total saldo",
+    "collectingData": "Mengumpulkan data…"
+  }
+}

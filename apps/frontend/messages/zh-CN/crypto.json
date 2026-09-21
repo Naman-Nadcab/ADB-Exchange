@@ -1,1 +1,55 @@
-{}
+{
+  "trading": {
+    "buy": "买入",
+    "sell": "卖出",
+    "limit": "限价",
+    "market": "市价",
+    "stop": "止损",
+    "stopLimit": "止损限价",
+    "trailing": "追踪止损",
+    "price": "价格",
+    "quantity": "数量",
+    "total": "总额",
+    "available": "可用",
+    "placeOrder": "下单",
+    "loginToTrade": "登录后交易",
+    "executing": "提交中…",
+    "tif": {
+      "gtc": "撤销前有效",
+      "ioc": "立即成交或取消",
+      "fok": "全部成交或取消"
+    }
+  },
+  "bottomPanel": {
+    "tabs": {
+      "open": "当前",
+      "history": "历史",
+      "trades": "成交",
+      "assets": "资产",
+      "positions": "持仓"
+    },
+    "openOrders": "当前委托",
+    "orderHistory": "历史委托",
+    "tradeHistory": "成交记录",
+    "assets": "资产",
+    "positions": "持仓",
+    "exportOrderHistoryCsv": "导出历史委托 CSV",
+    "cancelAll": "全部撤销",
+    "refresh": "刷新"
+  },
+  "orders": {
+    "status": {
+      "open": "未成交",
+      "pendingTrigger": "待触发",
+      "partiallyFilled": "部分成交",
+      "rejected": "已拒绝",
+      "cancelled": "已撤销",
+      "filled": "已成交",
+      "unknown": "未知"
+    }
+  },
+  "empty": {
+    "noOpenOrders": "暂无当前委托",
+    "signInForOrders": "登录后查看委托"
+  }
+}

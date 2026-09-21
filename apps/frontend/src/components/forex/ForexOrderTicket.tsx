@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { useForexErrorMessage } from '@/hooks/useForexErrorMessage';
 import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
 import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
 import { isPreviewParamComplete } from '@/lib/forex/models/preview';
@@ -32,6 +34,7 @@ import { cn } from '@/lib/utils';
 import { fxNum } from './format';
 
 export function ForexOrderTicket() {
+  const tf = useTranslations('forex');
   const selected = useForexWorkspaceStore((s) => s.selectedSymbol);
   const ticketDraft = useForexWorkspaceStore((s) => s.ticketDraft);
   const inst = useForexStore((s) => s.instruments[selected]);
@@ -205,6 +208,7 @@ export function ForexOrderTicket() {
 
   const last = engine.lastOrder ?? storeLast;
   const lastError = engine.error ?? storeError;
+  const lastErrorMsg = useForexErrorMessage(lastError);
   const canBuy = !baseBlocked && dealing?.symbol.buyEnabled !== false;
   const canSell = !baseBlocked && dealing?.symbol.sellEnabled !== false;
   const actionLabel = busy
@@ -503,9 +507,9 @@ export function ForexOrderTicket() {
             {blockReason}
           </p>
         ) : null}
-        {lastError ? (
+        {lastErrorMsg ? (
           <p className="border border-rose-900/60 bg-rose-950/30 px-1.5 py-1 text-[11px] text-rose-200" role="alert">
-            {describeForexError(normalizeForexError(lastError))}
+            {lastErrorMsg}
           </p>
         ) : null}
         {last ? (
@@ -526,7 +530,7 @@ export function ForexOrderTicket() {
               onClick={() => void submit('sell')}
               className="fx-mt5-sell h-9 font-mono text-[12px] font-bold disabled:cursor-not-allowed"
             >
-              {busy && side === 'sell' ? 'Executing…' : preview.status === 'LOADING' && !previewData && side === 'sell' ? 'Previewing…' : 'Market Sell'}
+              {busy && side === 'sell' ? tf('ticket.executing') : preview.status === 'LOADING' && !previewData && side === 'sell' ? tf('ticket.previewing') : tf('ticket.marketSell')}
               <span className="mt-0.5 block text-[10px] font-medium opacity-90">{quote ? fxNum(quote.bid, digits) : '—'}</span>
             </button>
             <button
@@ -535,7 +539,7 @@ export function ForexOrderTicket() {
               onClick={() => void submit('buy')}
               className="fx-mt5-buy h-9 font-mono text-[12px] font-bold disabled:cursor-not-allowed"
             >
-              {busy && side === 'buy' ? 'Executing…' : preview.status === 'LOADING' && !previewData && side === 'buy' ? 'Previewing…' : 'Market Buy'}
+              {busy && side === 'buy' ? tf('ticket.executing') : preview.status === 'LOADING' && !previewData && side === 'buy' ? tf('ticket.previewing') : tf('ticket.marketBuy')}
               <span className="mt-0.5 block text-[10px] font-medium opacity-90">{quote ? fxNum(quote.ask, digits) : '—'}</span>
             </button>
           </div>
@@ -549,7 +553,7 @@ export function ForexOrderTicket() {
               side === 'buy' ? 'fx-mt5-buy' : 'fx-mt5-sell'
             )}
           >
-            {busy ? 'Submitting…' : preview.status === 'LOADING' && !previewData ? 'Previewing…' : `Place ${orderActionLabel}`}
+            {busy ? tf('ticket.submitting') : preview.status === 'LOADING' && !previewData ? tf('ticket.previewing') : tf('ticket.placeOrder', { action: orderActionLabel })}
           </button>
         )}
       </div>

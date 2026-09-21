@@ -1,1 +1,25 @@
-{}
+{
+  "nav": {
+    "marketplace": "Marketplace",
+    "postAd": "Pasang Iklan",
+    "myAds": "Iklan Saya",
+    "orders": "Order",
+    "payments": "Pembayaran",
+    "dashboard": "Dashboard",
+    "sectionsAria": "Bagian P2P"
+  },
+  "marketplace": {
+    "title": "Marketplace P2P",
+    "buyCrypto": "Beli kripto",
+    "sellCrypto": "Jual kripto",
+    "escrowProtected": "Escrow terlindungi",
+    "orderFailed": "Order gagal"
+  },
+  "order": {
+    "paymentPending": "Menunggu pembayaran",
+    "awaitingRelease": "Menunggu pelepasan",
+    "completed": "Selesai",
+    "cancelled": "Dibatalkan",
+    "disputed": "Sengketa"
+  }
+}

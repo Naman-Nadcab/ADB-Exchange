@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { ForexAccountNav } from '@/components/forex/ForexAccountNav';
 import { ForexMetric } from '@/components/forex/ForexMetric';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
@@ -12,6 +13,7 @@ import { useAuthStore } from '@/store/auth';
 import { cn } from '@/lib/utils';
 
 export default function ForexPortfolioPage() {
+  const tf = useTranslations('forex');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const account = useForexStore((s) => s.account);
@@ -28,12 +30,12 @@ export default function ForexPortfolioPage() {
   return (
     <ForexPageFrame
       wide
-      title="Portfolio"
-      subtitle="Open positions, exposure, P&L and margin from the Forex account."
+      title={tf('pages.portfolio.title')}
+      subtitle={tf('pages.portfolio.subtitle')}
       actions={<ForexAccountNav />}
     >
       {!authed ? (
-        <ForexSignInPrompt href="/login?redirect=/forex/portfolio" label="portfolio" />
+        <ForexSignInPrompt href="/login?redirect=/forex/portfolio" sectionKey="portfolio" />
       ) : (
         <>
           <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">

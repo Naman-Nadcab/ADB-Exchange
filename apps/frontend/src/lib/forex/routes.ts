@@ -26,19 +26,19 @@ export function showForexMarketChrome(pathname: string): boolean {
 }
 
 export const FOREX_NAV = [
-  { href: FOREX_ROUTES.trade, label: 'Trade' },
-  { href: FOREX_ROUTES.markets, label: 'Markets' },
-  { href: FOREX_ROUTES.portfolio, label: 'Portfolio' },
-  { href: FOREX_ROUTES.orders, label: 'Orders' },
-  { href: FOREX_ROUTES.analysis, label: 'Analysis' },
-  { href: FOREX_ROUTES.alerts, label: 'Alerts' },
-  { href: FOREX_ROUTES.account, label: 'Account' },
+  { href: FOREX_ROUTES.trade, labelKey: 'nav.trade' as const },
+  { href: FOREX_ROUTES.markets, labelKey: 'nav.markets' as const },
+  { href: FOREX_ROUTES.portfolio, labelKey: 'nav.portfolio' as const },
+  { href: FOREX_ROUTES.orders, labelKey: 'nav.orders' as const },
+  { href: FOREX_ROUTES.analysis, labelKey: 'nav.analysis' as const },
+  { href: FOREX_ROUTES.alerts, labelKey: 'nav.alerts' as const },
+  { href: FOREX_ROUTES.account, labelKey: 'nav.account' as const },
 ] as const;
 
 export const FOREX_MOBILE_NAV = [
-  { href: FOREX_ROUTES.trade, label: 'Trade' },
-  { href: FOREX_ROUTES.markets, label: 'Markets' },
-  { href: FOREX_ROUTES.portfolio, label: 'Portfolio' },
-  { href: FOREX_ROUTES.orders, label: 'Orders' },
-  { href: FOREX_ROUTES.account, label: 'More' },
+  { href: FOREX_ROUTES.trade, labelKey: 'nav.trade' as const },
+  { href: FOREX_ROUTES.markets, labelKey: 'nav.markets' as const },
+  { href: FOREX_ROUTES.portfolio, labelKey: 'nav.portfolio' as const },
+  { href: FOREX_ROUTES.orders, labelKey: 'nav.orders' as const },
+  { href: FOREX_ROUTES.account, labelKey: 'nav.more' as const },
 ] as const;

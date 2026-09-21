@@ -1,17 +1,18 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { ArrowLeftRight, LayoutGrid, PlusCircle, ListOrdered, CreditCard, BarChart3 } from 'lucide-react';
 import { P2P_HREF } from '@/lib/routes';
 
 const nav = [
-  { href: P2P_HREF, label: 'Marketplace', icon: LayoutGrid },
-  { href: `${P2P_HREF}/create-ad`, label: 'Post Ad', icon: PlusCircle },
-  { href: `${P2P_HREF}/my-ads`, label: 'My Ads', icon: ArrowLeftRight },
-  { href: `${P2P_HREF}/orders`, label: 'Orders', icon: ListOrdered },
-  { href: `${P2P_HREF}/payment-methods`, label: 'Payments', icon: CreditCard },
-  { href: `${P2P_HREF}/merchant-dashboard`, label: 'Dashboard', icon: BarChart3 },
+  { href: P2P_HREF, labelKey: 'nav.marketplace' as const, icon: LayoutGrid },
+  { href: `${P2P_HREF}/create-ad`, labelKey: 'nav.postAd' as const, icon: PlusCircle },
+  { href: `${P2P_HREF}/my-ads`, labelKey: 'nav.myAds' as const, icon: ArrowLeftRight },
+  { href: `${P2P_HREF}/orders`, labelKey: 'nav.orders' as const, icon: ListOrdered },
+  { href: `${P2P_HREF}/payment-methods`, labelKey: 'nav.payments' as const, icon: CreditCard },
+  { href: `${P2P_HREF}/merchant-dashboard`, labelKey: 'nav.dashboard' as const, icon: BarChart3 },
 ];
 
 /**
@@ -21,12 +22,13 @@ const nav = [
  */
 export function P2PHeader() {
   const pathname = usePathname();
+  const tp = useTranslations('p2p');
 
   return (
     <div className="sticky top-[64px] z-30 border-b border-border/40 bg-card/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-[1400px] items-center gap-2 px-4 py-2 sm:px-6">
-        <nav className="flex items-center gap-1 overflow-x-auto" aria-label="P2P sections">
-          {nav.map(({ href, label, icon: Icon }) => {
+        <nav className="flex items-center gap-1 overflow-x-auto" aria-label={tp('nav.sectionsAria')}>
+          {nav.map(({ href, labelKey, icon: Icon }) => {
             const isActive =
               href === P2P_HREF
                 ? pathname === P2P_HREF
@@ -42,7 +44,7 @@ export function P2PHeader() {
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0 opacity-90" />
-                <span className="hidden sm:inline">{label}</span>
+                <span className="hidden sm:inline">{tp(labelKey)}</span>
               </Link>
             );
           })}

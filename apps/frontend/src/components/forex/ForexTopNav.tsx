@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import ThemeToggle from '@/components/ThemeToggle';
 import { BrandLogo } from '@/components/brand/BrandLogo';
@@ -14,6 +15,7 @@ import { LocaleLanguageSelector } from '@/components/i18n/LocaleLanguageSelector
 export function ForexTopNav(props?: { compact?: boolean }) {
   const pathname = usePathname() ?? '';
   const compact = Boolean(props?.compact);
+  const tf = useTranslations('forex');
 
   return (
     <header className="mobile-app-topbar sticky top-0 z-40 shrink-0 border-b border-border bg-card/95 backdrop-blur-sm">
@@ -25,7 +27,7 @@ export function ForexTopNav(props?: { compact?: boolean }) {
             'hidden min-w-0 flex-1 items-center overflow-x-auto md:flex',
             compact ? 'gap-0.5' : 'gap-1'
           )}
-          aria-label="Forex terminal"
+          aria-label={tf('chrome.terminalNavAria')}
         >
           {FOREX_NAV.map((item) => {
             const active =
@@ -34,7 +36,7 @@ export function ForexTopNav(props?: { compact?: boolean }) {
                 : pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
-                key={item.href + item.label}
+                key={item.href + item.labelKey}
                 href={item.href}
                 className={cn(
                   'inline-flex items-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -44,7 +46,7 @@ export function ForexTopNav(props?: { compact?: boolean }) {
                   active ? 'bg-primary/12 text-primary' : 'text-muted-foreground hover:text-foreground'
                 )}
               >
-                {item.label}
+                {tf(item.labelKey)}
               </Link>
             );
           })}
@@ -52,11 +54,11 @@ export function ForexTopNav(props?: { compact?: boolean }) {
         <div className="ml-auto flex items-center gap-1.5">
           {compact ? (
             <span className="hidden font-mono text-[9px] uppercase tracking-wide text-amber-200/90 sm:inline">
-              DEMO · SIMULATED
+              {tf('chrome.demoSimulated')}
             </span>
           ) : (
             <span className="hidden font-mono text-[9px] uppercase tracking-wide text-muted-foreground sm:inline">
-              SIMULATED
+              {tf('chrome.simulated')}
             </span>
           )}
           <LocaleLanguageSelector variant="compact" />

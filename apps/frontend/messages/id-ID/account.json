@@ -1,0 +1,29 @@
+{
+  "profile": {
+    "title": "Akun",
+    "subtitle": "Profil, status verifikasi, dan identitas akun.",
+    "uid": "UID",
+    "email": "Email",
+    "phone": "Telepon",
+    "verification": "Verifikasi",
+    "editProfile": "Edit profil"
+  },
+  "security": {
+    "title": "Keamanan",
+    "subtitle": "Kata sandi, 2FA, perangkat, dan perlindungan penarikan.",
+    "twoFactor": "Autentikasi dua faktor",
+    "sessions": "Sesi aktif",
+    "fundPassword": "Kata sandi dana"
+  },
+  "preferences": {
+    "title": "Preferensi",
+    "subtitle": "Tampilan, notifikasi, dan bahasa.",
+    "language": "Bahasa",
+    "displayCurrency": "Mata uang tampilan"
+  },
+  "verification": {
+    "verified": "Terverifikasi",
+    "pending": "Menunggu tinjauan",
+    "notStarted": "Belum dimulai"
+  }
+}

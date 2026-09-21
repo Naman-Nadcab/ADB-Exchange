@@ -1,10 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { fxNum, fxPlain } from '@/components/forex/format';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
-import { describeForexError } from '@/lib/forex/models/errors';
+import { useForexErrorMessage } from '@/hooks/useForexErrorMessage';
 import type { ForexOrderState, ForexPublicOrder } from '@/lib/forex/models/types';
 import { useForexOrderEngine } from '@/lib/forex/runtime/useForexOrderEngine';
 import { useForexStore } from '@/lib/forex/state/store';
@@ -41,6 +42,7 @@ function isCancellable(status: ForexOrderState): boolean {
 }
 
 export default function ForexOrdersPage() {
+  const tf = useTranslations('forex');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const orders = useForexStore((s) => s.orders);
@@ -53,6 +55,7 @@ export default function ForexOrdersPage() {
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const engine = useForexOrderEngine();
+  const engineErrorMsg = useForexErrorMessage(engine.error);
 
   const rows = useMemo(() => Object.values(orders).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)), [orders]);
   const filtered = rows.filter((o) => classify(o.status) === tab);
@@ -79,16 +82,16 @@ export default function ForexOrdersPage() {
 
   return (
     <ForexPageFrame
-      title="Orders"
-      subtitle="Open, pending and completed Forex orders. Pending rows expose Modify and Cancel (server-authoritative)."
+      title={tf('pages.orders.title')}
+      subtitle={tf('pages.orders.subtitle')}
     >
       {!authed ? (
-        <ForexSignInPrompt href="/login?redirect=/forex/orders" label="orders" />
+        <ForexSignInPrompt href="/login?redirect=/forex/orders" sectionKey="orders" />
       ) : (
         <>
-          {engine.error ? (
+          {engineErrorMsg ? (
             <p className="text-sm text-sell" role="alert">
-              {describeForexError(engine.error)}
+              {engineErrorMsg}
             </p>
           ) : null}
           {engine.lastNote ? <p className="text-[12px] text-muted-foreground">{engine.lastNote}</p> : null}
