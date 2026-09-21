@@ -12,17 +12,19 @@ import {
   availableOrderTypes,
   availableTimeInForce,
   coerceTimeInForce,
-  describeCustomerOrder,
-  FOREX_ORDER_TYPE_LABEL,
-  FOREX_TIME_IN_FORCE_LABEL,
   isPendingOrderType,
   isTimeInForceAllowed,
-  orderKindHelp,
   requiresLimitPrice,
   requiresTriggerPrice,
-  timeInForceBlockedReason,
-  unavailableTicketFeatures,
 } from '@/lib/forex/models/order-type-tif';
+import {
+  describeCustomerOrderLabel,
+  labelForexOrderType,
+  labelForexTimeInForce,
+  orderKindHelpLabel,
+  timeInForceBlockedReasonLabel,
+  unavailableTicketFeatureLabels,
+} from '@/lib/forex/presentation/order-type-labels';
 import type { ForexSide, ForexOrderType, ForexTimeInForce } from '@/lib/forex/models/types';
 import { forexApi } from '@/lib/forex/api/client';
 import { hydrateForexPrivate } from '@/lib/forex/runtime/hydrate';
@@ -88,7 +90,7 @@ export function ForexOrderTicket() {
   const allowedTypes = useMemo(() => availableOrderTypes(config), [config]);
   const tifOptions = useMemo(() => availableTimeInForce(config), [config]);
   const tifUnsupported = tifOptions.length <= 1;
-  const missingFeatures = useMemo(() => unavailableTicketFeatures(config), [config]);
+  const missingFeatures = useMemo(() => unavailableTicketFeatureLabels(tf, config), [config, tf]);
 
   // A type change can invalidate the selected TIF — never submit a combination
   // the server is guaranteed to reject.
@@ -144,11 +146,11 @@ export function ForexOrderTicket() {
     [inst, side, type, exec, price, limitPrice, sl, tp, volume]
   );
 
-  const orderActionLabel = useMemo(() => describeCustomerOrder(side, type), [side, type]);
-  const kindHelp = useMemo(() => orderKindHelp(type, side), [type, side]);
+  const orderActionLabel = useMemo(() => describeCustomerOrderLabel(tf, side, type), [side, type, tf]);
+  const kindHelp = useMemo(() => orderKindHelpLabel(tf, type, side), [type, side, tf]);
   const positionMode = account?.positionMode ?? 'NETTING';
 
-  const tifNote = timeInForceBlockedReason(type, tif);
+  const tifNote = timeInForceBlockedReasonLabel(tf, type, tif);
 
   const blockReason = useMemo(() => {
     const tail = (r?: string | null) => (r ? ` · ${r}` : '');
@@ -308,7 +310,7 @@ export function ForexOrderTicket() {
           >
             {allowedTypes.map((t) => (
               <option key={t} value={t}>
-                {FOREX_ORDER_TYPE_LABEL[t]}
+                {labelForexOrderType(tf, t)}
               </option>
             ))}
           </select>
@@ -326,7 +328,7 @@ export function ForexOrderTicket() {
           >
             {tifOptions.map((t) => (
               <option key={t} value={t} disabled={!isTimeInForceAllowed(type, t)}>
-                {FOREX_TIME_IN_FORCE_LABEL[t]}
+                {labelForexTimeInForce(tf, t)}
                 {isTimeInForceAllowed(type, t) ? '' : tf('ticketPanel.tifNaSuffix')}
               </option>
             ))}

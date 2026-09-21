@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { formatPositionAge, livePositionValuation } from '@/lib/forex/models/live-valuation';
 import {
@@ -33,6 +34,7 @@ type CloseByState = {
 };
 
 export function ForexPositionPanel() {
+  const tp = useTranslations('forex.positionPanel');
   const session = useForexSession();
   const authed = session.authed;
   const hydratePhase = useForexStore((s) => s.hydratePhase);
@@ -80,26 +82,24 @@ export function ForexPositionPanel() {
     <div className="flex h-full min-h-0 flex-col">
       {status === 'SIGNED_OUT' ? (
         <div className="flex items-center gap-3 px-3 py-2">
-          <p className="text-[11px] text-muted-foreground">Sign in for positions, P&amp;L, SL/TP.</p>
+          <p className="text-[11px] text-muted-foreground">{tp('signIn')}</p>
         </div>
       ) : status === 'LOADING' ? (
-        <p className="p-3 text-[12px] text-muted-foreground">Loading positions…</p>
+        <p className="p-3 text-[12px] text-muted-foreground">{tp('loading')}</p>
       ) : status === 'ERROR' && hydrateError ? (
         <p className="p-3 text-[12px] text-sell" role="alert">
           {hydrateError.code}: {hydrateError.message}
         </p>
       ) : status === 'DISCONNECTED' ? (
-        <p className="p-3 text-[12px] text-amber-800 dark:text-amber-200">Account data disconnected.</p>
+        <p className="p-3 text-[12px] text-amber-800 dark:text-amber-200">{tp('disconnected')}</p>
       ) : (
         <>
           <p className="border-b border-border px-3 py-1 text-[10px] text-muted-foreground">
-            Account mode · <span className="font-semibold text-foreground">{accountMode}</span>
-            {hedging
-              ? ' · Each open ticket is independent; Close By is available for opposite legs.'
-              : ' · One net position per symbol; opposite fills net together.'}
+            {tp('accountMode', { mode: accountMode })}
+            {hedging ? tp('hedgingHint') : tp('nettingHint')}
           </p>
           {status === 'STALE' ? (
-            <p className="px-3 pt-2 text-[11px] text-amber-800 dark:text-amber-200">Position data may be stale.</p>
+            <p className="px-3 pt-2 text-[11px] text-amber-800 dark:text-amber-200">{tp('stale')}</p>
           ) : null}
           {actions.actionError ? (
             <p className="px-3 pt-2 text-[11px] text-sell" role="alert">
@@ -107,31 +107,31 @@ export function ForexPositionPanel() {
             </p>
           ) : null}
           {status === 'EMPTY' && !confirm ? (
-            <p className="p-3 text-[12px] text-muted-foreground">No open Forex positions.</p>
+            <p className="p-3 text-[12px] text-muted-foreground">{tp('empty')}</p>
           ) : (
             <div className="min-h-0 flex-1 overflow-auto">
               <div className="hidden md:block">
                 <table className="w-full text-left font-mono text-[11px]">
                   <thead className="text-muted-foreground">
                     <tr>
-                      <th className="px-2 py-1 font-medium">Id</th>
-                      <th className="px-2 py-1 font-medium">Symbol</th>
-                      <th className="px-2 py-1 font-medium">Side</th>
-                      <th className="px-2 py-1 font-medium">Vol</th>
-                      <th className="px-2 py-1 font-medium">Open</th>
-                      <th className="px-2 py-1 font-medium">Bid</th>
-                      <th className="px-2 py-1 font-medium">Ask</th>
-                      <th className="px-2 py-1 font-medium">Mark</th>
-                      <th className="px-2 py-1 font-medium">Float</th>
-                      <th className="px-2 py-1 font-medium">%</th>
-                      <th className="px-2 py-1 font-medium">Comm</th>
-                      <th className="px-2 py-1 font-medium">Swap</th>
-                      <th className="px-2 py-1 font-medium">Net</th>
-                      <th className="px-2 py-1 font-medium">SL</th>
-                      <th className="px-2 py-1 font-medium">TP</th>
-                      <th className="px-2 py-1 font-medium">Trail</th>
-                      <th className="px-2 py-1 font-medium">Margin</th>
-                      <th className="px-2 py-1 font-medium">Age</th>
+                      <th className="px-2 py-1 font-medium">{tp('colId')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colSymbol')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colSide')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colVol')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colOpen')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colBid')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colAsk')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colMark')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colFloat')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colPct')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colComm')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colSwap')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colNet')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colSl')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colTp')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colTrail')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colMargin')}</th>
+                      <th className="px-2 py-1 font-medium">{tp('colAge')}</th>
                       <th className="px-2 py-1 font-medium"> </th>
                     </tr>
                   </thead>
@@ -264,10 +264,10 @@ export function ForexPositionPanel() {
             return (
               <>
                 <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { setCustomVol(p.volume); setConfirm({ position: p, volume: p.volume }); setMenu(null); }}>
-                  Close Position
+                  {tp('menuClose')}
                 </button>
                 <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { setCustomVol(fractionCloseVolume(p.volume, 0.5) ?? p.volume); setConfirm({ position: p, volume: fractionCloseVolume(p.volume, 0.5) ?? p.volume }); setMenu(null); }}>
-                  Partial Close 50%
+                  {tp('menuPartial50')}
                 </button>
                 {hedging ? (
                   opposites.length > 0 ? (
@@ -279,11 +279,11 @@ export function ForexPositionPanel() {
                         setMenu(null);
                       }}
                     >
-                      Close By…
+                      {tp('menuCloseBy')}
                     </button>
                   ) : (
-                    <button type="button" className="block w-full px-3 py-1 text-left text-muted-foreground" disabled title="No opposite open position">
-                      Close By (unavailable)
+                    <button type="button" className="block w-full px-3 py-1 text-left text-muted-foreground" disabled title={tp('menuCloseByNoOppositeTitle')}>
+                      {tp('menuCloseByUnavailable')}
                     </button>
                   )
                 ) : null}
@@ -295,16 +295,16 @@ export function ForexPositionPanel() {
                     setMenu(null);
                   }}
                 >
-                  Reverse position…
+                  {tp('menuReverse')}
                 </button>
                 <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { focusSymbol(p.symbol); setMenu(null); }}>
-                  View on chart
+                  {tp('menuViewChart')}
                 </button>
                 <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { setBottomTab('history'); setMenu(null); }}>
-                  View History
+                  {tp('menuHistory')}
                 </button>
                 <button type="button" className="block w-full px-3 py-1 text-left text-muted-foreground" onClick={() => setMenu(null)}>
-                  Dismiss
+                  {tp('dismiss')}
                 </button>
               </>
             );
@@ -360,7 +360,8 @@ export function ForexPositionPanel() {
 }
 
 function PnlCell({ pnl }: { pnl: ReturnType<typeof positionUnrealizedPnl> }) {
-  if (!pnl.available) return <span className="text-muted-foreground">P&amp;L unavailable</span>;
+  const tp = useTranslations('forex.positionPanel');
+  if (!pnl.available) return <span className="text-muted-foreground">{tp('pnlUnavailable')}</span>;
   return <span>{fxNum(pnl.value, 2)}{pnl.currency ? ` ${pnl.currency}` : ''}</span>;
 }
 
@@ -395,14 +396,17 @@ function PositionRow(props: {
   onTrailOff: (id: string | null) => void;
   protBusy: boolean;
 }) {
+  const tp = useTranslations('forex.positionPanel');
+  const ts = useTranslations('forex.sides');
   const p = props.position;
   const ui = positionUiStatus(p, props.closing, false);
   const live = props.live;
+  const sideLabel = p.side === 'long' ? ts('buy') : ts('sell');
   return (
     <tr className="border-t border-border align-top" onContextMenu={props.onContext}>
       <td className="px-2 py-1.5" title={p.positionId}>{p.positionId.slice(0, 8)}</td>
       <td className="px-2 py-1.5">{p.symbol}</td>
-      <td className="px-2 py-1.5 uppercase">{p.side === 'long' ? 'Buy' : 'Sell'}</td>
+      <td className="px-2 py-1.5 uppercase">{sideLabel}</td>
       <td className="px-2 py-1.5">{p.volume}</td>
       <td className="px-2 py-1.5">{fxNum(p.averageEntryPrice || p.entryPrice, props.digits)}</td>
       <td className="px-2 py-1.5">{live.bid ? fxNum(live.bid, props.digits) : '—'}</td>
@@ -413,7 +417,7 @@ function PositionRow(props: {
             {fxNum(live.mark, props.digits)} <span className="text-muted-foreground">{live.markSource}</span>
           </>
         ) : (
-          <span className="text-muted-foreground">{live.reason ?? 'unavailable'}</span>
+          <span className="text-muted-foreground">{live.reason ?? tp('unavailable')}</span>
         )}
       </td>
       <td className="px-2 py-1.5">
@@ -454,9 +458,9 @@ function PositionRow(props: {
           <input
             value={props.trail}
             onChange={(e) => props.onTrail(e.target.value)}
-            placeholder={props.prot.sl?.trailingDistance ?? 'dist'}
+            placeholder={props.prot.sl?.trailingDistance ?? tp('trailDistPlaceholder')}
             className="h-7 w-14 rounded border border-border bg-transparent px-1 font-mono text-[10px]"
-            aria-label="Trailing distance"
+            aria-label={tp('trailDistAria')}
           />
           <button
             type="button"
@@ -464,16 +468,16 @@ function PositionRow(props: {
             className="h-7 rounded px-1 text-[10px] uppercase disabled:opacity-40"
             onClick={() => props.onTrailSet(props.prot.sl?.protectionId ?? null)}
           >
-            Set
+            {tp('set')}
           </button>
           {props.prot.sl?.trailingDistance ? (
             <button type="button" disabled={props.protBusy} className="h-7 rounded px-1 text-[10px] uppercase text-muted-foreground" onClick={() => props.onTrailOff(props.prot.sl?.protectionId ?? null)}>
-              Off
+              {tp('off')}
             </button>
           ) : null}
         </div>
       </td>
-      <td className="px-2 py-1.5">{p.initialMargin != null && p.initialMargin !== '' ? fxNum(p.initialMargin, 2) : 'unavailable'}</td>
+      <td className="px-2 py-1.5">{p.initialMargin != null && p.initialMargin !== '' ? fxNum(p.initialMargin, 2) : tp('unavailable')}</td>
       <td className="px-2 py-1.5">{formatPositionAge(live.ageMs)} · {ui}</td>
       <td className="px-2 py-1.5">
         <button
@@ -482,7 +486,7 @@ function PositionRow(props: {
           onClick={() => props.onClose(p.volume)}
           className="h-7 rounded border border-border px-2 text-[10px] uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {props.closing ? 'Closing…' : 'Close'}
+          {props.closing ? tp('closing') : tp('close')}
         </button>
       </td>
     </tr>
@@ -490,34 +494,37 @@ function PositionRow(props: {
 }
 
 function PositionCard(props: Parameters<typeof PositionRow>[0]) {
+  const tp = useTranslations('forex.positionPanel');
+  const ts = useTranslations('forex.sides');
   const p = props.position;
   const ui = positionUiStatus(p, props.closing, false);
   const live = props.live;
+  const sideLabel = p.side === 'long' ? ts('buy') : ts('sell');
   return (
     <article className="rounded border border-border bg-card p-3" onContextMenu={props.onContext}>
       <div className="mb-2 flex items-center justify-between">
         <div className="font-mono text-[13px]">
-          {p.symbol} <span className="uppercase text-muted-foreground">{p.side === 'long' ? 'Buy' : 'Sell'}</span> {p.volume}
+          {p.symbol} <span className="uppercase text-muted-foreground">{sideLabel}</span> {p.volume}
         </div>
         <span className="text-[10px] uppercase text-muted-foreground">{ui} · {formatPositionAge(live.ageMs)}</span>
       </div>
       <dl className="grid grid-cols-2 gap-x-3 gap-y-1 font-mono text-[11px] text-muted-foreground">
-        <dt>Id</dt>
+        <dt>{tp('colId')}</dt>
         <dd className="text-right">{p.positionId.slice(0, 8)}</dd>
-        <dt>Entry</dt>
+        <dt>{tp('cardEntry')}</dt>
         <dd className="text-right">{fxNum(p.averageEntryPrice || p.entryPrice, props.digits)}</dd>
-        <dt>Bid / Ask</dt>
+        <dt>{tp('cardBidAsk')}</dt>
         <dd className="text-right">{live.bid ? fxNum(live.bid, props.digits) : '—'} / {live.ask ? fxNum(live.ask, props.digits) : '—'}</dd>
-        <dt>Mark {live.markSource ?? ''}</dt>
-        <dd className="text-right">{live.mark ? fxNum(live.mark, props.digits) : 'unavailable'}</dd>
-        <dt>Float</dt>
+        <dt>{tp('colMark')} {live.markSource ?? ''}</dt>
+        <dd className="text-right">{live.mark ? fxNum(live.mark, props.digits) : tp('unavailable')}</dd>
+        <dt>{tp('colFloat')}</dt>
         <dd className="text-right">
           <FloatCell live={live} fallback={props.serverPnl} />
         </dd>
-        <dt>Comm / Swap</dt>
+        <dt>{tp('cardCommSwap')}</dt>
         <dd className="text-right">{fxNum(live.commission, 2)} / {fxNum(live.swap, 2)}</dd>
-        <dt>Margin</dt>
-        <dd className="text-right">{p.initialMargin != null && p.initialMargin !== '' ? fxNum(p.initialMargin, 2) : 'unavailable'}</dd>
+        <dt>{tp('colMargin')}</dt>
+        <dd className="text-right">{p.initialMargin != null && p.initialMargin !== '' ? fxNum(p.initialMargin, 2) : tp('unavailable')}</dd>
       </dl>
       <div className="mt-2 space-y-2">
         <ProtectionCell
@@ -549,7 +556,7 @@ function PositionCard(props: Parameters<typeof PositionRow>[0]) {
         onClick={() => props.onClose(p.volume)}
         className="mt-3 h-10 w-full rounded border border-border text-[12px] uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {props.closing ? 'Closing…' : `Close ${p.volume} ${p.symbol}`}
+        {props.closing ? tp('closing') : tp('closeVolume', { volume: p.volume, symbol: p.symbol })}
       </button>
     </article>
   );
@@ -566,6 +573,7 @@ function ProtectionCell(props: {
   onRemove: () => void;
   busy: boolean;
 }) {
+  const tp = useTranslations('forex.positionPanel');
   const mismatch = props.existing ? protectionVolumeMismatch(props.positionVolume, props.existing.volume) : false;
   return (
     <div className="flex min-w-[9.5rem] flex-col gap-1">
@@ -575,8 +583,8 @@ function ProtectionCell(props: {
       </div>
       {props.existing ? (
         <p className={`text-[10px] leading-tight ${mismatch ? 'text-amber-800 dark:text-amber-300' : 'text-muted-foreground'}`}>
-          Covers {fxPlain(props.existing.volume)} of {fxPlain(props.positionVolume)}
-          {mismatch ? ' · does not cover remaining volume' : ''}
+          {tp('coversVolume', { existing: fxPlain(props.existing.volume), total: fxPlain(props.positionVolume) })}
+          {mismatch ? tp('volumeMismatch') : ''}
         </p>
       ) : null}
       <div className="flex items-center gap-1">
@@ -584,21 +592,21 @@ function ProtectionCell(props: {
           value={props.value}
           onChange={(e) => props.onChange(e.target.value)}
           inputMode="decimal"
-          aria-label={`${props.kind} price`}
+          aria-label={tp('slPriceAria', { kind: props.kind })}
           className="h-7 w-20 rounded border border-border bg-transparent px-1 font-mono text-[11px]"
         />
         {props.existing ? (
           <>
             <button type="button" disabled={props.busy || !protectionInputOk(props.value)} onClick={props.onUpdate} className="h-7 rounded px-1.5 text-[10px] uppercase disabled:opacity-40">
-              Set
+              {tp('set')}
             </button>
             <button type="button" disabled={props.busy} onClick={props.onRemove} className="h-7 rounded px-1.5 text-[10px] uppercase text-muted-foreground disabled:opacity-40">
-              Off
+              {tp('off')}
             </button>
           </>
         ) : (
           <button type="button" disabled={props.busy || !protectionInputOk(props.value)} onClick={props.onSet} className="h-7 rounded px-1.5 text-[10px] uppercase disabled:opacity-40">
-            Set
+            {tp('set')}
           </button>
         )}
       </div>
@@ -616,27 +624,33 @@ function CloseConfirm(props: {
   onCancel: () => void;
   onSubmit: () => void;
 }) {
+  const tp = useTranslations('forex.positionPanel');
   const p = props.position;
   const ref = closeReferenceSide(p.side);
   const side = closeSideForPosition(p.side);
   const allowed = closeVolumeAllowed(p.volume, props.volume);
   const parts = [
-    { label: '25%', vol: fractionCloseVolume(p.volume, 0.25) },
-    { label: '50%', vol: fractionCloseVolume(p.volume, 0.5) },
-    { label: '100%', vol: fractionCloseVolume(p.volume, 1) },
+    { label: tp('closePct25'), vol: fractionCloseVolume(p.volume, 0.25) },
+    { label: tp('closePct50'), vol: fractionCloseVolume(p.volume, 0.5) },
+    { label: tp('closePct100'), vol: fractionCloseVolume(p.volume, 1) },
   ];
+  const pnlText = props.pnl.available
+    ? `${fxNum(props.pnl.value, 2)}${props.pnl.currency ? ` ${props.pnl.currency}` : ''}`
+    : tp('unavailable');
   return (
-    <div className="border-t border-border bg-muted/40 p-3" role="dialog" aria-label="Close position">
-      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Close position</h3>
+    <div className="border-t border-border bg-muted/40 p-3" role="dialog" aria-label={tp('closeDialogAria')}>
+      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{tp('closeDialogTitle')}</h3>
       <p className="font-mono text-[12px]">
         {p.symbol} {p.side.toUpperCase()} {p.volume}
       </p>
       <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-        Current {ref}: {p.currentPrice ? fxNum(p.currentPrice, props.digits) : 'unavailable'} · action {side.toUpperCase()}
+        {tp('closeCurrent', {
+          ref,
+          price: p.currentPrice ? fxNum(p.currentPrice, props.digits) : tp('unavailable'),
+          side: side.toUpperCase(),
+        })}
       </p>
-      <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-        P&amp;L: {props.pnl.available ? `${fxNum(props.pnl.value, 2)}${props.pnl.currency ? ` ${props.pnl.currency}` : ''}` : 'unavailable'}
-      </p>
+      <p className="mt-1 font-mono text-[11px] text-muted-foreground">{tp('closePnl', { pnl: pnlText })}</p>
       <div className="mt-2 flex flex-wrap gap-1">
         {parts.map((x) =>
           x.vol ? (
@@ -649,13 +663,13 @@ function CloseConfirm(props: {
                 props.volume === x.vol ? 'border-primary bg-primary/10' : 'border-border'
               )}
             >
-              Close {x.label}
+              {x.label}
             </button>
           ) : null
         )}
       </div>
       <label className="mt-2 block text-[10px] uppercase text-muted-foreground">
-        Volume
+        {tp('volumeLabel')}
         <input
           value={props.volume}
           onChange={(e) => props.onVolume(e.target.value)}
@@ -663,12 +677,10 @@ function CloseConfirm(props: {
         />
       </label>
       {!allowed.ok ? <p className="mt-1 text-[11px] text-sell">{allowed.reason}</p> : null}
-      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
-        Final execution price is determined by the backend. Close is reduce-only and will not reverse the position.
-      </p>
+      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{tp('closeDisclaimer')}</p>
       <div className="mt-3 flex gap-2">
         <button type="button" onClick={props.onCancel} className="h-9 flex-1 rounded border border-border text-[12px]">
-          Cancel
+          {tp('cancel')}
         </button>
         <button
           type="button"
@@ -676,19 +688,11 @@ function CloseConfirm(props: {
           onClick={props.onSubmit}
           className="h-9 flex-1 rounded bg-primary text-[12px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {props.busy ? 'Submitting…' : `Close ${props.volume} ${p.symbol}`}
+          {props.busy ? tp('submitting') : tp('closeSubmit', { volume: props.volume, symbol: p.symbol })}
         </button>
       </div>
     </div>
   );
-}
-
-function reverseSideLabel(side: ForexPublicPosition['side']): string {
-  return side === 'long' ? 'Buy' : 'Sell';
-}
-
-function oppositeSideLabel(side: ForexPublicPosition['side']): string {
-  return side === 'long' ? 'Sell' : 'Buy';
 }
 
 function ReverseConfirm(props: {
@@ -698,22 +702,24 @@ function ReverseConfirm(props: {
   onCancel: () => void;
   onSubmit: () => void;
 }) {
+  const tp = useTranslations('forex.positionPanel');
+  const ts = useTranslations('forex.sides');
   const p = props.position;
+  const currentSide = p.side === 'long' ? ts('buy') : ts('sell');
+  const oppositeSide = p.side === 'long' ? ts('sell') : ts('buy');
   return (
-    <div className="border-t border-border bg-muted/40 p-3" role="dialog" aria-label="Reverse position">
-      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Reverse position</h3>
-      <p className="font-mono text-[12px]">
-        Current: {reverseSideLabel(p.side)} {p.volume} lot · {p.symbol}
-      </p>
+    <div className="border-t border-border bg-muted/40 p-3" role="dialog" aria-label={tp('reverseDialogAria')}>
+      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{tp('reverseTitle')}</h3>
+      <p className="font-mono text-[12px]">{tp('reverseCurrent', { side: currentSide, volume: p.volume, symbol: p.symbol })}</p>
       <p className="mt-1 font-mono text-[12px] text-foreground">
-        Result: {oppositeSideLabel(p.side)} {p.volume} lot · {props.mode === 'HEDGING' ? 'close + open opposite' : 'netting flip (2× volume market)'}
+        {props.mode === 'HEDGING'
+          ? tp('reverseResultHedging', { side: oppositeSide, volume: p.volume })
+          : tp('reverseResultNetting', { side: oppositeSide, volume: p.volume })}
       </p>
-      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
-        Server executes atomic reverse per account position mode. SIMULATED / MOCK · not real money.
-      </p>
+      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{tp('reverseDisclaimer')}</p>
       <div className="mt-3 flex gap-2">
         <button type="button" onClick={props.onCancel} className="h-9 flex-1 rounded border border-border text-[12px]">
-          Cancel
+          {tp('cancel')}
         </button>
         <button
           type="button"
@@ -721,7 +727,7 @@ function ReverseConfirm(props: {
           onClick={props.onSubmit}
           className="h-9 flex-1 rounded bg-primary text-[12px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {props.busy ? 'Reversing…' : 'Confirm reverse'}
+          {props.busy ? tp('reversing') : tp('confirmReverse')}
         </button>
       </div>
     </div>
@@ -737,16 +743,19 @@ function CloseByConfirm(props: {
   onCancel: () => void;
   onSubmit: () => void;
 }) {
+  const tp = useTranslations('forex.positionPanel');
+  const ts = useTranslations('forex.sides');
   const p = props.position;
   const other = props.candidates.find((x) => x.positionId === props.oppositeId) ?? props.candidates[0];
+  const sideLabel = p.side === 'long' ? ts('buy') : ts('sell');
   return (
-    <div className="border-t border-border bg-muted/40 p-3" role="dialog" aria-label="Close By">
-      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Close By</h3>
+    <div className="border-t border-border bg-muted/40 p-3" role="dialog" aria-label={tp('closeByDialogAria')}>
+      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{tp('closeByTitle')}</h3>
       <p className="font-mono text-[12px]">
-        {p.symbol} {p.side === 'long' ? 'Buy' : 'Sell'} {p.volume}
+        {p.symbol} {sideLabel} {p.volume}
       </p>
       <label className="mt-2 block text-[10px] uppercase text-muted-foreground">
-        Opposite position
+        {tp('oppositePosition')}
         <select
           value={other?.positionId ?? ''}
           onChange={(e) => props.onOpposite(e.target.value)}
@@ -754,17 +763,15 @@ function CloseByConfirm(props: {
         >
           {props.candidates.map((c) => (
             <option key={c.positionId} value={c.positionId}>
-              {(c.side === 'long' ? 'Buy' : 'Sell') + ` ${c.volume} · ${c.positionId.slice(0, 8)}`}
+              {(c.side === 'long' ? ts('buy') : ts('sell')) + ` ${c.volume} · ${c.positionId.slice(0, 8)}`}
             </option>
           ))}
         </select>
       </label>
-      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
-        Matches min volume on both sides. HEDGING only. Atomic reduce — not available in NETTING.
-      </p>
+      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{tp('closeByDisclaimer')}</p>
       <div className="mt-3 flex gap-2">
         <button type="button" onClick={props.onCancel} className="h-9 flex-1 rounded border border-border text-[12px]">
-          Cancel
+          {tp('cancel')}
         </button>
         <button
           type="button"
@@ -772,7 +779,7 @@ function CloseByConfirm(props: {
           onClick={props.onSubmit}
           className="h-9 flex-1 rounded bg-primary text-[12px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {props.busy ? 'Submitting…' : 'Close By'}
+          {props.busy ? tp('submitting') : tp('closeBySubmit')}
         </button>
       </div>
     </div>

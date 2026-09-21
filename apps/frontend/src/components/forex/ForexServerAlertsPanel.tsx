@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
 import {
   FOREX_SERVER_ALERT_TYPES,
@@ -29,6 +30,7 @@ type Props = {
 };
 
 export function ForexServerAlertsPanel(props: Props) {
+  const tf = useTranslations('forex.serverAlerts');
   const authed = useForexPrivateSession();
   const instruments = useForexStore((s) => s.instruments);
   const symbols = useMemo(
@@ -60,39 +62,39 @@ export function ForexServerAlertsPanel(props: Props) {
     }
     setLoading(true);
     try {
-    const [aRes, eRes, dRes] = await Promise.all([
-      forexApi.listAlerts(),
-      forexApi.alertEvents(),
-      forexApi.alertDeliveryStatus(),
-    ]);
-    const a = unwrap(aRes);
-    if (!a.ok) {
-      setErr(a.error.message);
-      return;
-    }
-    setErr(null);
-    setAlerts(((a.data as { alerts?: ForexServerAlertRow[] }).alerts ?? []) as ForexServerAlertRow[]);
-    const e = unwrap(eRes);
-    if (e.ok) {
-      const raw = (e.data as { events?: unknown[] }).events ?? [];
-      setEvents(
-        raw.map((row) => {
-          const r = row as Record<string, unknown>;
-          return {
-            eventId: String(r.eventId ?? r.event_id ?? ''),
-            alertId: String(r.alertId ?? r.alert_id ?? ''),
-            deliveryChannel: String(r.deliveryChannel ?? r.delivery_channel ?? ''),
-            status: String(r.status ?? ''),
-            message: String(r.message ?? ''),
-            createdAt: String(r.createdAt ?? r.created_at ?? ''),
-          };
-        })
-      );
-    }
-    const d = unwrap(dRes);
-    if (d.ok) {
-      setDelivery((d.data as { adapters?: typeof delivery }).adapters ?? []);
-    }
+      const [aRes, eRes, dRes] = await Promise.all([
+        forexApi.listAlerts(),
+        forexApi.alertEvents(),
+        forexApi.alertDeliveryStatus(),
+      ]);
+      const a = unwrap(aRes);
+      if (!a.ok) {
+        setErr(a.error.message);
+        return;
+      }
+      setErr(null);
+      setAlerts(((a.data as { alerts?: ForexServerAlertRow[] }).alerts ?? []) as ForexServerAlertRow[]);
+      const e = unwrap(eRes);
+      if (e.ok) {
+        const raw = (e.data as { events?: unknown[] }).events ?? [];
+        setEvents(
+          raw.map((row) => {
+            const r = row as Record<string, unknown>;
+            return {
+              eventId: String(r.eventId ?? r.event_id ?? ''),
+              alertId: String(r.alertId ?? r.alert_id ?? ''),
+              deliveryChannel: String(r.deliveryChannel ?? r.delivery_channel ?? ''),
+              status: String(r.status ?? ''),
+              message: String(r.message ?? ''),
+              createdAt: String(r.createdAt ?? r.created_at ?? ''),
+            };
+          })
+        );
+      }
+      const d = unwrap(dRes);
+      if (d.ok) {
+        setDelivery((d.data as { adapters?: typeof delivery }).adapters ?? []);
+      }
     } finally {
       setLoading(false);
     }
@@ -114,7 +116,7 @@ export function ForexServerAlertsPanel(props: Props) {
     const fields = formFields();
     const v = validateAlertFormInput(fields);
     if (!v.ok) {
-      setErr(v.message);
+      setErr(tf(v.messageKey));
       return;
     }
     const body = buildAlertCreateBody(fields);
@@ -154,7 +156,7 @@ export function ForexServerAlertsPanel(props: Props) {
     const fields = formFields();
     const v = validateAlertFormInput(fields);
     if (!v.ok) {
-      setErr(v.message);
+      setErr(tf(v.messageKey));
       return;
     }
     const res = await forexApi.patchAlert(editingAlertId, buildAlertPatchBody(fields));
@@ -171,9 +173,9 @@ export function ForexServerAlertsPanel(props: Props) {
     return (
       <p className="text-[11px] text-muted-foreground">
         <Link href="/login" className="text-primary underline">
-          Sign in
+          {tf('signInPrefix')}
         </Link>{' '}
-        to manage server-evaluated alerts (WEB delivery). Local browser alerts remain on the trade terminal only.
+        {tf('signInSuffix')}
       </p>
     );
   }
@@ -181,11 +183,8 @@ export function ForexServerAlertsPanel(props: Props) {
   return (
     <div className={cn('space-y-3', props.compact ? 'text-[10px]' : 'text-[11px]')}>
       <div>
-        <p className="font-semibold text-foreground">Server alerts</p>
-        <p className="text-muted-foreground">
-          Evaluated on the server from quotes, orders, protections, session transitions, and account risk. WEB delivery
-          is audited when configured.
-        </p>
+        <p className="font-semibold text-foreground">{tf('title')}</p>
+        <p className="text-muted-foreground">{tf('intro')}</p>
       </div>
       {err ? (
         <p className="text-destructive" role="alert">
@@ -194,7 +193,7 @@ export function ForexServerAlertsPanel(props: Props) {
       ) : null}
       {loading ? (
         <p className="text-muted-foreground" aria-live="polite">
-          Loading alerts…
+          {tf('loading')}
         </p>
       ) : null}
 
@@ -202,7 +201,7 @@ export function ForexServerAlertsPanel(props: Props) {
         <div className="flex flex-wrap gap-2 rounded border border-border/60 bg-muted/20 px-2 py-1.5 font-mono text-[10px]">
           {delivery.map((d) => (
             <span key={String(d.channel)}>
-              {d.channel}: {labelDeliveryAdapterStatus(d)}
+              {d.channel}: {labelDeliveryAdapterStatus(d, tf)}
               {d.reason ? ` (${d.reason})` : ''}
             </span>
           ))}
@@ -211,25 +210,25 @@ export function ForexServerAlertsPanel(props: Props) {
 
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex flex-col gap-0.5">
-          Type
+          {tf('typeLabel')}
           <select
-            aria-label="Alert type"
+            aria-label={tf('typeAria')}
             className="h-8 min-w-[140px] rounded border border-border bg-background px-2"
             value={alertType}
             onChange={(e) => setAlertType(e.target.value as ForexServerAlertType)}
           >
-            {FOREX_SERVER_ALERT_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {labelForexServerAlertType(t)}
+            {FOREX_SERVER_ALERT_TYPES.map((typeCode) => (
+              <option key={typeCode} value={typeCode}>
+                {labelForexServerAlertType(typeCode, tf)}
               </option>
             ))}
           </select>
         </label>
         {alertTypeNeedsSymbol(alertType) ? (
           <label className="flex flex-col gap-0.5">
-            Symbol
+            {tf('symbolLabel')}
             <select
-              aria-label="Alert symbol"
+              aria-label={tf('symbolAria')}
               className="h-8 rounded border border-border bg-background px-2"
               value={symbol}
               onChange={(e) => setSymbol(e.target.value)}
@@ -244,23 +243,23 @@ export function ForexServerAlertsPanel(props: Props) {
         ) : null}
         {alertTypeNeedsPrice(alertType) || alertTypeNeedsThreshold(alertType) ? (
           <label className="flex flex-col gap-0.5">
-            Side
+            {tf('sideLabel')}
             <select
-              aria-label="Alert trigger side"
+              aria-label={tf('sideAria')}
               className="h-8 rounded border border-border bg-background px-2"
               value={side}
               onChange={(e) => setSide(e.target.value as 'above' | 'below')}
             >
-              <option value="above">above / ≥</option>
-              <option value="below">below / ≤</option>
+              <option value="above">{tf('sideAbove')}</option>
+              <option value="below">{tf('sideBelow')}</option>
             </select>
           </label>
         ) : null}
         {alertTypeNeedsPrice(alertType) ? (
           <label className="flex flex-col gap-0.5">
-            Price
+            {tf('priceLabel')}
             <input
-              aria-label="Alert price level"
+              aria-label={tf('priceAria')}
               className="h-8 w-28 rounded border border-border bg-background px-2 font-mono"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
@@ -270,9 +269,9 @@ export function ForexServerAlertsPanel(props: Props) {
         ) : null}
         {alertTypeNeedsThreshold(alertType) ? (
           <label className="flex flex-col gap-0.5">
-            Threshold
+            {tf('thresholdLabel')}
             <input
-              aria-label="Alert threshold"
+              aria-label={tf('thresholdAria')}
               className="h-8 w-24 rounded border border-border bg-background px-2 font-mono"
               value={threshold}
               onChange={(e) => setThreshold(e.target.value)}
@@ -287,14 +286,14 @@ export function ForexServerAlertsPanel(props: Props) {
               className="h-8 rounded border border-border px-3 text-[11px]"
               onClick={() => cancelEdit()}
             >
-              Cancel edit
+              {tf('cancelEdit')}
             </button>
             <button
               type="button"
               className="h-8 rounded bg-primary px-3 text-[11px] font-semibold text-primary-foreground"
               onClick={() => void saveEdit()}
             >
-              Save
+              {tf('save')}
             </button>
           </>
         ) : (
@@ -303,22 +302,23 @@ export function ForexServerAlertsPanel(props: Props) {
             className="h-8 rounded bg-primary px-3 text-[11px] font-semibold text-primary-foreground"
             onClick={() => void create()}
           >
-            Create
+            {tf('create')}
           </button>
         )}
       </div>
       {editingAlertId ? (
-        <p className="font-mono text-[10px] text-amber-200/90">Editing alert {editingAlertId.slice(0, 8)}… — server PATCH</p>
+        <p className="font-mono text-[10px] text-amber-200/90">{tf('editing', { id: editingAlertId.slice(0, 8) })}</p>
       ) : null}
 
       {alerts.length === 0 ? (
-        <p className="text-muted-foreground">No server alerts.</p>
+        <p className="text-muted-foreground">{tf('empty')}</p>
       ) : (
         <ul className="divide-y divide-border/70 rounded border border-border/60">
           {alerts.map((a) => (
             <li key={a.alertId} className="flex flex-wrap items-center justify-between gap-2 px-2 py-1.5 font-mono text-[10px]">
               <span className={cn(!a.enabled && 'opacity-50')}>
-                {a.symbol ?? '—'} · {a.alertType} · {describeAlertCondition(a.alertType, a.condition ?? {})}
+                {a.symbol ?? '—'} · {labelForexServerAlertType(a.alertType, tf)} ·{' '}
+                {describeAlertCondition(a.alertType, a.condition ?? {}, tf)}
                 {a.lastTriggeredAt ? ` · last ${a.lastTriggeredAt}` : ''}
               </span>
               <span className="flex gap-2">
@@ -328,21 +328,21 @@ export function ForexServerAlertsPanel(props: Props) {
                   onClick={() => startEdit(a)}
                   disabled={editingAlertId != null && editingAlertId !== a.alertId}
                 >
-                  Edit
+                  {tf('edit')}
                 </button>
                 <button
                   type="button"
                   className="text-primary underline"
                   onClick={() => void forexApi.patchAlert(a.alertId, { enabled: !a.enabled }).then(() => reload())}
                 >
-                  {a.enabled ? 'Disable' : 'Enable'}
+                  {a.enabled ? tf('disable') : tf('enable')}
                 </button>
                 <button
                   type="button"
                   className="text-primary underline"
                   onClick={() => void forexApi.deleteAlert(a.alertId).then(() => reload())}
                 >
-                  Delete
+                  {tf('delete')}
                 </button>
               </span>
             </li>
@@ -351,9 +351,9 @@ export function ForexServerAlertsPanel(props: Props) {
       )}
 
       <div>
-        <p className="font-semibold text-foreground">Recent events</p>
+        <p className="font-semibold text-foreground">{tf('eventsTitle')}</p>
         {events.length === 0 ? (
-          <p className="text-muted-foreground">No triggered events yet.</p>
+          <p className="text-muted-foreground">{tf('noEvents')}</p>
         ) : (
           <ul className="mt-1 max-h-40 overflow-auto divide-y divide-border/50 font-mono text-[10px]">
             {events.slice(0, 20).map((ev) => (

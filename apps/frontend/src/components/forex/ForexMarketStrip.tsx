@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { isQuoteStale } from '@/lib/forex/models/quotes';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
@@ -7,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { fxNum } from './format';
 
 export function ForexMarketStrip() {
+  const tm = useTranslations('forex.marketStrip');
   const quotes = useForexStore((s) => s.quotes);
   const instruments = useForexStore((s) => s.instruments);
   const watchlist = useForexWorkspaceStore((s) => s.watchlist);
@@ -18,10 +20,10 @@ export function ForexMarketStrip() {
     <div
       className="forex-chrome-strip flex h-7 shrink-0 items-stretch gap-px overflow-x-auto border-b border-border bg-muted/30"
       role="list"
-      aria-label="Market strip"
+      aria-label={tm('ariaLabel')}
     >
       {symbols.length === 0 ? (
-        <div className="flex items-center px-3 text-[10px] text-muted-foreground">Loading instruments…</div>
+        <div className="flex items-center px-3 text-[10px] text-muted-foreground">{tm('loading')}</div>
       ) : (
         symbols.map((symbol) => {
           const q = quotes[symbol];
@@ -43,7 +45,7 @@ export function ForexMarketStrip() {
               <span className="eda-quote font-mono text-[10px] text-buy">{q ? fxNum(q.bid, inst?.digits ?? 5) : '—'}</span>
               <span className="eda-quote font-mono text-[10px] text-sell">{q ? fxNum(q.ask, inst?.digits ?? 5) : '—'}</span>
               <span className={cn('font-mono text-[9px]', stale ? 'text-primary' : 'text-muted-foreground')}>
-                {q ? (stale ? 'Stale' : q.spreadPips) : ''}
+                {q ? (stale ? tm('stale') : q.spreadPips) : ''}
               </span>
             </button>
           );
