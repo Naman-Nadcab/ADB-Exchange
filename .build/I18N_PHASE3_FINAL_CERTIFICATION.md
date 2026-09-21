@@ -1,7 +1,7 @@
 # Phase 3 Customer I18N — Final Certification
 
 **Branch:** `release/exchange-production-baseline`  
-**HEAD:** see Git section (post responsive closure)  
+**HEAD:** `f79770b`  
 **Runtime:** nginx `http://127.0.0.1` → frontend Docker (rebuilt for UI fixes), backend `:4000` healthy  
 
 ---
