@@ -12,7 +12,7 @@
     "lint": "next lint",
     "clean": "rm -rf .next",
     "verify:routes": "node scripts/verify-routes.mjs",
-    "test:i18n": "tsx src/i18n/locale-resolver.test.ts && tsx src/i18n/locale-cookie-options.test.ts && tsx src/i18n/catalog-parity.test.ts",
+    "test:i18n": "tsx src/i18n/locale-resolver.test.ts && tsx src/i18n/locale-cookie-options.test.ts && tsx src/i18n/catalog-parity.test.ts && tsx src/i18n/crypto-spot-catalog.test.ts",
     "test:forex-price-consistency": "tsx src/lib/forex/models/price-consistency.test.ts",
     "test:forex-phase-a-ui": "tsx src/lib/forex/models/forex-phase-a-ui.test.ts",
     "test:forex-models": "tsx src/lib/forex/models/live-valuation.test.ts && tsx src/lib/forex/models/price-consistency.test.ts && tsx src/lib/forex/models/forex-phase-a-ui.test.ts"

@@ -9,7 +9,7 @@ import { P2P_HREF, SPOT_TRADE_HREF } from '@/lib/routes';
 import { CoinIcon } from '@/components/ui/CoinIcon';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { api } from '@/lib/api';
-import { getMessageFromApiError } from '@/lib/errorMessages';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { fetchMyOrders } from '@/lib/p2pApi';
 
 type SpotOrder = {
@@ -26,6 +26,7 @@ type P2POrder = {
 
 export default function OrdersHubPage() {
   const queryClient = useQueryClient();
+  const { fromApi } = useApiErrorMessage();
   const { accessToken, _hasHydrated } = useAuthStore();
   const [tab, setTab] = useState<'open' | 'history' | 'p2p'>('open');
 
@@ -112,8 +113,8 @@ export default function OrdersHubPage() {
       if (json.success) {
         setOpenOrders(prev => prev.filter(o => o.id !== orderId));
         queryClient.invalidateQueries({ queryKey: ['balances'] });
-      } else { setError(getMessageFromApiError(json?.error) || 'Cancel failed'); }
-    } catch { setError(getMessageFromApiError({ code: 'NETWORK_ERROR' })); }
+      } else { setError(fromApi(json, 'trading.cancelFailed')); }
+    } catch { setError(fromApi({ error: { code: 'NETWORK_ERROR' } }, 'network.unreachable')); }
     finally { setCancellingId(null); }
   };
 

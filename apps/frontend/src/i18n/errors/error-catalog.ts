@@ -20,6 +20,46 @@ export const ERROR_I18N_KEYS = {
 
 export type StableErrorCode = keyof typeof ERROR_I18N_KEYS;
 
+/** Spot/trading/admin API codes → `errors.trading.codes.*` (parity with legacy errorMessages map). */
+const TRADING_API_CODES = new Set([
+  'RATE_LIMIT_EXCEEDED',
+  'KYC_REQUIRED',
+  'WITHDRAWAL_LIMIT_EXCEEDED',
+  'COOLDOWN_ACTIVE',
+  'INSUFFICIENT_BALANCE',
+  'INVALID_2FA',
+  'FUND_PASSWORD_REQUIRED',
+  'INTERNAL_ERROR',
+  'FETCH_FAILED',
+  'USER_NOT_FOUND',
+  'UPDATE_FAILED',
+  'NOT_FOUND',
+  'INVALID_ORDER',
+  'MARKET_NOT_FOUND',
+  'MARKET_DISABLED',
+  'MIN_QTY',
+  'MIN_NOTIONAL',
+  'MARKET_NOT_READY',
+  'NO_LIQUIDITY',
+  'FOK_NOT_FILLABLE',
+  'INSUFFICIENT_QUOTE_BALANCE',
+  'INSUFFICIENT_BASE_BALANCE',
+  'TRADING_HALTED',
+  'MM_EMERGENCY_STOPPED',
+  'ORDER_NOT_CANCELLABLE',
+  'ORDER_FAILED',
+  'CANCEL_FAILED',
+  'MARKET_PAUSED',
+  'NETWORK_ERROR',
+  'UNAUTHORIZED',
+  'INVALID_TOKEN',
+  'SESSION_EXPIRED',
+  'FORBIDDEN',
+  'ADMIN_IP_NOT_ALLOWED',
+  'NO_UPDATES',
+  'INVALID_STATUS',
+]);
+
 const AUTH_CODE_TO_KEY: Record<string, string> = {
   INVALID_OTP: 'auth.codes.INVALID_OTP',
   INVALID_IDENTIFIER: 'auth.codes.INVALID_IDENTIFIER',
@@ -43,6 +83,9 @@ export function errorCodeToMessageKey(code: string | null | undefined): string |
   }
   if (code in AUTH_CODE_TO_KEY) {
     return AUTH_CODE_TO_KEY[code]!;
+  }
+  if (TRADING_API_CODES.has(code)) {
+    return `trading.codes.${code}`;
   }
   return null;
 }

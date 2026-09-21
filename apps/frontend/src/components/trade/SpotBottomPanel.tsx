@@ -64,7 +64,7 @@ function executionStatusPill(status: string, tc: (key: string) => string) {
     return (
       <span
         className={`${base} bg-buy/15 text-buy`}
-        title="Working order"
+        title={tc('bottomPanel.statusTitle.workingOrder')}
       >
         {tc('orders.status.open')}
       </span>
@@ -74,7 +74,7 @@ function executionStatusPill(status: string, tc: (key: string) => string) {
     return (
       <span
         className={`${base} bg-primary/12 text-foreground`}
-        title="Partially filled"
+        title={tc('bottomPanel.statusTitle.partiallyFilled')}
       >
         {tc('orders.status.partiallyFilled')}
       </span>
@@ -82,7 +82,7 @@ function executionStatusPill(status: string, tc: (key: string) => string) {
   }
   if (u === 'FILLED') {
     return (
-      <span className={`${base} bg-buy/15 text-buy`} title="Filled">
+      <span className={`${base} bg-buy/15 text-buy`} title={tc('bottomPanel.statusTitle.filled')}>
         {tc('orders.status.filled')}
       </span>
     );
@@ -143,10 +143,10 @@ function OpenOrderRow({
         </div>
       </td>
       <td className="py-1 px-2 align-middle">
-        <span className="text-label text-muted-foreground">{displayOrderType(o.type)}</span>
+        <span className="text-label text-muted-foreground">{displayOrderType(o.type, tc)}</span>
       </td>
       <td className="py-1 px-2 align-middle">
-        <span className={o.side === 'buy' ? 'text-buy' : 'text-sell'}>{o.side}</span>
+        <span className={o.side === 'buy' ? 'text-buy' : 'text-sell'}>{displaySide(o.side, tc)}</span>
       </td>
       <td className="numeric py-1.5 px-2 align-middle text-label text-muted-foreground">
         {formatOrderPrice(o.price ?? null, priceDecimals)}
@@ -164,7 +164,7 @@ function OpenOrderRow({
             onClick={() => onCancel(o.id)}
             className="min-h-[32px] touch-manipulation rounded px-2 py-1 text-label text-destructive hover:underline disabled:opacity-50"
           >
-            {cancellingId === o.id ? <Loader2 className="w-3 h-3 animate-spin inline" /> : 'Cancel'}
+            {cancellingId === o.id ? <Loader2 className="w-3 h-3 animate-spin inline" /> : tc('bottomPanel.cancel')}
           </button>
         )}
       </td>
@@ -172,17 +172,23 @@ function OpenOrderRow({
   );
 }
 
-function displayOrderType(t: string | undefined): string {
-  if (!t) return '—';
+function displayOrderType(type: string | undefined, tc: (key: string) => string): string {
+  if (!type) return '—';
   const map: Record<string, string> = {
-    limit: 'Limit',
-    market: 'Market',
-    stop_loss: 'Stop',
-    stop_limit: 'Stop Limit',
-    trailing_stop_market: 'Trailing',
-    oco: 'Bracket',
+    limit: tc('trading.limit'),
+    market: tc('trading.market'),
+    stop_loss: tc('trading.stop'),
+    stop_limit: tc('trading.stopLimit'),
+    trailing_stop_market: tc('trading.trailing'),
+    oco: tc('orderTypes.bracket'),
   };
-  return map[t] ?? t;
+  return map[type] ?? type;
+}
+
+function displaySide(side: string, tc: (key: string) => string): string {
+  if (side === 'buy') return tc('trading.buy');
+  if (side === 'sell') return tc('trading.sell');
+  return side;
 }
 
 export function SpotBottomPanel(props: SpotBottomPanelProps) {
@@ -342,27 +348,27 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
         </div>
         <div className="flex items-center gap-2 pr-2">
           {(data.tab === 'open' || data.tab === 'orders' || data.tab === 'trades') && (
-            <button type="button" onClick={() => setShowAllMarkets((v) => !v)} className="min-h-8 touch-manipulation rounded border border-border px-2 py-1 text-label leading-none text-muted-foreground hover:text-foreground" title={showAllMarkets ? 'Show current pair only' : 'Show all markets'}>
-              {showAllMarkets ? 'All' : 'Pair'}
+            <button type="button" onClick={() => setShowAllMarkets((v) => !v)} className="min-h-8 touch-manipulation rounded border border-border px-2 py-1 text-label leading-none text-muted-foreground hover:text-foreground" title={showAllMarkets ? tc('bottomPanel.showPairOnlyTitle') : tc('bottomPanel.showAllMarketsTitle')}>
+              {showAllMarkets ? tc('bottomPanel.filterAllMarkets') : tc('bottomPanel.filterPairOnly')}
             </button>
           )}
           {data.tab === 'open' && canCancelAll && (
-            <button type="button" onClick={() => data.handleCancelAll?.()} disabled={data.cancellingAll} className="flex min-h-8 touch-manipulation items-center gap-1 rounded border border-destructive/30 px-2 py-1 text-label leading-none text-destructive hover:bg-destructive/10 disabled:opacity-50" title="Cancel all open orders for this pair">
+            <button type="button" onClick={() => data.handleCancelAll?.()} disabled={data.cancellingAll} className="flex min-h-8 touch-manipulation items-center gap-1 rounded border border-destructive/30 px-2 py-1 text-label leading-none text-destructive hover:bg-destructive/10 disabled:opacity-50" title={tc('bottomPanel.cancelAllTitle')}>
               {data.cancellingAll ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-              {data.cancelAllArmed ? 'Confirm All' : 'Cancel All'}
+              {data.cancelAllArmed ? tc('bottomPanel.confirmAll') : tc('bottomPanel.cancelAllButton')}
             </button>
           )}
           {data.tab === 'orders' && data.orderHistory.length > 0 && (
-            <button type="button" onClick={() => { const csv = ordersToCsv(data.orderHistory); downloadCsv(`spot-orders-${new Date().toISOString().slice(0,10)}.csv`, csv); }} className="flex min-h-8 touch-manipulation items-center gap-1 rounded border border-border px-2 py-1 text-label leading-none text-muted-foreground hover:text-foreground" title="Export Order History as CSV">
-              <Download className="w-3 h-3" /> Export
+            <button type="button" onClick={() => { const csv = ordersToCsv(data.orderHistory); downloadCsv(`spot-orders-${new Date().toISOString().slice(0,10)}.csv`, csv); }} className="flex min-h-8 touch-manipulation items-center gap-1 rounded border border-border px-2 py-1 text-label leading-none text-muted-foreground hover:text-foreground" title={tc('bottomPanel.exportOrderHistoryCsv')}>
+              <Download className="w-3 h-3" /> {tc('bottomPanel.export')}
             </button>
           )}
           {data.tab === 'trades' && data.trades.length > 0 && (
-            <button type="button" onClick={() => { const csv = tradesToCsv(data.trades); downloadCsv(`spot-trades-${new Date().toISOString().slice(0,10)}.csv`, csv); }} className="flex min-h-8 touch-manipulation items-center gap-1 rounded border border-border px-2 py-1 text-label leading-none text-muted-foreground hover:text-foreground" title="Export Trade History as CSV">
-              <Download className="w-3 h-3" /> Export
+            <button type="button" onClick={() => { const csv = tradesToCsv(data.trades); downloadCsv(`spot-trades-${new Date().toISOString().slice(0,10)}.csv`, csv); }} className="flex min-h-8 touch-manipulation items-center gap-1 rounded border border-border px-2 py-1 text-label leading-none text-muted-foreground hover:text-foreground" title={tc('bottomPanel.exportTradesCsvTitle')}>
+              <Download className="w-3 h-3" /> {tc('bottomPanel.export')}
             </button>
           )}
-          <button type="button" onClick={() => { data.tab === 'open' && data.fetchOpen?.(); data.tab === 'orders' && data.fetchOrderHistory?.(null, false); data.tab === 'trades' && data.fetchTrades?.(1, false); }} className="flex min-h-8 min-w-8 touch-manipulation items-center justify-center rounded text-muted-foreground hover:text-foreground" title="Refresh">
+          <button type="button" onClick={() => { data.tab === 'open' && data.fetchOpen?.(); data.tab === 'orders' && data.fetchOrderHistory?.(null, false); data.tab === 'trades' && data.fetchTrades?.(1, false); }} className="flex min-h-8 min-w-8 touch-manipulation items-center justify-center rounded text-muted-foreground hover:text-foreground" title={tc('bottomPanel.refresh')}>
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -370,7 +376,7 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
       {data.cancelError && (
         <div className="px-3 py-1.5 flex items-center justify-between bg-destructive/10 text-destructive text-xs">
           <span>{data.cancelError}</span>
-          <button type="button" onClick={() => data.setCancelError(null)} aria-label="Dismiss"><X className="w-3 h-3" /></button>
+          <button type="button" onClick={() => data.setCancelError(null)} aria-label={tc('bottomPanel.dismiss')}><X className="w-3 h-3" /></button>
         </div>
       )}
       <div className="flex-1 min-h-0 overflow-auto">
@@ -378,19 +384,19 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
           data.openLoading ? (
             <TerminalLoadingRows rows={6} />
           ) : data.openOrders.length === 0 ? (
-            <TerminalEmptyState kind="orders" title="No open orders" description="Active limit and stop orders will appear here." compact />
+            <TerminalEmptyState kind="orders" title={tc('empty.noOpenOrders')} description={tc('bottomPanel.openOrdersDesc')} compact />
           ) : (
             <table className="w-full table-fixed text-label">
               <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm">
                 <tr className="border-b border-border text-left font-medium text-muted-foreground">
-                  <th className="py-1 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('market')}>Market{sortGlyph('market')}</th>
-                  <th className="py-1 px-2 font-medium cursor-pointer w-16" onClick={() => toggleSort('type')}>Type{sortGlyph('type')}</th>
-                  <th className="py-1 px-2 font-medium cursor-pointer w-12" onClick={() => toggleSort('side')}>Side{sortGlyph('side')}</th>
-                  <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('price')}>Price{sortGlyph('price')}</th>
-                  <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('stop_price')}>Trigger{sortGlyph('stop_price')}</th>
-                  <th className="py-1 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('quantity')}>Filled/Qty{sortGlyph('quantity')}</th>
-                  <th className="py-1 px-2 font-medium cursor-pointer" onClick={() => toggleSort('status')}>Status{sortGlyph('status')}</th>
-                  <th className="py-1 px-2 font-medium w-16">Action</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('market')}>{tc('bottomPanel.columns.market')}{sortGlyph('market')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-16" onClick={() => toggleSort('type')}>{tc('bottomPanel.columns.type')}{sortGlyph('type')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-12" onClick={() => toggleSort('side')}>{tc('bottomPanel.columns.side')}{sortGlyph('side')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('price')}>{tc('bottomPanel.columns.price')}{sortGlyph('price')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('stop_price')}>{tc('bottomPanel.columns.trigger')}{sortGlyph('stop_price')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('quantity')}>{tc('bottomPanel.columns.filledQty')}{sortGlyph('quantity')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer" onClick={() => toggleSort('status')}>{tc('bottomPanel.columns.status')}{sortGlyph('status')}</th>
+                  <th className="py-1 px-2 font-medium w-16">{tc('bottomPanel.columns.action')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -415,18 +421,18 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
           data.orderHistoryLoading ? (
             <TerminalLoadingRows rows={6} />
           ) : data.orderHistory.length === 0 ? (
-            <TerminalEmptyState kind="orders" title="No order history" description="Your filled and cancelled orders will show here." compact />
+            <TerminalEmptyState kind="orders" title={tc('bottomPanel.noOrderHistory')} description={tc('bottomPanel.noOrderHistoryDesc')} compact />
           ) : (
             <table className="w-full table-fixed text-label">
               <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm">
                 <tr className="border-b border-border text-left text-muted-foreground">
-                  <th className="py-1 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('market')}>Market{sortGlyph('market')}</th>
-                  <th className="py-1 px-2 font-medium cursor-pointer w-16" onClick={() => toggleSort('type')}>Type{sortGlyph('type')}</th>
-                  <th className="py-1 px-2 font-medium cursor-pointer w-12" onClick={() => toggleSort('side')}>Side{sortGlyph('side')}</th>
-                  <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('price')}>Price{sortGlyph('price')}</th>
-                  <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('stop_price')}>Trigger{sortGlyph('stop_price')}</th>
-                  <th className="py-1 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('quantity')}>Filled/Qty{sortGlyph('quantity')}</th>
-                  <th className="py-1 px-2 font-medium cursor-pointer" onClick={() => toggleSort('status')}>Status{sortGlyph('status')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('market')}>{tc('bottomPanel.columns.market')}{sortGlyph('market')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-16" onClick={() => toggleSort('type')}>{tc('bottomPanel.columns.type')}{sortGlyph('type')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-12" onClick={() => toggleSort('side')}>{tc('bottomPanel.columns.side')}{sortGlyph('side')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('price')}>{tc('bottomPanel.columns.price')}{sortGlyph('price')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('stop_price')}>{tc('bottomPanel.columns.trigger')}{sortGlyph('stop_price')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('quantity')}>{tc('bottomPanel.columns.filledQty')}{sortGlyph('quantity')}</th>
+                  <th className="py-1 px-2 font-medium cursor-pointer" onClick={() => toggleSort('status')}>{tc('bottomPanel.columns.status')}{sortGlyph('status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -446,9 +452,9 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
                           <span className="numeric text-foreground">{o.market}</span>
                         </div>
                       </td>
-                      <td className="py-1 px-2 align-middle text-muted-foreground">{displayOrderType(o.type)}</td>
+                      <td className="py-1 px-2 align-middle text-muted-foreground">{displayOrderType(o.type, tc)}</td>
                       <td className="py-1 px-2 align-middle">
-                        <span className={o.side === 'buy' ? 'text-buy' : 'text-sell'}>{o.side}</span>
+                        <span className={o.side === 'buy' ? 'text-buy' : 'text-sell'}>{displaySide(o.side, tc)}</span>
                       </td>
                       <td className="numeric py-1 px-2 align-middle text-muted-foreground">
                         {formatOrderPrice(o.price ?? null, pq.price)}
@@ -474,10 +480,10 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
                 onChange={(e) => setHideSmallBalances(e.target.checked)}
                 className="rounded border-border"
               />
-              Hide small balances
+              {tc('bottomPanel.hideSmallBalances')}
             </label>
             {tradingBalances.length === 0 ? (
-              <TerminalEmptyState kind="generic" title="No trading balance" description="Deposit funds to start spot trading." compact />
+              <TerminalEmptyState kind="generic" title={tc('bottomPanel.noTradingBalance')} description={tc('bottomPanel.noTradingBalanceDesc')} compact />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
                 {tradingBalances.map((b) => (
@@ -494,24 +500,24 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
               </div>
             )}
             <Link href={walletPath.overview} className="mt-2 block text-center text-label font-medium text-primary hover:underline dark:text-primary">
-              View all assets →
+              {tc('bottomPanel.viewAllAssets')}
             </Link>
           </div>
         )}
         {data.tab === 'positions' && (
           <div className="p-3">
             <div className="mb-2 rounded-md border border-border/70 bg-muted/25 px-3 py-2 text-[12px] text-muted-foreground">
-              Spot is a non-leveraged market. Your active asset exposure appears in balances and fills.
+              {tc('bottomPanel.spotPositionsNote')}
             </div>
             {tradingBalances.length === 0 ? (
-              <TerminalEmptyState kind="generic" title="No positions" description="Spot balances with active exposure will appear here." compact />
+              <TerminalEmptyState kind="generic" title={tc('empty.noPositions')} description={tc('empty.noPositionsDesc')} compact />
             ) : (
               <table className="w-full table-fixed text-label">
                 <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm">
                   <tr className="border-b border-border text-left text-muted-foreground">
-                    <th className="py-1 px-2 font-medium">Asset</th>
-                    <th className="py-1 px-2 text-right font-medium">Trading Balance</th>
-                    <th className="py-1 px-2 text-right font-medium">Status</th>
+                    <th className="py-1 px-2 font-medium">{tc('bottomPanel.columns.asset')}</th>
+                    <th className="py-1 px-2 text-right font-medium">{tc('bottomPanel.columns.tradingBalance')}</th>
+                    <th className="py-1 px-2 text-right font-medium">{tc('bottomPanel.columns.status')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -527,7 +533,7 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
                         {formatValueFixedTrim(b.trading ?? '0', 8)}
                       </td>
                       <td className="py-1 px-2 text-right text-muted-foreground">
-                        {parseFloat(b.trading ?? '0') > 0 ? 'Active' : 'Idle'}
+                        {parseFloat(b.trading ?? '0') > 0 ? tc('bottomPanel.positionStatusActive') : tc('bottomPanel.positionStatusIdle')}
                       </td>
                     </tr>
                   ))}
@@ -543,15 +549,15 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
             <div className="flex flex-col items-center px-3 py-4">
               <TerminalEmptyState
                 kind="trades"
-                title="No recent trades"
-                description="Fills and executions will appear here after you trade."
+                title={tc('bottomPanel.noRecentTrades')}
+                description={tc('bottomPanel.noRecentTradesDesc')}
                 compact
               />
               <Link
                 href={SPOT_TRADE_HREF}
                 className="mt-2 inline-flex min-h-10 items-center justify-center rounded-lg bg-primary px-4 terminal-text-label font-semibold text-primary-foreground transition-opacity duration-150 hover:opacity-90"
               >
-                Open Spot
+                {tc('bottomPanel.openSpot')}
               </Link>
             </div>
           ) : (
@@ -559,12 +565,12 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
               <table className="w-full table-fixed text-label">
                 <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm">
                   <tr className="border-b border-border text-left text-muted-foreground">
-                    <th className="py-1 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('market')}>Market{sortGlyph('market')}</th>
-                    <th className="py-1 px-2 font-medium cursor-pointer w-12" onClick={() => toggleSort('side')}>Side{sortGlyph('side')}</th>
-                    <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('price')}>Price{sortGlyph('price')}</th>
-                    <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('quantity')}>Qty{sortGlyph('quantity')}</th>
-                    <th className="py-1 px-2 font-medium cursor-pointer w-16" onClick={() => toggleSort('fee')}>Fee{sortGlyph('fee')}</th>
-                    <th className="py-1 px-2 font-medium cursor-pointer" onClick={() => toggleSort('created_at')}>Time{sortGlyph('created_at')}</th>
+                    <th className="py-1 px-2 font-medium cursor-pointer w-24" onClick={() => toggleSort('market')}>{tc('bottomPanel.columns.market')}{sortGlyph('market')}</th>
+                    <th className="py-1 px-2 font-medium cursor-pointer w-12" onClick={() => toggleSort('side')}>{tc('bottomPanel.columns.side')}{sortGlyph('side')}</th>
+                    <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('price')}>{tc('bottomPanel.columns.price')}{sortGlyph('price')}</th>
+                    <th className="py-1 px-2 font-medium cursor-pointer w-20" onClick={() => toggleSort('quantity')}>{tc('terminal.qty')}{sortGlyph('quantity')}</th>
+                    <th className="py-1 px-2 font-medium cursor-pointer w-16" onClick={() => toggleSort('fee')}>{tc('bottomPanel.columns.fee')}{sortGlyph('fee')}</th>
+                    <th className="py-1 px-2 font-medium cursor-pointer" onClick={() => toggleSort('created_at')}>{tc('bottomPanel.columns.time')}{sortGlyph('created_at')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -584,7 +590,7 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
                         </div>
                       </td>
                       <td className="py-1 px-2 align-middle">
-                        <span className={t.side === 'buy' ? 'text-buy' : 'text-sell'}>{t.side}</span>
+                        <span className={t.side === 'buy' ? 'text-buy' : 'text-sell'}>{displaySide(t.side, tc)}</span>
                       </td>
                       <td className="numeric py-1 px-2 align-middle text-muted-foreground">
                         {formatValueFixedTrim(t.price, pq.price)}
@@ -610,7 +616,7 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
                     className="w-full py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {data.tradesLoadMore ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    Load more
+                    {tc('bottomPanel.loadMore')}
                   </button>
                 </div>
               )}

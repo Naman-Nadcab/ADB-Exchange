@@ -38,7 +38,7 @@ import {
 import { useBalancesSummary } from '@/lib/balances';
 import { EXCHANGE_PROGRESS_STEPS } from '@/data/exchangeProgressSteps';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
-import { TOOLTIP_PAIR, TOOLTIP_LAST_PRICE, TOOLTIP_24H_CHANGE } from '@/lib/marketDataUxCopy';
+import { useMarketDataUxCopy } from '@/hooks/useMarketDataUxCopy';
 import { MiniSparkline } from '@/components/dashboard/MiniSparkline';
 import { DashboardPageShell } from '@/components/dashboard/DashboardPageShell';
 import { CoinIcon } from '@/components/ui/CoinIcon';
@@ -163,6 +163,7 @@ function RailCardPreviewSkeleton() {
 
 export default function DashboardPage() {
   const { user, accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
+  const md = useMarketDataUxCopy();
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
   const { data: balanceData } = useBalancesSummary(!!_hasHydrated && isAuthenticated);
   const totalUsd = (balanceData?.fundingBalance?.totalUsd ?? 0) + (balanceData?.tradingBalance?.totalUsd ?? 0);
@@ -1065,19 +1066,19 @@ export default function DashboardPage() {
                           <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                             <span className="inline-flex items-center gap-1">
                               Pair
-                              <InfoTooltip content={TOOLTIP_PAIR} className="text-muted-foreground" />
+                              <InfoTooltip content={md.TOOLTIP_PAIR} className="text-muted-foreground" />
                             </span>
                           </th>
                           <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                             <span className="inline-flex items-center justify-end gap-1">
                               Last price
-                              <InfoTooltip content={TOOLTIP_LAST_PRICE} className="text-muted-foreground" />
+                              <InfoTooltip content={md.TOOLTIP_LAST_PRICE} className="text-muted-foreground" />
                             </span>
                           </th>
                           <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                             <span className="inline-flex items-center justify-end gap-1">
                               24h change
-                              <InfoTooltip content={TOOLTIP_24H_CHANGE} className="text-muted-foreground" />
+                              <InfoTooltip content={md.TOOLTIP_24H_CHANGE} className="text-muted-foreground" />
                             </span>
                           </th>
                           <th className="w-28 px-5 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">

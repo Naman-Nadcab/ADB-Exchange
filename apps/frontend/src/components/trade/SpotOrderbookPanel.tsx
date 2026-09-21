@@ -5,6 +5,7 @@
  * Colors use app theme: price-up / price-down, buy / sell, blue accents — no fixed exchange brand hex.
  */
 
+import { useTranslations } from 'next-intl';
 import {
   useState,
   useEffect,
@@ -77,22 +78,33 @@ const COL_GRID =
 function OrderbookColumnHeaders({
   quoteAsset,
   baseAsset,
-  leftLabel = 'Price',
+  leftLabel,
 }: {
   quoteAsset: string;
   baseAsset: string;
   leftLabel?: string;
 }) {
+  const t = useTranslations('crypto');
+  const priceLabel = leftLabel ?? t('orderbook.price');
   return (
     <>
-      <span className="min-w-0 truncate text-left text-[10px] leading-none" title={`Price (${quoteAsset})`}>
-        {leftLabel}
+      <span
+        className="min-w-0 truncate text-left text-[10px] leading-none"
+        title={t('terminal.priceColumn', { asset: quoteAsset })}
+      >
+        {priceLabel}
       </span>
-      <span className="min-w-0 truncate text-right text-[10px] leading-none" title={`Amount (${baseAsset})`}>
-        Qty
+      <span
+        className="min-w-0 truncate text-right text-[10px] leading-none"
+        title={t('terminal.amountColumn', { asset: baseAsset })}
+      >
+        {t('terminal.qty')}
       </span>
-      <span className="min-w-0 truncate text-right text-[10px] leading-none" title={`Total (${quoteAsset})`}>
-        Total
+      <span
+        className="min-w-0 truncate text-right text-[10px] leading-none"
+        title={t('trading.total') + ` (${quoteAsset})`}
+      >
+        {t('trading.total')}
       </span>
     </>
   );
@@ -162,10 +174,11 @@ const LevelRow = memo(function LevelRow({
   quoteAsset: string;
   variant?: 'book' | 'ladder';
 }) {
+  const t = useTranslations('crypto');
   const handleClick = useCallback(() => {
     onRowSelect?.(rawPrice, quantity);
   }, [onRowSelect, rawPrice, quantity]);
-  const tip = onRowSelect ? `Set price to ${rawPrice} ${quoteAsset}` : undefined;
+  const tip = onRowSelect ? t('orderbook.setPriceTip', { price: rawPrice, quote: quoteAsset }) : undefined;
   const w = Math.min(100, Math.max(0, depthPct));
   const priceCls = side === 'buy' ? 'text-buy' : 'text-sell';
   const rowSize =
@@ -248,6 +261,7 @@ function SentimentFooter({
   sellLiquidity: number;
   quoteAsset: string;
 }) {
+  const t = useTranslations('crypto');
   const b = Math.min(100, Math.max(0, buyPct));
   const s = Math.min(100, Math.max(0, sellPct));
   const sum = b + s || 1;
@@ -255,16 +269,16 @@ function SentimentFooter({
   const skew = 12;
 
   const tooltipLines = [
-    `Bids: ${b.toFixed(1)}% of visible depth`,
-    `Asks: ${s.toFixed(1)}% of visible depth`,
-    `Bid notional: ${formatCompactNumber(buyLiquidity)} ${quoteAsset}`,
-    `Ask notional: ${formatCompactNumber(sellLiquidity)} ${quoteAsset}`,
+    t('orderbook.sentiment.bidsPct', { pct: b.toFixed(1) }),
+    t('orderbook.sentiment.asksPct', { pct: s.toFixed(1) }),
+    t('orderbook.sentiment.bidNotional', { amount: formatCompactNumber(buyLiquidity), quote: quoteAsset }),
+    t('orderbook.sentiment.askNotional', { amount: formatCompactNumber(sellLiquidity), quote: quoteAsset }),
   ].join('\n');
 
   return (
       <div className="space-y-1">
       <div className="flex justify-between text-label leading-none text-muted-foreground">
-        <span className="font-medium">B / S</span>
+        <span className="font-medium">{t('terminal.buySellRatio')}</span>
         <span className="numeric font-semibold">
           <span className="text-buy">{b.toFixed(1)}%</span>
           <span className="text-muted-foreground/60"> / </span>
@@ -275,7 +289,7 @@ function SentimentFooter({
         <TooltipTrigger asChild>
           <div
             className="flex h-4 w-full min-w-0 cursor-help overflow-hidden rounded-sm text-label font-semibold numeric leading-none"
-            aria-label={`Bid depth ${b.toFixed(1)} percent, Ask depth ${s.toFixed(1)} percent`}
+            aria-label={t('orderbook.sentiment.depthAria', { bid: b.toFixed(1), ask: s.toFixed(1) })}
           >
             <div
               className="relative flex h-full min-w-0 items-center bg-buy/35 pl-1.5 text-buy dark:bg-buy/25"
@@ -327,18 +341,24 @@ function OrderbookIntelligenceRow({
   quoteAsset: string;
   pricePrecision: number;
 }) {
+  const t = useTranslations('crypto');
   const bidWallLabel = largestBidWall
     ? `${formatCompactNumber(largestBidWall.notional)} @ ${formatValueFixedTrim(largestBidWall.price, pricePrecision)}`
     : '—';
   const askWallLabel = largestAskWall
     ? `${formatCompactNumber(largestAskWall.notional)} @ ${formatValueFixedTrim(largestAskWall.price, pricePrecision)}`
     : '—';
+  const spreadPart =
+    spreadAbs > 0 ? formatFixedTrim(spreadAbs, Math.min(6, pricePrecision)) : '—';
+  const bpsPart = spreadBps > 0 ? ` (${spreadBps.toFixed(1)} bps)` : '';
   const detailTitle = [
-    `Spread: ${spreadAbs > 0 ? formatFixedTrim(spreadAbs, Math.min(6, pricePrecision)) : '—'}${spreadBps > 0 ? ` (${spreadBps.toFixed(1)} bps)` : ''}`,
-    `Dominance: ${dominanceLabel}`,
-    `Imbalance: ${imbalancePct >= 0 ? '+' : ''}${imbalancePct.toFixed(1)}%`,
-    `Largest bid wall: ${bidWallLabel} ${quoteAsset}`,
-    `Largest ask wall: ${askWallLabel} ${quoteAsset}`,
+    t('orderbook.intelligence.spread', { spread: spreadPart, bps: bpsPart }),
+    t('orderbook.intelligence.dominance', { label: dominanceLabel }),
+    t('orderbook.intelligence.imbalance', {
+      pct: `${imbalancePct >= 0 ? '+' : ''}${imbalancePct.toFixed(1)}`,
+    }),
+    t('orderbook.intelligence.largestBidWall', { wall: bidWallLabel, quote: quoteAsset }),
+    t('orderbook.intelligence.largestAskWall', { wall: askWallLabel, quote: quoteAsset }),
   ].join('\n');
 
   return (
@@ -355,9 +375,13 @@ function OrderbookIntelligenceRow({
       <span className="mx-1 text-muted-foreground/50">·</span>
       <span className="numeric">{imbalancePct >= 0 ? '+' : ''}{imbalancePct.toFixed(1)}%</span>
       <span className="mx-1 text-muted-foreground/50">·</span>
-      <span>Bid {bidWallLabel}</span>
+      <span>
+        {t('orderbook.intelligence.bid')} {bidWallLabel}
+      </span>
       <span className="mx-1 text-muted-foreground/50">·</span>
-      <span>Ask {askWallLabel}</span>
+      <span>
+        {t('orderbook.intelligence.ask')} {askWallLabel}
+      </span>
     </div>
   );
 }
@@ -375,6 +399,7 @@ export function SpotOrderbookPanel({
   loading = false,
   recentTrades = [],
 }: SpotOrderbookPanelProps) {
+  const tc = useTranslations('crypto');
   const [tab, setTab] = useState<'orderbook' | 'ladder' | 'trades'>('orderbook');
   const [bookView, setBookView] = useState<'both' | 'asks' | 'bids'>('both');
   const [flipVertical, setFlipVertical] = useState(false);
@@ -481,7 +506,12 @@ export function SpotOrderbookPanel({
   const intelligenceSellPct =
     intelligenceTotalLiquidity > 0 ? (sellLiquidityFull / intelligenceTotalLiquidity) * 100 : 50;
   const imbalancePct = intelligenceBuyPct - intelligenceSellPct;
-  const dominanceLabel = imbalancePct > 3 ? 'Bid-heavy' : imbalancePct < -3 ? 'Ask-heavy' : 'Balanced';
+  const dominanceLabel =
+    imbalancePct > 3
+      ? tc('orderbook.dominance.bidHeavy')
+      : imbalancePct < -3
+        ? tc('orderbook.dominance.askHeavy')
+        : tc('orderbook.dominance.balanced');
   const largestBidWall = useMemo(() => {
     let best: { price: string; notional: number } | null = null;
     for (const r of bidRows) {
@@ -544,11 +574,14 @@ export function SpotOrderbookPanel({
 
   const emptyBookMessage = (
     <div className="flex flex-1 flex-col items-center justify-center px-3 py-5 text-center">
-      <p className="terminal-text-label font-semibold text-foreground">No executable liquidity</p>
+      <p className="terminal-text-label font-semibold text-foreground">{tc('empty.noExecutableLiquidity')}</p>
       <p className="mt-1.5 max-w-[15rem] text-label leading-snug text-muted-foreground">
         {lastDisplay
-          ? `Reference ${formatValueFixedTrim(lastDisplay, effectivePricePrecision)} ${quoteAsset}. Limit orders rest on the book; market orders need a matching quote.`
-          : 'Limit orders rest on the internal book. Market orders require a matching quote on the book.'}
+          ? tc('orderbook.emptyLiquidityDescWithRef', {
+              price: formatValueFixedTrim(lastDisplay, effectivePricePrecision),
+              quote: quoteAsset,
+            })
+          : tc('orderbook.emptyLiquidityDescNoRef')}
       </p>
     </div>
   );
@@ -590,7 +623,7 @@ export function SpotOrderbookPanel({
       </div>
       {(spreadAbs > 0 || spreadBps > 0) && (
         <p className="text-center terminal-text-label leading-none numeric text-muted-foreground">
-          <span className="text-muted-foreground/80">Spr </span>
+          <span className="text-muted-foreground/80">{tc('terminal.spreadShort')} </span>
           <span className="font-semibold text-foreground">
             {spreadAbs > 0 ? formatFixedTrim(spreadAbs, Math.min(6, effectivePricePrecision)) : '—'}
             {spreadPctMid > 0 ? ` · ${spreadPctMid >= 0.0001 ? spreadPctMid.toFixed(3) : '<0.001'}%` : ''}
@@ -606,7 +639,10 @@ export function SpotOrderbookPanel({
       {onPriceClick && lastDisplay ? (
         <button
           type="button"
-          title={`Set order price to ${lastDisplay} ${quoteAsset}`}
+          title={tc('orderbook.setOrderPrice', {
+            price: String(lastDisplay),
+            quote: quoteAsset,
+          })}
           onClick={() => onPriceClick(String(lastDisplay), '')}
           className="w-full cursor-pointer rounded-md border-0 bg-transparent p-0 text-center transition-colors hover:bg-muted/80 active:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary/30"
         >
@@ -779,25 +815,25 @@ export function SpotOrderbookPanel({
     <div className="flex h-full min-h-0 flex-col bg-card text-label text-foreground">
       <div className="flex flex-shrink-0 border-b border-border">
         <button type="button" onClick={() => setTab('orderbook')} className={tabBtn(tab === 'orderbook')}>
-          Order Book
+          {tc('terminal.orderBook')}
         </button>
         <button type="button" onClick={() => setTab('ladder')} className={tabBtn(tab === 'ladder')}>
-          Ladder
+          {tc('terminal.ladder')}
         </button>
         <button type="button" onClick={() => setTab('trades')} className={tabBtn(tab === 'trades')}>
-          Recent Trades
+          {tc('orderbook.recentTrades')}
         </button>
       </div>
 
       {tab === 'ladder' && (
         <div className="flex flex-shrink-0 items-center justify-between gap-2 border-b border-border px-2 py-1">
           <p className="text-label font-semibold uppercase tracking-wide text-muted-foreground">
-            DOM · click row to set price
+            {tc('orderbook.domHint')}
           </p>
           <select
             value={depthLimit}
             onChange={(e) => setDepthLimit(Number(e.target.value) as (typeof DEPTH_OPTIONS)[number])}
-            aria-label="Order book depth rows"
+            aria-label={tc('orderbook.depthRowsAria')}
             className="h-6 min-w-[3rem] cursor-pointer rounded border border-border bg-muted px-1 text-label font-bold text-foreground"
           >
             {DEPTH_OPTIONS.map((d) => (
@@ -811,10 +847,10 @@ export function SpotOrderbookPanel({
 
       {tab === 'orderbook' && (
         <div className="flex flex-shrink-0 items-center gap-1 border-b border-border px-1.5 py-1">
-          <div className="flex items-center gap-1" role="group" aria-label="Order book view">
+          <div className="flex items-center gap-1" role="group" aria-label={tc('orderbook.viewGroupAria')}>
             <button
               type="button"
-              aria-label="Show all order book sides"
+              aria-label={tc('orderbook.showAllSides')}
               className={iconToggle(bookView === 'both')}
               onClick={() => setBookView('both')}
             >
@@ -822,7 +858,7 @@ export function SpotOrderbookPanel({
             </button>
             <button
               type="button"
-              aria-label="Show sell orders only"
+              aria-label={tc('orderbook.showAsksOnly')}
               className={iconToggle(bookView === 'asks')}
               onClick={() => setBookView('asks')}
             >
@@ -830,7 +866,7 @@ export function SpotOrderbookPanel({
             </button>
             <button
               type="button"
-              aria-label="Show buy orders only"
+              aria-label={tc('orderbook.showBidsOnly')}
               className={iconToggle(bookView === 'bids')}
               onClick={() => setBookView('bids')}
             >
@@ -838,7 +874,7 @@ export function SpotOrderbookPanel({
             </button>
             <button
               type="button"
-              aria-label="Flip order book vertical layout"
+              aria-label={tc('orderbook.flipVertical')}
               className={iconToggle(flipVertical)}
               onClick={() => setFlipVertical((v) => !v)}
             >
@@ -849,7 +885,7 @@ export function SpotOrderbookPanel({
             <select
               value={effectivePricePrecision}
               onChange={(e) => setDisplayPricePrecision(Number(e.target.value))}
-              aria-label="Order book price grouping"
+              aria-label={tc('orderbook.priceGroupingAria')}
               className="h-6 min-w-[5rem] cursor-pointer rounded border border-border bg-muted px-1 text-label font-mono font-semibold text-foreground"
             >
               {tickOptions.map((p) => (
@@ -861,7 +897,7 @@ export function SpotOrderbookPanel({
             <select
               value={depthLimit}
               onChange={(e) => setDepthLimit(Number(e.target.value) as (typeof DEPTH_OPTIONS)[number])}
-              aria-label="Order book depth rows"
+              aria-label={tc('orderbook.depthRowsAria')}
               className="h-6 min-w-[3rem] cursor-pointer rounded border border-border bg-muted px-1 text-label font-bold text-foreground"
             >
               {DEPTH_OPTIONS.map((d) => (
@@ -878,7 +914,7 @@ export function SpotOrderbookPanel({
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <div className="border-b border-border bg-muted/50 px-1.5 py-1 dark:bg-muted/35">
             <div className={`${COL_GRID} items-center numeric terminal-text-label font-semibold uppercase leading-none text-muted-foreground`}>
-              <OrderbookColumnHeaders quoteAsset={quoteAsset} baseAsset={baseAsset} leftLabel="Asks · Price" />
+              <OrderbookColumnHeaders quoteAsset={quoteAsset} baseAsset={baseAsset} leftLabel={tc('orderbook.asksPriceLabel')} />
             </div>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain spot-rail-scroll [scrollbar-gutter:stable]">
@@ -912,11 +948,14 @@ export function SpotOrderbookPanel({
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain spot-rail-scroll [scrollbar-gutter:stable]">
             {recentTrades.length === 0 ? (
               <div className="px-3 py-8 text-center">
-                <p className="text-label font-semibold text-muted-foreground">No public trades yet</p>
+                <p className="text-label font-semibold text-muted-foreground">{tc('orderbook.noPublicTrades')}</p>
                 <p className="mx-auto mt-1.5 max-w-[14rem] text-label leading-snug text-muted-foreground/80">
                   {lastDisplay
-                    ? `Reference ${formatValueFixedTrim(lastDisplay, effectivePricePrecision)} ${quoteAsset}. Matches appear here when they occur.`
-                    : 'Internal matches appear here when they occur.'}
+                    ? tc('orderbook.noPublicTradesDescWithRef', {
+                        price: formatValueFixedTrim(lastDisplay, effectivePricePrecision),
+                        quote: quoteAsset,
+                      })
+                    : tc('orderbook.noPublicTradesDescNoRef')}
                 </p>
               </div>
             ) : (
@@ -946,7 +985,7 @@ export function SpotOrderbookPanel({
                   <button
                     key={t.id}
                     type="button"
-                    title="Use this price in the order form"
+                    title={tc('orderbook.usePriceInForm')}
                     className="block w-full border-0 bg-transparent p-0 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary/30"
                     onClick={() => onTradePriceClick(t.price, t.quantity)}
                   >

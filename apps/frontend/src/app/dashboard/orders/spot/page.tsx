@@ -8,12 +8,13 @@ import { Loader2, BarChart3 } from 'lucide-react';
 import { CoinIcon } from '@/components/ui/CoinIcon';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
-import { getMessageFromApiError } from '@/lib/errorMessages';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 
 type Order = { id: string; market: string; side: string; type: string; price: string | null; stop_price?: string | null; quantity: string; filled_quantity: string; status: string; created_at: string };
 
 export default function SpotOrdersViewPage() {
   const queryClient = useQueryClient();
+  const { fromApi } = useApiErrorMessage();
   const { accessToken } = useAuthStore();
   const [ordersTab, setOrdersTab] = useState<'open' | 'history'>('open');
   const [orders, setOrders] = useState<Order[]>([]);
@@ -112,10 +113,10 @@ export default function SpotOrdersViewPage() {
         setOrders((prev) => prev.filter((o) => o.id !== orderId));
         queryClient.invalidateQueries({ queryKey: ['balances'] });
       } else {
-        setCancelError(getMessageFromApiError(json?.error) || 'Cancel failed');
+        setCancelError(fromApi(json, 'trading.cancelFailed'));
       }
     } catch {
-      setCancelError(getMessageFromApiError({ code: 'NETWORK_ERROR' }));
+      setCancelError(fromApi({ error: { code: 'NETWORK_ERROR' } }, 'network.unreachable'));
     } finally {
       setCancellingOrderId(null);
     }

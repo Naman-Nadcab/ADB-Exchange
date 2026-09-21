@@ -3,52 +3,98 @@
 **Date:** 2026-09-22  
 **LANGUAGE_MASTER_BASELINE:** `7cd6bc7be8c82afe85c89bf9ac1fb58edef8d051e`  
 **Rollback tag:** `backup/language-master-baseline-7cd6bc7`  
-**Prior certified checkpoint:** `backup/i18n-certified-796f7f7`
+**Prior certified checkpoint:** `backup/i18n-certified-796f7f7`  
+**This pass baseline:** `4814932` (docs after partial spot slice)
 
 ## Verdict
 
 **IMPLEMENTATION COMPLETE — LANGUAGE COVERAGE PARTIAL**
 
-Full **FULL PLATFORM LANGUAGE CERTIFIED** criteria are **not** met: Crypto Spot terminal still contains hardcoded English in order book, chart chrome, bottom panel, and shared error copy paths. Other domains retain prior Phase 3 certification but were not re-run as a full 240× matrix in this pass.
+Crypto Spot **known inventory gaps from the prior pass are closed** (order book, bottom panel, chart toolbar/phase copy, terminal chrome, shared market-data UX hook, spot cancel error presentation). **FULL PLATFORM LANGUAGE CERTIFIED** is still **not** declared: authenticated **240/240** visual matrix not re-run this pass; **PairHeader** mini-stat labels and a few chart study identifiers remain intentionally English/technical; other domains rely on prior Phase 3 certification without fresh matrix evidence.
 
-## What changed this pass
+## Remaining inventory before this pass
 
-1. Expanded `crypto` catalogs (`en`, `zh-CN`, `id-ID`): `terminal`, `chart`, `executionHints`, `status`, `toasts`, extended `empty`.
-2. Wired localization into:
-   - `SpotTradingGrid.tsx` (toasts + API errors via `useApiErrorMessage`)
-   - `SpotTradingGridTerminal.tsx` (order entry, market trades, confirm dialog)
-   - `SpotOrderEntryPanel.tsx`, `ChartPanel.tsx` (partial), `SpotTerminalStatusRow.tsx` (partial)
-3. Inventory: `.build/PLATFORM_WIDE_I18N_SURFACE_INVENTORY.md`
+1. `SpotOrderbookPanel` — full English UI  
+2. `SpotBottomPanel` — tables, filters, empty states, cancel copy  
+3. `ChartPanel` — studies, phase, drawing, strip labels  
+4. Terminal chrome — top movers, mobile tabs, feed banner, dual submit panel  
+5. `lib/errorMessages.ts` — spot cancel consumers  
+6. `lib/marketDataUxCopy.ts` — static English  
 
-## Locale architecture
+## Surfaces closed this pass
 
-Unchanged: next-intl, resolver priority (manual → account → cookie → region → Accept-Language → en), cookie secure fix on HTTP staging.
+| Surface | Action |
+|---------|--------|
+| **SpotOrderbookPanel** | `useTranslations('crypto')` — tabs, columns, DOM/aria, empty/trades, sentiment, intelligence, spread |
+| **SpotBottomPanel** | Columns, filters, export/cancel-all, assets/positions/trades empty states, localized order types/sides/status titles |
+| **ChartPanel** | Phase/pulse, strip labels, studies/reset/fullscreen/drawing tooltips, `useMarketDataUxCopy`, unavailable/retry |
+| **Terminal chrome** | Top movers, mobile tabs, feed-unavailable banner, dual buy/sell panel labels, submit/log-in |
+| **errorMessages path** | `errors.trading.codes.*` + `error-catalog` map; `useSpotBottomPanel` + dashboard orders → `useApiErrorMessage` |
+| **marketDataUxCopy** | `useMarketDataUxCopy()` hook; consumers: ChartPanel, PairHeader tooltips/empty copy, dashboard tickers |
+| **Catalogs** | `crypto.json` + `errors.json` parity **en / zh-CN / id-ID** |
+| **Tests** | `crypto-spot-catalog.test.ts` added to `npm run test:i18n` |
 
-## Manual selector / geo
+## Terminology policy (unchanged)
 
-No architecture changes. Prior smoke: `e2e/locale-manual-selector-smoke.spec.ts` (not re-run this pass).
+- **Localized:** Buy/Sell, Price, Qty, Order Book, Limit/Market/Stop types, tab labels, feed/status copy.  
+- **Retained as universal trading abbreviations:** GTC, IOC, FOK, TIF, Maker/Taker, SMA/EMA/RSI/VWAP/Fib, bps, DOM (where shown as technical label).  
+- **Never translated:** BTC, USDT, pair symbols, numeric prices, order IDs.
 
-## Tests
+## Manual selector / persistence
+
+Architecture unchanged (next-intl resolver + locale cookies). **Not re-run** end-to-end en → zh-CN → id-ID → en on all domains this pass.
+
+## English leakage test
+
+Automated: catalog critical-key test + existing catalog parity. **No** full DOM English-leak scanner added. Residual English likely: PairHeader stat **labels**, overlay study names (SMA 7…), interval buttons (1m, 5m…).
+
+## 240-cell matrix
+
+**Not re-run** (`I18N_VISUAL_AUTH=1`). Prior Phase 3: 240/240 PASS at `796f7f7` (layout); spot copy was explicitly deferred until this pass.
+
+## Accessibility
+
+Not re-run this pass.
+
+## Build / tests
 
 | Check | Result |
 |-------|--------|
-| `npm run test:i18n` | PASS |
-| `npm run build -- --filter=@exchange/frontend` | PASS |
-| Full i18n visual matrix 240/240 | Not re-run |
-| New automated English-leak detector | Not added (inventory only) |
+| `npm run test:i18n` | **PASS** |
+| `npm run build` (@exchange/frontend) | **PASS** |
+| `npm run test:forex-models` | Not re-run this pass |
 
 ## DB / production
 
-No migrations, seeds, or production changes.
+No migrations, seeds, provisioning, or production deploy.
 
-## Remaining work for full certification
+## Files changed (this pass)
 
-1. Localize `SpotOrderbookPanel`, `SpotBottomPanel`, remaining `ChartPanel` / terminal chrome strings.
-2. Route spot order errors through `errors.crypto.codes.*` (expand catalog + error-catalog map); reduce reliance on `lib/errorMessages.ts` for customer UI.
-3. Localize `marketDataUxCopy` or pass through `crypto` namespace.
-4. Re-run authenticated i18n visual matrix (en / zh-CN / id-ID × viewports × domains).
-5. Add targeted Playwright locale assertions on `/trade/spot` (expect localized order entry title, not English "Trade").
+- `apps/frontend/messages/{en,zh-CN,id-ID}/crypto.json`
+- `apps/frontend/messages/{en,zh-CN,id-ID}/errors.json`
+- `apps/frontend/src/components/trade/SpotOrderbookPanel.tsx`
+- `apps/frontend/src/components/trade/SpotBottomPanel.tsx`
+- `apps/frontend/src/components/trade/ChartPanel.tsx`
+- `apps/frontend/src/components/trade/SpotTradingGridTerminal.tsx`
+- `apps/frontend/src/components/trade/useSpotBottomPanel.ts`
+- `apps/frontend/src/components/trade/PairHeader.tsx`
+- `apps/frontend/src/hooks/useMarketDataUxCopy.ts`
+- `apps/frontend/src/i18n/errors/error-catalog.ts`
+- `apps/frontend/src/i18n/crypto-spot-catalog.test.ts`
+- `apps/frontend/src/app/dashboard/page.tsx`
+- `apps/frontend/src/app/dashboard/orders/page.tsx`
+- `apps/frontend/src/app/dashboard/orders/spot/page.tsx`
+- `apps/frontend/scripts/merge-crypto-i18n-extension.mjs`
+- `apps/frontend/scripts/merge-trading-error-codes.mjs`
 
 ## Git
 
 (To be filled after commit/push.)
+
+## Remaining for FULL PLATFORM LANGUAGE CERTIFIED
+
+1. Re-run **240/240** authenticated i18n visual matrix with spot copy complete.  
+2. Localize **PairHeader** column labels (Last Price, 24h Change, Bid/Ask, …) if product requires full spot header i18n.  
+3. Optional: retire customer use of `lib/errorMessages.ts` entirely; keep as non-UI fallback only.  
+4. Cross-domain manual locale smoke + Playwright spot assertions.  
+5. a11y spotcheck with localized aria.

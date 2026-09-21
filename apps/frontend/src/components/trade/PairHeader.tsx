@@ -3,18 +3,7 @@
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Star, ChevronDown } from 'lucide-react';
-import {
-  NO_TRADES_ACTIONABLE,
-  NO_ACTIVITY_24H,
-  TOOLTIP_CHANGE_UNAVAILABLE,
-  TOOLTIP_LAST_PRICE,
-  TOOLTIP_24H_CHANGE,
-  TOOLTIP_24H_HIGH,
-  TOOLTIP_24H_LOW,
-  TOOLTIP_BASE_VOLUME_24H,
-  TOOLTIP_QUOTE_VOLUME_24H,
-  TOOLTIP_REFERENCE_VOLUME_24H,
-} from '@/lib/marketDataUxCopy';
+import { useMarketDataUxCopy } from '@/hooks/useMarketDataUxCopy';
 import { classifyTickerVolumeSource, turnoverLabelForSource } from '@/lib/volumeMetrics';
 import type { SpotWsStreamPhase } from '@/hooks/useSpotWs';
 import { formatCompactNumber, formatValueFixedTrim } from './terminalFormat';
@@ -105,6 +94,7 @@ export function PairHeader({
   embedded = false,
   marketStatus: _marketStatus,
 }: PairHeaderProps) {
+  const md = useMarketDataUxCopy();
   const sym = symbol ?? 'BTC_USDT';
   const base = baseAsset ?? 'BTC';
   const quote = quoteAsset ?? 'USDT';
@@ -114,7 +104,7 @@ export function PairHeader({
   });
   const turnoverLabel = turnoverLabelForSource(turnoverSource, quote);
   const turnoverTooltip =
-    turnoverSource === 'reference' ? TOOLTIP_REFERENCE_VOLUME_24H : TOOLTIP_QUOTE_VOLUME_24H;
+    turnoverSource === 'reference' ? md.TOOLTIP_REFERENCE_VOLUME_24H : md.TOOLTIP_QUOTE_VOLUME_24H;
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
   const mkt = markets ?? [];
   const pairLabel = base && quote ? `${base}/${quote}` : sym;
@@ -159,7 +149,7 @@ export function PairHeader({
   const hasLastTrade = lastPrice != null && lastPrice !== '';
 
   const lastDisplay = !hasLastTrade
-    ? NO_TRADES_ACTIONABLE
+    ? md.NO_TRADES_ACTIONABLE
     : quote === 'USDT'
       ? `${formatValueFixedTrim(lastPrice, pricePrecision)} USDT`
       : formatValueFixedTrim(lastPrice, pricePrecision);
@@ -248,12 +238,12 @@ export function PairHeader({
 
       {/* Content-sized columns, centered; dividers only between stats */}
       <div className="flex min-w-0 flex-1 items-stretch justify-evenly divide-x divide-border px-1">
-        <MiniStat label="Last Price" title={lastSub ?? TOOLTIP_LAST_PRICE} valueClassName="text-[22px] sm:text-[26px] font-bold leading-none tracking-tight">
+        <MiniStat label="Last Price" title={lastSub ?? md.TOOLTIP_LAST_PRICE} valueClassName="text-[22px] sm:text-[26px] font-bold leading-none tracking-tight">
           <span className={`font-bold ${hasLastTrade ? lastColor : 'text-muted-foreground'}`}>{lastDisplay}</span>
         </MiniStat>
         <MiniStat
           label="24h Change"
-          title={officialChangePct != null ? TOOLTIP_24H_CHANGE : TOOLTIP_CHANGE_UNAVAILABLE}
+          title={officialChangePct != null ? md.TOOLTIP_24H_CHANGE : md.TOOLTIP_CHANGE_UNAVAILABLE}
           valueClassName="terminal-text-secondary font-semibold"
         >
           <span className={`${changeColor} min-w-0 truncate`}>
@@ -262,27 +252,27 @@ export function PairHeader({
               : '—'}
           </span>
         </MiniStat>
-        <MiniStat label="24h High" title={TOOLTIP_24H_HIGH} valueClassName="terminal-text-table">
+        <MiniStat label="24h High" title={md.TOOLTIP_24H_HIGH} valueClassName="terminal-text-table">
           <span className="min-w-0 truncate">
             {(() => {
               const s = formatValueFixedTrim(high24h, pricePrecision);
-              return s === '—' ? (hasLastTrade ? NO_ACTIVITY_24H : NO_TRADES_ACTIONABLE) : s;
+              return s === '—' ? (hasLastTrade ? md.NO_ACTIVITY_24H : md.NO_TRADES_ACTIONABLE) : s;
             })()}
           </span>
         </MiniStat>
-        <MiniStat label="24h Low" title={TOOLTIP_24H_LOW} valueClassName="terminal-text-table">
+        <MiniStat label="24h Low" title={md.TOOLTIP_24H_LOW} valueClassName="terminal-text-table">
           <span className="min-w-0 truncate">
             {(() => {
               const s = formatValueFixedTrim(low24h, pricePrecision);
-              return s === '—' ? (hasLastTrade ? NO_ACTIVITY_24H : NO_TRADES_ACTIONABLE) : s;
+              return s === '—' ? (hasLastTrade ? md.NO_ACTIVITY_24H : md.NO_TRADES_ACTIONABLE) : s;
             })()}
           </span>
         </MiniStat>
-        <MiniStat label={`Volume (${base.slice(0, 4)})`} title={TOOLTIP_BASE_VOLUME_24H} valueClassName="terminal-text-table">
+        <MiniStat label={`Volume (${base.slice(0, 4)})`} title={md.TOOLTIP_BASE_VOLUME_24H} valueClassName="terminal-text-table">
           <span className="min-w-0 truncate">
             {(() => {
               const s = formatCompactNumber(volume24h);
-              return s === '—' ? (hasLastTrade ? NO_ACTIVITY_24H : NO_TRADES_ACTIONABLE) : s;
+              return s === '—' ? (hasLastTrade ? md.NO_ACTIVITY_24H : md.NO_TRADES_ACTIONABLE) : s;
             })()}
           </span>
         </MiniStat>
@@ -290,7 +280,7 @@ export function PairHeader({
           <span className="min-w-0 truncate">
             {(() => {
               const s = formatCompactNumber(turnover24h);
-              return s === '—' ? (hasLastTrade ? NO_ACTIVITY_24H : NO_TRADES_ACTIONABLE) : s;
+              return s === '—' ? (hasLastTrade ? md.NO_ACTIVITY_24H : md.NO_TRADES_ACTIONABLE) : s;
             })()}
           </span>
         </MiniStat>

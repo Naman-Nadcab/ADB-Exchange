@@ -110,12 +110,7 @@ const SPOT_MOBILE_TAB_STORAGE_KEY = 'spotTerminal.mobileTab';
 
 type SpotMobileTab = 'chart' | 'book' | 'trade' | 'markets';
 
-const SPOT_MOBILE_TABS: { id: SpotMobileTab; label: string }[] = [
-  { id: 'chart', label: 'Chart' },
-  { id: 'book', label: 'Book' },
-  { id: 'trade', label: 'Trade' },
-  { id: 'markets', label: 'Markets' },
-];
+const SPOT_MOBILE_TAB_IDS: SpotMobileTab[] = ['chart', 'book', 'trade', 'markets'];
 
 function clampChartSplitPct(n: number): number {
   if (!Number.isFinite(n)) return 75;
@@ -536,6 +531,7 @@ function TopMoversSection({
   expanded: boolean;
   onToggleExpand: () => void;
 }) {
+  const t = useTranslations('crypto');
   const { ticker } = useSpotMarketTicker();
 
   const movers = useMemo(() => {
@@ -601,7 +597,7 @@ function TopMoversSection({
       >
         <span className="flex min-w-0 items-center gap-2">
           <TrendingUp className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
-          <span className="terminal-text-label font-semibold uppercase tracking-wider text-muted-foreground">Top movers</span>
+          <span className="terminal-text-label font-semibold uppercase tracking-wider text-muted-foreground">{t('terminal.topMovers')}</span>
         </span>
         {expanded ? (
           <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -620,8 +616,8 @@ function TopMoversSection({
           {movers.length === 0 ? (
             <TerminalEmptyState
               kind="markets"
-              title="No movers yet"
-              description="Top 24h movers will appear when market data is available."
+              title={t('terminal.topMoversEmptyTitle')}
+              description={t('terminal.topMoversEmptyDesc')}
               compact
             />
           ) : (
@@ -945,7 +941,7 @@ function BinanceOrderEntrySection({
             </span>
           </div>
           {showPrice && (
-            <BinanceInsetField label="Price" suffix={quoteAsset}>
+            <BinanceInsetField label={t('terminal.dualPanel.price')} suffix={quoteAsset}>
               <input
                 id="spot-price"
                 type="text"
@@ -957,9 +953,9 @@ function BinanceOrderEntrySection({
               />
             </BinanceInsetField>
           )}
-          {showStopPrice && <BinanceInsetField label="Stop" suffix={quoteAsset}><input type="text" inputMode="decimal" value={stopPrice} onChange={(e) => setStopPrice(e.target.value)} className={inputCls} placeholder="0" /></BinanceInsetField>}
-          {showTrailing && <BinanceInsetField label="Delta" suffix="%"><input type="text" inputMode="decimal" value={trailingDelta} onChange={(e) => setTrailingDelta(e.target.value)} className={inputCls} placeholder="1.0" /></BinanceInsetField>}
-          <BinanceInsetField label="Amt" suffix={baseAsset}><input id="spot-quantity" type="text" inputMode="decimal" value={buyQty} onChange={(e) => setBuyQty(e.target.value)} className={inputCls} placeholder="0" /></BinanceInsetField>
+          {showStopPrice && <BinanceInsetField label={t('terminal.dualPanel.stop')} suffix={quoteAsset}><input type="text" inputMode="decimal" value={stopPrice} onChange={(e) => setStopPrice(e.target.value)} className={inputCls} placeholder="0" /></BinanceInsetField>}
+          {showTrailing && <BinanceInsetField label={t('terminal.dualPanel.delta')} suffix="%"><input type="text" inputMode="decimal" value={trailingDelta} onChange={(e) => setTrailingDelta(e.target.value)} className={inputCls} placeholder="1.0" /></BinanceInsetField>}
+          <BinanceInsetField label={t('terminal.dualPanel.amt')} suffix={baseAsset}><input id="spot-quantity" type="text" inputMode="decimal" value={buyQty} onChange={(e) => setBuyQty(e.target.value)} className={inputCls} placeholder="0" /></BinanceInsetField>
           <div className="flex items-center gap-2">
             {SLIDER_PCTS.filter(Boolean).map((p) => (
               <button
@@ -974,27 +970,27 @@ function BinanceOrderEntrySection({
               </button>
             ))}
           </div>
-          <BinanceInsetField label="Total" suffix={quoteAsset}>
+          <BinanceInsetField label={t('terminal.dualPanel.total')} suffix={quoteAsset}>
             <span className={`${inputCls} ${buyTotal ? 'text-foreground' : 'text-muted-foreground'}`}>{buyTotal || '—'}</span>
           </BinanceInsetField>
           <div className="grid grid-cols-2 gap-1.5 rounded-md border border-border bg-muted/30 px-2 py-1.5 terminal-text-meta leading-snug">
-            <span className="text-muted-foreground">You Pay</span>
+            <span className="text-muted-foreground">{t('terminal.dualPanel.youPay')}</span>
             <span className="numeric text-right text-foreground">
               {buyNotional > 0 ? `${formatFixedTrim(buyNotional, quoteFormDisplayDp)} ${quoteAsset}` : '—'}
             </span>
-            <span className="text-muted-foreground">You Receive</span>
+            <span className="text-muted-foreground">{t('terminal.dualPanel.youReceive')}</span>
             <span className="numeric text-right text-foreground">
               {buyQtyNum > 0 ? `${formatFixedTrim(buyQtyNum, qtyPrecision)} ${baseAsset}` : '—'}
             </span>
-            <span className="text-muted-foreground">Estimated Fee ({(estimatedFeeRate * 100).toFixed(3)}%)</span>
+            <span className="text-muted-foreground">{t('terminal.dualPanel.estimatedFee', { pct: (estimatedFeeRate * 100).toFixed(3) })}</span>
             <span className="numeric text-right text-foreground">
               {buyFeeQuote > 0 ? `${formatFixedTrim(buyFeeQuote, quoteFormDisplayDp)} ${quoteAsset}` : '—'}
             </span>
-            <span className="text-muted-foreground">Net Receive</span>
+            <span className="text-muted-foreground">{t('terminal.dualPanel.netReceive')}</span>
             <span className="numeric text-right text-buy">
               {buyNetBase > 0 ? `${formatFixedTrim(buyNetBase, qtyPrecision)} ${baseAsset}` : '—'}
             </span>
-            <span className="text-muted-foreground">Estimated Execution</span>
+            <span className="text-muted-foreground">{t('terminal.dualPanel.estimatedExecution')}</span>
             <span className="numeric text-right text-foreground">
               {`${executionMode} · ${executionHint}`}
             </span>
@@ -1004,7 +1000,7 @@ function BinanceOrderEntrySection({
               href={loginWithRedirect(SPOT_TRADE_HREF)}
               className="flex h-10 min-h-[40px] items-center justify-center rounded-lg border border-buy/30 bg-buy/90 text-price font-semibold tracking-wide text-neutral-950 shadow-sm transition-all hover:bg-buy active:scale-[0.99] active:brightness-95"
             >
-              Log In
+              {t('terminal.logIn')}
             </Link>
           ) : (
             <button
@@ -1015,7 +1011,8 @@ function BinanceOrderEntrySection({
               onClick={doBuy}
               className="flex h-10 min-h-[40px] items-center justify-center gap-1.5 rounded-lg border border-buy/30 bg-buy/90 text-price font-semibold tracking-wide text-neutral-950 shadow-sm transition-all hover:bg-buy active:scale-[0.99] active:brightness-95 disabled:pointer-events-none disabled:opacity-40"
             >
-              {submitting && side === 'buy' && <Loader2 className="h-3.5 w-3.5 animate-spin" />}Buy {baseAsset}
+              {submitting && side === 'buy' && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              {t('terminal.buyAsset', { asset: baseAsset })}
             </button>
           )}
           </div>
@@ -1033,7 +1030,7 @@ function BinanceOrderEntrySection({
             </span>
           </div>
           {showPrice && (
-            <BinanceInsetField label="Price" suffix={quoteAsset}>
+            <BinanceInsetField label={t('terminal.dualPanel.price')} suffix={quoteAsset}>
               <input
                 type="text"
                 inputMode="decimal"
@@ -1044,9 +1041,9 @@ function BinanceOrderEntrySection({
               />
             </BinanceInsetField>
           )}
-          {showStopPrice && <BinanceInsetField label="Stop" suffix={quoteAsset}><input type="text" inputMode="decimal" value={stopPrice} onChange={(e) => setStopPrice(e.target.value)} className={inputCls} placeholder="0" /></BinanceInsetField>}
-          {showTrailing && <BinanceInsetField label="Delta" suffix="%"><input type="text" inputMode="decimal" value={trailingDelta} onChange={(e) => setTrailingDelta(e.target.value)} className={inputCls} placeholder="1.0" /></BinanceInsetField>}
-          <BinanceInsetField label="Amt" suffix={baseAsset}>
+          {showStopPrice && <BinanceInsetField label={t('terminal.dualPanel.stop')} suffix={quoteAsset}><input type="text" inputMode="decimal" value={stopPrice} onChange={(e) => setStopPrice(e.target.value)} className={inputCls} placeholder="0" /></BinanceInsetField>}
+          {showTrailing && <BinanceInsetField label={t('terminal.dualPanel.delta')} suffix="%"><input type="text" inputMode="decimal" value={trailingDelta} onChange={(e) => setTrailingDelta(e.target.value)} className={inputCls} placeholder="1.0" /></BinanceInsetField>}
+          <BinanceInsetField label={t('terminal.dualPanel.amt')} suffix={baseAsset}>
             <input
               type="text"
               inputMode="decimal"
@@ -1070,27 +1067,27 @@ function BinanceOrderEntrySection({
               </button>
             ))}
           </div>
-          <BinanceInsetField label="Total" suffix={quoteAsset}>
+          <BinanceInsetField label={t('terminal.dualPanel.total')} suffix={quoteAsset}>
             <span className={`${inputCls} ${sellTotal ? 'text-foreground' : 'text-muted-foreground'}`}>{sellTotal || '—'}</span>
           </BinanceInsetField>
           <div className="grid grid-cols-2 gap-1.5 rounded-md border border-border bg-muted/30 px-2 py-1.5 terminal-text-meta leading-snug">
-            <span className="text-muted-foreground">You Pay</span>
+            <span className="text-muted-foreground">{t('terminal.dualPanel.youPay')}</span>
             <span className="numeric text-right text-foreground">
               {sellQtyNum > 0 ? `${formatFixedTrim(sellQtyNum, qtyPrecision)} ${baseAsset}` : '—'}
             </span>
-            <span className="text-muted-foreground">You Receive</span>
+            <span className="text-muted-foreground">{t('terminal.dualPanel.youReceive')}</span>
             <span className="numeric text-right text-foreground">
               {sellNotional > 0 ? `${formatFixedTrim(sellNotional, quoteFormDisplayDp)} ${quoteAsset}` : '—'}
             </span>
-            <span className="text-muted-foreground">Estimated Fee ({(estimatedFeeRate * 100).toFixed(3)}%)</span>
+            <span className="text-muted-foreground">{t('terminal.dualPanel.estimatedFee', { pct: (estimatedFeeRate * 100).toFixed(3) })}</span>
             <span className="numeric text-right text-foreground">
               {sellFeeQuote > 0 ? `${formatFixedTrim(sellFeeQuote, quoteFormDisplayDp)} ${quoteAsset}` : '—'}
             </span>
-            <span className="text-muted-foreground">Net Receive</span>
+            <span className="text-muted-foreground">{t('terminal.dualPanel.netReceive')}</span>
             <span className="numeric text-right text-sell">
               {sellNetQuote > 0 ? `${formatFixedTrim(sellNetQuote, quoteFormDisplayDp)} ${quoteAsset}` : '—'}
             </span>
-            <span className="text-muted-foreground">Estimated Execution</span>
+            <span className="text-muted-foreground">{t('terminal.dualPanel.estimatedExecution')}</span>
             <span className="numeric text-right text-foreground">
               {`${executionMode} · ${executionHint}`}
             </span>
@@ -1100,7 +1097,7 @@ function BinanceOrderEntrySection({
               href={loginWithRedirect(SPOT_TRADE_HREF)}
               className="flex h-10 min-h-[40px] items-center justify-center rounded-lg border border-sell/30 bg-sell/90 text-price font-semibold tracking-wide text-neutral-950 shadow-sm transition-all hover:bg-sell active:scale-[0.99] active:brightness-95"
             >
-              Log In
+              {t('terminal.logIn')}
             </Link>
           ) : (
             <button
@@ -1111,7 +1108,8 @@ function BinanceOrderEntrySection({
               onClick={doSell}
               className="flex h-10 min-h-[40px] items-center justify-center gap-1.5 rounded-lg border border-sell/30 bg-sell/90 text-price font-semibold tracking-wide text-neutral-950 shadow-sm transition-all hover:bg-sell active:scale-[0.99] active:brightness-95 disabled:pointer-events-none disabled:opacity-40"
             >
-              {submitting && side === 'sell' && <Loader2 className="h-3.5 w-3.5 animate-spin" />}Sell {baseAsset}
+              {submitting && side === 'sell' && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              {t('terminal.sellAsset', { asset: baseAsset })}
             </button>
           )}
           </div>
@@ -1119,7 +1117,7 @@ function BinanceOrderEntrySection({
       </div>
       {!tradingEnabled && (
         <div className="border-t border-amber-500/20 bg-amber-500/10 px-3 py-2 terminal-text-label text-amber-300">
-          Live market feed is unavailable. Order placement is paused to prevent stale execution.
+          {t('terminal.feedUnavailable')}
         </div>
       )}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
@@ -1268,6 +1266,7 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
     preferencesSyncIssue = false,
   } = props;
 
+  const t = useTranslations('crypto');
   const { reconnectAttempt, streamPhase, privateChannelsReady, bootstrapIssue, lastRttMs, liteMode, liteHint } =
     useSpotMarketStream();
   const { ticker } = useSpotMarketTicker();
@@ -1546,16 +1545,16 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
             role="tablist"
             aria-label="Spot trading panels"
           >
-            {SPOT_MOBILE_TABS.map((tab) => (
+            {SPOT_MOBILE_TAB_IDS.map((tabId) => (
               <button
-                key={tab.id}
+                key={tabId}
                 type="button"
                 role="tab"
-                aria-selected={mobileTab === tab.id}
-                onClick={() => setMobileTab(tab.id)}
-                className={`terminal-tab ${mobileTab === tab.id ? 'terminal-tab--active' : ''}`}
+                aria-selected={mobileTab === tabId}
+                onClick={() => setMobileTab(tabId)}
+                className={`terminal-tab ${mobileTab === tabId ? 'terminal-tab--active' : ''}`}
               >
-                {tab.label}
+                {t(`terminal.mobileTabs.${tabId}`)}
               </button>
             ))}
           </nav>
@@ -1568,7 +1567,7 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
           <div className="pointer-events-auto absolute inset-x-0 bottom-0 z-20 flex max-h-16 items-center gap-2 border-t border-sell/30 bg-sell/15 px-4 py-2 text-label text-sell md:left-[var(--spot-terminal-left-width)] md:right-[var(--spot-terminal-right-width)]">
             <AlertCircle className="h-3.5 w-3.5 shrink-0" />
             <span className="flex-1 truncate">{submitError}</span>
-            <button type="button" onClick={() => setSubmitError(null)} className="shrink-0 font-semibold underline">Dismiss</button>
+            <button type="button" onClick={() => setSubmitError(null)} className="shrink-0 font-semibold underline">{t('bottomPanel.dismiss')}</button>
           </div>
         )}
       </div>

@@ -7,18 +7,7 @@ import type { ChartTheme } from './chart/ChartAdapter';
 import { LightweightChartsAdapter } from './chart/LightweightChartsAdapter';
 import { SpotDepthChart } from './SpotDepthChart';
 import { formatValueFixedTrim, formatCompactNumber } from './terminalFormat';
-import {
-  NO_TRADES_ACTIONABLE,
-  NO_ACTIVITY_SHORT,
-  NO_TRADES_TINY,
-  TOOLTIP_CHANGE_UNAVAILABLE,
-  TOOLTIP_24H_CHANGE,
-  TOOLTIP_24H_HIGH,
-  TOOLTIP_24H_LOW,
-  TOOLTIP_QUOTE_VOLUME_24H,
-  TOOLTIP_BASE_VOLUME_24H,
-  TOOLTIP_REFERENCE_VOLUME_24H,
-} from '@/lib/marketDataUxCopy';
+import { useMarketDataUxCopy } from '@/hooks/useMarketDataUxCopy';
 import { classifyTickerVolumeSource } from '@/lib/volumeMetrics';
 import type { SpotWsStreamPhase } from '@/hooks/useSpotWs';
 import type { OverlayStudyId } from './chart/indicators';
@@ -146,6 +135,8 @@ function ChartPanelInner({
   tradeFreshnessSec,
 }: ChartPanelProps) {
   const t = useTranslations('crypto');
+  const tCommon = useTranslations('common');
+  const md = useMarketDataUxCopy();
   const { adapterRef, chartError, chartLoading, chartEmpty, chartStale, chartStaleReason, chartLastUpdatedAtMs, retryChart } = useChartAdapter(
     symbol,
     intervalSeconds,
@@ -176,7 +167,7 @@ function ChartPanelInner({
     [turnoverQuote24h, volume24h]
   );
   const turnoverTooltip =
-    turnoverSource === 'reference' ? TOOLTIP_REFERENCE_VOLUME_24H : TOOLTIP_QUOTE_VOLUME_24H;
+    turnoverSource === 'reference' ? md.TOOLTIP_REFERENCE_VOLUME_24H : md.TOOLTIP_QUOTE_VOLUME_24H;
 
   /** Phase 2–4 modular extensions (EMA stack, extra VWAP, volume visibility). */
   const [extConfig, setExtConfig] = useState<ChartExtensionsConfig>({
@@ -519,9 +510,9 @@ function ChartPanelInner({
   };
 
   const zoomScrollHint = useMemo(() => {
-    if (typeof navigator === 'undefined') return 'Scroll wheel: zoom';
-    return /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent) ? '⌘ + scroll: zoom chart' : 'Ctrl + scroll: zoom chart';
-  }, []);
+    if (typeof navigator === 'undefined') return t('chart.zoomScroll');
+    return /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent) ? t('chart.zoomScrollMac') : t('chart.zoomScrollWin');
+  }, [t]);
 
   const lastColor = 'text-foreground';
 
@@ -541,7 +532,13 @@ function ChartPanelInner({
   const phaseDotCls =
     phase === 'live' ? 'bg-buy' : phase === 'disconnected' ? 'bg-sell' : 'animate-pulse bg-amber-500';
   const phaseLabel =
-    phase === 'live' ? 'Live' : phase === 'reconnecting' ? 'Reconnecting' : phase === 'disconnected' ? 'Offline' : 'Connecting';
+    phase === 'live'
+      ? t('chart.phase.live')
+      : phase === 'reconnecting'
+        ? t('chart.phase.reconnecting')
+        : phase === 'disconnected'
+          ? t('chart.phase.disconnected')
+          : t('chart.phase.connecting');
   const freshSec = tradeFreshnessSec != null && Number.isFinite(tradeFreshnessSec) ? Math.max(0, Math.floor(tradeFreshnessSec)) : null;
   const freshnessLabel =
     freshSec == null
@@ -555,14 +552,14 @@ function ChartPanelInner({
     freshSec == null ? 'text-muted-foreground' : freshSec <= 2 ? 'text-buy' : freshSec <= 8 ? 'text-amber-400' : 'text-sell';
   const marketPulse =
     phase === 'live' && freshSec != null && freshSec <= 2
-      ? 'Live tape healthy'
+      ? t('chart.pulse.liveHealthy')
       : phase === 'live'
-        ? 'Awaiting fresh ticks'
-        : 'Feed stabilization in progress';
+        ? t('chart.pulse.awaitingTicks')
+        : t('chart.pulse.stabilizing');
   const staleUpdatedAtLabel =
     chartLastUpdatedAtMs != null
       ? new Date(chartLastUpdatedAtMs).toISOString().slice(11, 19)
-      : 'unknown';
+      : t('chart.staleUpdatedUnknown');
 
   return (
     <div
@@ -575,7 +572,7 @@ function ChartPanelInner({
           <div className="flex flex-wrap items-start justify-between gap-2 px-2 py-1">
             <div className="flex min-w-0 flex-wrap items-end gap-x-4 gap-y-1">
               <div className="min-w-0">
-                <div className="text-label font-bold uppercase tracking-wide text-muted-foreground">Last</div>
+                <div className="text-label font-bold uppercase tracking-wide text-muted-foreground">{t('chart.lastLabel')}</div>
                 <div className={`numeric text-mid font-bold leading-snug tracking-wide ${lastColor}`}>
                   {quoteAsset === 'USDT' && lastPrice != null && lastPrice !== ''
                     ? `$${formatValueFixedTrim(lastPrice, pricePrecision)}`
@@ -590,38 +587,38 @@ function ChartPanelInner({
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label">
                 <div
                   className="flex min-w-0 max-w-[11rem] items-baseline gap-1 sm:max-w-none"
-                  title={changePct != null ? TOOLTIP_24H_CHANGE : TOOLTIP_CHANGE_UNAVAILABLE}
+                  title={changePct != null ? md.TOOLTIP_24H_CHANGE : md.TOOLTIP_CHANGE_UNAVAILABLE}
                 >
-                  <span className="shrink-0 font-semibold text-muted-foreground">24h</span>
+                  <span className="shrink-0 font-semibold text-muted-foreground">{t('chart.h24')}</span>
                   <span className={`numeric min-w-0 truncate font-bold transition-colors duration-300 ${changeClass24h}`}>
                     {changePct != null ? `${changePct > 0 ? '+' : ''}${changePct.toFixed(2)}%` : '—'}
                   </span>
                 </div>
                 <div className="hidden h-3 w-px bg-border dark:bg-border sm:block" aria-hidden />
-                <div className="flex min-w-0 max-w-[5rem] items-baseline gap-1" title={TOOLTIP_24H_HIGH}>
-                  <span className="shrink-0 text-muted-foreground">H</span>
+                <div className="flex min-w-0 max-w-[5rem] items-baseline gap-1" title={md.TOOLTIP_24H_HIGH}>
+                  <span className="shrink-0 text-muted-foreground">{t('chart.highShort')}</span>
                   <span className="numeric min-w-0 truncate font-semibold text-foreground">
                     {(() => {
                       const s = formatValueFixedTrim(high24h, pricePrecision);
-                      return s === '—' ? (hasLastTrade ? NO_ACTIVITY_SHORT : NO_TRADES_TINY) : s;
+                      return s === '—' ? (hasLastTrade ? md.NO_ACTIVITY_SHORT : md.NO_TRADES_TINY) : s;
                     })()}
                   </span>
                 </div>
-                <div className="flex min-w-0 max-w-[5rem] items-baseline gap-1" title={TOOLTIP_24H_LOW}>
-                  <span className="shrink-0 text-muted-foreground">L</span>
+                <div className="flex min-w-0 max-w-[5rem] items-baseline gap-1" title={md.TOOLTIP_24H_LOW}>
+                  <span className="shrink-0 text-muted-foreground">{t('chart.lowShort')}</span>
                   <span className="numeric min-w-0 truncate font-semibold text-foreground">
                     {(() => {
                       const s = formatValueFixedTrim(low24h, pricePrecision);
-                      return s === '—' ? (hasLastTrade ? NO_ACTIVITY_SHORT : NO_TRADES_TINY) : s;
+                      return s === '—' ? (hasLastTrade ? md.NO_ACTIVITY_SHORT : md.NO_TRADES_TINY) : s;
                     })()}
                   </span>
                 </div>
-                <div className="hidden min-w-0 max-w-[6rem] items-baseline gap-1 md:flex" title={TOOLTIP_BASE_VOLUME_24H}>
-                  <span className="shrink-0 text-muted-foreground">Vol</span>
+                <div className="hidden min-w-0 max-w-[6rem] items-baseline gap-1 md:flex" title={md.TOOLTIP_BASE_VOLUME_24H}>
+                  <span className="shrink-0 text-muted-foreground">{t('chart.volShort')}</span>
                   <span className="numeric min-w-0 truncate font-semibold text-foreground">
                     {(() => {
                       const s = formatCompactNumber(volume24h);
-                      const body = s === '—' ? (hasLastTrade ? NO_ACTIVITY_SHORT : NO_TRADES_TINY) : s;
+                      const body = s === '—' ? (hasLastTrade ? md.NO_ACTIVITY_SHORT : md.NO_TRADES_TINY) : s;
                       return `${body}${s !== '—' && baseAsset ? ` ${baseAsset}` : ''}`;
                     })()}
                   </span>
@@ -631,12 +628,12 @@ function ChartPanelInner({
                   title={turnoverTooltip}
                 >
                   <span className="shrink-0 text-muted-foreground">
-                    {turnoverSource === 'reference' ? 'Ref.' : 'Turn.'}
+                    {turnoverSource === 'reference' ? t('chart.refShort') : t('chart.turnShort')}
                   </span>
                   <span className="numeric min-w-0 truncate font-semibold text-foreground">
                     {(() => {
                       const s = formatCompactNumber(turnoverQuote24h);
-                      const body = s === '—' ? (hasLastTrade ? NO_ACTIVITY_SHORT : NO_TRADES_TINY) : s;
+                      const body = s === '—' ? (hasLastTrade ? md.NO_ACTIVITY_SHORT : md.NO_TRADES_TINY) : s;
                       return `${body}${s !== '—' && quoteAsset ? ` ${quoteAsset}` : ''}`;
                     })()}
                   </span>
@@ -651,7 +648,7 @@ function ChartPanelInner({
               </div>
               {spreadInfo && (
                 <div className="numeric mt-0.5 text-label text-muted-foreground">
-                  Spread {formatValueFixedTrim(String(spreadInfo.spread), pricePrecision)} ({spreadInfo.pct.toFixed(3)}%)
+                  {t('chart.spreadLabel')} {formatValueFixedTrim(String(spreadInfo.spread), pricePrecision)} ({spreadInfo.pct.toFixed(3)}%)
                 </div>
               )}
             </div>
@@ -660,16 +657,16 @@ function ChartPanelInner({
         {viewMode === 'chart' && (
           <div
             className="border-t border-border px-2 py-2 numeric text-xs leading-tight text-muted-foreground sm:text-sm sm:leading-snug"
-            title="Crosshair or last candle"
+            title={t('chart.crosshairTitle')}
           >
             <span className="font-semibold text-foreground">{pairLabel}</span>
-            <span className="text-muted-foreground"> · Spot · {intervalLabel}</span>
+            <span className="text-muted-foreground"> · {t('chart.spotLabel')} · {intervalLabel}</span>
             {turnoverSource === 'reference' && (
-              <span className="ml-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground" title="Chart and 24h volume use reference market data until exchange volume builds">
-                Ref. data
+              <span className="ml-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground" title={t('chart.refDataTitle')}>
+                {t('chart.refDataBadge')}
               </span>
             )}
-            <span className="text-muted-foreground"> · Bar {barEta}</span>
+            <span className="text-muted-foreground"> · {t('chart.barLabel')} {barEta}</span>
             <span className="text-muted-foreground"> · </span>
             <span className="numeric font-medium text-foreground/95">{ohlcLegend || '—'}</span>
           </div>
@@ -726,13 +723,13 @@ function ChartPanelInner({
             <>
               <div
                 className="flex shrink-0 overflow-hidden rounded-md border border-border"
-                title="Price scale (main pane)"
+                title={t('chart.priceScaleTitle')}
               >
                 {(
                   [
-                    { id: 'normal' as const, label: 'Auto' },
+                    { id: 'normal' as const, label: t('chart.scaleAuto') },
                     { id: 'percent' as const, label: '%' },
-                    { id: 'log' as const, label: 'Log' },
+                    { id: 'log' as const, label: t('chart.scaleLog') },
                   ] as const
                 ).map(({ id, label }, i) => (
                   <button
@@ -740,7 +737,7 @@ function ChartPanelInner({
                     type="button"
                     onClick={() => setChartPriceScale(id)}
                     aria-pressed={chartPriceScale === id}
-                    aria-label={`Price scale ${label}`}
+                    aria-label={t('chart.priceScaleAria', { label })}
                     className={`numeric min-h-8 touch-manipulation px-2 py-1.5 text-price font-bold ${
                       i > 0 ? 'border-l border-border' : ''
                     } ${chartPriceScale === id ? TB_SEG_ON : TB_SEG_OFF}`}
@@ -753,11 +750,11 @@ function ChartPanelInner({
                 value={overlayStudy}
                 onChange={(e) => setOverlayStudy(e.target.value as OverlayStudyId)}
                 className={`max-w-[11rem] shrink-0 cursor-pointer rounded-md border border-border bg-card px-2 py-1.5 text-price font-semibold text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring ${TB_FOCUS}`}
-                aria-label="Price overlay indicator"
+                aria-label={t('chart.overlayAria')}
               >
                 {OVERLAY_OPTIONS.map(({ id, label }) => (
                   <option key={id} value={id}>
-                    {label}
+                    {id === 'none' ? t('chart.overlayNone') : label}
                   </option>
                 ))}
               </select>
@@ -768,9 +765,9 @@ function ChartPanelInner({
                 className={`shrink-0 rounded-md border px-2 py-1.5 text-price font-semibold transition-colors ${
                   showVolumeMa ? TB_TOGGLE_ON : TB_TOGGLE_OFF
                 } ${TB_FOCUS}`}
-                title="Volume pane SMA(9)"
+                title={t('chart.volSma9Title')}
               >
-                Vol SMA 9
+                {t('chart.volSma9')}
               </button>
               <button
                 type="button"
@@ -779,9 +776,9 @@ function ChartPanelInner({
                 className={`shrink-0 rounded-md border px-2 py-1.5 text-price font-semibold transition-colors ${
                   showRsi ? TB_TOGGLE_ON : TB_TOGGLE_OFF
                 } ${TB_FOCUS}`}
-                title="RSI(14) pane"
+                title={t('chart.rsi14Title')}
               >
-                RSI(14)
+                {t('chart.rsi14')}
               </button>
             </>
           )}
@@ -794,7 +791,7 @@ function ChartPanelInner({
                   type="button"
                   onClick={() => onIntervalSecondsChange(seconds)}
                   aria-pressed={intervalSeconds === seconds}
-                  aria-label={`Timeframe ${label}`}
+                  aria-label={t('chart.timeframeAria', { label })}
                   className={`numeric shrink-0 rounded px-2.5 py-1.5 text-price font-bold transition-colors ${
                     intervalSeconds === seconds ? TB_SEG_ON : TB_SEG_OFF
                   } ${TB_FOCUS}`}
@@ -815,32 +812,28 @@ function ChartPanelInner({
               className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold transition-colors ${
                 extStackOpen ? TB_SEG_ON : TB_SEG_OFF
               } ${TB_FOCUS}`}
-              title={
-                extStackOpen
-                  ? 'Hide studies row (EMA stack, VWAP², volume bars, drawings). Overlays & RSI stay in toolbar.'
-                  : 'Show studies row: multi-EMA, VWAP², volume bars, drawing tools. Overlay menu = SMA/EMA/VWAP/Bollinger.'
-              }
+              title={extStackOpen ? t('chart.studiesHideTitle') : t('chart.studiesShowTitle')}
             >
               <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              <span className="hidden sm:inline">Studies</span>
+              <span className="hidden sm:inline">{t('chart.studies')}</span>
             </button>
           )}
           <button
             type="button"
             onClick={handleReset}
-            aria-label="Reset chart viewport"
+            aria-label={t('chart.resetViewportAria')}
             className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold text-muted-foreground hover:bg-accent/80 dark:text-muted-foreground dark:hover:bg-accent ${TB_FOCUS}`}
-            title="Fit content"
+            title={t('chart.fitContent')}
           >
             <RefreshCw className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Reset</span>
+            <span className="hidden sm:inline">{t('chart.reset')}</span>
           </button>
           <button
             type="button"
             onClick={handleFullscreen}
-            aria-label={isFullscreen ? 'Exit fullscreen chart' : 'Enter fullscreen chart'}
+            aria-label={isFullscreen ? t('chart.fullscreenExitAria') : t('chart.fullscreenEnterAria')}
             className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold text-muted-foreground hover:bg-accent/80 dark:text-muted-foreground dark:hover:bg-accent ${TB_FOCUS}`}
-            title="Fullscreen"
+            title={t('chart.fullscreenTitle')}
             aria-pressed={isFullscreen}
           >
             <Maximize2 className="h-3.5 w-3.5" />
@@ -848,9 +841,9 @@ function ChartPanelInner({
           <button
             type="button"
             onClick={handleScreenshot}
-            aria-label="Download chart screenshot"
+            aria-label={t('chart.screenshotAria')}
             className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold text-muted-foreground hover:bg-accent/80 dark:text-muted-foreground dark:hover:bg-accent ${TB_FOCUS}`}
-            title="Download chart as PNG"
+            title={t('chart.screenshotTitle')}
           >
             <Camera className="h-3.5 w-3.5" aria-hidden />
           </button>
@@ -863,11 +856,11 @@ function ChartPanelInner({
                 type="button"
                 onClick={() => setExtStackOpen(false)}
                 className="shrink-0 rounded px-1 py-0.5 text-label font-bold uppercase tracking-wide text-muted-foreground hover:bg-accent"
-                title="Hide toolbar — more chart height"
+                title={t('chart.studiesHideToolbar')}
               >
-                ▴ Hide
+                {t('chart.studiesHide')}
               </button>
-              <span className="shrink-0 text-label font-bold uppercase text-muted-foreground">EMA</span>
+              <span className="shrink-0 text-label font-bold uppercase text-muted-foreground">{t('chart.emaLabel')}</span>
               {([7, 20, 50, 200] as const).map((p) => {
                 const k = `ema${p}` as keyof ChartExtensionsConfig;
                 const on = Boolean(extConfig[k]);
@@ -908,22 +901,22 @@ function ChartPanelInner({
                   extConfig.volumeHistogram !== false ? TB_TOGGLE_ON : TB_TOGGLE_OFF
                 }`}
               >
-                Vol bars
+                {t('chart.volBars')}
               </button>
               <span className="mx-0.5 h-3.5 w-px shrink-0 bg-border" aria-hidden />
               <span
                 className="shrink-0 text-label font-bold uppercase text-muted-foreground"
-                title="Draw: H / V / ∠ / Fib. Esc: cancel or deselect. Del removes. Drawings save per symbol (this browser)."
+                title={t('chart.drawHelpTitle')}
               >
-                Draw
+                {t('chart.drawLabel')}
               </span>
               {(
                 [
-                  { id: 'none' as const, label: 'Off' },
+                  { id: 'none' as const, label: t('chart.drawOff') },
                   { id: 'hline' as const, label: 'H' },
                   { id: 'vline' as const, label: 'V' },
                   { id: 'trend' as const, label: '∠' },
-                  { id: 'fib' as const, label: 'Fib' },
+                  { id: 'fib' as const, label: t('chart.drawFib') },
                 ] as const
               ).map(({ id, label }) => (
                 <button
@@ -931,14 +924,14 @@ function ChartPanelInner({
                   type="button"
                   title={
                     id === 'none'
-                      ? 'Drawing off'
+                      ? t('chart.drawingOff')
                       : id === 'hline'
-                        ? 'Horizontal line'
+                        ? t('chart.horizontalLine')
                         : id === 'vline'
-                          ? 'Vertical line'
+                          ? t('chart.verticalLine')
                           : id === 'trend'
-                            ? 'Trendline (2 clicks)'
-                            : 'Fibonacci retracement (2 clicks: swing high/low)'
+                            ? t('chart.drawTrendTitle')
+                            : t('chart.drawFibTitle')
                   }
                   onClick={() => setDrawTool(id)}
                   className={`inline-flex shrink-0 rounded-md border px-1.5 py-0.5 text-label font-bold leading-tight transition-colors ${
@@ -990,13 +983,13 @@ function ChartPanelInner({
           {chartError && (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-card/95 p-4 backdrop-blur-[1px]">
               <AlertCircle className="h-10 w-10 text-muted-foreground" aria-hidden />
-              <p className="max-w-xs text-center text-sm text-muted-foreground">Chart unavailable. {chartError}</p>
+              <p className="max-w-xs text-center text-sm text-muted-foreground">{t('chart.unavailable')} {chartError}</p>
               <button
                 type="button"
                 onClick={retryChart}
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
               >
-                Retry
+                {tCommon('actions.retry')}
               </button>
             </div>
           )}
@@ -1010,7 +1003,7 @@ function ChartPanelInner({
                 onClick={retryChart}
                 className={`rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 ${TB_FOCUS}`}
               >
-                Retry
+                {tCommon('actions.retry')}
               </button>
             </div>
           )}

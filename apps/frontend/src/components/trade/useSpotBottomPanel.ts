@@ -1,7 +1,10 @@
+'use client';
+
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { getMessageFromApiError } from '@/lib/errorMessages';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { toast } from '@/components/ui/toaster';
 
 export type Order = {
@@ -53,6 +56,8 @@ export function useSpotBottomPanel({
   promptCancelAllConfirmation = true,
 }: UseSpotBottomPanelParams) {
   const queryClient = useQueryClient();
+  const { fromApi, tError } = useApiErrorMessage();
+  const tb = useTranslations('crypto.bottomToasts');
   const [tab, setTab] = useState<'open' | 'orders' | 'trades' | 'assets' | 'positions'>('open');
   const [openOrders, setOpenOrders] = useState<Order[]>([]);
   const [openLoading, setOpenLoading] = useState(false);
@@ -147,21 +152,22 @@ export function useSpotBottomPanel({
       if (res.success) {
         setOpenOrders((prev) => prev.filter((o) => o.id !== orderId));
         queryClient.invalidateQueries({ queryKey: ['balances'] });
-        toast({ title: 'Order cancelled', description: 'Removed from the open order book.', variant: 'default' });
+        toast({ title: tb('orderCancelled'), description: tb('orderCancelledDesc'), variant: 'default' });
       } else {
-        setCancelError(getMessageFromApiError(res.error) ?? 'Cancel failed');
+        const msg = fromApi(res, 'trading.cancelFailed');
+        setCancelError(msg);
         toast({
-          title: 'Cancel failed',
-          description: getMessageFromApiError(res.error) ?? 'Could not cancel order',
+          title: tb('cancelFailed'),
+          description: fromApi(res, 'trading.cancelFailed'),
           variant: 'destructive',
         });
       }
     } catch {
-      setCancelError('Connection issue. Try again.');
+      setCancelError(tError('trading.connectionIssue'));
     } finally {
       setCancellingId(null);
     }
-  }, [isAuth, cancellingId, queryClient]);
+  }, [isAuth, cancellingId, queryClient, fromApi, tb, tError]);
 
   const handleCancelAll = useCallback(async () => {
     if (!isAuth || !symbol || cancellingAll) return;
@@ -171,8 +177,8 @@ export function useSpotBottomPanel({
       if (!cancelAllArmed) {
         setCancelAllArmed(true);
         toast({
-          title: 'Confirm cancel all',
-          description: `Click "Cancel All" again to cancel open orders for ${symbol}.`,
+          title: tb('confirmCancelAll'),
+          description: tb('confirmCancelAllDesc', { symbol }),
           variant: 'default',
         });
         return;
@@ -187,24 +193,25 @@ export function useSpotBottomPanel({
         setOpenOrders((prev) => prev.filter((o) => o.market !== symbol));
         queryClient.invalidateQueries({ queryKey: ['balances'] });
         toast({
-          title: 'Orders cancelled',
-          description: `All open orders for ${symbol} were cancelled.`,
+          title: tb('ordersCancelled'),
+          description: tb('ordersCancelledDesc', { symbol }),
           variant: 'default',
         });
       } else {
-        setCancelError(getMessageFromApiError(res.error) ?? 'Cancel all failed');
+        const msg = fromApi(res, 'trading.cancelAllFailed');
+        setCancelError(msg);
         toast({
-          title: 'Cancel all failed',
-          description: getMessageFromApiError(res.error) ?? 'Could not cancel all',
+          title: tb('cancelAllFailed'),
+          description: fromApi(res, 'trading.cancelAllFailed'),
           variant: 'destructive',
         });
       }
     } catch {
-      setCancelError('Connection issue. Try again.');
+      setCancelError(tError('trading.connectionIssue'));
     } finally {
       setCancellingAll(false);
     }
-  }, [isAuth, symbol, openOrders, cancellingAll, promptCancelAllConfirmation, cancelAllArmed, queryClient]);
+  }, [isAuth, symbol, openOrders, cancellingAll, promptCancelAllConfirmation, cancelAllArmed, queryClient, fromApi, tb, tError]);
 
   useEffect(() => {
     if (!cancelAllArmed) return;
