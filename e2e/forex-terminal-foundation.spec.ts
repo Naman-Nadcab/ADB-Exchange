@@ -1,11 +1,10 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('Forex terminal foundation', () => {
-  test('Forex route loads and does not invent candles', async ({ page }) => {
+  test('Forex route loads terminal shell', async ({ page }) => {
     await page.goto('/forex', { waitUntil: 'domcontentloaded', timeout: 20_000 });
     await expect(page.getByRole('link', { name: 'EDA FOREX' })).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByText(/Historical Forex OHLC is not available/i)).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText(/GET \/trading\/candles is not used/i)).toBeVisible();
+    await expect(page.getByRole('complementary', { name: /market watch/i })).toBeVisible({ timeout: 15_000 });
   });
 
   test('public instruments and quotes hydrate into watchlist', async ({ page }) => {

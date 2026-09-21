@@ -6,8 +6,18 @@ export async function loginUserViaUI(page: Page, email: string, password: string
   await page.locator('input[type="email"]').first().waitFor({ state: 'visible', timeout: 15_000 });
   await page.locator('input[type="email"]').first().fill(email);
   await page.locator('input[type="password"]').first().fill(password);
-  await page.getByRole('button', { name: /^sign in$/i }).click();
-  await page.waitForURL(/\/(dashboard|trade|wallet|markets|orders)(\/|$|\?)/, { timeout: 30_000 });
+  await page.getByRole('button', { name: /^(sign in|登录|Masuk)$/i }).click();
+  await page.waitForURL(
+    (url) => {
+      const p = url.pathname;
+      if (p.startsWith('/login')) return false;
+      return (
+        p === '/' ||
+        /\/(dashboard|trade|wallet|markets|orders|forex|p2p)(\/|$|\?)/.test(p)
+      );
+    },
+    { timeout: 30_000 },
+  );
 }
 
 export async function logoutUserViaUI(page: Page, base = UI_BASE): Promise<void> {
