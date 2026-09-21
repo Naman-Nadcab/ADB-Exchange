@@ -137,7 +137,13 @@ No dedicated a11y spotcheck re-run; selector retains listbox roles and focus beh
 
 ## 20–21. Git
 
-(Filled after commit + push.)
+| Item | SHA |
+|------|-----|
+| Backup checkpoint | `796f7f7c3e82afe85c89bf9ac1fb58edef8d051e` |
+| Spot UI commit | `4cfda04` — `fix(spot): align terminal visual density with forex` |
+| Locale fix commit | `9eb3083` — `fix(i18n): restore explicit manual locale selection on HTTP staging` |
+
+Remote sync: verify `git rev-parse HEAD` equals `origin/release/exchange-production-baseline` after push.
 
 ---
 
