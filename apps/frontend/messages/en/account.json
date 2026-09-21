@@ -1,29 +1,252 @@
 {
+  "common": {
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "notConfigured": "Not configured",
+    "verified": "Verified",
+    "change": "Change",
+    "manage": "Manage",
+    "settings": "Settings",
+    "view": "View",
+    "delete": "Delete",
+    "loading": "Loading...",
+    "on": "ON",
+    "off": "OFF",
+    "review": "Review",
+    "unlink": "Unlink",
+    "link": "Link",
+    "pleaseWait": "Please wait…",
+    "set": "Set",
+    "notSet": "Not set",
+    "linked": "Linked",
+    "notLinked": "Not Linked",
+    "upload": "Upload",
+    "uploading": "Uploading…",
+    "join": "Join",
+    "verifyNow": "Verify Now",
+    "cancelDeletion": "Cancel deletion",
+    "save": "Save",
+    "select": "Select"
+  },
   "profile": {
-    "title": "Account",
-    "subtitle": "Profile, verification status, and account identifiers.",
-    "uid": "UID",
-    "email": "Email",
-    "phone": "Phone",
-    "verification": "Verification",
-    "editProfile": "Edit profile"
+    "title": "Account Info",
+    "subtitle": "Manage your profile and account settings",
+    "lastLogin": "Last login:",
+    "securityAlert": "Security Alert",
+    "securityLow": "Your account security level is low.",
+    "securityImprove": "Improve your account security.",
+    "setup2fa": "Set up 2FA",
+    "improveSecurity": "Improve Security",
+    "accountSecured": "Account Secured",
+    "accountSecuredDesc": "Your account has strong security measures enabled.",
+    "viewSettings": "View Settings",
+    "securityLevel": "Security Level",
+    "profileSettings": "Profile Settings",
+    "profilePicture": "Profile Picture",
+    "profilePictureDesc": "Personalize your account with a custom avatar",
+    "affiliateCommunity": "Join an Affiliate's Community",
+    "affiliateCommunityDesc": "Connect with top traders and earn rewards",
+    "identityVerification": "Identity Verification",
+    "identityVerificationDesc": "Complete KYC to increase withdrawal limits",
+    "bankUpi": "Bank accounts & UPI",
+    "bankUpiDesc": "Save accounts for INR withdrawal and P2P",
+    "integrationsTitle": "Account Integrations",
+    "integrationsSubtitle": "Connect third-party services",
+    "linkGoogle": "Link Google Account",
+    "linkGoogleDesc": "Connect your Google account for quick login",
+    "activitiesTitle": "Account Activities",
+    "activitiesSubtitle": "Manage devices and account history",
+    "trustedDevices": "Trusted Devices",
+    "trustedDevicesDesc": "{count} device(s) currently logged in",
+    "loginHistory": "Login History",
+    "loginHistoryDesc": "View recent account activity",
+    "deleteAccount": "Delete Account",
+    "deleteAccountDesc": "Permanently delete your account and data",
+    "deleteScheduled": "Scheduled for deletion on {date}",
+    "deleteModalTitle": "Delete Account",
+    "deletePasswordLabel": "Account password",
+    "changeAvatarAria": "Change profile picture",
+    "changeEmailAria": "Change email"
   },
   "security": {
-    "title": "Security",
-    "subtitle": "Password, 2FA, devices, and withdrawal protection.",
-    "twoFactor": "Two-factor authentication",
-    "sessions": "Active sessions",
-    "fundPassword": "Fund password"
+    "centerTitle": "Security Center",
+    "centerSubtitle": "Protect your account with multiple layers of security",
+    "levelLabel": "Security Level:",
+    "levelHint": "Complete more security settings to increase protection",
+    "protectionScore": "Protection score",
+    "tabs": {
+      "all": "All",
+      "login": "Login & password",
+      "twoFactor": "Two-factor",
+      "advanced": "Advanced",
+      "withdrawal": "Withdrawals"
+    },
+    "sections": {
+      "loginPassword": "Login & password",
+      "twoFactor": "Two-factor authentication",
+      "advanced": "Advanced protection",
+      "withdrawal": "Withdrawal security"
+    },
+    "level": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "features": {
+      "loginPassword": {
+        "title": "Login password",
+        "description": "Used for account login"
+      },
+      "activeSessions": {
+        "title": "Active sessions",
+        "description": "See where you are signed in and sign out other devices"
+      },
+      "emailAuth": {
+        "title": "Email authentication",
+        "descriptionPrefix": "For login, withdrawal, and security verification.",
+        "changeEmail": "Change email"
+      },
+      "phone": {
+        "title": "Phone verification",
+        "description": "Verify your mobile number and use SMS for login, password reset, and security actions"
+      },
+      "google2fa": {
+        "title": "Google 2FA",
+        "description": "Most secure verification for sensitive operations"
+      },
+      "passkeys": {
+        "title": "Passkeys (Touch ID / Face ID)",
+        "description": "Use biometrics for fast and secure login",
+        "registered": "{count} registered"
+      },
+      "fundPassword": {
+        "title": "Fund password",
+        "description": "Required for withdrawal, P2P trading, and other sensitive operations"
+      },
+      "antiPhishing": {
+        "title": "Anti-phishing code",
+        "description": "This code appears in all official emails to prevent phishing"
+      },
+      "withdrawalLimits": {
+        "title": "Manage withdrawal limits",
+        "description": "Configure daily and monthly withdrawal limits"
+      }
+    },
+    "withdrawal": {
+      "whitelistTitle": "Withdrawal address whitelist",
+      "whitelistDesc": "Skip verification for trusted addresses when enabled",
+      "addressBookTitle": "Withdraw via address book",
+      "addressBookDesc": "Only withdraw to saved addresses.",
+      "manageAddresses": "Manage addresses",
+      "newAddressLockTitle": "New address withdrawal lock",
+      "newAddressLockDesc": "Block withdrawals to newly saved addresses for 24 hours to protect against account takeover."
+    }
   },
   "preferences": {
-    "title": "Preferences",
-    "subtitle": "Display, notifications, and language.",
-    "language": "Language",
-    "displayCurrency": "Display currency"
+    "title": "Preference Settings",
+    "subtitle": "Customize your trading experience and notification preferences",
+    "loading": "Loading preferences...",
+    "tabs": {
+      "general": "General Settings",
+      "notification": "Notification Settings",
+      "email": "Email Subscription"
+    },
+    "currency": {
+      "title": "Currency",
+      "subtitle": "Set your preferred display currency",
+      "equivalentLabel": "Equivalent Currency"
+    },
+    "language": {
+      "title": "Language",
+      "subtitle": "Notification and email language (platform UI uses the header language selector)",
+      "notificationSubtitle": "Choose your notification language"
+    },
+    "priceChange": {
+      "title": "Price change reference",
+      "24h": "Last 24 hours",
+      "1h": "Last 1 hour",
+      "7d": "Last 7 days",
+      "30d": "Last 30 days"
+    },
+    "tradeSection": {
+      "title": "Trade",
+      "subtitle": "Configure your trading interface preferences"
+    },
+    "depositSection": {
+      "title": "Deposit",
+      "subtitle": "Configure automatic deposit transfers",
+      "fundingDesc": "Auto-transfer deposits to Funding Account",
+      "unifiedDesc": "Auto-transfer deposits to Unified Trading Account"
+    },
+    "trading": {
+      "title": "Trading preferences",
+      "promptOrders": "Prompt confirmation window for orders",
+      "promptOrdersMobile": "Show Confirmation Window for Orders on Mobile Site",
+      "orderbookAnimation": "Turn on orderbook animation",
+      "cancelAllConfirm": "Prompt 'Cancel All' confirmation window"
+    },
+    "depositRouting": {
+      "title": "Auto-transfer incoming deposits",
+      "funding": "Funding Account",
+      "unified": "Unified Trading Account"
+    },
+    "notifications": {
+      "latestEvents": "Latest Events",
+      "announcement": "Announcement",
+      "rewards": "Rewards",
+      "tradingViewAlerts": "TradingView Alerts",
+      "news": "News",
+      "strategySignal": "Strategy Signal",
+      "accountInfoChanges": "Changes to Account Info",
+      "accountInfoChangesDesc": "Get notified when your account settings change",
+      "p2pOrder": "P2P Trading Order Notification",
+      "p2pAppeal": "P2P Appeal Order Notification",
+      "eventsReminders": "Events reminders",
+      "generalAnnouncement": "General announcement"
+    },
+    "email": {
+      "airdrop": "Airdrop award alert",
+      "commissions": "Commissions received",
+      "eventReminder": "Event Reminder / New events",
+      "perks": "Perks and rewards",
+      "financialListings": "Financial product listings",
+      "spotListings": "Spot listings",
+      "trustpilot": "Trustpilot ratings",
+      "web3Events": "Web3 events",
+      "maintenance": "System maintenance",
+      "platformAnnouncements": "Platform announcements",
+      "newFeatures": "New features",
+      "newsInsights": "News and insights"
+    },
+    "push": {
+      "title": "Browser push notifications",
+      "enable": "Enable push on this device",
+      "disable": "Disable push on this device",
+      "test": "Send test push",
+      "sectionTitle": "Push Notifications",
+      "sectionSubtitle": "Manage your in-app notifications",
+      "enableBtn": "Enable notifications",
+      "sendTest": "Send test",
+      "disableBtn": "Disable"
+    },
+    "telegram": {
+      "title": "Telegram Notifications",
+      "subtitle": "Receive notifications via Telegram bot",
+      "enableLabel": "Enable Telegram Notifications",
+      "enableDesc": "Connect your Telegram account to receive alerts"
+    },
+    "emailSections": {
+      "eventsRemindersTitle": "Events Reminders",
+      "eventsRemindersSubtitle": "Airdrops, rewards, and event notifications",
+      "generalAnnouncementTitle": "General Announcement",
+      "generalAnnouncementSubtitle": "Platform updates and maintenance alerts"
+    }
   },
   "verification": {
     "verified": "Verified",
-    "pending": "Pending review",
+    "pending": "Pending Review",
+    "rejected": "Rejected",
+    "unverified": "Unverified",
     "notStarted": "Not started"
   }
 }

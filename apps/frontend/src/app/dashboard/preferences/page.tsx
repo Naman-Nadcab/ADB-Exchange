@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { ChevronDown, ChevronUp, Loader2, Info, Settings, Bell, Mail, Globe, DollarSign, TrendingUp, Wallet, MessageCircle, Check } from 'lucide-react';
@@ -76,14 +77,14 @@ const languages = [
   { value: 'th', label: 'ไทย', flag: '🇹🇭' },
 ];
 
-const priceChangeOptions = [
-  { value: '24h', label: 'Last 24 hours' },
-  { value: '1h', label: 'Last 1 hour' },
-  { value: '7d', label: 'Last 7 days' },
-  { value: '30d', label: 'Last 30 days' },
-];
-
 export default function PreferencesPage() {
+  const ta = useTranslations('account');
+  const priceChangeOptions = [
+    { value: '24h', label: ta('preferences.priceChange.24h') },
+    { value: '1h', label: ta('preferences.priceChange.1h') },
+    { value: '7d', label: ta('preferences.priceChange.7d') },
+    { value: '30d', label: ta('preferences.priceChange.30d') },
+  ];
   const { accessToken } = useAuthStore();
   const apiUrl = getApiBaseUrl();
 
@@ -352,9 +353,9 @@ export default function PreferencesPage() {
   );
 
   const tabs = [
-    { id: 'general', label: 'General Settings', icon: Settings },
-    { id: 'notification', label: 'Notification Settings', icon: Bell },
-    { id: 'email', label: 'Email Subscription', icon: Mail },
+    { id: 'general', label: ta('preferences.tabs.general'), icon: Settings },
+    { id: 'notification', label: ta('preferences.tabs.notification'), icon: Bell },
+    { id: 'email', label: ta('preferences.tabs.email'), icon: Mail },
   ];
 
   return (
@@ -362,8 +363,8 @@ export default function PreferencesPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-xl font-semibold text-foreground">Preference Settings</h1>
-          <p className="text-muted-foreground mt-2">Customize your trading experience and notification preferences</p>
+          <h1 className="text-xl font-semibold text-foreground">{ta('preferences.title')}</h1>
+          <p className="text-muted-foreground mt-2">{ta('preferences.subtitle')}</p>
         </div>
 
         {/* Tabs */}
@@ -391,7 +392,7 @@ export default function PreferencesPage() {
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading preferences...</p>
+              <p className="text-muted-foreground">{ta('preferences.loading')}</p>
             </div>
           </div>
         ) : (
@@ -406,14 +407,14 @@ export default function PreferencesPage() {
                       <DollarSign className="w-5 h-5 text-buy" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-foreground">Currency</h2>
-                      <p className="text-xs text-muted-foreground">Set your preferred display currency</p>
+                      <h2 className="text-lg font-semibold text-foreground">{ta('preferences.currency.title')}</h2>
+                      <p className="text-xs text-muted-foreground">{ta('preferences.currency.subtitle')}</p>
                     </div>
                   </div>
                   
                   <div className="p-6">
                     <label className="block text-sm font-medium text-foreground/80 mb-3">
-                      Equivalent Currency
+                      {ta('preferences.currency.equivalentLabel')}
                     </label>
                     <div className="relative dropdown-container" style={{ zIndex: showCurrencyDropdown ? 50 : 1 }}>
                       <button
@@ -482,8 +483,8 @@ export default function PreferencesPage() {
                       <TrendingUp className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-foreground">Trade</h2>
-                      <p className="text-xs text-muted-foreground">Configure your trading interface preferences</p>
+                      <h2 className="text-lg font-semibold text-foreground">{ta('preferences.tradeSection.title')}</h2>
+                      <p className="text-xs text-muted-foreground">{ta('preferences.tradeSection.subtitle')}</p>
                     </div>
                   </div>
                   
@@ -491,7 +492,7 @@ export default function PreferencesPage() {
                     {/* Price Change Reference */}
                     <div className="mb-6">
                       <label className="block text-sm font-medium text-foreground/80 mb-3">
-                        Price Change Reference
+                        {ta('preferences.priceChange.title')}
                       </label>
                       <div className="relative dropdown-container" style={{ zIndex: showPriceChangeDropdown ? 50 : 1 }}>
                         <button
@@ -543,25 +544,25 @@ export default function PreferencesPage() {
                       <Checkbox
                         checked={settings.promptConfirmationOrders}
                         onChange={(v) => updateSetting('promptConfirmationOrders', v)}
-                        label="Prompt confirmation window for orders"
+                        label={ta('preferences.trading.promptOrders')}
                         saving={saving === 'promptConfirmationOrders'}
                       />
                       <Checkbox
                         checked={settings.showConfirmationMobile}
                         onChange={(v) => updateSetting('showConfirmationMobile', v)}
-                        label="Show Confirmation Window for Orders on Mobile Site"
+                        label={ta('preferences.trading.promptOrdersMobile')}
                         saving={saving === 'showConfirmationMobile'}
                       />
                       <Checkbox
                         checked={settings.turnOnOrderbookAnimation}
                         onChange={(v) => updateSetting('turnOnOrderbookAnimation', v)}
-                        label="Turn on orderbook animation"
+                        label={ta('preferences.trading.orderbookAnimation')}
                         saving={saving === 'turnOnOrderbookAnimation'}
                       />
                       <Checkbox
                         checked={settings.promptCancelAllConfirmation}
                         onChange={(v) => updateSetting('promptCancelAllConfirmation', v)}
-                        label="Prompt 'Cancel All' confirmation window"
+                        label={ta('preferences.trading.cancelAllConfirm')}
                         saving={saving === 'promptCancelAllConfirmation'}
                       />
                     </div>
@@ -575,8 +576,8 @@ export default function PreferencesPage() {
                       <Wallet className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-foreground">Deposit</h2>
-                      <p className="text-xs text-muted-foreground">Configure automatic deposit transfers</p>
+                      <h2 className="text-lg font-semibold text-foreground">{ta('preferences.depositSection.title')}</h2>
+                      <p className="text-xs text-muted-foreground">{ta('preferences.depositSection.subtitle')}</p>
                     </div>
                   </div>
                   
@@ -585,14 +586,14 @@ export default function PreferencesPage() {
                       <RadioCard
                         checked={settings.autoTransferDeposit === 'funding'}
                         onChange={() => updateSetting('autoTransferDeposit', 'funding')}
-                        label="Funding Account"
-                        description="Auto-transfer deposits to Funding Account"
+                        label={ta('preferences.depositRouting.funding')}
+                        description={ta('preferences.depositSection.fundingDesc')}
                       />
                       <RadioCard
                         checked={settings.autoTransferDeposit === 'unified'}
                         onChange={() => updateSetting('autoTransferDeposit', 'unified')}
-                        label="Unified Trading Account"
-                        description="Auto-transfer deposits to Unified Trading Account"
+                        label={ta('preferences.depositRouting.unified')}
+                        description={ta('preferences.depositSection.unifiedDesc')}
                       />
                     </div>
                   </div>
@@ -610,8 +611,8 @@ export default function PreferencesPage() {
                       <Globe className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-foreground">Language</h2>
-                      <p className="text-xs text-muted-foreground">Choose your notification language</p>
+                      <h2 className="text-lg font-semibold text-foreground">{ta('preferences.language.title')}</h2>
+                      <p className="text-xs text-muted-foreground">{ta('preferences.language.notificationSubtitle')}</p>
                     </div>
                   </div>
                   
@@ -749,13 +750,13 @@ export default function PreferencesPage() {
                   
                   <div className="p-6">
                     <div className="space-y-1">
-                      <SettingRow label="Latest Events" checked={settings.latestEvents} onChange={(v) => updateSetting('latestEvents', v)} settingKey="latestEvents" />
-                      <SettingRow label="Announcement" checked={settings.announcement} onChange={(v) => updateSetting('announcement', v)} settingKey="announcement" />
-                      <SettingRow label="Rewards" checked={settings.rewards} onChange={(v) => updateSetting('rewards', v)} settingKey="rewards" />
-                      <SettingRow label="TradingView Alerts" checked={settings.tradingViewAlerts} onChange={(v) => updateSetting('tradingViewAlerts', v)} settingKey="tradingViewAlerts" />
-                      <SettingRow label="News" checked={settings.news} onChange={(v) => updateSetting('news', v)} settingKey="news" />
-                      <SettingRow label="Strategy Signal" checked={settings.strategySignal} onChange={(v) => updateSetting('strategySignal', v)} settingKey="strategySignal" />
-                      <SettingRow label="Changes to Account Info" description="Get notified when your account settings change" checked={settings.changesToAccountInfo} onChange={(v) => updateSetting('changesToAccountInfo', v)} settingKey="changesToAccountInfo" />
+                      <SettingRow label={ta('preferences.notifications.latestEvents')} checked={settings.latestEvents} onChange={(v) => updateSetting('latestEvents', v)} settingKey="latestEvents" />
+                      <SettingRow label={ta('preferences.notifications.announcement')} checked={settings.announcement} onChange={(v) => updateSetting('announcement', v)} settingKey="announcement" />
+                      <SettingRow label={ta('preferences.notifications.rewards')} checked={settings.rewards} onChange={(v) => updateSetting('rewards', v)} settingKey="rewards" />
+                      <SettingRow label={ta('preferences.notifications.tradingViewAlerts')} checked={settings.tradingViewAlerts} onChange={(v) => updateSetting('tradingViewAlerts', v)} settingKey="tradingViewAlerts" />
+                      <SettingRow label={ta('preferences.notifications.news')} checked={settings.news} onChange={(v) => updateSetting('news', v)} settingKey="news" />
+                      <SettingRow label={ta('preferences.notifications.strategySignal')} checked={settings.strategySignal} onChange={(v) => updateSetting('strategySignal', v)} settingKey="strategySignal" />
+                      <SettingRow label={ta('preferences.notifications.accountInfoChanges')} description={ta('preferences.notifications.accountInfoChangesDesc')} checked={settings.changesToAccountInfo} onChange={(v) => updateSetting('changesToAccountInfo', v)} settingKey="changesToAccountInfo" />
                     </div>
                   </div>
                 </div>
@@ -785,13 +786,13 @@ export default function PreferencesPage() {
                       <Checkbox
                         checked={settings.p2pTradingOrderNotification}
                         onChange={(v) => updateSetting('p2pTradingOrderNotification', v)}
-                        label="P2P Trading Order Notification"
+                        label={ta('preferences.notifications.p2pOrder')}
                         saving={saving === 'p2pTradingOrderNotification'}
                       />
                       <Checkbox
                         checked={settings.p2pAppealOrderNotification}
                         onChange={(v) => updateSetting('p2pAppealOrderNotification', v)}
-                        label="P2P Appeal Order Notification"
+                        label={ta('preferences.notifications.p2pAppeal')}
                         saving={saving === 'p2pAppealOrderNotification'}
                       />
                     </div>
@@ -826,14 +827,14 @@ export default function PreferencesPage() {
                   {eventsRemindersExpanded && (
                     <div className="px-6 pb-6">
                       <div className="space-y-1 bg-muted rounded-xl p-2">
-                        <SettingRow label="Airdrop award alert" checked={settings.airdropAwardAlert} onChange={(v) => updateSetting('airdropAwardAlert', v)} settingKey="airdropAwardAlert" />
-                        <SettingRow label="Commissions received" checked={settings.commissionsReceived} onChange={(v) => updateSetting('commissionsReceived', v)} settingKey="commissionsReceived" />
-                        <SettingRow label="Event Reminder / New events" checked={settings.eventReminderNewEvents} onChange={(v) => updateSetting('eventReminderNewEvents', v)} settingKey="eventReminderNewEvents" />
-                        <SettingRow label="Perks and rewards" checked={settings.perksAndRewards} onChange={(v) => updateSetting('perksAndRewards', v)} settingKey="perksAndRewards" />
-                        <SettingRow label="Financial product listings" checked={settings.financialProductListings} onChange={(v) => updateSetting('financialProductListings', v)} settingKey="financialProductListings" />
-                        <SettingRow label="Spot listings" checked={settings.spotListings} onChange={(v) => updateSetting('spotListings', v)} settingKey="spotListings" />
-                        <SettingRow label="Trustpilot ratings" checked={settings.trustpilotRatings} onChange={(v) => updateSetting('trustpilotRatings', v)} settingKey="trustpilotRatings" />
-                        <SettingRow label="Web3 events" checked={settings.web3Events} onChange={(v) => updateSetting('web3Events', v)} settingKey="web3Events" />
+                        <SettingRow label={ta('preferences.email.airdrop')} checked={settings.airdropAwardAlert} onChange={(v) => updateSetting('airdropAwardAlert', v)} settingKey="airdropAwardAlert" />
+                        <SettingRow label={ta('preferences.email.commissions')} checked={settings.commissionsReceived} onChange={(v) => updateSetting('commissionsReceived', v)} settingKey="commissionsReceived" />
+                        <SettingRow label={ta('preferences.email.eventReminder')} checked={settings.eventReminderNewEvents} onChange={(v) => updateSetting('eventReminderNewEvents', v)} settingKey="eventReminderNewEvents" />
+                        <SettingRow label={ta('preferences.email.perks')} checked={settings.perksAndRewards} onChange={(v) => updateSetting('perksAndRewards', v)} settingKey="perksAndRewards" />
+                        <SettingRow label={ta('preferences.email.financialListings')} checked={settings.financialProductListings} onChange={(v) => updateSetting('financialProductListings', v)} settingKey="financialProductListings" />
+                        <SettingRow label={ta('preferences.email.spotListings')} checked={settings.spotListings} onChange={(v) => updateSetting('spotListings', v)} settingKey="spotListings" />
+                        <SettingRow label={ta('preferences.email.trustpilot')} checked={settings.trustpilotRatings} onChange={(v) => updateSetting('trustpilotRatings', v)} settingKey="trustpilotRatings" />
+                        <SettingRow label={ta('preferences.email.web3Events')} checked={settings.web3Events} onChange={(v) => updateSetting('web3Events', v)} settingKey="web3Events" />
                       </div>
                     </div>
                   )}
@@ -862,10 +863,10 @@ export default function PreferencesPage() {
                   {generalAnnouncementExpanded && (
                     <div className="px-6 pb-6">
                       <div className="space-y-1 bg-muted rounded-xl p-2">
-                        <SettingRow label="System maintenance" checked={settings.systemMaintenance} onChange={(v) => updateSetting('systemMaintenance', v)} settingKey="systemMaintenance" />
-                        <SettingRow label="Platform announcements" checked={settings.platformAnnouncements} onChange={(v) => updateSetting('platformAnnouncements', v)} settingKey="platformAnnouncements" />
-                        <SettingRow label="New features" checked={settings.newFeatures} onChange={(v) => updateSetting('newFeatures', v)} settingKey="newFeatures" />
-                        <SettingRow label="News and insights" checked={settings.newsAndInsights} onChange={(v) => updateSetting('newsAndInsights', v)} settingKey="newsAndInsights" />
+                        <SettingRow label={ta('preferences.email.maintenance')} checked={settings.systemMaintenance} onChange={(v) => updateSetting('systemMaintenance', v)} settingKey="systemMaintenance" />
+                        <SettingRow label={ta('preferences.email.platformAnnouncements')} checked={settings.platformAnnouncements} onChange={(v) => updateSetting('platformAnnouncements', v)} settingKey="platformAnnouncements" />
+                        <SettingRow label={ta('preferences.email.newFeatures')} checked={settings.newFeatures} onChange={(v) => updateSetting('newFeatures', v)} settingKey="newFeatures" />
+                        <SettingRow label={ta('preferences.email.newsInsights')} checked={settings.newsAndInsights} onChange={(v) => updateSetting('newsAndInsights', v)} settingKey="newsAndInsights" />
                       </div>
                     </div>
                   )}

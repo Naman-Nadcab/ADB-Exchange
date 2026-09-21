@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
@@ -221,6 +222,7 @@ const ToggleSwitch = ({ enabled, onChange, loading }: { enabled: boolean; onChan
 };
 
 export default function SecurityPage() {
+  const ta = useTranslations('account');
   const router = useRouter();
   const { user, accessToken, _hasHydrated } = useAuthStore();
   const [withdrawalWhitelist, setWithdrawalWhitelist] = useState(false);
@@ -348,6 +350,12 @@ export default function SecurityPage() {
 
   const securityLevel = calculateSecurityLevel();
   const securityStatus = securityLevel >= 80 ? 'High' : securityLevel >= 50 ? 'Medium' : 'Low';
+  const securityStatusLabel =
+    securityStatus === 'High'
+      ? ta('security.level.high')
+      : securityStatus === 'Medium'
+        ? ta('security.level.medium')
+        : ta('security.level.low');
   const securityColor =
     securityLevel >= 80 ? 'text-buy' : securityLevel >= 50 ? 'text-primary' : 'text-sell';
   const securityIconBg =
@@ -1225,8 +1233,8 @@ export default function SecurityPage() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-xl font-semibold text-foreground">Security Center</h1>
-          <p className="mt-2 text-muted-foreground">Protect your account with multiple layers of security</p>
+          <h1 className="text-xl font-semibold text-foreground">{ta('security.centerTitle')}</h1>
+          <p className="mt-2 text-muted-foreground">{ta('security.centerSubtitle')}</p>
         </div>
 
         {/* Security overview */}
@@ -1241,14 +1249,14 @@ export default function SecurityPage() {
                 </div>
                 <div>
                   <h2 className="mb-2 text-xl font-bold text-foreground">
-                    Security Level: <span className={securityColor}>{securityStatus}</span>
+                    {ta('security.levelLabel')} <span className={securityColor}>{securityStatusLabel}</span>
                   </h2>
-                  <p className="text-muted-foreground">Complete more security settings to increase protection</p>
+                  <p className="text-muted-foreground">{ta('security.levelHint')}</p>
                 </div>
               </div>
               <div className="w-full lg:w-64">
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">Protection score</span>
+                  <span className="text-sm font-medium text-foreground">{ta('security.protectionScore')}</span>
                   <span className={`text-sm font-bold ${securityColor}`}>{securityLevel}%</span>
                 </div>
                 <div className="h-3 w-full rounded-full bg-muted">
@@ -1266,11 +1274,11 @@ export default function SecurityPage() {
         <div className="mb-6 flex gap-1 overflow-x-auto border-b border-border pb-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {(
             [
-              ['all', 'All'],
-              ['login', 'Login & password'],
-              ['twoFactor', 'Two-factor'],
-              ['advanced', 'Advanced'],
-              ['withdrawal', 'Withdrawals'],
+              ['all', ta('security.tabs.all')],
+              ['login', ta('security.tabs.login')],
+              ['twoFactor', ta('security.tabs.twoFactor')],
+              ['advanced', ta('security.tabs.advanced')],
+              ['withdrawal', ta('security.tabs.withdrawal')],
             ] as const
           ).map(([id, label]) => (
             <button
@@ -1291,25 +1299,25 @@ export default function SecurityPage() {
         {/** Section helper */}
         {(securityTab === 'all' || securityTab === 'login') && (
           <section className="mb-8">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">Login & password</h2>
+            <h2 className="mb-4 text-lg font-semibold text-foreground">{ta('security.sections.loginPassword')}</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <SecurityFeatureCard
                 icon={Lock}
-                title="Login password"
-                description="Used for account login"
-                status="Enabled"
+                title={ta('security.features.loginPassword.title')}
+                description={ta('security.features.loginPassword.description')}
+                status={ta('common.enabled')}
                 statusTone="enabled"
-                actionLabel="Change"
+                actionLabel={ta('common.change')}
                 actionVariant="primary"
                 onAction={handlePasswordChangeClick}
               />
               <SecurityFeatureCard
                 icon={Monitor}
-                title="Active sessions"
-                description="See where you are signed in and sign out other devices"
-                status="Review"
+                title={ta('security.features.activeSessions.title')}
+                description={ta('security.features.activeSessions.description')}
+                status={ta('common.review')}
                 statusTone="recommended"
-                actionLabel="Manage"
+                actionLabel={ta('common.manage')}
                 actionVariant="primary"
                 onAction={() => router.push('/dashboard/security/sessions')}
               />
@@ -1319,41 +1327,41 @@ export default function SecurityPage() {
 
         {(securityTab === 'all' || securityTab === 'twoFactor') && (
           <section className="mb-8">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">Two-factor authentication</h2>
+            <h2 className="mb-4 text-lg font-semibold text-foreground">{ta('security.sections.twoFactor')}</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <SecurityFeatureCard
                 icon={Mail}
-                title="Email authentication"
+                title={ta('security.features.emailAuth.title')}
                 description={
                   <>
-                    For login, withdrawal, and security verification.{' '}
+                    {ta('security.features.emailAuth.descriptionPrefix')}{' '}
                     <button
                       type="button"
                       onClick={() => router.push('/dashboard/support')}
                       className="cursor-pointer text-primary hover:underline"
                     >
-                      Unlink
+                      {ta('common.unlink')}
                     </button>
                   </>
                 }
-                status="Verified"
+                status={ta('common.verified')}
                 statusTone="enabled"
                 statusValue={maskEmail(user?.email || '')}
-                actionLabel="Change email"
+                actionLabel={ta('security.features.emailAuth.changeEmail')}
                 actionVariant="default"
                 onAction={handleEmailChangeClick}
               />
               <SecurityFeatureCard
                 icon={Smartphone}
-                title="Phone verification"
-                description="Verify your mobile number and use SMS for login, password reset, and security actions"
-                status={userPhone ? (smsAuthEnabled ? 'ON' : 'OFF') : 'Not configured'}
+                title={ta('security.features.phone.title')}
+                description={ta('security.features.phone.description')}
+                status={userPhone ? (smsAuthEnabled ? ta('common.on') : ta('common.off')) : ta('common.notConfigured')}
                 statusTone={
                   userPhone ? (smsAuthEnabled ? 'enabled' : 'recommended') : 'neutral'
                 }
                 statusValue={userPhone ? maskPhone(userPhone) : undefined}
                 loading={loadingPhone}
-                actionLabel={userPhone ? 'Change' : 'Settings'}
+                actionLabel={userPhone ? ta('common.change') : ta('common.settings')}
                 actionVariant={userPhone ? 'default' : 'primary'}
                 onAction={userPhone ? handleSmsChangeClick : handleSmsSettingsClick}
                 toggleEnabled={!!userPhone && smsAuthEnabled}
@@ -1362,12 +1370,12 @@ export default function SecurityPage() {
               />
               <SecurityFeatureCard
                 icon={Shield}
-                title="Google 2FA"
-                description="Most secure verification for sensitive operations"
-                status={user2faEnabled ? 'Enabled' : 'Not configured'}
+                title={ta('security.features.google2fa.title')}
+                description={ta('security.features.google2fa.description')}
+                status={user2faEnabled ? ta('common.enabled') : ta('common.notConfigured')}
                 statusTone={user2faEnabled ? 'enabled' : 'recommended'}
                 loading={loadingGoogle2fa}
-                actionLabel="Manage"
+                actionLabel={ta('common.manage')}
                 actionVariant="primary"
                 onAction={() => router.push('/dashboard/security/2fa')}
               />
@@ -1377,39 +1385,39 @@ export default function SecurityPage() {
 
         {(securityTab === 'all' || securityTab === 'advanced') && (
           <section className="mb-8">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">Advanced protection</h2>
+            <h2 className="mb-4 text-lg font-semibold text-foreground">{ta('security.sections.advanced')}</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <SecurityFeatureCard
                 icon={Fingerprint}
-                title="Passkeys (Touch ID / Face ID)"
-                description="Use biometrics for fast and secure login"
-                status={passkeysCount > 0 ? `${passkeysCount} registered` : 'Not configured'}
+                title={ta('security.features.passkeys.title')}
+                description={ta('security.features.passkeys.description')}
+                status={passkeysCount > 0 ? ta('security.features.passkeys.registered', { count: passkeysCount }) : ta('common.notConfigured')}
                 statusTone={passkeysCount > 0 ? 'enabled' : 'neutral'}
                 loading={loadingPasskeys}
-                actionLabel="Settings"
+                actionLabel={ta('common.settings')}
                 actionVariant={passkeysCount > 0 ? 'default' : 'primary'}
                 onAction={handlePasskeySettingsClick}
               />
               <SecurityFeatureCard
                 icon={KeyRound}
-                title="Fund password"
-                description="Required for withdrawal, P2P trading, and other sensitive operations"
-                status={hasFundPassword ? 'Enabled' : 'Not configured'}
+                title={ta('security.features.fundPassword.title')}
+                description={ta('security.features.fundPassword.description')}
+                status={hasFundPassword ? ta('common.enabled') : ta('common.notConfigured')}
                 statusTone={hasFundPassword ? 'enabled' : 'neutral'}
                 loading={loadingFundPassword}
-                actionLabel={hasFundPassword ? 'Change' : 'Settings'}
+                actionLabel={hasFundPassword ? ta('common.change') : ta('common.settings')}
                 actionVariant={hasFundPassword ? 'default' : 'primary'}
                 onAction={handleFundPasswordClick}
               />
               <SecurityFeatureCard
                 icon={BadgeCheck}
-                title="Anti-phishing code"
-                description="This code appears in all official emails to prevent phishing"
-                status={antiPhishingCode ? 'Enabled' : 'Not configured'}
+                title={ta('security.features.antiPhishing.title')}
+                description={ta('security.features.antiPhishing.description')}
+                status={antiPhishingCode ? ta('common.enabled') : ta('common.notConfigured')}
                 statusTone={antiPhishingCode ? 'enabled' : 'neutral'}
                 statusValue={antiPhishingCode || undefined}
                 loading={loadingAntiPhishing}
-                actionLabel={antiPhishingCode ? 'Change' : 'Settings'}
+                actionLabel={antiPhishingCode ? ta('common.change') : ta('common.settings')}
                 actionVariant={antiPhishingCode ? 'default' : 'primary'}
                 onAction={handleAntiPhishingClick}
               />
@@ -1419,7 +1427,7 @@ export default function SecurityPage() {
 
         {(securityTab === 'all' || securityTab === 'withdrawal') && (
           <section className="mb-8">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">Withdrawal security</h2>
+            <h2 className="mb-4 text-lg font-semibold text-foreground">{ta('security.sections.withdrawal')}</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="flex h-full flex-col rounded-xl border border-border bg-card p-5 shadow-sm">
                 <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-start">
@@ -1427,9 +1435,9 @@ export default function SecurityPage() {
                     <ShieldCheck className="h-6 w-6" />
                   </div>
                   <div className="min-w-0 flex-1 space-y-2">
-                    <h3 className="font-semibold text-foreground">Withdrawal address whitelist</h3>
+                    <h3 className="font-semibold text-foreground">{ta('security.withdrawal.whitelistTitle')}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Skip verification for trusted addresses when enabled
+                      {ta('security.withdrawal.whitelistDesc')}
                     </p>
                     <p
                       className={`inline-flex items-center gap-2 text-sm font-medium ${
@@ -1441,7 +1449,7 @@ export default function SecurityPage() {
                           withdrawalWhitelist ? 'bg-buy' : 'bg-muted-foreground'
                         }`}
                       />
-                      {withdrawalWhitelist ? 'Enabled' : 'Disabled'}
+                      {withdrawalWhitelist ? ta('common.enabled') : ta('common.disabled')}
                     </p>
                   </div>
                 </div>
@@ -1460,11 +1468,11 @@ export default function SecurityPage() {
                     <BookOpen className="h-6 w-6" />
                   </div>
                   <div className="min-w-0 flex-1 space-y-2">
-                    <h3 className="font-semibold text-foreground">Withdraw via address book</h3>
+                    <h3 className="font-semibold text-foreground">{ta('security.withdrawal.addressBookTitle')}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Only withdraw to saved addresses.{' '}
+                      {ta('security.withdrawal.addressBookDesc')}{' '}
                       <Link href="/dashboard/address-book" className="text-primary hover:underline">
-                        Manage addresses
+                        {ta('security.withdrawal.manageAddresses')}
                       </Link>
                     </p>
                     <p
@@ -1477,7 +1485,7 @@ export default function SecurityPage() {
                           withdrawViaAddressBook ? 'bg-buy' : 'bg-muted-foreground'
                         }`}
                       />
-                      {withdrawViaAddressBook ? 'Enabled' : 'Disabled'}
+                      {withdrawViaAddressBook ? ta('common.enabled') : ta('common.disabled')}
                     </p>
                   </div>
                 </div>
@@ -1496,9 +1504,9 @@ export default function SecurityPage() {
                     <MapPin className="h-6 w-6" />
                   </div>
                   <div className="min-w-0 flex-1 space-y-2">
-                    <h3 className="font-semibold text-foreground">New address withdrawal lock</h3>
+                    <h3 className="font-semibold text-foreground">{ta('security.withdrawal.newAddressLockTitle')}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Block withdrawals to newly saved addresses for 24 hours to protect against account takeover.
+                      {ta('security.withdrawal.newAddressLockDesc')}
                     </p>
                     <p
                       className={`inline-flex items-center gap-2 text-sm font-medium ${
@@ -1510,7 +1518,7 @@ export default function SecurityPage() {
                           newAddressLock ? 'bg-buy' : 'bg-muted-foreground'
                         }`}
                       />
-                      {newAddressLock ? 'Enabled' : 'Disabled'}
+                      {newAddressLock ? ta('common.enabled') : ta('common.disabled')}
                     </p>
                   </div>
                 </div>
@@ -1524,9 +1532,9 @@ export default function SecurityPage() {
               </div>
               <SecurityFeatureCard
                 icon={Coins}
-                title="Manage withdrawal limits"
-                description="Configure daily and monthly withdrawal limits"
-                actionLabel="Manage"
+                title={ta('security.features.withdrawalLimits.title')}
+                description={ta('security.features.withdrawalLimits.description')}
+                actionLabel={ta('common.manage')}
                 actionVariant="primary"
                 onAction={() => router.push('/dashboard/security/withdrawal-limits')}
               />

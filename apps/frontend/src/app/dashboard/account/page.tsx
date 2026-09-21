@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/auth';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -52,6 +53,7 @@ interface UserProfile {
 }
 
 export default function AccountInfoPage() {
+  const ta = useTranslations('account');
   const router = useRouter();
   const { user, accessToken, _hasHydrated, updateUser } = useAuthStore();
   const [copiedUID, setCopiedUID] = useState(false);
@@ -252,17 +254,23 @@ export default function AccountInfoPage() {
   const security = calculateSecurityLevel();
 
   const getKycStatusDisplay = () => {
-    if (!profileData) return { text: 'Loading...', color: 'gray', icon: Clock };
+    if (!profileData) return { text: ta('common.loading'), color: 'gray', icon: Clock };
     switch (profileData.kycStatus) {
       case 'approved':
-        return { text: 'Verified', color: 'green', icon: CheckCircle };
+        return { text: ta('verification.verified'), color: 'green', icon: CheckCircle };
       case 'pending':
-        return { text: 'Pending Review', color: 'yellow', icon: Clock };
+        return { text: ta('verification.pending'), color: 'yellow', icon: Clock };
       case 'rejected':
-        return { text: 'Rejected', color: 'red', icon: AlertTriangle };
+        return { text: ta('verification.rejected'), color: 'red', icon: AlertTriangle };
       default:
-        return { text: 'Unverified', color: 'gray', icon: AlertTriangle };
+        return { text: ta('verification.unverified'), color: 'gray', icon: AlertTriangle };
     }
+  };
+
+  const securityLevelLabel = (status: string) => {
+    if (status === 'High') return ta('security.level.high');
+    if (status === 'Medium') return ta('security.level.medium');
+    return ta('security.level.low');
   };
 
   const kycDisplay = getKycStatusDisplay();
@@ -382,8 +390,8 @@ export default function AccountInfoPage() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-xl font-semibold text-foreground">Account Info</h1>
-          <p className="text-muted-foreground mt-2">Manage your profile and account settings</p>
+          <h1 className="text-xl font-semibold text-foreground">{ta('profile.title')}</h1>
+          <p className="text-muted-foreground mt-2">{ta('profile.subtitle')}</p>
         </div>
 
         {/* User Profile Card */}
@@ -404,7 +412,7 @@ export default function AccountInfoPage() {
                   <button
                     onClick={() => avatarInputRef.current?.click()}
                     disabled={uploadingAvatar}
-                    aria-label="Change profile picture"
+                    aria-label={ta('profile.changeAvatarAria')}
                     className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary hover:bg-primary/85 rounded-xl flex items-center justify-center transition-colors shadow-lg disabled:opacity-60"
                   >
                     {uploadingAvatar ? (
@@ -432,7 +440,7 @@ export default function AccountInfoPage() {
                       type="button"
                       onClick={() => router.push('/dashboard/security')}
                       className="p-1.5 hover:bg-accent rounded-lg transition-colors"
-                      aria-label="Change email"
+                      aria-label={ta('profile.changeEmailAria')}
                     >
                       <Edit3 className="w-4 h-4 text-muted-foreground" />
                     </button>
@@ -460,9 +468,9 @@ export default function AccountInfoPage() {
                     {/* Last Login */}
                     <div className="flex items-center gap-2">
                       <Monitor className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Last login:</span>
+                      <span className="text-sm text-muted-foreground">{ta('profile.lastLogin')}</span>
                       <span className="text-sm text-foreground">
-                        {loading ? 'Loading...' : formatDate(profileData?.last_login_at)}
+                        {loading ? ta('common.loading') : formatDate(profileData?.last_login_at)}
                       </span>
                     </div>
                   </div>
@@ -476,17 +484,17 @@ export default function AccountInfoPage() {
                     <ShieldAlert className="w-6 h-6 text-warning" />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground mb-1">Security Alert</p>
+                    <p className="font-medium text-foreground mb-1">{ta('profile.securityAlert')}</p>
                     <p className="text-sm text-muted-foreground mb-2">
                       {security.status === 'Low' 
-                        ? 'Your account security level is low.' 
-                        : 'Improve your account security.'}
+                        ? ta('profile.securityLow') 
+                        : ta('profile.securityImprove')}
                     </p>
                     <Link 
                       href="/dashboard/security"
                       className="text-sm text-primary hover:text-primary/85 font-medium flex items-center gap-1"
                     >
-                      {!profileData?.totp_enabled ? 'Set up 2FA' : 'Improve Security'} <ChevronRight className="w-4 h-4" />
+                      {!profileData?.totp_enabled ? ta('profile.setup2fa') : ta('profile.improveSecurity')} <ChevronRight className="w-4 h-4" />
                     </Link>
                   </div>
                 </div>
@@ -496,15 +504,15 @@ export default function AccountInfoPage() {
                     <Shield className="w-6 h-6 text-buy" />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground mb-1">Account Secured</p>
+                    <p className="font-medium text-foreground mb-1">{ta('profile.accountSecured')}</p>
                     <p className="text-sm text-muted-foreground mb-2">
-                      Your account has strong security measures enabled.
+                      {ta('profile.accountSecuredDesc')}
                     </p>
                     <Link 
                       href="/dashboard/security"
                       className="text-sm text-buy hover:text-buy/90 font-medium flex items-center gap-1"
                     >
-                      View Settings <ChevronRight className="w-4 h-4" />
+                      {ta('profile.viewSettings')} <ChevronRight className="w-4 h-4" />
                     </Link>
                   </div>
                 </div>
@@ -515,11 +523,11 @@ export default function AccountInfoPage() {
           {/* Security Level Bar */}
           <div className="px-6 lg:px-8 py-4 bg-muted border-t border-border">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-foreground/80">Security Level</span>
+              <span className="text-sm font-medium text-foreground/80">{ta('profile.securityLevel')}</span>
               <span className={`text-sm font-semibold ${
                 security.color === 'green' ? 'text-buy' : 
                 security.color === 'yellow' ? 'text-warning' : 'text-warning'
-              }`}>{security.status}</span>
+              }`}>{securityLevelLabel(security.status)}</span>
             </div>
             <div className="w-full bg-accent rounded-full h-2">
               <div 
@@ -537,46 +545,46 @@ export default function AccountInfoPage() {
         {/* Profile Settings */}
         <div className="bg-card rounded-xl border border-border overflow-hidden mb-6">
           <div className="px-6 py-4 border-b border-border">
-            <h2 className="text-lg font-semibold text-foreground">Profile Settings</h2>
+            <h2 className="text-lg font-semibold text-foreground">{ta('profile.profileSettings')}</h2>
           </div>
           <div className="divide-y divide-border">
             <SettingRow
               icon={Camera}
-              title="Profile Picture"
-              description="Personalize your account with a custom avatar"
-              status={user?.avatarUrl ? 'Set' : 'Not set'}
+              title={ta('profile.profilePicture')}
+              description={ta('profile.profilePictureDesc')}
+              status={user?.avatarUrl ? ta('common.set') : ta('common.notSet')}
               statusColor={user?.avatarUrl ? 'text-buy' : 'text-muted-foreground'}
-              actionLabel={uploadingAvatar ? 'Uploading…' : 'Upload'}
+              actionLabel={uploadingAvatar ? ta('common.uploading') : ta('common.upload')}
               actionVariant="primary"
               action={() => avatarInputRef.current?.click()}
             />
             <SettingRow
               icon={Users}
-              title="Join an Affiliate's Community"
-              description="Connect with top traders and earn rewards"
-              actionLabel="Join"
+              title={ta('profile.affiliateCommunity')}
+              description={ta('profile.affiliateCommunityDesc')}
+              actionLabel={ta('common.join')}
               actionVariant="success"
               action={() => router.push('/dashboard/referral')}
             />
             <SettingRow
               icon={Shield}
-              title="Identity Verification"
-              description="Complete KYC to increase withdrawal limits"
+              title={ta('profile.identityVerification')}
+              description={ta('profile.identityVerificationDesc')}
               status={kycDisplay.text}
               statusColor={
                 kycDisplay.color === 'green' ? 'text-buy' : 
                 kycDisplay.color === 'yellow' ? 'text-warning' : 
                 kycDisplay.color === 'red' ? 'text-sell' : 'text-muted-foreground'
               }
-              actionLabel={profileData?.kycStatus === 'approved' ? 'View' : 'Verify Now'}
+              actionLabel={profileData?.kycStatus === 'approved' ? ta('common.view') : ta('common.verifyNow')}
               actionVariant={profileData?.kycStatus === 'approved' ? 'default' : 'primary'}
               action={() => window.location.href = '/dashboard/identity'}
             />
             <SettingRow
               icon={Building2}
-              title="Bank accounts & UPI"
-              description="Save accounts for INR withdrawal and P2P"
-              actionLabel="Manage"
+              title={ta('profile.bankUpi')}
+              description={ta('profile.bankUpiDesc')}
+              actionLabel={ta('common.manage')}
               actionVariant="primary"
               action={() => { window.location.href = walletPath.paymentMethods; }}
             />
@@ -590,18 +598,18 @@ export default function AccountInfoPage() {
               <Link2 className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-foreground">Account Integrations</h2>
-              <p className="text-sm text-muted-foreground">Connect third-party services</p>
+              <h2 className="text-lg font-semibold text-foreground">{ta('profile.integrationsTitle')}</h2>
+              <p className="text-sm text-muted-foreground">{ta('profile.integrationsSubtitle')}</p>
             </div>
           </div>
           <div className="divide-y divide-border">
             <SettingRow
               icon={Smartphone}
-              title="Link Google Account"
-              description="Connect your Google account for quick login"
-              status={googleLinked ? 'Linked' : 'Not Linked'}
+              title={ta('profile.linkGoogle')}
+              description={ta('profile.linkGoogleDesc')}
+              status={googleLinked ? ta('common.linked') : ta('common.notLinked')}
               statusColor={googleLinked ? 'text-buy' : 'text-muted-foreground'}
-              actionLabel={linking ? 'Please wait…' : googleLinked ? 'Unlink' : 'Link'}
+              actionLabel={linking ? ta('common.pleaseWait') : googleLinked ? ta('common.unlink') : ta('common.link')}
               actionVariant={googleLinked ? 'default' : 'primary'}
               action={() => (googleLinked ? void unlinkGoogle() : void startGoogleLink())}
             />
@@ -615,23 +623,27 @@ export default function AccountInfoPage() {
               <Activity className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-foreground">Account Activities</h2>
-              <p className="text-sm text-muted-foreground">Manage devices and account history</p>
+              <h2 className="text-lg font-semibold text-foreground">{ta('profile.activitiesTitle')}</h2>
+              <p className="text-sm text-muted-foreground">{ta('profile.activitiesSubtitle')}</p>
             </div>
           </div>
           <div className="divide-y divide-border">
             <SettingRow
               icon={Monitor}
-              title="Trusted Devices"
-              description={loading ? 'Loading...' : `${profileData?.activeDevices || 1} device${(profileData?.activeDevices || 1) > 1 ? 's' : ''} currently logged in`}
-              actionLabel="Manage"
+              title={ta('profile.trustedDevices')}
+              description={
+                loading
+                  ? ta('common.loading')
+                  : ta('profile.trustedDevicesDesc', { count: profileData?.activeDevices || 1 })
+              }
+              actionLabel={ta('common.manage')}
               action={() => { window.location.href = '/dashboard/security/sessions'; }}
             />
             <SettingRow
               icon={Activity}
-              title="Login History"
-              description="View recent account activity"
-              actionLabel="View"
+              title={ta('profile.loginHistory')}
+              description={ta('profile.loginHistoryDesc')}
+              actionLabel={ta('common.view')}
               action={() => { window.location.href = '/dashboard/account/login-history'; }}
             />
             <div className="flex items-center justify-between p-5 hover:bg-accent/30 transition-colors">
@@ -640,11 +652,11 @@ export default function AccountInfoPage() {
                   <Trash2 className="w-6 h-6 text-sell" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-foreground">Delete Account</h3>
+                  <h3 className="font-medium text-foreground">{ta('profile.deleteAccount')}</h3>
                   <p className="text-sm text-muted-foreground mt-0.5">
                     {deletionScheduledAt
-                      ? `Scheduled for deletion on ${formatDate(deletionScheduledAt)}`
-                      : 'Permanently delete your account and data'}
+                      ? ta('profile.deleteScheduled', { date: formatDate(deletionScheduledAt) })
+                      : ta('profile.deleteAccountDesc')}
                   </p>
                 </div>
               </div>
@@ -656,11 +668,11 @@ export default function AccountInfoPage() {
                     className="px-5 py-2.5 text-sm font-medium rounded-xl bg-accent hover:bg-accent/70 text-foreground transition-colors inline-flex items-center gap-2 disabled:opacity-50"
                   >
                     {cancellingDeletion && <Loader2 className="w-4 h-4 animate-spin" />}
-                    Cancel deletion
+                    {ta('common.cancelDeletion')}
                   </button>
                 ) : (
                   <button onClick={() => setShowDeleteModal(true)} className="px-5 py-2.5 text-sm font-medium rounded-xl bg-sell-light hover:bg-sell/20 text-destructive transition-colors">
-                    Delete
+                    {ta('common.delete')}
                   </button>
                 )}
               </div>
@@ -674,7 +686,7 @@ export default function AccountInfoPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-card rounded-xl w-full max-w-md shadow-2xl">
             <div className="flex items-center justify-between p-6 border-b border-border">
-              <h2 className="text-lg font-bold text-foreground">Delete Account</h2>
+              <h2 className="text-lg font-bold text-foreground">{ta('profile.deleteModalTitle')}</h2>
               <button onClick={() => setShowDeleteModal(false)} className="p-2 hover:bg-accent rounded-xl transition-colors">
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
@@ -687,7 +699,7 @@ export default function AccountInfoPage() {
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Account password</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">{ta('profile.deletePasswordLabel')}</label>
                 <input
                   type="password"
                   value={deletePassword}

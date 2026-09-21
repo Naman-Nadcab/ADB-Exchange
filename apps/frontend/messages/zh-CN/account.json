@@ -1,29 +1,252 @@
 {
+  "common": {
+    "enabled": "已启用",
+    "disabled": "已禁用",
+    "notConfigured": "未配置",
+    "verified": "已验证",
+    "change": "修改",
+    "manage": "管理",
+    "settings": "设置",
+    "view": "查看",
+    "delete": "删除",
+    "loading": "加载中…",
+    "on": "开",
+    "off": "关",
+    "review": "查看",
+    "unlink": "解绑",
+    "link": "绑定",
+    "pleaseWait": "请稍候…",
+    "set": "已设置",
+    "notSet": "未设置",
+    "linked": "已绑定",
+    "notLinked": "未绑定",
+    "upload": "上传",
+    "uploading": "上传中…",
+    "join": "加入",
+    "verifyNow": "立即认证",
+    "cancelDeletion": "取消删除",
+    "save": "保存",
+    "select": "选择"
+  },
   "profile": {
-    "title": "账户",
-    "subtitle": "个人资料、认证状态与账户标识。",
-    "uid": "UID",
-    "email": "邮箱",
-    "phone": "手机",
-    "verification": "身份认证",
-    "editProfile": "编辑资料"
+    "title": "账户信息",
+    "subtitle": "管理个人资料与账户设置",
+    "lastLogin": "上次登录：",
+    "securityAlert": "安全提醒",
+    "securityLow": "您的账户安全等级较低。",
+    "securityImprove": "请提升账户安全等级。",
+    "setup2fa": "设置双重验证",
+    "improveSecurity": "提升安全",
+    "accountSecured": "账户已保护",
+    "accountSecuredDesc": "您的账户已启用较强的安全措施。",
+    "viewSettings": "查看设置",
+    "securityLevel": "安全等级",
+    "profileSettings": "资料设置",
+    "profilePicture": "头像",
+    "profilePictureDesc": "上传自定义头像",
+    "affiliateCommunity": "加入推广社区",
+    "affiliateCommunityDesc": "与优秀交易者交流并获取奖励",
+    "identityVerification": "身份认证",
+    "identityVerificationDesc": "完成 KYC 以提高提币限额",
+    "bankUpi": "银行账户与 UPI",
+    "bankUpiDesc": "保存账户用于 INR 提币与 P2P",
+    "integrationsTitle": "账户集成",
+    "integrationsSubtitle": "连接第三方服务",
+    "linkGoogle": "绑定 Google 账户",
+    "linkGoogleDesc": "绑定 Google 以便快速登录",
+    "activitiesTitle": "账户活动",
+    "activitiesSubtitle": "管理设备与账户历史",
+    "trustedDevices": "受信设备",
+    "trustedDevicesDesc": "当前 {count} 台设备已登录",
+    "loginHistory": "登录历史",
+    "loginHistoryDesc": "查看近期账户活动",
+    "deleteAccount": "删除账户",
+    "deleteAccountDesc": "永久删除账户及数据",
+    "deleteScheduled": "计划于 {date} 删除",
+    "deleteModalTitle": "删除账户",
+    "deletePasswordLabel": "账户密码",
+    "changeAvatarAria": "更换头像",
+    "changeEmailAria": "修改邮箱"
   },
   "security": {
-    "title": "安全",
-    "subtitle": "密码、双重验证、设备与提币保护。",
-    "twoFactor": "双重验证",
-    "sessions": "活跃会话",
-    "fundPassword": "资金密码"
+    "centerTitle": "安全中心",
+    "centerSubtitle": "通过多层安全设置保护您的账户",
+    "levelLabel": "安全等级：",
+    "levelHint": "完成更多安全设置以提升保护等级",
+    "protectionScore": "保护评分",
+    "tabs": {
+      "all": "全部",
+      "login": "登录与密码",
+      "twoFactor": "双重验证",
+      "advanced": "高级",
+      "withdrawal": "提币"
+    },
+    "sections": {
+      "loginPassword": "登录与密码",
+      "twoFactor": "双重验证",
+      "advanced": "高级保护",
+      "withdrawal": "提币安全"
+    },
+    "level": {
+      "high": "高",
+      "medium": "中",
+      "low": "低"
+    },
+    "features": {
+      "loginPassword": {
+        "title": "登录密码",
+        "description": "用于账户登录"
+      },
+      "activeSessions": {
+        "title": "活跃会话",
+        "description": "查看登录位置并退出其他设备"
+      },
+      "emailAuth": {
+        "title": "邮箱验证",
+        "descriptionPrefix": "用于登录、提币及安全验证。",
+        "changeEmail": "修改邮箱"
+      },
+      "phone": {
+        "title": "手机验证",
+        "description": "验证手机号，用于登录、重置密码及安全操作"
+      },
+      "google2fa": {
+        "title": "Google 双重验证",
+        "description": "敏感操作的最安全验证方式"
+      },
+      "passkeys": {
+        "title": "通行密钥（Touch ID / Face ID）",
+        "description": "使用生物识别快速安全登录",
+        "registered": "已注册 {count} 个"
+      },
+      "fundPassword": {
+        "title": "资金密码",
+        "description": "提币、P2P 等敏感操作所需"
+      },
+      "antiPhishing": {
+        "title": "反钓鱼码",
+        "description": "该代码会显示在所有官方邮件中以防钓鱼"
+      },
+      "withdrawalLimits": {
+        "title": "提币限额管理",
+        "description": "配置每日与每月提币限额"
+      }
+    },
+    "withdrawal": {
+      "whitelistTitle": "提币地址白名单",
+      "whitelistDesc": "启用后，受信地址可跳过部分验证",
+      "addressBookTitle": "通过地址簿提币",
+      "addressBookDesc": "仅可向已保存地址提币。",
+      "manageAddresses": "管理地址",
+      "newAddressLockTitle": "新地址提币锁定",
+      "newAddressLockDesc": "新保存地址 24 小时内禁止提币，以防账户被盗。"
+    }
   },
   "preferences": {
     "title": "偏好设置",
-    "subtitle": "显示、通知与语言。",
-    "language": "语言",
-    "displayCurrency": "显示货币"
+    "subtitle": "自定义交易体验与通知偏好",
+    "loading": "正在加载偏好…",
+    "tabs": {
+      "general": "常规设置",
+      "notification": "通知设置",
+      "email": "邮件订阅"
+    },
+    "currency": {
+      "title": "货币",
+      "subtitle": "设置首选显示货币",
+      "equivalentLabel": "等值货币"
+    },
+    "language": {
+      "title": "语言",
+      "subtitle": "通知与邮件语言（界面语言请使用顶栏语言选择器）",
+      "notificationSubtitle": "选择通知语言"
+    },
+    "priceChange": {
+      "title": "涨跌幅参考",
+      "24h": "近 24 小时",
+      "1h": "近 1 小时",
+      "7d": "近 7 天",
+      "30d": "近 30 天"
+    },
+    "tradeSection": {
+      "title": "交易",
+      "subtitle": "配置交易界面偏好"
+    },
+    "depositSection": {
+      "title": "充值",
+      "subtitle": "配置入账自动划转",
+      "fundingDesc": "自动划转到资金账户",
+      "unifiedDesc": "自动划转到统一交易账户"
+    },
+    "trading": {
+      "title": "交易偏好",
+      "promptOrders": "下单前确认弹窗",
+      "promptOrdersMobile": "移动端下单确认弹窗",
+      "orderbookAnimation": "开启订单簿动画",
+      "cancelAllConfirm": "全部撤销前确认弹窗"
+    },
+    "depositRouting": {
+      "title": "入账自动划转",
+      "funding": "资金账户",
+      "unified": "统一交易账户"
+    },
+    "notifications": {
+      "latestEvents": "最新活动",
+      "announcement": "公告",
+      "rewards": "奖励",
+      "tradingViewAlerts": "TradingView 提醒",
+      "news": "新闻",
+      "strategySignal": "策略信号",
+      "accountInfoChanges": "账户信息变更",
+      "accountInfoChangesDesc": "账户设置变更时通知",
+      "p2pOrder": "P2P 订单通知",
+      "p2pAppeal": "P2P 申诉通知",
+      "eventsReminders": "活动提醒",
+      "generalAnnouncement": "一般公告"
+    },
+    "email": {
+      "airdrop": "空投奖励提醒",
+      "commissions": "收到佣金",
+      "eventReminder": "活动提醒 / 新活动",
+      "perks": "福利与奖励",
+      "financialListings": "金融产品上线",
+      "spotListings": "现货上线",
+      "trustpilot": "Trustpilot 评价",
+      "web3Events": "Web3 活动",
+      "maintenance": "系统维护",
+      "platformAnnouncements": "平台公告",
+      "newFeatures": "新功能",
+      "newsInsights": "新闻与洞察"
+    },
+    "push": {
+      "title": "浏览器推送通知",
+      "enable": "在本设备启用推送",
+      "disable": "在本设备禁用推送",
+      "test": "发送测试推送",
+      "sectionTitle": "推送通知",
+      "sectionSubtitle": "管理应用内通知",
+      "enableBtn": "启用通知",
+      "sendTest": "发送测试",
+      "disableBtn": "禁用"
+    },
+    "telegram": {
+      "title": "Telegram 通知",
+      "subtitle": "通过 Telegram 机器人接收通知",
+      "enableLabel": "启用 Telegram 通知",
+      "enableDesc": "连接 Telegram 账户以接收提醒"
+    },
+    "emailSections": {
+      "eventsRemindersTitle": "活动提醒",
+      "eventsRemindersSubtitle": "空投、奖励与活动通知",
+      "generalAnnouncementTitle": "一般公告",
+      "generalAnnouncementSubtitle": "平台更新与维护提醒"
+    }
   },
   "verification": {
     "verified": "已认证",
     "pending": "审核中",
+    "rejected": "已拒绝",
+    "unverified": "未认证",
     "notStarted": "未开始"
   }
 }

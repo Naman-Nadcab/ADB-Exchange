@@ -1,29 +1,252 @@
 {
+  "common": {
+    "enabled": "Diaktifkan",
+    "disabled": "Nonaktif",
+    "notConfigured": "Belum dikonfigurasi",
+    "verified": "Terverifikasi",
+    "change": "Ubah",
+    "manage": "Kelola",
+    "settings": "Pengaturan",
+    "view": "Lihat",
+    "delete": "Hapus",
+    "loading": "Memuat…",
+    "on": "ON",
+    "off": "OFF",
+    "review": "Tinjau",
+    "unlink": "Putuskan",
+    "link": "Hubungkan",
+    "pleaseWait": "Harap tunggu…",
+    "set": "Diatur",
+    "notSet": "Belum diatur",
+    "linked": "Terhubung",
+    "notLinked": "Belum terhubung",
+    "upload": "Unggah",
+    "uploading": "Mengunggah…",
+    "join": "Gabung",
+    "verifyNow": "Verifikasi sekarang",
+    "cancelDeletion": "Batalkan penghapusan",
+    "save": "Simpan",
+    "select": "Pilih"
+  },
   "profile": {
-    "title": "Akun",
-    "subtitle": "Profil, status verifikasi, dan identitas akun.",
-    "uid": "UID",
-    "email": "Email",
-    "phone": "Telepon",
-    "verification": "Verifikasi",
-    "editProfile": "Edit profil"
+    "title": "Info Akun",
+    "subtitle": "Kelola profil dan pengaturan akun",
+    "lastLogin": "Login terakhir:",
+    "securityAlert": "Peringatan Keamanan",
+    "securityLow": "Tingkat keamanan akun Anda rendah.",
+    "securityImprove": "Tingkatkan keamanan akun Anda.",
+    "setup2fa": "Atur 2FA",
+    "improveSecurity": "Tingkatkan Keamanan",
+    "accountSecured": "Akun Terlindungi",
+    "accountSecuredDesc": "Akun Anda memiliki langkah keamanan yang kuat.",
+    "viewSettings": "Lihat Pengaturan",
+    "securityLevel": "Tingkat Keamanan",
+    "profileSettings": "Pengaturan Profil",
+    "profilePicture": "Foto Profil",
+    "profilePictureDesc": "Personalisasi akun dengan avatar kustom",
+    "affiliateCommunity": "Gabung Komunitas Afiliasi",
+    "affiliateCommunityDesc": "Terhubung dengan trader terbaik dan dapatkan reward",
+    "identityVerification": "Verifikasi Identitas",
+    "identityVerificationDesc": "Selesaikan KYC untuk meningkatkan limit penarikan",
+    "bankUpi": "Rekening bank & UPI",
+    "bankUpiDesc": "Simpan rekening untuk penarikan INR dan P2P",
+    "integrationsTitle": "Integrasi Akun",
+    "integrationsSubtitle": "Hubungkan layanan pihak ketiga",
+    "linkGoogle": "Hubungkan Akun Google",
+    "linkGoogleDesc": "Hubungkan Google untuk login cepat",
+    "activitiesTitle": "Aktivitas Akun",
+    "activitiesSubtitle": "Kelola perangkat dan riwayat akun",
+    "trustedDevices": "Perangkat Tepercaya",
+    "trustedDevicesDesc": "{count} perangkat sedang login",
+    "loginHistory": "Riwayat Login",
+    "loginHistoryDesc": "Lihat aktivitas akun terbaru",
+    "deleteAccount": "Hapus Akun",
+    "deleteAccountDesc": "Hapus permanen akun dan data Anda",
+    "deleteScheduled": "Dijadwalkan dihapus pada {date}",
+    "deleteModalTitle": "Hapus Akun",
+    "deletePasswordLabel": "Kata sandi akun",
+    "changeAvatarAria": "Ubah foto profil",
+    "changeEmailAria": "Ubah email"
   },
   "security": {
-    "title": "Keamanan",
-    "subtitle": "Kata sandi, 2FA, perangkat, dan perlindungan penarikan.",
-    "twoFactor": "Autentikasi dua faktor",
-    "sessions": "Sesi aktif",
-    "fundPassword": "Kata sandi dana"
+    "centerTitle": "Pusat Keamanan",
+    "centerSubtitle": "Lindungi akun dengan beberapa lapisan keamanan",
+    "levelLabel": "Tingkat Keamanan:",
+    "levelHint": "Lengkapi lebih banyak pengaturan untuk meningkatkan perlindungan",
+    "protectionScore": "Skor perlindungan",
+    "tabs": {
+      "all": "Semua",
+      "login": "Login & kata sandi",
+      "twoFactor": "Dua faktor",
+      "advanced": "Lanjutan",
+      "withdrawal": "Penarikan"
+    },
+    "sections": {
+      "loginPassword": "Login & kata sandi",
+      "twoFactor": "Autentikasi dua faktor",
+      "advanced": "Perlindungan lanjutan",
+      "withdrawal": "Keamanan penarikan"
+    },
+    "level": {
+      "high": "Tinggi",
+      "medium": "Sedang",
+      "low": "Rendah"
+    },
+    "features": {
+      "loginPassword": {
+        "title": "Kata sandi login",
+        "description": "Digunakan untuk login akun"
+      },
+      "activeSessions": {
+        "title": "Sesi aktif",
+        "description": "Lihat tempat login dan keluar dari perangkat lain"
+      },
+      "emailAuth": {
+        "title": "Autentikasi email",
+        "descriptionPrefix": "Untuk login, penarikan, dan verifikasi keamanan.",
+        "changeEmail": "Ubah email"
+      },
+      "phone": {
+        "title": "Verifikasi telepon",
+        "description": "Verifikasi nomor ponsel dan gunakan SMS untuk login, reset kata sandi, dan tindakan keamanan"
+      },
+      "google2fa": {
+        "title": "Google 2FA",
+        "description": "Verifikasi paling aman untuk operasi sensitif"
+      },
+      "passkeys": {
+        "title": "Passkey (Touch ID / Face ID)",
+        "description": "Gunakan biometrik untuk login cepat dan aman",
+        "registered": "{count} terdaftar"
+      },
+      "fundPassword": {
+        "title": "Kata sandi dana",
+        "description": "Diperlukan untuk penarikan, trading P2P, dan operasi sensitif lainnya"
+      },
+      "antiPhishing": {
+        "title": "Kode anti-phishing",
+        "description": "Kode ini muncul di semua email resmi untuk mencegah phishing"
+      },
+      "withdrawalLimits": {
+        "title": "Kelola limit penarikan",
+        "description": "Atur limit penarikan harian dan bulanan"
+      }
+    },
+    "withdrawal": {
+      "whitelistTitle": "Whitelist alamat penarikan",
+      "whitelistDesc": "Lewati verifikasi untuk alamat tepercaya saat diaktifkan",
+      "addressBookTitle": "Tarik via buku alamat",
+      "addressBookDesc": "Hanya tarik ke alamat tersimpan.",
+      "manageAddresses": "Kelola alamat",
+      "newAddressLockTitle": "Kunci penarikan alamat baru",
+      "newAddressLockDesc": "Blokir penarikan ke alamat baru selama 24 jam untuk melindungi dari takeover akun."
+    }
   },
   "preferences": {
-    "title": "Preferensi",
-    "subtitle": "Tampilan, notifikasi, dan bahasa.",
-    "language": "Bahasa",
-    "displayCurrency": "Mata uang tampilan"
+    "title": "Pengaturan Preferensi",
+    "subtitle": "Sesuaikan pengalaman trading dan preferensi notifikasi",
+    "loading": "Memuat preferensi…",
+    "tabs": {
+      "general": "Pengaturan Umum",
+      "notification": "Pengaturan Notifikasi",
+      "email": "Langganan Email"
+    },
+    "currency": {
+      "title": "Mata uang",
+      "subtitle": "Atur mata uang tampilan pilihan",
+      "equivalentLabel": "Mata Uang Setara"
+    },
+    "language": {
+      "title": "Bahasa",
+      "subtitle": "Bahasa notifikasi dan email (UI platform memakai pemilih bahasa di header)",
+      "notificationSubtitle": "Pilih bahasa notifikasi"
+    },
+    "priceChange": {
+      "title": "Referensi perubahan harga",
+      "24h": "24 jam terakhir",
+      "1h": "1 jam terakhir",
+      "7d": "7 hari terakhir",
+      "30d": "30 hari terakhir"
+    },
+    "tradeSection": {
+      "title": "Trade",
+      "subtitle": "Atur preferensi antarmuka trading"
+    },
+    "depositSection": {
+      "title": "Deposit",
+      "subtitle": "Atur transfer deposit otomatis",
+      "fundingDesc": "Transfer otomatis deposit ke Akun Funding",
+      "unifiedDesc": "Transfer otomatis deposit ke Akun Trading Terpadu"
+    },
+    "trading": {
+      "title": "Preferensi trading",
+      "promptOrders": "Jendela konfirmasi sebelum order",
+      "promptOrdersMobile": "Konfirmasi order di situs mobile",
+      "orderbookAnimation": "Aktifkan animasi order book",
+      "cancelAllConfirm": "Konfirmasi sebelum 'Batalkan Semua'"
+    },
+    "depositRouting": {
+      "title": "Transfer otomatis deposit masuk",
+      "funding": "Akun Funding",
+      "unified": "Akun Trading Terpadu"
+    },
+    "notifications": {
+      "latestEvents": "Acara Terbaru",
+      "announcement": "Pengumuman",
+      "rewards": "Reward",
+      "tradingViewAlerts": "Alert TradingView",
+      "news": "Berita",
+      "strategySignal": "Sinyal Strategi",
+      "accountInfoChanges": "Perubahan Info Akun",
+      "accountInfoChangesDesc": "Dapatkan notifikasi saat pengaturan akun berubah",
+      "p2pOrder": "Notifikasi Order P2P",
+      "p2pAppeal": "Notifikasi Banding P2P",
+      "eventsReminders": "Pengingat acara",
+      "generalAnnouncement": "Pengumuman umum"
+    },
+    "email": {
+      "airdrop": "Alert hadiah airdrop",
+      "commissions": "Komisi diterima",
+      "eventReminder": "Pengingat acara / acara baru",
+      "perks": "Keuntungan dan reward",
+      "financialListings": "Listing produk keuangan",
+      "spotListings": "Listing spot",
+      "trustpilot": "Rating Trustpilot",
+      "web3Events": "Acara Web3",
+      "maintenance": "Pemeliharaan sistem",
+      "platformAnnouncements": "Pengumuman platform",
+      "newFeatures": "Fitur baru",
+      "newsInsights": "Berita dan wawasan"
+    },
+    "push": {
+      "title": "Notifikasi push browser",
+      "enable": "Aktifkan push di perangkat ini",
+      "disable": "Nonaktifkan push di perangkat ini",
+      "test": "Kirim push uji",
+      "sectionTitle": "Notifikasi Push",
+      "sectionSubtitle": "Kelola notifikasi dalam aplikasi",
+      "enableBtn": "Aktifkan notifikasi",
+      "sendTest": "Kirim uji",
+      "disableBtn": "Nonaktifkan"
+    },
+    "telegram": {
+      "title": "Notifikasi Telegram",
+      "subtitle": "Terima notifikasi via bot Telegram",
+      "enableLabel": "Aktifkan Notifikasi Telegram",
+      "enableDesc": "Hubungkan akun Telegram untuk menerima alert"
+    },
+    "emailSections": {
+      "eventsRemindersTitle": "Pengingat Acara",
+      "eventsRemindersSubtitle": "Airdrop, reward, dan notifikasi acara",
+      "generalAnnouncementTitle": "Pengumuman Umum",
+      "generalAnnouncementSubtitle": "Pembaruan platform dan alert pemeliharaan"
+    }
   },
   "verification": {
     "verified": "Terverifikasi",
     "pending": "Menunggu tinjauan",
+    "rejected": "Ditolak",
+    "unverified": "Belum terverifikasi",
     "notStarted": "Belum dimulai"
   }
 }
