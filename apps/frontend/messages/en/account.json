@@ -26,7 +26,15 @@
     "verifyNow": "Verify Now",
     "cancelDeletion": "Cancel deletion",
     "save": "Save",
-    "select": "Select"
+    "select": "Select",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "enable": "Enable",
+    "sending": "Sending...",
+    "resendCode": "Resend Code",
+    "resendIn": "Resend in {seconds}s",
+    "password": "Password",
+    "twoFaCode": "2FA code"
   },
   "profile": {
     "title": "Account Info",
@@ -64,7 +72,11 @@
     "deleteAccountDesc": "Permanently delete your account and data",
     "deleteScheduled": "Scheduled for deletion on {date}",
     "deleteModalTitle": "Delete Account",
+    "deleteWarning": "Your account will be scheduled for permanent deletion after a <strong>7-day grace period</strong>. You can cancel any time before then by logging in. All balances must be withdrawn and orders closed first.",
     "deletePasswordLabel": "Account password",
+    "deletePasswordPlaceholder": "Enter your password",
+    "delete2faPlaceholder": "6-digit code",
+    "scheduleDeletion": "Schedule deletion",
     "changeAvatarAria": "Change profile picture",
     "changeEmailAria": "Change email"
   },
@@ -140,6 +152,87 @@
       "manageAddresses": "Manage addresses",
       "newAddressLockTitle": "New address withdrawal lock",
       "newAddressLockDesc": "Block withdrawals to newly saved addresses for 24 hours to protect against account takeover."
+    },
+    "modals": {
+      "phoneInput": {
+        "title": "Phone verification",
+        "subtitle": "Enter your phone number for SMS authentication",
+        "phonePlaceholder": "Phone number"
+      },
+      "phoneOtp": {
+        "title": "Phone Verification",
+        "codeSentTo": "Enter the code sent to <strong>{phone}</strong>",
+        "verifyEnable": "Verify & Enable"
+      },
+      "google2faEmail": {
+        "title": "Email Verification",
+        "subtitle": "Verify your email before enabling Google 2FA"
+      },
+      "google2faSetup": {
+        "title": "Set Up Google 2FA",
+        "scanQr": "Scan this QR code with Google Authenticator",
+        "qrAlt": "2FA QR Code",
+        "manualKey": "Or enter this key manually:",
+        "enterCodeLabel": "Enter 6-digit code",
+        "codePlaceholder": "000000",
+        "enable2fa": "Enable 2FA"
+      },
+      "disable2faConfirm": {
+        "title": "Disable Google 2FA",
+        "areYouSure": "Are you sure?",
+        "warning": "Disabling 2FA will reduce your account security. You will need your password and current 2FA code to proceed."
+      },
+      "disable2faVerify": {
+        "title": "Verify to Disable 2FA",
+        "passwordPlaceholder": "Enter your password",
+        "codeLabel": "2FA Code",
+        "codePlaceholder": "Enter 6-digit code",
+        "disable2fa": "Disable 2FA"
+      },
+      "addressBook": {
+        "title": "Enable Address Book Restriction",
+        "heading": "Restrict Withdrawals",
+        "description": "Once enabled, you can only withdraw to addresses saved in your Address Book."
+      },
+      "emailChange": {
+        "title": "Change Email Address",
+        "enterNew": "Enter your new email address",
+        "newEmailPlaceholder": "New email address",
+        "codeSentTo": "Enter the code sent to <strong>{email}</strong>",
+        "verifyChange": "Verify & Change"
+      },
+      "smsChange": {
+        "title": "Change Phone Number",
+        "verifyCurrent": "Enter the code sent to your current phone <strong>{phone}</strong>",
+        "enterNewPhone": "Enter your new phone number",
+        "verifyNew": "Enter the code sent to <strong>{phone}</strong>",
+        "verifyContinue": "Verify & Continue",
+        "verifySave": "Verify & Save"
+      },
+      "passwordChange": {
+        "title": "Change Password",
+        "subtitle": "Enter your current password and new password",
+        "currentPlaceholder": "Current password",
+        "newPlaceholder": "New password (min 8 characters)",
+        "confirmPlaceholder": "Confirm new password",
+        "submit": "Change Password"
+      },
+      "passkey": {
+        "title": "Passkey Settings",
+        "manageTitle": "Manage Passkeys",
+        "enableTitle": "Enable Touch ID / Face ID",
+        "registeredDesc": "Your device is registered for biometric login",
+        "enableDesc": "Login instantly with your fingerprint or face",
+        "settingUp": "Setting up...",
+        "enableButton": "Enable with Touch ID / Face ID",
+        "thisDevice": "This Device",
+        "registeredOn": "Registered {date}",
+        "confirmRemove": "Confirm remove",
+        "removing": "Removing…",
+        "remove": "Remove",
+        "adding": "Adding...",
+        "addAnother": "Add Another Device"
+      }
     }
   },
   "preferences": {
@@ -220,6 +313,19 @@
     },
     "push": {
       "title": "Browser push notifications",
+      "browserPushTitle": "Browser Push",
+      "browserPushSubtitle": "Get deposit, withdrawal, and security alerts even when the tab is closed",
+      "notSupported": "This browser doesn't support web push notifications. Use a recent Chrome, Edge, Firefox, or Safari 16+.",
+      "permissionDenied": "Notifications are blocked in your browser settings. Unblock them for this site and reload.",
+      "statusLabel": "Status:",
+      "statusEnabledOnDevice": "Enabled on this device",
+      "statusNotEnabled": "Not enabled",
+      "noticeEnabled": "Push notifications enabled on this device",
+      "noticeDisabled": "Push notifications disabled on this device",
+      "noticeFailed": "Failed",
+      "noticeTestFailed": "Test failed",
+      "noticeNoSubscriptions": "No active device subscriptions to notify",
+      "noticeTestSent": "Test push sent to {sent} device(s)",
       "enable": "Enable push on this device",
       "disable": "Disable push on this device",
       "test": "Send test push",

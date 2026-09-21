@@ -695,7 +695,9 @@ export default function AccountInfoPage() {
               <div className="flex items-start gap-3 p-4 bg-sell-light border border-sell/30 rounded-xl">
                 <AlertTriangle className="w-5 h-5 text-sell flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-foreground/90">
-                  Your account will be scheduled for permanent deletion after a <strong>7-day grace period</strong>. You can cancel any time before then by logging in. All balances must be withdrawn and orders closed first.
+                  {ta.rich('profile.deleteWarning', {
+                    strong: (chunks) => <strong>{chunks}</strong>,
+                  })}
                 </p>
               </div>
               <div>
@@ -705,27 +707,27 @@ export default function AccountInfoPage() {
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                   className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-sell"
-                  placeholder="Enter your password"
+                  placeholder={ta('profile.deletePasswordPlaceholder')}
                   autoComplete="current-password"
                 />
               </div>
               {profileData?.totp_enabled && (
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">2FA code</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">{ta('common.twoFaCode')}</label>
                   <input
                     type="text"
                     inputMode="numeric"
                     value={delete2fa}
                     onChange={(e) => setDelete2fa(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-sell tracking-widest"
-                    placeholder="6-digit code"
+                    placeholder={ta('profile.delete2faPlaceholder')}
                   />
                 </div>
               )}
             </div>
             <div className="flex items-center justify-end gap-3 p-6 border-t border-border">
               <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2.5 text-sm font-medium rounded-lg border border-border text-muted-foreground hover:bg-accent">
-                Cancel
+                {ta('common.cancel')}
               </button>
               <button
                 onClick={() => void submitAccountDeletion()}
@@ -733,7 +735,7 @@ export default function AccountInfoPage() {
                 className="px-5 py-2.5 text-sm font-semibold rounded-lg bg-sell hover:bg-sell/85 text-white disabled:opacity-50 inline-flex items-center gap-2"
               >
                 {deleting && <Loader2 className="w-4 h-4 animate-spin" />}
-                Schedule deletion
+                {ta('profile.scheduleDeletion')}
               </button>
             </div>
           </div>

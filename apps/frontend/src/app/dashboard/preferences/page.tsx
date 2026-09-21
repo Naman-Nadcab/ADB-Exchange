@@ -117,7 +117,7 @@ export default function PreferencesPage() {
     setPushBusy(true);
     setPushNotice(null);
     const r = await enablePushNotifications(accessToken);
-    setPushNotice(r.ok ? 'Push notifications enabled on this device' : (r.error || 'Failed'));
+    setPushNotice(r.ok ? 'enabled' : r.error || 'failed');
     await refreshPushStatus();
     setPushBusy(false);
   };
@@ -127,7 +127,7 @@ export default function PreferencesPage() {
     setPushBusy(true);
     setPushNotice(null);
     const r = await disablePushNotifications(accessToken);
-    setPushNotice(r.ok ? 'Push notifications disabled on this device' : (r.error || 'Failed'));
+    setPushNotice(r.ok ? 'disabled' : r.error || 'failed');
     await refreshPushStatus();
     setPushBusy(false);
   };
@@ -137,9 +137,9 @@ export default function PreferencesPage() {
     setPushBusy(true);
     setPushNotice(null);
     const r = await sendTestPush(accessToken);
-    if (!r.ok) setPushNotice(r.error || 'Test failed');
-    else if ((r.sent ?? 0) === 0) setPushNotice('No active device subscriptions to notify');
-    else setPushNotice(`Test push sent to ${r.sent} device(s)`);
+    if (!r.ok) setPushNotice(r.error || 'testFailed');
+    else if ((r.sent ?? 0) === 0) setPushNotice('noSubscriptions');
+    else setPushNotice(`testSent:${r.sent}`);
     setPushBusy(false);
   };
 
@@ -352,6 +352,20 @@ export default function PreferencesPage() {
     </div>
   );
 
+  const pushNoticeText = (notice: string | null) => {
+    if (!notice) return null;
+    if (notice === 'enabled') return ta('preferences.push.noticeEnabled');
+    if (notice === 'disabled') return ta('preferences.push.noticeDisabled');
+    if (notice === 'failed') return ta('preferences.push.noticeFailed');
+    if (notice === 'testFailed') return ta('preferences.push.noticeTestFailed');
+    if (notice === 'noSubscriptions') return ta('preferences.push.noticeNoSubscriptions');
+    if (notice.startsWith('testSent:')) {
+      const sent = notice.slice('testSent:'.length);
+      return ta('preferences.push.noticeTestSent', { sent });
+    }
+    return notice;
+  };
+
   const tabs = [
     { id: 'general', label: ta('preferences.tabs.general'), icon: Settings },
     { id: 'notification', label: ta('preferences.tabs.notification'), icon: Bell },
@@ -430,7 +444,7 @@ export default function PreferencesPage() {
                           <span className="text-2xl">{currencies.find(c => c.value === settings.displayCurrency)?.flag || '🌐'}</span>
                           <div className="flex flex-col">
                             <span className="font-semibold text-foreground">
-                              {currencies.find(c => c.value === settings.displayCurrency)?.label || 'Select'}
+                              {currencies.find(c => c.value === settings.displayCurrency)?.label || ta('common.select')}
                             </span>
                             <span className="text-muted-foreground text-sm">
                               {currencies.find(c => c.value === settings.displayCurrency)?.name}
@@ -676,27 +690,28 @@ export default function PreferencesPage() {
                       <Bell className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-foreground">Browser Push</h2>
-                      <p className="text-xs text-muted-foreground">Get deposit, withdrawal, and security alerts even when the tab is closed</p>
+                      <h2 className="text-lg font-semibold text-foreground">{ta('preferences.push.browserPushTitle')}</h2>
+                      <p className="text-xs text-muted-foreground">{ta('preferences.push.browserPushSubtitle')}</p>
                     </div>
                   </div>
                   <div className="p-6 space-y-4">
                     {!pushStatus.supported && (
-                      <p className="text-sm text-muted-foreground">
-                        This browser doesn&apos;t support web push notifications. Use a recent Chrome, Edge, Firefox, or Safari 16+.
-                      </p>
+                      <p className="text-sm text-muted-foreground">{ta('preferences.push.notSupported')}</p>
                     )}
                     {pushStatus.supported && pushStatus.permission === 'denied' && (
-                      <p className="text-sm text-destructive">
-                        Notifications are blocked in your browser settings. Unblock them for this site and reload.
-                      </p>
+                      <p className="text-sm text-destructive">{ta('preferences.push.permissionDenied')}</p>
                     )}
                     {pushStatus.supported && pushStatus.permission !== 'denied' && (
                       <div className="flex flex-wrap gap-3 items-center">
                         <div className="flex items-center gap-2 text-sm">
                           <span className={`w-2 h-2 rounded-full ${pushStatus.subscribed ? 'bg-success' : 'bg-muted-foreground/40'}`} />
                           <span className="text-muted-foreground">
-                            Status: <span className="font-semibold text-foreground">{pushStatus.subscribed ? 'Enabled on this device' : 'Not enabled'}</span>
+                            {ta('preferences.push.statusLabel')}{' '}
+                            <span className="font-semibold text-foreground">
+                              {pushStatus.subscribed
+                                ? ta('preferences.push.statusEnabledOnDevice')
+                                : ta('preferences.push.statusNotEnabled')}
+                            </span>
                           </span>
                         </div>
                         <div className="flex gap-2 ml-auto">
@@ -707,7 +722,7 @@ export default function PreferencesPage() {
                               className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-60 flex items-center gap-2"
                             >
                               {pushBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bell className="w-4 h-4" />}
-                              Enable notifications
+                              {ta('preferences.push.enableBtn')}
                             </button>
                           ) : (
                             <>
@@ -716,14 +731,14 @@ export default function PreferencesPage() {
                                 disabled={pushBusy}
                                 className="px-4 py-2 rounded-lg bg-muted text-foreground text-sm font-semibold hover:bg-accent disabled:opacity-60"
                               >
-                                Send test
+                                {ta('preferences.push.sendTest')}
                               </button>
                               <button
                                 onClick={handleDisablePush}
                                 disabled={pushBusy}
                                 className="px-4 py-2 rounded-lg border border-destructive/40 text-destructive text-sm font-semibold hover:bg-destructive/10 disabled:opacity-60"
                               >
-                                Disable
+                                {ta('preferences.push.disableBtn')}
                               </button>
                             </>
                           )}
@@ -731,7 +746,7 @@ export default function PreferencesPage() {
                       </div>
                     )}
                     {pushNotice && (
-                      <p className="text-sm text-muted-foreground border-t border-border pt-3">{pushNotice}</p>
+                      <p className="text-sm text-muted-foreground border-t border-border pt-3">{pushNoticeText(pushNotice)}</p>
                     )}
                   </div>
                 </div>
@@ -743,8 +758,8 @@ export default function PreferencesPage() {
                       <Bell className="w-5 h-5 text-warning" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-foreground">Push Notifications</h2>
-                      <p className="text-xs text-muted-foreground">Manage your in-app notifications</p>
+                      <h2 className="text-lg font-semibold text-foreground">{ta('preferences.push.sectionTitle')}</h2>
+                      <p className="text-xs text-muted-foreground">{ta('preferences.push.sectionSubtitle')}</p>
                     </div>
                   </div>
                   
@@ -768,16 +783,16 @@ export default function PreferencesPage() {
                       <MessageCircle className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-foreground">Telegram Notifications</h2>
-                      <p className="text-xs text-muted-foreground">Receive notifications via Telegram bot</p>
+                      <h2 className="text-lg font-semibold text-foreground">{ta('preferences.telegram.title')}</h2>
+                      <p className="text-xs text-muted-foreground">{ta('preferences.telegram.subtitle')}</p>
                     </div>
                   </div>
                   
                   <div className="p-6">
                     <div className="flex items-center justify-between p-4 bg-muted rounded-xl mb-4">
                       <div>
-                        <span className="font-medium text-foreground">Enable Telegram Notifications</span>
-                        <p className="text-xs text-muted-foreground mt-1">Connect your Telegram account to receive alerts</p>
+                        <span className="font-medium text-foreground">{ta('preferences.telegram.enableLabel')}</span>
+                        <p className="text-xs text-muted-foreground mt-1">{ta('preferences.telegram.enableDesc')}</p>
                       </div>
                       <Toggle checked={settings.telegramNotification} onChange={(v) => updateSetting('telegramNotification', v)} saving={saving === 'telegramNotification'} />
                     </div>
@@ -815,8 +830,8 @@ export default function PreferencesPage() {
                         <Bell className="w-5 h-5 text-primary" />
                       </div>
                       <div className="text-left">
-                        <h2 className="text-lg font-semibold text-foreground">Events Reminders</h2>
-                        <p className="text-xs text-muted-foreground">Airdrops, rewards, and event notifications</p>
+                        <h2 className="text-lg font-semibold text-foreground">{ta('preferences.emailSections.eventsRemindersTitle')}</h2>
+                        <p className="text-xs text-muted-foreground">{ta('preferences.emailSections.eventsRemindersSubtitle')}</p>
                       </div>
                     </div>
                     <div className={`w-8 h-8 rounded-lg bg-accent flex items-center justify-center transition-transform ${eventsRemindersExpanded ? '' : '-rotate-180'}`}>
@@ -851,8 +866,8 @@ export default function PreferencesPage() {
                         <Mail className="w-5 h-5 text-warning" />
                       </div>
                       <div className="text-left">
-                        <h2 className="text-lg font-semibold text-foreground">General Announcement</h2>
-                        <p className="text-xs text-muted-foreground">Platform updates and maintenance alerts</p>
+                        <h2 className="text-lg font-semibold text-foreground">{ta('preferences.emailSections.generalAnnouncementTitle')}</h2>
+                        <p className="text-xs text-muted-foreground">{ta('preferences.emailSections.generalAnnouncementSubtitle')}</p>
                       </div>
                     </div>
                     <div className={`w-8 h-8 rounded-lg bg-accent flex items-center justify-center transition-transform ${generalAnnouncementExpanded ? '' : '-rotate-180'}`}>

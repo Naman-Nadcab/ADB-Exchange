@@ -1545,12 +1545,12 @@ export default function SecurityPage() {
 
       {/* ===== MODALS ===== */}
 
-      <Modal show={showPhoneInputModal} onClose={() => setShowPhoneInputModal(false)} title="Phone verification">
+      <Modal show={showPhoneInputModal} onClose={() => setShowPhoneInputModal(false)} title={ta('security.modals.phoneInput.title')}>
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-muted rounded-full mx-auto flex items-center justify-center mb-4">
             <Smartphone className="w-8 h-8 text-primary" />
           </div>
-          <p className="text-muted-foreground">Enter your phone number for SMS authentication</p>
+          <p className="text-muted-foreground">{ta('security.modals.phoneInput.subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <div className="relative">
@@ -1589,7 +1589,7 @@ export default function SecurityPage() {
             type="tel"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-            placeholder="Phone number"
+            placeholder={ta('security.modals.phoneInput.phonePlaceholder')}
             className="flex-1 px-4 py-3.5 bg-muted border border-border rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-ring/30"
           />
         </div>
@@ -1598,18 +1598,21 @@ export default function SecurityPage() {
           disabled={phoneNumber.length < 10}
           className="w-full mt-6 py-3.5 bg-primary text-primary-foreground hover:bg-primary/85 disabled:bg-muted disabled:text-muted-foreground font-semibold rounded-xl transition-colors"
         >
-          Continue
+          {ta('common.continue')}
         </button>
       </Modal>
 
       {/* Phone OTP Modal */}
-      <Modal show={showPhoneOtpModal} onClose={() => setShowPhoneOtpModal(false)} title="Phone Verification">
+      <Modal show={showPhoneOtpModal} onClose={() => setShowPhoneOtpModal(false)} title={ta('security.modals.phoneOtp.title')}>
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-muted rounded-full mx-auto flex items-center justify-center mb-4">
             <Smartphone className="w-8 h-8 text-primary" />
           </div>
           <p className="text-muted-foreground">
-            Enter the code sent to <span className="font-medium text-foreground">{selectedCountry.code}{phoneNumber}</span>
+            {ta.rich('security.modals.phoneOtp.codeSentTo', {
+              phone: `${selectedCountry.code}${phoneNumber}`,
+              strong: (chunks) => <span className="font-medium text-foreground">{chunks}</span>,
+            })}
           </p>
         </div>
         <div className="flex gap-3 justify-center">
@@ -1639,10 +1642,10 @@ export default function SecurityPage() {
         </div>
         <div className="flex justify-center mt-4">
           {phoneOtpTimer > 0 ? (
-            <span className="text-sm text-muted-foreground">Resend in {phoneOtpTimer}s</span>
+            <span className="text-sm text-muted-foreground">{ta('common.resendIn', { seconds: phoneOtpTimer })}</span>
           ) : (
             <button onClick={sendPhoneOtp} disabled={sendingPhoneOtp} className="text-sm text-primary hover:underline">
-              {sendingPhoneOtp ? 'Sending...' : 'Resend Code'}
+              {sendingPhoneOtp ? ta('common.sending') : ta('common.resendCode')}
             </button>
           )}
         </div>
@@ -1652,17 +1655,17 @@ export default function SecurityPage() {
           className="w-full mt-6 py-3.5 bg-primary text-primary-foreground hover:bg-primary/85 disabled:bg-muted disabled:text-muted-foreground font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
         >
           {verifyingPhoneOtp ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-          Verify & Enable
+          {ta('security.modals.phoneOtp.verifyEnable')}
         </button>
       </Modal>
 
       {/* Google 2FA Email OTP Modal */}
-      <Modal show={showGoogle2faEmailOtpModal} onClose={() => setShowGoogle2faEmailOtpModal(false)} title="Email Verification">
+      <Modal show={showGoogle2faEmailOtpModal} onClose={() => setShowGoogle2faEmailOtpModal(false)} title={ta('security.modals.google2faEmail.title')}>
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-muted rounded-full mx-auto flex items-center justify-center mb-4">
             <Shield className="h-8 w-8 text-buy" />
           </div>
-          <p className="text-muted-foreground">Verify your email before enabling Google 2FA</p>
+          <p className="text-muted-foreground">{ta('security.modals.google2faEmail.subtitle')}</p>
         </div>
         <div className="flex gap-3 justify-center">
           {google2faEmailOtp.map((digit, i) => (
@@ -1691,10 +1694,10 @@ export default function SecurityPage() {
         </div>
         <div className="flex justify-center mt-4">
           {google2faEmailOtpTimer > 0 ? (
-            <span className="text-sm text-muted-foreground">Resend in {google2faEmailOtpTimer}s</span>
+            <span className="text-sm text-muted-foreground">{ta('common.resendIn', { seconds: google2faEmailOtpTimer })}</span>
           ) : (
             <button onClick={sendGoogle2faEmailOtp} disabled={sendingGoogle2faEmailOtp} className="text-sm text-primary hover:underline">
-              {sendingGoogle2faEmailOtp ? 'Sending...' : 'Resend Code'}
+              {sendingGoogle2faEmailOtp ? ta('common.sending') : ta('common.resendCode')}
             </button>
           )}
         </div>
@@ -1704,21 +1707,21 @@ export default function SecurityPage() {
           className="w-full mt-6 py-3.5 bg-primary text-primary-foreground hover:bg-primary/85 disabled:bg-muted disabled:text-muted-foreground font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
         >
           {verifyingGoogle2faEmailOtp ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-          Continue
+          {ta('common.continue')}
         </button>
       </Modal>
 
       {/* Google 2FA Setup Modal */}
-      <Modal show={showGoogle2faSetupModal} onClose={() => setShowGoogle2faSetupModal(false)} title="Set Up Google 2FA">
+      <Modal show={showGoogle2faSetupModal} onClose={() => setShowGoogle2faSetupModal(false)} title={ta('security.modals.google2faSetup.title')}>
         <div className="space-y-6">
           <div className="text-center">
-            <p className="text-muted-foreground mb-4">Scan this QR code with Google Authenticator</p>
+            <p className="text-muted-foreground mb-4">{ta('security.modals.google2faSetup.scanQr')}</p>
             {google2faQrCode && (
-              <img src={google2faQrCode} alt="2FA QR Code" className="w-48 h-48 mx-auto rounded-xl border border-border" />
+              <img src={google2faQrCode} alt={ta('security.modals.google2faSetup.qrAlt')} className="w-48 h-48 mx-auto rounded-xl border border-border" />
             )}
           </div>
           <div className="p-4 bg-muted rounded-xl">
-            <p className="text-xs text-muted-foreground mb-2">Or enter this key manually:</p>
+            <p className="text-xs text-muted-foreground mb-2">{ta('security.modals.google2faSetup.manualKey')}</p>
             <div className="flex items-center gap-2">
               <code className="flex-1 text-sm font-mono text-foreground break-all">{google2faSecret}</code>
               <button
@@ -1730,12 +1733,12 @@ export default function SecurityPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground/80 mb-2">Enter 6-digit code</label>
+            <label className="block text-sm font-medium text-foreground/80 mb-2">{ta('security.modals.google2faSetup.enterCodeLabel')}</label>
             <input
               type="text"
               value={google2faCode}
               onChange={(e) => setGoogle2faCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="000000"
+              placeholder={ta('security.modals.google2faSetup.codePlaceholder')}
               className="w-full px-4 py-3.5 bg-muted border border-border rounded-xl text-center text-xl font-mono tracking-widest outline-none focus:border-primary focus:ring-2 focus:ring-ring/30"
             />
           </div>
@@ -1745,49 +1748,47 @@ export default function SecurityPage() {
             className="w-full py-3.5 bg-primary text-primary-foreground hover:bg-primary/85 disabled:bg-muted disabled:text-muted-foreground font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
           >
             {enablingGoogle2fa ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-            Enable 2FA
+            {ta('security.modals.google2faSetup.enable2fa')}
           </button>
         </div>
       </Modal>
 
       {/* Disable 2FA Confirm Modal */}
-      <Modal show={showDisable2faConfirmModal} onClose={() => setShowDisable2faConfirmModal(false)} title="Disable Google 2FA">
+      <Modal show={showDisable2faConfirmModal} onClose={() => setShowDisable2faConfirmModal(false)} title={ta('security.modals.disable2faConfirm.title')}>
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-muted rounded-full mx-auto flex items-center justify-center mb-4">
             <AlertTriangle className="h-8 w-8 text-sell" />
           </div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Are you sure?</h3>
-          <p className="text-muted-foreground">
-            Disabling 2FA will reduce your account security. You will need your password and current 2FA code to proceed.
-          </p>
+          <h3 className="text-lg font-semibold text-foreground mb-2">{ta('security.modals.disable2faConfirm.areYouSure')}</h3>
+          <p className="text-muted-foreground">{ta('security.modals.disable2faConfirm.warning')}</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={() => setShowDisable2faConfirmModal(false)}
             className="flex-1 py-3 bg-accent hover:bg-accent text-foreground/80 font-medium rounded-xl transition-colors"
           >
-            Cancel
+            {ta('common.cancel')}
           </button>
           <button
             onClick={confirmDisable2fa}
             className="flex-1 rounded-xl bg-sell py-3 font-medium text-primary-foreground transition-colors hover:bg-sell/90"
           >
-            Continue
+            {ta('common.continue')}
           </button>
         </div>
       </Modal>
 
       {/* Disable 2FA Verify Modal */}
-      <Modal show={showDisable2faVerifyModal} onClose={() => setShowDisable2faVerifyModal(false)} title="Verify to Disable 2FA">
+      <Modal show={showDisable2faVerifyModal} onClose={() => setShowDisable2faVerifyModal(false)} title={ta('security.modals.disable2faVerify.title')}>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-foreground/80 mb-2">Password</label>
+            <label className="block text-sm font-medium text-foreground/80 mb-2">{ta('common.password')}</label>
             <div className="relative">
               <input
                 type={showDisablePassword ? 'text' : 'password'}
                 value={disable2faPassword}
                 onChange={(e) => setDisable2faPassword(e.target.value)}
-                placeholder="Enter your password"
+                placeholder={ta('security.modals.disable2faVerify.passwordPlaceholder')}
                 className="w-full px-4 py-3.5 bg-muted border border-border rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-ring/30 pr-12 text-foreground placeholder:text-muted-foreground"
               />
               <button
@@ -1800,12 +1801,12 @@ export default function SecurityPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground/80 mb-2">2FA Code</label>
+            <label className="block text-sm font-medium text-foreground/80 mb-2">{ta('security.modals.disable2faVerify.codeLabel')}</label>
             <input
               type="text"
               value={disable2faCode}
               onChange={(e) => setDisable2faCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="Enter 6-digit code"
+              placeholder={ta('security.modals.disable2faVerify.codePlaceholder')}
               className="w-full px-4 py-3.5 bg-muted border border-border rounded-xl text-center text-xl font-mono tracking-widest outline-none focus:border-primary focus:ring-2 focus:ring-ring/30 text-foreground placeholder:text-muted-foreground"
             />
           </div>
@@ -1815,28 +1816,26 @@ export default function SecurityPage() {
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-sell py-3.5 font-semibold text-primary-foreground transition-colors hover:bg-sell/90 disabled:bg-muted disabled:text-muted-foreground"
           >
             {disabling2fa ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-            Disable 2FA
+            {ta('security.modals.disable2faVerify.disable2fa')}
           </button>
         </div>
       </Modal>
 
       {/* Address Book Enable Modal */}
-      <Modal show={showAddressBookModal} onClose={() => setShowAddressBookModal(false)} title="Enable Address Book Restriction">
+      <Modal show={showAddressBookModal} onClose={() => setShowAddressBookModal(false)} title={ta('security.modals.addressBook.title')}>
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-muted rounded-full mx-auto flex items-center justify-center mb-4">
             <BookOpen className="w-8 h-8 text-primary" />
           </div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Restrict Withdrawals</h3>
-          <p className="text-muted-foreground">
-            Once enabled, you can only withdraw to addresses saved in your Address Book.
-          </p>
+          <h3 className="text-lg font-semibold text-foreground mb-2">{ta('security.modals.addressBook.heading')}</h3>
+          <p className="text-muted-foreground">{ta('security.modals.addressBook.description')}</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={() => setShowAddressBookModal(false)}
             className="flex-1 py-3 bg-accent hover:bg-accent text-foreground/80 font-medium rounded-xl transition-colors"
           >
-            Cancel
+            {ta('common.cancel')}
           </button>
           <button
             onClick={enableAddressBook}
@@ -1844,13 +1843,13 @@ export default function SecurityPage() {
             className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/85"
           >
             {enablingAddressBook ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-            Enable
+            {ta('common.enable')}
           </button>
         </div>
       </Modal>
 
       {/* Email Change Modal */}
-      <Modal show={showEmailChangeModal} onClose={() => setShowEmailChangeModal(false)} title="Change Email Address">
+      <Modal show={showEmailChangeModal} onClose={() => setShowEmailChangeModal(false)} title={ta('security.modals.emailChange.title')}>
         <div className="space-y-6">
           {emailChangeStep === 'input' && (
             <>
@@ -1858,13 +1857,13 @@ export default function SecurityPage() {
                 <div className="w-16 h-16 bg-muted rounded-full mx-auto flex items-center justify-center mb-4">
                   <Mail className="w-8 h-8 text-primary" />
                 </div>
-                <p className="text-muted-foreground">Enter your new email address</p>
+                <p className="text-muted-foreground">{ta('security.modals.emailChange.enterNew')}</p>
               </div>
               <input
                 type="email"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
-                placeholder="New email address"
+                placeholder={ta('security.modals.emailChange.newEmailPlaceholder')}
                 className="w-full px-4 py-3.5 bg-muted border border-border rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-ring/30 text-foreground"
               />
               <button
@@ -1873,7 +1872,7 @@ export default function SecurityPage() {
                 className="w-full py-3.5 bg-primary text-primary-foreground hover:bg-primary/85 disabled:bg-muted disabled:text-muted-foreground font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 {sendingEmailChangeOtp ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-                Continue
+                {ta('common.continue')}
               </button>
             </>
           )}
@@ -1883,7 +1882,12 @@ export default function SecurityPage() {
                 <div className="w-16 h-16 bg-muted rounded-full mx-auto flex items-center justify-center mb-4">
                   <Mail className="h-8 w-8 text-buy" />
                 </div>
-                <p className="text-muted-foreground">Enter the code sent to <span className="font-medium text-foreground">{newEmail}</span></p>
+                <p className="text-muted-foreground">
+                  {ta.rich('security.modals.emailChange.codeSentTo', {
+                    email: newEmail,
+                    strong: (chunks) => <span className="font-medium text-foreground">{chunks}</span>,
+                  })}
+                </p>
               </div>
               <div className="flex gap-3 justify-center">
                 {emailChangeOtp.map((digit, i) => (
@@ -1912,10 +1916,10 @@ export default function SecurityPage() {
               </div>
               <div className="flex justify-center">
                 {emailChangeOtpTimer > 0 ? (
-                  <span className="text-sm text-muted-foreground">Resend in {emailChangeOtpTimer}s</span>
+                  <span className="text-sm text-muted-foreground">{ta('common.resendIn', { seconds: emailChangeOtpTimer })}</span>
                 ) : (
                   <button onClick={sendEmailChangeOtp} disabled={sendingEmailChangeOtp} className="text-sm text-primary hover:underline">
-                    {sendingEmailChangeOtp ? 'Sending...' : 'Resend Code'}
+                    {sendingEmailChangeOtp ? ta('common.sending') : ta('common.resendCode')}
                   </button>
                 )}
               </div>
@@ -1925,7 +1929,7 @@ export default function SecurityPage() {
                 className="w-full py-3.5 bg-primary text-primary-foreground hover:bg-primary/85 disabled:bg-muted disabled:text-muted-foreground font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 {verifyingEmailChange ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-                Verify & Change
+                {ta('security.modals.emailChange.verifyChange')}
               </button>
             </>
           )}
@@ -1933,7 +1937,7 @@ export default function SecurityPage() {
       </Modal>
 
       {/* SMS Change Modal */}
-      <Modal show={showSmsChangeModal} onClose={() => setShowSmsChangeModal(false)} title="Change Phone Number">
+      <Modal show={showSmsChangeModal} onClose={() => setShowSmsChangeModal(false)} title={ta('security.modals.smsChange.title')}>
         <div className="space-y-6">
           {smsChangeStep === 'verify_current' && (
             <>
@@ -1941,7 +1945,12 @@ export default function SecurityPage() {
                 <div className="w-16 h-16 bg-muted rounded-full mx-auto flex items-center justify-center mb-4">
                   <Smartphone className="w-8 h-8 text-primary" />
                 </div>
-                <p className="text-muted-foreground">Enter the code sent to your current phone <span className="font-medium text-foreground">{maskPhone(userPhone || '')}</span></p>
+                <p className="text-muted-foreground">
+                  {ta.rich('security.modals.smsChange.verifyCurrent', {
+                    phone: maskPhone(userPhone || ''),
+                    strong: (chunks) => <span className="font-medium text-foreground">{chunks}</span>,
+                  })}
+                </p>
               </div>
               <div className="flex gap-3 justify-center">
                 {currentPhoneOtp.map((digit, i) => (
@@ -1970,10 +1979,10 @@ export default function SecurityPage() {
               </div>
               <div className="flex justify-center">
                 {smsChangeOtpTimer > 0 ? (
-                  <span className="text-sm text-muted-foreground">Resend in {smsChangeOtpTimer}s</span>
+                  <span className="text-sm text-muted-foreground">{ta('common.resendIn', { seconds: smsChangeOtpTimer })}</span>
                 ) : (
                   <button onClick={sendCurrentPhoneOtp} disabled={sendingSmsChangeOtp} className="text-sm text-primary hover:underline">
-                    {sendingSmsChangeOtp ? 'Sending...' : 'Resend Code'}
+                    {sendingSmsChangeOtp ? ta('common.sending') : ta('common.resendCode')}
                   </button>
                 )}
               </div>
@@ -1983,7 +1992,7 @@ export default function SecurityPage() {
                 className="w-full py-3.5 bg-primary text-primary-foreground hover:bg-primary/85 disabled:bg-muted disabled:text-muted-foreground font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 {verifyingSmsChange ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-                Verify & Continue
+                {ta('security.modals.smsChange.verifyContinue')}
               </button>
             </>
           )}
@@ -1993,7 +2002,7 @@ export default function SecurityPage() {
                 <div className="w-16 h-16 bg-muted rounded-full mx-auto flex items-center justify-center mb-4">
                   <Smartphone className="h-8 w-8 text-buy" />
                 </div>
-                <p className="text-muted-foreground">Enter your new phone number</p>
+                <p className="text-muted-foreground">{ta('security.modals.smsChange.enterNewPhone')}</p>
               </div>
               <div className="flex gap-2">
                 <div className="relative">
@@ -2025,7 +2034,7 @@ export default function SecurityPage() {
                   type="tel"
                   value={newPhoneNumber}
                   onChange={(e) => setNewPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 15))}
-                  placeholder="Phone number"
+                  placeholder={ta('security.modals.phoneInput.phonePlaceholder')}
                   className="flex-1 px-4 py-3.5 bg-muted border border-border rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-ring/30 text-foreground"
                 />
               </div>
@@ -2035,7 +2044,7 @@ export default function SecurityPage() {
                 className="w-full py-3.5 bg-primary text-primary-foreground hover:bg-primary/85 disabled:bg-muted disabled:text-muted-foreground font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 {sendingSmsChangeOtp ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-                Continue
+                {ta('common.continue')}
               </button>
             </>
           )}
@@ -2045,7 +2054,12 @@ export default function SecurityPage() {
                 <div className="w-16 h-16 bg-muted rounded-full mx-auto flex items-center justify-center mb-4">
                   <Smartphone className="h-8 w-8 text-buy" />
                 </div>
-                <p className="text-muted-foreground">Enter the code sent to <span className="font-medium text-foreground">{selectedCountry?.code}{newPhoneNumber}</span></p>
+                <p className="text-muted-foreground">
+                  {ta.rich('security.modals.smsChange.verifyNew', {
+                    phone: `${selectedCountry?.code}${newPhoneNumber}`,
+                    strong: (chunks) => <span className="font-medium text-foreground">{chunks}</span>,
+                  })}
+                </p>
               </div>
               <div className="flex gap-3 justify-center">
                 {newPhoneOtp.map((digit, i) => (
@@ -2074,10 +2088,10 @@ export default function SecurityPage() {
               </div>
               <div className="flex justify-center">
                 {smsChangeOtpTimer > 0 ? (
-                  <span className="text-sm text-muted-foreground">Resend in {smsChangeOtpTimer}s</span>
+                  <span className="text-sm text-muted-foreground">{ta('common.resendIn', { seconds: smsChangeOtpTimer })}</span>
                 ) : (
                   <button onClick={sendNewPhoneOtp} disabled={sendingSmsChangeOtp} className="text-sm text-primary hover:underline">
-                    {sendingSmsChangeOtp ? 'Sending...' : 'Resend Code'}
+                    {sendingSmsChangeOtp ? ta('common.sending') : ta('common.resendCode')}
                   </button>
                 )}
               </div>
@@ -2087,7 +2101,7 @@ export default function SecurityPage() {
                 className="w-full py-3.5 bg-primary text-primary-foreground hover:bg-primary/85 disabled:bg-muted disabled:text-muted-foreground font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 {verifyingSmsChange ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-                Verify & Save
+                {ta('security.modals.smsChange.verifySave')}
               </button>
             </>
           )}
@@ -2095,13 +2109,13 @@ export default function SecurityPage() {
       </Modal>
 
       {/* Password Change Modal */}
-      <Modal show={showPasswordChangeModal} onClose={() => setShowPasswordChangeModal(false)} title="Change Password">
+      <Modal show={showPasswordChangeModal} onClose={() => setShowPasswordChangeModal(false)} title={ta('security.modals.passwordChange.title')}>
         <div className="space-y-6">
           <div className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
               <Lock className="h-8 w-8 text-primary" />
             </div>
-            <p className="text-muted-foreground">Enter your current password and new password</p>
+            <p className="text-muted-foreground">{ta('security.modals.passwordChange.subtitle')}</p>
           </div>
           <div className="space-y-4">
             <div className="relative">
@@ -2109,7 +2123,7 @@ export default function SecurityPage() {
                 type={showCurrentPassword ? 'text' : 'password'}
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Current password"
+                placeholder={ta('security.modals.passwordChange.currentPlaceholder')}
                 className="w-full px-4 py-3.5 bg-muted border border-border rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-ring/30 text-foreground pr-12"
               />
               <button
@@ -2125,7 +2139,7 @@ export default function SecurityPage() {
                 type={showNewPassword ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="New password (min 8 characters)"
+                placeholder={ta('security.modals.passwordChange.newPlaceholder')}
                 className="w-full px-4 py-3.5 bg-muted border border-border rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-ring/30 text-foreground pr-12"
               />
               <button
@@ -2141,7 +2155,7 @@ export default function SecurityPage() {
                 type={showConfirmNewPassword ? 'text' : 'password'}
                 value={confirmNewPassword}
                 onChange={(e) => setConfirmNewPassword(e.target.value)}
-                placeholder="Confirm new password"
+                placeholder={ta('security.modals.passwordChange.confirmPlaceholder')}
                 className="w-full px-4 py-3.5 bg-muted border border-border rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-ring/30 text-foreground pr-12"
               />
               <button
@@ -2159,25 +2173,25 @@ export default function SecurityPage() {
             className="w-full py-3.5 bg-primary text-primary-foreground hover:bg-primary/85 disabled:bg-muted disabled:text-muted-foreground font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
           >
             {changingPassword ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-            Change Password
+            {ta('security.modals.passwordChange.submit')}
           </button>
         </div>
       </Modal>
 
       {/* Passkey Settings Modal */}
-      <Modal show={showPasskeyModal} onClose={() => setShowPasskeyModal(false)} title="Passkey Settings">
+      <Modal show={showPasskeyModal} onClose={() => setShowPasskeyModal(false)} title={ta('security.modals.passkey.title')}>
         <div className="space-y-6">
           <div className="text-center">
             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-xl bg-primary shadow-sm">
               <Fingerprint className="h-10 w-10 text-primary-foreground" />
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-2">
-              {passkeys.length > 0 ? 'Manage Passkeys' : 'Enable Touch ID / Face ID'}
+              {passkeys.length > 0 ? ta('security.modals.passkey.manageTitle') : ta('security.modals.passkey.enableTitle')}
             </h3>
             <p className="text-muted-foreground text-sm">
               {passkeys.length > 0 
-                ? 'Your device is registered for biometric login'
-                : 'Login instantly with your fingerprint or face'
+                ? ta('security.modals.passkey.registeredDesc')
+                : ta('security.modals.passkey.enableDesc')
               }
             </p>
           </div>
@@ -2192,12 +2206,12 @@ export default function SecurityPage() {
               {registeringPasskey ? (
                 <>
                   <Loader2 className="w-6 h-6 animate-spin" />
-                  Setting up...
+                  {ta('security.modals.passkey.settingUp')}
                 </>
               ) : (
                 <>
                   <Fingerprint className="w-6 h-6" />
-                  Enable with Touch ID / Face ID
+                  {ta('security.modals.passkey.enableButton')}
                 </>
               )}
             </button>
@@ -2216,9 +2230,9 @@ export default function SecurityPage() {
                       <Check className="h-6 w-6 text-buy" />
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground">{passkey.device_name || 'This Device'}</p>
+                      <p className="font-semibold text-foreground">{passkey.device_name || ta('security.modals.passkey.thisDevice')}</p>
                       <p className="text-xs text-buy">
-                        Registered {new Date(passkey.created_at).toLocaleDateString()}
+                        {ta('security.modals.passkey.registeredOn', { date: new Date(passkey.created_at).toLocaleDateString() })}
                       </p>
                     </div>
                   </div>
@@ -2229,14 +2243,14 @@ export default function SecurityPage() {
                         disabled={deletingPasskeyId === passkey.id}
                         className="rounded-lg px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
                       >
-                        Cancel
+                        {ta('common.cancel')}
                       </button>
                       <button
                         onClick={() => void deletePasskey(passkey.id)}
                         disabled={deletingPasskeyId === passkey.id}
                         className="rounded-lg px-3 py-2 text-xs font-semibold text-sell transition-colors hover:bg-muted disabled:opacity-50"
                       >
-                        {deletingPasskeyId === passkey.id ? 'Removing…' : 'Confirm remove'}
+                        {deletingPasskeyId === passkey.id ? ta('security.modals.passkey.removing') : ta('security.modals.passkey.confirmRemove')}
                       </button>
                     </div>
                   ) : (
@@ -2248,7 +2262,7 @@ export default function SecurityPage() {
                       {deletingPasskeyId === passkey.id ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        'Remove'
+                        ta('security.modals.passkey.remove')
                       )}
                     </button>
                   )}
@@ -2264,12 +2278,12 @@ export default function SecurityPage() {
                 {registeringPasskey ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Adding...
+                    {ta('security.modals.passkey.adding')}
                   </>
                 ) : (
                   <>
                     <Fingerprint className="w-5 h-5" />
-                    Add Another Device
+                    {ta('security.modals.passkey.addAnother')}
                   </>
                 )}
               </button>

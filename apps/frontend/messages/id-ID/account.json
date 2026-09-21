@@ -26,7 +26,15 @@
     "verifyNow": "Verifikasi sekarang",
     "cancelDeletion": "Batalkan penghapusan",
     "save": "Simpan",
-    "select": "Pilih"
+    "select": "Pilih",
+    "cancel": "Batal",
+    "continue": "Lanjutkan",
+    "enable": "Aktifkan",
+    "sending": "Mengirim…",
+    "resendCode": "Kirim ulang kode",
+    "resendIn": "Kirim ulang dalam {seconds} dtk",
+    "password": "Kata sandi",
+    "twoFaCode": "Kode 2FA"
   },
   "profile": {
     "title": "Info Akun",
@@ -64,7 +72,11 @@
     "deleteAccountDesc": "Hapus permanen akun dan data Anda",
     "deleteScheduled": "Dijadwalkan dihapus pada {date}",
     "deleteModalTitle": "Hapus Akun",
+    "deleteWarning": "Akun Anda akan dijadwalkan untuk dihapus permanen setelah <strong>masa tenggang 7 hari</strong>. Anda dapat membatalkan kapan saja sebelum itu dengan masuk. Tarik semua saldo dan tutup semua order terlebih dahulu.",
     "deletePasswordLabel": "Kata sandi akun",
+    "deletePasswordPlaceholder": "Masukkan kata sandi",
+    "delete2faPlaceholder": "Kode 6 digit",
+    "scheduleDeletion": "Jadwalkan penghapusan",
     "changeAvatarAria": "Ubah foto profil",
     "changeEmailAria": "Ubah email"
   },
@@ -140,6 +152,87 @@
       "manageAddresses": "Kelola alamat",
       "newAddressLockTitle": "Kunci penarikan alamat baru",
       "newAddressLockDesc": "Blokir penarikan ke alamat baru selama 24 jam untuk melindungi dari takeover akun."
+    },
+    "modals": {
+      "phoneInput": {
+        "title": "Verifikasi telepon",
+        "subtitle": "Masukkan nomor telepon untuk autentikasi SMS",
+        "phonePlaceholder": "Nomor telepon"
+      },
+      "phoneOtp": {
+        "title": "Verifikasi Telepon",
+        "codeSentTo": "Masukkan kode yang dikirim ke <strong>{phone}</strong>",
+        "verifyEnable": "Verifikasi & Aktifkan"
+      },
+      "google2faEmail": {
+        "title": "Verifikasi Email",
+        "subtitle": "Verifikasi email sebelum mengaktifkan Google 2FA"
+      },
+      "google2faSetup": {
+        "title": "Atur Google 2FA",
+        "scanQr": "Pindai kode QR ini dengan Google Authenticator",
+        "qrAlt": "Kode QR 2FA",
+        "manualKey": "Atau masukkan kunci ini secara manual:",
+        "enterCodeLabel": "Masukkan kode 6 digit",
+        "codePlaceholder": "000000",
+        "enable2fa": "Aktifkan 2FA"
+      },
+      "disable2faConfirm": {
+        "title": "Nonaktifkan Google 2FA",
+        "areYouSure": "Apakah Anda yakin?",
+        "warning": "Menonaktifkan 2FA akan mengurangi keamanan akun. Anda memerlukan kata sandi dan kode 2FA saat ini untuk melanjutkan."
+      },
+      "disable2faVerify": {
+        "title": "Verifikasi untuk Nonaktifkan 2FA",
+        "passwordPlaceholder": "Masukkan kata sandi",
+        "codeLabel": "Kode 2FA",
+        "codePlaceholder": "Masukkan kode 6 digit",
+        "disable2fa": "Nonaktifkan 2FA"
+      },
+      "addressBook": {
+        "title": "Aktifkan Pembatasan Buku Alamat",
+        "heading": "Batasi Penarikan",
+        "description": "Setelah diaktifkan, Anda hanya dapat menarik ke alamat yang disimpan di Buku Alamat."
+      },
+      "emailChange": {
+        "title": "Ubah Alamat Email",
+        "enterNew": "Masukkan alamat email baru",
+        "newEmailPlaceholder": "Alamat email baru",
+        "codeSentTo": "Masukkan kode yang dikirim ke <strong>{email}</strong>",
+        "verifyChange": "Verifikasi & Ubah"
+      },
+      "smsChange": {
+        "title": "Ubah Nomor Telepon",
+        "verifyCurrent": "Masukkan kode yang dikirim ke telepon saat ini <strong>{phone}</strong>",
+        "enterNewPhone": "Masukkan nomor telepon baru",
+        "verifyNew": "Masukkan kode yang dikirim ke <strong>{phone}</strong>",
+        "verifyContinue": "Verifikasi & Lanjutkan",
+        "verifySave": "Verifikasi & Simpan"
+      },
+      "passwordChange": {
+        "title": "Ubah Kata Sandi",
+        "subtitle": "Masukkan kata sandi saat ini dan kata sandi baru",
+        "currentPlaceholder": "Kata sandi saat ini",
+        "newPlaceholder": "Kata sandi baru (min. 8 karakter)",
+        "confirmPlaceholder": "Konfirmasi kata sandi baru",
+        "submit": "Ubah Kata Sandi"
+      },
+      "passkey": {
+        "title": "Pengaturan Passkey",
+        "manageTitle": "Kelola Passkey",
+        "enableTitle": "Aktifkan Touch ID / Face ID",
+        "registeredDesc": "Perangkat Anda terdaftar untuk login biometrik",
+        "enableDesc": "Login instan dengan sidik jari atau wajah",
+        "settingUp": "Menyiapkan…",
+        "enableButton": "Aktifkan dengan Touch ID / Face ID",
+        "thisDevice": "Perangkat Ini",
+        "registeredOn": "Terdaftar {date}",
+        "confirmRemove": "Konfirmasi hapus",
+        "removing": "Menghapus…",
+        "remove": "Hapus",
+        "adding": "Menambahkan…",
+        "addAnother": "Tambah Perangkat Lain"
+      }
     }
   },
   "preferences": {
@@ -220,6 +313,19 @@
     },
     "push": {
       "title": "Notifikasi push browser",
+      "browserPushTitle": "Push Browser",
+      "browserPushSubtitle": "Dapatkan alert deposit, penarikan, dan keamanan meski tab ditutup",
+      "notSupported": "Browser ini tidak mendukung notifikasi push web. Gunakan Chrome, Edge, Firefox, atau Safari 16+ terbaru.",
+      "permissionDenied": "Notifikasi diblokir di pengaturan browser. Izinkan untuk situs ini dan muat ulang.",
+      "statusLabel": "Status:",
+      "statusEnabledOnDevice": "Diaktifkan di perangkat ini",
+      "statusNotEnabled": "Belum diaktifkan",
+      "noticeEnabled": "Notifikasi push diaktifkan di perangkat ini",
+      "noticeDisabled": "Notifikasi push dinonaktifkan di perangkat ini",
+      "noticeFailed": "Gagal",
+      "noticeTestFailed": "Tes gagal",
+      "noticeNoSubscriptions": "Tidak ada langganan perangkat aktif untuk diberi tahu",
+      "noticeTestSent": "Push uji dikirim ke {sent} perangkat",
       "enable": "Aktifkan push di perangkat ini",
       "disable": "Nonaktifkan push di perangkat ini",
       "test": "Kirim push uji",
