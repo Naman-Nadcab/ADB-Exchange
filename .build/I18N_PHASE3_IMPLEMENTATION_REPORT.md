@@ -161,7 +161,8 @@ See `.build/I18N_PHASE3_DOMAIN_INVENTORY.md` (UI vs PROTECTED).
 ## 31. Slice B completion (wallet withdraw + overview)
 
 **Checkpoint:** `3702fbdb013d62fe9a472d5a7f975d0c254128d0`  
-**Commit:** _(see git log after push)_  
+**Commit:** `2c5a53416033330e85f6e6726a31975444567b12`  
+**Remote:** `2c5a53416033330e85f6e6726a31975444567b12`  
 **Status:** Slice B customer wallet surfaces — **PASS** (Phase 3 overall still **PARTIAL / NOT CERTIFIED**)
 
 ### Wired UI
