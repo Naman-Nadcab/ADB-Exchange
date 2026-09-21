@@ -11,6 +11,8 @@ import { getPasskeyAssertion, isPlatformAuthenticatorAvailable, isWebAuthnSuppor
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { consumeOAuthRedirect, getStoredRedirect, resolvePostLoginRedirect } from '@/lib/oauth';
 import AuthSplitLayout from '@/components/auth/AuthSplitLayout';
+import { useTranslations } from 'next-intl';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 
 type Step = 'identifier' | 'otp';
 type LoginMode = 'password' | 'otp';
@@ -36,6 +38,9 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const { login } = useAuthStore();
   const { setAuthenticated } = useAuth();
+  const t = useTranslations('auth.login');
+  const tc = useTranslations('common');
+  const { fromApi, networkUnreachable } = useApiErrorMessage();
 
   const [mode, setMode] = useState<LoginMode>('password');
   const [step, setStep] = useState<Step>('identifier');
@@ -104,8 +109,8 @@ export default function LoginPage() {
 
   const err = (e: unknown) =>
     e instanceof TypeError && e.message === 'Failed to fetch'
-      ? 'Server unreachable. Check backend is running.'
-      : String(e instanceof Error ? e.message : e);
+      ? networkUnreachable()
+      : tc('states.somethingWrong');
 
   const completeLogin = (userData: Record<string, unknown>, accessToken: string, refreshToken: string) => {
     const user = toUser(userData);
@@ -121,7 +126,7 @@ export default function LoginPage() {
 
   const passwordLogin = async () => {
     const email = identifier.trim().toLowerCase();
-    if (!email || !password) return setError('Enter email and password');
+    if (!email || !password) return setError(t('enterEmailPassword'));
     setLoading(true);
     setError('');
     try {
@@ -132,9 +137,8 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json().catch(() => ({}));
-      const errMsg = typeof data?.error === 'string' ? data.error : data?.error?.message;
       if (!res.ok) {
-        setError(errMsg ?? `Login failed (${res.status})`);
+        setError(fromApi(data, 'generic.unknown'));
         return;
       }
       if (data?.success && data?.data?.user) {
@@ -144,7 +148,7 @@ export default function LoginPage() {
           data.data.refreshToken ?? COOKIE_SESSION_MARKER,
         );
       } else {
-        setError('Login failed');
+        setError(t('loginFailed'));
       }
     } catch (e) {
       setError(err(e));
@@ -167,12 +171,12 @@ export default function LoginPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setStep('identifier');
-        setError(typeof data?.error === 'object' ? data.error?.message : data?.error ?? `Failed (${res.status})`);
+        setError(fromApi(data, 'generic.unknown'));
         return;
       }
       if (!data?.success) {
         setStep('identifier');
-        setError(data?.error?.message ?? 'Failed to send code');
+        setError(fromApi(data, 'auth.codes.OTP_SEND_FAILED'));
         return;
       }
     } catch (e) {
@@ -185,12 +189,12 @@ export default function LoginPage() {
 
   const passkeyLogin = async () => {
     const email = identifier.trim();
-    if (!email) return setError('Enter your email first');
+    if (!email) return setError(t('enterEmailFirst'));
     setPasskeyLoading(true);
     setError('');
     try {
-      if (!isWebAuthnSupported()) return setError('Use Chrome or Safari');
-      if (!(await isPlatformAuthenticatorAvailable())) return setError('Touch ID / Face ID not available');
+      if (!isWebAuthnSupported()) return setError(t('passkeyBrowser'));
+      if (!(await isPlatformAuthenticatorAvailable())) return setError(t('passkeyUnavailable'));
 
       const optRes = await fetch(`${API}/api/v1/auth/passkey/authenticate/options`, {
         method: 'POST',
@@ -199,13 +203,13 @@ export default function LoginPage() {
       });
       const optData = await optRes.json();
       if (!optRes.ok || !optData?.data?.allowCredentials?.length) {
-        setError(optData?.error?.message ?? 'Passkey not available');
+        setError(fromApi(optData, 'generic.unknown') || t('passkeyNotAvailable'));
         return;
       }
 
       const result = await getPasskeyAssertion(optData.data);
       if (!result.success) {
-        setError(result.error?.message ?? 'Passkey failed');
+        setError(t('passkeyFailed'));
         return;
       }
 
@@ -217,7 +221,7 @@ export default function LoginPage() {
       });
       const verifyData = await verifyRes.json();
       if (!verifyRes.ok || !verifyData?.data?.user) {
-        setError(verifyData?.error?.message ?? 'Verification failed');
+        setError(fromApi(verifyData, 'auth.codes.VERIFY_OTP_FAILED'));
         return;
       }
 
@@ -243,9 +247,8 @@ export default function LoginPage() {
         body: JSON.stringify({ identifier, otp: code, type, purpose: 'login' }),
       });
       const data = await res.json().catch(() => ({}));
-      const errMsg = typeof data?.error === 'string' ? data.error : data?.error?.message;
       if (!res.ok) {
-        setError(errMsg ?? `Verification failed (${res.status})`);
+        setError(fromApi(data, 'auth.codes.VERIFY_OTP_FAILED'));
         return;
       }
       if (data?.success && data?.data?.user) {
@@ -254,7 +257,7 @@ export default function LoginPage() {
           data.data.accessToken ?? COOKIE_SESSION_MARKER,
           data.data.refreshToken ?? COOKIE_SESSION_MARKER,
         );
-      } else setError('Verification failed');
+      } else setError(t('verificationFailed'));
     } catch (e) {
       setError(err(e));
     } finally {
@@ -291,7 +294,7 @@ export default function LoginPage() {
       if (res.ok && data?.success) {
         setCountdown(120);
         setOtp(['', '', '', '', '', '']);
-      } else setError(data?.error?.message ?? 'Resend failed');
+      } else setError(fromApi(data, 'auth.codes.OTP_SEND_FAILED'));
     } catch (e) {
       setError(err(e));
     } finally {
@@ -319,15 +322,15 @@ export default function LoginPage() {
     <AuthSplitLayout showMarketingLogo>
       {searchParams.get('reset') === 'success' && (
         <div className="p-3 mb-5 rounded-xl bg-primary/10 border border-primary/30 text-foreground text-sm">
-          Password reset successful. Log in with your new password.
+          {t('resetSuccess')}
         </div>
       )}
 
       {step === 'identifier' && mode === 'password' && (
         <form onSubmit={(e) => { e.preventDefault(); passwordLogin(); }} className="space-y-6">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Sign in with your email and password.</p>
+            <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{t('subtitlePassword')}</p>
           </div>
 
           <div className="space-y-4">
@@ -335,8 +338,8 @@ export default function LoginPage() {
               type="email"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="Email address"
-              aria-label="Email address"
+              placeholder={t('email')}
+              aria-label={t('email')}
               autoComplete="email"
               className="w-full px-4 py-3.5 rounded-xl border border-border bg-card/50 text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-shadow"
               required
@@ -347,8 +350,8 @@ export default function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                aria-label="Password"
+                placeholder={t('password')}
+                aria-label={t('password')}
                 autoComplete="current-password"
                 className="w-full px-4 py-3.5 pr-12 rounded-xl border border-border bg-card/50 text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-shadow"
                 required
@@ -357,7 +360,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? t('hidePassword') : t('showPassword')}
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -366,7 +369,7 @@ export default function LoginPage() {
 
           <div className="flex justify-end">
             <Link href="/forgot-password" className="text-sm text-primary hover:underline font-medium">
-              Forgot password?
+              {t('forgotPassword')}
             </Link>
           </div>
 
@@ -374,12 +377,12 @@ export default function LoginPage() {
             <>
               <div className="rounded-xl p-4 bg-muted/50 border border-border">
                 <button type="button" onClick={passkeyLogin} disabled={passkeyLoading || loading} className="w-full py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold flex items-center justify-center gap-2 disabled:opacity-60 transition-all shadow-lg shadow-primary/20">
-                  {passkeyLoading ? <><Loader2 className="w-5 h-5 animate-spin" aria-hidden /> Authenticating</> : <><Fingerprint className="w-5 h-5" aria-hidden /> Login with Passkey</>}
+                  {passkeyLoading ? <><Loader2 className="w-5 h-5 animate-spin" aria-hidden /> {t('authenticating')}</> : <><Fingerprint className="w-5 h-5" aria-hidden /> {t('passkey')}</>}
                 </button>
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px bg-accent" />
-                <span className="text-xs text-muted-foreground font-medium">or</span>
+                <span className="text-xs text-muted-foreground font-medium">{tc('actions.or')}</span>
                 <div className="flex-1 h-px bg-accent" />
               </div>
             </>
@@ -388,7 +391,7 @@ export default function LoginPage() {
           {error && <p className="text-destructive text-sm rounded-lg bg-destructive/10 px-3 py-2" role="alert">{error}</p>}
 
           <button type="submit" disabled={loading || !identifier.trim() || !password} className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 dark:hover:bg-primary/90 disabled:opacity-50 transition-colors">
-            {loading ? <span className="inline-flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" aria-hidden /> Signing in…</span> : 'Sign in'}
+            {loading ? <span className="inline-flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" aria-hidden /> {t('signingIn')}</span> : t('signIn')}
           </button>
 
           <div className="flex items-center gap-3">
@@ -402,12 +405,12 @@ export default function LoginPage() {
             onClick={switchToOtp}
             className="w-full py-3 rounded-xl border border-border text-foreground font-medium hover:bg-accent/50 transition-colors"
           >
-            Sign in with one-time code
+            {t('signInWithCode')}
           </button>
 
           <p className="text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-primary underline underline-offset-2 font-medium">Sign up</Link>
+            {t('noAccount')}{' '}
+            <Link href="/signup" className="text-primary underline underline-offset-2 font-medium">{t('signUp')}</Link>
           </p>
         </form>
       )}
@@ -416,15 +419,15 @@ export default function LoginPage() {
         <form onSubmit={(e) => { e.preventDefault(); sendOtp(); }} className="space-y-6">
           <div>
             <button type="button" onClick={switchToPassword} className="text-primary hover:underline text-sm font-medium mb-3">
-              ← Back to password
+              {t('backToPassword')}
             </button>
-            <h1 className="text-2xl font-bold text-foreground">Sign in with code</h1>
-            <p className="mt-1 text-sm text-muted-foreground">We&apos;ll send a one-time code to your email or mobile.</p>
+            <h1 className="text-2xl font-bold text-foreground">{t('otpTitle')}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{t('otpSubtitle')}</p>
           </div>
 
           <div className="flex p-1 rounded-xl bg-accent/80">
-            <button type="button" onClick={() => setType('email')} className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${type === 'email' ? 'bg-card dark:bg-accent text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground/80'}`}>Email</button>
-            <button type="button" onClick={() => setType('phone')} className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${type === 'phone' ? 'bg-card dark:bg-accent text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground/80'}`}>Mobile</button>
+            <button type="button" onClick={() => setType('email')} className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${type === 'email' ? 'bg-card dark:bg-accent text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground/80'}`}>{t('emailTab')}</button>
+            <button type="button" onClick={() => setType('phone')} className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${type === 'phone' ? 'bg-card dark:bg-accent text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground/80'}`}>{t('mobileTab')}</button>
           </div>
 
           <input
@@ -432,8 +435,8 @@ export default function LoginPage() {
             inputMode={type === 'phone' ? 'numeric' : undefined}
             value={identifier}
             onChange={(e) => setIdentifier(type === 'phone' ? e.target.value.replace(/\D/g, '').slice(0, 15) : e.target.value)}
-            placeholder={type === 'email' ? 'Email address' : 'Phone number'}
-            aria-label={type === 'email' ? 'Email address' : 'Phone number'}
+            placeholder={type === 'email' ? t('email') : t('phone')}
+            aria-label={type === 'email' ? t('email') : t('phone')}
             className="w-full px-4 py-3.5 rounded-xl border border-border bg-card/50 text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-shadow"
             required
           />
@@ -441,11 +444,11 @@ export default function LoginPage() {
           {error && <p className="text-destructive text-sm rounded-lg bg-destructive/10 px-3 py-2" role="alert">{error}</p>}
 
           <button type="submit" disabled={sendingOtp || !identifier.trim()} className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 dark:hover:bg-primary/90 disabled:opacity-50 transition-colors">
-            {sendingOtp ? <span className="inline-flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" aria-hidden /> Sending code…</span> : 'Send sign-in code'}
+            {sendingOtp ? <span className="inline-flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" aria-hidden /> {t('sendingCode')}</span> : t('sendCode')}
           </button>
 
           <p className="text-center text-sm text-muted-foreground">
-            <Link href="/signup" className="text-primary underline underline-offset-2 font-medium">Sign up</Link>
+            <Link href="/signup" className="text-primary underline underline-offset-2 font-medium">{t('signUp')}</Link>
           </p>
         </form>
       )}
@@ -453,14 +456,14 @@ export default function LoginPage() {
       {step === 'otp' && (
         <form ref={formRef} onSubmit={(e) => { e.preventDefault(); verifyOtp(otp.join('')); }} className="space-y-6">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Enter verification code</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t('verifyTitle')}</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              We sent a 6-digit code to <strong className="text-foreground/80">{identifier}</strong>
-              <button type="button" onClick={() => setStep('identifier')} className="ml-2 text-primary hover:underline inline-flex items-center gap-1 font-medium" aria-label="Change email or phone"><ExternalLink className="w-3.5 h-3.5" /> Change</button>
+              {t('verifySent', { identifier })}{' '}
+              <button type="button" onClick={() => setStep('identifier')} className="ml-2 text-primary hover:underline inline-flex items-center gap-1 font-medium" aria-label={t('changeIdentifier')}><ExternalLink className="w-3.5 h-3.5" /> {t('changeIdentifier')}</button>
             </p>
             {process.env.NODE_ENV === 'development' ? (
               <p className="mt-1 text-xs text-muted-foreground/85">
-                Local dev hint: OTP is also printed in backend logs for test flows.
+                {t('otpDevHint')}
               </p>
             ) : null}
           </div>
@@ -476,7 +479,7 @@ export default function LoginPage() {
                 value={d}
                 onChange={(e) => handleOtpChange(i, e.target.value)}
                 onKeyDown={(e) => e.key === 'Backspace' && !otp[i] && i > 0 && otpRefs.current[i - 1]?.focus()}
-                aria-label={`Digit ${i + 1} of 6`}
+                aria-label={t('otpDigit', { index: i + 1 })}
                 className="w-11 h-14 sm:w-12 sm:h-14 text-center text-xl font-bold rounded-lg border-2 border-border bg-card/50 text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
               />
             ))}
@@ -486,13 +489,13 @@ export default function LoginPage() {
 
           <div className="flex justify-between items-center text-sm">
             <button type="button" onClick={resend} disabled={countdown > 0} className={countdown > 0 ? 'text-muted-foreground cursor-not-allowed' : 'text-primary hover:underline font-medium'}>
-              Resend code
+              {t('resendCode')}
             </button>
             {countdown > 0 && <span className="text-muted-foreground tabular-nums">{fmt(countdown)}</span>}
           </div>
 
           <button type="submit" disabled={loading || otp.join('').length !== 6} className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary/85 text-primary-foreground font-semibold disabled:opacity-50 transition-colors">
-            {loading ? <span className="inline-flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" aria-hidden /> Verifying…</span> : 'Verify & continue'}
+            {loading ? <span className="inline-flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" aria-hidden /> {t('verifying')}</span> : t('verifyContinue')}
           </button>
         </form>
       )}

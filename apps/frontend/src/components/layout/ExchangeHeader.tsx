@@ -19,21 +19,22 @@ import { performLogout } from '@/lib/authLogout';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { EdaProductSwitcher } from '@/components/eda/EdaProductSwitcher';
 import { LocaleLanguageSelector } from '@/components/i18n/LocaleLanguageSelector';
+import { useTranslations } from 'next-intl';
 
 const MAIN_NAV = [
-  { label: 'Markets', href: MARKETS_HREF },
-  { label: 'Trade', href: SPOT_TRADE_HREF },
-  { label: 'P2P', href: P2P_HREF },
+  { labelKey: 'markets' as const, href: MARKETS_HREF },
+  { labelKey: 'trade' as const, href: SPOT_TRADE_HREF },
+  { labelKey: 'p2p' as const, href: P2P_HREF },
 ];
 
 const USER_MENU = [
-  { href: ROUTES.dashboard.root, label: 'Overview', icon: LayoutDashboard },
-  { href: ROUTES.dashboard.account, label: 'Account', icon: User },
-  { href: ROUTES.dashboard.security, label: 'Security', icon: Shield },
-  { href: ROUTES.dashboard.referral, label: 'Referral', icon: Gift },
-  { href: ROUTES.dashboard.api, label: 'API Management', icon: Key },
-  { href: ROUTES.dashboard.feeRates, label: 'Fee Tier', icon: Receipt },
-  { href: ROUTES.dashboard.preferences, label: 'Preferences', icon: Settings },
+  { href: ROUTES.dashboard.root, labelKey: 'overview' as const, icon: LayoutDashboard },
+  { href: ROUTES.dashboard.account, labelKey: 'account' as const, icon: User },
+  { href: ROUTES.dashboard.security, labelKey: 'security' as const, icon: Shield },
+  { href: ROUTES.dashboard.referral, labelKey: 'referral' as const, icon: Gift },
+  { href: ROUTES.dashboard.api, labelKey: 'apiManagement' as const, icon: Key },
+  { href: ROUTES.dashboard.feeRates, labelKey: 'feeTier' as const, icon: Receipt },
+  { href: ROUTES.dashboard.preferences, labelKey: 'preferences' as const, icon: Settings },
 ];
 
 function isMainNavActive(pathname: string | null, href: string): boolean {
@@ -67,6 +68,8 @@ export function ExchangeHeader({
   onSymbolSelect,
   showPairSearch = false,
 }: ExchangeHeaderProps) {
+  const tn = useTranslations('navigation');
+  const tc = useTranslations('common');
   const pathname = usePathname();
   const router = useRouter();
   const { accessToken, user, _hasHydrated, isAuthenticated: storeAuthed } = useAuthStore();
@@ -138,7 +141,7 @@ export function ExchangeHeader({
                 href={item.href}
                 className={`tap-target inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
               >
-                {item.label}
+                {tn(item.labelKey)}
               </Link>
             );
           })}
@@ -258,7 +261,7 @@ export function ExchangeHeader({
                         className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-accent"
                       >
                         <item.icon className="h-4 w-4 text-muted-foreground" />
-                        {item.label}
+                        {tn(item.labelKey)}
                       </Link>
                     ))}
                   </div>
@@ -271,7 +274,7 @@ export function ExchangeHeader({
                       className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10"
                     >
                       <LogOut className="h-4 w-4" />
-                      Logout
+                      {tn('logout')}
                     </button>
                   </div>
                 </div>
@@ -281,10 +284,10 @@ export function ExchangeHeader({
         ) : (
           <div className="flex items-center gap-1.5">
             <Link href="/login" className="tap-target inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-              Log In
+              {tn('logIn')}
             </Link>
             <Link href={ROUTES.signup} className="tap-target inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
-              Register
+              {tn('register')}
             </Link>
           </div>
         )}
@@ -306,7 +309,7 @@ export function ExchangeHeader({
                   className={`rounded-lg px-3 py-2.5 text-sm font-medium ${isActive ? 'text-primary bg-primary/5' : 'text-foreground hover:bg-accent'}`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  {item.label}
+                  {tn(item.labelKey)}
                 </Link>
               );
             })}

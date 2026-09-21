@@ -6,7 +6,32 @@
     "invalidPrice": "订单价格无效"
   },
   "auth": {
-    "otpInvalid": "验证码无效"
+    "codes": {
+      "INVALID_OTP": "验证码无效，请重试。",
+      "INVALID_IDENTIFIER": "请输入有效的邮箱或手机号码。",
+      "OTP_CREATE_FAILED": "无法生成验证码，请稍后重试。",
+      "OTP_DELIVERY_FAILED": "无法发送验证码，请稍后重试。",
+      "OTP_SEND_FAILED": "无法发送验证码，请稍后重试。",
+      "VERIFY_OTP_FAILED": "验证失败，请重试。",
+      "INVALID_TOKEN": "会话已过期，请重新登录。",
+      "INVALID_JWT_PAYLOAD": "会话无效，请重新登录。",
+      "UNAUTHORIZED": "请先登录后继续。",
+      "AUTH_ERROR": "认证失败，请重试。",
+      "INVALID_BODY": "请求无效，请刷新页面后重试。",
+      "INVALID_INPUT": "输入无效，请检查您的信息。",
+      "VALIDATION_ERROR": "请检查输入后重试。"
+    }
+  },
+  "network": {
+    "unreachable": "无法连接服务器，请检查网络后重试。",
+    "title": "连接问题",
+    "retry": "请检查网络连接后重试。"
+  },
+  "session": {
+    "expired": "会话已过期，请重新登录。"
+  },
+  "authorization": {
+    "denied": "您没有权限执行此操作。"
   },
   "generic": {
     "unknown": "出现错误，请稍后重试。"

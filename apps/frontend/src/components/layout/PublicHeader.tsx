@@ -10,6 +10,7 @@ import { performLogout } from '@/lib/authLogout';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { EdaProductSwitcher } from '@/components/eda/EdaProductSwitcher';
 import { LocaleLanguageSelector } from '@/components/i18n/LocaleLanguageSelector';
+import { useTranslations } from 'next-intl';
 
 /**
  * Global top header for public-viewable feature routes (markets, earn, p2p, trade).
@@ -18,6 +19,7 @@ import { LocaleLanguageSelector } from '@/components/i18n/LocaleLanguageSelector
  * authenticated session. Keeps the dark marketing palette for visual continuity.
  */
 export function PublicHeader() {
+  const tn = useTranslations('navigation');
   const [menuOpen, setMenuOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
@@ -58,26 +60,26 @@ export function PublicHeader() {
           {authed ? (
             <>
               <EdaProductSwitcher />
-              <Link href={ROUTES.home} prefetch className="tap-target inline-flex items-center transition hover:text-white">Overview</Link>
-              <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center transition hover:text-white">Markets</Link>
+              <Link href={ROUTES.home} prefetch className="tap-target inline-flex items-center transition hover:text-white">{tn('overview')}</Link>
+              <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center transition hover:text-white">{tn('markets')}</Link>
               <div className="relative group">
                 <button type="button" className="tap-target inline-flex items-center transition hover:text-white" aria-haspopup="true">
-                  Trade
+                  {tn('trade')}
                 </button>
                 <div className="invisible absolute left-0 top-full z-40 mt-1 w-56 rounded-lg border border-[#F5B8001F] bg-[#0D1118] py-1 opacity-0 shadow-xl transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
                   <Link href={SPOT_TRADE_HREF} className="block px-3 py-2 hover:bg-white/5 hover:text-white">
-                    Crypto Spot
-                    <span className="mt-0.5 block text-[11px] text-[#6B7280]">Digital asset trading</span>
+                    {tn('cryptoSpot')}
+                    <span className="mt-0.5 block text-[11px] text-[#6B7280]">{tn('digitalAssetTrading')}</span>
                   </Link>
                   <Link href={FOREX_ROUTES.trade} className="block px-3 py-2 hover:bg-white/5 hover:text-white">
-                    Forex
-                    <span className="mt-0.5 block text-[11px] text-[#6B7280]">Global FX trading</span>
+                    {tn('forex')}
+                    <span className="mt-0.5 block text-[11px] text-[#6B7280]">{tn('globalFxTrading')}</span>
                   </Link>
                 </div>
               </div>
-              <Link href={WALLET_HREF} prefetch className="tap-target inline-flex items-center transition hover:text-white">Portfolio</Link>
-              <Link href={ORDERS_HREF} prefetch className="tap-target inline-flex items-center transition hover:text-white">Orders</Link>
-              <Link href={walletPath.history} prefetch className="tap-target inline-flex items-center transition hover:text-white">Activity</Link>
+              <Link href={WALLET_HREF} prefetch className="tap-target inline-flex items-center transition hover:text-white">{tn('portfolio')}</Link>
+              <Link href={ORDERS_HREF} prefetch className="tap-target inline-flex items-center transition hover:text-white">{tn('orders')}</Link>
+              <Link href={walletPath.history} prefetch className="tap-target inline-flex items-center transition hover:text-white">{tn('activity')}</Link>
             </>
           ) : (
             <>
@@ -86,16 +88,16 @@ export function PublicHeader() {
               <Link href={FOREX_ROUTES.root} prefetch className="tap-target inline-flex items-center transition hover:text-white">Forex</Link>
               <div className="relative group">
                 <button type="button" className="tap-target inline-flex items-center transition hover:text-white" aria-haspopup="true">
-                  Trade
+                  {tn('trade')}
                 </button>
                 <div className="invisible absolute left-0 top-full z-40 mt-1 w-56 rounded-lg border border-[#F5B8001F] bg-[#0D1118] py-1 opacity-0 shadow-xl transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
                   <Link href={SPOT_TRADE_HREF} className="block px-3 py-2 hover:bg-white/5 hover:text-white">
-                    Crypto Spot
-                    <span className="mt-0.5 block text-[11px] text-[#6B7280]">Digital asset trading</span>
+                    {tn('cryptoSpot')}
+                    <span className="mt-0.5 block text-[11px] text-[#6B7280]">{tn('digitalAssetTrading')}</span>
                   </Link>
                   <Link href={FOREX_ROUTES.trade} className="block px-3 py-2 hover:bg-white/5 hover:text-white">
-                    Forex
-                    <span className="mt-0.5 block text-[11px] text-[#6B7280]">Global FX trading</span>
+                    {tn('forex')}
+                    <span className="mt-0.5 block text-[11px] text-[#6B7280]">{tn('globalFxTrading')}</span>
                   </Link>
                 </div>
               </div>
@@ -172,10 +174,10 @@ export function PublicHeader() {
           ) : (
             <>
               <Link href={ROUTES.login} prefetch className="tap-target hidden rounded-lg border border-[#F5B8001F] px-4 py-2 text-sm text-[#9CA3AF] transition hover:text-white sm:inline-flex items-center">
-                Log in
+                {tn('logIn')}
               </Link>
               <Link href={ROUTES.signup} prefetch className="tap-target inline-flex items-center rounded-lg bg-[#F5B800] px-4 py-2 text-sm font-semibold text-[#05070B] transition hover:bg-[#FFD54A]">
-                Create account
+                {tn('createAccount')}
               </Link>
             </>
           )}

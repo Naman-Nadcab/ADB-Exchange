@@ -6,5 +6,32 @@
   },
   "foundation": {
     "ready": "Multilingual foundation is active"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "continue": "Continue",
+    "done": "Done",
+    "submit": "Submit",
+    "or": "or"
+  },
+  "states": {
+    "loading": "Loading…",
+    "noData": "No data",
+    "somethingWrong": "Something went wrong"
+  },
+  "notifications": {
+    "errorTitle": "Error",
+    "successTitle": "Success",
+    "actionFailed": "Action failed. Please try again."
   }
 }

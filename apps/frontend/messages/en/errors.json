@@ -6,7 +6,32 @@
     "invalidPrice": "Invalid price for this order"
   },
   "auth": {
-    "otpInvalid": "Invalid verification code"
+    "codes": {
+      "INVALID_OTP": "The verification code is invalid. Please try again.",
+      "INVALID_IDENTIFIER": "Please enter a valid email or phone number.",
+      "OTP_CREATE_FAILED": "Could not create a verification code. Please try again.",
+      "OTP_DELIVERY_FAILED": "Could not deliver the verification code. Please try again.",
+      "OTP_SEND_FAILED": "Could not send verification code. Please try again.",
+      "VERIFY_OTP_FAILED": "Verification failed. Please try again.",
+      "INVALID_TOKEN": "Your session has expired. Please sign in again.",
+      "INVALID_JWT_PAYLOAD": "Your session is invalid. Please sign in again.",
+      "UNAUTHORIZED": "Please sign in to continue.",
+      "AUTH_ERROR": "Authentication failed. Please try again.",
+      "INVALID_BODY": "Invalid request. Please refresh and try again.",
+      "INVALID_INPUT": "Invalid input. Please check your details.",
+      "VALIDATION_ERROR": "Please check your input and try again."
+    }
+  },
+  "network": {
+    "unreachable": "Server unreachable. Check your connection and try again.",
+    "title": "Connection problem",
+    "retry": "Please check your connection and try again."
+  },
+  "session": {
+    "expired": "Your session has expired. Please sign in again."
+  },
+  "authorization": {
+    "denied": "You do not have permission to perform this action."
   },
   "generic": {
     "unknown": "Something went wrong. Please try again."

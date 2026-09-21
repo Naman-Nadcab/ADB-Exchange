@@ -6,7 +6,32 @@
     "invalidPrice": "Harga order tidak valid"
   },
   "auth": {
-    "otpInvalid": "Kode verifikasi tidak valid"
+    "codes": {
+      "INVALID_OTP": "Kode verifikasi tidak valid. Silakan coba lagi.",
+      "INVALID_IDENTIFIER": "Masukkan email atau nomor ponsel yang valid.",
+      "OTP_CREATE_FAILED": "Tidak dapat membuat kode verifikasi. Silakan coba lagi.",
+      "OTP_DELIVERY_FAILED": "Tidak dapat mengirim kode verifikasi. Silakan coba lagi.",
+      "OTP_SEND_FAILED": "Tidak dapat mengirim kode verifikasi. Silakan coba lagi.",
+      "VERIFY_OTP_FAILED": "Verifikasi gagal. Silakan coba lagi.",
+      "INVALID_TOKEN": "Sesi Anda telah berakhir. Silakan masuk kembali.",
+      "INVALID_JWT_PAYLOAD": "Sesi tidak valid. Silakan masuk kembali.",
+      "UNAUTHORIZED": "Silakan masuk untuk melanjutkan.",
+      "AUTH_ERROR": "Autentikasi gagal. Silakan coba lagi.",
+      "INVALID_BODY": "Permintaan tidak valid. Muat ulang halaman dan coba lagi.",
+      "INVALID_INPUT": "Input tidak valid. Periksa data Anda.",
+      "VALIDATION_ERROR": "Periksa input Anda dan coba lagi."
+    }
+  },
+  "network": {
+    "unreachable": "Server tidak dapat dijangkau. Periksa koneksi Anda dan coba lagi.",
+    "title": "Masalah koneksi",
+    "retry": "Periksa koneksi Anda dan coba lagi."
+  },
+  "session": {
+    "expired": "Sesi Anda telah berakhir. Silakan masuk kembali."
+  },
+  "authorization": {
+    "denied": "Anda tidak memiliki izin untuk melakukan tindakan ini."
   },
   "generic": {
     "unknown": "Terjadi kesalahan. Silakan coba lagi."

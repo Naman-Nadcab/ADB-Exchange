@@ -114,8 +114,9 @@ async function runExtended() {
   console.log('ok formatter display-only checks');
 
   const { resolveErrorMessageKey } = await import('./errors/error-catalog');
-  assert.equal(resolveErrorMessageKey('FOREX_ORDER_MARGIN_INSUFFICIENT'), 'errors.forex.marginInsufficient');
-  assert.equal(resolveErrorMessageKey('NOT_A_REAL_CODE'), 'errors.generic.unknown');
+  assert.equal(resolveErrorMessageKey('FOREX_ORDER_MARGIN_INSUFFICIENT'), 'forex.marginInsufficient');
+  assert.equal(resolveErrorMessageKey('INVALID_OTP'), 'auth.codes.INVALID_OTP');
+  assert.equal(resolveErrorMessageKey('NOT_A_REAL_CODE'), 'generic.unknown');
   console.log('ok error catalog fallback');
 }
 

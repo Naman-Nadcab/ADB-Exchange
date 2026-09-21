@@ -6,10 +6,14 @@ import { Eye, EyeOff, Loader2, Mail, ArrowLeft } from 'lucide-react';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { ROUTES } from '@/lib/routes';
 import { BrandLogo } from '@/components/brand/BrandLogo';
+import { useTranslations } from 'next-intl';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 
 type Step = 'request' | 'reset';
 
 export default function ForgotPasswordPage() {
+  const tf = useTranslations('auth.forgot');
+  const { fromApi, networkUnreachable } = useApiErrorMessage();
   const [step, setStep] = useState<Step>('request');
   const [identifier, setIdentifier] = useState('');
   const [identifierType, setIdentifierType] = useState<'email' | 'phone'>('email');
@@ -50,13 +54,13 @@ export default function ForgotPasswordPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error?.message || 'Request failed. Please try again.');
+        setError(fromApi(data, 'generic.unknown'));
         return;
       }
       setStep('reset');
       setCountdown(60);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Network error. Please try again.');
+      setError(err instanceof TypeError ? networkUnreachable() : tf('networkError'));
     } finally {
       setLoading(false);
     }
@@ -129,7 +133,7 @@ export default function ForgotPasswordPage() {
       }
       window.location.href = '/login?reset=success';
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Network error. Please try again.');
+      setError(err instanceof TypeError ? networkUnreachable() : tf('networkError'));
     } finally {
       setSubmitting(false);
     }
@@ -152,7 +156,7 @@ export default function ForgotPasswordPage() {
         setOtp(['', '', '', '', '', '']);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Network error.');
+      setError(networkUnreachable());
     } finally {
       setLoading(false);
     }

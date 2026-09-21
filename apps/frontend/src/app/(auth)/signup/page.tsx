@@ -10,6 +10,8 @@ import { resolvePostLoginRedirect } from '@/lib/oauth';
 import { useAuthStore, type User } from '@/store/auth';
 import { useAuth } from '@/context/AuthContext';
 import AuthSplitLayout from '@/components/auth/AuthSplitLayout';
+import { useTranslations } from 'next-intl';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 
 type Step = 'choose' | 'email' | 'otp' | 'password';
 type IdType = 'email' | 'phone';
@@ -20,6 +22,8 @@ export default function SignupPage() {
   const searchParams = useSearchParams();
   const { login } = useAuthStore();
   const { setAuthenticated } = useAuth();
+  const ts = useTranslations('auth.signup');
+  const { fromApi, networkUnreachable } = useApiErrorMessage();
 
   const [step, setStep] = useState<Step>('choose');
   const [idType, setIdType] = useState<IdType>('email');
@@ -51,7 +55,7 @@ export default function SignupPage() {
   const validPass = password.length >= 8 && password.length <= 30 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password);
 
   const sendOtp = async () => {
-    if (!terms) return setError('Accept Terms & Privacy to continue');
+    if (!terms) return setError(ts('acceptTerms'));
     setError('');
     setLoading(true);
     try {
@@ -62,15 +66,15 @@ export default function SignupPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(typeof data?.error === 'object' ? data.error?.message : data?.error ?? 'Failed');
+        setError(fromApi(data, 'generic.unknown'));
         return;
       }
       if (data?.success) {
         setStep('otp');
         setCountdown(120);
-      } else setError(data?.error?.message ?? 'Failed to send code');
+      } else setError(fromApi(data, 'auth.codes.OTP_SEND_FAILED'));
     } catch {
-      setError('Network error');
+      setError(networkUnreachable());
     } finally {
       setLoading(false);
     }
@@ -87,14 +91,14 @@ export default function SignupPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data?.error?.message ?? 'Invalid code');
+        setError(fromApi(data, 'auth.codes.INVALID_OTP'));
         return;
       }
       if (data?.success) {
         setStep('password');
-      } else setError(data?.error?.message ?? 'Invalid code');
+      } else setError(fromApi(data, 'auth.codes.INVALID_OTP'));
     } catch {
-      setError('Network error');
+      setError(networkUnreachable());
     } finally {
       setLoading(false);
     }
@@ -135,14 +139,14 @@ export default function SignupPage() {
         window.location.assign(target);
       } else setError('Signup failed');
     } catch {
-      setError('Network error');
+      setError(networkUnreachable());
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogle = async () => {
-    if (!terms) return setError('Accept Terms & Privacy to continue');
+    if (!terms) return setError(ts('acceptTerms'));
     setError('');
     try {
       const { initiateGoogleLogin } = await import('@/lib/oauth');
@@ -183,7 +187,7 @@ export default function SignupPage() {
         setOtp(['', '', '', '', '', '']);
       } else setError(data?.error?.message ?? 'Resend failed');
     } catch {
-      setError('Network error');
+      setError(networkUnreachable());
     } finally {
       setLoading(false);
     }

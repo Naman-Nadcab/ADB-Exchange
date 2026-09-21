@@ -6,6 +6,7 @@ import { DollarSign, Users, Coins } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { ROUTES } from '@/lib/routes';
 import { BrandLogo } from '@/components/brand/BrandLogo';
+import { useTranslations } from 'next-intl';
 
 /** Shared auth layout — marketing logo on login/signup, brand panel on desktop. */
 export default function AuthSplitLayout({
@@ -18,6 +19,7 @@ export default function AuthSplitLayout({
   /** Centered marketing logo above the form (login / signup). */
   showMarketingLogo?: boolean;
 }) {
+  const tm = useTranslations('auth.marketing');
   const [cookiesAccepted, setCookiesAccepted] = useState(false);
 
   return (
@@ -33,29 +35,29 @@ export default function AuthSplitLayout({
         <div className="relative flex-1 flex flex-col items-center justify-center py-8">
           <BrandLogo variant="marketing" size="marketing" priority className="relative mb-10" />
           <h1 className="text-3xl xl:text-4xl font-semibold text-foreground leading-tight mb-3 text-center max-w-md">
-            Trade crypto with <span className="text-primary">confidence</span>
+            {tm('headline', { highlight: tm('headlineHighlight') })}
           </h1>
           <p className="text-muted-foreground text-lg mb-12 max-w-sm text-center">
-            Secure spot trading and P2P — built for speed and reliability.
+            {tm('subhead')}
           </p>
           <div className="grid grid-cols-3 gap-6 w-full max-w-lg">
             {[
-              { icon: DollarSign, label: 'Fiat', value: 'Coming Soon', sub: 'Fiat rails in rollout' },
-              { icon: Users, label: 'Security', value: '2FA + sessions', sub: 'Account protection' },
-              { icon: Coins, label: 'Spot markets', value: 'Live pairs', sub: 'From exchange API' },
-            ].map(({ icon: Icon, label, value, sub }) => (
-              <div key={label} className="group">
+              { icon: DollarSign, labelKey: 'fiatLabel' as const, valueKey: 'fiatValue' as const, subKey: 'fiatSub' as const },
+              { icon: Users, labelKey: 'securityLabel' as const, valueKey: 'securityValue' as const, subKey: 'securitySub' as const },
+              { icon: Coins, labelKey: 'spotLabel' as const, valueKey: 'spotValue' as const, subKey: 'spotSub' as const },
+            ].map(({ icon: Icon, labelKey, valueKey, subKey }) => (
+              <div key={labelKey} className="group">
                 <div className="w-11 h-11 rounded-xl bg-card/5 border border-white/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 group-hover:border-primary/30 transition-colors">
                   <Icon className="w-5 h-5 text-primary" />
                 </div>
-                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-0.5">{label}</p>
-                <p className="text-2xl font-bold text-foreground">{value}</p>
-                <p className="text-muted-foreground text-xs mt-0.5">{sub}</p>
+                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-0.5">{tm(labelKey)}</p>
+                <p className="text-2xl font-bold text-foreground">{tm(valueKey)}</p>
+                <p className="text-muted-foreground text-xs mt-0.5">{tm(subKey)}</p>
               </div>
             ))}
           </div>
         </div>
-        <p className="relative text-muted-foreground text-xs">© 2018-2026 FDM — Fintech Digital Market. All rights reserved.</p>
+        <p className="relative text-muted-foreground text-xs">{tm('copyright')}</p>
       </div>
 
       {/* Right - Form area */}

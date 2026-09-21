@@ -5,10 +5,11 @@ import { useState, useEffect, useRef } from 'react';
 import { AuthProvider } from '@/context/AuthContext';
 import ThemeProvider from '@/components/ThemeProvider';
 import { rehydrateAuthStore, useAuthStore } from '@/store/auth';
-import { notifyError } from '@/lib/notifyError';
+import { useLocalizedNotify } from '@/hooks/useLocalizedNotify';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 import { DisplayCurrencyProvider } from '@/context/DisplayCurrencyProvider';
 import { LocalePreferenceSync } from '@/components/i18n/LocalePreferenceSync';
+import { useTranslations } from 'next-intl';
 
 /** Zustand unblock fallback if persist is slow (AuthProvider /me still needs `_hasHydrated`). */
 const REHYDRATE_MAX_MS = 1200;
@@ -18,34 +19,38 @@ function unblockAuthHydration() {
   useAuthStore.getState().setLoading(false);
 }
 
-export function Providers({ children }: { children: React.ReactNode }) {
-  const warnedHydration = useRef(false);
+function QueryProvider({ children }: { children: React.ReactNode }) {
+  const { error: notifyLocalizedError } = useLocalizedNotify();
+  const tc = useTranslations('common');
 
   const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: {
           queries: {
-            /** 5 min fresh + 30 min cache keeps navigations instant without stale data risk. */
             staleTime: 5 * 60 * 1000,
             gcTime: 30 * 60 * 1000,
             retry: 1,
             refetchOnMount: false,
             refetchOnWindowFocus: false,
             refetchOnReconnect: true,
-            /** Show last-known data while re-fetching → eliminates mid-page spinners. */
             placeholderData: keepPreviousData,
           },
           mutations: {
             retry: 0,
-            onError: (error) => {
-              const msg = error instanceof Error ? error.message : 'Action failed';
-              notifyError(msg);
+            onError: () => {
+              notifyLocalizedError(tc('notifications.actionFailed'));
             },
           },
         },
       })
   );
+
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+}
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  const warnedHydration = useRef(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -72,7 +77,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   /** Never block the tree: QueryClient + theme + auth must wrap children from first paint. */
   return (
-    <QueryClientProvider client={queryClient}>
+    <QueryProvider>
       <ThemeProvider>
         <TooltipProvider delayDuration={200}>
           <AuthProvider>
@@ -83,6 +88,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
           </AuthProvider>
         </TooltipProvider>
       </ThemeProvider>
-    </QueryClientProvider>
+    </QueryProvider>
   );
 }

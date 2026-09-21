@@ -6,5 +6,32 @@
   },
   "foundation": {
     "ready": "Fondasi multibahasa aktif"
+  },
+  "actions": {
+    "save": "Simpan",
+    "cancel": "Batal",
+    "confirm": "Konfirmasi",
+    "close": "Tutup",
+    "back": "Kembali",
+    "next": "Berikutnya",
+    "previous": "Sebelumnya",
+    "search": "Cari",
+    "filter": "Filter",
+    "refresh": "Muat ulang",
+    "retry": "Coba lagi",
+    "continue": "Lanjutkan",
+    "done": "Selesai",
+    "submit": "Kirim",
+    "or": "atau"
+  },
+  "states": {
+    "loading": "Memuat…",
+    "noData": "Tidak ada data",
+    "somethingWrong": "Terjadi kesalahan"
+  },
+  "notifications": {
+    "errorTitle": "Kesalahan",
+    "successTitle": "Berhasil",
+    "actionFailed": "Tindakan gagal. Silakan coba lagi."
   }
 }
