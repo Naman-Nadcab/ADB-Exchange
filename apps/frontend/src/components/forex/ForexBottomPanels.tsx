@@ -126,13 +126,13 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
       setNewsState({
         status: items.length ? 'ready' : 'unavailable',
         items,
-        reason: items.length ? undefined : res.data.reason ?? 'No news items',
+        reason: items.length ? undefined : res.data.reason ?? tf('bottomPanels.noNewsItems'),
       });
     });
     return () => {
       cancelled = true;
     };
-  }, [tab, newsState.status]);
+  }, [tab, newsState.status, tf]);
 
   useEffect(() => {
     if (tab !== 'calendar' || calState.status === 'loading' || calState.status === 'ready') return;
@@ -158,13 +158,13 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
       setCalState({
         status: events.length ? 'ready' : 'unavailable',
         events,
-        reason: events.length ? undefined : res.data.reason ?? 'No calendar events',
+        reason: events.length ? undefined : res.data.reason ?? tf('bottomPanels.noCalendarEvents'),
       });
     });
     return () => {
       cancelled = true;
     };
-  }, [tab, calState.status]);
+  }, [tab, calState.status, tf]);
 
   // Server journal is authoritative when the route exists. A pre-Phase-A
   // backend has no /journal, so the panel falls back to client-observed state
@@ -270,7 +270,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
   return (
     <section
       className="terminal-panel-subtle flex h-full min-h-0 flex-col border-t border-border bg-card"
-      aria-label="Trade toolbox"
+      aria-label={tf('bottomPanels.ariaLabel')}
     >
       <div className="flex h-8 shrink-0 items-center gap-0.5 border-b border-border px-1.5" role="tablist">
         {TABS.filter((t) => PRIMARY_BOTTOM_TABS.has(t.id)).map((t) => (
@@ -303,7 +303,9 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
               tabInOverflow ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            More{tabInOverflow ? ` · ${TABS.find((x) => x.id === tab)?.label ?? ''}` : ''}
+            {tabInOverflow
+              ? `${tf('bottomPanels.more')} · ${TABS.find((x) => x.id === tab)?.label ?? ''}`
+              : tf('bottomPanels.more')}
           </button>
           {overflowOpen ? (
             <div
@@ -333,14 +335,14 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
           ) : null}
         </div>
         <span className="ml-1 hidden text-[9px] text-muted-foreground sm:inline">
-          {props.hasTradingData ? 'Active' : 'Idle'}
+          {props.hasTradingData ? tf('bottomPanels.statusActive') : tf('bottomPanels.statusIdle')}
         </span>
         {!authed ? (
           <Link
             href="/login?redirect=/forex/trade"
             className="ml-auto text-[10px] text-primary underline-offset-2 hover:underline"
           >
-            Sign in
+            {tf('signIn.link')}
           </Link>
         ) : (
           <button
@@ -349,7 +351,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
             onClick={() => toggleBottomCollapsed()}
             aria-pressed={compact}
           >
-            {compact ? 'Expand' : 'Collapse'}
+            {compact ? tf('bottomPanels.expand') : tf('bottomPanels.collapse')}
           </button>
         )}
       </div>
@@ -360,14 +362,14 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
             <ForexPositionPanel />
           ) : !authed ? (
             <div className="flex items-center gap-3 px-3 py-2">
-              <p className="text-[11px] text-muted-foreground">Sign in for orders, fills and risk.</p>
+              <p className="text-[11px] text-muted-foreground">{tf('bottomPanels.signInPrompt')}</p>
               <Link href="/login?redirect=/forex/trade" className="text-[11px] text-primary hover:underline">
-                Sign in
+                {tf('signIn.link')}
               </Link>
             </div>
           ) : tab === 'orders' ? (
             workingOrders.length === 0 && orderRows.length === 0 ? (
-              <p className="px-3 py-3 text-[12px] text-muted-foreground">No working orders.</p>
+              <p className="px-3 py-3 text-[12px] text-muted-foreground">{tf('bottomPanels.noWorkingOrders')}</p>
             ) : (
               <div>
                 {engine.error ? (
@@ -408,20 +410,20 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
             )
           ) : tab === 'fills' ? (
             fills.length === 0 ? (
-              <p className="px-3 py-3 text-[12px] text-muted-foreground">No fills yet.</p>
+              <p className="px-3 py-3 text-[12px] text-muted-foreground">{tf('bottomPanels.noFills')}</p>
             ) : (
               <table className="w-full text-left font-mono text-[11px] tabular-nums">
                 <thead className="sticky top-0 bg-card text-[9px] uppercase tracking-wide text-muted-foreground">
                   <tr>
-                      <th className="px-2 py-1 font-medium">Fill</th>
-                    <th className="px-2 py-1 font-medium">Order</th>
-                    <th className="px-2 py-1 font-medium">Symbol</th>
-                    <th className="px-2 py-1 font-medium">Side</th>
-                    <th className="px-2 py-1 font-medium">Vol</th>
-                    <th className="px-2 py-1 font-medium">Price</th>
-                    <th className="px-2 py-1 font-medium">Fee</th>
-                    <th className="px-2 py-1 font-medium">Type</th>
-                    <th className="px-2 py-1 font-medium">Time</th>
+                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.fill')}</th>
+                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.order')}</th>
+                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.symbol')}</th>
+                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.side')}</th>
+                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.vol')}</th>
+                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.price')}</th>
+                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.fee')}</th>
+                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.type')}</th>
+                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.time')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -434,7 +436,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
                       <td className="px-2 py-1">{fxPlain(f.volume)}</td>
                       <td className="px-2 py-1">{fxNum(f.price)}</td>
                       <td className="px-2 py-1">0</td>
-                      <td className="px-2 py-1">{f.executionId ? 'SIMULATED' : '—'}</td>
+                      <td className="px-2 py-1">{f.executionId ? tf('chrome.simulated') : '—'}</td>
                       <td className="px-2 py-1">{new Date(f.timestamp).toLocaleString()}</td>
                     </tr>
                   ))}
@@ -466,30 +468,24 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
             <AlertsPanel quotes={quotes} />
           ) : tab === 'tape' ? (
             <div className="flex h-full flex-col items-start justify-center gap-1.5 px-3 py-3">
-              <p className="text-[12px] font-semibold">Time &amp; Sales unavailable</p>
-              <p className="max-w-lg text-[11px] leading-relaxed text-muted-foreground">
-                No authoritative trade tape is available from the current SIMULATED market-data provider. Quotes are not
-                presented as prints. When a provider supplies tape, it will appear here.
-              </p>
-              <p className="font-mono text-[10px] text-muted-foreground">UNAVAILABLE · PROVIDER_DEPENDENT</p>
+              <p className="text-[12px] font-semibold">{tf('bottomPanels.tape.title')}</p>
+              <p className="max-w-lg text-[11px] leading-relaxed text-muted-foreground">{tf('bottomPanels.tape.body')}</p>
+              <p className="font-mono text-[10px] text-muted-foreground">{tf('bottomPanels.tape.badge')}</p>
             </div>
           ) : tab === 'dom' ? (
             <div className="flex h-full flex-col items-start justify-center gap-1.5 px-3 py-3">
-              <p className="text-[12px] font-semibold">Depth of Market unavailable</p>
-              <p className="max-w-lg text-[11px] leading-relaxed text-muted-foreground">
-                This Forex feed does not provide institutional order-book depth. Bid/Ask are in Market Watch and the
-                chart. DOM levels are not fabricated.
-              </p>
-              <p className="font-mono text-[10px] text-muted-foreground">UNAVAILABLE · SIMULATED quotes</p>
+              <p className="text-[12px] font-semibold">{tf('bottomPanels.dom.title')}</p>
+              <p className="max-w-lg text-[11px] leading-relaxed text-muted-foreground">{tf('bottomPanels.dom.body')}</p>
+              <p className="font-mono text-[10px] text-muted-foreground">{tf('bottomPanels.dom.badge')}</p>
             </div>
           ) : tab === 'news' ? (
             <IntelList
               status={newsState.status}
               reason={newsState.reason}
-              empty="No news items from provider."
+              empty={tf('bottomPanels.newsEmpty')}
               rows={newsState.items.map((item, i) => ({
                 key: String(item.id ?? item.headline ?? i),
-                primary: String(item.headline ?? item.title ?? 'Headline unavailable'),
+                primary: String(item.headline ?? item.title ?? tf('bottomPanels.headlineUnavailable')),
                 secondary: [item.source, item.time ?? item.publishedAt, item.currency ?? item.category]
                   .filter(Boolean)
                   .map(String)
@@ -500,10 +496,10 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
             <IntelList
               status={calState.status}
               reason={calState.reason}
-              empty="No calendar events from provider."
+              empty={tf('bottomPanels.calendarEmpty')}
               rows={calState.events.map((ev, i) => ({
                 key: String(ev.id ?? `${ev.event}-${ev.time}-${i}`),
-                primary: String(ev.event ?? ev.title ?? 'Event unavailable'),
+                primary: String(ev.event ?? ev.title ?? tf('bottomPanels.eventUnavailable')),
                 secondary: [ev.currency, ev.impact, ev.time, ev.actual != null ? `A ${ev.actual}` : 'A —', ev.forecast != null ? `F ${ev.forecast}` : null, ev.previous != null ? `P ${ev.previous}` : null]
                   .filter(Boolean)
                   .map(String)
@@ -519,7 +515,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
           )}
         </div>
       ) : (
-        <p className="sr-only">Bottom panel collapsed. Expand to view {tab}.</p>
+        <p className="sr-only">{tf('bottomPanels.collapsedSr', { tab: TABS.find((t) => t.id === tab)?.label ?? tab })}</p>
       )}
     </section>
   );
@@ -531,13 +527,14 @@ function IntelList(props: {
   empty: string;
   rows: Array<{ key: string; primary: string; secondary: string }>;
 }) {
+  const tf = useTranslations('forex');
   if (props.status === 'loading' || props.status === 'idle') {
-    return <p className="px-3 py-3 text-[12px] text-muted-foreground">Loading…</p>;
+    return <p className="px-3 py-3 text-[12px] text-muted-foreground">{tf('bottomPanels.loading')}</p>;
   }
   if (props.status === 'error') {
     return (
       <p className="px-3 py-3 text-[12px] text-sell" role="alert">
-        {props.reason ?? 'Request failed'}
+        {props.reason ?? tf('bottomPanels.requestFailed')}
       </p>
     );
   }
@@ -575,17 +572,18 @@ function JournalPanel(props: {
   client: ReturnType<typeof buildForexJournal>;
   onRefresh: () => void;
 }) {
+  const tf = useTranslations('forex');
   const useServer = props.server.status === 'ready';
-  const origin = useServer ? 'SERVER' : 'CLIENT-OBSERVED';
+  const origin = useServer ? tf('bottomPanels.journal.originServer') : tf('bottomPanels.journal.originClient');
   const note = useServer
-    ? `Append-only server journal · ${props.server.events.length} events · no secrets`
+    ? tf('bottomPanels.journal.noteServer', { count: props.server.events.length })
     : props.server.status === 'loading'
-      ? 'Loading server journal…'
+      ? tf('bottomPanels.journal.loading')
       : props.server.status === 'unavailable'
-        ? 'Server journal not deployed on this backend. Showing entries derived from account state.'
+        ? tf('bottomPanels.journal.unavailable')
         : props.server.status === 'error'
-          ? `Server journal unavailable (${props.server.reason ?? 'request failed'}). Showing entries derived from account state.`
-          : 'Showing entries derived from account state.';
+          ? tf('bottomPanels.journal.error', { reason: props.server.reason ?? tf('bottomPanels.requestFailed') })
+          : tf('bottomPanels.journal.fallback');
 
   return (
     <div className="min-h-0 flex-1 overflow-auto">
@@ -604,12 +602,12 @@ function JournalPanel(props: {
           className="ml-auto text-[10px] text-primary hover:underline"
           onClick={props.onRefresh}
         >
-          Refresh
+          {tf('bottomPanels.journal.refresh')}
         </button>
       </div>
       {useServer ? (
         props.server.events.length === 0 ? (
-          <p className="px-3 py-3 text-[12px] text-muted-foreground">No server journal events yet.</p>
+          <p className="px-3 py-3 text-[12px] text-muted-foreground">{tf('bottomPanels.journal.empty')}</p>
         ) : (
           <ul className="divide-y divide-border/70">
             {props.server.events.map((e) => (
@@ -674,33 +672,35 @@ function OrderTable(props: {
   onCancel?: (id: string) => void;
   showActions: boolean;
 }) {
+  const tf = useTranslations('forex');
+  const ok = (key: string) => tf(`bottomPanels.orders.${key}`);
   return (
     <div className="overflow-x-auto">
     <table className="w-full min-w-[860px] text-left font-mono text-[11px] tabular-nums">
       <thead className="sticky top-0 bg-card text-[9px] uppercase tracking-wide text-muted-foreground">
         <tr>
           {props.showActions ? (
-            <th className="sticky left-0 z-[1] bg-card px-2 py-1 font-medium">Action</th>
+            <th className="sticky left-0 z-[1] bg-card px-2 py-1 font-medium">{ok('action')}</th>
           ) : null}
-          <th className="px-2 py-1 font-medium">Id</th>
-          <th className="px-2 py-1 font-medium">Symbol</th>
-          <th className="px-2 py-1 font-medium">Side</th>
-          <th className="px-2 py-1 font-medium">Type</th>
-          <th className="px-2 py-1 font-medium" title="Stop / trigger price for pending orders">
-            Entry
+          <th className="px-2 py-1 font-medium">{ok('id')}</th>
+          <th className="px-2 py-1 font-medium">{ok('symbol')}</th>
+          <th className="px-2 py-1 font-medium">{ok('side')}</th>
+          <th className="px-2 py-1 font-medium">{ok('type')}</th>
+          <th className="px-2 py-1 font-medium" title={ok('entryTitle')}>
+            {ok('entry')}
           </th>
-          <th className="px-2 py-1 font-medium" title="Stop Limit working limit price">
-            Limit
+          <th className="px-2 py-1 font-medium" title={ok('limitTitle')}>
+            {ok('limit')}
           </th>
-          <th className="px-2 py-1 font-medium" title="Time in force">
-            TIF
+          <th className="px-2 py-1 font-medium" title={ok('tifTitle')}>
+            {ok('tif')}
           </th>
-          <th className="px-2 py-1 font-medium">Current</th>
-          <th className="px-2 py-1 font-medium">Vol</th>
-          <th className="px-2 py-1 font-medium">SL</th>
-          <th className="px-2 py-1 font-medium">TP</th>
-          <th className="px-2 py-1 font-medium">Status</th>
-          <th className="px-2 py-1 font-medium">Created</th>
+          <th className="px-2 py-1 font-medium">{ok('current')}</th>
+          <th className="px-2 py-1 font-medium">{ok('vol')}</th>
+          <th className="px-2 py-1 font-medium">{ok('sl')}</th>
+          <th className="px-2 py-1 font-medium">{ok('tp')}</th>
+          <th className="px-2 py-1 font-medium">{ok('status')}</th>
+          <th className="px-2 py-1 font-medium">{ok('created')}</th>
         </tr>
       </thead>
       <tbody>
@@ -716,14 +716,14 @@ function OrderTable(props: {
                   className="rounded border border-primary/40 px-1.5 py-0.5 text-[10px] text-primary disabled:opacity-50"
                   onClick={() => void props.submitEdit(o)}
                 >
-                  Save
+                  {ok('save')}
                 </button>
                 <button
                   type="button"
                   className="rounded border border-border px-1.5 py-0.5 text-[10px]"
                   onClick={props.cancelEdit}
                 >
-                  Abort
+                  {ok('abort')}
                 </button>
               </span>
             ) : props.cancelId === o.orderId ? (
@@ -734,10 +734,10 @@ function OrderTable(props: {
                   onClick={() => (props.onCancelConfirm ?? props.onCancel)?.(o.orderId)}
                   data-testid={`confirm-cancel-${o.orderId.slice(0, 8)}`}
                 >
-                  Confirm
+                  {ok('confirm')}
                 </button>
                 <button type="button" className="rounded border border-border px-1.5 py-0.5 text-[10px]" onClick={() => props.onCancelAsk?.(null)}>
-                  No
+                  {ok('no')}
                 </button>
               </span>
             ) : (
@@ -748,7 +748,7 @@ function OrderTable(props: {
                   className="rounded border border-border px-1.5 py-0.5 text-[10px] hover:border-primary/40 disabled:opacity-50"
                   onClick={() => props.startEdit(o)}
                 >
-                  Modify
+                  {ok('modify')}
                 </button>
                 <button
                   type="button"
@@ -759,9 +759,9 @@ function OrderTable(props: {
                     else props.onCancel?.(o.orderId);
                   }}
                   data-testid={`cancel-order-${o.orderId.slice(0, 8)}`}
-                  aria-label={`Cancel order ${o.orderId.slice(0, 8)}`}
+                  aria-label={tf('bottomPanels.orders.cancelAria', { id: o.orderId.slice(0, 8) })}
                 >
-                  {props.busyId === o.orderId ? '…' : 'Cancel'}
+                  {props.busyId === o.orderId ? '…' : ok('cancel')}
                 </button>
               </span>
             )
@@ -791,7 +791,7 @@ function OrderTable(props: {
                     value={props.editPrice}
                     onChange={(e) => props.setEditPrice(e.target.value)}
                     className="w-20 rounded border border-border bg-background px-1 py-0.5 text-[11px]"
-                    aria-label="Modify price"
+                    aria-label={ok('modifyPriceAria')}
                   />
                 ) : o.requestedPrice ? (
                   fxNum(o.requestedPrice)
@@ -805,7 +805,7 @@ function OrderTable(props: {
                     value={props.editLimit ?? ''}
                     onChange={(e) => props.setEditLimit?.(e.target.value)}
                     className="w-20 rounded border border-border bg-background px-1 py-0.5 text-[11px]"
-                    aria-label="Modify limit price"
+                    aria-label={ok('modifyLimitAria')}
                   />
                 ) : o.limitPrice ? (
                   fxNum(o.limitPrice)
@@ -823,7 +823,7 @@ function OrderTable(props: {
                     value={props.editVol}
                     onChange={(e) => props.setEditVol(e.target.value)}
                     className="w-14 rounded border border-border bg-background px-1 py-0.5 text-[11px]"
-                    aria-label="Modify volume"
+                    aria-label={ok('modifyVolumeAria')}
                   />
                 ) : (
                   `${o.filledVolume}/${o.requestedVolume}`
@@ -831,14 +831,14 @@ function OrderTable(props: {
               </td>
               <td className="px-2 py-1">
                 {editing && props.setEditSl ? (
-                  <input value={props.editSl ?? ''} onChange={(e) => props.setEditSl?.(e.target.value)} className="w-16 rounded border border-border bg-background px-1 py-0.5 text-[11px]" aria-label="Modify SL" />
+                  <input value={props.editSl ?? ''} onChange={(e) => props.setEditSl?.(e.target.value)} className="w-16 rounded border border-border bg-background px-1 py-0.5 text-[11px]" aria-label={ok('modifySlAria')} />
                 ) : (
                   o.stopLoss ?? '—'
                 )}
               </td>
               <td className="px-2 py-1">
                 {editing && props.setEditTp ? (
-                  <input value={props.editTp ?? ''} onChange={(e) => props.setEditTp?.(e.target.value)} className="w-16 rounded border border-border bg-background px-1 py-0.5 text-[11px]" aria-label="Modify TP" />
+                  <input value={props.editTp ?? ''} onChange={(e) => props.setEditTp?.(e.target.value)} className="w-16 rounded border border-border bg-background px-1 py-0.5 text-[11px]" aria-label={ok('modifyTpAria')} />
                 ) : (
                   o.takeProfit ?? '—'
                 )}
@@ -859,7 +859,17 @@ function OrderTable(props: {
   );
 }
 
+const HISTORY_PERIOD_KEY: Record<HistoryPeriod, string> = {
+  today: 'periodToday',
+  yesterday: 'periodYesterday',
+  week: 'periodWeek',
+  month: 'periodMonth',
+  custom: 'periodCustom',
+  all: 'periodAll',
+};
+
 function PeriodBar(props: { period: HistoryPeriod; onPeriod: (p: HistoryPeriod) => void }) {
+  const tf = useTranslations('forex');
   return (
     <div className="flex flex-wrap gap-1 px-2 py-1">
       {(['today', 'yesterday', 'week', 'month', 'all'] as HistoryPeriod[]).map((p) => (
@@ -872,7 +882,7 @@ function PeriodBar(props: { period: HistoryPeriod; onPeriod: (p: HistoryPeriod) 
             props.period === p ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
           )}
         >
-          {p}
+          {tf(`bottomPanels.history.${HISTORY_PERIOD_KEY[p]}`)}
         </button>
       ))}
     </div>
@@ -888,7 +898,9 @@ function HistoryPanel(props: {
   ledgerCount: number;
   currency: string;
 }) {
+  const tf = useTranslations('forex');
   const [exportBusy, setExportBusy] = useState<string | null>(null);
+  const exportKindKey = { orders: 'exportKindOrders', fills: 'exportKindFills', ledger: 'exportKindLedger' } as const;
   return (
     <div>
       <PeriodBar period={props.period} onPeriod={props.onPeriod} />
@@ -907,31 +919,47 @@ function HistoryPanel(props: {
                 .finally(() => setExportBusy(null));
             }}
           >
-            {exportBusy === kind ? 'Export…' : `CSV ${kind}`}
+            {exportBusy === kind
+              ? tf('bottomPanels.history.exportBusy')
+              : tf('bottomPanels.history.exportCsv', { kind: tf(`bottomPanels.history.${exportKindKey[kind]}`) })}
           </button>
         ))}
-        <span className="self-center text-[9px] text-muted-foreground">Server export · your account only</span>
+        <span className="self-center text-[9px] text-muted-foreground">{tf('bottomPanels.history.exportNote')}</span>
       </div>
       <div className="flex flex-wrap gap-x-4 gap-y-1 border-b border-border px-3 py-1.5 font-mono text-[10px]">
-        <span>Trades {props.perf.trades}</span>
-        <span>Win {props.perf.winRate ?? '—'}</span>
-        <span>Gross+ {props.perf.grossProfit}</span>
-        <span>Gross- {props.perf.grossLoss}</span>
-        <span>Net {props.perf.netProfit}</span>
-        <span>Comm {props.perf.commission}</span>
-        <span>Swap {props.perf.swap}</span>
+        <span>
+          {tf('bottomPanels.history.metricTrades')} {props.perf.trades}
+        </span>
+        <span>
+          {tf('bottomPanels.history.metricWin')} {props.perf.winRate ?? '—'}
+        </span>
+        <span>
+          {tf('bottomPanels.history.metricGrossPlus')} {props.perf.grossProfit}
+        </span>
+        <span>
+          {tf('bottomPanels.history.metricGrossMinus')} {props.perf.grossLoss}
+        </span>
+        <span>
+          {tf('bottomPanels.history.metricNet')} {props.perf.netProfit}
+        </span>
+        <span>
+          {tf('bottomPanels.history.metricComm')} {props.perf.commission}
+        </span>
+        <span>
+          {tf('bottomPanels.history.metricSwap')} {props.perf.swap}
+        </span>
       </div>
       {props.trades.length === 0 ? (
-        <p className="px-3 py-3 text-[12px] text-muted-foreground">No realized P&amp;L rows in this period.</p>
+        <p className="px-3 py-3 text-[12px] text-muted-foreground">{tf('bottomPanels.history.noPnl')}</p>
       ) : (
         <table className="w-full text-left font-mono text-[11px]">
           <thead className="text-[9px] uppercase text-muted-foreground">
             <tr>
-              <th className="px-2 py-1">Ticket</th>
-              <th className="px-2 py-1">Symbol</th>
-              <th className="px-2 py-1">Gross</th>
-              <th className="px-2 py-1">Net</th>
-              <th className="px-2 py-1">Time</th>
+              <th className="px-2 py-1">{tf('bottomPanels.history.ticket')}</th>
+              <th className="px-2 py-1">{tf('bottomPanels.fills.symbol')}</th>
+              <th className="px-2 py-1">{tf('bottomPanels.history.gross')}</th>
+              <th className="px-2 py-1">{tf('bottomPanels.history.net')}</th>
+              <th className="px-2 py-1">{tf('bottomPanels.history.time')}</th>
             </tr>
           </thead>
           <tbody>
@@ -948,7 +976,11 @@ function HistoryPanel(props: {
         </table>
       )}
       <p className="border-t border-border/60 px-2 py-1.5 text-[10px] text-muted-foreground">
-        {props.historyOrders.length} closed orders · {props.ledgerCount} ledger rows · {props.currency}
+        {tf('bottomPanels.history.footer', {
+          closedOrders: props.historyOrders.length,
+          ledgerRows: props.ledgerCount,
+          currency: props.currency,
+        })}
       </p>
     </div>
   );
@@ -962,35 +994,37 @@ function ExposurePanel(props: {
   account: ReturnType<typeof useForexStore.getState>['account'];
   currency: string;
 }) {
+  const tf = useTranslations('forex');
+  const ek = (key: string) => tf(`bottomPanels.exposure.${key}`);
   return (
     <div className="space-y-2 px-3 py-2">
       <div className="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px]">
-        <RiskLine k="Balance" v={fxMoney(props.account?.ledgerBalance, props.currency)} />
-        <RiskLine k="Equity" v={fxMoney(props.account?.equity, props.currency)} />
-        <RiskLine k="Used" v={fxMoney(props.margin?.usedMargin ?? props.account?.usedMargin, props.currency)} />
-        <RiskLine k="Free" v={fxMoney(props.margin?.freeMargin ?? props.account?.freeMargin, props.currency)} />
-        <RiskLine k="Level" v={props.account?.marginLevel == null || Number(props.account.usedMargin) === 0 ? '—' : `${Number(props.account.marginLevel).toFixed(2)}%`} />
-        <RiskLine k="Gross" v={props.book.grossNotional} />
-        <RiskLine k="Net" v={props.book.netNotional} />
-        <RiskLine k="Long" v={props.book.longNotional} />
-        <RiskLine k="Short" v={props.book.shortNotional} />
-        <RiskLine k="Long P&L" v={props.book.longPnl} />
-        <RiskLine k="Short P&L" v={props.book.shortPnl} />
-        <RiskLine k="Server net" v={fxPlain((props.exposure?.accountNet as string) ?? (props.exposure?.net as string) ?? props.margin?.netExposure)} />
-        <RiskLine k="Risk" v={fxPlain(props.risk?.state)} note={props.risk?.reason} />
+        <RiskLine k={ek('balance')} v={fxMoney(props.account?.ledgerBalance, props.currency)} />
+        <RiskLine k={ek('equity')} v={fxMoney(props.account?.equity, props.currency)} />
+        <RiskLine k={ek('used')} v={fxMoney(props.margin?.usedMargin ?? props.account?.usedMargin, props.currency)} />
+        <RiskLine k={ek('free')} v={fxMoney(props.margin?.freeMargin ?? props.account?.freeMargin, props.currency)} />
+        <RiskLine k={ek('level')} v={props.account?.marginLevel == null || Number(props.account.usedMargin) === 0 ? '—' : `${Number(props.account.marginLevel).toFixed(2)}%`} />
+        <RiskLine k={ek('gross')} v={props.book.grossNotional} />
+        <RiskLine k={ek('net')} v={props.book.netNotional} />
+        <RiskLine k={ek('long')} v={props.book.longNotional} />
+        <RiskLine k={ek('short')} v={props.book.shortNotional} />
+        <RiskLine k={ek('longPnl')} v={props.book.longPnl} />
+        <RiskLine k={ek('shortPnl')} v={props.book.shortPnl} />
+        <RiskLine k={ek('serverNet')} v={fxPlain((props.exposure?.accountNet as string) ?? (props.exposure?.net as string) ?? props.margin?.netExposure)} />
+        <RiskLine k={ek('risk')} v={fxPlain(props.risk?.state)} note={props.risk?.reason} />
       </div>
       {props.book.bySymbol.length === 0 ? (
-        <p className="text-[12px] text-muted-foreground">No open exposure.</p>
+        <p className="text-[12px] text-muted-foreground">{ek('noExposure')}</p>
       ) : (
         <table className="w-full text-left font-mono text-[11px]">
           <thead className="text-[9px] uppercase text-muted-foreground">
             <tr>
-              <th className="px-2 py-1">Symbol</th>
-              <th className="px-2 py-1">Long</th>
-              <th className="px-2 py-1">Short</th>
-              <th className="px-2 py-1">Net</th>
-              <th className="px-2 py-1">Long P&L</th>
-              <th className="px-2 py-1">Short P&L</th>
+              <th className="px-2 py-1">{ek('symbol')}</th>
+              <th className="px-2 py-1">{ek('long')}</th>
+              <th className="px-2 py-1">{ek('short')}</th>
+              <th className="px-2 py-1">{ek('net')}</th>
+              <th className="px-2 py-1">{ek('longPnl')}</th>
+              <th className="px-2 py-1">{ek('shortPnl')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1018,27 +1052,29 @@ function AnalyticsPanel(props: {
   onPeriod: (p: HistoryPeriod) => void;
   currency: string;
 }) {
+  const tf = useTranslations('forex');
+  const ak = (key: string) => tf(`bottomPanels.analytics.${key}`);
   const p = props.perf;
   return (
     <div className="space-y-2 px-3 py-2">
       <PeriodBar period={props.period} onPeriod={props.onPeriod} />
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-mono text-[11px] sm:grid-cols-4">
-        <RiskLine k="Trades" v={String(p.trades)} />
-        <RiskLine k="Win rate" v={p.winRate != null ? `${p.winRate}%` : '—'} />
-        <RiskLine k="Gross profit" v={p.grossProfit} />
-        <RiskLine k="Gross loss" v={p.grossLoss} />
-        <RiskLine k="Net" v={p.netProfit} />
-        <RiskLine k="Profit factor" v={p.profitFactor ?? '—'} />
-        <RiskLine k="Avg win" v={p.averageWin ?? '—'} />
-        <RiskLine k="Avg loss" v={p.averageLoss ?? '—'} />
-        <RiskLine k="Largest win" v={p.largestWin ?? '—'} />
-        <RiskLine k="Largest loss" v={p.largestLoss ?? '—'} />
-        <RiskLine k="Expected" v={p.expectedPayoff ?? '—'} />
-        <RiskLine k="Comm / Swap" v={`${p.commission} / ${p.swap}`} />
-        <RiskLine k="Peak cash" v={props.dd.peak ?? '—'} />
-        <RiskLine k="Max DD" v={props.dd.maxDrawdown ?? '—'} />
-        <RiskLine k="DD %" v={props.dd.maxDrawdownPct != null ? `${props.dd.maxDrawdownPct}%` : '—'} />
-        <RiskLine k="Current DD" v={props.dd.currentDrawdown ?? '—'} />
+        <RiskLine k={ak('trades')} v={String(p.trades)} />
+        <RiskLine k={ak('winRate')} v={p.winRate != null ? `${p.winRate}%` : '—'} />
+        <RiskLine k={ak('grossProfit')} v={p.grossProfit} />
+        <RiskLine k={ak('grossLoss')} v={p.grossLoss} />
+        <RiskLine k={ak('net')} v={p.netProfit} />
+        <RiskLine k={ak('profitFactor')} v={p.profitFactor ?? '—'} />
+        <RiskLine k={ak('avgWin')} v={p.averageWin ?? '—'} />
+        <RiskLine k={ak('avgLoss')} v={p.averageLoss ?? '—'} />
+        <RiskLine k={ak('largestWin')} v={p.largestWin ?? '—'} />
+        <RiskLine k={ak('largestLoss')} v={p.largestLoss ?? '—'} />
+        <RiskLine k={ak('expected')} v={p.expectedPayoff ?? '—'} />
+        <RiskLine k={ak('commSwap')} v={`${p.commission} / ${p.swap}`} />
+        <RiskLine k={ak('peakCash')} v={props.dd.peak ?? '—'} />
+        <RiskLine k={ak('maxDd')} v={props.dd.maxDrawdown ?? '—'} />
+        <RiskLine k={ak('ddPct')} v={props.dd.maxDrawdownPct != null ? `${props.dd.maxDrawdownPct}%` : '—'} />
+        <RiskLine k={ak('currentDd')} v={props.dd.currentDrawdown ?? '—'} />
       </div>
       <p className="text-[10px] text-muted-foreground">{props.dd.note} · {props.currency}</p>
     </div>
@@ -1046,6 +1082,7 @@ function AnalyticsPanel(props: {
 }
 
 function AlertsPanel(props: { quotes: Record<string, { bid?: string }> }) {
+  const tf = useTranslations('forex');
   const [localAlerts, setLocalAlerts] = useState<Array<{ id: string; symbol: string; side: 'above' | 'below'; price: string }>>([]);
 
   useEffect(() => {
@@ -1065,17 +1102,17 @@ function AlertsPanel(props: { quotes: Record<string, { bid?: string }> }) {
       <div className="border-t border-border/60 px-3 pt-2">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded border border-amber-800/60 bg-amber-950/30 px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wide text-amber-200">
-            Local only
+            {tf('bottomPanels.alerts.localOnly')}
           </span>
           <span className="text-[10px] text-muted-foreground">
-            Tab-open evaluation only ·{' '}
+            {tf('bottomPanels.alerts.localNote')}{' '}
             <Link href="/forex/alerts" className="text-primary hover:underline">
               /forex/alerts
             </Link>
           </span>
         </div>
         {localAlerts.length === 0 ? (
-          <p className="py-1 text-[11px] text-muted-foreground">No local alerts.</p>
+          <p className="py-1 text-[11px] text-muted-foreground">{tf('bottomPanels.alerts.noLocal')}</p>
         ) : (
           <ul className="divide-y divide-border/70">
             {localAlerts.map((a) => {
@@ -1086,8 +1123,8 @@ function AlertsPanel(props: { quotes: Record<string, { bid?: string }> }) {
                   (a.side === 'below' && Number(bid) <= Number(a.price)));
               return (
                 <li key={a.id} className="py-1 font-mono text-[10px]">
-                  {a.symbol} bid {a.side} {a.price}
-                  {hit ? ' · triggered locally' : ''}
+                  {tf('bottomPanels.alerts.localRow', { symbol: a.symbol, side: a.side, price: a.price })}
+                  {hit ? tf('bottomPanels.alerts.triggeredLocally') : ''}
                 </li>
               );
             })}

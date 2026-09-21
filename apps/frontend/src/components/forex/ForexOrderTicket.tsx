@@ -151,24 +151,23 @@ export function ForexOrderTicket() {
   const tifNote = timeInForceBlockedReason(type, tif);
 
   const blockReason = useMemo(() => {
-    if (!authed) return 'Sign in to place Forex orders.';
-    if (!sessionOpen) return `Market closed${sessions?.eligibility.reason ? ` · ${sessions.eligibility.reason}` : ''}.`;
-    if (stale) return quote ? 'Quote is stale. Execution paused until feed recovers.' : 'Quote unavailable.';
-    if (risk?.state === 'HALTED') return `Account halted${risk.reason ? ` · ${risk.reason}` : ''}.`;
+    const tail = (r?: string | null) => (r ? ` · ${r}` : '');
+    if (!authed) return tf('ticket.blocks.signIn');
+    if (!sessionOpen) return tf('ticket.blocks.marketClosed', { reason: tail(sessions?.eligibility.reason) });
+    if (stale) return quote ? tf('ticket.blocks.quoteStale') : tf('ticket.blocks.quoteUnavailable');
+    if (risk?.state === 'HALTED') return tf('ticket.blocks.accountHalted', { reason: tail(risk.reason) });
     if (risk?.state === 'RESTRICTED' || risk?.state === 'LIQUIDATION_ONLY') {
-      return `Risk ${risk.state}${risk.reason ? ` · ${risk.reason}` : ''}. New risk-increasing orders restricted.`;
+      return tf('ticket.blocks.riskRestricted', { state: risk.state, reason: tail(risk.reason) });
     }
-    if (!newOrders) return 'New orders are currently disabled.';
-    if (!sideEnabled) return `${side.toUpperCase()} is disabled for this symbol.`;
+    if (!newOrders) return tf('ticket.blocks.newOrdersDisabled');
+    if (!sideEnabled) return tf('ticket.blocks.sideDisabled', { side: side === 'buy' ? tf('ticket.buy') : tf('ticket.sell') });
     if (requiresTriggerPrice(type) && !price.trim()) {
-      return type === 'stop_limit'
-        ? 'Stop Limit orders require a stop price.'
-        : 'Limit and stop orders require a trigger/entry price.';
+      return type === 'stop_limit' ? tf('ticket.blocks.stopLimitNeedsStop') : tf('ticket.blocks.needsTriggerPrice');
     }
-    if (requiresLimitPrice(type) && !limitPrice.trim()) return 'Stop Limit orders require a limit price.';
+    if (requiresLimitPrice(type) && !limitPrice.trim()) return tf('ticket.blocks.stopLimitNeedsLimit');
     if (tifNote) return tifNote;
     return null;
-  }, [authed, sessionOpen, sessions?.eligibility.reason, stale, quote, risk, newOrders, sideEnabled, side, type, price, limitPrice, tifNote]);
+  }, [authed, sessionOpen, sessions?.eligibility.reason, stale, quote, risk, newOrders, sideEnabled, side, type, price, limitPrice, tifNote, tf]);
 
   const previewRejected = preview.status === 'BLOCKED' && previewData?.allowed === false;
   const previewLoadingNoData = preview.status === 'LOADING' && !previewData;
@@ -212,15 +211,15 @@ export function ForexOrderTicket() {
   const canBuy = !baseBlocked && dealing?.symbol.buyEnabled !== false;
   const canSell = !baseBlocked && dealing?.symbol.sellEnabled !== false;
   const actionLabel = busy
-    ? 'Executing'
+    ? tf('ticket.executing')
     : preview.status === 'LOADING' && !previewData
-      ? 'Previewing'
+      ? tf('ticket.previewing')
       : lastError
-        ? 'Rejected'
+        ? tf('ticket.rejected')
         : last?.status === 'FILLED'
-          ? 'Filled'
+          ? tf('ticket.filled')
           : last?.status === 'REJECTED' || last?.status === 'FAILED'
-            ? 'Rejected'
+            ? tf('ticket.rejected')
             : last?.status === 'PENDING' || last?.status === 'ACCEPTED'
               ? last.status
               : null;
@@ -237,7 +236,9 @@ export function ForexOrderTicket() {
         return;
       }
       const q = res.data.quote;
-      setDemoNote(`SIMULATED tick · Bid ${q.bid} = Ask ${q.ask} · spread ${q.spread ?? '0'}`);
+      setDemoNote(
+        tf('ticket.demoTickNote', { bid: q.bid, ask: q.ask, spread: q.spread ?? '0' })
+      );
       await hydrateForexPrivate();
     } catch (e) {
       setDemoNote(describeForexError(normalizeForexError(e)));
@@ -333,10 +334,10 @@ export function ForexOrderTicket() {
         </label>
         <p className="pl-16 text-[9px] leading-snug text-muted-foreground">
           {tifUnsupported
-            ? 'Backend advertises GTC only.'
+            ? tf('ticketPanel.tifBackendGtcOnly')
             : isPendingOrderType(type)
-              ? 'GTC rests until cancelled · DAY expires at session close · GTD uses server expireAt.'
-              : 'GTC / IOC / FOK execute now · DAY/GTD apply to pending orders only.'}
+              ? tf('ticketPanel.tifPendingHelp')
+              : tf('ticketPanel.tifMarketHelp')}
         </p>
 
         {tif === 'GTD' && isPendingOrderType(type) ? (
@@ -353,7 +354,7 @@ export function ForexOrderTicket() {
         ) : null}
 
         <p className="text-[9px] leading-snug text-muted-foreground">
-          {[...missingFeatures, 'SIMULATED / MOCK'].join(' · ')}
+          {[...missingFeatures, tf('ticketPanel.simulatedMock')].join(' · ')}
         </p>
 
         <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
@@ -367,7 +368,7 @@ export function ForexOrderTicket() {
         </label>
         {inst ? (
           <p className="pl-16 text-[9px] text-muted-foreground">
-            {inst.minVolume}–{inst.maxVolume} · step {inst.volumeStep}
+            {tf('ticketPanel.volumeRange', { min: inst.minVolume, max: inst.maxVolume, step: inst.volumeStep })}
           </p>
         ) : null}
 
@@ -380,7 +381,13 @@ export function ForexOrderTicket() {
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               className="fx-mt5-field h-7 flex-1 px-1.5 text-[12px]"
-              aria-label={type === 'limit' ? 'Limit price' : type === 'stop_limit' ? 'Stop price' : 'Trigger price'}
+              aria-label={
+                type === 'limit'
+                  ? tf('ticketPanel.limitPriceAria')
+                  : type === 'stop_limit'
+                    ? tf('ticketPanel.stopPriceAria')
+                    : tf('ticketPanel.triggerPriceAria')
+              }
             />
           </label>
         ) : null}
@@ -397,10 +404,8 @@ export function ForexOrderTicket() {
               />
             </label>
             <p className="pl-16 text-[9px] leading-snug text-muted-foreground">
-              {side === 'buy'
-                ? 'Buy Stop Limit: limit must be at or below the stop.'
-                : 'Sell Stop Limit: limit must be at or above the stop.'}{' '}
-              Once the stop is hit the order works as a limit at this price.
+              {side === 'buy' ? tf('ticket.stopLimitBuyHint') : tf('ticket.stopLimitSellHint')}{' '}
+              {tf('ticketPanel.stopLimitFollowUp')}
             </p>
           </>
         ) : null}
@@ -435,49 +440,51 @@ export function ForexOrderTicket() {
           <dd className="text-right text-foreground">
             {hydratePhase === 'hydrating' && !account ? '…' : account ? fxNum(account.ledgerBalance, 2) : '—'}
           </dd>
-          <dt>Free</dt>
+          <dt>{tf('ticketPanel.free')}</dt>
           <dd className="text-right text-foreground">
             {hydratePhase === 'hydrating' && !account ? '…' : account ? fxNum(account.freeMargin, 2) : '—'}
           </dd>
-          <dt>Exec {side === 'buy' ? 'ASK' : 'BID'}</dt>
+          <dt>{side === 'buy' ? tf('ticketPanel.execAsk') : tf('ticketPanel.execBid')}</dt>
           <dd className="text-right text-foreground">{exec ? fxNum(exec, digits) : '—'}</dd>
-          <dt>Ref {previewData?.referenceSide ?? ''}</dt>
+          <dt>
+            {tf('ticketPanel.ref')} {previewData?.referenceSide ?? ''}
+          </dt>
           <dd className="text-right text-foreground">
             {previewData?.referencePrice ? fxNum(previewData.referencePrice, digits) : '—'}
           </dd>
-          <dt>Spread</dt>
+          <dt>{tf('ticketPanel.spreadLabel')}</dt>
           <dd className="text-right text-foreground">{previewData?.spread ?? quote?.spread ?? previewData?.spreadPips ?? quote?.spreadPips ?? '—'}</dd>
-          <dt>Ledger</dt>
+          <dt>{tf('ticketPanel.ledger')}</dt>
           <dd className="text-right text-foreground">{previewData?.ledgerBalance ?? account?.ledgerBalance ?? '—'}</dd>
-          <dt>Margin</dt>
+          <dt>{tf('ticket.margin')}</dt>
           <dd className="text-right text-foreground">{previewData?.requiredMargin ?? '—'}</dd>
-          <dt>Fee</dt>
+          <dt>{tf('ticket.fee')}</dt>
           <dd className="text-right text-foreground">{previewData?.estimatedFee ?? '0'}</dd>
-          <dt>Est. exposure</dt>
+          <dt>{tf('ticket.estExposure')}</dt>
           <dd className="text-right text-foreground">
             {ticketRisk.estimatedExposure != null ? fxNum(ticketRisk.estimatedExposure, 0) : '—'}
           </dd>
-          <dt>Est. SL</dt>
+          <dt>{tf('ticket.estSl')}</dt>
           <dd className="text-right text-foreground">
             {ticketRisk.slDistancePips != null ? `${ticketRisk.slDistancePips.toFixed(1)}p` : '—'}
             {ticketRisk.estimatedRisk != null ? ` · ${fxNum(ticketRisk.estimatedRisk, 2)}` : ''}
           </dd>
-          <dt>Est. TP</dt>
+          <dt>{tf('ticket.estTp')}</dt>
           <dd className="text-right text-foreground">
             {ticketRisk.tpDistancePips != null ? `${ticketRisk.tpDistancePips.toFixed(1)}p` : '—'}
             {ticketRisk.estimatedReward != null ? ` · ${fxNum(ticketRisk.estimatedReward, 2)}` : ''}
           </dd>
-          <dt>Est. R:R</dt>
+          <dt>{tf('ticket.estRr')}</dt>
           <dd className="text-right text-foreground">
             {ticketRisk.riskReward != null ? ticketRisk.riskReward.toFixed(2) : '—'}
           </dd>
-          <dt>Free after</dt>
+          <dt>{tf('ticket.freeAfter')}</dt>
           <dd className="text-right text-foreground">{previewData?.projectedFreeMargin ?? '—'}</dd>
-          <dt>Preview</dt>
+          <dt>{tf('ticket.preview')}</dt>
           <dd className="text-right">
             <button type="button" className="text-primary hover:underline" onClick={() => setRefreshNonce((n) => n + 1)}>
               {preview.status}
-              {previewData ? (previewData.allowed ? ' · OK' : ' · BLOCKED') : ''}
+              {previewData ? (previewData.allowed ? tf('ticket.previewOkSuffix') : tf('ticket.previewBlockedSuffix')) : ''}
             </button>
           </dd>
         </dl>
@@ -488,15 +495,19 @@ export function ForexOrderTicket() {
             onClick={() => void moveMockToTrigger()}
             className="w-full border border-border px-1.5 py-1 text-left text-[10px] text-muted-foreground hover:border-primary/40 disabled:opacity-50"
           >
-            {demoBusy ? 'Moving simulated price…' : 'Move mock price to trigger · DEMO / SIMULATED'}
+            {demoBusy ? tf('ticket.demoMoving') : tf('ticket.demoMoveButton')}
           </button>
         ) : null}
         {demoNote ? <p className="text-[11px] text-muted-foreground">{demoNote}</p> : null}
         {previewData && !previewData.allowed && previewData.reason ? (
           <p className="border border-rose-900/60 bg-rose-950/30 px-1.5 py-1 text-[11px] text-rose-200" role="status">
-            Preview rejected · {previewData.reason}
-            {previewData.ledgerBalance != null ? ` · ledger ${previewData.ledgerBalance}` : ''}
-            {previewData.requiredMargin != null ? ` · required ${previewData.requiredMargin}` : ''}
+            {tf('ticket.previewRejected', { reason: previewData.reason })}
+            {previewData.ledgerBalance != null
+              ? tf('ticket.previewLedgerSuffix', { balance: previewData.ledgerBalance })
+              : ''}
+            {previewData.requiredMargin != null
+              ? tf('ticket.previewRequiredSuffix', { margin: previewData.requiredMargin })
+              : ''}
           </p>
         ) : null}
 
@@ -512,7 +523,7 @@ export function ForexOrderTicket() {
         ) : null}
         {last ? (
           <p className="font-mono text-[10px] text-muted-foreground">
-            Last {last.orderId.slice(0, 8)}… {last.status}
+            {tf('ticket.lastOrder', { id: last.orderId.slice(0, 8), status: last.status })}
           </p>
         ) : null}
         {engine.lastNote ? <p className="text-[11px] text-muted-foreground">{engine.lastNote}</p> : null}
