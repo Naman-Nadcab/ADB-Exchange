@@ -1,0 +1,1520 @@
+{
+  "generatedAt": "2026-09-21T14:28:31.028Z",
+  "baseUrl": "http://127.0.0.1:3000",
+  "authEnabled": false,
+  "total": 90,
+  "pass": 61,
+  "fail": 29,
+  "hydrationIssues": 0,
+  "overflowCases": 0,
+  "rows": [
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('h1').first()\nExpected: visible\nReceived: hidden\nTimeout:  12000ms\n\nCall log:\n\u001b[2m  - Expect \"toBe"
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('h1').first()\nExpected: visible\nReceived: hidden\nTimeout:  12000ms\n\nCall log:\n\u001b[2m  - Expect \"toBe"
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('h1').first()\nExpected: visible\nReceived: hidden\nTimeout:  12000ms\n\nCall log:\n\u001b[2m  - Expect \"toBe"
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('h1').first()\nExpected: visible\nReceived: hidden\nTimeout:  12000ms\n\nCall log:\n\u001b[2m  - Expect \"toBe"
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('h1').first()\nExpected: visible\nReceived: hidden\nTimeout:  12000ms\n\nCall log:\n\u001b[2m  - Expect \"toBe"
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('h1').first()\nExpected: visible\nReceived: hidden\nTimeout:  12000ms\n\nCall log:\n\u001b[2m  - Expect \"toBe"
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "FAIL",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "console errors"
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+    }
+  ]
+}

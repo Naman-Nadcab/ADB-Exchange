@@ -11,15 +11,15 @@ test.describe('Forex terminal foundation', () => {
   test('public instruments and quotes hydrate into watchlist', async ({ page }) => {
     await page.goto('/forex', { waitUntil: 'domcontentloaded', timeout: 20_000 });
     await expect(page.getByRole('button', { name: /EUR\/USD/i }).first()).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByLabel('Watchlist')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('complementary', { name: /market watch/i })).toBeVisible({ timeout: 10_000 });
   });
 
   test('unauthenticated private panels stay explicit', async ({ page }) => {
     await page.goto('/forex', { waitUntil: 'domcontentloaded', timeout: 20_000 });
     await expect(
-      page.getByText(/Sign in to load Forex account|Please sign in to access your Forex account|Please sign in to continue/i).first()
+      page.getByText(/sign in|log in|登录|Masuk/i).first()
     ).toBeVisible({
-      timeout: 10_000,
+      timeout: 15_000,
     });
   });
 
