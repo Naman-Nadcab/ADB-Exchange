@@ -8,12 +8,82 @@
     "dashboard": "Dashboard",
     "sectionsAria": "P2P sections"
   },
+  "common": {
+    "buy": "Buy",
+    "sell": "Sell",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "copy": "Copy",
+    "delete": "Delete",
+    "merchant": "Merchant",
+    "limits": "Limits"
+  },
+  "loading": {
+    "label": "Loading P2P"
+  },
+  "errors": {
+    "network": "Network error"
+  },
   "marketplace": {
-    "title": "P2P Marketplace",
+    "title": "P2P Trading",
+    "escrowBadge": "Escrow",
+    "chipBestPrice": "Best Price",
+    "chipFastTrade": "Fast Trade",
+    "chipVerified": "Verified",
+    "tickerReconnecting": "Spot reference feed is reconnecting…",
+    "tickerBanner": "Spot reference feed is reconnecting. P2P listing remains available.",
+    "spotLabel": "Spot",
+    "p2pAvgLabel": "P2P Avg",
+    "adCount": "{count, plural, one {# ad} other {# ads}}",
     "buyCrypto": "Buy crypto",
     "sellCrypto": "Sell crypto",
     "escrowProtected": "Escrow protected",
     "orderFailed": "Order failed"
+  },
+  "modal": {
+    "tradeTitle": "{action} {symbol}",
+    "limits": "Limits",
+    "amountLabel": "Amount ({symbol})",
+    "paymentMethod": "Payment method",
+    "noMatchingMethod": "No matching method.",
+    "addPaymentMethod": "Add one",
+    "selectPlaceholder": "Select…",
+    "creating": "Creating…",
+    "createOrder": "Create Order"
+  },
+  "filters": {
+    "sideBuy": "Buy",
+    "sideSell": "Sell",
+    "paymentAll": "All Payments",
+    "paymentBank": "Bank Transfer",
+    "paymentUpi": "UPI",
+    "paymentImps": "IMPS",
+    "refreshAria": "Refresh ads"
+  },
+  "adsTable": {
+    "loadFailed": "Could not load ads",
+    "retryHint": "Check your connection and try again.",
+    "emptyTitle": "No ads match your filters",
+    "emptyHint": "Try another asset, fiat, or payment method.",
+    "available": "Available",
+    "limit": "Limit",
+    "headerAdvertisers": "Advertisers",
+    "headerPrice": "Price",
+    "headerLimitAvailable": "Limit / Available",
+    "headerPayment": "Payment",
+    "headerTrade": "Trade",
+    "zeroFee": "0 fee",
+    "loginToTrade": "Log in to trade",
+    "tradeButton": "{action} {symbol}",
+    "ordersCompletion": "{orders} orders · {completion}",
+    "orderCount": "{count, plural, one {# order} other {# orders}}",
+    "completionPct": "{pct}% completion"
+  },
+  "toast": {
+    "retryingFeedTitle": "Retrying feed",
+    "retryingFeedDesc": "Refreshing spot reference prices."
   },
   "order": {
     "paymentPending": "Payment pending",

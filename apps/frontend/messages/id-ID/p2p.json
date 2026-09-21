@@ -3,17 +3,87 @@
     "marketplace": "Marketplace",
     "postAd": "Pasang Iklan",
     "myAds": "Iklan Saya",
-    "orders": "Order",
+    "orders": "Pesanan",
     "payments": "Pembayaran",
-    "dashboard": "Dashboard",
+    "dashboard": "Dasbor",
     "sectionsAria": "Bagian P2P"
   },
+  "common": {
+    "buy": "Beli",
+    "sell": "Jual",
+    "cancel": "Batalkan",
+    "confirm": "Konfirmasi",
+    "retry": "Coba lagi",
+    "refresh": "Muat ulang",
+    "copy": "Salin",
+    "delete": "Hapus",
+    "merchant": "Merchant",
+    "limits": "Limit"
+  },
+  "loading": {
+    "label": "Memuat P2P"
+  },
+  "errors": {
+    "network": "Kesalahan jaringan"
+  },
   "marketplace": {
-    "title": "Marketplace P2P",
+    "title": "Trading P2P",
+    "escrowBadge": "Escrow",
+    "chipBestPrice": "Harga Terbaik",
+    "chipFastTrade": "Trade Cepat",
+    "chipVerified": "Terverifikasi",
+    "tickerReconnecting": "Feed referensi spot sedang menyambung ulang…",
+    "tickerBanner": "Feed referensi spot sedang menyambung ulang. Daftar P2P tetap tersedia.",
+    "spotLabel": "Spot",
+    "p2pAvgLabel": "Rata-rata P2P",
+    "adCount": "{count, plural, one {# iklan} other {# iklan}}",
     "buyCrypto": "Beli kripto",
     "sellCrypto": "Jual kripto",
-    "escrowProtected": "Escrow terlindungi",
-    "orderFailed": "Order gagal"
+    "escrowProtected": "Dilindungi escrow",
+    "orderFailed": "Pesanan gagal"
+  },
+  "modal": {
+    "tradeTitle": "{action} {symbol}",
+    "limits": "Limit",
+    "amountLabel": "Jumlah ({symbol})",
+    "paymentMethod": "Metode pembayaran",
+    "noMatchingMethod": "Tidak ada metode yang cocok.",
+    "addPaymentMethod": "Tambahkan",
+    "selectPlaceholder": "Pilih…",
+    "creating": "Membuat…",
+    "createOrder": "Buat Pesanan"
+  },
+  "filters": {
+    "sideBuy": "Beli",
+    "sideSell": "Jual",
+    "paymentAll": "Semua Pembayaran",
+    "paymentBank": "Transfer Bank",
+    "paymentUpi": "UPI",
+    "paymentImps": "IMPS",
+    "refreshAria": "Muat ulang iklan"
+  },
+  "adsTable": {
+    "loadFailed": "Tidak dapat memuat iklan",
+    "retryHint": "Periksa koneksi Anda dan coba lagi.",
+    "emptyTitle": "Tidak ada iklan yang sesuai filter",
+    "emptyHint": "Coba aset, fiat, atau metode pembayaran lain.",
+    "available": "Tersedia",
+    "limit": "Limit",
+    "headerAdvertisers": "Pengiklan",
+    "headerPrice": "Harga",
+    "headerLimitAvailable": "Limit / Tersedia",
+    "headerPayment": "Pembayaran",
+    "headerTrade": "Trade",
+    "zeroFee": "0 biaya",
+    "loginToTrade": "Masuk untuk trade",
+    "tradeButton": "{action} {symbol}",
+    "ordersCompletion": "{orders} pesanan · {completion}",
+    "orderCount": "{count, plural, one {# pesanan} other {# pesanan}}",
+    "completionPct": "{pct}% penyelesaian"
+  },
+  "toast": {
+    "retryingFeedTitle": "Mencoba ulang feed",
+    "retryingFeedDesc": "Memuat ulang harga referensi spot."
   },
   "order": {
     "paymentPending": "Menunggu pembayaran",

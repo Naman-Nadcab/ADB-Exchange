@@ -1,5 +1,9 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { BrandLoading } from '@/components/brand/BrandLoading';
 
 export default function P2PV2Loading() {
-  return <BrandLoading label="Loading P2P" />;
+  const tp = useTranslations('p2p');
+  return <BrandLoading label={tp('loading.label')} />;
 }

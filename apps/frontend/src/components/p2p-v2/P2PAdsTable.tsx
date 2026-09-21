@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import type { P2PAdRow } from '@/lib/p2pApi';
 import {
   p2pAdDisplayPrice,
@@ -108,6 +109,7 @@ export function P2PAdsTable({
   errorMessage,
   onRetry,
 }: Props) {
+  const tp = useTranslations('p2p');
   const sym = formatFiatSymbol(fiat);
 
   const filtered = paymentFilter
@@ -122,8 +124,8 @@ export function P2PAdsTable({
   if (isError) {
     return (
       <ErrorState
-        title="Could not load ads"
-        message={errorMessage || 'Check your connection and try again.'}
+        title={tp('adsTable.loadFailed')}
+        message={errorMessage || tp('adsTable.retryHint')}
         onRetry={onRetry}
       />
     );
@@ -135,16 +137,14 @@ export function P2PAdsTable({
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-border/50 bg-muted/30 text-muted-foreground/50">
           <Store className="h-8 w-8" />
         </div>
-        <p className="text-base font-semibold tracking-tight text-foreground">No ads match your filters</p>
-        <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-          Try another asset, fiat, or payment method.
-        </p>
+        <p className="text-base font-semibold tracking-tight text-foreground">{tp('adsTable.emptyTitle')}</p>
+        <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">{tp('adsTable.emptyHint')}</p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
           <Link
             href="/p2p/create-ad"
             className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            <PlusCircle className="h-4 w-4" /> Post ad
+            <PlusCircle className="h-4 w-4" /> {tp('nav.postAd')}
           </Link>
           {onRetry && (
             <button
@@ -152,7 +152,7 @@ export function P2PAdsTable({
               onClick={onRetry}
               className="rounded-xl border border-border/40 px-5 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
             >
-              Refresh
+              {tp('common.refresh')}
             </button>
           )}
         </div>
@@ -189,10 +189,12 @@ export function P2PAdsTable({
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="truncate text-sm font-semibold text-foreground">{ad.username || 'Merchant'}</span>
+                      <span className="truncate text-sm font-semibold text-foreground">{ad.username || tp('common.merchant')}</span>
                       {verified && <ShieldCheck className="h-4 w-4 shrink-0 text-[#0ecb81]" />}
                     </div>
-                    <span className="text-xs text-muted-foreground">{orders} orders · {completion}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {tp('adsTable.ordersCompletion', { orders, completion })}
+                    </span>
                   </div>
                 </div>
                 <CoinIcon symbol={ad.crypto_symbol || ''} size={24} />
@@ -209,13 +211,13 @@ export function P2PAdsTable({
               {/* stats row */}
               <div className="mb-4 flex gap-6 text-sm">
                 <div>
-                  <span className="block text-xs font-medium text-muted-foreground">Available</span>
+                  <span className="block text-xs font-medium text-muted-foreground">{tp('adsTable.available')}</span>
                   <span className="numeric font-medium tabular-nums text-foreground">
                     {avail} {ad.crypto_symbol}
                   </span>
                 </div>
                 <div>
-                  <span className="block text-xs font-medium text-muted-foreground">Limit</span>
+                  <span className="block text-xs font-medium text-muted-foreground">{tp('adsTable.limit')}</span>
                   <span className="numeric font-medium tabular-nums text-foreground">
                     {sym}{minF} – {sym}{maxF}
                   </span>
@@ -234,21 +236,24 @@ export function P2PAdsTable({
                     type="button"
                     disabled={!authed}
                     onClick={() => onTakeAd(ad)}
-                    title={!authed ? 'Log in to trade' : undefined}
+                    title={!authed ? tp('adsTable.loginToTrade') : undefined}
                     className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors duration-150 disabled:opacity-40 ${
                       isBuy
                         ? 'bg-[#0ecb81] text-white hover:bg-[#0ecb81]/85'
                         : 'bg-[#f6465d] text-white hover:bg-[#f6465d]/85'
                     }`}
                   >
-                    {isBuy ? 'Buy' : 'Sell'} {ad.crypto_symbol}
+                    {tp('adsTable.tradeButton', {
+                      action: isBuy ? tp('common.buy') : tp('common.sell'),
+                      symbol: ad.crypto_symbol ?? '',
+                    })}
                   </button>
                   {!authed && (
                     <Link
                       href={loginWithRedirect(P2P_HREF)}
                       className="text-center text-xs font-semibold text-primary hover:underline sm:text-right"
                     >
-                      Log in to trade
+                      {tp('adsTable.loginToTrade')}
                     </Link>
                   )}
                 </div>
@@ -263,12 +268,13 @@ export function P2PAdsTable({
         <table className="w-full min-w-[860px] text-left text-sm">
           <thead>
             <tr className="border-b border-border/25 bg-muted/30 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              <th scope="col" className="py-3.5 pl-4 pr-2">Advertisers</th>
-              <th scope="col" className="px-3 py-3.5 text-right">Price</th>
-              <th scope="col" className="px-3 py-3.5">Limit / Available</th>
-              <th scope="col" className="px-3 py-3.5">Payment</th>
+              <th scope="col" className="py-3.5 pl-4 pr-2">{tp('adsTable.headerAdvertisers')}</th>
+              <th scope="col" className="px-3 py-3.5 text-right">{tp('adsTable.headerPrice')}</th>
+              <th scope="col" className="px-3 py-3.5">{tp('adsTable.headerLimitAvailable')}</th>
+              <th scope="col" className="px-3 py-3.5">{tp('adsTable.headerPayment')}</th>
               <th scope="col" className="py-3.5 pl-3 pr-4 text-right">
-                Trade <span className="normal-case text-xs font-semibold text-primary/80">0 fee</span>
+                {tp('adsTable.headerTrade')}{' '}
+                <span className="normal-case text-xs font-semibold text-primary/80">{tp('adsTable.zeroFee')}</span>
               </th>
             </tr>
           </thead>
@@ -307,17 +313,17 @@ export function P2PAdsTable({
                               href={p2pProfilePath(String(uid))}
                               className="text-sm font-semibold text-foreground transition-colors hover:text-primary"
                             >
-                              {ad.username || 'Merchant'}
+                              {ad.username || tp('common.merchant')}
                             </Link>
                           ) : (
-                            <span className="text-sm font-semibold text-foreground">{ad.username || 'Merchant'}</span>
+                            <span className="text-sm font-semibold text-foreground">{ad.username || tp('common.merchant')}</span>
                           )}
                           {verified && <ShieldCheck className="h-4 w-4 shrink-0 text-[#0ecb81]" />}
                         </div>
                         <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                          <span>{orders} order{orders !== 1 ? 's' : ''}</span>
+                          <span>{tp('adsTable.orderCount', { count: orders })}</span>
                           <span className="text-border/40">|</span>
-                          <span>{completion}% completion</span>
+                          <span>{tp('adsTable.completionPct', { pct: completion })}</span>
                         </p>
                       </div>
                     </div>
@@ -335,13 +341,13 @@ export function P2PAdsTable({
                   <td className="px-3 py-4 align-middle">
                     <div className="space-y-1 text-sm">
                       <p>
-                        <span className="text-muted-foreground">Available </span>
+                        <span className="text-muted-foreground">{tp('adsTable.available')} </span>
                         <span className="numeric font-medium tabular-nums text-foreground">
                           {avail} {ad.crypto_symbol}
                         </span>
                       </p>
                       <p>
-                        <span className="text-muted-foreground">Limit </span>
+                        <span className="text-muted-foreground">{tp('adsTable.limit')} </span>
                         <span className="numeric font-medium tabular-nums text-foreground">
                           {sym}{minF} – {sym}{maxF}
                         </span>
@@ -374,21 +380,24 @@ export function P2PAdsTable({
                         type="button"
                         disabled={!authed}
                         onClick={() => onTakeAd(ad)}
-                        title={!authed ? 'Log in to trade' : undefined}
+                        title={!authed ? tp('adsTable.loginToTrade') : undefined}
                         className={`inline-flex min-h-10 items-center justify-center rounded-xl px-5 py-2 text-sm font-semibold transition-all duration-150 disabled:opacity-40 ${
                           isBuy
                             ? 'bg-[#0ecb81] text-white hover:bg-[#0ecb81]/85 active:bg-[#0ecb81]/70'
                             : 'bg-[#f6465d] text-white hover:bg-[#f6465d]/85 active:bg-[#f6465d]/70'
                         }`}
                       >
-                        {isBuy ? 'Buy' : 'Sell'} {ad.crypto_symbol}
+                        {tp('adsTable.tradeButton', {
+                          action: isBuy ? tp('common.buy') : tp('common.sell'),
+                          symbol: ad.crypto_symbol ?? '',
+                        })}
                       </button>
                       {!authed && (
                         <Link
                           href={loginWithRedirect(P2P_HREF)}
                           className="text-xs font-semibold text-primary transition-colors hover:text-primary/80 hover:underline"
                         >
-                          Log in to trade
+                          {tp('adsTable.loginToTrade')}
                         </Link>
                       )}
                     </div>

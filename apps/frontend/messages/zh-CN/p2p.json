@@ -8,12 +8,82 @@
     "dashboard": "商户面板",
     "sectionsAria": "P2P 分区"
   },
+  "common": {
+    "buy": "购买",
+    "sell": "出售",
+    "cancel": "取消",
+    "confirm": "确认",
+    "retry": "重试",
+    "refresh": "刷新",
+    "copy": "复制",
+    "delete": "删除",
+    "merchant": "商户",
+    "limits": "限额"
+  },
+  "loading": {
+    "label": "正在加载 P2P"
+  },
+  "errors": {
+    "network": "网络错误"
+  },
   "marketplace": {
-    "title": "P2P 市场",
+    "title": "P2P 交易",
+    "escrowBadge": "托管",
+    "chipBestPrice": "最优价",
+    "chipFastTrade": "快速成交",
+    "chipVerified": "已认证",
+    "tickerReconnecting": "现货参考行情正在重连…",
+    "tickerBanner": "现货参考行情正在重连，P2P 列表仍可正常使用。",
+    "spotLabel": "现货",
+    "p2pAvgLabel": "P2P 均价",
+    "adCount": "{count, plural, other {# 条广告}}",
     "buyCrypto": "购买加密货币",
     "sellCrypto": "出售加密货币",
     "escrowProtected": "托管保护",
     "orderFailed": "下单失败"
+  },
+  "modal": {
+    "tradeTitle": "{action} {symbol}",
+    "limits": "限额",
+    "amountLabel": "数量（{symbol}）",
+    "paymentMethod": "支付方式",
+    "noMatchingMethod": "没有匹配的支付方式。",
+    "addPaymentMethod": "去添加",
+    "selectPlaceholder": "请选择…",
+    "creating": "创建中…",
+    "createOrder": "创建订单"
+  },
+  "filters": {
+    "sideBuy": "购买",
+    "sideSell": "出售",
+    "paymentAll": "全部支付",
+    "paymentBank": "银行转账",
+    "paymentUpi": "UPI",
+    "paymentImps": "IMPS",
+    "refreshAria": "刷新广告"
+  },
+  "adsTable": {
+    "loadFailed": "无法加载广告",
+    "retryHint": "请检查网络后重试。",
+    "emptyTitle": "没有符合筛选条件的广告",
+    "emptyHint": "请尝试其他资产、法币或支付方式。",
+    "available": "可用",
+    "limit": "限额",
+    "headerAdvertisers": "广告方",
+    "headerPrice": "价格",
+    "headerLimitAvailable": "限额 / 可用",
+    "headerPayment": "支付",
+    "headerTrade": "交易",
+    "zeroFee": "0 手续费",
+    "loginToTrade": "登录后交易",
+    "tradeButton": "{action} {symbol}",
+    "ordersCompletion": "{orders} 笔 · {completion}",
+    "orderCount": "{count, plural, other {# 笔订单}}",
+    "completionPct": "{pct}% 完成率"
+  },
+  "toast": {
+    "retryingFeedTitle": "正在重试行情",
+    "retryingFeedDesc": "正在刷新现货参考价格。"
   },
   "order": {
     "paymentPending": "待付款",

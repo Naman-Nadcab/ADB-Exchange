@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { RefreshCw } from 'lucide-react';
 
 export type P2PFiltersValue = {
@@ -11,13 +12,6 @@ export type P2PFiltersValue = {
 
 const CRYPTOS = ['USDT', 'BTC', 'ETH', 'USDC'];
 const FIATS = ['INR', 'USD', 'EUR', 'GBP'];
-const PAYMENT_FILTERS = [
-  { value: '', label: 'All Payments' },
-  { value: 'bank', label: 'Bank Transfer' },
-  { value: 'upi', label: 'UPI' },
-  { value: 'imps', label: 'IMPS' },
-];
-
 type Props = {
   value: P2PFiltersValue;
   onChange: (v: P2PFiltersValue) => void;
@@ -25,6 +19,13 @@ type Props = {
 };
 
 export function P2PFilters({ value, onChange, onRefresh }: Props) {
+  const tp = useTranslations('p2p');
+  const PAYMENT_FILTERS = [
+    { value: '', labelKey: 'filters.paymentAll' as const },
+    { value: 'bank', labelKey: 'filters.paymentBank' as const },
+    { value: 'upi', labelKey: 'filters.paymentUpi' as const },
+    { value: 'imps', labelKey: 'filters.paymentImps' as const },
+  ];
   return (
     <div className="space-y-3">
       {/* Buy / Sell underline tabs */}
@@ -44,7 +45,7 @@ export function P2PFilters({ value, onChange, onRefresh }: Props) {
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              {s}
+              {s === 'buy' ? tp('filters.sideBuy') : tp('filters.sideSell')}
               {active && (
                 <span className={`absolute bottom-0 left-0 right-0 h-0.5 rounded-full ${
                   s === 'buy' ? 'bg-[#0ecb81]' : 'bg-[#f6465d]'
@@ -89,7 +90,11 @@ export function P2PFilters({ value, onChange, onRefresh }: Props) {
           onChange={(e) => onChange({ ...value, paymentCode: e.target.value })}
           className="h-10 min-w-[10rem] rounded-xl border border-border/40 bg-background px-3 text-sm font-medium text-foreground focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/15"
         >
-          {PAYMENT_FILTERS.map((p) => <option key={p.value || 'all'} value={p.value}>{p.label}</option>)}
+          {PAYMENT_FILTERS.map((p) => (
+            <option key={p.value || 'all'} value={p.value}>
+              {tp(p.labelKey)}
+            </option>
+          ))}
         </select>
 
         {onRefresh && (
@@ -97,7 +102,7 @@ export function P2PFilters({ value, onChange, onRefresh }: Props) {
             type="button"
             onClick={onRefresh}
             className="ml-auto flex h-11 w-11 items-center justify-center rounded-xl border border-border/40 text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
-            aria-label="Refresh"
+            aria-label={tp('filters.refreshAria')}
           >
             <RefreshCw className="h-4 w-4" />
           </button>

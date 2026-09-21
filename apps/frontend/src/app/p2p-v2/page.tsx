@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth';
@@ -60,6 +61,7 @@ function TakeOrderModal({
   onClose: () => void;
   onCreated: (orderId: string) => void;
 }) {
+  const tp = useTranslations('p2p');
   const sym = formatFiatSymbol(fiat);
   const side = p2pAdSide(ad);
   const rawPrice = p2pAdDisplayPrice(ad);
@@ -96,10 +98,10 @@ function TakeOrderModal({
         onCreated(String((res.data as { id: string }).id));
         onClose();
       } else {
-        setErr(res.error?.message ?? 'Order failed');
+        setErr(res.error?.message ?? tp('marketplace.orderFailed'));
       }
     },
-    onError: () => setErr('Network error'),
+    onError: () => setErr(tp('errors.network')),
   });
 
   return (
@@ -108,7 +110,10 @@ function TakeOrderModal({
         <div className="mb-5 flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-base font-bold text-foreground">
             <CoinIcon symbol={ad.crypto_symbol || ''} size={24} />
-            {side === 'sell' ? 'Buy' : 'Sell'} {ad.crypto_symbol}
+            {tp('modal.tradeTitle', {
+              action: side === 'sell' ? tp('common.buy') : tp('common.sell'),
+              symbol: ad.crypto_symbol ?? '',
+            })}
           </h2>
           <button type="button" onClick={onClose} className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
             <X className="h-5 w-5" />
@@ -118,28 +123,32 @@ function TakeOrderModal({
           <span className="numeric text-lg font-bold tabular-nums text-foreground">{sym}{priceFmtModal}</span>
           <span className="text-muted-foreground"> / {ad.crypto_symbol}</span>
           <span className="mx-2 text-border/40">·</span>
-          Limits{' '}
+          {tp('modal.limits')}{' '}
           <span className="numeric font-semibold tabular-nums text-foreground">
             {sym}{formatP2pFiatPrice(min, fiat)} – {sym}{formatP2pFiatPrice(max, fiat)}
           </span>
         </div>
 
-        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Amount ({ad.crypto_symbol})</label>
+        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {tp('modal.amountLabel', { symbol: ad.crypto_symbol ?? '' })}
+        </label>
         <input
           value={qty}
           onChange={(e) => setQty(e.target.value)}
           className="mb-5 w-full rounded-lg border border-border/40 bg-background px-3.5 py-2.5 font-mono text-sm text-foreground transition-colors focus:border-primary/40 focus:outline-none"
         />
 
-        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Payment method</label>
+        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">{tp('modal.paymentMethod')}</label>
         {pmLoading ? (
           <div className="mb-5 space-y-2">
             <Skeleton className="h-10 w-full rounded-lg" />
           </div>
         ) : selectable.length === 0 ? (
           <p className="mb-5 text-sm text-muted-foreground">
-            No matching method.{' '}
-            <Link href="/p2p/payment-methods" className="font-semibold text-primary underline underline-offset-2">Add one</Link>
+            {tp('modal.noMatchingMethod')}{' '}
+            <Link href="/p2p/payment-methods" className="font-semibold text-primary underline underline-offset-2">
+              {tp('modal.addPaymentMethod')}
+            </Link>
           </p>
         ) : (
           <select
@@ -147,7 +156,7 @@ function TakeOrderModal({
             onChange={(e) => setPmId(e.target.value)}
             className="mb-5 w-full rounded-lg border border-border/40 bg-background px-3.5 py-2.5 text-sm text-foreground transition-colors focus:border-primary/40 focus:outline-none"
           >
-            <option value="">Select…</option>
+            <option value="">{tp('modal.selectPlaceholder')}</option>
             {selectable.map((m: P2PPaymentMethodRow) => (
               <option key={m.id} value={m.id}>{m.display_name || m.method_name}</option>
             ))}
@@ -162,7 +171,7 @@ function TakeOrderModal({
           onClick={() => mut.mutate()}
           className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
         >
-          {mut.isPending ? 'Creating…' : 'Create Order'}
+          {mut.isPending ? tp('modal.creating') : tp('modal.createOrder')}
         </button>
       </div>
     </div>
@@ -173,6 +182,7 @@ function TakeOrderModal({
    MAIN PAGE — Binance-style dense trading layout
    ═══════════════════════════════════════════════════════ */
 export default function P2PV2MarketplacePage() {
+  const tp = useTranslations('p2p');
   const queryClient = useQueryClient();
   const { _hasHydrated, isAuthenticated } = useAuthStore();
   const authed = _hasHydrated && isAuthenticated;
@@ -277,11 +287,14 @@ export default function P2PV2MarketplacePage() {
     }).filter(Boolean) as { symbol: string; price: number | null; chg: number | null }[];
   }, [tickers]);
 
-  const quickChips = [
-    { id: 'best_price', label: 'Best Price', icon: Crown },
-    { id: 'fast_trade', label: 'Fast Trade', icon: Timer },
-    { id: 'verified', label: 'Verified', icon: BadgeCheck },
-  ];
+  const quickChips = useMemo(
+    () => [
+      { id: 'best_price', label: tp('marketplace.chipBestPrice'), icon: Crown },
+      { id: 'fast_trade', label: tp('marketplace.chipFastTrade'), icon: Timer },
+      { id: 'verified', label: tp('marketplace.chipVerified'), icon: BadgeCheck },
+    ],
+    [tp]
+  );
 
   return (
     <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
@@ -289,10 +302,10 @@ export default function P2PV2MarketplacePage() {
       {/* ── Header strip ── */}
       <div className="flex flex-col gap-3 border-b border-border/20 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">P2P Trading</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{tp('marketplace.title')}</h1>
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#0ecb81]/10 px-2.5 py-1 text-xs font-semibold text-[#0ecb81] ring-1 ring-[#0ecb81]/20 sm:inline-flex">
             <Shield className="h-3.5 w-3.5 shrink-0" />
-            Escrow
+            {tp('marketplace.escrowBadge')}
           </span>
         </div>
 
@@ -323,16 +336,20 @@ export default function P2PV2MarketplacePage() {
       </div>
       {tickerLoadFailed && (
         <div className="mt-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
-          Spot reference feed is reconnecting. P2P listing remains available.
+          {tp('marketplace.tickerBanner')}
           <button
             type="button"
             onClick={() => {
               void fetchTickers();
-              toast({ title: 'Retrying feed', description: 'Refreshing spot reference prices.', variant: 'default' });
+              toast({
+                title: tp('toast.retryingFeedTitle'),
+                description: tp('toast.retryingFeedDesc'),
+                variant: 'default',
+              });
             }}
             className="ml-2 font-semibold underline-offset-2 hover:underline"
           >
-            Retry
+            {tp('common.retry')}
           </button>
         </div>
       )}
@@ -364,19 +381,19 @@ export default function P2PV2MarketplacePage() {
         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
           {spotPrice != null && (
             <span>
-              Spot{' '}
+              {tp('marketplace.spotLabel')}{' '}
               <span className="numeric font-semibold text-foreground">{sym}{priceFmt.format(spotPrice)}</span>
             </span>
           )}
           {p2pAvg != null && (
             <span>
-              P2P Avg{' '}
+              {tp('marketplace.p2pAvgLabel')}{' '}
               <span className="numeric font-semibold text-foreground">{sym}{priceFmt.format(p2pAvg)}</span>
             </span>
           )}
           {!isLoading && (
             <span className="numeric rounded-lg bg-muted/40 px-2.5 py-1 text-xs font-semibold text-foreground">
-              {chipFilteredAds.length} ad{chipFilteredAds.length !== 1 ? 's' : ''}
+              {tp('marketplace.adCount', { count: chipFilteredAds.length })}
             </span>
           )}
         </div>
