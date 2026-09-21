@@ -379,6 +379,109 @@
       }
     }
   },
+  "help": {
+    "title": "Pusat Bantuan",
+    "contactSupport": "Hubungi dukungan",
+    "searchPlaceholder": "Cari topik bantuan…",
+    "topicCountOne": "{count} topik",
+    "topicCountOther": "{count} topik",
+    "noResults": "Tidak ada hasil. Coba kata pencarian lain.",
+    "footerStillNeedHelp": "Masih butuh bantuan?",
+    "footerDesc": "Hubungi tim dukungan kami atau kunjungi basis pengetahuan.",
+    "backToDashboard": "Kembali ke Dashboard",
+    "categories": {
+      "all": "Semua Topik",
+      "deposit": "Deposit",
+      "withdraw": "Penarikan",
+      "trading": "Trading",
+      "security": "Keamanan",
+      "account": "Akun",
+      "fees": "Fee & VIP",
+      "p2p": "P2P"
+    },
+    "items": {
+      "deposit-how": {
+        "title": "Cara Deposit Kripto",
+        "content": "Pilih chain dan token di halaman Deposit, buat alamat deposit, lalu kirim dana dari dompet eksternal. Selalu sertakan memo/tag yang diwajibkan untuk jaringan yang mendukung (mis. XRP, ATOM). Deposit memerlukan konfirmasi jaringan sebelum dikredit — biasanya 10–30 menit."
+      },
+      "deposit-wrong": {
+        "title": "Salah Jaringan atau Memo Hilang",
+        "content": "Jika Anda deposit di jaringan yang tidak didukung atau lupa memo/tag, hubungi dukungan dengan ID transaksi dan alamat deposit. Pemulihan manual dapat memakan beberapa hari kerja dan dikenai biaya pemulihan."
+      },
+      "deposit-pending": {
+        "title": "Deposit Belum Masuk",
+        "content": "Periksa transaksi di blockchain explorer. Jika konfirmasi sudah terpenuhi tetapi dana belum muncul, gunakan alat Layanan Mandiri di halaman Riwayat Aset, atau hubungi dukungan."
+      },
+      "withdraw-how": {
+        "title": "Cara Menarik Kripto",
+        "content": "Buka halaman Withdraw, pilih koin dan jaringan, masukkan alamat penerima, lalu konfirmasi jumlah. Verifikasi via 2FA atau OTP email. Penarikan diproses dalam hitungan menit untuk sebagian besar jaringan."
+      },
+      "withdraw-fiat": {
+        "title": "Penarikan INR / Fiat",
+        "content": "Penarikan bank INR tersedia dari Wallet → Withdraw → Fiat jika akun sudah KYC dan metode bank terhubung. Proses manual/ditinjau admin, 1–3 hari kerja. Penarikan kripto on-chain tetap opsi tercepat."
+      },
+      "withdraw-limits": {
+        "title": "Batas Penarikan",
+        "content": "Batas penarikan bergantung pada level verifikasi KYC. Selesaikan verifikasi identitas untuk limit lebih tinggi. Lihat Security → Withdrawal Limits untuk tier Anda."
+      },
+      "trade-spot": {
+        "title": "Cara Kerja Spot Trading",
+        "content": "Spot trading memungkinkan beli/jual kripto di harga pasar atau dengan limit order. Gunakan form order untuk market, limit, atau stop-limit. Saldo trading dipakai untuk order — transfer dulu dari Funding ke Trading."
+      },
+      "trade-types": {
+        "title": "Jenis Order Dijelaskan",
+        "content": "Market: dieksekusi segera di harga terbaik. Limit: dieksekusi saat harga mencapai target. Stop-Limit: memicu limit order saat harga stop tercapai. Masing-masing cocok untuk strategi entry/exit berbeda."
+      },
+      "trade-transfer": {
+        "title": "Transfer Antar Akun",
+        "content": "Gunakan halaman Transfer untuk memindahkan dana antara akun Funding dan Trading. Transfer instan dan gratis. Funding untuk deposit/penarikan; Trading untuk order spot."
+      },
+      "security-2fa": {
+        "title": "Mengatur 2FA",
+        "content": "Buka Security → 2FA untuk mengaktifkan Google Authenticator. Pindai QR, simpan kunci cadangan dengan aman, lalu masukkan kode verifikasi. 2FA melindungi login, penarikan, dan operasi sensitif."
+      },
+      "security-passkeys": {
+        "title": "Menggunakan Passkey",
+        "content": "Passkey memberi login tanpa kata sandi dan tahan phishing via biometrik perangkat (Face ID, sidik jari) atau kunci keamanan hardware. Atur di Security → Passkeys."
+      },
+      "security-fund-pwd": {
+        "title": "Kata Sandi Dana",
+        "content": "Kata sandi sekunder untuk penarikan dan transfer. Atur di Security → Fund Password untuk perlindungan ekstra dana Anda."
+      },
+      "security-anti-phish": {
+        "title": "Kode Anti-Phishing",
+        "content": "Atur kode anti-phishing kustom yang muncul di semua email resmi dari kami. Jika email tidak memuat kode Anda, bisa jadi upaya phishing."
+      },
+      "account-kyc": {
+        "title": "Verifikasi Identitas (KYC)",
+        "content": "Selesaikan KYC untuk fitur penuh: limit penarikan lebih tinggi, trading P2P, dan layanan fiat. Buka Account → Identity untuk unggah dokumen. Verifikasi biasanya selesai dalam 24 jam."
+      },
+      "account-api": {
+        "title": "Manajemen API Key",
+        "content": "Buat API key di Account → API untuk trading via alat pihak ketiga. Atur izin (read, trade, withdraw) dan whitelist IP. Jangan bagikan secret key."
+      },
+      "fiat-fees": {
+        "title": "Jadwal Fee",
+        "content": "Fee maker dan taker bergantung level VIP dan volume trading 30 hari. Order maker (limit yang menambah likuiditas) fee lebih rendah dari taker. Lihat halaman Fee Rates untuk tier Anda."
+      },
+      "vip-requirements": {
+        "title": "Tier VIP",
+        "content": "Level VIP diperbarui harian berdasarkan volume trading 30 hari. Tier lebih tinggi = fee lebih rendah. Lihat halaman Fee Rates untuk syarat volume dan diskon."
+      },
+      "p2p-how": {
+        "title": "Cara Kerja Trading P2P",
+        "content": "P2P memungkinkan beli/jual kripto langsung dengan pengguna lain via transfer bank, UPI, atau metode pembayaran lain. Platform menahan kripto di escrow hingga pembayaran dikonfirmasi."
+      },
+      "p2p-dispute": {
+        "title": "Sengketa P2P",
+        "content": "Jika trade bermasalah, salah satu pihak dapat membuka sengketa. Admin meninjau bukti (bukti bayar, log chat) dan menyelesaikan. Selalu simpan struk pembayaran."
+      },
+      "mnt-discount": {
+        "title": "Diskon Fee MNT",
+        "content": "Pegang token MNT di akun untuk diskon fee trading. Diskon diterapkan otomatis saat potong fee dalam MNT diaktifkan di pengaturan akun."
+      }
+    }
+  },
   "feeRates": {
     "title": "Tarif Fee Saya",
     "spotVolumeTier": "Tier volume spot",

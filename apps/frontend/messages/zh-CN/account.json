@@ -379,6 +379,109 @@
       }
     }
   },
+  "help": {
+    "title": "帮助中心",
+    "contactSupport": "联系客服",
+    "searchPlaceholder": "搜索帮助主题…",
+    "topicCountOne": "{count} 个主题",
+    "topicCountOther": "{count} 个主题",
+    "noResults": "未找到结果，请尝试其他搜索词。",
+    "footerStillNeedHelp": "仍需帮助？",
+    "footerDesc": "联系我们的客服团队或访问知识库。",
+    "backToDashboard": "返回控制台",
+    "categories": {
+      "all": "全部主题",
+      "deposit": "充值",
+      "withdraw": "提现",
+      "trading": "交易",
+      "security": "安全",
+      "account": "账户",
+      "fees": "费率与 VIP",
+      "p2p": "P2P"
+    },
+    "items": {
+      "deposit-how": {
+        "title": "如何进行加密货币充值",
+        "content": "在充值页面选择链路与代币，生成充值地址后从外部钱包转入。支持 Memo/Tag 的网络（如 XRP、ATOM）务必填写。充值需经网络确认后到账，通常约 10–30 分钟。"
+      },
+      "deposit-wrong": {
+        "title": "选错网络或遗漏 Memo",
+        "content": "若使用了不支持的网络或忘记 Memo/Tag，请联系客服并提供交易 ID 与充值地址。人工找回可能需要数个工作日，并可能收取找回费用。"
+      },
+      "deposit-pending": {
+        "title": "充值未到账",
+        "content": "请在区块链浏览器查询交易状态。若确认数已满足但资金未显示，可使用资产历史页的自助工具，或联系客服。"
+      },
+      "withdraw-how": {
+        "title": "如何提现加密货币",
+        "content": "进入提现页面，选择币种与网络，填写收款地址并确认金额。通过 2FA 或邮箱验证码验证。多数网络可在数分钟内处理完成。"
+      },
+      "withdraw-fiat": {
+        "title": "INR / 法币提现",
+        "content": "完成 KYC 并绑定银行账户后，可在 钱包 → 提现 → 法币 发起 INR 银行提现。处理需人工/管理员审核，约 1–3 个工作日。链上加密货币提现通常更快。"
+      },
+      "withdraw-limits": {
+        "title": "提现限额",
+        "content": "提现限额取决于 KYC 等级。完成身份认证可提升限额。请在 安全 → 提现限额 查看当前等级。"
+      },
+      "trade-spot": {
+        "title": "现货交易如何运作",
+        "content": "现货交易可按市价买卖或下限价单。在下单区选择市价、限价或止损限价单。交易账户余额用于下单——请先将资金从资金账户划转到交易账户。"
+      },
+      "trade-types": {
+        "title": "订单类型说明",
+        "content": "市价单：以最优价立即成交。限价单：价格达到目标时成交。止损限价单：触发止损价后提交限价单。各类订单适用于不同的进出场策略。"
+      },
+      "trade-transfer": {
+        "title": "账户间划转",
+        "content": "使用划转页面在资金账户与交易账户间转移资产。划转即时且免费。资金账户用于充提；交易账户用于现货下单。"
+      },
+      "security-2fa": {
+        "title": "设置 2FA",
+        "content": "前往 安全 → 2FA 启用 Google 验证器。扫描二维码，妥善保存备份密钥并输入验证码。2FA 保护登录、提现及敏感操作。"
+      },
+      "security-passkeys": {
+        "title": "使用通行密钥",
+        "content": "通行密钥通过设备生物识别（面容 ID、指纹）或硬件安全密钥实现无密码、抗钓鱼登录。在 安全 → 通行密钥 中设置。"
+      },
+      "security-fund-pwd": {
+        "title": "资金密码",
+        "content": "提现与划转所需的二级密码。在 安全 → 资金密码 中设置，为资产增加额外保护。"
+      },
+      "security-anti-phish": {
+        "title": "反钓鱼码",
+        "content": "设置自定义反钓鱼码，官方邮件均会显示该码。若邮件中没有您的反钓鱼码，可能是钓鱼邮件。"
+      },
+      "account-kyc": {
+        "title": "身份认证（KYC）",
+        "content": "完成 KYC 可解锁更高提现限额、P2P 交易及法币服务。前往 账户 → 身份认证 上传资料。认证通常在 24 小时内完成。"
+      },
+      "account-api": {
+        "title": "API 密钥管理",
+        "content": "在 账户 → API 创建密钥，供第三方工具交易。设置权限（读取、交易、提现）及 IP 白名单。切勿泄露 Secret Key。"
+      },
+      "fiat-fees": {
+        "title": "费率说明",
+        "content": "挂单与吃单费率取决于 VIP 等级及 30 日交易量。挂单（提供流动性的限价单）费率通常低于吃单。请在费率页面查看当前等级。"
+      },
+      "vip-requirements": {
+        "title": "VIP 等级",
+        "content": "VIP 等级每日根据 30 日交易量更新。更高等级享受更低费率。请在费率页面查看成交量要求与折扣。"
+      },
+      "p2p-how": {
+        "title": "P2P 交易如何运作",
+        "content": "P2P 允许用户通过银行转账、UPI 等方式直接买卖加密货币。平台托管 crypto 直至付款确认。"
+      },
+      "p2p-dispute": {
+        "title": "P2P 争议",
+        "content": "交易出现问题时，任一方可发起争议。管理员将审核付款凭证、聊天记录等证据并裁决。请保留付款收据。"
+      },
+      "mnt-discount": {
+        "title": "MNT 费率折扣",
+        "content": "账户持有 MNT 可享受交易费折扣。在账户设置中启用以 MNT 抵扣手续费后，折扣将自动应用。"
+      }
+    }
+  },
   "feeRates": {
     "title": "我的费率",
     "spotVolumeTier": "现货成交量档位",
