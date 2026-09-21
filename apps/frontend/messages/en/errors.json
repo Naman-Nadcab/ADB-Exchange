@@ -1,0 +1,8 @@
+{
+  "forex": {
+    "marginInsufficient": "Insufficient margin for this order"
+  },
+  "generic": {
+    "unknown": "Something went wrong. Please try again."
+  }
+}

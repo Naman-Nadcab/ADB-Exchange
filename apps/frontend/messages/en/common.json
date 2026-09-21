@@ -1,0 +1,10 @@
+{
+  "languageSelector": {
+    "label": "Language",
+    "ariaLabel": "Select display language",
+    "menuLabel": "Choose language"
+  },
+  "foundation": {
+    "ready": "Multilingual foundation is active"
+  }
+}

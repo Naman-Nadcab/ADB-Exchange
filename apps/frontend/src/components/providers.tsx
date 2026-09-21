@@ -8,6 +8,7 @@ import { rehydrateAuthStore, useAuthStore } from '@/store/auth';
 import { notifyError } from '@/lib/notifyError';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 import { DisplayCurrencyProvider } from '@/context/DisplayCurrencyProvider';
+import { LocalePreferenceSync } from '@/components/i18n/LocalePreferenceSync';
 
 /** Zustand unblock fallback if persist is slow (AuthProvider /me still needs `_hasHydrated`). */
 const REHYDRATE_MAX_MS = 1200;
@@ -75,7 +76,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ThemeProvider>
         <TooltipProvider delayDuration={200}>
           <AuthProvider>
-            <DisplayCurrencyProvider>{children}</DisplayCurrencyProvider>
+            <DisplayCurrencyProvider>
+              <LocalePreferenceSync />
+              {children}
+            </DisplayCurrencyProvider>
           </AuthProvider>
         </TooltipProvider>
       </ThemeProvider>

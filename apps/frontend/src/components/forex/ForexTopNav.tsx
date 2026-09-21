@@ -9,6 +9,7 @@ import { FOREX_NAV, FOREX_ROUTES, isForexTradePath } from '@/lib/forex/routes';
 import { ROUTES } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import { ForexConnectionStatus } from './ForexConnectionStatus';
+import { LocaleLanguageSelector } from '@/components/i18n/LocaleLanguageSelector';
 
 export function ForexTopNav(props?: { compact?: boolean }) {
   const pathname = usePathname() ?? '';
@@ -58,6 +59,7 @@ export function ForexTopNav(props?: { compact?: boolean }) {
               SIMULATED
             </span>
           )}
+          <LocaleLanguageSelector variant="compact" />
           <ForexConnectionStatus />
           {!compact ? <ThemeToggle size="sm" /> : null}
         </div>

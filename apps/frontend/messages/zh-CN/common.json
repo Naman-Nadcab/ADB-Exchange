@@ -1,0 +1,10 @@
+{
+  "languageSelector": {
+    "label": "语言",
+    "ariaLabel": "选择显示语言",
+    "menuLabel": "选择语言"
+  },
+  "foundation": {
+    "ready": "多语言基础架构已启用"
+  }
+}

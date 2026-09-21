@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/auth';
 import { performLogout } from '@/lib/authLogout';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { EdaProductSwitcher } from '@/components/eda/EdaProductSwitcher';
+import { LocaleLanguageSelector } from '@/components/i18n/LocaleLanguageSelector';
 
 /**
  * Global top header for public-viewable feature routes (markets, earn, p2p, trade).
@@ -106,6 +107,7 @@ export function PublicHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <LocaleLanguageSelector className="hidden sm:block" />
           {authed ? (
             <>
               <Link href={WALLET_HREF} prefetch className="tap-target hidden items-center gap-2 rounded-lg border border-[#F5B8001F] px-3 py-2 text-sm text-[#9CA3AF] transition hover:text-white sm:inline-flex">

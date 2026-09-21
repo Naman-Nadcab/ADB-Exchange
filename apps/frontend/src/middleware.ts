@@ -14,6 +14,7 @@ import {
   mapLegacyP2pPathToCanonical,
 } from '@/lib/tier1-shell-routes';
 import { isAccessCookieLikelyValid } from '@/lib/auth-cookie-edge';
+import { applyLocaleCookies } from '@/i18n/middleware-locale';
 
 const ACCESS_COOKIE = 'mlive_at';
 
@@ -80,7 +81,7 @@ export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   const authRedirect = applyAuthGate(request, pathname, search);
-  if (authRedirect) return authRedirect;
+  if (authRedirect) return applyLocaleCookies(request, authRedirect);
 
   /**
    * Fast-path: if canonical rewrites are disabled AND deprecated logging is
@@ -88,7 +89,7 @@ export function middleware(request: NextRequest) {
    * the lookup tables at all. This is the common prod config.
    */
   if (!CANONICAL_ENABLED && !DEPRECATED_LOG) {
-    return NextResponse.next();
+    return applyLocaleCookies(request, NextResponse.next());
   }
 
   if (DEPRECATED_LOG && isDeprecatedRoutePath(pathname)) {
@@ -102,7 +103,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (!CANONICAL_ENABLED) {
-    return NextResponse.next();
+    return applyLocaleCookies(request, NextResponse.next());
   }
 
   const exactHit = EXACT_REDIRECT_MAP.get(pathname);
@@ -121,7 +122,7 @@ export function middleware(request: NextRequest) {
         })
       );
     }
-    return NextResponse.redirect(url, REDIRECT_STATUS);
+    return applyLocaleCookies(request, NextResponse.redirect(url, REDIRECT_STATUS));
   }
 
   const legacyMapped = mapLegacyDashboardPathToCanonical(pathname);
@@ -140,7 +141,7 @@ export function middleware(request: NextRequest) {
         })
       );
     }
-    return NextResponse.redirect(url, REDIRECT_STATUS);
+    return applyLocaleCookies(request, NextResponse.redirect(url, REDIRECT_STATUS));
   }
 
   const p2pMapped = mapLegacyP2pPathToCanonical(pathname);
@@ -159,10 +160,10 @@ export function middleware(request: NextRequest) {
         })
       );
     }
-    return NextResponse.redirect(url, REDIRECT_STATUS);
+    return applyLocaleCookies(request, NextResponse.redirect(url, REDIRECT_STATUS));
   }
 
-  return NextResponse.next();
+  return applyLocaleCookies(request, NextResponse.next());
 }
 
 /**

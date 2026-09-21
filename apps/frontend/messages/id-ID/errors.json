@@ -1,0 +1,8 @@
+{
+  "forex": {
+    "marginInsufficient": "Margin tidak mencukupi untuk order ini"
+  },
+  "generic": {
+    "unknown": "Terjadi kesalahan. Silakan coba lagi."
+  }
+}

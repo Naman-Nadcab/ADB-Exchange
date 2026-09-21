@@ -1,0 +1,10 @@
+{
+  "languageSelector": {
+    "label": "Bahasa",
+    "ariaLabel": "Pilih bahasa tampilan",
+    "menuLabel": "Pilih bahasa"
+  },
+  "foundation": {
+    "ready": "Fondasi multibahasa aktif"
+  }
+}

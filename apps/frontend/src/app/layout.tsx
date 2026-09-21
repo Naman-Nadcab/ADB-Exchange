@@ -1,10 +1,14 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Orbitron, IBM_Plex_Mono } from 'next/font/google';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { DockerUserAppHint } from '@/components/DockerUserAppHint';
 import { Toaster } from '@/components/ui/toaster';
 import { BRAND_NAME, BRAND_NAME_SHORT, BRAND_PRODUCT } from '@/lib/brand';
+import { localeToHtmlLang } from '@/i18n/request';
+import { isAppLocale } from '@/i18n/config';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -51,19 +55,25 @@ export const metadata: Metadata = {
   manifest: '/site.webmanifest',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+  const htmlLang = isAppLocale(locale) ? localeToHtmlLang(locale) : 'en';
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={htmlLang} suppressHydrationWarning>
       <body className={`${inter.variable} ${orbitron.variable} ${ibmPlexMono.variable} font-sans antialiased`}>
-        <Providers>
-          <DockerUserAppHint />
-          {children}
-          <Toaster />
-        </Providers>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <Providers>
+            <DockerUserAppHint />
+            {children}
+            <Toaster />
+          </Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

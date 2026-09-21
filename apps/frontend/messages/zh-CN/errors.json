@@ -1,0 +1,8 @@
+{
+  "forex": {
+    "marginInsufficient": "保证金不足，无法提交此订单"
+  },
+  "generic": {
+    "unknown": "出现错误，请稍后重试。"
+  }
+}

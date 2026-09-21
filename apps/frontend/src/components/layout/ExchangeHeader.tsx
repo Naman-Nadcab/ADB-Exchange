@@ -18,6 +18,7 @@ import { MARKETS_HREF, ORDERS_HREF, WALLET_HREF, P2P_HREF, ROUTES, LEGACY_PATH_P
 import { performLogout } from '@/lib/authLogout';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { EdaProductSwitcher } from '@/components/eda/EdaProductSwitcher';
+import { LocaleLanguageSelector } from '@/components/i18n/LocaleLanguageSelector';
 
 const MAIN_NAV = [
   { label: 'Markets', href: MARKETS_HREF },
@@ -199,6 +200,7 @@ export function ExchangeHeader({
         {!showPairSearch && (
           <div className="hidden sm:block"><GlobalSearch accessToken={accessToken} /></div>
         )}
+        <LocaleLanguageSelector />
         <ThemeToggle variant="icon" size="sm" />
         {isAuthed ? (
           <>
