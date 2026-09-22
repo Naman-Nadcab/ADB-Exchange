@@ -138,9 +138,9 @@
     "spreadShort": "Spr",
     "buySellRatio": "B / S",
     "mobileTabs": {
-      "chart": "Chart",
-      "book": "Book",
-      "trade": "Trade",
+      "chart": "Grafik",
+      "book": "Buku",
+      "trade": "Trading",
       "markets": "Pasar"
     },
     "feedUnavailable": "Feed pasar live tidak tersedia. Penempatan order dijeda untuk mencegah eksekusi stale.",
@@ -162,8 +162,8 @@
     }
   },
   "chart": {
-    "chart": "Chart",
-    "depth": "Depth",
+    "chart": "Grafik",
+    "depth": "Kedalaman",
     "studies": "Studi",
     "reset": "Reset",
     "fitContent": "Sesuaikan konten",
@@ -177,7 +177,7 @@
     "priceChartAria": "Chart harga",
     "unavailable": "Chart tidak tersedia.",
     "phase": {
-      "live": "Live",
+      "live": "Langsung",
       "reconnecting": "Menyambung ulang",
       "disconnected": "Offline",
       "connecting": "Menghubungkan"
