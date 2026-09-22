@@ -3,8 +3,9 @@
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Star, ChevronDown } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useMarketDataUxCopy } from '@/hooks/useMarketDataUxCopy';
-import { classifyTickerVolumeSource, turnoverLabelForSource } from '@/lib/volumeMetrics';
+import { classifyTickerVolumeSource } from '@/lib/volumeMetrics';
 import type { SpotWsStreamPhase } from '@/hooks/useSpotWs';
 import { formatCompactNumber, formatValueFixedTrim } from './terminalFormat';
 import { CoinIcon } from '@/components/ui/CoinIcon';
@@ -94,6 +95,7 @@ export function PairHeader({
   embedded = false,
   marketStatus: _marketStatus,
 }: PairHeaderProps) {
+  const t = useTranslations('crypto');
   const md = useMarketDataUxCopy();
   const sym = symbol ?? 'BTC_USDT';
   const base = baseAsset ?? 'BTC';
@@ -102,7 +104,10 @@ export function PairHeader({
     volume_24h: turnover24h,
     base_volume_24h: volume24h,
   });
-  const turnoverLabel = turnoverLabelForSource(turnoverSource, quote);
+  const turnoverLabel =
+    turnoverSource === 'reference'
+      ? t('pairHeader.turnoverRef')
+      : t('pairHeader.turnoverQuote', { quote: quote.slice(0, 4) });
   const turnoverTooltip =
     turnoverSource === 'reference' ? md.TOOLTIP_REFERENCE_VOLUME_24H : md.TOOLTIP_QUOTE_VOLUME_24H;
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
@@ -124,7 +129,10 @@ export function PairHeader({
     const spread = a - b;
     const mid = (a + b) / 2;
     const spreadPct = mid > 0 ? (spread / mid) * 100 : 0;
-    return `Spread ${formatValueFixedTrim(String(spread), pricePrecision)} (${spreadPct.toFixed(3)}%)`;
+    return t('pairHeader.spreadTooltip', {
+      spread: formatValueFixedTrim(String(spread), pricePrecision),
+      pct: spreadPct.toFixed(3),
+    });
   })();
 
   const [priceFlash, setPriceFlash] = useState<'up' | 'down' | null>(null);
@@ -193,7 +201,7 @@ export function PairHeader({
             <select
               value={sym}
               onChange={(e) => onChange(e.target.value)}
-              aria-label="Trading pair"
+              aria-label={t('pairHeader.tradingPairAria')}
               className="numeric h-7 max-w-[9.5rem] min-w-[6.5rem] shrink cursor-pointer appearance-none truncate rounded-md border border-border bg-card py-0 pl-2 pr-7 text-book font-bold leading-7 text-foreground outline-none transition-colors hover:border-primary/35 focus:border-primary/50 focus:ring-1 focus:ring-primary/25 sm:max-w-[10.5rem]"
             >
               {mkt.map((m) => (
@@ -213,15 +221,15 @@ export function PairHeader({
           </span>
         )}
         <span className="inline-flex h-[18px] shrink-0 items-center rounded border border-border bg-muted/80 px-1.5 terminal-text-label font-semibold uppercase leading-none text-foreground/85">
-          Spot
+          {t('pairHeader.spotBadge')}
         </span>
         {onToggleFavorite && sym && (
           <button
             type="button"
             onClick={() => onToggleFavorite(sym)}
             className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-primary"
-            title={isFavorite?.(sym) ? 'Remove from favorites' : 'Add to favorites'}
-            aria-label="Toggle favorite"
+            title={isFavorite?.(sym) ? t('pairHeader.removeFavorite') : t('pairHeader.addFavorite')}
+            aria-label={t('pairHeader.toggleFavoriteAria')}
           >
             <Star className={`h-3 w-3 ${isFavorite?.(sym) ? 'fill-primary text-primary' : ''}`} />
           </button>
@@ -229,7 +237,7 @@ export function PairHeader({
         {tierLevel != null && tierLevel > 0 && (
           <span
             className="hidden h-4 shrink-0 items-center rounded border border-primary/30 bg-primary/10 px-1 text-label font-bold text-primary sm:inline-flex"
-            title="Withdrawal tier"
+            title={t('pairHeader.withdrawalTierTitle')}
           >
             T{tierLevel}
           </span>
@@ -238,11 +246,11 @@ export function PairHeader({
 
       {/* Content-sized columns, centered; dividers only between stats */}
       <div className="flex min-w-0 flex-1 items-stretch justify-evenly divide-x divide-border px-1">
-        <MiniStat label="Last Price" title={lastSub ?? md.TOOLTIP_LAST_PRICE} valueClassName="text-[22px] sm:text-[26px] font-bold leading-none tracking-tight">
+        <MiniStat label={t('pairHeader.lastPrice')} title={lastSub ?? md.TOOLTIP_LAST_PRICE} valueClassName="text-[22px] sm:text-[26px] font-bold leading-none tracking-tight">
           <span className={`font-bold ${hasLastTrade ? lastColor : 'text-muted-foreground'}`}>{lastDisplay}</span>
         </MiniStat>
         <MiniStat
-          label="24h Change"
+          label={t('pairHeader.change24h')}
           title={officialChangePct != null ? md.TOOLTIP_24H_CHANGE : md.TOOLTIP_CHANGE_UNAVAILABLE}
           valueClassName="terminal-text-secondary font-semibold"
         >
@@ -252,7 +260,7 @@ export function PairHeader({
               : '—'}
           </span>
         </MiniStat>
-        <MiniStat label="24h High" title={md.TOOLTIP_24H_HIGH} valueClassName="terminal-text-table">
+        <MiniStat label={t('pairHeader.high24h')} title={md.TOOLTIP_24H_HIGH} valueClassName="terminal-text-table">
           <span className="min-w-0 truncate">
             {(() => {
               const s = formatValueFixedTrim(high24h, pricePrecision);
@@ -260,7 +268,7 @@ export function PairHeader({
             })()}
           </span>
         </MiniStat>
-        <MiniStat label="24h Low" title={md.TOOLTIP_24H_LOW} valueClassName="terminal-text-table">
+        <MiniStat label={t('pairHeader.low24h')} title={md.TOOLTIP_24H_LOW} valueClassName="terminal-text-table">
           <span className="min-w-0 truncate">
             {(() => {
               const s = formatValueFixedTrim(low24h, pricePrecision);
@@ -268,7 +276,7 @@ export function PairHeader({
             })()}
           </span>
         </MiniStat>
-        <MiniStat label={`Volume (${base.slice(0, 4)})`} title={md.TOOLTIP_BASE_VOLUME_24H} valueClassName="terminal-text-table">
+        <MiniStat label={t('pairHeader.volumeBase', { base: base.slice(0, 4) })} title={md.TOOLTIP_BASE_VOLUME_24H} valueClassName="terminal-text-table">
           <span className="min-w-0 truncate">
             {(() => {
               const s = formatCompactNumber(volume24h);
@@ -284,7 +292,7 @@ export function PairHeader({
             })()}
           </span>
         </MiniStat>
-        <MiniStat label="Bid / Ask" title={spreadTooltip} className="max-w-[min(100%,8.5rem)]" valueClassName="terminal-text-table">
+        <MiniStat label={t('pairHeader.bidAsk')} title={spreadTooltip} className="max-w-[min(100%,8.5rem)]" valueClassName="terminal-text-table">
           <div className="min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-center">
             <span className="text-buy">{formatValueFixedTrim(bid, pricePrecision)}</span>
             <span className="text-muted-foreground">/</span>

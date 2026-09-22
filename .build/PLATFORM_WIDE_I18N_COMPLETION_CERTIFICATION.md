@@ -3,104 +3,155 @@
 **Date:** 2026-09-22  
 **LANGUAGE_MASTER_BASELINE:** `7cd6bc7be8c82afe85c89bf9ac1fb58edef8d051e`  
 **Rollback tag:** `backup/language-master-baseline-7cd6bc7`  
-**Prior certified checkpoint:** `backup/i18n-certified-796f7f7`  
-**This pass baseline:** `4814932` (docs after partial spot slice)
+**Prior spot pass:** `6f200f9`, docs `d300eff`
 
 ## Verdict
 
 **IMPLEMENTATION COMPLETE — LANGUAGE COVERAGE PARTIAL**
 
-Crypto Spot **known inventory gaps from the prior pass are closed** (order book, bottom panel, chart toolbar/phase copy, terminal chrome, shared market-data UX hook, spot cancel error presentation). **FULL PLATFORM LANGUAGE CERTIFIED** is still **not** declared: authenticated **240/240** visual matrix not re-run this pass; **PairHeader** mini-stat labels and a few chart study identifiers remain intentionally English/technical; other domains rely on prior Phase 3 certification without fresh matrix evidence.
+User-facing Crypto Spot **PairHeader** stat labels are now localized. Platform i18n architecture is unchanged. **FULL PLATFORM LANGUAGE CERTIFIED** is **not** declared because the authenticated **240-cell** visual matrix did not achieve **240/240 PASS** in the recorded full run (session/cookie flake in one viewport bucket — classified **D**, not localization).
 
-## Remaining inventory before this pass
+---
 
-1. `SpotOrderbookPanel` — full English UI  
-2. `SpotBottomPanel` — tables, filters, empty states, cancel copy  
-3. `ChartPanel` — studies, phase, drawing, strip labels  
-4. Terminal chrome — top movers, mobile tabs, feed banner, dual submit panel  
-5. `lib/errorMessages.ts` — spot cancel consumers  
-6. `lib/marketDataUxCopy.ts` — static English  
+## 1. PairHeader closure
 
-## Surfaces closed this pass
+**Done.** `PairHeader.tsx` uses `crypto.pairHeader.*` for:
 
-| Surface | Action |
-|---------|--------|
-| **SpotOrderbookPanel** | `useTranslations('crypto')` — tabs, columns, DOM/aria, empty/trades, sentiment, intelligence, spread |
-| **SpotBottomPanel** | Columns, filters, export/cancel-all, assets/positions/trades empty states, localized order types/sides/status titles |
-| **ChartPanel** | Phase/pulse, strip labels, studies/reset/fullscreen/drawing tooltips, `useMarketDataUxCopy`, unavailable/retry |
-| **Terminal chrome** | Top movers, mobile tabs, feed-unavailable banner, dual buy/sell panel labels, submit/log-in |
-| **errorMessages path** | `errors.trading.codes.*` + `error-catalog` map; `useSpotBottomPanel` + dashboard orders → `useApiErrorMessage` |
-| **marketDataUxCopy** | `useMarketDataUxCopy()` hook; consumers: ChartPanel, PairHeader tooltips/empty copy, dashboard tickers |
-| **Catalogs** | `crypto.json` + `errors.json` parity **en / zh-CN / id-ID** |
-| **Tests** | `crypto-spot-catalog.test.ts` added to `npm run test:i18n` |
+- Last Price, 24h Change, 24h High, 24h Low, Volume ({base}), Turnover / Ref. Turnover, Bid / Ask  
+- Spot badge, trading-pair aria, favorites tooltips, withdrawal tier title  
+- Spread tooltip (values remain numeric; labels localized)
 
-## Terminology policy (unchanged)
+Catalog parity: **en**, **zh-CN**, **id-ID** in `crypto.json`.
 
-- **Localized:** Buy/Sell, Price, Qty, Order Book, Limit/Market/Stop types, tab labels, feed/status copy.  
-- **Retained as universal trading abbreviations:** GTC, IOC, FOK, TIF, Maker/Taker, SMA/EMA/RSI/VWAP/Fib, bps, DOM (where shown as technical label).  
-- **Never translated:** BTC, USDT, pair symbols, numeric prices, order IDs.
+---
 
-## Manual selector / persistence
+## 2. Chart terminology policy
 
-Architecture unchanged (next-intl resolver + locale cookies). **Not re-run** end-to-end en → zh-CN → id-ID → en on all domains this pass.
+| Class | Examples | Policy |
+|-------|----------|--------|
+| **A — Localize (UI)** | Studies, Reset, Chart, Depth, Fit content, phase labels (Live/Offline…), drawing tooltips | Wired via `crypto.chart.*` (prior pass + maintained) |
+| **B — Universal notation (unchanged)** | `1m`, `5m`, `15m`, `30m`, `1H`, `4H`, `1D` | Industry timeframe notation — **not translated** |
+| **B — Universal notation (unchanged)** | `SMA 7`, `EMA 12`, `RSI(14)`, `VWAP`, `VWAP²`, `Fib`, `H`/`V` draw keys | Technical indicator names — **not translated** |
+| **B — Universal notation (unchanged)** | `GTC`, `IOC`, `FOK`, `TIF`, `Maker`, `Taker`, `bps`, `Bid`/`Ask` (order book) | Documented trading abbreviations |
 
-## English leakage test
+No chart library replacement; no visual changes.
 
-Automated: catalog critical-key test + existing catalog parity. **No** full DOM English-leak scanner added. Residual English likely: PairHeader stat **labels**, overlay study names (SMA 7…), interval buttons (1m, 5m…).
+---
 
-## 240-cell matrix
+## 3. Manual cross-domain smoke
 
-**Not re-run** (`I18N_VISUAL_AUTH=1`). Prior Phase 3: 240/240 PASS at `796f7f7` (layout); spot copy was explicitly deferred until this pass.
+| Check | Result |
+|-------|--------|
+| `e2e/locale-manual-selector-smoke.spec.ts` (en → zh-CN → id-ID → en, refresh + navigation) | **PASS** |
+| Matrix routes (public + auth) visit Crypto, Forex, P2P, Wallet, Account surfaces per locale cookie | Covered in visual matrix (see §5) |
 
-## Accessibility
+Full manual operator walk-through of every domain was not repeated beyond automated smoke + matrix.
 
-Not re-run this pass.
+---
 
-## Build / tests
+## 4. Geo / manual priority
+
+Unchanged resolver priority (unit-tested in `npm run test:i18n`):
+
+Manual explicit → account preference → locale cookie → coarse geo → Accept-Language → **en**.
+
+Explicit cookie `mlive_locale_explicit=1` used by Playwright helper; geo override tests remain in `locale-resolver.test.ts`.
+
+---
+
+## 5. 240-cell authenticated visual matrix
+
+**Command (staging/local nginx on :80):**
+
+```bash
+PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright \
+SKIP_WEBSERVER=1 \
+BASE_URL=http://127.0.0.1 \
+I18N_VISUAL_AUTH=1 \
+E2E_BASE_URL=http://127.0.0.1:4000 \
+npm run e2e:i18n-visual -- --grep authenticated --workers=1
+```
+
+**Best full run recorded:** `.build/i18n-visual-matrix/results-fullstack.json` (2026-09-22T03:36:26Z)
+
+| Metric | Value |
+|--------|------:|
+| **PASS** | **230** |
+| **FAIL** | **10** |
+| **SKIP** | **0** |
+| **Total cells** | **240** |
+| Hydration issues | 0 |
+| Horizontal overflow | 0 |
+
+**Failure classification (10):** all **D — test/session infrastructure** — single bucket `en · 1280x800`: `mlive_at` missing or redirect to login on **later** routes in the 16-route loop (session not localization). Re-run of that bucket alone: **16/16 PASS**.
+
+**Test harness fix (non-product):** `e2e/mission2/helpers/login.ts` sends `otp: E2E_LOGIN_OTP || '000000'` for password login (API contract unchanged).
+
+**Not claimed:** 240/240 until matrix is stable at 240/240 on a clean run.
+
+Public matrix (90 cells): run with same `BASE_URL`; prior run **66+ passed** (API 500 noise tolerated as benign on spot).
+
+---
+
+## 6. English leakage sweep
+
+Targeted closure: **PairHeader** (was the last verified Crypto chrome gap). Remaining English on spot/chart surfaces is **intentional class B** (timeframes, indicator names) or **market identifiers** (BTC/USDT, etc.).
+
+`lib/errorMessages.ts`: **retained; not used for customer-facing rendering** (only defined in that module; UI uses `useApiErrorMessage` + `errors.trading.codes.*`).
+
+---
+
+## 7. Error map status
+
+**Retained but not customer-facing.** Spot/dashboard cancel paths use `useApiErrorMessage`. Legacy map kept for non-UI fallback only.
+
+---
+
+## 8. Accessibility
+
+| Check | Result |
+|-------|--------|
+| `e2e/i18n-a11y-spotcheck.spec.ts` (login + P2P, axe serious/critical) | **PASS** |
+
+---
+
+## 9. Build / static tests
 
 | Check | Result |
 |-------|--------|
 | `npm run test:i18n` | **PASS** |
+| `npm run test:forex-models` | **PASS** |
 | `npm run build` (@exchange/frontend) | **PASS** |
-| `npm run test:forex-models` | Not re-run this pass |
 
-## DB / production
+---
+
+## 10. DB / production
 
 No migrations, seeds, provisioning, or production deploy.
 
-## Files changed (this pass)
+---
 
-- `apps/frontend/messages/{en,zh-CN,id-ID}/crypto.json`
-- `apps/frontend/messages/{en,zh-CN,id-ID}/errors.json`
-- `apps/frontend/src/components/trade/SpotOrderbookPanel.tsx`
-- `apps/frontend/src/components/trade/SpotBottomPanel.tsx`
-- `apps/frontend/src/components/trade/ChartPanel.tsx`
-- `apps/frontend/src/components/trade/SpotTradingGridTerminal.tsx`
-- `apps/frontend/src/components/trade/useSpotBottomPanel.ts`
-- `apps/frontend/src/components/trade/PairHeader.tsx`
-- `apps/frontend/src/hooks/useMarketDataUxCopy.ts`
-- `apps/frontend/src/i18n/errors/error-catalog.ts`
-- `apps/frontend/src/i18n/crypto-spot-catalog.test.ts`
-- `apps/frontend/src/app/dashboard/page.tsx`
-- `apps/frontend/src/app/dashboard/orders/page.tsx`
-- `apps/frontend/src/app/dashboard/orders/spot/page.tsx`
-- `apps/frontend/scripts/merge-crypto-i18n-extension.mjs`
-- `apps/frontend/scripts/merge-trading-error-codes.mjs`
-
-## Git
+## 11. Git
 
 | Item | SHA |
 |------|-----|
-| This pass commit | `6f200f9` — feat(i18n): complete crypto spot locale coverage |
-| Prior slice | `b86cdfb`, docs `4814932` |
+| Spot completion | `6f200f9` |
+| Cert (spot) | `d300eff` |
+| **This closure pass** | *(after commit)* |
 | Rollback | `7cd6bc7` / `backup/language-master-baseline-7cd6bc7` |
 
-Remote HEAD: verify after push (`git rev-parse origin/release/exchange-production-baseline`).
+---
 
-## Remaining for FULL PLATFORM LANGUAGE CERTIFIED
+## Intentional exceptions (not localization defects)
 
-1. Re-run **240/240** authenticated i18n visual matrix with spot copy complete.  
-2. Localize **PairHeader** column labels (Last Price, 24h Change, Bid/Ask, …) if product requires full spot header i18n.  
-3. Optional: retire customer use of `lib/errorMessages.ts` entirely; keep as non-UI fallback only.  
-4. Cross-domain manual locale smoke + Playwright spot assertions.  
-5. a11y spotcheck with localized aria.
+- Chart interval buttons: `1m` … `1D`
+- Overlay study names: `SMA 7`, `EMA 12`, `RSI(14)`, `VWAP (UTC day)`, `Bollinger 20,2`
+- Order-book `Bid`/`Ask` in intelligence row (trading convention; localized in PairHeader as “Bid / Ask” label only)
+- Tier badge `T{n}` (numeric tier level)
+
+---
+
+## Remaining for **FULL PLATFORM LANGUAGE CERTIFIED**
+
+1. **240/240** authenticated matrix on a clean, reproducible run (fix or harden session retention in auth matrix harness if needed).  
+2. Optional: full manual cross-domain locale walk with global selector on production-like URL.

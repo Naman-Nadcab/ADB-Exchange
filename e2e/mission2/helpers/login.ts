@@ -66,8 +66,9 @@ export async function loginUserForStagingHttp(
   apiBase = API_BASE,
 ): Promise<Page> {
   const api = resolveStagingLoginApiBase(uiBase, apiBase);
+  const otp = process.env.E2E_LOGIN_OTP || '000000';
   const res = await context.request.post(`${api}/api/v1/auth/login/password`, {
-    data: { email, password },
+    data: { email, password, otp },
   });
   if (!res.ok()) {
     throw new Error(`API login failed: ${res.status()} ${(await res.text()).slice(0, 120)}`);
@@ -146,8 +147,9 @@ export async function ensureTraderSessionCookies(
   const existing = await context.cookies();
   if (existing.some((c) => c.name === 'mlive_at')) return;
   const api = resolveStagingLoginApiBase(uiBase, apiBase);
+  const otp = process.env.E2E_LOGIN_OTP || '000000';
   const res = await context.request.post(`${api}/api/v1/auth/login/password`, {
-    data: { email, password },
+    data: { email, password, otp },
   });
   if (!res.ok()) return;
   const json = (await res.json()) as { data?: LoginPayload };

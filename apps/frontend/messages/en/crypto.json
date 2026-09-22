@@ -347,5 +347,22 @@
     "ordersCancelledDesc": "All open orders for {symbol} were cancelled.",
     "cancelAllFailed": "Cancel all failed",
     "couldNotCancelAll": "Could not cancel all"
+  },
+  "pairHeader": {
+    "lastPrice": "Last Price",
+    "change24h": "24h Change",
+    "high24h": "24h High",
+    "low24h": "24h Low",
+    "volumeBase": "Volume ({base})",
+    "turnoverQuote": "Turnover ({quote})",
+    "turnoverRef": "Ref. Turnover",
+    "bidAsk": "Bid / Ask",
+    "spreadTooltip": "Spread {spread} ({pct}%)",
+    "spotBadge": "Spot",
+    "tradingPairAria": "Trading pair",
+    "addFavorite": "Add to favorites",
+    "removeFavorite": "Remove from favorites",
+    "toggleFavoriteAria": "Toggle favorite",
+    "withdrawalTierTitle": "Withdrawal tier"
   }
 }

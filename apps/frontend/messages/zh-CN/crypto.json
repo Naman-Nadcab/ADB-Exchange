@@ -347,5 +347,22 @@
     "ordersCancelledDesc": "已撤销 {symbol} 的全部未成交委托。",
     "cancelAllFailed": "全部撤销失败",
     "couldNotCancelAll": "无法全部撤销"
+  },
+  "pairHeader": {
+    "lastPrice": "最新价",
+    "change24h": "24h 涨跌",
+    "high24h": "24h 最高",
+    "low24h": "24h 最低",
+    "volumeBase": "成交量 ({base})",
+    "turnoverQuote": "成交额 ({quote})",
+    "turnoverRef": "参考成交额",
+    "bidAsk": "买一 / 卖一",
+    "spreadTooltip": "价差 {spread} ({pct}%)",
+    "spotBadge": "现货",
+    "tradingPairAria": "交易对",
+    "addFavorite": "加入自选",
+    "removeFavorite": "移出自选",
+    "toggleFavoriteAria": "切换自选",
+    "withdrawalTierTitle": "提现等级"
   }
 }

@@ -347,5 +347,22 @@
     "ordersCancelledDesc": "Semua order terbuka untuk {symbol} dibatalkan.",
     "cancelAllFailed": "Gagal batalkan semua",
     "couldNotCancelAll": "Tidak dapat batalkan semua"
+  },
+  "pairHeader": {
+    "lastPrice": "Harga Terakhir",
+    "change24h": "Perubahan 24j",
+    "high24h": "Tertinggi 24j",
+    "low24h": "Terendah 24j",
+    "volumeBase": "Volume ({base})",
+    "turnoverQuote": "Turnover ({quote})",
+    "turnoverRef": "Turnover Ref.",
+    "bidAsk": "Bid / Ask",
+    "spreadTooltip": "Spread {spread} ({pct}%)",
+    "spotBadge": "Spot",
+    "tradingPairAria": "Pasangan trading",
+    "addFavorite": "Tambah ke favorit",
+    "removeFavorite": "Hapus dari favorit",
+    "toggleFavoriteAria": "Alih favorit",
+    "withdrawalTierTitle": "Tier penarikan"
   }
 }
