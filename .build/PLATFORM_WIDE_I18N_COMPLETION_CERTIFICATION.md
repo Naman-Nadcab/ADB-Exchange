@@ -137,7 +137,7 @@ No migrations, seeds, provisioning, or production deploy.
 |------|-----|
 | Spot completion | `6f200f9` |
 | Cert (spot) | `d300eff` |
-| **This closure pass** | *(after commit)* |
+| **This closure pass** | `41a2e4d` — fix(i18n): PairHeader + E2E login OTP |
 | Rollback | `7cd6bc7` / `backup/language-master-baseline-7cd6bc7` |
 
 ---
