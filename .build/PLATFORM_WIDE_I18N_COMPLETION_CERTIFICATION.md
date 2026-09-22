@@ -130,7 +130,7 @@ No migrations, seeds, provisioning, or production deploy.
 | Item | SHA / note |
 |------|------------|
 | Spot terminal source | `5e72c3c`, `b19ac5e` |
-| Browser cert commit | *(this pass)* — see `git log -1` after push |
+| Browser cert commit | `4363e88` — test(i18n): browser-certify spot locale + id chart labels |
 | Local HEAD = remote | required on push |
 
 **Operational note:** After i18n source changes, **rebuild `exchange-frontend`** or operators will see the stale-terminal English pattern again.
