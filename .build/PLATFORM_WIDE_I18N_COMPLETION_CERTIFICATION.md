@@ -152,7 +152,7 @@ No migrations, seeds, provisioning, or production deploy.
 | Spot completion | `6f200f9` |
 | Cert (spot) | `d300eff` |
 | **This closure pass** | `41a2e4d` — fix(i18n): PairHeader + E2E login OTP |
-| **Spot terminal render pass** | *(see §11 after commit)* — fix(i18n): complete rendered platform locale coverage |
+| **Spot terminal render pass** | `5e72c3c` — fix(i18n): complete rendered platform locale coverage |
 | Rollback | `7cd6bc7` / `backup/language-master-baseline-7cd6bc7` |
 
 ---
