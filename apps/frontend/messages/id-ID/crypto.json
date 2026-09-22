@@ -98,7 +98,11 @@
     "noPositions": "Tidak ada posisi",
     "noPositionsDesc": "Saldo spot dengan eksposur aktif akan muncul di sini.",
     "waitingMarketActivity": "Menunggu aktivitas pasar",
-    "noExecutableLiquidity": "Tidak ada likuiditas yang dapat dieksekusi"
+    "waitingMarketActivityDesc": "Perdagangan terbaru akan muncul di sini saat pasar diperbarui.",
+    "noExecutableLiquidity": "Tidak ada likuiditas yang dapat dieksekusi",
+    "noMarketsMatch": "Tidak ada pasar yang cocok",
+    "noMarketsMatchDesc": "Coba pencarian atau filter lain.",
+    "noMarketsMatchFilters": "Tidak ada pasar yang sesuai filter Anda."
   },
   "terminal": {
     "orderEntry": "Entri Order",
@@ -227,7 +231,8 @@
     "zoomScrollMac": "⌘ + scroll: zoom chart",
     "zoomScrollWin": "Ctrl + scroll: zoom chart",
     "staleUpdatedUnknown": "tidak diketahui",
-    "overlayNone": "Overlay —"
+    "overlayNone": "Overlay —",
+    "clearAllDrawings": "Hapus semua gambar"
   },
   "executionHints": {
     "topOfBookEst": "Est. top-of-book",
@@ -347,6 +352,114 @@
     "ordersCancelledDesc": "Semua order terbuka untuk {symbol} dibatalkan.",
     "cancelAllFailed": "Gagal batalkan semua",
     "couldNotCancelAll": "Tidak dapat batalkan semua"
+  },
+  "marketRail": {
+    "favorites": "Favorit",
+    "search": "Cari",
+    "searchPlaceholder": "Cari",
+    "all": "Semua",
+    "topRefVol": "Vol. Ref. Teratas",
+    "gainers": "Naik",
+    "losers": "Turun",
+    "pair": "Pasangan",
+    "last": "Terakhir",
+    "chg": "Chg",
+    "change24h": "24j%",
+    "refVol": "Vol. Ref.",
+    "change24hTitle": "Perubahan 24 jam",
+    "refVolTitle": "Volume pasar referensi dari OHLCV eksternal saat tidak ada perdagangan bursa",
+    "addFavorite": "Tambah favorit",
+    "removeFavorite": "Hapus favorit"
+  },
+  "orderEntry": {
+    "more": "Lainnya",
+    "moreOrderTypesAria": "Jenis order lainnya",
+    "openOrdersHistoryTitle": "Order terbuka & riwayat",
+    "scrollOrdersHistoryAria": "Gulir ke order dan riwayat",
+    "depositAria": "Deposit",
+    "callbackPct": "Callback %",
+    "trailingCallbackAria": "Persen callback trailing",
+    "trailingPlaceholder": "0.1 – 100",
+    "triggerPriceAria": "Harga trigger",
+    "priceAria": "Harga ({asset})",
+    "quantityAria": "Kuantitas dalam {asset}",
+    "max": "Maks",
+    "balancePercentAria": "Persentase saldo",
+    "maxBuyingAmount": "Maks. jumlah beli",
+    "maxProceedsEst": "Maks. hasil (perkiraan)",
+    "orderValueEst": "Nilai order (perkiraan)",
+    "estAvgFill": "Perkiraan rata-rata isi",
+    "estSlippage": "Perkiraan slippage",
+    "highSlippageWarning": "Slippage tinggi — pertimbangkan order limit.",
+    "signInToTrade": "Masuk untuk trading",
+    "postOnlyCheckbox": "Post-only",
+    "timeInForceAria": "Waktu berlaku",
+    "net": "Bersih",
+    "estFill": "Perkiraan isi",
+    "qtyShort": "Qty",
+    "confirm": "Konfirmasi",
+    "confirmBuy": "Konfirmasi beli",
+    "confirmSell": "Konfirmasi jual",
+    "reviewBefore": "Tinjau sebelum menempatkan",
+    "account": "Akun",
+    "deposit": "Deposit",
+    "transfer": "Transfer",
+    "buyCrypto": "Beli kripto",
+    "minQty": "Min qty {qty} {asset}",
+    "minNotional": "Min notional {amount} {asset}",
+    "feeMakerTaker": "Maker {maker}% · Taker {taker}%",
+    "feeEstKind": "· Perkiraan @ {kind}",
+    "feeKindMaker": "maker",
+    "feeKindTaker": "taker",
+    "feeKindWorst": "kasus terburuk",
+    "estFee": "Perkiraan biaya ({kind})",
+    "estFeeKindWorst": "terburuk"
+  },
+  "validation": {
+    "qtyRequired": "Masukkan kuantitas valid lebih dari 0.",
+    "limitPriceRequired": "Masukkan harga limit valid lebih dari 0.",
+    "triggerPriceRequired": "Masukkan harga trigger valid lebih dari 0.",
+    "trailingDeltaRange": "Masukkan delta trailing antara 0 dan 100.",
+    "minQty": "Kuantitas minimum adalah {qty} {asset}.",
+    "livePriceUnavailable": "Harga pasar live tidak tersedia — tunggu sinkron feed atau gunakan order limit.",
+    "minNotional": "Notional minimum {min} {quote} (perkiraan {est} {quote} pada harga saat ini).",
+    "insufficientQuoteBuy": "Saldo {asset} tidak cukup untuk order beli.",
+    "insufficientBaseSell": "Saldo {asset} tidak cukup untuk order jual."
+  },
+  "markets": {
+    "noneAvailable": "Tidak ada pasar tersedia",
+    "loadFailed": "Gagal memuat pasar",
+    "loadFailedRetry": "Gagal memuat pasar. Coba lagi.",
+    "timeout": "Permintaan habis waktu — backend lambat atau tidak terjangkau. Jalankan API (mis. port 4000) dan coba lagi.",
+    "noSpotMarkets": "Tidak ada pasar spot tersedia"
+  },
+  "bootstrap": {
+    "orderbookDelayed": "Bootstrap orderbook tertunda. Pembaruan live mungkin butuh sebentar.",
+    "tradeResyncDelayed": "Resinkron feed trade tertunda. Perdagangan terbaru mungkin tertinggal.",
+    "orderbookSnapshotUnavailable": "Snapshot orderbook tidak tersedia. Mencoba ulang via stream.",
+    "tickerUnavailable": "Bootstrap ticker tidak tersedia. Menampilkan data stream bila tersedia."
+  },
+  "statusRow": {
+    "streamLiveRtt": "Stream pasar terhubung · RTT ~{ms}ms",
+    "reconnectingAttempt": "Menyambung ulang (percobaan {n})",
+    "connectingStream": "Menghubungkan ke stream pasar",
+    "streamOffline": "Stream pasar offline",
+    "marketOpen": "Pasar Buka",
+    "marketStatus": "Status {status}",
+    "adaptive": "Adaptif",
+    "reducedStreamRate": "Rate stream dikurangi",
+    "prefsDelayedTitle": "Sinkron preferensi tertunda. Aturan konfirmasi default aktif.",
+    "pos24h": "Pos 24J",
+    "pulse": "Pulse"
+  },
+  "depthChart": {
+    "waitingOrderbook": "Menunggu kedalaman orderbook..."
+  },
+  "panels": {
+    "orderBook": "Buku Order",
+    "orderForm": "Form Order",
+    "orderHistory": "Riwayat Order",
+    "errorHit": "{panel} mengalami error"
   },
   "pairHeader": {
     "lastPrice": "Harga Terakhir",

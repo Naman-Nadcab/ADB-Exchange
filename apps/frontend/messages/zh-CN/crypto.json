@@ -98,7 +98,11 @@
     "noPositions": "暂无持仓",
     "noPositionsDesc": "有活跃敞口的现货余额将显示在此处。",
     "waitingMarketActivity": "等待市场成交",
-    "noExecutableLiquidity": "暂无可成交流动性"
+    "waitingMarketActivityDesc": "市场更新后，最新成交将显示在此处。",
+    "noExecutableLiquidity": "暂无可成交流动性",
+    "noMarketsMatch": "无匹配市场",
+    "noMarketsMatchDesc": "请尝试其他搜索或筛选条件。",
+    "noMarketsMatchFilters": "没有符合筛选条件的市场。"
   },
   "terminal": {
     "orderEntry": "下单",
@@ -227,7 +231,8 @@
     "zoomScrollMac": "⌘ + 滚轮：缩放图表",
     "zoomScrollWin": "Ctrl + 滚轮：缩放图表",
     "staleUpdatedUnknown": "未知",
-    "overlayNone": "叠加 —"
+    "overlayNone": "叠加 —",
+    "clearAllDrawings": "清除全部画线"
   },
   "executionHints": {
     "topOfBookEst": "盘口估价",
@@ -347,6 +352,114 @@
     "ordersCancelledDesc": "已撤销 {symbol} 的全部未成交委托。",
     "cancelAllFailed": "全部撤销失败",
     "couldNotCancelAll": "无法全部撤销"
+  },
+  "marketRail": {
+    "favorites": "自选",
+    "search": "搜索",
+    "searchPlaceholder": "搜索",
+    "all": "全部",
+    "topRefVol": "参考成交量",
+    "gainers": "涨幅榜",
+    "losers": "跌幅榜",
+    "pair": "交易对",
+    "last": "最新",
+    "chg": "涨跌",
+    "change24h": "24h%",
+    "refVol": "参考量",
+    "change24hTitle": "24 小时涨跌幅",
+    "refVolTitle": "无交易所成交时，来自外部 OHLCV 的参考市场成交量",
+    "addFavorite": "加入自选",
+    "removeFavorite": "移出自选"
+  },
+  "orderEntry": {
+    "more": "更多",
+    "moreOrderTypesAria": "更多订单类型",
+    "openOrdersHistoryTitle": "当前委托与历史",
+    "scrollOrdersHistoryAria": "滚动至委托与历史",
+    "depositAria": "充值",
+    "callbackPct": "回调幅度 %",
+    "trailingCallbackAria": "追踪止损回调百分比",
+    "trailingPlaceholder": "0.1 – 100",
+    "triggerPriceAria": "触发价格",
+    "priceAria": "价格（{asset}）",
+    "quantityAria": "{asset} 数量",
+    "max": "最大",
+    "balancePercentAria": "余额百分比",
+    "maxBuyingAmount": "最大可买数量",
+    "maxProceedsEst": "预估最大所得",
+    "orderValueEst": "订单金额（预估）",
+    "estAvgFill": "预估成交均价",
+    "estSlippage": "预估滑点",
+    "highSlippageWarning": "滑点较高 — 建议使用限价单。",
+    "signInToTrade": "登录后交易",
+    "postOnlyCheckbox": "只做 Maker",
+    "timeInForceAria": "有效时间",
+    "net": "净额",
+    "estFill": "预估成交价",
+    "qtyShort": "数量",
+    "confirm": "确认",
+    "confirmBuy": "确认买入",
+    "confirmSell": "确认卖出",
+    "reviewBefore": "下单前请核对",
+    "account": "账户",
+    "deposit": "充值",
+    "transfer": "划转",
+    "buyCrypto": "买币",
+    "minQty": "最小数量 {qty} {asset}",
+    "minNotional": "最小名义 {amount} {asset}",
+    "feeMakerTaker": "Maker {maker}% · Taker {taker}%",
+    "feeEstKind": "· 预估 @ {kind}",
+    "feeKindMaker": "maker",
+    "feeKindTaker": "taker",
+    "feeKindWorst": "最坏情况",
+    "estFee": "预估手续费（{kind}）",
+    "estFeeKindWorst": "最坏"
+  },
+  "validation": {
+    "qtyRequired": "请输入大于 0 的有效数量。",
+    "limitPriceRequired": "请输入大于 0 的有效限价。",
+    "triggerPriceRequired": "请输入大于 0 的有效触发价。",
+    "trailingDeltaRange": "请输入 0 至 100 之间的追踪幅度。",
+    "minQty": "最小数量为 {qty} {asset}。",
+    "livePriceUnavailable": "暂无实时市价 — 请等待行情同步或使用限价单。",
+    "minNotional": "最小名义为 {min} {quote}（按当前价预估 {est} {quote}）。",
+    "insufficientQuoteBuy": "{asset} 余额不足，无法买入。",
+    "insufficientBaseSell": "{asset} 余额不足，无法卖出。"
+  },
+  "markets": {
+    "noneAvailable": "暂无可用市场",
+    "loadFailed": "加载市场失败",
+    "loadFailedRetry": "加载市场失败，请重试。",
+    "timeout": "请求超时 — 后端响应慢或不可达。请启动 API（如端口 4000）后重试。",
+    "noSpotMarkets": "暂无现货市场"
+  },
+  "bootstrap": {
+    "orderbookDelayed": "订单簿初始化延迟，实时更新可能需要片刻。",
+    "tradeResyncDelayed": "成交同步延迟，最新成交可能短暂滞后。",
+    "orderbookSnapshotUnavailable": "订单簿快照不可用，正在通过流重试。",
+    "tickerUnavailable": "行情初始化不可用，将在有流数据时显示。"
+  },
+  "statusRow": {
+    "streamLiveRtt": "行情已连接 · RTT ~{ms}ms",
+    "reconnectingAttempt": "重连中（第 {n} 次）",
+    "connectingStream": "正在连接行情流",
+    "streamOffline": "行情流离线",
+    "marketOpen": "市场开放",
+    "marketStatus": "状态 {status}",
+    "adaptive": "自适应",
+    "reducedStreamRate": "已降低推送频率",
+    "prefsDelayedTitle": "偏好同步延迟，当前使用默认确认规则。",
+    "pos24h": "24H 位置",
+    "pulse": "脉搏"
+  },
+  "depthChart": {
+    "waitingOrderbook": "等待订单簿深度…"
+  },
+  "panels": {
+    "orderBook": "订单簿",
+    "orderForm": "下单",
+    "orderHistory": "订单历史",
+    "errorHit": "{panel} 发生错误"
   },
   "pairHeader": {
     "lastPrice": "最新价",

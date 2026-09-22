@@ -67,22 +67,33 @@ interface SpotOrderEntryPanelProps {
   maxSellQuoteEstimate?: string | null;
 }
 
-const ORDER_TYPES: { type: SpotOrderType; label: string; sellOnly?: boolean }[] = [
-  { type: 'limit', label: 'Limit' },
-  { type: 'market', label: 'Market' },
-  { type: 'stop_loss', label: 'Stop' },
-  { type: 'stop_limit', label: 'Stop Limit' },
-  { type: 'trailing_stop_market', label: 'Trailing' },
+const ORDER_TYPE_DEFS: { type: SpotOrderType; sellOnly?: boolean }[] = [
+  { type: 'limit' },
+  { type: 'market' },
+  { type: 'stop_loss' },
+  { type: 'stop_limit' },
+  { type: 'trailing_stop_market' },
 ];
+
+function spotOrderTypeLabel(tr: ReturnType<typeof useTranslations<'crypto'>>, orderType: SpotOrderType): string {
+  switch (orderType) {
+    case 'limit':
+      return tr('trading.limit');
+    case 'market':
+      return tr('trading.market');
+    case 'stop_loss':
+      return tr('trading.stop');
+    case 'stop_limit':
+      return tr('trading.stopLimit');
+    case 'trailing_stop_market':
+      return tr('trading.trailing');
+    default:
+      return orderType;
+  }
+}
 
 const SLIDER_MARKS = [0, 25, 50, 75, 100];
 const PERCENT_QUICK = [25, 50, 75, 100] as const;
-
-const TIF_OPTIONS: { v: TimeInForce; label: string }[] = [
-  { v: 'gtc', label: 'Good-Til-Cancelled' },
-  { v: 'ioc', label: 'Immediate or Cancel' },
-  { v: 'fok', label: 'Fill or Kill' },
-];
 
 /** Bybit-style dense field: micro-label inside container, value row + unit on the right. */
 function InsetField({
@@ -184,6 +195,19 @@ export function SpotOrderEntryPanel({
   maxSellQuoteEstimate,
 }: SpotOrderEntryPanelProps) {
   const tc = useTranslations('crypto');
+  const tCommon = useTranslations('common');
+  const orderTypes = useMemo(
+    () => ORDER_TYPE_DEFS.map((def) => ({ ...def, label: spotOrderTypeLabel(tc, def.type) })),
+    [tc]
+  );
+  const tifOptions = useMemo(
+    () =>
+      (['gtc', 'ioc', 'fok'] as const).map((v) => ({
+        v,
+        label: tc(`trading.tif.${v}`),
+      })),
+    [tc]
+  );
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   useEffect(() => {
@@ -259,23 +283,45 @@ export function SpotOrderEntryPanel({
 
   const displayBalance = availableBalance ? formatValueFixedTrim(availableBalance, side === 'buy' ? pricePrecision : qtyPrecision) : '0';
   const balanceUnit = side === 'buy' ? quoteAsset : baseAsset;
-  const visibleOrderTypes = ORDER_TYPES.filter((t) => !t.sellOnly || side === 'sell');
+  const visibleOrderTypes = orderTypes.filter((t) => !t.sellOnly || side === 'sell');
 
   const rulesLine = useMemo(() => {
     const parts: string[] = [];
     if (instrumentMinQty != null && instrumentMinQty !== '') {
-      parts.push(`Min qty ${formatValueFixedTrim(instrumentMinQty, Math.min(12, Math.max(0, qtyPrecision)))} ${baseAsset}`);
+      parts.push(
+        tc('orderEntry.minQty', {
+          qty: formatValueFixedTrim(instrumentMinQty, Math.min(12, Math.max(0, qtyPrecision))),
+          asset: baseAsset,
+        })
+      );
     }
     if (instrumentMinNotional != null && instrumentMinNotional !== '') {
       parts.push(
-        `Min notional ${formatValueFixedTrim(instrumentMinNotional, Math.min(10, Math.max(2, pricePrecision)))} ${quoteAsset}`
+        tc('orderEntry.minNotional', {
+          amount: formatValueFixedTrim(instrumentMinNotional, Math.min(10, Math.max(2, pricePrecision))),
+          asset: quoteAsset,
+        })
       );
     }
     return parts.join(' · ');
-  }, [instrumentMinQty, instrumentMinNotional, baseAsset, quoteAsset, qtyPrecision, pricePrecision]);
+  }, [instrumentMinQty, instrumentMinNotional, baseAsset, quoteAsset, qtyPrecision, pricePrecision, tc]);
 
   const advancedOrderTypes = visibleOrderTypes.filter((t) => t.type !== 'limit' && t.type !== 'market');
   const isPrimaryType = orderType === 'limit' || orderType === 'market';
+  const feeKindLabel =
+    feeMeta.kind === 'maker'
+      ? tc('orderEntry.feeKindMaker')
+      : feeMeta.kind === 'taker'
+        ? tc('orderEntry.feeKindTaker')
+        : tc('orderEntry.feeKindWorst');
+  const feeEstKindShort =
+    feeMeta.kind === 'maker'
+      ? tc('orderEntry.feeKindMaker')
+      : feeMeta.kind === 'taker'
+        ? tc('orderEntry.feeKindTaker')
+        : tc('orderEntry.estFeeKindWorst');
+  const confirmTypeLabel =
+    spotOrderTypeLabel(tc, orderType) + (orderType === 'limit' && postOnly ? ` · ${tc('orderEntry.postOnlyCheckbox')}` : '');
 
   return (
     <div id="spot-order-entry-panel" className="flex h-full min-h-0 flex-col bg-card">
@@ -291,8 +337,8 @@ export function SpotOrderEntryPanel({
           <Link
             href="#spot-terminal-activity"
             className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-primary dark:text-muted-foreground dark:hover:bg-accent dark:hover:text-primary"
-            title="Open orders & history"
-            aria-label="Scroll to orders and history"
+            title={tc('orderEntry.openOrdersHistoryTitle')}
+            aria-label={tc('orderEntry.scrollOrdersHistoryAria')}
           >
             <ClipboardList className="h-4 w-4" />
           </Link>
@@ -361,7 +407,7 @@ export function SpotOrderEntryPanel({
           })}
           <div className="relative flex min-w-[5.25rem] flex-1 border-l border-border">
             <select
-              aria-label="More order types"
+              aria-label={tc('orderEntry.moreOrderTypesAria')}
               value={isPrimaryType ? '' : orderType}
               onChange={(e) => {
                 const v = e.target.value as SpotOrderType;
@@ -371,7 +417,7 @@ export function SpotOrderEntryPanel({
             >
               {/* Placeholder when Limit/Market; hidden from list when an advanced type is selected */}
               <option value="" hidden={!isPrimaryType}>
-                More
+                {tc('orderEntry.more')}
               </option>
               {advancedOrderTypes.map(({ type, label }) => (
                 <option key={type} value={type}>
@@ -396,7 +442,7 @@ export function SpotOrderEntryPanel({
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-1.5">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between gap-2 text-label">
-            <span className="font-semibold text-muted-foreground">Available</span>
+            <span className="font-semibold text-muted-foreground">{tc('trading.available')}</span>
             <div className="flex min-w-0 items-center gap-1.5">
               <CoinIcon symbol={balanceUnit} size={16} />
               <span className="numeric truncate text-book font-bold text-foreground">
@@ -405,7 +451,7 @@ export function SpotOrderEntryPanel({
               <Link
                 href={walletPath.depositCrypto}
                 className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm hover:bg-primary/85 dark:bg-blue-600"
-                aria-label="Deposit"
+                aria-label={tc('orderEntry.depositAria')}
               >
                 <Plus className="h-3.5 w-3.5" />
               </Link>
@@ -413,7 +459,7 @@ export function SpotOrderEntryPanel({
           </div>
 
           {showTrailingDelta && (
-            <InsetField label="Callback %" suffix="%">
+            <InsetField label={tc('orderEntry.callbackPct')} suffix="%">
               <input
                 id="spot-trailing-delta"
                 type="text"
@@ -421,14 +467,14 @@ export function SpotOrderEntryPanel({
                 value={trailingDelta ?? ''}
                 onChange={(e) => onTrailingDeltaChange?.(e.target.value)}
                 className={insetInputClass}
-                placeholder="0.1 – 100"
-                aria-label="Trailing callback percent"
+                placeholder={tc('orderEntry.trailingPlaceholder')}
+                aria-label={tc('orderEntry.trailingCallbackAria')}
               />
             </InsetField>
           )}
 
           {showStopPrice && (
-            <InsetField label="Trigger" suffix={quoteAsset}>
+            <InsetField label={tc('terminal.triggerLabel')} suffix={quoteAsset}>
               <input
                 id="spot-trigger-price"
                 type="text"
@@ -437,7 +483,7 @@ export function SpotOrderEntryPanel({
                 onChange={(e) => onStopPriceChange(e.target.value)}
                 className={insetInputClass}
                 placeholder="0"
-                aria-label="Trigger price"
+                aria-label={tc('orderEntry.triggerPriceAria')}
               />
             </InsetField>
           )}
@@ -445,7 +491,7 @@ export function SpotOrderEntryPanel({
           {showPrice && (
             <div className="space-y-1">
               <InsetField
-                label="Price"
+                label={tc('trading.price')}
                 suffix={quoteAsset}
                 headerRight={
                   (bestBid != null || bestAsk != null || lastPrice != null) ? (
@@ -489,14 +535,14 @@ export function SpotOrderEntryPanel({
                   onChange={(e) => onPriceChange(e.target.value)}
                   className={insetInputClass}
                   placeholder="0"
-                  aria-label={`Price (${quoteAsset})`}
+                  aria-label={tc('orderEntry.priceAria', { asset: quoteAsset })}
                 />
               </InsetField>
             </div>
           )}
 
           <InsetField
-            label="Quantity"
+            label={tc('trading.quantity')}
             suffix={baseAsset}
             headerRight={
               <button
@@ -504,7 +550,7 @@ export function SpotOrderEntryPanel({
                 onClick={onSetMaxQty}
                 className={`text-label font-bold hover:underline ${side === 'buy' ? 'text-buy' : 'text-sell'}`}
               >
-                Max
+                {tc('orderEntry.max')}
               </button>
             }
           >
@@ -516,7 +562,7 @@ export function SpotOrderEntryPanel({
               onChange={(e) => onQuantityChange(e.target.value)}
               className={insetInputClass}
               placeholder="0"
-              aria-label={`Quantity in ${baseAsset}`}
+              aria-label={tc('orderEntry.quantityAria', { asset: baseAsset })}
             />
           </InsetField>
 
@@ -559,7 +605,7 @@ export function SpotOrderEntryPanel({
                     value={sliderValue}
                     onChange={(e) => handleSliderChange(Number(e.target.value))}
                     className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                    aria-label="Balance percentage"
+                    aria-label={tc('orderEntry.balancePercentAria')}
                   />
                   <div
                     className={`absolute left-0 top-0 h-full rounded-full transition-all ${
@@ -573,7 +619,9 @@ export function SpotOrderEntryPanel({
           )}
 
           <div className="flex items-center justify-between gap-2 text-label text-muted-foreground">
-            <span className="font-semibold">Max. {side === 'buy' ? 'buying amount' : 'proceeds (est.)'}</span>
+            <span className="font-semibold">
+              {side === 'buy' ? tc('orderEntry.maxBuyingAmount') : tc('orderEntry.maxProceedsEst')}
+            </span>
             <span className="numeric truncate font-bold text-foreground">
               {side === 'buy'
                 ? maxBuyBaseEstimate != null
@@ -585,7 +633,10 @@ export function SpotOrderEntryPanel({
             </span>
           </div>
 
-          <InsetField label={orderType === 'market' ? 'Order value (est.)' : 'Total'} suffix={quoteAsset}>
+          <InsetField
+            label={orderType === 'market' ? tc('orderEntry.orderValueEst') : tc('trading.total')}
+            suffix={quoteAsset}
+          >
             {notionalQuote > 0 && total && total !== '0' ? (
               <span className={`${insetInputClass} text-foreground`} aria-label={`Total ${quoteAsset}`}>
                 {total}
@@ -608,13 +659,15 @@ export function SpotOrderEntryPanel({
                       onChange={(e) => onPostOnlyChange(e.target.checked)}
                       className="h-3.5 w-3.5 rounded border-border text-buy accent-buy focus:ring-2 focus:ring-buy/25 dark:border-border dark:accent-buy"
                     />
-                    <span className="text-label font-semibold text-foreground dark:text-foreground/90">Post-only</span>
+                    <span className="text-label font-semibold text-foreground dark:text-foreground/90">
+                      {tc('orderEntry.postOnlyCheckbox')}
+                    </span>
                   </label>
                 )}
                 {showTif && onTimeInForceChange && (
                   <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:min-w-[12rem]">
                     <span className="shrink-0 text-label font-bold uppercase tracking-wide text-muted-foreground">
-                      TIF
+                      {tc('terminal.tif')}
                     </span>
                     <div className="relative min-w-0 flex-1">
                       <select
@@ -622,9 +675,9 @@ export function SpotOrderEntryPanel({
                         disabled={orderType === 'limit' && postOnly}
                         onChange={(e) => onTimeInForceChange(e.target.value as TimeInForce)}
                         className="h-8 w-full cursor-pointer appearance-none rounded-md border border-border bg-muted py-1.5 pl-2 pr-7 text-label font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60 dark:border-border dark:bg-card dark:text-foreground"
-                        aria-label="Time in force"
+                        aria-label={tc('orderEntry.timeInForceAria')}
                       >
-                        {TIF_OPTIONS.map(({ v, label }) => (
+                        {tifOptions.map(({ v, label }) => (
                           <option key={v} value={v}>
                             {label}
                           </option>
@@ -640,11 +693,11 @@ export function SpotOrderEntryPanel({
 
           {orderType === 'market' && estimatedFillPrice && qtyNum > 0 && (
             <div className="rounded-lg border border-dashed border-border bg-card/90 px-2.5 py-2 dark:border-border dark:bg-background/90">
-              <SummaryRow label="Est. avg fill" value={estimatedFillPrice} valueClassName="text-foreground" />
+              <SummaryRow label={tc('orderEntry.estAvgFill')} value={estimatedFillPrice} valueClassName="text-foreground" />
               {estimatedSlippagePct != null && (
                 <div className="mt-1">
                   <SummaryRow
-                    label="Est. slippage"
+                    label={tc('orderEntry.estSlippage')}
                     value={`${estimatedSlippagePct.toFixed(2)}%`}
                     valueClassName={slippageWarning ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}
                   />
@@ -659,7 +712,7 @@ export function SpotOrderEntryPanel({
       <div className="flex-shrink-0 border-t border-border/90 bg-card px-2 pb-1.5 pt-1.5 dark:border-border/90 dark:bg-card">
         {slippageWarning && (
           <div className="mb-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-1.5 text-label font-medium text-amber-800 dark:text-amber-200">
-            High slippage — consider a limit order.
+            {tc('orderEntry.highSlippageWarning')}
           </div>
         )}
         {validationMessage && (
@@ -673,7 +726,7 @@ export function SpotOrderEntryPanel({
             href={loginWithRedirect(SPOT_TRADE_HREF)}
             className="flex h-9 min-h-9 w-full items-center justify-center rounded-sm bg-primary text-label font-bold text-foreground transition-colors hover:bg-primary/85 max-md:min-h-10 max-md:h-10"
           >
-            Sign in to trade
+            {tc('orderEntry.signInToTrade')}
           </Link>
         ) : (
           <button
@@ -689,7 +742,7 @@ export function SpotOrderEntryPanel({
             } disabled:pointer-events-none disabled:opacity-45`}
           >
             {loading && <Loader2 className="h-5 w-5 animate-spin" />}
-            {side === 'buy' ? 'Buy' : 'Sell'} {baseAsset}
+            {side === 'buy' ? tc('terminal.buyAsset', { asset: baseAsset }) : tc('terminal.sellAsset', { asset: baseAsset })}
           </button>
         )}
 
@@ -697,11 +750,11 @@ export function SpotOrderEntryPanel({
           <div className="flex items-start gap-1.5 text-label text-muted-foreground">
             <Info className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
             <span>
-              Maker {(maker * 100).toFixed(3)}% · Taker {(taker * 100).toFixed(3)}%
+              {tc('orderEntry.feeMakerTaker', { maker: (maker * 100).toFixed(3), taker: (taker * 100).toFixed(3) })}
               {notional > 0 ? (
                 <span className="text-muted-foreground dark:text-muted-foreground">
                   {' '}
-                  · Est. @ {feeMeta.kind === 'maker' ? 'maker' : feeMeta.kind === 'taker' ? 'taker' : 'worst-case'}
+                  {tc('orderEntry.feeEstKind', { kind: feeKindLabel })}
                 </span>
               ) : null}
             </span>
@@ -709,12 +762,12 @@ export function SpotOrderEntryPanel({
           {notional > 0 && (
             <>
               <SummaryRow
-                label={`Est. fee (${feeMeta.kind === 'maker' ? 'maker' : feeMeta.kind === 'taker' ? 'taker' : 'worst'})`}
+                label={tc('orderEntry.estFee', { kind: feeEstKindShort })}
                 value={`${formatValueFixedTrim(estimatedFee, Math.min(8, Math.max(2, pricePrecision)))} ${quoteAsset}`}
                 valueClassName="font-semibold text-foreground"
               />
               <SummaryRow
-                label="Net"
+                label={tc('orderEntry.net')}
                 value={`${formatValueFixedTrim(netReceived, side === 'buy' ? qtyPrecision : Math.min(10, Math.max(2, pricePrecision)))} ${netReceivedAsset}`}
                 valueClassName="font-bold text-foreground"
               />
@@ -724,25 +777,25 @@ export function SpotOrderEntryPanel({
       </div>
 
       <div className="flex-shrink-0 border-t border-border/90 bg-accent/60 px-2.5 py-2.5 dark:border-border/90 dark:bg-black/20">
-        <p className="mb-2 text-label font-bold uppercase tracking-wide text-muted-foreground">Account</p>
+        <p className="mb-2 text-label font-bold uppercase tracking-wide text-muted-foreground">{tc('orderEntry.account')}</p>
         <div className="flex flex-wrap gap-1.5">
           <Link
             href={walletPath.depositCrypto}
             className="inline-flex min-h-9 items-center justify-center rounded-full bg-primary px-4 py-2 text-center text-label font-bold text-foreground transition-colors hover:bg-primary/85 sm:min-h-0 sm:px-3 sm:py-1.5"
           >
-            Deposit
+            {tc('orderEntry.deposit')}
           </Link>
           <Link
             href={walletPath.transfer}
             className="inline-flex min-h-9 items-center justify-center rounded-full border border-border bg-card px-4 py-2 text-label font-bold text-foreground transition-colors hover:bg-muted dark:border-border dark:bg-background dark:text-foreground/90 dark:hover:bg-accent sm:min-h-0 sm:px-3 sm:py-1.5"
           >
-            Transfer
+            {tc('orderEntry.transfer')}
           </Link>
           <Link
             href={walletPath.depositCrypto}
             className="inline-flex min-h-9 items-center justify-center gap-0.5 rounded-full border border-border px-4 py-2 text-label font-bold text-primary transition-colors hover:bg-muted dark:border-border dark:text-primary dark:hover:bg-accent/50 sm:min-h-0 sm:px-3 sm:py-1.5"
           >
-            Buy crypto
+            {tc('orderEntry.buyCrypto')}
             <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
@@ -751,33 +804,35 @@ export function SpotOrderEntryPanel({
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="max-w-sm border-border">
           <DialogHeader>
-            <DialogTitle>Confirm {side === 'buy' ? 'buy' : 'sell'}</DialogTitle>
-            <DialogDescription>Review before placing</DialogDescription>
+            <DialogTitle>{side === 'buy' ? tc('orderEntry.confirmBuy') : tc('orderEntry.confirmSell')}</DialogTitle>
+            <DialogDescription>{tc('orderEntry.reviewBefore')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-1 text-sm">
             <SummaryRow
-              label="Type"
-              value={
-                <span className="font-semibold capitalize">
-                  {orderType.replace(/_/g, ' ')}
-                  {orderType === 'limit' && postOnly ? ' · post-only' : ''}
-                </span>
-              }
+              label={tc('terminal.typeLabel')}
+              value={<span className="font-semibold">{confirmTypeLabel}</span>}
               mono={false}
               valueClassName="text-foreground"
             />
-            {showPrice && <SummaryRow label="Price" value={`${price || '—'} ${quoteAsset}`} />}
-            {showStopPrice && stopPrice ? <SummaryRow label="Trigger" value={`${stopPrice} ${quoteAsset}`} /> : null}
-            <SummaryRow label="Qty" value={`${quantity} ${baseAsset}`} />
-            <SummaryRow label="Total" value={`${total} ${quoteAsset}`} />
-            {orderType === 'market' && estimatedFillPrice ? <SummaryRow label="Est. fill" value={estimatedFillPrice} /> : null}
+            {showPrice && <SummaryRow label={tc('trading.price')} value={`${price || '—'} ${quoteAsset}`} />}
+            {showStopPrice && stopPrice ? (
+              <SummaryRow label={tc('terminal.triggerLabel')} value={`${stopPrice} ${quoteAsset}`} />
+            ) : null}
+            <SummaryRow label={tc('orderEntry.qtyShort')} value={`${quantity} ${baseAsset}`} />
+            <SummaryRow label={tc('trading.total')} value={`${total} ${quoteAsset}`} />
+            {orderType === 'market' && estimatedFillPrice ? (
+              <SummaryRow label={tc('orderEntry.estFill')} value={estimatedFillPrice} />
+            ) : null}
             {notional > 0 && (
               <div className="space-y-1 border-t border-border pt-2 dark:border-border">
                 <SummaryRow
-                  label={`Est. fee (${feeMeta.kind === 'maker' ? 'maker' : feeMeta.kind === 'taker' ? 'taker' : 'worst'})`}
+                  label={tc('orderEntry.estFee', { kind: feeEstKindShort })}
                   value={`${formatValueFixedTrim(estimatedFee, Math.min(8, Math.max(2, pricePrecision)))} ${quoteAsset}`}
                 />
-                <SummaryRow label="Net" value={`${formatValueFixedTrim(netReceived, side === 'buy' ? qtyPrecision : Math.min(10, Math.max(2, pricePrecision)))} ${netReceivedAsset}`} />
+                <SummaryRow
+                  label={tc('orderEntry.net')}
+                  value={`${formatValueFixedTrim(netReceived, side === 'buy' ? qtyPrecision : Math.min(10, Math.max(2, pricePrecision)))} ${netReceivedAsset}`}
+                />
               </div>
             )}
           </div>
@@ -787,7 +842,7 @@ export function SpotOrderEntryPanel({
               onClick={() => setConfirmOpen(false)}
               className="min-h-11 w-full rounded-lg border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted dark:border-border dark:hover:bg-accent sm:min-h-10 sm:w-auto"
             >
-              Cancel
+              {tCommon('actions.cancel')}
             </button>
             <button
               type="button"
@@ -808,7 +863,7 @@ export function SpotOrderEntryPanel({
               }`}
             >
               {(loading || confirmLoading) && <Loader2 className="h-4 w-4 animate-spin" />}
-              Confirm
+              {tc('orderEntry.confirm')}
             </button>
           </DialogFooter>
         </DialogContent>

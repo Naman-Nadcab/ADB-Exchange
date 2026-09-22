@@ -43,7 +43,7 @@ import {
 } from '@/lib/spotPriceDisplay';
 
 class PanelErrorBoundary extends Component<
-  { children: ReactNode; name: string; resetKey?: string },
+  { children: ReactNode; name: string; errorMessage: string; retryLabel: string; resetKey?: string },
   { hasError: boolean }
 > {
   state = { hasError: false };
@@ -60,13 +60,13 @@ class PanelErrorBoundary extends Component<
     if (this.state.hasError) {
       return (
         <div className="flex h-full min-h-[60px] flex-col items-center justify-center gap-2 bg-card px-3 py-4 text-center">
-          <p className="text-label font-medium text-muted-foreground">{this.props.name} hit an error</p>
+          <p className="text-label font-medium text-muted-foreground">{this.props.errorMessage}</p>
           <button
             type="button"
             onClick={() => this.setState({ hasError: false })}
             className="rounded bg-muted px-3 py-1 text-label font-semibold text-foreground hover:bg-accent"
           >
-            Retry
+            {this.props.retryLabel}
           </button>
         </div>
       );
@@ -429,8 +429,8 @@ const RecentTradesPanel = memo(function RecentTradesPanel({
         ) : topTrades.length === 0 ? (
           <TerminalEmptyState
             kind="trades"
-            title="Waiting for market activity"
-            description="Recent trades will appear here as the market updates."
+            title={t('empty.waitingMarketActivity')}
+            description={t('empty.waitingMarketActivityDesc')}
             compact
           />
         ) : (
@@ -1267,6 +1267,9 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
   } = props;
 
   const t = useTranslations('crypto');
+  const tCommon = useTranslations('common');
+  const panelError = (panelKey: 'orderBook' | 'orderForm' | 'orderHistory') =>
+    t('panels.errorHit', { panel: t(`panels.${panelKey}`) });
   const { reconnectAttempt, streamPhase, privateChannelsReady, bootstrapIssue, lastRttMs, liteMode, liteHint } =
     useSpotMarketStream();
   const { ticker } = useSpotMarketTicker();
@@ -1481,7 +1484,12 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
             className="spot-terminal-orderbook terminal-panel-subtle flex min-w-0 flex-col overflow-hidden border-r border-solid border-border bg-card"
             style={{ gridColumn: '1', gridRow: '3' }}
           >
-            <PanelErrorBoundary name="Order Book" resetKey={symbol}>
+            <PanelErrorBoundary
+              name="Order Book"
+              errorMessage={panelError('orderBook')}
+              retryLabel={tCommon('actions.retry')}
+              resetKey={symbol}
+            >
               <SpotOrderbookSection quoteAsset={quoteAsset} baseAsset={baseAsset} pricePrecision={pricePrecision} qtyPrecision={qtyPrecision} onPriceClick={handlePriceClick} />
             </PanelErrorBoundary>
           </div>
@@ -1523,7 +1531,12 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
                 minHeight: 248,
               }}
             >
-              <PanelErrorBoundary name="Order Form" resetKey={symbol}>
+              <PanelErrorBoundary
+                name="Order Form"
+                errorMessage={panelError('orderForm')}
+                retryLabel={tCommon('actions.retry')}
+                resetKey={symbol}
+              >
               <BinanceOrderEntrySection
                 orderType={orderType} setOrderType={setOrderType} timeInForce={timeInForce} setTimeInForce={setTimeInForce}
                 postOnly={postOnly} setPostOnly={setPostOnly} price={price} setPrice={setPrice}
@@ -1574,7 +1587,12 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
 
       {/* ── BELOW THE FOLD: order history — page scrolls here ── */}
       <section className="w-full border-t border-border bg-card" aria-label="Order history and trading activity">
-        <PanelErrorBoundary name="Order History" resetKey={symbol}>
+        <PanelErrorBoundary
+          name="Order History"
+          errorMessage={panelError('orderHistory')}
+          retryLabel={tCommon('actions.retry')}
+          resetKey={symbol}
+        >
           <SpotBottomPanel
             symbol={symbol}
             isAuth={isAuth}

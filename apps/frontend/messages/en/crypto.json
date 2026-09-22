@@ -98,7 +98,11 @@
     "noPositions": "No positions",
     "noPositionsDesc": "Spot balances with active exposure will appear here.",
     "waitingMarketActivity": "Waiting for market activity",
-    "noExecutableLiquidity": "No executable liquidity"
+    "waitingMarketActivityDesc": "Recent trades will appear here as the market updates.",
+    "noExecutableLiquidity": "No executable liquidity",
+    "noMarketsMatch": "No markets match",
+    "noMarketsMatchDesc": "Try a different search or filter.",
+    "noMarketsMatchFilters": "No markets match your filters."
   },
   "terminal": {
     "orderEntry": "Order Entry",
@@ -227,7 +231,8 @@
     "zoomScrollMac": "⌘ + scroll: zoom chart",
     "zoomScrollWin": "Ctrl + scroll: zoom chart",
     "staleUpdatedUnknown": "unknown",
-    "overlayNone": "Overlay —"
+    "overlayNone": "Overlay —",
+    "clearAllDrawings": "Clear all drawings"
   },
   "executionHints": {
     "topOfBookEst": "Top-of-book est.",
@@ -347,6 +352,114 @@
     "ordersCancelledDesc": "All open orders for {symbol} were cancelled.",
     "cancelAllFailed": "Cancel all failed",
     "couldNotCancelAll": "Could not cancel all"
+  },
+  "marketRail": {
+    "favorites": "Favorites",
+    "search": "Search",
+    "searchPlaceholder": "Search",
+    "all": "All",
+    "topRefVol": "Top Ref. Vol",
+    "gainers": "Gainers",
+    "losers": "Losers",
+    "pair": "Pair",
+    "last": "Last",
+    "chg": "Chg",
+    "change24h": "24h%",
+    "refVol": "Ref. Vol",
+    "change24hTitle": "24 hour change",
+    "refVolTitle": "Reference market volume from external OHLCV when no exchange trades",
+    "addFavorite": "Add favorite",
+    "removeFavorite": "Remove favorite"
+  },
+  "orderEntry": {
+    "more": "More",
+    "moreOrderTypesAria": "More order types",
+    "openOrdersHistoryTitle": "Open orders & history",
+    "scrollOrdersHistoryAria": "Scroll to orders and history",
+    "depositAria": "Deposit",
+    "callbackPct": "Callback %",
+    "trailingCallbackAria": "Trailing callback percent",
+    "trailingPlaceholder": "0.1 – 100",
+    "triggerPriceAria": "Trigger price",
+    "priceAria": "Price ({asset})",
+    "quantityAria": "Quantity in {asset}",
+    "max": "Max",
+    "balancePercentAria": "Balance percentage",
+    "maxBuyingAmount": "Max. buying amount",
+    "maxProceedsEst": "Max. proceeds (est.)",
+    "orderValueEst": "Order value (est.)",
+    "estAvgFill": "Est. avg fill",
+    "estSlippage": "Est. slippage",
+    "highSlippageWarning": "High slippage — consider a limit order.",
+    "signInToTrade": "Sign in to trade",
+    "postOnlyCheckbox": "Post-only",
+    "timeInForceAria": "Time in force",
+    "net": "Net",
+    "estFill": "Est. fill",
+    "qtyShort": "Qty",
+    "confirm": "Confirm",
+    "confirmBuy": "Confirm buy",
+    "confirmSell": "Confirm sell",
+    "reviewBefore": "Review before placing",
+    "account": "Account",
+    "deposit": "Deposit",
+    "transfer": "Transfer",
+    "buyCrypto": "Buy crypto",
+    "minQty": "Min qty {qty} {asset}",
+    "minNotional": "Min notional {amount} {asset}",
+    "feeMakerTaker": "Maker {maker}% · Taker {taker}%",
+    "feeEstKind": "· Est. @ {kind}",
+    "feeKindMaker": "maker",
+    "feeKindTaker": "taker",
+    "feeKindWorst": "worst-case",
+    "estFee": "Est. fee ({kind})",
+    "estFeeKindWorst": "worst"
+  },
+  "validation": {
+    "qtyRequired": "Enter a valid quantity greater than 0.",
+    "limitPriceRequired": "Enter a valid limit price greater than 0.",
+    "triggerPriceRequired": "Enter a valid trigger price greater than 0.",
+    "trailingDeltaRange": "Enter trailing delta between 0 and 100.",
+    "minQty": "Minimum quantity is {qty} {asset}.",
+    "livePriceUnavailable": "Live market price unavailable — wait for feed sync or use a limit order.",
+    "minNotional": "Minimum notional is {min} {quote} (est. {est} {quote} at current price).",
+    "insufficientQuoteBuy": "Insufficient {asset} balance for buy order.",
+    "insufficientBaseSell": "Insufficient {asset} balance for sell order."
+  },
+  "markets": {
+    "noneAvailable": "No markets available",
+    "loadFailed": "Failed to load markets",
+    "loadFailedRetry": "Failed to load markets. Retry.",
+    "timeout": "Request timed out — backend slow or unreachable. Start API (e.g. port 4000) and retry.",
+    "noSpotMarkets": "No spot markets available"
+  },
+  "bootstrap": {
+    "orderbookDelayed": "Orderbook bootstrap delayed. Live updates may take a moment.",
+    "tradeResyncDelayed": "Trade feed resync delayed. Recent trades may lag briefly.",
+    "orderbookSnapshotUnavailable": "Orderbook snapshot unavailable. Retrying via stream.",
+    "tickerUnavailable": "Ticker bootstrap unavailable. Displaying stream data when available."
+  },
+  "statusRow": {
+    "streamLiveRtt": "Market stream connected · RTT ~{ms}ms",
+    "reconnectingAttempt": "Reconnecting (attempt {n})",
+    "connectingStream": "Connecting to market stream",
+    "streamOffline": "Market stream offline",
+    "marketOpen": "Market Open",
+    "marketStatus": "Status {status}",
+    "adaptive": "Adaptive",
+    "reducedStreamRate": "Reduced stream rate",
+    "prefsDelayedTitle": "Preference sync delayed. Default confirmation rules are active.",
+    "pos24h": "24H Pos",
+    "pulse": "Pulse"
+  },
+  "depthChart": {
+    "waitingOrderbook": "Waiting for orderbook depth..."
+  },
+  "panels": {
+    "orderBook": "Order Book",
+    "orderForm": "Order Form",
+    "orderHistory": "Order History",
+    "errorHit": "{panel} hit an error"
   },
   "pairHeader": {
     "lastPrice": "Last Price",

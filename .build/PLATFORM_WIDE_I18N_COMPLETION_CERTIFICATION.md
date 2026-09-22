@@ -3,13 +3,13 @@
 **Date:** 2026-09-22  
 **LANGUAGE_MASTER_BASELINE:** `7cd6bc7be8c82afe85c89bf9ac1fb58edef8d051e`  
 **Rollback tag:** `backup/language-master-baseline-7cd6bc7`  
-**Prior spot pass:** `6f200f9`, docs `d300eff`
+**Prior spot pass:** `6f200f9`, docs `d300eff`, PairHeader `41a2e4d` / `e75d6b6`
 
 ## Verdict
 
 **IMPLEMENTATION COMPLETE — LANGUAGE COVERAGE PARTIAL**
 
-User-facing Crypto Spot **PairHeader** stat labels are now localized. Platform i18n architecture is unchanged. **FULL PLATFORM LANGUAGE CERTIFIED** is **not** declared because the authenticated **240-cell** visual matrix did not achieve **240/240 PASS** in the recorded full run (session/cookie flake in one viewport bucket — classified **D**, not localization).
+Crypto Spot **rendered-terminal** gaps from the zh-CN screenshot (nav localized, terminal/rail still English) are addressed in the **market rail + order entry + status row + validation/toasts + depth/chart chrome** pass below. **FULL PLATFORM LANGUAGE CERTIFIED** is **not** declared until **240/240** authenticated visual matrix on a clean run and operator browser sign-off on `/trade/spot` (en / zh-CN / id-ID).
 
 ---
 
@@ -93,9 +93,23 @@ Public matrix (90 cells): run with same `BASE_URL`; prior run **66+ passed** (AP
 
 ---
 
-## 6. English leakage sweep
+## 6. English leakage sweep (Crypto Spot terminal — 2026-09-22 pass)
 
-Targeted closure: **PairHeader** (was the last verified Crypto chrome gap). Remaining English on spot/chart surfaces is **intentional class B** (timeframes, indicator names) or **market identifiers** (BTC/USDT, etc.).
+**Screenshot issue:** zh-CN nav + partial tabs Chinese; **Order Book / order entry / market rail / market trades empty / status chips** still English.
+
+**Root components (fixed):**
+
+| Surface | Component |
+|---------|-----------|
+| Right market rail (Favorites, Search, filters, Pair/Last/Chg) | `MarketsSidebar.tsx` → `crypto.marketRail.*` |
+| Order entry (types, TIF, labels, confirm, account links) | `SpotOrderEntryPanel.tsx` → `crypto.orderEntry.*`, `crypto.trading.*` |
+| Status row (stream, market open, adaptive, 24H pos, pulse) | `SpotTerminalStatusRow.tsx`, `TerminalStatusChip.tsx` → `crypto.statusRow.*`, `crypto.chart.phase.*` |
+| Bootstrap tooltips | `SpotMarketDataContext.tsx` → `BootstrapIssueId` + `crypto.bootstrap.*` |
+| Validation + market load errors + submit toast title | `SpotTradingGrid.tsx` → `crypto.validation.*`, `crypto.markets.*` |
+| Market trades empty state, panel error boundary | `SpotTradingGridTerminal.tsx` → `crypto.empty.*`, `crypto.panels.*` |
+| Depth wait state, chart clear/aria | `SpotDepthChart.tsx`, `ChartPanel.tsx` |
+
+Remaining English on spot/chart surfaces is **intentional class B** (timeframes, indicator names, GTC/IOC/FOK/TIF where policy says universal) or **market identifiers** (BTC/USDT, USDT tab label, etc.).
 
 `lib/errorMessages.ts`: **retained; not used for customer-facing rendering** (only defined in that module; UI uses `useApiErrorMessage` + `errors.trading.codes.*`).
 
@@ -138,6 +152,7 @@ No migrations, seeds, provisioning, or production deploy.
 | Spot completion | `6f200f9` |
 | Cert (spot) | `d300eff` |
 | **This closure pass** | `41a2e4d` — fix(i18n): PairHeader + E2E login OTP |
+| **Spot terminal render pass** | *(see §11 after commit)* — fix(i18n): complete rendered platform locale coverage |
 | Rollback | `7cd6bc7` / `backup/language-master-baseline-7cd6bc7` |
 
 ---

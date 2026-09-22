@@ -38,6 +38,12 @@ type TradesCtxType = {
   recentTrades: TradeMessage[];
 };
 
+export type BootstrapIssueId =
+  | 'orderbookDelayed'
+  | 'tradeResyncDelayed'
+  | 'orderbookSnapshotUnavailable'
+  | 'tickerUnavailable';
+
 type StreamCtxType = {
   connected: boolean;
   privateChannelsReady: boolean;
@@ -46,7 +52,7 @@ type StreamCtxType = {
   lastRttMs: number | null;
   liteMode: boolean;
   liteHint: string;
-  bootstrapIssue: string | null;
+  bootstrapIssue: BootstrapIssueId | null;
 };
 
 const OrderbookCtx = createContext<OrderbookCtxType | null>(null);
@@ -184,7 +190,7 @@ export function SpotMarketDataProvider({
   const orderbookResyncInFlightRef = useRef<Promise<void> | null>(null);
   const [adaptiveUiMode, setAdaptiveUiMode] = useState<'normal' | 'eco' | 'minimal'>('normal');
   const [adaptiveHint, setAdaptiveHint] = useState('');
-  const [bootstrapIssue, setBootstrapIssue] = useState<string | null>(null);
+  const [bootstrapIssue, setBootstrapIssue] = useState<BootstrapIssueId | null>(null);
 
   const pendingTickerRef = useRef<TickerMessage | null>(null);
   const pendingTradesRef = useRef<TradeMessage[] | null>(null);
@@ -265,7 +271,7 @@ export function SpotMarketDataProvider({
         if (sym === symbolRef.current) setOrderbook(sanitizeOrderbookSnapshot(snap));
         });
       } catch {
-        setBootstrapIssue('Orderbook bootstrap delayed. Live updates may take a moment.');
+        setBootstrapIssue('orderbookDelayed');
       }
     })();
     orderbookResyncInFlightRef.current = run;
@@ -295,7 +301,7 @@ export function SpotMarketDataProvider({
       dirtyTradesRef.current = true;
       scheduleRaf();
     } catch {
-      setBootstrapIssue('Trade feed resync delayed. Recent trades may lag briefly.');
+      setBootstrapIssue('tradeResyncDelayed');
     }
   }, [scheduleRaf]);
 
@@ -474,7 +480,7 @@ export function SpotMarketDataProvider({
       })
       .catch(() => {
         if (!ac.signal.aborted) {
-          setBootstrapIssue('Orderbook snapshot unavailable. Retrying via stream.');
+          setBootstrapIssue('orderbookSnapshotUnavailable');
         }
       })
       .finally(() => {
@@ -520,7 +526,7 @@ export function SpotMarketDataProvider({
       })
       .catch(() => {
         if (!ac.signal.aborted) {
-          setBootstrapIssue('Ticker bootstrap unavailable. Displaying stream data when available.');
+          setBootstrapIssue('tickerUnavailable');
         }
       });
 

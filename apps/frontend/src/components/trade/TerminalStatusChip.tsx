@@ -37,16 +37,19 @@ export function TerminalStatusChip({
   );
 }
 
-export function streamPhaseToChip(phase: SpotWsStreamPhase): { label: string; tone: ChipTone; pulse: boolean } {
+export function streamPhaseToChip(
+  phase: SpotWsStreamPhase,
+  t: (key: string) => string
+): { label: string; tone: ChipTone; pulse: boolean } {
   switch (phase) {
     case 'live':
-      return { label: 'Live', tone: 'live', pulse: false };
+      return { label: t('chart.phase.live'), tone: 'live', pulse: false };
     case 'reconnecting':
-      return { label: 'Syncing', tone: 'sync', pulse: true };
+      return { label: t('chart.phase.reconnecting'), tone: 'sync', pulse: true };
     case 'connecting':
-      return { label: 'Connecting', tone: 'sync', pulse: true };
+      return { label: t('chart.phase.connecting'), tone: 'sync', pulse: true };
     case 'disconnected':
-      return { label: 'Offline', tone: 'off', pulse: false };
+      return { label: t('chart.phase.disconnected'), tone: 'off', pulse: false };
     default:
       return { label: '—', tone: 'neutral', pulse: false };
   }

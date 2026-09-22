@@ -27,6 +27,12 @@ const CRITICAL_CRYPTO_KEYS = [
   'bottomToasts.orderCancelled',
   'pairHeader.lastPrice',
   'pairHeader.bidAsk',
+  'marketRail.favorites',
+  'marketRail.searchPlaceholder',
+  'orderEntry.signInToTrade',
+  'validation.qtyRequired',
+  'panels.orderBook',
+  'depthChart.waitingOrderbook',
 ];
 
 function getNested(obj: Record<string, unknown>, dotted: string): unknown {

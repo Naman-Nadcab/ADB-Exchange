@@ -240,22 +240,22 @@ export function SpotTradingGrid() {
   const validateOrderInput = useCallback(
     (candidateSide: 'buy' | 'sell', candidateQty: string): string | null => {
       const qty = toPositiveNumber(candidateQty.trim());
-      if (!qty) return 'Enter a valid quantity greater than 0.';
+      if (!qty) return tc('validation.qtyRequired');
 
       if (orderType === 'limit' || orderType === 'stop_limit') {
-        if (!toPositiveNumber(price.trim())) return 'Enter a valid limit price greater than 0.';
+        if (!toPositiveNumber(price.trim())) return tc('validation.limitPriceRequired');
       }
       if (orderType === 'stop_loss' || orderType === 'stop_limit') {
-        if (!toPositiveNumber(stopPrice.trim())) return 'Enter a valid trigger price greater than 0.';
+        if (!toPositiveNumber(stopPrice.trim())) return tc('validation.triggerPriceRequired');
       }
       if (orderType === 'trailing_stop_market') {
         const delta = toPositiveNumber(trailingDelta.trim());
-        if (!delta || delta > 100) return 'Enter trailing delta between 0 and 100.';
+        if (!delta || delta > 100) return tc('validation.trailingDeltaRange');
       }
 
       const minQty = selectedMarket?.min_qty ? Number(selectedMarket.min_qty) : NaN;
       if (Number.isFinite(minQty) && minQty > 0 && qty < minQty) {
-        return `Minimum quantity is ${selectedMarket?.min_qty} ${baseAsset}.`;
+        return tc('validation.minQty', { qty: selectedMarket?.min_qty ?? '', asset: baseAsset });
       }
 
       const limitPrice = toPositiveNumber(price.trim());
@@ -274,7 +274,7 @@ export function SpotTradingGrid() {
             : liveBid ?? liveLast ?? (Number.isFinite(marketLast) ? marketLast : null);
         referencePrice = sideRef != null && sideRef > 0 ? sideRef : null;
         if (referencePrice == null) {
-          return 'Live market price unavailable — wait for feed sync or use a limit order.';
+          return tc('validation.livePriceUnavailable');
         }
       } else {
         const fallback =
@@ -292,14 +292,18 @@ export function SpotTradingGrid() {
         referencePrice > 0 &&
         qty * referencePrice < minNotional
       ) {
-        return `Minimum notional is ${selectedMarket?.min_notional} ${quoteAsset} (est. ${(qty * referencePrice).toFixed(2)} ${quoteAsset} at current price).`;
+        return tc('validation.minNotional', {
+          min: selectedMarket?.min_notional ?? '',
+          quote: quoteAsset,
+          est: (qty * referencePrice).toFixed(2),
+        });
       }
 
       if (candidateSide === 'buy' && Number(quoteBalance || '0') <= 0) {
-        return `Insufficient ${quoteAsset} balance for buy order.`;
+        return tc('validation.insufficientQuoteBuy', { asset: quoteAsset });
       }
       if (candidateSide === 'sell' && qty > Number(baseBalance || '0')) {
-        return `Insufficient ${baseAsset} balance for sell order.`;
+        return tc('validation.insufficientBaseSell', { asset: baseAsset });
       }
       return null;
     },
@@ -318,6 +322,7 @@ export function SpotTradingGrid() {
       marketPrices.bid,
       marketPrices.ask,
       selectedMarket?.last_price,
+      tc,
     ]
   );
 
@@ -378,7 +383,7 @@ export function SpotTradingGrid() {
     const validationError = validateOrderInput(effectiveSide, effectiveQty);
     if (validationError) {
       setSubmitError(validationError);
-      toast({ title: 'Order not placed', description: validationError, variant: 'destructive' });
+      toast({ title: tc('toasts.orderNotPlaced'), description: validationError, variant: 'destructive' });
       throw new Error(validationError);
     }
     setSubmitError(null);
@@ -592,17 +597,17 @@ export function SpotTradingGrid() {
           setSymbol(sym);
         } else {
           setMarkets([]);
-          setMarketsError(res.success ? 'No markets available' : (res.error?.message ?? 'Failed to load markets'));
+          setMarketsError(res.success ? tc('markets.noneAvailable') : (res.error?.message ?? tc('markets.loadFailed')));
         }
       } catch (e) {
         if ((e as { name?: string })?.name === 'AbortError') return;
         setMarkets([]);
-        setMarketsError('Failed to load markets. Retry.');
+        setMarketsError(tc('markets.loadFailedRetry'));
       } finally {
         if (!signal?.aborted) setMarketsLoading(false);
       }
     },
-    [symbolParam]
+    [symbolParam, tc]
   );
 
   useEffect(() => {
@@ -633,7 +638,7 @@ export function SpotTradingGrid() {
     const fallback = setTimeout(() => {
       ac.abort();
       setMarketsLoading(false);
-      setMarketsError('Request timed out — backend slow or unreachable. Start API (e.g. port 4000) and retry.');
+      setMarketsError(tc('markets.timeout'));
     }, 45000);
 
     fetchMarkets(ac.signal, { silent: markets.length > 0 }).finally(() => clearTimeout(fallback));
@@ -642,7 +647,7 @@ export function SpotTradingGrid() {
       ac.abort();
       clearTimeout(fallback);
     };
-  }, [symbolParam, fetchMarkets, markets.length]);
+  }, [symbolParam, fetchMarkets, markets.length, tc]);
 
   if (marketsLoading && markets.length === 0 && !marketsError) {
     return (
@@ -658,7 +663,7 @@ export function SpotTradingGrid() {
       <div className="flex h-full w-full flex-col items-center justify-center gap-5 bg-muted px-4 dark:bg-background">
         <div className="max-w-md rounded-xl border border-border bg-card p-6 text-center shadow-sm dark:border-border dark:bg-card">
           <p className="text-sm font-semibold text-foreground">
-            {marketsError || 'No spot markets available'}
+            {marketsError || tc('markets.noSpotMarkets')}
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
             Start the backend, ensure Postgres is up, and run migrations/seed if{' '}

@@ -943,7 +943,7 @@ function ChartPanelInner({
               ))}
               <button
                 type="button"
-                title="Clear all drawings"
+                title={t('chart.clearAllDrawings')}
                 onClick={() => {
                   const ad = adapterRef.current;
                   if (ad instanceof LightweightChartsAdapter) ad.clearDrawings();
@@ -1011,7 +1011,7 @@ function ChartPanelInner({
             <div
               id="chart-mount"
               className="absolute inset-0 overflow-hidden"
-              aria-label="Price chart"
+              aria-label={t('chart.priceChartAria')}
               tabIndex={0}
             />
             <div

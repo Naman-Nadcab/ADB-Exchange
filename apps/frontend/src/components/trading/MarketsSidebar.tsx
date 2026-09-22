@@ -8,6 +8,7 @@ import { TerminalEmptyState } from '@/components/trade/TerminalEmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { CoinIcon } from '@/components/ui/CoinIcon';
 import { useDisplayCurrency } from '@/context/DisplayCurrencyProvider';
+import { useTranslations } from 'next-intl';
 
 export type MarketRow = {
   symbol: string;
@@ -51,6 +52,8 @@ export function MarketsSidebar({
   onToggleFavorite,
   variant = 'default',
 }: MarketsSidebarProps) {
+  const t = useTranslations('crypto');
+  const tCommon = useTranslations('common');
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
   const [tab, setTab] = useState<TabId>('usdt');
   const [search, setSearch] = useState('');
@@ -98,7 +101,7 @@ export function MarketsSidebar({
   }, [filtered, selectedSymbol]);
 
   const tabs: { id: TabId; label: string }[] = [
-    { id: 'favorites', label: 'Favorites' },
+    { id: 'favorites', label: t('marketRail.favorites') },
     { id: 'usdt', label: 'USDT' },
     { id: 'btc', label: 'BTC' },
   ];
@@ -187,7 +190,7 @@ export function MarketsSidebar({
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search"
+              placeholder={t('marketRail.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className={
@@ -203,10 +206,10 @@ export function MarketsSidebar({
         <div className="flex items-center gap-0.5 border-t border-border/80 bg-card px-1.5 py-1">
           {(
             [
-              ['all', 'All'],
-              ['top_volume', 'Top Ref. Vol'],
-              ['gainers', 'Gainers'],
-              ['losers', 'Losers'],
+              ['all', t('marketRail.all')],
+              ['top_volume', t('marketRail.topRefVol')],
+              ['gainers', t('marketRail.gainers')],
+              ['losers', t('marketRail.losers')],
             ] as const
           ).map(([id, label]) => (
             <button
@@ -259,28 +262,28 @@ export function MarketsSidebar({
             >
               <th className={`text-left ${isTerminal ? 'px-2 py-1.5' : 'px-2 py-2'}`}>
                 <button type="button" className="inline-flex items-center gap-0.5" onClick={() => toggleSort('pair')}>
-                  <span>Pair</span>
+                  <span>{t('marketRail.pair')}</span>
                   {sortGlyph('pair')}
                 </button>
               </th>
               <th className={`text-right whitespace-nowrap ${isTerminal ? 'px-1.5 py-1.5' : 'px-2 py-2'}`}>
                 <button type="button" className="inline-flex w-full items-center justify-end gap-0.5" onClick={() => toggleSort('last')}>
-                  <span>Last</span>
+                  <span>{t('marketRail.last')}</span>
                   {sortGlyph('last')}
                 </button>
               </th>
               <th
                 className={`text-right whitespace-nowrap ${isTerminal ? 'px-1.5 py-1.5' : 'px-2 py-2'}`}
-                title="24 hour change"
+                title={t('marketRail.change24hTitle')}
               >
                 <button type="button" className="inline-flex w-full items-center justify-end gap-0.5" onClick={() => toggleSort('change')}>
-                  <span>{isTerminal ? 'Chg' : '24h%'}</span>
+                  <span>{isTerminal ? t('marketRail.chg') : t('marketRail.change24h')}</span>
                   {sortGlyph('change')}
                 </button>
               </th>
               {!isTerminal && (
-                <th className="px-2 py-2 text-right whitespace-nowrap" title="Reference market volume from external OHLCV when no exchange trades">
-                  Ref. Vol
+                <th className="px-2 py-2 text-right whitespace-nowrap" title={t('marketRail.refVolTitle')}>
+                  {t('marketRail.refVol')}
                 </th>
               )}
             </tr>
@@ -315,7 +318,7 @@ export function MarketsSidebar({
                       onClick={onRetry}
                       className="min-h-[44px] rounded-lg bg-buy/90 px-4 py-2 text-sm font-medium tracking-wide text-neutral-950 hover:bg-buy active:scale-[0.99]"
                     >
-                      Retry
+                      {tCommon('actions.retry')}
                     </button>
                   ) : null}
                 </td>
@@ -333,12 +336,12 @@ export function MarketsSidebar({
                   {isTerminal ? (
                     <TerminalEmptyState
                       kind="markets"
-                      title="No markets match"
-                      description="Try a different search or filter."
+                      title={t('empty.noMarketsMatch')}
+                      description={t('empty.noMarketsMatchDesc')}
                       compact
                     />
                   ) : (
-                    'No markets match your filters.'
+                    t('empty.noMarketsMatchFilters')
                   )}
                 </td>
               </tr>
@@ -382,7 +385,9 @@ export function MarketsSidebar({
                               onToggleFavorite(m.symbol);
                             }}
                             className={`shrink-0 rounded p-0.5 text-muted-foreground transition-colors ${starHover}`}
-                            aria-label={favorites.includes(m.symbol) ? 'Remove favorite' : 'Add favorite'}
+                            aria-label={
+                              favorites.includes(m.symbol) ? t('marketRail.removeFavorite') : t('marketRail.addFavorite')
+                            }
                           >
                             <Star
                               className={`h-3.5 w-3.5 ${favorites.includes(m.symbol) ? 'fill-primary text-primary' : ''}`}

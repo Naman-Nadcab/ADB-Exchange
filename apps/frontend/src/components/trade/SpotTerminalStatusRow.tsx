@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { TerminalStatusChip, streamPhaseToChip } from './TerminalStatusChip';
 import type { SpotWsStreamPhase } from '@/hooks/useSpotWs';
+import type { BootstrapIssueId } from './SpotMarketDataContext';
 
 type MarketContext = {
   positionPct: number;
@@ -39,25 +40,27 @@ export function SpotTerminalStatusRow({
   isAuth: boolean;
   privateChannelsReady: boolean;
   preferencesSyncIssue?: boolean;
-  bootstrapIssue?: string | null;
+  bootstrapIssue?: BootstrapIssueId | null;
   reconnectAttempt: number;
   marketContext: MarketContext;
   marketPulse: MarketPulse;
 }) {
   const t = useTranslations('crypto');
-  const stream = streamPhaseToChip(streamPhase);
+  const stream = streamPhaseToChip(streamPhase, t);
   const streamTitle =
     streamPhase === 'live' && lastRttMs != null && lastRttMs >= 0
-      ? `Market stream connected · RTT ~${lastRttMs}ms`
+      ? t('statusRow.streamLiveRtt', { ms: lastRttMs })
       : streamPhase === 'reconnecting' && reconnectAttempt > 0
-        ? `Reconnecting (attempt ${reconnectAttempt})`
+        ? t('statusRow.reconnectingAttempt', { n: reconnectAttempt })
         : streamPhase === 'connecting'
-          ? 'Connecting to market stream'
+          ? t('statusRow.connectingStream')
           : streamPhase === 'disconnected'
-            ? 'Market stream offline'
+            ? t('statusRow.streamOffline')
             : undefined;
 
-  const marketLabel = marketTradingOpen ? 'Market Open' : `Status ${effectiveMarketStatus}`;
+  const marketLabel = marketTradingOpen
+    ? t('statusRow.marketOpen')
+    : t('statusRow.marketStatus', { status: effectiveMarketStatus });
   const marketTone = marketTradingOpen ? 'live' : 'warn';
 
   return (
@@ -70,7 +73,12 @@ export function SpotTerminalStatusRow({
       />
       <TerminalStatusChip label={marketLabel} tone={marketTone as 'live' | 'warn'} />
       {liteMode ? (
-        <TerminalStatusChip label="Adaptive" tone="sync" title={liteHint ?? 'Reduced stream rate'} pulse />
+        <TerminalStatusChip
+          label={t('statusRow.adaptive')}
+          tone="sync"
+          title={liteHint ?? t('statusRow.reducedStreamRate')}
+          pulse
+        />
       ) : streamPhase === 'live' ? (
         <TerminalStatusChip
           label={lastRttMs != null && lastRttMs >= 0 ? `${lastRttMs}ms` : t('status.fullRate')}
@@ -85,16 +93,20 @@ export function SpotTerminalStatusRow({
         <TerminalStatusChip
           label={t('status.prefsDelayed')}
           tone="warn"
-          title="Preference sync delayed. Default confirmation rules are active."
+          title={t('statusRow.prefsDelayedTitle')}
         />
       ) : null}
       {streamPhase === 'live' && bootstrapIssue && privateChannelsReady && !preferencesSyncIssue ? (
-        <TerminalStatusChip label={t('status.bootstrapNotice')} tone="warn" title={bootstrapIssue} />
+        <TerminalStatusChip
+          label={t('status.bootstrapNotice')}
+          tone="warn"
+          title={bootstrapIssue ? t(`bootstrap.${bootstrapIssue}`) : undefined}
+        />
       ) : null}
       {marketContext ? (
         <div className="ml-auto flex flex-wrap items-center gap-2 terminal-text-meta leading-none text-muted-foreground">
           <span>
-            24H Pos{' '}
+            {t('statusRow.pos24h')}{' '}
             <span className="numeric font-medium text-foreground">{marketContext.positionPct.toFixed(1)}%</span>
           </span>
           <span>
@@ -112,7 +124,7 @@ export function SpotTerminalStatusRow({
         </div>
       ) : null}
       <span className={`terminal-text-meta text-muted-foreground ${marketContext ? '' : 'ml-auto'}`}>
-        Pulse{' '}
+        {t('statusRow.pulse')}{' '}
         <span className="numeric font-medium text-foreground">{marketPulse.momentum}</span>/
         <span className="numeric font-medium text-foreground">{marketPulse.liquidity}</span>
       </span>

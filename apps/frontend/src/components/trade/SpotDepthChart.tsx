@@ -1,6 +1,7 @@
 'use client';
 
 import { useId } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface SpotDepthChartProps {
   bids: { price: string; quantity: string }[];
@@ -29,6 +30,7 @@ function fmt(n: number): string {
 }
 
 export function SpotDepthChart({ bids, asks, height, className }: SpotDepthChartProps) {
+  const t = useTranslations('crypto');
   const gradId = useId().replace(/:/g, '');
   const bidGradId = `depth-bid-fill-${gradId}`;
   const askGradId = `depth-ask-fill-${gradId}`;
@@ -96,7 +98,7 @@ export function SpotDepthChart({ bids, asks, height, className }: SpotDepthChart
       </div>
       {!hasDepth ? (
         <div className="flex min-h-[120px] items-center justify-center rounded border border-dashed border-border text-sm text-muted-foreground">
-          Waiting for orderbook depth...
+          {t('depthChart.waitingOrderbook')}
         </div>
       ) : (
       <svg viewBox={`0 0 100 ${viewBoxHeight}`} className="h-full min-h-[120px] w-full" preserveAspectRatio="none" aria-label="Orderbook depth chart">
