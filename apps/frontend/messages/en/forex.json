@@ -16,6 +16,11 @@
     "terminalNavAria": "Forex terminal",
     "mobileNavAria": "Forex mobile"
   },
+  "mobileTrade": {
+    "watch": "Watch",
+    "order": "Order",
+    "trade": "Trade"
+  },
   "pages": {
     "markets": {
       "title": "Markets",

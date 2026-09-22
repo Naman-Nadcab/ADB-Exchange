@@ -83,9 +83,9 @@ export function PublicHeader() {
             </>
           ) : (
             <>
-              <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center transition hover:text-white">Markets</Link>
-              <Link href={SPOT_TRADE_HREF} prefetch className="tap-target inline-flex items-center transition hover:text-white">Crypto</Link>
-              <Link href={FOREX_ROUTES.root} prefetch className="tap-target inline-flex items-center transition hover:text-white">Forex</Link>
+              <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center transition hover:text-white">{tn('markets')}</Link>
+              <Link href={SPOT_TRADE_HREF} prefetch className="tap-target inline-flex items-center transition hover:text-white">{tn('crypto')}</Link>
+              <Link href={FOREX_ROUTES.root} prefetch className="tap-target inline-flex items-center transition hover:text-white">{tn('forex')}</Link>
               <div className="relative shrink-0 group">
                 <button type="button" className="tap-target inline-flex items-center transition hover:text-white" aria-haspopup="true">
                   {tn('trade')}
@@ -101,9 +101,9 @@ export function PublicHeader() {
                   </Link>
                 </div>
               </div>
-              <Link href={ROUTES.p2p} prefetch className="tap-target inline-flex items-center transition hover:text-white">P2P</Link>
-              <Link href={ROUTES.earn} prefetch className="tap-target inline-flex items-center transition hover:text-white">Earn</Link>
-              <Link href={ROUTES.dashboard.api} prefetch className="tap-target inline-flex items-center transition hover:text-white">API</Link>
+              <Link href={ROUTES.p2p} prefetch className="tap-target inline-flex items-center transition hover:text-white">{tn('p2p')}</Link>
+              <Link href={ROUTES.earn} prefetch className="tap-target inline-flex items-center transition hover:text-white">{tn('earn')}</Link>
+              <Link href={ROUTES.dashboard.api} prefetch className="tap-target inline-flex items-center transition hover:text-white">{tn('api')}</Link>
             </>
           )}
         </nav>
@@ -113,17 +113,17 @@ export function PublicHeader() {
           {authed ? (
             <>
               <Link href={WALLET_HREF} prefetch className="tap-target hidden items-center gap-2 rounded-lg border border-[#F5B8001F] px-3 py-2 text-sm text-[#9CA3AF] transition hover:text-white sm:inline-flex">
-                <Wallet className="h-4 w-4" /> <span className="hidden md:inline">Funds</span>
+                <Wallet className="h-4 w-4" /> <span className="hidden md:inline">{tn('funds')}</span>
               </Link>
               <Link href={ORDERS_HREF} prefetch className="tap-target hidden items-center gap-2 rounded-lg border border-[#F5B8001F] px-3 py-2 text-sm text-[#9CA3AF] transition hover:text-white sm:inline-flex">
-                <ClipboardList className="h-4 w-4" /> <span className="hidden md:inline">Orders</span>
+                <ClipboardList className="h-4 w-4" /> <span className="hidden md:inline">{tn('orders')}</span>
               </Link>
 
               <div className="relative" ref={userMenuRef}>
                 <button
                   type="button"
                   onClick={() => setUserOpen((v) => !v)}
-                  aria-label="Open account menu"
+                  aria-label={tn('openAccountMenu')}
                   aria-expanded={userOpen}
                   className="tap-target inline-flex items-center gap-2 rounded-lg border border-[#F5B8001F] px-3 py-2 text-sm text-[#9CA3AF] transition hover:text-white"
                 >
@@ -141,11 +141,11 @@ export function PublicHeader() {
                     </div>
                     <div className="p-1.5">
                       {[
-                        { href: ROUTES.dashboard.root, label: 'Dashboard', icon: LayoutDashboard },
-                        { href: WALLET_HREF, label: 'Wallet', icon: Wallet },
-                        { href: ORDERS_HREF, label: 'Orders', icon: ClipboardList },
-                        { href: ROUTES.dashboard.account, label: 'Account', icon: UserIcon },
-                        { href: ROUTES.dashboard.security, label: 'Security', icon: Shield },
+                        { href: ROUTES.dashboard.root, labelKey: 'dashboard' as const, icon: LayoutDashboard },
+                        { href: WALLET_HREF, labelKey: 'wallet' as const, icon: Wallet },
+                        { href: ORDERS_HREF, labelKey: 'orders' as const, icon: ClipboardList },
+                        { href: ROUTES.dashboard.account, labelKey: 'account' as const, icon: UserIcon },
+                        { href: ROUTES.dashboard.security, labelKey: 'security' as const, icon: Shield },
                       ].map((item) => (
                         <Link
                           key={item.href}
@@ -154,7 +154,7 @@ export function PublicHeader() {
                           onClick={() => setUserOpen(false)}
                           className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[#9CA3AF] transition hover:bg-white/5 hover:text-white"
                         >
-                          <item.icon className="h-4 w-4" /> {item.label}
+                          <item.icon className="h-4 w-4" /> {tn(item.labelKey)}
                         </Link>
                       ))}
                     </div>
@@ -164,7 +164,7 @@ export function PublicHeader() {
                         onClick={handleLogout}
                         className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-400 transition hover:bg-red-500/10"
                       >
-                        <LogOut className="h-4 w-4" /> Logout
+                        <LogOut className="h-4 w-4" /> {tn('logout')}
                       </button>
                     </div>
                   </div>
@@ -186,7 +186,7 @@ export function PublicHeader() {
             type="button"
             className="tap-target rounded-md border border-[#F5B8001F] p-2 text-[#9CA3AF] lg:hidden"
             onClick={() => setMenuOpen((v) => !v)}
-            aria-label="Toggle menu"
+            aria-label={tn('toggleMenu')}
           >
             <Menu className="h-4 w-4" />
           </button>
@@ -198,31 +198,31 @@ export function PublicHeader() {
           <div className="flex flex-wrap gap-4">
             {authed ? (
               <>
-                <Link href={ROUTES.home} prefetch className="tap-target inline-flex items-center">Overview</Link>
-                <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center">Markets</Link>
-                <Link href={SPOT_TRADE_HREF} prefetch className="tap-target inline-flex items-center">Crypto Spot</Link>
-                <Link href={FOREX_ROUTES.trade} prefetch className="tap-target inline-flex items-center">Forex</Link>
-                <Link href={WALLET_HREF} prefetch className="tap-target inline-flex items-center">Portfolio</Link>
-                <Link href={ORDERS_HREF} prefetch className="tap-target inline-flex items-center">Orders</Link>
+                <Link href={ROUTES.home} prefetch className="tap-target inline-flex items-center">{tn('overview')}</Link>
+                <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center">{tn('markets')}</Link>
+                <Link href={SPOT_TRADE_HREF} prefetch className="tap-target inline-flex items-center">{tn('cryptoSpot')}</Link>
+                <Link href={FOREX_ROUTES.trade} prefetch className="tap-target inline-flex items-center">{tn('forex')}</Link>
+                <Link href={WALLET_HREF} prefetch className="tap-target inline-flex items-center">{tn('portfolio')}</Link>
+                <Link href={ORDERS_HREF} prefetch className="tap-target inline-flex items-center">{tn('orders')}</Link>
               </>
             ) : (
               <>
-                <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center">Markets</Link>
-                <Link href={SPOT_TRADE_HREF} prefetch className="tap-target inline-flex items-center">Crypto</Link>
-                <Link href={FOREX_ROUTES.root} prefetch className="tap-target inline-flex items-center">Forex</Link>
-                <Link href={ROUTES.p2p} prefetch className="tap-target inline-flex items-center">P2P</Link>
-                <Link href={ROUTES.earn} prefetch className="tap-target inline-flex items-center">Earn</Link>
-                <Link href={ROUTES.dashboard.api} prefetch className="tap-target inline-flex items-center">API</Link>
-                <Link href={ROUTES.login} prefetch className="tap-target inline-flex items-center">Log in</Link>
-                <Link href={ROUTES.signup} prefetch className="tap-target inline-flex items-center text-[#F5B800]">Create account</Link>
+                <Link href={ROUTES.markets} prefetch className="tap-target inline-flex items-center">{tn('markets')}</Link>
+                <Link href={SPOT_TRADE_HREF} prefetch className="tap-target inline-flex items-center">{tn('crypto')}</Link>
+                <Link href={FOREX_ROUTES.root} prefetch className="tap-target inline-flex items-center">{tn('forex')}</Link>
+                <Link href={ROUTES.p2p} prefetch className="tap-target inline-flex items-center">{tn('p2p')}</Link>
+                <Link href={ROUTES.earn} prefetch className="tap-target inline-flex items-center">{tn('earn')}</Link>
+                <Link href={ROUTES.dashboard.api} prefetch className="tap-target inline-flex items-center">{tn('api')}</Link>
+                <Link href={ROUTES.login} prefetch className="tap-target inline-flex items-center">{tn('logIn')}</Link>
+                <Link href={ROUTES.signup} prefetch className="tap-target inline-flex items-center text-[#F5B800]">{tn('createAccount')}</Link>
               </>
             )}
           </div>
           {authed ? (
             <div className="mt-3 flex flex-wrap gap-4 border-t border-[#F5B8001F] pt-3">
-              <Link href={WALLET_HREF} prefetch className="tap-target inline-flex items-center">Funds</Link>
-              <Link href={ROUTES.dashboard.account} prefetch className="tap-target inline-flex items-center">Account</Link>
-              <button type="button" onClick={handleLogout} className="tap-target inline-flex items-center text-red-400">Logout</button>
+              <Link href={WALLET_HREF} prefetch className="tap-target inline-flex items-center">{tn('funds')}</Link>
+              <Link href={ROUTES.dashboard.account} prefetch className="tap-target inline-flex items-center">{tn('account')}</Link>
+              <button type="button" onClick={handleLogout} className="tap-target inline-flex items-center text-red-400">{tn('logout')}</button>
             </div>
           ) : null}
         </div>

@@ -1,0 +1,122 @@
+{
+  "hero": {
+    "eyebrow": "FDM · Fintech Digital Market",
+    "titleLine1": "Fintech Digital Market.",
+    "titleLine2": "Crypto and Forex.",
+    "description": "Access digital assets and global FX through one professional financial platform built for precision, transparency and control.",
+    "exploreMarkets": "Explore Markets",
+    "createAccount": "Create Account"
+  },
+  "liveMarkets": {
+    "aria": "Live markets",
+    "heading": "Markets",
+    "loading": "Loading market data…",
+    "unavailable": "Unavailable"
+  },
+  "status": {
+    "live": "Live",
+    "stale": "Stale",
+    "connecting": "Connecting",
+    "unavailable": "Unavailable"
+  },
+  "ticker": {
+    "aria": "Market ticker",
+    "globalMarkets": "Global Markets"
+  },
+  "dualMarket": {
+    "eyebrow": "One platform. Two markets.",
+    "cryptoLabel": "Crypto",
+    "cryptoTitle": "Digital Asset Markets",
+    "cryptoDesc": "Spot trading for digital assets.",
+    "cryptoExplore": "Explore Crypto →",
+    "cryptoBullets": { "spot": "Spot", "wallet": "Wallet", "p2p": "P2P" },
+    "forexLabel": "Forex",
+    "forexTitle": "Global FX Markets",
+    "forexDesc": "Professional FX trading with dedicated margin, positions and risk management.",
+    "forexExplore": "Explore Forex →",
+    "forexBullets": { "trading": "FX Trading", "margin": "Margin", "risk": "Risk" }
+  },
+  "globalTable": {
+    "eyebrow": "Markets",
+    "title": "Global Markets",
+    "tabsAria": "Market class",
+    "tabs": { "all": "All", "crypto": "Crypto", "forex": "Forex", "metals": "Metals" },
+    "instrument": "Instrument",
+    "market": "Market",
+    "price": "Price",
+    "bidPrice": "Bid / Price",
+    "change": "Change",
+    "ask": "Ask",
+    "spread": "Spread",
+    "status": "Status",
+    "emptyFilter": "No instruments for this filter.",
+    "marketTypes": { "crypto": "Crypto", "forex": "Forex", "metals": "Metals" }
+  },
+  "platform": {
+    "eyebrow": "Platform",
+    "title": "Built for precision",
+    "capabilities": {
+      "execution": { "title": "Execution", "body": "Designed around market-specific execution workflows for digital assets and FX." },
+      "marketData": { "title": "Market Data", "body": "Real-time market information across Crypto spot and global FX." },
+      "riskControl": { "title": "Risk Control", "body": "Margin, exposure and position controls for Forex, kept separate from Crypto wallets." },
+      "security": { "title": "Security", "body": "Account protection, authentication and controlled access on every session." },
+      "liquidity": { "title": "Liquidity", "body": "Market-specific liquidity architecture for digital assets and FX." },
+      "transparency": { "title": "Transparency", "body": "Account, ledger and financial state visibility after you sign in." }
+    }
+  },
+  "trust": {
+    "eyebrow": "Trust",
+    "coreTitle": "Built on a financial core",
+    "coreDesc": "Market data, execution, risk, settlement and financial records operate through dedicated platform services.",
+    "pipeline": {
+      "marketData": "Market Data",
+      "liquidity": "Liquidity",
+      "execution": "Execution",
+      "risk": "Risk",
+      "settlement": "Settlement",
+      "ledger": "Ledger"
+    },
+    "securityTitle": "Security built into the platform",
+    "securityLink": "Account security",
+    "securityItems": {
+      "twoFa": "Two-factor authentication",
+      "accountProtection": "Account protection",
+      "sessionControls": "Session controls",
+      "apiPermissions": "API permissions",
+      "withdrawalSafeguards": "Withdrawal safeguards",
+      "loginActivity": "Login activity"
+    }
+  },
+  "accountPreview": {
+    "eyebrow": "Account",
+    "title": "Complete account visibility",
+    "desc": "Track your balance, equity, margin, exposure, P&L and account activity from one place after you sign in.",
+    "previewLabel": "Product preview",
+    "afterSignIn": "Available after sign-in",
+    "labels": {
+      "balance": "Balance",
+      "equity": "Equity",
+      "margin": "Margin",
+      "unrealizedPnl": "Unrealized P&L",
+      "exposure": "Exposure",
+      "activity": "Activity"
+    }
+  },
+  "intelligence": {
+    "eyebrow": "Intelligence",
+    "title": "Market intelligence",
+    "desc": "Stay informed with market data, economic events and financial news alongside your trading workflow.",
+    "marketDataTitle": "Market data",
+    "marketDataDesc": "Live Crypto and FX instruments from FDM markets.",
+    "calendarTitle": "Economic calendar",
+    "calendarDesc": "Scheduled events inside the Forex analysis workspace.",
+    "newsTitle": "Financial news",
+    "newsDesc": "Headlines from the platform news provider — never invented here."
+  },
+  "cta": {
+    "title": "Ready for the markets?",
+    "desc": "Access digital assets and global FX through FDM.",
+    "exploreMarkets": "Explore Markets",
+    "createAccount": "Create Account"
+  }
+}

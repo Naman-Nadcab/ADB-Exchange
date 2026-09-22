@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Search, TrendingUp, Wallet, FileText } from 'lucide-react';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { SPOT_TRADE_HREF } from '@/lib/tier1-canonical-routes';
@@ -21,6 +22,7 @@ interface SearchResult {
 }
 
 export function GlobalSearch({ accessToken, className = '' }: GlobalSearchProps) {
+  const tg = useTranslations('common.globalSearch');
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -145,17 +147,17 @@ export function GlobalSearch({ accessToken, className = '' }: GlobalSearchProps)
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search markets, assets, help…"
+              placeholder={tg('placeholder')}
               className="w-full h-9 px-3 rounded bg-background border border-input text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <div className="max-h-64 overflow-y-auto py-2">
             {query.trim().length < 2 ? (
-              <div className="px-4 py-6 text-center text-sm text-muted-foreground">Type at least 2 characters</div>
+              <div className="px-4 py-6 text-center text-sm text-muted-foreground">{tg('typeMinChars')}</div>
             ) : loading ? (
-              <div className="px-4 py-6 text-center text-sm text-muted-foreground">Searching…</div>
+              <div className="px-4 py-6 text-center text-sm text-muted-foreground">{tg('searching')}</div>
             ) : results.length === 0 ? (
-              <div className="px-4 py-6 text-center text-sm text-muted-foreground">No results found</div>
+              <div className="px-4 py-6 text-center text-sm text-muted-foreground">{tg('noResults')}</div>
             ) : (
               results.map((r, i) => {
                 const Icon = IconMap[r.type];

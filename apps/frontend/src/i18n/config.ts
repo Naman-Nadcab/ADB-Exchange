@@ -38,6 +38,8 @@ export const MESSAGE_NAMESPACES = [
   'account',
   'errors',
   'notifications',
+  'markets',
+  'home',
 ] as const;
 
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];

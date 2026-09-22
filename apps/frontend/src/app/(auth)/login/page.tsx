@@ -396,7 +396,7 @@ export default function LoginPage() {
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-accent" />
-            <span className="text-xs text-muted-foreground font-medium">or</span>
+            <span className="text-xs text-muted-foreground font-medium">{tc('actions.or')}</span>
             <div className="flex-1 h-px bg-accent" />
           </div>
 

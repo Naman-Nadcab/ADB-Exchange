@@ -379,6 +379,27 @@
       }
     }
   },
+  "earn": {
+    "title": "Earn",
+    "subtitle": "Produk yield akan diluncurkan secara bertahap dengan kontrol risiko dan pengungkapan yang jelas.",
+    "badge": "Roadmap sedang berjalan",
+    "cards": {
+      "flexibleVaults": {
+        "title": "Vault fleksibel",
+        "desc": "Vault fleksibel direncanakan dengan suku bunga yang diungkapkan saat peluncuran."
+      },
+      "protectedControls": {
+        "title": "Dilindungi kontrol",
+        "desc": "Limit, kontrol jeda, dan pemeriksaan risiko sebelum peluncuran."
+      },
+      "phasedRelease": {
+        "title": "Peluncuran bertahap",
+        "desc": "Akses awal dimulai setelah validasi internal dan keamanan."
+      }
+    },
+    "exploreConvert": "Jelajahi Convert",
+    "trackUpdates": "Pantau pembaruan"
+  },
   "help": {
     "title": "Pusat Bantuan",
     "contactSupport": "Hubungi dukungan",
@@ -605,6 +626,180 @@
     "newCodeLabel": "Kode baru",
     "newCodeInitialLabel": "Kode (4–20 karakter)",
     "newCodePlaceholder": "Hanya huruf, angka, dan garis bawah"
+  },
+  "shell": {
+    "completeVerification": "Selesaikan verifikasi",
+    "verifyNow": "Verifikasi sekarang",
+    "kycBanner": "Selesaikan verifikasi identitas untuk melanjutkan layanan platform.",
+    "depositButton": "Deposit",
+    "selectPaymentMethod": "Pilih metode pembayaran",
+    "alreadyHaveCrypto": "Sudah punya kripto",
+    "depositCrypto": "Deposit Kripto",
+    "depositCryptoHint": "Satu klik dari alamat terverifikasi",
+    "p2pTrading": "Trading P2P",
+    "zeroFees": "Tanpa biaya",
+    "dontHaveCrypto": "Belum punya kripto",
+    "buyWithInr": "Beli dengan INR",
+    "buyWithCard": "Beli dengan kartu atau transfer bank",
+    "estimatedBalance": "Perkiraan saldo",
+    "notificationsUnread": "Notifikasi ({count} belum dibaca)"
+  },
+  "dashboard": {
+    "title": "Ringkasan",
+    "description": "Portofolio, pasar, dan aktivitas akun — pusat komando trading Anda.",
+    "balance": {
+      "estimatedTotal": "Perkiraan total saldo",
+      "estimatedTotalTooltip": "Gabungan saldo akun funding dan trading dalam mata uang tampilan yang Anda pilih.",
+      "portfolioPnl24h": "PnL portofolio 24j",
+      "portfolioPnlTooltip": "Perubahan portofolio harian belum tersedia dari ringkasan ini.",
+      "updated": "Diperbarui {datetime}",
+      "funding": "Funding",
+      "fundingHint": "Deposit & P2P",
+      "trading": "Trading",
+      "tradingHint": "Spot & order terbuka"
+    },
+    "accountCard": {
+      "label": "Akun",
+      "uid": "UID",
+      "copyUidAria": "Salin ID pengguna lengkap"
+    },
+    "quickActions": {
+      "title": "Tindakan cepat"
+    },
+    "shortcuts": {
+      "more": "Lainnya",
+      "allPairs": "Semua pasangan",
+      "tradeDesc": "Trading",
+      "buySell": "Beli / Jual",
+      "history": "Riwayat",
+      "yourTier": "Tier Anda"
+    },
+    "progress": {
+      "title": "Progres pengembangan platform",
+      "complete": "Selesai",
+      "milestones": "{done} / {total} milestone · Visibilitas roadmap"
+    },
+    "kyc": {
+      "title": "Mulai",
+      "subtitle": "Buka limit dan akses penuh",
+      "signup": "Daftar",
+      "done": "Selesai",
+      "verify": "Verifikasi",
+      "inProgress": "Berlangsung",
+      "deposit": "Deposit",
+      "locked": "Terkunci",
+      "idTime": "2–5 menit dengan ID valid",
+      "encryptedStorage": "Penyimpanan terenkripsi — data Anda tetap privat",
+      "getVerified": "Verifikasi sekarang"
+    },
+    "marketOverview": {
+      "title": "Ringkasan pasar",
+      "subtitle": "Pergerakan teratas menurut perubahan 24j (ticker live)",
+      "allMarkets": "Semua pasar",
+      "topGainers": "Top gainer",
+      "topLosers": "Top loser",
+      "noChangeData": "Tidak ada data perubahan",
+      "unavailable": "Data pasar tidak tersedia. Buka Spot atau coba lagi dari watchlist di bawah."
+    },
+    "watchlist": {
+      "title": "Watchlist & pasangan",
+      "spotBadge": "Spot",
+      "live": "Live",
+      "subtitle": "Favorit, pergerakan, atau daftar lengkap — lompat ke Spot kapan saja",
+      "marketsLink": "Pasar",
+      "action": "Tindakan",
+      "noFavoritesTitle": "Belum ada favorit",
+      "noFavoritesDesc": "Bintangi pasangan di tabel setelah pasar dimuat, atau jelajahi Spot untuk menambah.",
+      "openSpot": "Buka Spot",
+      "loadFailedTitle": "Tidak dapat memuat pasar",
+      "noTickersTitle": "Tidak ada ticker saat ini",
+      "loadFailedDesc": "Periksa koneksi atau coba lagi. Trading spot mungkin masih tersedia dari terminal.",
+      "noTickersDesc": "Layanan pasar tidak mengembalikan pasangan. Coba lagi nanti atau buka Spot langsung.",
+      "goToSpot": "Ke Spot"
+    },
+    "marketTabs": {
+      "hot": "Populer"
+    },
+    "recentActivity": {
+      "title": "Aktivitas terbaru",
+      "subtitle": "Order dan pergerakan dana",
+      "p2pSnapshot": "Snapshot P2P",
+      "activeMid": "aktif ·",
+      "totalOrders": "total order",
+      "openP2pHub": "Buka hub P2P",
+      "ordersHub": "Hub pesanan",
+      "spotOrders": "Pesanan spot",
+      "fundingHistory": "Riwayat funding",
+      "signInForP2p": "Masuk untuk melihat jumlah order P2P di dashboard."
+    },
+    "announcements": {
+      "title": "Pengumuman",
+      "subtitle": "Pembaruan produk & pemeliharaan",
+      "quickTips": "Tips singkat",
+      "whileYouWait": "Sambil menunggu — tips singkat",
+      "noPinnedTitle": "Tidak ada pengumuman disematkan",
+      "noPinnedDesc": "Pembaruan listing, jendela pemeliharaan, dan kampanye muncul di sini saat dipublikasikan.",
+      "new": "Baru"
+    },
+    "tips": {
+      "securityTitle": "Keamanan",
+      "securityDesc": "Aktifkan 2FA dan passkey di Akun → Keamanan.",
+      "spotTitle": "Spot",
+      "spotDesc": "Gunakan order limit untuk mengontrol harga; periksa notional minimum di form order.",
+      "p2pTitle": "P2P",
+      "p2pDesc": "Bayar hanya dengan metode yang terdaftar; jangan transfer di luar platform."
+    },
+    "helpRail": {
+      "selfService": "Panduan mandiri",
+      "guidesCount": "{count} panduan langkah demi langkah",
+      "previewSnippets": "Deposit, biaya, VIP, passkey & P2P",
+      "previewLine2": "Biaya trading & tier VIP",
+      "previewLine3": "P2P bayar, konfirmasi & lepas",
+      "moreInside": "Lebih banyak",
+      "open": "Buka →"
+    },
+    "referralRail": {
+      "title": "Referral",
+      "subtitle": "Undang & dapatkan",
+      "yourCode": "Kode Anda",
+      "invited": "Diundang",
+      "earned": "Diperoleh",
+      "commissionHint": "Komisi {pct}% · Tautan & banner di halaman lengkap",
+      "live": "● Live",
+      "syncPending": "○ Sinkronisasi tertunda"
+    },
+    "p2pRail": {
+      "subtitle": "Beli / jual fiat",
+      "inProgress": "Berlangsung",
+      "allOrders": "Semua order",
+      "pairsHint": "USDT, BTC, ETH vs INR — bank, UPI & metode terdaftar saja.",
+      "escrowHint": "Trade dengan escrow · Kelola metode pembayaran & riwayat order dari hub.",
+      "footerLeft": "Order → P2P",
+      "footerRight": "Trade →"
+    },
+    "feeRail": {
+      "title": "Tier biaya",
+      "subtitle": "Tarif spot",
+      "status": "Status",
+      "regularUser": "Pengguna Reguler",
+      "default": "Default",
+      "live": "Live",
+      "maker": "Maker",
+      "taker": "Taker",
+      "volumeTier": "Tier volume {level}",
+      "volumeTierLabel": "Tier volume:",
+      "tradeMoreHint": "Trading lebih banyak dalam 30 hari untuk membuka biaya maker & taker lebih rendah.",
+      "mntDiscountOn": "Diskon MNT aktif untuk spot.",
+      "fiatScheduleHint": "Pasangan fiat mungkin punya jadwal terpisah — lihat tabel lengkap di dalam.",
+      "footerLeft": "VIP & volume",
+      "footerRight": "Detail →"
+    },
+    "fabHelpAria": "Bantuan",
+    "errors": {
+      "apiUrlNotConfigured": "URL API belum dikonfigurasi",
+      "announcementsTimeout": "Permintaan habis waktu atau error jaringan",
+      "announcementsLoadFailed": "Tidak dapat memuat pengumuman"
+    }
   },
   "toasts": {
     "addPhoneFirst": "Tambahkan nomor telepon terlebih dahulu",

@@ -16,6 +16,11 @@
     "terminalNavAria": "外汇终端导航",
     "mobileNavAria": "外汇移动端导航"
   },
+  "mobileTrade": {
+    "watch": "自选",
+    "order": "下单",
+    "trade": "交易"
+  },
   "pages": {
     "markets": {
       "title": "市场",

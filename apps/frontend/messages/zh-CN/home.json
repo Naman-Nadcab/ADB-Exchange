@@ -1,0 +1,122 @@
+{
+  "hero": {
+    "eyebrow": "FDM · 金融科技数字市场",
+    "titleLine1": "金融科技数字市场。",
+    "titleLine2": "加密与外汇。",
+    "description": "通过专为精准、透明与掌控而打造的专业金融平台，访问数字资产与全球外汇。",
+    "exploreMarkets": "探索行情",
+    "createAccount": "创建账户"
+  },
+  "liveMarkets": {
+    "aria": "实时行情",
+    "heading": "行情",
+    "loading": "正在加载行情…",
+    "unavailable": "不可用"
+  },
+  "status": {
+    "live": "实时",
+    "stale": "延迟",
+    "connecting": "连接中",
+    "unavailable": "不可用"
+  },
+  "ticker": {
+    "aria": "行情滚动条",
+    "globalMarkets": "全球市场"
+  },
+  "dualMarket": {
+    "eyebrow": "一个平台，两大市场。",
+    "cryptoLabel": "加密",
+    "cryptoTitle": "数字资产市场",
+    "cryptoDesc": "数字资产现货交易。",
+    "cryptoExplore": "探索加密 →",
+    "cryptoBullets": { "spot": "现货", "wallet": "钱包", "p2p": "P2P" },
+    "forexLabel": "外汇",
+    "forexTitle": "全球外汇市场",
+    "forexDesc": "专业外汇交易，独立保证金、持仓与风险管理。",
+    "forexExplore": "探索外汇 →",
+    "forexBullets": { "trading": "外汇交易", "margin": "保证金", "risk": "风险" }
+  },
+  "globalTable": {
+    "eyebrow": "行情",
+    "title": "全球市场",
+    "tabsAria": "市场类别",
+    "tabs": { "all": "全部", "crypto": "加密", "forex": "外汇", "metals": "贵金属" },
+    "instrument": "品种",
+    "market": "市场",
+    "price": "价格",
+    "bidPrice": "买价 / 价格",
+    "change": "涨跌",
+    "ask": "卖价",
+    "spread": "价差",
+    "status": "状态",
+    "emptyFilter": "当前筛选无匹配品种。",
+    "marketTypes": { "crypto": "加密", "forex": "外汇", "metals": "贵金属" }
+  },
+  "platform": {
+    "eyebrow": "平台",
+    "title": "为精准而生",
+    "capabilities": {
+      "execution": { "title": "执行", "body": "围绕数字资产与外汇的专属执行流程设计。" },
+      "marketData": { "title": "行情数据", "body": "覆盖加密现货与全球外汇的实时市场信息。" },
+      "riskControl": { "title": "风险控制", "body": "外汇保证金、敞口与持仓控制，与加密钱包隔离。" },
+      "security": { "title": "安全", "body": "账户保护、身份验证与会话级访问控制。" },
+      "liquidity": { "title": "流动性", "body": "面向数字资产与外汇的专属流动性架构。" },
+      "transparency": { "title": "透明", "body": "登录后可查看账户、账本与财务状态。" }
+    }
+  },
+  "trust": {
+    "eyebrow": "信任",
+    "coreTitle": "建立在金融核心之上",
+    "coreDesc": "行情、执行、风险、结算与财务记录由独立平台服务支撑。",
+    "pipeline": {
+      "marketData": "行情数据",
+      "liquidity": "流动性",
+      "execution": "执行",
+      "risk": "风险",
+      "settlement": "结算",
+      "ledger": "账本"
+    },
+    "securityTitle": "安全内置于平台",
+    "securityLink": "账户安全",
+    "securityItems": {
+      "twoFa": "双重验证",
+      "accountProtection": "账户保护",
+      "sessionControls": "会话控制",
+      "apiPermissions": "API 权限",
+      "withdrawalSafeguards": "提现保护",
+      "loginActivity": "登录活动"
+    }
+  },
+  "accountPreview": {
+    "eyebrow": "账户",
+    "title": "完整账户可见性",
+    "desc": "登录后在一处查看余额、净值、保证金、敞口、盈亏与账户活动。",
+    "previewLabel": "产品预览",
+    "afterSignIn": "登录后可用",
+    "labels": {
+      "balance": "余额",
+      "equity": "净值",
+      "margin": "保证金",
+      "unrealizedPnl": "未实现盈亏",
+      "exposure": "敞口",
+      "activity": "活动"
+    }
+  },
+  "intelligence": {
+    "eyebrow": "情报",
+    "title": "市场情报",
+    "desc": "在交易流程中同步获取行情、经济事件与财经资讯。",
+    "marketDataTitle": "行情数据",
+    "marketDataDesc": "来自 FDM 市场的实时加密与外汇品种。",
+    "calendarTitle": "经济日历",
+    "calendarDesc": "外汇分析工作区内的计划事件。",
+    "newsTitle": "财经新闻",
+    "newsDesc": "来自平台新闻源的标题 — 非虚构内容。"
+  },
+  "cta": {
+    "title": "准备好进入市场的了吗？",
+    "desc": "通过 FDM 访问数字资产与全球外汇。",
+    "exploreMarkets": "探索行情",
+    "createAccount": "创建账户"
+  }
+}

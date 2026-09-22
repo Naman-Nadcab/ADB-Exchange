@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ExternalLink, Loader2, Mail, Smartphone } from 'lucide-react';
+import { Loader2, Mail, Smartphone } from 'lucide-react';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { COOKIE_SESSION_MARKER } from '@/lib/authSession';
 import { resolvePostLoginRedirect } from '@/lib/oauth';
@@ -18,11 +18,11 @@ type IdType = 'email' | 'phone';
 const API = getApiBaseUrl();
 
 export default function SignupPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuthStore();
   const { setAuthenticated } = useAuth();
   const ts = useTranslations('auth.signup');
+  const tc = useTranslations('common');
   const { fromApi, networkUnreachable } = useApiErrorMessage();
 
   const [step, setStep] = useState<Step>('choose');
@@ -121,7 +121,7 @@ export default function SignupPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data?.error?.message ?? 'Signup failed');
+        setError(data?.error?.message ?? ts('signupFailed'));
         return;
       }
       if (data?.success && data?.data?.user) {
@@ -137,7 +137,7 @@ export default function SignupPage() {
           searchParams.get('redirect'),
         );
         window.location.assign(target);
-      } else setError('Signup failed');
+      } else setError(ts('signupFailed'));
     } catch {
       setError(networkUnreachable());
     } finally {
@@ -152,7 +152,7 @@ export default function SignupPage() {
       const { initiateGoogleLogin } = await import('@/lib/oauth');
       await initiateGoogleLogin(searchParams.get('redirect') ?? undefined);
     } catch {
-      setError('Google sign-in failed');
+      setError(ts('googleSignInFailed'));
     }
   };
 
@@ -185,7 +185,7 @@ export default function SignupPage() {
       if (res.ok && data?.success) {
         setCountdown(120);
         setOtp(['', '', '', '', '', '']);
-      } else setError(data?.error?.message ?? 'Resend failed');
+      } else setError(data?.error?.message ?? ts('resendFailed'));
     } catch {
       setError(networkUnreachable());
     } finally {
@@ -210,14 +210,17 @@ export default function SignupPage() {
       {step === 'choose' && (
         <div className="space-y-6">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Create your account</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Get started with Google, email, or mobile</p>
+            <h1 className="text-2xl font-bold text-foreground">{ts('title')}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{ts('subtitle')}</p>
           </div>
 
           <label className="flex items-start gap-3 cursor-pointer p-4 rounded-xl border border-border bg-muted/50 dark:bg-accent/30 hover:bg-accent/50 transition-colors">
-            <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} className="mt-0.5 w-4 h-4 text-primary rounded border-border" aria-label="Accept terms and privacy" />
+            <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} className="mt-0.5 w-4 h-4 text-primary rounded border-border" aria-label={ts('acceptTermsAria')} />
             <span className="text-sm text-muted-foreground">
-              I agree to <Link href="/terms" className="text-primary hover:underline">Terms</Link> and <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+              {ts.rich('termsAgreement', {
+                terms: (chunks) => <Link href="/terms" className="text-primary hover:underline">{chunks}</Link>,
+                privacy: (chunks) => <Link href="/privacy" className="text-primary hover:underline">{chunks}</Link>,
+              })}
             </span>
           </label>
 
@@ -225,38 +228,39 @@ export default function SignupPage() {
 
           <button type="button" onClick={handleGoogle} disabled={!terms || loading} className="w-full py-3.5 px-4 rounded-xl border-2 border-border font-medium flex items-center justify-center gap-3 hover:bg-accent/50 disabled:opacity-50 transition-colors text-foreground/90">
             <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" aria-hidden><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-            {loading ? 'Connecting…' : 'Sign up with Google'}
+            {loading ? ts('googleConnecting') : ts('googleSignUp')}
           </button>
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-accent" />
-            <span className="text-xs text-muted-foreground font-medium">or</span>
+            <span className="text-xs text-muted-foreground font-medium">{tc('actions.or')}</span>
             <div className="flex-1 h-px bg-accent" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <button type="button" onClick={() => { setStep('email'); setIdType('email'); setError(''); }} disabled={!terms} className="py-4 px-4 rounded-xl border-2 border-border flex flex-col items-center justify-center gap-2 hover:border-primary/50 hover:bg-muted/50 disabled:opacity-50 transition-all group">
               <Mail className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
-              <span className="text-sm font-medium text-foreground/80">Email</span>
+              <span className="text-sm font-medium text-foreground/80">{ts('email')}</span>
             </button>
             <button type="button" onClick={() => { setStep('email'); setIdType('phone'); setError(''); }} disabled={!terms} className="py-4 px-4 rounded-xl border-2 border-border flex flex-col items-center justify-center gap-2 hover:border-primary/50 hover:bg-muted/50 disabled:opacity-50 transition-all group">
               <Smartphone className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
-              <span className="text-sm font-medium text-foreground/80">Mobile</span>
+              <span className="text-sm font-medium text-foreground/80">{ts('mobile')}</span>
             </button>
           </div>
 
           <p className="text-center text-sm text-muted-foreground">
-            Have an account? <Link href="/login" className="text-primary hover:underline font-medium">Log in</Link>
+            {ts('haveAccount')}{' '}
+            <Link href="/login" className="text-primary hover:underline font-medium">{ts('logIn')}</Link>
           </p>
         </div>
       )}
 
       {step === 'email' && (
         <form onSubmit={(e) => { e.preventDefault(); sendOtp(); }} className="space-y-5">
-          <button type="button" onClick={() => setStep('choose')} className="text-primary hover:underline text-sm font-medium flex items-center gap-1">← Back</button>
+          <button type="button" onClick={() => setStep('choose')} className="text-primary hover:underline text-sm font-medium flex items-center gap-1">{ts('back')}</button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Sign up with {idType === 'email' ? 'Email' : 'Mobile'}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">We&apos;ll send you a verification code</p>
+            <h1 className="text-2xl font-bold text-foreground">{idType === 'email' ? ts('signUpWithEmail') : ts('signUpWithMobile')}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{ts('verificationHint')}</p>
           </div>
 
           <input
@@ -264,50 +268,55 @@ export default function SignupPage() {
             inputMode={idType === 'phone' ? 'numeric' : undefined}
             value={identifier}
             onChange={(e) => setIdentifier(idType === 'phone' ? e.target.value.replace(/\D/g, '').slice(0, 15) : e.target.value)}
-            placeholder={idType === 'email' ? 'Email address' : 'Phone number'}
-            aria-label={idType === 'email' ? 'Email address' : 'Phone number'}
+            placeholder={idType === 'email' ? ts('emailAddress') : ts('phoneNumber')}
+            aria-label={idType === 'email' ? ts('emailAddress') : ts('phoneNumber')}
             className="w-full px-4 py-3.5 rounded-xl border border-border bg-card/50 text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-shadow"
             required
           />
 
-          <input value={referral} onChange={(e) => setReferral(e.target.value)} placeholder="Referral code (optional)" aria-label="Referral code" className="w-full px-4 py-3 rounded-xl border border-border bg-card/50 text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground focus:ring-2 focus:ring-primary outline-none text-sm" />
+          <input value={referral} onChange={(e) => setReferral(e.target.value)} placeholder={ts('referralPlaceholder')} aria-label={ts('referralAria')} className="w-full px-4 py-3 rounded-xl border border-border bg-card/50 text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground focus:ring-2 focus:ring-primary outline-none text-sm" />
 
           {error && <p className="text-destructive text-sm rounded-lg bg-destructive/10 px-3 py-2" role="alert">{error}</p>}
 
           <button type="submit" disabled={loading || !identifier.trim()} className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary/85 text-primary-foreground font-semibold disabled:opacity-50 transition-colors">
-            {loading ? <span className="inline-flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" aria-hidden /> Sending code…</span> : 'Send verification code'}
+            {loading ? <span className="inline-flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" aria-hidden /> {ts('sendingCode')}</span> : ts('sendVerificationCode')}
           </button>
         </form>
       )}
 
       {step === 'otp' && (
         <form ref={formRef} onSubmit={(e) => { e.preventDefault(); verifyOtp(otp.join('')); }} className="space-y-5">
-          <button type="button" onClick={() => setStep('email')} className="text-primary hover:underline text-sm font-medium flex items-center gap-1">← Back</button>
+          <button type="button" onClick={() => setStep('email')} className="text-primary hover:underline text-sm font-medium flex items-center gap-1">{ts('back')}</button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Verify your {idType}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Code sent to <strong className="text-foreground/80">{identifier}</strong></p>
+            <h1 className="text-2xl font-bold text-foreground">{idType === 'email' ? ts('verifyEmail') : ts('verifyMobile')}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {ts.rich('codeSentTo', {
+                identifier,
+                strong: (chunks) => <strong className="text-foreground/80">{chunks}</strong>,
+              })}
+            </p>
             {process.env.NODE_ENV === 'development' ? (
               <p className="mt-1 text-xs text-muted-foreground/85">
-                Local dev hint: OTP is also printed in backend logs for test flows.
+                {ts('otpDevHint')}
               </p>
             ) : null}
           </div>
 
           <div className="flex gap-1.5 justify-center">
             {otp.map((d, i) => (
-              <input key={i} ref={(el) => { otpRefs.current[i] = el; }} type="text" inputMode="numeric" maxLength={6} value={d} onChange={(e) => handleOtpChange(i, e.target.value)} onKeyDown={(e) => e.key === 'Backspace' && !otp[i] && i > 0 && otpRefs.current[i - 1]?.focus()} aria-label={`Digit ${i + 1} of 6`} className="w-11 h-14 sm:w-12 sm:h-14 text-center text-xl font-bold rounded-lg border-2 border-border bg-card/50 text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
+              <input key={i} ref={(el) => { otpRefs.current[i] = el; }} type="text" inputMode="numeric" maxLength={6} value={d} onChange={(e) => handleOtpChange(i, e.target.value)} onKeyDown={(e) => e.key === 'Backspace' && !otp[i] && i > 0 && otpRefs.current[i - 1]?.focus()} aria-label={ts('otpDigit', { index: i + 1 })} className="w-11 h-14 sm:w-12 sm:h-14 text-center text-xl font-bold rounded-lg border-2 border-border bg-card/50 text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
             ))}
           </div>
 
           {error && <p className="text-destructive text-sm text-center rounded-lg bg-destructive/10 px-3 py-2" role="alert">{error}</p>}
 
           <div className="flex justify-between items-center text-sm">
-            <button type="button" onClick={resend} disabled={countdown > 0} className={countdown > 0 ? 'text-muted-foreground cursor-not-allowed' : 'text-primary hover:underline font-medium'}>Resend</button>
+            <button type="button" onClick={resend} disabled={countdown > 0} className={countdown > 0 ? 'text-muted-foreground cursor-not-allowed' : 'text-primary hover:underline font-medium'}>{ts('resend')}</button>
             {countdown > 0 && <span className="text-muted-foreground tabular-nums">{fmt(countdown)}</span>}
           </div>
 
           <button type="submit" disabled={loading || otp.join('').length !== 6} className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary/85 text-primary-foreground font-semibold disabled:opacity-50 transition-colors">
-            {loading ? <span className="inline-flex items-center gap-2"><span className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" aria-hidden /> Verifying…</span> : 'Verify'}
+            {loading ? <span className="inline-flex items-center gap-2"><span className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" aria-hidden /> {ts('verifying')}</span> : ts('verify')}
           </button>
         </form>
       )}
@@ -315,13 +324,13 @@ export default function SignupPage() {
       {step === 'password' && (
         <form onSubmit={(e) => { e.preventDefault(); completeSignup(); }} className="space-y-5">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Create your password</h1>
-            <p className="mt-1 text-sm text-muted-foreground">8+ chars, include upper, lower & number</p>
+            <h1 className="text-2xl font-bold text-foreground">{ts('passwordTitle')}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{ts('passwordHint')}</p>
           </div>
 
           <div className="relative">
-            <input type={showPass ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" aria-label="Password" className="w-full px-4 py-3.5 pr-14 rounded-xl border border-border bg-card/50 text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground focus:ring-2 focus:ring-primary outline-none" required />
-            <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium hover:text-foreground/80" aria-label={showPass ? 'Hide password' : 'Show password'}>{showPass ? 'Hide' : 'Show'}</button>
+            <input type={showPass ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={ts('passwordPlaceholder')} aria-label={ts('passwordPlaceholder')} className="w-full px-4 py-3.5 pr-14 rounded-xl border border-border bg-card/50 text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground focus:ring-2 focus:ring-primary outline-none" required />
+            <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium hover:text-foreground/80" aria-label={showPass ? ts('hidePassword') : ts('showPassword')}>{showPass ? ts('hide') : ts('show')}</button>
           </div>
 
           {/* Password strength indicator */}
@@ -332,14 +341,14 @@ export default function SignupPage() {
               <div className={`h-1 flex-1 rounded-full transition-colors ${/[0-9]/.test(password) ? 'bg-primary' : 'bg-accent'}`} />
             </div>
             <p className="text-xs text-muted-foreground">
-              {validPass ? 'Strong password' : 'Needs: 8+ chars, upper & lower case, number'}
+              {validPass ? ts('strongPassword') : ts('passwordNeeds')}
             </p>
           </div>
 
           {error && <p className="text-destructive text-sm rounded-lg bg-destructive/10 px-3 py-2" role="alert">{error}</p>}
 
           <button type="submit" disabled={loading || !validPass} className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary/85 text-primary-foreground font-semibold disabled:opacity-50 transition-colors">
-            {loading ? <span className="inline-flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" aria-hidden /> Creating account…</span> : 'Create account'}
+            {loading ? <span className="inline-flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" aria-hidden /> {ts('creatingAccount')}</span> : ts('createAccount')}
           </button>
         </form>
       )}

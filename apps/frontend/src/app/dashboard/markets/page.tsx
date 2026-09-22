@@ -28,6 +28,7 @@ import {
   Triangle,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 type Market = {
   id: string;
@@ -234,7 +235,10 @@ function SortButton({
   );
 }
 
+type RotationStatusKey = 'balanced' | 'highRotation' | 'riskOn' | 'riskOff' | 'mixed';
+
 export default function MarketsPage() {
+  const t = useTranslations('markets');
   const [markets, setMarkets] = useState<Market[]>([]);
   const [tickers, setTickers] = useState<Map<string, SpotTickerRow>>(new Map());
   const [intelligence, setIntelligence] = useState<MarketIntelligencePayload | null>(null);
@@ -265,7 +269,7 @@ export default function MarketsPage() {
         api.get<{ announcements?: AnnouncementRow[] }>('/api/v1/user/announcements?limit=8', { skipAuth: true, notifyOnError: false }),
       ]);
       if (!mRes.success || !Array.isArray(mRes.data)) {
-        setError(mRes.error?.message ?? 'Failed to load market list');
+        setError(mRes.error?.message ?? t('errors.loadListFailed'));
         setMarkets([]);
       } else {
         setMarkets(mRes.data);
@@ -280,11 +284,11 @@ export default function MarketsPage() {
         setAnnouncements(aRes.data.announcements);
       }
     } catch {
-      setError('Network error while loading markets');
+      setError(t('errors.network'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const refreshTickers = useCallback(async () => {
     try {
@@ -478,13 +482,14 @@ export default function MarketsPage() {
     return Math.max(0, Math.min(100, 50 + spread * 8));
   }, [strongestSector, weakestSector]);
 
-  const rotationStatus = useMemo(() => {
-    if (!strongestSector || !weakestSector) return 'Balanced';
-    if (strongestSector.avg24h > 1 && weakestSector.avg24h < -0.6) return 'High Rotation';
-    if (strongestSector.avg24h > 0.4 && weakestSector.avg24h < 0) return 'Risk-On Rotation';
-    if (strongestSector.avg24h <= 0 && weakestSector.avg24h < -0.8) return 'Risk-Off Rotation';
-    return 'Mixed Rotation';
+  const rotationStatusKey = useMemo((): RotationStatusKey => {
+    if (!strongestSector || !weakestSector) return 'balanced';
+    if (strongestSector.avg24h > 1 && weakestSector.avg24h < -0.6) return 'highRotation';
+    if (strongestSector.avg24h > 0.4 && weakestSector.avg24h < 0) return 'riskOn';
+    if (strongestSector.avg24h <= 0 && weakestSector.avg24h < -0.8) return 'riskOff';
+    return 'mixed';
   }, [strongestSector, weakestSector]);
+  const rotationStatus = t(`sectors.rotation.${rotationStatusKey}`);
 
   const tableRows = useMemo(() => {
     let list = rows;
@@ -562,7 +567,7 @@ export default function MarketsPage() {
     return (
       <div className="min-h-screen bg-[#05070B] p-6">
         <div className="mx-auto max-w-[900px] pt-10">
-          <ErrorState title="Markets feed unavailable" message={error} onRetry={() => void fetchAll()} />
+          <ErrorState title={t('errors.feedUnavailable')} message={error} onRetry={() => void fetchAll()} />
         </div>
       </div>
     );
@@ -572,7 +577,7 @@ export default function MarketsPage() {
     return (
       <div className="min-h-screen bg-[#05070B] p-6">
         <div className="mx-auto max-w-[900px] pt-10">
-          <EmptyState title="No market data" description="No active spot markets were returned by the feed." icon={BarChart3} />
+          <EmptyState title={t('empty.noDataTitle')} description={t('empty.noDataDesc')} icon={BarChart3} />
         </div>
       </div>
     );
@@ -582,23 +587,21 @@ export default function MarketsPage() {
     <div className="min-h-screen bg-[#05070B] text-white">
       <div className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6 lg:space-y-8 lg:px-8 lg:py-8">
         <div className="flex flex-col gap-2.5">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Markets</h1>
-          <p className="max-w-3xl text-sm leading-6 text-[#AEB6C4] sm:text-base">
-            Browse live spot prices, 24h change, and volume across all listed trading pairs.
-          </p>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t('title')}</h1>
+          <p className="max-w-3xl text-sm leading-6 text-[#AEB6C4] sm:text-base">{t('description')}</p>
         </div>
 
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {[
-            { label: 'Market Cap', value: '$' + fmtCompact.format(globalMetrics.marketCap), icon: Globe2 },
-            { label: '24H Volume', value: '$' + fmtCompact.format(globalMetrics.volume24h), icon: Activity },
-            { label: 'BTC Dominance', value: `${globalMetrics.btcDominance.toFixed(1)}%`, icon: Gem },
+            { label: t('metrics.marketCap'), value: '$' + fmtCompact.format(globalMetrics.marketCap), icon: Globe2 },
+            { label: t('metrics.volume24h'), value: '$' + fmtCompact.format(globalMetrics.volume24h), icon: Activity },
+            { label: t('metrics.btcDominance'), value: `${globalMetrics.btcDominance.toFixed(1)}%`, icon: Gem },
             {
-              label: 'Fear & Greed',
+              label: t('metrics.fearGreed'),
               value: `${Math.round(globalMetrics.fearGreed)}/100`,
               icon: globalMetrics.fearGreed >= 50 ? TrendingUp : TrendingDown,
             },
-            { label: 'Assets Listed', value: globalMetrics.assetsListed.toLocaleString('en-US'), icon: Layers },
+            { label: t('metrics.assetsListed'), value: globalMetrics.assetsListed.toLocaleString('en-US'), icon: Layers },
           ].map((metric) => (
             <article key={metric.label} className="rounded-xl border border-[#F5B8001A] bg-[#0D1118] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-[#F5B80030]">
               <div className="flex items-center justify-between">
@@ -613,12 +616,12 @@ export default function MarketsPage() {
         <section className="rounded-2xl border border-[#F5B8001A] bg-[#0D1118] p-4 sm:p-5">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold sm:text-xl">Trending Dashboard</h2>
-              <p className="mt-1 text-xs text-[#AEB6C4]">Fast opportunity scan across liquidity and momentum.</p>
+              <h2 className="text-lg font-semibold sm:text-xl">{t('trendingDashboard.title')}</h2>
+              <p className="mt-1 text-xs text-[#AEB6C4]">{t('trendingDashboard.subtitle')}</p>
             </div>
             <span className="inline-flex items-center gap-1 text-xs text-[#9CA3AF]">
               <RefreshCw className="h-3.5 w-3.5 text-[#F5B800]" />
-              live snapshot
+              {t('trendingDashboard.liveSnapshot')}
             </span>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -642,17 +645,17 @@ export default function MarketsPage() {
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <p className="text-[#AEB6C4]">Price</p>
+                  <p className="text-[#AEB6C4]">{t('fields.price')}</p>
                   <p className="text-right tabular-nums">{fmtPrice(row.price)}</p>
-                  <p className="text-[#AEB6C4]">24H</p>
+                  <p className="text-[#AEB6C4]">{t('fields.change24h')}</p>
                   <p className={`inline-flex items-center justify-end gap-1 text-right tabular-nums ${pctClass(row.change24h)}`}>
                     {row.change24h >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
                     {row.change24h >= 0 ? '+' : ''}
                     {row.change24h.toFixed(2)}%
                   </p>
-                  <p className="text-[#AEB6C4]">Volume</p>
+                  <p className="text-[#AEB6C4]">{t('fields.volume')}</p>
                   <p className="text-right tabular-nums">${fmtCompact.format(row.volume24h)}</p>
-                  <p className="text-[#AEB6C4]">Mkt Cap</p>
+                  <p className="text-[#AEB6C4]">{t('fields.mktCap')}</p>
                   <p className="text-right tabular-nums">${fmtCompact.format(row.marketCap)}</p>
                 </div>
               </Link>
@@ -662,15 +665,17 @@ export default function MarketsPage() {
 
         <section className="rounded-2xl border border-[#F5B8001A] bg-[#0D1118] p-4 sm:p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold sm:text-xl">Top Movers</h2>
+            <h2 className="text-lg font-semibold sm:text-xl">{t('topMovers.title')}</h2>
             <div className="flex flex-wrap gap-2">
-              {[
-                { id: 'trending', label: 'Trending' },
-                { id: 'gainers', label: 'Gainers' },
-                { id: 'losers', label: 'Losers' },
-                { id: 'volume', label: 'Volume Leaders' },
-                { id: 'new', label: 'New Listings' },
-              ].map((tab) => (
+              {(
+                [
+                  { id: 'trending', label: t('topMovers.tabs.trending') },
+                  { id: 'gainers', label: t('topMovers.tabs.gainers') },
+                  { id: 'losers', label: t('topMovers.tabs.losers') },
+                  { id: 'volume', label: t('topMovers.tabs.volume') },
+                  { id: 'new', label: t('topMovers.tabs.new') },
+                ] as const
+              ).map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
@@ -715,17 +720,17 @@ export default function MarketsPage() {
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Radar className="h-4 w-4 text-[#F5B800]" />
-                <h2 className="text-lg font-semibold sm:text-xl">Market Heatmap</h2>
+                <h2 className="text-lg font-semibold sm:text-xl">{t('heatmap.title')}</h2>
               </div>
               <div className="inline-flex items-center gap-2 rounded-full border border-[#F5B8001A] bg-[#05070B] px-2.5 py-1 text-[11px] uppercase tracking-[0.1em] text-[#AEB6C4]">
                 <span className="inline-flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  Buyers
+                  {t('heatmap.buyers')}
                 </span>
                 <span className="h-3 w-px bg-white/10" />
                 <span className="inline-flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
-                  Sellers
+                  {t('heatmap.sellers')}
                 </span>
               </div>
             </div>
@@ -777,7 +782,9 @@ export default function MarketsPage() {
                             </span>
                             <p className="truncate text-[13px] font-semibold tracking-[0.01em]">{row.asset}</p>
                             <p className="truncate text-[10px] text-[#d5d9e2]">{row.symbol.replace('_', '/')}</p>
-                            {idx < 3 ? <span className="rounded bg-black/25 px-1 py-0.5 text-[9px] text-[#d5d9e2]">L-CAP</span> : null}
+                            {idx < 3 ? (
+                              <span className="rounded bg-black/25 px-1 py-0.5 text-[9px] text-[#d5d9e2]">{t('heatmap.lCapBadge')}</span>
+                            ) : null}
                           </div>
                           <div className="mt-1 flex items-center gap-2.5 text-[9px] text-[#d5d9e2] sm:text-[10px]">
                             <span>Vol ${fmtCompact.format(row.volume24h)}</span>
@@ -791,7 +798,7 @@ export default function MarketsPage() {
                             {row.change24h >= 0 ? '+' : ''}
                             {row.change24h.toFixed(2)}%
                           </p>
-                          <p className="mt-0.5 text-[9px] uppercase tracking-[0.08em] text-[#d5d9e2]/80">24H</p>
+                          <p className="mt-0.5 text-[9px] uppercase tracking-[0.08em] text-[#d5d9e2]/80">{t('fields.change24h')}</p>
                         </div>
                       </div>
                       <div className="relative mt-1.5 h-1.5 overflow-hidden rounded-full bg-black/25">
@@ -805,8 +812,8 @@ export default function MarketsPage() {
                 })}
               </div>
               <div className="relative mt-2.5 flex items-center justify-between text-[11px] text-[#AEB6C4]">
-                <span>Scroll to explore full market breadth</span>
-                <span>Lane length tracks market-cap dominance</span>
+                <span>{t('heatmap.scrollHint')}</span>
+                <span>{t('heatmap.laneHint')}</span>
               </div>
             </div>
           </div>
@@ -814,7 +821,7 @@ export default function MarketsPage() {
           <div className="rounded-2xl border border-[#F5B8001A] bg-[#0D1118] p-4 sm:p-5">
             <div className="mb-4 flex items-center gap-2">
               <Brain className="h-4 w-4 text-[#F5B800]" />
-              <h2 className="text-lg font-semibold sm:text-xl">Sector Performance</h2>
+              <h2 className="text-lg font-semibold sm:text-xl">{t('sectors.title')}</h2>
             </div>
             <div className="sector-scroll h-[560px] space-y-3 overflow-y-auto pr-1">
               <div className="mb-1 flex flex-wrap gap-2">
@@ -832,17 +839,17 @@ export default function MarketsPage() {
                       }`}
                     >
                       <Icon className="h-3.5 w-3.5" />
-                      {name}
+                      {t(`sectors.names.${name}`)}
                     </button>
                   );
                 })}
               </div>
 
               <div className="rounded-xl border border-[#F5B80014] bg-[#05070B] p-2.5">
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.1em] text-[#AEB6C4]">Sector Rotation Insight</h3>
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.1em] text-[#AEB6C4]">{t('sectors.rotationInsight')}</h3>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="rounded-lg border border-[#F5B80010] bg-[#0B1016] p-2">
-                    <p className="text-[#AEB6C4]">Strongest</p>
+                    <p className="text-[#AEB6C4]">{t('sectors.strongest')}</p>
                     <p className="mt-1 text-sm font-semibold">{strongestSector?.name ?? '--'}</p>
                     <p className={`mt-0.5 inline-flex items-center gap-1 ${pctClass(strongestSector?.avg24h ?? 0)}`}>
                       {(strongestSector?.avg24h ?? 0) >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -851,7 +858,7 @@ export default function MarketsPage() {
                     </p>
                   </div>
                   <div className="rounded-lg border border-[#F5B80010] bg-[#0B1016] p-2">
-                    <p className="text-[#AEB6C4]">Weakest</p>
+                    <p className="text-[#AEB6C4]">{t('sectors.weakest')}</p>
                     <p className="mt-1 text-sm font-semibold">{weakestSector?.name ?? '--'}</p>
                     <p className={`mt-0.5 inline-flex items-center gap-1 ${pctClass(weakestSector?.avg24h ?? 0)}`}>
                       {(weakestSector?.avg24h ?? 0) >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -862,18 +869,20 @@ export default function MarketsPage() {
                 </div>
                 <div className="mt-2 rounded-lg border border-[#F5B80010] bg-[#0B1016] p-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#AEB6C4]">Momentum Score</span>
+                    <span className="text-[#AEB6C4]">{t('sectors.momentumScore')}</span>
                     <span className="font-semibold">{rotationScore.toFixed(0)}/100</span>
                   </div>
                   <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-black/25">
                     <div className="h-full rounded-full bg-[#F5B800]" style={{ width: `${rotationScore}%` }} />
                   </div>
-                  <p className="mt-1.5 text-xs text-[#AEB6C4]">Status: {rotationStatus}</p>
+                  <p className="mt-1.5 text-xs text-[#AEB6C4]">
+                    {t('sectors.statusLabel')}: {rotationStatus}
+                  </p>
                 </div>
               </div>
 
               <div className="rounded-xl border border-[#F5B80014] bg-[#05070B] p-2.5">
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.1em] text-[#AEB6C4]">Sector Leaders</h3>
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.1em] text-[#AEB6C4]">{t('sectors.leaders')}</h3>
                 <div className="space-y-2">
                   {sectorLeaders.slice(0, 4).map((leader) => (
                     <Link
@@ -900,7 +909,7 @@ export default function MarketsPage() {
               </div>
 
               <div className="rounded-xl border border-[#F5B80014] bg-[#05070B] p-2.5">
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.1em] text-[#AEB6C4]">Sector Dominance Summary</h3>
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.1em] text-[#AEB6C4]">{t('sectors.dominanceSummary')}</h3>
                 <div className="space-y-2">
                   {sectorDominanceRows.map((row) => (
                     <div key={`dominance-${row.name}`} className="rounded-lg border border-[#F5B80010] bg-[#0B1016] p-2">
@@ -912,7 +921,7 @@ export default function MarketsPage() {
                         <div className="h-full rounded-full bg-[#F5B800]/80" style={{ width: `${Math.min(100, row.share)}%` }} />
                       </div>
                       <p className="mt-1 text-[11px] text-[#AEB6C4]">
-                        {row.count} assets · Vol ${fmtCompact.format(row.volume)}
+                        {t('sectors.assetsVol', { count: row.count, vol: `$${fmtCompact.format(row.volume)}` })}
                       </p>
                     </div>
                   ))}
@@ -923,22 +932,22 @@ export default function MarketsPage() {
         </section>
 
         <section className="rounded-2xl border border-[#F5B8001A] bg-[#0D1118] p-4 sm:p-5">
-          <h2 className="mb-4 text-lg font-semibold sm:text-xl">Advanced Filters</h2>
+          <h2 className="mb-4 text-lg font-semibold sm:text-xl">{t('filters.title')}</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <label className="block">
-              <span className="mb-1 block text-[11px] uppercase tracking-[0.1em] text-[#9CA3AF]">Search</span>
+              <span className="mb-1 block text-[11px] uppercase tracking-[0.1em] text-[#9CA3AF]">{t('filters.search')}</span>
               <span className="relative block">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#9CA3AF]" />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="BTC, ETH, SOL..."
+                  placeholder={t('filters.searchPlaceholder')}
                   className="h-9 w-full rounded-lg border border-[#F5B8001F] bg-[#05070B] pl-8 pr-2 text-sm outline-none focus:border-[#F5B80055]"
                 />
               </span>
             </label>
             <label className="block">
-              <span className="mb-1 block text-[11px] uppercase tracking-[0.1em] text-[#9CA3AF]">Quote</span>
+              <span className="mb-1 block text-[11px] uppercase tracking-[0.1em] text-[#9CA3AF]">{t('filters.quote')}</span>
               <select
                 value={quoteFilter}
                 onChange={(e) => setQuoteFilter(e.target.value)}
@@ -952,7 +961,7 @@ export default function MarketsPage() {
               </select>
             </label>
             <label className="block">
-              <span className="mb-1 block text-[11px] uppercase tracking-[0.1em] text-[#9CA3AF]">Min Price</span>
+              <span className="mb-1 block text-[11px] uppercase tracking-[0.1em] text-[#9CA3AF]">{t('filters.minPrice')}</span>
               <input
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
@@ -961,7 +970,7 @@ export default function MarketsPage() {
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-[11px] uppercase tracking-[0.1em] text-[#9CA3AF]">Max Price</span>
+              <span className="mb-1 block text-[11px] uppercase tracking-[0.1em] text-[#9CA3AF]">{t('filters.maxPrice')}</span>
               <input
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
@@ -970,15 +979,15 @@ export default function MarketsPage() {
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-[11px] uppercase tracking-[0.1em] text-[#9CA3AF]">24H Direction</span>
+              <span className="mb-1 block text-[11px] uppercase tracking-[0.1em] text-[#9CA3AF]">{t('filters.direction24h')}</span>
               <select
                 value={changeSide}
                 onChange={(e) => setChangeSide(e.target.value as 'all' | 'positive' | 'negative')}
                 className="h-9 w-full rounded-lg border border-[#F5B8001F] bg-[#05070B] px-2 text-sm outline-none focus:border-[#F5B80055]"
               >
-                <option value="all">All</option>
-                <option value="positive">Positive</option>
-                <option value="negative">Negative</option>
+                <option value="all">{t('filters.all')}</option>
+                <option value="positive">{t('filters.positive')}</option>
+                <option value="negative">{t('filters.negative')}</option>
               </select>
             </label>
           </div>
@@ -986,27 +995,29 @@ export default function MarketsPage() {
 
         <section className="rounded-2xl border border-[#F5B8001A] bg-[#0D1118] p-4 sm:p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold sm:text-xl">Institutional Market Table</h2>
-            <p className="text-xs text-[#AEB6C4]">{tableRows.length.toLocaleString('en-US')} assets · virtualized rendering</p>
+            <h2 className="text-lg font-semibold sm:text-xl">{t('table.title')}</h2>
+            <p className="text-xs text-[#AEB6C4]">
+              {t('fields.assetsCount', { count: tableRows.length.toLocaleString('en-US') })} · {t('fields.virtualized')}
+            </p>
           </div>
           <div className="overflow-x-auto">
             <div className="min-w-[1120px] rounded-lg border border-[#F5B8001A] bg-[#05070B]">
               <div className="sticky top-0 z-20 grid grid-cols-[60px_170px_130px_100px_100px_140px_150px_90px_110px] items-center border-b border-[#F5B8001A] bg-[#0A0F16]/95 px-3 py-2 backdrop-blur">
-                <SortButton label="Rank" active={sortKey === 'rank'} dir={sortDir} onClick={() => onSort('rank')} />
-                <SortButton label="Asset" active={sortKey === 'asset'} dir={sortDir} onClick={() => onSort('asset')} />
-                <SortButton label="Price" active={sortKey === 'price'} dir={sortDir} onClick={() => onSort('price')} />
-                <SortButton label="24H" active={sortKey === 'change24h'} dir={sortDir} onClick={() => onSort('change24h')} />
-                <SortButton label="7D" active={sortKey === 'change7d'} dir={sortDir} onClick={() => onSort('change7d')} />
-                <SortButton label="Volume" active={sortKey === 'volume24h'} dir={sortDir} onClick={() => onSort('volume24h')} />
-                <SortButton label="Mkt Cap" active={sortKey === 'marketCap'} dir={sortDir} onClick={() => onSort('marketCap')} />
-                <SortButton label="Liq." active={sortKey === 'liquidity'} dir={sortDir} onClick={() => onSort('liquidity')} />
-                <span className="text-right text-[11px] font-medium uppercase tracking-[0.1em] text-[#9CA3AF]">Action</span>
+                <SortButton label={t('table.rank')} active={sortKey === 'rank'} dir={sortDir} onClick={() => onSort('rank')} />
+                <SortButton label={t('table.asset')} active={sortKey === 'asset'} dir={sortDir} onClick={() => onSort('asset')} />
+                <SortButton label={t('fields.price')} active={sortKey === 'price'} dir={sortDir} onClick={() => onSort('price')} />
+                <SortButton label={t('fields.change24h')} active={sortKey === 'change24h'} dir={sortDir} onClick={() => onSort('change24h')} />
+                <SortButton label={t('fields.change7d')} active={sortKey === 'change7d'} dir={sortDir} onClick={() => onSort('change7d')} />
+                <SortButton label={t('fields.volume')} active={sortKey === 'volume24h'} dir={sortDir} onClick={() => onSort('volume24h')} />
+                <SortButton label={t('fields.mktCap')} active={sortKey === 'marketCap'} dir={sortDir} onClick={() => onSort('marketCap')} />
+                <SortButton label={t('table.liquidityShort')} active={sortKey === 'liquidity'} dir={sortDir} onClick={() => onSort('liquidity')} />
+                <span className="text-right text-[11px] font-medium uppercase tracking-[0.1em] text-[#9CA3AF]">{t('table.action')}</span>
               </div>
               {tableRows.length === 0 ? (
                 <div className="p-6">
                   <EmptyState
-                    title="No assets match current filters"
-                    description="Adjust filters to expand the result set."
+                    title={t('empty.noFilterMatchTitle')}
+                    description={t('empty.noFilterMatchDesc')}
                     icon={BarChart3}
                   />
                 </div>
@@ -1051,7 +1062,7 @@ export default function MarketsPage() {
                           href={tradeSpotWithSymbol(row.symbol)}
                           className="inline-flex items-center rounded-md bg-[#F5B800] px-3 py-1.5 text-xs font-semibold text-[#05070B] shadow-[0_2px_8px_rgba(245,184,0,0.2)] hover:bg-[#FFD54A]"
                         >
-                          Trade
+                          {t('table.trade')}
                         </Link>
                       </div>
                     </div>
@@ -1065,7 +1076,7 @@ export default function MarketsPage() {
 
         <section className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-[#F5B8001A] bg-[#0D1118] p-4 sm:p-5">
-            <h2 className="mb-3 text-lg font-semibold sm:text-xl">Recently Added Assets</h2>
+            <h2 className="mb-3 text-lg font-semibold sm:text-xl">{t('recentlyAdded.title')}</h2>
             <div className="space-y-2">
               {newListings.map((row) => (
                 <Link
@@ -1092,20 +1103,22 @@ export default function MarketsPage() {
 
           <div className="rounded-2xl border border-[#F5B8001A] bg-[#0D1118] p-4 sm:p-5">
             <div className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="text-lg font-semibold sm:text-xl">Market Intelligence</h2>
+              <h2 className="text-lg font-semibold sm:text-xl">{t('intelligence.title')}</h2>
               <span className="inline-flex items-center gap-1 rounded-full border border-[#F5B8001A] bg-[#05070B] px-2 py-1 text-[10px] uppercase tracking-[0.08em] text-[#AEB6C4]">
                 <Activity className="h-3 w-3 text-[#F5B800]" />
-                Live Update
+                {t('intelligence.liveUpdate')}
               </span>
             </div>
 
             <div className="mb-3 flex flex-wrap gap-2">
-              {[
-                { id: 'latest', label: 'Latest News' },
-                { id: 'announcements', label: 'Exchange Announcements' },
-                { id: 'listings', label: 'New Listings' },
-                { id: 'pulse', label: 'Market Pulse' },
-              ].map((tab) => (
+              {(
+                [
+                  { id: 'latest', label: t('intelligence.panels.latest') },
+                  { id: 'announcements', label: t('intelligence.panels.announcements') },
+                  { id: 'listings', label: t('intelligence.panels.listings') },
+                  { id: 'pulse', label: t('intelligence.panels.pulse') },
+                ] as const
+              ).map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
@@ -1123,7 +1136,7 @@ export default function MarketsPage() {
 
             <div className="min-h-[250px] space-y-2">
               {newsPanel === 'latest' &&
-                (announcementCards.length ? announcementCards : [{ title: 'No announcements yet.', badge: '—', ago: '—' }]).map((item) => (
+                (announcementCards.length ? announcementCards : [{ title: t('empty.noAnnouncements'), badge: '—', ago: '—' }]).map((item) => (
                   <article key={item.title} className="rounded-lg border border-[#F5B80012] bg-[#05070B] px-3 py-2.5 transition hover:border-[#F5B80036] hover:bg-[#0B1016]">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-[11px] uppercase tracking-[0.1em] text-[#F5B800]">{item.badge}</p>
@@ -1169,16 +1182,16 @@ export default function MarketsPage() {
                 <div className="space-y-2">
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded-lg border border-[#F5B80012] bg-[#05070B] p-2.5">
-                      <p className="text-[11px] uppercase tracking-[0.1em] text-[#AEB6C4]">Bullish Assets</p>
+                      <p className="text-[11px] uppercase tracking-[0.1em] text-[#AEB6C4]">{t('intelligence.bullishAssets')}</p>
                       <p className="mt-1 text-lg font-semibold text-emerald-400">{bullishPct.toFixed(1)}%</p>
                     </div>
                     <div className="rounded-lg border border-[#F5B80012] bg-[#05070B] p-2.5">
-                      <p className="text-[11px] uppercase tracking-[0.1em] text-[#AEB6C4]">Bearish Assets</p>
+                      <p className="text-[11px] uppercase tracking-[0.1em] text-[#AEB6C4]">{t('intelligence.bearishAssets')}</p>
                       <p className="mt-1 text-lg font-semibold text-rose-400">{bearishPct.toFixed(1)}%</p>
                     </div>
                   </div>
                   <div className="rounded-lg border border-[#F5B80012] bg-[#05070B] p-2.5">
-                    <p className="text-[11px] uppercase tracking-[0.1em] text-[#AEB6C4]">Fear & Greed Score</p>
+                    <p className="text-[11px] uppercase tracking-[0.1em] text-[#AEB6C4]">{t('intelligence.fearGreedScore')}</p>
                     <p className="mt-1 text-lg font-semibold">{Math.round(globalMetrics.fearGreed)}/100</p>
                     <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-black/30">
                       <div className="h-full rounded-full bg-[#F5B800]" style={{ width: `${Math.round(globalMetrics.fearGreed)}%` }} />
@@ -1186,11 +1199,11 @@ export default function MarketsPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded-lg border border-[#F5B80012] bg-[#05070B] p-2.5">
-                      <p className="text-[11px] uppercase tracking-[0.1em] text-[#AEB6C4]">Strongest Sector</p>
+                      <p className="text-[11px] uppercase tracking-[0.1em] text-[#AEB6C4]">{t('intelligence.strongestSector')}</p>
                       <p className="mt-1 text-sm font-semibold">{strongestSector?.name ?? '--'}</p>
                     </div>
                     <div className="rounded-lg border border-[#F5B80012] bg-[#05070B] p-2.5">
-                      <p className="text-[11px] uppercase tracking-[0.1em] text-[#AEB6C4]">Weakest Sector</p>
+                      <p className="text-[11px] uppercase tracking-[0.1em] text-[#AEB6C4]">{t('intelligence.weakestSector')}</p>
                       <p className="mt-1 text-sm font-semibold">{weakestSector?.name ?? '--'}</p>
                     </div>
                   </div>
@@ -1199,13 +1212,14 @@ export default function MarketsPage() {
             </div>
 
             <div className="mt-3 rounded-lg border border-[#F5B80010] bg-[#05070B] px-2.5 py-2 text-[11px] text-[#AEB6C4]">
-              <span className="font-semibold text-[#F5B800]">Data sources:</span> Alternative.me, CoinGecko, live orderbooks · {MARKET_INTEL_CACHE_HINT}
+              <span className="font-semibold text-[#F5B800]">{t('intelligence.dataSources')}</span>{' '}
+              {t('intelligence.dataSourcesDetail', { hint: MARKET_INTEL_CACHE_HINT })}
             </div>
           </div>
         </section>
 
         <section className="rounded-2xl border border-[#F5B8001A] bg-[#0D1118] p-4 sm:p-5">
-          <h2 className="mb-3 text-lg font-semibold sm:text-xl">Most Active Trading Pairs</h2>
+          <h2 className="mb-3 text-lg font-semibold sm:text-xl">{t('activePairs.title')}</h2>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {activePairs.map((row) => (
               <Link

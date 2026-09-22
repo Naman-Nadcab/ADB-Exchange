@@ -43,6 +43,7 @@ import { MiniSparkline } from '@/components/dashboard/MiniSparkline';
 import { DashboardPageShell } from '@/components/dashboard/DashboardPageShell';
 import { CoinIcon } from '@/components/ui/CoinIcon';
 import { useDisplayCurrency } from '@/context/DisplayCurrencyProvider';
+import { useTranslations } from 'next-intl';
 
 interface AnnouncementItem {
   id: string;
@@ -63,14 +64,6 @@ function parseTickerChangePct(ch: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-const OVERVIEW_SHORTCUTS: { href: string; label: string; icon: typeof BarChart3; desc: string }[] = [
-  { href: '/markets', label: 'Markets', icon: LineChart, desc: 'All pairs' },
-  { href: '/trade/spot', label: 'Spot', icon: BarChart3, desc: 'Trade' },
-  { href: '/p2p', label: 'P2P', icon: Users, desc: 'Buy / Sell' },
-  { href: '/orders', label: 'Orders', icon: ClipboardList, desc: 'History' },
-  { href: '/dashboard/fee-rates', label: 'Fees', icon: Receipt, desc: 'Your tier' },
-];
-
 function formatUsd(n: number) {
   if (!Number.isFinite(n)) return '—';
   return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -78,7 +71,6 @@ function formatUsd(n: number) {
 
 /** Matches Help Center page topic count (static preview). */
 const HELP_CENTER_TOPIC_COUNT = 12;
-const HELP_PREVIEW_SNIPPETS = 'Deposits, fees, VIP, passkeys & P2P';
 
 const P2P_TERMINAL_STATUSES = new Set(['completed', 'cancelled', 'expired', 'failed']);
 
@@ -100,18 +92,6 @@ const DEFAULT_FEE_RAIL: FeeRailPreview = {
   taker: 0.1,
   mnt: false,
 };
-
-const HELP_TOPIC_PREVIEW_LINES = [
-  'How to make a deposit',
-  'Trading fees & VIP tiers',
-  'P2P pay, confirm & release',
-];
-
-const DASHBOARD_TIPS_WHEN_NO_NEWS = [
-  { t: 'Security', d: 'Turn on 2FA and passkeys under Account → Security.' },
-  { t: 'Spot', d: 'Use limit orders to control price; check min notional on the order form.' },
-  { t: 'P2P', d: 'Only pay using listed methods; never transfer off-platform.' },
-];
 
 /** Avoid infinite skeletons when API or Redis is slow. */
 async function fetchJsonWithTimeout<T = unknown>(
@@ -162,6 +142,14 @@ function RailCardPreviewSkeleton() {
 }
 
 export default function DashboardPage() {
+  const t = useTranslations('account.dashboard');
+  const tNav = useTranslations('navigation');
+  const tHelp = useTranslations('account.help');
+  const tw = useTranslations('wallet.nav');
+  const tWa = useTranslations('wallet.actions');
+  const tc = useTranslations('common');
+  const tMr = useTranslations('crypto.marketRail');
+
   const { user, accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
   const md = useMarketDataUxCopy();
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
@@ -177,7 +165,9 @@ export default function DashboardPage() {
   const [uidCopied, setUidCopied] = useState(false);
   const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
   const [announcementsLoading, setAnnouncementsLoading] = useState(true);
-  const [announcementsError, setAnnouncementsError] = useState<string | null>(null);
+  const [announcementsError, setAnnouncementsError] = useState<
+    'apiUrlNotConfigured' | 'announcementsTimeout' | 'announcementsLoadFailed' | null
+  >(null);
   const [marketData, setMarketData] = useState<TickerRow[]>([]);
   const [marketsLoading, setMarketsLoading] = useState(true);
   const [marketsLoadFailed, setMarketsLoadFailed] = useState(false);
@@ -214,7 +204,7 @@ export default function DashboardPage() {
     const url = getApiBaseUrl();
     if (!url) {
       setAnnouncementsLoading(false);
-      setAnnouncementsError('API URL not configured');
+      setAnnouncementsError('apiUrlNotConfigured');
       return;
     }
     (async () => {
@@ -232,7 +222,7 @@ export default function DashboardPage() {
         setAnnouncements(data.data!.announcements!);
       } else if (!ok) {
         setAnnouncements([]);
-        setAnnouncementsError(status === 0 ? 'Request timed out or network error' : 'Could not load announcements');
+        setAnnouncementsError(status === 0 ? 'announcementsTimeout' : 'announcementsLoadFailed');
       } else {
         setAnnouncements([]);
       }
@@ -445,12 +435,40 @@ export default function DashboardPage() {
     };
   }, [_hasHydrated, accessToken, user?.id, deferSecondaryLoads]);
 
-  const marketTabs = [
-    { id: 'favorites', label: 'Favorites', icon: Star },
-    { id: 'hot', label: 'Hot', icon: Zap },
-    { id: 'gainers', label: 'Gainers', icon: TrendingUp },
-    { id: 'losers', label: 'Losers', icon: TrendingDown },
-  ];
+  const overviewShortcuts = useMemo(
+    () => [
+      { href: '/markets', label: tNav('markets'), icon: LineChart, desc: t('shortcuts.allPairs') },
+      { href: '/trade/spot', label: tNav('cryptoSpot'), icon: BarChart3, desc: t('shortcuts.tradeDesc') },
+      { href: '/p2p', label: tNav('p2p'), icon: Users, desc: t('shortcuts.buySell') },
+      { href: '/orders', label: tNav('orders'), icon: ClipboardList, desc: t('shortcuts.history') },
+      { href: '/dashboard/fee-rates', label: tNav('fees'), icon: Receipt, desc: t('shortcuts.yourTier') },
+    ],
+    [t, tNav]
+  );
+
+  const marketTabs = useMemo(
+    () => [
+      { id: 'favorites', label: tMr('favorites'), icon: Star },
+      { id: 'hot', label: t('marketTabs.hot'), icon: Zap },
+      { id: 'gainers', label: tMr('gainers'), icon: TrendingUp },
+      { id: 'losers', label: tMr('losers'), icon: TrendingDown },
+    ],
+    [t, tMr]
+  );
+
+  const dashboardTips = useMemo(
+    () => [
+      { t: t('tips.securityTitle'), d: t('tips.securityDesc') },
+      { t: t('tips.spotTitle'), d: t('tips.spotDesc') },
+      { t: t('tips.p2pTitle'), d: t('tips.p2pDesc') },
+    ],
+    [t]
+  );
+
+  const helpTopicPreviewLines = useMemo(
+    () => [tHelp('items.deposit-how.title'), t('helpRail.previewLine2'), t('helpRail.previewLine3')],
+    [t, tHelp]
+  );
 
   const toggleFavorite = (pair: string) => {
     setFavorites((prev) =>
@@ -552,12 +570,25 @@ export default function DashboardPage() {
     };
   const referralFromApi = referralPreview !== null;
 
+  const displayVipName =
+    !feeRailDisplay.vipName || feeRailDisplay.vipName === 'Regular User'
+      ? t('feeRail.regularUser')
+      : feeRailDisplay.vipName;
+
+  const displayVolumeTierLabel = useMemo(() => {
+    const label = feeRailDisplay.volumeTierLabel;
+    if (!label) return null;
+    const m = /^Volume tier (\d+)$/.exec(label);
+    if (m) return t('feeRail.volumeTier', { level: m[1] });
+    return label;
+  }, [feeRailDisplay.volumeTierLabel, t]);
+
   return (
     <div className="min-h-full bg-background">
       <DashboardPageShell
-        title="Overview"
-        description="Portfolio, markets, and account activity — your trading command center."
-        breadcrumbs={[{ label: 'Overview' }]}
+        title={t('title')}
+        description={t('description')}
+        breadcrumbs={[{ label: tNav('overview') }]}
       >
         <div className="flex flex-col gap-6 lg:gap-8 xl:flex-row">
           <div className="min-w-0 flex-1 space-y-5 lg:space-y-6">
@@ -568,8 +599,8 @@ export default function DashboardPage() {
                   <div className="min-w-0 flex-1 space-y-4">
                     <div>
                       <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                        Estimated total balance
-                        <InfoTooltip content="Combined funding and trading account balance in your selected display currency." className="ml-1" />
+                        {t('balance.estimatedTotal')}
+                        <InfoTooltip content={t('balance.estimatedTotalTooltip')} className="ml-1" />
                       </p>
                       <p className="mt-1.5 text-3xl font-bold tabular-nums tracking-tight text-foreground sm:text-4xl">
                         {Number.isFinite(totalUsd) ? formatFromUsdt(totalUsd, 2) : '—'}
@@ -579,27 +610,29 @@ export default function DashboardPage() {
                     <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
                       <div>
                         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                          24h portfolio PnL
-                          <InfoTooltip content="Day-over-day portfolio change is not available from this summary yet." className="ml-1" />
+                          {t('balance.portfolioPnl24h')}
+                          <InfoTooltip content={t('balance.portfolioPnlTooltip')} className="ml-1" />
                         </p>
                         <p className="mt-0.5 text-sm font-semibold tabular-nums text-muted-foreground">—</p>
                       </div>
                       {lastBalUpdate ? (
                         <p className="text-[11px] text-muted-foreground">
-                          Updated {lastBalUpdate.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                          {t('balance.updated', {
+                            datetime: lastBalUpdate.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }),
+                          })}
                         </p>
                       ) : null}
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="rounded-lg border border-border bg-muted/50 p-3">
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Funding</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t('balance.funding')}</p>
                         <p className="mt-1 text-base font-bold tabular-nums text-foreground sm:text-lg">{formatFromUsdt(fundingUsd, 2)}</p>
-                        <p className="mt-0.5 text-[10px] text-muted-foreground">Deposits &amp; P2P</p>
+                        <p className="mt-0.5 text-[10px] text-muted-foreground">{t('balance.fundingHint')}</p>
                       </div>
                       <div className="rounded-lg border border-border bg-muted/50 p-3">
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Trading</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t('balance.trading')}</p>
                         <p className="mt-1 text-base font-bold tabular-nums text-foreground sm:text-lg">{formatFromUsdt(tradingUsd, 2)}</p>
-                        <p className="mt-0.5 text-[10px] text-muted-foreground">Spot &amp; open orders</p>
+                        <p className="mt-0.5 text-[10px] text-muted-foreground">{t('balance.tradingHint')}</p>
                       </div>
                     </div>
                   </div>
@@ -608,15 +641,15 @@ export default function DashboardPage() {
                       <User className="h-6 w-6 text-primary" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Account</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('accountCard.label')}</p>
                       <p className="truncate text-sm font-semibold text-foreground">{maskEmail(user?.email || '')}</p>
                       <span className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1 font-mono text-[10px] text-muted-foreground">
-                        UID {user?.id?.slice(0, 8) || '••••••••'}
+                        {t('accountCard.uid')} {user?.id?.slice(0, 8) || '••••••••'}
                         <button
                           type="button"
                           onClick={copyUID}
                           className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                          aria-label="Copy full user ID"
+                          aria-label={t('accountCard.copyUidAria')}
                         >
                           {uidCopied ? <Check className="h-3 w-3 text-buy" /> : <Copy className="h-3 w-3" />}
                         </button>
@@ -634,35 +667,35 @@ export default function DashboardPage() {
 
               {/* Quick actions */}
               <div className="p-4 sm:p-5 sm:pt-0">
-                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Quick actions</p>
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('quickActions.title')}</p>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
                   <Link
                     href="/wallet/deposit/crypto"
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-center text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
                   >
                     <Wallet className="h-4 w-4 shrink-0" />
-                    <span>Deposit</span>
+                    <span>{tw('deposit')}</span>
                   </Link>
                   <Link
                     href="/wallet/withdraw/crypto"
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5 text-center text-sm font-semibold text-foreground transition hover:bg-muted"
                   >
                     <Send className="h-4 w-4 shrink-0" />
-                    <span>Withdraw</span>
+                    <span>{tw('withdraw')}</span>
                   </Link>
                   <Link
                     href="/wallet/transfer"
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5 text-center text-sm font-semibold text-foreground transition hover:bg-muted"
                   >
                     <ArrowLeftRight className="h-4 w-4 shrink-0" />
-                    <span>Transfer</span>
+                    <span>{tw('transfer')}</span>
                   </Link>
                   <Link
                     href="/trade/spot"
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 text-center text-sm font-semibold text-primary transition hover:bg-muted"
                   >
                     <BarChart3 className="h-4 w-4 shrink-0" />
-                    <span>Trade</span>
+                    <span>{tWa('trade')}</span>
                   </Link>
                 </div>
               </div>
@@ -671,11 +704,11 @@ export default function DashboardPage() {
             {/* Shortcuts */}
             <div className="rounded-xl border border-border bg-card px-3 py-3 shadow-sm">
               <div className="mb-2 flex items-center justify-between px-1">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">More</span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('shortcuts.more')}</span>
                 <LayoutGrid className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
               </div>
               <div className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {OVERVIEW_SHORTCUTS.map((s) => {
+                {overviewShortcuts.map((s) => {
                   const Icon = s.icon;
                   return (
                     <Link
@@ -709,15 +742,15 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-base font-bold text-foreground">Platform build progress</h2>
+                      <h2 className="text-base font-bold text-foreground">{t('progress.title')}</h2>
                       {progressPct === 100 ? (
                         <span className="rounded-full bg-buy/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-buy">
-                          Complete
+                          {t('progress.complete')}
                         </span>
                       ) : null}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {progressDone} / {progressTotal} milestones · Roadmap visibility
+                      {t('progress.milestones', { done: progressDone, total: progressTotal })}
                     </p>
                   </div>
                 </div>
@@ -743,8 +776,8 @@ export default function DashboardPage() {
                     <Target className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-foreground">Get started</h2>
-                    <p className="text-xs text-muted-foreground">Unlock limits and full access</p>
+                    <h2 className="text-lg font-bold text-foreground">{t('kyc.title')}</h2>
+                    <p className="text-xs text-muted-foreground">{t('kyc.subtitle')}</p>
                   </div>
                 </div>
 
@@ -755,8 +788,8 @@ export default function DashboardPage() {
                         <CheckCircle2 className="h-6 w-6" />
                       </div>
                       <div className="mt-3 h-1 w-full max-w-[80px] rounded-full bg-buy" />
-                      <p className="mt-3 text-xs font-semibold text-buy">Sign up</p>
-                      <p className="text-[10px] text-muted-foreground">Done</p>
+                      <p className="mt-3 text-xs font-semibold text-buy">{t('kyc.signup')}</p>
+                      <p className="text-[10px] text-muted-foreground">{t('kyc.done')}</p>
                     </div>
                     <div className="mb-8 h-px w-6 shrink-0 bg-border sm:w-10" />
                     <div className="flex flex-1 flex-col items-center">
@@ -766,8 +799,8 @@ export default function DashboardPage() {
                       <div className="mt-3 h-1 w-full max-w-[80px] overflow-hidden rounded-full bg-muted">
                         <div className="h-full w-1/2 rounded-full bg-primary" />
                       </div>
-                      <p className="mt-3 text-xs font-semibold text-primary">Verify</p>
-                      <p className="text-[10px] text-muted-foreground">In progress</p>
+                      <p className="mt-3 text-xs font-semibold text-primary">{t('kyc.verify')}</p>
+                      <p className="text-[10px] text-muted-foreground">{t('kyc.inProgress')}</p>
                     </div>
                     <div className="mb-8 h-px w-6 shrink-0 bg-border sm:w-10" />
                     <div className="flex flex-1 flex-col items-center">
@@ -775,8 +808,8 @@ export default function DashboardPage() {
                         <Wallet className="h-6 w-6 text-muted-foreground" />
                       </div>
                       <div className="mt-3 h-1 w-full max-w-[80px] rounded-full bg-muted" />
-                      <p className="mt-3 text-xs font-medium text-muted-foreground">Deposit</p>
-                      <p className="text-[10px] text-muted-foreground">Locked</p>
+                      <p className="mt-3 text-xs font-medium text-muted-foreground">{t('kyc.deposit')}</p>
+                      <p className="text-[10px] text-muted-foreground">{t('kyc.locked')}</p>
                     </div>
                   </div>
 
@@ -785,18 +818,18 @@ export default function DashboardPage() {
                       <ul className="space-y-1.5 text-sm text-muted-foreground">
                         <li className="flex items-center gap-2">
                           <Clock className="h-4 w-4 shrink-0 text-primary" />
-                          2–5 minutes with a valid ID
+                          {t('kyc.idTime')}
                         </li>
                         <li className="flex items-center gap-2">
                           <Shield className="h-4 w-4 shrink-0 text-primary" />
-                          Encrypted storage — your data stays private
+                          {t('kyc.encryptedStorage')}
                         </li>
                       </ul>
                       <Link
                         href="/dashboard/identity"
                         className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
                       >
-                        Get verified <ArrowRight className="h-4 w-4" />
+                        {t('kyc.getVerified')} <ArrowRight className="h-4 w-4" />
                       </Link>
                     </div>
                   </div>
@@ -812,15 +845,15 @@ export default function DashboardPage() {
                     <TrendingUp className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-foreground sm:text-lg">Market overview</h2>
-                    <p className="text-xs text-muted-foreground">Top movers by 24h change (live tickers)</p>
+                    <h2 className="text-base font-bold text-foreground sm:text-lg">{t('marketOverview.title')}</h2>
+                    <p className="text-xs text-muted-foreground">{t('marketOverview.subtitle')}</p>
                   </div>
                 </div>
                 <Link
                   href="/markets"
                   className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:opacity-90"
                 >
-                  All markets <ExternalLink className="h-3.5 w-3.5 opacity-70" />
+                  {t('marketOverview.allMarkets')} <ExternalLink className="h-3.5 w-3.5 opacity-70" />
                 </Link>
               </div>
               <div className="p-4 sm:p-5">
@@ -837,17 +870,17 @@ export default function DashboardPage() {
                   </div>
                 ) : showMarketsEmpty ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">
-                    Market data unavailable. Open Spot or retry from the watchlist below.
+                    {t('marketOverview.unavailable')}
                   </p>
                 ) : (
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="rounded-lg border border-border bg-muted/20">
                       <div className="border-b border-border px-3 py-2">
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Top gainers</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t('marketOverview.topGainers')}</p>
                       </div>
                       <ul className="divide-y divide-border">
                         {topMoverGainers.length === 0 ? (
-                          <li className="px-3 py-4 text-center text-xs text-muted-foreground">No change data</li>
+                          <li className="px-3 py-4 text-center text-xs text-muted-foreground">{t('marketOverview.noChangeData')}</li>
                         ) : (
                           topMoverGainers.map((item) => (
                             <li key={`g-${item.pair}-${item.quote}`}>
@@ -874,11 +907,11 @@ export default function DashboardPage() {
                     </div>
                     <div className="rounded-lg border border-border bg-muted/20">
                       <div className="border-b border-border px-3 py-2">
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Top losers</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t('marketOverview.topLosers')}</p>
                       </div>
                       <ul className="divide-y divide-border">
                         {topMoverLosers.length === 0 ? (
-                          <li className="px-3 py-4 text-center text-xs text-muted-foreground">No change data</li>
+                          <li className="px-3 py-4 text-center text-xs text-muted-foreground">{t('marketOverview.noChangeData')}</li>
                         ) : (
                           topMoverLosers.map((item) => (
                             <li key={`l-${item.pair}-${item.quote}`}>
@@ -916,23 +949,23 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-base font-bold text-foreground sm:text-lg">Watchlist &amp; pairs</h2>
+                      <h2 className="text-base font-bold text-foreground sm:text-lg">{t('watchlist.title')}</h2>
                       <span className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        Spot
+                        {t('watchlist.spotBadge')}
                       </span>
                       <span className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
                         <span className="relative flex h-2 w-2">
                           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-buy opacity-40" />
                           <span className="relative inline-flex h-2 w-2 rounded-full bg-buy" />
                         </span>
-                        Live
+                        {t('watchlist.live')}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground">Favorites, movers, or full list — jump to Spot anytime</p>
+                    <p className="text-xs text-muted-foreground">{t('watchlist.subtitle')}</p>
                   </div>
                 </div>
                 <Link href="/markets" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:opacity-90">
-                  Markets <ExternalLink className="h-3.5 w-3.5 opacity-70" />
+                  {t('watchlist.marketsLink')} <ExternalLink className="h-3.5 w-3.5 opacity-70" />
                 </Link>
               </div>
 
@@ -963,13 +996,13 @@ export default function DashboardPage() {
                     <thead>
                       <tr className="bg-muted/40">
                         <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          Pair
+                          {tMr('pair')}
                         </th>
                         <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          Last price
+                          {tMr('last')}
                         </th>
                         <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          24h change
+                          {tMr('change24h')}
                         </th>
                         <th className="w-28 px-5 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground" />
                       </tr>
@@ -1005,24 +1038,20 @@ export default function DashboardPage() {
                 ) : activeMarketTab === 'favorites' && displayedMarketData.length === 0 ? (
                   <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
                     <Star className="mb-3 h-12 w-12 text-muted-foreground/40" />
-                    <p className="text-base font-semibold text-foreground">No favorites yet</p>
-                    <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                      Star pairs in the table below once markets load, or browse Spot to add them.
-                    </p>
+                    <p className="text-base font-semibold text-foreground">{t('watchlist.noFavoritesTitle')}</p>
+                    <p className="mt-1 max-w-sm text-sm text-muted-foreground">{t('watchlist.noFavoritesDesc')}</p>
                     <Link href="/trade/spot" className="mt-4 text-sm font-semibold text-primary hover:underline">
-                      Open Spot
+                      {t('watchlist.openSpot')}
                     </Link>
                   </div>
                 ) : showMarketsEmpty ? (
                   <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
                     <LineChart className="mb-3 h-12 w-12 text-muted-foreground/50" />
                     <p className="text-base font-semibold text-foreground">
-                      {marketsLoadFailed ? "Couldn't load markets" : 'No tickers right now'}
+                      {marketsLoadFailed ? t('watchlist.loadFailedTitle') : t('watchlist.noTickersTitle')}
                     </p>
                     <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                      {marketsLoadFailed
-                        ? 'Check your connection or try again. Spot trading may still be available from the terminal.'
-                        : 'The market service returned no pairs. Try again later or open Spot directly.'}
+                      {marketsLoadFailed ? t('watchlist.loadFailedDesc') : t('watchlist.noTickersDesc')}
                     </p>
                     <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                       <button
@@ -1049,13 +1078,13 @@ export default function DashboardPage() {
                         }}
                         className="rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm hover:bg-muted"
                       >
-                        Retry
+                        {tWa('retry')}
                       </button>
                       <Link
                         href="/trade/spot"
                         className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-md hover:bg-primary/90"
                       >
-                        Go to Spot
+                        {t('watchlist.goToSpot')}
                       </Link>
                     </div>
                   </div>
@@ -1065,24 +1094,24 @@ export default function DashboardPage() {
                         <tr className="bg-muted/40">
                           <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                             <span className="inline-flex items-center gap-1">
-                              Pair
+                              {tMr('pair')}
                               <InfoTooltip content={md.TOOLTIP_PAIR} className="text-muted-foreground" />
                             </span>
                           </th>
                           <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                             <span className="inline-flex items-center justify-end gap-1">
-                              Last price
+                              {tMr('last')}
                               <InfoTooltip content={md.TOOLTIP_LAST_PRICE} className="text-muted-foreground" />
                             </span>
                           </th>
                           <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                             <span className="inline-flex items-center justify-end gap-1">
-                              24h change
+                              {tMr('change24h')}
                               <InfoTooltip content={md.TOOLTIP_24H_CHANGE} className="text-muted-foreground" />
                             </span>
                           </th>
                           <th className="w-28 px-5 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                            Action
+                            {t('watchlist.action')}
                           </th>
                         </tr>
                       </thead>
@@ -1115,7 +1144,9 @@ export default function DashboardPage() {
                                     type="button"
                                     onClick={() => toggleFavorite(item.pair)}
                                     className="min-h-11 min-w-11 rounded-md p-2 text-muted-foreground transition hover:bg-muted hover:text-primary sm:min-h-0 sm:min-w-0 sm:p-0.5"
-                                    aria-label={favorites.includes(item.pair) ? 'Remove from favorites' : 'Add to favorites'}
+                                    aria-label={
+                                      favorites.includes(item.pair) ? tMr('removeFavorite') : tMr('addFavorite')
+                                    }
                                   >
                                     <Star
                                       className={`h-5 w-5 ${favorites.includes(item.pair) ? 'fill-primary/25 text-primary' : ''}`}
@@ -1161,7 +1192,7 @@ export default function DashboardPage() {
                                   href={`/trade/spot?symbol=${item.pair}_${item.quote}`}
                                   className="inline-flex min-h-11 min-w-[5.5rem] items-center justify-center rounded-lg bg-primary px-4 text-xs font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:min-h-0 sm:min-w-0 sm:px-3 sm:py-1.5"
                                 >
-                                  Trade
+                                  {tWa('trade')}
                                 </Link>
                               </td>
                             </tr>
@@ -1181,26 +1212,26 @@ export default function DashboardPage() {
                     <History className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-foreground sm:text-lg">Recent activity</h2>
-                    <p className="text-xs text-muted-foreground">Orders and funding movements</p>
+                    <h2 className="text-base font-bold text-foreground sm:text-lg">{t('recentActivity.title')}</h2>
+                    <p className="text-xs text-muted-foreground">{t('recentActivity.subtitle')}</p>
                   </div>
                 </div>
               </div>
               <div className="space-y-4 p-4 sm:p-5">
                 {isAuthenticated && p2pPreview != null ? (
                   <div className="rounded-lg border border-border bg-muted/30 px-3 py-2.5">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">P2P snapshot</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t('recentActivity.p2pSnapshot')}</p>
                     <p className="mt-1 text-sm text-foreground">
                       <span className="font-semibold tabular-nums text-primary">{p2pPreview.active}</span>
-                      <span className="text-muted-foreground"> active · </span>
+                      <span className="text-muted-foreground"> {t('recentActivity.activeMid')} </span>
                       <span className="font-semibold tabular-nums">{p2pPreview.total}</span>
-                      <span className="text-muted-foreground"> total orders</span>
+                      <span className="text-muted-foreground"> {t('recentActivity.totalOrders')}</span>
                     </p>
                     <Link
                       href="/p2p"
                       className="mt-2 inline-flex items-center gap-0.5 text-xs font-semibold text-primary hover:opacity-90"
                     >
-                      Open P2P hub <ChevronRight className="h-3.5 w-3.5" />
+                      {t('recentActivity.openP2pHub')} <ChevronRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
                 ) : null}
@@ -1211,7 +1242,7 @@ export default function DashboardPage() {
                   >
                     <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
                       <ClipboardList className="h-4 w-4 shrink-0 text-primary" />
-                      Orders hub
+                      {t('recentActivity.ordersHub')}
                     </span>
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </Link>
@@ -1221,7 +1252,7 @@ export default function DashboardPage() {
                   >
                     <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
                       <BarChart3 className="h-4 w-4 shrink-0 text-primary" />
-                      Spot orders
+                      {t('recentActivity.spotOrders')}
                     </span>
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </Link>
@@ -1231,13 +1262,13 @@ export default function DashboardPage() {
                   >
                     <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
                       <Receipt className="h-4 w-4 shrink-0 text-primary" />
-                      Funding history
+                      {t('recentActivity.fundingHistory')}
                     </span>
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </Link>
                 </div>
                 {!isAuthenticated ? (
-                  <p className="text-center text-xs text-muted-foreground">Sign in to see P2P order counts on the dashboard.</p>
+                  <p className="text-center text-xs text-muted-foreground">{t('recentActivity.signInForP2p')}</p>
                 ) : null}
               </div>
             </section>
@@ -1250,15 +1281,15 @@ export default function DashboardPage() {
                     <Bell className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-foreground">Announcements</h2>
-                    <p className="text-xs text-muted-foreground">Product &amp; maintenance updates</p>
+                    <h2 className="text-lg font-bold text-foreground">{t('announcements.title')}</h2>
+                    <p className="text-xs text-muted-foreground">{t('announcements.subtitle')}</p>
                   </div>
                 </div>
                 <Link
                   href="/dashboard/announcements"
                   className="text-sm font-semibold text-primary hover:underline"
                 >
-                  View all
+                  {tWa('viewAll')}
                 </Link>
               </div>
 
@@ -1266,18 +1297,18 @@ export default function DashboardPage() {
                 {announcementsLoading ? (
                   <div className="flex items-center justify-center gap-2 px-5 py-10">
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted border-t-primary" />
-                    <span className="text-sm text-muted-foreground">Loading…</span>
+                    <span className="text-sm text-muted-foreground">{tc('states.loading')}</span>
                   </div>
                 ) : announcementsError ? (
                   <div className="px-4 py-4 sm:px-5">
                     <div className="rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-foreground">
-                      {announcementsError}
+                      {t(`errors.${announcementsError}`)}
                     </div>
                     <p className="mb-2 mt-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                      Quick tips
+                      {t('announcements.quickTips')}
                     </p>
                     <div className="grid gap-2 sm:grid-cols-3">
-                      {DASHBOARD_TIPS_WHEN_NO_NEWS.map((tip) => (
+                      {dashboardTips.map((tip) => (
                         <div
                           key={`err-${tip.t}`}
                           className="rounded-lg border border-border bg-muted/30 px-3 py-2.5"
@@ -1292,16 +1323,14 @@ export default function DashboardPage() {
                   <div className="px-4 py-6 sm:px-6">
                     <div className="mb-5 text-center">
                       <Bell className="mx-auto mb-2 h-10 w-10 text-muted-foreground/50" />
-                      <p className="text-sm font-semibold text-foreground">No pinned announcements</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Listing updates, maintenance windows, and campaigns appear here when published.
-                      </p>
+                      <p className="text-sm font-semibold text-foreground">{t('announcements.noPinnedTitle')}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{t('announcements.noPinnedDesc')}</p>
                     </div>
                     <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                      While you wait — quick tips
+                      {t('announcements.whileYouWait')}
                     </p>
                     <div className="grid gap-2 sm:grid-cols-3">
-                      {DASHBOARD_TIPS_WHEN_NO_NEWS.map((tip) => (
+                      {dashboardTips.map((tip) => (
                         <div
                           key={tip.t}
                           className="rounded-lg border border-border bg-muted/30 px-3 py-2.5 text-left"
@@ -1331,7 +1360,7 @@ export default function DashboardPage() {
                           <div className="flex flex-wrap items-center gap-2">
                             {isNew ? (
                               <span className="shrink-0 rounded bg-destructive px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-destructive-foreground">
-                                New
+                                {t('announcements.new')}
                               </span>
                             ) : null}
                             <p className="truncate text-sm font-semibold text-foreground group-hover/ann:text-primary">
@@ -1382,18 +1411,18 @@ export default function DashboardPage() {
                   <HelpCircle className="h-5 w-5 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1 pr-1">
-                  <h3 className="text-sm font-bold text-foreground">Help Center</h3>
-                  <p className="text-[11px] leading-snug text-muted-foreground">Self-service guides</p>
+                  <h3 className="text-sm font-bold text-foreground">{tHelp('title')}</h3>
+                  <p className="text-[11px] leading-snug text-muted-foreground">{t('helpRail.selfService')}</p>
                 </div>
                 <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary" />
               </div>
               <div className="relative mt-3 flex min-h-0 flex-1 flex-col rounded-xl border border-border bg-muted/25 p-3">
                 <p className="shrink-0 text-xs font-bold leading-snug text-foreground">
-                  {HELP_CENTER_TOPIC_COUNT} step-by-step guides
+                  {t('helpRail.guidesCount', { count: HELP_CENTER_TOPIC_COUNT })}
                 </p>
-                <p className="mt-1 shrink-0 text-[11px] leading-relaxed text-muted-foreground">{HELP_PREVIEW_SNIPPETS}</p>
+                <p className="mt-1 shrink-0 text-[11px] leading-relaxed text-muted-foreground">{t('helpRail.previewSnippets')}</p>
                 <ul className="mt-3 flex flex-1 flex-col justify-center gap-2.5 border-t border-border py-3">
-                  {HELP_TOPIC_PREVIEW_LINES.map((line) => (
+                  {helpTopicPreviewLines.map((line) => (
                     <li key={line} className="flex gap-2.5 text-[12px] leading-snug text-muted-foreground">
                       <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
                       <span>{line}</span>
@@ -1401,8 +1430,8 @@ export default function DashboardPage() {
                   ))}
                 </ul>
                 <div className="mt-auto flex shrink-0 items-center justify-between border-t border-border pt-2.5">
-                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">More inside</span>
-                  <span className="text-xs font-bold text-primary">Open →</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{t('helpRail.moreInside')}</span>
+                  <span className="text-xs font-bold text-primary">{t('helpRail.open')}</span>
                 </div>
               </div>
             </Link>
@@ -1417,8 +1446,8 @@ export default function DashboardPage() {
                   <Gift className="h-5 w-5 text-buy" />
                 </div>
                 <div className="min-w-0 flex-1 pr-1">
-                  <h3 className="text-sm font-bold text-foreground">Referrals</h3>
-                  <p className="text-[11px] leading-snug text-muted-foreground">Invite &amp; earn</p>
+                  <h3 className="text-sm font-bold text-foreground">{t('referralRail.title')}</h3>
+                  <p className="text-[11px] leading-snug text-muted-foreground">{t('referralRail.subtitle')}</p>
                 </div>
                 <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-buy" />
               </div>
@@ -1427,7 +1456,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="relative mt-3 flex min-h-0 flex-1 flex-col rounded-xl border border-border bg-muted/25 p-3">
                   <div className="shrink-0">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Your code</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t('referralRail.yourCode')}</p>
                     <p className="mt-1 break-all font-mono text-lg font-bold leading-tight tracking-tight text-buy">
                       {referralRailDisplay.code}
                     </p>
@@ -1438,7 +1467,7 @@ export default function DashboardPage() {
                         {referralRailDisplay.referrals}
                       </span>
                       <span className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        Invited
+                        {t('referralRail.invited')}
                       </span>
                     </div>
                     <div className="flex flex-col justify-center rounded-lg border border-border bg-card/80 px-2.5 py-2.5 text-center">
@@ -1446,20 +1475,20 @@ export default function DashboardPage() {
                         {formatFromUsdt(referralRailDisplay.earnings, 2)}
                       </span>
                       <span className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        Earned
+                        {t('referralRail.earned')}
                       </span>
                     </div>
                   </div>
                   <p className="mt-3 shrink-0 text-center text-[11px] font-medium text-muted-foreground">
-                    {referralRailDisplay.commissionPct.toFixed(0)}% commission · Link &amp; banners on full page
+                    {t('referralRail.commissionHint', { pct: referralRailDisplay.commissionPct.toFixed(0) })}
                   </p>
                   <div className="mt-auto flex shrink-0 items-center justify-between border-t border-border pt-2.5">
                     {referralFromApi ? (
-                      <span className="text-[10px] font-semibold text-buy">● Live</span>
+                      <span className="text-[10px] font-semibold text-buy">{t('referralRail.live')}</span>
                     ) : (
-                      <span className="text-[10px] font-medium text-muted-foreground">○ Sync pending</span>
+                      <span className="text-[10px] font-medium text-muted-foreground">{t('referralRail.syncPending')}</span>
                     )}
-                    <span className="text-xs font-bold text-buy">Open →</span>
+                    <span className="text-xs font-bold text-buy">{t('helpRail.open')}</span>
                   </div>
                 </div>
               )}
@@ -1475,8 +1504,8 @@ export default function DashboardPage() {
                   <Users className="h-5 w-5 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1 pr-1">
-                  <h3 className="text-sm font-bold text-foreground">P2P</h3>
-                  <p className="text-[11px] leading-snug text-muted-foreground">Buy / sell fiat</p>
+                  <h3 className="text-sm font-bold text-foreground">{tNav('p2p')}</h3>
+                  <p className="text-[11px] leading-snug text-muted-foreground">{t('p2pRail.subtitle')}</p>
                 </div>
                 <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary" />
               </div>
@@ -1490,7 +1519,7 @@ export default function DashboardPage() {
                         {p2pRailDisplay.active}
                       </span>
                       <span className="mt-1.5 text-[10px] font-bold uppercase leading-tight tracking-wide text-muted-foreground">
-                        In progress
+                        {t('p2pRail.inProgress')}
                       </span>
                     </div>
                     <div className="flex flex-col justify-center rounded-lg border border-border bg-card/80 px-2 py-3 text-center">
@@ -1498,19 +1527,15 @@ export default function DashboardPage() {
                         {p2pRailDisplay.total}
                       </span>
                       <span className="mt-1.5 text-[10px] font-bold uppercase leading-tight tracking-wide text-muted-foreground">
-                        All orders
+                        {t('p2pRail.allOrders')}
                       </span>
                     </div>
                   </div>
-                  <p className="mt-3 text-[12px] font-medium leading-relaxed text-foreground">
-                    USDT, BTC, ETH vs INR — bank, UPI &amp; listed methods only.
-                  </p>
-                  <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-                    Escrow-protected trades · Manage payment methods &amp; order history from the hub.
-                  </p>
+                  <p className="mt-3 text-[12px] font-medium leading-relaxed text-foreground">{t('p2pRail.pairsHint')}</p>
+                  <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{t('p2pRail.escrowHint')}</p>
                   <div className="mt-auto flex shrink-0 items-center justify-between border-t border-border pt-2.5">
-                    <span className="text-[10px] text-muted-foreground">Orders → P2P</span>
-                    <span className="text-xs font-bold text-primary">Trade →</span>
+                    <span className="text-[10px] text-muted-foreground">{t('p2pRail.footerLeft')}</span>
+                    <span className="text-xs font-bold text-primary">{t('p2pRail.footerRight')}</span>
                   </div>
                 </div>
               )}
@@ -1526,8 +1551,8 @@ export default function DashboardPage() {
                   <Receipt className="h-5 w-5 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1 pr-1">
-                  <h3 className="text-sm font-bold text-foreground">Fee tier</h3>
-                  <p className="text-[11px] leading-snug text-muted-foreground">Spot rates</p>
+                  <h3 className="text-sm font-bold text-foreground">{t('feeRail.title')}</h3>
+                  <p className="text-[11px] leading-snug text-muted-foreground">{t('feeRail.subtitle')}</p>
                 </div>
                 <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary" />
               </div>
@@ -1537,49 +1562,50 @@ export default function DashboardPage() {
                 <div className="relative mt-3 flex min-h-0 flex-1 flex-col rounded-xl border border-border bg-muted/25 p-3">
                   <div className="flex shrink-0 items-center justify-between gap-2">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t('feeRail.status')}</p>
                       <p className="text-sm font-bold text-foreground">
                         VIP {feeRailDisplay.vipLevel}
-                        <span className="font-semibold text-muted-foreground"> · {feeRailDisplay.vipName}</span>
+                        <span className="font-semibold text-muted-foreground"> · {displayVipName}</span>
                       </p>
                     </div>
                     {!feePreview ? (
                       <span className="shrink-0 rounded-md bg-muted px-2 py-1 text-[9px] font-bold uppercase text-muted-foreground">
-                        Default
+                        {t('feeRail.default')}
                       </span>
                     ) : (
                       <span className="shrink-0 rounded-md bg-buy/15 px-2 py-1 text-[9px] font-bold uppercase text-buy">
-                        Live
+                        {t('feeRail.live')}
                       </span>
                     )}
                   </div>
                   <div className="mt-3 grid flex-1 grid-cols-2 gap-2">
                     <div className="flex flex-col justify-center rounded-lg border border-border bg-card/90 px-2 py-3 text-center">
-                      <span className="text-[10px] font-bold uppercase text-muted-foreground">Maker</span>
+                      <span className="text-[10px] font-bold uppercase text-muted-foreground">{t('feeRail.maker')}</span>
                       <span className="mt-1 text-xl font-bold tabular-nums text-primary">{feeRailDisplay.maker}%</span>
                     </div>
                     <div className="flex flex-col justify-center rounded-lg border border-border bg-card/90 px-2 py-3 text-center">
-                      <span className="text-[10px] font-bold uppercase text-muted-foreground">Taker</span>
+                      <span className="text-[10px] font-bold uppercase text-muted-foreground">{t('feeRail.taker')}</span>
                       <span className="mt-1 text-xl font-bold tabular-nums text-primary">{feeRailDisplay.taker}%</span>
                     </div>
                   </div>
                   <div className="mt-3 flex flex-1 flex-col justify-center gap-1.5 text-[11px] leading-snug text-muted-foreground">
-                    {feeRailDisplay.volumeTierLabel ? (
+                    {displayVolumeTierLabel ? (
                       <p>
-                        <span className="font-semibold text-foreground">Volume tier:</span> {feeRailDisplay.volumeTierLabel}
+                        <span className="font-semibold text-foreground">{t('feeRail.volumeTierLabel')}</span>{' '}
+                        {displayVolumeTierLabel}
                       </p>
                     ) : (
-                      <p>Trade more in 30d to unlock lower maker &amp; taker fees.</p>
+                      <p>{t('feeRail.tradeMoreHint')}</p>
                     )}
                     {feeRailDisplay.mnt ? (
-                      <p className="font-medium text-buy">MNT discount is on for spot.</p>
+                      <p className="font-medium text-buy">{t('feeRail.mntDiscountOn')}</p>
                     ) : (
-                      <p>Fiat pairs may use a separate schedule — see full table inside.</p>
+                      <p>{t('feeRail.fiatScheduleHint')}</p>
                     )}
                   </div>
                   <div className="mt-auto flex shrink-0 items-center justify-between border-t border-border pt-2.5">
-                    <span className="text-[10px] text-muted-foreground">VIP &amp; volume</span>
-                    <span className="text-xs font-bold text-primary">Details →</span>
+                    <span className="text-[10px] text-muted-foreground">{t('feeRail.footerLeft')}</span>
+                    <span className="text-xs font-bold text-primary">{t('feeRail.footerRight')}</span>
                   </div>
                 </div>
               )}
@@ -1593,7 +1619,7 @@ export default function DashboardPage() {
       <Link
         href="/dashboard/help"
         className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg ring-2 ring-border transition hover:scale-105 hover:bg-primary/90 sm:bottom-8 sm:right-8"
-        aria-label="Help"
+        aria-label={t('fabHelpAria')}
       >
         <HelpCircle className="h-6 w-6" />
       </Link>

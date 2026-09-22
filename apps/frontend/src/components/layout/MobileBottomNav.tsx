@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { BarChart3, TrendingUp, ClipboardList, Wallet, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MARKETS_HREF, ORDERS_HREF, WALLET_HREF, P2P_HREF, LEGACY_PATH_PREFIXES } from '@/lib/routes';
@@ -9,31 +10,31 @@ import { SPOT_TRADE_HREF, isSpotTradePath } from '@/lib/tier1-canonical-routes';
 
 const NAV_ITEMS: {
   href: string;
-  label: string;
+  labelKey: 'markets' | 'trade' | 'orders' | 'wallet' | 'p2p';
   icon: typeof BarChart3;
   active: (pathname: string) => boolean;
 }[] = [
   {
     href: MARKETS_HREF,
-    label: 'Markets',
+    labelKey: 'markets',
     icon: BarChart3,
     active: (p) => p.startsWith(MARKETS_HREF) || p.startsWith('/markets'),
   },
   {
     href: SPOT_TRADE_HREF,
-    label: 'Trade',
+    labelKey: 'trade',
     icon: TrendingUp,
     active: (p) => isSpotTradePath(p),
   },
   {
     href: ORDERS_HREF,
-    label: 'Orders',
+    labelKey: 'orders',
     icon: ClipboardList,
     active: (p) => p.startsWith('/orders') || p.startsWith('/dashboard/orders'),
   },
   {
     href: WALLET_HREF,
-    label: 'Wallet',
+    labelKey: 'wallet',
     icon: Wallet,
     active: (p) =>
       p.startsWith('/wallet') ||
@@ -44,7 +45,7 @@ const NAV_ITEMS: {
   },
   {
     href: P2P_HREF,
-    label: 'P2P',
+    labelKey: 'p2p',
     icon: Users,
     active: (p) => p.startsWith(P2P_HREF) || p.startsWith(LEGACY_PATH_PREFIXES.p2pV2),
   },
@@ -52,14 +53,16 @@ const NAV_ITEMS: {
 
 export function MobileBottomNav() {
   const pathname = usePathname() ?? '';
+  const tn = useTranslations('navigation');
+  const tc = useTranslations('common.a11y');
 
   return (
     <nav
       className="mobile-app-bottom-nav fixed bottom-0 left-0 right-0 z-[60] border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-md md:hidden"
-      aria-label="Primary mobile"
+      aria-label={tc('primaryMobileNav')}
     >
       <div className="mx-auto flex h-[4.25rem] max-w-lg items-stretch justify-around px-1.5 pt-1">
-        {NAV_ITEMS.map(({ href, label, icon: Icon, active }) => {
+        {NAV_ITEMS.map(({ href, labelKey, icon: Icon, active }) => {
           const isActive = active(pathname);
           return (
             <Link
@@ -74,7 +77,7 @@ export function MobileBottomNav() {
               )}
             >
               <Icon className={cn('h-5 w-5 shrink-0', isActive && 'stroke-[2.5]')} aria-hidden />
-              <span className="truncate">{label}</span>
+              <span className="truncate">{tn(labelKey)}</span>
             </Link>
           );
         })}

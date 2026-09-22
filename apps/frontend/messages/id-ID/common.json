@@ -7,6 +7,35 @@
   "foundation": {
     "ready": "Fondasi multibahasa aktif"
   },
+  "globalSearch": {
+    "placeholder": "Cari pasar, aset, bantuan…",
+    "typeMinChars": "Ketik minimal 2 karakter",
+    "searching": "Mencari…",
+    "noResults": "Tidak ada hasil"
+  },
+  "a11y": {
+    "primaryMobileNav": "Navigasi utama seluler",
+    "userMenu": "Menu pengguna",
+    "skipToMain": "Lompat ke konten utama",
+    "openMenu": "Buka menu",
+    "closeMenu": "Tutup menu",
+    "copyUserId": "Salin ID pengguna",
+    "copiedUserId": "Disalin",
+    "dismiss": "Tutup"
+  },
+  "notificationPanel": {
+    "title": "Notifikasi",
+    "markingRead": "Menandai…",
+    "markAllRead": "Tandai semua dibaca",
+    "loading": "Memuat notifikasi…",
+    "empty": "Belum ada notifikasi.",
+    "viewAll": "Lihat semua",
+    "deposit": "Deposit",
+    "order": "Pesanan",
+    "withdrawal": "Penarikan",
+    "security": "Keamanan",
+    "fetchFailed": "Tidak dapat mengambil notifikasi saat ini."
+  },
   "actions": {
     "save": "Simpan",
     "cancel": "Batal",

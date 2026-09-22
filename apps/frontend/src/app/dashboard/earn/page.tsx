@@ -1,9 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { PiggyBank, ShieldCheck, Clock3, WalletCards } from 'lucide-react';
 
 export default function EarnPage() {
+  const te = useTranslations('account.earn');
+
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
@@ -13,14 +16,14 @@ export default function EarnPage() {
               <PiggyBank className="h-6 w-6 text-primary" aria-hidden />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">Earn</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">{te('title')}</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                Yield products are launching in phased rollout with risk controls and clear disclosures.
+                {te('subtitle')}
               </p>
             </div>
           </div>
           <span className="inline-flex w-fit rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
-            Roadmap in progress
+            {te('badge')}
           </span>
         </div>
 
@@ -28,23 +31,23 @@ export default function EarnPage() {
           <div className="rounded-xl border border-border bg-background p-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
               <WalletCards className="h-4 w-4 text-primary" />
-              Flexible vaults
+              {te('cards.flexibleVaults.title')}
             </div>
-            <p className="text-xs text-muted-foreground">Flexible vaults planned with disclosed rates at launch.</p>
+            <p className="text-xs text-muted-foreground">{te('cards.flexibleVaults.desc')}</p>
           </div>
           <div className="rounded-xl border border-border bg-background p-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
               <ShieldCheck className="h-4 w-4 text-primary" />
-              Protected by controls
+              {te('cards.protectedControls.title')}
             </div>
-            <p className="text-xs text-muted-foreground">Limits, pause controls, and risk checks before launch.</p>
+            <p className="text-xs text-muted-foreground">{te('cards.protectedControls.desc')}</p>
           </div>
           <div className="rounded-xl border border-border bg-background p-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
               <Clock3 className="h-4 w-4 text-primary" />
-              Phased release
+              {te('cards.phasedRelease.title')}
             </div>
-            <p className="text-xs text-muted-foreground">Early access starts after internal and security validation.</p>
+            <p className="text-xs text-muted-foreground">{te('cards.phasedRelease.desc')}</p>
           </div>
         </div>
 
@@ -53,13 +56,13 @@ export default function EarnPage() {
             href="/wallet/convert"
             className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/85"
           >
-            Explore Convert
+            {te('exploreConvert')}
           </Link>
           <Link
             href="/dashboard/announcements"
             className="inline-flex items-center justify-center rounded-xl border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            Track updates
+            {te('trackUpdates')}
           </Link>
         </div>
       </div>

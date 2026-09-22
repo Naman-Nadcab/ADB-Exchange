@@ -6,12 +6,14 @@ import { ForexWatchlist } from '@/components/forex/ForexWatchlist';
 import { ForexBottomPanels } from '@/components/forex/ForexBottomPanels';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 
 type MobileTab = 'watch' | 'ticket' | 'toolbox';
 
 /** Mobile companion panels under the chart (desktop uses ForexTerminalLayout docks). */
 export default function ForexTradePage() {
+  const t = useTranslations('forex.mobileTrade');
   const [tab, setTab] = useState<MobileTab>('ticket');
   const positions = useForexStore((s) => s.positions);
   const orders = useForexStore((s) => s.orders);
@@ -30,23 +32,23 @@ export default function ForexTradePage() {
       <div className="flex h-8 items-center gap-1 border-b border-border bg-card px-2" role="tablist">
         {(
           [
-            { id: 'watch', label: 'Watch' },
-            { id: 'ticket', label: 'Order' },
-            { id: 'toolbox', label: 'Trade' },
+            { id: 'watch' as const, labelKey: 'watch' as const },
+            { id: 'ticket' as const, labelKey: 'order' as const },
+            { id: 'toolbox' as const, labelKey: 'trade' as const },
           ] as const
-        ).map((t) => (
+        ).map((item) => (
           <button
-            key={t.id}
+            key={item.id}
             type="button"
             role="tab"
-            aria-selected={tab === t.id}
-            onClick={() => setTab(t.id)}
+            aria-selected={tab === item.id}
+            onClick={() => setTab(item.id)}
             className={cn(
               'rounded px-2 py-1 text-[11px] font-medium',
-              tab === t.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'
+              tab === item.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'
             )}
           >
-            {t.label}
+            {t(item.labelKey)}
           </button>
         ))}
       </div>

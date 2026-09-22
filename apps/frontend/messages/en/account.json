@@ -379,6 +379,27 @@
       }
     }
   },
+  "earn": {
+    "title": "Earn",
+    "subtitle": "Yield products are launching in phased rollout with risk controls and clear disclosures.",
+    "badge": "Roadmap in progress",
+    "cards": {
+      "flexibleVaults": {
+        "title": "Flexible vaults",
+        "desc": "Flexible vaults planned with disclosed rates at launch."
+      },
+      "protectedControls": {
+        "title": "Protected by controls",
+        "desc": "Limits, pause controls, and risk checks before launch."
+      },
+      "phasedRelease": {
+        "title": "Phased release",
+        "desc": "Early access starts after internal and security validation."
+      }
+    },
+    "exploreConvert": "Explore Convert",
+    "trackUpdates": "Track updates"
+  },
   "help": {
     "title": "Help Center",
     "contactSupport": "Contact support",
@@ -605,6 +626,180 @@
     "newCodeLabel": "New code",
     "newCodeInitialLabel": "Code (4–20 characters)",
     "newCodePlaceholder": "Letters, numbers, underscores only"
+  },
+  "shell": {
+    "completeVerification": "Complete Verification",
+    "verifyNow": "Verify Now",
+    "kycBanner": "Complete Identity Verification to continue using platform services.",
+    "depositButton": "Deposit",
+    "selectPaymentMethod": "Select Payment Method",
+    "alreadyHaveCrypto": "Already have crypto",
+    "depositCrypto": "Deposit Crypto",
+    "depositCryptoHint": "One-click from a verified address",
+    "p2pTrading": "P2P Trading",
+    "zeroFees": "Zero Fees",
+    "dontHaveCrypto": "Don't have crypto",
+    "buyWithInr": "Buy with INR",
+    "buyWithCard": "Buy with card or bank transfer",
+    "estimatedBalance": "Estimated Balance",
+    "notificationsUnread": "Notifications ({count} unread)"
+  },
+  "dashboard": {
+    "title": "Overview",
+    "description": "Portfolio, markets, and account activity — your trading command center.",
+    "balance": {
+      "estimatedTotal": "Estimated total balance",
+      "estimatedTotalTooltip": "Combined funding and trading account balance in your selected display currency.",
+      "portfolioPnl24h": "24h portfolio PnL",
+      "portfolioPnlTooltip": "Day-over-day portfolio change is not available from this summary yet.",
+      "updated": "Updated {datetime}",
+      "funding": "Funding",
+      "fundingHint": "Deposits & P2P",
+      "trading": "Trading",
+      "tradingHint": "Spot & open orders"
+    },
+    "accountCard": {
+      "label": "Account",
+      "uid": "UID",
+      "copyUidAria": "Copy full user ID"
+    },
+    "quickActions": {
+      "title": "Quick actions"
+    },
+    "shortcuts": {
+      "more": "More",
+      "allPairs": "All pairs",
+      "tradeDesc": "Trade",
+      "buySell": "Buy / Sell",
+      "history": "History",
+      "yourTier": "Your tier"
+    },
+    "progress": {
+      "title": "Platform build progress",
+      "complete": "Complete",
+      "milestones": "{done} / {total} milestones · Roadmap visibility"
+    },
+    "kyc": {
+      "title": "Get started",
+      "subtitle": "Unlock limits and full access",
+      "signup": "Sign up",
+      "done": "Done",
+      "verify": "Verify",
+      "inProgress": "In progress",
+      "deposit": "Deposit",
+      "locked": "Locked",
+      "idTime": "2–5 minutes with a valid ID",
+      "encryptedStorage": "Encrypted storage — your data stays private",
+      "getVerified": "Get verified"
+    },
+    "marketOverview": {
+      "title": "Market overview",
+      "subtitle": "Top movers by 24h change (live tickers)",
+      "allMarkets": "All markets",
+      "topGainers": "Top gainers",
+      "topLosers": "Top losers",
+      "noChangeData": "No change data",
+      "unavailable": "Market data unavailable. Open Spot or retry from the watchlist below."
+    },
+    "watchlist": {
+      "title": "Watchlist & pairs",
+      "spotBadge": "Spot",
+      "live": "Live",
+      "subtitle": "Favorites, movers, or full list — jump to Spot anytime",
+      "marketsLink": "Markets",
+      "action": "Action",
+      "noFavoritesTitle": "No favorites yet",
+      "noFavoritesDesc": "Star pairs in the table below once markets load, or browse Spot to add them.",
+      "openSpot": "Open Spot",
+      "loadFailedTitle": "Couldn't load markets",
+      "noTickersTitle": "No tickers right now",
+      "loadFailedDesc": "Check your connection or try again. Spot trading may still be available from the terminal.",
+      "noTickersDesc": "The market service returned no pairs. Try again later or open Spot directly.",
+      "goToSpot": "Go to Spot"
+    },
+    "marketTabs": {
+      "hot": "Hot"
+    },
+    "recentActivity": {
+      "title": "Recent activity",
+      "subtitle": "Orders and funding movements",
+      "p2pSnapshot": "P2P snapshot",
+      "activeMid": "active ·",
+      "totalOrders": "total orders",
+      "openP2pHub": "Open P2P hub",
+      "ordersHub": "Orders hub",
+      "spotOrders": "Spot orders",
+      "fundingHistory": "Funding history",
+      "signInForP2p": "Sign in to see P2P order counts on the dashboard."
+    },
+    "announcements": {
+      "title": "Announcements",
+      "subtitle": "Product & maintenance updates",
+      "quickTips": "Quick tips",
+      "whileYouWait": "While you wait — quick tips",
+      "noPinnedTitle": "No pinned announcements",
+      "noPinnedDesc": "Listing updates, maintenance windows, and campaigns appear here when published.",
+      "new": "New"
+    },
+    "tips": {
+      "securityTitle": "Security",
+      "securityDesc": "Turn on 2FA and passkeys under Account → Security.",
+      "spotTitle": "Spot",
+      "spotDesc": "Use limit orders to control price; check min notional on the order form.",
+      "p2pTitle": "P2P",
+      "p2pDesc": "Only pay using listed methods; never transfer off-platform."
+    },
+    "helpRail": {
+      "selfService": "Self-service guides",
+      "guidesCount": "{count} step-by-step guides",
+      "previewSnippets": "Deposits, fees, VIP, passkeys & P2P",
+      "previewLine2": "Trading fees & VIP tiers",
+      "previewLine3": "P2P pay, confirm & release",
+      "moreInside": "More inside",
+      "open": "Open →"
+    },
+    "referralRail": {
+      "title": "Referrals",
+      "subtitle": "Invite & earn",
+      "yourCode": "Your code",
+      "invited": "Invited",
+      "earned": "Earned",
+      "commissionHint": "{pct}% commission · Link & banners on full page",
+      "live": "● Live",
+      "syncPending": "○ Sync pending"
+    },
+    "p2pRail": {
+      "subtitle": "Buy / sell fiat",
+      "inProgress": "In progress",
+      "allOrders": "All orders",
+      "pairsHint": "USDT, BTC, ETH vs INR — bank, UPI & listed methods only.",
+      "escrowHint": "Escrow-protected trades · Manage payment methods & order history from the hub.",
+      "footerLeft": "Orders → P2P",
+      "footerRight": "Trade →"
+    },
+    "feeRail": {
+      "title": "Fee tier",
+      "subtitle": "Spot rates",
+      "status": "Status",
+      "regularUser": "Regular User",
+      "default": "Default",
+      "live": "Live",
+      "maker": "Maker",
+      "taker": "Taker",
+      "volumeTier": "Volume tier {level}",
+      "volumeTierLabel": "Volume tier:",
+      "tradeMoreHint": "Trade more in 30d to unlock lower maker & taker fees.",
+      "mntDiscountOn": "MNT discount is on for spot.",
+      "fiatScheduleHint": "Fiat pairs may use a separate schedule — see full table inside.",
+      "footerLeft": "VIP & volume",
+      "footerRight": "Details →"
+    },
+    "fabHelpAria": "Help",
+    "errors": {
+      "apiUrlNotConfigured": "API URL not configured",
+      "announcementsTimeout": "Request timed out or network error",
+      "announcementsLoadFailed": "Could not load announcements"
+    }
   },
   "toasts": {
     "addPhoneFirst": "Please add a phone number first",

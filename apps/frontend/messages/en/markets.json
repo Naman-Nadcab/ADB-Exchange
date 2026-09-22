@@ -1,0 +1,128 @@
+{
+  "title": "Markets",
+  "description": "Browse live spot prices, 24h change, and volume across all listed trading pairs.",
+  "errors": {
+    "feedUnavailable": "Markets feed unavailable",
+    "loadListFailed": "Failed to load market list",
+    "network": "Network error while loading markets"
+  },
+  "empty": {
+    "noDataTitle": "No market data",
+    "noDataDesc": "No active spot markets were returned by the feed.",
+    "noFilterMatchTitle": "No assets match current filters",
+    "noFilterMatchDesc": "Adjust filters to expand the result set.",
+    "noAnnouncements": "No announcements yet."
+  },
+  "metrics": {
+    "marketCap": "Market Cap",
+    "volume24h": "24H Volume",
+    "btcDominance": "BTC Dominance",
+    "fearGreed": "Fear & Greed",
+    "assetsListed": "Assets Listed"
+  },
+  "trendingDashboard": {
+    "title": "Trending Dashboard",
+    "subtitle": "Fast opportunity scan across liquidity and momentum.",
+    "liveSnapshot": "live snapshot"
+  },
+  "fields": {
+    "price": "Price",
+    "change24h": "24H",
+    "change7d": "7D",
+    "volume": "Volume",
+    "mktCap": "Mkt Cap",
+    "volShort": "Vol",
+    "liqShort": "Liq",
+    "mCapShort": "MCap",
+    "assetsCount": "{count} assets",
+    "virtualized": "virtualized rendering"
+  },
+  "topMovers": {
+    "title": "Top Movers",
+    "tabs": {
+      "trending": "Trending",
+      "gainers": "Gainers",
+      "losers": "Losers",
+      "volume": "Volume Leaders",
+      "new": "New Listings"
+    }
+  },
+  "heatmap": {
+    "title": "Market Heatmap",
+    "buyers": "Buyers",
+    "sellers": "Sellers",
+    "lCapBadge": "L-CAP",
+    "scrollHint": "Scroll to explore full market breadth",
+    "laneHint": "Lane length tracks market-cap dominance"
+  },
+  "sectors": {
+    "title": "Sector Performance",
+    "rotationInsight": "Sector Rotation Insight",
+    "strongest": "Strongest",
+    "weakest": "Weakest",
+    "momentumScore": "Momentum Score",
+    "statusLabel": "Status",
+    "leaders": "Sector Leaders",
+    "dominanceSummary": "Sector Dominance Summary",
+    "assetsVol": "{count} assets · Vol ${vol}",
+    "names": {
+      "AI": "AI",
+      "Meme": "Meme",
+      "Layer1": "Layer1",
+      "Layer2": "Layer2",
+      "Gaming": "Gaming",
+      "RWA": "RWA",
+      "DePIN": "DePIN"
+    },
+    "rotation": {
+      "balanced": "Balanced",
+      "highRotation": "High Rotation",
+      "riskOn": "Risk-On Rotation",
+      "riskOff": "Risk-Off Rotation",
+      "mixed": "Mixed Rotation"
+    }
+  },
+  "filters": {
+    "title": "Advanced Filters",
+    "search": "Search",
+    "searchPlaceholder": "BTC, ETH, SOL...",
+    "quote": "Quote",
+    "minPrice": "Min Price",
+    "maxPrice": "Max Price",
+    "direction24h": "24H Direction",
+    "all": "All",
+    "positive": "Positive",
+    "negative": "Negative"
+  },
+  "table": {
+    "title": "Institutional Market Table",
+    "rank": "Rank",
+    "asset": "Asset",
+    "liquidityShort": "Liq.",
+    "action": "Action",
+    "trade": "Trade"
+  },
+  "recentlyAdded": {
+    "title": "Recently Added Assets"
+  },
+  "intelligence": {
+    "title": "Market Intelligence",
+    "liveUpdate": "Live Update",
+    "panels": {
+      "latest": "Latest News",
+      "announcements": "Exchange Announcements",
+      "listings": "New Listings",
+      "pulse": "Market Pulse"
+    },
+    "bullishAssets": "Bullish Assets",
+    "bearishAssets": "Bearish Assets",
+    "fearGreedScore": "Fear & Greed Score",
+    "strongestSector": "Strongest Sector",
+    "weakestSector": "Weakest Sector",
+    "dataSources": "Data sources:",
+    "dataSourcesDetail": "Alternative.me, CoinGecko, live orderbooks · {hint}"
+  },
+  "activePairs": {
+    "title": "Most Active Trading Pairs"
+  }
+}

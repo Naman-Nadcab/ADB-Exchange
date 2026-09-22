@@ -99,19 +99,19 @@ export default function ForgotPasswordPage() {
     if (submitting) return;
     const otpCode = otp.join('');
     if (otpCode.length !== 6) {
-      setError('Please enter the 6-digit OTP');
+      setError(tf('enterOtp'));
       return;
     }
     if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(tf('passwordMin8'));
       return;
     }
     if (!/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
-      setError('Password must include uppercase, lowercase, and a number');
+      setError(tf('passwordComplexity'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(tf('passwordsMismatch'));
       return;
     }
     setSubmitting(true);
@@ -128,7 +128,7 @@ export default function ForgotPasswordPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error?.message || 'Reset failed. Please try again.');
+        setError(data.error?.message || tf('resetFailed'));
         return;
       }
       window.location.href = '/login?reset=success';
@@ -150,7 +150,7 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ identifier: identifier.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) setError(data.error?.message || 'Resend failed.');
+      if (!res.ok) setError(data.error?.message || tf('resendFailed'));
       else {
         setCountdown(60);
         setOtp(['', '', '', '', '', '']);
@@ -168,15 +168,15 @@ export default function ForgotPasswordPage() {
         <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} className="mb-8" />
         <Link href="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="w-4 h-4" />
-          Back to login
+          {tf('backToLogin')}
         </Link>
         <div className="bg-card rounded-xl shadow-xl border border-border p-8">
           {step === 'request' ? (
             <form onSubmit={handleRequestSubmit} className="space-y-6">
               <div>
-                <h1 className="text-2xl font-bold text-foreground mb-1">Forgot password?</h1>
+                <h1 className="text-2xl font-bold text-foreground mb-1">{tf('requestTitle')}</h1>
                 <p className="text-muted-foreground">
-                  Enter your email or phone to receive a reset code
+                  {tf('requestSubtitle')}
                 </p>
               </div>
               <div className="flex border-b border-border">
@@ -189,7 +189,7 @@ export default function ForgotPasswordPage() {
                       : 'text-muted-foreground border-transparent hover:text-foreground/80'
                   }`}
                 >
-                  Email
+                  {tf('emailTab')}
                 </button>
                 <button
                   type="button"
@@ -200,7 +200,7 @@ export default function ForgotPasswordPage() {
                       : 'text-muted-foreground border-transparent hover:text-foreground/80'
                   }`}
                 >
-                  Mobile
+                  {tf('mobileTab')}
                 </button>
               </div>
               <div>
@@ -215,7 +215,7 @@ export default function ForgotPasswordPage() {
                       setIdentifier(e.target.value);
                     }
                   }}
-                  placeholder={identifierType === 'email' ? 'Email address' : 'Mobile number'}
+                  placeholder={identifierType === 'email' ? tf('emailPlaceholder') : tf('mobilePlaceholder')}
                   className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-foreground dark:bg-accent"
                   required
                 />
@@ -227,15 +227,18 @@ export default function ForgotPasswordPage() {
                 className="w-full py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mail className="w-5 h-5" />}
-                {loading ? 'Sending code...' : 'Send reset code'}
+                {loading ? tf('sendingCode') : tf('sendResetCode')}
               </button>
             </form>
           ) : (
             <form onSubmit={handleResetSubmit} className="space-y-6">
               <div>
-                <h1 className="text-2xl font-bold text-foreground mb-1">Reset password</h1>
+                <h1 className="text-2xl font-bold text-foreground mb-1">{tf('resetTitle')}</h1>
                 <p className="text-muted-foreground">
-                  Enter the 6-digit code sent to <span className="font-medium text-foreground">{identifier}</span>
+                  {tf.rich('resetSubtitle', {
+                    identifier,
+                    highlight: (chunks) => <span className="font-medium text-foreground">{chunks}</span>,
+                  })}
                 </p>
               </div>
               <div className="flex gap-2 justify-center">
@@ -254,13 +257,13 @@ export default function ForgotPasswordPage() {
                 ))}
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground/80 mb-1">New password</label>
+                <label className="block text-sm font-medium text-foreground/80 mb-1">{tf('newPassword')}</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Min 8 chars, uppercase, lowercase, number"
+                    placeholder={tf('newPasswordPlaceholder')}
                     className="w-full px-4 py-3 pr-10 border border-border rounded-lg focus:ring-2 focus:ring-primary text-foreground dark:bg-accent"
                     required
                   />
@@ -274,12 +277,12 @@ export default function ForgotPasswordPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground/80 mb-1">Confirm password</label>
+                <label className="block text-sm font-medium text-foreground/80 mb-1">{tf('confirmPassword')}</label>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Re-enter password"
+                  placeholder={tf('confirmPlaceholder')}
                   className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-primary text-foreground dark:bg-accent"
                   required
                 />
@@ -292,14 +295,14 @@ export default function ForgotPasswordPage() {
                   disabled={countdown > 0 || loading}
                   className={`${countdown > 0 ? 'text-muted-foreground cursor-not-allowed' : 'text-primary hover:underline'}`}
                 >
-                  Resend code {countdown > 0 && `(${formatCountdown(countdown)})`}
+                  {countdown > 0 ? tf('resendCodeCountdown', { time: formatCountdown(countdown) }) : tf('resendCode')}
                 </button>
                 <button
                   type="button"
                   onClick={() => setStep('request')}
                   className="text-primary hover:underline"
                 >
-                  Change {identifierType === 'email' ? 'email' : 'number'}
+                  {identifierType === 'email' ? tf('changeEmail') : tf('changeNumber')}
                 </button>
               </div>
               <button
@@ -308,14 +311,14 @@ export default function ForgotPasswordPage() {
                 className="w-full py-3 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-                {submitting ? 'Resetting...' : 'Reset password'}
+                {submitting ? tf('resetting') : tf('resetPassword')}
               </button>
             </form>
           )}
         </div>
         <p className="text-center text-sm text-muted-foreground mt-6">
-          Remember your password?{' '}
-          <Link href="/login" className="text-primary hover:underline font-medium">Log in</Link>
+          {tf('rememberPassword')}{' '}
+          <Link href="/login" className="text-primary hover:underline font-medium">{tf('logIn')}</Link>
         </p>
       </div>
     </div>

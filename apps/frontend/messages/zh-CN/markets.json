@@ -1,0 +1,128 @@
+{
+  "title": "行情",
+  "description": "浏览所有已上线交易对的现货价格、24 小时涨跌与成交量。",
+  "errors": {
+    "feedUnavailable": "行情数据不可用",
+    "loadListFailed": "加载市场列表失败",
+    "network": "加载行情时网络错误"
+  },
+  "empty": {
+    "noDataTitle": "暂无行情数据",
+    "noDataDesc": "数据源未返回活跃的现货市场。",
+    "noFilterMatchTitle": "没有符合筛选条件的资产",
+    "noFilterMatchDesc": "请调整筛选以扩大结果范围。",
+    "noAnnouncements": "暂无公告。"
+  },
+  "metrics": {
+    "marketCap": "总市值",
+    "volume24h": "24H 成交量",
+    "btcDominance": "BTC 占比",
+    "fearGreed": "恐惧与贪婪",
+    "assetsListed": "上线资产数"
+  },
+  "trendingDashboard": {
+    "title": "趋势仪表盘",
+    "subtitle": "基于流动性与动量的快速机会扫描。",
+    "liveSnapshot": "实时快照"
+  },
+  "fields": {
+    "price": "价格",
+    "change24h": "24H",
+    "change7d": "7D",
+    "volume": "成交量",
+    "mktCap": "市值",
+    "volShort": "量",
+    "liqShort": "深度",
+    "mCapShort": "市值",
+    "assetsCount": "{count} 个资产",
+    "virtualized": "虚拟滚动渲染"
+  },
+  "topMovers": {
+    "title": "涨跌幅榜",
+    "tabs": {
+      "trending": "热门",
+      "gainers": "涨幅榜",
+      "losers": "跌幅榜",
+      "volume": "成交量榜",
+      "new": "新上线"
+    }
+  },
+  "heatmap": {
+    "title": "市场热力图",
+    "buyers": "买方",
+    "sellers": "卖方",
+    "lCapBadge": "大盘",
+    "scrollHint": "滚动浏览全市场广度",
+    "laneHint": "条带长度反映市值占比"
+  },
+  "sectors": {
+    "title": "板块表现",
+    "rotationInsight": "板块轮动洞察",
+    "strongest": "最强",
+    "weakest": "最弱",
+    "momentumScore": "动量得分",
+    "statusLabel": "状态",
+    "leaders": "板块龙头",
+    "dominanceSummary": "板块占比概览",
+    "assetsVol": "{count} 个资产 · 量 ${vol}",
+    "names": {
+      "AI": "AI",
+      "Meme": "Meme",
+      "Layer1": "Layer1",
+      "Layer2": "Layer2",
+      "Gaming": "Gaming",
+      "RWA": "RWA",
+      "DePIN": "DePIN"
+    },
+    "rotation": {
+      "balanced": "均衡",
+      "highRotation": "高轮动",
+      "riskOn": "风险偏好轮动",
+      "riskOff": "避险轮动",
+      "mixed": "混合轮动"
+    }
+  },
+  "filters": {
+    "title": "高级筛选",
+    "search": "搜索",
+    "searchPlaceholder": "BTC、ETH、SOL…",
+    "quote": "计价",
+    "minPrice": "最低价",
+    "maxPrice": "最高价",
+    "direction24h": "24H 方向",
+    "all": "全部",
+    "positive": "上涨",
+    "negative": "下跌"
+  },
+  "table": {
+    "title": "机构级市场表格",
+    "rank": "排名",
+    "asset": "资产",
+    "liquidityShort": "深度",
+    "action": "操作",
+    "trade": "交易"
+  },
+  "recentlyAdded": {
+    "title": "最近上线资产"
+  },
+  "intelligence": {
+    "title": "市场情报",
+    "liveUpdate": "实时更新",
+    "panels": {
+      "latest": "最新资讯",
+      "announcements": "交易所公告",
+      "listings": "新上线",
+      "pulse": "市场脉搏"
+    },
+    "bullishAssets": "上涨资产占比",
+    "bearishAssets": "下跌资产占比",
+    "fearGreedScore": "恐惧与贪婪指数",
+    "strongestSector": "最强板块",
+    "weakestSector": "最弱板块",
+    "dataSources": "数据来源：",
+    "dataSourcesDetail": "Alternative.me、CoinGecko、实时订单簿 · {hint}"
+  },
+  "activePairs": {
+    "title": "最活跃交易对"
+  }
+}

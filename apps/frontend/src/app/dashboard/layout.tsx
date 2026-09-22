@@ -55,10 +55,10 @@ import { useDisplayCurrency } from '@/context/DisplayCurrencyProvider';
 const MOBILE_NAV_PAD = 'pb-[calc(3.75rem+env(safe-area-inset-bottom,0px))] md:pb-0';
 
 const navItems = [
-  { label: 'Markets', href: MARKETS_HREF },
-  { label: 'Trade', href: SPOT_TRADE_HREF },
-  { label: 'P2P', href: P2P_HREF },
-  { label: 'Earn', href: ROUTES.earn },
+  { labelKey: 'markets' as const, href: MARKETS_HREF },
+  { labelKey: 'trade' as const, href: SPOT_TRADE_HREF },
+  { labelKey: 'p2p' as const, href: P2P_HREF },
+  { labelKey: 'earn' as const, href: ROUTES.earn },
 ];
 
 function isNavItemActive(pathname: string | null, href: string): boolean {
@@ -96,6 +96,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const tn = useTranslations('common.notifications');
   const tt = useTranslations('account.toasts');
+  const tNav = useTranslations('navigation');
+  const tShell = useTranslations('account.shell');
+  const tOrders = useTranslations('orders');
+  const tw = useTranslations('wallet.nav');
+  const tc = useTranslations('common');
+  const tPanel = useTranslations('common.notificationPanel');
   const pathname = usePathname();
   const { user, accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
@@ -183,7 +189,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }
       throw new Error(data?.error?.message || 'Unable to fetch notifications.');
     } catch {
-      setNotificationsError('Unable to fetch notifications right now.');
+      setNotificationsError(tPanel('fetchFailed'));
       toast({ title: tt('notificationsUnavailableTitle'), description: tt('notificationsUnavailableDesc'), variant: 'destructive' });
     } finally {
       setNotificationsLoading(false);
@@ -280,7 +286,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           href="#main-content"
           className="fixed left-4 top-4 z-[200] px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg -translate-y-16 focus:translate-y-0 outline-none transition-transform duration-200"
         >
-          Skip to main content
+          {tc('a11y.skipToMain')}
         </a>
 
         {/* Binance-style top header */}
@@ -288,7 +294,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center justify-between h-14 px-4">
             {/* Left: Logo + Nav */}
             <div className="flex items-center gap-4">
-              <button className="lg:hidden p-1.5 hover:bg-accent rounded-lg" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}>
+              <button className="lg:hidden p-1.5 hover:bg-accent rounded-lg" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label={mobileMenuOpen ? tc('a11y.closeMenu') : tc('a11y.openMenu')}>
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
 
@@ -299,12 +305,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   const active = isNavItemActive(pathname ?? null, item.href);
                   return (
                     <Link
-                      key={item.label}
+                      key={item.labelKey}
                       href={item.href}
                       prefetch
                       className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                     >
-                      {item.label}
+                      {tNav(item.labelKey)}
                     </Link>
                   );
                 })}
@@ -317,22 +323,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onClick={() => toggleDropdown('deposit')}
                 className="hdr-trigger hidden sm:flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-semibold rounded-lg hover:bg-primary/85 transition-colors"
               >
-                Deposit
+                {tShell('depositButton')}
                 <ChevronDown className={`w-3 h-3 transition-transform ${activeDropdown === 'deposit' ? 'rotate-180' : ''}`} />
               </button>
 
               <button onClick={() => toggleDropdown('wallet')} className="hdr-trigger hidden sm:flex items-center gap-1 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors">
-                <Wallet className="w-4 h-4" /> <span className="hidden md:inline">Wallet</span>
+                <Wallet className="w-4 h-4" /> <span className="hidden md:inline">{tNav('wallet')}</span>
                 <ChevronDown className={`w-3 h-3 transition-transform ${activeDropdown === 'wallet' ? 'rotate-180' : ''}`} />
               </button>
 
               <button onClick={() => toggleDropdown('orders')} className="hdr-trigger hidden sm:flex items-center gap-1 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors">
-                <FileText className="w-4 h-4" /> <span className="hidden md:inline">Orders</span>
+                <FileText className="w-4 h-4" /> <span className="hidden md:inline">{tNav('orders')}</span>
                 <ChevronDown className={`w-3 h-3 transition-transform ${activeDropdown === 'orders' ? 'rotate-180' : ''}`} />
               </button>
 
               <button
-                aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+                aria-label={unreadCount > 0 ? tShell('notificationsUnread', { count: unreadCount }) : tPanel('title')}
                 onClick={() => { toggleDropdown('notifications'); if (activeDropdown !== 'notifications') fetchNotifications(); }}
                 className="hdr-trigger relative p-2 hover:bg-accent rounded-lg"
               >
@@ -347,7 +353,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <ThemeToggle variant="icon" size="sm" />
 
               <button
-                aria-label="Open user menu"
+                aria-label={tc('a11y.userMenu')}
                 onClick={() => toggleDropdown('user')}
                 className="hdr-trigger p-2 hover:bg-accent rounded-lg"
               >
@@ -359,22 +365,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {activeDropdown === 'deposit' && (
               <div className="hdr-dropdown fixed right-4 top-14 w-72 bg-card border border-border rounded-xl shadow-xl z-[100] overflow-hidden animate-fade-in">
                 <div className="p-3 border-b border-border">
-                  <p className="text-sm font-semibold">Select Payment Method</p>
+                  <p className="text-sm font-semibold">{tShell('selectPaymentMethod')}</p>
                 </div>
                 <div className="p-2 space-y-0.5">
-                  <p className="px-3 py-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Already have crypto</p>
+                  <p className="px-3 py-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{tShell('alreadyHaveCrypto')}</p>
                   <Link href={walletPath.depositCrypto} prefetch className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-accent rounded-lg" onClick={() => setActiveDropdown(null)}>
                     <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center"><Wallet className="w-4 h-4 text-primary" /></div>
-                    <div><p className="font-medium text-foreground">Deposit Crypto</p><p className="text-xs text-muted-foreground">One-click from a verified address</p></div>
+                    <div><p className="font-medium text-foreground">{tShell('depositCrypto')}</p><p className="text-xs text-muted-foreground">{tShell('depositCryptoHint')}</p></div>
                   </Link>
                   <Link href={P2P_HREF} prefetch className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-accent rounded-lg" onClick={() => setActiveDropdown(null)}>
                     <div className="w-8 h-8 bg-buy/10 rounded-lg flex items-center justify-center"><Users className="w-4 h-4 text-buy" /></div>
-                    <div><p className="font-medium text-foreground">P2P Trading</p><p className="text-xs text-muted-foreground">Zero Fees</p></div>
+                    <div><p className="font-medium text-foreground">{tShell('p2pTrading')}</p><p className="text-xs text-muted-foreground">{tShell('zeroFees')}</p></div>
                   </Link>
-                  <p className="px-3 py-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-1">Don&apos;t have crypto</p>
+                  <p className="px-3 py-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-1">{tShell('dontHaveCrypto')}</p>
                   <Link href={walletPath.convert} prefetch className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-accent rounded-lg" onClick={() => setActiveDropdown(null)}>
                     <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center"><CreditCard className="w-4 h-4 text-primary" /></div>
-                    <div><p className="font-medium text-foreground">Buy with INR</p><p className="text-xs text-muted-foreground">Buy with card or bank transfer</p></div>
+                    <div><p className="font-medium text-foreground">{tShell('buyWithInr')}</p><p className="text-xs text-muted-foreground">{tShell('buyWithCard')}</p></div>
                   </Link>
                 </div>
               </div>
@@ -384,7 +390,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="hdr-dropdown fixed right-4 top-14 w-80 bg-card border border-border rounded-xl shadow-xl z-[100] overflow-hidden animate-fade-in">
                 <Link href={WALLET_HREF} prefetch onClick={() => setActiveDropdown(null)} className="block p-4 hover:bg-accent/50 transition-colors">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-muted-foreground">Estimated Balance</span>
+                    <span className="text-sm font-medium text-muted-foreground">{tShell('estimatedBalance')}</span>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </div>
                   <p className="text-2xl font-bold font-mono tabular-nums">
@@ -406,13 +412,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div className="p-3 border-t border-border">
                   <div className="grid grid-cols-3 gap-2">
                     <Link href={walletPath.depositCrypto} prefetch onClick={() => setActiveDropdown(null)} className="flex flex-col items-center gap-1 px-2 py-2 bg-primary text-primary-foreground text-xs font-medium rounded-lg hover:bg-primary/85 transition-colors">
-                      <Download className="w-4 h-4" /> Deposit
+                      <Download className="w-4 h-4" /> {tw('deposit')}
                     </Link>
                     <Link href={walletPath.withdrawCrypto} prefetch onClick={() => setActiveDropdown(null)} className="flex flex-col items-center gap-1 px-2 py-2 bg-accent text-foreground text-xs font-medium rounded-lg hover:bg-accent/80 transition-colors">
-                      <ArrowDownUp className="w-4 h-4" /> Withdraw
+                      <ArrowDownUp className="w-4 h-4" /> {tw('withdraw')}
                     </Link>
                     <Link href={walletPath.transfer} prefetch onClick={() => setActiveDropdown(null)} className="flex flex-col items-center gap-1 px-2 py-2 bg-accent text-foreground text-xs font-medium rounded-lg hover:bg-accent/80 transition-colors">
-                      <ArrowDownUp className="w-4 h-4 rotate-90" /> Transfer
+                      <ArrowDownUp className="w-4 h-4 rotate-90" /> {tw('transfer')}
                     </Link>
                   </div>
                 </div>
@@ -423,13 +429,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="hdr-dropdown fixed right-4 top-14 w-56 bg-card border border-border rounded-xl shadow-xl z-[100] overflow-hidden animate-fade-in">
                 <div className="p-1.5">
                   {[
-                    { href: ORDERS_HREF, label: 'All Orders', icon: FileText },
-                    { href: `${ORDERS_HREF}/spot`, label: 'Spot Orders', icon: TrendingUp },
-                    { href: `${ORDERS_HREF}/p2p`, label: 'P2P Orders', icon: Users },
-                    { href: `${ORDERS_HREF}/history`, label: 'Order History', icon: FileText },
+                    { href: ORDERS_HREF, labelKey: 'allOrders' as const, icon: FileText },
+                    { href: `${ORDERS_HREF}/spot`, labelKey: 'spotOrders' as const, icon: TrendingUp },
+                    { href: `${ORDERS_HREF}/p2p`, labelKey: 'p2pOrders' as const, icon: Users },
+                    { href: `${ORDERS_HREF}/history`, labelKey: 'orderHistory' as const, icon: FileText },
                   ].map((item) => (
                     <Link key={item.href} href={item.href} prefetch onClick={() => setActiveDropdown(null)} className="flex items-center gap-3 px-3 py-2 text-sm text-foreground hover:bg-accent rounded-lg">
-                      <item.icon className="w-4 h-4 text-muted-foreground" /> {item.label}
+                      <item.icon className="w-4 h-4 text-muted-foreground" /> {tOrders(item.labelKey)}
                     </Link>
                   ))}
                 </div>
@@ -439,7 +445,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {activeDropdown === 'notifications' && (
               <div className="hdr-dropdown fixed right-4 top-14 w-80 bg-card border border-border rounded-xl shadow-xl z-[100] overflow-hidden animate-fade-in">
                 <div className="p-3 border-b border-border flex items-center justify-between">
-                  <p className="text-sm font-semibold">Notifications</p>
+                  <p className="text-sm font-semibold">{tPanel('title')}</p>
                   {unreadCount > 0 && (
                     <button
                       type="button"
@@ -447,13 +453,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       onClick={markAllRead}
                       className="text-xs text-primary hover:underline disabled:opacity-50"
                     >
-                      {markingNotificationsRead ? 'Marking…' : 'Mark all read'}
+                      {markingNotificationsRead ? tPanel('markingRead') : tPanel('markAllRead')}
                     </button>
                   )}
                 </div>
                 <div className="max-h-80 overflow-y-auto">
                   {notificationsLoading ? (
-                    <div className="p-6 text-center text-sm text-muted-foreground">Loading notifications…</div>
+                    <div className="p-6 text-center text-sm text-muted-foreground">{tPanel('loading')}</div>
                   ) : notificationsError ? (
                     <div className="p-6 text-center">
                       <p className="text-sm text-muted-foreground">{notificationsError}</p>
@@ -462,11 +468,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         onClick={() => void fetchNotifications()}
                         className="mt-2 text-xs font-medium text-primary hover:underline"
                       >
-                        Retry
+                        {tc('actions.retry')}
                       </button>
                     </div>
                   ) : notifications.length === 0 ? (
-                    <div className="p-6 text-center text-sm text-muted-foreground">No notifications yet.</div>
+                    <div className="p-6 text-center text-sm text-muted-foreground">{tPanel('empty')}</div>
                   ) : notifications.map((n) => (
                     <div key={n.id} className={`p-4 border-b border-border last:border-0 ${!n.is_read ? 'bg-primary/5' : ''}`}>
                       <p className="text-sm font-medium">{n.title}</p>
@@ -476,7 +482,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   ))}
                 </div>
                 <div className="p-2 border-t border-border">
-                  <Link href={ROUTES.dashboard.announcements} onClick={() => setActiveDropdown(null)} className="block text-center text-sm text-primary hover:underline py-2">View all</Link>
+                  <Link href={ROUTES.dashboard.announcements} onClick={() => setActiveDropdown(null)} className="block text-center text-sm text-primary hover:underline py-2">{tPanel('viewAll')}</Link>
                 </div>
               </div>
             )}
@@ -494,7 +500,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       </div>
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <span>UID: {user?.id?.slice(0, 8) || '******'}</span>
-                        <button onClick={copyUID} className="p-0.5 hover:text-primary" aria-label={uidCopied ? 'Copied' : 'Copy user ID'}>
+                        <button onClick={copyUID} className="p-0.5 hover:text-primary" aria-label={uidCopied ? tc('a11y.copiedUserId') : tc('a11y.copyUserId')}>
                           {uidCopied ? <span className="text-buy">✓</span> : <Copy className="w-3 h-3" />}
                         </button>
                       </div>
@@ -502,29 +508,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </div>
                   {!kycLoading && !kycVerified && (
                     <Link href={ROUTES.dashboard.identity} onClick={() => setActiveDropdown(null)} className="flex items-center justify-between mt-3 px-3 py-2 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/85 transition-colors">
-                      <span>Complete Verification</span><ChevronRight className="w-4 h-4" />
+                      <span>{tShell('completeVerification')}</span><ChevronRight className="w-4 h-4" />
                     </Link>
                   )}
                 </div>
                 <div className="p-1.5 max-h-64 overflow-y-auto">
                   {[
-                    { href: ROUTES.dashboard.root, label: 'Overview', icon: LayoutDashboard },
-                    { href: ROUTES.dashboard.account, label: 'Account', icon: User },
-                    { href: ROUTES.dashboard.security, label: 'Security', icon: Shield },
-                  { href: '/dashboard/support', label: 'Support', icon: HelpCircle },
-                    { href: ROUTES.dashboard.referral, label: 'Referral', icon: Gift },
-                    { href: ROUTES.dashboard.api, label: 'API Management', icon: Key },
-                    { href: ROUTES.dashboard.feeRates, label: 'Fee Tier', icon: Receipt },
-                    { href: ROUTES.dashboard.preferences, label: 'Preferences', icon: Settings },
+                    { href: ROUTES.dashboard.root, labelKey: 'overview' as const, icon: LayoutDashboard },
+                    { href: ROUTES.dashboard.account, labelKey: 'account' as const, icon: User },
+                    { href: ROUTES.dashboard.security, labelKey: 'security' as const, icon: Shield },
+                    { href: '/dashboard/support', labelKey: 'support' as const, icon: HelpCircle },
+                    { href: ROUTES.dashboard.referral, labelKey: 'referral' as const, icon: Gift },
+                    { href: ROUTES.dashboard.api, labelKey: 'apiManagement' as const, icon: Key },
+                    { href: ROUTES.dashboard.feeRates, labelKey: 'feeTier' as const, icon: Receipt },
+                    { href: ROUTES.dashboard.preferences, labelKey: 'preferences' as const, icon: Settings },
                   ].map((item) => (
                     <Link key={item.href} href={item.href} prefetch onClick={() => setActiveDropdown(null)} className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-accent rounded-lg">
-                      <item.icon className="w-4 h-4 text-muted-foreground" /> {item.label}
+                      <item.icon className="w-4 h-4 text-muted-foreground" /> {tNav(item.labelKey)}
                     </Link>
                   ))}
                 </div>
                 <div className="p-1.5 border-t border-border">
                   <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg">
-                    <LogOut className="w-4 h-4" /> Logout
+                    <LogOut className="w-4 h-4" /> {tNav('logout')}
                   </button>
                 </div>
               </div>
@@ -534,8 +540,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {!kycLoading && !kycVerified && kycEnforcementRequired && !kycBannerDismissed && (
             <div className="flex items-center justify-between px-4 py-2 bg-primary/5 border-t border-border">
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground">Complete Identity Verification to continue using platform services.</span>
-                <Link href={ROUTES.dashboard.identity} className="text-primary font-medium hover:underline">Verify Now</Link>
+                <span className="text-muted-foreground">{tShell('kycBanner')}</span>
+                <Link href={ROUTES.dashboard.identity} className="text-primary font-medium hover:underline">{tShell('verifyNow')}</Link>
               </div>
               <button
                 onClick={() => {
@@ -543,7 +549,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   if (typeof window !== 'undefined') window.sessionStorage.setItem('kyc_banner_dismissed', '1');
                 }}
                 className="text-muted-foreground hover:text-foreground"
-                aria-label="Dismiss"
+                aria-label={tc('a11y.dismiss')}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -567,29 +573,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {navItems.map((item) => {
                   const active = isNavItemActive(pathname ?? null, item.href);
                   return (
-                    <Link key={item.label} href={item.href} prefetch onClick={() => setMobileMenuOpen(false)} className={`block px-4 py-3 text-sm font-medium ${active ? 'text-primary bg-primary/5' : 'text-foreground hover:bg-accent'}`}>
-                      {item.label}
+                    <Link key={item.labelKey} href={item.href} prefetch onClick={() => setMobileMenuOpen(false)} className={`block px-4 py-3 text-sm font-medium ${active ? 'text-primary bg-primary/5' : 'text-foreground hover:bg-accent'}`}>
+                      {tNav(item.labelKey)}
                     </Link>
                   );
                 })}
                 <div className="my-2 mx-4 border-t border-border" />
                 {[
-                  { href: ROUTES.dashboard.root, label: 'Dashboard', icon: LayoutDashboard },
-                  { href: WALLET_HREF, label: 'Wallet', icon: Wallet },
-                  { href: ORDERS_HREF, label: 'Orders', icon: FileText },
-                  { href: ROUTES.dashboard.account, label: 'Account', icon: User },
-                  { href: ROUTES.dashboard.security, label: 'Security', icon: Shield },
-                  { href: '/dashboard/support', label: 'Support', icon: HelpCircle },
-                  { href: ROUTES.dashboard.referral, label: 'Referral', icon: Gift },
-                  { href: ROUTES.dashboard.feeRates, label: 'Fees', icon: Receipt },
+                  { href: ROUTES.dashboard.root, labelKey: 'dashboard' as const, icon: LayoutDashboard },
+                  { href: WALLET_HREF, labelKey: 'wallet' as const, icon: Wallet },
+                  { href: ORDERS_HREF, labelKey: 'orders' as const, icon: FileText },
+                  { href: ROUTES.dashboard.account, labelKey: 'account' as const, icon: User },
+                  { href: ROUTES.dashboard.security, labelKey: 'security' as const, icon: Shield },
+                  { href: '/dashboard/support', labelKey: 'support' as const, icon: HelpCircle },
+                  { href: ROUTES.dashboard.referral, labelKey: 'referral' as const, icon: Gift },
+                  { href: ROUTES.dashboard.feeRates, labelKey: 'fees' as const, icon: Receipt },
                 ].map((item) => (
                   <Link key={item.href} href={item.href} prefetch onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent">
-                    <item.icon className="w-4 h-4" /> {item.label}
+                    <item.icon className="w-4 h-4" /> {tNav(item.labelKey)}
                   </Link>
                 ))}
                 <div className="my-2 mx-4 border-t border-border" />
                 <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10">
-                  <LogOut className="w-4 h-4" /> Logout
+                  <LogOut className="w-4 h-4" /> {tNav('logout')}
                 </button>
               </nav>
             </aside>

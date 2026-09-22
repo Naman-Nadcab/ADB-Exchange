@@ -1,0 +1,122 @@
+{
+  "hero": {
+    "eyebrow": "FDM · Fintech Digital Market",
+    "titleLine1": "Fintech Digital Market.",
+    "titleLine2": "Kripto dan Forex.",
+    "description": "Akses aset digital dan FX global melalui platform finansial profesional untuk presisi, transparansi, dan kontrol.",
+    "exploreMarkets": "Jelajahi Pasar",
+    "createAccount": "Buat Akun"
+  },
+  "liveMarkets": {
+    "aria": "Pasar live",
+    "heading": "Pasar",
+    "loading": "Memuat data pasar…",
+    "unavailable": "Tidak tersedia"
+  },
+  "status": {
+    "live": "Live",
+    "stale": "Tertinggal",
+    "connecting": "Menghubungkan",
+    "unavailable": "Tidak tersedia"
+  },
+  "ticker": {
+    "aria": "Ticker pasar",
+    "globalMarkets": "Pasar Global"
+  },
+  "dualMarket": {
+    "eyebrow": "Satu platform. Dua pasar.",
+    "cryptoLabel": "Kripto",
+    "cryptoTitle": "Pasar Aset Digital",
+    "cryptoDesc": "Trading spot untuk aset digital.",
+    "cryptoExplore": "Jelajahi Kripto →",
+    "cryptoBullets": { "spot": "Spot", "wallet": "Wallet", "p2p": "P2P" },
+    "forexLabel": "Forex",
+    "forexTitle": "Pasar FX Global",
+    "forexDesc": "Trading FX profesional dengan margin, posisi, dan manajemen risiko terpisah.",
+    "forexExplore": "Jelajahi Forex →",
+    "forexBullets": { "trading": "Trading FX", "margin": "Margin", "risk": "Risiko" }
+  },
+  "globalTable": {
+    "eyebrow": "Pasar",
+    "title": "Pasar Global",
+    "tabsAria": "Kelas pasar",
+    "tabs": { "all": "Semua", "crypto": "Kripto", "forex": "Forex", "metals": "Logam" },
+    "instrument": "Instrumen",
+    "market": "Pasar",
+    "price": "Harga",
+    "bidPrice": "Bid / Harga",
+    "change": "Perubahan",
+    "ask": "Ask",
+    "spread": "Spread",
+    "status": "Status",
+    "emptyFilter": "Tidak ada instrumen untuk filter ini.",
+    "marketTypes": { "crypto": "Kripto", "forex": "Forex", "metals": "Logam" }
+  },
+  "platform": {
+    "eyebrow": "Platform",
+    "title": "Dibangun untuk presisi",
+    "capabilities": {
+      "execution": { "title": "Eksekusi", "body": "Alur eksekusi khusus pasar untuk aset digital dan FX." },
+      "marketData": { "title": "Data Pasar", "body": "Informasi pasar real-time untuk spot Kripto dan FX global." },
+      "riskControl": { "title": "Kontrol Risiko", "body": "Kontrol margin, eksposur, dan posisi Forex, terpisah dari wallet Kripto." },
+      "security": { "title": "Keamanan", "body": "Perlindungan akun, autentikasi, dan akses terkontrol setiap sesi." },
+      "liquidity": { "title": "Likuiditas", "body": "Arsitektur likuiditas khusus pasar untuk aset digital dan FX." },
+      "transparency": { "title": "Transparansi", "body": "Visibilitas akun, ledger, dan keuangan setelah masuk." }
+    }
+  },
+  "trust": {
+    "eyebrow": "Kepercayaan",
+    "coreTitle": "Dibangun di inti finansial",
+    "coreDesc": "Data pasar, eksekusi, risiko, settlement, dan catatan finansial melalui layanan platform khusus.",
+    "pipeline": {
+      "marketData": "Data Pasar",
+      "liquidity": "Likuiditas",
+      "execution": "Eksekusi",
+      "risk": "Risiko",
+      "settlement": "Settlement",
+      "ledger": "Ledger"
+    },
+    "securityTitle": "Keamanan terintegrasi platform",
+    "securityLink": "Keamanan akun",
+    "securityItems": {
+      "twoFa": "Autentikasi dua faktor",
+      "accountProtection": "Perlindungan akun",
+      "sessionControls": "Kontrol sesi",
+      "apiPermissions": "Izin API",
+      "withdrawalSafeguards": "Safeguard penarikan",
+      "loginActivity": "Aktivitas login"
+    }
+  },
+  "accountPreview": {
+    "eyebrow": "Akun",
+    "title": "Visibilitas akun lengkap",
+    "desc": "Lacak saldo, ekuitas, margin, eksposur, P&L, dan aktivitas akun setelah masuk.",
+    "previewLabel": "Pratinjau produk",
+    "afterSignIn": "Tersedia setelah masuk",
+    "labels": {
+      "balance": "Saldo",
+      "equity": "Ekuitas",
+      "margin": "Margin",
+      "unrealizedPnl": "P&L belum direalisasi",
+      "exposure": "Eksposur",
+      "activity": "Aktivitas"
+    }
+  },
+  "intelligence": {
+    "eyebrow": "Intelijen",
+    "title": "Intelijen pasar",
+    "desc": "Tetap terinformasi dengan data pasar, event ekonomi, dan berita finansial dalam alur trading Anda.",
+    "marketDataTitle": "Data pasar",
+    "marketDataDesc": "Instrumen Kripto dan FX live dari pasar FDM.",
+    "calendarTitle": "Kalender ekonomi",
+    "calendarDesc": "Event terjadwal di workspace analisis Forex.",
+    "newsTitle": "Berita finansial",
+    "newsDesc": "Headline dari penyedia berita platform — bukan konten fiktif."
+  },
+  "cta": {
+    "title": "Siap untuk pasar?",
+    "desc": "Akses aset digital dan FX global melalui FDM.",
+    "exploreMarkets": "Jelajahi Pasar",
+    "createAccount": "Buat Akun"
+  }
+}

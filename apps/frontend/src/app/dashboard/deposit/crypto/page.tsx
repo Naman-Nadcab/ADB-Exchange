@@ -250,16 +250,16 @@ export default function DepositCryptoPage() {
         setAvailableChains(result.data);
         setChainsError(null);
         if (result.data.length === 0) {
-          setChainsError(`No chains support ${symbol}. Add ${symbol} on a chain in admin.`);
+          setChainsError(tw('deposit.errors.noChainsForSymbol', { symbol }));
         }
       } else {
         setAvailableChains([]);
-        setChainsError(result.error?.message || 'Could not load chains for this asset.');
+        setChainsError(result.error?.message || tw('deposit.errors.loadChainsFailed'));
       }
     } catch (error) {
       notifyError(tt('loadChainsFailed'));
       setAvailableChains([]);
-      setChainsError('Network error. Try again.');
+      setChainsError(tw('deposit.errors.networkError'));
     } finally {
       setChainsLoading(false);
     }
@@ -267,7 +267,7 @@ export default function DepositCryptoPage() {
 
   const fetchDepositAddress = async (chainId: string) => {
     if (!accessToken) {
-      setAddressError('Please sign in to see your deposit address.');
+      setAddressError(tw('deposit.errors.signInRequired'));
       return;
     }
     try {
@@ -283,20 +283,20 @@ export default function DepositCryptoPage() {
         setShowKycModal(false);
       } else if (result.error?.code === 'KYC_REQUIRED') {
         setDepositAddress(null);
-        setAddressError('Complete identity verification (KYC) to view your deposit address.');
+        setAddressError(tw('deposit.errors.kycRequired'));
         setShowKycModal(true);
       } else if (result.error?.code === 'SESSION_EXPIRED' || result.error?.code === 'INVALID_TOKEN') {
         setDepositAddress(null);
-        setAddressError('Session expired. Please sign in again.');
+        setAddressError(tw('deposit.errors.sessionExpired'));
         router.push('/login');
       } else {
         setDepositAddress(null);
         const detail = (result.error as { detail?: string } | undefined)?.detail;
-        setAddressError(detail || result.error?.message || 'Could not load address. Try again.');
+        setAddressError(detail || result.error?.message || tw('deposit.errors.loadAddressFailed'));
       }
     } catch (error) {
       setDepositAddress(null);
-      setAddressError('Network error. Check backend and try again.');
+      setAddressError(tw('deposit.errors.loadAddressNetwork'));
       notifyError(tt('loadDepositAddressFailed'));
     } finally {
       setAddressLoading(false);
@@ -326,8 +326,8 @@ export default function DepositCryptoPage() {
       if (result.success && Array.isArray(result.data)) {
         const mapped: Deposit[] = result.data.map((d) => ({
           id: d.id,
-          symbol: d.symbol || 'Unknown',
-          chain_name: d.chainName || 'Unknown',
+          symbol: d.symbol || tw('deposit.unknown'),
+          chain_name: d.chainName || tw('deposit.unknown'),
           amount: d.amount || '0',
           tx_hash: d.txHash,
           explorer_url: d.explorerUrl,
@@ -559,7 +559,7 @@ export default function DepositCryptoPage() {
                         </div>
                       ) : chainsError ? (
                         <div className="py-6 px-4 text-center">
-                          <p className="text-amber-600 dark:text-amber-400 text-sm mb-1">No chains available</p>
+                          <p className="text-amber-600 dark:text-amber-400 text-sm mb-1">{tw('deposit.noChainsTitle')}</p>
                           <p className="text-muted-foreground text-xs">{chainsError}</p>
                         </div>
                       ) : availableChains.length > 0 ? (
@@ -587,11 +587,13 @@ export default function DepositCryptoPage() {
                                 <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-primary rounded">EVM</span>
                               )}
                             </div>
-                            <span className="text-xs text-muted-foreground">{chain.confirmations_required} block confirms</span>
+                            <span className="text-xs text-muted-foreground">
+                              {tw('deposit.blockConfirms', { count: chain.confirmations_required ?? 0 })}
+                            </span>
                           </button>
                         ))
                       ) : (
-                        <div className="py-6 text-center text-muted-foreground">No chains available. Run backend migrations if the database is empty.</div>
+                        <div className="py-6 text-center text-muted-foreground">{tw('deposit.noChainsEmptyDb')}</div>
                       )}
                     </div>
                   )}
@@ -743,19 +745,25 @@ export default function DepositCryptoPage() {
                 <li>
                   <Link href="/dashboard/help#deposit-memo" className="text-sm text-muted-foreground hover:text-primary dark:hover:text-blue-400 flex items-start gap-1">
                     <span className="mt-1">•</span>
-                    <span>How to Recover a Deposit with Wrong or Missing Tag/Memo</span>
+                    <span>{tw('deposit.faqMemoRecovery')}</span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/dashboard/help#self-service" className="text-sm text-primary hover:text-primary/85 flex items-start gap-1">
                     <span className="mt-1">•</span>
-                    <span>Deposits yet to be credited? <span className="text-yellow-500">Self-Service →</span></span>
+                    <span>
+                      {tw('deposit.faqSelfServicePrefix')}{' '}
+                      <span className="text-yellow-500">{tw('deposit.faqSelfServiceAction')}</span>
+                    </span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/dashboard/help#deposit-withdraw-status" className="text-sm text-primary hover:text-primary/85 flex items-start gap-1">
                     <span className="mt-1">•</span>
-                    <span>Deposit/Withdrawal Status of All Coins <span className="text-yellow-500">Find Out →</span></span>
+                    <span>
+                      {tw('deposit.faqAllCoinsStatus')}{' '}
+                      <span className="text-yellow-500">{tw('deposit.faqFindOut')}</span>
+                    </span>
                   </Link>
                 </li>
               </ul>
@@ -766,29 +774,29 @@ export default function DepositCryptoPage() {
         {/* Recent Deposits */}
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-foreground">Recent Deposits</h2>
+            <h2 className="text-xl font-semibold text-foreground">{tw('deposit.recentTitle')}</h2>
             <button
               onClick={fetchRecentDeposits}
               disabled={recentDepositsLoading}
               className="text-sm text-primary hover:text-primary/85 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RefreshCw className={`w-4 h-4 ${recentDepositsLoading ? 'animate-spin' : ''}`} />
-              {recentDepositsLoading ? 'Refreshing...' : 'Refresh'}
+              {recentDepositsLoading ? tw('deposit.refreshing') : tw('deposit.refresh')}
             </button>
           </div>
 
           <div className="bg-card rounded-xl border border-border dark:border-transparent overflow-hidden">
             {/* Table Header */}
             <div className="grid grid-cols-7 gap-4 px-4 py-3 bg-background border-b border-border text-sm text-muted-foreground">
-              <span>Coin</span>
-              <span>Chain Type</span>
-              <span>Qty</span>
-              <span>Address</span>
-              <span>Txid</span>
+              <span>{tw('deposit.tableCoin')}</span>
+              <span>{tw('deposit.tableChain')}</span>
+              <span>{tw('deposit.tableQty')}</span>
+              <span>{tw('deposit.tableAddress')}</span>
+              <span>{tw('deposit.tableTxid')}</span>
               <span className="flex items-center gap-1">
-                Status <Info className="w-3 h-3" />
+                {tw('deposit.tableStatus')} <Info className="w-3 h-3" />
               </span>
-              <span>Date & Time</span>
+              <span>{tw('deposit.tableDateTime')}</span>
             </div>
 
             {/* Table Body */}
@@ -815,7 +823,10 @@ export default function DepositCryptoPage() {
                     </span>
                     <span className={getStatusColor(deposit.status)}>
                       {(deposit.status === 'confirming' || deposit.status === 'pending') && deposit.required_confirmations
-                        ? `${deposit.confirmations}/${deposit.required_confirmations} Confirmations`
+                        ? tw('deposit.confirmationsProgress', {
+                            current: deposit.confirmations,
+                            required: deposit.required_confirmations,
+                          })
                         : deposit.status}
                     </span>
                     <span className="text-muted-foreground">
@@ -829,13 +840,10 @@ export default function DepositCryptoPage() {
                 <div className="w-20 h-20 mb-4 flex items-center justify-center">
                   <div className="text-6xl">📋</div>
                 </div>
-                <p className="text-muted-foreground font-medium">No on-chain deposits yet</p>
-                <p className="mt-2 text-sm text-muted-foreground max-w-md">
-                  After you send crypto to your deposit address, it appears here automatically (usually within 1–3 minutes).
-                  Transfers between Funding and Trading show under Overview → Recent Activity, not here.
-                </p>
+                <p className="text-muted-foreground font-medium">{tw('deposit.emptyDepositsTitle')}</p>
+                <p className="mt-2 text-sm text-muted-foreground max-w-md">{tw('deposit.emptyDepositsBody')}</p>
                 <Link href="/dashboard/assets/history?tab=deposit" className="mt-4 text-sm text-primary hover:underline">
-                  View full deposit history
+                  {tw('deposit.viewFullHistory')}
                 </Link>
               </div>
             )}
@@ -846,7 +854,7 @@ export default function DepositCryptoPage() {
               href="/wallet/history?tab=deposit"
               className="inline-flex items-center gap-1 mt-4 text-sm text-yellow-500 hover:text-yellow-600"
             >
-              View More <ExternalLink className="w-4 h-4" />
+              {tw('deposit.viewMore')} <ExternalLink className="w-4 h-4" />
             </Link>
           )}
         </div>
@@ -879,16 +887,12 @@ export default function DepositCryptoPage() {
               </div>
 
               {/* Title */}
-              <h2 className="text-xl font-bold text-foreground mb-2">
-                Identity Verification Required
-              </h2>
+              <h2 className="text-xl font-bold text-foreground mb-2">{tw('deposit.kycModalTitle')}</h2>
 
               {/* Description */}
-              <p className="text-muted-foreground mb-2">
-                To comply with regulatory requirements, please take three (3) minutes to complete your identity verification.
-              </p>
+              <p className="text-muted-foreground mb-2">{tw('deposit.kycModalBody')}</p>
               <Link href="/dashboard/identity" className="text-primary hover:text-primary/85 text-sm">
-                Why does this matter?
+                {tw('deposit.kycModalWhy')}
               </Link>
 
               {/* Requirements */}
@@ -896,11 +900,11 @@ export default function DepositCryptoPage() {
                 <ul className="space-y-3">
                   <li className="flex items-center gap-3 text-foreground/80">
                     <Upload className="w-5 h-5 text-primary" />
-                    <span>Upload ID card</span>
+                    <span>{tw('deposit.kycUploadId')}</span>
                   </li>
                   <li className="flex items-center gap-3 text-foreground/80">
                     <Camera className="w-5 h-5 text-primary" />
-                    <span>Upload a Selfie</span>
+                    <span>{tw('deposit.kycUploadSelfie')}</span>
                   </li>
                 </ul>
               </div>
@@ -911,7 +915,7 @@ export default function DepositCryptoPage() {
                 className="block w-full py-3 bg-primary hover:bg-primary/85 text-white font-semibold rounded-lg transition-colors"
                 onClick={() => setShowKycModal(false)}
               >
-                Verify Identity
+                {tw('deposit.kycVerifyButton')}
               </Link>
             </div>
           </div>

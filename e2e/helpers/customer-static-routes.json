@@ -1,0 +1,567 @@
+[
+  {
+    "path": "/",
+    "domain": "General",
+    "auth": "public"
+  },
+  {
+    "path": "/api",
+    "domain": "General",
+    "auth": "public"
+  },
+  {
+    "path": "/assets",
+    "domain": "Wallet",
+    "auth": "public"
+  },
+  {
+    "path": "/auth/callback/apple",
+    "domain": "General",
+    "auth": "public"
+  },
+  {
+    "path": "/auth/callback/google",
+    "domain": "General",
+    "auth": "public"
+  },
+  {
+    "path": "/cookies",
+    "domain": "General",
+    "auth": "public"
+  },
+  {
+    "path": "/dashboard",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/account",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/account/link/google",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/account/login-history",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/address-book",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/address-book/add-batches",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/announcements",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/api",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/api/create",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/assets",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/assets/convert",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/assets/funding",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/assets/history",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/assets/overview",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/assets/pnl",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/assets/unified",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/convert",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/data-export",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/deposit/crypto",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/earn",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/events",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/fee-rates",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/help",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/identity",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/identity/success",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/identity/upload",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/markets",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/orders",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/orders/p2p",
+    "domain": "P2P",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/orders/spot",
+    "domain": "Crypto",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/orders/trades",
+    "domain": "Crypto",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/p2p",
+    "domain": "P2P",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/p2p/payment-methods",
+    "domain": "P2P",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/preferences",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/progress",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/referral",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/referral/my-referrals",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/security",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/security/2fa",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/security/anti-phishing",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/security/change-password",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/security/fund-password",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/security/passkeys",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/security/sessions",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/security/withdrawal-limits",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/spot",
+    "domain": "Crypto",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/support",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/trade",
+    "domain": "Crypto",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/trade/spot",
+    "domain": "Crypto",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/transfer",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/wallet/spot",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/withdraw",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/withdraw/crypto",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/dashboard/withdraw/fiat",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/earn",
+    "domain": "General",
+    "auth": "public"
+  },
+  {
+    "path": "/forex",
+    "domain": "Forex",
+    "auth": "public"
+  },
+  {
+    "path": "/forex/account",
+    "domain": "Forex",
+    "auth": "public"
+  },
+  {
+    "path": "/forex/account/accounts",
+    "domain": "Forex",
+    "auth": "public"
+  },
+  {
+    "path": "/forex/account/funds",
+    "domain": "Forex",
+    "auth": "public"
+  },
+  {
+    "path": "/forex/account/ledger",
+    "domain": "Forex",
+    "auth": "public"
+  },
+  {
+    "path": "/forex/alerts",
+    "domain": "Forex",
+    "auth": "public"
+  },
+  {
+    "path": "/forex/analysis",
+    "domain": "Forex",
+    "auth": "public"
+  },
+  {
+    "path": "/forex/markets",
+    "domain": "Forex",
+    "auth": "public"
+  },
+  {
+    "path": "/forex/orders",
+    "domain": "Forex",
+    "auth": "public"
+  },
+  {
+    "path": "/forex/portfolio",
+    "domain": "Forex",
+    "auth": "public"
+  },
+  {
+    "path": "/forex/trade",
+    "domain": "Forex",
+    "auth": "public"
+  },
+  {
+    "path": "/forgot-password",
+    "domain": "General",
+    "auth": "public"
+  },
+  {
+    "path": "/history",
+    "domain": "General",
+    "auth": "public"
+  },
+  {
+    "path": "/login",
+    "domain": "General",
+    "auth": "public"
+  },
+  {
+    "path": "/markets",
+    "domain": "General",
+    "auth": "public"
+  },
+  {
+    "path": "/orders",
+    "domain": "Account",
+    "auth": "public"
+  },
+  {
+    "path": "/orders/history",
+    "domain": "Account",
+    "auth": "auth"
+  },
+  {
+    "path": "/orders/p2p",
+    "domain": "P2P",
+    "auth": "public"
+  },
+  {
+    "path": "/orders/spot",
+    "domain": "Crypto",
+    "auth": "public"
+  },
+  {
+    "path": "/orders/trades",
+    "domain": "Crypto",
+    "auth": "public"
+  },
+  {
+    "path": "/p2p",
+    "domain": "P2P",
+    "auth": "public"
+  },
+  {
+    "path": "/p2p-v2",
+    "domain": "P2P",
+    "auth": "public"
+  },
+  {
+    "path": "/p2p-v2/create-ad",
+    "domain": "P2P",
+    "auth": "public"
+  },
+  {
+    "path": "/p2p-v2/merchant-dashboard",
+    "domain": "P2P",
+    "auth": "public"
+  },
+  {
+    "path": "/p2p-v2/my-ads",
+    "domain": "P2P",
+    "auth": "public"
+  },
+  {
+    "path": "/p2p-v2/orders",
+    "domain": "P2P",
+    "auth": "public"
+  },
+  {
+    "path": "/p2p-v2/payment-methods",
+    "domain": "P2P",
+    "auth": "public"
+  },
+  {
+    "path": "/p2p/create-ad",
+    "domain": "P2P",
+    "auth": "public"
+  },
+  {
+    "path": "/p2p/merchant-dashboard",
+    "domain": "P2P",
+    "auth": "public"
+  },
+  {
+    "path": "/p2p/my-ads",
+    "domain": "P2P",
+    "auth": "public"
+  },
+  {
+    "path": "/p2p/orders",
+    "domain": "P2P",
+    "auth": "public"
+  },
+  {
+    "path": "/p2p/payment-methods",
+    "domain": "P2P",
+    "auth": "public"
+  },
+  {
+    "path": "/privacy",
+    "domain": "General",
+    "auth": "public"
+  },
+  {
+    "path": "/register",
+    "domain": "General",
+    "auth": "public"
+  },
+  {
+    "path": "/reset-password",
+    "domain": "General",
+    "auth": "public"
+  },
+  {
+    "path": "/signup",
+    "domain": "General",
+    "auth": "public"
+  },
+  {
+    "path": "/spot",
+    "domain": "Crypto",
+    "auth": "public"
+  },
+  {
+    "path": "/terms",
+    "domain": "General",
+    "auth": "public"
+  },
+  {
+    "path": "/trade",
+    "domain": "Crypto",
+    "auth": "public"
+  },
+  {
+    "path": "/trade/spot",
+    "domain": "Crypto",
+    "auth": "public"
+  },
+  {
+    "path": "/wallet",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/wallet/convert",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/wallet/deposit",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/wallet/deposit/crypto",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/wallet/funding",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/wallet/history",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/wallet/pnl",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/wallet/transfer",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/wallet/unified",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/wallet/withdraw",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/wallet/withdraw/crypto",
+    "domain": "Wallet",
+    "auth": "auth"
+  },
+  {
+    "path": "/wallet/withdraw/fiat",
+    "domain": "Wallet",
+    "auth": "auth"
+  }
+]

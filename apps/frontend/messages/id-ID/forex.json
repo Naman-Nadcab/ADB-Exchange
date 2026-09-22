@@ -16,6 +16,11 @@
     "terminalNavAria": "Navigasi terminal Forex",
     "mobileNavAria": "Navigasi mobile Forex"
   },
+  "mobileTrade": {
+    "watch": "Watchlist",
+    "order": "Order",
+    "trade": "Trade"
+  },
   "pages": {
     "markets": {
       "title": "Pasar",

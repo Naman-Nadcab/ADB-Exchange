@@ -79,10 +79,10 @@ export default function TransferPage() {
       if (data.success && data.data) {
         setTransferHistory(data.data);
       } else {
-        setHistoryError(data.error?.message || 'Could not load transfer history.');
+        setHistoryError(data.error?.message || tw('errors.loadHistoryFailed'));
       }
     } catch {
-      setHistoryError('Could not load transfer history. Retry in a moment.');
+      setHistoryError(tw('errors.loadHistoryRetry'));
       toast({
         title: tt('transferHistoryUnavailableTitle'),
         description: tt('transferHistoryUnavailableDesc'),
@@ -105,17 +105,17 @@ export default function TransferPage() {
   const handleTransfer = async () => {
     if (submitting) return;
     if (!selectedToken) {
-      setError('Please select a coin');
+      setError(tw('errors.selectCoin'));
       return;
     }
     const transferAmount = parseFloat(amount);
     const availableNum = parseFloat(selectedToken.availableBalance ?? '0');
     if (!Number.isFinite(transferAmount) || transferAmount <= 0) {
-      setError('Please enter a valid amount');
+      setError(tw('errors.validAmount'));
       return;
     }
     if (!Number.isFinite(availableNum) || transferAmount > availableNum) {
-      setError('Insufficient balance');
+      setError(tw('errors.insufficientBalance'));
       return;
     }
 
@@ -140,11 +140,11 @@ export default function TransferPage() {
         fetchTransferHistory();
         setTimeout(() => setSuccess(false), 3000);
       } else {
-        setError(data.error?.message || 'Transfer failed');
+        setError(data.error?.message || tw('errors.transferFailed'));
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : '';
-      setError(msg || 'Connection issue. Your request may not have reached the server. Safe to try again.');
+      setError(msg || tw('errors.connectionIssue'));
     } finally {
       setSubmitting(false);
     }
@@ -372,13 +372,15 @@ export default function TransferPage() {
                             </div>
                           ) : balancesError ? (
                             <div className="p-8 text-center">
-                              <p className="text-sm text-destructive">{balancesFetchError instanceof Error ? balancesFetchError.message : 'Could not load balances'}</p>
+                              <p className="text-sm text-destructive">
+                                {balancesFetchError instanceof Error ? balancesFetchError.message : tw('errors.loadBalancesFailed')}
+                              </p>
                               <button type="button" onClick={() => refetchBalances()} className="mt-3 text-sm font-medium text-primary hover:underline">
                                 {twa('retry')}
                               </button>
                             </div>
                           ) : filteredTokens.length === 0 ? (
-                            <div className="p-8 text-center text-sm text-muted-foreground">No coins found</div>
+                            <div className="p-8 text-center text-sm text-muted-foreground">{tw('noCoinsFound')}</div>
                           ) : (
                             filteredTokens.slice(0, 50).map((token) => (
                               <button
@@ -480,7 +482,7 @@ export default function TransferPage() {
                 {success && (
                   <div className="flex items-center gap-2 p-4 bg-buy-light border border-buy/20 rounded-xl mb-6">
                     <CheckCircle2 className="w-5 h-5 text-buy flex-shrink-0" />
-                    <p className="text-sm text-buy">Transfer completed successfully!</p>
+                    <p className="text-sm text-buy">{tw('successCompleted')}</p>
                   </div>
                 )}
 

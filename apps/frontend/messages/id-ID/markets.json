@@ -1,0 +1,128 @@
+{
+  "title": "Pasar",
+  "description": "Jelajahi harga spot live, perubahan 24j, dan volume semua pasangan yang terdaftar.",
+  "errors": {
+    "feedUnavailable": "Feed pasar tidak tersedia",
+    "loadListFailed": "Gagal memuat daftar pasar",
+    "network": "Kesalahan jaringan saat memuat pasar"
+  },
+  "empty": {
+    "noDataTitle": "Tidak ada data pasar",
+    "noDataDesc": "Tidak ada pasar spot aktif dari feed.",
+    "noFilterMatchTitle": "Tidak ada aset yang cocok dengan filter",
+    "noFilterMatchDesc": "Sesuaikan filter untuk memperluas hasil.",
+    "noAnnouncements": "Belum ada pengumuman."
+  },
+  "metrics": {
+    "marketCap": "Kapitalisasi Pasar",
+    "volume24h": "Volume 24J",
+    "btcDominance": "Dominasi BTC",
+    "fearGreed": "Takut & Serakah",
+    "assetsListed": "Aset Terdaftar"
+  },
+  "trendingDashboard": {
+    "title": "Dasbor Tren",
+    "subtitle": "Pemindaian peluang cepat lintas likuiditas dan momentum.",
+    "liveSnapshot": "snapshot live"
+  },
+  "fields": {
+    "price": "Harga",
+    "change24h": "24J",
+    "change7d": "7H",
+    "volume": "Volume",
+    "mktCap": "Kap. Pasar",
+    "volShort": "Vol",
+    "liqShort": "Liq",
+    "mCapShort": "Kap",
+    "assetsCount": "{count} aset",
+    "virtualized": "render virtualisasi"
+  },
+  "topMovers": {
+    "title": "Pergerakan Teratas",
+    "tabs": {
+      "trending": "Trending",
+      "gainers": "Naik",
+      "losers": "Turun",
+      "volume": "Pemimpin Volume",
+      "new": "Listing Baru"
+    }
+  },
+  "heatmap": {
+    "title": "Heatmap Pasar",
+    "buyers": "Pembeli",
+    "sellers": "Penjual",
+    "lCapBadge": "L-CAP",
+    "scrollHint": "Gulir untuk jelajahi seluruh pasar",
+    "laneHint": "Panjang jalur = dominasi kapitalisasi"
+  },
+  "sectors": {
+    "title": "Performa Sektor",
+    "rotationInsight": "Wawasan Rotasi Sektor",
+    "strongest": "Terkuat",
+    "weakest": "Terlemah",
+    "momentumScore": "Skor Momentum",
+    "statusLabel": "Status",
+    "leaders": "Pemimpin Sektor",
+    "dominanceSummary": "Ringkasan Dominasi Sektor",
+    "assetsVol": "{count} aset · Vol ${vol}",
+    "names": {
+      "AI": "AI",
+      "Meme": "Meme",
+      "Layer1": "Layer1",
+      "Layer2": "Layer2",
+      "Gaming": "Gaming",
+      "RWA": "RWA",
+      "DePIN": "DePIN"
+    },
+    "rotation": {
+      "balanced": "Seimbang",
+      "highRotation": "Rotasi Tinggi",
+      "riskOn": "Rotasi Risk-On",
+      "riskOff": "Rotasi Risk-Off",
+      "mixed": "Rotasi Campuran"
+    }
+  },
+  "filters": {
+    "title": "Filter Lanjutan",
+    "search": "Cari",
+    "searchPlaceholder": "BTC, ETH, SOL...",
+    "quote": "Quote",
+    "minPrice": "Harga Min",
+    "maxPrice": "Harga Maks",
+    "direction24h": "Arah 24J",
+    "all": "Semua",
+    "positive": "Positif",
+    "negative": "Negatif"
+  },
+  "table": {
+    "title": "Tabel Pasar Institusional",
+    "rank": "Peringkat",
+    "asset": "Aset",
+    "liquidityShort": "Liq.",
+    "action": "Aksi",
+    "trade": "Trading"
+  },
+  "recentlyAdded": {
+    "title": "Aset Baru Ditambahkan"
+  },
+  "intelligence": {
+    "title": "Intelijen Pasar",
+    "liveUpdate": "Pembaruan Live",
+    "panels": {
+      "latest": "Berita Terbaru",
+      "announcements": "Pengumuman Bursa",
+      "listings": "Listing Baru",
+      "pulse": "Denyut Pasar"
+    },
+    "bullishAssets": "Aset Bullish",
+    "bearishAssets": "Aset Bearish",
+    "fearGreedScore": "Skor Takut & Serakah",
+    "strongestSector": "Sektor Terkuat",
+    "weakestSector": "Sektor Terlemah",
+    "dataSources": "Sumber data:",
+    "dataSourcesDetail": "Alternative.me, CoinGecko, orderbook live · {hint}"
+  },
+  "activePairs": {
+    "title": "Pasangan Trading Paling Aktif"
+  }
+}

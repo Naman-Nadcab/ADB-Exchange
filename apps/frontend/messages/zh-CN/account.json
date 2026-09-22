@@ -379,6 +379,27 @@
       }
     }
   },
+  "earn": {
+    "title": "理财",
+    "subtitle": "收益产品将分阶段推出，并配有风控措施与清晰披露。",
+    "badge": "路线图进行中",
+    "cards": {
+      "flexibleVaults": {
+        "title": "灵活金库",
+        "desc": "计划推出灵活金库，上线时将披露利率。"
+      },
+      "protectedControls": {
+        "title": "风控保护",
+        "desc": "上线前设有限额、暂停机制与风险检查。"
+      },
+      "phasedRelease": {
+        "title": "分阶段发布",
+        "desc": "完成内部与安全验证后开启早期访问。"
+      }
+    },
+    "exploreConvert": "前往闪兑",
+    "trackUpdates": "关注动态"
+  },
   "help": {
     "title": "帮助中心",
     "contactSupport": "联系客服",
@@ -605,6 +626,180 @@
     "newCodeLabel": "新代码",
     "newCodeInitialLabel": "代码（4–20 个字符）",
     "newCodePlaceholder": "仅字母、数字与下划线"
+  },
+  "shell": {
+    "completeVerification": "完成身份认证",
+    "verifyNow": "立即认证",
+    "kycBanner": "请完成身份认证以继续使用平台服务。",
+    "depositButton": "充值",
+    "selectPaymentMethod": "选择支付方式",
+    "alreadyHaveCrypto": "已有加密货币",
+    "depositCrypto": "加密货币充值",
+    "depositCryptoHint": "从已验证地址一键充值",
+    "p2pTrading": "P2P 交易",
+    "zeroFees": "零手续费",
+    "dontHaveCrypto": "还没有加密货币",
+    "buyWithInr": "INR 购买",
+    "buyWithCard": "银行卡或银行转账购买",
+    "estimatedBalance": "预估余额",
+    "notificationsUnread": "通知（{count} 条未读）"
+  },
+  "dashboard": {
+    "title": "概览",
+    "description": "资产、行情与账户动态 — 您的交易指挥中心。",
+    "balance": {
+      "estimatedTotal": "预估总资产",
+      "estimatedTotalTooltip": "资金账户与交易账户余额合计，按您选择的显示货币计价。",
+      "portfolioPnl24h": "24 小时组合盈亏",
+      "portfolioPnlTooltip": "暂无法在此汇总中显示日环比组合变化。",
+      "updated": "更新于 {datetime}",
+      "funding": "资金账户",
+      "fundingHint": "充值与 P2P",
+      "trading": "交易账户",
+      "tradingHint": "现货与当前委托"
+    },
+    "accountCard": {
+      "label": "账户",
+      "uid": "UID",
+      "copyUidAria": "复制完整用户 ID"
+    },
+    "quickActions": {
+      "title": "快捷操作"
+    },
+    "shortcuts": {
+      "more": "更多",
+      "allPairs": "全部交易对",
+      "tradeDesc": "交易",
+      "buySell": "买 / 卖",
+      "history": "历史",
+      "yourTier": "您的等级"
+    },
+    "progress": {
+      "title": "平台开发进度",
+      "complete": "已完成",
+      "milestones": "{done} / {total} 个里程碑 · 路线图可见性"
+    },
+    "kyc": {
+      "title": "开始使用",
+      "subtitle": "解锁限额与完整功能",
+      "signup": "注册",
+      "done": "已完成",
+      "verify": "认证",
+      "inProgress": "进行中",
+      "deposit": "充值",
+      "locked": "未解锁",
+      "idTime": "有效身份证件约 2–5 分钟",
+      "encryptedStorage": "加密存储 — 您的数据保持私密",
+      "getVerified": "去认证"
+    },
+    "marketOverview": {
+      "title": "市场概览",
+      "subtitle": "24 小时涨跌幅领先（实时行情）",
+      "allMarkets": "全部市场",
+      "topGainers": "涨幅榜",
+      "topLosers": "跌幅榜",
+      "noChangeData": "暂无涨跌数据",
+      "unavailable": "行情不可用。请打开现货或在下方自选列表重试。"
+    },
+    "watchlist": {
+      "title": "自选与交易对",
+      "spotBadge": "现货",
+      "live": "实时",
+      "subtitle": "自选、涨跌榜或完整列表 — 随时跳转现货",
+      "marketsLink": "市场",
+      "action": "操作",
+      "noFavoritesTitle": "暂无自选",
+      "noFavoritesDesc": "行情加载后可在下表星标交易对，或前往现货添加。",
+      "openSpot": "打开现货",
+      "loadFailedTitle": "无法加载市场",
+      "noTickersTitle": "暂无行情",
+      "loadFailedDesc": "请检查网络后重试。终端内现货交易可能仍可用。",
+      "noTickersDesc": "行情服务未返回交易对。请稍后重试或直接打开现货。",
+      "goToSpot": "前往现货"
+    },
+    "marketTabs": {
+      "hot": "热门"
+    },
+    "recentActivity": {
+      "title": "最近动态",
+      "subtitle": "订单与资金变动",
+      "p2pSnapshot": "P2P 快照",
+      "activeMid": "进行中 ·",
+      "totalOrders": "笔订单",
+      "openP2pHub": "打开 P2P 中心",
+      "ordersHub": "订单中心",
+      "spotOrders": "现货订单",
+      "fundingHistory": "资金记录",
+      "signInForP2p": "登录后可在控制台查看 P2P 订单数量。"
+    },
+    "announcements": {
+      "title": "公告",
+      "subtitle": "产品与维护更新",
+      "quickTips": "快捷提示",
+      "whileYouWait": "等待期间 — 快捷提示",
+      "noPinnedTitle": "暂无置顶公告",
+      "noPinnedDesc": "上币、维护窗口与活动发布后将显示在此。",
+      "new": "新"
+    },
+    "tips": {
+      "securityTitle": "安全",
+      "securityDesc": "在账户 → 安全中开启 2FA 与通行密钥。",
+      "spotTitle": "现货",
+      "spotDesc": "使用限价单控制价格；下单时注意最小名义金额。",
+      "p2pTitle": "P2P",
+      "p2pDesc": "仅使用平台列出的支付方式；切勿线下转账。"
+    },
+    "helpRail": {
+      "selfService": "自助指南",
+      "guidesCount": "{count} 篇分步指南",
+      "previewSnippets": "充值、费用、VIP、通行密钥与 P2P",
+      "previewLine2": "交易费用与 VIP 等级",
+      "previewLine3": "P2P 付款、确认与放币",
+      "moreInside": "查看更多",
+      "open": "打开 →"
+    },
+    "referralRail": {
+      "title": "邀请返佣",
+      "subtitle": "邀请好友赚取奖励",
+      "yourCode": "您的邀请码",
+      "invited": "已邀请",
+      "earned": "已赚取",
+      "commissionHint": "{pct}% 返佣 · 完整页面含链接与素材",
+      "live": "● 实时",
+      "syncPending": "○ 同步中"
+    },
+    "p2pRail": {
+      "subtitle": "法币买卖",
+      "inProgress": "进行中",
+      "allOrders": "全部订单",
+      "pairsHint": "USDT、BTC、ETH 对 INR — 仅银行、UPI 与平台列出的方式。",
+      "escrowHint": "托管保护 · 在中心管理支付方式与订单历史。",
+      "footerLeft": "订单 → P2P",
+      "footerRight": "交易 →"
+    },
+    "feeRail": {
+      "title": "费率等级",
+      "subtitle": "现货费率",
+      "status": "状态",
+      "regularUser": "普通用户",
+      "default": "默认",
+      "live": "实时",
+      "maker": "Maker",
+      "taker": "Taker",
+      "volumeTier": "成交量等级 {level}",
+      "volumeTierLabel": "成交量等级：",
+      "tradeMoreHint": "30 日内多交易以解锁更低 maker 与 taker 费率。",
+      "mntDiscountOn": "现货 MNT 折扣已开启。",
+      "fiatScheduleHint": "法币交易对可能另有费率表 — 详见完整页面。",
+      "footerLeft": "VIP 与成交量",
+      "footerRight": "详情 →"
+    },
+    "fabHelpAria": "帮助",
+    "errors": {
+      "apiUrlNotConfigured": "未配置 API 地址",
+      "announcementsTimeout": "请求超时或网络错误",
+      "announcementsLoadFailed": "无法加载公告"
+    }
   },
   "toasts": {
     "addPhoneFirst": "请先添加手机号码",

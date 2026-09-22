@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/auth';
 import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
@@ -25,6 +26,8 @@ type P2POrder = {
 };
 
 export default function OrdersHubPage() {
+  const t = useTranslations('orders');
+  const tc = useTranslations('common');
   const queryClient = useQueryClient();
   const { fromApi } = useApiErrorMessage();
   const { accessToken, _hasHydrated } = useAuthStore();
@@ -53,13 +56,13 @@ export default function OrdersHubPage() {
         setOpenOrders(json.data.orders);
       } else {
         setOpenOrders([]);
-        setError(json.error?.message ?? 'Failed to load open orders');
+        setError(json.error?.message ?? t('errors.openLoadFailed'));
       }
     } catch {
       setOpenOrders([]);
-      setError('Network error while loading open orders');
+      setError(t('errors.openNetwork'));
     } finally { setOpenLoading(false); }
-  }, [accessToken]);
+  }, [accessToken, t]);
 
   const fetchHistory = useCallback(async (cursor: string | null, append: boolean) => {
     if (!accessToken) return;
@@ -75,16 +78,16 @@ export default function OrdersHubPage() {
       } else if (!append) {
         setHistoryOrders([]);
         setHistoryCursor(null);
-        setError(json.error?.message ?? 'Failed to load order history');
+        setError(json.error?.message ?? t('errors.historyLoadFailed'));
       }
     } catch {
       if (!append) {
         setHistoryOrders([]);
         setHistoryCursor(null);
-        setError('Network error while loading order history');
+        setError(t('errors.historyNetwork'));
       }
     } finally { append ? setHistoryLoadingMore(false) : setHistoryLoading(false); }
-  }, [accessToken]);
+  }, [accessToken, t]);
 
   const fetchP2P = useCallback(async () => {
     if (!accessToken) return;
@@ -149,11 +152,14 @@ export default function OrdersHubPage() {
     URL.revokeObjectURL(url);
   };
 
-  const tabs = [
-    { key: 'open' as const, label: 'Open Orders', count: openOrders.length },
-    { key: 'history' as const, label: 'Order History', count: null },
-    { key: 'p2p' as const, label: 'P2P Orders', count: p2pOrders.length },
-  ];
+  const tabs = useMemo(
+    () => [
+      { key: 'open' as const, label: t('openOrders'), count: openOrders.length },
+      { key: 'history' as const, label: t('orderHistory'), count: null },
+      { key: 'p2p' as const, label: t('p2pOrders'), count: p2pOrders.length },
+    ],
+    [openOrders.length, p2pOrders.length, t]
+  );
 
   const getStatusBadge = (status: string) => {
     if (['FILLED', 'completed', 'released'].includes(status?.toLowerCase())) return 'bg-buy/15 text-buy';
@@ -175,16 +181,14 @@ export default function OrdersHubPage() {
     <div className="w-full space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Orders</h1>
-          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-            Spot open orders, order history, and P2P trades. Filter by pair and side, export CSV, or jump back to trading.
-          </p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t('title')}</h1>
+          <p className="mt-1 max-w-xl text-sm text-muted-foreground">{t('subtitle')}</p>
         </div>
         <Link
           href={SPOT_TRADE_HREF}
           className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-primary/35 bg-primary/10 px-4 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/15"
         >
-          Go to Spot Trading
+          {t('goToSpotTrading')}
           <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
         </Link>
       </div>
@@ -195,7 +199,7 @@ export default function OrdersHubPage() {
           <div
             className="flex gap-1 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             role="tablist"
-            aria-label="Order views"
+            aria-label={t('tabListAria')}
           >
             {tabs.map((t) => (
               <button
@@ -235,20 +239,20 @@ export default function OrdersHubPage() {
                 type="search"
                 value={pairFilter}
                 onChange={(e) => setPairFilter(e.target.value)}
-                placeholder="Filter pair…"
+                placeholder={t('filterPairPlaceholder')}
                 className="w-full rounded-xl border border-border bg-muted/50 py-2.5 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/15"
-                aria-label="Filter by trading pair"
+                aria-label={t('filterPairAria')}
               />
             </div>
             <select
               value={sideFilter}
               onChange={(e) => setSideFilter(e.target.value as '' | 'buy' | 'sell')}
               className="rounded-xl border border-border bg-muted/50 px-3 py-2.5 text-sm font-medium text-foreground outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/15 sm:min-w-[140px]"
-              aria-label="Filter by side"
+              aria-label={t('filterSideAria')}
             >
-              <option value="">All sides</option>
-              <option value="buy">Buy</option>
-              <option value="sell">Sell</option>
+              <option value="">{t('allSides')}</option>
+              <option value="buy">{t('buy')}</option>
+              <option value="sell">{t('sell')}</option>
             </select>
             <div className="hidden min-w-[1rem] flex-1 sm:block" />
             <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
@@ -259,7 +263,7 @@ export default function OrdersHubPage() {
                 className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/35 hover:bg-accent disabled:pointer-events-none disabled:opacity-40"
               >
                 <Download className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-                Export CSV
+                {t('exportCsv')}
               </button>
               {tab === 'open' && openOrders.length > 1 && (
                 <button
@@ -267,15 +271,15 @@ export default function OrdersHubPage() {
                   onClick={handleCancelAll}
                   className="inline-flex items-center rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
                 >
-                  Cancel all
+                  {t('cancelAll')}
                 </button>
               )}
               <button
                 type="button"
                 onClick={() => (tab === 'open' ? fetchOpen() : fetchHistory(null, false))}
                 className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:border-primary/35 hover:bg-accent hover:text-foreground"
-                title="Refresh"
-                aria-label="Refresh list"
+                title={t('refreshTitle')}
+                aria-label={t('refreshListAria')}
               >
                 <RefreshCw className="h-4 w-4" />
               </button>
@@ -290,7 +294,7 @@ export default function OrdersHubPage() {
               type="button"
               onClick={() => setError(null)}
               className="shrink-0 rounded-lg p-1 hover:bg-destructive/15"
-              aria-label="Dismiss error"
+              aria-label={tc('a11y.dismiss')}
             >
               <XIcon className="h-4 w-4" />
             </button>
@@ -303,15 +307,15 @@ export default function OrdersHubPage() {
             <table className="min-w-[720px] w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/40 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Date</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Pair</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Type</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Side</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Price</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Amount</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Filled</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Status</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-right sm:px-5">Action</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colDate')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colPair')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colType')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colSide')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colPrice')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colAmount')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colFilled')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colStatus')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 text-right sm:px-5">{t('colAction')}</th>
                 </tr>
               </thead>
               <tbody className="text-sm">
@@ -326,9 +330,9 @@ export default function OrdersHubPage() {
                     <td colSpan={9} className="p-0">
                       <EmptyState
                         icon={BarChart3}
-                        title="No open orders"
-                        description="Your active spot orders will appear here. Place an order from the trading terminal."
-                        actionLabel="Place order"
+                        title={t('emptyOpenTitle')}
+                        description={t('emptyOpenDesc')}
+                        actionLabel={t('placeOrder')}
                         actionHref={SPOT_TRADE_HREF}
                         className="min-h-[260px] py-16"
                       />
@@ -352,7 +356,7 @@ export default function OrdersHubPage() {
                     <td className="px-4 py-3 sm:px-5">
                       <span className={`font-semibold ${o.side === 'buy' ? 'text-buy' : 'text-sell'}`}>{o.side.toUpperCase()}</span>
                     </td>
-                    <td className="numeric px-4 py-3 text-foreground sm:px-5">{o.price ?? 'Market'}</td>
+                    <td className="numeric px-4 py-3 text-foreground sm:px-5">{o.price ?? t('priceMarket')}</td>
                     <td className="numeric px-4 py-3 text-foreground sm:px-5">{o.quantity}</td>
                     <td className="px-4 py-3 sm:px-5">
                       <div className="flex items-center gap-2">
@@ -364,7 +368,7 @@ export default function OrdersHubPage() {
                     </td>
                     <td className="px-4 py-3 sm:px-5">
                       <span className={`inline-flex rounded-lg px-2.5 py-1 text-xs font-medium ${getStatusBadge(o.status)}`}>
-                        {o.status === 'PENDING_TRIGGER' ? 'Pending' : o.status}
+                        {o.status === 'PENDING_TRIGGER' ? t('statusPending') : o.status}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right sm:px-5">
@@ -376,7 +380,7 @@ export default function OrdersHubPage() {
                           className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
                         >
                           {cancellingId === o.id && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                          Cancel
+                          {t('cancel')}
                         </button>
                       )}
                     </td>
@@ -393,14 +397,14 @@ export default function OrdersHubPage() {
             <table className="min-w-[680px] w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/40 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Date</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Pair</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Type</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Side</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Price</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Amount</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Filled</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Status</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colDate')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colPair')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colType')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colSide')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colPrice')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colAmount')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colFilled')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colStatus')}</th>
                 </tr>
               </thead>
               <tbody className="text-sm">
@@ -415,9 +419,9 @@ export default function OrdersHubPage() {
                     <td colSpan={8} className="p-0">
                       <EmptyState
                         icon={BarChart3}
-                        title="No order history"
-                        description="Completed and cancelled spot orders show up here once they leave the open book."
-                        actionLabel="Place order"
+                        title={t('emptyHistoryTitle')}
+                        description={t('emptyHistoryDesc')}
+                        actionLabel={t('placeOrder')}
                         actionHref={SPOT_TRADE_HREF}
                         className="min-h-[260px] py-16"
                       />
@@ -438,7 +442,7 @@ export default function OrdersHubPage() {
                     <td className="px-4 py-3 sm:px-5">
                       <span className={`font-semibold ${o.side === 'buy' ? 'text-buy' : 'text-sell'}`}>{o.side.toUpperCase()}</span>
                     </td>
-                    <td className="numeric px-4 py-3 text-foreground sm:px-5">{o.price ?? 'Market'}</td>
+                    <td className="numeric px-4 py-3 text-foreground sm:px-5">{o.price ?? t('priceMarket')}</td>
                     <td className="numeric px-4 py-3 text-foreground sm:px-5">{o.quantity}</td>
                     <td className="px-4 py-3 sm:px-5">
                       <div className="flex items-center gap-2">
@@ -464,7 +468,7 @@ export default function OrdersHubPage() {
                   className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/35 hover:bg-accent disabled:opacity-50"
                 >
                   {historyLoadingMore && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Load more
+                  {t('loadMore')}
                 </button>
               </div>
             )}
@@ -476,15 +480,15 @@ export default function OrdersHubPage() {
           <div className="overflow-x-auto">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
               <div>
-                <p className="text-sm font-medium text-foreground">P2P trades</p>
-                <p className="text-xs text-muted-foreground">Orders you create or take on the peer-to-peer market.</p>
+                <p className="text-sm font-medium text-foreground">{t('p2pSectionTitle')}</p>
+                <p className="text-xs text-muted-foreground">{t('p2pSectionDesc')}</p>
               </div>
               <button
                 type="button"
                 onClick={fetchP2P}
                 className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:border-primary/35 hover:bg-accent hover:text-foreground"
-                title="Refresh"
-                aria-label="Refresh P2P orders"
+                title={t('refreshTitle')}
+                aria-label={t('refreshP2pAria')}
               >
                 <RefreshCw className="h-4 w-4" />
               </button>
@@ -492,14 +496,14 @@ export default function OrdersHubPage() {
             <table className="min-w-[640px] w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/40 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Date</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Type</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Asset</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Fiat</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Amount</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Price</th>
-                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">Status</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-right sm:px-5">Action</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colDate')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colType')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colAsset')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colFiat')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colAmount')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colPrice')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 sm:px-5">{t('colStatus')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 text-right sm:px-5">{t('colAction')}</th>
                 </tr>
               </thead>
               <tbody className="text-sm">
@@ -514,9 +518,9 @@ export default function OrdersHubPage() {
                     <td colSpan={8} className="p-0">
                       <EmptyState
                         icon={BarChart3}
-                        title="No P2P orders"
-                        description="When you buy or sell with other users, your trades will be listed here."
-                        actionLabel="Go to P2P"
+                        title={t('emptyP2pTitle')}
+                        description={t('emptyP2pDesc')}
+                        actionLabel={t('goToP2p')}
                         actionHref={P2P_HREF}
                         className="min-h-[260px] py-16"
                       />
@@ -549,7 +553,7 @@ export default function OrdersHubPage() {
                         href={`${P2P_HREF}/orders/${o.id}`}
                         className="inline-flex rounded-lg px-2 py-1 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
                       >
-                        View
+                        {t('view')}
                       </Link>
                     </td>
                   </tr>

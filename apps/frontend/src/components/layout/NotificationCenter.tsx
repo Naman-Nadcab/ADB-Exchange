@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Bell, Download, FileText, Send, Shield, ChevronRight, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { ORDERS_HREF, walletPath, ROUTES } from '@/lib/routes';
@@ -48,20 +49,18 @@ function mapTypeToRoute(type: string): string {
   return ROUTES.dashboard.announcements;
 }
 
-const TYPE_CONFIG: Record<string, { icon: typeof Bell; label: string }> = {
-  deposit: { icon: Download, label: 'Deposit' },
-  order: { icon: FileText, label: 'Order' },
-  withdrawal: { icon: Send, label: 'Withdrawal' },
-  security: { icon: Shield, label: 'Security' },
-  security_alert: { icon: Shield, label: 'Security' },
-};
-
-function getConfig(type: string) {
+function getConfig(type: string, labelFor: (key: 'deposit' | 'order' | 'withdrawal' | 'security') => string) {
   const key = type.toLowerCase().replace(/\s+/g, '_');
-  return TYPE_CONFIG[key] ?? { icon: Bell, label: type.replace(/_/g, ' ') };
+  if (key.includes('deposit')) return { icon: Download, label: labelFor('deposit') };
+  if (key.includes('order') || key.includes('trade')) return { icon: FileText, label: labelFor('order') };
+  if (key.includes('withdraw')) return { icon: Send, label: labelFor('withdrawal') };
+  if (key.includes('security')) return { icon: Shield, label: labelFor('security') };
+  return { icon: Bell, label: type.replace(/_/g, ' ') };
 }
 
 export function NotificationCenter({ accessToken, className = '' }: NotificationCenterProps) {
+  const tPanel = useTranslations('common.notificationPanel');
+  const tc = useTranslations('common');
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -169,7 +168,7 @@ export function NotificationCenter({ accessToken, className = '' }: Notification
         type="button"
         onClick={() => setOpen(!open)}
         className="relative p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors duration-150"
-        aria-label="Notifications"
+        aria-label={tPanel('title')}
         aria-expanded={open}
       >
         <Bell className="w-[18px] h-[18px]" />
@@ -183,7 +182,7 @@ export function NotificationCenter({ accessToken, className = '' }: Notification
       {open && (
         <div className="absolute right-0 top-full mt-1 w-80 bg-popover dark:bg-card border border-border rounded-lg shadow-xl z-50 overflow-hidden">
           <div className="p-3 border-b border-border flex items-center justify-between gap-2">
-            <p className="text-sm font-semibold text-foreground">Notifications</p>
+            <p className="text-sm font-semibold text-foreground">{tPanel('title')}</p>
             <div className="flex items-center gap-2 shrink-0">
               {unreadCount > 0 && (
                 <button
@@ -192,7 +191,7 @@ export function NotificationCenter({ accessToken, className = '' }: Notification
                   disabled={markingAll}
                   className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
                 >
-                  {markingAll ? '…' : 'Mark all read'}
+                  {markingAll ? tPanel('markingRead') : tPanel('markAllRead')}
                 </button>
               )}
               <Link
@@ -200,7 +199,7 @@ export function NotificationCenter({ accessToken, className = '' }: Notification
                 onClick={() => setOpen(false)}
                 className="text-xs text-primary hover:underline flex items-center gap-0.5"
               >
-                View all <ChevronRight className="w-3 h-3" />
+                {tPanel('viewAll')} <ChevronRight className="w-3 h-3" />
               </Link>
             </div>
           </div>
@@ -208,13 +207,13 @@ export function NotificationCenter({ accessToken, className = '' }: Notification
             {loading ? (
               <div className="p-6 flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                Loading…
+                {tc('states.loading')}
               </div>
             ) : notifications.length === 0 ? (
-              <div className="p-6 text-center text-sm text-muted-foreground">No notifications yet.</div>
+              <div className="p-6 text-center text-sm text-muted-foreground">{tPanel('empty')}</div>
             ) : (
               notifications.slice(0, 10).map((n) => {
-                const config = getConfig(n.type);
+                const config = getConfig(n.type, (k) => tPanel(k));
                 const Icon = config.icon;
                 return (
                   <button
