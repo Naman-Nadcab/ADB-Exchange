@@ -629,7 +629,7 @@ function TopMoversSection({
           {top ? (
             renderRow(top, true)
           ) : (
-            <TerminalEmptyState kind="markets" title="No movers yet" compact />
+            <TerminalEmptyState kind="markets" title={t('terminal.topMoversEmptyTitle')} compact />
           )}
         </div>
       )}

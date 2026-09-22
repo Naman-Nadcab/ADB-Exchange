@@ -116,6 +116,7 @@ export function SpotTradingGrid() {
   const isAuth = authResolved && isAuthenticated;
   const chartTheme = resolvedTheme === 'dark' ? 'dark' : 'light';
   const tc = useTranslations('crypto');
+  const tCommon = useTranslations('common');
   const { fromApi, networkUnreachable } = useApiErrorMessage();
   const [chartIntervalSeconds, setChartIntervalSeconds] = useState(() => {
     if (typeof window === 'undefined') return 60;
@@ -653,7 +654,7 @@ export function SpotTradingGrid() {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-muted px-4 dark:bg-background">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" aria-hidden />
-        <p className="text-sm font-medium text-muted-foreground">Loading spot markets…</p>
+        <p className="text-sm font-medium text-muted-foreground">{tc('markets.loadingSpot')}</p>
       </div>
     );
   }
@@ -683,7 +684,7 @@ export function SpotTradingGrid() {
               disabled={marketsLoading}
               className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-foreground hover:bg-primary/85 disabled:opacity-50"
             >
-              Retry
+              {tCommon('actions.retry')}
             </button>
           )}
         </div>
@@ -697,7 +698,7 @@ export function SpotTradingGrid() {
         className="flex h-full w-full flex-col bg-background"
         role="status"
         aria-busy="true"
-        aria-label="Preparing trading terminal"
+        aria-label={tc('terminal.preparingTerminalAria')}
       >
         <div className="flex h-12 shrink-0 items-center gap-3 border-b border-border px-4 dark:border-border">
           <Skeleton className="h-8 w-36" />

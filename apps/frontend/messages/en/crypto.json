@@ -145,6 +145,7 @@
     },
     "feedUnavailable": "Live market feed is unavailable. Order placement is paused to prevent stale execution.",
     "logIn": "Log In",
+    "preparingTerminalAria": "Preparing trading terminal",
     "topMoversEmptyTitle": "No movers yet",
     "topMoversEmptyDesc": "Top 24h movers will appear when market data is available.",
     "dualPanel": {
@@ -431,7 +432,8 @@
     "loadFailed": "Failed to load markets",
     "loadFailedRetry": "Failed to load markets. Retry.",
     "timeout": "Request timed out — backend slow or unreachable. Start API (e.g. port 4000) and retry.",
-    "noSpotMarkets": "No spot markets available"
+    "noSpotMarkets": "No spot markets available",
+    "loadingSpot": "Loading spot markets…"
   },
   "bootstrap": {
     "orderbookDelayed": "Orderbook bootstrap delayed. Live updates may take a moment.",

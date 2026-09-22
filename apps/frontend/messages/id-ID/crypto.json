@@ -145,6 +145,7 @@
     },
     "feedUnavailable": "Feed pasar live tidak tersedia. Penempatan order dijeda untuk mencegah eksekusi stale.",
     "logIn": "Masuk",
+    "preparingTerminalAria": "Menyiapkan terminal trading",
     "topMoversEmptyTitle": "Belum ada pergerakan",
     "topMoversEmptyDesc": "Pergerakan top 24 jam akan muncul saat data pasar tersedia.",
     "dualPanel": {
@@ -431,7 +432,8 @@
     "loadFailed": "Gagal memuat pasar",
     "loadFailedRetry": "Gagal memuat pasar. Coba lagi.",
     "timeout": "Permintaan habis waktu — backend lambat atau tidak terjangkau. Jalankan API (mis. port 4000) dan coba lagi.",
-    "noSpotMarkets": "Tidak ada pasar spot tersedia"
+    "noSpotMarkets": "Tidak ada pasar spot tersedia",
+    "loadingSpot": "Memuat pasar spot…"
   },
   "bootstrap": {
     "orderbookDelayed": "Bootstrap orderbook tertunda. Pembaruan live mungkin butuh sebentar.",

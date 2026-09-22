@@ -145,6 +145,7 @@
     },
     "feedUnavailable": "实时行情不可用。已暂停下单以防陈旧成交。",
     "logIn": "登录",
+    "preparingTerminalAria": "正在准备交易终端",
     "topMoversEmptyTitle": "暂无涨跌幅数据",
     "topMoversEmptyDesc": "有市场数据后将显示 24 小时涨跌幅榜。",
     "dualPanel": {
@@ -431,7 +432,8 @@
     "loadFailed": "加载市场失败",
     "loadFailedRetry": "加载市场失败，请重试。",
     "timeout": "请求超时 — 后端响应慢或不可达。请启动 API（如端口 4000）后重试。",
-    "noSpotMarkets": "暂无现货市场"
+    "noSpotMarkets": "暂无现货市场",
+    "loadingSpot": "正在加载现货市场…"
   },
   "bootstrap": {
     "orderbookDelayed": "订单簿初始化延迟，实时更新可能需要片刻。",
