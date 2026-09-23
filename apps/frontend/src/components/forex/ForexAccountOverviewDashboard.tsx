@@ -252,6 +252,17 @@ export function ForexAccountOverviewDashboard() {
           <Link href={FOREX_ROUTES.ledger} className="tap-target inline-flex items-center rounded border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted/40">
             {t('viewLedger')}
           </Link>
+          <Link href={FOREX_ROUTES.history} className="tap-target inline-flex items-center rounded border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted/40">
+            {t('viewHistory')}
+          </Link>
+          {activeForexAccountId ? (
+            <Link
+              href={FOREX_ROUTES.accountDetail(activeForexAccountId)}
+              className="tap-target inline-flex items-center rounded border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted/40"
+            >
+              {t('viewAccountDetail')}
+            </Link>
+          ) : null}
           {needsDemo ? (
             <Link
               href={FOREX_ROUTES.funds}

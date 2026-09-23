@@ -14,6 +14,7 @@ import {
   syncForexAccountsFromServer,
 } from '@/lib/forex/runtime/hydrate';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
+import { useForexProductGates } from '@/lib/forex/hooks/useForexProductGates';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
 import { cn } from '@/lib/utils';
@@ -31,6 +32,7 @@ export function ForexAccountCenter() {
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const { gates } = useForexProductGates();
 
   function kindLabel(kind: string): string {
     const k = kind.toUpperCase();
@@ -105,6 +107,21 @@ export function ForexAccountCenter() {
             >
               {busy === 'create' ? t('createDemoBusy') : t('createDemo')}
             </button>
+            {gates.liveAccountEnabled ? (
+              <Link
+                href={FOREX_ROUTES.accounts}
+                className="inline-flex min-h-9 items-center rounded border border-border px-3 text-[11px] font-semibold hover:border-primary/40"
+              >
+                {t('openLiveAccount')}
+              </Link>
+            ) : (
+              <span
+                title={t('openLiveUnavailableHint')}
+                className="inline-flex min-h-9 cursor-not-allowed items-center rounded border border-border/50 px-3 text-[11px] font-semibold text-muted-foreground"
+              >
+                {t('openLiveAccount')}
+              </span>
+            )}
             <Link
               href={FOREX_ROUTES.trade}
               className="inline-flex min-h-9 items-center gap-1 rounded border border-border px-3 text-[11px] font-semibold hover:border-primary/40"
@@ -190,10 +207,16 @@ export function ForexAccountCenter() {
                       {t('openTradeTerminal')}
                     </Link>
                     <Link
-                      href={FOREX_ROUTES.account}
+                      href={FOREX_ROUTES.accountDetail(a.accountId)}
                       className="inline-flex items-center gap-1 rounded border border-border/70 px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground"
                     >
                       <Settings2 className="h-3 w-3" aria-hidden />
+                      {t('viewDetail')}
+                    </Link>
+                    <Link
+                      href={FOREX_ROUTES.account}
+                      className="inline-flex items-center gap-1 rounded border border-border/70 px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+                    >
                       {t('manage')}
                     </Link>
                   </div>

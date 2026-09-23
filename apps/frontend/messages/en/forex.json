@@ -5,6 +5,7 @@
     "markets": "Markets",
     "portfolio": "Portfolio",
     "orders": "Orders",
+    "history": "History",
     "analysis": "Analysis",
     "alerts": "Alerts",
     "account": "Account",
@@ -61,12 +62,36 @@
       "subtitle": "Server-evaluated Forex alerts for your account."
     },
     "account": {
-      "title": "Account",
-      "subtitle": "FOREX DEMO ACCOUNT · SIMULATED / MOCK. Not real money. Real Forex and live LP remain OFF."
+      "title": "Account overview",
+      "subtitle": "Balances, margin, health, and quick actions for your active Forex account."
+    },
+    "accountDetail": {
+      "title": "Account details",
+      "subtitle": "Identity, configuration, financial snapshot, and activity for this Forex account."
+    },
+    "history": {
+      "title": "Trade history",
+      "subtitle": "Completed executions and fills for your active Forex account."
     },
     "funds": {
       "title": "Funds",
-      "subtitle": "FOREX DEMO ACCOUNT · SIMULATED / MOCK. Real Forex deposit rails are OFF. Crypto wallet is separate."
+      "subtitle": "Demo simulated credits and funding status. Real-money Forex rails are separate from Crypto."
+    },
+    "fundsDeposit": {
+      "title": "Deposit",
+      "subtitle": "Add funds to a live Forex account when real funding is enabled."
+    },
+    "fundsWithdraw": {
+      "title": "Withdraw",
+      "subtitle": "Withdraw from a live Forex account when supported."
+    },
+    "fundsTransfer": {
+      "title": "Internal transfer",
+      "subtitle": "Move funds between your Forex accounts when supported."
+    },
+    "fundsPaymentMethods": {
+      "title": "Payment methods",
+      "subtitle": "Manage verified funding methods when supported."
     },
     "ledger": {
       "title": "Ledger",
@@ -74,7 +99,7 @@
     },
     "accounts": {
       "title": "Forex accounts",
-      "subtitle": "SIMULATED demo accounts only. Live account opening is not available while REAL_FOREX is off."
+      "subtitle": "Manage demo accounts, switch active account, and open account details."
     }
   },
   "markets": {
@@ -854,7 +879,10 @@
     "metricBalance": "Balance",
     "metricEquity": "Equity",
     "metricMargin": "Used margin",
-    "manage": "Manage"
+    "manage": "Manage",
+    "viewDetail": "View details",
+    "openLiveAccount": "Open live account",
+    "openLiveUnavailableHint": "Live Forex accounts require platform live-Forex capability and verification."
   },
   "positionModeSwitch": {
     "button": "Mode…",
@@ -985,7 +1013,9 @@
     "tradingAccountHeading": "Trading account",
     "accountIdServer": "Account ID (server)",
     "mode": "Mode",
-    "modeValue": "SIMULATED / MOCK · server-scoped active account",
+    "modeValue": "Practice environment · active account follows server selection",
+    "viewHistory": "Trade history",
+    "viewAccountDetail": "Account details",
     "manageAccountsHint": "Manage demo accounts on <accountsLink>Forex accounts</accountsLink>. Use the terminal bar switcher for quick changes. Orders, positions, ledger, history, risk, margin, and alerts always follow the server-selected active account.",
     "riskHeading": "Risk",
     "state": "State",
@@ -1156,6 +1186,127 @@
     "currencyShort": "Ccy",
     "noCalendarEvents": "No calendar events for this filter.",
     "noLevelsYet": "No levels yet — wait for chart history."
+  },
+  "portalAccountContext": {
+    "aria": "Active Forex account",
+    "kindDemo": "Demo",
+    "kindLive": "Live",
+    "viewDetail": "Account details",
+    "openTerminal": "Open terminal"
+  },
+  "customerGuidance": {
+    "checklistTitle": "Getting started",
+    "checklistSubtitle": "Complete these steps for the best Forex portal experience.",
+    "noAccountTitle": "No Forex account",
+    "noAccountBody": "Create a demo account to practice with simulated balances.",
+    "noAccountCta": "Go to accounts",
+    "demoFundsTitle": "Demo balance empty",
+    "demoFundsBody": "Claim simulated demo credits — not a real deposit.",
+    "demoFundsCta": "Demo funding",
+    "liveUnavailableTitle": "Live accounts not available",
+    "liveUnavailableBody": "Live Forex account opening and real funding are not enabled on this environment.",
+    "kycRequiredTitle": "Verification required",
+    "kycRequiredBody": "Complete identity verification before opening a live Forex account.",
+    "kycRequiredCta": "Complete verification",
+    "allSetTitle": "You are ready to trade",
+    "allSetBadge": "Ready",
+    "allSetBody": "Your demo account is set up. Open the terminal or review positions and orders."
+  },
+  "fundsNav": {
+    "aria": "Funds sections",
+    "overview": "Overview",
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "transfer": "Transfer",
+    "paymentMethods": "Payment methods"
+  },
+  "fundingGate": {
+    "subtitle": "Real-money Forex funding",
+    "technicalDetailsLabel": "Technical details",
+    "technicalDetailsBody": "Real deposit, withdrawal, transfer, and payment-method flows require live Forex provider rails, compliance approval, and customer API endpoints. This environment keeps realForex disabled.",
+    "verificationHint": "When live Forex is enabled, <verifyLink>verification</verifyLink> may be required first.",
+    "depositTitle": "Deposit unavailable",
+    "depositBadge": "Not configured",
+    "depositBody": "Forex deposits are not available. Demo accounts can use simulated demo funding on the Funds overview.",
+    "withdrawTitle": "Withdrawal unavailable",
+    "withdrawBadge": "Not configured",
+    "withdrawBody": "Forex withdrawals are not offered to customers until live funding rails and security checks are connected.",
+    "transferTitle": "Transfer unavailable",
+    "transferBadge": "Not configured",
+    "transferBody": "Internal transfers between Forex accounts are not available yet.",
+    "paymentMethodsTitle": "Payment methods unavailable",
+    "paymentMethodsBadge": "Not configured",
+    "paymentMethodsBody": "Saved payment methods are not supported until a Forex funding provider is integrated."
+  },
+  "accountDetail": {
+    "loading": "Loading account…",
+    "notFoundTitle": "Account not found",
+    "backToAccounts": "Back to accounts",
+    "inactiveTitle": "Inactive account",
+    "inactiveBody": "Switch to this account to load live balances, margin, and activity.",
+    "switchToAccount": "Switch to this account",
+    "switching": "Switching…",
+    "switchFailed": "Could not switch account.",
+    "heroAria": "Account summary",
+    "kindDemo": "Demo",
+    "kindLive": "Live",
+    "leverageLabel": "Leverage {value}",
+    "leverageDefault": "Default",
+    "createdAt": "Created {date}",
+    "openTerminal": "Open terminal",
+    "demoFundingCta": "Demo funding",
+    "depositCta": "Deposit",
+    "identityTitle": "Account identity",
+    "fieldAccountId": "Account ID",
+    "fieldKind": "Type",
+    "fieldCurrency": "Currency",
+    "fieldPositionMode": "Position mode",
+    "fieldLeverage": "Leverage",
+    "fieldPlatform": "Platform",
+    "platformValue": "FDM Forex",
+    "technicalDetailsLabel": "Technical details",
+    "technicalDetailsBody": "Execution and balances follow the server-selected account. Demo funding is ledger-only and labelled separately from real deposits.",
+    "financialAria": "Financial snapshot",
+    "metricBalance": "Balance",
+    "metricEquity": "Equity",
+    "metricFreeMargin": "Free margin",
+    "metricUsedMargin": "Used margin",
+    "metricUnrealizedPnl": "Unrealized P&L",
+    "metricRealizedPnl": "Realized P&L",
+    "metricMarginLevel": "Margin level",
+    "metricAvailable": "Available",
+    "healthTitle": "Risk and health",
+    "riskState": "Risk state",
+    "riskReason": "Reason",
+    "activityTitle": "Activity",
+    "linkPositions": "Positions",
+    "linkOrders": "Orders",
+    "linkHistory": "Trade history",
+    "linkLedger": "Account ledger",
+    "financialLockedTitle": "Financial data",
+    "financialLockedBody": "Switch to this account to view balances and margin.",
+    "accessTitle": "Account access",
+    "accessBody": "Trading access uses your platform login. Change passwords and security settings from the platform security area.",
+    "passwordNeverShown": "Passwords and investor credentials are never shown in the portal."
+  },
+  "historyPage": {
+    "summaryAria": "Trade history summary",
+    "kpiExecutions": "Executions",
+    "kpiCurrency": "Currency",
+    "kpiRealizedPnl": "Realized P&L",
+    "tableTitle": "Executions",
+    "exportCsv": "Export CSV",
+    "exportBusy": "Exporting…",
+    "exportFailed": "Export failed. Try again when signed in.",
+    "empty": "No executions yet. Place a demo trade in the terminal.",
+    "colTime": "Time",
+    "colSymbol": "Symbol",
+    "colSide": "Side",
+    "colVolume": "Volume",
+    "colPrice": "Price",
+    "colFillId": "Fill ID",
+    "colOrderId": "Order ID",
+    "statementNote": "Broker statements are not generated here. CSV export uses server trade history for the active account."
   },
   "riskTools": {
     "title": "Pip / R:R calculator",

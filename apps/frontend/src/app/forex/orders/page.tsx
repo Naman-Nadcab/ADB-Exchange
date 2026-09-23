@@ -12,6 +12,7 @@ import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
 import { cn } from '@/lib/utils';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalKpiCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 
 const TABS = ['pending', 'open', 'completed', 'cancelled', 'rejected'] as const;
@@ -101,6 +102,7 @@ export default function ForexOrdersPage() {
         <ForexSignInPrompt href="/login?redirect=/forex/orders" sectionKey="orders" />
       ) : (
         <>
+          <ForexPortalAccountContext />
           {engineErrorMsg ? (
             <p className="text-sm text-sell" role="alert">
               {engineErrorMsg}

@@ -90,6 +90,11 @@ export const forexApi = {
       count: number;
       accounts: ForexCustomerAccountSummary[];
     }>('/accounts'),
+  getAccountById: (accountId: string) =>
+    fxGet<{
+      source: string;
+      account: ForexCustomerAccountSummary & { userId?: string; updatedAt?: string };
+    }>(`/accounts/${encodeURIComponent(accountId)}`),
   selectAccount: (accountId: string) =>
     api.post<{ source: string; activeAccountId: string; realForex: boolean }>(
       `${FOREX_PREFIX}/accounts/${encodeURIComponent(accountId)}/select`,

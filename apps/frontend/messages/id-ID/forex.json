@@ -5,6 +5,7 @@
     "markets": "Pasar",
     "portfolio": "Portofolio",
     "orders": "Order",
+    "history": "Riwayat",
     "analysis": "Analisis",
     "alerts": "Alert",
     "account": "Akun",
@@ -61,12 +62,36 @@
       "subtitle": "Alert Forex akun Anda dievaluasi di server."
     },
     "account": {
-      "title": "Akun",
-      "subtitle": "AKUN DEMO FOREX · SIMULASI / MOCK. Bukan uang riil. Forex riil dan LP live tetap OFF."
+      "title": "Ringkasan akun",
+      "subtitle": "Saldo, margin, kesehatan, dan tindakan cepat untuk akun Forex aktif Anda."
+    },
+    "accountDetail": {
+      "title": "Detail akun",
+      "subtitle": "Identitas, konfigurasi, snapshot keuangan, dan aktivitas untuk akun Forex ini."
+    },
+    "history": {
+      "title": "Riwayat perdagangan",
+      "subtitle": "Eksekusi dan fill selesai untuk akun Forex aktif Anda."
     },
     "funds": {
       "title": "Dana",
-      "subtitle": "AKUN DEMO FOREX · SIMULASI / MOCK. Rel deposit Forex riil OFF. Dompet kripto terpisah."
+      "subtitle": "Kredit demo simulasi dan status pendanaan. Rel uang riil Forex terpisah dari Kripto."
+    },
+    "fundsDeposit": {
+      "title": "Deposit",
+      "subtitle": "Tambahkan dana ke akun Forex live saat pendanaan riil diaktifkan."
+    },
+    "fundsWithdraw": {
+      "title": "Penarikan",
+      "subtitle": "Tarik dari akun Forex live saat didukung."
+    },
+    "fundsTransfer": {
+      "title": "Transfer internal",
+      "subtitle": "Pindahkan dana antar akun Forex saat didukung."
+    },
+    "fundsPaymentMethods": {
+      "title": "Metode pembayaran",
+      "subtitle": "Kelola metode pendanaan terverifikasi saat didukung."
     },
     "ledger": {
       "title": "Buku besar",
@@ -74,7 +99,7 @@
     },
     "accounts": {
       "title": "Akun Forex",
-      "subtitle": "Hanya akun demo simulasi. Pembukaan akun live tidak tersedia saat REAL_FOREX off."
+      "subtitle": "Kelola akun demo, ganti akun aktif, dan buka detail akun."
     }
   },
   "markets": {
@@ -854,7 +879,10 @@
     "metricBalance": "Saldo",
     "metricEquity": "Ekuitas",
     "metricMargin": "Margin terpakai",
-    "manage": "Kelola"
+    "manage": "Kelola",
+    "viewDetail": "Lihat detail",
+    "openLiveAccount": "Buka akun live",
+    "openLiveUnavailableHint": "Akun Forex live memerlukan kemampuan live-Forex platform dan verifikasi."
   },
   "positionModeSwitch": {
     "button": "Mode…",
@@ -985,7 +1013,9 @@
     "tradingAccountHeading": "Trading account",
     "accountIdServer": "Account ID (server)",
     "mode": "Mode",
-    "modeValue": "SIMULATED / MOCK · server-scoped active account",
+    "modeValue": "Lingkungan latihan · akun aktif mengikuti pilihan server",
+    "viewHistory": "Riwayat perdagangan",
+    "viewAccountDetail": "Detail akun",
     "manageAccountsHint": "Manage demo accounts on <accountsLink>Forex accounts</accountsLink>. Use the terminal bar switcher for quick changes. Orders, positions, ledger, history, risk, margin, and alerts always follow the server-selected active account.",
     "riskHeading": "Risk",
     "state": "State",
@@ -1156,6 +1186,127 @@
     "currencyShort": "Ccy",
     "noCalendarEvents": "No calendar events for this filter.",
     "noLevelsYet": "No levels yet — wait for chart history."
+  },
+  "portalAccountContext": {
+    "aria": "Akun Forex aktif",
+    "kindDemo": "Demo",
+    "kindLive": "Live",
+    "viewDetail": "Detail akun",
+    "openTerminal": "Buka terminal"
+  },
+  "customerGuidance": {
+    "checklistTitle": "Memulai",
+    "checklistSubtitle": "Selesaikan langkah ini untuk pengalaman portal Forex terbaik.",
+    "noAccountTitle": "Belum ada akun Forex",
+    "noAccountBody": "Buat akun demo untuk berlatih dengan saldo simulasi.",
+    "noAccountCta": "Ke akun",
+    "demoFundsTitle": "Saldo demo kosong",
+    "demoFundsBody": "Klaim kredit demo simulasi — bukan deposit riil.",
+    "demoFundsCta": "Pendanaan demo",
+    "liveUnavailableTitle": "Akun live tidak tersedia",
+    "liveUnavailableBody": "Pembukaan akun Forex live dan pendanaan riil tidak diaktifkan di lingkungan ini.",
+    "kycRequiredTitle": "Verifikasi diperlukan",
+    "kycRequiredBody": "Selesaikan verifikasi identitas sebelum membuka akun Forex live.",
+    "kycRequiredCta": "Selesaikan verifikasi",
+    "allSetTitle": "Siap trading",
+    "allSetBadge": "Siap",
+    "allSetBody": "Akun demo Anda siap. Buka terminal atau tinjau posisi dan order."
+  },
+  "fundsNav": {
+    "aria": "Bagian dana",
+    "overview": "Ringkasan",
+    "deposit": "Deposit",
+    "withdraw": "Penarikan",
+    "transfer": "Transfer",
+    "paymentMethods": "Metode pembayaran"
+  },
+  "fundingGate": {
+    "subtitle": "Pendanaan Forex uang riil",
+    "technicalDetailsLabel": "Detail teknis",
+    "technicalDetailsBody": "Alur deposit, penarikan, transfer, dan metode pembayaran riil memerlukan rel provider Forex live, persetujuan compliance, dan endpoint API pelanggan. Lingkungan ini mempertahankan realForex nonaktif.",
+    "verificationHint": "Saat Forex live diaktifkan, <verifyLink>verifikasi</verifyLink> mungkin diperlukan terlebih dahulu.",
+    "depositTitle": "Deposit tidak tersedia",
+    "depositBadge": "Belum dikonfigurasi",
+    "depositBody": "Deposit Forex tidak tersedia. Akun demo dapat memakai pendanaan demo simulasi di ringkasan Dana.",
+    "withdrawTitle": "Penarikan tidak tersedia",
+    "withdrawBadge": "Belum dikonfigurasi",
+    "withdrawBody": "Penarikan Forex tidak ditawarkan hingga rel pendanaan live dan pemeriksaan keamanan terhubung.",
+    "transferTitle": "Transfer tidak tersedia",
+    "transferBadge": "Belum dikonfigurasi",
+    "transferBody": "Transfer internal antar akun Forex belum tersedia.",
+    "paymentMethodsTitle": "Metode pembayaran tidak tersedia",
+    "paymentMethodsBadge": "Belum dikonfigurasi",
+    "paymentMethodsBody": "Metode pembayaran tersimpan tidak didukung hingga provider pendanaan Forex terintegrasi."
+  },
+  "accountDetail": {
+    "loading": "Memuat akun…",
+    "notFoundTitle": "Akun tidak ditemukan",
+    "backToAccounts": "Kembali ke daftar akun",
+    "inactiveTitle": "Akun tidak aktif",
+    "inactiveBody": "Ganti ke akun ini untuk memuat saldo, margin, dan aktivitas.",
+    "switchToAccount": "Ganti ke akun ini",
+    "switching": "Mengganti…",
+    "switchFailed": "Tidak dapat mengganti akun.",
+    "heroAria": "Ringkasan akun",
+    "kindDemo": "Demo",
+    "kindLive": "Live",
+    "leverageLabel": "Leverage {value}",
+    "leverageDefault": "Default",
+    "createdAt": "Dibuat {date}",
+    "openTerminal": "Buka terminal",
+    "demoFundingCta": "Pendanaan demo",
+    "depositCta": "Deposit",
+    "identityTitle": "Identitas akun",
+    "fieldAccountId": "ID akun",
+    "fieldKind": "Jenis",
+    "fieldCurrency": "Mata uang",
+    "fieldPositionMode": "Mode posisi",
+    "fieldLeverage": "Leverage",
+    "fieldPlatform": "Platform",
+    "platformValue": "FDM Forex",
+    "technicalDetailsLabel": "Detail teknis",
+    "technicalDetailsBody": "Eksekusi dan saldo mengikuti akun yang dipilih server. Pendanaan demo hanya buku besar dan dibedakan dari deposit riil.",
+    "financialAria": "Snapshot keuangan",
+    "metricBalance": "Saldo",
+    "metricEquity": "Ekuitas",
+    "metricFreeMargin": "Margin bebas",
+    "metricUsedMargin": "Margin terpakai",
+    "metricUnrealizedPnl": "P/L belum direalisasi",
+    "metricRealizedPnl": "P/L direalisasi",
+    "metricMarginLevel": "Level margin",
+    "metricAvailable": "Tersedia",
+    "healthTitle": "Risiko & kesehatan",
+    "riskState": "Status risiko",
+    "riskReason": "Alasan",
+    "activityTitle": "Aktivitas",
+    "linkPositions": "Posisi",
+    "linkOrders": "Order",
+    "linkHistory": "Riwayat perdagangan",
+    "linkLedger": "Buku besar akun",
+    "financialLockedTitle": "Data keuangan",
+    "financialLockedBody": "Ganti ke akun ini untuk melihat saldo dan margin.",
+    "accessTitle": "Akses akun",
+    "accessBody": "Akses trading memakai login platform Anda. Ubah kata sandi dan keamanan di area keamanan platform.",
+    "passwordNeverShown": "Kata sandi dan kredensial investor tidak pernah ditampilkan di portal."
+  },
+  "historyPage": {
+    "summaryAria": "Ringkasan riwayat perdagangan",
+    "kpiExecutions": "Eksekusi",
+    "kpiCurrency": "Mata uang",
+    "kpiRealizedPnl": "P/L direalisasi",
+    "tableTitle": "Eksekusi",
+    "exportCsv": "Ekspor CSV",
+    "exportBusy": "Mengekspor…",
+    "exportFailed": "Ekspor gagal. Coba lagi saat sudah masuk.",
+    "empty": "Belum ada eksekusi. Lakukan trade demo di terminal.",
+    "colTime": "Waktu",
+    "colSymbol": "Simbol",
+    "colSide": "Sisi",
+    "colVolume": "Volume",
+    "colPrice": "Harga",
+    "colFillId": "ID fill",
+    "colOrderId": "ID order",
+    "statementNote": "Laporan broker tidak dibuat di sini. Ekspor CSV memakai riwayat trade server untuk akun aktif."
   },
   "riskTools": {
     "title": "Pip / R:R calculator",

@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { ForexAccountOverviewDashboard } from '@/components/forex/ForexAccountOverviewDashboard';
+import { ForexCustomerGuidanceBanner } from '@/components/forex/ForexCustomerGuidanceBanner';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexStore } from '@/lib/forex/state/store';
@@ -22,7 +23,10 @@ export default function ForexAccountPage() {
       ) : !account && !balance ? (
         <p className="text-sm text-muted-foreground">{t('loading')}</p>
       ) : (
-        <ForexAccountOverviewDashboard />
+        <>
+          <ForexCustomerGuidanceBanner />
+          <ForexAccountOverviewDashboard />
+        </>
       )}
     </ForexPageFrame>
   );

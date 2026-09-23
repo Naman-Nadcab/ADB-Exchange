@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import {
   ForexPortalKpiCard,
   ForexPortalModuleCard,
@@ -80,6 +81,7 @@ export default function ForexLedgerPage() {
         <ForexSignInPrompt href="/login?redirect=/forex/account/ledger" sectionKey="ledger" />
       ) : (
         <>
+          <ForexPortalAccountContext />
           <section className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3" aria-label={tl('summaryAria')}>
             <ForexPortalKpiCard emphasis="primary" label={tl('kpiLedgerBalance')} value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
             <ForexPortalKpiCard emphasis="secondary" label={tl('kpiEntryCount')} value={rows.length} kind="plain" />

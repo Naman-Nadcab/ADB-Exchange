@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { CircleDollarSign, Gauge, LineChart, Wallet } from 'lucide-react';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { ForexPositionPanel } from '@/components/forex/ForexPositionPanel';
 import { fxMoney, fxNum, fxPlain } from '@/components/forex/format';
@@ -36,6 +37,7 @@ export default function ForexPortfolioPage() {
         <ForexSignInPrompt href="/login?redirect=/forex/portfolio" sectionKey="portfolio" />
       ) : (
         <>
+          <ForexPortalAccountContext />
           <section className="flex flex-wrap items-center justify-between gap-2">
             <ForexPortalStatusBadge tone="primary">{tp('openPositionsBadge', { count: rows.length })}</ForexPortalStatusBadge>
           </section>

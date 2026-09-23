@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { CircleDollarSign, Landmark, Wallet } from 'lucide-react';
+import { ForexFundsSubNav } from '@/components/forex/ForexFundsSubNav';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { fxPlain } from '@/components/forex/format';
 import { forexApi } from '@/lib/forex/api/client';
@@ -60,7 +62,10 @@ export default function ForexFundsPage() {
       {!authed ? (
         <ForexSignInPrompt href="/login?redirect=/forex/account/funds" sectionKey="funds" />
       ) : (
-        <section className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3" aria-label={t('summaryAria')}>
+        <>
+          <ForexPortalAccountContext />
+          <ForexFundsSubNav />
+          <section className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3" aria-label={t('summaryAria')}>
           <ForexPortalKpiCard
             emphasis="primary"
             icon={Wallet}
@@ -89,6 +94,7 @@ export default function ForexFundsPage() {
             currency={currency}
           />
         </section>
+        </>
       )}
 
       <ForexPortalModuleCard title={t('demoTitle')} accent subtitle={t('demoBadge')}>

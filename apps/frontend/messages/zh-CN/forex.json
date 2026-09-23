@@ -5,6 +5,7 @@
     "markets": "市场",
     "portfolio": "持仓",
     "orders": "订单",
+    "history": "历史",
     "analysis": "分析",
     "alerts": "提醒",
     "account": "账户",
@@ -61,12 +62,36 @@
       "subtitle": "由服务端评估的账户外汇提醒。"
     },
     "account": {
-      "title": "账户",
-      "subtitle": "外汇演示账户 · 模拟 /  MOCK。非真实资金。真实外汇与 live LP 仍关闭。"
+      "title": "账户概览",
+      "subtitle": "当前外汇账户的余额、保证金、健康状态与快捷操作。"
+    },
+    "accountDetail": {
+      "title": "账户详情",
+      "subtitle": "该外汇账户的身份、配置、财务快照与活动。"
+    },
+    "history": {
+      "title": "交易历史",
+      "subtitle": "当前外汇账户的成交与执行记录。"
     },
     "funds": {
       "title": "资金",
-      "subtitle": "外汇演示账户 · 模拟 / MOCK。真实外汇入金通道关闭。加密钱包独立。"
+      "subtitle": "演示模拟额度与资金状态。真实外汇通道与加密钱包相互独立。"
+    },
+    "fundsDeposit": {
+      "title": "入金",
+      "subtitle": "在启用真实资金后向真实外汇账户入金。"
+    },
+    "fundsWithdraw": {
+      "title": "出金",
+      "subtitle": "在支持时从真实外汇账户出金。"
+    },
+    "fundsTransfer": {
+      "title": "内部转账",
+      "subtitle": "在支持时在您的外汇账户之间划转资金。"
+    },
+    "fundsPaymentMethods": {
+      "title": "支付方式",
+      "subtitle": "在支持时管理已验证的入金方式。"
     },
     "ledger": {
       "title": "流水",
@@ -74,7 +99,7 @@
     },
     "accounts": {
       "title": "外汇账户",
-      "subtitle": "仅模拟演示账户。REAL_FOREX 关闭时不可开立真实账户。"
+      "subtitle": "管理演示账户、切换当前账户并查看账户详情。"
     }
   },
   "markets": {
@@ -854,7 +879,10 @@
     "metricBalance": "余额",
     "metricEquity": "净值",
     "metricMargin": "已用保证金",
-    "manage": "管理"
+    "manage": "管理",
+    "viewDetail": "查看详情",
+    "openLiveAccount": "开立真实账户",
+    "openLiveUnavailableHint": "真实外汇账户需要平台启用真实外汇能力并完成验证。"
   },
   "positionModeSwitch": {
     "button": "模式…",
@@ -985,7 +1013,9 @@
     "tradingAccountHeading": "Trading account",
     "accountIdServer": "Account ID (server)",
     "mode": "Mode",
-    "modeValue": "SIMULATED / MOCK · server-scoped active account",
+    "modeValue": "练习环境 · 当前账户由服务端选择决定",
+    "viewHistory": "交易历史",
+    "viewAccountDetail": "账户详情",
     "manageAccountsHint": "Manage demo accounts on <accountsLink>Forex accounts</accountsLink>. Use the terminal bar switcher for quick changes. Orders, positions, ledger, history, risk, margin, and alerts always follow the server-selected active account.",
     "riskHeading": "Risk",
     "state": "State",
@@ -1156,6 +1186,127 @@
     "currencyShort": "Ccy",
     "noCalendarEvents": "No calendar events for this filter.",
     "noLevelsYet": "No levels yet — wait for chart history."
+  },
+  "portalAccountContext": {
+    "aria": "当前外汇账户",
+    "kindDemo": "演示",
+    "kindLive": "真实",
+    "viewDetail": "账户详情",
+    "openTerminal": "打开终端"
+  },
+  "customerGuidance": {
+    "checklistTitle": "入门指引",
+    "checklistSubtitle": "完成以下步骤以获得更好的外汇门户体验。",
+    "noAccountTitle": "暂无外汇账户",
+    "noAccountBody": "创建演示账户以使用模拟余额练习。",
+    "noAccountCta": "前往账户",
+    "demoFundsTitle": "演示余额为空",
+    "demoFundsBody": "领取模拟演示额度——非真实入金。",
+    "demoFundsCta": "演示注资",
+    "liveUnavailableTitle": "暂不可开立真实账户",
+    "liveUnavailableBody": "本环境未启用真实外汇开户与真实资金通道。",
+    "kycRequiredTitle": "需要完成验证",
+    "kycRequiredBody": "开立真实外汇账户前请完成身份验证。",
+    "kycRequiredCta": "完成验证",
+    "allSetTitle": "可以开始交易",
+    "allSetBadge": "就绪",
+    "allSetBody": "演示账户已就绪。打开终端或查看持仓与订单。"
+  },
+  "fundsNav": {
+    "aria": "资金分区",
+    "overview": "概览",
+    "deposit": "入金",
+    "withdraw": "出金",
+    "transfer": "转账",
+    "paymentMethods": "支付方式"
+  },
+  "fundingGate": {
+    "subtitle": "真实资金外汇通道",
+    "technicalDetailsLabel": "技术详情",
+    "technicalDetailsBody": "真实入金、出金、转账与支付方式需要真实外汇服务商通道、合规审批及客户 API。本环境保持 realForex 关闭。",
+    "verificationHint": "启用真实外汇后，可能需要先<verifyLink>完成验证</verifyLink>。",
+    "depositTitle": "入金不可用",
+    "depositBadge": "未配置",
+    "depositBody": "外汇入金暂不可用。演示账户可在资金概览领取模拟演示额度。",
+    "withdrawTitle": "出金不可用",
+    "withdrawBadge": "未配置",
+    "withdrawBody": "在接入真实资金通道与安全校验前，不向客户提供外汇出金。",
+    "transferTitle": "转账不可用",
+    "transferBadge": "未配置",
+    "transferBody": "外汇账户之间的内部转账暂不可用。",
+    "paymentMethodsTitle": "支付方式不可用",
+    "paymentMethodsBadge": "未配置",
+    "paymentMethodsBody": "在集成外汇资金服务商前不支持保存支付方式。"
+  },
+  "accountDetail": {
+    "loading": "正在加载账户…",
+    "notFoundTitle": "未找到账户",
+    "backToAccounts": "返回账户列表",
+    "inactiveTitle": "非当前账户",
+    "inactiveBody": "切换到此账户以加载余额、保证金与活动数据。",
+    "switchToAccount": "切换到此账户",
+    "switching": "切换中…",
+    "switchFailed": "无法切换账户。",
+    "heroAria": "账户摘要",
+    "kindDemo": "演示",
+    "kindLive": "真实",
+    "leverageLabel": "杠杆 {value}",
+    "leverageDefault": "默认",
+    "createdAt": "创建于 {date}",
+    "openTerminal": "打开终端",
+    "demoFundingCta": "演示注资",
+    "depositCta": "入金",
+    "identityTitle": "账户身份",
+    "fieldAccountId": "账户 ID",
+    "fieldKind": "类型",
+    "fieldCurrency": "货币",
+    "fieldPositionMode": "持仓模式",
+    "fieldLeverage": "杠杆",
+    "fieldPlatform": "平台",
+    "platformValue": "FDM Forex",
+    "technicalDetailsLabel": "技术详情",
+    "technicalDetailsBody": "执行与余额跟随服务端所选账户。演示注资仅记入账本，并与真实入金明确区分。",
+    "financialAria": "财务快照",
+    "metricBalance": "余额",
+    "metricEquity": "净值",
+    "metricFreeMargin": "可用保证金",
+    "metricUsedMargin": "已用保证金",
+    "metricUnrealizedPnl": "浮动盈亏",
+    "metricRealizedPnl": "已实现盈亏",
+    "metricMarginLevel": "保证金比例",
+    "metricAvailable": "可用",
+    "healthTitle": "风险与健康",
+    "riskState": "风险状态",
+    "riskReason": "原因",
+    "activityTitle": "活动",
+    "linkPositions": "持仓",
+    "linkOrders": "订单",
+    "linkHistory": "交易历史",
+    "linkLedger": "账户账本",
+    "financialLockedTitle": "财务数据",
+    "financialLockedBody": "切换到此账户以查看余额与保证金。",
+    "accessTitle": "账户访问",
+    "accessBody": "交易访问使用您的平台登录。请在平台安全设置中修改密码与安全选项。",
+    "passwordNeverShown": "门户中从不显示密码或只读凭证。"
+  },
+  "historyPage": {
+    "summaryAria": "交易历史摘要",
+    "kpiExecutions": "成交笔数",
+    "kpiCurrency": "货币",
+    "kpiRealizedPnl": "已实现盈亏",
+    "tableTitle": "成交记录",
+    "exportCsv": "导出 CSV",
+    "exportBusy": "导出中…",
+    "exportFailed": "导出失败。请确认已登录后重试。",
+    "empty": "暂无成交。请在终端进行演示交易。",
+    "colTime": "时间",
+    "colSymbol": "品种",
+    "colSide": "方向",
+    "colVolume": "数量",
+    "colPrice": "价格",
+    "colFillId": "成交 ID",
+    "colOrderId": "订单 ID",
+    "statementNote": "此处不生成经纪商对账单。CSV 导出使用当前账户的服务端交易历史。"
   },
   "riskTools": {
     "title": "Pip / R:R calculator",

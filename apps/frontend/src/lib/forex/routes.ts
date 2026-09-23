@@ -4,12 +4,18 @@ export const FOREX_ROUTES = {
   markets: '/forex/markets',
   portfolio: '/forex/portfolio',
   orders: '/forex/orders',
+  history: '/forex/history',
   analysis: '/forex/analysis',
   alerts: '/forex/alerts',
   account: '/forex/account',
   funds: '/forex/account/funds',
+  fundsDeposit: '/forex/account/funds/deposit',
+  fundsWithdraw: '/forex/account/funds/withdraw',
+  fundsTransfer: '/forex/account/funds/transfer',
+  fundsPaymentMethods: '/forex/account/funds/payment-methods',
   ledger: '/forex/account/ledger',
   accounts: '/forex/account/accounts',
+  accountDetail: (accountId: string) => `/forex/account/accounts/${encodeURIComponent(accountId)}`,
 } as const;
 
 export function isForexTradePath(pathname: string): boolean {
@@ -31,6 +37,7 @@ export const FOREX_TOP_NAV = [
   { href: FOREX_ROUTES.markets, labelKey: 'nav.markets' as const },
   { href: FOREX_ROUTES.portfolio, labelKey: 'nav.portfolio' as const },
   { href: FOREX_ROUTES.orders, labelKey: 'nav.orders' as const },
+  { href: FOREX_ROUTES.history, labelKey: 'nav.history' as const },
 ] as const;
 
 /** @deprecated Use FOREX_TOP_NAV — kept for audit references only. */
