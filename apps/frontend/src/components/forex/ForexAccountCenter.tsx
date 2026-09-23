@@ -15,6 +15,7 @@ import {
   switchForexActiveAccount,
   syncForexAccountsFromServer,
 } from '@/lib/forex/runtime/hydrate';
+import { ForexCustomerIdentityStrip } from '@/components/forex/ForexCustomerIdentityStrip';
 import { ROUTES } from '@/lib/routes';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useForexProductGates } from '@/lib/forex/hooks/useForexProductGates';
@@ -124,6 +125,7 @@ export function ForexAccountCenter() {
 
   return (
     <div className="space-y-3">
+      <ForexCustomerIdentityStrip />
       {!gates.liveAccountEnabled ? (
         <ForexPortalModuleCard title={t('liveUnavailableTitle')} accent>
           <p className="text-sm text-muted-foreground">{t('liveUnavailableBody')}</p>
@@ -147,21 +149,23 @@ export function ForexAccountCenter() {
             >
               {busy === 'create' ? t('createDemoBusy') : t('createDemo')}
             </button>
-            {gates.liveAccountEnabled ? (
-              <Link
-                href={FOREX_ROUTES.accounts}
-                className="inline-flex min-h-9 items-center rounded border border-border px-3 text-[11px] font-semibold hover:border-primary/40"
-              >
-                {t('openLiveAccount')}
-              </Link>
-            ) : (
-              <span
-                title={t('openLiveUnavailableHint')}
-                className="inline-flex min-h-9 cursor-not-allowed items-center rounded border border-border/50 px-3 text-[11px] font-semibold text-muted-foreground"
-              >
-                {t('openLiveAccount')}
-              </span>
-            )}
+            <Link
+              href={FOREX_ROUTES.openDemoAccount}
+              className="inline-flex min-h-9 items-center rounded border border-border px-3 text-[11px] font-semibold hover:border-primary/40"
+            >
+              {t('openDemoFlow')}
+            </Link>
+            <Link
+              href={FOREX_ROUTES.openLiveAccount}
+              className={
+                gates.liveAccountEnabled
+                  ? 'inline-flex min-h-9 items-center rounded border border-border px-3 text-[11px] font-semibold hover:border-primary/40'
+                  : 'inline-flex min-h-9 items-center rounded border border-border/60 px-3 text-[11px] font-semibold text-muted-foreground hover:border-primary/30'
+              }
+              title={gates.liveAccountEnabled ? undefined : t('openLiveUnavailableHint')}
+            >
+              {t('openLiveAccount')}
+            </Link>
             <Link
               href={FOREX_ROUTES.trade}
               className="inline-flex min-h-9 items-center gap-1 rounded border border-border px-3 text-[11px] font-semibold hover:border-primary/40"

@@ -3,6 +3,7 @@
  * IDOR: caller must verify ownership before invoking.
  */
 import { getForexAccountingService } from '../accounting/service.js';
+import { publicLedgerRow } from '../accounting/ledger-public.js';
 import { publicForexOrder } from '../orders/models.js';
 import { getForexOrderService } from '../orders/service.js';
 import { publicForexPosition } from '../positions/models.js';
@@ -61,9 +62,18 @@ export function buildForexCustomerAccountHubBundle(account: ForexCustomerAccount
       label: `${account.accountKind} · ${account.currency}`,
       positionMode: account.positionMode,
       leverageOverride: account.leverageOverride,
+      groupCode: account.groupCode,
+      groupLabel: account.groupLabel,
       createdAt: account.createdAt,
       updatedAt: account.updatedAt,
     },
+    fundingHistoryPreview: accounting()
+      .listFunding(accountId)
+      .slice(0, 8)
+      .map((tx) => {
+        const row = publicLedgerRow(tx);
+        return row;
+      }),
     financialSnapshot: {
       currency: view.currency,
       ledgerBalance: view.ledgerBalance,

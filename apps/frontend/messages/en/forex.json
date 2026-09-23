@@ -93,6 +93,18 @@
       "title": "Payment methods",
       "subtitle": "Manage verified funding methods when supported."
     },
+    "fundsHistory": {
+      "title": "Funding history",
+      "subtitle": "Deposits, withdrawals, and demo credits for your active Forex account."
+    },
+    "openDemo": {
+      "title": "Open demo account",
+      "subtitle": "Create a simulated practice account with its own ledger balance."
+    },
+    "openLive": {
+      "title": "Open live account",
+      "subtitle": "Live Forex account opening when the platform and provider are enabled."
+    },
     "ledger": {
       "title": "Ledger",
       "subtitle": "Forex cash movements with backend running balances. Reconciliation uses account values, not frontend math."
@@ -891,7 +903,8 @@
     "cardCreated": "Created {date}",
     "metricFreeMargin": "Free margin",
     "demoFundingShort": "Demo funding",
-    "metricsLoading": "Loading account metrics…"
+    "metricsLoading": "Loading account metrics…",
+    "openDemoFlow": "Open demo account"
   },
   "positionModeSwitch": {
     "button": "Mode…",
@@ -1227,7 +1240,8 @@
     "deposit": "Deposit",
     "withdraw": "Withdraw",
     "transfer": "Transfer",
-    "paymentMethods": "Payment methods"
+    "paymentMethods": "Payment methods",
+    "history": "Funding history"
   },
   "fundingGate": {
     "subtitle": "Real-money Forex funding",
@@ -1338,7 +1352,84 @@
     "documentsVerification": "Verification",
     "documentsHelp": "Help center",
     "managementTitle": "Account management",
-    "closeAccountUnavailable": "Closing or suspending Forex accounts from the customer portal is not available yet. Contact support if you need assistance."
+    "closeAccountUnavailable": "Closing or suspending Forex accounts from the customer portal is not available yet. Contact support if you need assistance.",
+    "fieldAccountGroup": "Account group",
+    "groupDefault": "Default",
+    "fundingHistoryCta": "Funding history",
+    "recentFundingTitle": "Recent funding activity"
+  },
+  "customerIdentity": {
+    "title": "Customer profile",
+    "subtitle": "Your platform identity linked to Forex trading accounts.",
+    "customerId": "Customer ID",
+    "unknown": "Sign in to view",
+    "profile": "Profile",
+    "profileLink": "Platform profile"
+  },
+  "credentials": {
+    "title": "Credentials & access",
+    "subtitle": "Secure access to your trading account — secrets are never shown here.",
+    "platformLoginTitle": "Platform login password",
+    "platformLoginBody": "Use your main platform password to sign in. Change it from platform security settings.",
+    "changePlatformPassword": "Change password",
+    "tradingPasswordTitle": "Trading password",
+    "tradingPasswordBody": "A separate broker trading password is not configured for simulated Forex accounts on this environment.",
+    "unavailableBadge": "Not available",
+    "investorPasswordTitle": "Investor (read-only) access",
+    "investorPasswordBody": "Read-only credentials require a live broker integration."
+  },
+  "accountSettings": {
+    "title": "Account settings",
+    "subtitle": "Supported configuration for the selected account.",
+    "leverage": "Leverage",
+    "accountGroup": "Account group",
+    "groupDefault": "Default group",
+    "switchToEdit": "Switch to this account to change position mode.",
+    "positionModeHint": "Netting and hedging require a flat account (no open positions or working orders).",
+    "leverageRequestHint": "Leverage changes require compliance review and are not self-service on this environment."
+  },
+  "fundingHistoryPage": {
+    "tableTitle": "Funding transactions",
+    "tableSubtitle": "Deposits, withdrawals, transfers, and demo credits — not trade fills.",
+    "loading": "Loading funding history…",
+    "empty": "No funding activity on this account yet.",
+    "colTime": "Time",
+    "colType": "Type",
+    "colDebit": "Debit",
+    "colCredit": "Credit",
+    "colStatus": "Status",
+    "colReference": "Reference",
+    "ledgerNote": "For full accounting detail including trades and fees, use Account Ledger."
+  },
+  "openDemo": {
+    "flowTitle": "Demo account lifecycle",
+    "demoBadge": "Simulated · not real money",
+    "step1": "Create an isolated demo trading account (USD).",
+    "step2": "Claim simulated demo credits from Funds.",
+    "step3": "Open the terminal to practice with MOCK execution.",
+    "simulatedNotice": "Demo balances never mix with Crypto wallet or real deposits.",
+    "createCta": "Create demo account",
+    "creating": "Creating…",
+    "failed": "Could not create demo account.",
+    "success": "Demo account created and set as your active account.",
+    "successGeneric": "created",
+    "backAccounts": "All accounts"
+  },
+  "openLive": {
+    "eligibilityTitle": "Live account eligibility",
+    "availableBadge": "May be available",
+    "unavailableBadge": "Not available",
+    "loadingEligibility": "Checking platform eligibility…",
+    "reasonLabel": "Reason",
+    "checklistTitle": "Prerequisites",
+    "kycDone": "Identity verification complete",
+    "kycPending": "Identity verification required",
+    "providerPending": "Broker / LP integration must be enabled (REAL_FOREX)",
+    "provisioningPending": "Account provisioning service must be connected",
+    "kycCta": "Complete verification",
+    "applicationTitle": "Live application",
+    "applicationBody": "Live account opening is not accepting applications until REAL_FOREX and provider provisioning are enabled. No application has been submitted.",
+    "backAccounts": "Back to accounts"
   },
   "accountDetail": {
     "loading": "Loading account…",

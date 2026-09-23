@@ -93,6 +93,18 @@
       "title": "支付方式",
       "subtitle": "在支持时管理已验证的入金方式。"
     },
+    "fundsHistory": {
+      "title": "资金历史",
+      "subtitle": "当前外汇账户的入金、出金与演示额度记录。"
+    },
+    "openDemo": {
+      "title": "开立演示账户",
+      "subtitle": "创建独立模拟练习账户及账本余额。"
+    },
+    "openLive": {
+      "title": "开立真实账户",
+      "subtitle": "在平台与服务商启用后开立真实外汇账户。"
+    },
     "ledger": {
       "title": "流水",
       "subtitle": "外汇资金变动及后端余额。对账以后端账户值为准，非前端计算。"
@@ -891,7 +903,8 @@
     "cardCreated": "创建于 {date}",
     "metricFreeMargin": "可用保证金",
     "demoFundingShort": "演示注资",
-    "metricsLoading": "正在加载账户指标…"
+    "metricsLoading": "正在加载账户指标…",
+    "openDemoFlow": "开立演示账户"
   },
   "positionModeSwitch": {
     "button": "模式…",
@@ -1227,7 +1240,8 @@
     "deposit": "入金",
     "withdraw": "出金",
     "transfer": "转账",
-    "paymentMethods": "支付方式"
+    "paymentMethods": "支付方式",
+    "history": "资金历史"
   },
   "fundingGate": {
     "subtitle": "真实资金外汇通道",
@@ -1338,7 +1352,84 @@
     "documentsVerification": "验证",
     "documentsHelp": "帮助中心",
     "managementTitle": "账户管理",
-    "closeAccountUnavailable": "客户门户暂不支持关闭或暂停外汇账户。如需协助请联系支持。"
+    "closeAccountUnavailable": "客户门户暂不支持关闭或暂停外汇账户。如需协助请联系支持。",
+    "fieldAccountGroup": "账户组",
+    "groupDefault": "默认",
+    "fundingHistoryCta": "资金历史",
+    "recentFundingTitle": "近期资金活动"
+  },
+  "customerIdentity": {
+    "title": "客户资料",
+    "subtitle": "与外汇交易账户关联的平台身份。",
+    "customerId": "客户 ID",
+    "unknown": "请登录后查看",
+    "profile": "资料",
+    "profileLink": "平台资料"
+  },
+  "credentials": {
+    "title": "凭证与访问",
+    "subtitle": "安全访问交易账户——此处从不显示密钥。",
+    "platformLoginTitle": "平台登录密码",
+    "platformLoginBody": "使用主平台密码登录。可在平台安全设置中修改。",
+    "changePlatformPassword": "修改密码",
+    "tradingPasswordTitle": "交易密码",
+    "tradingPasswordBody": "本环境的模拟外汇账户未配置独立经纪商交易密码。",
+    "unavailableBadge": "不可用",
+    "investorPasswordTitle": "投资者（只读）访问",
+    "investorPasswordBody": "只读凭证需要真实经纪商集成。"
+  },
+  "accountSettings": {
+    "title": "账户设置",
+    "subtitle": "所选账户支持的配置项。",
+    "leverage": "杠杆",
+    "accountGroup": "账户组",
+    "groupDefault": "默认组",
+    "switchToEdit": "请切换到此账户以更改持仓模式。",
+    "positionModeHint": "净额/对冲切换要求无持仓且无挂单。",
+    "leverageRequestHint": "杠杆变更需合规审核，本环境不支持自助修改。"
+  },
+  "fundingHistoryPage": {
+    "tableTitle": "资金交易",
+    "tableSubtitle": "入金、出金、转账与演示额度——非成交记录。",
+    "loading": "正在加载资金历史…",
+    "empty": "此账户暂无资金活动。",
+    "colTime": "时间",
+    "colType": "类型",
+    "colDebit": "借方",
+    "colCredit": "贷方",
+    "colStatus": "状态",
+    "colReference": "参考号",
+    "ledgerNote": "完整账务（含交易与费用）请查看账户账本。"
+  },
+  "openDemo": {
+    "flowTitle": "演示账户生命周期",
+    "demoBadge": "模拟 · 非真实资金",
+    "step1": "创建独立演示交易账户（USD）。",
+    "step2": "在资金页领取模拟演示额度。",
+    "step3": "打开终端以 MOCK 执行练习。",
+    "simulatedNotice": "演示余额不与加密钱包或真实入金混合。",
+    "createCta": "创建演示账户",
+    "creating": "创建中…",
+    "failed": "无法创建演示账户。",
+    "success": "演示账户已创建并设为当前账户。",
+    "successGeneric": "created",
+    "backAccounts": "全部账户"
+  },
+  "openLive": {
+    "eligibilityTitle": "真实账户资格",
+    "availableBadge": "可能可用",
+    "unavailableBadge": "不可用",
+    "loadingEligibility": "正在检查平台资格…",
+    "reasonLabel": "原因",
+    "checklistTitle": "前置条件",
+    "kycDone": "身份验证已完成",
+    "kycPending": "需要完成身份验证",
+    "providerPending": "需启用经纪商/LP 集成（REAL_FOREX）",
+    "provisioningPending": "需连接账户 provisioning 服务",
+    "kycCta": "完成验证",
+    "applicationTitle": "真实账户申请",
+    "applicationBody": "在启用 REAL_FOREX 与 provisioning 之前不接受真实开户申请。尚未提交任何申请。",
+    "backAccounts": "返回账户列表"
   },
   "accountDetail": {
     "loading": "正在加载账户…",

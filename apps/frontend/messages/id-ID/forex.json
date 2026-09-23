@@ -93,6 +93,18 @@
       "title": "Metode pembayaran",
       "subtitle": "Kelola metode pendanaan terverifikasi saat didukung."
     },
+    "fundsHistory": {
+      "title": "Riwayat pendanaan",
+      "subtitle": "Deposit, penarikan, dan kredit demo untuk akun Forex aktif Anda."
+    },
+    "openDemo": {
+      "title": "Buka akun demo",
+      "subtitle": "Buat akun latihan simulasi dengan buku besar saldo sendiri."
+    },
+    "openLive": {
+      "title": "Buka akun live",
+      "subtitle": "Periksa kelayakan dan prasyarat sebelum Forex live diaktifkan."
+    },
     "ledger": {
       "title": "Buku besar",
       "subtitle": "Pergerakan kas Forex dengan saldo berjalan backend. Rekonsiliasi memakai nilai akun, bukan perhitungan frontend."
@@ -891,7 +903,8 @@
     "cardCreated": "Dibuat {date}",
     "metricFreeMargin": "Margin bebas",
     "demoFundingShort": "Pendanaan demo",
-    "metricsLoading": "Memuat metrik akun…"
+    "metricsLoading": "Memuat metrik akun…",
+    "openDemoFlow": "Buka akun demo"
   },
   "positionModeSwitch": {
     "button": "Mode…",
@@ -1227,7 +1240,8 @@
     "deposit": "Deposit",
     "withdraw": "Penarikan",
     "transfer": "Transfer",
-    "paymentMethods": "Metode pembayaran"
+    "paymentMethods": "Metode pembayaran",
+    "history": "Riwayat pendanaan"
   },
   "fundingGate": {
     "subtitle": "Pendanaan Forex uang riil",
@@ -1338,7 +1352,84 @@
     "documentsVerification": "Verifikasi",
     "documentsHelp": "Pusat bantuan",
     "managementTitle": "Manajemen akun",
-    "closeAccountUnavailable": "Menutup atau menangguhkan akun Forex dari portal pelanggan belum tersedia. Hubungi dukungan jika perlu bantuan."
+    "closeAccountUnavailable": "Menutup atau menangguhkan akun Forex dari portal pelanggan belum tersedia. Hubungi dukungan jika perlu bantuan.",
+    "fieldAccountGroup": "Grup akun",
+    "groupDefault": "Default",
+    "fundingHistoryCta": "Riwayat pendanaan",
+    "recentFundingTitle": "Aktivitas pendanaan terbaru"
+  },
+  "customerIdentity": {
+    "title": "Profil pelanggan",
+    "subtitle": "Identitas platform Anda yang terhubung ke akun trading Forex.",
+    "customerId": "ID pelanggan",
+    "unknown": "Masuk untuk melihat",
+    "profile": "Profil",
+    "profileLink": "Profil platform"
+  },
+  "credentials": {
+    "title": "Kredensial & akses",
+    "subtitle": "Akses aman ke akun trading — rahasia tidak pernah ditampilkan di sini.",
+    "platformLoginTitle": "Kata sandi login platform",
+    "platformLoginBody": "Gunakan kata sandi platform utama untuk masuk. Ubah dari pengaturan keamanan platform.",
+    "changePlatformPassword": "Ubah kata sandi",
+    "tradingPasswordTitle": "Kata sandi trading",
+    "tradingPasswordBody": "Kata sandi trading broker terpisah tidak dikonfigurasi untuk akun Forex simulasi di lingkungan ini.",
+    "unavailableBadge": "Tidak tersedia",
+    "investorPasswordTitle": "Akses investor (read-only)",
+    "investorPasswordBody": "Kredensial read-only memerlukan integrasi broker live."
+  },
+  "accountSettings": {
+    "title": "Pengaturan akun",
+    "subtitle": "Konfigurasi yang didukung untuk akun yang dipilih.",
+    "leverage": "Leverage",
+    "accountGroup": "Grup akun",
+    "groupDefault": "Grup default",
+    "switchToEdit": "Ganti ke akun ini untuk mengubah mode posisi.",
+    "positionModeHint": "Netting dan hedging memerlukan akun flat (tanpa posisi terbuka atau order aktif).",
+    "leverageRequestHint": "Perubahan leverage memerlukan tinjauan compliance dan bukan self-service di lingkungan ini."
+  },
+  "fundingHistoryPage": {
+    "tableTitle": "Transaksi pendanaan",
+    "tableSubtitle": "Deposit, penarikan, transfer, dan kredit demo — bukan eksekusi trade.",
+    "loading": "Memuat riwayat pendanaan…",
+    "empty": "Belum ada aktivitas pendanaan pada akun ini.",
+    "colTime": "Waktu",
+    "colType": "Jenis",
+    "colDebit": "Debit",
+    "colCredit": "Kredit",
+    "colStatus": "Status",
+    "colReference": "Referensi",
+    "ledgerNote": "Untuk detail akuntansi lengkap termasuk trade dan biaya, gunakan Buku besar akun."
+  },
+  "openDemo": {
+    "flowTitle": "Siklus hidup akun demo",
+    "demoBadge": "Simulasi · bukan uang riil",
+    "step1": "Buat akun trading demo terpisah (USD).",
+    "step2": "Klaim kredit demo simulasi dari Dana.",
+    "step3": "Buka terminal untuk latihan dengan eksekusi MOCK.",
+    "simulatedNotice": "Saldo demo tidak dicampur dengan dompet Crypto atau deposit riil.",
+    "createCta": "Buat akun demo",
+    "creating": "Membuat…",
+    "failed": "Tidak dapat membuat akun demo.",
+    "success": "Akun demo dibuat dan diatur sebagai akun aktif Anda.",
+    "successGeneric": "created",
+    "backAccounts": "Semua akun"
+  },
+  "openLive": {
+    "eligibilityTitle": "Kelayakan akun live",
+    "availableBadge": "Mungkin tersedia",
+    "unavailableBadge": "Tidak tersedia",
+    "loadingEligibility": "Memeriksa kelayakan platform…",
+    "reasonLabel": "Alasan",
+    "checklistTitle": "Prasyarat",
+    "kycDone": "Verifikasi identitas selesai",
+    "kycPending": "Verifikasi identitas diperlukan",
+    "providerPending": "Integrasi broker / LP harus diaktifkan (REAL_FOREX)",
+    "provisioningPending": "Layanan provisioning akun harus terhubung",
+    "kycCta": "Selesaikan verifikasi",
+    "applicationTitle": "Aplikasi akun live",
+    "applicationBody": "Pembukaan akun live tidak menerima aplikasi hingga REAL_FOREX dan provisioning provider diaktifkan. Belum ada aplikasi yang dikirim.",
+    "backAccounts": "Kembali ke akun"
   },
   "accountDetail": {
     "loading": "Memuat akun…",

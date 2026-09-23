@@ -13,8 +13,11 @@ export const FOREX_ROUTES = {
   fundsWithdraw: '/forex/account/funds/withdraw',
   fundsTransfer: '/forex/account/funds/transfer',
   fundsPaymentMethods: '/forex/account/funds/payment-methods',
+  fundsHistory: '/forex/account/funds/history',
   ledger: '/forex/account/ledger',
   accounts: '/forex/account/accounts',
+  openDemoAccount: '/forex/account/accounts/open-demo',
+  openLiveAccount: '/forex/account/accounts/open-live',
   accountDetail: (accountId: string) => `/forex/account/accounts/${encodeURIComponent(accountId)}`,
 } as const;
 

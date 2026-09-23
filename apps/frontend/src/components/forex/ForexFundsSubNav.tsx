@@ -12,6 +12,7 @@ const ITEMS = [
   { href: FOREX_ROUTES.fundsWithdraw, labelKey: 'withdraw' as const },
   { href: FOREX_ROUTES.fundsTransfer, labelKey: 'transfer' as const },
   { href: FOREX_ROUTES.fundsPaymentMethods, labelKey: 'paymentMethods' as const },
+  { href: FOREX_ROUTES.fundsHistory, labelKey: 'history' as const },
 ] as const;
 
 export function ForexFundsSubNav() {

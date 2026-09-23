@@ -115,6 +115,11 @@ try {
   });
   assert.equal(cross.statusCode, 404);
 
+  const fundCross = await app.inject({ method: 'GET', url: `/accounts/${B1}/funding-history` });
+  assert.equal(fundCross.statusCode, 404);
+  const fundOwn = await app.inject({ method: 'GET', url: `/accounts/${A1}/funding-history` });
+  assert.equal(fundOwn.statusCode, 200);
+
   const balOk = await app.inject({
     method: 'GET',
     url: '/balance',

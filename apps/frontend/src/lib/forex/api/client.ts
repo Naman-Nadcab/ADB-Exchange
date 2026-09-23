@@ -43,6 +43,8 @@ export type ForexCustomerAccountSummary = {
   leverageOverride?: string | null;
   createdAt: string;
   updatedAt?: string;
+  groupCode?: string | null;
+  groupLabel?: string | null;
 };
 
 export type ForexAccountHubPayload = {
@@ -51,7 +53,12 @@ export type ForexAccountHubPayload = {
   realForex: boolean;
   activeAccountId: string;
   isSelected: boolean;
-  account: ForexCustomerAccountSummary & { updatedAt: string };
+  account: ForexCustomerAccountSummary & {
+    updatedAt: string;
+    groupCode?: string | null;
+    groupLabel?: string | null;
+  };
+  fundingHistoryPreview?: ForexLedgerRow[];
   financialSnapshot: {
     currency: string;
     ledgerBalance: string;
@@ -127,6 +134,18 @@ export const forexApi = {
       accounts: ForexCustomerAccountSummary[];
     }>('/accounts'),
   getAccountById: (accountId: string) => fxGet<ForexAccountHubPayload>(`/accounts/${encodeURIComponent(accountId)}`),
+  getLiveOpeningEligibility: () =>
+    fxGet<{
+      source: string;
+      realForex: boolean;
+      liveAccountOpeningAvailable: boolean;
+      reason: string;
+      message: string;
+    }>('/accounts/live-opening/eligibility'),
+  getAccountFundingHistory: (accountId: string) =>
+    fxGet<{ source: string; accountId: string; count: number; transactions: ForexLedgerRow[] }>(
+      `/accounts/${encodeURIComponent(accountId)}/funding-history`
+    ),
   selectAccount: (accountId: string) =>
     api.post<{ source: string; activeAccountId: string; realForex: boolean }>(
       `${FOREX_PREFIX}/accounts/${encodeURIComponent(accountId)}/select`,

@@ -13,6 +13,10 @@ import {
 } from '../services/forex/customer/accounts-service.js';
 import { buildForexCustomerAccountHubBundle } from '../services/forex/customer/account-detail-bundle.js';
 import { getForexAdminBackendConfig } from '../services/forex/admin/config.js';
+import { getForexAccountingService } from '../services/forex/accounting/service.js';
+import { getForexPositionService } from '../services/forex/positions/service.js';
+import { getForexPricingService } from '../services/forex/quotes.service.js';
+import { publicLedgerRow } from '../services/forex/accounting/ledger-public.js';
 
 function userIdFromRequest(request: { user?: { id?: string } }): string | null {
   const id = request.user?.id;
@@ -109,6 +113,52 @@ export async function registerForexCustomerAccountsRoutes(app: FastifyInstance):
       const activeAccountId = await resolveForexAccountIdForUser(userId);
       const hub = buildForexCustomerAccountHubBundle(account, activeAccountId);
       return reply.send({ success: true, data: hub });
+    }
+  );
+
+  app.get('/accounts/live-opening/eligibility', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
+    const userId = userIdFromRequest(request);
+    if (!userId) {
+      return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+    }
+    const cfg = getForexAdminBackendConfig();
+    const realForex = cfg.realForex === true;
+    return reply.send({
+      success: true,
+      data: {
+        source: 'SIMULATED',
+        realForex,
+        liveAccountOpeningAvailable: realForex,
+        reason: realForex ? 'ELIGIBLE_FOR_PROVIDER_FLOW' : 'REAL_FOREX_DISABLED',
+        message: realForex
+          ? 'Live account opening may proceed when KYC and provider prerequisites are satisfied.'
+          : 'Live Forex account opening is not enabled on this platform environment.',
+      },
+    });
+  });
+
+  app.get<{ Params: { accountId: string } }>(
+    '/accounts/:accountId/funding-history',
+    { preHandler: [forexAuthenticate(app)] },
+    async (request, reply) => {
+      const userId = userIdFromRequest(request);
+      if (!userId) {
+        return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+      }
+      const accountId = String(request.params.accountId ?? '');
+      if (!(await userOwnsForexAccount(userId, accountId))) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: 'FOREX_ACCOUNT_NOT_FOUND', message: 'Account not found', source: 'SIMULATED' },
+        });
+      }
+      const pricing = getForexPricingService();
+      const accounting = getForexAccountingService(getForexPositionService(pricing), pricing);
+      const rows = accounting.listFunding(accountId).map(publicLedgerRow);
+      return reply.send({
+        success: true,
+        data: { source: 'SIMULATED', accountId, count: rows.length, transactions: rows },
+      });
     }
   );
 

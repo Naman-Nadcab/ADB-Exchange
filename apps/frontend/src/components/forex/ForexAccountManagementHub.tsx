@@ -3,16 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import {
-  ArrowLeftRight,
-  CircleDollarSign,
-  Gauge,
-  LayoutGrid,
-  Lock,
-  Shield,
-  Wallet,
-} from 'lucide-react';
+import { ArrowLeftRight, CircleDollarSign, Gauge, LayoutGrid, Wallet } from 'lucide-react';
 import { ROUTES } from '@/lib/routes';
+import { ForexAccountSettingsPanel } from './ForexAccountSettingsPanel';
+import { ForexTradingCredentialPanel } from './ForexTradingCredentialPanel';
 import { ForexSignInPrompt } from './ForexPageFrame';
 import { fxNum, fxPlain } from './format';
 import {
@@ -269,6 +263,10 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
               <dd className="mt-0.5">{lev}</dd>
             </div>
             <div>
+              <dt className="text-[10px] uppercase text-muted-foreground">{t('fieldAccountGroup')}</dt>
+              <dd className="mt-0.5">{m.groupLabel ? fxPlain(m.groupLabel) : t('groupDefault')}</dd>
+            </div>
+            <div>
               <dt className="text-[10px] uppercase text-muted-foreground">{t('fieldPlatform')}</dt>
               <dd className="mt-0.5">{FOREX_PRODUCT.productName}</dd>
             </div>
@@ -322,34 +320,14 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
         </ForexPortalModuleCard>
       </div>
 
-      {/* Access & security */}
-      <ForexPortalModuleCard title={t('accessTitle')} subtitle={t('accessSubtitle')}>
-        <dl className="grid gap-2 sm:grid-cols-2 text-[12px]">
-          <div>
-            <dt className="text-[10px] uppercase text-muted-foreground">{t('tradingLoginLabel')}</dt>
-            <dd className="mt-0.5 font-mono">{fxPlain(m.accountId)}</dd>
-          </div>
-          <div>
-            <dt className="text-[10px] uppercase text-muted-foreground">{t('serverLabel')}</dt>
-            <dd className="mt-0.5">{t('serverSimulated')}</dd>
-          </div>
-          <div>
-            <dt className="text-[10px] uppercase text-muted-foreground">{t('accessTypeLabel')}</dt>
-            <dd className="mt-0.5">{t('accessTypePlatform')}</dd>
-          </div>
-        </dl>
-        <p className="mt-2 text-[11px] text-muted-foreground">{t('passwordNeverShown')}</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Link href={ROUTES.dashboard.security} className="inline-flex items-center gap-1 rounded border border-border px-3 py-1.5 text-[11px] font-medium hover:border-primary/40">
-            <Shield className="h-3.5 w-3.5" aria-hidden />
-            {t('platformSecurityCta')}
-          </Link>
-          <span className="inline-flex cursor-not-allowed items-center gap-1 rounded border border-border/50 px-3 py-1.5 text-[11px] text-muted-foreground" title={t('investorAccessUnavailableHint')}>
-            <Lock className="h-3.5 w-3.5" aria-hidden />
-            {t('investorAccessLabel')}
-          </span>
-        </div>
-      </ForexPortalModuleCard>
+      <ForexAccountSettingsPanel
+        isSelected={selected}
+        positionMode={m.positionMode}
+        leverageLabel={lev}
+        groupLabel={m.groupLabel}
+      />
+
+      <ForexTradingCredentialPanel />
 
       {/* Funding */}
       <ForexPortalModuleCard title={t('fundingTitle')} subtitle={t('fundingSubtitle')}>
@@ -387,8 +365,24 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
           <Link href={FOREX_ROUTES.fundsPaymentMethods} className="inline-flex min-h-9 items-center rounded border border-border/70 px-3 text-[11px] text-muted-foreground hover:text-foreground">
             {t('paymentMethodsCta')}
           </Link>
+          <Link href={FOREX_ROUTES.fundsHistory} className="inline-flex min-h-9 items-center rounded border border-border/70 px-3 text-[11px] text-muted-foreground hover:text-foreground">
+            {t('fundingHistoryCta')}
+          </Link>
         </div>
         {!gates.realFundingEnabled ? <p className="mt-2 text-[11px] text-muted-foreground">{t('realFundingOffBody')}</p> : null}
+        {hub.fundingHistoryPreview && hub.fundingHistoryPreview.length > 0 ? (
+          <div className="mt-4 border-t border-border/70 pt-3">
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('recentFundingTitle')}</p>
+            <ul className="space-y-1 font-mono text-[11px]">
+              {hub.fundingHistoryPreview.map((row) => (
+                <li key={row.transactionId} className="flex flex-wrap justify-between gap-2">
+                  <span>{fxPlain(row.type)}</span>
+                  <span className="text-muted-foreground">{fxPlain(row.timestamp)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </ForexPortalModuleCard>
 
       {/* Activity preview */}

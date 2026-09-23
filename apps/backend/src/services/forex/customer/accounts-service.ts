@@ -15,6 +15,9 @@ export type ForexCustomerAccountRow = {
   accountKind: string;
   positionMode: string;
   leverageOverride: string | null;
+  groupId: string | null;
+  groupCode: string | null;
+  groupLabel: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -28,6 +31,9 @@ function rowToAccount(r: Record<string, unknown>): ForexCustomerAccountRow {
     accountKind: String(r.account_kind ?? 'DEMO'),
     positionMode: String(r.position_mode ?? 'NETTING'),
     leverageOverride: r.leverage_override != null ? String(r.leverage_override) : null,
+    groupId: r.group_id != null ? String(r.group_id) : null,
+    groupCode: r.group_code != null ? String(r.group_code) : null,
+    groupLabel: r.group_label != null ? String(r.group_label) : null,
     createdAt: String(r.created_at),
     updatedAt: String(r.updated_at),
   };
@@ -36,14 +42,16 @@ function rowToAccount(r: Record<string, unknown>): ForexCustomerAccountRow {
 export async function listForexAccountsForUser(userId: string): Promise<ForexCustomerAccountRow[]> {
   await ensureLegacyForexAccountRow(userId);
   const res = await db.query(
-    `SELECT account_id, user_id, currency, status,
-            COALESCE(account_kind, 'DEMO') AS account_kind,
-            COALESCE(position_mode, 'NETTING') AS position_mode,
-            leverage_override,
-            created_at, updated_at
-     FROM forex_accounts
-     WHERE user_id = $1
-     ORDER BY created_at ASC`,
+    `SELECT a.account_id, a.user_id, a.currency, a.status,
+            COALESCE(a.account_kind, 'DEMO') AS account_kind,
+            COALESCE(a.position_mode, 'NETTING') AS position_mode,
+            a.leverage_override, a.group_id,
+            g.code AS group_code, g.label AS group_label,
+            a.created_at, a.updated_at
+     FROM forex_accounts a
+     LEFT JOIN forex_account_groups g ON a.group_id = g.group_id
+     WHERE a.user_id = $1
+     ORDER BY a.created_at ASC`,
     [userId]
   );
   return res.rows.map((r) => rowToAccount(r as Record<string, unknown>));
