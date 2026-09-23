@@ -16,9 +16,24 @@ const WALLET_EN_LEAKS = [
   'Date Range',
   'Refresh',
   'Export',
+  'Funding Account',
+  'Hide zero balances',
+  'Wallet balances for deposits',
+  'P&L Analysis',
+  'All Symbols',
+  'No P&L data available',
+  'Go to Spot Trading',
+  'Cumulative P&L',
+  'Best Performer',
+  'Worst Performer',
 ];
 
-const ROUTES = ['/wallet/convert', '/wallet/history'] as const;
+const ROUTES = [
+  '/wallet/convert',
+  '/wallet/history',
+  '/wallet/funding',
+  '/wallet/pnl',
+] as const;
 
 test.describe.configure({ mode: 'serial', timeout: 120_000 });
 

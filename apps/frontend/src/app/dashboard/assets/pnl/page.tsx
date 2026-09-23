@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/auth';
 import { api } from '@/lib/api';
 import { notifyError, notifySuccess } from '@/lib/notifyError';
@@ -41,12 +42,7 @@ interface PnlPayload {
 
 type Period = 'today' | '7d' | '30d' | '90d';
 
-const PERIODS: { id: Period; label: string }[] = [
-  { id: 'today', label: 'Today' },
-  { id: '7d', label: '7D' },
-  { id: '30d', label: '30D' },
-  { id: '90d', label: '90D' },
-];
+const PERIOD_IDS: Period[] = ['today', '7d', '30d', '90d'];
 
 function fmt(n: number, decimals = 2): string {
   return n.toLocaleString(undefined, {
@@ -73,7 +69,15 @@ function pnlSign(v: number): string {
 }
 
 // ── Equity-curve SVG chart ────────────────────────────────────────────
-function EquityCurve({ assets, totalPnl }: { assets: PnlAsset[]; totalPnl: number }) {
+function EquityCurve({
+  assets,
+  totalPnl,
+  emptyMessage,
+}: {
+  assets: PnlAsset[];
+  totalPnl: number;
+  emptyMessage: string;
+}) {
   const W = 720;
   const H = 200;
   const PX = 40;
@@ -91,7 +95,7 @@ function EquityCurve({ assets, totalPnl }: { assets: PnlAsset[]; totalPnl: numbe
   if (points.length < 2) {
     return (
       <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
-        Not enough data to render chart
+        {emptyMessage}
       </div>
     );
   }
@@ -150,8 +154,19 @@ function EquityCurve({ assets, totalPnl }: { assets: PnlAsset[]; totalPnl: numbe
 
 // ── Main page ─────────────────────────────────────────────────────────
 export default function PnlAnalysisPage() {
+  const t = useTranslations('wallet.pnlPage');
   const { accessToken, _hasHydrated } = useAuthStore();
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
+
+  const periodLabels = useMemo(
+    (): Record<Period, string> => ({
+      today: t('periodToday'),
+      '7d': t('period7d'),
+      '30d': t('period30d'),
+      '90d': t('period90d'),
+    }),
+    [t],
+  );
 
   const [period, setPeriod] = useState<Period>('7d');
   const [selectedSymbol, setSelectedSymbol] = useState('all');
@@ -186,7 +201,7 @@ export default function PnlAnalysisPage() {
         const qs = new URLSearchParams({ period: p, type: 'all', symbol: sym });
         const res = await api.get<PnlPayload>(`/api/v1/wallet/pnl?${qs}`, { notifyOnError: false });
         if (!res.success || !res.data) {
-          notifyError(res.error?.message ?? 'Failed to load P&L data');
+          notifyError(res.error?.message ?? t('loadFailed'));
           setAssets([]);
           setTotalPnl(0);
           setTotalPnlPercent(0);
@@ -197,13 +212,13 @@ export default function PnlAnalysisPage() {
         setTotalPnl(Number(d.totalPnl) || 0);
         setTotalPnlPercent(Number(d.totalPnlPercent) || 0);
       } catch {
-        notifyError('Failed to load P&L data');
+        notifyError(t('loadFailed'));
         setAssets([]);
       } finally {
         setLoading(false);
       }
     },
-    [],
+    [t],
   );
 
   useEffect(() => {
@@ -259,7 +274,7 @@ export default function PnlAnalysisPage() {
 
   const handleExport = () => {
     if (assets.length === 0) {
-      notifyError('No data to export');
+      notifyError(t('noDataExport'));
       return;
     }
     const header = `Symbol,PnL (${displayCurrency}),PnL %,Buy Volume,Sell Volume,Avg Buy Price,Avg Sell Price`;
@@ -275,7 +290,7 @@ export default function PnlAnalysisPage() {
     link.download = `pnl_${period}_${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
-    notifySuccess('Exported', 'CSV file downloaded');
+    notifySuccess(t('toastExportedTitle'), t('toastExportedDesc'));
   };
 
   const handlePeriodChange = (p: Period) => {
@@ -295,10 +310,10 @@ export default function PnlAnalysisPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">P&L Analysis</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('title')}</h1>
           <div className="flex items-center gap-2 rounded-xl border border-border bg-primary/10 px-3 py-1.5">
             <BarChart3 className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Performance</span>
+            <span className="text-sm font-medium text-primary">{t('performanceBadge')}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -308,7 +323,7 @@ export default function PnlAnalysisPage() {
             className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/40"
           >
             <Download className="h-4 w-4" />
-            Export CSV
+            {t('exportCsv')}
           </button>
           <button
             type="button"
@@ -316,7 +331,7 @@ export default function PnlAnalysisPage() {
             className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/40"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('refresh')}
           </button>
         </div>
       </div>
@@ -324,18 +339,18 @@ export default function PnlAnalysisPage() {
       {/* Period chips + Symbol filter */}
       <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div className="flex flex-wrap gap-2">
-          {PERIODS.map((p) => (
+          {PERIOD_IDS.map((id) => (
             <button
-              key={p.id}
+              key={id}
               type="button"
-              onClick={() => handlePeriodChange(p.id)}
+              onClick={() => handlePeriodChange(id)}
               className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${
-                period === p.id
+                period === id
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'border border-border bg-muted text-muted-foreground hover:border-primary/40 hover:text-foreground'
               }`}
             >
-              {p.label}
+              {periodLabels[id]}
             </button>
           ))}
         </div>
@@ -349,7 +364,7 @@ export default function PnlAnalysisPage() {
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
               {selectedSymbol === 'all' ? (
-                <span>All Symbols</span>
+                <span>{t('allSymbols')}</span>
               ) : (
                 <span className="flex items-center gap-2">
                   <CoinIcon symbol={selectedSymbol} size={16} />
@@ -369,7 +384,7 @@ export default function PnlAnalysisPage() {
                     type="text"
                     value={symbolSearch}
                     onChange={(e) => setSymbolSearch(e.target.value)}
-                    placeholder="Search symbol…"
+                    placeholder={t('searchSymbol')}
                     className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
                     autoFocus
                   />
@@ -383,7 +398,7 @@ export default function PnlAnalysisPage() {
                     selectedSymbol === 'all' ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted'
                   }`}
                 >
-                  All Symbols
+                  {t('allSymbols')}
                 </button>
                 {filteredSymbols.map((sym) => (
                   <button
@@ -399,7 +414,7 @@ export default function PnlAnalysisPage() {
                   </button>
                 ))}
                 {filteredSymbols.length === 0 && (
-                  <p className="px-4 py-3 text-center text-sm text-muted-foreground">No matches</p>
+                  <p className="px-4 py-3 text-center text-sm text-muted-foreground">{t('noMatches')}</p>
                 )}
               </div>
             </div>
@@ -412,15 +427,15 @@ export default function PnlAnalysisPage() {
           <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-xl bg-muted">
             <BarChart3 className="h-10 w-10 text-muted-foreground" />
           </div>
-          <p className="font-medium text-foreground">No P&L data available</p>
+          <p className="font-medium text-foreground">{t('emptyTitle')}</p>
           <p className="mt-1 max-w-md text-center text-sm text-muted-foreground">
-            Start trading to see your profit & loss analysis. Your performance summary and per-asset breakdown will appear here.
+            {t('emptyBody')}
           </p>
           <Link
             href={SPOT_TRADE_HREF}
             className="mt-6 rounded-xl bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Go to Spot Trading
+            {t('goSpot')}
           </Link>
         </div>
       ) : (
@@ -428,7 +443,7 @@ export default function PnlAnalysisPage() {
           {/* Equity curve */}
           <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <h3 className="text-sm font-semibold text-foreground">Cumulative P&L</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t('cumulativePnl')}</h3>
               <span className={`text-sm font-semibold tabular-nums ${pnlColor(totalPnl)}`}>
                 {pnlSign(totalPnl)}{formatFromUsdt(Math.abs(totalPnl), 2)}
               </span>
@@ -439,7 +454,11 @@ export default function PnlAnalysisPage() {
                   <RefreshCw className="h-6 w-6 animate-spin text-primary" />
                 </div>
               ) : (
-                <EquityCurve assets={sortedAssets} totalPnl={totalPnl} />
+                <EquityCurve
+                  assets={sortedAssets}
+                  totalPnl={totalPnl}
+                  emptyMessage={t('chartInsufficientData')}
+                />
               )}
             </div>
           </div>
@@ -461,7 +480,7 @@ export default function PnlAnalysisPage() {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-muted-foreground">Total P&L</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t('totalPnl')}</p>
                   <p className={`truncate text-xl font-bold tabular-nums ${pnlColor(totalPnl)}`}>
                     {pnlSign(totalPnl)}{formatFromUsdt(Math.abs(totalPnl), 2)}
                   </p>
@@ -476,7 +495,7 @@ export default function PnlAnalysisPage() {
                   <BarChart3 className="h-5 w-5 text-primary" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-muted-foreground">ROI</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t('roi')}</p>
                   <p className={`truncate text-xl font-bold tabular-nums ${pnlColor(totalPnlPercent)}`}>
                     {pnlSign(totalPnlPercent)}{fmt(totalPnlPercent)}%
                   </p>
@@ -491,7 +510,7 @@ export default function PnlAnalysisPage() {
                   <Trophy className="h-5 w-5 text-buy" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-muted-foreground">Best Performer</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t('bestPerformer')}</p>
                   {bestPerformer ? (
                     <div className="flex items-center gap-2">
                       <CoinIcon symbol={bestPerformer.symbol} size={18} />
@@ -514,7 +533,7 @@ export default function PnlAnalysisPage() {
                   <AlertTriangle className="h-5 w-5 text-sell" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-muted-foreground">Worst Performer</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t('worstPerformer')}</p>
                   {worstPerformer ? (
                     <div className="flex items-center gap-2">
                       <CoinIcon symbol={worstPerformer.symbol} size={18} />
@@ -534,13 +553,15 @@ export default function PnlAnalysisPage() {
           {/* Per-asset table */}
           <div className="rounded-xl border border-border bg-card shadow-sm">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <h3 className="text-sm font-semibold text-foreground">P&L by Asset</h3>
-              <span className="text-xs text-muted-foreground">{assets.length} asset{assets.length !== 1 ? 's' : ''}</span>
+              <h3 className="text-sm font-semibold text-foreground">{t('pnlByAsset')}</h3>
+              <span className="text-xs text-muted-foreground">
+                {assets.length === 1 ? t('assetCount', { count: assets.length }) : t('assetCountPlural', { count: assets.length })}
+              </span>
             </div>
 
             {/* Table header */}
             <div className="hidden border-b border-border px-5 py-3 sm:grid sm:grid-cols-[1.5fr_1fr_0.8fr_1.5fr_0.8fr_0.8fr] sm:gap-4">
-              <span className="text-xs font-semibold uppercase text-muted-foreground">Asset</span>
+              <span className="text-xs font-semibold uppercase text-muted-foreground">{t('colAsset')}</span>
               <button
                 type="button"
                 onClick={() => handleSort('pnl')}
@@ -548,7 +569,7 @@ export default function PnlAnalysisPage() {
                   sortKey === 'pnl' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                P&L {sortKey === 'pnl' && (sortDir === 'desc' ? '↓' : '↑')}
+                {t('colPnl')} {sortKey === 'pnl' && (sortDir === 'desc' ? '↓' : '↑')}
               </button>
               <button
                 type="button"
@@ -557,9 +578,9 @@ export default function PnlAnalysisPage() {
                   sortKey === 'pnlPercent' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                P&L % {sortKey === 'pnlPercent' && (sortDir === 'desc' ? '↓' : '↑')}
+                {t('colPnlPct')} {sortKey === 'pnlPercent' && (sortDir === 'desc' ? '↓' : '↑')}
               </button>
-              <span className="text-center text-xs font-semibold uppercase text-muted-foreground">Relative</span>
+              <span className="text-center text-xs font-semibold uppercase text-muted-foreground">{t('colRelative')}</span>
               <button
                 type="button"
                 onClick={() => handleSort('volume')}
@@ -567,15 +588,15 @@ export default function PnlAnalysisPage() {
                   sortKey === 'volume' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                Volume {sortKey === 'volume' && (sortDir === 'desc' ? '↓' : '↑')}
+                {t('colVolume')} {sortKey === 'volume' && (sortDir === 'desc' ? '↓' : '↑')}
               </button>
-              <span className="text-right text-xs font-semibold uppercase text-muted-foreground">Avg Price</span>
+              <span className="text-right text-xs font-semibold uppercase text-muted-foreground">{t('colAvgPrice')}</span>
             </div>
 
             {loading ? (
               <div className="flex flex-col items-center justify-center py-16">
                 <RefreshCw className="mb-3 h-7 w-7 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">Loading P&L…</p>
+                <p className="text-sm text-muted-foreground">{t('loading')}</p>
               </div>
             ) : sortedAssets.length > 0 ? (
               <div className="divide-y divide-border">
@@ -595,14 +616,14 @@ export default function PnlAnalysisPage() {
                         <div>
                           <p className="text-sm font-semibold text-foreground">{asset.symbol}</p>
                           <p className="text-xs text-muted-foreground sm:hidden">
-                            Vol ${fmtCompact(totalVol)}
+                            {t('volShort')} ${fmtCompact(totalVol)}
                           </p>
                         </div>
                       </div>
 
                       {/* PnL USD */}
                       <div className="flex items-center justify-between sm:justify-end">
-                        <span className="text-xs text-muted-foreground sm:hidden">P&L</span>
+                        <span className="text-xs text-muted-foreground sm:hidden">{t('colPnl')}</span>
                         <span className={`flex items-center gap-1 text-sm font-semibold tabular-nums ${pnlColor(asset.pnl)}`}>
                           {isPositive ? (
                             <TrendingUp className="h-3.5 w-3.5 shrink-0" />
@@ -615,7 +636,7 @@ export default function PnlAnalysisPage() {
 
                       {/* PnL % */}
                       <div className="flex items-center justify-between sm:justify-end">
-                        <span className="text-xs text-muted-foreground sm:hidden">P&L %</span>
+                        <span className="text-xs text-muted-foreground sm:hidden">{t('colPnlPct')}</span>
                         <span
                           className={`rounded-md px-2 py-0.5 text-xs font-semibold tabular-nums ${
                             isPositive
@@ -649,7 +670,7 @@ export default function PnlAnalysisPage() {
 
                       {/* Volume */}
                       <div className="flex items-center justify-between sm:justify-end">
-                        <span className="text-xs text-muted-foreground sm:hidden">Volume</span>
+                        <span className="text-xs text-muted-foreground sm:hidden">{t('colVolume')}</span>
                         <span className="text-sm tabular-nums text-foreground">
                           ${fmtCompact(totalVol)}
                         </span>
@@ -657,7 +678,7 @@ export default function PnlAnalysisPage() {
 
                       {/* Avg Prices */}
                       <div className="flex items-center justify-between sm:justify-end">
-                        <span className="text-xs text-muted-foreground sm:hidden">Avg Buy / Sell</span>
+                        <span className="text-xs text-muted-foreground sm:hidden">{t('avgBuySell')}</span>
                         <div className="text-right text-xs tabular-nums">
                           <span className="text-buy">${fmt(asset.avgBuyPrice)}</span>
                           <span className="mx-1 text-muted-foreground">/</span>
@@ -672,14 +693,14 @@ export default function PnlAnalysisPage() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-16">
-                <p className="font-medium text-muted-foreground">No assets found for this filter</p>
+                <p className="font-medium text-muted-foreground">{t('noAssetsFilter')}</p>
                 {selectedSymbol !== 'all' && (
                   <button
                     type="button"
                     onClick={() => handleSymbolSelect('all')}
                     className="mt-3 text-sm font-medium text-primary hover:underline"
                   >
-                    Show all symbols
+                    {t('showAllSymbols')}
                   </button>
                 )}
               </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/auth';
 import { useBalancesFunding, type TokenBalance } from '@/lib/balances';
 import { CoinIcon } from '@/components/ui/CoinIcon';
@@ -56,6 +57,7 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
 }
 
 function ActionDropdown({ symbol }: { symbol: string }) {
+  const t = useTranslations('wallet.fundingPage');
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -74,13 +76,13 @@ function ActionDropdown({ symbol }: { symbol: string }) {
         href={`${walletPath.depositCrypto}?coin=${symbol}`}
         className="inline-flex items-center rounded-lg border border-border bg-muted/40 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
       >
-        Deposit
+        {t('actionDeposit')}
       </Link>
       <Link
         href={`${walletPath.withdrawCrypto}?coin=${symbol}`}
         className="inline-flex items-center rounded-lg border border-border bg-muted/40 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
       >
-        Withdraw
+        {t('actionWithdraw')}
       </Link>
       <button
         type="button"
@@ -89,7 +91,7 @@ function ActionDropdown({ symbol }: { symbol: string }) {
         aria-expanded={open}
         aria-haspopup="menu"
       >
-        More <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+        {t('more')} <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
         <div
@@ -101,14 +103,14 @@ function ActionDropdown({ symbol }: { symbol: string }) {
             className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-accent"
             onClick={() => setOpen(false)}
           >
-            <ArrowLeftRight className="h-4 w-4 shrink-0 text-muted-foreground" /> Transfer
+            <ArrowLeftRight className="h-4 w-4 shrink-0 text-muted-foreground" /> {t('actionTransfer')}
           </Link>
           <Link
             href={`/trade/spot?symbol=${symbol}_USDT`}
             className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-accent"
             onClick={() => setOpen(false)}
           >
-            <BarChart3 className="h-4 w-4 shrink-0 text-muted-foreground" /> Trade
+            <BarChart3 className="h-4 w-4 shrink-0 text-muted-foreground" /> {t('actionTrade')}
           </Link>
         </div>
       )}
@@ -117,6 +119,7 @@ function ActionDropdown({ symbol }: { symbol: string }) {
 }
 
 export default function FundingAccountPage() {
+  const t = useTranslations('wallet.fundingPage');
   const { accessToken, _hasHydrated } = useAuthStore();
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
 
@@ -203,13 +206,13 @@ export default function FundingAccountPage() {
       {/* ── Page header ── */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Funding Account</h1>
-          <span className="hidden text-sm text-muted-foreground sm:inline">Wallet balances for deposits &amp; withdrawals</span>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('title')}</h1>
+          <span className="hidden text-sm text-muted-foreground sm:inline">{t('subtitle')}</span>
           <button
             type="button"
             onClick={() => setShowBalance(s => !s)}
             className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-            title={showBalance ? 'Hide balances' : 'Show balances'}
+            title={showBalance ? t('hideBalances') : t('showBalances')}
           >
             {showBalance ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
           </button>
@@ -218,7 +221,7 @@ export default function FundingAccountPage() {
             onClick={handleRefresh}
             disabled={refreshing}
             className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
-            title="Refresh balances"
+            title={t('refreshBalances')}
           >
             <RefreshCw className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
@@ -229,19 +232,19 @@ export default function FundingAccountPage() {
             href={walletPath.depositCrypto}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
           >
-            <Download className="h-4 w-4" /> Deposit
+            <Download className="h-4 w-4" /> {t('deposit')}
           </Link>
           <Link
             href={walletPath.withdrawCrypto}
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
           >
-            <Upload className="h-4 w-4" /> Withdraw
+            <Upload className="h-4 w-4" /> {t('withdraw')}
           </Link>
           <Link
             href={walletPath.transfer}
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
           >
-            <ArrowLeftRight className="h-4 w-4" /> Transfer
+            <ArrowLeftRight className="h-4 w-4" /> {t('transfer')}
           </Link>
         </div>
       </div>
@@ -251,7 +254,7 @@ export default function FundingAccountPage() {
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-warning/30 bg-warning/10 p-4">
           <p className="text-sm text-foreground">{sessionError}</p>
           <Link href="/login" className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
-            Log in again
+            {t('logInAgain')}
           </Link>
         </div>
       )}
@@ -264,8 +267,8 @@ export default function FundingAccountPage() {
               <Wallet className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total equity</p>
-              <p className="text-xs text-muted-foreground/90">Funding wallet ({displayCurrency})</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('totalEquity')}</p>
+              <p className="text-xs text-muted-foreground/90">{t('fundingWallet', { currency: displayCurrency })}</p>
             </div>
           </div>
           <p className="numeric text-3xl font-bold tracking-tight text-foreground">
@@ -281,8 +284,8 @@ export default function FundingAccountPage() {
               <ArrowUpRight className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Available</p>
-              <p className="text-xs text-muted-foreground/90">Ready to trade or withdraw</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('available')}</p>
+              <p className="text-xs text-muted-foreground/90">{t('availableHint')}</p>
             </div>
           </div>
           <p className="numeric text-3xl font-bold tracking-tight text-foreground">
@@ -298,8 +301,8 @@ export default function FundingAccountPage() {
               <Clock className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">In use</p>
-              <p className="text-xs text-muted-foreground/90">Locked in orders or pending</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('inUse')}</p>
+              <p className="text-xs text-muted-foreground/90">{t('inUseHint')}</p>
             </div>
           </div>
           <p className="numeric text-3xl font-bold tracking-tight text-foreground">
@@ -325,7 +328,7 @@ export default function FundingAccountPage() {
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              Crypto
+              {t('tabCrypto')}
             </button>
             <button
               type="button"
@@ -336,7 +339,7 @@ export default function FundingAccountPage() {
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              Fiat
+              {t('tabFiat')}
             </button>
           </div>
 
@@ -346,7 +349,7 @@ export default function FundingAccountPage() {
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="Search coin…"
+                  placeholder={t('searchCoin')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="h-10 w-full rounded-lg border border-border bg-background py-2 pl-10 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -356,7 +359,7 @@ export default function FundingAccountPage() {
                     type="button"
                     onClick={() => setSearchQuery('')}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                    aria-label="Clear search"
+                    aria-label={t('clearSearchAria')}
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -369,11 +372,11 @@ export default function FundingAccountPage() {
                   onChange={(e) => setHideZero(e.target.checked)}
                   className="h-4 w-4 rounded border-border accent-primary"
                 />
-                Hide zero balances
+                {t('hideZeroBalances')}
               </label>
               {!isLoading && totalFiltered > 0 ? (
                 <span className="text-xs text-muted-foreground sm:ml-1">
-                  {totalFiltered} asset{totalFiltered !== 1 ? 's' : ''}
+                  {totalFiltered === 1 ? t('assetCount', { count: totalFiltered }) : t('assetCountPlural', { count: totalFiltered })}
                 </span>
               ) : null}
             </div>
@@ -386,16 +389,15 @@ export default function FundingAccountPage() {
             <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
               <Banknote className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="mb-2 text-lg font-semibold text-foreground">Buy &amp; sell with fiat</h3>
+            <h3 className="mb-2 text-lg font-semibold text-foreground">{t('fiatTitle')}</h3>
             <p className="mb-6 max-w-md text-center text-sm leading-relaxed text-muted-foreground">
-              Buy and sell crypto with INR and other fiat currencies through P2P trading — no self-serve bank deposit page yet.
-              Withdraw INR from your fiat balance after P2P sells or team credit.
+              {t('fiatBody')}
             </p>
             <Link
               href="/p2p"
               className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
-              Go to P2P trading
+              {t('goP2p')}
             </Link>
           </div>
         )}
@@ -408,12 +410,12 @@ export default function FundingAccountPage() {
               <thead className="[&_th]:sticky [&_th]:top-0 [&_th]:z-20 [&_th]:bg-muted/95 [&_th]:shadow-[0_1px_0_0_hsl(var(--border))] [&_th]:backdrop-blur-sm">
                 <tr className="border-b border-border">
                   {([
-                    ['symbol', 'Coin', 'left'],
-                    ['balance', 'Total balance', 'right'],
-                    [null, 'Available', 'right'],
-                    [null, 'In use', 'right'],
-                    ['value', `${displayCurrency} value`, 'right'],
-                    [null, 'Actions', 'right'],
+                    ['symbol', t('colCoin'), 'left'],
+                    ['balance', t('colTotalBalance'), 'right'],
+                    [null, t('colAvailable'), 'right'],
+                    [null, t('colInUse'), 'right'],
+                    ['value', t('colValue', { currency: displayCurrency }), 'right'],
+                    [null, t('colActions'), 'right'],
                   ] as const).map(([key, label, align], i) => {
                     const sortable = key !== null;
                     return (
@@ -484,20 +486,20 @@ export default function FundingAccountPage() {
                         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
                           <Wallet className="h-8 w-8 text-muted-foreground" />
                         </div>
-                        <p className="font-medium text-foreground">No assets found</p>
+                        <p className="font-medium text-foreground">{t('noAssets')}</p>
                         <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
                           {searchQuery
-                            ? 'Try a different search term or clear filters.'
+                            ? t('emptySearch')
                             : hideZero && balances.length > 0
-                              ? 'All rows are hidden while “Hide zero balances” is on. Turn it off to see every asset.'
-                              : 'Deposit crypto to see balances here.'}
+                              ? t('emptyHiddenZero')
+                              : t('emptyDeposit')}
                         </p>
                         {!searchQuery && !(hideZero && balances.length > 0) ? (
                           <Link
                             href={walletPath.depositCrypto}
                             className="mt-5 inline-flex items-center rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
                           >
-                            Deposit
+                            {t('deposit')}
                           </Link>
                         ) : null}
                       </div>
@@ -510,12 +512,7 @@ export default function FundingAccountPage() {
           {!isLoading && totalFiltered > 0 ? (
             <div className="flex flex-col gap-3 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-muted-foreground">
-                Showing{' '}
-                <span className="numeric font-medium text-foreground">{rangeStart}</span>
-                {'–'}
-                <span className="numeric font-medium text-foreground">{rangeEnd}</span>
-                {' of '}
-                <span className="numeric font-medium text-foreground">{totalFiltered}</span>
+                {t('showingRange', { start: rangeStart, end: rangeEnd, total: totalFiltered })}
               </p>
               {pageCount > 1 ? (
                 <div className="flex flex-wrap items-center gap-2">
@@ -525,10 +522,10 @@ export default function FundingAccountPage() {
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
                   >
-                    <ChevronLeft className="h-4 w-4" /> Previous
+                    <ChevronLeft className="h-4 w-4" /> {t('previous')}
                   </button>
                   <span className="numeric px-2 text-sm text-muted-foreground">
-                    Page {page} / {pageCount}
+                    {t('pageOf', { page, pages: pageCount })}
                   </span>
                   <button
                     type="button"
@@ -536,7 +533,7 @@ export default function FundingAccountPage() {
                     onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
                     className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
                   >
-                    Next <ChevronRight className="h-4 w-4" />
+                    {t('next')} <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>
               ) : null}

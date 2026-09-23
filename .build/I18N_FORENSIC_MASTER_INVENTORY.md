@@ -33,7 +33,16 @@
 | WALLET-HIS-007 | /wallet/history | AssetHistoryPage | history/page.tsx | status chips | wallet.transactions.* | PASS | PASS | PASS | yes | PASS |
 | WALLET-UNI-001 | /wallet/unified | UnifiedTradingPage | unified/page.tsx | link | convertSmallBalances | PASS | PASS | PASS | not in critical e2e | PASS |
 
-**Evidence:** `e2e/wallet-convert-history-i18n.spec.ts` — **4/4 PASS** (zh-CN + id-ID × convert + history) against served nginx `:80`, BUILD_ID post-deploy.
+**Evidence:** `e2e/wallet-convert-history-i18n.spec.ts` — convert + history verified prior pass; funding + pnl added to same spec (runtime pending redeploy).
+
+## Wallet domain — funding & PnL (FIXED at source; re-export routes)
+
+| ID | Route | Component | File | Namespace | Runtime e2e | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| WALLET-FND-001 | /wallet/funding | FundingAccountPage | dashboard/assets/funding/page.tsx | wallet.fundingPage | pending | SOURCE PASS |
+| WALLET-PNL-001 | /wallet/pnl | PnlAnalysisPage | dashboard/assets/pnl/page.tsx | wallet.pnlPage | pending | SOURCE PASS |
+
+Re-export wrappers: `wallet/funding/page.tsx`, `wallet/pnl/page.tsx` → dashboard sources (guarded by `wallet-route-reexport.test.ts`).
 
 ## Shared chrome (prior deep pass — still valid)
 

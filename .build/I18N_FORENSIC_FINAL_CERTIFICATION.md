@@ -8,6 +8,8 @@
 
 **Wallet critical regression (user-reported screenshots): PASS** — `/wallet/convert` and `/wallet/history` render localized UI for **zh-CN** and **id-ID** with **zero** detected English leakage from the curated wallet vocabulary list.
 
+**Wallet re-export extensions (funding, PnL): SOURCE PASS** — `/wallet/funding` and `/wallet/pnl` dashboard sources wired to `wallet.fundingPage` / `wallet.pnlPage`; runtime e2e extended in spec; **awaiting frontend redeploy** for served BUILD_ID verification.
+
 **Full customer platform (every modal/toast/interaction surface): NOT YET CLOSED** — heuristic scan still lists ~241 classified-but-unremediated literals outside wallet; authenticated interaction crawl beyond wallet sample is incomplete.
 
 Do **not** interpret prior route-matrix PASS as proof of rendered wallet UI (this audit confirms that gap).
@@ -38,7 +40,7 @@ Do **not** interpret prior route-matrix PASS as proof of rendered wallet UI (thi
 | 20 | Rendered English leakage (wallet critical) | **0** |
 | 21 | Missing translation keys (catalog parity) | **0** (`npm run test:i18n`) |
 | 22 | Catalog parity | **PASS** |
-| 23 | Tests | `test:i18n` PASS, `npm run build` PASS, wallet e2e **4/4 PASS** |
+| 23 | Tests | `test:i18n` PASS (+ re-export guard), `npm run build` PASS, wallet e2e **4/4 PASS** convert/history; funding/pnl e2e pending deploy |
 | 24 | BUILD_ID | `UOuJrdXr6tSuuzgJ3gimC` |
 | 25 | Commit SHA | *(pending commit)* |
 | 26 | Remaining blockers | Platform-wide interaction crawl + ~241 heuristic literals triage; 15 dynamic URL patterns |
@@ -55,7 +57,9 @@ Do **not** interpret prior route-matrix PASS as proof of rendered wallet UI (thi
 - `apps/frontend/src/app/dashboard/assets/convert/page.tsx` — full `useTranslations`  
 - `apps/frontend/src/app/dashboard/assets/history/page.tsx` — full `useTranslations`  
 - `apps/frontend/src/app/dashboard/assets/unified/page.tsx` — convert link + hide small balances  
-- `e2e/wallet-convert-history-i18n.spec.ts` — regression guard  
+- `e2e/wallet-convert-history-i18n.spec.ts` — regression guard (+ funding/pnl routes)  
+- `apps/frontend/src/i18n/wallet-route-reexport.test.ts` — re-export target guard  
+- `dashboard/assets/funding/page.tsx`, `dashboard/assets/pnl/page.tsx` — `wallet.fundingPage`, `wallet.pnlPage`  
 - `e2e/i18n-deep-forensic-rendered.spec.ts` — wallet vocabulary in forbidden list  
 
 ## Gate status
