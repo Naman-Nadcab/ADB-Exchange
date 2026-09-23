@@ -39,8 +39,8 @@
 
 | ID | Route | Component | File | Namespace | Runtime e2e | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| WALLET-FND-001 | /wallet/funding | FundingAccountPage | dashboard/assets/funding/page.tsx | wallet.fundingPage | pending | SOURCE PASS |
-| WALLET-PNL-001 | /wallet/pnl | PnlAnalysisPage | dashboard/assets/pnl/page.tsx | wallet.pnlPage | pending | SOURCE PASS |
+| WALLET-FND-001 | /wallet/funding | FundingAccountPage | dashboard/assets/funding/page.tsx | wallet.fundingPage | yes | PASS |
+| WALLET-PNL-001 | /wallet/pnl | PnlAnalysisPage | dashboard/assets/pnl/page.tsx | wallet.pnlPage | yes | PASS |
 
 Re-export wrappers: `wallet/funding/page.tsx`, `wallet/pnl/page.tsx` → dashboard sources (guarded by `wallet-route-reexport.test.ts`).
 

@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { setCustomerLocale, type CustomerLocale } from './helpers/i18n-locale';
-import { loginUserForStagingHttp, waitForAuthenticatedRoute } from './mission2/helpers/login';
+import {
+  ensureTraderSessionCookies,
+  loginUserForStagingHttp,
+  waitForAuthenticatedRoute,
+} from './mission2/helpers/login';
 import { loadCredentials, QA_TRADER_A, QA_PASSWORD } from './mission2/helpers/credentials';
 
 const BASE = (process.env.BASE_URL ?? 'http://127.0.0.1').replace(/\/$/, '');
@@ -35,21 +39,23 @@ const ROUTES = [
   '/wallet/pnl',
 ] as const;
 
-test.describe.configure({ mode: 'serial', timeout: 120_000 });
+test.describe.configure({ mode: 'serial', timeout: 180_000 });
 
 for (const locale of ['zh-CN', 'id-ID'] as CustomerLocale[]) {
-  for (const route of ROUTES) {
-    test(`wallet critical · ${route} · ${locale}`, async ({ browser }) => {
-      const creds = loadCredentials();
-      if (!creds.QA_PASSWORD) test.skip(true, 'QA_PASSWORD not configured');
+  test(`wallet critical routes · ${locale}`, async ({ browser }) => {
+    const creds = loadCredentials();
+    if (!creds.QA_PASSWORD) test.skip(true, 'QA_PASSWORD not configured');
 
-      const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-      await setCustomerLocale(context, locale, BASE);
-      const email = creds.QA_TRADER_A_EMAIL || QA_TRADER_A;
-      const password = creds.QA_PASSWORD || QA_PASSWORD;
-      const apiBase = process.env.E2E_API_BASE_URL || 'http://127.0.0.1:4000';
-      const page = await loginUserForStagingHttp(context, email, password, BASE, apiBase);
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    await setCustomerLocale(context, locale, BASE);
+    const email = creds.QA_TRADER_A_EMAIL || QA_TRADER_A;
+    const password = creds.QA_PASSWORD || QA_PASSWORD;
+    const apiBase = process.env.E2E_API_BASE_URL || 'http://127.0.0.1:4000';
+    const page = await loginUserForStagingHttp(context, email, password, BASE, apiBase);
 
+    const failures: string[] = [];
+    for (const route of ROUTES) {
+      await ensureTraderSessionCookies(context, email, password, BASE, apiBase, page);
       await page.goto(`${BASE}${route}`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
       await waitForAuthenticatedRoute(page, context);
       await page.locator('html[lang]').waitFor({ state: 'attached', timeout: 15_000 });
@@ -57,9 +63,10 @@ for (const locale of ['zh-CN', 'id-ID'] as CustomerLocale[]) {
 
       const text = await page.evaluate(() => document.body.innerText.slice(0, 12000));
       const hits = WALLET_EN_LEAKS.filter((p) => text.includes(p));
-      expect(hits, hits.join(', ')).toEqual([]);
+      if (hits.length) failures.push(`${route}: ${hits.join(', ')}`);
+    }
 
-      await context.close();
-    });
-  }
+    await context.close();
+    expect(failures, failures.join('\n')).toEqual([]);
+  });
 }

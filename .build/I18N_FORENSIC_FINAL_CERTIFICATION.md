@@ -2,13 +2,13 @@
 
 **Branch:** `release/exchange-production-baseline`  
 **Date:** 2026-09-23  
-**Served BUILD_ID:** `UOuJrdXr6tSuuzgJ3gimC` (Docker `exchange-frontend` rebuilt after wallet fixes)
+**Served BUILD_ID:** `aUBYx-y9oY6QlvdiafjSg` (Docker `exchange-frontend` rebuilt after funding/PnL i18n)
 
 ## Executive verdict
 
 **Wallet critical regression (user-reported screenshots): PASS** — `/wallet/convert` and `/wallet/history` render localized UI for **zh-CN** and **id-ID** with **zero** detected English leakage from the curated wallet vocabulary list.
 
-**Wallet re-export extensions (funding, PnL): SOURCE PASS** — `/wallet/funding` and `/wallet/pnl` dashboard sources wired to `wallet.fundingPage` / `wallet.pnlPage`; runtime e2e extended in spec; **awaiting frontend redeploy** for served BUILD_ID verification.
+**Wallet re-export extensions (funding, PnL): PASS (served)** — `/wallet/funding` and `/wallet/pnl` wired to `wallet.fundingPage` / `wallet.pnlPage`; e2e **2/2 locale suites** (4 routes each, zh-CN + id-ID) **PASS** on BUILD_ID `aUBYx-y9oY6QlvdiafjSg`.
 
 **Full customer platform (every modal/toast/interaction surface): NOT YET CLOSED** — heuristic scan still lists ~241 classified-but-unremediated literals outside wallet; authenticated interaction crawl beyond wallet sample is incomplete.
 
@@ -41,8 +41,8 @@ Do **not** interpret prior route-matrix PASS as proof of rendered wallet UI (thi
 | 21 | Missing translation keys (catalog parity) | **0** (`npm run test:i18n`) |
 | 22 | Catalog parity | **PASS** |
 | 23 | Tests | `test:i18n` PASS (+ re-export guard), `npm run build` PASS, wallet e2e **4/4 PASS** convert/history; funding/pnl e2e pending deploy |
-| 24 | BUILD_ID | `UOuJrdXr6tSuuzgJ3gimC` |
-| 25 | Commit SHA | *(pending commit)* |
+| 24 | BUILD_ID | `aUBYx-y9oY6QlvdiafjSg` |
+| 25 | Commit SHA | `d2cbd33` (+ e2e follow-up pending) |
 | 26 | Remaining blockers | Platform-wide interaction crawl + ~241 heuristic literals triage; 15 dynamic URL patterns |
 
 ## Tests run (this pass)
