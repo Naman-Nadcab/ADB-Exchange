@@ -7,12 +7,15 @@ import { LayoutGrid, Settings2 } from 'lucide-react';
 import { ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { fxMoney, fxPlain } from '@/components/forex/format';
 import { ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
+import { forexApi, unwrap, type ForexAccountHubPayload } from '@/lib/forex/api/client';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { useForexWalletKyc } from '@/lib/forex/hooks/useForexWalletKyc';
 import {
   createForexDemoAccountAndActivate,
   switchForexActiveAccount,
   syncForexAccountsFromServer,
 } from '@/lib/forex/runtime/hydrate';
+import { ROUTES } from '@/lib/routes';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useForexProductGates } from '@/lib/forex/hooks/useForexProductGates';
 import { useForexStore } from '@/lib/forex/state/store';
@@ -33,6 +36,8 @@ export function ForexAccountCenter() {
   const [note, setNote] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const { gates } = useForexProductGates();
+  const kyc = useForexWalletKyc();
+  const [hubs, setHubs] = useState<Record<string, ForexAccountHubPayload>>({});
 
   function kindLabel(kind: string): string {
     const k = kind.toUpperCase();
@@ -49,6 +54,31 @@ export function ForexAccountCenter() {
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  useEffect(() => {
+    if (!authed || accounts.length === 0) {
+      setHubs({});
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const pairs = await Promise.all(
+        accounts.map(async (a) => {
+          const res = unwrap(await forexApi.getAccountById(a.accountId));
+          return res.ok ? ([a.accountId, res.data] as const) : null;
+        })
+      );
+      if (cancelled) return;
+      const next: Record<string, ForexAccountHubPayload> = {};
+      for (const p of pairs) {
+        if (p) next[p[0]] = p[1];
+      }
+      setHubs(next);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [accounts, authed]);
 
   async function onCreateDemo() {
     if (busy) return;
@@ -94,6 +124,16 @@ export function ForexAccountCenter() {
 
   return (
     <div className="space-y-3">
+      {!gates.liveAccountEnabled ? (
+        <ForexPortalModuleCard title={t('liveUnavailableTitle')} accent>
+          <p className="text-sm text-muted-foreground">{t('liveUnavailableBody')}</p>
+          {!kyc.verified && !kyc.loading ? (
+            <Link href={ROUTES.dashboard.identity} className="mt-2 inline-block text-[12px] font-semibold text-primary underline-offset-2 hover:underline">
+              {t('liveUnavailableKycCta')}
+            </Link>
+          ) : null}
+        </ForexPortalModuleCard>
+      ) : null}
       <ForexPortalModuleCard
         title={t('cardsSectionTitle')}
         subtitle={t('cardsSectionSubtitle')}
@@ -145,6 +185,8 @@ export function ForexAccountCenter() {
               const isActive = a.accountId === activeId;
               const lev = 'leverageOverride' in a && a.leverageOverride ? String(a.leverageOverride) : '—';
               const kind = a.accountKind.toUpperCase();
+              const snap = hubs[a.accountId]?.financialSnapshot;
+              const cardCurrency = snap?.currency ?? a.currency;
               return (
                 <article
                   key={a.accountId}
@@ -163,14 +205,36 @@ export function ForexAccountCenter() {
                       ) : null}
                       <p className="mt-2 font-mono text-[13px] font-semibold text-foreground">{fxPlain(a.accountId)}</p>
                       <p className="text-[11px] text-muted-foreground">
-                        {fxPlain(a.currency)} · {fxPlain(a.positionMode)} · {t('leverageLabel', { value: lev })}
+                        {fxPlain(a.currency)} · {t('cardServer')}: {t('cardServerSimulated')} · {t('leverageLabel', { value: lev })}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {t('cardCreated', { date: new Date(a.createdAt).toLocaleDateString() })}
                       </p>
                     </div>
                     <ForexPortalStatusBadge tone={String(a.status).toUpperCase() === 'ACTIVE' ? 'success' : 'neutral'}>
                       {fxPlain(a.status)}
                     </ForexPortalStatusBadge>
                   </div>
-                  {isActive ? (
+                  {snap ? (
+                    <dl className="mt-3 grid grid-cols-2 gap-2 border-t border-border/60 pt-3 font-mono text-[11px] sm:grid-cols-4">
+                      <div>
+                        <dt className="text-[9px] uppercase text-muted-foreground">{t('metricBalance')}</dt>
+                        <dd className="mt-0.5 tabular-nums">{fxMoney(snap.ledgerBalance, cardCurrency)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[9px] uppercase text-muted-foreground">{t('metricEquity')}</dt>
+                        <dd className="mt-0.5 tabular-nums">{fxMoney(snap.equity, cardCurrency)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[9px] uppercase text-muted-foreground">{t('metricFreeMargin')}</dt>
+                        <dd className="mt-0.5 tabular-nums">{fxMoney(snap.freeMargin, cardCurrency)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[9px] uppercase text-muted-foreground">{t('metricMargin')}</dt>
+                        <dd className="mt-0.5 tabular-nums">{fxMoney(snap.usedMargin, cardCurrency)}</dd>
+                      </div>
+                    </dl>
+                  ) : isActive ? (
                     <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-border/60 pt-3 font-mono text-[11px]">
                       <div>
                         <dt className="text-[9px] uppercase text-muted-foreground">{t('metricBalance')}</dt>
@@ -185,7 +249,9 @@ export function ForexAccountCenter() {
                         <dd className="mt-0.5 tabular-nums">{fxMoney(account?.usedMargin ?? margin?.usedMargin, currency)}</dd>
                       </div>
                     </dl>
-                  ) : null}
+                  ) : (
+                    <p className="mt-3 border-t border-border/60 pt-3 text-[11px] text-muted-foreground">{t('metricsLoading')}</p>
+                  )}
                   <div className="mt-3 flex flex-wrap gap-2">
                     {isActive ? (
                       <span className="text-[11px] text-muted-foreground">{t('current')}</span>
@@ -213,12 +279,14 @@ export function ForexAccountCenter() {
                       <Settings2 className="h-3 w-3" aria-hidden />
                       {t('viewDetail')}
                     </Link>
-                    <Link
-                      href={FOREX_ROUTES.account}
-                      className="inline-flex items-center gap-1 rounded border border-border/70 px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground"
-                    >
-                      {t('manage')}
-                    </Link>
+                    {kind === 'DEMO' ? (
+                      <Link
+                        href={FOREX_ROUTES.funds}
+                        className="inline-flex items-center rounded border border-border/70 px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+                      >
+                        {t('demoFundingShort')}
+                      </Link>
+                    ) : null}
                   </div>
                 </article>
               );

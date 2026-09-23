@@ -103,6 +103,10 @@ try {
 
   const own = await app.inject({ method: 'GET', url: `/accounts/${A1}` });
   assert.equal(own.statusCode, 200);
+  const ownBody = own.json() as { success: boolean; data?: { account?: { accountId: string }; financialSnapshot?: { ledgerBalance: string } } };
+  assert.equal(ownBody.success, true);
+  assert.equal(ownBody.data?.account?.accountId, A1);
+  assert.ok(ownBody.data?.financialSnapshot?.ledgerBalance != null);
 
   uid = USER_A;
   const cross = await app.inject({

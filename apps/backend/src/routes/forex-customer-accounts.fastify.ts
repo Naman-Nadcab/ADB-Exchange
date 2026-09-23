@@ -7,9 +7,11 @@ import { setForexActiveAccountCookie } from '../services/forex/auth/forex-accoun
 import {
   createForexDemoAccount,
   listForexAccountsForUser,
+  resolveForexAccountIdForUser,
   setActiveForexAccountForUser,
   userOwnsForexAccount,
 } from '../services/forex/customer/accounts-service.js';
+import { buildForexCustomerAccountHubBundle } from '../services/forex/customer/account-detail-bundle.js';
 import { getForexAdminBackendConfig } from '../services/forex/admin/config.js';
 
 function userIdFromRequest(request: { user?: { id?: string } }): string | null {
@@ -104,7 +106,9 @@ export async function registerForexCustomerAccountsRoutes(app: FastifyInstance):
           error: { code: 'FOREX_ACCOUNT_NOT_FOUND', message: 'Account not found', source: 'SIMULATED' },
         });
       }
-      return reply.send({ success: true, data: { source: 'SIMULATED', account } });
+      const activeAccountId = await resolveForexAccountIdForUser(userId);
+      const hub = buildForexCustomerAccountHubBundle(account, activeAccountId);
+      return reply.send({ success: true, data: hub });
     }
   );
 

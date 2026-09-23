@@ -42,6 +42,42 @@ export type ForexCustomerAccountSummary = {
   positionMode: string;
   leverageOverride?: string | null;
   createdAt: string;
+  updatedAt?: string;
+};
+
+export type ForexAccountHubPayload = {
+  source: string;
+  executionMode: string;
+  realForex: boolean;
+  activeAccountId: string;
+  isSelected: boolean;
+  account: ForexCustomerAccountSummary & { updatedAt: string };
+  financialSnapshot: {
+    currency: string;
+    ledgerBalance: string;
+    availableBalance: string;
+    equity: string;
+    usedMargin: string;
+    freeMargin: string;
+    marginLevel: string | null;
+    unrealizedPnl: string;
+    realizedPnl: string;
+    calculationStatus: string;
+    timestamp: string;
+  };
+  riskSnapshot: {
+    state?: string;
+    reason?: string | null;
+    liquidationLock?: boolean;
+    margin?: unknown;
+    exposure?: unknown;
+  };
+  activitySummary: { openPositions: number; pendingOrders: number };
+  preview: {
+    openPositions: ForexPublicPosition[];
+    recentOrders: ForexPublicOrder[];
+    recentFills: ForexFillRow[];
+  };
 };
 
 function fxRequestInit(extra?: { signal?: AbortSignal; headers?: Record<string, string> }) {
@@ -90,11 +126,7 @@ export const forexApi = {
       count: number;
       accounts: ForexCustomerAccountSummary[];
     }>('/accounts'),
-  getAccountById: (accountId: string) =>
-    fxGet<{
-      source: string;
-      account: ForexCustomerAccountSummary & { userId?: string; updatedAt?: string };
-    }>(`/accounts/${encodeURIComponent(accountId)}`),
+  getAccountById: (accountId: string) => fxGet<ForexAccountHubPayload>(`/accounts/${encodeURIComponent(accountId)}`),
   selectAccount: (accountId: string) =>
     api.post<{ source: string; activeAccountId: string; realForex: boolean }>(
       `${FOREX_PREFIX}/accounts/${encodeURIComponent(accountId)}/select`,
