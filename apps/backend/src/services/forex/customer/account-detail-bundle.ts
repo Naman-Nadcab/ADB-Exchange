@@ -56,6 +56,7 @@ export function buildForexCustomerAccountHubBundle(account: ForexCustomerAccount
     isSelected: activeAccountId === accountId,
     account: {
       accountId: account.accountId,
+      platformCustomerId: account.userId,
       currency: account.currency,
       status: account.status,
       accountKind: account.accountKind,
@@ -64,6 +65,9 @@ export function buildForexCustomerAccountHubBundle(account: ForexCustomerAccount
       leverageOverride: account.leverageOverride,
       groupCode: account.groupCode,
       groupLabel: account.groupLabel,
+      tradingLogin: account.accountId,
+      brokerTradingLogin: null as string | null,
+      server: 'FDM_FOREX_PRACTICE',
       createdAt: account.createdAt,
       updatedAt: account.updatedAt,
     },

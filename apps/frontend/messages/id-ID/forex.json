@@ -1275,6 +1275,8 @@
     "selectedBadge": "Dipilih",
     "notSelectedBadge": "Tidak dipilih",
     "tradingLoginLabel": "Login trading",
+    "platformCustomerIdLabel": "ID pelanggan platform",
+    "brokerLoginLabel": "Login trading broker",
     "serverLabel": "Server",
     "serverSimulated": "FDM Forex · latihan",
     "demoFundsNotice": "Saldo demo disimulasikan — bukan uang riil.",
@@ -1385,7 +1387,8 @@
     "tradingPasswordBody": "Kata sandi trading broker terpisah tidak dikonfigurasi untuk akun Forex simulasi di lingkungan ini.",
     "unavailableBadge": "Tidak tersedia",
     "investorPasswordTitle": "Akses investor (read-only)",
-    "investorPasswordBody": "Kredensial read-only memerlukan integrasi broker live."
+    "investorPasswordBody": "Kredensial read-only memerlukan integrasi broker live.",
+    "credentialReason": "Manajemen kredensial tidak tersedia ({reason})."
   },
   "accountSettings": {
     "title": "Pengaturan akun",
@@ -1437,8 +1440,24 @@
     "provisioningPending": "Layanan provisioning akun harus terhubung",
     "kycCta": "Selesaikan verifikasi",
     "applicationTitle": "Aplikasi akun live",
-    "applicationBody": "Pembukaan akun live tidak menerima aplikasi hingga REAL_FOREX dan provisioning provider diaktifkan. Belum ada aplikasi yang dikirim.",
+    "applicationBody": "Kirim aplikasi akun live setelah KYC selesai. Provisioning broker tetap gated hingga rail eksternal dikonfigurasi — status jujur, tanpa aktivasi palsu.",
+    "applicationSubmit": "Kirim aplikasi live",
+    "applicationSubmitting": "Mengirim…",
+    "applicationStatus": "Status aplikasi: {status}",
     "backAccounts": "Kembali ke akun"
+  },
+  "internalTransfer": {
+    "title": "Transfer internal",
+    "subtitle": "Pindahkan saldo demo simulasi antar akun Forex Anda.",
+    "simulatedNotice": "Hanya demo · transfer buku besar · bukan payout uang riil.",
+    "fromAccount": "Dari akun",
+    "toAccount": "Ke akun",
+    "amount": "Jumlah (USD)",
+    "submit": "Transfer",
+    "submitting": "Mentransfer…",
+    "success": "Transfer dicatat di buku besar akun.",
+    "needTwoDemo": "Perlu dua akun demo",
+    "needTwoDemoBody": "Buat akun demo Forex lain untuk mentransfer dana simulasi antar akun."
   },
   "accountDetail": {
     "loading": "Memuat akun…",

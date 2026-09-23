@@ -1,14 +1,29 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { KeyRound, Lock, Shield } from 'lucide-react';
 import { ROUTES } from '@/lib/routes';
+import { forexApi, unwrap } from '@/lib/forex/api/client';
 import { ForexPortalModuleCard, ForexPortalStatusBadge } from './ForexPortalKpiCard';
 
 /** Platform + gated trading credential guidance — never shows secrets. */
-export function ForexTradingCredentialPanel() {
+export function ForexTradingCredentialPanel({ accountId }: { accountId: string }) {
   const t = useTranslations('forex.credentials');
+  const [state, setState] = useState<{ trading?: string; investor?: string } | null>(null);
+
+  useEffect(() => {
+    void (async () => {
+      const res = unwrap(await forexApi.getAccountCredentials(accountId));
+      if (res.ok) {
+        setState({
+          trading: res.data.tradingPassword.available ? 'available' : res.data.tradingPassword.reason,
+          investor: res.data.investorPassword.available ? 'available' : res.data.investorPassword.reason,
+        });
+      }
+    })();
+  }, [accountId]);
 
   return (
     <ForexPortalModuleCard title={t('title')} subtitle={t('subtitle')}>
@@ -33,7 +48,9 @@ export function ForexTradingCredentialPanel() {
             </div>
             <ForexPortalStatusBadge tone="warning">{t('unavailableBadge')}</ForexPortalStatusBadge>
           </div>
-          <p className="mt-1.5 text-[11px] text-muted-foreground">{t('tradingPasswordBody')}</p>
+          <p className="mt-1.5 text-[11px] text-muted-foreground">
+            {state?.trading && state.trading !== 'available' ? t('credentialReason', { reason: state.trading }) : t('tradingPasswordBody')}
+          </p>
         </div>
         <div className="rounded border border-border/50 bg-muted/5 p-3 opacity-90">
           <div className="flex items-center gap-2">

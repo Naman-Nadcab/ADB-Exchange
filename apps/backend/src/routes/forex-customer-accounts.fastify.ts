@@ -134,18 +134,24 @@ export async function registerForexCustomerAccountsRoutes(app: FastifyInstance):
     if (!userId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
+    const { buildLiveForexReadiness } = await import('../services/forex/customer/live-funding-readiness.js');
+    const { getPlatformKycSnapshot } = await import('../services/forex/customer/platform-kyc.js');
+    const readiness = await buildLiveForexReadiness();
+    const kyc = await getPlatformKycSnapshot(userId);
     const cfg = getForexAdminBackendConfig();
-    const realForex = cfg.realForex === true;
     return reply.send({
       success: true,
       data: {
         source: 'SIMULATED',
-        realForex,
-        liveAccountOpeningAvailable: realForex,
-        reason: realForex ? 'ELIGIBLE_FOR_PROVIDER_FLOW' : 'REAL_FOREX_DISABLED',
-        message: realForex
-          ? 'Live account opening may proceed when KYC and provider prerequisites are satisfied.'
-          : 'Live Forex account opening is not enabled on this platform environment.',
+        realForex: cfg.realForex === true,
+        liveAccountOpeningAvailable: readiness.capabilities.liveAccountProvisioning,
+        applicationAccepted: readiness.capabilities.liveAccountApplication,
+        kycVerified: kyc.verified,
+        blockers: readiness.blockers,
+        reason: readiness.capabilities.liveAccountProvisioning ? 'PROVIDER_READY' : 'PROVIDER_OR_RAIL_BLOCKED',
+        message: readiness.capabilities.liveAccountProvisioning
+          ? 'Broker provisioning may proceed when prerequisites are satisfied.'
+          : 'Live Forex account opening remains gated until broker, funding, and compliance rails are configured.',
       },
     });
   });

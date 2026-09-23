@@ -65,6 +65,10 @@ export type ForexAccountHubPayload = {
     updatedAt: string;
     groupCode?: string | null;
     groupLabel?: string | null;
+    platformCustomerId?: string;
+    tradingLogin?: string;
+    brokerTradingLogin?: string | null;
+    server?: string;
   };
   fundingHistoryPreview?: ForexLedgerRow[];
   financialSnapshot: {
@@ -147,9 +151,45 @@ export const forexApi = {
       source: string;
       realForex: boolean;
       liveAccountOpeningAvailable: boolean;
+      applicationAccepted?: boolean;
+      kycVerified?: boolean;
+      blockers?: string[];
       reason: string;
       message: string;
     }>('/accounts/live-opening/eligibility'),
+  getLiveReadiness: () =>
+    fxGet<{
+      liveForexReady: false;
+      realForexEffective: boolean;
+      executionMode: string;
+      source: string;
+      blockers: string[];
+      capabilities: {
+        liveAccountApplication: boolean;
+        liveAccountProvisioning: boolean;
+        brokerCredentials: boolean;
+        deposit: boolean;
+        withdrawal: boolean;
+        internalTransfer: boolean;
+        paymentMethods: boolean;
+        fundingReconciliation: boolean;
+      };
+    }>('/live/readiness'),
+  submitLiveApplication: (body: { idempotencyKey: string; positionMode?: 'NETTING' | 'HEDGING'; leverage?: string | null }) =>
+    api.post<{ application: Record<string, unknown> }>(`${FOREX_PREFIX}/live/applications`, body, fxRequestInit()),
+  listLiveApplications: () => fxGet<{ count: number; applications: Array<Record<string, unknown>> }>('/live/applications'),
+  postInternalTransfer: (body: { fromAccountId: string; toAccountId: string; amount: string; idempotencyKey: string }) =>
+    api.post<{ status: string; transaction: ForexLedgerRow }>(`${FOREX_PREFIX}/funding/transfers`, body, fxRequestInit()),
+  getAccountCredentials: (accountId: string) =>
+    fxGet<{
+      accountId: string;
+      tradingPassword: { available: boolean; reason: string };
+      investorPassword: { available: boolean; reason: string };
+    }>(`/accounts/${encodeURIComponent(accountId)}/credentials`),
+  getForexPaymentMethods: () =>
+    fxGet<{ available: boolean; count: number; methods: unknown[]; reason: string | null; blockers: string[] }>(
+      '/funding/payment-methods'
+    ),
   getAccountFundingHistory: (accountId: string) =>
     fxGet<{ source: string; accountId: string; count: number; transactions: ForexLedgerRow[] }>(
       `/accounts/${encodeURIComponent(accountId)}/funding-history`

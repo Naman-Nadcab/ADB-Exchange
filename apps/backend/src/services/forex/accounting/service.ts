@@ -21,6 +21,7 @@ import { marginLevel } from '../margin/engine.js';
 import { calculateRealizedPnl, calculateUnrealizedPnl, sumUnrealized, type RealizedPnlResult } from '../pnl/engine.js';
 import { ForexQuoteConversionSource, type ConversionRateSource } from '../pnl/conversion.js';
 import { applyNettingFill, type NettingState } from '../positions/netting.js';
+import { getAccountPositionMode } from '../positions/account-mode.js';
 import type { ForexPositionRecord } from '../positions/models.js';
 import type { ForexPositionService } from '../positions/service.js';
 import type { ForexPricingService } from '../quotes.service.js';
@@ -113,6 +114,86 @@ export class ForexAccountingService {
     this.pushOutbox(args.accountId, 'LEDGER_TRANSACTION_POSTED', 'POSTED', { transactionId: tx.transactionId });
     this.emitAudit(args.accountId, 'LEDGER_TRANSACTION_CREATED', { transactionId: tx.transactionId });
     this.publishAccount(args.accountId);
+    return tx;
+  }
+
+  /** Admin-approved finance cashier movements (Forex ledger only; idempotent). */
+  async postAdminFinanceMovement(args: {
+    accountId: string;
+    amount: string;
+    direction: 'credit' | 'debit';
+    idempotencyKey: string;
+    ledgerType: 'DEPOSIT' | 'WITHDRAWAL' | 'ADJUSTMENT';
+    referenceId: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<ForexLedgerTransaction> {
+    this.ensureAccount(args.accountId);
+    const amount = requirePositive(args.amount);
+    const ref = args.referenceId;
+    const entries =
+      args.direction === 'credit'
+        ? [
+            { ledgerAccount: 'CLEARING' as const, debit: amount, credit: '0', referenceType: args.ledgerType, referenceId: ref },
+            {
+              ledgerAccount: 'CUSTOMER_CASH' as const,
+              accountId: args.accountId,
+              debit: '0',
+              credit: amount,
+              referenceType: args.ledgerType,
+              referenceId: ref,
+            },
+          ]
+        : [
+            {
+              ledgerAccount: 'CUSTOMER_CASH' as const,
+              accountId: args.accountId,
+              debit: amount,
+              credit: '0',
+              referenceType: args.ledgerType,
+              referenceId: ref,
+            },
+            { ledgerAccount: 'CLEARING' as const, debit: '0', credit: amount, referenceType: args.ledgerType, referenceId: ref },
+          ];
+    const tx = await this.ledger.post({
+      idempotencyKey: args.idempotencyKey,
+      type: args.ledgerType,
+      accountId: args.accountId,
+      currency: ACCOUNTING_CURRENCY,
+      entries,
+      metadata: { rail: 'ADMIN_FINANCE', ...args.metadata },
+    });
+    this.emitAudit(args.accountId, 'ADMIN_FINANCE_POSTED', { transactionId: tx.transactionId, metadata: { referenceId: ref } });
+    this.publishAccount(args.accountId);
+    return tx;
+  }
+
+  /** Internal IB partner payout (external rail NOT_CONFIGURED). */
+  async postPartnerPayoutMovement(args: {
+    partnerId: string;
+    amount: string;
+    idempotencyKey: string;
+    referenceId: string;
+  }): Promise<ForexLedgerTransaction> {
+    const amount = requirePositive(args.amount);
+    const ref = args.referenceId;
+    const tx = await this.ledger.post({
+      idempotencyKey: args.idempotencyKey,
+      type: 'ADJUSTMENT',
+      accountId: args.partnerId,
+      currency: ACCOUNTING_CURRENCY,
+      entries: [
+        {
+          ledgerAccount: 'PARTNER_PAYABLE',
+          accountId: args.partnerId,
+          debit: amount,
+          credit: '0',
+          referenceType: 'ADJUSTMENT',
+          referenceId: ref,
+        },
+        { ledgerAccount: 'CLEARING', debit: '0', credit: amount, referenceType: 'ADJUSTMENT', referenceId: ref },
+      ],
+      metadata: { rail: 'PARTNER_PAYOUT_INTERNAL', partnerId: args.partnerId, external_rail: 'NOT_CONFIGURED' },
+    });
     return tx;
   }
 
@@ -319,6 +400,7 @@ export class ForexAccountingService {
         marginLevel: null,
         unrealizedPnl: '0',
         realizedPnl: '0',
+        positionMode: getAccountPositionMode(accountId),
         timestamp: new Date().toISOString(),
         source: 'SIMULATED',
         calculationStatus: 'ACCOUNTING_UNAVAILABLE',
@@ -353,8 +435,65 @@ export class ForexAccountingService {
     return this.ledger.list(accountId);
   }
 
+  async transferInternal(args: {
+    fromAccountId: string;
+    toAccountId: string;
+    amount: string;
+    idempotencyKey: string;
+  }): Promise<ForexLedgerTransaction> {
+    if (args.fromAccountId === args.toAccountId) {
+      throw new ForexLedgerError('TRANSFER_SAME_ACCOUNT', 'Source and destination must differ');
+    }
+    this.ensureAccount(args.fromAccountId);
+    this.ensureAccount(args.toAccountId);
+    const amount = requirePositive(args.amount);
+    const available = fxDecimal(this.ledgerBalance(args.fromAccountId));
+    if (available.lt(amount)) {
+      throw new ForexLedgerError('INSUFFICIENT_FUNDS', 'Insufficient ledger balance for transfer');
+    }
+    const transferId = randomUUID();
+    const tx = await this.ledger.post({
+      idempotencyKey: args.idempotencyKey,
+      type: 'TRANSFER',
+      accountId: args.fromAccountId,
+      currency: ACCOUNTING_CURRENCY,
+      entries: [
+        {
+          ledgerAccount: 'CUSTOMER_CASH',
+          accountId: args.fromAccountId,
+          debit: amount.toString(),
+          credit: '0',
+          referenceType: 'TRANSFER',
+          referenceId: transferId,
+        },
+        {
+          ledgerAccount: 'CUSTOMER_CASH',
+          accountId: args.toAccountId,
+          debit: '0',
+          credit: amount.toString(),
+          referenceType: 'TRANSFER',
+          referenceId: transferId,
+        },
+      ],
+      metadata: { kind: 'INTERNAL_FOREX_TRANSFER', toAccountId: args.toAccountId, fromAccountId: args.fromAccountId },
+    });
+    this.publishAccount(args.fromAccountId);
+    this.publishAccount(args.toAccountId);
+    this.emitAudit(args.fromAccountId, 'INTERNAL_TRANSFER', { transactionId: tx.transactionId, metadata: { toAccountId: args.toAccountId, amount: amount.toString() } });
+    return tx;
+  }
+
   listFunding(accountId: string): ForexLedgerTransaction[] {
-    return this.ledger.list(accountId).filter((t) => t.type === 'FUNDING' || t.type === 'DEPOSIT' || t.type === 'INITIAL_FUNDING' || t.type === 'WITHDRAWAL');
+    return this.ledger
+      .list(accountId)
+      .filter(
+        (t) =>
+          t.type === 'FUNDING' ||
+          t.type === 'DEPOSIT' ||
+          t.type === 'INITIAL_FUNDING' ||
+          t.type === 'WITHDRAWAL' ||
+          t.type === 'TRANSFER'
+      );
   }
 
   reconcile(accountId: string): ForexReconciliationResult {
@@ -672,6 +811,7 @@ export class ForexAccountingService {
           marginLevel: null,
           unrealizedPnl: '0',
           realizedPnl,
+          positionMode: getAccountPositionMode(accountId),
           timestamp: new Date().toISOString(),
           source: 'SIMULATED',
           calculationStatus: u.calculationStatus,
@@ -694,6 +834,7 @@ export class ForexAccountingService {
         marginLevel: marginLevel(equity, used),
         unrealizedPnl: u.accountPnl,
         realizedPnl,
+        positionMode: getAccountPositionMode(accountId),
         timestamp: new Date().toISOString(),
         source: 'SIMULATED',
         calculationStatus: 'CALCULATED',

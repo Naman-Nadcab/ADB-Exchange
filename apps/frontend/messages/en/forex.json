@@ -1275,6 +1275,8 @@
     "selectedBadge": "Selected",
     "notSelectedBadge": "Not selected",
     "tradingLoginLabel": "Trading login",
+    "platformCustomerIdLabel": "Platform customer ID",
+    "brokerLoginLabel": "Broker trading login",
     "serverLabel": "Server",
     "serverSimulated": "FDM Forex · practice",
     "demoFundsNotice": "Demo balances are simulated — not real money.",
@@ -1385,7 +1387,8 @@
     "tradingPasswordBody": "A separate broker trading password is not configured for simulated Forex accounts on this environment.",
     "unavailableBadge": "Not available",
     "investorPasswordTitle": "Investor (read-only) access",
-    "investorPasswordBody": "Read-only credentials require a live broker integration."
+    "investorPasswordBody": "Read-only credentials require a live broker integration.",
+    "credentialReason": "Credential management unavailable ({reason})."
   },
   "accountSettings": {
     "title": "Account settings",
@@ -1437,8 +1440,24 @@
     "provisioningPending": "Account provisioning service must be connected",
     "kycCta": "Complete verification",
     "applicationTitle": "Live application",
-    "applicationBody": "Live account opening is not accepting applications until REAL_FOREX and provider provisioning are enabled. No application has been submitted.",
+    "applicationBody": "Submit a live account application when KYC is complete. Broker provisioning remains gated until external rails are configured — you will see an honest status, not instant activation.",
+    "applicationSubmit": "Submit live application",
+    "applicationSubmitting": "Submitting…",
+    "applicationStatus": "Application status: {status}",
     "backAccounts": "Back to accounts"
+  },
+  "internalTransfer": {
+    "title": "Internal transfer",
+    "subtitle": "Move simulated demo balance between your own Forex accounts.",
+    "simulatedNotice": "Demo-only · ledger transfer · not a live-money payout.",
+    "fromAccount": "From account",
+    "toAccount": "To account",
+    "amount": "Amount (USD)",
+    "submit": "Transfer",
+    "submitting": "Transferring…",
+    "success": "Transfer posted to the account ledger.",
+    "needTwoDemo": "Two demo accounts required",
+    "needTwoDemoBody": "Create another demo Forex account to transfer simulated funds between accounts."
   },
   "accountDetail": {
     "loading": "Loading account…",

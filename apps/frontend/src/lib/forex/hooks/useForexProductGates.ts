@@ -27,14 +27,17 @@ export function useForexProductGates(): { gates: ForexProductGates; loading: boo
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const list = unwrap(await forexApi.listAccounts());
+      const [list, readiness] = await Promise.all([forexApi.listAccounts(), forexApi.getLiveReadiness()]);
       if (cancelled) return;
-      if (list.ok) {
+      const listRes = unwrap(list);
+      const readyRes = unwrap(readiness);
+      if (listRes.ok) {
         setGates(
           deriveForexProductGates({
-            realForex: list.data.realForex,
-            executionMode: list.data.executionMode,
-            source: list.data.source,
+            realForex: listRes.data.realForex,
+            executionMode: listRes.data.executionMode,
+            source: listRes.data.source,
+            readiness: readyRes.ok ? readyRes.data : undefined,
           })
         );
       }

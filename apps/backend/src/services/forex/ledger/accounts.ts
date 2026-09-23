@@ -15,6 +15,7 @@ export const FOREX_LEDGER_ACCOUNTS = [
   'FEE_REVENUE',
   'FUNDING',
   'SYSTEM_ADJUSTMENT',
+  'PARTNER_PAYABLE',
 ] as const;
 
 export type ForexLedgerAccount = (typeof FOREX_LEDGER_ACCOUNTS)[number];
@@ -28,6 +29,7 @@ export const FOREX_TX_TYPES = [
   'FUNDING',
   'REVERSAL',
   'ADJUSTMENT',
+  'TRANSFER',
 ] as const;
 
 export type ForexLedgerTxType = (typeof FOREX_TX_TYPES)[number];

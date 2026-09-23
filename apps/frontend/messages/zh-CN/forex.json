@@ -1275,6 +1275,8 @@
     "selectedBadge": "当前选中",
     "notSelectedBadge": "未选中",
     "tradingLoginLabel": "交易登录号",
+    "platformCustomerIdLabel": "平台客户 ID",
+    "brokerLoginLabel": "经纪商交易登录",
     "serverLabel": "服务器",
     "serverSimulated": "FDM Forex · 练习",
     "demoFundsNotice": "演示余额为模拟资金——非真实货币。",
@@ -1385,7 +1387,8 @@
     "tradingPasswordBody": "本环境的模拟外汇账户未配置独立经纪商交易密码。",
     "unavailableBadge": "不可用",
     "investorPasswordTitle": "投资者（只读）访问",
-    "investorPasswordBody": "只读凭证需要真实经纪商集成。"
+    "investorPasswordBody": "只读凭证需要真实经纪商集成。",
+    "credentialReason": "凭证管理不可用（{reason}）。"
   },
   "accountSettings": {
     "title": "账户设置",
@@ -1437,8 +1440,24 @@
     "provisioningPending": "需连接账户 provisioning 服务",
     "kycCta": "完成验证",
     "applicationTitle": "真实账户申请",
-    "applicationBody": "在启用 REAL_FOREX 与 provisioning 之前不接受真实开户申请。尚未提交任何申请。",
+    "applicationBody": "KYC 完成后可提交真实账户申请。经纪商 provisioning 在外部通道就绪前保持门禁——显示真实状态，不会假激活。",
+    "applicationSubmit": "提交真实账户申请",
+    "applicationSubmitting": "提交中…",
+    "applicationStatus": "申请状态：{status}",
     "backAccounts": "返回账户列表"
+  },
+  "internalTransfer": {
+    "title": "内部转账",
+    "subtitle": "在您的演示 Forex 账户之间移动模拟余额。",
+    "simulatedNotice": "仅演示 · 账本转账 · 非真实出金。",
+    "fromAccount": "转出账户",
+    "toAccount": "转入账户",
+    "amount": "金额 (USD)",
+    "submit": "转账",
+    "submitting": "转账中…",
+    "success": "转账已记入账户账本。",
+    "needTwoDemo": "需要两个演示账户",
+    "needTwoDemoBody": "再创建一个演示 Forex 账户即可在账户间转移模拟资金。"
   },
   "accountDetail": {
     "loading": "正在加载账户…",

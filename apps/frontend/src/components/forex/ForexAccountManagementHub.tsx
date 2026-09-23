@@ -161,10 +161,23 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
             </div>
             <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{fxPlain(m.label ?? `${m.accountKind} · ${m.currency}`)}</h2>
             <p className="font-mono text-[12px] text-muted-foreground">
-              {t('tradingLoginLabel')}: {fxPlain(m.accountId)}
+              {t('tradingLoginLabel')}: {fxPlain(m.tradingLogin ?? m.accountId)}
+            </p>
+            {m.platformCustomerId ? (
+              <p className="font-mono text-[11px] text-muted-foreground">
+                {t('platformCustomerIdLabel')}: {fxPlain(m.platformCustomerId)}
+              </p>
+            ) : null}
+            {m.brokerTradingLogin ? (
+              <p className="font-mono text-[11px] text-muted-foreground">
+                {t('brokerLoginLabel')}: {fxPlain(m.brokerTradingLogin)}
+              </p>
+            ) : null}
+            <p className="text-[11px] text-muted-foreground">
+              {t('serverLabel')}: {m.server ? fxPlain(m.server) : t('serverSimulated')}
             </p>
             <p className="text-[11px] text-muted-foreground">
-              {fxPlain(m.currency)} · {t('serverLabel')}: {t('serverSimulated')} · {td('createdAt', { date: new Date(m.createdAt).toLocaleString() })}
+              {fxPlain(m.currency)} · {td('createdAt', { date: new Date(m.createdAt).toLocaleString() })}
             </p>
             {isDemo ? (
               <p className="text-[11px] font-medium text-primary/90">{t('demoFundsNotice')}</p>
@@ -369,7 +382,7 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
         groupLabel={m.groupLabel}
       />
 
-      <ForexTradingCredentialPanel />
+      <ForexTradingCredentialPanel accountId={accountId} />
 
       {/* Funding */}
       <ForexPortalModuleCard id="account-funding" title={t('fundingTitle')} subtitle={t('fundingSubtitle')}>

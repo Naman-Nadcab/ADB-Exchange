@@ -18,7 +18,16 @@ export default function ForexOpenLiveAccountPage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const kyc = useForexWalletKyc();
-  const [eligibility, setEligibility] = useState<{ available: boolean; message: string; reason: string } | null>(null);
+  const [eligibility, setEligibility] = useState<{
+    available: boolean;
+    applicationAccepted?: boolean;
+    message: string;
+    reason: string;
+    blockers?: string[];
+  } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [appStatus, setAppStatus] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authed) return;
@@ -27,12 +36,30 @@ export default function ForexOpenLiveAccountPage() {
       if (res.ok) {
         setEligibility({
           available: res.data.liveAccountOpeningAvailable,
+          applicationAccepted: res.data.applicationAccepted,
           message: res.data.message,
           reason: res.data.reason,
+          blockers: res.data.blockers,
         });
       }
     })();
   }, [authed]);
+
+  async function onApply() {
+    if (busy) return;
+    setBusy(true);
+    setErr(null);
+    setAppStatus(null);
+    const idempotencyKey = `live-app:${Date.now()}`;
+    const res = unwrap(await forexApi.submitLiveApplication({ idempotencyKey, positionMode: 'NETTING' }));
+    setBusy(false);
+    if (!res.ok) {
+      setErr(res.error.message);
+      return;
+    }
+    const status = String((res.data.application as { status?: string }).status ?? 'PENDING');
+    setAppStatus(status);
+  }
 
   return (
     <ForexPageFrame title={tf('pages.openLive.title')} subtitle={tf('pages.openLive.subtitle')}>
@@ -47,6 +74,13 @@ export default function ForexOpenLiveAccountPage() {
             <p className="mt-3 text-sm text-muted-foreground">{eligibility?.message ?? t('loadingEligibility')}</p>
             {!eligibility?.available ? (
               <p className="mt-2 text-[11px] text-muted-foreground">{t('reasonLabel')}: {eligibility?.reason ?? '—'}</p>
+            ) : null}
+            {eligibility?.blockers?.length ? (
+              <ul className="mt-3 list-disc space-y-1 pl-4 text-[11px] text-muted-foreground">
+                {eligibility.blockers.map((b) => (
+                  <li key={b}>{b}</li>
+                ))}
+              </ul>
             ) : null}
           </ForexPortalModuleCard>
           <ForexPortalModuleCard title={t('checklistTitle')}>
@@ -63,6 +97,20 @@ export default function ForexOpenLiveAccountPage() {
           </ForexPortalModuleCard>
           <ForexPortalModuleCard title={t('applicationTitle')}>
             <p className="text-sm text-muted-foreground">{t('applicationBody')}</p>
+            {kyc.verified && eligibility?.applicationAccepted !== false ? (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void onApply()}
+                className="mt-3 inline-flex min-h-10 items-center rounded border border-primary/40 bg-primary/10 px-4 text-[12px] font-semibold text-primary disabled:opacity-50"
+              >
+                {busy ? t('applicationSubmitting') : t('applicationSubmit')}
+              </button>
+            ) : null}
+            {appStatus ? (
+              <p className="mt-2 text-sm text-buy">{t('applicationStatus', { status: appStatus })}</p>
+            ) : null}
+            {err ? <p className="mt-2 text-sm text-sell">{err}</p> : null}
             <Link href={FOREX_ROUTES.accounts} className="mt-3 inline-block text-[12px] text-primary underline-offset-2 hover:underline">
               {t('backAccounts')}
             </Link>
