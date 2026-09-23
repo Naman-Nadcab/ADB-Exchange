@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/auth';
 import Link from 'next/link';
 import { CoinIcon } from '@/components/ui/CoinIcon';
@@ -23,6 +24,8 @@ import {
 import { useBalancesTrading } from '@/lib/balances';
 
 export default function UnifiedTradingPage() {
+  const tConvert = useTranslations('wallet.convertPage');
+  const tOverview = useTranslations('wallet.overview');
   const { accessToken, _hasHydrated } = useAuthStore();
   const { data: tradingData, isLoading: loading } = useBalancesTrading(!!_hasHydrated && !!accessToken);
   const balances = tradingData?.balances ?? [];
@@ -214,14 +217,14 @@ export default function UnifiedTradingPage() {
                     onChange={(e) => setHideSmallBalances(e.target.checked)}
                     className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                   />
-                  <span className="text-sm text-muted-foreground">Hide small balances</span>
+                  <span className="text-sm text-muted-foreground">{tOverview('hideSmallBalances')}</span>
                 </label>
                 <Link 
                   href="/wallet/convert"
                   className="text-sm text-primary hover:text-primary/85 flex items-center gap-1 font-medium"
                 >
                   <Sparkles className="w-4 h-4" />
-                  Convert Small Balances
+                  {tConvert('convertSmallBalances')}
                 </Link>
               </div>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -64,16 +65,35 @@ function formatCountdown(ms: number): string {
   return `${m}:${r.toString().padStart(2, '0')}`;
 }
 
-function apiFailureMessage(res: { error?: unknown }): string {
-  const e = res.error;
-  if (typeof e === 'string') return e;
-  if (e && typeof e === 'object' && 'message' in e && typeof (e as { message: unknown }).message === 'string') {
-    return (e as { message: string }).message;
-  }
-  return 'Request failed';
-}
-
 export default function ConvertPage() {
+  const t = useTranslations('wallet.convertPage');
+  const ta = useTranslations('wallet.actions');
+  const tt = useTranslations('wallet.transactions');
+
+  const apiFailureMessage = useCallback(
+    (res: { error?: unknown }): string => {
+      const e = res.error;
+      if (typeof e === 'string') return e;
+      if (e && typeof e === 'object' && 'message' in e && typeof (e as { message: unknown }).message === 'string') {
+        return (e as { message: string }).message;
+      }
+      return t('errors.requestFailed');
+    },
+    [t]
+  );
+
+  const conversionStatusLabel = useCallback(
+    (status: string) => {
+      const s = status.toLowerCase();
+      if (s === 'completed') return tt('completed');
+      if (s === 'pending') return tt('pending');
+      if (s === 'failed') return tt('failed');
+      if (s === 'processing') return tt('processing');
+      return status;
+    },
+    [tt]
+  );
+
   const queryClient = useQueryClient();
   const { accessToken, _hasHydrated } = useAuthStore();
 
@@ -145,9 +165,9 @@ export default function ConvertPage() {
   useEffect(() => {
     if (quoteExpired && quote) {
       setQuote(null);
-      setFormError('Quote expired. Get a new quote to continue.');
+      setFormError(t('errors.quoteExpired'));
     }
-  }, [quoteExpired, quote]);
+  }, [quoteExpired, quote, t]);
 
   const clearQuoteOnInputChange = useCallback(() => {
     setQuote(null);
@@ -193,22 +213,22 @@ export default function ConvertPage() {
     setSuccessSummary(null);
 
     if (!fromCurrency || !toCurrency) {
-      setFormError('Select both assets.');
+      setFormError(t('errors.selectBoth'));
       return;
     }
     if (fromCurrency.id === toCurrency.id) {
-      setFormError('Choose two different assets.');
+      setFormError(t('errors.differentAssets'));
       return;
     }
     const amt = parseFloat(fromAmount);
     if (!Number.isFinite(amt) || amt <= 0) {
-      setFormError('Enter a valid amount.');
+      setFormError(t('errors.validAmount'));
       return;
     }
 
     const available = parseFloat(getAvailableBalance() || '0');
     if (amt > available) {
-      setFormError('Amount exceeds available balance.');
+      setFormError(t('errors.exceedsBalance'));
       return;
     }
 
@@ -251,7 +271,7 @@ export default function ConvertPage() {
       }
 
       if (!toAmt || !rateStr) {
-        setFormError('Invalid quote response.');
+        setFormError(t('errors.invalidQuote'));
         setQuote(null);
         return;
       }
@@ -272,17 +292,17 @@ export default function ConvertPage() {
   const handleConvert = async () => {
     setFormError('');
     if (!quote || quoteExpired) {
-      setFormError('Get a valid quote first.');
+      setFormError(t('errors.quoteFirst'));
       return;
     }
     if (!authReady) {
-      setFormError('Please sign in to convert.');
+      setFormError(t('errors.signInConvert'));
       return;
     }
 
     const amt = parseFloat(fromAmount);
     if (!Number.isFinite(amt) || amt <= 0) {
-      setFormError('Enter a valid amount.');
+      setFormError(t('errors.validAmount'));
       return;
     }
 
@@ -314,9 +334,7 @@ export default function ConvertPage() {
       const got = res.data?.to?.amount;
       const sym = res.data?.to?.currency ?? toCurrency?.symbol ?? '';
       setSuccessSummary(
-        got != null
-          ? `Received ${got} ${sym}`
-          : 'Conversion completed.'
+        got != null ? t('successReceived', { amount: got, symbol: sym }) : t('successCompleted')
       );
       setSuccessPhase('animating');
       setQuote(null);
@@ -334,7 +352,7 @@ export default function ConvertPage() {
 
   const handleConvertDust = async () => {
     if (!authReady) {
-      setFormError('Please sign in first.');
+      setFormError(t('errors.signInFirst'));
       return;
     }
     setDustConverting(true);
@@ -379,8 +397,8 @@ export default function ConvertPage() {
 
   return (
     <WalletOperationsShell
-      title="Convert"
-      description="Instant swap at live rates between assets in your selected account. No separate trading fees."
+      title={t('title')}
+      description={t('description')}
       headerRight={
         <button
           type="button"
@@ -389,7 +407,7 @@ export default function ConvertPage() {
           disabled={historyLoading}
         >
           <RefreshCw className={`h-4 w-4 shrink-0 ${historyLoading ? 'animate-spin' : ''}`} />
-          Refresh history
+          {t('refreshHistory')}
         </button>
       }
     >
@@ -399,7 +417,7 @@ export default function ConvertPage() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Sparkles className="h-4 w-4 text-primary" />
-              <span>Convert balances under $1 to USDT</span>
+              <span>{t('dustHint')}</span>
             </div>
             <button
               type="button"
@@ -410,17 +428,20 @@ export default function ConvertPage() {
               {dustConverting ? (
                 <>
                   <Loader2 className="h-3 w-3 animate-spin" />
-                  Converting…
+                  {t('converting')}
                 </>
               ) : (
-                'Convert Small Balances'
+                t('convertSmallBalances')
               )}
             </button>
           </div>
           {dustResult && (
             <div className="mt-2 rounded-md bg-muted px-3 py-2 text-sm text-foreground">
-              Converted <span className="font-semibold">{dustResult.assetsConverted}</span> asset{dustResult.assetsConverted !== 1 ? 's' : ''} →{' '}
-              <span className="font-semibold">{parseFloat(dustResult.totalUsdt).toFixed(4)} USDT</span> received
+              {t('dustResult', {
+                count: dustResult.assetsConverted,
+                assetLabel: dustResult.assetsConverted !== 1 ? t('assetMany') : t('assetOne'),
+                amount: parseFloat(dustResult.totalUsdt).toFixed(4),
+              })}
             </div>
           )}
         </div>
@@ -429,7 +450,7 @@ export default function ConvertPage() {
           <div className="mb-4 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Wallet className="h-4 w-4 shrink-0 text-primary" />
-              <span>Account</span>
+              <span>{t('account')}</span>
             </div>
             <select
               value={accountType}
@@ -439,9 +460,9 @@ export default function ConvertPage() {
               }}
               className="rounded-lg border border-border bg-muted px-3 py-1.5 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="funding">Funding</option>
-              <option value="spot">Spot</option>
-              <option value="trading">Trading</option>
+              <option value="funding">{t('accountFunding')}</option>
+              <option value="spot">{t('accountSpot')}</option>
+              <option value="trading">{t('accountTrading')}</option>
             </select>
           </div>
 
@@ -465,7 +486,7 @@ export default function ConvertPage() {
                   onClick={dismissSuccess}
                   className="text-sm font-medium text-primary hover:text-primary/90"
                 >
-                  Swap again
+                  {t('swapAgain')}
                 </button>
               )}
             </div>
@@ -474,9 +495,9 @@ export default function ConvertPage() {
           {successPhase === 'idle' && (
             <>
               <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-                <span>From</span>
+                <span>{t('from')}</span>
                 <span>
-                  Available:{' '}
+                  {t('available')}:{' '}
                   <span className="tabular-nums text-foreground">
                     {fromCurrency
                       ? (() => {
@@ -499,7 +520,7 @@ export default function ConvertPage() {
                     className="flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-2 text-sm font-medium text-foreground hover:bg-muted"
                   >
                     {fromCurrency && <CoinIcon symbol={fromCurrency.symbol} size={22} />}
-                    {fromCurrency?.symbol ?? 'Select'}
+                    {fromCurrency?.symbol ?? t('select')}
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   </button>
                   {showFromDropdown && (
@@ -509,7 +530,7 @@ export default function ConvertPage() {
                           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                           <input
                             type="search"
-                            placeholder="Search"
+                            placeholder={t('search')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full rounded-md border border-border bg-muted py-2 pl-8 pr-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
@@ -557,7 +578,7 @@ export default function ConvertPage() {
                   onClick={handleSetMax}
                   className="shrink-0 text-sm font-semibold text-primary hover:text-primary/90"
                 >
-                  MAX
+                  {t('max')}
                 </button>
               </div>
 
@@ -566,13 +587,13 @@ export default function ConvertPage() {
                   type="button"
                   onClick={handleSwapDirection}
                   className="rounded-full border border-border bg-card p-2.5 text-primary shadow-sm hover:bg-muted"
-                  aria-label="Swap direction"
+                  aria-label={t('swapDirectionAria')}
                 >
                   <ArrowUpDown className="h-5 w-5" />
                 </button>
               </div>
 
-              <div className="mb-1 mt-1 text-xs text-muted-foreground">To (estimated)</div>
+              <div className="mb-1 mt-1 text-xs text-muted-foreground">{t('toEstimated')}</div>
               <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted p-3">
                 <div className="relative">
                   <button
@@ -584,7 +605,7 @@ export default function ConvertPage() {
                     className="flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-2 text-sm font-medium text-foreground hover:bg-muted"
                   >
                     {toCurrency && <CoinIcon symbol={toCurrency.symbol} size={22} />}
-                    {toCurrency?.symbol ?? 'Select'}
+                    {toCurrency?.symbol ?? t('select')}
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   </button>
                   {showToDropdown && (
@@ -594,7 +615,7 @@ export default function ConvertPage() {
                           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                           <input
                             type="search"
-                            placeholder="Search"
+                            placeholder={t('search')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full rounded-md border border-border bg-muted py-2 pl-8 pr-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
@@ -640,31 +661,32 @@ export default function ConvertPage() {
               {rateDisplay && !quoteExpired && quote && (
                 <div className="mt-4 rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-xs text-muted-foreground">
                   <div className="flex items-center justify-between py-1">
-                    <span>Rate</span>
+                    <span>{t('rate')}</span>
                     <span className="text-foreground">{rateDisplay}</span>
                   </div>
                   <div className="flex items-center justify-between border-t border-border/50 py-1">
-                    <span>Estimated output</span>
+                    <span>{t('estimatedOutput')}</span>
                     <span className="tabular-nums text-foreground">
                       {parseFloat(quote.toAmount).toLocaleString(undefined, { maximumFractionDigits: 8 })} {toCurrency?.symbol}
                     </span>
                   </div>
                   <div className="flex items-center justify-between border-t border-border/50 py-1">
-                    <span>Slippage</span>
+                    <span>{t('slippage')}</span>
                     <span className="text-foreground">
                       {(() => {
                         const from = parseFloat(fromAmount);
                         const rate = parseFloat(quote.rate);
                         const to = parseFloat(quote.toAmount);
-                        if (!Number.isFinite(from) || !Number.isFinite(rate) || !Number.isFinite(to) || from * rate === 0) return '< 0.5%';
+                        if (!Number.isFinite(from) || !Number.isFinite(rate) || !Number.isFinite(to) || from * rate === 0)
+                          return t('slippageUnder');
                         const expected = from * rate;
                         const impact = Math.abs((expected - to) / expected) * 100;
-                        return impact < 0.5 ? '< 0.5%' : `~${impact.toFixed(2)}%`;
+                        return impact < 0.5 ? t('slippageUnder') : t('slippageApprox', { pct: impact.toFixed(2) });
                       })()}
                     </span>
                   </div>
                   <div className="mt-1 text-center tabular-nums">
-                    Expires in {formatCountdown(quoteRemainingMs)}
+                    {t('expiresIn', { time: formatCountdown(quoteRemainingMs) })}
                   </div>
                 </div>
               )}
@@ -685,12 +707,12 @@ export default function ConvertPage() {
                   {quoteLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Getting quote…
+                      {t('gettingQuote')}
                     </>
                   ) : (
                     <>
                       <RefreshCw className="h-4 w-4" />
-                      Get quote
+                      {t('getQuote')}
                     </>
                   )}
                 </button>
@@ -706,20 +728,20 @@ export default function ConvertPage() {
                   {converting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Converting…
+                      {t('converting')}
                     </>
                   ) : (
-                    'Convert'
+                    t('convert')
                   )}
                 </button>
               </div>
 
               <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1 border-t border-border pt-4 text-center text-xs">
                 <Link href={walletPath.depositCrypto} className="font-medium text-primary hover:text-primary/90">
-                  Deposit
+                  {ta('deposit')}
                 </Link>
                 <Link href={walletPath.transfer} className="font-medium text-primary hover:text-primary/90">
-                  Transfer
+                  {ta('transfer')}
                 </Link>
               </div>
             </>
@@ -730,7 +752,7 @@ export default function ConvertPage() {
         <div className="min-w-0 lg:col-span-7 xl:col-span-8">
         <div className="mb-4 flex items-center gap-2">
           <History className="h-5 w-5 text-muted-foreground" />
-          <h2 className="text-lg font-semibold tracking-tight text-foreground">Conversion history</h2>
+          <h2 className="text-lg font-semibold tracking-tight text-foreground">{t('conversionHistory')}</h2>
         </div>
 
         <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
@@ -741,19 +763,19 @@ export default function ConvertPage() {
           ) : history.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
               <History className="h-10 w-10 opacity-40" />
-              <p className="text-sm">No conversions yet</p>
+              <p className="text-sm">{t('noConversionsYet')}</p>
             </div>
           ) : (
             <table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  <th className="px-4 py-3">Type</th>
-                  <th className="px-4 py-3">From</th>
-                  <th className="px-4 py-3">To</th>
-                  <th className="px-4 py-3">Rate</th>
-                  <th className="px-4 py-3">Account</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3">{t('tableType')}</th>
+                  <th className="px-4 py-3">{t('tableFrom')}</th>
+                  <th className="px-4 py-3">{t('tableTo')}</th>
+                  <th className="px-4 py-3">{t('tableRate')}</th>
+                  <th className="px-4 py-3">{t('tableAccount')}</th>
+                  <th className="px-4 py-3">{t('tableStatus')}</th>
+                  <th className="px-4 py-3">{t('tableDate')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -792,7 +814,7 @@ export default function ConvertPage() {
                               : 'text-sell'
                         }
                       >
-                        {row.status}
+                        {conversionStatusLabel(row.status)}
                       </span>
                     </td>
                     <td className="px-4 py-3 tabular-nums text-muted-foreground">

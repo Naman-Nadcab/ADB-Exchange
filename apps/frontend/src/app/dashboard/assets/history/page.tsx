@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/auth';
 import { api } from '@/lib/api';
 import { useSearchParams } from 'next/navigation';
@@ -61,15 +62,77 @@ interface Transaction {
   explorerUrl?: string;
 }
 
-const HISTORY_TABS: { id: string; label: string; icon: LucideIcon; external?: boolean }[] = [
-  { id: 'all', label: 'All Transactions', icon: Clock },
-  { id: 'deposit', label: 'Deposit', icon: Download },
-  { id: 'withdraw', label: 'Withdraw', icon: Upload },
-  { id: 'transfer', label: 'Transfer', icon: ArrowLeftRight },
-];
-
 export default function AssetHistoryPage() {
+  const t = useTranslations('wallet.historyPage');
+  const tt = useTranslations('wallet.transactions');
   const { accessToken, _hasHydrated } = useAuthStore();
+
+  const historyTabs: { id: string; label: string; icon: LucideIcon; external?: boolean }[] = useMemo(
+    () => [
+      { id: 'all', label: t('tabAllTransactionsShort'), icon: Clock },
+      { id: 'deposit', label: t('tabDeposit'), icon: Download },
+      { id: 'withdraw', label: t('tabWithdraw'), icon: Upload },
+      { id: 'transfer', label: t('tabTransfer'), icon: ArrowLeftRight },
+    ],
+    [t]
+  );
+
+  const statusLabel = useCallback(
+    (status: string) => {
+      const s = status.toLowerCase();
+      if (s === 'completed' || s === 'confirmed') return tt('completed');
+      if (s === 'pending' || s === 'confirming') return tt('pending');
+      if (s === 'processing') return tt('processing');
+      if (s === 'failed' || s === 'rejected') return tt('failed');
+      return status;
+    },
+    [tt]
+  );
+
+  const txTypeLabel = useCallback(
+    (type: Transaction['type']) => {
+      if (type === 'deposit') return tt('typeDeposit');
+      if (type === 'withdraw') return tt('typeWithdrawal');
+      return tt('typeTransfer');
+    },
+    [tt]
+  );
+
+  const historyTabLabel = useCallback(
+    (tabId: string) => {
+      if (tabId === 'all') return t('tabAllTransactionsShort');
+      if (tabId === 'deposit') return t('tabDeposit');
+      if (tabId === 'withdraw') return t('tabWithdraw');
+      if (tabId === 'transfer') return t('tabTransfer');
+      return tabId;
+    },
+    [t]
+  );
+
+  const filterCoinLabel = (coin: string) => (coin === 'All' ? t('filterAll') : coin);
+  const filterMethodLabel = useCallback(
+    (method: string) => {
+      if (method === 'All') return t('filterAll');
+      if (method === 'On-chain') return t('filterOnChain');
+      if (method === 'Internal') return t('filterInternal');
+      if (method === 'Deposit') return t('filterDeposit');
+      if (method === 'Withdraw') return t('filterWithdraw');
+      if (method === 'Transfer') return t('filterTransfer');
+      return method;
+    },
+    [t]
+  );
+  const filterStatusLabel = useCallback(
+    (status: string) => {
+      if (status === 'All') return t('filterAll');
+      if (status === 'Completed') return t('filterCompleted');
+      if (status === 'Pending') return t('filterPending');
+      if (status === 'Processing') return t('filterProcessing');
+      if (status === 'Failed') return t('filterFailed');
+      return status;
+    },
+    [t]
+  );
   const searchParams = useSearchParams();
   
   const [mainTab, setMainTab] = useState<'transactions' | 'history'>('history');
@@ -214,12 +277,12 @@ export default function AssetHistoryPage() {
       } else {
         if (!silentRefresh) {
           setTransactions([]);
-          setLoadError(response.error?.message || 'Failed to load transaction history.');
+          setLoadError(response.error?.message || t('loadFailed'));
         }
       }
     } catch (error) {
       if (!silentRefresh) {
-        const message = 'Failed to load transaction history. Please try again.';
+        const message = t('loadFailedRetry');
         notifyError(message);
         setTransactions([]);
         setLoadError(message);
@@ -313,7 +376,7 @@ export default function AssetHistoryPage() {
     if (tx.status === 'completed') {
       return (
         <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${getStatusBadge('completed')}`}>
-          Completed
+          {tt('completed')}
         </span>
       );
     }
@@ -327,7 +390,7 @@ export default function AssetHistoryPage() {
         <div className="flex flex-col gap-1">
           <span className={`px-2.5 py-1 rounded-lg text-xs font-medium inline-flex items-center gap-1 ${getStatusBadge('pending')}`}>
             <RefreshCw className="w-3 h-3 animate-spin" />
-            {confirmations}/{required} Confirmations
+            {t('confirmations', { current: confirmations, required })}
           </span>
           <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
             <div
@@ -341,7 +404,7 @@ export default function AssetHistoryPage() {
     
     return (
       <span className={`px-2.5 py-1 rounded-lg text-xs font-medium capitalize ${getStatusBadge(tx.status)}`}>
-        {tx.status}
+        {statusLabel(tx.status)}
       </span>
     );
   };
@@ -357,24 +420,24 @@ export default function AssetHistoryPage() {
 
   return (
     <WalletOperationsShell
-      title="Wallet history"
-      description="Deposits, withdrawals, and internal transfers. Filters and exports apply to the view below."
+      title={t('title')}
+      description={t('description')}
       headerRight={
         <>
           {(historyTab === 'deposit' || historyTab === 'all') && (
             <span className="rounded-full border border-border bg-buy-light px-2.5 py-1 text-xs font-medium text-buy">
-              Live
+              {t('live')}
             </span>
           )}
           <button
             onClick={() => fetchTransactions(false)}
             disabled={loading}
             className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/40 disabled:opacity-50"
-            title="Refresh now"
+            title={t('refreshNowTitle')}
             type="button"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('refresh')}
           </button>
           <div className="relative">
             <button
@@ -383,7 +446,7 @@ export default function AssetHistoryPage() {
               className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/40"
             >
               <Download className="h-4 w-4" />
-              Export <ChevronDown className={`h-4 w-4 ${showExportDropdown ? 'rotate-180' : ''}`} />
+              {t('export')} <ChevronDown className={`h-4 w-4 ${showExportDropdown ? 'rotate-180' : ''}`} />
             </button>
             {showExportDropdown && (
               <>
@@ -394,14 +457,14 @@ export default function AssetHistoryPage() {
                     onClick={exportCSV}
                     className="w-full px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-muted"
                   >
-                    CSV
+                    {t('exportCsv')}
                   </button>
                   <button
                     type="button"
                     onClick={exportExcel}
                     className="w-full px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-muted"
                   >
-                    Excel
+                    {t('exportExcel')}
                   </button>
                 </div>
               </>
@@ -412,10 +475,10 @@ export default function AssetHistoryPage() {
     >
       <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
         <Link href={walletPath.funding} className="transition-colors hover:text-primary">
-          Funding
+          {t('breadcrumbFunding')}
         </Link>
         <ChevronRight className="h-4 w-4 shrink-0" />
-        <span className="font-medium text-foreground">History</span>
+        <span className="font-medium text-foreground">{t('breadcrumbHistory')}</span>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
@@ -429,7 +492,7 @@ export default function AssetHistoryPage() {
                     : 'border-transparent text-muted-foreground hover:text-foreground'
                 }`}
               >
-                All Transactions
+                {t('tabAllTransactions')}
                 <HelpCircle className="h-4 w-4 text-muted-foreground" />
               </button>
               <button
@@ -441,7 +504,7 @@ export default function AssetHistoryPage() {
                     : 'border-transparent text-muted-foreground hover:text-foreground'
                 }`}
               >
-                History
+                {t('tabHistory')}
                 <HelpCircle className="h-4 w-4 text-muted-foreground" />
               </button>
             </div>
@@ -450,7 +513,7 @@ export default function AssetHistoryPage() {
               <div className="p-4 sm:p-6">
                 <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <div>
-                    <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Date Range</p>
+                    <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{t('dateRange')}</p>
                     <div className="flex items-center gap-2 rounded-xl border border-border bg-muted px-4 py-2.5">
                       <input
                         type="date"
@@ -469,14 +532,14 @@ export default function AssetHistoryPage() {
                     </div>
                   </div>
                   <div>
-                    <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Asset</p>
+                    <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{t('asset')}</p>
                     <div className="relative">
                       <button
                         type="button"
                         onClick={() => setShowCoinDropdown(!showCoinDropdown)}
                         className="flex w-full items-center justify-between rounded-xl border border-border bg-muted px-4 py-2.5 text-sm text-foreground transition-colors hover:border-primary/40"
                       >
-                        <span>{coinFilter === 'all' ? 'All' : coinFilter}</span>
+                        <span>{coinFilter === 'all' ? t('filterAll') : coinFilter}</span>
                         <ChevronDown className={`h-4 w-4 transition-transform ${showCoinDropdown ? 'rotate-180' : ''}`} />
                       </button>
                       {showCoinDropdown && (
@@ -495,7 +558,7 @@ export default function AssetHistoryPage() {
                                   : 'text-foreground hover:bg-muted'
                               }`}
                             >
-                              {coin}
+                              {filterCoinLabel(coin)}
                             </button>
                           ))}
                         </div>
@@ -504,14 +567,18 @@ export default function AssetHistoryPage() {
                   </div>
 
                   <div>
-                    <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Transaction Type</p>
+                    <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{t('transactionType')}</p>
                     <div className="relative">
                       <button
                         type="button"
                         onClick={() => setShowMethodDropdown(!showMethodDropdown)}
                         className="flex w-full items-center justify-between rounded-xl border border-border bg-muted px-4 py-2.5 text-sm text-foreground transition-colors hover:border-primary/40"
                       >
-                        <span>{methodFilter === 'all' ? 'All' : methodFilter}</span>
+                        <span>
+                          {methodFilter === 'all'
+                            ? t('filterAll')
+                            : filterMethodLabel(methodFilter.charAt(0).toUpperCase() + methodFilter.slice(1))}
+                        </span>
                         <ChevronDown className={`h-4 w-4 transition-transform ${showMethodDropdown ? 'rotate-180' : ''}`} />
                       </button>
                       {showMethodDropdown && (
@@ -530,7 +597,7 @@ export default function AssetHistoryPage() {
                                   : 'text-foreground hover:bg-muted'
                               }`}
                             >
-                              {type}
+                              {filterMethodLabel(type)}
                             </button>
                           ))}
                         </div>
@@ -539,14 +606,18 @@ export default function AssetHistoryPage() {
                   </div>
 
                   <div>
-                    <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Status</p>
+                    <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{t('status')}</p>
                     <div className="relative">
                       <button
                         type="button"
                         onClick={() => setShowStatusDropdown(!showStatusDropdown)}
                         className="flex w-full items-center justify-between rounded-xl border border-border bg-muted px-4 py-2.5 text-sm text-foreground transition-colors hover:border-primary/40"
                       >
-                        <span>{statusFilter === 'all' ? 'All' : statusFilter}</span>
+                        <span>
+                          {statusFilter === 'all'
+                            ? t('filterAll')
+                            : filterStatusLabel(statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1))}
+                        </span>
                         <ChevronDown className={`h-4 w-4 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`} />
                       </button>
                       {showStatusDropdown && (
@@ -565,7 +636,7 @@ export default function AssetHistoryPage() {
                                   : 'text-foreground hover:bg-muted'
                               }`}
                             >
-                              {status}
+                              {filterStatusLabel(status)}
                             </button>
                           ))}
                         </div>
@@ -578,12 +649,12 @@ export default function AssetHistoryPage() {
                 <table className="w-full min-w-[720px]">
                   <thead>
                     <tr className="border-b border-border bg-muted/30">
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground">Date & Time</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Coin</th>
-                      <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Qty</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th>
-                      <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Available Balance (Excludes Bonuses)</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Description</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground">{t('tableDateTime')}</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">{t('tableCoin')}</th>
+                      <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">{t('tableQty')}</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">{t('tableType')}</th>
+                      <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">{t('tableAvailableBalance')}</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">{t('tableDescription')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -593,7 +664,7 @@ export default function AssetHistoryPage() {
                       <tr>
                         <td colSpan={6} className="p-4">
                           <ErrorState
-                            title="Failed to load transactions"
+                            title={t('loadTransactionsFailed')}
                             message={loadError}
                             onRetry={() => fetchTransactions(false)}
                           />
@@ -610,7 +681,7 @@ export default function AssetHistoryPage() {
                             </div>
                           </td>
                           <td className="px-4 py-4 text-right font-mono text-sm text-foreground">{tx.quantity}</td>
-                          <td className="px-4 py-4 text-sm capitalize text-muted-foreground">{tx.type}</td>
+                          <td className="px-4 py-4 text-sm capitalize text-muted-foreground">{txTypeLabel(tx.type)}</td>
                           <td className="px-4 py-4 text-right font-mono text-sm text-foreground">{tx.available_balance || '-'}</td>
                           <td className="px-4 py-4 text-sm text-muted-foreground">{tx.description || '-'}</td>
                         </tr>
@@ -622,8 +693,8 @@ export default function AssetHistoryPage() {
                             <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-xl bg-muted">
                               <FileText className="h-12 w-12 text-primary" />
                             </div>
-                            <p className="font-medium text-muted-foreground">No Data</p>
-                            <p className="mt-1 text-sm text-muted-foreground">No transactions found for the selected filters</p>
+                            <p className="font-medium text-muted-foreground">{t('noData')}</p>
+                            <p className="mt-1 text-sm text-muted-foreground">{t('noTransactionsFiltered')}</p>
                           </div>
                         </td>
                       </tr>
@@ -635,7 +706,7 @@ export default function AssetHistoryPage() {
             ) : (
               <div>
                 <div className="flex items-center gap-1 overflow-x-auto border-b border-border px-3 pb-2 pt-4 sm:px-4">
-                  {HISTORY_TABS.map((tab) => (
+                  {historyTabs.map((tab) => (
                     <button
                       type="button"
                       key={tab.id}
@@ -655,7 +726,7 @@ export default function AssetHistoryPage() {
                 <div className="p-4 sm:p-6">
                   <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
-                      <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Date Range</p>
+                      <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{t('dateRange')}</p>
                       <div className="flex items-center gap-2 rounded-xl border border-border bg-muted px-4 py-2.5">
                         <input
                           type="date"
@@ -674,14 +745,14 @@ export default function AssetHistoryPage() {
                       </div>
                     </div>
                     <div>
-                      <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Asset</p>
+                      <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{t('asset')}</p>
                       <div className="relative">
                         <button
                           type="button"
                           onClick={() => setShowCoinDropdown(!showCoinDropdown)}
                           className="flex w-full items-center justify-between rounded-xl border border-border bg-muted px-4 py-2.5 text-sm text-foreground transition-colors hover:border-primary/40"
                         >
-                          <span>{coinFilter === 'all' ? 'All' : coinFilter}</span>
+                          <span>{coinFilter === 'all' ? t('filterAll') : coinFilter}</span>
                           <ChevronDown className={`h-4 w-4 transition-transform ${showCoinDropdown ? 'rotate-180' : ''}`} />
                         </button>
                         {showCoinDropdown && (
@@ -711,10 +782,10 @@ export default function AssetHistoryPage() {
                     <div>
                       <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
                         {historyTab === 'deposit'
-                          ? 'Deposit Method'
+                          ? t('depositMethod')
                           : historyTab === 'withdraw'
-                            ? 'Withdraw Method'
-                            : 'Method'}
+                            ? t('withdrawMethod')
+                            : t('method')}
                       </p>
                       <div className="relative">
                         <button
@@ -722,7 +793,11 @@ export default function AssetHistoryPage() {
                           onClick={() => setShowMethodDropdown(!showMethodDropdown)}
                           className="flex w-full items-center justify-between rounded-xl border border-border bg-muted px-4 py-2.5 text-sm text-foreground transition-colors hover:border-primary/40"
                         >
-                          <span>{methodFilter === 'all' ? 'All' : methodFilter}</span>
+                          <span>
+                          {methodFilter === 'all'
+                            ? t('filterAll')
+                            : filterMethodLabel(methodFilter.charAt(0).toUpperCase() + methodFilter.slice(1))}
+                        </span>
                           <ChevronDown className={`h-4 w-4 transition-transform ${showMethodDropdown ? 'rotate-180' : ''}`} />
                         </button>
                         {showMethodDropdown && (
@@ -741,7 +816,7 @@ export default function AssetHistoryPage() {
                                     : 'text-foreground hover:bg-muted'
                                 }`}
                               >
-                                {method}
+                                {filterMethodLabel(method)}
                               </button>
                             ))}
                           </div>
@@ -750,14 +825,18 @@ export default function AssetHistoryPage() {
                     </div>
 
                     <div>
-                      <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Status</p>
+                      <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{t('status')}</p>
                       <div className="relative">
                         <button
                           type="button"
                           onClick={() => setShowStatusDropdown(!showStatusDropdown)}
                           className="flex w-full items-center justify-between rounded-xl border border-border bg-muted px-4 py-2.5 text-sm text-foreground transition-colors hover:border-primary/40"
                         >
-                          <span>{statusFilter === 'all' ? 'All' : statusFilter}</span>
+                          <span>
+                          {statusFilter === 'all'
+                            ? t('filterAll')
+                            : filterStatusLabel(statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1))}
+                        </span>
                           <ChevronDown className={`h-4 w-4 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`} />
                         </button>
                         {showStatusDropdown && (
@@ -787,12 +866,12 @@ export default function AssetHistoryPage() {
 
                   {historyTab === 'deposit' && (
                     <div className="mb-6 flex flex-wrap items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Deposits yet to be credited?</span>
+                      <span className="text-sm text-muted-foreground">{t('depositsUncredited')}</span>
                       <Link
                         href="/dashboard/help#self-service"
                         className="flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/85"
                       >
-                        Self-Service <ChevronRight className="h-4 w-4" />
+                        {t('selfService')} <ChevronRight className="h-4 w-4" />
                       </Link>
                     </div>
                   )}
@@ -801,19 +880,19 @@ export default function AssetHistoryPage() {
                     <table className="w-full min-w-[900px]">
                       <thead>
                         <tr className="border-b border-border bg-muted/30">
-                          <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground">Coin</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground">Chain Type</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-muted-foreground">Qty</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground">Address</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground">Txid</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground">{t('tableCoin')}</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground">{t('tableChainType')}</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-muted-foreground">{t('tableQty')}</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground">{t('tableAddress')}</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground">{t('tableTxid')}</th>
                           <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground">
                             <div className="flex items-center gap-1">
-                              Status
+                              {t('status')}
                               <HelpCircle className="h-3 w-3 text-muted-foreground" />
                             </div>
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground">Date & Time</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-muted-foreground">Action</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground">{t('tableDateTime')}</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-muted-foreground">{t('tableAction')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -821,14 +900,14 @@ export default function AssetHistoryPage() {
                           <tr>
                             <td colSpan={8} className="py-20 text-center">
                               <RefreshCw className="mx-auto mb-3 h-8 w-8 animate-spin text-primary" />
-                              <p className="text-sm text-muted-foreground">Loading history...</p>
+                              <p className="text-sm text-muted-foreground">{t('loadingHistory')}</p>
                             </td>
                           </tr>
                         ) : loadError ? (
                           <tr>
                             <td colSpan={8} className="p-4">
                               <ErrorState
-                                title="Failed to load history"
+                                title={t('loadHistoryFailed')}
                                 message={loadError}
                                 onRetry={() => fetchTransactions(false)}
                               />
@@ -901,14 +980,14 @@ export default function AssetHistoryPage() {
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/85"
                                   >
-                                    View <ExternalLink className="h-3 w-3" />
+                                    {t('view')} <ExternalLink className="h-3 w-3" />
                                   </a>
                                 ) : (
                                   <button
                                     type="button"
                                     className="text-sm font-medium text-primary hover:text-primary/85"
                                   >
-                                    Details
+                                    {t('details')}
                                   </button>
                                 )}
                               </td>
@@ -921,8 +1000,10 @@ export default function AssetHistoryPage() {
                                 <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-xl bg-muted">
                                   <FileText className="h-12 w-12 text-primary" />
                                 </div>
-                                <p className="font-medium text-muted-foreground">No Data</p>
-                                <p className="mt-1 text-sm text-muted-foreground">No {historyTab} records found</p>
+                                <p className="font-medium text-muted-foreground">{t('noData')}</p>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                  {t('noRecordsFound', { tab: historyTabLabel(historyTab) })}
+                                </p>
                               </div>
                             </td>
                           </tr>

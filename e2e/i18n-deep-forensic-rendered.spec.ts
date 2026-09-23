@@ -24,6 +24,15 @@ const FORBIDDEN_PHRASES = [
   'Open trade terminal',
   'Loading quote…',
   'Insufficient history',
+  'Wallet history',
+  'Convert Small Balances',
+  'Conversion history',
+  'No conversions yet',
+  'Get quote',
+  'All Transactions',
+  'Chain Type',
+  'No Data',
+  'Date Range',
 ];
 
 type RouteRow = { path: string; auth: string };
