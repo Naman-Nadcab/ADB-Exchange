@@ -3,8 +3,6 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: exchange-postgres
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-exchange}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-exchange_secret}
@@ -17,6 +15,9 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - exchange-network
+      - exchange-production
 
   # Redis - In-memory cache, orderbook, rate limiting
   redis:
@@ -33,6 +34,9 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - exchange-network
+      - exchange-production
 
   # NATS JetStream — spot.match.* → writer → spot.orderbook.* (Tier-1 pipeline)
   nats:
@@ -68,6 +72,9 @@ services:
       retries: 5
       start_period: 40s
     restart: unless-stopped
+    networks:
+      - exchange-network
+      - exchange-production
 
   # EVM deposit indexer — updates indexer_state; pair with HEALTH_INDEXER_MAX_LAG_SEC + Prometheus indexer_state_lag_seconds
   indexer:
@@ -95,8 +102,7 @@ services:
     container_name: exchange-backend
     env_file:
       - .env
-    ports:
-      - "4000:4000"
+    # Host port published by docker-compose.production.yml when stacks are merged (avoid duplicate 4000/tcp bindings).
     environment:
       NODE_ENV: production
       PORT: "4000"
@@ -110,6 +116,10 @@ services:
     volumes:
       - ./apps/backend/logs:/app/logs
     restart: unless-stopped
+    # Postgres/Redis/RabbitMQ live on exchange-network; matching-engine/NATS on exchange-production.
+    networks:
+      - exchange-network
+      - exchange-production
 
   # Frontend — baked production bundle (NOT live src/). Port 3000 here is the USER app
   # (admin-panel is separate, dev :3001). If /markets etc. work in `next build` but not in
@@ -134,6 +144,9 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - exchange-network
+      - exchange-production
 
   # Nginx Reverse Proxy (optional for production)
   nginx:
@@ -143,14 +156,20 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/docker-entrypoint.sh:/docker-entrypoint.sh:ro
+      - ./nginx/nginx.tls.conf:/etc/nginx/nginx.tls.conf:ro
+      - ./nginx/nginx.http-only.conf:/etc/nginx/nginx.http-only.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
+    entrypoint: ["/docker-entrypoint.sh"]
     depends_on:
       - frontend
       - backend
     restart: unless-stopped
     profiles:
       - production
+    networks:
+      - exchange-network
+      - exchange-production
 
 volumes:
   postgres_data:
@@ -158,6 +177,9 @@ volumes:
   rabbitmq_data:
 
 networks:
-  default:
+  exchange-network:
+    external: true
     name: exchange-network
-    driver: bridge
+  exchange-production:
+    external: true
+    name: exchange-production
