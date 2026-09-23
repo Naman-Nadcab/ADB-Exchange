@@ -16,6 +16,25 @@
     "terminalNavAria": "外汇终端导航",
     "mobileNavAria": "外汇移动端导航"
   },
+  "portalNav": {
+    "portal": "门户",
+    "sectionsAria": "外汇门户分区",
+    "menuTitle": "外汇门户",
+    "overview": "概览",
+    "accounts": "账户",
+    "funds": "资金",
+    "ledger": "账户账本",
+    "research": "研究",
+    "tools": "工具"
+  },
+  "userMenu": {
+    "label": "平台菜单",
+    "verification": "身份验证",
+    "security": "安全",
+    "support": "支持",
+    "help": "帮助中心",
+    "platformDashboard": "加密仪表盘"
+  },
   "mobileTrade": {
     "watch": "自选",
     "order": "下单",
@@ -898,6 +917,12 @@
     }
   },
   "accountPage": {
+    "overviewQuickActionsAria": "门户快捷操作",
+    "openTerminal": "打开交易终端",
+    "openPositionsCount": "{count} 个持仓",
+    "pendingOrdersCount": "{count} 个挂单",
+    "demoFundingHint": "演示余额为零。请添加模拟额度——非真实入金。",
+    "demoFundingCta": "演示注资",
     "loading": "Loading account…",
     "accountTotalsAria": "Account totals",
     "performanceAria": "Performance",

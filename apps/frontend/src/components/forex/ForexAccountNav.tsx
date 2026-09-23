@@ -6,12 +6,12 @@ import { usePathname } from 'next/navigation';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { cn } from '@/lib/utils';
 
+/** @deprecated Portal navigation lives in ForexPortalNav (layout). Kept for reference/tests. */
 const ITEMS = [
   { href: FOREX_ROUTES.account, labelKey: 'accountNav.overview' as const },
   { href: FOREX_ROUTES.accounts, labelKey: 'accountNav.accounts' as const },
   { href: FOREX_ROUTES.funds, labelKey: 'accountNav.funds' as const },
   { href: FOREX_ROUTES.ledger, labelKey: 'accountNav.ledger' as const },
-  { href: FOREX_ROUTES.portfolio, labelKey: 'accountNav.portfolio' as const },
 ] as const;
 
 export function ForexAccountNav() {

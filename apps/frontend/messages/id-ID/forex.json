@@ -16,6 +16,25 @@
     "terminalNavAria": "Navigasi terminal Forex",
     "mobileNavAria": "Navigasi mobile Forex"
   },
+  "portalNav": {
+    "portal": "Portal",
+    "sectionsAria": "Bagian portal Forex",
+    "menuTitle": "Portal Forex",
+    "overview": "Ringkasan",
+    "accounts": "Akun",
+    "funds": "Dana",
+    "ledger": "Buku besar akun",
+    "research": "Riset",
+    "tools": "Alat"
+  },
+  "userMenu": {
+    "label": "Menu platform",
+    "verification": "Verifikasi",
+    "security": "Keamanan",
+    "support": "Dukungan",
+    "help": "Pusat bantuan",
+    "platformDashboard": "Dasbor kripto"
+  },
   "mobileTrade": {
     "watch": "Watchlist",
     "order": "Order",
@@ -898,6 +917,12 @@
     }
   },
   "accountPage": {
+    "overviewQuickActionsAria": "Tindakan cepat portal",
+    "openTerminal": "Buka terminal trading",
+    "openPositionsCount": "{count} posisi terbuka",
+    "pendingOrdersCount": "{count} order tertunda",
+    "demoFundingHint": "Saldo demo nol. Tambahkan kredit simulasi — bukan deposit nyata.",
+    "demoFundingCta": "Pendanaan demo",
     "loading": "Loading account…",
     "accountTotalsAria": "Account totals",
     "performanceAria": "Performance",

@@ -16,6 +16,25 @@
     "terminalNavAria": "Forex terminal",
     "mobileNavAria": "Forex mobile"
   },
+  "portalNav": {
+    "portal": "Portal",
+    "sectionsAria": "Forex portal sections",
+    "menuTitle": "Forex portal",
+    "overview": "Overview",
+    "accounts": "Accounts",
+    "funds": "Funds",
+    "ledger": "Account Ledger",
+    "research": "Research",
+    "tools": "Tools"
+  },
+  "userMenu": {
+    "label": "Platform menu",
+    "verification": "Verification",
+    "security": "Security",
+    "support": "Support",
+    "help": "Help center",
+    "platformDashboard": "Crypto dashboard"
+  },
   "mobileTrade": {
     "watch": "Watch",
     "order": "Order",
@@ -898,6 +917,12 @@
     }
   },
   "accountPage": {
+    "overviewQuickActionsAria": "Portal quick actions",
+    "openTerminal": "Open trade terminal",
+    "openPositionsCount": "{count} open positions",
+    "pendingOrdersCount": "{count} pending orders",
+    "demoFundingHint": "Demo balance is zero. Add simulated credits — not a real deposit.",
+    "demoFundingCta": "Demo funding",
     "loading": "Loading account…",
     "accountTotalsAria": "Account totals",
     "performanceAria": "Performance",

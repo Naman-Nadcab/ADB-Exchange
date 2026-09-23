@@ -25,20 +25,46 @@ export function showForexMarketChrome(pathname: string): boolean {
   return !isForexTradePath(pathname) && !isForexAnalysisPath(pathname);
 }
 
-export const FOREX_NAV = [
+/** Core trader destinations in the top header (portal-only items live in FOREX_PORTAL_NAV). */
+export const FOREX_TOP_NAV = [
   { href: FOREX_ROUTES.trade, labelKey: 'nav.trade' as const },
   { href: FOREX_ROUTES.markets, labelKey: 'nav.markets' as const },
   { href: FOREX_ROUTES.portfolio, labelKey: 'nav.portfolio' as const },
   { href: FOREX_ROUTES.orders, labelKey: 'nav.orders' as const },
-  { href: FOREX_ROUTES.analysis, labelKey: 'nav.analysis' as const },
-  { href: FOREX_ROUTES.alerts, labelKey: 'nav.alerts' as const },
-  { href: FOREX_ROUTES.account, labelKey: 'nav.account' as const },
 ] as const;
 
+/** @deprecated Use FOREX_TOP_NAV — kept for audit references only. */
+export const FOREX_NAV = FOREX_TOP_NAV;
+
+export const FOREX_PORTAL_NAV = [
+  { href: FOREX_ROUTES.account, labelKey: 'portalNav.overview' as const, exact: true },
+  { href: FOREX_ROUTES.accounts, labelKey: 'portalNav.accounts' as const },
+  { href: FOREX_ROUTES.funds, labelKey: 'portalNav.funds' as const },
+  { href: FOREX_ROUTES.ledger, labelKey: 'portalNav.ledger' as const },
+  { href: FOREX_ROUTES.analysis, labelKey: 'portalNav.research' as const },
+  { href: FOREX_ROUTES.alerts, labelKey: 'portalNav.tools' as const },
+] as const;
+
+export function isForexPortalNavActive(
+  pathname: string,
+  href: string,
+  exact?: boolean
+): boolean {
+  if (exact) return pathname === href;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+export function isForexPortalSectionPath(pathname: string): boolean {
+  if (isForexTradePath(pathname)) return false;
+  return FOREX_PORTAL_NAV.some((item) =>
+    isForexPortalNavActive(pathname, item.href, 'exact' in item ? item.exact : false)
+  );
+}
+
 export const FOREX_MOBILE_NAV = [
-  { href: FOREX_ROUTES.trade, labelKey: 'nav.trade' as const },
-  { href: FOREX_ROUTES.markets, labelKey: 'nav.markets' as const },
-  { href: FOREX_ROUTES.portfolio, labelKey: 'nav.portfolio' as const },
-  { href: FOREX_ROUTES.orders, labelKey: 'nav.orders' as const },
-  { href: FOREX_ROUTES.account, labelKey: 'nav.more' as const },
+  { href: FOREX_ROUTES.trade, labelKey: 'nav.trade' as const, kind: 'link' as const },
+  { href: FOREX_ROUTES.markets, labelKey: 'nav.markets' as const, kind: 'link' as const },
+  { href: FOREX_ROUTES.portfolio, labelKey: 'nav.portfolio' as const, kind: 'link' as const },
+  { href: FOREX_ROUTES.orders, labelKey: 'nav.orders' as const, kind: 'link' as const },
+  { href: FOREX_ROUTES.account, labelKey: 'portalNav.portal' as const, kind: 'portal' as const },
 ] as const;

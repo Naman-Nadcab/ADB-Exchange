@@ -6,7 +6,9 @@ import { usePathname } from 'next/navigation';
 import ThemeToggle from '@/components/ThemeToggle';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { EdaProductSwitcher } from '@/components/eda/EdaProductSwitcher';
-import { FOREX_NAV, FOREX_ROUTES, isForexTradePath } from '@/lib/forex/routes';
+import { FOREX_ROUTES, FOREX_TOP_NAV, isForexTradePath } from '@/lib/forex/routes';
+import { ForexAccountSwitcher } from './ForexAccountSwitcher';
+import { ForexPortalUserMenu } from './ForexPortalUserMenu';
 import { ROUTES } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import { ForexConnectionStatus } from './ForexConnectionStatus';
@@ -29,7 +31,7 @@ export function ForexTopNav(props?: { compact?: boolean }) {
           )}
           aria-label={tf('chrome.terminalNavAria')}
         >
-          {FOREX_NAV.map((item) => {
+          {FOREX_TOP_NAV.map((item) => {
             const active =
               item.href === FOREX_ROUTES.trade
                 ? isForexTradePath(pathname)
@@ -51,7 +53,15 @@ export function ForexTopNav(props?: { compact?: boolean }) {
             );
           })}
         </nav>
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex min-w-0 items-center gap-1.5">
+          {!compact ? (
+            <>
+              <div className="hidden min-w-0 sm:block">
+                <ForexAccountSwitcher />
+              </div>
+              <ForexPortalUserMenu />
+            </>
+          ) : null}
           {compact ? (
             <span className="hidden font-mono text-[9px] uppercase tracking-wide text-amber-200/90 sm:inline">
               {tf('chrome.demoSimulated')}

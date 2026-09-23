@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ForexAccountNav } from '@/components/forex/ForexAccountNav';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexStore } from '@/lib/forex/state/store';
@@ -62,11 +61,7 @@ export default function ForexLedgerPage() {
   }, [ledger, typeFilter, fromDate, toDate]);
 
   return (
-    <ForexPageFrame
-      title={tf('pages.ledger.title')}
-      subtitle={tf('pages.ledger.subtitle')}
-      actions={<ForexAccountNav />}
-    >
+    <ForexPageFrame title={tf('pages.ledger.title')} subtitle={tf('pages.ledger.subtitle')}>
       {!authed ? (
         <ForexSignInPrompt href="/login?redirect=/forex/account/ledger" sectionKey="ledger" />
       ) : (

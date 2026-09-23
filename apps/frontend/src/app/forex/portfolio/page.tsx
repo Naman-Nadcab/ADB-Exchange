@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { ForexAccountNav } from '@/components/forex/ForexAccountNav';
 import { ForexMetric } from '@/components/forex/ForexMetric';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { ForexPositionPanel } from '@/components/forex/ForexPositionPanel';
@@ -34,7 +33,6 @@ export default function ForexPortfolioPage() {
       wide
       title={tf('pages.portfolio.title')}
       subtitle={tf('pages.portfolio.subtitle')}
-      actions={<ForexAccountNav />}
     >
       {!authed ? (
         <ForexSignInPrompt href="/login?redirect=/forex/portfolio" sectionKey="portfolio" />

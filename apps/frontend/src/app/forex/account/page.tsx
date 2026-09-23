@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { ForexAccountNav } from '@/components/forex/ForexAccountNav';
 import { ForexMetric } from '@/components/forex/ForexMetric';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { fxMoney, fxPlain } from '@/components/forex/format';
@@ -28,19 +28,61 @@ export default function ForexAccountPage() {
   const activeForexAccountId = useForexStore((s) => s.activeForexAccountId);
   const currency = account?.currency ?? balance?.currency ?? 'USD';
   const unavailable = tu('unavailable');
+  const positions = useForexStore((s) => s.positions);
+  const orders = useForexStore((s) => s.orders);
+
+  const { openPositionsCount, pendingOrdersCount } = useMemo(() => {
+    const openPositionsCount = Object.values(positions).filter((p) => p.status === 'OPEN').length;
+    const pendingOrdersCount = Object.values(orders).filter((o) => {
+      const st = String(o.status ?? '').toUpperCase();
+      return st === 'NEW' || st === 'PARTIAL' || st === 'OPEN' || st === 'WORKING' || st === 'ACCEPTED';
+    }).length;
+    return { openPositionsCount, pendingOrdersCount };
+  }, [positions, orders]);
+
+  const ledger = Number(account?.ledgerBalance ?? balance?.ledgerBalance ?? 0);
+  const needsDemo = Number.isFinite(ledger) && ledger <= 0;
 
   return (
-    <ForexPageFrame
-      title={tf('pages.account.title')}
-      subtitle={tf('pages.account.subtitle')}
-      actions={<ForexAccountNav />}
-    >
+    <ForexPageFrame title={tf('pages.account.title')} subtitle={tf('pages.account.subtitle')}>
       {!authed ? (
         <ForexSignInPrompt href="/login?redirect=/forex/account" sectionKey="yourForexAccount" />
       ) : !account && !balance ? (
         <p className="text-sm text-muted-foreground">{t('loading')}</p>
       ) : (
         <>
+          <section className="eda-card flex flex-wrap items-center gap-2 p-3 text-sm" aria-label={t('overviewQuickActionsAria')}>
+            <Link
+              href={FOREX_ROUTES.trade}
+              className="inline-flex items-center rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-[12px] font-medium text-primary"
+            >
+              {t('openTerminal')}
+            </Link>
+            <Link href={FOREX_ROUTES.portfolio} className="text-primary underline underline-offset-2">
+              {t('openPositionsCount', { count: openPositionsCount })}
+            </Link>
+            <span className="text-muted-foreground" aria-hidden>
+              ·
+            </span>
+            <Link href={FOREX_ROUTES.orders} className="text-primary underline underline-offset-2">
+              {t('pendingOrdersCount', { count: pendingOrdersCount })}
+            </Link>
+            {needsDemo ? (
+              <>
+                <span className="hidden text-muted-foreground sm:inline" aria-hidden>
+                  ·
+                </span>
+                <p className="w-full text-[11px] text-muted-foreground sm:w-auto sm:max-w-md">{t('demoFundingHint')}</p>
+                <Link
+                  href={FOREX_ROUTES.funds}
+                  className="inline-flex items-center rounded-md border border-border px-3 py-1.5 text-[12px] font-medium"
+                >
+                  {t('demoFundingCta')}
+                </Link>
+              </>
+            ) : null}
+          </section>
+
           <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6" aria-label={t('accountTotalsAria')}>
             <ForexMetric label={t('metricBalance')} value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
             <ForexMetric label={t('metricEquity')} value={account?.equity ?? balance?.equity} currency={currency} />

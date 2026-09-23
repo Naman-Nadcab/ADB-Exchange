@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { ForexAccountNav } from '@/components/forex/ForexAccountNav';
 import { ForexMetric } from '@/components/forex/ForexMetric';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { fxPlain } from '@/components/forex/format';
@@ -59,7 +58,6 @@ export default function ForexFundsPage() {
     <ForexPageFrame
       title={tf('pages.funds.title')}
       subtitle={tf('pages.funds.subtitle')}
-      actions={<ForexAccountNav />}
     >
       {!authed ? (
         <ForexSignInPrompt href="/login?redirect=/forex/account/funds" sectionKey="funds" />

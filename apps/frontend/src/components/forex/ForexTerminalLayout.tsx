@@ -18,6 +18,7 @@ import { ForexOrderTicket } from './ForexOrderTicket';
 import { ForexPanelSplit } from './ForexPanelSplit';
 import { ForexRiskBar } from './ForexRiskBar';
 import { ForexSessionBar } from './ForexSessionBar';
+import { ForexPortalNav } from './ForexPortalNav';
 import { ForexTopNav } from './ForexTopNav';
 import { ForexWatchlist } from './ForexWatchlist';
 import { ForexCommandCenter } from './ForexCommandCenter';
@@ -182,7 +183,10 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
           ) : null}
         </div>
       ) : (
-        <main className="min-h-0 flex-1 overflow-auto bg-background">{children}</main>
+        <>
+          <ForexPortalNav />
+          <main className="min-h-0 flex-1 overflow-auto bg-background">{children}</main>
+        </>
       )}
 
       {trade && chartMode === 'normal' ? (
