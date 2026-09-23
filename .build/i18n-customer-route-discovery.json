@@ -1,0 +1,921 @@
+{
+  "generatedAt": "2026-09-23T06:10:05.124Z",
+  "pageCount": 129,
+  "reexportCount": 23,
+  "routes": [
+    {
+      "url": "/(auth)/cookies",
+      "wrapper": "(auth)/cookies/page.tsx",
+      "kind": "source",
+      "source": "(auth)/cookies/page.tsx"
+    },
+    {
+      "url": "/(auth)/forgot-password",
+      "wrapper": "(auth)/forgot-password/page.tsx",
+      "kind": "source",
+      "source": "(auth)/forgot-password/page.tsx"
+    },
+    {
+      "url": "/(auth)/login",
+      "wrapper": "(auth)/login/page.tsx",
+      "kind": "source",
+      "source": "(auth)/login/page.tsx"
+    },
+    {
+      "url": "/(auth)/privacy",
+      "wrapper": "(auth)/privacy/page.tsx",
+      "kind": "source",
+      "source": "(auth)/privacy/page.tsx"
+    },
+    {
+      "url": "/(auth)/register",
+      "wrapper": "(auth)/register/page.tsx",
+      "kind": "source",
+      "source": "(auth)/register/page.tsx"
+    },
+    {
+      "url": "/(auth)/signup",
+      "wrapper": "(auth)/signup/page.tsx",
+      "kind": "source",
+      "source": "(auth)/signup/page.tsx"
+    },
+    {
+      "url": "/(auth)/terms",
+      "wrapper": "(auth)/terms/page.tsx",
+      "kind": "source",
+      "source": "(auth)/terms/page.tsx"
+    },
+    {
+      "url": "/admin",
+      "wrapper": "admin/page.tsx",
+      "kind": "source",
+      "source": "admin/page.tsx"
+    },
+    {
+      "url": "/api",
+      "wrapper": "api/page.tsx",
+      "kind": "source",
+      "source": "api/page.tsx"
+    },
+    {
+      "url": "/assets",
+      "wrapper": "assets/page.tsx",
+      "kind": "source",
+      "source": "assets/page.tsx"
+    },
+    {
+      "url": "/auth/callback/apple",
+      "wrapper": "auth/callback/apple/page.tsx",
+      "kind": "source",
+      "source": "auth/callback/apple/page.tsx"
+    },
+    {
+      "url": "/auth/callback/google",
+      "wrapper": "auth/callback/google/page.tsx",
+      "kind": "source",
+      "source": "auth/callback/google/page.tsx"
+    },
+    {
+      "url": "/dashboard/account/link/google",
+      "wrapper": "dashboard/account/link/google/page.tsx",
+      "kind": "source",
+      "source": "dashboard/account/link/google/page.tsx"
+    },
+    {
+      "url": "/dashboard/account/login-history",
+      "wrapper": "dashboard/account/login-history/page.tsx",
+      "kind": "source",
+      "source": "dashboard/account/login-history/page.tsx"
+    },
+    {
+      "url": "/dashboard/account",
+      "wrapper": "dashboard/account/page.tsx",
+      "kind": "source",
+      "source": "dashboard/account/page.tsx"
+    },
+    {
+      "url": "/dashboard/address-book/add-batches",
+      "wrapper": "dashboard/address-book/add-batches/page.tsx",
+      "kind": "source",
+      "source": "dashboard/address-book/add-batches/page.tsx"
+    },
+    {
+      "url": "/dashboard/address-book",
+      "wrapper": "dashboard/address-book/page.tsx",
+      "kind": "source",
+      "source": "dashboard/address-book/page.tsx"
+    },
+    {
+      "url": "/dashboard/announcements/[id]",
+      "wrapper": "dashboard/announcements/[id]/page.tsx",
+      "kind": "source",
+      "source": "dashboard/announcements/[id]/page.tsx"
+    },
+    {
+      "url": "/dashboard/announcements",
+      "wrapper": "dashboard/announcements/page.tsx",
+      "kind": "source",
+      "source": "dashboard/announcements/page.tsx"
+    },
+    {
+      "url": "/dashboard/api/create",
+      "wrapper": "dashboard/api/create/page.tsx",
+      "kind": "source",
+      "source": "dashboard/api/create/page.tsx"
+    },
+    {
+      "url": "/dashboard/api",
+      "wrapper": "dashboard/api/page.tsx",
+      "kind": "source",
+      "source": "dashboard/api/page.tsx"
+    },
+    {
+      "url": "/dashboard/assets/[symbol]",
+      "wrapper": "dashboard/assets/[symbol]/page.tsx",
+      "kind": "source",
+      "source": "dashboard/assets/[symbol]/page.tsx"
+    },
+    {
+      "url": "/dashboard/assets/convert",
+      "wrapper": "dashboard/assets/convert/page.tsx",
+      "kind": "source",
+      "source": "dashboard/assets/convert/page.tsx"
+    },
+    {
+      "url": "/dashboard/assets/funding",
+      "wrapper": "dashboard/assets/funding/page.tsx",
+      "kind": "source",
+      "source": "dashboard/assets/funding/page.tsx"
+    },
+    {
+      "url": "/dashboard/assets/history",
+      "wrapper": "dashboard/assets/history/page.tsx",
+      "kind": "source",
+      "source": "dashboard/assets/history/page.tsx"
+    },
+    {
+      "url": "/dashboard/assets/overview",
+      "wrapper": "dashboard/assets/overview/page.tsx",
+      "kind": "source",
+      "source": "dashboard/assets/overview/page.tsx"
+    },
+    {
+      "url": "/dashboard/assets",
+      "wrapper": "dashboard/assets/page.tsx",
+      "kind": "source",
+      "source": "dashboard/assets/page.tsx"
+    },
+    {
+      "url": "/dashboard/assets/pnl",
+      "wrapper": "dashboard/assets/pnl/page.tsx",
+      "kind": "source",
+      "source": "dashboard/assets/pnl/page.tsx"
+    },
+    {
+      "url": "/dashboard/assets/unified",
+      "wrapper": "dashboard/assets/unified/page.tsx",
+      "kind": "source",
+      "source": "dashboard/assets/unified/page.tsx"
+    },
+    {
+      "url": "/dashboard/convert",
+      "wrapper": "dashboard/convert/page.tsx",
+      "kind": "source",
+      "source": "dashboard/convert/page.tsx"
+    },
+    {
+      "url": "/dashboard/data-export",
+      "wrapper": "dashboard/data-export/page.tsx",
+      "kind": "source",
+      "source": "dashboard/data-export/page.tsx"
+    },
+    {
+      "url": "/dashboard/deposit/crypto",
+      "wrapper": "dashboard/deposit/crypto/page.tsx",
+      "kind": "source",
+      "source": "dashboard/deposit/crypto/page.tsx"
+    },
+    {
+      "url": "/dashboard/earn",
+      "wrapper": "dashboard/earn/page.tsx",
+      "kind": "source",
+      "source": "dashboard/earn/page.tsx"
+    },
+    {
+      "url": "/dashboard/events",
+      "wrapper": "dashboard/events/page.tsx",
+      "kind": "source",
+      "source": "dashboard/events/page.tsx"
+    },
+    {
+      "url": "/dashboard/fee-rates",
+      "wrapper": "dashboard/fee-rates/page.tsx",
+      "kind": "source",
+      "source": "dashboard/fee-rates/page.tsx"
+    },
+    {
+      "url": "/dashboard/help",
+      "wrapper": "dashboard/help/page.tsx",
+      "kind": "source",
+      "source": "dashboard/help/page.tsx"
+    },
+    {
+      "url": "/dashboard/identity",
+      "wrapper": "dashboard/identity/page.tsx",
+      "kind": "source",
+      "source": "dashboard/identity/page.tsx"
+    },
+    {
+      "url": "/dashboard/identity/success",
+      "wrapper": "dashboard/identity/success/page.tsx",
+      "kind": "source",
+      "source": "dashboard/identity/success/page.tsx"
+    },
+    {
+      "url": "/dashboard/identity/upload",
+      "wrapper": "dashboard/identity/upload/page.tsx",
+      "kind": "source",
+      "source": "dashboard/identity/upload/page.tsx"
+    },
+    {
+      "url": "/dashboard/markets",
+      "wrapper": "dashboard/markets/page.tsx",
+      "kind": "source",
+      "source": "dashboard/markets/page.tsx"
+    },
+    {
+      "url": "/dashboard/orders/p2p",
+      "wrapper": "dashboard/orders/p2p/page.tsx",
+      "kind": "source",
+      "source": "dashboard/orders/p2p/page.tsx"
+    },
+    {
+      "url": "/dashboard/orders",
+      "wrapper": "dashboard/orders/page.tsx",
+      "kind": "source",
+      "source": "dashboard/orders/page.tsx"
+    },
+    {
+      "url": "/dashboard/orders/spot",
+      "wrapper": "dashboard/orders/spot/page.tsx",
+      "kind": "source",
+      "source": "dashboard/orders/spot/page.tsx"
+    },
+    {
+      "url": "/dashboard/orders/trades",
+      "wrapper": "dashboard/orders/trades/page.tsx",
+      "kind": "source",
+      "source": "dashboard/orders/trades/page.tsx"
+    },
+    {
+      "url": "/dashboard/p2p/[type]/[crypto]/[fiat]/create",
+      "wrapper": "dashboard/p2p/[type]/[crypto]/[fiat]/create/page.tsx",
+      "kind": "source",
+      "source": "dashboard/p2p/[type]/[crypto]/[fiat]/create/page.tsx"
+    },
+    {
+      "url": "/dashboard/p2p/[type]/[crypto]/[fiat]",
+      "wrapper": "dashboard/p2p/[type]/[crypto]/[fiat]/page.tsx",
+      "kind": "source",
+      "source": "dashboard/p2p/[type]/[crypto]/[fiat]/page.tsx"
+    },
+    {
+      "url": "/dashboard/p2p/orders/[orderId]",
+      "wrapper": "dashboard/p2p/orders/[orderId]/page.tsx",
+      "kind": "source",
+      "source": "dashboard/p2p/orders/[orderId]/page.tsx"
+    },
+    {
+      "url": "/dashboard/p2p",
+      "wrapper": "dashboard/p2p/page.tsx",
+      "kind": "source",
+      "source": "dashboard/p2p/page.tsx"
+    },
+    {
+      "url": "/dashboard/p2p/payment-methods",
+      "wrapper": "dashboard/p2p/payment-methods/page.tsx",
+      "kind": "source",
+      "source": "dashboard/p2p/payment-methods/page.tsx"
+    },
+    {
+      "url": "/dashboard",
+      "wrapper": "dashboard/page.tsx",
+      "kind": "source",
+      "source": "dashboard/page.tsx"
+    },
+    {
+      "url": "/dashboard/preferences",
+      "wrapper": "dashboard/preferences/page.tsx",
+      "kind": "source",
+      "source": "dashboard/preferences/page.tsx"
+    },
+    {
+      "url": "/dashboard/progress",
+      "wrapper": "dashboard/progress/page.tsx",
+      "kind": "source",
+      "source": "dashboard/progress/page.tsx"
+    },
+    {
+      "url": "/dashboard/referral/my-referrals",
+      "wrapper": "dashboard/referral/my-referrals/page.tsx",
+      "kind": "source",
+      "source": "dashboard/referral/my-referrals/page.tsx"
+    },
+    {
+      "url": "/dashboard/referral",
+      "wrapper": "dashboard/referral/page.tsx",
+      "kind": "source",
+      "source": "dashboard/referral/page.tsx"
+    },
+    {
+      "url": "/dashboard/security/2fa",
+      "wrapper": "dashboard/security/2fa/page.tsx",
+      "kind": "source",
+      "source": "dashboard/security/2fa/page.tsx"
+    },
+    {
+      "url": "/dashboard/security/anti-phishing",
+      "wrapper": "dashboard/security/anti-phishing/page.tsx",
+      "kind": "source",
+      "source": "dashboard/security/anti-phishing/page.tsx"
+    },
+    {
+      "url": "/dashboard/security/change-password",
+      "wrapper": "dashboard/security/change-password/page.tsx",
+      "kind": "source",
+      "source": "dashboard/security/change-password/page.tsx"
+    },
+    {
+      "url": "/dashboard/security/fund-password",
+      "wrapper": "dashboard/security/fund-password/page.tsx",
+      "kind": "source",
+      "source": "dashboard/security/fund-password/page.tsx"
+    },
+    {
+      "url": "/dashboard/security",
+      "wrapper": "dashboard/security/page.tsx",
+      "kind": "source",
+      "source": "dashboard/security/page.tsx"
+    },
+    {
+      "url": "/dashboard/security/passkeys",
+      "wrapper": "dashboard/security/passkeys/page.tsx",
+      "kind": "source",
+      "source": "dashboard/security/passkeys/page.tsx"
+    },
+    {
+      "url": "/dashboard/security/sessions",
+      "wrapper": "dashboard/security/sessions/page.tsx",
+      "kind": "source",
+      "source": "dashboard/security/sessions/page.tsx"
+    },
+    {
+      "url": "/dashboard/security/withdrawal-limits",
+      "wrapper": "dashboard/security/withdrawal-limits/page.tsx",
+      "kind": "source",
+      "source": "dashboard/security/withdrawal-limits/page.tsx"
+    },
+    {
+      "url": "/dashboard/spot",
+      "wrapper": "dashboard/spot/page.tsx",
+      "kind": "source",
+      "source": "dashboard/spot/page.tsx"
+    },
+    {
+      "url": "/dashboard/support",
+      "wrapper": "dashboard/support/page.tsx",
+      "kind": "source",
+      "source": "dashboard/support/page.tsx"
+    },
+    {
+      "url": "/dashboard/trade",
+      "wrapper": "dashboard/trade/page.tsx",
+      "kind": "source",
+      "source": "dashboard/trade/page.tsx"
+    },
+    {
+      "url": "/dashboard/trade/spot",
+      "wrapper": "dashboard/trade/spot/page.tsx",
+      "kind": "source",
+      "source": "dashboard/trade/spot/page.tsx"
+    },
+    {
+      "url": "/dashboard/transfer",
+      "wrapper": "dashboard/transfer/page.tsx",
+      "kind": "source",
+      "source": "dashboard/transfer/page.tsx"
+    },
+    {
+      "url": "/dashboard/wallet/[symbol]",
+      "wrapper": "dashboard/wallet/[symbol]/page.tsx",
+      "kind": "source",
+      "source": "dashboard/wallet/[symbol]/page.tsx"
+    },
+    {
+      "url": "/dashboard/wallet/spot",
+      "wrapper": "dashboard/wallet/spot/page.tsx",
+      "kind": "source",
+      "source": "dashboard/wallet/spot/page.tsx"
+    },
+    {
+      "url": "/dashboard/withdraw/crypto",
+      "wrapper": "dashboard/withdraw/crypto/page.tsx",
+      "kind": "source",
+      "source": "dashboard/withdraw/crypto/page.tsx"
+    },
+    {
+      "url": "/dashboard/withdraw/fiat",
+      "wrapper": "dashboard/withdraw/fiat/page.tsx",
+      "kind": "source",
+      "source": "dashboard/withdraw/fiat/page.tsx"
+    },
+    {
+      "url": "/dashboard/withdraw",
+      "wrapper": "dashboard/withdraw/page.tsx",
+      "kind": "source",
+      "source": "dashboard/withdraw/page.tsx"
+    },
+    {
+      "url": "/earn",
+      "wrapper": "earn/page.tsx",
+      "kind": "source",
+      "source": "earn/page.tsx"
+    },
+    {
+      "url": "/forex/account/accounts",
+      "wrapper": "forex/account/accounts/page.tsx",
+      "kind": "source",
+      "source": "forex/account/accounts/page.tsx"
+    },
+    {
+      "url": "/forex/account/funds",
+      "wrapper": "forex/account/funds/page.tsx",
+      "kind": "source",
+      "source": "forex/account/funds/page.tsx"
+    },
+    {
+      "url": "/forex/account/ledger",
+      "wrapper": "forex/account/ledger/page.tsx",
+      "kind": "source",
+      "source": "forex/account/ledger/page.tsx"
+    },
+    {
+      "url": "/forex/account",
+      "wrapper": "forex/account/page.tsx",
+      "kind": "source",
+      "source": "forex/account/page.tsx"
+    },
+    {
+      "url": "/forex/alerts",
+      "wrapper": "forex/alerts/page.tsx",
+      "kind": "source",
+      "source": "forex/alerts/page.tsx"
+    },
+    {
+      "url": "/forex/analysis",
+      "wrapper": "forex/analysis/page.tsx",
+      "kind": "source",
+      "source": "forex/analysis/page.tsx"
+    },
+    {
+      "url": "/forex/markets",
+      "wrapper": "forex/markets/page.tsx",
+      "kind": "source",
+      "source": "forex/markets/page.tsx"
+    },
+    {
+      "url": "/forex/orders",
+      "wrapper": "forex/orders/page.tsx",
+      "kind": "source",
+      "source": "forex/orders/page.tsx"
+    },
+    {
+      "url": "/forex",
+      "wrapper": "forex/page.tsx",
+      "kind": "source",
+      "source": "forex/page.tsx"
+    },
+    {
+      "url": "/forex/portfolio",
+      "wrapper": "forex/portfolio/page.tsx",
+      "kind": "source",
+      "source": "forex/portfolio/page.tsx"
+    },
+    {
+      "url": "/forex/trade",
+      "wrapper": "forex/trade/page.tsx",
+      "kind": "source",
+      "source": "forex/trade/page.tsx"
+    },
+    {
+      "url": "/history",
+      "wrapper": "history/page.tsx",
+      "kind": "source",
+      "source": "history/page.tsx"
+    },
+    {
+      "url": "/markets",
+      "wrapper": "markets/page.tsx",
+      "kind": "source",
+      "source": "markets/page.tsx"
+    },
+    {
+      "url": "/orders/history",
+      "wrapper": "orders/history/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/history/page.tsx"
+    },
+    {
+      "url": "/orders/p2p",
+      "wrapper": "orders/p2p/page.tsx",
+      "kind": "source",
+      "source": "orders/p2p/page.tsx"
+    },
+    {
+      "url": "/orders",
+      "wrapper": "orders/page.tsx",
+      "kind": "source",
+      "source": "orders/page.tsx"
+    },
+    {
+      "url": "/orders/spot",
+      "wrapper": "orders/spot/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/orders/spot/page.tsx"
+    },
+    {
+      "url": "/orders/trades",
+      "wrapper": "orders/trades/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/orders/trades/page.tsx"
+    },
+    {
+      "url": "/p2p/[type]/[crypto]/[fiat]",
+      "wrapper": "p2p/[type]/[crypto]/[fiat]/page.tsx",
+      "kind": "source",
+      "source": "p2p/[type]/[crypto]/[fiat]/page.tsx"
+    },
+    {
+      "url": "/p2p/create-ad",
+      "wrapper": "p2p/create-ad/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/create-ad/page.tsx"
+    },
+    {
+      "url": "/p2p/disputes/[id]",
+      "wrapper": "p2p/disputes/[id]/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/disputes/[id]/page.tsx"
+    },
+    {
+      "url": "/p2p/merchant/[id]",
+      "wrapper": "p2p/merchant/[id]/page.tsx",
+      "kind": "source",
+      "source": "p2p/merchant/[id]/page.tsx"
+    },
+    {
+      "url": "/p2p/merchant-dashboard",
+      "wrapper": "p2p/merchant-dashboard/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/merchant-dashboard/page.tsx"
+    },
+    {
+      "url": "/p2p/my-ads",
+      "wrapper": "p2p/my-ads/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/my-ads/page.tsx"
+    },
+    {
+      "url": "/p2p/orders/[orderId]",
+      "wrapper": "p2p/orders/[orderId]/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/orders/[id]/page.tsx"
+    },
+    {
+      "url": "/p2p/orders",
+      "wrapper": "p2p/orders/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/orders/page.tsx"
+    },
+    {
+      "url": "/p2p",
+      "wrapper": "p2p/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/page.tsx"
+    },
+    {
+      "url": "/p2p/payment-methods",
+      "wrapper": "p2p/payment-methods/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/payment-methods/page.tsx"
+    },
+    {
+      "url": "/p2p/profile/[userId]",
+      "wrapper": "p2p/profile/[userId]/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/merchant/[id]/page.tsx"
+    },
+    {
+      "url": "/p2p-v2/create-ad",
+      "wrapper": "p2p-v2/create-ad/page.tsx",
+      "kind": "source",
+      "source": "p2p-v2/create-ad/page.tsx"
+    },
+    {
+      "url": "/p2p-v2/disputes/[id]",
+      "wrapper": "p2p-v2/disputes/[id]/page.tsx",
+      "kind": "source",
+      "source": "p2p-v2/disputes/[id]/page.tsx"
+    },
+    {
+      "url": "/p2p-v2/merchant/[id]",
+      "wrapper": "p2p-v2/merchant/[id]/page.tsx",
+      "kind": "source",
+      "source": "p2p-v2/merchant/[id]/page.tsx"
+    },
+    {
+      "url": "/p2p-v2/merchant-dashboard",
+      "wrapper": "p2p-v2/merchant-dashboard/page.tsx",
+      "kind": "source",
+      "source": "p2p-v2/merchant-dashboard/page.tsx"
+    },
+    {
+      "url": "/p2p-v2/my-ads",
+      "wrapper": "p2p-v2/my-ads/page.tsx",
+      "kind": "source",
+      "source": "p2p-v2/my-ads/page.tsx"
+    },
+    {
+      "url": "/p2p-v2/orders/[id]",
+      "wrapper": "p2p-v2/orders/[id]/page.tsx",
+      "kind": "source",
+      "source": "p2p-v2/orders/[id]/page.tsx"
+    },
+    {
+      "url": "/p2p-v2/orders",
+      "wrapper": "p2p-v2/orders/page.tsx",
+      "kind": "source",
+      "source": "p2p-v2/orders/page.tsx"
+    },
+    {
+      "url": "/p2p-v2",
+      "wrapper": "p2p-v2/page.tsx",
+      "kind": "source",
+      "source": "p2p-v2/page.tsx"
+    },
+    {
+      "url": "/p2p-v2/payment-methods",
+      "wrapper": "p2p-v2/payment-methods/page.tsx",
+      "kind": "source",
+      "source": "p2p-v2/payment-methods/page.tsx"
+    },
+    {
+      "url": "/",
+      "wrapper": "page.tsx",
+      "kind": "source",
+      "source": "page.tsx"
+    },
+    {
+      "url": "/reset-password",
+      "wrapper": "reset-password/page.tsx",
+      "kind": "source",
+      "source": "reset-password/page.tsx"
+    },
+    {
+      "url": "/spot",
+      "wrapper": "spot/page.tsx",
+      "kind": "source",
+      "source": "spot/page.tsx"
+    },
+    {
+      "url": "/trade",
+      "wrapper": "trade/page.tsx",
+      "kind": "source",
+      "source": "trade/page.tsx"
+    },
+    {
+      "url": "/trade/spot",
+      "wrapper": "trade/spot/page.tsx",
+      "kind": "source",
+      "source": "trade/spot/page.tsx"
+    },
+    {
+      "url": "/wallet/[symbol]",
+      "wrapper": "wallet/[symbol]/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/[symbol]/page.tsx"
+    },
+    {
+      "url": "/wallet/convert",
+      "wrapper": "wallet/convert/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/convert/page.tsx"
+    },
+    {
+      "url": "/wallet/deposit/crypto",
+      "wrapper": "wallet/deposit/crypto/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/deposit/crypto/page.tsx"
+    },
+    {
+      "url": "/wallet/deposit",
+      "wrapper": "wallet/deposit/page.tsx",
+      "kind": "source",
+      "source": "wallet/deposit/page.tsx"
+    },
+    {
+      "url": "/wallet/funding",
+      "wrapper": "wallet/funding/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/funding/page.tsx"
+    },
+    {
+      "url": "/wallet/history",
+      "wrapper": "wallet/history/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/history/page.tsx"
+    },
+    {
+      "url": "/wallet",
+      "wrapper": "wallet/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/overview/page.tsx"
+    },
+    {
+      "url": "/wallet/pnl",
+      "wrapper": "wallet/pnl/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/pnl/page.tsx"
+    },
+    {
+      "url": "/wallet/transfer",
+      "wrapper": "wallet/transfer/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/transfer/page.tsx"
+    },
+    {
+      "url": "/wallet/unified",
+      "wrapper": "wallet/unified/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/unified/page.tsx"
+    },
+    {
+      "url": "/wallet/withdraw/crypto",
+      "wrapper": "wallet/withdraw/crypto/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/withdraw/crypto/page.tsx"
+    },
+    {
+      "url": "/wallet/withdraw/fiat",
+      "wrapper": "wallet/withdraw/fiat/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/withdraw/fiat/page.tsx"
+    },
+    {
+      "url": "/wallet/withdraw",
+      "wrapper": "wallet/withdraw/page.tsx",
+      "kind": "source",
+      "source": "wallet/withdraw/page.tsx"
+    }
+  ],
+  "reexports": [
+    {
+      "url": "/orders/history",
+      "wrapper": "orders/history/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/history/page.tsx"
+    },
+    {
+      "url": "/orders/spot",
+      "wrapper": "orders/spot/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/orders/spot/page.tsx"
+    },
+    {
+      "url": "/orders/trades",
+      "wrapper": "orders/trades/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/orders/trades/page.tsx"
+    },
+    {
+      "url": "/p2p/create-ad",
+      "wrapper": "p2p/create-ad/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/create-ad/page.tsx"
+    },
+    {
+      "url": "/p2p/disputes/[id]",
+      "wrapper": "p2p/disputes/[id]/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/disputes/[id]/page.tsx"
+    },
+    {
+      "url": "/p2p/merchant-dashboard",
+      "wrapper": "p2p/merchant-dashboard/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/merchant-dashboard/page.tsx"
+    },
+    {
+      "url": "/p2p/my-ads",
+      "wrapper": "p2p/my-ads/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/my-ads/page.tsx"
+    },
+    {
+      "url": "/p2p/orders/[orderId]",
+      "wrapper": "p2p/orders/[orderId]/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/orders/[id]/page.tsx"
+    },
+    {
+      "url": "/p2p/orders",
+      "wrapper": "p2p/orders/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/orders/page.tsx"
+    },
+    {
+      "url": "/p2p",
+      "wrapper": "p2p/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/page.tsx"
+    },
+    {
+      "url": "/p2p/payment-methods",
+      "wrapper": "p2p/payment-methods/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/payment-methods/page.tsx"
+    },
+    {
+      "url": "/p2p/profile/[userId]",
+      "wrapper": "p2p/profile/[userId]/page.tsx",
+      "kind": "re-export",
+      "source": "p2p-v2/merchant/[id]/page.tsx"
+    },
+    {
+      "url": "/wallet/[symbol]",
+      "wrapper": "wallet/[symbol]/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/[symbol]/page.tsx"
+    },
+    {
+      "url": "/wallet/convert",
+      "wrapper": "wallet/convert/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/convert/page.tsx"
+    },
+    {
+      "url": "/wallet/deposit/crypto",
+      "wrapper": "wallet/deposit/crypto/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/deposit/crypto/page.tsx"
+    },
+    {
+      "url": "/wallet/funding",
+      "wrapper": "wallet/funding/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/funding/page.tsx"
+    },
+    {
+      "url": "/wallet/history",
+      "wrapper": "wallet/history/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/history/page.tsx"
+    },
+    {
+      "url": "/wallet",
+      "wrapper": "wallet/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/overview/page.tsx"
+    },
+    {
+      "url": "/wallet/pnl",
+      "wrapper": "wallet/pnl/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/pnl/page.tsx"
+    },
+    {
+      "url": "/wallet/transfer",
+      "wrapper": "wallet/transfer/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/transfer/page.tsx"
+    },
+    {
+      "url": "/wallet/unified",
+      "wrapper": "wallet/unified/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/assets/unified/page.tsx"
+    },
+    {
+      "url": "/wallet/withdraw/crypto",
+      "wrapper": "wallet/withdraw/crypto/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/withdraw/crypto/page.tsx"
+    },
+    {
+      "url": "/wallet/withdraw/fiat",
+      "wrapper": "wallet/withdraw/fiat/page.tsx",
+      "kind": "re-export",
+      "source": "dashboard/withdraw/fiat/page.tsx"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useQueryClient } from '@tanstack/react-query';
 import { X, ArrowLeftRight, ChevronDown, AlertCircle, CheckCircle2, Loader2, Search, Wallet, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
@@ -35,6 +36,7 @@ export default function TransferModal({
   defaultToAccount = 'trading',
   onSuccess,
 }: TransferModalProps) {
+  const t = useTranslations('wallet.transferPage');
   const queryClient = useQueryClient();
   const { accessToken: storeAccessToken, isAuthenticated, _hasHydrated } = useAuthStore();
   const accessToken = propAccessToken || storeAccessToken;
@@ -82,10 +84,10 @@ export default function TransferModal({
       if (data.success && data.data) {
         setTokens(data.data || []);
       } else {
-        setError(data.error?.message || 'Failed to load balances. Please try again.');
+        setError(data.error?.message || t('errors.loadBalancesRetry'));
       }
     } catch {
-      setError('Failed to load balances. Please try again.');
+      setError(t('errors.loadBalancesRetry'));
     } finally {
       setLoading(false);
     }
@@ -103,19 +105,19 @@ export default function TransferModal({
   const handleTransfer = async () => {
     if (submitting) return;
     if (!selectedToken) {
-      setError('Please select a coin');
+      setError(t('errors.selectCoin'));
       return;
     }
     
     if (!amount || parseFloat(amount) <= 0) {
-      setError('Enter a positive amount.');
+      setError(t('errors.enterPositiveAmount'));
       return;
     }
 
     const transferAmount = parseFloat(amount);
     const availableBalance = parseFloat(selectedToken.availableBalance);
     if (transferAmount > availableBalance) {
-      setError('Insufficient balance. Reduce the amount or check the source account.');
+      setError(t('errors.insufficientBalanceDetail'));
       return;
     }
 
@@ -141,10 +143,10 @@ export default function TransferModal({
           onClose();
         }, 1500);
       } else {
-        setError(data.error?.message || 'Transfer could not be completed. Check balance and try again.');
+        setError(data.error?.message || t('errors.transferIncomplete'));
       }
     } catch {
-      setError('Connection issue. Your request may not have reached the server. Safe to try again.');
+      setError(t('errors.connectionIssue'));
     } finally {
       setSubmitting(false);
     }
@@ -165,9 +167,9 @@ export default function TransferModal({
   const getAccountLabel = (account: string) => {
     switch (account) {
       case 'funding':
-        return 'Funding';
+        return t('accountFundingShort');
       case 'trading':
-        return 'Unified Trading';
+        return t('accountTradingShort');
       default:
         return account;
     }
@@ -202,7 +204,7 @@ export default function TransferModal({
       <div className="relative w-full max-w-md mx-4 bg-card rounded-xl shadow-2xl overflow-hidden border border-border">
         {/* Header - Compact */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <h2 className="text-lg font-semibold text-foreground">Transfer</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t('modalTitle')}</h2>
           <button
             onClick={onClose}
             className="p-1.5 hover:bg-accent rounded-lg transition-colors"
@@ -217,7 +219,7 @@ export default function TransferModal({
           <div className="flex items-center gap-3">
             {/* From Account */}
             <div className="flex-1">
-              <label className="block text-xs text-muted-foreground mb-1.5">From</label>
+              <label className="block text-xs text-muted-foreground mb-1.5">{t('from')}</label>
               <div className="relative">
                 <button
                   onClick={() => {
@@ -274,7 +276,7 @@ export default function TransferModal({
 
             {/* To Account */}
             <div className="flex-1">
-              <label className="block text-xs text-muted-foreground mb-1.5">To</label>
+              <label className="block text-xs text-muted-foreground mb-1.5">{t('to')}</label>
               <div className="relative">
                 <button
                   onClick={() => {
@@ -322,7 +324,7 @@ export default function TransferModal({
 
           {/* Coin Selection */}
           <div>
-            <label className="block text-xs text-muted-foreground mb-1.5">Coin</label>
+            <label className="block text-xs text-muted-foreground mb-1.5">{t('coin')}</label>
             <div className="relative">
               <button
                 onClick={() => {
@@ -339,7 +341,7 @@ export default function TransferModal({
                       <span className="text-foreground font-medium text-sm">{selectedToken.symbol}</span>
                     </>
                   ) : (
-                    <span className="text-muted-foreground text-sm">Select coin</span>
+                    <span className="text-muted-foreground text-sm">{t('selectCoin')}</span>
                   )}
                 </div>
                 <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showCoinDropdown ? 'rotate-180' : ''}`} />
@@ -353,7 +355,7 @@ export default function TransferModal({
                       <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <input
                         type="text"
-                        placeholder="Search coin..."
+                        placeholder={t('searchCoins')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full pl-8 pr-3 py-2 bg-card border-0 rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary outline-none"
@@ -365,10 +367,10 @@ export default function TransferModal({
                     {loading ? (
                       <div className="flex items-center justify-center gap-2 p-6">
                         <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                        <span className="text-sm text-muted-foreground">Loading...</span>
+                        <span className="text-sm text-muted-foreground">{t('loading')}</span>
                       </div>
                     ) : filteredTokens.length === 0 ? (
-                      <div className="p-6 text-center text-sm text-muted-foreground">No coins found</div>
+                      <div className="p-6 text-center text-sm text-muted-foreground">{t('noCoinsFound')}</div>
                     ) : (
                       filteredTokens.slice(0, 50).map((token) => (
                         <button
@@ -405,7 +407,7 @@ export default function TransferModal({
 
           {/* Transferable Amount Info */}
           <div className="flex items-center justify-between text-sm py-1">
-            <span className="text-muted-foreground">Transferable Amount</span>
+            <span className="text-muted-foreground">{t('transferableAmount')}</span>
             <span className="text-foreground font-medium">
               {selectedToken ? `${parseFloat(selectedToken.availableBalance).toFixed(4)} ${selectedToken.symbol}` : '0.0000 USDT'}
             </span>
@@ -425,7 +427,7 @@ export default function TransferModal({
                       setError('');
                     }
                   }}
-                  placeholder="Enter amount"
+                  placeholder={t('enterAmount')}
                   className="w-full px-3 py-3 pr-24 bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:border-blue-500 focus:ring-1 focus:ring-primary/20 outline-none transition-all"
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -433,7 +435,7 @@ export default function TransferModal({
                     onClick={handleSetMax}
                     className="text-xs font-medium text-primary hover:text-primary/85"
                   >
-                    All
+                    {t('allMax')}
                   </button>
                   <span className="text-sm text-muted-foreground">{selectedToken.symbol}</span>
                 </div>
@@ -453,7 +455,7 @@ export default function TransferModal({
           {success && (
             <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
               <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
-              <p className="text-sm text-buy">Transfer successful!</p>
+              <p className="text-sm text-buy">{t('transferSuccessful')}</p>
             </div>
           )}
 
@@ -470,15 +472,15 @@ export default function TransferModal({
             {submitting ? (
               <span className="flex items-center justify-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Processing...
+                {t('processing')}
               </span>
             ) : success ? (
               <span className="flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
-                Completed
+                {t('completed')}
               </span>
             ) : (
-              'Confirm'
+              t('confirm')
             )}
           </button>
         </div>

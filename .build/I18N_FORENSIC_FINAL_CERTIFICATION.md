@@ -2,7 +2,7 @@
 
 **Branch:** `release/exchange-production-baseline`  
 **Date:** 2026-09-23  
-**Served BUILD_ID:** `aUBYx-y9oY6QlvdiafjSg` (Docker `exchange-frontend` rebuilt after funding/PnL i18n)
+**Served BUILD_ID:** `8JBLG8-YAelGh3KeZsyTM` (Docker `exchange-frontend` — asset detail + transfer modal batch)
 
 ## Executive verdict
 

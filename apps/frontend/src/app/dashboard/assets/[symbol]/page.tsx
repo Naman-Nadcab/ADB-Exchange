@@ -139,7 +139,9 @@ function resolveSymbol(row: Record<string, unknown>): string {
 
 export default function AssetSymbolPage() {
   const tw = useTranslations('wallet.assetDetail');
-  const tt = useTranslations('account.toasts');
+  const tToast = useTranslations('account.toasts');
+  const tTx = useTranslations('wallet.transactions');
+  const tAct = useTranslations('wallet.actions');
   const params = useParams();
   const { accessToken, _hasHydrated } = useAuthStore();
   const { formatFromUsdt } = useDisplayCurrency();
@@ -147,6 +149,30 @@ export default function AssetSymbolPage() {
   const symbol = rawSymbol.toUpperCase();
 
   const ready = !!_hasHydrated && !!accessToken;
+
+  const txStatusLabel = useCallback(
+    (status: string) => {
+      const s = status.toLowerCase();
+      if (s === 'completed' || s === 'confirmed' || s === 'success') return tTx('completed');
+      if (s === 'pending') return tTx('pending');
+      if (s === 'processing') return tTx('processing');
+      if (s === 'failed' || s === 'rejected') return tTx('failed');
+      if (s === 'cancelled') return tTx('cancelled');
+      return status;
+    },
+    [tTx],
+  );
+
+  const txTypeLabel = useCallback(
+    (type: string) => {
+      const t = type.toLowerCase();
+      if (t === 'deposit') return tTx('typeDeposit');
+      if (t === 'withdrawal' || t === 'withdraw') return tTx('typeWithdrawal');
+      if (t === 'transfer') return tTx('typeTransfer');
+      return type;
+    },
+    [tTx],
+  );
 
   // Balances
   const { data: fundingData, isLoading: fundingLoading } = useBalancesFunding(ready);
@@ -240,15 +266,15 @@ export default function AssetSymbolPage() {
       );
       if (res.success && Array.isArray(res.data)) setTransactions(res.data);
     } catch {
-      setTxLoadError('Could not load transaction history.');
+      setTxLoadError(tw('loadTxFailed'));
       toast({
-        title: tt('assetHistoryUnavailableTitle'),
-        description: tt('assetHistoryUnavailableDesc', { symbol }),
+        title: tToast('assetHistoryUnavailableTitle'),
+        description: tToast('assetHistoryUnavailableDesc', { symbol }),
         variant: 'destructive',
       });
     }
     finally { setTxLoading(false); }
-  }, [ready, symbol, tt]);
+  }, [ready, symbol, tw, tToast]);
 
   useEffect(() => { loadTransactions(); }, [loadTransactions]);
 
@@ -285,7 +311,7 @@ export default function AssetSymbolPage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* ── Breadcrumb ── */}
       <nav className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Link href={walletPath.overview} className="hover:text-foreground transition-colors">Assets</Link>
+        <Link href={walletPath.overview} className="hover:text-foreground transition-colors">{tw('breadcrumbAssets')}</Link>
         <span>/</span>
         <span className="text-foreground font-medium">{symbol}</span>
       </nav>
@@ -334,25 +360,25 @@ export default function AssetSymbolPage() {
             href={`${walletPath.depositCrypto}?coin=${encodeURIComponent(symbol)}`}
             className="inline-flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground transition-all active:scale-[0.97]"
           >
-            <Download className="w-4 h-4" /> Deposit
+            <Download className="w-4 h-4" /> {tAct('deposit')}
           </Link>
           <Link
             href={`${walletPath.withdrawCrypto}?coin=${encodeURIComponent(symbol)}`}
             className="inline-flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-medium bg-card border border-border hover:bg-accent text-foreground transition-all active:scale-[0.97]"
           >
-            <Upload className="w-4 h-4" /> Withdraw
+            <Upload className="w-4 h-4" /> {tAct('withdraw')}
           </Link>
           <button
             onClick={() => setTransferOpen(true)}
             className="inline-flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-medium bg-card border border-border hover:bg-accent text-foreground transition-all active:scale-[0.97]"
           >
-            <ArrowLeftRight className="w-4 h-4" /> Transfer
+            <ArrowLeftRight className="w-4 h-4" /> {tAct('transfer')}
           </button>
           <Link
             href={`${SPOT_TRADE_HREF}?symbol=${encodeURIComponent(`${symbol}_USDT`)}`}
             className="inline-flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-medium bg-card border border-border hover:bg-accent text-foreground transition-all active:scale-[0.97]"
           >
-            <TrendingUp className="w-4 h-4" /> Trade
+            <TrendingUp className="w-4 h-4" /> {tAct('trade')}
           </Link>
         </div>
       </div>
@@ -363,7 +389,7 @@ export default function AssetSymbolPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Total */}
         <div className="rounded-xl border border-border bg-card p-5 space-y-1">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Total Balance</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">{tw('totalBalance')}</p>
           {balancesLoading ? (
             <Loader2 className="w-5 h-5 animate-spin text-muted-foreground mt-2" />
           ) : (
@@ -378,7 +404,7 @@ export default function AssetSymbolPage() {
         <div className="rounded-xl border border-border bg-card p-5 space-y-1">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-blue-500" />
-            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Funding Account</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">{tw('fundingAccount')}</p>
           </div>
           {balancesLoading ? (
             <Loader2 className="w-5 h-5 animate-spin text-muted-foreground mt-2" />
@@ -387,8 +413,8 @@ export default function AssetSymbolPage() {
               <p className="text-xl font-semibold text-foreground tabular-nums">{fmtNum(fundingTotal, 8)} <span className="text-sm font-normal text-muted-foreground">{symbol}</span></p>
               <p className="text-sm text-muted-foreground tabular-nums">≈ {formatDisplay(fundingUsd)}</p>
               <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                <span>Available: <span className="text-foreground tabular-nums">{fmtNum(fundingAvailable, 8)}</span></span>
-                <span>Locked: <span className="text-foreground tabular-nums">{fmtNum(fundingLocked, 8)}</span></span>
+                <span>{tw('available')}: <span className="text-foreground tabular-nums">{fmtNum(fundingAvailable, 8)}</span></span>
+                <span>{tw('locked')}: <span className="text-foreground tabular-nums">{fmtNum(fundingLocked, 8)}</span></span>
               </div>
             </>
           )}
@@ -398,7 +424,7 @@ export default function AssetSymbolPage() {
         <div className="rounded-xl border border-border bg-card p-5 space-y-1">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-amber-500" />
-            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Trading Account</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">{tw('tradingAccount')}</p>
           </div>
           {balancesLoading ? (
             <Loader2 className="w-5 h-5 animate-spin text-muted-foreground mt-2" />
@@ -407,8 +433,8 @@ export default function AssetSymbolPage() {
               <p className="text-xl font-semibold text-foreground tabular-nums">{fmtNum(spotTotal, 8)} <span className="text-sm font-normal text-muted-foreground">{symbol}</span></p>
               <p className="text-sm text-muted-foreground tabular-nums">≈ {formatDisplay(spotUsd)}</p>
               <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                <span>Available: <span className="text-foreground tabular-nums">{fmtNum(spotAvailable, 8)}</span></span>
-                <span>Locked: <span className="text-foreground tabular-nums">{fmtNum(spotLocked, 8)}</span></span>
+                <span>{tw('available')}: <span className="text-foreground tabular-nums">{fmtNum(spotAvailable, 8)}</span></span>
+                <span>{tw('locked')}: <span className="text-foreground tabular-nums">{fmtNum(spotLocked, 8)}</span></span>
               </div>
             </>
           )}
@@ -421,7 +447,7 @@ export default function AssetSymbolPage() {
       <div className="rounded-xl border border-border bg-card p-5 space-y-4">
         <div className="flex items-center gap-2">
           <BarChart3 className="w-4 h-4 text-muted-foreground" />
-          <h2 className="text-sm font-semibold text-foreground">Market Info (External)</h2>
+          <h2 className="text-sm font-semibold text-foreground">{tw('marketInfoExternal')}</h2>
           {coinInfo?.homepage && (
             <a
               href={coinInfo.homepage}
@@ -429,7 +455,7 @@ export default function AssetSymbolPage() {
               rel="noopener noreferrer"
               className="ml-auto inline-flex items-center gap-1 text-xs text-primary hover:underline"
             >
-              <Globe className="w-3.5 h-3.5" /> Website <ExternalLink className="w-3 h-3" />
+              <Globe className="w-3.5 h-3.5" /> {tw('website')} <ExternalLink className="w-3 h-3" />
             </a>
           )}
         </div>
@@ -441,17 +467,17 @@ export default function AssetSymbolPage() {
         ) : coinInfo ? (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-              <StatBox label="Market Cap" value={formatDisplay(coinInfo.market_cap)} />
-              <StatBox label="External Market Volume" value={formatDisplay(coinInfo.total_volume)} />
-              <StatBox label="Circulating Supply" value={`${fmtSupply(coinInfo.circulating_supply)} ${symbol}`} />
-              <StatBox label="Total Supply" value={coinInfo.total_supply ? `${fmtSupply(coinInfo.total_supply)} ${symbol}` : '—'} />
-              <StatBox label="All-Time High" value={coinInfo.ath != null ? formatDisplay(coinInfo.ath) : '—'} />
+              <StatBox label={tw('marketCap')} value={formatDisplay(coinInfo.market_cap)} />
+              <StatBox label={tw('externalVolume')} value={formatDisplay(coinInfo.total_volume)} />
+              <StatBox label={tw('circulatingSupply')} value={`${fmtSupply(coinInfo.circulating_supply)} ${symbol}`} />
+              <StatBox label={tw('totalSupply')} value={coinInfo.total_supply ? `${fmtSupply(coinInfo.total_supply)} ${symbol}` : '—'} />
+              <StatBox label={tw('allTimeHigh')} value={coinInfo.ath != null ? formatDisplay(coinInfo.ath) : '—'} />
             </div>
 
             {coinInfo.max_supply != null && (
               <div className="mt-2">
                 <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                  <span>Supply Progress</span>
+                  <span>{tw('supplyProgress')}</span>
                   <span>{coinInfo.circulating_supply != null ? ((coinInfo.circulating_supply / coinInfo.max_supply) * 100).toFixed(1) : '0'}%</span>
                 </div>
                 <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
@@ -470,7 +496,7 @@ export default function AssetSymbolPage() {
                 </p>
                 {coinInfo.description.length > 200 && (
                   <button onClick={() => setDescExpanded(!descExpanded)} className="text-xs text-primary hover:underline mt-1 inline-flex items-center gap-0.5">
-                    {descExpanded ? <>Show less <ChevronUp className="w-3 h-3" /></> : <>Read more <ChevronDown className="w-3 h-3" /></>}
+                    {descExpanded ? <>{tw('showLess')} <ChevronUp className="w-3 h-3" /></> : <>{tw('readMore')} <ChevronDown className="w-3 h-3" /></>}
                   </button>
                 )}
               </div>
@@ -490,7 +516,7 @@ export default function AssetSymbolPage() {
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-muted-foreground" />
-            <h2 className="text-sm font-semibold text-foreground">Transaction History</h2>
+            <h2 className="text-sm font-semibold text-foreground">{tw('transactionHistory')}</h2>
             <span className="text-xs text-muted-foreground">({transactions.length})</span>
           </div>
           <button
@@ -498,7 +524,7 @@ export default function AssetSymbolPage() {
             disabled={txLoading}
             className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${txLoading ? 'animate-spin' : ''}`} /> Refresh
+            <RefreshCw className={`w-3.5 h-3.5 ${txLoading ? 'animate-spin' : ''}`} /> {tw('refresh')}
           </button>
         </div>
         {txLoadError ? (
@@ -512,8 +538,8 @@ export default function AssetSymbolPage() {
         ) : transactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Coins className="w-8 h-8 text-muted-foreground/40 mb-3" />
-            <p className="text-sm text-muted-foreground">No transactions for {symbol} yet</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Deposits, withdrawals, and transfers will appear here</p>
+            <p className="text-sm text-muted-foreground">{tw('noTransactionsYet', { symbol })}</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">{tw('emptyTxHint')}</p>
           </div>
         ) : (
           <>
@@ -521,11 +547,11 @@ export default function AssetSymbolPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-[11px] text-muted-foreground uppercase tracking-wider border-b border-border bg-muted/30">
-                    <th className="py-2.5 px-5 font-medium">Type</th>
-                    <th className="py-2.5 px-5 font-medium">Amount</th>
-                    <th className="py-2.5 px-5 font-medium">Status</th>
-                    <th className="py-2.5 px-5 font-medium hidden sm:table-cell">Network</th>
-                    <th className="py-2.5 px-5 font-medium">Date</th>
+                    <th className="py-2.5 px-5 font-medium">{tw('colType')}</th>
+                    <th className="py-2.5 px-5 font-medium">{tw('colAmount')}</th>
+                    <th className="py-2.5 px-5 font-medium">{tw('colStatus')}</th>
+                    <th className="py-2.5 px-5 font-medium hidden sm:table-cell">{tw('colNetwork')}</th>
+                    <th className="py-2.5 px-5 font-medium">{tw('colDate')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -539,7 +565,7 @@ export default function AssetSymbolPage() {
                       >
                         <td className="py-3 px-5">
                           <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-md capitalize ${typeBadge(tx.type)}`}>
-                            {tx.type}
+                            {txTypeLabel(tx.type)}
                           </span>
                         </td>
                         <td className="py-3 px-5 tabular-nums font-medium text-foreground">
@@ -550,7 +576,7 @@ export default function AssetSymbolPage() {
                         </td>
                         <td className="py-3 px-5">
                           <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-md capitalize ${statusBadge(tx.status)}`}>
-                            {tx.status}
+                            {txStatusLabel(tx.status)}
                           </span>
                         </td>
                         <td className="py-3 px-5 text-xs text-muted-foreground hidden sm:table-cell">
@@ -574,17 +600,17 @@ export default function AssetSymbolPage() {
                   disabled={txPage === 1}
                   className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
                 >
-                  ← Previous
+                  ← {tw('previous')}
                 </button>
                 <span className="text-xs text-muted-foreground tabular-nums">
-                  Page {txPage} of {totalTxPages}
+                  {tw('pageOf', { page: txPage, pages: totalTxPages })}
                 </span>
                 <button
                   onClick={() => setTxPage((p) => Math.min(totalTxPages, p + 1))}
                   disabled={txPage === totalTxPages}
                   className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
                 >
-                  Next →
+                  {tw('next')} →
                 </button>
               </div>
             )}

@@ -1,8 +1,22 @@
 # Hardcoded string classification
 
-**Primary artifact:** `.build/i18n-hardcoded-second-scan.json` (~241 heuristic hits).
+**Scans:**
 
-## Wallet funding / PnL (this pass)
+| Scan | Count | File |
+| --- | ---: | --- |
+| Legacy second pass | 241 | `.build/i18n-hardcoded-second-scan.json` |
+| Forensic tool (2026-09-23) | 640 | `.build/i18n-hardcoded-forensic-scan.json` |
+
+Every hit must be classified; **0 unexplained CUSTOMER-FACING** strings required for certification.
+
+## Wallet asset detail + transfer modal (this pass)
+
+| Surface | File | After fix |
+| --- | --- | --- |
+| /wallet/[symbol] page | `dashboard/assets/[symbol]/page.tsx` | `wallet.assetDetail` + transactions labels |
+| Transfer modal | `components/TransferModal.tsx` | `wallet.transferPage` modal keys |
+
+## Wallet funding / PnL (prior pass)
 
 | Surface | File | Prior type | After fix |
 | --- | --- | --- | --- |

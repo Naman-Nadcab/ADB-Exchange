@@ -1,0 +1,3846 @@
+{
+  "generatedAt": "2026-09-23T06:10:05.853Z",
+  "count": 640,
+  "hits": [
+    {
+      "file": "apps/frontend/src/app/(auth)/cookies/page.tsx",
+      "line": 16,
+      "kind": "jsx",
+      "text": "Back"
+    },
+    {
+      "file": "apps/frontend/src/app/(auth)/cookies/page.tsx",
+      "line": 27,
+      "kind": "jsx",
+      "text": "Last updated: February 2026"
+    },
+    {
+      "file": "apps/frontend/src/app/(auth)/cookies/page.tsx",
+      "line": 44,
+      "kind": "jsx",
+      "text": "Keep you logged in and maintain your session"
+    },
+    {
+      "file": "apps/frontend/src/app/(auth)/cookies/page.tsx",
+      "line": 46,
+      "kind": "jsx",
+      "text": "Improve platform performance and security"
+    },
+    {
+      "file": "apps/frontend/src/app/(auth)/cookies/page.tsx",
+      "line": 47,
+      "kind": "jsx",
+      "text": "Analyze usage to enhance the trading experience"
+    },
+    {
+      "file": "apps/frontend/src/app/(auth)/cookies/page.tsx",
+      "line": 61,
+      "kind": "jsx",
+      "text": "Privacy Policy"
+    },
+    {
+      "file": "apps/frontend/src/app/(auth)/cookies/page.tsx",
+      "line": 61,
+      "kind": "jsx",
+      "text": "and"
+    },
+    {
+      "file": "apps/frontend/src/app/(auth)/cookies/page.tsx",
+      "line": 61,
+      "kind": "jsx",
+      "text": "Terms of Service"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 604,
+      "kind": "jsx",
+      "text": "with clear tools"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 637,
+      "kind": "jsx",
+      "text": "Live Trading Terminal"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 638,
+      "kind": "jsx",
+      "text": "Depth, order flow, and market pulse"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 672,
+      "kind": "jsx",
+      "text": "Order Flow"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 684,
+      "kind": "jsx",
+      "text": "Depth Preview"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 699,
+      "kind": "jsx",
+      "text": "Market Insight:"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 720,
+      "kind": "jsx",
+      "text": "Platform Uptime"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 721,
+      "kind": "jsx",
+      "text": "Unavailable"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 732,
+      "kind": "jsx",
+      "text": "Matching Latency"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 741,
+      "kind": "jsx",
+      "text": "Market Overview"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 742,
+      "kind": "jsx",
+      "text": "Live pair rankings with direct links to the spot terminal."
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 770,
+      "kind": "jsx",
+      "text": "Asset"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 771,
+      "kind": "jsx",
+      "text": "Price"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 774,
+      "kind": "jsx",
+      "text": "Action"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 804,
+      "kind": "jsx",
+      "text": "Trading Ecosystem"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 805,
+      "kind": "jsx",
+      "text": "Core exchange products for trading, funding, and account management."
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 849,
+      "kind": "jsx",
+      "text": "Account Security"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 850,
+      "kind": "jsx",
+      "text": "Protection controls you can configure."
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 874,
+      "kind": "jsx",
+      "text": "Security Dashboard Visualization"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 904,
+      "kind": "jsx",
+      "text": "Earn on FDM"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 905,
+      "kind": "jsx",
+      "text": "Yield products in phased rollout."
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 933,
+      "kind": "jsx",
+      "text": "System Status"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 962,
+      "kind": "jsx",
+      "text": "Announcements"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 990,
+      "kind": "jsx",
+      "text": "Get started"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "line": 991,
+      "kind": "jsx",
+      "text": "Browse markets or open a free account."
+    },
+    {
+      "file": "apps/frontend/src/app/auth/callback/apple/page.tsx",
+      "line": 76,
+      "kind": "jsx",
+      "text": "Redirecting to login..."
+    },
+    {
+      "file": "apps/frontend/src/app/auth/callback/apple/page.tsx",
+      "line": 81,
+      "kind": "jsx",
+      "text": "Completing Apple sign in..."
+    },
+    {
+      "file": "apps/frontend/src/app/auth/callback/google/page.tsx",
+      "line": 74,
+      "kind": "jsx",
+      "text": "Redirecting to login..."
+    },
+    {
+      "file": "apps/frontend/src/app/auth/callback/google/page.tsx",
+      "line": 79,
+      "kind": "jsx",
+      "text": "Completing Google sign in..."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/account/login-history/page.tsx",
+      "line": 76,
+      "kind": "jsx",
+      "text": "Login History"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/account/login-history/page.tsx",
+      "line": 77,
+      "kind": "jsx",
+      "text": "Recent account activity and sign-in events"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/account/login-history/page.tsx",
+      "line": 89,
+      "kind": "jsx",
+      "text": "No activity recorded yet."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/account/page.tsx",
+      "line": 409,
+      "kind": "attr",
+      "text": "Avatar"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+      "line": 260,
+      "kind": "jsx",
+      "text": "Add in Batches"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+      "line": 337,
+      "kind": "jsx",
+      "text": "Please select"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+      "line": 366,
+      "kind": "attr",
+      "text": "Please input your withdrawal wallet address"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+      "line": 377,
+      "kind": "attr",
+      "text": "Optional"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+      "line": 388,
+      "kind": "attr",
+      "text": "Add a remark"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+      "line": 455,
+      "kind": "jsx",
+      "text": "Email"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+      "line": 456,
+      "kind": "jsx",
+      "text": "Mobile"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+      "line": 482,
+      "kind": "attr",
+      "text": "Please enter"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 602,
+      "kind": "jsx",
+      "text": "Withdraw via Address Book"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 652,
+      "kind": "jsx",
+      "text": "Type:"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 692,
+      "kind": "jsx",
+      "text": "Assets:"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 723,
+      "kind": "attr",
+      "text": "Search..."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 784,
+      "kind": "jsx",
+      "text": "Search Address:"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 791,
+      "kind": "attr",
+      "text": "Enter the address or add a note..."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 820,
+      "kind": "jsx",
+      "text": "Withdrawal Address Whitelist"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 828,
+      "kind": "jsx",
+      "text": "Assets"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 829,
+      "kind": "jsx",
+      "text": "Network"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 830,
+      "kind": "jsx",
+      "text": "Note"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 831,
+      "kind": "jsx",
+      "text": "Withdrawal Address"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 832,
+      "kind": "jsx",
+      "text": "Memo/Tag"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 833,
+      "kind": "jsx",
+      "text": "Last Updated"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 834,
+      "kind": "jsx",
+      "text": "Change"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 865,
+      "kind": "jsx",
+      "text": "No Records"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 936,
+      "kind": "jsx",
+      "text": "Security Verification"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 954,
+      "kind": "jsx",
+      "text": "A verification code will be sent to"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 961,
+      "kind": "attr",
+      "text": "Please enter the email verification code"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 984,
+      "kind": "attr",
+      "text": "Please enter the Google Authenticator code"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 989,
+      "kind": "jsx",
+      "text": "Google 2FA is not enabled"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 1011,
+      "kind": "jsx",
+      "text": "Having problems with verification?"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 1076,
+      "kind": "jsx",
+      "text": "Save as Universal Wallet Address"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 1089,
+      "kind": "jsx",
+      "text": "Regular Wallet Address"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 1090,
+      "kind": "jsx",
+      "text": "Universal Wallet Address"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 1104,
+      "kind": "jsx",
+      "text": "Please select"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 1115,
+      "kind": "jsx",
+      "text": "Address"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 1120,
+      "kind": "attr",
+      "text": "Please input your withdrawal wallet address"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 1127,
+      "kind": "jsx",
+      "text": "Chain Type"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 1134,
+      "kind": "jsx",
+      "text": "Select chain type"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 1145,
+      "kind": "jsx",
+      "text": "Remark"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 1150,
+      "kind": "attr",
+      "text": "Add a remark"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 1162,
+      "kind": "jsx",
+      "text": "Recipient Account"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 1240,
+      "kind": "attr",
+      "text": "Please enter"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 1273,
+      "kind": "jsx",
+      "text": "No verification needed for this address next time"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "line": 1293,
+      "kind": "jsx",
+      "text": "Enable no-verification withdrawals"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/announcements/[id]/page.tsx",
+      "line": 62,
+      "kind": "jsx",
+      "text": "Announcement not found or no longer available."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/announcements/[id]/page.tsx",
+      "line": 83,
+      "kind": "jsx",
+      "text": "Pinned"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/announcements/[id]/page.tsx",
+      "line": 98,
+      "kind": "jsx",
+      "text": "No additional content."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/announcements/page.tsx",
+      "line": 52,
+      "kind": "jsx",
+      "text": "Announcements"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/announcements/page.tsx",
+      "line": 53,
+      "kind": "jsx",
+      "text": "Latest updates and news from the platform"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/announcements/page.tsx",
+      "line": 63,
+      "kind": "attr",
+      "text": "Could not load announcements"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/announcements/page.tsx",
+      "line": 70,
+      "kind": "attr",
+      "text": "No announcements"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 132,
+      "kind": "jsx",
+      "text": "API Key Created!"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 133,
+      "kind": "jsx",
+      "text": "Save your credentials now. The secret will not be shown again."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 137,
+      "kind": "jsx",
+      "text": "API Key"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 205,
+      "kind": "jsx",
+      "text": "Recommended"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 253,
+      "kind": "jsx",
+      "text": "Create New Key"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 278,
+      "kind": "jsx",
+      "text": "API Key Usage"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 323,
+      "kind": "jsx",
+      "text": "Key Configuration"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 335,
+      "kind": "attr",
+      "text": "e.g., Trading Bot, Portfolio Tracker"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 366,
+      "kind": "jsx",
+      "text": "IP Security"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 395,
+      "kind": "jsx",
+      "text": "Up to 100 IP addresses allowed"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 404,
+      "kind": "jsx",
+      "text": "API Permissions"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 405,
+      "kind": "jsx",
+      "text": "Select which features this key can access"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 411,
+      "kind": "jsx",
+      "text": "Trading"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 434,
+      "kind": "jsx",
+      "text": "Earn"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 457,
+      "kind": "jsx",
+      "text": "Fiat Trading"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 498,
+      "kind": "jsx",
+      "text": "Assets"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 524,
+      "kind": "jsx",
+      "text": "Withdrawal"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 525,
+      "kind": "jsx",
+      "text": "Not available for read-only keys"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "line": 590,
+      "kind": "jsx",
+      "text": "Loading..."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 207,
+      "kind": "jsx",
+      "text": "FDM OpenAPI V5"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 208,
+      "kind": "jsx",
+      "text": "Transition from legacy versions to our latest API with enhanced features"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 216,
+      "kind": "attr",
+      "text": "API Documentation"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 226,
+      "kind": "jsx",
+      "text": "API Management"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 227,
+      "kind": "jsx",
+      "text": "Manage your API keys for automated trading and integrations"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 266,
+      "kind": "jsx",
+      "text": "Security"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 267,
+      "kind": "jsx",
+      "text": "IP Whitelisting recommended"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 270,
+      "kind": "jsx",
+      "text": "Keys without IP binding expire in 3 months"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 281,
+      "kind": "jsx",
+      "text": "Community"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 282,
+      "kind": "jsx",
+      "text": "Join our Telegram"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 316,
+      "kind": "jsx",
+      "text": "Stats update in real-time once you start using your API keys."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 332,
+      "kind": "jsx",
+      "text": "Documentation"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 340,
+      "kind": "jsx",
+      "text": "API Key Records"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 341,
+      "kind": "jsx",
+      "text": "Your active API keys and their permissions"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 349,
+      "kind": "jsx",
+      "text": "Name"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 350,
+      "kind": "jsx",
+      "text": "Type"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 351,
+      "kind": "jsx",
+      "text": "API Key"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 352,
+      "kind": "jsx",
+      "text": "Secret"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 353,
+      "kind": "jsx",
+      "text": "Permission"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 354,
+      "kind": "jsx",
+      "text": "IP Bound"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 355,
+      "kind": "jsx",
+      "text": "Created"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 356,
+      "kind": "jsx",
+      "text": "Expires"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 357,
+      "kind": "jsx",
+      "text": "Actions"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 377,
+      "kind": "jsx",
+      "text": "No API Keys Yet"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 480,
+      "kind": "jsx",
+      "text": "None"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 496,
+      "kind": "attr",
+      "text": "Edit API key"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 525,
+      "kind": "attr",
+      "text": "Delete API key"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 551,
+      "kind": "jsx",
+      "text": "Security Recommendations"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 553,
+      "kind": "jsx",
+      "text": "Never share your API secret with anyone"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 554,
+      "kind": "jsx",
+      "text": "Add IP addresses to your keys for enhanced security"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 555,
+      "kind": "jsx",
+      "text": "Regularly rotate your API keys"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 568,
+      "kind": "jsx",
+      "text": "Edit API Key"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 575,
+      "kind": "jsx",
+      "text": "Key Name"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 581,
+      "kind": "attr",
+      "text": "My trading key"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 601,
+      "kind": "jsx",
+      "text": "Withdrawals and transfers stay disabled on all API keys."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 604,
+      "kind": "jsx",
+      "text": "IP Restriction"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 625,
+      "kind": "attr",
+      "text": "Comma-separated IPs e.g. 203.0.113.4, 198.51.100.7"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 680,
+      "kind": "jsx",
+      "text": "System-generated API Keys"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 684,
+      "kind": "jsx",
+      "text": "HMAC encryption"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 687,
+      "kind": "jsx",
+      "text": "Recommended"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 688,
+      "kind": "jsx",
+      "text": "Easier Setup"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 705,
+      "kind": "jsx",
+      "text": "Self-generated API Keys"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 709,
+      "kind": "jsx",
+      "text": "RSA encryption"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 712,
+      "kind": "jsx",
+      "text": "Advanced"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "line": 713,
+      "kind": "jsx",
+      "text": "API v3 & v5"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 288,
+      "kind": "jsx",
+      "text": "Assets"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 366,
+      "kind": "jsx",
+      "text": "Total Balance"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 381,
+      "kind": "jsx",
+      "text": "Funding Account"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 390,
+      "kind": "jsx",
+      "text": "Available:"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 391,
+      "kind": "jsx",
+      "text": "Locked:"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 401,
+      "kind": "jsx",
+      "text": "Trading Account"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 432,
+      "kind": "jsx",
+      "text": "Website"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 454,
+      "kind": "jsx",
+      "text": "Supply Progress"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 473,
+      "kind": "jsx",
+      "text": "Show less"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 473,
+      "kind": "jsx",
+      "text": "Read more"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 493,
+      "kind": "jsx",
+      "text": "Transaction History"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 516,
+      "kind": "jsx",
+      "text": "Deposits, withdrawals, and transfers will appear here"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 524,
+      "kind": "jsx",
+      "text": "Type"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 525,
+      "kind": "jsx",
+      "text": "Amount"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 526,
+      "kind": "jsx",
+      "text": "Status"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 527,
+      "kind": "jsx",
+      "text": "Network"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "line": 528,
+      "kind": "jsx",
+      "text": "Date"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/overview/page.tsx",
+      "line": 136,
+      "kind": "jsx",
+      "text": "Start"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/overview/page.tsx",
+      "line": 140,
+      "kind": "jsx",
+      "text": "End"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 74,
+      "kind": "jsx",
+      "text": "Spot Trading Account Guide"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 108,
+      "kind": "jsx",
+      "text": "Unified Trading"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 118,
+      "kind": "jsx",
+      "text": "Spot Trading"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 163,
+      "kind": "jsx",
+      "text": "Total Equity"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 178,
+      "kind": "jsx",
+      "text": "Available Balance"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 189,
+      "kind": "jsx",
+      "text": "Unrealized P&L"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 207,
+      "kind": "attr",
+      "text": "Search coin..."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 237,
+      "kind": "jsx",
+      "text": "Savings USDT"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 248,
+      "kind": "jsx",
+      "text": "Currency"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 249,
+      "kind": "jsx",
+      "text": "Total Balance"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 251,
+      "kind": "jsx",
+      "text": "In Orders"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 252,
+      "kind": "jsx",
+      "text": "USD Value"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 253,
+      "kind": "jsx",
+      "text": "Action"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 262,
+      "kind": "jsx",
+      "text": "Loading balances..."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 309,
+      "kind": "jsx",
+      "text": "No assets found"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "line": 310,
+      "kind": "jsx",
+      "text": "Transfer funds to start trading"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 183,
+      "kind": "jsx",
+      "text": "Data Export"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 214,
+      "kind": "jsx",
+      "text": "Account statement export is not live yet."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 225,
+      "kind": "jsx",
+      "text": "Type"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 235,
+      "kind": "jsx",
+      "text": "All orders"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 236,
+      "kind": "jsx",
+      "text": "Trade orders"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 240,
+      "kind": "jsx",
+      "text": "All transactions"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 241,
+      "kind": "jsx",
+      "text": "Deposits"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 242,
+      "kind": "jsx",
+      "text": "Withdrawals"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 243,
+      "kind": "jsx",
+      "text": "Transfers"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 249,
+      "kind": "jsx",
+      "text": "Time Range"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 255,
+      "kind": "jsx",
+      "text": "Last 7 days"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 256,
+      "kind": "jsx",
+      "text": "Last 30 days"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 257,
+      "kind": "jsx",
+      "text": "Last 90 days"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 258,
+      "kind": "jsx",
+      "text": "Custom range"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 265,
+      "kind": "jsx",
+      "text": "Start Date"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 274,
+      "kind": "jsx",
+      "text": "End Date"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 304,
+      "kind": "jsx",
+      "text": "Export Activity"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "line": 308,
+      "kind": "jsx",
+      "text": "No export jobs in this session."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/error.tsx",
+      "line": 15,
+      "kind": "attr",
+      "text": "Dashboard section failed to load"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 162,
+      "kind": "jsx",
+      "text": "Checking verification status..."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 177,
+      "kind": "jsx",
+      "text": "Identity Verification"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 198,
+      "kind": "jsx",
+      "text": "Verification Level"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 202,
+      "kind": "jsx",
+      "text": "Status"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 209,
+      "kind": "jsx",
+      "text": "Daily Withdrawal Limit"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 210,
+      "kind": "jsx",
+      "text": "Unlimited"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 288,
+      "kind": "attr",
+      "text": "Help"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 291,
+      "kind": "attr",
+      "text": "Account settings"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 320,
+      "kind": "jsx",
+      "text": "Location"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 448,
+      "kind": "jsx",
+      "text": "Terms of Service"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 449,
+      "kind": "jsx",
+      "text": "Privacy Policy"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 481,
+      "kind": "jsx",
+      "text": "DigiLocker"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 511,
+      "kind": "jsx",
+      "text": "Aadhaar Card"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 521,
+      "kind": "jsx",
+      "text": "Driving License"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 532,
+      "kind": "jsx",
+      "text": "PAN Verification Record"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "line": 561,
+      "kind": "attr",
+      "text": "Get help"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/upload/page.tsx",
+      "line": 194,
+      "kind": "attr",
+      "text": "Front"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/upload/page.tsx",
+      "line": 209,
+      "kind": "jsx",
+      "text": "Click to upload or drag and drop"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/upload/page.tsx",
+      "line": 210,
+      "kind": "jsx",
+      "text": "PNG, JPG up to 10MB"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/upload/page.tsx",
+      "line": 250,
+      "kind": "attr",
+      "text": "Back"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/upload/page.tsx",
+      "line": 314,
+      "kind": "attr",
+      "text": "Selfie"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/upload/page.tsx",
+      "line": 331,
+      "kind": "jsx",
+      "text": "Click to take or upload a selfie"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/upload/page.tsx",
+      "line": 380,
+      "kind": "jsx",
+      "text": "Front Side"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/upload/page.tsx",
+      "line": 397,
+      "kind": "jsx",
+      "text": "Back Side"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/upload/page.tsx",
+      "line": 458,
+      "kind": "jsx",
+      "text": "Tips for a successful verification"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/layout.tsx",
+      "line": 303,
+      "kind": "attr",
+      "text": "Primary"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/markets/page.tsx",
+      "line": 509,
+      "kind": "jsx",
+      "text": "row.price"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/markets/page.tsx",
+      "line": 511,
+      "kind": "jsx",
+      "text": "row.change24h"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/p2p/page.tsx",
+      "line": 44,
+      "kind": "jsx",
+      "text": "P2P Orders"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/p2p/page.tsx",
+      "line": 54,
+      "kind": "attr",
+      "text": "Failed to load P2P orders"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/p2p/page.tsx",
+      "line": 59,
+      "kind": "attr",
+      "text": "No P2P orders yet"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/p2p/page.tsx",
+      "line": 67,
+      "kind": "jsx",
+      "text": "Order"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/p2p/page.tsx",
+      "line": 68,
+      "kind": "jsx",
+      "text": "Pair"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/p2p/page.tsx",
+      "line": 69,
+      "kind": "jsx",
+      "text": "Quantity"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/p2p/page.tsx",
+      "line": 70,
+      "kind": "jsx",
+      "text": "Status"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/p2p/page.tsx",
+      "line": 71,
+      "kind": "jsx",
+      "text": "Created"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/p2p/page.tsx",
+      "line": 72,
+      "kind": "jsx",
+      "text": "Action"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "line": 128,
+      "kind": "jsx",
+      "text": "Spot Orders"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "line": 151,
+      "kind": "jsx",
+      "text": "Active orders. Cancel releases locked funds."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "line": 159,
+      "kind": "jsx",
+      "text": "Dismiss"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "line": 165,
+      "kind": "jsx",
+      "text": "Retry"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "line": 171,
+      "kind": "jsx",
+      "text": "Market"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "line": 172,
+      "kind": "jsx",
+      "text": "Side"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "line": 173,
+      "kind": "jsx",
+      "text": "Price"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "line": 174,
+      "kind": "jsx",
+      "text": "Trigger"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "line": 175,
+      "kind": "jsx",
+      "text": "Quantity"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "line": 176,
+      "kind": "jsx",
+      "text": "Status"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "line": 177,
+      "kind": "jsx",
+      "text": "Action"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "line": 197,
+      "kind": "attr",
+      "text": "No open orders"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "line": 247,
+      "kind": "jsx",
+      "text": "CANCELLED and FILLED. Read-only."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "line": 280,
+      "kind": "attr",
+      "text": "No order history"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 190,
+      "kind": "jsx",
+      "text": "Trade History"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 207,
+      "kind": "attr",
+      "text": "Refresh"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 217,
+      "kind": "jsx",
+      "text": "Retry"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 227,
+      "kind": "attr",
+      "text": "Pair (e.g. BTC_USDT)"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 235,
+      "kind": "jsx",
+      "text": "All sides"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 236,
+      "kind": "jsx",
+      "text": "Buy"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 237,
+      "kind": "jsx",
+      "text": "Sell"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 240,
+      "kind": "jsx",
+      "text": "From"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 263,
+      "kind": "jsx",
+      "text": "Date"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 264,
+      "kind": "jsx",
+      "text": "Pair"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 265,
+      "kind": "jsx",
+      "text": "Side"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 266,
+      "kind": "jsx",
+      "text": "Price"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 267,
+      "kind": "jsx",
+      "text": "Amount"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 268,
+      "kind": "jsx",
+      "text": "Fee"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 269,
+      "kind": "jsx",
+      "text": "Total"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 270,
+      "kind": "jsx",
+      "text": "Order ID"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "line": 289,
+      "kind": "attr",
+      "text": "No trades yet"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/progress/page.tsx",
+      "line": 126,
+      "kind": "jsx",
+      "text": "Exchange setup progress"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/progress/page.tsx",
+      "line": 133,
+      "kind": "jsx",
+      "text": "Overall completion"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/progress/page.tsx",
+      "line": 146,
+      "kind": "attr",
+      "text": "Exchange setup completion"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/progress/page.tsx",
+      "line": 157,
+      "kind": "jsx",
+      "text": "Done"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/progress/page.tsx",
+      "line": 164,
+      "kind": "jsx",
+      "text": "In progress"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/progress/page.tsx",
+      "line": 171,
+      "kind": "jsx",
+      "text": "Pending"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/progress/page.tsx",
+      "line": 178,
+      "kind": "jsx",
+      "text": "Total steps"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 144,
+      "kind": "jsx",
+      "text": "My Referrals"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 148,
+      "kind": "jsx",
+      "text": "Overview"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 157,
+      "kind": "jsx",
+      "text": "Retry"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 166,
+      "kind": "jsx",
+      "text": "Total Commissions"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 173,
+      "kind": "jsx",
+      "text": "Sign Up"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 177,
+      "kind": "jsx",
+      "text": "P2P volume"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 181,
+      "kind": "jsx",
+      "text": "Card"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 185,
+      "kind": "jsx",
+      "text": "Earn"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 217,
+      "kind": "jsx",
+      "text": "My Commission Rate"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 222,
+      "kind": "jsx",
+      "text": "Total Commission"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 228,
+      "kind": "jsx",
+      "text": "Claimable Balance"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 254,
+      "kind": "jsx",
+      "text": "Total Bonus"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 263,
+      "kind": "jsx",
+      "text": "Mystery Box"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 266,
+      "kind": "jsx",
+      "text": "Earned rewards"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 274,
+      "kind": "jsx",
+      "text": "Rewards History"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 323,
+      "kind": "jsx",
+      "text": "No records found."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 341,
+      "kind": "jsx",
+      "text": "Total Rewards"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 346,
+      "kind": "jsx",
+      "text": "Tasks Completed by Friends"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 353,
+      "kind": "jsx",
+      "text": "Tasks Claimed by Friends"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 387,
+      "kind": "jsx",
+      "text": "Commissions"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 391,
+      "kind": "jsx",
+      "text": "Total Applications"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 453,
+      "kind": "jsx",
+      "text": "Referral History"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 459,
+      "kind": "jsx",
+      "text": "Total Friends"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 464,
+      "kind": "jsx",
+      "text": "Qualified Friends"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 478,
+      "kind": "jsx",
+      "text": "Email"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 479,
+      "kind": "jsx",
+      "text": "Username"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 480,
+      "kind": "jsx",
+      "text": "Status"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 481,
+      "kind": "jsx",
+      "text": "Commission earned"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 482,
+      "kind": "jsx",
+      "text": "Joined"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 503,
+      "kind": "jsx",
+      "text": "No referrals yet."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 504,
+      "kind": "jsx",
+      "text": "Invite Friends"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 511,
+      "kind": "jsx",
+      "text": "Recent commission history"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 516,
+      "kind": "jsx",
+      "text": "Source"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 517,
+      "kind": "jsx",
+      "text": "Amount"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 518,
+      "kind": "jsx",
+      "text": "Date"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 574,
+      "kind": "jsx",
+      "text": "About"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 576,
+      "kind": "jsx",
+      "text": "About FDM"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 577,
+      "kind": "jsx",
+      "text": "Announcements"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 578,
+      "kind": "jsx",
+      "text": "Fees & Transactions Overview"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 584,
+      "kind": "jsx",
+      "text": "Services"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 587,
+      "kind": "jsx",
+      "text": "Referral Program"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 594,
+      "kind": "jsx",
+      "text": "Support"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 596,
+      "kind": "jsx",
+      "text": "Help Center"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 597,
+      "kind": "jsx",
+      "text": "Trading Fee"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 603,
+      "kind": "jsx",
+      "text": "Products"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 605,
+      "kind": "jsx",
+      "text": "Trade"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 607,
+      "kind": "jsx",
+      "text": "Markets"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 615,
+      "kind": "jsx",
+      "text": "Terms of Service"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "line": 616,
+      "kind": "jsx",
+      "text": "Privacy Terms"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 348,
+      "kind": "jsx",
+      "text": "Referral Program"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 353,
+      "kind": "jsx",
+      "text": "Up to 1,720 USDT"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 385,
+      "kind": "jsx",
+      "text": "Your Earnings"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 401,
+      "kind": "jsx",
+      "text": "Your Referrals"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 412,
+      "kind": "jsx",
+      "text": "Referral program cap"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 424,
+      "kind": "jsx",
+      "text": "Retry"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 430,
+      "kind": "jsx",
+      "text": "Growth Analytics"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 431,
+      "kind": "jsx",
+      "text": "Track referral performance and conversion"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 461,
+      "kind": "jsx",
+      "text": "How to Get Rewards"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 462,
+      "kind": "jsx",
+      "text": "Earn more by completing different tasks"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 484,
+      "kind": "jsx",
+      "text": "Per referred user"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 496,
+      "kind": "jsx",
+      "text": "Commission Rate"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 500,
+      "kind": "jsx",
+      "text": "Total Referrals"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 504,
+      "kind": "jsx",
+      "text": "Pending"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 525,
+      "kind": "jsx",
+      "text": "Tiered Commissions"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 531,
+      "kind": "jsx",
+      "text": "Commission on trading fees"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 558,
+      "kind": "jsx",
+      "text": "Invite More, Earn More"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 566,
+      "kind": "jsx",
+      "text": "Per Referred User"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 572,
+      "kind": "jsx",
+      "text": "Invite a friend to FDM Earn"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 587,
+      "kind": "jsx",
+      "text": "Refer a friend to FDM Card"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 602,
+      "kind": "jsx",
+      "text": "Refer a friend to Copy Trading"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 609,
+      "kind": "jsx",
+      "text": "How to Invite"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 615,
+      "kind": "jsx",
+      "text": "Share Your Code"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 625,
+      "kind": "jsx",
+      "text": "Friends Sign Up"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 635,
+      "kind": "jsx",
+      "text": "Earn Rewards"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 645,
+      "kind": "jsx",
+      "text": "Your Referral Details"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 712,
+      "kind": "jsx",
+      "text": "Terms & Conditions"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 732,
+      "kind": "jsx",
+      "text": "Invite Friends"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 754,
+      "kind": "jsx",
+      "text": "Join & Earn Rewards!"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 766,
+      "kind": "jsx",
+      "text": "Scan to join!"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 797,
+      "kind": "jsx",
+      "text": "Referral Code"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "line": 807,
+      "kind": "jsx",
+      "text": "Customize your message"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "line": 182,
+      "kind": "attr",
+      "text": "Breadcrumb"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "line": 187,
+      "kind": "jsx",
+      "text": "Two-factor authentication"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "line": 237,
+      "kind": "jsx",
+      "text": "Enabled"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "line": 239,
+      "kind": "jsx",
+      "text": "Not enabled"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "line": 255,
+      "kind": "jsx",
+      "text": "Scan & verify"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "line": 301,
+      "kind": "jsx",
+      "text": "Confirm code"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "line": 309,
+      "kind": "attr",
+      "text": "QR code for authenticator setup"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "line": 319,
+      "kind": "jsx",
+      "text": "otpauth:"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "line": 357,
+      "kind": "jsx",
+      "text": "Back up your secret"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "line": 458,
+      "kind": "jsx",
+      "text": "Enter your account password and a 6-digit code from your app."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "line": 477,
+      "kind": "attr",
+      "text": "Account password"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/change-password/page.tsx",
+      "line": 147,
+      "kind": "jsx",
+      "text": "Change Password"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/change-password/page.tsx",
+      "line": 177,
+      "kind": "attr",
+      "text": "Enter your current password"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/change-password/page.tsx",
+      "line": 202,
+      "kind": "attr",
+      "text": "Please enter a new password."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/change-password/page.tsx",
+      "line": 258,
+      "kind": "attr",
+      "text": "Please enter your new password again."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/change-password/page.tsx",
+      "line": 271,
+      "kind": "jsx",
+      "text": "Passwords do not match"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "line": 171,
+      "kind": "jsx",
+      "text": "Please sign in to manage your fund password."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "line": 191,
+      "kind": "jsx",
+      "text": "Fund password"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "line": 227,
+      "kind": "jsx",
+      "text": "Current fund password"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "line": 233,
+      "kind": "attr",
+      "text": "Enter current fund password"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "line": 284,
+      "kind": "jsx",
+      "text": "Password strength"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "line": 341,
+      "kind": "jsx",
+      "text": "Must be different from your login password."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "line": 348,
+      "kind": "jsx",
+      "text": "Confirm password"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "line": 354,
+      "kind": "attr",
+      "text": "Re-enter fund password"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "line": 368,
+      "kind": "jsx",
+      "text": "Passwords do not match"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 474,
+      "kind": "jsx",
+      "text": "Security"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 476,
+      "kind": "jsx",
+      "text": "Passkeys"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 507,
+      "kind": "jsx",
+      "text": "Passkey Name"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 508,
+      "kind": "jsx",
+      "text": "Creation Time:"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 509,
+      "kind": "jsx",
+      "text": "Last Used Time:"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 510,
+      "kind": "jsx",
+      "text": "Action"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 528,
+      "kind": "jsx",
+      "text": "No Passkeys Available"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 614,
+      "kind": "jsx",
+      "text": "No Need to Remember Passwords"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 624,
+      "kind": "jsx",
+      "text": "Works on All Your Devices"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 660,
+      "kind": "jsx",
+      "text": "Security Verification"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 718,
+      "kind": "jsx",
+      "text": "Rename Passkey"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 729,
+      "kind": "attr",
+      "text": "Enter passkey name"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 779,
+      "kind": "jsx",
+      "text": "Please note:"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 822,
+      "kind": "jsx",
+      "text": "A verification code will be sent to"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 829,
+      "kind": "attr",
+      "text": "Please enter the email verification code"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "line": 859,
+      "kind": "attr",
+      "text": "Please enter the Google Authenticator code"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/withdrawal-limits/page.tsx",
+      "line": 284,
+      "kind": "jsx",
+      "text": "Manage Crypto Withdrawal Limits"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/withdrawal-limits/page.tsx",
+      "line": 390,
+      "kind": "jsx",
+      "text": "Basic"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/withdrawal-limits/page.tsx",
+      "line": 466,
+      "kind": "attr",
+      "text": "Please enter the SMS verification code"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/withdrawal-limits/page.tsx",
+      "line": 492,
+      "kind": "jsx",
+      "text": "Google 2FA Code"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/withdrawal-limits/page.tsx",
+      "line": 498,
+      "kind": "attr",
+      "text": "Please enter the Google Authenticator code"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "line": 245,
+      "kind": "jsx",
+      "text": "Support"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "line": 275,
+      "kind": "jsx",
+      "text": "Subject"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "line": 280,
+      "kind": "attr",
+      "text": "Briefly describe the issue"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "line": 289,
+      "kind": "jsx",
+      "text": "Category"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "line": 301,
+      "kind": "jsx",
+      "text": "Priority"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "line": 315,
+      "kind": "jsx",
+      "text": "Message"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "line": 319,
+      "kind": "attr",
+      "text": "Include all relevant details: transaction IDs, timestamps, wallet addresses, error messages"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "line": 364,
+      "kind": "attr",
+      "text": "Could not load this ticket"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "line": 370,
+      "kind": "attr",
+      "text": "Ticket not found"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "line": 394,
+      "kind": "jsx",
+      "text": "Resolution"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "line": 428,
+      "kind": "jsx",
+      "text": "No messages yet."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "line": 437,
+      "kind": "attr",
+      "text": "Reply to support..."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "line": 478,
+      "kind": "attr",
+      "text": "Could not load support tickets"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "line": 486,
+      "kind": "jsx",
+      "text": "No support tickets yet"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "line": 487,
+      "kind": "jsx",
+      "text": "Check the FAQ or open a new ticket."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/[symbol]/page.tsx",
+      "line": 82,
+      "kind": "jsx",
+      "text": "Invalid asset."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/[symbol]/page.tsx",
+      "line": 100,
+      "kind": "jsx",
+      "text": "No balance for this asset"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/[symbol]/page.tsx",
+      "line": 134,
+      "kind": "jsx",
+      "text": "Total balance"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/[symbol]/page.tsx",
+      "line": 139,
+      "kind": "jsx",
+      "text": "Available balance"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/[symbol]/page.tsx",
+      "line": 144,
+      "kind": "jsx",
+      "text": "Locked"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/[symbol]/page.tsx",
+      "line": 169,
+      "kind": "jsx",
+      "text": "History"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/[symbol]/page.tsx",
+      "line": 175,
+      "kind": "jsx",
+      "text": "Type"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/[symbol]/page.tsx",
+      "line": 176,
+      "kind": "jsx",
+      "text": "Amount"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/[symbol]/page.tsx",
+      "line": 177,
+      "kind": "jsx",
+      "text": "Status"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/[symbol]/page.tsx",
+      "line": 178,
+      "kind": "jsx",
+      "text": "Date"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/spot/page.tsx",
+      "line": 232,
+      "kind": "jsx",
+      "text": "Spot / Trading Account"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/spot/page.tsx",
+      "line": 233,
+      "kind": "jsx",
+      "text": "Balances used for spot orders"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/spot/page.tsx",
+      "line": 247,
+      "kind": "attr",
+      "text": "Refresh"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/spot/page.tsx",
+      "line": 282,
+      "kind": "jsx",
+      "text": "Estimated total"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/spot/page.tsx",
+      "line": 296,
+      "kind": "jsx",
+      "text": "Available"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/spot/page.tsx",
+      "line": 297,
+      "kind": "jsx",
+      "text": "Free for new orders"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/spot/page.tsx",
+      "line": 310,
+      "kind": "jsx",
+      "text": "In open orders"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/spot/page.tsx",
+      "line": 311,
+      "kind": "jsx",
+      "text": "Locked margin"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/spot/page.tsx",
+      "line": 336,
+      "kind": "attr",
+      "text": "Search coin…"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/spot/page.tsx",
+      "line": 344,
+      "kind": "attr",
+      "text": "Clear search"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/spot/page.tsx",
+      "line": 411,
+      "kind": "jsx",
+      "text": "No matching assets"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/wallet/spot/page.tsx",
+      "line": 423,
+      "kind": "attr",
+      "text": "No spot balances yet"
+    },
+    {
+      "file": "apps/frontend/src/app/error.tsx",
+      "line": 24,
+      "kind": "jsx",
+      "text": "Something went wrong"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/funds/page.tsx",
+      "line": 73,
+      "kind": "jsx",
+      "text": "Forex Demo"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/funds/page.tsx",
+      "line": 74,
+      "kind": "jsx",
+      "text": "Claim simulated demo funds"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/funds/page.tsx",
+      "line": 116,
+      "kind": "jsx",
+      "text": "Real funding rails"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/funds/page.tsx",
+      "line": 117,
+      "kind": "jsx",
+      "text": "Unavailable"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/funds/page.tsx",
+      "line": 126,
+      "kind": "jsx",
+      "text": "Account activity"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/funds/page.tsx",
+      "line": 128,
+      "kind": "jsx",
+      "text": "No Forex account activity yet. Claim demo funds to begin."
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/funds/page.tsx",
+      "line": 134,
+      "kind": "jsx",
+      "text": "Time"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/funds/page.tsx",
+      "line": 135,
+      "kind": "jsx",
+      "text": "Type"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/funds/page.tsx",
+      "line": 136,
+      "kind": "jsx",
+      "text": "Debit"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/funds/page.tsx",
+      "line": 137,
+      "kind": "jsx",
+      "text": "Credit"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/funds/page.tsx",
+      "line": 138,
+      "kind": "jsx",
+      "text": "Status"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 73,
+      "kind": "jsx",
+      "text": "Type"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 87,
+      "kind": "jsx",
+      "text": "From"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 107,
+      "kind": "jsx",
+      "text": "No Forex account activity."
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 113,
+      "kind": "jsx",
+      "text": "Date/time"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 115,
+      "kind": "jsx",
+      "text": "Reference"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 116,
+      "kind": "jsx",
+      "text": "Debit"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 117,
+      "kind": "jsx",
+      "text": "Credit"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 118,
+      "kind": "jsx",
+      "text": "Net"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 119,
+      "kind": "jsx",
+      "text": "Status"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 120,
+      "kind": "jsx",
+      "text": "Balance before"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 121,
+      "kind": "jsx",
+      "text": "Balance after"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 170,
+      "kind": "jsx",
+      "text": "Opening"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 174,
+      "kind": "jsx",
+      "text": "Deposits / credits"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 178,
+      "kind": "jsx",
+      "text": "Withdrawals"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 186,
+      "kind": "jsx",
+      "text": "Fees"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 190,
+      "kind": "jsx",
+      "text": "Swaps"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 194,
+      "kind": "jsx",
+      "text": "Other"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 198,
+      "kind": "jsx",
+      "text": "Closing / ledger balance"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 211,
+      "kind": "jsx",
+      "text": "Detailed reconciliation unavailable"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 242,
+      "kind": "jsx",
+      "text": "What"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 244,
+      "kind": "jsx",
+      "text": "When"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 252,
+      "kind": "jsx",
+      "text": "Why / status"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 254,
+      "kind": "jsx",
+      "text": "Transaction ID"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 256,
+      "kind": "jsx",
+      "text": "Currency"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 258,
+      "kind": "jsx",
+      "text": "Source"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 260,
+      "kind": "jsx",
+      "text": "Order"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 262,
+      "kind": "jsx",
+      "text": "Fill"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "line": 264,
+      "kind": "jsx",
+      "text": "Position"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/page.tsx",
+      "line": 41,
+      "kind": "attr",
+      "text": "Account totals"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/page.tsx",
+      "line": 55,
+      "kind": "attr",
+      "text": "Performance"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/page.tsx",
+      "line": 62,
+      "kind": "attr",
+      "text": "Trading account identity"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/page.tsx",
+      "line": 63,
+      "kind": "jsx",
+      "text": "Trading account"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/page.tsx",
+      "line": 70,
+      "kind": "jsx",
+      "text": "Mode"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/page.tsx",
+      "line": 85,
+      "kind": "jsx",
+      "text": "Risk"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/page.tsx",
+      "line": 88,
+      "kind": "jsx",
+      "text": "State"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/page.tsx",
+      "line": 92,
+      "kind": "jsx",
+      "text": "Reason"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/page.tsx",
+      "line": 96,
+      "kind": "jsx",
+      "text": "Liquidation lock"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/account/page.tsx",
+      "line": 100,
+      "kind": "jsx",
+      "text": "Calculation"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/analysis/page.tsx",
+      "line": 299,
+      "kind": "attr",
+      "text": "Quick symbols"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/analysis/page.tsx",
+      "line": 450,
+      "kind": "jsx",
+      "text": "Levels"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/analysis/page.tsx",
+      "line": 451,
+      "kind": "jsx",
+      "text": "OHLC-derived"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/analysis/page.tsx",
+      "line": 456,
+      "kind": "jsx",
+      "text": "Wait for chart history."
+    },
+    {
+      "file": "apps/frontend/src/app/forex/analysis/page.tsx",
+      "line": 546,
+      "kind": "jsx",
+      "text": "Ccy"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/analysis/page.tsx",
+      "line": 561,
+      "kind": "jsx",
+      "text": "No calendar events for this filter."
+    },
+    {
+      "file": "apps/frontend/src/app/forex/analysis/page.tsx",
+      "line": 651,
+      "kind": "jsx",
+      "text": "No levels yet — wait for chart history."
+    },
+    {
+      "file": "apps/frontend/src/app/forex/markets/page.tsx",
+      "line": 112,
+      "kind": "attr",
+      "text": "Instrument class"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/markets/page.tsx",
+      "line": 134,
+      "kind": "attr",
+      "text": "Search EUR, XAU…"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/markets/page.tsx",
+      "line": 141,
+      "kind": "attr",
+      "text": "Sort markets"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/markets/page.tsx",
+      "line": 206,
+      "kind": "jsx",
+      "text": "Bid"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/markets/page.tsx",
+      "line": 212,
+      "kind": "jsx",
+      "text": "Ask"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 119,
+      "kind": "jsx",
+      "text": "Action"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 120,
+      "kind": "jsx",
+      "text": "Time"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 121,
+      "kind": "jsx",
+      "text": "Symbol"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 122,
+      "kind": "jsx",
+      "text": "Side"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 123,
+      "kind": "jsx",
+      "text": "Type"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 124,
+      "kind": "jsx",
+      "text": "Volume"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 125,
+      "kind": "jsx",
+      "text": "Price"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 126,
+      "kind": "jsx",
+      "text": "Status"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 127,
+      "kind": "jsx",
+      "text": "Order ID"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 218,
+      "kind": "attr",
+      "text": "Modify volume"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 230,
+      "kind": "attr",
+      "text": "Modify price"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 247,
+      "kind": "jsx",
+      "text": "Fills"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 249,
+      "kind": "jsx",
+      "text": "No Forex executions yet."
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 259,
+      "kind": "jsx",
+      "text": "Fill ID"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 286,
+      "kind": "jsx",
+      "text": "Order detail"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 294,
+      "kind": "jsx",
+      "text": "Client order ID"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 298,
+      "kind": "jsx",
+      "text": "Reason"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/orders/page.tsx",
+      "line": 300,
+      "kind": "jsx",
+      "text": "Execution ID"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/portfolio/page.tsx",
+      "line": 61,
+      "kind": "jsx",
+      "text": "No open positions."
+    },
+    {
+      "file": "apps/frontend/src/app/forex/portfolio/page.tsx",
+      "line": 67,
+      "kind": "jsx",
+      "text": "Symbol"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/portfolio/page.tsx",
+      "line": 68,
+      "kind": "jsx",
+      "text": "Side"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/portfolio/page.tsx",
+      "line": 69,
+      "kind": "jsx",
+      "text": "Volume"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/portfolio/page.tsx",
+      "line": 70,
+      "kind": "jsx",
+      "text": "Notional"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/portfolio/page.tsx",
+      "line": 71,
+      "kind": "jsx",
+      "text": "Entry"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/portfolio/page.tsx",
+      "line": 72,
+      "kind": "jsx",
+      "text": "Current"
+    },
+    {
+      "file": "apps/frontend/src/app/forex/portfolio/page.tsx",
+      "line": 74,
+      "kind": "jsx",
+      "text": "Margin"
+    },
+    {
+      "file": "apps/frontend/src/app/not-found.tsx",
+      "line": 17,
+      "kind": "jsx",
+      "text": "Error"
+    },
+    {
+      "file": "apps/frontend/src/app/not-found.tsx",
+      "line": 19,
+      "kind": "jsx",
+      "text": "Page not found"
+    },
+    {
+      "file": "apps/frontend/src/app/not-found.tsx",
+      "line": 41,
+      "kind": "jsx",
+      "text": "Popular pages"
+    },
+    {
+      "file": "apps/frontend/src/app/p2p/[type]/[crypto]/[fiat]/page.tsx",
+      "line": 17,
+      "kind": "jsx",
+      "text": "Redirecting to P2P..."
+    },
+    {
+      "file": "apps/frontend/src/app/p2p/error.tsx",
+      "line": 15,
+      "kind": "attr",
+      "text": "P2P section failed to load"
+    },
+    {
+      "file": "apps/frontend/src/app/p2p-v2/merchant-dashboard/page.tsx",
+      "line": 75,
+      "kind": "jsx",
+      "text": "Merchant dashboard"
+    },
+    {
+      "file": "apps/frontend/src/app/p2p-v2/merchant-dashboard/page.tsx",
+      "line": 106,
+      "kind": "jsx",
+      "text": "Progress vs target"
+    },
+    {
+      "file": "apps/frontend/src/app/p2p-v2/merchant-dashboard/page.tsx",
+      "line": 131,
+      "kind": "jsx",
+      "text": "Approx. fiat volume"
+    },
+    {
+      "file": "apps/frontend/src/app/p2p-v2/merchant-dashboard/page.tsx",
+      "line": 132,
+      "kind": "jsx",
+      "text": "Sum of fiat from completed orders in the list loaded for this page."
+    },
+    {
+      "file": "apps/frontend/src/app/p2p-v2/merchant-dashboard/page.tsx",
+      "line": 155,
+      "kind": "jsx",
+      "text": "Manage ads"
+    },
+    {
+      "file": "apps/frontend/src/app/p2p-v2/merchant-dashboard/page.tsx",
+      "line": 156,
+      "kind": "jsx",
+      "text": "Edit, pause, or create listings"
+    },
+    {
+      "file": "apps/frontend/src/app/p2p-v2/merchant-dashboard/page.tsx",
+      "line": 170,
+      "kind": "jsx",
+      "text": "View orders"
+    },
+    {
+      "file": "apps/frontend/src/app/p2p-v2/merchant-dashboard/page.tsx",
+      "line": 171,
+      "kind": "jsx",
+      "text": "Track every P2P transaction"
+    },
+    {
+      "file": "apps/frontend/src/app/trade/error.tsx",
+      "line": 15,
+      "kind": "attr",
+      "text": "Trading view failed to load"
+    },
+    {
+      "file": "apps/frontend/src/app/trade/spot/page.tsx",
+      "line": 20,
+      "kind": "attr",
+      "text": "Loading"
+    },
+    {
+      "file": "apps/frontend/src/app/wallet/error.tsx",
+      "line": 15,
+      "kind": "attr",
+      "text": "Wallet section failed to load"
+    },
+    {
+      "file": "apps/frontend/src/components/RequireAuth.tsx",
+      "line": 50,
+      "kind": "jsx",
+      "text": "Account access is restricted"
+    },
+    {
+      "file": "apps/frontend/src/components/ThemeToggle.tsx",
+      "line": 56,
+      "kind": "attr",
+      "text": "Change theme"
+    },
+    {
+      "file": "apps/frontend/src/components/ThemeToggle.tsx",
+      "line": 110,
+      "kind": "jsx",
+      "text": "Light Mode"
+    },
+    {
+      "file": "apps/frontend/src/components/ThemeToggle.tsx",
+      "line": 115,
+      "kind": "jsx",
+      "text": "Dark Mode"
+    },
+    {
+      "file": "apps/frontend/src/components/TransferModal.tsx",
+      "line": 205,
+      "kind": "jsx",
+      "text": "Transfer"
+    },
+    {
+      "file": "apps/frontend/src/components/TransferModal.tsx",
+      "line": 220,
+      "kind": "jsx",
+      "text": "From"
+    },
+    {
+      "file": "apps/frontend/src/components/TransferModal.tsx",
+      "line": 325,
+      "kind": "jsx",
+      "text": "Coin"
+    },
+    {
+      "file": "apps/frontend/src/components/TransferModal.tsx",
+      "line": 342,
+      "kind": "jsx",
+      "text": "Select coin"
+    },
+    {
+      "file": "apps/frontend/src/components/TransferModal.tsx",
+      "line": 356,
+      "kind": "attr",
+      "text": "Search coin..."
+    },
+    {
+      "file": "apps/frontend/src/components/TransferModal.tsx",
+      "line": 368,
+      "kind": "jsx",
+      "text": "Loading..."
+    },
+    {
+      "file": "apps/frontend/src/components/TransferModal.tsx",
+      "line": 371,
+      "kind": "jsx",
+      "text": "No coins found"
+    },
+    {
+      "file": "apps/frontend/src/components/TransferModal.tsx",
+      "line": 408,
+      "kind": "jsx",
+      "text": "Transferable Amount"
+    },
+    {
+      "file": "apps/frontend/src/components/TransferModal.tsx",
+      "line": 428,
+      "kind": "attr",
+      "text": "Enter amount"
+    },
+    {
+      "file": "apps/frontend/src/components/TransferModal.tsx",
+      "line": 456,
+      "kind": "jsx",
+      "text": "Transfer successful!"
+    },
+    {
+      "file": "apps/frontend/src/components/api/APIPermissionSummary.tsx",
+      "line": 44,
+      "kind": "jsx",
+      "text": "Permission Summary"
+    },
+    {
+      "file": "apps/frontend/src/components/api/APIPermissionSummary.tsx",
+      "line": 49,
+      "kind": "jsx",
+      "text": "Key name"
+    },
+    {
+      "file": "apps/frontend/src/components/api/APIPermissionSummary.tsx",
+      "line": 58,
+      "kind": "jsx",
+      "text": "Permissions"
+    },
+    {
+      "file": "apps/frontend/src/components/api/APIPermissionSummary.tsx",
+      "line": 84,
+      "kind": "jsx",
+      "text": "IP restrictions"
+    },
+    {
+      "file": "apps/frontend/src/components/api/APIPermissionSummary.tsx",
+      "line": 97,
+      "kind": "jsx",
+      "text": "Withdrawal access"
+    },
+    {
+      "file": "apps/frontend/src/components/api/APIUsageStats.tsx",
+      "line": 26,
+      "kind": "jsx",
+      "text": "API Usage"
+    },
+    {
+      "file": "apps/frontend/src/components/api/APIUsageStats.tsx",
+      "line": 49,
+      "kind": "jsx",
+      "text": "Requests today"
+    },
+    {
+      "file": "apps/frontend/src/components/api/APIUsageStats.tsx",
+      "line": 58,
+      "kind": "jsx",
+      "text": "Errors"
+    },
+    {
+      "file": "apps/frontend/src/components/api/APIUsageStats.tsx",
+      "line": 69,
+      "kind": "jsx",
+      "text": "Rate limit usage"
+    },
+    {
+      "file": "apps/frontend/src/components/assets/AssetPerformanceTable.tsx",
+      "line": 37,
+      "kind": "jsx",
+      "text": "Asset"
+    },
+    {
+      "file": "apps/frontend/src/components/assets/AssetPerformanceTable.tsx",
+      "line": 38,
+      "kind": "jsx",
+      "text": "Balance"
+    },
+    {
+      "file": "apps/frontend/src/components/assets/AssetPerformanceTable.tsx",
+      "line": 40,
+      "kind": "jsx",
+      "text": "Value"
+    },
+    {
+      "file": "apps/frontend/src/components/assets/AssetPerformanceTable.tsx",
+      "line": 47,
+      "kind": "jsx",
+      "text": "No assets"
+    },
+    {
+      "file": "apps/frontend/src/components/assets/PortfolioAllocationChart.tsx",
+      "line": 70,
+      "kind": "jsx",
+      "text": "Portfolio Allocation"
+    },
+    {
+      "file": "apps/frontend/src/components/assets/PortfolioAllocationChart.tsx",
+      "line": 74,
+      "kind": "jsx",
+      "text": "No assets"
+    },
+    {
+      "file": "apps/frontend/src/components/assets/PortfolioAllocationChart.tsx",
+      "line": 76,
+      "kind": "jsx",
+      "text": "Deposit to see allocation"
+    },
+    {
+      "file": "apps/frontend/src/components/auth/AuthSplitLayout.tsx",
+      "line": 85,
+      "kind": "jsx",
+      "text": "Cookie Policy"
+    },
+    {
+      "file": "apps/frontend/src/components/auth/LanguageSelector.tsx",
+      "line": 47,
+      "kind": "attr",
+      "text": "Select language"
+    },
+    {
+      "file": "apps/frontend/src/components/dashboard/DashboardPageShell.tsx",
+      "line": 38,
+      "kind": "attr",
+      "text": "Breadcrumb"
+    },
+    {
+      "file": "apps/frontend/src/components/dashboard/DashboardPageShell.tsx",
+      "line": 44,
+      "kind": "jsx",
+      "text": "Home"
+    },
+    {
+      "file": "apps/frontend/src/components/forex/ForexAccountSwitcher.tsx",
+      "line": 60,
+      "kind": "attr",
+      "text": "Active Forex account"
+    },
+    {
+      "file": "apps/frontend/src/components/forex/ForexChartFoundation.tsx",
+      "line": 1155,
+      "kind": "jsx",
+      "text": "Calendar"
+    },
+    {
+      "file": "apps/frontend/src/components/forex/ForexChartFoundation.tsx",
+      "line": 1208,
+      "kind": "jsx",
+      "text": "Historical data unavailable"
+    },
+    {
+      "file": "apps/frontend/src/components/forex/ForexChartWorkspace.tsx",
+      "line": 40,
+      "kind": "jsx",
+      "text": "Workspace"
+    },
+    {
+      "file": "apps/frontend/src/components/forex/ForexChartWorkspace.tsx",
+      "line": 99,
+      "kind": "attr",
+      "text": "Link group — symbol sync; timeframe sync optional via Charts menu"
+    },
+    {
+      "file": "apps/frontend/src/components/forex/ForexLightweightChart.tsx",
+      "line": 1119,
+      "kind": "attr",
+      "text": "Forex chart"
+    },
+    {
+      "file": "apps/frontend/src/components/forex/ForexRiskTools.tsx",
+      "line": 62,
+      "kind": "jsx",
+      "text": "Pip / R:R calculator"
+    },
+    {
+      "file": "apps/frontend/src/components/forex/ForexRiskTools.tsx",
+      "line": 81,
+      "kind": "jsx",
+      "text": "Sign in with a funded SIM account to estimate lots from equity."
+    },
+    {
+      "file": "apps/frontend/src/components/forex/ForexRiskTools.tsx",
+      "line": 83,
+      "kind": "jsx",
+      "text": "Instrument pip/contract spec unavailable."
+    },
+    {
+      "file": "apps/frontend/src/components/forex/ForexRiskTools.tsx",
+      "line": 89,
+      "kind": "jsx",
+      "text": "Need a valid stop distance."
+    },
+    {
+      "file": "apps/frontend/src/components/forex/ForexWorkspaceSwitch.tsx",
+      "line": 23,
+      "kind": "jsx",
+      "text": "Profile"
+    },
+    {
+      "file": "apps/frontend/src/components/forex/HomeForexProductPair.tsx",
+      "line": 17,
+      "kind": "jsx",
+      "text": "Products"
+    },
+    {
+      "file": "apps/frontend/src/components/forex/HomeForexProductPair.tsx",
+      "line": 26,
+      "kind": "jsx",
+      "text": "Crypto"
+    },
+    {
+      "file": "apps/frontend/src/components/forex/HomeForexProductPair.tsx",
+      "line": 27,
+      "kind": "jsx",
+      "text": "Crypto Spot"
+    },
+    {
+      "file": "apps/frontend/src/components/forex/HomeForexProductPair.tsx",
+      "line": 28,
+      "kind": "jsx",
+      "text": "Trade crypto spot markets."
+    },
+    {
+      "file": "apps/frontend/src/components/forex/HomeForexProductPair.tsx",
+      "line": 37,
+      "kind": "jsx",
+      "text": "Forex"
+    },
+    {
+      "file": "apps/frontend/src/components/forex/HomeForexProductPair.tsx",
+      "line": 39,
+      "kind": "jsx",
+      "text": "Trade global FX markets."
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PFilters.tsx",
+      "line": 64,
+      "kind": "jsx",
+      "text": "Fiat"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PFilters.tsx",
+      "line": 76,
+      "kind": "jsx",
+      "text": "Crypto"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PFilters.tsx",
+      "line": 88,
+      "kind": "jsx",
+      "text": "Payment"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PFilters.tsx",
+      "line": 100,
+      "kind": "jsx",
+      "text": "Amount"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PMerchantTable.tsx",
+      "line": 36,
+      "kind": "jsx",
+      "text": "Merchant"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PMerchantTable.tsx",
+      "line": 37,
+      "kind": "jsx",
+      "text": "Price"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PMerchantTable.tsx",
+      "line": 38,
+      "kind": "jsx",
+      "text": "Available"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PMerchantTable.tsx",
+      "line": 39,
+      "kind": "jsx",
+      "text": "Limit"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PMerchantTable.tsx",
+      "line": 40,
+      "kind": "jsx",
+      "text": "Payment"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PMerchantTable.tsx",
+      "line": 41,
+      "kind": "jsx",
+      "text": "Action"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PTradeWindow.tsx",
+      "line": 49,
+      "kind": "attr",
+      "text": "Close"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PTradeWindow.tsx",
+      "line": 65,
+      "kind": "jsx",
+      "text": "Merchant"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PTradeWindow.tsx",
+      "line": 83,
+      "kind": "jsx",
+      "text": "Price"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PTradeWindow.tsx",
+      "line": 87,
+      "kind": "jsx",
+      "text": "Limit"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PTradeWindow.tsx",
+      "line": 91,
+      "kind": "jsx",
+      "text": "Payment methods"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PTradeWindow.tsx",
+      "line": 96,
+      "kind": "jsx",
+      "text": "Time remaining"
+    },
+    {
+      "file": "apps/frontend/src/components/p2p/P2PTradeWindow.tsx",
+      "line": 111,
+      "kind": "attr",
+      "text": "Type a message..."
+    },
+    {
+      "file": "apps/frontend/src/components/referral/ReferralBannerGenerator.tsx",
+      "line": 67,
+      "kind": "attr",
+      "text": "Join & Earn Rewards!"
+    },
+    {
+      "file": "apps/frontend/src/components/referral/ReferralBannerGenerator.tsx",
+      "line": 120,
+      "kind": "jsx",
+      "text": "Banner Generator"
+    },
+    {
+      "file": "apps/frontend/src/components/referral/ReferralBannerGenerator.tsx",
+      "line": 121,
+      "kind": "jsx",
+      "text": "Download referral banners for social sharing"
+    },
+    {
+      "file": "apps/frontend/src/components/referral/ReferralEarningsChart.tsx",
+      "line": 48,
+      "kind": "jsx",
+      "text": "Referral Earnings"
+    },
+    {
+      "file": "apps/frontend/src/components/referral/ReferralEarningsChart.tsx",
+      "line": 49,
+      "kind": "jsx",
+      "text": "Last 30 days"
+    },
+    {
+      "file": "apps/frontend/src/components/referral/ReferralEarningsChart.tsx",
+      "line": 56,
+      "kind": "jsx",
+      "text": "No daily earnings history yet."
+    },
+    {
+      "file": "apps/frontend/src/components/referral/ReferralEarningsChart.tsx",
+      "line": 57,
+      "kind": "jsx",
+      "text": "Totals above reflect your live referral account."
+    },
+    {
+      "file": "apps/frontend/src/components/referral/ReferralFunnel.tsx",
+      "line": 45,
+      "kind": "jsx",
+      "text": "Referral Funnel"
+    },
+    {
+      "file": "apps/frontend/src/components/referral/ReferralFunnel.tsx",
+      "line": 46,
+      "kind": "jsx",
+      "text": "Conversion from clicks to revenue"
+    },
+    {
+      "file": "apps/frontend/src/components/referral/ReferralLeaderboard.tsx",
+      "line": 34,
+      "kind": "jsx",
+      "text": "Referral Leaderboard"
+    },
+    {
+      "file": "apps/frontend/src/components/referral/ReferralLeaderboard.tsx",
+      "line": 35,
+      "kind": "jsx",
+      "text": "Top referrers by total earnings"
+    },
+    {
+      "file": "apps/frontend/src/components/referral/ReferralLeaderboard.tsx",
+      "line": 41,
+      "kind": "jsx",
+      "text": "Rank"
+    },
+    {
+      "file": "apps/frontend/src/components/referral/ReferralLeaderboard.tsx",
+      "line": 42,
+      "kind": "jsx",
+      "text": "User"
+    },
+    {
+      "file": "apps/frontend/src/components/referral/ReferralLeaderboard.tsx",
+      "line": 43,
+      "kind": "jsx",
+      "text": "Total Earnings"
+    },
+    {
+      "file": "apps/frontend/src/components/trade/SpotPositionPanel.tsx",
+      "line": 154,
+      "kind": "jsx",
+      "text": "Unrealized PnL"
+    },
+    {
+      "file": "apps/frontend/src/components/trade/TerminalEmptyState.tsx",
+      "line": 47,
+      "kind": "attr",
+      "text": "Loading"
+    },
+    {
+      "file": "apps/frontend/src/components/trade/chart/indicators/plugins/pluginTypes.ts",
+      "line": 13,
+      "kind": "jsx",
+      "text": "Record"
+    },
+    {
+      "file": "apps/frontend/src/components/trade/chart/useChartAdapter.ts",
+      "line": 232,
+      "kind": "jsx",
+      "text": "from && total"
+    },
+    {
+      "file": "apps/frontend/src/components/ui/ErrorState.tsx",
+      "line": 6,
+      "kind": "attr",
+      "text": "Something went wrong"
+    },
+    {
+      "file": "apps/frontend/src/components/ui/InfoTooltip.tsx",
+      "line": 17,
+      "kind": "attr",
+      "text": "More information"
+    }
+  ]
+}

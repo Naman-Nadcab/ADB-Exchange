@@ -30,6 +30,12 @@ const WALLET_EN_LEAKS = [
   'Cumulative P&L',
   'Best Performer',
   'Worst Performer',
+  'Total Balance',
+  'Transaction History',
+  'Market Info (External)',
+  'Select coin',
+  'Confirm',
+  'Transfer successful',
 ];
 
 const ROUTES = [
@@ -37,6 +43,7 @@ const ROUTES = [
   '/wallet/history',
   '/wallet/funding',
   '/wallet/pnl',
+  '/wallet/USDT',
 ] as const;
 
 test.describe.configure({ mode: 'serial', timeout: 180_000 });
