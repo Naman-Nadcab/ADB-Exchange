@@ -36,8 +36,12 @@ export type ForexProtectionState =
   | 'FILLED'
   | 'CANCELLED'
   | 'FAILED';
-export type ForexOrderType = 'market' | 'limit' | 'stop';
+export type ForexOrderType = 'market' | 'limit' | 'stop' | 'stop_limit';
 export type ForexSide = 'buy' | 'sell';
+/** Backend contract: IOC/FOK are market-only, DAY is pending-only, GTC is universal. */
+export type ForexTimeInForce = 'GTC' | 'IOC' | 'FOK' | 'DAY' | 'GTD';
+export type ForexJournalSeverity = 'info' | 'warn' | 'error';
+export type ForexJournalOrigin = 'SERVER' | 'CLIENT-OBSERVED';
 export type ForexConnectionState =
   | 'CONNECTED'
   | 'CONNECTING'
@@ -143,6 +147,8 @@ export interface ForexTradingConfig {
   source: 'SIMULATED';
   executionMode: 'MOCK';
   orderTypes: ForexOrderType[];
+  /** Absent on backends deployed before Phase A. */
+  timeInForce?: ForexTimeInForce[];
   sessions: ForexSessionSnapshot;
   fees: { global?: unknown; model?: string };
   swaps: { rolloverTime?: string; timezone?: string };
@@ -166,6 +172,7 @@ export interface ForexAccountView {
   marginLevel: string | null;
   unrealizedPnl: string;
   realizedPnl: string;
+  positionMode?: 'NETTING' | 'HEDGING';
   timestamp: string;
   source: 'SIMULATED';
   calculationStatus: string;
@@ -286,6 +293,12 @@ export interface ForexPublicOrder {
   filledVolume: string;
   remainingVolume: string;
   requestedPrice: string | null;
+  /** stop_limit working LIMIT price. Absent on pre-Phase-A backends. */
+  limitPrice?: string | null;
+  timeInForce?: ForexTimeInForce;
+  stopLoss?: string | null;
+  takeProfit?: string | null;
+  comment?: string | null;
   status: ForexOrderState;
   failureReason: string | null;
   executionId: string | null;
@@ -328,6 +341,7 @@ export interface ForexPublicProtection {
   type: ForexProtectionType;
   volume: string;
   triggerPrice: string;
+  trailingDistance?: string | null;
   status: ForexProtectionState;
   lastEvalPrice: string | null;
   lastEvalSource: 'BID' | 'ASK' | null;
@@ -392,14 +406,24 @@ export interface ForexPlaceOrderBody {
   side: ForexSide;
   orderType: ForexOrderType;
   volume: string;
+  /** Pending trigger price. For stop_limit this is the STOP price. */
   requestedPrice?: string;
+  /** stop_limit only: the LIMIT price the order works at once the stop triggers. */
+  limitPrice?: string;
+  timeInForce?: ForexTimeInForce;
+  /** GTD only — UTC ISO-8601 expiry. */
+  expireAt?: string;
   maxSlippage?: string;
   maxDeviation?: string;
+  stopLoss?: string;
+  takeProfit?: string;
+  comment?: string;
 }
 
 /** Pending-order modify — SL/TP fields are audit metadata only (protections are separate). */
 export interface ForexModifyOrderBody {
   requestedPrice?: string;
+  limitPrice?: string;
   volume?: string;
   stopLoss?: string;
   takeProfit?: string;
@@ -424,12 +448,69 @@ export interface ForexClosePositionResult {
   position: ForexPublicPosition | null;
 }
 
+export interface ForexCloseByBody {
+  clientCloseById: string;
+  positionIdA: string;
+  positionIdB: string;
+  volume?: string;
+  expectedVersionA?: number;
+  expectedVersionB?: number;
+}
+
+export interface ForexCloseByResult {
+  source: string;
+  executionMode: string;
+  mode: 'HEDGING';
+  matchedVolume: string;
+  positionA: ForexPublicPosition | null;
+  positionB: ForexPublicPosition | null;
+  orderA: ForexPublicOrder;
+  orderB: ForexPublicOrder;
+}
+
+export interface ForexReverseBody {
+  clientReverseId: string;
+  expectedVersion?: number;
+}
+
+export interface ForexReverseResult {
+  source: string;
+  executionMode: string;
+  mode: 'NETTING' | 'HEDGING';
+  closedVolume: string;
+  openedVolume: string;
+  previousSide: 'long' | 'short';
+  newSide: 'long' | 'short';
+  previousPosition: ForexPublicPosition | null;
+  position: ForexPublicPosition | null;
+  closeOrder: ForexPublicOrder | null;
+  openOrder: ForexPublicOrder;
+}
+
 export interface ForexCreateProtectionBody {
   clientProtectionId: string;
   positionId: string;
   type: ForexProtectionType;
   triggerPrice: string;
   volume?: string;
+  trailingDistance?: string;
+}
+
+/** Append-only server journal row. Never carries credentials or raw payloads. */
+export interface ForexServerJournalEvent {
+  id: string;
+  severity: ForexJournalSeverity;
+  category: string;
+  eventType: string;
+  orderId: string | null;
+  positionId: string | null;
+  referenceId: string | null;
+  message: string;
+  metadata: Record<string, string | number | boolean | null>;
+  timestamp: string;
+  source: string;
+  executionMode: string;
+  origin: 'SERVER';
 }
 
 export const FOREX_SESSION_NAMES: ForexSessionName[] = ['Sydney', 'Tokyo', 'London', 'New York'];

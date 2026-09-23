@@ -125,7 +125,10 @@ export function positionPanelStatus(args: {
   openCount: number;
   lastHydratedAt: number | null;
   now?: number;
+  /** Auth persist rehydration in flight — must not render the sign-in prompt yet. */
+  sessionResolving?: boolean;
 }): ForexPositionPanelStatus {
+  if (!args.authed && args.sessionResolving) return 'LOADING';
   if (!args.authed) return 'SIGNED_OUT';
   if (args.hydratePhase === 'hydrating' || args.hydratePhase === 'idle') return 'LOADING';
   if (args.hydratePhase === 'error' && args.hydrateError) return 'ERROR';

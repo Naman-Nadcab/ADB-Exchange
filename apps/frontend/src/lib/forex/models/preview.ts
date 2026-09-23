@@ -1,5 +1,6 @@
 import { describeForexError, normalizeForexError } from './errors';
-import type { ForexError, ForexOrderType, ForexSide } from './types';
+import { requiresLimitPrice, requiresTriggerPrice } from './order-type-tif';
+import type { ForexError, ForexOrderType, ForexSide, ForexTimeInForce } from './types';
 
 export type ForexPreviewUiStatus = 'IDLE' | 'LOADING' | 'READY' | 'BLOCKED' | 'STALE' | 'ERROR';
 
@@ -9,6 +10,9 @@ export interface ForexPreviewRequest {
   orderType: ForexOrderType;
   volume: string;
   requestedPrice?: string;
+  /** stop_limit only — the LIMIT price the order works at after the stop triggers. */
+  limitPrice?: string;
+  timeInForce?: ForexTimeInForce;
 }
 
 export interface ForexPreviewResponse {
@@ -54,7 +58,15 @@ export interface ForexPreviewView {
 }
 
 export function previewRequestKey(req: ForexPreviewRequest): string {
-  return [req.symbol, req.side, req.orderType, req.volume, req.requestedPrice ?? ''].join('|');
+  return [
+    req.symbol,
+    req.side,
+    req.orderType,
+    req.volume,
+    req.requestedPrice ?? '',
+    req.limitPrice ?? '',
+    req.timeInForce ?? '',
+  ].join('|');
 }
 
 export function isStalePreviewRequest(
@@ -66,7 +78,8 @@ export function isStalePreviewRequest(
 
 export function isPreviewParamComplete(req: ForexPreviewRequest): boolean {
   if (!req.symbol || !req.volume.trim()) return false;
-  if ((req.orderType === 'limit' || req.orderType === 'stop') && !req.requestedPrice?.trim()) return false;
+  if (requiresTriggerPrice(req.orderType) && !req.requestedPrice?.trim()) return false;
+  if (requiresLimitPrice(req.orderType) && !req.limitPrice?.trim()) return false;
   return true;
 }
 
@@ -127,7 +140,10 @@ export function interpretForexPreviewResult(args: {
     executionMode: String(raw.executionMode ?? 'MOCK'),
     symbol: String(raw.symbol ?? args.request.symbol),
     side: raw.side === 'sell' ? 'sell' : 'buy',
-    orderType: raw.orderType === 'limit' ? 'limit' : raw.orderType === 'stop' ? 'stop' : 'market',
+    orderType:
+      raw.orderType === 'limit' || raw.orderType === 'stop' || raw.orderType === 'stop_limit'
+        ? raw.orderType
+        : 'market',
     volume: String(raw.volume ?? args.request.volume),
     riskState: raw.riskState,
     direction: raw.direction,

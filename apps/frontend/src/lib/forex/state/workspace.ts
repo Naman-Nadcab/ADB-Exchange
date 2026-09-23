@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { ForexWorkspaceId } from '../models/types';
+import type { ForexOrderType, ForexWorkspaceId } from '../models/types';
 
 const STORAGE_KEY = 'eda-forex-workspace-v5';
 const LEGACY_KEY = 'eda-forex-workspace-v4';
@@ -16,7 +16,10 @@ export type ForexBottomTab =
   | 'fills'
   | 'history'
   | 'risk'
+  | 'analytics'
+  | 'alerts'
   | 'dom'
+  | 'tape'
   | 'news'
   | 'calendar'
   | 'journal';
@@ -103,11 +106,12 @@ export interface ForexWorkspaceState {
   ticketDraft: {
     nonce: number;
     price?: string;
+    limitPrice?: string;
     sl?: string;
     tp?: string;
     volume?: string;
     side?: 'buy' | 'sell';
-    orderType?: 'market' | 'limit' | 'stop';
+    orderType?: ForexOrderType;
   } | null;
   setWorkspace: (w: ForexWorkspaceId) => void;
   setSelectedSymbol: (symbol: string) => void;

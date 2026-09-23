@@ -54,8 +54,80 @@ export function useForexPositionActions() {
     }
   }, [rehydrate]);
 
+  const closeBy = useCallback(
+    async (positionA: ForexPublicPosition, positionB: ForexPublicPosition, volume?: string) => {
+      const lockKey = `cb:${positionA.positionId}:${positionB.positionId}`;
+      if (closeLock.current[lockKey]) return;
+      closeLock.current[lockKey] = true;
+      setPendingClose((s) => ({ ...s, [positionA.positionId]: true, [positionB.positionId]: true }));
+      setActionError(null);
+      try {
+        const res = await forexApi.closeBy({
+          clientCloseById: clientKey('cb', `${positionA.positionId.slice(0, 6)}${positionB.positionId.slice(0, 6)}`),
+          positionIdA: positionA.positionId,
+          positionIdB: positionB.positionId,
+          volume,
+          expectedVersionA: positionA.version,
+          expectedVersionB: positionB.version,
+        });
+        const u = unwrap(res);
+        if (!u.ok) {
+          setActionError(interpretCloseError(u.error));
+        }
+        await rehydrate();
+      } catch (e) {
+        setActionError(interpretCloseError(normalizeForexError(e, 'Close By failed')));
+        await rehydrate();
+      } finally {
+        closeLock.current[lockKey] = false;
+        setPendingClose((s) => {
+          const next = { ...s };
+          delete next[positionA.positionId];
+          delete next[positionB.positionId];
+          return next;
+        });
+      }
+    },
+    [rehydrate]
+  );
+
+  const reversePosition = useCallback(
+    async (position: ForexPublicPosition) => {
+      if (closeLock.current[position.positionId]) return;
+      closeLock.current[position.positionId] = true;
+      setPendingClose((s) => ({ ...s, [position.positionId]: true }));
+      setActionError(null);
+      try {
+        const res = await forexApi.reversePosition(position.positionId, {
+          clientReverseId: clientKey('rev', position.positionId),
+          expectedVersion: position.version,
+        });
+        const u = unwrap(res);
+        if (!u.ok) {
+          setActionError(interpretCloseError(u.error));
+        }
+        await rehydrate();
+      } catch (e) {
+        setActionError(interpretCloseError(normalizeForexError(e, 'Reverse failed')));
+        await rehydrate();
+      } finally {
+        closeLock.current[position.positionId] = false;
+        setPendingClose((s) => {
+          const next = { ...s };
+          delete next[position.positionId];
+          return next;
+        });
+      }
+    },
+    [rehydrate]
+  );
+
   const createProtection = useCallback(
-    async (position: ForexPublicPosition, type: ForexProtectionType, triggerPrice: string) => {
+    async (
+      position: ForexPublicPosition,
+      type: ForexProtectionType,
+      triggerPrice: string
+    ): Promise<boolean> => {
       const key = `${position.positionId}:${type}`;
       const gen = ++protGen.current;
       setPendingProtection((s) => ({ ...s, [key]: true }));
@@ -67,16 +139,18 @@ export function useForexPositionActions() {
           type,
           triggerPrice: triggerPrice.trim(),
         });
-        if (gen !== protGen.current) return;
+        if (gen !== protGen.current) return false;
         const u = unwrap(res);
         if (!u.ok) {
           setActionError({ ...u.error, message: describeForexError(u.error) });
         }
         await rehydrate();
+        return u.ok;
       } catch (e) {
-        if (gen !== protGen.current) return;
+        if (gen !== protGen.current) return false;
         setActionError(normalizeForexError(e, 'Protection create failed'));
         await rehydrate();
+        return false;
       } finally {
         if (gen === protGen.current) {
           setPendingProtection((s) => {
@@ -121,13 +195,71 @@ export function useForexPositionActions() {
     [rehydrate]
   );
 
+  const setTrailing = useCallback(
+    async (position: ForexPublicPosition, distance: string | null, existingSlId?: string | null) => {
+      const key = `${position.positionId}:STOP_LOSS`;
+      const gen = ++protGen.current;
+      setPendingProtection((s) => ({ ...s, [key]: true }));
+      setActionError(null);
+      try {
+        if (distance == null || !distance.trim()) {
+          if (existingSlId) {
+            const res = await forexApi.updateProtection(existingSlId, { trailingDistance: null });
+            const u = unwrap(res);
+            if (!u.ok) setActionError({ ...u.error, message: describeForexError(u.error) });
+          }
+          await rehydrate();
+          return;
+        }
+        const quote = (await import('../state/store')).useForexStore.getState().quotes[position.symbol];
+        const mark = position.side === 'long' ? quote?.bid : quote?.ask;
+        if (existingSlId) {
+          const res = await forexApi.updateProtection(existingSlId, { trailingDistance: distance.trim() });
+          const u = unwrap(res);
+          if (!u.ok) setActionError({ ...u.error, message: describeForexError(u.error) });
+        } else if (mark) {
+          const dist = Number(distance);
+          const base = Number(mark);
+          const trigger =
+            position.side === 'long' ? String(base - dist) : String(base + dist);
+          const res = await forexApi.createProtection({
+            clientProtectionId: clientKey('trail', position.positionId),
+            positionId: position.positionId,
+            type: 'STOP_LOSS',
+            triggerPrice: trigger,
+            trailingDistance: distance.trim(),
+          });
+          const u = unwrap(res);
+          if (!u.ok) setActionError({ ...u.error, message: describeForexError(u.error) });
+        } else {
+          setActionError({ code: 'PRICE_UNAVAILABLE', message: 'Quote unavailable for trailing stop' });
+        }
+        if (gen !== protGen.current) return;
+        await rehydrate();
+      } catch (e) {
+        if (gen !== protGen.current) return;
+        setActionError(normalizeForexError(e, 'Trailing stop failed'));
+        await rehydrate();
+      } finally {
+        if (gen === protGen.current) {
+          setPendingProtection((s) => {
+            const next = { ...s };
+            delete next[key];
+            return next;
+          });
+        }
+      }
+    },
+    [rehydrate]
+  );
+
   const updateProtection = useCallback(
     async (
       position: ForexPublicPosition,
       type: ForexProtectionType,
       existingId: string | null,
       triggerPrice: string
-    ) => {
+    ): Promise<boolean> => {
       const key = `${position.positionId}:${type}`;
       const gen = ++protGen.current;
       setPendingProtection((s) => ({ ...s, [key]: true }));
@@ -141,7 +273,7 @@ export function useForexPositionActions() {
               setActionError({ ...du.error, message: describeForexError(du.error) });
             }
             await rehydrate();
-            return;
+            return false;
           }
         }
         const created = await forexApi.createProtection({
@@ -152,7 +284,7 @@ export function useForexPositionActions() {
         });
         if (gen !== protGen.current) {
           await rehydrate();
-          return;
+          return false;
         }
         const cu = unwrap(created);
         if (!cu.ok) {
@@ -162,10 +294,12 @@ export function useForexPositionActions() {
           });
         }
         await rehydrate();
+        return cu.ok;
       } catch (e) {
-        if (gen !== protGen.current) return;
+        if (gen !== protGen.current) return false;
         setActionError(normalizeForexError(e, 'Protection update failed'));
         await rehydrate();
+        return false;
       } finally {
         if (gen === protGen.current) {
           setPendingProtection((s) => {
@@ -184,9 +318,12 @@ export function useForexPositionActions() {
     pendingProtection,
     actionError,
     closePosition,
+    closeBy,
+    reversePosition,
     createProtection,
     removeProtection,
     updateProtection,
+    setTrailing,
     rehydrate,
   };
 }

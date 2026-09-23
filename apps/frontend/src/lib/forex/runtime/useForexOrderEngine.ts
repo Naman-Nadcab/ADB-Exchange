@@ -3,13 +3,16 @@
 import { useCallback, useRef, useState } from 'react';
 import { forexApi, unwrap } from '../api/client';
 import { describeForexError, normalizeForexError } from '../models/errors';
+import { requiresLimitPrice, requiresTriggerPrice } from '../models/order-type-tif';
 import type {
   ForexError,
   ForexModifyOrderBody,
   ForexOrderType,
+  ForexPlaceOrderBody,
   ForexPublicOrder,
   ForexPublicPosition,
   ForexSide,
+  ForexTimeInForce,
 } from '../models/types';
 import { useForexStore } from '../state/store';
 import { generateClientOrderId } from './client-id';
@@ -20,7 +23,14 @@ export type PlaceOrderInput = {
   side: ForexSide;
   orderType: ForexOrderType;
   volume: string;
+  /** Pending trigger price. For stop_limit this is the STOP price. */
   requestedPrice?: string;
+  /** stop_limit only — the LIMIT price the order works at after the stop triggers. */
+  limitPrice?: string;
+  /** Omitted means the server default (GTC). */
+  timeInForce?: ForexTimeInForce;
+  /** GTD only — UTC ISO-8601 expiry. */
+  expireAt?: string;
   /** Applied via /protections after fill when an open position exists. */
   stopLoss?: string;
   takeProfit?: string;
@@ -70,7 +80,7 @@ async function attachProtections(
 /**
  * Single order engine for ticket / chart / market watch.
  * Backend-authoritative: place → hydrate → optional post-fill protections.
- * Supported types only: market | limit | stop (no stop-limit).
+ * Supported types: market | limit | stop | stop_limit.
  */
 export function useForexOrderEngine() {
   const [busy, setBusy] = useState(false);
@@ -90,15 +100,22 @@ export function useForexOrderEngine() {
     store.setLastError(null);
     try {
       const clientOrderId = generateClientOrderId('fx');
-      const body = {
+      const body: ForexPlaceOrderBody = {
         clientOrderId,
         symbol: input.symbol,
         side: input.side,
         orderType: input.orderType,
         volume: input.volume,
-        ...(input.orderType !== 'market' && input.requestedPrice?.trim()
+        ...(requiresTriggerPrice(input.orderType) && input.requestedPrice?.trim()
           ? { requestedPrice: input.requestedPrice.trim() }
           : {}),
+        ...(requiresLimitPrice(input.orderType) && input.limitPrice?.trim()
+          ? { limitPrice: input.limitPrice.trim() }
+          : {}),
+        ...(input.timeInForce ? { timeInForce: input.timeInForce } : {}),
+        ...(input.expireAt?.trim() ? { expireAt: input.expireAt.trim() } : {}),
+        ...(input.stopLoss?.trim() ? { stopLoss: input.stopLoss.trim() } : {}),
+        ...(input.takeProfit?.trim() ? { takeProfit: input.takeProfit.trim() } : {}),
       };
       const res = await forexApi.placeOrder(body);
       const u = unwrap(res);
