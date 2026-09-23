@@ -23,6 +23,7 @@ interface SearchResult {
 
 export function GlobalSearch({ accessToken, className = '' }: GlobalSearchProps) {
   const tg = useTranslations('common.globalSearch');
+  const tr = useTranslations('common.searchResult');
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -47,7 +48,7 @@ export function GlobalSearch({ accessToken, className = '' }: GlobalSearchProps)
         type: 'market' as const,
         label: `${t.base_asset}/${t.quote_asset ?? 'USDT'}`,
         href: `${SPOT_TRADE_HREF}?symbol=${(t.symbol || t.base_asset + '_USDT').replace(/-/g, '_')}`,
-        subtitle: 'Spot market',
+        subtitle: tr('spotMarket'),
       }));
   }, []);
 
@@ -74,7 +75,7 @@ export function GlobalSearch({ accessToken, className = '' }: GlobalSearchProps)
           type: 'asset' as const,
           label: a,
           href: WALLET_HREF,
-          subtitle: 'Asset',
+          subtitle: tr('asset'),
         }));
       all.push(...assets);
       const helpTerms = ['deposit', 'withdraw', 'kyc', '2fa', 'api', 'p2p', 'fee', 'security', 'transfer'];
@@ -84,7 +85,7 @@ export function GlobalSearch({ accessToken, className = '' }: GlobalSearchProps)
           type: 'help' as const,
           label: `Help: ${h}`,
           href: `${ROUTES.dashboard.help}?q=${encodeURIComponent(h)}`,
-          subtitle: 'Help article',
+          subtitle: tr('helpArticle'),
         })
       );
       setResults(all);

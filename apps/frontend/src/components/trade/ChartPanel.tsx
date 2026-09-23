@@ -976,7 +976,7 @@ function ChartPanelInner({
                   className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"
                   aria-hidden
                 />
-                <span className="text-xs text-muted-foreground">Loading chart…</span>
+                <span className="text-xs text-muted-foreground">{t('chartPanel.loadingChart')}</span>
               </div>
             </div>
           )}

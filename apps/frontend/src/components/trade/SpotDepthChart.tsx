@@ -101,7 +101,7 @@ export function SpotDepthChart({ bids, asks, height, className }: SpotDepthChart
           {t('depthChart.waitingOrderbook')}
         </div>
       ) : (
-      <svg viewBox={`0 0 100 ${viewBoxHeight}`} className="h-full min-h-[120px] w-full" preserveAspectRatio="none" aria-label="Orderbook depth chart">
+      <svg viewBox={`0 0 100 ${viewBoxHeight}`} className="h-full min-h-[120px] w-full" preserveAspectRatio="none" aria-label={t('chartPanel.depthChartAria')}>
         <defs>
           <linearGradient id={bidGradId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="rgb(34, 197, 94)" stopOpacity="0.3" />

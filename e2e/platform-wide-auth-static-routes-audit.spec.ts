@@ -3,7 +3,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import routes from './helpers/customer-static-routes.json';
 import { setCustomerLocale, type CustomerLocale, CUSTOMER_LOCALES } from './helpers/i18n-locale';
-import { loginUserForStagingHttp, waitForAuthenticatedRoute } from './mission2/helpers/login';
+import {
+  ensureTraderSessionCookies,
+  loginUserForStagingHttp,
+  waitForAuthenticatedRoute,
+} from './mission2/helpers/login';
 import { loadCredentials, QA_TRADER_A, QA_PASSWORD } from './mission2/helpers/credentials';
 
 const BASE = (process.env.BASE_URL ?? 'http://127.0.0.1').replace(/\/$/, '');
@@ -31,25 +35,35 @@ for (const locale of CUSTOMER_LOCALES) {
 
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     await setCustomerLocale(context, locale, BASE);
-    const page = await loginUserForStagingHttp(
-      context,
-      creds.QA_TRADER_A_EMAIL || QA_TRADER_A,
-      creds.QA_PASSWORD || QA_PASSWORD,
-      BASE,
-      process.env.E2E_API_BASE_URL || 'http://127.0.0.1:4000'
-    );
+    const email = creds.QA_TRADER_A_EMAIL || QA_TRADER_A;
+    const password = creds.QA_PASSWORD || QA_PASSWORD;
+    const apiBase = process.env.E2E_API_BASE_URL || 'http://127.0.0.1:4000';
+    let page = await loginUserForStagingHttp(context, email, password, BASE, apiBase);
 
     const failures: string[] = [];
     for (const row of authRoutes) {
-      try {
+      const visit = async () => {
+        await ensureTraderSessionCookies(context, email, password, BASE, apiBase, page);
         const res = await page.goto(`${BASE}${row.path}`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
         await waitForAuthenticatedRoute(page, context);
+        return res;
+      };
+      try {
+        let res;
+        try {
+          res = await visit();
+        } catch {
+          await page.close().catch(() => {});
+          page = await loginUserForStagingHttp(context, email, password, BASE, apiBase);
+          res = await visit();
+        }
         if (new URL(page.url()).pathname.startsWith('/login')) {
           failures.push(`${row.path}: redirected to login`);
           continue;
         }
+        await page.locator('html[lang]').waitFor({ state: 'attached', timeout: 15_000 }).catch(() => {});
         const lang = await page.locator('html').getAttribute('lang');
-        if (lang !== langForLocale(locale)) failures.push(`${row.path}: lang ${lang}`);
+        if (lang !== langForLocale(locale)) failures.push(`${row.path}: lang ${lang ?? 'null'}`);
         if (res && res.status() >= 500) failures.push(`${row.path}: http ${res.status()}`);
         if (locale === 'zh-CN') {
           const text = await page.evaluate(() => document.body.innerText);

@@ -479,5 +479,20 @@
     "removeFavorite": "Hapus dari favorit",
     "toggleFavoriteAria": "Alih favorit",
     "withdrawalTierTitle": "Tier penarikan"
+  },
+  "terminalHeader": {
+    "tradingNavAria": "Trading",
+    "searchPairHint": "Cari pasangan (mis. BTC/USDT)",
+    "searchPairPlaceholder": "Cari BTC/USDT, ETH/USDT…",
+    "noPairsFound": "Pasangan tidak ditemukan"
+  },
+  "terminalChrome": {
+    "resizeChartAria": "Ubah ukuran chart dan form order",
+    "panelsAria": "Panel trading spot",
+    "bottomSectionAria": "Riwayat order dan aktivitas trading"
+  },
+  "chartPanel": {
+    "loadingChart": "Memuat chart…",
+    "depthChartAria": "Chart kedalaman order book"
   }
 }

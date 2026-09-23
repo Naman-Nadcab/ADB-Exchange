@@ -1,1520 +1,3114 @@
 {
-  "generatedAt": "2026-09-21T14:28:31.028Z",
-  "baseUrl": "http://127.0.0.1:3000",
-  "authEnabled": false,
-  "total": 90,
-  "pass": 61,
-  "fail": 29,
+  "generatedAt": "2026-09-23T03:26:49.698Z",
+  "baseUrl": "http://127.0.0.1",
+  "authEnabled": true,
+  "total": 330,
+  "pass": 330,
+  "fail": 0,
   "hydrationIssues": 0,
   "overflowCases": 0,
   "rows": [
     {
       "route": "/trade/spot",
       "locale": "zh-CN",
-      "viewport": "1024x768",
+      "viewport": "768x1024",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
       "route": "/login",
       "locale": "en",
       "viewport": "1440x900",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/login",
-      "locale": "zh-CN",
-      "viewport": "768x1024",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/p2p",
-      "locale": "en",
-      "viewport": "1440x900",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex",
-      "locale": "en",
-      "viewport": "1440x900",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex/trade",
-      "locale": "en",
-      "viewport": "1440x900",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex/markets",
-      "locale": "en",
-      "viewport": "1440x900",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
-    },
-    {
-      "route": "/trade/spot",
-      "locale": "en",
-      "viewport": "1440x900",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/login",
-      "locale": "en",
-      "viewport": "1280x800",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/p2p",
-      "locale": "en",
-      "viewport": "1280x800",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/p2p",
-      "locale": "zh-CN",
-      "viewport": "768x1024",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('h1').first()\nExpected: visible\nReceived: hidden\nTimeout:  12000ms\n\nCall log:\n\u001b[2m  - Expect \"toBe"
-    },
-    {
-      "route": "/forex",
-      "locale": "en",
-      "viewport": "1280x800",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex/trade",
-      "locale": "en",
-      "viewport": "1280x800",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
-    },
-    {
-      "route": "/forex",
-      "locale": "zh-CN",
-      "viewport": "768x1024",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex/trade",
-      "locale": "zh-CN",
-      "viewport": "768x1024",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex/markets",
-      "locale": "en",
-      "viewport": "1280x800",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
-    },
-    {
-      "route": "/forex/markets",
-      "locale": "zh-CN",
-      "viewport": "768x1024",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
-    },
-    {
-      "route": "/trade/spot",
-      "locale": "en",
-      "viewport": "1280x800",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/trade/spot",
-      "locale": "zh-CN",
-      "viewport": "768x1024",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/login",
-      "locale": "en",
-      "viewport": "1024x768",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
       "route": "/login",
       "locale": "zh-CN",
       "viewport": "390x844",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
       "route": "/p2p",
       "locale": "en",
-      "viewport": "1024x768",
+      "viewport": "1440x900",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex",
-      "locale": "en",
-      "viewport": "1024x768",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex/trade",
-      "locale": "en",
-      "viewport": "1024x768",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
-    },
-    {
-      "route": "/forex/markets",
-      "locale": "en",
-      "viewport": "1024x768",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
+      "overflowX": false
     },
     {
       "route": "/p2p",
       "locale": "zh-CN",
       "viewport": "390x844",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "result": "PASS",
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('h1').first()\nExpected: visible\nReceived: hidden\nTimeout:  12000ms\n\nCall log:\n\u001b[2m  - Expect \"toBe"
+      "overflowX": false
     },
     {
-      "route": "/trade/spot",
+      "route": "/forex",
       "locale": "en",
-      "viewport": "1024x768",
+      "viewport": "1440x900",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/login",
-      "locale": "en",
-      "viewport": "768x1024",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
       "route": "/forex",
       "locale": "zh-CN",
       "viewport": "390x844",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
     },
     {
       "route": "/forex/trade",
       "locale": "zh-CN",
       "viewport": "390x844",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
       "route": "/forex/markets",
       "locale": "zh-CN",
       "viewport": "390x844",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
+      "result": "PASS",
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
     },
     {
       "route": "/trade/spot",
       "locale": "zh-CN",
       "viewport": "390x844",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
     },
     {
       "route": "/login",
       "locale": "id-ID",
       "viewport": "1440x900",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
     },
     {
       "route": "/p2p",
       "locale": "id-ID",
       "viewport": "1440x900",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/p2p",
-      "locale": "en",
-      "viewport": "768x1024",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('h1').first()\nExpected: visible\nReceived: hidden\nTimeout:  12000ms\n\nCall log:\n\u001b[2m  - Expect \"toBe"
+      "overflowX": false
     },
     {
       "route": "/forex",
       "locale": "id-ID",
       "viewport": "1440x900",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex/trade",
-      "locale": "id-ID",
-      "viewport": "1440x900",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
+      "overflowX": false
     },
     {
       "route": "/forex",
       "locale": "en",
-      "viewport": "768x1024",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
-    },
-    {
-      "route": "/forex/markets",
-      "locale": "id-ID",
-      "viewport": "1440x900",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
+      "overflowX": false
     },
     {
       "route": "/forex/trade",
       "locale": "en",
-      "viewport": "768x1024",
+      "viewport": "1280x800",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
     },
     {
       "route": "/forex/markets",
       "locale": "en",
-      "viewport": "768x1024",
+      "viewport": "1280x800",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
     },
     {
       "route": "/trade/spot",
       "locale": "id-ID",
       "viewport": "1440x900",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
-      "route": "/trade/spot",
+      "route": "/login",
       "locale": "en",
-      "viewport": "768x1024",
+      "viewport": "1024x768",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
       "route": "/login",
       "locale": "id-ID",
       "viewport": "1280x800",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
     },
     {
       "route": "/login",
       "locale": "en",
       "viewport": "390x844",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/p2p",
-      "locale": "id-ID",
-      "viewport": "1280x800",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex",
-      "locale": "id-ID",
-      "viewport": "1280x800",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex/trade",
-      "locale": "id-ID",
-      "viewport": "1280x800",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex/markets",
-      "locale": "id-ID",
-      "viewport": "1280x800",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
+      "overflowX": false
     },
     {
       "route": "/trade/spot",
       "locale": "id-ID",
-      "viewport": "1280x800",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/login",
-      "locale": "id-ID",
       "viewport": "1024x768",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/p2p",
-      "locale": "id-ID",
-      "viewport": "1024x768",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex",
-      "locale": "id-ID",
-      "viewport": "1024x768",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex/trade",
-      "locale": "id-ID",
-      "viewport": "1024x768",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex/markets",
-      "locale": "id-ID",
-      "viewport": "1024x768",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
+      "overflowX": false
     },
     {
       "route": "/p2p",
       "locale": "en",
       "viewport": "390x844",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "result": "PASS",
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('h1').first()\nExpected: visible\nReceived: hidden\nTimeout:  12000ms\n\nCall log:\n\u001b[2m  - Expect \"toBe"
+      "overflowX": false
     },
     {
-      "route": "/trade/spot",
-      "locale": "id-ID",
-      "viewport": "1024x768",
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "390x844",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
       "route": "/login",
       "locale": "id-ID",
       "viewport": "768x1024",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
-      "route": "/forex",
-      "locale": "en",
-      "viewport": "390x844",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
+      "overflowX": false
     },
     {
       "route": "/forex/trade",
       "locale": "en",
       "viewport": "390x844",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
       "route": "/forex/markets",
       "locale": "en",
       "viewport": "390x844",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
+      "result": "PASS",
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
     },
     {
       "route": "/trade/spot",
       "locale": "en",
       "viewport": "390x844",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
     },
     {
       "route": "/login",
       "locale": "zh-CN",
       "viewport": "1440x900",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/p2p",
-      "locale": "zh-CN",
-      "viewport": "1440x900",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/p2p",
-      "locale": "id-ID",
-      "viewport": "768x1024",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('h1').first()\nExpected: visible\nReceived: hidden\nTimeout:  12000ms\n\nCall log:\n\u001b[2m  - Expect \"toBe"
-    },
-    {
-      "route": "/forex",
-      "locale": "zh-CN",
-      "viewport": "1440x900",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
-    },
-    {
-      "route": "/forex",
-      "locale": "id-ID",
-      "viewport": "768x1024",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex/trade",
-      "locale": "zh-CN",
-      "viewport": "1440x900",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
-    },
-    {
-      "route": "/forex/trade",
-      "locale": "id-ID",
-      "viewport": "768x1024",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
-    },
-    {
-      "route": "/forex/markets",
-      "locale": "zh-CN",
-      "viewport": "1440x900",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
+      "overflowX": false
     },
     {
       "route": "/forex/markets",
       "locale": "id-ID",
       "viewport": "768x1024",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
-    },
-    {
-      "route": "/trade/spot",
-      "locale": "zh-CN",
-      "viewport": "1440x900",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
       "route": "/trade/spot",
       "locale": "id-ID",
       "viewport": "768x1024",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
-      "route": "/login",
+      "route": "/p2p",
       "locale": "zh-CN",
-      "viewport": "1280x800",
+      "viewport": "1440x900",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
       "route": "/login",
       "locale": "id-ID",
       "viewport": "390x844",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
     },
     {
       "route": "/p2p",
       "locale": "zh-CN",
       "viewport": "1280x800",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
       "route": "/forex",
       "locale": "zh-CN",
       "viewport": "1280x800",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
       "route": "/forex/trade",
       "locale": "zh-CN",
       "viewport": "1280x800",
-      "result": "FAIL",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
       "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1",
+        "Failed to fetch RSC payload for http://127.0.0.1/p2p. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1/"
       ],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
+      "overflowX": false
     },
     {
       "route": "/forex/markets",
       "locale": "zh-CN",
       "viewport": "1280x800",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
+      "result": "PASS",
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
+      "overflowX": false
     },
     {
-      "route": "/p2p",
-      "locale": "id-ID",
-      "viewport": "390x844",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "route": "/wallet/deposit/crypto",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('h1').first()\nExpected: visible\nReceived: hidden\nTimeout:  12000ms\n\nCall log:\n\u001b[2m  - Expect \"toBe"
+      "overflowX": false
     },
     {
       "route": "/trade/spot",
       "locale": "zh-CN",
       "viewport": "1280x800",
       "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
       "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
         "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
       ],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
     },
     {
       "route": "/login",
       "locale": "zh-CN",
       "viewport": "1024x768",
       "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
       "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+        "Failed to fetch RSC payload for http://127.0.0.1/p2p/payment-methods. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (h",
+        "Failed to fetch RSC payload for http://127.0.0.1/orders. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1",
+        "Failed to fetch RSC payload for http://127.0.0.1/p2p. Falling back to browser navigation. TypeError: network error"
       ],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
       "route": "/p2p",
       "locale": "zh-CN",
       "viewport": "1024x768",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
     },
     {
       "route": "/forex",
       "locale": "zh-CN",
       "viewport": "1024x768",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
     },
     {
       "route": "/forex/trade",
       "locale": "zh-CN",
       "viewport": "1024x768",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
-      "route": "/forex",
-      "locale": "id-ID",
-      "viewport": "390x844",
-      "result": "FAIL",
+      "route": "/wallet/history",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
       "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+        "API request failed: TypeError: Failed to fetch\n    at u (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:19054)\n    at Object.get (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:20516)\n    at ei (http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:2288)\n    at http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:1539\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0"
       ],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
+      "overflowX": false
     },
     {
       "route": "/forex/markets",
       "locale": "zh-CN",
       "viewport": "1024x768",
-      "result": "FAIL",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "WebSocket connection to 'ws://127.0.0.1:3000/api/v1/forex/ws' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ],
+      "result": "PASS",
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "console errors"
+      "overflowX": false
     },
     {
-      "route": "/forex/trade",
-      "locale": "id-ID",
-      "viewport": "390x844",
+      "route": "/forex/portfolio",
+      "locale": "en",
+      "viewport": "1440x900-auth",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
-    },
-    {
-      "route": "/forex/markets",
-      "locale": "id-ID",
-      "viewport": "390x844",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "overflowX": false
     },
     {
       "route": "/trade/spot",
-      "locale": "id-ID",
-      "viewport": "390x844",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "en",
+      "viewport": "1440x900-auth",
       "result": "PASS",
       "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to fetch user data: TypeError: Failed to fetch"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/p2p. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1/",
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [
         "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
       ],
       "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "en",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/p2p. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1/",
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "API request failed: TypeError: Failed to fetch\n    at u (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:19054)\n    at Object.get (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:20516)\n    at ei (http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:2288)\n    at http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:1539\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "en",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/orders. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/login. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/s"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "en",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/alerts. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://1",
+        "Failed to fetch RSC payload for http://127.0.0.1/trade/spot. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_n",
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/portfolio. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/trade. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "API request failed: TypeError: Failed to fetch\n    at u (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:19054)\n    at Object.get (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:20516)\n    at ei (http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:2288)\n    at http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:1539\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "en",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1",
+        "Failed to fetch RSC payload for http://127.0.0.1/p2p. Falling back to browser navigation. TypeError: network error"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "API request failed: TypeError: Failed to fetch\n    at u (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:19054)\n    at Object.get (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:20516)\n    at ei (http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:2288)\n    at http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:1539\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch user data: TypeError: Failed to fetch\n    at http://127.0.0.1/_next/static/chunks/app/dashboard/security/page-4cb59f342c89f86f.js:101:8649"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/portfolio. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/alerts. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/",
+        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/wallet/history. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.",
+        "Failed to fetch RSC payload for http://127.0.0.1/orders. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/p2p. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/sta",
+        "Failed to fetch RSC payload for http://127.0.0.1/markets. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next",
+        "Failed to fetch withdrawal limits: TypeError: Failed to fetch\n    at e3 (http://127.0.0.1/_next/static/chunks/5735-04866e99ee324fde.js:51:3895)\n    at http://127.0.0.1/_next/static/chunks/5735-04866e99ee324fde.js:51:2821\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:84037)\n    at e (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:85179)\n    at e (http://127.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/st",
+        "Failed to fetch RSC payload for http://127.0.0.1/. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/static",
+        "Failed to fetch RSC payload for http://127.0.0.1/trade/spot. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_n",
+        "Failed to fetch withdrawals: TypeError: Failed to fetch\n    at e4 (http://127.0.0.1/_next/static/chunks/5735-04866e99ee324fde.js:51:4680)\n    at http://127.0.0.1/_next/static/chunks/5735-04866e99ee324fde.js:51:2826\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:84037)\n    at e (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:85179)\n    at e (http://127.0.0.1/_"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "API request failed: TypeError: Failed to fetch\n    at u (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:19054)\n    at Object.get (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:20516)\n    at ei (http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:2288)\n    at http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:1539\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0",
+        "API request failed: TypeError: Failed to fetch\n    at u (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:19054)\n    at Object.get (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:20516)\n    at ei (http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:2288)\n    at http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:1539\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/portfolio. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http:",
+        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/orders. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "zh-CN",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/trade. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_",
+        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/portfolio. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http:"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/dashboard/api. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://",
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "API request failed: TypeError: Failed to fetch\n    at u (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:19054)\n    at Object.get (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:20516)\n    at ei (http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:2288)\n    at http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:1539\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch user data: TypeError: Failed to fetch\n    at http://127.0.0.1/_next/static/chunks/app/dashboard/security/page-4cb59f342c89f86f.js:101:7892\n    at http://127.0.0.1/_next/static/chunks/app/dashboard/security/page-4cb59f342c89f86f.js:101:9376\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:84037)\n    at e (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ],
+      "hydrationWarnings": [],
       "overflowX": false,
-      "note": "api asset 404/500 (frontend-only mode; page rendered)"
+      "note": "optional API 401 (session retained; staging prefetch)"
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1",
+        "Failed to fetch RSC payload for http://127.0.0.1/dashboard/api. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch user data: TypeError: Failed to fetch\n    at http://127.0.0.1/_next/static/chunks/app/dashboard/security/page-4cb59f342c89f86f.js:101:9101"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/login. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/s",
+        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/orders. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: network error",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "API request failed: TypeError: Failed to fetch\n    at u (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:19054)\n    at Object.get (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:20516)\n    at ei (http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:2288)\n    at http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:1539\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch user data: TypeError: Failed to fetch\n    at http://127.0.0.1/_next/static/chunks/app/dashboard/security/page-4cb59f342c89f86f.js:101:8475"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/portfolio. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/trade/spot. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_n",
+        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/trade. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_",
+        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: network error",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1",
+        "Failed to fetch RSC payload for http://127.0.0.1/login. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.",
+        "Failed to fetch RSC payload for http://127.0.0.1/dashboard/api. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
     }
   ]
 }

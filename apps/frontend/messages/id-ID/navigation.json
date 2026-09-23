@@ -30,6 +30,17 @@
   "globalFxTrading": "Perdagangan FX global",
   "openAccountMenu": "Buka menu akun",
   "toggleMenu": "Buka/tutup menu",
+  "productSwitcher": {
+    "switchProduct": "Ganti produk",
+    "productsMenu": "Produk",
+    "productsHeading": "Produk",
+    "allMarkets": "Semua Pasar",
+    "allMarketsHint": "Ringkasan FDM",
+    "cryptoHint": "FDM Kripto — aset digital",
+    "forexHint": "FDM Forex — FX global",
+    "terminalCrypto": "Kripto",
+    "terminalForex": "Forex"
+  },
   "publicFooter": {
     "tagline": "Platform finansial global · Kripto dan Forex",
     "copyrightSuffix": "Aset digital dan FX global.",

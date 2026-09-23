@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useForexCandles } from '@/lib/forex/runtime/useForexCandles';
 import { FOREX_CANDLE_RESERVED_TIMEFRAMES, isReservedForexTimeframe } from '@/lib/forex/models/candles';
 import { isQuoteStale } from '@/lib/forex/models/quotes';
@@ -40,13 +41,6 @@ import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
 import type { ForexProtectionType } from '@/lib/forex/models/types';
 
 type StudyId = 'none' | 'ema20_50' | 'sma20' | 'ema20' | 'wma20' | 'hma21' | 'bb20' | 'supertrend';
-
-const CHART_TYPES: Array<{ id: ForexChartType; label: string }> = [
-  { id: 'candle', label: 'Candles' },
-  { id: 'ohlc', label: 'OHLC' },
-  { id: 'line', label: 'Line' },
-  { id: 'area', label: 'Area' },
-];
 
 const ALERTS_KEY = 'eda-forex-local-alerts-v1';
 
@@ -101,6 +95,16 @@ export function ForexChartFoundation(props?: {
   onSymbolChange?: (symbol: string) => void;
   onTimeframeChange?: (tf: string) => void;
 }) {
+  const tc = useTranslations('forex.chartFoundation');
+  const chartTypes = useMemo(
+    (): Array<{ id: ForexChartType; label: string }> => [
+      { id: 'candle', label: tc('chartTypes.candle') },
+      { id: 'ohlc', label: tc('chartTypes.ohlc') },
+      { id: 'line', label: tc('chartTypes.line') },
+      { id: 'area', label: tc('chartTypes.area') },
+    ],
+    [tc]
+  );
   const embedded = Boolean(props?.embedded);
   const storeSymbol = useForexWorkspaceStore((s) => s.selectedSymbol);
   const storedTf = useForexWorkspaceStore((s) => s.chartTimeframe);
@@ -834,7 +838,7 @@ export function ForexChartFoundation(props?: {
         'flex min-h-0 min-w-0 flex-col bg-background',
         embedded || props?.instanceId ? 'h-full' : 'flex-1'
       )}
-      aria-label="Forex market chart"
+      aria-label={tc('marketChartAria')}
       onMouseDown={activate}
     >
       <div
@@ -874,13 +878,13 @@ export function ForexChartFoundation(props?: {
             </span>
           </>
         ) : (
-          <span className="text-[11px] text-muted-foreground">Loading quote…</span>
+          <span className="text-[11px] text-muted-foreground">{tc('loadingQuote')}</span>
         )}
 
         <button
           type="button"
           aria-pressed={toolsOpen}
-          aria-label={toolsOpen ? 'Hide chart drawing tools' : 'Show chart drawing tools'}
+          aria-label={toolsOpen ? tc('toggleDrawToolsHide') : tc('toggleDrawToolsShow')}
           onClick={() => setToolsOpen((v) => !v)}
           className={cn(
             'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -905,7 +909,7 @@ export function ForexChartFoundation(props?: {
               Candle C <span className="text-foreground">{fxNum(String(ohlcDisplay.close), digits)}</span>
             </span>
             {chartQuote ? (
-              <span title="Current executable quote (SIMULATED). Historical candles are reference data.">
+              <span title={tc('quoteTooltip')}>
                 Live{' '}
                 <span className="font-bold text-foreground">
                   {fxNum(String((chartQuote.bid + chartQuote.ask) / 2), digits)}
@@ -918,7 +922,7 @@ export function ForexChartFoundation(props?: {
         {timeframes.length > 0 ? (
           <>
             <select
-              aria-label="Forex timeframe"
+              aria-label={tc('timeframeAria')}
               className="fx-mt5-field ml-1 h-6 px-1 font-mono text-[10px] sm:hidden"
               value={activeTf}
               onChange={(e) => setTf(e.target.value)}
@@ -929,7 +933,7 @@ export function ForexChartFoundation(props?: {
                 </option>
               ))}
             </select>
-            <div className="ml-1 hidden items-center gap-0.5 sm:flex" role="group" aria-label="Forex timeframes">
+            <div className="ml-1 hidden items-center gap-0.5 sm:flex" role="group" aria-label={tc('timeframesGroupAria')}>
               {timeframes.map((t) => (
                 <button
                   key={t}
@@ -947,8 +951,8 @@ export function ForexChartFoundation(props?: {
           </>
         ) : null}
 
-        <div className="ml-1 hidden items-center gap-0.5 sm:flex" role="group" aria-label="Chart type">
-          {CHART_TYPES.map((t) => (
+        <div className="ml-1 hidden items-center gap-0.5 sm:flex" role="group" aria-label={tc('chartTypeGroupAria')}>
+          {chartTypes.map((t) => (
             <button
               key={t.id}
               type="button"
@@ -973,7 +977,7 @@ export function ForexChartFoundation(props?: {
               e.target.value = '';
             }}
             className="rounded border border-border bg-background px-1 py-0.5 text-[10px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label="Add chart indicator"
+            aria-label={tc('addIndicatorAria')}
           >
             <option value="">—</option>
             {FOREX_INDICATOR_REGISTRY.map((d) => (
@@ -993,7 +997,7 @@ export function ForexChartFoundation(props?: {
                     type="button"
                     className="text-[9px] font-medium text-foreground"
                     onClick={() => removeRegistryIndicator(row.id)}
-                    title="Remove indicator"
+                    title={tc('removeIndicatorTitle')}
                   >
                     {row.id} ×
                   </button>
@@ -1025,16 +1029,16 @@ export function ForexChartFoundation(props?: {
             value={study}
             onChange={(e) => setStudy(e.target.value as StudyId)}
             className="rounded border border-border bg-background px-1 py-0.5 text-[10px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label="Chart study"
+            aria-label={tc('chartStudyAria')}
           >
-            <option value="ema20_50">EMA fast/slow</option>
-            <option value="ema20">EMA</option>
-            <option value="sma20">SMA</option>
-            <option value="wma20">WMA</option>
-            <option value="hma21">HMA</option>
-            <option value="bb20">Bollinger</option>
-            <option value="supertrend">Supertrend</option>
-            <option value="none">None</option>
+            <option value="ema20_50">{tc('studies.ema20_50')}</option>
+            <option value="ema20">{tc('studies.ema20')}</option>
+            <option value="sma20">{tc('studies.sma20')}</option>
+            <option value="wma20">{tc('studies.wma20')}</option>
+            <option value="hma21">{tc('studies.hma21')}</option>
+            <option value="bb20">{tc('studies.bb20')}</option>
+            <option value="supertrend">{tc('studies.supertrend')}</option>
+            <option value="none">{tc('studies.none')}</option>
           </select>
         </label>
         {study !== 'none' && study !== 'supertrend' ? (
@@ -1047,7 +1051,7 @@ export function ForexChartFoundation(props?: {
               value={studyPeriod}
               onChange={(e) => setStudyPeriod(Number(e.target.value) || 20)}
               className="w-12 rounded border border-border bg-background px-1 py-0.5 text-[10px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              aria-label="Study period"
+              aria-label={tc('studyPeriodAria')}
             />
           </label>
         ) : null}
@@ -1057,7 +1061,7 @@ export function ForexChartFoundation(props?: {
           {macd ? ` · MACD ${macd.macd.toFixed(5)}` : ''}
           {stoch ? ` · Stoch ${stoch.k.toFixed(1)}` : ''}
         </span>
-        {!studyReady ? <span className="text-[10px] text-muted-foreground">Insufficient history</span> : null}
+        {!studyReady ? <span className="text-[10px] text-muted-foreground">{tc('insufficientHistory')}</span> : null}
 
         {props?.showOneClick ? (
           <div className="ml-auto flex shrink-0 items-center gap-1">
@@ -1086,7 +1090,7 @@ export function ForexChartFoundation(props?: {
               onClick={() => setChartMode(chartMode === 'expand' ? 'normal' : 'expand')}
               aria-pressed={chartMode === 'expand'}
             >
-              {chartMode === 'expand' ? 'Restore' : 'Expand'}
+              {chartMode === 'expand' ? tc('expandRestore') : tc('expand')}
             </button>
             <button
               type="button"
@@ -1094,7 +1098,7 @@ export function ForexChartFoundation(props?: {
               onClick={() => setChartMode(chartMode === 'fullscreen' ? 'normal' : 'fullscreen')}
               aria-pressed={chartMode === 'fullscreen'}
             >
-              {chartMode === 'fullscreen' ? 'Exit FS' : 'Fullscreen'}
+              {chartMode === 'fullscreen' ? tc('exitFullscreen') : tc('fullscreen')}
             </button>
           </div>
         ) : (

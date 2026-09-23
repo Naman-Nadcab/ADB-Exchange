@@ -20,6 +20,7 @@ import { useTranslations } from 'next-intl';
  */
 export function PublicHeader() {
   const tn = useTranslations('navigation');
+  const tA11y = useTranslations('common.a11y');
   const [menuOpen, setMenuOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
@@ -56,7 +57,7 @@ export function PublicHeader() {
           href={ROUTES.home}
         />
 
-        <nav className="hidden min-w-0 items-center gap-5 overflow-x-clip text-sm text-[#9CA3AF] lg:flex" aria-label="Primary">
+        <nav className="hidden min-w-0 items-center gap-5 overflow-x-clip text-sm text-[#9CA3AF] lg:flex" aria-label={tA11y('primaryNav')}>
           {authed ? (
             <>
               <EdaProductSwitcher />

@@ -1268,6 +1268,7 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
 
   const t = useTranslations('crypto');
   const tCommon = useTranslations('common');
+  const tChrome = useTranslations('crypto.terminalChrome');
   const panelError = (panelKey: 'orderBook' | 'orderForm' | 'orderHistory') =>
     t('panels.errorHit', { panel: t(`panels.${panelKey}`) });
   const { reconnectAttempt, streamPhase, privateChannelsReady, bootstrapIssue, lastRttMs, liteMode, liteHint } =
@@ -1518,7 +1519,7 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
             <div
               role="separator"
               aria-orientation="horizontal"
-              aria-label="Resize chart and order form"
+              aria-label={tChrome('resizeChartAria')}
               className="spot-terminal-split-bar relative z-[1] h-2 shrink-0 cursor-row-resize touch-none border-y border-border bg-muted/40 transition-colors hover:border-primary/20 hover:bg-muted/70"
               {...splitBarProps}
             />
@@ -1556,7 +1557,7 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
           <nav
             className="spot-terminal-mobile-tabs md:hidden flex shrink-0 items-stretch border-t border-border bg-card"
             role="tablist"
-            aria-label="Spot trading panels"
+            aria-label={tChrome('panelsAria')}
           >
             {SPOT_MOBILE_TAB_IDS.map((tabId) => (
               <button
@@ -1586,7 +1587,7 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
       </div>
 
       {/* ── BELOW THE FOLD: order history — page scrolls here ── */}
-      <section className="w-full border-t border-border bg-card" aria-label="Order history and trading activity">
+      <section className="w-full border-t border-border bg-card" aria-label={tChrome('bottomSectionAria')}>
         <PanelErrorBoundary
           name="Order History"
           errorMessage={panelError('orderHistory')}

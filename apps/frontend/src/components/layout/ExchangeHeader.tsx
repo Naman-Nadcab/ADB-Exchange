@@ -74,6 +74,8 @@ export function ExchangeHeader({
 }: ExchangeHeaderProps) {
   const tn = useTranslations('navigation');
   const tc = useTranslations('common');
+  const tTerm = useTranslations('crypto.terminalHeader');
+  const tA11y = useTranslations('common.a11y');
   const pathname = usePathname();
   const router = useRouter();
   const { accessToken, user, _hasHydrated, isAuthenticated: storeAuthed } = useAuthStore();
@@ -134,14 +136,14 @@ export function ExchangeHeader({
           type="button"
           className="tap-target rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 lg:hidden"
           onClick={() => setMobileMenuOpen((o) => !o)}
-          aria-label="Menu"
+          aria-label={mobileMenuOpen ? tA11y('closeMenu') : tA11y('openMenu')}
         >
           {mobileMenuOpen ? <X className="h-[18px] w-[18px]" /> : <Menu className="h-[18px] w-[18px]" />}
         </button>
         <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} />
         <EdaProductSwitcher variant="terminal" />
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Trading">
+        <nav className="hidden items-center gap-1 lg:flex" aria-label={tA11y('tradingNav')}>
           {MAIN_NAV.map((item) => {
             const isActive = isMainNavActive(pathname, item.href);
             return (
@@ -172,7 +174,7 @@ export function ExchangeHeader({
               onKeyDown={(e) => e.key === 'Enter' && setSearchOpen(true)}
             >
               <Search className="h-[18px] w-[18px] flex-shrink-0 text-muted-foreground" />
-              <span className="truncate text-xs">{displaySymbol || 'Search pair (e.g. BTC/USDT)'}</span>
+              <span className="truncate text-xs">{displaySymbol || tTerm('searchPairHint')}</span>
             </div>
             {searchOpen && (
               <>
@@ -182,7 +184,7 @@ export function ExchangeHeader({
                     <input
                       ref={searchInputRef}
                       type="text"
-                      placeholder="Search BTC/USDT, ETH/USDT..."
+                      placeholder={tTerm('searchPairPlaceholder')}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="h-9 w-full rounded-lg border border-border bg-accent px-3 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -190,7 +192,7 @@ export function ExchangeHeader({
                   </div>
                   <ul className="max-h-64 overflow-y-auto">
                     {filteredPairs.length === 0 ? (
-                      <li className="px-4 py-3 text-xs text-muted-foreground">No pairs found</li>
+                      <li className="px-4 py-3 text-xs text-muted-foreground">{tTerm('noPairsFound')}</li>
                     ) : (
                       filteredPairs.map((sym) => (
                         <li key={sym}>
@@ -220,10 +222,10 @@ export function ExchangeHeader({
         <ThemeToggle variant="icon" size="sm" />
         {isAuthed ? (
           <>
-            <Link href={ORDERS_HREF} className="tap-target rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1" aria-label="Orders" title="Orders">
+            <Link href={ORDERS_HREF} className="tap-target rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1" aria-label={tn('orders')} title={tn('orders')}>
               <FileText className="h-[18px] w-[18px]" />
             </Link>
-            <Link href={WALLET_HREF} className="tap-target rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1" aria-label="Wallet" title="Wallet">
+            <Link href={WALLET_HREF} className="tap-target rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1" aria-label={tn('wallet')} title={tn('wallet')}>
               <Wallet className="h-[18px] w-[18px]" />
             </Link>
             <NotificationCenter accessToken={accessToken} />
@@ -234,7 +236,7 @@ export function ExchangeHeader({
                 type="button"
                 onClick={() => setUserMenuOpen((o) => !o)}
                 className="tap-target rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-                aria-label="User menu"
+                aria-label={tA11y('userMenu')}
               >
                 <User className="h-[18px] w-[18px]" />
               </button>
@@ -255,7 +257,7 @@ export function ExchangeHeader({
                             type="button"
                             onClick={copyUID}
                             className="p-0.5 hover:text-primary"
-                            aria-label={uidCopied ? 'Copied' : 'Copy user ID'}
+                            aria-label={uidCopied ? tA11y('copiedUserId') : tA11y('copyUserId')}
                           >
                             {uidCopied ? <span className="text-[#0ecb81] text-[10px]">✓</span> : <Copy className="h-3 w-3" />}
                           </button>

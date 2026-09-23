@@ -118,5 +118,122 @@
     "desc": "Akses aset digital dan FX global melalui FDM.",
     "exploreMarkets": "Jelajahi Pasar",
     "createAccount": "Buat Akun"
+  },
+  "customer": {
+    "eyebrow": "FDM Saya",
+    "title": "Pusat komando pelanggan",
+    "subtitle": "Akun Kripto dan Forex terpisah. Tidak ada total gabungan dihitung di sini.",
+    "riskBadge": "Risiko {state}",
+    "marketsBadge": "Pasar {status}",
+    "quickActionsAria": "Tindakan cepat",
+    "actions": {
+      "openCryptoSpot": "Buka Spot Kripto",
+      "openForex": "Buka Forex",
+      "cryptoMarkets": "Pasar Kripto",
+      "tradeSpot": "Trading Spot",
+      "depositWithdraw": "Deposit / Tarik",
+      "tradeForex": "Trading Forex",
+      "exploreFx": "Jelajahi FX",
+      "placeFirstTrade": "Pasang trade pertama",
+      "manage": "Kelola",
+      "trade": "Trade",
+      "openAnalysis": "Buka analisis",
+      "analysisWorkspace": "Ruang kerja analisis",
+      "cryptoMarketsIntel": "Intel pasar Kripto",
+      "viewPortfolio": "Lihat Portofolio"
+    },
+    "calendarBanner": {
+      "eyebrow": "Event kalender berikutnya"
+    },
+    "timeUnavailable": "Waktu tidak tersedia",
+    "unknown": "Tidak diketahui",
+    "cryptoSection": {
+      "title": "Kripto",
+      "footnote": "Ringkasan dompet saja · tanpa total gabungan Kripto+Forex"
+    },
+    "forexSection": {
+      "title": "Forex",
+      "footnote": "Eksekusi SIMULASI · akun backend yang berwenang"
+    },
+    "metrics": {
+      "trading": "Trading",
+      "funding": "Funding",
+      "balance": "Saldo",
+      "equity": "Ekuitas",
+      "freeMargin": "Margin bebas",
+      "usedMargin": "Margin terpakai",
+      "unrealizedPnl": "P&L belum direalisasi",
+      "realizedPnl": "P&L direalisasi"
+    },
+    "positions": {
+      "title": "Posisi Forex terbuka",
+      "loading": "Memuat posisi…",
+      "unavailable": "Posisi tidak tersedia",
+      "empty": "Tidak ada posisi Forex terbuka."
+    },
+    "positionsTable": {
+      "symbol": "Simbol",
+      "side": "Sisi",
+      "volume": "Volume",
+      "entry": "Entry",
+      "current": "Saat ini",
+      "priceUnavailable": "Tidak tersedia"
+    },
+    "riskSection": {
+      "title": "Risiko & margin",
+      "loading": "Memuat risiko…",
+      "unavailable": "Risiko tidak tersedia",
+      "marginLevel": "Tingkat margin",
+      "used": "Terpakai",
+      "free": "Bebas",
+      "session": "Sesi",
+      "sessionOpen": "Buka",
+      "sessionClosed": "Tutup",
+      "footnote": "Hanya risiko/status backend · tanpa skor sintetis"
+    },
+    "watch": {
+      "title": "Pantau pasar",
+      "updatedAt": "Diperbarui {time}",
+      "refreshing": "Menyegarkan…",
+      "tabsAria": "Tab pantau",
+      "tabs": {
+        "watchlist": "Watchlist",
+        "crypto": "Kripto",
+        "forex": "Forex",
+        "favorites": "Favorit"
+      },
+      "emptyFavorites": "Bintangi simbol untuk daftar favorit lokal.",
+      "emptyTab": "Tidak ada baris untuk tab ini.",
+      "spreadPrefix": "Spr {spread}"
+    },
+    "sessionChip": {
+      "unknown": "Sesi —",
+      "fxOpen": "FX Buka",
+      "fxClosed": "FX Tutup"
+    },
+    "activity": {
+      "title": "Aktivitas Forex terbaru",
+      "orders": "Order",
+      "fills": "Fill",
+      "ledger": "Ledger",
+      "loading": "Memuat…",
+      "unavailable": "Tidak tersedia",
+      "empty": "Tidak ada aktivitas akun Forex.",
+      "viewSection": "Lihat {section}"
+    },
+    "intelligenceSection": {
+      "title": "Intel pasar",
+      "headlinesCount": "{count} headline",
+      "newsUnavailable": "Berita {reason}",
+      "eventsCount": "{count} event",
+      "calendarUnavailable": "Kalender {reason}",
+      "unavailableReason": "tidak tersedia",
+      "noUpcomingEvents": "Tidak ada baris kalender mendatang dalam jendela feed saat ini.",
+      "impactNa": "n/a"
+    },
+    "footer": {
+      "cryptoOverviewPrefix": "Ringkasan Kripto tetap di",
+      "cryptoOverviewSuffix": ". Beranda ini tidak menggantikan terminal Spot Kripto."
+    }
   }
 }

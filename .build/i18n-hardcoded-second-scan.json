@@ -1,0 +1,607 @@
+{
+  "scan": "second-pass-post-fix",
+  "count": 241,
+  "samples": [
+    {
+      "file": "apps/frontend/src/app/(auth)/cookies/page.tsx",
+      "kind": "jsx",
+      "text": "Improve platform performance and security"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "kind": "jsx",
+      "text": "Get started"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "kind": "jsx",
+      "text": "Live market stream"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "kind": "jsx",
+      "text": "Trade crypto markets"
+    },
+    {
+      "file": "apps/frontend/src/app/HomePageClient.tsx",
+      "kind": "jsx",
+      "text": "View all"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+      "kind": "attr",
+      "text": "Add a remark"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+      "kind": "attr",
+      "text": "Optional"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+      "kind": "attr",
+      "text": "Please enter"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+      "kind": "attr",
+      "text": "Please input your withdrawal wallet address"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+      "kind": "jsx",
+      "text": "Please select"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "kind": "attr",
+      "text": "Add a remark"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "kind": "jsx",
+      "text": "Confirm delete"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "kind": "attr",
+      "text": "Enter the address or add a note..."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "kind": "jsx",
+      "text": "No assets found"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "kind": "attr",
+      "text": "Please enter"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "kind": "attr",
+      "text": "Please enter the Google Authenticator code"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "kind": "attr",
+      "text": "Please enter the email verification code"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "kind": "attr",
+      "text": "Please input your withdrawal wallet address"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "kind": "jsx",
+      "text": "Please select"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "kind": "attr",
+      "text": "Search..."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "kind": "jsx",
+      "text": "Select chain type"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/announcements/[id]/page.tsx",
+      "kind": "jsx",
+      "text": "Back to announcements"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/announcements/page.tsx",
+      "kind": "attr",
+      "text": "Could not load announcements"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/announcements/page.tsx",
+      "kind": "attr",
+      "text": "No announcements"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "kind": "attr",
+      "text": "e.g., Trading Bot, Portfolio Tracker"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "kind": "attr",
+      "text": "API Documentation"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "kind": "attr",
+      "text": "Comma-separated IPs e.g. 203.0.113.4, 198.51.100.7"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "kind": "attr",
+      "text": "Delete API key"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "kind": "attr",
+      "text": "Edit API key"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "kind": "attr",
+      "text": "My trading key"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "kind": "jsx",
+      "text": "Read more"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "kind": "jsx",
+      "text": "Show less"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/convert/page.tsx",
+      "kind": "jsx",
+      "text": "Conversion history"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/convert/page.tsx",
+      "kind": "attr",
+      "text": "Convert"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/convert/page.tsx",
+      "kind": "jsx",
+      "text": "Estimated output"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/convert/page.tsx",
+      "kind": "jsx",
+      "text": "Get quote"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/convert/page.tsx",
+      "kind": "jsx",
+      "text": "No conversions yet"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/convert/page.tsx",
+      "kind": "jsx",
+      "text": "Refresh history"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/convert/page.tsx",
+      "kind": "attr",
+      "text": "Search"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/convert/page.tsx",
+      "kind": "jsx",
+      "text": "Swap again"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/convert/page.tsx",
+      "kind": "attr",
+      "text": "Swap direction"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/funding/page.tsx",
+      "kind": "attr",
+      "text": "Clear search"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/funding/page.tsx",
+      "kind": "jsx",
+      "text": "Hide zero balances"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/funding/page.tsx",
+      "kind": "jsx",
+      "text": "In use"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/funding/page.tsx",
+      "kind": "jsx",
+      "text": "Locked in orders or pending"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/funding/page.tsx",
+      "kind": "jsx",
+      "text": "Log in again"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/funding/page.tsx",
+      "kind": "jsx",
+      "text": "No assets found"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/funding/page.tsx",
+      "kind": "jsx",
+      "text": "Ready to trade or withdraw"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/funding/page.tsx",
+      "kind": "attr",
+      "text": "Refresh balances"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/funding/page.tsx",
+      "kind": "attr",
+      "text": "Search coin\u2026"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/funding/page.tsx",
+      "kind": "jsx",
+      "text": "Total equity"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/history/page.tsx",
+      "kind": "attr",
+      "text": "Failed to load history"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/history/page.tsx",
+      "kind": "attr",
+      "text": "Failed to load transactions"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/history/page.tsx",
+      "kind": "attr",
+      "text": "Refresh now"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/history/page.tsx",
+      "kind": "attr",
+      "text": "Wallet history"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/pnl/page.tsx",
+      "kind": "jsx",
+      "text": "No matches"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/pnl/page.tsx",
+      "kind": "attr",
+      "text": "Search symbol\u2026"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/pnl/page.tsx",
+      "kind": "jsx",
+      "text": "Show all symbols"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "kind": "jsx",
+      "text": "Got it"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "kind": "jsx",
+      "text": "Hide small balances"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "kind": "jsx",
+      "text": "No assets found"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "kind": "attr",
+      "text": "Search coin..."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "kind": "jsx",
+      "text": "Transfer funds to start trading"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "kind": "jsx",
+      "text": "All orders"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "kind": "jsx",
+      "text": "All transactions"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "kind": "jsx",
+      "text": "Custom range"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "kind": "jsx",
+      "text": "Open full wallet history"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "kind": "jsx",
+      "text": "Trade orders"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/error.tsx",
+      "kind": "attr",
+      "text": "Dashboard section failed to load"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/fee-rates/page.tsx",
+      "kind": "attr",
+      "text": "Spot volume fee tier"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "kind": "attr",
+      "text": "Account settings"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "kind": "attr",
+      "text": "Get help"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "kind": "attr",
+      "text": "Help"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "kind": "jsx",
+      "text": "Quick verification"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "kind": "jsx",
+      "text": "Select all"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/identity/upload/page.tsx",
+      "kind": "jsx",
+      "text": "Tips for a successful verification"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/layout.tsx",
+      "kind": "attr",
+      "text": "Primary"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/p2p/page.tsx",
+      "kind": "attr",
+      "text": "Failed to load P2P orders"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/p2p/page.tsx",
+      "kind": "attr",
+      "text": "No P2P orders yet"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "kind": "attr",
+      "text": "No open orders"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "kind": "attr",
+      "text": "No order history"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "kind": "jsx",
+      "text": "All sides"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "kind": "attr",
+      "text": "No trades yet"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "kind": "attr",
+      "text": "Pair (e.g. BTC_USDT)"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "kind": "attr",
+      "text": "Refresh"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/progress/page.tsx",
+      "kind": "attr",
+      "text": "Exchange setup completion"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/progress/page.tsx",
+      "kind": "jsx",
+      "text": "Exchange setup progress"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/progress/page.tsx",
+      "kind": "jsx",
+      "text": "In progress"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/progress/page.tsx",
+      "kind": "jsx",
+      "text": "Overall completion"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/progress/page.tsx",
+      "kind": "jsx",
+      "text": "Total steps"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "kind": "jsx",
+      "text": "Commission earned"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "kind": "jsx",
+      "text": "Earned rewards"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "kind": "jsx",
+      "text": "Recent commission history"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "kind": "jsx",
+      "text": "Commission on trading fees"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "kind": "jsx",
+      "text": "Customize your message"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "kind": "jsx",
+      "text": "Learn more"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "kind": "jsx",
+      "text": "Per referred user"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "kind": "jsx",
+      "text": "Plus earn"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "kind": "jsx",
+      "text": "Referral program cap"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "kind": "jsx",
+      "text": "Track referral performance and conversion"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "kind": "jsx",
+      "text": "Up to"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "kind": "attr",
+      "text": "Account password"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "kind": "jsx",
+      "text": "Account status"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "kind": "jsx",
+      "text": "Authenticator code"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "kind": "jsx",
+      "text": "Back up your secret"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "kind": "attr",
+      "text": "Breadcrumb"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "kind": "jsx",
+      "text": "Confirm code"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "kind": "jsx",
+      "text": "Not enabled"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/change-password/page.tsx",
+      "kind": "attr",
+      "text": "Enter your current password"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/change-password/page.tsx",
+      "kind": "jsx",
+      "text": "Passwords do not match"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/change-password/page.tsx",
+      "kind": "attr",
+      "text": "Please enter a new password."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/change-password/page.tsx",
+      "kind": "attr",
+      "text": "Please enter your new password again."
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "kind": "jsx",
+      "text": "Confirm password"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "kind": "jsx",
+      "text": "Current fund password"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "kind": "attr",
+      "text": "Enter current fund password"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "kind": "jsx",
+      "text": "Fund password"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "kind": "jsx",
+      "text": "Password strength"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "kind": "jsx",
+      "text": "Passwords do not match"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "kind": "attr",
+      "text": "Re-enter fund password"
+    },
+    {
+      "file": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "kind": "attr",
+      "text": "Enter passkey name"
+    }
+  ],
+  "remainingTotal": 241
+}

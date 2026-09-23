@@ -479,5 +479,20 @@
     "removeFavorite": "Remove from favorites",
     "toggleFavoriteAria": "Toggle favorite",
     "withdrawalTierTitle": "Withdrawal tier"
+  },
+  "terminalHeader": {
+    "tradingNavAria": "Trading",
+    "searchPairHint": "Search pair (e.g. BTC/USDT)",
+    "searchPairPlaceholder": "Search BTC/USDT, ETH/USDT…",
+    "noPairsFound": "No pairs found"
+  },
+  "terminalChrome": {
+    "resizeChartAria": "Resize chart and order form",
+    "panelsAria": "Spot trading panels",
+    "bottomSectionAria": "Order history and trading activity"
+  },
+  "chartPanel": {
+    "loadingChart": "Loading chart…",
+    "depthChartAria": "Orderbook depth chart"
   }
 }

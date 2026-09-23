@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { PublicHeader } from '@/components/layout/PublicHeader';
 import { EdaMoney } from '@/components/eda/EdaMoney';
 import { moneyFromBackend, type EdaMoneyState } from '@/lib/eda/money-state';
@@ -29,6 +30,17 @@ type CalEvent = {
   currency?: string | null;
   event?: string;
   impact?: string;
+};
+
+type IntelFeedMeta = {
+  newsOk: boolean;
+  newsAvailable: boolean;
+  newsCount?: number;
+  newsReason?: string;
+  calOk: boolean;
+  calAvailable: boolean;
+  calCount?: number;
+  calReason?: string;
 };
 
 const FAV_KEY = 'eda-command-favorites-v1';
@@ -75,6 +87,24 @@ function loadFavorites(): string[] {
 }
 
 export function EdaCustomerHome() {
+  const th = useTranslations('home');
+  const tc = useTranslations('home.customer');
+  const tn = useTranslations('navigation');
+  const tf = useTranslations('forex');
+  const tw = useTranslations('wallet.actions');
+  const tActions = useTranslations('common.actions');
+  const tStates = useTranslations('common.states');
+
+  const marketStatusLabel = useCallback(
+    (status: MarketFreshness): string => {
+      if (status === 'LIVE') return th('status.live');
+      if (status === 'STALE') return th('status.stale');
+      if (status === 'CONNECTING') return th('status.connecting');
+      return th('status.unavailable');
+    },
+    [th]
+  );
+
   const cryptoBalances = useBalancesSummary(true);
   const [fxAccount, setFxAccount] = useState<Load<ForexAccountView>>({ status: 'loading' });
   const [fxRisk, setFxRisk] = useState<Load<ForexRiskStatus>>({ status: 'loading' });
@@ -83,11 +113,8 @@ export function EdaCustomerHome() {
   const [fxFills, setFxFills] = useState<Load<ForexFillRow[]>>({ status: 'loading' });
   const [fxLedger, setFxLedger] = useState<Load<ForexLedgerRow[]>>({ status: 'loading' });
   const [fxSessions, setFxSessions] = useState<Load<ForexSessionSnapshot>>({ status: 'loading' });
-  const [intel, setIntel] = useState<{ news: string; calendar: string; events: CalEvent[] }>({
-    news: 'Loading',
-    calendar: 'Loading',
-    events: [],
-  });
+  const [intelMeta, setIntelMeta] = useState<IntelFeedMeta | null>(null);
+  const [intelEvents, setIntelEvents] = useState<CalEvent[]>([]);
   const [watch, setWatch] = useState<EdaPublicMarkets | null>(null);
   const [watchTab, setWatchTab] = useState<'watchlist' | 'crypto' | 'forex' | 'favorites'>('watchlist');
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -135,10 +162,16 @@ export function EdaCustomerHome() {
       const n = unwrap(news);
       const c = unwrap(calendar);
       const events = c.ok && Array.isArray(c.data.events) ? (c.data.events as CalEvent[]) : [];
-      setIntel({
-        news: n.ok && n.data.availability === 'AVAILABLE' ? `${n.data.count} headlines` : `News ${n.ok ? n.data.reason ?? 'unavailable' : 'unavailable'}`,
-        calendar: c.ok && c.data.availability === 'AVAILABLE' ? `${c.data.count} events` : `Calendar ${c.ok ? c.data.reason ?? 'unavailable' : 'unavailable'}`,
-        events,
+      setIntelEvents(events);
+      setIntelMeta({
+        newsOk: n.ok,
+        newsAvailable: n.ok && n.data.availability === 'AVAILABLE',
+        newsCount: n.ok ? n.data.count : undefined,
+        newsReason: n.ok ? (n.data.reason ?? undefined) : undefined,
+        calOk: c.ok,
+        calAvailable: c.ok && c.data.availability === 'AVAILABLE',
+        calCount: c.ok ? c.data.count : undefined,
+        calReason: c.ok ? (c.data.reason ?? undefined) : undefined,
       });
     })();
     void refreshWatch(ctrl.signal);
@@ -191,18 +224,40 @@ export function EdaCustomerHome() {
   const openPositions = fxPositions.status === 'ready' ? fxPositions.data.filter(isOpenPosition) : [];
 
   const sessionOpen = fxSessions.status === 'ready' ? fxSessions.data.eligibility?.open === true : null;
-  const sessionLabel =
-    fxSessions.status === 'ready'
-      ? fxSessions.data.eligibility?.sessions?.length
-        ? fxSessions.data.eligibility.sessions.join(' · ')
-        : fxSessions.data.eligibility?.reason ?? 'Unknown'
-      : fxSessions.status === 'loading'
-        ? 'Loading'
-        : 'Unavailable';
+  const sessionLabel = useMemo(() => {
+    if (fxSessions.status === 'ready') {
+      if (fxSessions.data.eligibility?.sessions?.length) {
+        return fxSessions.data.eligibility.sessions.join(' · ');
+      }
+      return fxSessions.data.eligibility?.reason ?? tc('unknown');
+    }
+    if (fxSessions.status === 'loading') return th('status.connecting');
+    return th('status.unavailable');
+  }, [fxSessions, tc, th]);
+
+  const intelSummary = useMemo(() => {
+    const unavail = tc('intelligenceSection.unavailableReason');
+    if (!intelMeta) {
+      return { news: th('status.connecting'), calendar: th('status.connecting') };
+    }
+    const news =
+      intelMeta.newsAvailable && intelMeta.newsCount != null
+        ? tc('intelligenceSection.headlinesCount', { count: intelMeta.newsCount })
+        : tc('intelligenceSection.newsUnavailable', {
+            reason: intelMeta.newsOk ? (intelMeta.newsReason ?? unavail) : unavail,
+          });
+    const calendar =
+      intelMeta.calAvailable && intelMeta.calCount != null
+        ? tc('intelligenceSection.eventsCount', { count: intelMeta.calCount })
+        : tc('intelligenceSection.calendarUnavailable', {
+            reason: intelMeta.calOk ? (intelMeta.calReason ?? unavail) : unavail,
+          });
+    return { news, calendar };
+  }, [intelMeta, tc, th]);
 
   const upcomingEvents = useMemo(() => {
     const now = Date.now();
-    return intel.events
+    return intelEvents
       .filter((ev) => {
         if (!ev.time) return false;
         const ms = Date.parse(ev.time);
@@ -210,7 +265,7 @@ export function EdaCustomerHome() {
       })
       .sort((a, b) => Date.parse(String(a.time)) - Date.parse(String(b.time)))
       .slice(0, 5);
-  }, [intel.events]);
+  }, [intelEvents]);
 
   const highImpactNext = upcomingEvents.find((e) => String(e.impact ?? '').toLowerCase().includes('high')) ?? upcomingEvents[0] ?? null;
 
@@ -235,61 +290,59 @@ export function EdaCustomerHome() {
       <main className="mx-auto max-w-[1320px] space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.16em] text-primary">My FDM</p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight">Customer command center</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Crypto and Forex accounts stay separate. No combined total is calculated here.
-            </p>
+            <p className="text-[11px] uppercase tracking-[0.16em] text-primary">{tc('eyebrow')}</p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight">{tc('title')}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{tc('subtitle')}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <SessionChip open={sessionOpen} label={sessionLabel} />
             {fxRisk.status === 'ready' ? (
               <span className={cn('inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide', riskTone(fxRisk.data.state))}>
-                Risk {fxRisk.data.state}
+                {tc('riskBadge', { state: fxRisk.data.state })}
               </span>
             ) : null}
             {watch ? (
               <span className={cn('inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-[11px] font-medium', freshnessTone(watch.status))}>
                 <span className={cn('h-1.5 w-1.5 rounded-full', watch.status === 'LIVE' ? 'bg-buy' : 'bg-muted-foreground')} aria-hidden />
-                Markets {watch.status}
+                {tc('marketsBadge', { status: marketStatusLabel(watch.status) })}
               </span>
             ) : null}
           </div>
         </header>
 
         {/* Quick actions — Markets CTA language */}
-        <section className="eda-card flex flex-wrap gap-2 p-3" aria-label="Quick actions">
+        <section className="eda-card flex flex-wrap gap-2 p-3" aria-label={tc('quickActionsAria')}>
           <ActionLink href={SPOT_TRADE_HREF} primary>
-            Open Crypto Spot
+            {tc('actions.openCryptoSpot')}
           </ActionLink>
           <ActionLink href={FOREX_ROUTES.trade} primary>
-            Open Forex
+            {tc('actions.openForex')}
           </ActionLink>
-          <ActionLink href={WALLET_HREF}>Funds</ActionLink>
-          <ActionLink href={FOREX_ROUTES.portfolio}>Portfolio</ActionLink>
-          <ActionLink href={FOREX_ROUTES.alerts}>Alerts</ActionLink>
-          <ActionLink href={FOREX_ROUTES.analysis}>Analysis</ActionLink>
-          <ActionLink href={ROUTES.markets}>Crypto Markets</ActionLink>
+          <ActionLink href={WALLET_HREF}>{tn('funds')}</ActionLink>
+          <ActionLink href={FOREX_ROUTES.portfolio}>{tn('portfolio')}</ActionLink>
+          <ActionLink href={FOREX_ROUTES.alerts}>{tf('nav.alerts')}</ActionLink>
+          <ActionLink href={FOREX_ROUTES.analysis}>{tf('nav.analysis')}</ActionLink>
+          <ActionLink href={ROUTES.markets}>{tc('actions.cryptoMarkets')}</ActionLink>
         </section>
 
         {highImpactNext ? (
           <section className="eda-card-featured flex flex-wrap items-center justify-between gap-3 px-4 py-3">
             <div>
-              <p className="text-[11px] uppercase tracking-wide text-primary">Next calendar event</p>
+              <p className="text-[11px] uppercase tracking-wide text-primary">{tc('calendarBanner.eyebrow')}</p>
               <p className="mt-0.5 text-sm font-medium">
                 <span className="text-primary">{String(highImpactNext.impact ?? '·')}</span>{' '}
                 {highImpactNext.currency ? `${highImpactNext.currency} · ` : ''}
                 {highImpactNext.event}
               </p>
               <p className="text-[12px] text-muted-foreground">
-                {highImpactNext.time ? new Date(highImpactNext.time).toLocaleString() : 'Time unavailable'}
+                {highImpactNext.time ? new Date(highImpactNext.time).toLocaleString() : tc('timeUnavailable')}
               </p>
             </div>
             <Link
               href={FOREX_ROUTES.analysis}
               className="inline-flex h-9 items-center rounded-lg bg-primary px-3 text-[12px] font-semibold text-primary-foreground hover:bg-primary/90"
             >
-              Open analysis
+              {tc('actions.openAnalysis')}
             </Link>
           </section>
         ) : null}
@@ -297,66 +350,66 @@ export function EdaCustomerHome() {
         <section className="grid gap-4 lg:grid-cols-2">
           <article className="eda-card p-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold">Crypto</h2>
+              <h2 className="text-sm font-semibold">{tc('cryptoSection.title')}</h2>
               <Link href={WALLET_HREF} className="text-[12px] text-primary underline-offset-2 hover:underline">
-                Wallet
+                {tn('wallet')}
               </Link>
             </div>
             <dl className="mt-4 grid grid-cols-2 gap-3">
-              <Metric label="Trading" state={cryptoState} />
-              <Metric label="Funding" state={fundingState} />
+              <Metric label={tc('metrics.trading')} state={cryptoState} />
+              <Metric label={tc('metrics.funding')} state={fundingState} />
             </dl>
-            <p className="mt-3 text-[11px] text-muted-foreground">Wallet summary only · no combined Crypto+Forex total</p>
+            <p className="mt-3 text-[11px] text-muted-foreground">{tc('cryptoSection.footnote')}</p>
             <div className="mt-4 flex flex-wrap gap-2">
               <ActionLink href={SPOT_TRADE_HREF} primary>
-                Trade Spot
+                {tc('actions.tradeSpot')}
               </ActionLink>
-              <ActionLink href={WALLET_HREF}>Deposit / Withdraw</ActionLink>
+              <ActionLink href={WALLET_HREF}>{tc('actions.depositWithdraw')}</ActionLink>
             </div>
           </article>
 
           <article className="eda-card p-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold">Forex</h2>
+              <h2 className="text-sm font-semibold">{tc('forexSection.title')}</h2>
               <Link href={FOREX_ROUTES.account} className="text-[12px] text-primary underline-offset-2 hover:underline">
-                Account
+                {tn('account')}
               </Link>
             </div>
             <dl className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
-              <Metric label="Balance" state={balance} />
-              <Metric label="Equity" state={equity} />
-              <Metric label="Free margin" state={free} />
-              <Metric label="Used margin" state={used} />
-              <Metric label="Unrealized P&L" state={upnl} signed />
-              <Metric label="Realized P&L" state={rpnl} signed />
+              <Metric label={tc('metrics.balance')} state={balance} />
+              <Metric label={tc('metrics.equity')} state={equity} />
+              <Metric label={tc('metrics.freeMargin')} state={free} />
+              <Metric label={tc('metrics.usedMargin')} state={used} />
+              <Metric label={tc('metrics.unrealizedPnl')} state={upnl} signed />
+              <Metric label={tc('metrics.realizedPnl')} state={rpnl} signed />
             </dl>
-            <p className="mt-3 text-[11px] text-muted-foreground">SIMULATED execution · backend account is authoritative</p>
+            <p className="mt-3 text-[11px] text-muted-foreground">{tc('forexSection.footnote')}</p>
             <div className="mt-4 flex flex-wrap gap-2">
               <ActionLink href={FOREX_ROUTES.trade} primary>
-                Trade Forex
+                {tc('actions.tradeForex')}
               </ActionLink>
-              <ActionLink href={FOREX_ROUTES.markets}>Explore FX</ActionLink>
-              <ActionLink href={FOREX_ROUTES.funds}>Funds</ActionLink>
+              <ActionLink href={FOREX_ROUTES.markets}>{tc('actions.exploreFx')}</ActionLink>
+              <ActionLink href={FOREX_ROUTES.funds}>{tn('funds')}</ActionLink>
             </div>
           </article>
         </section>
 
         <section className="eda-card p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold">Open Forex positions</h2>
+            <h2 className="text-sm font-semibold">{tc('positions.title')}</h2>
             <Link href={FOREX_ROUTES.portfolio} className="text-[12px] text-primary underline-offset-2 hover:underline">
-              View Portfolio
+              {tc('actions.viewPortfolio')}
             </Link>
           </div>
           {fxPositions.status === 'loading' ? (
-            <p className="mt-3 text-sm text-muted-foreground">Loading positions…</p>
+            <p className="mt-3 text-sm text-muted-foreground">{tc('positions.loading')}</p>
           ) : fxPositions.status === 'error' ? (
-            <p className="mt-3 text-sm text-muted-foreground">Positions unavailable</p>
+            <p className="mt-3 text-sm text-muted-foreground">{tc('positions.unavailable')}</p>
           ) : openPositions.length === 0 ? (
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm text-muted-foreground">No open Forex positions.</p>
+              <p className="text-sm text-muted-foreground">{tc('positions.empty')}</p>
               <ActionLink href={FOREX_ROUTES.trade} primary>
-                Place first trade
+                {tc('actions.placeFirstTrade')}
               </ActionLink>
             </div>
           ) : (
@@ -364,11 +417,11 @@ export function EdaCustomerHome() {
               <table className="eda-table min-w-[720px] font-mono text-[12px]">
                 <thead>
                   <tr>
-                    <th>Symbol</th>
-                    <th>Side</th>
-                    <th>Volume</th>
-                    <th>Entry</th>
-                    <th>Current</th>
+                    <th>{tc('positionsTable.symbol')}</th>
+                    <th>{tc('positionsTable.side')}</th>
+                    <th>{tc('positionsTable.volume')}</th>
+                    <th>{tc('positionsTable.entry')}</th>
+                    <th>{tc('positionsTable.current')}</th>
                     <th />
                   </tr>
                 </thead>
@@ -379,13 +432,13 @@ export function EdaCustomerHome() {
                       <td className={cn('uppercase', p.side === 'long' ? 'text-buy' : 'text-sell')}>{p.side}</td>
                       <td>{p.volume}</td>
                       <td>{p.averageEntryPrice || p.entryPrice}</td>
-                      <td>{p.currentPrice || 'Unavailable'}</td>
+                      <td>{p.currentPrice || tc('positionsTable.priceUnavailable')}</td>
                       <td className="text-right">
                         <Link
                           href={`${FOREX_ROUTES.trade}?symbol=${encodeURIComponent(p.symbol)}`}
                           className="rounded bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground hover:bg-primary/90"
                         >
-                          Manage
+                          {tc('actions.manage')}
                         </Link>
                       </td>
                     </tr>
@@ -398,11 +451,11 @@ export function EdaCustomerHome() {
 
         <section className="grid gap-4 lg:grid-cols-2">
           <article className="eda-card p-5">
-            <h2 className="text-sm font-semibold">Risk &amp; margin</h2>
+            <h2 className="text-sm font-semibold">{tc('riskSection.title')}</h2>
             {fxRisk.status === 'loading' ? (
-              <p className="mt-3 text-sm text-muted-foreground">Loading risk…</p>
+              <p className="mt-3 text-sm text-muted-foreground">{tc('riskSection.loading')}</p>
             ) : fxRisk.status === 'error' ? (
-              <p className="mt-3 text-sm text-muted-foreground">Risk unavailable</p>
+              <p className="mt-3 text-sm text-muted-foreground">{tc('riskSection.unavailable')}</p>
             ) : (
               <>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -415,46 +468,46 @@ export function EdaCustomerHome() {
                 </div>
                 <dl className="mt-3 grid grid-cols-2 gap-2 font-mono text-[12px]">
                   <div className="eda-metric !min-w-0">
-                    <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Margin level</dt>
+                    <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{tc('riskSection.marginLevel')}</dt>
                     <dd className="mt-1 text-foreground">
                       {acc?.marginLevel == null || acc.marginLevel === ''
                         ? fxLoading
-                          ? 'Loading'
-                          : 'Unavailable'
+                          ? tStates('loading')
+                          : th('liveMarkets.unavailable')
                         : acc.marginLevel}
                     </dd>
                   </div>
                   <div className="eda-metric !min-w-0">
-                    <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Used</dt>
+                    <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{tc('riskSection.used')}</dt>
                     <dd className="mt-1">
                       <EdaMoney state={used} />
                     </dd>
                   </div>
                   <div className="eda-metric !min-w-0">
-                    <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Free</dt>
+                    <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{tc('riskSection.free')}</dt>
                     <dd className="mt-1">
                       <EdaMoney state={free} />
                     </dd>
                   </div>
                   <div className="eda-metric !min-w-0">
-                    <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Session</dt>
+                    <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{tc('riskSection.session')}</dt>
                     <dd className={cn('mt-1', sessionOpen === true ? 'text-buy' : sessionOpen === false ? 'text-sell' : 'text-muted-foreground')}>
-                      {sessionOpen === true ? 'Open' : sessionOpen === false ? 'Closed' : '—'}
+                      {sessionOpen === true ? tc('riskSection.sessionOpen') : sessionOpen === false ? tc('riskSection.sessionClosed') : '—'}
                     </dd>
                   </div>
                 </dl>
               </>
             )}
-            <p className="mt-3 text-[11px] text-muted-foreground">Backend risk/status only · no synthetic score</p>
+            <p className="mt-3 text-[11px] text-muted-foreground">{tc('riskSection.footnote')}</p>
           </article>
 
           <article className="eda-card p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold">Market watch</h2>
+              <h2 className="text-sm font-semibold">{tc('watch.title')}</h2>
               <div className="flex items-center gap-2">
                 {watchUpdatedAt ? (
                   <span className="text-[10px] text-muted-foreground">
-                    Updated {new Date(watchUpdatedAt).toLocaleTimeString()}
+                    {tc('watch.updatedAt', { time: new Date(watchUpdatedAt).toLocaleTimeString() })}
                   </span>
                 ) : null}
                 <button
@@ -466,29 +519,29 @@ export function EdaCustomerHome() {
                   }}
                   className="eda-tab !normal-case !tracking-normal"
                 >
-                  {refreshing ? 'Refreshing…' : 'Refresh'}
+                  {refreshing ? tc('watch.refreshing') : tActions('refresh')}
                 </button>
               </div>
             </div>
-            <div className="mt-3 flex flex-wrap gap-1.5" role="tablist" aria-label="Watch tabs">
-              {(['watchlist', 'crypto', 'forex', 'favorites'] as const).map((t) => (
+            <div className="mt-3 flex flex-wrap gap-1.5" role="tablist" aria-label={tc('watch.tabsAria')}>
+              {(['watchlist', 'crypto', 'forex', 'favorites'] as const).map((tabKey) => (
                 <button
-                  key={t}
+                  key={tabKey}
                   type="button"
                   role="tab"
-                  aria-selected={watchTab === t}
-                  onClick={() => setWatchTab(t)}
-                  className={cn('eda-tab', watchTab === t && 'eda-tab-active')}
+                  aria-selected={watchTab === tabKey}
+                  onClick={() => setWatchTab(tabKey)}
+                  className={cn('eda-tab', watchTab === tabKey && 'eda-tab-active')}
                 >
-                  {t}
+                  {tc(`watch.tabs.${tabKey}`)}
                 </button>
               ))}
             </div>
             {!watch ? (
-              <p className="mt-3 text-sm text-muted-foreground">Connecting…</p>
+              <p className="mt-3 text-sm text-muted-foreground">{th('status.connecting')}</p>
             ) : visibleCrypto.length === 0 && visibleForex.length === 0 ? (
               <p className="mt-3 text-sm text-muted-foreground">
-                {watchTab === 'favorites' ? 'Star symbols to build a local favorites list.' : 'No rows for this tab.'}
+                {watchTab === 'favorites' ? tc('watch.emptyFavorites') : tc('watch.emptyTab')}
               </p>
             ) : (
               <ul className="mt-3 divide-y divide-border/60">
@@ -496,7 +549,9 @@ export function EdaCustomerHome() {
                   <li key={r.symbol} className="flex items-center gap-2 py-2.5">
                     <button
                       type="button"
-                      aria-label={favorites.includes(r.symbol.toUpperCase()) ? 'Remove favorite' : 'Add favorite'}
+                      aria-label={
+                        favorites.includes(r.symbol.toUpperCase()) ? tf('watchlist.removeFavorite') : tf('watchlist.addFavorite')
+                      }
                       onClick={() => toggleFavorite(r.symbol)}
                       className={cn('text-[14px]', favorites.includes(r.symbol.toUpperCase()) ? 'text-primary' : 'text-muted-foreground')}
                     >
@@ -508,7 +563,7 @@ export function EdaCustomerHome() {
                         <span className="text-foreground">{r.price ?? '—'}</span>
                       </div>
                       <div className="mt-0.5 flex items-center justify-between text-[10px]">
-                        <span className={freshnessTone(r.freshness)}>{r.freshness}</span>
+                        <span className={freshnessTone(r.freshness)}>{marketStatusLabel(r.freshness)}</span>
                         <span className={changeTone(r.change)}>{formatChange(r.change)}</span>
                       </div>
                     </Link>
@@ -516,7 +571,7 @@ export function EdaCustomerHome() {
                       href={tradeSpotWithSymbol(r.symbol)}
                       className="shrink-0 rounded-md bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground hover:bg-primary/90"
                     >
-                      Trade
+                      {tc('actions.trade')}
                     </Link>
                   </li>
                 ))}
@@ -524,7 +579,9 @@ export function EdaCustomerHome() {
                   <li key={r.symbol} className="flex items-center gap-2 py-2.5">
                     <button
                       type="button"
-                      aria-label={favorites.includes(r.symbol.toUpperCase()) ? 'Remove favorite' : 'Add favorite'}
+                      aria-label={
+                        favorites.includes(r.symbol.toUpperCase()) ? tf('watchlist.removeFavorite') : tf('watchlist.addFavorite')
+                      }
                       onClick={() => toggleFavorite(r.symbol)}
                       className={cn('text-[14px]', favorites.includes(r.symbol.toUpperCase()) ? 'text-primary' : 'text-muted-foreground')}
                     >
@@ -540,8 +597,8 @@ export function EdaCustomerHome() {
                         </span>
                       </div>
                       <div className="mt-0.5 flex items-center justify-between text-[10px] text-muted-foreground">
-                        <span className={freshnessTone(r.freshness)}>{r.freshness}</span>
-                        <span>{r.spread != null ? `Spr ${r.spread}` : '—'}</span>
+                        <span className={freshnessTone(r.freshness)}>{marketStatusLabel(r.freshness)}</span>
+                        <span>{r.spread != null ? tc('watch.spreadPrefix', { spread: r.spread }) : '—'}</span>
                       </div>
                       {r.metalsProxy ? <p className="mt-0.5 text-[10px] text-amber-400/90">{r.metalsProxy}</p> : null}
                     </Link>
@@ -549,7 +606,7 @@ export function EdaCustomerHome() {
                       href={`${FOREX_ROUTES.trade}?symbol=${r.symbol}`}
                       className="shrink-0 rounded-md bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground hover:bg-primary/90"
                     >
-                      Trade
+                      {tc('actions.trade')}
                     </Link>
                   </li>
                 ))}
@@ -560,14 +617,14 @@ export function EdaCustomerHome() {
 
         <section className="eda-card p-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Recent Forex activity</h2>
+            <h2 className="text-sm font-semibold">{tc('activity.title')}</h2>
             <Link href={FOREX_ROUTES.ledger} className="text-[12px] text-primary underline-offset-2 hover:underline">
-              View all
+              {tw('viewAll')}
             </Link>
           </div>
           <div className="mt-3 grid gap-4 md:grid-cols-3">
             <ActivityCol
-              title="Orders"
+              title={tc('activity.orders')}
               loading={fxOrders.status === 'loading'}
               error={fxOrders.status === 'error'}
               empty={fxOrders.status === 'ready' && fxOrders.data.length === 0}
@@ -585,7 +642,7 @@ export function EdaCustomerHome() {
               href={FOREX_ROUTES.orders}
             />
             <ActivityCol
-              title="Fills"
+              title={tc('activity.fills')}
               loading={fxFills.status === 'loading'}
               error={fxFills.status === 'error'}
               empty={fxFills.status === 'ready' && fxFills.data.length === 0}
@@ -603,7 +660,7 @@ export function EdaCustomerHome() {
               href={FOREX_ROUTES.orders}
             />
             <ActivityCol
-              title="Ledger"
+              title={tc('activity.ledger')}
               loading={fxLedger.status === 'loading'}
               error={fxLedger.status === 'error'}
               empty={fxLedger.status === 'ready' && fxLedger.data.length === 0}
@@ -625,13 +682,13 @@ export function EdaCustomerHome() {
 
         <section className="eda-card p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold">Market intelligence</h2>
+            <h2 className="text-sm font-semibold">{tc('intelligenceSection.title')}</h2>
             <Link href={FOREX_ROUTES.analysis} className="text-[12px] text-primary underline-offset-2 hover:underline">
-              Open analysis
+              {tc('actions.openAnalysis')}
             </Link>
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            {intel.news} · {intel.calendar}
+            {intelSummary.news} · {intelSummary.calendar}
           </p>
           {upcomingEvents.length > 0 ? (
             <ul className="mt-3 space-y-2">
@@ -645,7 +702,7 @@ export function EdaCustomerHome() {
                         {ev.event}
                       </p>
                       <p className="text-[11px] text-muted-foreground">
-                        {ev.time ? new Date(ev.time).toLocaleString() : 'Time unavailable'}
+                        {ev.time ? new Date(ev.time).toLocaleString() : tc('timeUnavailable')}
                       </p>
                     </div>
                     <span
@@ -658,29 +715,29 @@ export function EdaCustomerHome() {
                             : 'border-border bg-muted text-muted-foreground'
                       )}
                     >
-                      {ev.impact ?? 'n/a'}
+                      {ev.impact ?? tc('intelligenceSection.impactNa')}
                     </span>
                   </li>
                 );
               })}
             </ul>
           ) : (
-            <p className="mt-3 text-sm text-muted-foreground">No upcoming calendar rows in the current feed window.</p>
+            <p className="mt-3 text-sm text-muted-foreground">{tc('intelligenceSection.noUpcomingEvents')}</p>
           )}
           <div className="mt-4 flex flex-wrap gap-2">
             <ActionLink href={FOREX_ROUTES.analysis} primary>
-              Analysis workspace
+              {tc('actions.analysisWorkspace')}
             </ActionLink>
-            <ActionLink href={ROUTES.markets}>Crypto Markets intel</ActionLink>
+            <ActionLink href={ROUTES.markets}>{tc('actions.cryptoMarketsIntel')}</ActionLink>
           </div>
         </section>
 
         <p className="text-[12px] text-muted-foreground">
-          Crypto overview remains at{' '}
+          {tc('footer.cryptoOverviewPrefix')}{' '}
           <Link href={ROUTES.dashboard.root} className="text-primary underline-offset-2 hover:underline">
             /dashboard
           </Link>
-          . This home does not replace the Crypto Spot terminal.
+          {tc('footer.cryptoOverviewSuffix')}
         </p>
       </main>
     </div>
@@ -688,10 +745,11 @@ export function EdaCustomerHome() {
 }
 
 function SessionChip(props: { open: boolean | null; label: string }) {
+  const tc = useTranslations('home.customer');
   if (props.open == null) {
     return (
       <span className="inline-flex items-center rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground">
-        Session —
+        {tc('sessionChip.unknown')}
       </span>
     );
   }
@@ -704,7 +762,7 @@ function SessionChip(props: { open: boolean | null; label: string }) {
       title={props.label}
     >
       <span className={cn('h-1.5 w-1.5 rounded-full', props.open ? 'bg-buy' : 'bg-sell')} aria-hidden />
-      FX {props.open ? 'Open' : 'Closed'}
+      {props.open ? tc('sessionChip.fxOpen') : tc('sessionChip.fxClosed')}
     </span>
   );
 }
@@ -744,12 +802,13 @@ function ActivityCol(props: {
   rows: Array<{ id: string; primary: string; secondary: string; tone: 'buy' | 'sell' | 'neutral'; href: string }>;
   href: string;
 }) {
+  const tc = useTranslations('home.customer');
   return (
     <div>
       <h3 className="text-[11px] uppercase tracking-wide text-muted-foreground">{props.title}</h3>
-      {props.loading ? <p className="mt-2 text-sm text-muted-foreground">Loading…</p> : null}
-      {props.error ? <p className="mt-2 text-sm text-muted-foreground">Unavailable</p> : null}
-      {props.empty ? <p className="mt-2 text-sm text-muted-foreground">No Forex account activity.</p> : null}
+      {props.loading ? <p className="mt-2 text-sm text-muted-foreground">{tc('activity.loading')}</p> : null}
+      {props.error ? <p className="mt-2 text-sm text-muted-foreground">{tc('activity.unavailable')}</p> : null}
+      {props.empty ? <p className="mt-2 text-sm text-muted-foreground">{tc('activity.empty')}</p> : null}
       {props.rows.length > 0 ? (
         <ul className="mt-2 space-y-1.5">
           {props.rows.map((row) => (
@@ -770,7 +829,7 @@ function ActivityCol(props: {
         </ul>
       ) : null}
       <Link href={props.href} className="mt-2 inline-block text-[12px] text-primary underline-offset-2 hover:underline">
-        View {props.title}
+        {tc('activity.viewSection', { section: props.title })}
       </Link>
     </div>
   );

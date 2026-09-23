@@ -9,7 +9,11 @@ import {
   setCustomerLocale,
   type CustomerLocale,
 } from './helpers/i18n-locale';
-import { loginUserForStagingHttp, waitForAuthenticatedRoute } from './mission2/helpers/login';
+import {
+  ensureTraderSessionCookies,
+  loginUserForStagingHttp,
+  waitForAuthenticatedRoute,
+} from './mission2/helpers/login';
 import { loadCredentials, QA_TRADER_A, QA_PASSWORD, UI_BASE } from './mission2/helpers/credentials';
 
 const BASE = (process.env.BASE_URL ?? UI_BASE).replace(/\/$/, '');
@@ -175,13 +179,10 @@ test.describe('Customer i18n visual matrix (authenticated — optional)', () => 
         const failures: string[] = [];
         const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height } });
         await setCustomerLocale(context, locale, BASE);
-        const page = await loginUserForStagingHttp(
-          context,
-          creds.QA_TRADER_A_EMAIL || QA_TRADER_A,
-          creds.QA_PASSWORD || QA_PASSWORD,
-          BASE,
-          process.env.E2E_BASE_URL || process.env.E2E_API_BASE_URL || 'http://127.0.0.1:4000',
-        );
+        const email = creds.QA_TRADER_A_EMAIL || QA_TRADER_A;
+        const password = creds.QA_PASSWORD || QA_PASSWORD;
+        const apiBase = process.env.E2E_API_BASE_URL || 'http://127.0.0.1:4000';
+        let page = await loginUserForStagingHttp(context, email, password, BASE, apiBase);
         const consoleErrors: string[] = [];
         const hydrationWarnings: string[] = [];
 
@@ -201,11 +202,23 @@ test.describe('Customer i18n visual matrix (authenticated — optional)', () => 
           const cellHydration: string[] = [];
 
           try {
-            const res = await page.goto(`${BASE}${route.path}`, {
-              waitUntil: 'domcontentloaded',
-              timeout: 45_000,
-            });
-            await waitForAuthenticatedRoute(page, context);
+            const visit = async () => {
+              await ensureTraderSessionCookies(context, email, password, BASE, apiBase, page);
+              const res = await page.goto(`${BASE}${route.path}`, {
+                waitUntil: 'domcontentloaded',
+                timeout: 45_000,
+              });
+              await waitForAuthenticatedRoute(page, context);
+              return res;
+            };
+            let res;
+            try {
+              res = await visit();
+            } catch {
+              await page.close().catch(() => {});
+              page = await loginUserForStagingHttp(context, email, password, BASE, apiBase);
+              res = await visit();
+            }
             const pathname = new URL(page.url()).pathname;
             if (pathname === '/login' || pathname.startsWith('/login/')) {
               const cookies = await context.cookies();
@@ -213,6 +226,7 @@ test.describe('Customer i18n visual matrix (authenticated — optional)', () => 
               throw new Error(`redirected to login (mlive_at present=${hasAt})`);
             }
             await page.locator('body').waitFor({ state: 'visible', timeout: 12_000 });
+            await page.locator('html[lang]').waitFor({ state: 'attached', timeout: 15_000 }).catch(() => {});
             const lang = await page.locator('html').getAttribute('lang');
             if (lang !== langForLocale(locale)) {
               throw new Error(`html lang expected ${langForLocale(locale)} got ${lang}`);

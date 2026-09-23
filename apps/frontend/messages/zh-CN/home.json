@@ -118,5 +118,122 @@
     "desc": "通过 FDM 访问数字资产与全球外汇。",
     "exploreMarkets": "探索行情",
     "createAccount": "创建账户"
+  },
+  "customer": {
+    "eyebrow": "我的 FDM",
+    "title": "客户指挥中心",
+    "subtitle": "加密与外汇账户相互独立，此处不计算合并总资产。",
+    "riskBadge": "风险 {state}",
+    "marketsBadge": "行情 {status}",
+    "quickActionsAria": "快捷操作",
+    "actions": {
+      "openCryptoSpot": "打开加密现货",
+      "openForex": "打开外汇",
+      "cryptoMarkets": "加密行情",
+      "tradeSpot": "现货交易",
+      "depositWithdraw": "充值 / 提现",
+      "tradeForex": "外汇交易",
+      "exploreFx": "浏览外汇",
+      "placeFirstTrade": "下第一笔单",
+      "manage": "管理",
+      "trade": "交易",
+      "openAnalysis": "打开分析",
+      "analysisWorkspace": "分析工作区",
+      "cryptoMarketsIntel": "加密行情情报",
+      "viewPortfolio": "查看投资组合"
+    },
+    "calendarBanner": {
+      "eyebrow": "下一条日历事件"
+    },
+    "timeUnavailable": "时间不可用",
+    "unknown": "未知",
+    "cryptoSection": {
+      "title": "加密",
+      "footnote": "仅钱包摘要 · 不含加密+外汇合并总额"
+    },
+    "forexSection": {
+      "title": "外汇",
+      "footnote": "模拟执行 · 以后端账户为准"
+    },
+    "metrics": {
+      "trading": "交易账户",
+      "funding": "资金账户",
+      "balance": "余额",
+      "equity": "净值",
+      "freeMargin": "可用保证金",
+      "usedMargin": "已用保证金",
+      "unrealizedPnl": "未实现盈亏",
+      "realizedPnl": "已实现盈亏"
+    },
+    "positions": {
+      "title": "外汇未平仓位",
+      "loading": "正在加载仓位…",
+      "unavailable": "仓位不可用",
+      "empty": "暂无未平外汇仓位。"
+    },
+    "positionsTable": {
+      "symbol": "品种",
+      "side": "方向",
+      "volume": "手数",
+      "entry": "开仓价",
+      "current": "现价",
+      "priceUnavailable": "不可用"
+    },
+    "riskSection": {
+      "title": "风险与保证金",
+      "loading": "正在加载风险…",
+      "unavailable": "风险数据不可用",
+      "marginLevel": "保证金水平",
+      "used": "已用",
+      "free": "可用",
+      "session": "交易时段",
+      "sessionOpen": "开市",
+      "sessionClosed": "休市",
+      "footnote": "仅展示后端风险/状态 · 无合成评分"
+    },
+    "watch": {
+      "title": "行情监控",
+      "updatedAt": "更新于 {time}",
+      "refreshing": "刷新中…",
+      "tabsAria": "监控标签",
+      "tabs": {
+        "watchlist": "自选",
+        "crypto": "加密",
+        "forex": "外汇",
+        "favorites": "收藏"
+      },
+      "emptyFavorites": "为品种加星以生成本地收藏列表。",
+      "emptyTab": "此标签下暂无数据。",
+      "spreadPrefix": "点差 {spread}"
+    },
+    "sessionChip": {
+      "unknown": "时段 —",
+      "fxOpen": "外汇开市",
+      "fxClosed": "外汇休市"
+    },
+    "activity": {
+      "title": "近期外汇动态",
+      "orders": "订单",
+      "fills": "成交",
+      "ledger": "账本",
+      "loading": "加载中…",
+      "unavailable": "不可用",
+      "empty": "暂无外汇账户活动。",
+      "viewSection": "查看{section}"
+    },
+    "intelligenceSection": {
+      "title": "市场情报",
+      "headlinesCount": "{count} 条头条",
+      "newsUnavailable": "新闻 {reason}",
+      "eventsCount": "{count} 个事件",
+      "calendarUnavailable": "日历 {reason}",
+      "unavailableReason": "不可用",
+      "noUpcomingEvents": "当前 feed 窗口内暂无即将发生的日历条目。",
+      "impactNa": "无"
+    },
+    "footer": {
+      "cryptoOverviewPrefix": "加密总览仍在",
+      "cryptoOverviewSuffix": "。本页不替代加密现货终端。"
+    }
   }
 }

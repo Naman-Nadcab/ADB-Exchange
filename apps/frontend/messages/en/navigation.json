@@ -30,6 +30,17 @@
   "globalFxTrading": "Global FX trading",
   "openAccountMenu": "Open account menu",
   "toggleMenu": "Toggle menu",
+  "productSwitcher": {
+    "switchProduct": "Switch product",
+    "productsMenu": "Products",
+    "productsHeading": "Products",
+    "allMarkets": "All Markets",
+    "allMarketsHint": "FDM overview",
+    "cryptoHint": "FDM Crypto — digital assets",
+    "forexHint": "FDM Forex — global FX",
+    "terminalCrypto": "Crypto",
+    "terminalForex": "Forex"
+  },
   "publicFooter": {
     "tagline": "Global financial platform · Crypto and Forex",
     "copyrightSuffix": "Digital assets and global FX.",

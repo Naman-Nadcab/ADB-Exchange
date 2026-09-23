@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { ROUTES, SPOT_TRADE_HREF } from '@/lib/routes';
 import { cn } from '@/lib/utils';
@@ -24,19 +25,21 @@ function currentProduct(pathname: string): ProductId {
   return 'all';
 }
 
-function labelFor(product: ProductId, variant: EdaProductSwitcherVariant): string {
-  if (variant === 'terminal') return product === 'forex' ? 'Forex' : 'Crypto';
-  if (product === 'forex') return 'Forex';
-  if (product === 'crypto') return 'Crypto';
-  return 'All Markets';
-}
-
 export function EdaProductSwitcher({ variant = 'marketing' }: { variant?: EdaProductSwitcherVariant }) {
+  const t = useTranslations('navigation.productSwitcher');
+  const tn = useTranslations('navigation');
   const pathname = usePathname() ?? '';
   const product = currentProduct(pathname);
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
+
+  const labelFor = (p: ProductId, v: EdaProductSwitcherVariant): string => {
+    if (v === 'terminal') return p === 'forex' ? t('terminalForex') : t('terminalCrypto');
+    if (p === 'forex') return tn('forex');
+    if (p === 'crypto') return tn('crypto');
+    return t('allMarkets');
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -72,12 +75,10 @@ export function EdaProductSwitcher({ variant = 'marketing' }: { variant?: EdaPro
     : 'px-3 py-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground';
   const checkClass = marketing ? 'text-[#F5B800]' : 'text-primary';
 
-  const items: Array<{ id: ProductId; href: string; title: string; hint: string }> = [
-    ...(marketing
-      ? [{ id: 'all' as const, href: ROUTES.home, title: 'All Markets', hint: 'FDM overview' }]
-      : []),
-    { id: 'crypto', href: SPOT_TRADE_HREF, title: 'Crypto', hint: 'FDM Crypto — digital assets' },
-    { id: 'forex', href: FOREX_ROUTES.trade, title: 'Forex', hint: 'FDM Forex — global FX' },
+  const items: Array<{ id: ProductId; href: string; titleKey: 'allMarkets' | 'crypto' | 'forex'; hintKey: 'allMarketsHint' | 'cryptoHint' | 'forexHint' }> = [
+    ...(marketing ? [{ id: 'all' as const, href: ROUTES.home, titleKey: 'allMarkets' as const, hintKey: 'allMarketsHint' as const }] : []),
+    { id: 'crypto', href: SPOT_TRADE_HREF, titleKey: 'crypto', hintKey: 'cryptoHint' },
+    { id: 'forex', href: FOREX_ROUTES.trade, titleKey: 'forex', hintKey: 'forexHint' },
   ];
 
   return (
@@ -88,7 +89,7 @@ export function EdaProductSwitcher({ variant = 'marketing' }: { variant?: EdaPro
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
-        aria-label="Switch product"
+        aria-label={t('switchProduct')}
         onClick={() => setOpen((v) => !v)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -109,25 +110,23 @@ export function EdaProductSwitcher({ variant = 'marketing' }: { variant?: EdaPro
         </>
       </button>
       {open ? (
-        <div id={menuId} role="menu" aria-label="Products" className={menuClass}>
-          <p className={headingClass}>Products</p>
+        <div id={menuId} role="menu" aria-label={t('productsMenu')} className={menuClass}>
+          <p className={headingClass}>{t('productsHeading')}</p>
           {items.map((item) => {
             const active = product === item.id || (item.id === 'crypto' && product === 'all' && variant === 'terminal');
+            const title = item.titleKey === 'crypto' || item.titleKey === 'forex' ? tn(item.titleKey) : t(item.titleKey);
             return (
               <Link
                 key={item.id}
                 role="menuitem"
                 href={item.href}
                 className={itemClass}
-                aria-current={active ? 'page' : undefined}
                 onClick={() => setOpen(false)}
               >
-                <span className={cn('w-3 shrink-0 font-medium', active ? checkClass : 'opacity-0')} aria-hidden>
-                  ✓
-                </span>
+                <span className={cn('mt-0.5 w-3 shrink-0', active ? checkClass : 'opacity-0')}>✓</span>
                 <span>
-                  <span className="block">{item.title}</span>
-                  <span className="mt-0.5 block text-[10px] opacity-70">{item.hint}</span>
+                  <span className={marketing ? 'block text-white' : 'block font-medium text-foreground'}>{title}</span>
+                  <span className={marketing ? 'block text-[10px] text-[#6B7280]' : 'block text-[10px] text-muted-foreground'}>{t(item.hintKey)}</span>
                 </span>
               </Link>
             );

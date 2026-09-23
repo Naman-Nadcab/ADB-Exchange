@@ -1,13 +1,706 @@
 {
-  "generatedAt": "2026-09-22T06:45:21.724Z",
+  "generatedAt": "2026-09-23T03:26:49.698Z",
   "baseUrl": "http://127.0.0.1",
   "authEnabled": true,
-  "total": 240,
-  "pass": 240,
+  "total": 330,
+  "pass": 330,
   "fail": 0,
   "hydrationIssues": 0,
   "overflowCases": 0,
   "rows": [
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "en",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "id-ID",
+      "viewport": "390x844",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
     {
       "route": "/dashboard/assets/overview",
       "locale": "en",
@@ -21,9 +714,27 @@
       "overflowX": false
     },
     {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
       "route": "/wallet/deposit/crypto",
       "locale": "en",
       "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "1280x800",
       "result": "PASS",
       "consoleErrors": [],
       "hydrationWarnings": [],
@@ -50,24 +761,43 @@
       "overflowX": false
     },
     {
-      "route": "/p2p/create-ad",
-      "locale": "en",
-      "viewport": "1440x900-auth",
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
       "result": "PASS",
       "consoleErrors": [],
       "hydrationWarnings": [],
       "overflowX": false
     },
     {
-      "route": "/p2p/orders",
+      "route": "/p2p/create-ad",
       "locale": "en",
       "viewport": "1440x900-auth",
       "result": "PASS",
       "consoleErrors": [
-        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/p2p/payment-methods. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (h",
         "Failed to fetch RSC payload for http://127.0.0.1/orders. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0",
-        "Failed to fetch RSC payload for http://127.0.0.1/dashboard/referral. Falling back to browser navigation. TypeError: network error"
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1",
+        "Failed to fetch RSC payload for http://127.0.0.1/p2p. Falling back to browser navigation. TypeError: network error"
       ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "en",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
       "hydrationWarnings": [],
       "overflowX": false
     },
@@ -81,9 +811,27 @@
       "overflowX": false
     },
     {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
       "route": "/p2p/payment-methods",
       "locale": "en",
       "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
       "result": "PASS",
       "consoleErrors": [],
       "hydrationWarnings": [],
@@ -110,9 +858,27 @@
       "overflowX": false
     },
     {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
       "route": "/forex/portfolio",
       "locale": "en",
       "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/trade/spot",
+      "locale": "zh-CN",
+      "viewport": "1024x768",
       "result": "PASS",
       "consoleErrors": [],
       "hydrationWarnings": [],
@@ -123,12 +889,16 @@
       "locale": "en",
       "viewport": "1440x900-auth",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to fetch RSC payload for http://127.0.0.1/forex/account/accounts. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task]",
-        "Failed to fetch RSC payload for http://127.0.0.1/forex/account/funds. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (h",
-        "Failed to fetch RSC payload for http://127.0.0.1/forex/account. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://",
-        "Failed to fetch RSC payload for http://127.0.0.1/forex/account/ledger. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] ("
-      ],
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/login",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
       "hydrationWarnings": [],
       "overflowX": false
     },
@@ -142,9 +912,27 @@
       "overflowX": false
     },
     {
+      "route": "/p2p",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
       "route": "/dashboard/account",
       "locale": "en",
       "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
       "result": "PASS",
       "consoleErrors": [],
       "hydrationWarnings": [],
@@ -163,6 +951,26 @@
       "route": "/dashboard/preferences",
       "locale": "en",
       "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch user data: TypeError: Failed to fetch"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/trade",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/markets",
+      "locale": "zh-CN",
+      "viewport": "768x1024",
       "result": "PASS",
       "consoleErrors": [],
       "hydrationWarnings": [],
@@ -259,9 +1067,7 @@
       "locale": "en",
       "viewport": "1280x800-auth",
       "result": "PASS",
-      "consoleErrors": [
-        "API request failed: TypeError: Failed to fetch\n    at u (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:19054)\n    at Object.get (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:20516)\n    at ei (http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:2288)\n    at http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:1539\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
       "overflowX": false
     },
@@ -410,7 +1216,9 @@
       "locale": "en",
       "viewport": "1024x768-auth",
       "result": "PASS",
-      "consoleErrors": [],
+      "consoleErrors": [
+        "API request failed: TypeError: Failed to fetch\n    at u (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:19054)\n    at Object.get (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:20516)\n    at ei (http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:2288)\n    at http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:1539\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0"
+      ],
       "hydrationWarnings": [],
       "overflowX": false
     },
@@ -464,9 +1272,7 @@
       "locale": "en",
       "viewport": "1024x768-auth",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to fetch user data: TypeError: Failed to fetch\n    at http://127.0.0.1/_next/static/chunks/app/dashboard/security/page-4cb59f342c89f86f.js:101:9101"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
       "overflowX": false
     },
@@ -477,9 +1283,9 @@
       "result": "PASS",
       "consoleErrors": [
         "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
-        "Failed to fetch RSC payload for http://127.0.0.1/login. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/s",
+        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
         "Failed to fetch RSC payload for http://127.0.0.1/orders. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
-        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: network error"
+        "Failed to fetch RSC payload for http://127.0.0.1/login. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/s"
       ],
       "hydrationWarnings": [],
       "overflowX": false
@@ -617,9 +1423,7 @@
       "locale": "en",
       "viewport": "768x1024-auth",
       "result": "PASS",
-      "consoleErrors": [
-        "Failed to fetch user data: TypeError: Failed to fetch"
-      ],
+      "consoleErrors": [],
       "hydrationWarnings": [],
       "overflowX": false
     },
@@ -630,6 +1434,7 @@
       "result": "PASS",
       "consoleErrors": [
         "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/alerts. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://1",
         "Failed to fetch RSC payload for http://127.0.0.1/trade/spot. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_n",
         "Failed to fetch RSC payload for http://127.0.0.1/forex/portfolio. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0",
         "Failed to fetch RSC payload for http://127.0.0.1/forex/trade. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_"
@@ -772,6 +1577,157 @@
       "locale": "en",
       "viewport": "390x844-auth",
       "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1",
+        "Failed to fetch RSC payload for http://127.0.0.1/p2p. Falling back to browser navigation. TypeError: network error"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "API request failed: TypeError: Failed to fetch\n    at u (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:19054)\n    at Object.get (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:20516)\n    at ei (http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:2288)\n    at http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:1539\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "zh-CN",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
       "consoleErrors": [
         "Failed to fetch user data: TypeError: Failed to fetch\n    at http://127.0.0.1/_next/static/chunks/app/dashboard/security/page-4cb59f342c89f86f.js:101:8649"
       ],
@@ -781,10 +1737,167 @@
     {
       "route": "/dashboard/assets/overview",
       "locale": "zh-CN",
-      "viewport": "1440x900-auth",
+      "viewport": "1280x800-auth",
       "result": "PASS",
       "consoleErrors": [
-        "Failed to fetch RSC payload for http://127.0.0.1/p2p. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1/",
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/portfolio. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/alerts. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/",
+        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/wallet/history. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.",
+        "Failed to fetch RSC payload for http://127.0.0.1/orders. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/p2p. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/sta",
+        "Failed to fetch RSC payload for http://127.0.0.1/markets. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next",
+        "Failed to fetch withdrawal limits: TypeError: Failed to fetch\n    at e3 (http://127.0.0.1/_next/static/chunks/5735-04866e99ee324fde.js:51:3895)\n    at http://127.0.0.1/_next/static/chunks/5735-04866e99ee324fde.js:51:2821\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:84037)\n    at e (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:85179)\n    at e (http://127.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/st",
+        "Failed to fetch RSC payload for http://127.0.0.1/. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/static",
+        "Failed to fetch RSC payload for http://127.0.0.1/trade/spot. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_n",
+        "Failed to fetch withdrawals: TypeError: Failed to fetch\n    at e4 (http://127.0.0.1/_next/static/chunks/5735-04866e99ee324fde.js:51:4680)\n    at http://127.0.0.1/_next/static/chunks/5735-04866e99ee324fde.js:51:2826\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:84037)\n    at e (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:85179)\n    at e (http://127.0.0.1/_"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "zh-CN",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "zh-CN",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [
         "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1"
       ],
       "hydrationWarnings": [],
@@ -793,310 +1906,6 @@
     {
       "route": "/wallet/deposit/crypto",
       "locale": "zh-CN",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/withdraw/crypto",
-      "locale": "zh-CN",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/withdraw/fiat",
-      "locale": "zh-CN",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/create-ad",
-      "locale": "zh-CN",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/orders",
-      "locale": "zh-CN",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/my-ads",
-      "locale": "zh-CN",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/payment-methods",
-      "locale": "zh-CN",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/history",
-      "locale": "zh-CN",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/help",
-      "locale": "zh-CN",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/portfolio",
-      "locale": "zh-CN",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/orders",
-      "locale": "zh-CN",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/account",
-      "locale": "zh-CN",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/account",
-      "locale": "zh-CN",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/security",
-      "locale": "zh-CN",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/preferences",
-      "locale": "zh-CN",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to fetch user data: TypeError: Failed to fetch\n    at http://127.0.0.1/_next/static/chunks/app/dashboard/security/page-4cb59f342c89f86f.js:101:8280"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/assets/overview",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1",
-        "Failed to fetch RSC payload for http://127.0.0.1/p2p. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1/"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/deposit/crypto",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/withdraw/crypto",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/withdraw/fiat",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/create-ad",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/orders",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to fetch RSC payload for http://127.0.0.1/orders. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0",
-        "Failed to fetch RSC payload for http://127.0.0.1/wallet/history. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http:/",
-        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0",
-        "Failed to fetch RSC payload for http://127.0.0.1/dashboard/referral. Falling back to browser navigation. TypeError: network error"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/my-ads",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/payment-methods",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/history",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/help",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/portfolio",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/orders",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/account",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/account",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/security",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/preferences",
-      "locale": "zh-CN",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/assets/overview",
-      "locale": "zh-CN",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: network error"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/deposit/crypto",
-      "locale": "zh-CN",
       "viewport": "1024x768-auth",
       "result": "PASS",
       "consoleErrors": [],
@@ -1173,7 +1982,10 @@
       "locale": "zh-CN",
       "viewport": "1024x768-auth",
       "result": "PASS",
-      "consoleErrors": [],
+      "consoleErrors": [
+        "API request failed: TypeError: Failed to fetch\n    at u (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:19054)\n    at Object.get (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:20516)\n    at ei (http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:2288)\n    at http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:1539\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0",
+        "API request failed: TypeError: Failed to fetch\n    at u (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:19054)\n    at Object.get (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:20516)\n    at ei (http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:2288)\n    at http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:1539\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0"
+      ],
       "hydrationWarnings": [],
       "overflowX": false
     },
@@ -1237,6 +2049,7 @@
       "viewport": "768x1024-auth",
       "result": "PASS",
       "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/portfolio. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http:",
         "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
         "Failed to fetch RSC payload for http://127.0.0.1/orders. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/"
       ],
@@ -1386,766 +2199,625 @@
       "viewport": "390x844-auth",
       "result": "PASS",
       "consoleErrors": [
-        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
-        "Failed to fetch RSC payload for http://127.0.0.1/trade/spot. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_n",
-        "Failed to fetch RSC payload for http://127.0.0.1/forex/portfolio. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0",
-        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
-        "Failed to fetch RSC payload for http://127.0.0.1/forex/trade. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/deposit/crypto",
-      "locale": "zh-CN",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/withdraw/crypto",
-      "locale": "zh-CN",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/withdraw/fiat",
-      "locale": "zh-CN",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/create-ad",
-      "locale": "zh-CN",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/orders",
-      "locale": "zh-CN",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/my-ads",
-      "locale": "zh-CN",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/payment-methods",
-      "locale": "zh-CN",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/history",
-      "locale": "zh-CN",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/help",
-      "locale": "zh-CN",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/portfolio",
-      "locale": "zh-CN",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/orders",
-      "locale": "zh-CN",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/account",
-      "locale": "zh-CN",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/account",
-      "locale": "zh-CN",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/security",
-      "locale": "zh-CN",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/preferences",
-      "locale": "zh-CN",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/assets/overview",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to fetch RSC payload for http://127.0.0.1/orders. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
-        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
-        "Failed to fetch RSC payload for http://127.0.0.1/forex/portfolio. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0",
-        "Failed to fetch RSC payload for http://127.0.0.1/forex/alerts. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/",
-        "Failed to fetch RSC payload for http://127.0.0.1/wallet/history. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0."
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/deposit/crypto",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/withdraw/crypto",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/withdraw/fiat",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/create-ad",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/orders",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/my-ads",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/payment-methods",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/history",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/help",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/portfolio",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/orders",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/account",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/account",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/security",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/preferences",
-      "locale": "id-ID",
-      "viewport": "1440x900-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to fetch user data: TypeError: Failed to fetch\n    at http://127.0.0.1/_next/static/chunks/app/dashboard/security/page-4cb59f342c89f86f.js:101:9101"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/assets/overview",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to fetch RSC payload for http://127.0.0.1/p2p. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1/",
-        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/deposit/crypto",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/withdraw/crypto",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/withdraw/fiat",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/create-ad",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/orders",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/my-ads",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/payment-methods",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/history",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/help",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/portfolio",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/orders",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/account",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/account",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/security",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/preferences",
-      "locale": "id-ID",
-      "viewport": "1280x800-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/assets/overview",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to fetch RSC payload for http://127.0.0.1/p2p. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1/",
-        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/deposit/crypto",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/withdraw/crypto",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/withdraw/fiat",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/create-ad",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/orders",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/my-ads",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/payment-methods",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/history",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/help",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/portfolio",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/orders",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/account",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/account",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/security",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/preferences",
-      "locale": "id-ID",
-      "viewport": "1024x768-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/assets/overview",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to fetch RSC payload for http://127.0.0.1/orders. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
-        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
-        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
-        "Failed to fetch RSC payload for http://127.0.0.1/login. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/s"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/deposit/crypto",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/withdraw/crypto",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
-      ],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/withdraw/fiat",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/create-ad",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/orders",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/my-ads",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/p2p/payment-methods",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/wallet/history",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/help",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/portfolio",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/orders",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/forex/account",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/account",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/security",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/preferences",
-      "locale": "id-ID",
-      "viewport": "768x1024-auth",
-      "result": "PASS",
-      "consoleErrors": [],
-      "hydrationWarnings": [],
-      "overflowX": false
-    },
-    {
-      "route": "/dashboard/assets/overview",
-      "locale": "id-ID",
-      "viewport": "390x844-auth",
-      "result": "PASS",
-      "consoleErrors": [
-        "Failed to fetch RSC payload for http://127.0.0.1/forex/portfolio. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0",
-        "Failed to fetch RSC payload for http://127.0.0.1/trade/spot. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_n",
         "Failed to fetch RSC payload for http://127.0.0.1/forex/trade. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_",
         "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
-        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/"
+        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/portfolio. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http:"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "zh-CN",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/dashboard/api. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://",
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "API request failed: TypeError: Failed to fetch\n    at u (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:19054)\n    at Object.get (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:20516)\n    at ei (http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:2288)\n    at http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:1539\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "id-ID",
+      "viewport": "1280x800-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch user data: TypeError: Failed to fetch\n    at http://127.0.0.1/_next/static/chunks/app/dashboard/security/page-4cb59f342c89f86f.js:101:7892\n    at http://127.0.0.1/_next/static/chunks/app/dashboard/security/page-4cb59f342c89f86f.js:101:9376\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:84037)\n    at e (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false,
+      "note": "optional API 401 (session retained; staging prefetch)"
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1",
+        "Failed to fetch RSC payload for http://127.0.0.1/dashboard/api. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "id-ID",
+      "viewport": "1024x768-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch user data: TypeError: Failed to fetch\n    at http://127.0.0.1/_next/static/chunks/app/dashboard/security/page-4cb59f342c89f86f.js:101:9101"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/login. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/s",
+        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/orders. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: network error",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "API request failed: TypeError: Failed to fetch\n    at u (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:19054)\n    at Object.get (http://127.0.0.1/_next/static/chunks/app/layout-3c41ef2cc784eef0.js:1:20516)\n    at ei (http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:2288)\n    at http://127.0.0.1/_next/static/chunks/7480-8f3e822f0b3f8029.js:71:1539\n    at aD (http://127.0.0.1/_next/static/chunks/fd9d1056-3810d3e1a7f24d56.js:1:72596)\n    at a1 (http://127.0.0"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "id-ID",
+      "viewport": "768x1024-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch user data: TypeError: Failed to fetch\n    at http://127.0.0.1/_next/static/chunks/app/dashboard/security/page-4cb59f342c89f86f.js:101:8475"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "id-ID",
+      "viewport": "390x844-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/portfolio. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0",
+        "Failed to fetch RSC payload for http://127.0.0.1/trade/spot. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_n",
+        "Failed to fetch RSC payload for http://127.0.0.1/wallet. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/",
+        "Failed to fetch RSC payload for http://127.0.0.1/forex/trade. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_",
+        "Failed to fetch RSC payload for http://127.0.0.1/signup. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at c.enqueue (http://127.0.0.1/_next/"
       ],
       "hydrationWarnings": [],
       "overflowX": false
@@ -2165,6 +2837,7 @@
       "viewport": "390x844-auth",
       "result": "PASS",
       "consoleErrors": [
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: network error",
         "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
       ],
       "hydrationWarnings": [],
@@ -2283,9 +2956,157 @@
       "locale": "id-ID",
       "viewport": "390x844-auth",
       "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
       "consoleErrors": [
-        "Failed to fetch user data: TypeError: Failed to fetch\n    at http://127.0.0.1/_next/static/chunks/app/dashboard/security/page-4cb59f342c89f86f.js:101:9101"
+        "Failed to fetch RSC payload for http://127.0.0.1/earn. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.1",
+        "Failed to fetch RSC payload for http://127.0.0.1/login. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://127.0.0.",
+        "Failed to fetch RSC payload for http://127.0.0.1/dashboard/api. Falling back to browser navigation. TypeError: Failed to fetch\n    at s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:41690)\n    at http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:55488\n    at Object.o [as task] (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30173)\n    at c.s (http://127.0.0.1/_next/static/chunks/4938-57901411e3f924c6.js:1:30878)\n    at Object.o [as task] (http://"
       ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/create-ad",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/orders",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/my-ads",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/wallet/history",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/help",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/portfolio",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/orders",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/forex/account",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/account",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/security",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "overflowX": false
+    },
+    {
+      "route": "/dashboard/preferences",
+      "locale": "id-ID",
+      "viewport": "1440x900-auth",
+      "result": "PASS",
+      "consoleErrors": [],
       "hydrationWarnings": [],
       "overflowX": false
     }

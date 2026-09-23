@@ -21,7 +21,9 @@
     "closeMenu": "Close menu",
     "copyUserId": "Copy user ID",
     "copiedUserId": "Copied",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "primaryNav": "Primary navigation",
+    "tradingNav": "Trading navigation"
   },
   "notificationPanel": {
     "title": "Notifications",
@@ -34,7 +36,15 @@
     "order": "Order",
     "withdrawal": "Withdrawal",
     "security": "Security",
-    "fetchFailed": "Unable to fetch notifications right now."
+    "fetchFailed": "Unable to fetch notifications right now.",
+    "relativeJustNow": "Just now",
+    "relativeMinutesAgo": "{count}m ago",
+    "relativeHoursAgo": "{count}h ago"
+  },
+  "searchResult": {
+    "spotMarket": "Spot market",
+    "asset": "Asset",
+    "helpArticle": "Help article"
   },
   "actions": {
     "save": "Save",

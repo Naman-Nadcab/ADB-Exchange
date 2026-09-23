@@ -118,5 +118,122 @@
     "desc": "Access digital assets and global FX through FDM.",
     "exploreMarkets": "Explore Markets",
     "createAccount": "Create Account"
+  },
+  "customer": {
+    "eyebrow": "My FDM",
+    "title": "Customer command center",
+    "subtitle": "Crypto and Forex accounts stay separate. No combined total is calculated here.",
+    "riskBadge": "Risk {state}",
+    "marketsBadge": "Markets {status}",
+    "quickActionsAria": "Quick actions",
+    "actions": {
+      "openCryptoSpot": "Open Crypto Spot",
+      "openForex": "Open Forex",
+      "cryptoMarkets": "Crypto Markets",
+      "tradeSpot": "Trade Spot",
+      "depositWithdraw": "Deposit / Withdraw",
+      "tradeForex": "Trade Forex",
+      "exploreFx": "Explore FX",
+      "placeFirstTrade": "Place first trade",
+      "manage": "Manage",
+      "trade": "Trade",
+      "openAnalysis": "Open analysis",
+      "analysisWorkspace": "Analysis workspace",
+      "cryptoMarketsIntel": "Crypto Markets intel",
+      "viewPortfolio": "View Portfolio"
+    },
+    "calendarBanner": {
+      "eyebrow": "Next calendar event"
+    },
+    "timeUnavailable": "Time unavailable",
+    "unknown": "Unknown",
+    "cryptoSection": {
+      "title": "Crypto",
+      "footnote": "Wallet summary only · no combined Crypto+Forex total"
+    },
+    "forexSection": {
+      "title": "Forex",
+      "footnote": "SIMULATED execution · backend account is authoritative"
+    },
+    "metrics": {
+      "trading": "Trading",
+      "funding": "Funding",
+      "balance": "Balance",
+      "equity": "Equity",
+      "freeMargin": "Free margin",
+      "usedMargin": "Used margin",
+      "unrealizedPnl": "Unrealized P&L",
+      "realizedPnl": "Realized P&L"
+    },
+    "positions": {
+      "title": "Open Forex positions",
+      "loading": "Loading positions…",
+      "unavailable": "Positions unavailable",
+      "empty": "No open Forex positions."
+    },
+    "positionsTable": {
+      "symbol": "Symbol",
+      "side": "Side",
+      "volume": "Volume",
+      "entry": "Entry",
+      "current": "Current",
+      "priceUnavailable": "Unavailable"
+    },
+    "riskSection": {
+      "title": "Risk & margin",
+      "loading": "Loading risk…",
+      "unavailable": "Risk unavailable",
+      "marginLevel": "Margin level",
+      "used": "Used",
+      "free": "Free",
+      "session": "Session",
+      "sessionOpen": "Open",
+      "sessionClosed": "Closed",
+      "footnote": "Backend risk/status only · no synthetic score"
+    },
+    "watch": {
+      "title": "Market watch",
+      "updatedAt": "Updated {time}",
+      "refreshing": "Refreshing…",
+      "tabsAria": "Watch tabs",
+      "tabs": {
+        "watchlist": "Watchlist",
+        "crypto": "Crypto",
+        "forex": "Forex",
+        "favorites": "Favorites"
+      },
+      "emptyFavorites": "Star symbols to build a local favorites list.",
+      "emptyTab": "No rows for this tab.",
+      "spreadPrefix": "Spr {spread}"
+    },
+    "sessionChip": {
+      "unknown": "Session —",
+      "fxOpen": "FX Open",
+      "fxClosed": "FX Closed"
+    },
+    "activity": {
+      "title": "Recent Forex activity",
+      "orders": "Orders",
+      "fills": "Fills",
+      "ledger": "Ledger",
+      "loading": "Loading…",
+      "unavailable": "Unavailable",
+      "empty": "No Forex account activity.",
+      "viewSection": "View {section}"
+    },
+    "intelligenceSection": {
+      "title": "Market intelligence",
+      "headlinesCount": "{count} headlines",
+      "newsUnavailable": "News {reason}",
+      "eventsCount": "{count} events",
+      "calendarUnavailable": "Calendar {reason}",
+      "unavailableReason": "unavailable",
+      "noUpcomingEvents": "No upcoming calendar rows in the current feed window.",
+      "impactNa": "n/a"
+    },
+    "footer": {
+      "cryptoOverviewPrefix": "Crypto overview remains at",
+      "cryptoOverviewSuffix": ". This home does not replace the Crypto Spot terminal."
+    }
   }
 }

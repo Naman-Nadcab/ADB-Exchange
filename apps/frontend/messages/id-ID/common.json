@@ -21,7 +21,9 @@
     "closeMenu": "Tutup menu",
     "copyUserId": "Salin ID pengguna",
     "copiedUserId": "Disalin",
-    "dismiss": "Tutup"
+    "dismiss": "Tutup",
+    "primaryNav": "Navigasi utama",
+    "tradingNav": "Navigasi trading"
   },
   "notificationPanel": {
     "title": "Notifikasi",
@@ -34,7 +36,15 @@
     "order": "Pesanan",
     "withdrawal": "Penarikan",
     "security": "Keamanan",
-    "fetchFailed": "Tidak dapat mengambil notifikasi saat ini."
+    "fetchFailed": "Tidak dapat mengambil notifikasi saat ini.",
+    "relativeJustNow": "Baru saja",
+    "relativeMinutesAgo": "{count} mnt lalu",
+    "relativeHoursAgo": "{count} jam lalu"
+  },
+  "searchResult": {
+    "spotMarket": "Pasar spot",
+    "asset": "Aset",
+    "helpArticle": "Artikel bantuan"
   },
   "actions": {
     "save": "Simpan",

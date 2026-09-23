@@ -1,0 +1,26 @@
+{
+  "locale": "zh-CN",
+  "tested": 46,
+  "failures": [
+    "/p2p: page.evaluate: Test ended.",
+    "/p2p-v2: page.goto: Target page, context or browser has been closed",
+    "/p2p-v2/create-ad: page.goto: Target page, context or browser has been closed",
+    "/p2p-v2/merchant-dashboard: page.goto: Target page, context or browser has been closed",
+    "/p2p-v2/my-ads: page.goto: Target page, context or browser has been closed",
+    "/p2p-v2/orders: page.goto: Target page, context or browser has been closed",
+    "/p2p-v2/payment-methods: page.goto: Target page, context or browser has been closed",
+    "/p2p/create-ad: page.goto: Target page, context or browser has been closed",
+    "/p2p/merchant-dashboard: page.goto: Target page, context or browser has been closed",
+    "/p2p/my-ads: page.goto: Target page, context or browser has been closed",
+    "/p2p/orders: page.goto: Target page, context or browser has been closed",
+    "/p2p/payment-methods: page.goto: Target page, context or browser has been closed",
+    "/privacy: page.goto: Target page, context or browser has been closed",
+    "/register: page.goto: Target page, context or browser has been closed",
+    "/reset-password: page.goto: Target page, context or browser has been closed",
+    "/signup: page.goto: Target page, context or browser has been closed",
+    "/spot: page.goto: Target page, context or browser has been closed",
+    "/terms: page.goto: Target page, context or browser has been closed",
+    "/trade: page.goto: Target page, context or browser has been closed",
+    "/trade/spot: page.goto: Target page, context or browser has been closed"
+  ]
+}

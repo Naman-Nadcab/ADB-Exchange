@@ -30,6 +30,17 @@
   "globalFxTrading": "全球外汇交易",
   "openAccountMenu": "打开账户菜单",
   "toggleMenu": "切换菜单",
+  "productSwitcher": {
+    "switchProduct": "切换产品",
+    "productsMenu": "产品",
+    "productsHeading": "产品",
+    "allMarkets": "全部市场",
+    "allMarketsHint": "FDM 概览",
+    "cryptoHint": "FDM 加密 — 数字资产",
+    "forexHint": "FDM 外汇 — 全球 FX",
+    "terminalCrypto": "加密",
+    "terminalForex": "外汇"
+  },
   "publicFooter": {
     "tagline": "全球金融平台 · 加密与外汇",
     "copyrightSuffix": "数字资产与全球外汇。",

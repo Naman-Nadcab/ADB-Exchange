@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { fxPlain } from '@/components/forex/format';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
@@ -15,14 +16,8 @@ import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
 import { cn } from '@/lib/utils';
 
-function kindLabel(kind: string): string {
-  const k = kind.toUpperCase();
-  if (k === 'DEMO') return 'Demo';
-  if (k === 'LIVE' || k === 'REAL') return 'Live';
-  return kind;
-}
-
 export function ForexAccountCenter() {
+  const t = useTranslations('forex.accountCenter');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const accounts = useForexStore((s) => s.forexAccounts);
@@ -31,6 +26,13 @@ export function ForexAccountCenter() {
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+
+  function kindLabel(kind: string): string {
+    const k = kind.toUpperCase();
+    if (k === 'DEMO') return t('kindDemo');
+    if (k === 'LIVE' || k === 'REAL') return t('kindLive');
+    return kind;
+  }
 
   const reload = useCallback(async () => {
     if (!authed) return;
@@ -49,11 +51,11 @@ export function ForexAccountCenter() {
     try {
       const ok = await createForexDemoAccountAndActivate();
       if (!ok) {
-        setErr('Could not create demo account.');
+        setErr(t('createDemoFailed'));
         return;
       }
       await reload();
-      setNote('Demo account created and set active. Terminal data rehydrated.');
+      setNote(t('createDemoSuccess'));
     } finally {
       setBusy(null);
     }
@@ -67,11 +69,11 @@ export function ForexAccountCenter() {
     try {
       const ok = await switchForexActiveAccount(accountId);
       if (!ok) {
-        setErr('Could not switch account.');
+        setErr(t('switchFailed'));
         return;
       }
       await reload();
-      setNote(`Active account: ${accountId}`);
+      setNote(t('activeAccount', { accountId }));
     } finally {
       setBusy(null);
     }
@@ -82,92 +84,92 @@ export function ForexAccountCenter() {
   }
 
   return (
-        <>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              disabled={busy != null}
-              onClick={() => void onCreateDemo()}
-              className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-            >
-              {busy === 'create' ? 'Creating…' : '+ Create demo account'}
-            </button>
-            <Link
-              href={FOREX_ROUTES.trade}
-              className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold hover:border-primary/40"
-            >
-              Open trade terminal
-            </Link>
-          </div>
+    <>
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          disabled={busy != null}
+          onClick={() => void onCreateDemo()}
+          className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        >
+          {busy === 'create' ? t('createDemoBusy') : t('createDemo')}
+        </button>
+        <Link
+          href={FOREX_ROUTES.trade}
+          className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold hover:border-primary/40"
+        >
+          {t('openTradeTerminal')}
+        </Link>
+      </div>
 
-          {note ? <p className="text-sm text-buy">{note}</p> : null}
-          {err ? <p className="text-sm text-sell">{err}</p> : null}
-          {hydratePhase === 'hydrating' && !accounts.length ? (
-            <p className="text-sm text-muted-foreground">Loading accounts…</p>
-          ) : null}
+      {note ? <p className="text-sm text-buy">{note}</p> : null}
+      {err ? <p className="text-sm text-sell">{err}</p> : null}
+      {hydratePhase === 'hydrating' && !accounts.length ? (
+        <p className="text-sm text-muted-foreground">{t('loadingAccounts')}</p>
+      ) : null}
 
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full min-w-[640px] text-left text-[12px]">
-              <thead className="border-b border-border bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-2 font-medium">Account ID</th>
-                  <th className="px-3 py-2 font-medium">Type</th>
-                  <th className="px-3 py-2 font-medium">Status</th>
-                  <th className="px-3 py-2 font-medium">Currency</th>
-                  <th className="px-3 py-2 font-medium">Position mode</th>
-                  <th className="px-3 py-2 font-medium">Leverage</th>
-                  <th className="px-3 py-2 font-medium">Active</th>
-                  <th className="px-3 py-2 font-medium">Actions</th>
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table className="w-full min-w-[640px] text-left text-[12px]">
+          <thead className="border-b border-border bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2 font-medium">{t('colAccountId')}</th>
+              <th className="px-3 py-2 font-medium">{t('colType')}</th>
+              <th className="px-3 py-2 font-medium">{t('colStatus')}</th>
+              <th className="px-3 py-2 font-medium">{t('colCurrency')}</th>
+              <th className="px-3 py-2 font-medium">{t('colPositionMode')}</th>
+              <th className="px-3 py-2 font-medium">{t('colLeverage')}</th>
+              <th className="px-3 py-2 font-medium">{t('colActive')}</th>
+              <th className="px-3 py-2 font-medium">{t('colActions')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {accounts.map((a) => {
+              const isActive = a.accountId === activeId;
+              const lev =
+                'leverageOverride' in a && a.leverageOverride ? String(a.leverageOverride) : '—';
+              return (
+                <tr key={a.accountId} className={cn('border-b border-border/60', isActive && 'bg-primary/5')}>
+                  <td className="px-3 py-2 font-mono">{fxPlain(a.accountId)}</td>
+                  <td className="px-3 py-2">{kindLabel(a.accountKind)}</td>
+                  <td className="px-3 py-2">{fxPlain(a.status)}</td>
+                  <td className="px-3 py-2">{fxPlain(a.currency)}</td>
+                  <td className="px-3 py-2">{fxPlain(a.positionMode)}</td>
+                  <td className="px-3 py-2 font-mono text-muted-foreground">{lev}</td>
+                  <td className="px-3 py-2">{isActive ? t('yes') : '—'}</td>
+                  <td className="px-3 py-2">
+                    {isActive ? (
+                      <span className="text-muted-foreground">{t('current')}</span>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={busy != null}
+                        onClick={() => void onSwitch(a.accountId)}
+                        className="rounded border border-border px-2 py-1 text-[11px] font-medium hover:border-primary/40 disabled:opacity-50"
+                      >
+                        {busy === a.accountId ? t('switching') : t('switch')}
+                      </button>
+                    )}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {accounts.map((a) => {
-                  const isActive = a.accountId === activeId;
-                  const lev =
-                    'leverageOverride' in a && a.leverageOverride
-                      ? String(a.leverageOverride)
-                      : '—';
-                  return (
-                    <tr key={a.accountId} className={cn('border-b border-border/60', isActive && 'bg-primary/5')}>
-                      <td className="px-3 py-2 font-mono">{fxPlain(a.accountId)}</td>
-                      <td className="px-3 py-2">{kindLabel(a.accountKind)}</td>
-                      <td className="px-3 py-2">{fxPlain(a.status)}</td>
-                      <td className="px-3 py-2">{fxPlain(a.currency)}</td>
-                      <td className="px-3 py-2">{fxPlain(a.positionMode)}</td>
-                      <td className="px-3 py-2 font-mono text-muted-foreground">{lev}</td>
-                      <td className="px-3 py-2">{isActive ? 'Yes' : '—'}</td>
-                      <td className="px-3 py-2">
-                        {isActive ? (
-                          <span className="text-muted-foreground">Current</span>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={busy != null}
-                            onClick={() => void onSwitch(a.accountId)}
-                            className="rounded border border-border px-2 py-1 text-[11px] font-medium hover:border-primary/40 disabled:opacity-50"
-                          >
-                            {busy === a.accountId ? 'Switching…' : 'Switch'}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
-          {!accounts.length && hydratePhase !== 'hydrating' ? (
-            <p className="text-sm text-muted-foreground">No Forex accounts yet. Create a demo account to begin.</p>
-          ) : null}
+      {!accounts.length && hydratePhase !== 'hydrating' ? (
+        <p className="text-sm text-muted-foreground">{t('empty')}</p>
+      ) : null}
 
-          <p className="text-[11px] text-muted-foreground">
-            Quick switch: use the account control on the{' '}
+      <p className="text-[11px] text-muted-foreground">
+        {t.rich('quickSwitchHint', {
+          tradeLink: (chunks) => (
             <Link href={FOREX_ROUTES.trade} className="text-primary underline underline-offset-2">
-              trade terminal
-            </Link>{' '}
-            account bar.
-          </p>
-        </>
+              {chunks}
+            </Link>
+          ),
+        })}
+      </p>
+    </>
   );
 }
