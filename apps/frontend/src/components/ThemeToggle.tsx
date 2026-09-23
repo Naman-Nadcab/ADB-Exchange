@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Moon, Sun, Monitor } from 'lucide-react';
 import { useThemeStore } from '@/store/theme';
 
@@ -15,18 +16,17 @@ export default function ThemeToggle({
   size = 'md',
   variant = 'icon',
 }: ThemeToggleProps) {
+  const t = useTranslations('common.themeToggle');
   const { theme, resolvedTheme, setTheme, toggleTheme } = useThemeStore();
   const [mounted, setMounted] = useState(false);
 
-  // Prevent hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Apply theme on mount and when it changes
   useEffect(() => {
     if (!mounted) return;
-    
+
     const applyTheme = () => {
       if (resolvedTheme === 'dark') {
         document.documentElement.classList.add('dark');
@@ -47,13 +47,14 @@ export default function ThemeToggle({
   }
 
   const iconSize = size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-6 h-6' : 'w-5 h-5';
+  const oppositeMode = resolvedTheme === 'dark' ? t('light') : t('dark');
 
   if (variant === 'dropdown') {
     return (
       <div className="relative group">
         <button
           className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent transition-colors"
-          title="Change theme"
+          title={t('changeTheme')}
         >
           {resolvedTheme === 'dark' ? (
             <Moon className={iconSize} />
@@ -72,7 +73,7 @@ export default function ThemeToggle({
             }`}
           >
             <Sun className="w-4 h-4" />
-            Light
+            {t('light')}
           </button>
           <button
             onClick={() => setTheme('dark')}
@@ -81,7 +82,7 @@ export default function ThemeToggle({
             }`}
           >
             <Moon className="w-4 h-4" />
-            Dark
+            {t('dark')}
           </button>
           <button
             onClick={() => setTheme('system')}
@@ -90,7 +91,7 @@ export default function ThemeToggle({
             }`}
           >
             <Monitor className="w-4 h-4" />
-            System
+            {t('system')}
           </button>
         </div>
       </div>
@@ -102,30 +103,29 @@ export default function ThemeToggle({
       <button
         onClick={toggleTheme}
         className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent hover:bg-accent transition-colors"
-        title={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
+        title={t('switchToMode', { mode: oppositeMode })}
       >
         {resolvedTheme === 'dark' ? (
           <>
             <Sun className={iconSize} />
-            {showLabel && <span className="text-sm">Light Mode</span>}
+            {showLabel && <span className="text-sm">{t('lightMode')}</span>}
           </>
         ) : (
           <>
             <Moon className={iconSize} />
-            {showLabel && <span className="text-sm">Dark Mode</span>}
+            {showLabel && <span className="text-sm">{t('darkMode')}</span>}
           </>
         )}
       </button>
     );
   }
 
-  // Default icon variant
   return (
     <button
       onClick={toggleTheme}
       className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
-      title={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
-      aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
+      title={t('switchToMode', { mode: oppositeMode })}
+      aria-label={t('switchToMode', { mode: oppositeMode })}
     >
       {resolvedTheme === 'dark' ? (
         <Sun className={iconSize} />

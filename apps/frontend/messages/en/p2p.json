@@ -23,6 +23,14 @@
   "loading": {
     "label": "Loading P2P"
   },
+  "redirectLegacy": "Redirecting to P2P…",
+  "tradeWindow": {
+    "paymentMethods": "Payment methods",
+    "timeRemaining": "Time remaining",
+    "messagePlaceholder": "Type a message…",
+    "price": "Price",
+    "limit": "Limit"
+  },
   "errors": {
     "network": "Network error"
   },
@@ -175,6 +183,27 @@
     "resolutionLabel": "Resolution:",
     "footerNote": "Further communication happens through support channels. This page reflects the current dispute state.",
     "retry": "Retry"
+  },
+  "merchantDashboard": {
+    "title": "Merchant dashboard",
+    "subtitle": "Snapshot of your P2P performance. Stats come from your merchant profile; volume sums completed orders loaded in this session.",
+    "badge": "P2P merchant",
+    "completionRate": "Completion Rate",
+    "totalOrders": "Total Orders",
+    "allTime": "All time",
+    "avgRelease": "Avg Release",
+    "minutes": "Minutes",
+    "completed": "Completed",
+    "recentOrders": "Recent orders",
+    "progressVsTarget": "Progress vs target",
+    "targetHint": "95%+",
+    "volumeTitle": "Approx. fiat volume",
+    "volumeDesc": "Sum of fiat from completed orders in the list loaded for this page.",
+    "totalFiat": "Total (fiat)",
+    "manageAds": "Manage ads",
+    "manageAdsDesc": "Edit, pause, or create listings",
+    "viewOrders": "View orders",
+    "viewOrdersDesc": "Track every P2P transaction"
   },
   "merchantProfile": {
     "backMarketplace": "Marketplace",

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth';
 import Link from 'next/link';
@@ -13,6 +14,8 @@ import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 type Order = { id: string; market: string; side: string; type: string; price: string | null; stop_price?: string | null; quantity: string; filled_quantity: string; status: string; created_at: string };
 
 export default function SpotOrdersViewPage() {
+  const t = useTranslations('orders');
+  const tc = useTranslations('common');
   const queryClient = useQueryClient();
   const { fromApi } = useApiErrorMessage();
   const { accessToken } = useAuthStore();
@@ -42,15 +45,15 @@ export default function SpotOrdersViewPage() {
         setOrders(json.data.orders);
       } else {
         setOrders([]);
-        setOrdersError(json.error?.message || 'Failed to load open orders');
+        setOrdersError(json.error?.message ?? t('errors.openLoadFailed'));
       }
     } catch {
       setOrders([]);
-      setOrdersError('Network error while loading open orders');
+      setOrdersError(t('errors.openNetwork'));
     } finally {
       setOrdersLoading(false);
     }
-  }, [accessToken]);
+  }, [accessToken, t]);
 
   const fetchHistoryOrders = useCallback(async (cursor: string | null, append: boolean) => {
     if (!accessToken) return;
@@ -76,19 +79,19 @@ export default function SpotOrdersViewPage() {
       } else if (!append) {
         setHistoryOrders([]);
         setHistoryNextCursor(null);
-        setHistoryError(json.error?.message || 'Failed to load order history');
+        setHistoryError(json.error?.message ?? t('errors.historyLoadFailed'));
       }
     } catch {
       if (!append) {
         setHistoryOrders([]);
         setHistoryNextCursor(null);
-        setHistoryError('Network error while loading order history');
+        setHistoryError(t('errors.historyNetwork'));
       }
     } finally {
       if (append) setHistoryLoadMore(false);
       else setHistoryLoading(false);
     }
-  }, [accessToken]);
+  }, [accessToken, t]);
 
   useEffect(() => {
     if (accessToken) fetchOpenOrders();
@@ -125,8 +128,8 @@ export default function SpotOrdersViewPage() {
   return (
     <div className="p-4 md:p-5 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-3">
-        <h1 className="text-xl font-semibold text-foreground">Spot Orders</h1>
-        <Link href="/trade/spot" className="text-sm text-primary hover:underline">Spot Trading →</Link>
+        <h1 className="text-xl font-semibold text-foreground">{t('spotOrders')}</h1>
+        <Link href="/trade/spot" className="text-sm text-primary hover:underline">{t('spotTradingLink')}</Link>
       </div>
       <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="flex border-b border-border">
@@ -135,46 +138,46 @@ export default function SpotOrdersViewPage() {
             onClick={() => setOrdersTab('open')}
             className={`px-4 py-2.5 text-sm font-medium ${ordersTab === 'open' ? 'border-b-2 border-blue-500 text-primary' : 'text-muted-foreground'}`}
           >
-            Open Orders
+            {t('openOrders')}
           </button>
           <button
             type="button"
             onClick={() => setOrdersTab('history')}
             className={`px-4 py-2.5 text-sm font-medium ${ordersTab === 'history' ? 'border-b-2 border-blue-500 text-primary' : 'text-muted-foreground'}`}
           >
-            Order History
+            {t('orderHistory')}
           </button>
         </div>
         {ordersTab === 'open' && (
           <>
             <div className="px-4 py-2 border-b border-border flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Active orders. Cancel releases locked funds.</span>
+              <span className="text-xs text-muted-foreground">{t('openOrdersBanner')}</span>
               <button type="button" onClick={() => fetchOpenOrders()} disabled={ordersLoading} aria-busy={ordersLoading} className="text-sm text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed">
-                Refresh
+                {tc('actions.refresh')}
               </button>
             </div>
             {cancelError && (
               <div className="px-4 py-2 bg-red-500/10 text-destructive text-sm flex items-center justify-between">
                 <span>{cancelError}</span>
-                <button type="button" onClick={() => setCancelError(null)} className="underline">Dismiss</button>
+                <button type="button" onClick={() => setCancelError(null)} className="underline">{tc('a11y.dismiss')}</button>
               </div>
             )}
             {ordersError && (
               <div className="px-4 py-3 bg-amber-500/10 text-amber-800 dark:text-amber-200 text-sm flex items-center justify-between border-b border-border">
                 <span>{ordersError}</span>
-                <button type="button" onClick={() => void fetchOpenOrders()} className="text-primary hover:underline">Retry</button>
+                <button type="button" onClick={() => void fetchOpenOrders()} className="text-primary hover:underline">{tc('actions.retry')}</button>
               </div>
             )}
             <table className="w-full text-xs">
                 <thead>
                   <tr className="text-left text-muted-foreground border-b border-border">
-                    <th className="py-2 px-2 font-medium uppercase tracking-wide">Market</th>
-                    <th className="py-2 px-2 font-medium uppercase tracking-wide">Side</th>
-                    <th className="py-2 px-2 font-medium uppercase tracking-wide">Price</th>
-                    <th className="py-2 px-2 font-medium uppercase tracking-wide">Trigger</th>
-                    <th className="py-2 px-2 font-medium uppercase tracking-wide">Quantity</th>
-                    <th className="py-2 px-2 font-medium uppercase tracking-wide">Status</th>
-                    <th className="py-2 px-2 font-medium uppercase tracking-wide">Action</th>
+                    <th className="py-2 px-2 font-medium uppercase tracking-wide">{t('colMarket')}</th>
+                    <th className="py-2 px-2 font-medium uppercase tracking-wide">{t('colSide')}</th>
+                    <th className="py-2 px-2 font-medium uppercase tracking-wide">{t('colPrice')}</th>
+                    <th className="py-2 px-2 font-medium uppercase tracking-wide">{t('colTrigger')}</th>
+                    <th className="py-2 px-2 font-medium uppercase tracking-wide">{t('colQuantity')}</th>
+                    <th className="py-2 px-2 font-medium uppercase tracking-wide">{t('colStatus')}</th>
+                    <th className="py-2 px-2 font-medium uppercase tracking-wide">{t('colAction')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -194,16 +197,16 @@ export default function SpotOrdersViewPage() {
                     <tr><td colSpan={7} className="p-0 align-top">
                       <EmptyState
                         icon={BarChart3}
-                        title="No open orders"
-                        description="Place a limit, market, or stop order to see it here."
-                        actionLabel="Place order"
+                        title={t('emptyOpenTitle')}
+                        description={t('emptyOpenDesc')}
+                        actionLabel={t('placeOrder')}
                         actionHref="/trade/spot"
                       />
                     </td></tr>
                   ) : (
                     orders.map((o) => {
                       const canCancel = ['OPEN', 'PARTIALLY_FILLED', 'PENDING_TRIGGER'].includes(o.status);
-                      const displayStatus = o.status === 'PENDING_TRIGGER' ? 'Pending Trigger' : o.status;
+                      const displayStatus = o.status === 'PENDING_TRIGGER' ? t('statusPending') : o.status;
                       return (
                     <tr key={o.id} className={`border-b border-border transition-colors duration-100 hover:bg-muted dark:hover:bg-card/5 ${cancellingOrderId === o.id ? 'opacity-75 bg-muted dark:bg-card/5' : ''}`}>
                       <td className="py-2 px-2">
@@ -213,7 +216,9 @@ export default function SpotOrdersViewPage() {
                         </div>
                       </td>
                       <td className="py-2 px-2 tabular-nums">
-                        <span className={o.side === 'buy' ? 'text-buy' : 'text-destructive'}>{o.side}</span>
+                        <span className={o.side === 'buy' ? 'text-buy' : 'text-destructive'}>
+                          {o.side === 'buy' ? t('buy') : o.side === 'sell' ? t('sell') : o.side}
+                        </span>
                       </td>
                       <td className="py-2 px-2 font-mono text-foreground/80 tabular-nums">{o.price ?? '—'}</td>
                       <td className="py-2 px-2 font-mono text-foreground/80 tabular-nums">{o.stop_price ?? '—'}</td>
@@ -230,7 +235,7 @@ export default function SpotOrdersViewPage() {
                             className="text-destructive hover:underline disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-1"
                           >
                             {cancellingOrderId === o.id ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
-                            {cancellingOrderId === o.id ? 'Cancelling…' : 'Cancel'}
+                            {cancellingOrderId === o.id ? t('cancelling') : t('cancel')}
                           </button>
                         )}
                       </td>
@@ -244,22 +249,22 @@ export default function SpotOrdersViewPage() {
         {ordersTab === 'history' && (
           <>
             <div className="px-4 py-2 border-b border-border flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">CANCELLED and FILLED. Read-only.</span>
+              <span className="text-xs text-muted-foreground">{t('historyReadOnlyBanner')}</span>
             </div>
             {historyError && (
               <div className="px-4 py-3 bg-amber-500/10 text-amber-800 dark:text-amber-200 text-sm flex items-center justify-between border-b border-border">
                 <span>{historyError}</span>
-                <button type="button" onClick={() => void fetchHistoryOrders(null, false)} className="text-primary hover:underline">Retry</button>
+                <button type="button" onClick={() => void fetchHistoryOrders(null, false)} className="text-primary hover:underline">{tc('actions.retry')}</button>
               </div>
             )}
             <table className="w-full text-xs">
               <thead>
                 <tr className="text-left text-muted-foreground border-b border-border">
-                  <th className="py-2 px-2 font-medium uppercase tracking-wide">Market</th>
-                  <th className="py-2 px-2 font-medium uppercase tracking-wide">Side</th>
-                  <th className="py-2 px-2 font-medium uppercase tracking-wide">Price</th>
-                  <th className="py-2 px-2 font-medium uppercase tracking-wide">Quantity</th>
-                  <th className="py-2 px-2 font-medium uppercase tracking-wide">Status</th>
+                  <th className="py-2 px-2 font-medium uppercase tracking-wide">{t('colMarket')}</th>
+                  <th className="py-2 px-2 font-medium uppercase tracking-wide">{t('colSide')}</th>
+                  <th className="py-2 px-2 font-medium uppercase tracking-wide">{t('colPrice')}</th>
+                  <th className="py-2 px-2 font-medium uppercase tracking-wide">{t('colQuantity')}</th>
+                  <th className="py-2 px-2 font-medium uppercase tracking-wide">{t('colStatus')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -277,9 +282,9 @@ export default function SpotOrdersViewPage() {
                   <tr><td colSpan={5} className="p-0 align-top">
                     <EmptyState
                       icon={BarChart3}
-                      title="No order history"
-                      description="Filled and cancelled orders will appear here."
-                      actionLabel="Place order"
+                      title={t('emptyHistoryTitle')}
+                      description={t('emptyHistoryDesc')}
+                      actionLabel={t('placeOrder')}
                       actionHref="/trade/spot"
                     />
                   </td></tr>
@@ -293,7 +298,9 @@ export default function SpotOrdersViewPage() {
                           </div>
                         </td>
                         <td className="py-2 px-2 tabular-nums">
-                          <span className={o.side === 'buy' ? 'text-buy' : 'text-destructive'}>{o.side}</span>
+                          <span className={o.side === 'buy' ? 'text-buy' : 'text-destructive'}>
+                          {o.side === 'buy' ? t('buy') : o.side === 'sell' ? t('sell') : o.side}
+                        </span>
                         </td>
                         <td className="py-2 px-2 font-mono text-foreground/80 tabular-nums">{o.price ?? '—'}</td>
                         <td className="py-2 px-2 font-mono text-foreground/80 tabular-nums">{o.quantity}</td>
@@ -314,7 +321,7 @@ export default function SpotOrdersViewPage() {
                       className="py-2 px-4 rounded-lg bg-accent text-foreground/80 text-sm font-medium hover:bg-muted disabled:opacity-50 flex items-center gap-2"
                     >
                       {historyLoadMore ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                      Load more
+                      {t('loadMore')}
                     </button>
                   </div>
                 )}

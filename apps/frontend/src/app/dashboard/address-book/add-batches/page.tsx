@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { toast } from '@/components/ui/toaster';
 import { 
   ChevronRight, 
@@ -46,6 +47,9 @@ interface Chain {
 }
 
 export default function AddBatchesPage() {
+  const t = useTranslations('account.addressBookAddBatchesPage');
+  const tc = useTranslations('account.common');
+  const { fromApi } = useApiErrorMessage();
   const tn = useTranslations('common.notifications');
   const tt = useTranslations('account.toasts');
   const router = useRouter();
@@ -254,17 +258,17 @@ export default function AddBatchesPage() {
             className="text-muted-foreground hover:text-primary cursor-pointer"
             onClick={() => router.push('/dashboard/address-book')}
           >
-            Address Book
+            {t('breadcrumbAddressBook')}
           </span>
           <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          <span className="text-foreground font-medium">Add in Batches</span>
+          <span className="text-foreground font-medium">{t('breadcrumbTitle')}</span>
         </div>
 
         {/* Main Card */}
         <div className="bg-card rounded-lg p-6">
           {/* Title */}
           <h1 className="text-xl font-semibold text-foreground mb-6">
-            Add Your Wallet Addresses
+            {t('pageTitle')}
           </h1>
 
           {/* Tabs */}
@@ -277,7 +281,7 @@ export default function AddBatchesPage() {
                   : 'border-transparent text-muted-foreground hover:text-foreground/80'
               }`}
             >
-              On-Chain Withdrawal Address
+              {t('tabOnchain')}
             </button>
             <button
               onClick={() => setActiveTab('internal')}
@@ -287,7 +291,7 @@ export default function AddBatchesPage() {
                   : 'border-transparent text-muted-foreground hover:text-foreground/80'
               }`}
             >
-              Internal Transfer Address
+              {t('tabInternal')}
             </button>
           </div>
 
@@ -298,29 +302,29 @@ export default function AddBatchesPage() {
                 <div key={addr.id}>
                   {/* Row Label */}
                   <div className="text-sm text-muted-foreground mb-3">
-                    Address {index + 1}
+                    {t('addressRow', { index: index + 1 })}
                   </div>
                   
                   {/* Header Row (only for first item) */}
                   {index === 0 && (
                     <div className="grid grid-cols-12 gap-4 mb-2">
                       <div className="col-span-2 text-sm text-muted-foreground">
-                        <span className="text-sell">*</span> Assets
+                        <span className="text-sell">*</span> {t('colAssets')}
                       </div>
                       <div className="col-span-2 text-sm text-muted-foreground">
-                        <span className="text-sell">*</span> Chain Type
+                        <span className="text-sell">*</span> {t('colChain')}
                       </div>
                       <div className="col-span-3 text-sm text-muted-foreground">
-                        <span className="text-sell">*</span> Address
+                        <span className="text-sell">*</span> {t('colAddress')}
                       </div>
                       <div className="col-span-2 text-sm text-muted-foreground">
-                        Tag/Memo
+                        {t('colTagMemo')}
                       </div>
                       <div className="col-span-2 text-sm text-muted-foreground">
-                        Remark
+                        {t('colRemark')}
                       </div>
                       <div className="col-span-1 text-sm text-muted-foreground">
-                        Action
+                        {t('colAction')}
                       </div>
                     </div>
                   )}
@@ -334,7 +338,7 @@ export default function AddBatchesPage() {
                         onChange={e => updateOnchainRow(addr.id, 'asset', e.target.value)}
                         className="w-full px-3 py-2.5 bg-card border border-border rounded-lg text-foreground text-sm appearance-none cursor-pointer outline-none focus:border-primary"
                       >
-                        <option value="">Please select</option>
+                        <option value="">{t('pleaseSelect')}</option>
                         {assets.map(asset => (
                           <option key={asset.id} value={asset.symbol}>{asset.symbol}</option>
                         ))}
@@ -349,7 +353,7 @@ export default function AddBatchesPage() {
                         onChange={e => updateOnchainRow(addr.id, 'chainType', e.target.value)}
                         className="w-full px-3 py-2.5 bg-card border border-border rounded-lg text-foreground text-sm appearance-none cursor-pointer outline-none focus:border-primary"
                       >
-                        <option value="">Please select</option>
+                        <option value="">{t('pleaseSelect')}</option>
                         {chains.map(chain => (
                           <option key={chain.id} value={chain.name}>{chain.name}</option>
                         ))}
@@ -363,7 +367,7 @@ export default function AddBatchesPage() {
                         type="text"
                         value={addr.address}
                         onChange={e => updateOnchainRow(addr.id, 'address', e.target.value)}
-                        placeholder="Please input your withdrawal wallet address"
+                        placeholder={t('addressPlaceholder')}
                         className="w-full px-3 py-2.5 bg-card border border-border rounded-lg text-foreground text-sm placeholder:text-muted-foreground outline-none focus:border-primary"
                       />
                     </div>
@@ -374,7 +378,7 @@ export default function AddBatchesPage() {
                         type="text"
                         value={addr.tagMemo}
                         onChange={e => updateOnchainRow(addr.id, 'tagMemo', e.target.value)}
-                        placeholder="Optional"
+                        placeholder={t('optional')}
                         className="w-full px-3 py-2.5 bg-card border border-border rounded-lg text-foreground text-sm placeholder:text-muted-foreground outline-none focus:border-primary"
                       />
                     </div>
@@ -385,7 +389,7 @@ export default function AddBatchesPage() {
                         type="text"
                         value={addr.remark}
                         onChange={e => updateOnchainRow(addr.id, 'remark', e.target.value)}
-                        placeholder="Add a remark"
+                        placeholder={t('remarkPlaceholder')}
                         className="w-full px-3 py-2.5 bg-card border border-border rounded-lg text-foreground text-sm placeholder:text-muted-foreground outline-none focus:border-primary"
                       />
                     </div>
@@ -410,7 +414,7 @@ export default function AddBatchesPage() {
                 className="flex items-center gap-2 px-6 py-2.5 border border-border text-foreground/80 rounded-lg hover:bg-accent transition-colors mt-4"
               >
                 <Plus className="w-4 h-4" />
-                Add
+                {t('add')}
               </button>
             </div>
           )}
@@ -422,23 +426,23 @@ export default function AddBatchesPage() {
                 <div key={addr.id}>
                   {/* Row Label */}
                   <div className="text-sm text-muted-foreground mb-3">
-                    Address {index + 1}
+                    {t('addressRow', { index: index + 1 })}
                   </div>
                   
                   {/* Header Row (only for first item) */}
                   {index === 0 && (
                     <div className="grid grid-cols-12 gap-4 mb-2">
                       <div className="col-span-2 text-sm text-muted-foreground">
-                        <span className="text-sell">*</span> Type
+                        <span className="text-sell">*</span> {t('colType')}
                       </div>
                       <div className="col-span-5 text-sm text-muted-foreground">
-                        <span className="text-sell">*</span> Recipient
+                        <span className="text-sell">*</span> {t('colRecipient')}
                       </div>
                       <div className="col-span-4 text-sm text-muted-foreground">
-                        Remark
+                        {t('colRemark')}
                       </div>
                       <div className="col-span-1 text-sm text-muted-foreground">
-                        Action
+                        {t('colAction')}
                       </div>
                     </div>
                   )}
@@ -452,9 +456,9 @@ export default function AddBatchesPage() {
                         onChange={e => updateInternalRow(addr.id, 'recipientType', e.target.value)}
                         className="w-full px-3 py-2.5 bg-card border border-border rounded-lg text-foreground text-sm appearance-none cursor-pointer outline-none focus:border-primary"
                       >
-                        <option value="email">Email</option>
-                        <option value="mobile">Mobile</option>
-                        <option value="uid">UID</option>
+                        <option value="email">{t('recipientEmail')}</option>
+                        <option value="mobile">{t('recipientMobile')}</option>
+                        <option value="uid">{t('recipientUid')}</option>
                       </select>
                       <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                     </div>
@@ -479,7 +483,7 @@ export default function AddBatchesPage() {
                             type="text"
                             value={addr.recipient}
                             onChange={e => updateInternalRow(addr.id, 'recipient', e.target.value.replace(/\D/g, ''))}
-                            placeholder="Please enter"
+                            placeholder={t('enterPlaceholder')}
                             className="flex-1 px-3 py-2.5 bg-card border border-border rounded-lg text-foreground text-sm placeholder:text-muted-foreground outline-none focus:border-primary"
                           />
                         </div>
@@ -488,7 +492,7 @@ export default function AddBatchesPage() {
                           type="text"
                           value={addr.recipient}
                           onChange={e => updateInternalRow(addr.id, 'recipient', e.target.value)}
-                          placeholder={addr.recipientType === 'email' ? 'Enter email address' : 'Enter UID'}
+                          placeholder={addr.recipientType === 'email' ? t('enterEmail') : t('enterUid')}
                           className="w-full px-3 py-2.5 bg-card border border-border rounded-lg text-foreground text-sm placeholder:text-muted-foreground outline-none focus:border-primary"
                         />
                       )}
@@ -500,7 +504,7 @@ export default function AddBatchesPage() {
                         type="text"
                         value={addr.remark}
                         onChange={e => updateInternalRow(addr.id, 'remark', e.target.value)}
-                        placeholder="Add a remark"
+                        placeholder={t('remarkPlaceholder')}
                         className="w-full px-3 py-2.5 bg-card border border-border rounded-lg text-foreground text-sm placeholder:text-muted-foreground outline-none focus:border-primary"
                       />
                     </div>
@@ -525,7 +529,7 @@ export default function AddBatchesPage() {
                 className="flex items-center gap-2 px-6 py-2.5 border border-border text-foreground/80 rounded-lg hover:bg-accent transition-colors mt-4"
               >
                 <Plus className="w-4 h-4" />
-                Add
+                {t('add')}
               </button>
             </div>
           )}
@@ -542,7 +546,7 @@ export default function AddBatchesPage() {
                   className="mt-1 w-4 h-4 rounded border-border text-primary focus:ring-primary"
                 />
                 <span className="text-sm text-foreground/80">
-                  The above wallet addresses have been saved as Universal Wallet Address, enabling withdrawals of multiple coins.
+                  {t('universalCheckbox')}
                 </span>
               </label>
             )}
@@ -556,7 +560,7 @@ export default function AddBatchesPage() {
                 className="mt-1 w-4 h-4 rounded border-border text-primary focus:ring-primary"
               />
               <span className="text-sm text-foreground/80 flex items-center gap-1">
-                No withdrawal security verification required for above wallet addresses in future transactions.
+                {t('noVerificationCheckbox')}
                 <HelpCircle className="w-4 h-4 text-muted-foreground" />
               </span>
             </label>
@@ -571,10 +575,10 @@ export default function AddBatchesPage() {
             {submitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Submitting...
+                {t('submitting')}
               </>
             ) : (
-              'Submit'
+              t('submit')
             )}
           </button>
         </div>

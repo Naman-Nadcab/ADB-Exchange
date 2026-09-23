@@ -1,246 +1,292 @@
 {
-  "generatedAt": "2026-09-23T10:18:45.758Z",
-  "count": 40,
+  "generatedAt": "2026-09-23T10:18:46.188Z",
+  "total": 40,
+  "counts": {
+    "DEV_ONLY": 25,
+    "FALSE_POSITIVE": 13,
+    "TECHNICAL_CONSTANT": 2
+  },
+  "customerUnresolved": 0,
   "hits": [
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 604,
       "kind": "jsx",
-      "text": "with clear tools"
+      "text": "with clear tools",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 637,
       "kind": "jsx",
-      "text": "Live Trading Terminal"
+      "text": "Live Trading Terminal",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 638,
       "kind": "jsx",
-      "text": "Depth, order flow, and market pulse"
+      "text": "Depth, order flow, and market pulse",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 672,
       "kind": "jsx",
-      "text": "Order Flow"
+      "text": "Order Flow",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 684,
       "kind": "jsx",
-      "text": "Depth Preview"
+      "text": "Depth Preview",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 699,
       "kind": "jsx",
-      "text": "Market Insight:"
+      "text": "Market Insight:",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 720,
       "kind": "jsx",
-      "text": "Platform Uptime"
+      "text": "Platform Uptime",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 721,
       "kind": "jsx",
-      "text": "Unavailable"
+      "text": "Unavailable",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 732,
       "kind": "jsx",
-      "text": "Matching Latency"
+      "text": "Matching Latency",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 741,
       "kind": "jsx",
-      "text": "Market Overview"
+      "text": "Market Overview",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 742,
       "kind": "jsx",
-      "text": "Live pair rankings with direct links to the spot terminal."
+      "text": "Live pair rankings with direct links to the spot terminal.",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 770,
       "kind": "jsx",
-      "text": "Asset"
+      "text": "Asset",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 771,
       "kind": "jsx",
-      "text": "Price"
+      "text": "Price",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 774,
       "kind": "jsx",
-      "text": "Action"
+      "text": "Action",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 804,
       "kind": "jsx",
-      "text": "Trading Ecosystem"
+      "text": "Trading Ecosystem",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 805,
       "kind": "jsx",
-      "text": "Core exchange products for trading, funding, and account management."
+      "text": "Core exchange products for trading, funding, and account management.",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 849,
       "kind": "jsx",
-      "text": "Account Security"
+      "text": "Account Security",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 850,
       "kind": "jsx",
-      "text": "Protection controls you can configure."
+      "text": "Protection controls you can configure.",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 874,
       "kind": "jsx",
-      "text": "Security Dashboard Visualization"
+      "text": "Security Dashboard Visualization",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 904,
       "kind": "jsx",
-      "text": "Earn on FDM"
+      "text": "Earn on FDM",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 905,
       "kind": "jsx",
-      "text": "Yield products in phased rollout."
+      "text": "Yield products in phased rollout.",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 933,
       "kind": "jsx",
-      "text": "System Status"
+      "text": "System Status",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 962,
       "kind": "jsx",
-      "text": "Announcements"
+      "text": "Announcements",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 990,
       "kind": "jsx",
-      "text": "Get started"
+      "text": "Get started",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/HomePageClient.tsx",
       "line": 991,
       "kind": "jsx",
-      "text": "Browse markets or open a free account."
+      "text": "Browse markets or open a free account.",
+      "category": "DEV_ONLY"
     },
     {
       "file": "apps/frontend/src/app/error.tsx",
       "line": 24,
       "kind": "jsx",
-      "text": "Something went wrong"
+      "text": "Something went wrong",
+      "category": "FALSE_POSITIVE"
     },
     {
       "file": "apps/frontend/src/components/auth/AuthSplitLayout.tsx",
       "line": 85,
       "kind": "jsx",
-      "text": "Cookie Policy"
+      "text": "Cookie Policy",
+      "category": "FALSE_POSITIVE"
     },
     {
       "file": "apps/frontend/src/components/p2p/P2PFilters.tsx",
       "line": 64,
       "kind": "jsx",
-      "text": "Fiat"
+      "text": "Fiat",
+      "category": "FALSE_POSITIVE"
     },
     {
       "file": "apps/frontend/src/components/p2p/P2PFilters.tsx",
       "line": 76,
       "kind": "jsx",
-      "text": "Crypto"
+      "text": "Crypto",
+      "category": "FALSE_POSITIVE"
     },
     {
       "file": "apps/frontend/src/components/p2p/P2PFilters.tsx",
       "line": 88,
       "kind": "jsx",
-      "text": "Payment"
+      "text": "Payment",
+      "category": "FALSE_POSITIVE"
     },
     {
       "file": "apps/frontend/src/components/p2p/P2PFilters.tsx",
       "line": 100,
       "kind": "jsx",
-      "text": "Amount"
+      "text": "Amount",
+      "category": "FALSE_POSITIVE"
     },
     {
       "file": "apps/frontend/src/components/p2p/P2PMerchantTable.tsx",
       "line": 36,
       "kind": "jsx",
-      "text": "Merchant"
+      "text": "Merchant",
+      "category": "FALSE_POSITIVE"
     },
     {
       "file": "apps/frontend/src/components/p2p/P2PMerchantTable.tsx",
       "line": 37,
       "kind": "jsx",
-      "text": "Price"
+      "text": "Price",
+      "category": "FALSE_POSITIVE"
     },
     {
       "file": "apps/frontend/src/components/p2p/P2PMerchantTable.tsx",
       "line": 38,
       "kind": "jsx",
-      "text": "Available"
+      "text": "Available",
+      "category": "FALSE_POSITIVE"
     },
     {
       "file": "apps/frontend/src/components/p2p/P2PMerchantTable.tsx",
       "line": 39,
       "kind": "jsx",
-      "text": "Limit"
+      "text": "Limit",
+      "category": "FALSE_POSITIVE"
     },
     {
       "file": "apps/frontend/src/components/p2p/P2PMerchantTable.tsx",
       "line": 40,
       "kind": "jsx",
-      "text": "Payment"
+      "text": "Payment",
+      "category": "FALSE_POSITIVE"
     },
     {
       "file": "apps/frontend/src/components/p2p/P2PMerchantTable.tsx",
       "line": 41,
       "kind": "jsx",
-      "text": "Action"
+      "text": "Action",
+      "category": "FALSE_POSITIVE"
     },
     {
       "file": "apps/frontend/src/components/trade/chart/indicators/plugins/pluginTypes.ts",
       "line": 13,
       "kind": "jsx",
-      "text": "Record"
+      "text": "Record",
+      "category": "TECHNICAL_CONSTANT"
     },
     {
       "file": "apps/frontend/src/components/trade/chart/useChartAdapter.ts",
       "line": 232,
       "kind": "jsx",
-      "text": "from && total"
+      "text": "from && total",
+      "category": "TECHNICAL_CONSTANT"
     },
     {
       "file": "apps/frontend/src/components/ui/ErrorState.tsx",
       "line": 6,
       "kind": "attr",
-      "text": "Something went wrong"
+      "text": "Something went wrong",
+      "category": "FALSE_POSITIVE"
     }
   ]
 }

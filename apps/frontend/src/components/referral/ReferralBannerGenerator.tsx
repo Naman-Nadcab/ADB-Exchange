@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { Download, Twitter, MessageCircle, Square } from 'lucide-react';
 
 export type BannerFormat = 'twitter' | 'telegram' | 'square';
@@ -22,6 +23,7 @@ export function ReferralBannerGenerator({
   referralLink,
   appName = 'FDM',
 }: ReferralBannerGeneratorProps) {
+  const t = useTranslations('account.referralBannerGenerator');
   const drawBanner = useCallback(
     (format: BannerFormat) => {
       const { width, height } = DIMENSIONS[format];
@@ -64,12 +66,12 @@ export function ReferralBannerGenerator({
       ctx.fillText(appName, scale * 82, scale * 52);
 
       ctx.font = `bold ${scale * 32}px Arial`;
-      const title = 'Join & Earn Rewards!';
+      const title = t('canvasTitle');
       ctx.fillText(title, scale * 24, scale * 120);
 
       ctx.fillStyle = 'rgba(255,255,255,0.9)';
       ctx.font = `${scale * 18}px Arial`;
-      ctx.fillText('Sign up with my referral code and claim bonuses.', scale * 24, scale * 165);
+      ctx.fillText(t('canvasSubtitle'), scale * 24, scale * 165);
 
       ctx.font = `${scale * 72}px Arial`;
       ctx.fillText('🏆', width / 2 - scale * 36, height * 0.45);
@@ -86,7 +88,7 @@ export function ReferralBannerGenerator({
 
       ctx.fillStyle = 'rgba(255,255,255,0.85)';
       ctx.font = `${scale * 16}px Arial`;
-      ctx.fillText('Referral Code', scale * 40, boxY + scale * 28);
+      ctx.fillText(t('canvasReferralCodeLabel'), scale * 40, boxY + scale * 28);
       ctx.fillStyle = '#ffffff';
       ctx.font = `bold ${scale * 22}px Arial`;
       ctx.fillText(referralCode, scale * 40, boxY + scale * 58);
@@ -97,7 +99,7 @@ export function ReferralBannerGenerator({
 
       return canvas.toDataURL('image/png');
     },
-    [referralCode, referralLink, appName]
+    [referralCode, referralLink, appName, t]
   );
 
   const handleDownload = (format: BannerFormat) => {
@@ -117,8 +119,8 @@ export function ReferralBannerGenerator({
 
   return (
     <div className="bg-card rounded-xl p-6 border border-border card-bybit">
-      <h3 className="text-sm font-semibold text-foreground mb-1">Banner Generator</h3>
-      <p className="text-xs text-muted-foreground mb-4">Download referral banners for social sharing</p>
+      <h3 className="text-sm font-semibold text-foreground mb-1">{t('title')}</h3>
+      <p className="text-xs text-muted-foreground mb-4">{t('subtitle')}</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {options.map(({ format, label, icon: Icon }) => (
           <button

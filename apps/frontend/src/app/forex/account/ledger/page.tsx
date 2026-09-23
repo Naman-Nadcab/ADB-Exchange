@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { ForexAccountNav } from '@/components/forex/ForexAccountNav';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
@@ -27,6 +26,9 @@ function cashCredit(row: ForexLedgerRow): string {
 
 export default function ForexLedgerPage() {
   const tf = useTranslations('forex');
+  const tl = useTranslations('forex.ledgerPage');
+  const tc = useTranslations('common.actions');
+  const tu = useTranslations('forex.riskStates');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const ledger = useForexStore((s) => s.ledger);
@@ -38,6 +40,7 @@ export default function ForexLedgerPage() {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const currency = account?.currency ?? balance?.currency ?? reconciliation?.currency ?? 'USD';
+  const unavailable = tu('unavailable');
 
   const types = useMemo(() => {
     const set = new Set(ledger.map((r) => r.type));
@@ -70,7 +73,7 @@ export default function ForexLedgerPage() {
         <>
           <div className="flex flex-wrap items-end gap-3 text-[12px]">
             <label className="flex flex-col gap-1">
-              <span className="text-muted-foreground">Type</span>
+              <span className="text-muted-foreground">{tl('filterType')}</span>
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
@@ -84,7 +87,7 @@ export default function ForexLedgerPage() {
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-muted-foreground">From</span>
+              <span className="text-muted-foreground">{tl('filterFrom')}</span>
               <input
                 type="date"
                 value={fromDate}
@@ -93,7 +96,7 @@ export default function ForexLedgerPage() {
               />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-muted-foreground">To</span>
+              <span className="text-muted-foreground">{tl('filterTo')}</span>
               <input
                 type="date"
                 value={toDate}
@@ -104,21 +107,21 @@ export default function ForexLedgerPage() {
           </div>
 
           {rows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No Forex account activity.</p>
+            <p className="text-sm text-muted-foreground">{tl('empty')}</p>
           ) : (
             <div className="eda-table-wrap">
               <table className="eda-table min-w-[920px] font-mono text-[12px]">
                 <thead>
                   <tr>
-                    <th className="px-3 py-2 font-medium">Date/time</th>
-                    <th className="px-3 py-2 font-medium">Type</th>
-                    <th className="px-3 py-2 font-medium">Reference</th>
-                    <th className="px-3 py-2 font-medium">Debit</th>
-                    <th className="px-3 py-2 font-medium">Credit</th>
-                    <th className="px-3 py-2 font-medium">Net</th>
-                    <th className="px-3 py-2 font-medium">Status</th>
-                    <th className="px-3 py-2 font-medium">Balance before</th>
-                    <th className="px-3 py-2 font-medium">Balance after</th>
+                    <th className="px-3 py-2 font-medium">{tl('colDateTime')}</th>
+                    <th className="px-3 py-2 font-medium">{tl('colType')}</th>
+                    <th className="px-3 py-2 font-medium">{tl('colReference')}</th>
+                    <th className="px-3 py-2 font-medium">{tl('colDebit')}</th>
+                    <th className="px-3 py-2 font-medium">{tl('colCredit')}</th>
+                    <th className="px-3 py-2 font-medium">{tl('colNet')}</th>
+                    <th className="px-3 py-2 font-medium">{tl('colStatus')}</th>
+                    <th className="px-3 py-2 font-medium">{tl('colBalanceBefore')}</th>
+                    <th className="px-3 py-2 font-medium">{tl('colBalanceAfter')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -142,13 +145,13 @@ export default function ForexLedgerPage() {
                       </td>
                       <td className="px-3 py-2">{fxPlain(cashDebit(row))}</td>
                       <td className="px-3 py-2">{fxPlain(cashCredit(row))}</td>
-                      <td className="px-3 py-2">{fxPlain(row.net ?? 'Unavailable')}</td>
+                      <td className="px-3 py-2">{fxPlain(row.net ?? unavailable)}</td>
                       <td className="px-3 py-2">{fxPlain(row.status)}</td>
                       <td className="px-3 py-2">
-                        {row.balanceBefore != null ? fxMoney(row.balanceBefore, currency) : 'Unavailable'}
+                        {row.balanceBefore != null ? fxMoney(row.balanceBefore, currency) : unavailable}
                       </td>
                       <td className="px-3 py-2">
-                        {row.balanceAfter != null ? fxMoney(row.balanceAfter, currency) : 'Unavailable'}
+                        {row.balanceAfter != null ? fxMoney(row.balanceAfter, currency) : unavailable}
                       </td>
                     </tr>
                   ))}
@@ -159,59 +162,58 @@ export default function ForexLedgerPage() {
 
           {reconciliation ? (
             <section className="eda-card p-4 text-[12px]">
-              <p className="font-medium">
-                Ledger reconciliation · {reconciliation.status}
-              </p>
-              <p className="mt-1 text-muted-foreground">
-                Opening, credits, debits and closing balance come from the Forex ledger service.
-              </p>
+              <p className="font-medium">{tl('reconciliationTitle', { status: reconciliation.status })}</p>
+              <p className="mt-1 text-muted-foreground">{tl('reconciliationBody')}</p>
               <dl className="mt-3 grid grid-cols-2 gap-2 font-mono md:grid-cols-4">
                 <div>
-                  <dt className="text-muted-foreground">Opening</dt>
+                  <dt className="text-muted-foreground">{tl('opening')}</dt>
                   <dd>{fxMoney(reconciliation.openingBalance, currency)}</dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">Deposits / credits</dt>
+                  <dt className="text-muted-foreground">{tl('depositsCredits')}</dt>
                   <dd>{fxMoney(reconciliation.deposits, currency)}</dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">Withdrawals</dt>
+                  <dt className="text-muted-foreground">{tl('withdrawals')}</dt>
                   <dd>{fxMoney(reconciliation.withdrawals, currency)}</dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">Realized P&amp;L</dt>
+                  <dt className="text-muted-foreground">{tl('realizedPnl')}</dt>
                   <dd>{fxMoney(reconciliation.realizedPnl, currency)}</dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">Fees</dt>
+                  <dt className="text-muted-foreground">{tl('fees')}</dt>
                   <dd>{fxMoney(reconciliation.fees, currency)}</dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">Swaps</dt>
+                  <dt className="text-muted-foreground">{tl('swaps')}</dt>
                   <dd>{fxMoney(reconciliation.swaps, currency)}</dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">Other</dt>
+                  <dt className="text-muted-foreground">{tl('other')}</dt>
                   <dd>{fxMoney(reconciliation.adjustments, currency)}</dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">Closing / ledger balance</dt>
+                  <dt className="text-muted-foreground">{tl('closingBalance')}</dt>
                   <dd>{fxMoney(reconciliation.ledgerBalance, currency)}</dd>
                 </div>
               </dl>
               {reconciliation.status === 'MISMATCH' ? (
                 <p className="mt-2 text-amber-800 dark:text-amber-300" role="status">
-                  Components {fxMoney(reconciliation.ledgerFromComponents, currency)} do not match ledger balance{' '}
-                  {fxMoney(reconciliation.ledgerBalance, currency)}.
+                  {tl('mismatch', {
+                    components: fxMoney(reconciliation.ledgerFromComponents, currency),
+                    ledger: fxMoney(reconciliation.ledgerBalance, currency),
+                  })}
                 </p>
               ) : null}
             </section>
           ) : (
             <section className="eda-card border-dashed p-4 text-[12px] text-muted-foreground">
-              <p className="font-medium text-foreground">Detailed reconciliation unavailable</p>
+              <p className="font-medium text-foreground">{tl('reconciliationUnavailableTitle')}</p>
               <p className="mt-1">
-                Current ledger balance is {fxMoney(account?.ledgerBalance ?? balance?.ledgerBalance, currency)} from GET
-                /account.
+                {tl('reconciliationUnavailableBody', {
+                  balance: fxMoney(account?.ledgerBalance ?? balance?.ledgerBalance, currency),
+                })}
               </p>
             </section>
           )}
@@ -228,45 +230,45 @@ export default function ForexLedgerPage() {
           <div className="max-h-[80vh] w-full max-w-lg overflow-auto rounded-xl border border-border bg-card p-4">
             <div className="mb-3 flex items-center justify-between">
               <h2 id="ledger-detail-title" className="text-sm font-medium">
-                Transaction
+                {tl('transactionTitle')}
               </h2>
               <button
                 type="button"
                 className="text-[12px] text-primary underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => setOpen(null)}
               >
-                Close
+                {tc('close')}
               </button>
             </div>
             <dl className="grid grid-cols-2 gap-2 font-mono text-[12px]">
-              <dt className="text-muted-foreground">What</dt>
+              <dt className="text-muted-foreground">{tl('detailWhat')}</dt>
               <dd>{open.type}</dd>
-              <dt className="text-muted-foreground">When</dt>
+              <dt className="text-muted-foreground">{tl('detailWhen')}</dt>
               <dd>{open.timestamp}</dd>
-              <dt className="text-muted-foreground">Debit</dt>
+              <dt className="text-muted-foreground">{tl('colDebit')}</dt>
               <dd>{cashDebit(open)}</dd>
-              <dt className="text-muted-foreground">Credit</dt>
+              <dt className="text-muted-foreground">{tl('colCredit')}</dt>
               <dd>{cashCredit(open)}</dd>
-              <dt className="text-muted-foreground">Net</dt>
-              <dd>{open.net ?? 'Unavailable'}</dd>
-              <dt className="text-muted-foreground">Why / status</dt>
+              <dt className="text-muted-foreground">{tl('colNet')}</dt>
+              <dd>{open.net ?? unavailable}</dd>
+              <dt className="text-muted-foreground">{tl('detailWhyStatus')}</dt>
               <dd>{open.status}</dd>
-              <dt className="text-muted-foreground">Transaction ID</dt>
+              <dt className="text-muted-foreground">{tl('detailTransactionId')}</dt>
               <dd>{open.transactionId}</dd>
-              <dt className="text-muted-foreground">Currency</dt>
+              <dt className="text-muted-foreground">{tl('detailCurrency')}</dt>
               <dd>{open.currency}</dd>
-              <dt className="text-muted-foreground">Source</dt>
+              <dt className="text-muted-foreground">{tl('detailSource')}</dt>
               <dd>{open.source}</dd>
-              <dt className="text-muted-foreground">Order</dt>
-              <dd>{refField(open.reference, 'orderId') ?? 'Unavailable'}</dd>
-              <dt className="text-muted-foreground">Fill</dt>
-              <dd>{refField(open.reference, 'fillId') ?? 'Unavailable'}</dd>
-              <dt className="text-muted-foreground">Position</dt>
-              <dd>{refField(open.reference, 'positionId') ?? 'Unavailable'}</dd>
-              <dt className="text-muted-foreground">Balance before</dt>
-              <dd>{open.balanceBefore != null ? fxMoney(open.balanceBefore, currency) : 'Unavailable'}</dd>
-              <dt className="text-muted-foreground">Balance after</dt>
-              <dd>{open.balanceAfter != null ? fxMoney(open.balanceAfter, currency) : 'Unavailable'}</dd>
+              <dt className="text-muted-foreground">{tl('detailOrder')}</dt>
+              <dd>{refField(open.reference, 'orderId') ?? unavailable}</dd>
+              <dt className="text-muted-foreground">{tl('detailFill')}</dt>
+              <dd>{refField(open.reference, 'fillId') ?? unavailable}</dd>
+              <dt className="text-muted-foreground">{tl('detailPosition')}</dt>
+              <dd>{refField(open.reference, 'positionId') ?? unavailable}</dd>
+              <dt className="text-muted-foreground">{tl('colBalanceBefore')}</dt>
+              <dd>{open.balanceBefore != null ? fxMoney(open.balanceBefore, currency) : unavailable}</dd>
+              <dt className="text-muted-foreground">{tl('colBalanceAfter')}</dt>
+              <dd>{open.balanceAfter != null ? fxMoney(open.balanceAfter, currency) : unavailable}</dd>
             </dl>
           </div>
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/store/auth';
@@ -50,6 +51,10 @@ interface ReferralStats {
 }
 
 export default function ReferralProgramPage() {
+  const t = useTranslations('account.referralProgramPage');
+  const tc = useTranslations('account.common');
+  const ts = useTranslations('security.common');
+  const { fromApi, networkUnreachable } = useApiErrorMessage();
   const tn = useTranslations('common.notifications');
   const tt = useTranslations('account.toasts');
   const { user, accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
@@ -119,13 +124,13 @@ export default function ReferralProgramPage() {
           commissionRate,
         });
       } else {
-        setFetchError(result.error?.message || 'Failed to load referral data');
+        setFetchError(result.error?.message ? fromApi(result.error) : t('loadFailed'));
       }
     } catch {
-      setFetchError('Network error. Please try again.');
+      setFetchError(networkUnreachable());
       toast({
         title: tt('referralDataUnavailableTitle'),
-        description: 'Could not load referral stats.',
+        description: tt('referralStatsLoadFailed'),
         variant: 'destructive',
       });
     } finally {
@@ -138,10 +143,10 @@ export default function ReferralProgramPage() {
     void fetchReferralData();
   }, [fetchReferralData]);
 
-  const referralCode = stats?.referralCode || user?.id?.slice(0, 8).toUpperCase() || 'LOADING...';
+  const referralCode = stats?.referralCode || user?.id?.slice(0, 8).toUpperCase() || t('loadingCode');
   const referralLink = `${appOrigin}/signup?ref=${referralCode}`;
 
-  const customText = `Join FDM with my referral link and participate in the referral program when eligible rewards are available: ${referralLink}`;
+  const customText = `${t('shareTextPrefix')}${referralLink}`;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -181,8 +186,8 @@ export default function ReferralProgramPage() {
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % 4);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + 4) % 4);
 
-  const shareTitle = 'Join FDM and earn crypto rewards!';
-  const shareText = `Join FDM with my referral link and participate in the referral program when eligible rewards are available: ${referralLink}`;
+  const shareTitle = t('shareTitle');
+  const shareText = `${t('shareTextPrefix')}${referralLink}`;
 
   const saveImage = async () => {
     const canvas = document.createElement('canvas');
@@ -221,12 +226,12 @@ export default function ReferralProgramPage() {
       
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 32px Arial';
-      ctx.fillText('Join & Earn Rewards!', 50, 180);
+      ctx.fillText(t('canvasJoinTitle'), 50, 180);
       
       ctx.fillStyle = '#93c5fd';
       ctx.font = '18px Arial';
-      ctx.fillText('Refer friends to FDM', 50, 230);
-      ctx.fillText('and earn eligible commissions.', 50, 260);
+      ctx.fillText(t('canvasReferLine1'), 50, 230);
+      ctx.fillText(t('canvasReferLine2'), 50, 260);
       
       ctx.font = '120px Arial';
       ctx.fillText('🏆', 300, 500);
@@ -238,11 +243,11 @@ export default function ReferralProgramPage() {
       
       ctx.fillStyle = '#93c5fd';
       ctx.font = '16px Arial';
-      ctx.fillText('Scan QR code and join me at FDM!', 70, 800);
+      ctx.fillText(t('canvasScanPrompt'), 70, 800);
       
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 20px Arial';
-      ctx.fillText(`Referral Code: ${referralCode}`, 70, 840);
+      ctx.fillText(t('canvasReferralCode', { code: referralCode }), 70, 840);
       
       ctx.fillStyle = '#93c5fd';
       ctx.font = '14px Arial';
@@ -345,12 +350,10 @@ export default function ReferralProgramPage() {
             <div className="lg:max-w-xl">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-card/10 backdrop-blur-sm rounded-full mb-6">
                 <Sparkles className="w-4 h-4 text-yellow-400" />
-                <span className="text-sm font-medium">Referral Program</span>
+                <span className="text-sm font-medium">{t('heroBadge')}</span>
               </div>
               
-              <h1 className="text-xl font-semibold mb-4 leading-tight">
-                Invite Friends & Earn
-                <span className="block text-yellow-400 mt-2">Up to 1,720 USDT</span>
+              <h1 className="text-xl font-semibold mb-4 leading-tight">{t('heroTitle')}<span className="block text-yellow-400 mt-2">{t('heroReward')}</span>
               </h1>
               
               <p className="text-blue-100 text-lg mb-8">
@@ -362,16 +365,12 @@ export default function ReferralProgramPage() {
                   onClick={() => setShowInviteModal(true)}
                   className="px-8 py-4 bg-card text-blue-700 font-semibold rounded-xl hover:bg-blue-50 transition-all shadow-lg shadow-blue-900/30 flex items-center gap-2"
                 >
-                  <Share2 className="w-5 h-5" />
-                  Invite Friends
-                </button>
+                  <Share2 className="w-5 h-5" />{t('inviteFriends')}</button>
                 <Link
                   href="/dashboard/referral/my-referrals"
                   className="px-8 py-4 bg-card/10 backdrop-blur-sm text-white font-semibold rounded-xl hover:bg-card/20 transition-all flex items-center gap-2 border border-white/20"
                 >
-                  <Users className="w-5 h-5" />
-                  My Referrals
-                </Link>
+                  <Users className="w-5 h-5" />{t('myReferrals')}</Link>
               </div>
             </div>
 
@@ -382,15 +381,14 @@ export default function ReferralProgramPage() {
                   <Trophy className="w-6 h-6 text-yellow-400" />
                 </div>
                 {loading ? <Skeleton className="h-8 w-16 mb-2 bg-card/20" /> : <p className="text-3xl font-bold">${stats && Number.isFinite(stats.totalEarnings) ? Math.max(0, stats.totalEarnings).toFixed(0) : '0'}</p>}
-                <p className="text-blue-200 text-sm">Your Earnings</p>
+                <p className="text-blue-200 text-sm">{t('yourEarnings')}</p>
               </div>
               <div className="bg-card/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
                 <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mb-3">
                   <TrendingUp className="w-6 h-6 text-green-400" />
                 </div>
                 {loading ? <Skeleton className="h-8 w-12 mb-2 bg-card/20" /> : <p className="text-3xl font-bold">{stats ? Math.round(stats.commissionRate) : 20}%</p>}
-                <p className="text-blue-200 text-sm inline-flex items-center gap-1">
-                  Commission Rate <InfoTooltip content="This is the percentage you earn from your referrals' trading fees." className="text-blue-200/90" />
+                <p className="text-blue-200 text-sm inline-flex items-center gap-1">{t('commissionRate')}<InfoTooltip content="This is the percentage you earn from your referrals' trading fees." className="text-blue-200/90" />
                 </p>
               </div>
               <div className="bg-card/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
@@ -398,7 +396,7 @@ export default function ReferralProgramPage() {
                   <Users className="w-6 h-6 text-purple-400" />
                 </div>
                 {loading ? <Skeleton className="h-8 w-12 mb-2 bg-card/20" /> : <p className="text-3xl font-bold">{stats?.totalReferrals ?? 0}</p>}
-                <p className="text-blue-200 text-sm">Your Referrals</p>
+                <p className="text-blue-200 text-sm">{t('yourReferrals')}</p>
               </div>
               <div className="bg-card/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
                 <div className="w-12 h-12 bg-blue-400/20 rounded-xl flex items-center justify-center mb-3">
@@ -409,7 +407,7 @@ export default function ReferralProgramPage() {
                 ) : (
                   <p className="text-3xl font-bold tabular-nums">—</p>
                 )}
-                <p className="text-blue-200 text-sm">Referral program cap</p>
+                <p className="text-blue-200 text-sm">{t('programCap')}</p>
               </div>
             </div>
           </div>
@@ -421,14 +419,14 @@ export default function ReferralProgramPage() {
         {fetchError && (
           <div className="mb-6 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3 flex items-center justify-between">
             <p className="text-amber-800 dark:text-amber-200 text-sm">{fetchError}</p>
-            <button onClick={() => void fetchReferralData()} className="text-sm text-primary hover:underline">Retry</button>
+            <button onClick={() => void fetchReferralData()} className="text-sm text-primary hover:underline">{t('retry')}</button>
           </div>
         )}
 
         {/* Growth Analytics */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-foreground mb-2">Growth Analytics</h2>
-          <p className="text-muted-foreground text-sm mb-6">Track referral performance and conversion</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">{t('growthTitle')}</h2>
+          <p className="text-muted-foreground text-sm mb-6">{t('growthSubtitle')}</p>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <ReferralEarningsChart
               data={analytics?.dailyEarnings?.map((d) => ({
@@ -458,8 +456,8 @@ export default function ReferralProgramPage() {
         <div className="mb-12">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-foreground">How to Get Rewards</h2>
-              <p className="text-muted-foreground mt-1">Earn more by completing different tasks</p>
+              <h2 className="text-2xl font-bold text-foreground">{t('howRewardsTitle')}</h2>
+              <p className="text-muted-foreground mt-1">{t('howRewardsSubtitle')}</p>
             </div>
           </div>
 
@@ -480,8 +478,8 @@ export default function ReferralProgramPage() {
                   <Gift className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="font-semibold">Your Earnings</p>
-                  <p className="text-blue-200 text-sm">Per referred user</p>
+                  <p className="font-semibold">{t('yourEarnings')}</p>
+                  <p className="text-blue-200 text-sm">{t('perReferredUser')}</p>
                 </div>
               </div>
               
@@ -493,21 +491,20 @@ export default function ReferralProgramPage() {
                 <div className="grid grid-cols-3 gap-4 bg-card/10 rounded-xl p-4">
                   <div className="text-center">
                     <p className="text-2xl font-bold">{stats?.commissionRate ?? 0}%</p>
-                    <p className="text-xs text-blue-200">Commission Rate</p>
+                    <p className="text-xs text-blue-200">{t('commissionRate')}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold">{stats?.totalReferrals ?? 0}</p>
-                    <p className="text-xs text-blue-200">Total Referrals</p>
+                    <p className="text-xs text-blue-200">{t('totalReferrals')}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold">${stats?.pendingEarnings?.toFixed(2) ?? '0.00'}</p>
-                    <p className="text-xs text-blue-200">Pending</p>
+                    <p className="text-xs text-blue-200">{t('pending')}</p>
                   </div>
                 </div>
               </div>
               
-              <Link href="/dashboard/help" className="mt-4 text-sm text-blue-200 hover:text-white flex items-center gap-1">
-                Learn more <ArrowRight className="w-4 h-4" />
+              <Link href="/dashboard/help" className="mt-4 text-sm text-blue-200 hover:text-white flex items-center gap-1">{t('learnMore')}<ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
@@ -522,13 +519,13 @@ export default function ReferralProgramPage() {
                   <TrendingUp className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">Tiered Commissions</p>
-                  <p className="text-muted-foreground text-sm">More referrals = Higher rate</p>
+                  <p className="font-semibold text-foreground">{t('tieredCommissions')}</p>
+                  <p className="text-muted-foreground text-sm">{t('moreReferralsHigher')}</p>
                 </div>
               </div>
               
-              <p className="text-4xl font-bold text-foreground mb-2">Up to 30%</p>
-              <p className="text-muted-foreground text-sm mb-4">Commission on trading fees</p>
+              <p className="text-4xl font-bold text-foreground mb-2">{t('upTo30')}</p>
+              <p className="text-muted-foreground text-sm mb-4">{t('commissionOnFees')}</p>
               
               {/* Chart */}
               <div className={`flex items-end justify-center transition-all duration-500 ease-in-out
@@ -555,64 +552,64 @@ export default function ReferralProgramPage() {
 
         {/* Invite More, Earn More */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Invite More, Earn More</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-6">{t('inviteMoreTitle')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Card 1 */}
             <div className="bg-card rounded-xl p-6 border border-border hover:shadow-xl transition-shadow">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <span className="text-xs font-medium text-primary bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">Up to</span>
+                  <span className="text-xs font-medium text-primary bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">{t('upTo')}</span>
                   <p className="text-4xl font-bold text-foreground mt-2">$3</p>
-                  <p className="text-muted-foreground text-sm">Per Referred User</p>
+                  <p className="text-muted-foreground text-sm">{t('perReferredUserLabel')}</p>
                 </div>
                 <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-500/30">
                   <Coins className="w-8 h-8 text-white" />
                 </div>
               </div>
-              <p className="text-muted-foreground">Invite a friend to FDM Earn</p>
+              <p className="text-muted-foreground">{t('inviteEarn')}</p>
             </div>
 
             {/* Card 2 */}
             <div className="bg-card rounded-xl p-6 border border-border hover:shadow-xl transition-shadow">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <span className="text-xs font-medium text-primary bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">Up to</span>
+                  <span className="text-xs font-medium text-primary bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">{t('upTo')}</span>
                   <p className="text-4xl font-bold text-foreground mt-2">$20</p>
-                  <p className="text-muted-foreground text-sm">Per Referred User</p>
+                  <p className="text-muted-foreground text-sm">{t('perReferredUserLabel')}</p>
                 </div>
                 <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-800 rounded-xl flex items-center justify-center shadow-lg shadow-gray-500/30">
                   <CreditCard className="w-8 h-8 text-white" />
                 </div>
               </div>
-              <p className="text-muted-foreground">Refer a friend to FDM Card</p>
+              <p className="text-muted-foreground">{t('inviteCard')}</p>
             </div>
 
             {/* Card 3 */}
             <div className="bg-card rounded-xl p-6 border border-border hover:shadow-xl transition-shadow">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <span className="text-xs font-medium text-primary bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">Up to</span>
+                  <span className="text-xs font-medium text-primary bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">{t('upTo')}</span>
                   <p className="text-4xl font-bold text-foreground mt-2">$665</p>
-                  <p className="text-muted-foreground text-sm">Per Referred User</p>
+                  <p className="text-muted-foreground text-sm">{t('perReferredUserLabel')}</p>
                 </div>
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
                   <TrendingUp className="w-8 h-8 text-white" />
                 </div>
               </div>
-              <p className="text-muted-foreground">Refer a friend to Copy Trading</p>
+              <p className="text-muted-foreground">{t('inviteCopyTrading')}</p>
             </div>
           </div>
         </div>
 
         {/* How to Invite */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-foreground mb-6">How to Invite</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-6">{t('howToInvite')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
                 <Share2 className="w-10 h-10 text-white" />
               </div>
-              <h3 className="font-bold text-foreground mb-2">Share Your Code</h3>
+              <h3 className="font-bold text-foreground mb-2">{t('shareCodeTitle')}</h3>
               <p className="text-muted-foreground text-sm">
                 Share your unique referral code and link with friends via social media or direct message.
               </p>
@@ -622,7 +619,7 @@ export default function ReferralProgramPage() {
               <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
                 <MessageCircle className="w-10 h-10 text-white" />
               </div>
-              <h3 className="font-bold text-foreground mb-2">Friends Sign Up</h3>
+              <h3 className="font-bold text-foreground mb-2">{t('friendsSignUpTitle')}</h3>
               <p className="text-muted-foreground text-sm">
                 Your friends sign up using your referral code and become linked to your account.
               </p>
@@ -632,7 +629,7 @@ export default function ReferralProgramPage() {
               <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30">
                 <Gift className="w-10 h-10 text-white" />
               </div>
-              <h3 className="font-bold text-foreground mb-2">Earn Rewards</h3>
+              <h3 className="font-bold text-foreground mb-2">{t('earnRewardsTitle')}</h3>
               <p className="text-muted-foreground text-sm">
                 Get bonuses and commissions when your friends trade, apply for cards, or use copy trading.
               </p>
@@ -642,12 +639,10 @@ export default function ReferralProgramPage() {
 
         {/* Referral Code Section */}
         <div className="bg-card rounded-xl p-8 border border-border mb-12">
-          <h2 className="text-xl font-bold text-foreground mb-6">Your Referral Details</h2>
+          <h2 className="text-xl font-bold text-foreground mb-6">{t('referralDetailsTitle')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
-                My Referral Code
-              </label>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">{t('myReferralCode')}</label>
               <div className="flex items-center gap-3">
                 <div className="flex-1 bg-muted border border-border rounded-xl px-5 py-4">
                   <span className="text-xl font-bold text-foreground font-mono">{referralCode}</span>
@@ -666,9 +661,7 @@ export default function ReferralProgramPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
-                My Referral Link
-              </label>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">{t('myReferralLink')}</label>
               <div className="flex items-center gap-3">
                 <div className="flex-1 bg-muted border border-border rounded-xl px-5 py-4 overflow-hidden">
                   <span className="text-sm text-muted-foreground truncate block">{referralLink}</span>
@@ -695,29 +688,25 @@ export default function ReferralProgramPage() {
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/20 rounded-full blur-3xl" />
           </div>
           <div className="relative">
-            <h3 className="text-2xl lg:text-3xl font-bold text-white mb-4">
-              Become an Affiliate Partner
-            </h3>
+            <h3 className="text-2xl lg:text-3xl font-bold text-white mb-4">{t('affiliateTitle')}</h3>
             <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
               Unlock up to 50% commission rates with our Affiliates Program. Perfect for influencers and content creators.
             </p>
-            <Link href="/dashboard/help" className="inline-flex items-center px-8 py-4 bg-card text-blue-700 font-semibold rounded-xl hover:bg-blue-50 transition-all shadow-lg">
-              Apply Now <ArrowRight className="w-5 h-5 inline ml-2" />
+            <Link href="/dashboard/help" className="inline-flex items-center px-8 py-4 bg-card text-blue-700 font-semibold rounded-xl hover:bg-blue-50 transition-all shadow-lg">{t('applyNow')}<ArrowRight className="w-5 h-5 inline ml-2" />
             </Link>
           </div>
         </div>
 
         {/* Terms */}
         <div id="referral-terms" className="bg-muted dark:bg-card rounded-xl p-6 border border-border">
-          <h3 className="font-bold text-foreground mb-4">Terms & Conditions</h3>
+          <h3 className="font-bold text-foreground mb-4">{t('termsTitle')}</h3>
           <div className="text-sm text-muted-foreground space-y-2">
             <p>• Referral rewards are subject to verification and may take up to 48 hours to process.</p>
             <p>• Commission rates are based on the total number of active referrals and their trading volume.</p>
             <p>• Each user can only use one referral code during registration.</p>
             <p>• Self-referrals are not permitted and may result in account suspension.</p>
           </div>
-          <Link href="/terms" className="mt-4 text-primary hover:text-primary/85 text-sm font-medium flex items-center gap-1">
-            View Full Terms <ArrowRight className="w-4 h-4" />
+          <Link href="/terms" className="mt-4 text-primary hover:text-primary/85 text-sm font-medium flex items-center gap-1">{t('viewFullTerms')}<ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>
@@ -729,7 +718,7 @@ export default function ReferralProgramPage() {
           
           <div className="relative bg-[#1e2329] rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="flex items-center justify-between p-6 border-b border-gray-700 sticky top-0 bg-[#1e2329] z-10">
-              <h2 className="text-xl font-bold text-white">Invite Friends</h2>
+              <h2 className="text-xl font-bold text-white">{t('inviteFriends')}</h2>
               <button 
                 onClick={() => setShowInviteModal(false)}
                 className="p-2 hover:bg-gray-700 rounded-xl transition-colors"
@@ -751,7 +740,7 @@ export default function ReferralProgramPage() {
                     <div className="relative z-10">
                       <BrandLogo variant="horizontal-white" size="header" className="mb-6" />
 
-                      <h3 className="text-2xl font-bold text-white mb-2">Join & Earn Rewards!</h3>
+                      <h3 className="text-2xl font-bold text-white mb-2">{t('joinEarnRewards')}</h3>
                       <p className="text-blue-200">
                         Refer friends and earn commissions when they trade eligible products on FDM.
                       </p>
@@ -763,7 +752,7 @@ export default function ReferralProgramPage() {
 
                     <div className="relative z-10 bg-blue-900/50 backdrop-blur-sm rounded-xl p-4 flex items-center justify-between">
                       <div>
-                        <p className="text-blue-200 text-sm">Scan to join!</p>
+                        <p className="text-blue-200 text-sm">{t('scanToJoin')}</p>
                         <p className="text-white font-bold">Code: {referralCode}</p>
                       </div>
                       <div className="w-16 h-16 bg-white rounded-lg p-1">
@@ -794,7 +783,7 @@ export default function ReferralProgramPage() {
               {/* Right - Share Options */}
               <div className="flex-1 space-y-6">
                 <div>
-                  <label className="block text-muted-foreground text-sm mb-2">Referral Code</label>
+                  <label className="block text-muted-foreground text-sm mb-2">{t('referralCodeLabel')}</label>
                   <div className="flex items-center bg-gray-800 rounded-xl overflow-hidden">
                     <input type="text" value={referralCode} readOnly className="flex-1 bg-transparent px-4 py-3.5 text-white font-bold font-mono outline-none" />
                     <button onClick={copyModalCode} className="p-3.5 hover:bg-gray-700 transition-colors">
@@ -804,7 +793,7 @@ export default function ReferralProgramPage() {
                 </div>
 
                 <div>
-                  <label className="block text-muted-foreground text-sm mb-2">Customize your message</label>
+                  <label className="block text-muted-foreground text-sm mb-2">{t('customizeMessage')}</label>
                   <textarea
                     defaultValue={customText}
                     className="w-full h-28 bg-gray-800 rounded-xl px-4 py-3 text-gray-300 text-sm outline-none resize-none focus:ring-2 focus:ring-primary"
@@ -813,11 +802,11 @@ export default function ReferralProgramPage() {
 
                 <div className="grid grid-cols-5 gap-4">
                   {[
-                    { icon: Download, label: 'Save', action: saveImage, color: 'bg-gray-700' },
-                    { icon: Link2, label: modalCopiedLink ? 'Copied!' : 'Copy', action: copyModalLink, color: modalCopiedLink ? 'bg-green-600' : 'bg-gray-700' },
-                    { icon: Mail, label: 'Email', action: shareViaEmail, color: 'bg-gray-700' },
+                    { icon: Download, label: t('save'), action: saveImage, color: 'bg-gray-700' },
+                    { icon: Link2, label: modalCopiedLink ? t('copied') : t('copy'), action: copyModalLink, color: modalCopiedLink ? 'bg-green-600' : 'bg-gray-700' },
+                    { icon: Mail, label: t('email'), action: shareViaEmail, color: 'bg-gray-700' },
                     { icon: () => <span className="text-lg font-bold">𝕏</span>, label: 'X', action: shareViaTwitter, color: 'bg-gray-900' },
-                    { icon: MessageCircle, label: 'Telegram', action: shareViaTelegram, color: 'bg-[#0088cc]' },
+                    { icon: MessageCircle, label: t('telegram'), action: shareViaTelegram, color: 'bg-[#0088cc]' },
                   ].map((item, i) => {
                     const Icon = item.icon as React.ComponentType<{ className?: string }>;
                     return (
@@ -833,11 +822,11 @@ export default function ReferralProgramPage() {
 
                 <div className="grid grid-cols-5 gap-4">
                   {[
-                    { icon: 'f', label: 'Facebook', action: shareViaFacebook, color: 'bg-[#1877f2]' },
-                    { icon: 'w', label: 'WhatsApp', action: shareViaWhatsApp, color: 'bg-[#25d366]' },
-                    { icon: 'in', label: 'LinkedIn', action: shareViaLinkedIn, color: 'bg-[#0077b5]' },
-                    { icon: 'L', label: 'Line', action: shareViaLine, color: 'bg-[#00b900]' },
-                    { icon: MoreHorizontal, label: 'More', action: shareViaMore, color: 'bg-gray-700' },
+                    { icon: 'f', label: t('facebook'), action: shareViaFacebook, color: 'bg-[#1877f2]' },
+                    { icon: 'w', label: t('whatsapp'), action: shareViaWhatsApp, color: 'bg-[#25d366]' },
+                    { icon: 'in', label: t('linkedin'), action: shareViaLinkedIn, color: 'bg-[#0077b5]' },
+                    { icon: 'L', label: t('line'), action: shareViaLine, color: 'bg-[#00b900]' },
+                    { icon: MoreHorizontal, label: t('more'), action: shareViaMore, color: 'bg-gray-700' },
                   ].map((item, i) => {
                     const Icon = item.icon;
                     return (

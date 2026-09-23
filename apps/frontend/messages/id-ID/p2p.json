@@ -23,6 +23,14 @@
   "loading": {
     "label": "Memuat P2P"
   },
+  "redirectLegacy": "Mengalihkan ke P2P…",
+  "tradeWindow": {
+    "paymentMethods": "Metode pembayaran",
+    "timeRemaining": "Waktu tersisa",
+    "messagePlaceholder": "Ketik pesan…",
+    "price": "Harga",
+    "limit": "Limit"
+  },
   "errors": {
     "network": "Kesalahan jaringan"
   },
@@ -173,6 +181,27 @@
     "resolutionLabel": "Resolusi:",
     "footerNote": "Komunikasi lanjut melalui saluran dukungan. Halaman ini mencerminkan status sengketa saat ini.",
     "retry": "Coba lagi"
+  },
+  "merchantDashboard": {
+    "title": "Dasbor merchant",
+    "subtitle": "Ringkasan performa P2P Anda. Statistik dari profil merchant; volume adalah jumlah order selesai yang dimuat di sesi ini.",
+    "badge": "Merchant P2P",
+    "completionRate": "Tingkat penyelesaian",
+    "totalOrders": "Total order",
+    "allTime": "Sepanjang waktu",
+    "avgRelease": "Rata-rata release",
+    "minutes": "Menit",
+    "completed": "Selesai",
+    "recentOrders": "Order terbaru",
+    "progressVsTarget": "Progres vs target",
+    "targetHint": "95%+",
+    "volumeTitle": "Perkiraan volume fiat",
+    "volumeDesc": "Jumlah fiat dari order selesai yang dimuat untuk halaman ini.",
+    "totalFiat": "Total (fiat)",
+    "manageAds": "Kelola iklan",
+    "manageAdsDesc": "Edit, jeda, atau buat listing",
+    "viewOrders": "Lihat order",
+    "viewOrdersDesc": "Lacak setiap transaksi P2P"
   },
   "merchantProfile": {
     "backMarketplace": "Marketplace",

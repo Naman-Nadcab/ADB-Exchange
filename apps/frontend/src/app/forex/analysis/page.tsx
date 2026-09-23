@@ -61,6 +61,7 @@ function rsiTone(v: number | null | undefined): string {
 
 export default function ForexAnalysisPage() {
   const tForex = useTranslations('forex');
+  const ta = useTranslations('forex.analysisPage');
   const symbol = useForexWorkspaceStore((s) => s.selectedSymbol);
   const setSymbol = useForexWorkspaceStore((s) => s.setSelectedSymbol);
   const tf = useForexWorkspaceStore((s) => s.chartTimeframe);
@@ -296,7 +297,7 @@ export default function ForexAnalysisPage() {
     >
       {/* Compact instrument toolbar — commercial, one row */}
       <section className="eda-card flex flex-wrap items-center gap-x-2 gap-y-1.5 px-2.5 py-1.5">
-        <div className="forex-chrome-strip flex min-w-0 flex-1 items-center gap-1 overflow-x-auto" role="group" aria-label="Quick symbols">
+        <div className="forex-chrome-strip flex min-w-0 flex-1 items-center gap-1 overflow-x-auto" role="group" aria-label={ta('quickSymbolsAria')}>
           {QUICK_SYMBOLS.map((s) => (
             <button
               key={s}
@@ -447,13 +448,13 @@ export default function ForexAnalysisPage() {
         {/* Levels */}
         <section className="eda-card p-3 lg:col-span-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Levels</h2>
-            <span className="text-[10px] text-muted-foreground">OHLC-derived</span>
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">{tForex('intelDrawer.tabs.levels')}</h2>
+            <span className="text-[10px] text-muted-foreground">{ta('ohlcDerived')}</span>
           </div>
           {candles.status === 'LOADING' ? (
             <p className="mt-2 text-[12px] text-muted-foreground">Deriving levels…</p>
           ) : levels.length === 0 ? (
-            <p className="mt-2 text-[12px] text-muted-foreground">Wait for chart history.</p>
+            <p className="mt-2 text-[12px] text-muted-foreground">{ta('waitForChartHistory')}</p>
           ) : (
             <ul className="mt-2 grid grid-cols-2 gap-1.5">
               {levels.map((lv) => (
@@ -543,7 +544,7 @@ export default function ForexAnalysisPage() {
                     </button>
                   ))}
                   <label className="flex items-center gap-1 text-[11px]">
-                    <span className="text-muted-foreground">Ccy</span>
+                    <span className="text-muted-foreground">{ta('currencyShort')}</span>
                     <select
                       value={currencyFilter}
                       onChange={(e) => setCurrencyFilter(e.target.value)}
@@ -558,7 +559,7 @@ export default function ForexAnalysisPage() {
                   </label>
                 </div>
                 {calendarRows.length === 0 ? (
-                  <p className="mt-2 text-[12px] text-muted-foreground">No calendar events for this filter.</p>
+                  <p className="mt-2 text-[12px] text-muted-foreground">{ta('noCalendarEvents')}</p>
                 ) : (
                   <div className="mt-2 grid gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
                     {calendarRows.slice(0, 60).map((ev, i) => (
@@ -648,7 +649,7 @@ export default function ForexAnalysisPage() {
             {candles.status === 'LOADING' ? (
               <p className="text-[12px] text-muted-foreground">Loading OHLC to derive levels…</p>
             ) : levels.length === 0 ? (
-              <p className="text-[12px] text-muted-foreground">No levels yet — wait for chart history.</p>
+              <p className="text-[12px] text-muted-foreground">{ta('noLevelsYet')}</p>
             ) : (
               <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
                 {levels.map((lv) => (

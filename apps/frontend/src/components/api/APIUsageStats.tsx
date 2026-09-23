@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Activity, AlertCircle, Gauge } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 
@@ -18,12 +19,13 @@ export function APIUsageStats({
   rateLimitMax = 100,
   loading = false,
 }: APIUsageStatsProps) {
+  const t = useTranslations('account.apiUsageStats');
   const ratePercent = rateLimitMax > 0 ? Math.min(100, (rateLimitUsage / rateLimitMax) * 100) : 0;
 
   if (loading) {
     return (
       <div className="bg-card rounded-xl p-5 border border-border card-bybit">
-        <h3 className="font-semibold text-foreground mb-4">API Usage</h3>
+        <h3 className="font-semibold text-foreground mb-4">{t('title')}</h3>
         <div className="grid grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="space-y-2">
@@ -38,7 +40,7 @@ export function APIUsageStats({
 
   return (
     <div className="bg-card rounded-xl p-5 border border-border card-bybit">
-      <h3 className="font-semibold text-foreground mb-4">API Usage</h3>
+      <h3 className="font-semibold text-foreground mb-4">{t('title')}</h3>
       <div className="grid grid-cols-3 gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
@@ -46,7 +48,7 @@ export function APIUsageStats({
           </div>
           <div>
             <p className="text-2xl font-bold text-foreground tabular-nums">{requestsToday.toLocaleString()}</p>
-            <p className="text-xs text-muted-foreground">Requests today</p>
+            <p className="text-xs text-muted-foreground">{t('requestsToday')}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -55,7 +57,7 @@ export function APIUsageStats({
           </div>
           <div>
             <p className="text-2xl font-bold text-foreground tabular-nums">{errors.toLocaleString()}</p>
-            <p className="text-xs text-muted-foreground">Errors</p>
+            <p className="text-xs text-muted-foreground">{t('errors')}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -66,7 +68,7 @@ export function APIUsageStats({
             <p className="text-2xl font-bold text-foreground tabular-nums">
               {rateLimitUsage} / {rateLimitMax}
             </p>
-            <p className="text-xs text-muted-foreground">Rate limit usage</p>
+            <p className="text-xs text-muted-foreground">{t('rateLimitUsage')}</p>
             <div className="mt-1 w-full bg-accent rounded-full h-1.5">
               <div
                 className={`h-1.5 rounded-full transition-all ${

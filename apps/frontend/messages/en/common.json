@@ -23,7 +23,29 @@
     "copiedUserId": "Copied",
     "dismiss": "Dismiss",
     "primaryNav": "Primary navigation",
-    "tradingNav": "Trading navigation"
+    "tradingNav": "Trading navigation",
+    "breadcrumb": "Breadcrumb",
+    "moreInformation": "More information",
+    "loadingRows": "Loading"
+  },
+  "notFoundPage": {
+    "eyebrow": "Error",
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or may have been moved.",
+    "backToHome": "Back to home",
+    "logIn": "Log in",
+    "popularPages": "Popular pages",
+    "buyCrypto": "Buy crypto"
+  },
+  "routeErrors": {
+    "dashboardSection": "Dashboard section failed to load",
+    "dashboardRetry": "Please retry this section.",
+    "p2pSection": "P2P section failed to load",
+    "p2pRetry": "Retry to continue your P2P flow.",
+    "tradeSection": "Trading view failed to load",
+    "tradeRetry": "Retry to restore market panels.",
+    "walletSection": "Wallet section failed to load",
+    "walletRetry": "Retry to refresh wallet data."
   },
   "notificationPanel": {
     "title": "Notifications",
@@ -85,5 +107,14 @@
     "invalidCodeTitle": "Invalid code",
     "sessionsTitle": "Sessions",
     "activityTitle": "Activity"
+  },
+  "themeToggle": {
+    "changeTheme": "Change theme",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "switchToMode": "Switch to {mode} mode"
   }
 }

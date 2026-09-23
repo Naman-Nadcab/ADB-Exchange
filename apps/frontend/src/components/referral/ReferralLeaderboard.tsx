@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Trophy, Medal, Award } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 
@@ -26,21 +27,22 @@ function RankIcon({ rank }: { rank: number }) {
 }
 
 export function ReferralLeaderboard({ entries = [], loading = false }: ReferralLeaderboardProps) {
+  const t = useTranslations('account.referralLeaderboard');
   const list = entries.length > 0 ? entries : [];
 
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden card-bybit">
       <div className="px-5 py-4 border-b border-border">
-        <h3 className="text-sm font-semibold text-foreground">Referral Leaderboard</h3>
-        <p className="text-xs text-muted-foreground mt-0.5">Top referrers by total earnings</p>
+        <h3 className="text-sm font-semibold text-foreground">{t('title')}</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">{t('subtitle')}</p>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-muted-foreground border-b border-border">
-              <th className="py-3 px-4 font-medium w-16">Rank</th>
-              <th className="py-3 px-4 font-medium">User</th>
-              <th className="py-3 px-4 font-medium text-right">Total Earnings</th>
+              <th className="py-3 px-4 font-medium w-16">{t('colRank')}</th>
+              <th className="py-3 px-4 font-medium">{t('colUser')}</th>
+              <th className="py-3 px-4 font-medium text-right">{t('colTotalEarnings')}</th>
             </tr>
           </thead>
           <tbody>
@@ -55,7 +57,7 @@ export function ReferralLeaderboard({ entries = [], loading = false }: ReferralL
             ) : list.length === 0 ? (
               <tr>
                 <td colSpan={3} className="py-8 px-4 text-center text-muted-foreground text-sm">
-                  No leaderboard data yet. Start referring to climb the ranks!
+                  {t('empty')}
                 </td>
               </tr>
             ) : (

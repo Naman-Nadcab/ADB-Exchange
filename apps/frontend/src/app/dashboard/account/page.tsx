@@ -406,7 +406,7 @@ export default function AccountInfoPage() {
                 <div className="relative group">
                   <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
                     {user?.avatarUrl ? (
-                      <img src={user.avatarUrl} alt="Avatar" className="w-full h-full rounded-xl object-cover" />
+                      <img src={user.avatarUrl} alt={ta('profile.avatarAlt')} className="w-full h-full rounded-xl object-cover" />
                     ) : (
                       <User className="w-10 h-10 text-primary-foreground" />
                     )}

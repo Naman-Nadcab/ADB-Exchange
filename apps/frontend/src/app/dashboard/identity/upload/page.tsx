@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useRef, Suspense } from 'react';
+import { useState, useRef, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/auth';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import Link from 'next/link';
 import {
@@ -15,21 +17,27 @@ import {
   Loader2,
 } from 'lucide-react';
 
-const documentLabels: Record<string, string> = {
-  aadhaar: 'Aadhaar Card',
-  pan: 'PAN Card',
-  passport: 'Passport',
-  driving_license: 'Driving License',
-  voter_id: 'Voter ID',
-  national_id: 'National ID Card',
-};
-
 function DocumentUploadContent() {
+  const tu = useTranslations('account.identityUploadPage');
+  const tDoc = useTranslations('account.identityPage.documentTypes');
+  const { fromApi } = useApiErrorMessage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { accessToken } = useAuthStore();
+
+  const documentLabel = useCallback(
+    (type: string) => {
+      try {
+        return tDoc(type as Parameters<typeof tDoc>[0]);
+      } catch {
+        return tu('documentFallback');
+      }
+    },
+    [tDoc, tu],
+  );
   
   const documentType = searchParams.get('doc') || 'passport';
+  const documentName = documentLabel(documentType);
   const [frontImage, setFrontImage] = useState<File | null>(null);
   const [backImage, setBackImage] = useState<File | null>(null);
   const [selfie, setSelfie] = useState<File | null>(null);
@@ -54,11 +62,11 @@ function DocumentUploadContent() {
 
     // Validate file
     if (!file.type.startsWith('image/')) {
-      setError('Please select a valid image file');
+      setError(tu('invalidImage'));
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      setError('File size must be less than 10MB');
+      setError(tu('fileTooLarge'));
       return;
     }
 
@@ -90,7 +98,7 @@ function DocumentUploadContent() {
 
   const handleSubmit = async () => {
     if (!frontImage || !selfie) {
-      setError('Please upload all required documents');
+      setError(tu('missingRequired'));
       return;
     }
 
@@ -119,10 +127,10 @@ function DocumentUploadContent() {
       if (response.ok && data.success) {
         router.push('/dashboard/identity/success');
       } else {
-        setError(data.error?.message || data.error?.code || 'Upload failed. Please try again.');
+        setError(fromApi(data, 'generic.unknown') || tu('uploadFailed'));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed. Please try again.');
+      setError(err instanceof Error ? fromApi({ message: err.message }) : tu('uploadFailed'));
     } finally {
       setLoading(false);
     }
@@ -141,9 +149,14 @@ function DocumentUploadContent() {
           </button>
           <div>
             <h1 className="text-xl font-semibold text-foreground">
-              Upload {documentLabels[documentType] || 'Document'}
+              {tu('uploadDocument', { document: documentName })}
             </h1>
-            <p className="text-sm text-muted-foreground">Step {['front', 'back', 'selfie', 'review'].indexOf(step) + 1} of {needsBackImage ? 4 : 3}</p>
+            <p className="text-sm text-muted-foreground">
+              {tu('stepOf', {
+                current: ['front', 'back', 'selfie', 'review'].indexOf(step) + 1,
+                total: needsBackImage ? 4 : 3,
+              })}
+            </p>
           </div>
         </div>
       </header>
@@ -178,10 +191,10 @@ function DocumentUploadContent() {
             <div className="space-y-6">
               <div className="text-center">
                 <h2 className="text-xl font-semibold text-foreground mb-2">
-                  Upload Front Side
+                  {tu('frontTitle')}
                 </h2>
                 <p className="text-muted-foreground">
-                  Take a clear photo of the front of your {documentLabels[documentType]}
+                  {tu('frontHint', { document: documentName })}
                 </p>
               </div>
 
@@ -191,7 +204,7 @@ function DocumentUploadContent() {
               >
                 {frontPreview ? (
                   <div className="relative">
-                    <img src={frontPreview} alt="Front" className="max-h-64 mx-auto rounded-lg" />
+                    <img src={frontPreview} alt={tu('altFront')} className="max-h-64 mx-auto rounded-lg" />
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -206,8 +219,8 @@ function DocumentUploadContent() {
                 ) : (
                   <>
                     <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Click to upload or drag and drop</p>
-                    <p className="text-sm text-muted-foreground mt-1">PNG, JPG up to 10MB</p>
+                    <p className="text-muted-foreground">{tu('clickUpload')}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{tu('fileTypes')}</p>
                   </>
                 )}
               </div>
@@ -224,7 +237,7 @@ function DocumentUploadContent() {
                 className="w-full py-3 bg-accent hover:bg-accent text-foreground font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 <Camera className="w-5 h-5" />
-                Take Photo
+                {tu('takePhoto')}
               </button>
             </div>
           )}
@@ -234,10 +247,10 @@ function DocumentUploadContent() {
             <div className="space-y-6">
               <div className="text-center">
                 <h2 className="text-xl font-semibold text-foreground mb-2">
-                  Upload Back Side
+                  {tu('backTitle')}
                 </h2>
                 <p className="text-muted-foreground">
-                  Take a clear photo of the back of your {documentLabels[documentType]}
+                  {tu('backHint', { document: documentName })}
                 </p>
               </div>
 
@@ -247,7 +260,7 @@ function DocumentUploadContent() {
               >
                 {backPreview ? (
                   <div className="relative">
-                    <img src={backPreview} alt="Back" className="max-h-64 mx-auto rounded-lg" />
+                    <img src={backPreview} alt={tu('altBack')} className="max-h-64 mx-auto rounded-lg" />
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -262,8 +275,8 @@ function DocumentUploadContent() {
                 ) : (
                   <>
                     <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Click to upload or drag and drop</p>
-                    <p className="text-sm text-muted-foreground mt-1">PNG, JPG up to 10MB</p>
+                    <p className="text-muted-foreground">{tu('clickUpload')}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{tu('fileTypes')}</p>
                   </>
                 )}
               </div>
@@ -280,14 +293,14 @@ function DocumentUploadContent() {
                   onClick={() => setStep('front')}
                   className="flex-1 py-3 bg-accent hover:bg-accent text-foreground font-medium rounded-xl transition-colors"
                 >
-                  Back
+                  {tu('back')}
                 </button>
                 <button
                   onClick={() => backInputRef.current?.click()}
                   className="flex-1 py-3 bg-primary hover:bg-primary/85 text-primary-foreground font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
                 >
                   <Camera className="w-5 h-5" />
-                  Take Photo
+                  {tu('takePhoto')}
                 </button>
               </div>
             </div>
@@ -298,10 +311,10 @@ function DocumentUploadContent() {
             <div className="space-y-6">
               <div className="text-center">
                 <h2 className="text-xl font-semibold text-foreground mb-2">
-                  Take a Selfie
+                  {tu('selfieTitle')}
                 </h2>
                 <p className="text-muted-foreground">
-                  Take a clear selfie holding your {documentLabels[documentType]}
+                  {tu('selfieHint', { document: documentName })}
                 </p>
               </div>
 
@@ -311,7 +324,7 @@ function DocumentUploadContent() {
               >
                 {selfiePreview ? (
                   <div className="relative">
-                    <img src={selfiePreview} alt="Selfie" className="max-h-64 mx-auto rounded-lg" />
+                    <img src={selfiePreview} alt={tu('altSelfie')} className="max-h-64 mx-auto rounded-lg" />
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -328,7 +341,7 @@ function DocumentUploadContent() {
                     <div className="w-24 h-24 rounded-full bg-accent mx-auto mb-4 flex items-center justify-center">
                       <Camera className="w-10 h-10 text-muted-foreground" />
                     </div>
-                    <p className="text-muted-foreground">Click to take or upload a selfie</p>
+                    <p className="text-muted-foreground">{tu('clickSelfie')}</p>
                   </>
                 )}
               </div>
@@ -346,14 +359,14 @@ function DocumentUploadContent() {
                   onClick={() => setStep(needsBackImage ? 'back' : 'front')}
                   className="flex-1 py-3 bg-accent hover:bg-accent text-foreground font-medium rounded-xl transition-colors"
                 >
-                  Back
+                  {tu('back')}
                 </button>
                 <button
                   onClick={() => selfieInputRef.current?.click()}
                   className="flex-1 py-3 bg-primary hover:bg-primary/85 text-primary-foreground font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
                 >
                   <Camera className="w-5 h-5" />
-                  Take Selfie
+                  {tu('takeSelfie')}
                 </button>
               </div>
             </div>
@@ -364,10 +377,10 @@ function DocumentUploadContent() {
             <div className="space-y-6">
               <div className="text-center">
                 <h2 className="text-xl font-semibold text-foreground mb-2">
-                  Review Your Documents
+                  {tu('reviewTitle')}
                 </h2>
                 <p className="text-muted-foreground">
-                  Make sure all images are clear and readable
+                  {tu('reviewHint')}
                 </p>
               </div>
 
@@ -377,51 +390,51 @@ function DocumentUploadContent() {
                     <img src={frontPreview} alt="Front" className="w-20 h-14 object-cover rounded-lg" />
                   )}
                   <div className="flex-1">
-                    <p className="font-medium text-foreground">Front Side</p>
+                    <p className="font-medium text-foreground">{tu('frontSide')}</p>
                     <p className="text-sm text-buy flex items-center gap-1">
-                      <Check className="w-4 h-4" /> Uploaded
+                      <Check className="w-4 h-4" /> {tu('uploaded')}
                     </p>
                   </div>
                   <button
                     onClick={() => setStep('front')}
                     className="text-primary text-sm hover:underline"
                   >
-                    Change
+                    {tu('change')}
                   </button>
                 </div>
 
                 {needsBackImage && backPreview && (
                   <div className="flex items-center gap-4 p-4 bg-muted rounded-xl">
-                    <img src={backPreview} alt="Back" className="w-20 h-14 object-cover rounded-lg" />
+                    <img src={backPreview} alt={tu('altBack')} className="w-20 h-14 object-cover rounded-lg" />
                     <div className="flex-1">
-                      <p className="font-medium text-foreground">Back Side</p>
+                      <p className="font-medium text-foreground">{tu('backSide')}</p>
                       <p className="text-sm text-buy flex items-center gap-1">
-                        <Check className="w-4 h-4" /> Uploaded
+                        <Check className="w-4 h-4" /> {tu('uploaded')}
                       </p>
                     </div>
                     <button
                       onClick={() => setStep('back')}
                       className="text-primary text-sm hover:underline"
                     >
-                      Change
+                      {tu('change')}
                     </button>
                   </div>
                 )}
 
                 {selfiePreview && (
                   <div className="flex items-center gap-4 p-4 bg-muted rounded-xl">
-                    <img src={selfiePreview} alt="Selfie" className="w-20 h-20 object-cover rounded-full" />
+                    <img src={selfiePreview} alt={tu('altSelfie')} className="w-20 h-20 object-cover rounded-full" />
                     <div className="flex-1">
-                      <p className="font-medium text-foreground">Selfie</p>
+                      <p className="font-medium text-foreground">{tu('selfie')}</p>
                       <p className="text-sm text-buy flex items-center gap-1">
-                        <Check className="w-4 h-4" /> Uploaded
+                        <Check className="w-4 h-4" /> {tu('uploaded')}
                       </p>
                     </div>
                     <button
                       onClick={() => setStep('selfie')}
                       className="text-primary text-sm hover:underline"
                     >
-                      Change
+                      {tu('change')}
                     </button>
                   </div>
                 )}
@@ -432,7 +445,7 @@ function DocumentUploadContent() {
                   onClick={() => setStep('selfie')}
                   className="flex-1 py-3 bg-accent hover:bg-accent text-foreground font-medium rounded-xl transition-colors"
                 >
-                  Back
+                  {tu('back')}
                 </button>
                 <button
                   onClick={handleSubmit}
@@ -442,10 +455,10 @@ function DocumentUploadContent() {
                   {loading ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      Uploading...
+                      {tu('uploading')}
                     </>
                   ) : (
-                    'Submit for Verification'
+                    tu('submit')
                   )}
                 </button>
               </div>
@@ -455,12 +468,12 @@ function DocumentUploadContent() {
 
         {/* Tips */}
         <div className="mt-6 p-4 bg-muted border border-border rounded-xl">
-          <h3 className="font-medium text-foreground mb-2">Tips for a successful verification</h3>
+          <h3 className="font-medium text-foreground mb-2">{tu('tipsTitle')}</h3>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Make sure the document is fully visible and not cut off</li>
-            <li>• Avoid glare and ensure good lighting</li>
-            <li>• All text should be clearly readable</li>
-            <li>• For selfie, hold the document next to your face</li>
+            <li>• {tu('tip1')}</li>
+            <li>• {tu('tip2')}</li>
+            <li>• {tu('tip3')}</li>
+            <li>• {tu('tip4')}</li>
           </ul>
         </div>
       </main>

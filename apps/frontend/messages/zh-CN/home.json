@@ -235,5 +235,18 @@
       "cryptoOverviewPrefix": "加密总览仍在",
       "cryptoOverviewSuffix": "。本页不替代加密现货终端。"
     }
+  },
+  "productPair": {
+    "eyebrow": "产品",
+    "title": "选择市场",
+    "description": "加密现货与 Forex 是独立产品。Forex 使用独立报价、账户与风控。",
+    "cryptoLabel": "加密",
+    "cryptoTitle": "加密现货",
+    "cryptoDesc": "交易加密现货市场。",
+    "cryptoCta": "现货交易",
+    "forexLabel": "Forex",
+    "forexTitle": "Forex",
+    "forexDesc": "交易全球 FX 市场。",
+    "forexCta": "打开 Forex"
   }
 }

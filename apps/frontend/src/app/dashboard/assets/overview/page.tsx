@@ -133,11 +133,11 @@ function PortfolioMiniChart({
       </svg>
       <div className="mt-2 flex justify-between gap-4 border-t border-border/60 pt-2 text-xs text-muted-foreground">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Start</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{tw('overview.chartStart')}</p>
           <p className="numeric mt-0.5 text-sm font-semibold text-foreground">${maskFn(fmtUsdFn(first))}</p>
         </div>
         <div className="text-right">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">End</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{tw('overview.chartEnd')}</p>
           <p className="numeric mt-0.5 text-sm font-semibold text-foreground">${maskFn(fmtUsdFn(last))}</p>
         </div>
       </div>

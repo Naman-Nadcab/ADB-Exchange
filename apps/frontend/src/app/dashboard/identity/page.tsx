@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/auth';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import Link from 'next/link';
 import { BrandLogo } from '@/components/brand/BrandLogo';
@@ -61,8 +63,33 @@ const documentTypes: Record<string, DocumentType[]> = {
 };
 
 export default function IdentityVerificationPage() {
+  const t = useTranslations('account.identityPage');
+  const tc = useTranslations('account.common');
+  const { fromApi } = useApiErrorMessage();
   const router = useRouter();
-  const { user, accessToken, _hasHydrated } = useAuthStore();
+  const { accessToken, _hasHydrated } = useAuthStore();
+
+  const countryName = useCallback(
+    (code: string) => {
+      try {
+        return t(`countries.${code}` as Parameters<typeof t>[0]);
+      } catch {
+        return code;
+      }
+    },
+    [t],
+  );
+
+  const documentTypeName = useCallback(
+    (id: string) => {
+      try {
+        return t(`documentTypes.${id}` as Parameters<typeof t>[0]);
+      } catch {
+        return id;
+      }
+    },
+    [t],
+  );
   const [selectedCountry, setSelectedCountry] = useState<Country>(countries[0]);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<string>('');
@@ -144,10 +171,10 @@ export default function IdentityVerificationPage() {
       if (data.success) {
         router.push('/dashboard/identity/upload');
       } else {
-        setError(data.error?.message || 'Verification failed');
+        setError(fromApi(data, 'generic.unknown') || t('verificationFailed'));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Verification failed');
+      setError(err instanceof Error ? fromApi({ message: err.message }) : t('verificationFailed'));
     } finally {
       setLoading(false);
     }
@@ -159,7 +186,7 @@ export default function IdentityVerificationPage() {
       <div className="min-h-screen bg-card flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Checking verification status...</p>
+          <p className="text-muted-foreground">{t('checkingStatus')}</p>
         </div>
       </div>
     );
@@ -174,7 +201,7 @@ export default function IdentityVerificationPage() {
           <div className="flex items-center gap-4">
             <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} />
             <span className="text-muted-foreground">|</span>
-            <h1 className="text-xl font-semibold text-foreground">Identity Verification</h1>
+            <h1 className="text-xl font-semibold text-foreground">{t('headerTitle')}</h1>
           </div>
         </header>
 
@@ -186,28 +213,28 @@ export default function IdentityVerificationPage() {
             </div>
             
             <h2 className="text-2xl font-bold text-foreground mb-2">
-              Identity Verified
+              {t('verifiedTitle')}
             </h2>
             
             <p className="text-muted-foreground mb-6">
-              Your identity has been successfully verified. You now have full access to all platform features.
+              {t('verifiedSubtitle')}
             </p>
 
             <div className="bg-muted rounded-xl p-6 mb-6">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-muted-foreground">Verification Level</span>
-                <span className="font-semibold text-foreground">Level {kycLevel}</span>
+                <span className="text-muted-foreground">{t('verificationLevel')}</span>
+                <span className="font-semibold text-foreground">{t('levelLabel', { level: kycLevel })}</span>
               </div>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-muted-foreground">Status</span>
+                <span className="text-muted-foreground">{t('statusLabel')}</span>
                 <span className="flex items-center gap-2 text-buy font-semibold">
                   <span className="w-2 h-2 bg-buy rounded-full"></span>
-                  Verified
+                  {t('statusVerified')}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Daily Withdrawal Limit</span>
-                <span className="font-semibold text-foreground">Unlimited</span>
+                <span className="text-muted-foreground">{t('dailyWithdrawalLimit')}</span>
+                <span className="font-semibold text-foreground">{t('unlimited')}</span>
               </div>
             </div>
 
@@ -215,7 +242,7 @@ export default function IdentityVerificationPage() {
               href="/dashboard/account"
               className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/85 text-primary-foreground font-semibold rounded-xl transition-colors"
             >
-              Go to Account
+              {t('goToAccount')}
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
@@ -223,7 +250,7 @@ export default function IdentityVerificationPage() {
 
         {/* Footer */}
         <footer className="py-6 text-center text-sm text-muted-foreground">
-          <p>© 2018-2026 FDM. All rights reserved.</p>
+          <p>{t('footerCopyright')}</p>
         </footer>
       </div>
     );
@@ -237,7 +264,7 @@ export default function IdentityVerificationPage() {
           <div className="flex items-center gap-4">
             <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} />
             <span className="text-muted-foreground">|</span>
-            <h1 className="text-xl font-semibold text-foreground">Identity Verification</h1>
+            <h1 className="text-xl font-semibold text-foreground">{t('headerTitle')}</h1>
           </div>
         </header>
 
@@ -248,18 +275,18 @@ export default function IdentityVerificationPage() {
             </div>
             
             <h2 className="text-2xl font-bold text-foreground mb-2">
-              Verification In Progress
+              {t('pendingTitle')}
             </h2>
             
             <p className="text-muted-foreground mb-6">
-              Your documents are being reviewed. This usually takes 1-2 business days.
+              {t('pendingSubtitle')}
             </p>
 
             <Link
               href="/dashboard/account"
               className="inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent text-foreground/80 font-semibold rounded-xl transition-colors"
             >
-              Go to Account
+              {t('goToAccount')}
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
@@ -275,7 +302,7 @@ export default function IdentityVerificationPage() {
         <div className="flex items-center gap-4">
           <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} />
           <span className="text-muted-foreground">|</span>
-          <h1 className="text-xl font-semibold text-foreground">Identity Verification</h1>
+          <h1 className="text-xl font-semibold text-foreground">{t('headerTitle')}</h1>
         </div>
         <div className="flex items-center gap-4">
           <Link
@@ -283,12 +310,12 @@ export default function IdentityVerificationPage() {
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
           >
             <Building2 className="w-4 h-4" />
-            Business Verification
+            {t('businessVerification')}
           </Link>
-          <Link href="/dashboard/support" className="p-2 text-muted-foreground hover:text-foreground" aria-label="Help">
+          <Link href="/dashboard/support" className="p-2 text-muted-foreground hover:text-foreground" aria-label={t('helpAria')}>
             <HelpCircle className="w-5 h-5" />
           </Link>
-          <Link href="/dashboard/account" className="p-2 text-muted-foreground hover:text-foreground" aria-label="Account settings">
+          <Link href="/dashboard/account" className="p-2 text-muted-foreground hover:text-foreground" aria-label={t('accountAria')}>
             <Globe className="w-5 h-5" />
           </Link>
         </div>
@@ -298,13 +325,13 @@ export default function IdentityVerificationPage() {
       <main className="max-w-2xl mx-auto px-6 py-12">
         <div className="bg-card rounded-xl p-8 shadow-sm border border-border">
           <h2 className="text-2xl font-bold text-foreground mb-8">
-            Proof of Identity
+            {t('proofTitle')}
           </h2>
 
           {/* Country Selection */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-foreground/80 mb-2">
-              Country/region of issue
+              {t('countryLabel')}
             </label>
             <div className="relative">
               <button
@@ -313,11 +340,11 @@ export default function IdentityVerificationPage() {
               >
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{selectedCountry.flag}</span>
-                  <span className="text-foreground font-medium">{selectedCountry.name}</span>
+                  <span className="text-foreground font-medium">{countryName(selectedCountry.code)}</span>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Globe className="w-4 h-4" />
-                  <span className="text-sm">Location</span>
+                  <span className="text-sm">{t('location')}</span>
                   <ChevronDown className={`w-4 h-4 transition-transform ${showCountryDropdown ? 'rotate-180' : ''}`} />
                 </div>
               </button>
@@ -335,7 +362,7 @@ export default function IdentityVerificationPage() {
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors"
                     >
                       <span className="text-xl">{country.flag}</span>
-                      <span className="text-foreground">{country.name}</span>
+                      <span className="text-foreground">{countryName(country.code)}</span>
                       {selectedCountry.code === country.code && (
                         <Check className="w-4 h-4 text-buy ml-auto" />
                       )}
@@ -349,8 +376,7 @@ export default function IdentityVerificationPage() {
           {/* Warning for India */}
           {selectedCountry.code === 'IN' && (
             <div className="mb-6 p-4 bg-muted rounded-xl text-sm text-muted-foreground">
-              If you have chosen the ID Card, please note that you cannot submit PAN Document otherwise it will be rejected. 
-              It is recommended to use Aadhaar Card or Voter ID.
+              {t('indiaWarning')}
             </div>
           )}
 
@@ -358,7 +384,7 @@ export default function IdentityVerificationPage() {
           {quickVerification && (
             <div className="mb-6">
               <h3 className="text-sm font-medium text-foreground/80 mb-3">
-                Quick verification
+                {t('quickVerification')}
               </h3>
               <button
                 onClick={() => setSelectedDocument(quickVerification.id)}
@@ -372,10 +398,10 @@ export default function IdentityVerificationPage() {
                   <span className="text-2xl">{quickVerification.icon}</span>
                 </div>
                 <span className="text-foreground font-medium flex-1 text-left">
-                  {quickVerification.name}
+                  {documentTypeName(quickVerification.id)}
                 </span>
                 <span className="px-3 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
-                  Recommended
+                  {t('recommended')}
                 </span>
               </button>
             </div>
@@ -387,7 +413,9 @@ export default function IdentityVerificationPage() {
               onClick={() => setShowOtherDocuments(!showOtherDocuments)}
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
             >
-              No {quickVerification?.name}? Use other documents.
+              {t('otherDocuments', {
+                doc: quickVerification ? documentTypeName(quickVerification.id) : '',
+              })}
               <ChevronDown className={`w-4 h-4 transition-transform ${showOtherDocuments ? 'rotate-180' : ''}`} />
             </button>
 
@@ -404,7 +432,7 @@ export default function IdentityVerificationPage() {
                     }`}
                   >
                     <span className="text-xl">{doc.icon}</span>
-                    <span className="text-foreground">{doc.name}</span>
+                    <span className="text-foreground">{documentTypeName(doc.id)}</span>
                   </button>
                 ))}
               </div>
@@ -425,15 +453,15 @@ export default function IdentityVerificationPage() {
             className="w-full py-4 bg-primary hover:bg-primary/85 text-primary-foreground font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <span className="text-xl">🎁</span>
-            Verify to Earn $20
+            {t('verifyToEarn')}
           </button>
 
           {/* App Link */}
           <div className="mt-8 text-center">
             <p className="text-muted-foreground">
-              You can also continue on{' '}
+              {t('continueOnApp')}{' '}
               <Link href="/dashboard/help" className="text-foreground font-medium hover:underline inline-flex items-center gap-1">
-                📱 FDM App
+                {t('fdmApp')}
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </p>
@@ -443,10 +471,10 @@ export default function IdentityVerificationPage() {
 
       {/* Footer */}
       <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>© 2018-2026 FDM. All rights reserved.</p>
+        <p>{t('footerCopyright')}</p>
         <div className="mt-2 flex items-center justify-center gap-4">
-          <Link href="/terms" className="hover:text-foreground">Terms of Service</Link>
-          <Link href="/privacy" className="hover:text-foreground">Privacy Policy</Link>
+          <Link href="/terms" className="hover:text-foreground">{t('termsOfService')}</Link>
+          <Link href="/privacy" className="hover:text-foreground">{t('privacyPolicy')}</Link>
         </div>
       </footer>
 
@@ -467,10 +495,10 @@ export default function IdentityVerificationPage() {
             {/* Modal Content */}
             <div className="px-8 pb-8">
               <h2 className="text-xl font-bold text-foreground text-center mb-2">
-                Share Aadhaar & PAN for faster verification
+                {t('digilockerTitle')}
               </h2>
               <p className="text-muted-foreground text-center text-sm mb-6">
-                Select PAN verification to skip extra steps later.
+                {t('digilockerSubtitle')}
               </p>
 
               {/* DigiLocker Card */}
@@ -478,7 +506,7 @@ export default function IdentityVerificationPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-32 h-10 bg-primary rounded flex items-center justify-center">
-                      <span className="text-primary-foreground font-bold text-sm">DigiLocker</span>
+                      <span className="text-primary-foreground font-bold text-sm">{t('digilockerBrand')}</span>
                     </div>
                   </div>
                   <div className="w-8 h-8 bg-buy rounded-full flex items-center justify-center">
@@ -487,7 +515,7 @@ export default function IdentityVerificationPage() {
                 </div>
 
                 <p className="text-muted-foreground text-sm mb-4">
-                  Please provide your consent to share the following with <strong>FDM</strong>:
+                  {t('digilockerConsent', { brand: 'FDM' })}
                 </p>
 
                 {/* Documents List */}
@@ -495,20 +523,20 @@ export default function IdentityVerificationPage() {
                   <div className="flex items-center justify-between px-4 py-3 bg-muted">
                     <div className="flex items-center gap-2">
                       <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-foreground/80 font-medium">Issued Documents (3)</span>
+                      <span className="text-foreground/80 font-medium">{t('issuedDocuments')}</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setDigiLockerConsent({ aadhaar: true, drivingLicense: true, pan: true })}
                       className="text-primary text-sm font-medium"
                     >
-                      Select all
+                      {t('selectAll')}
                     </button>
                   </div>
                   
                   <div className="divide-y divide-border">
                     <label className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-accent">
-                      <span className="text-foreground">Aadhaar Card</span>
+                      <span className="text-foreground">{t('aadhaarCard')}</span>
                       <input
                         type="checkbox"
                         checked={digiLockerConsent.aadhaar}
@@ -518,8 +546,8 @@ export default function IdentityVerificationPage() {
                     </label>
                     <label className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-accent">
                       <div>
-                        <span className="text-foreground">Driving License</span>
-                        <span className="text-muted-foreground text-sm ml-2">(can be accessed)</span>
+                        <span className="text-foreground">{t('drivingLicense')}</span>
+                        <span className="text-muted-foreground text-sm ml-2">{t('canBeAccessed')}</span>
                       </div>
                       <input
                         type="checkbox"
@@ -529,7 +557,7 @@ export default function IdentityVerificationPage() {
                       />
                     </label>
                     <label className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-accent">
-                      <span className="text-foreground">PAN Verification Record</span>
+                      <span className="text-foreground">{t('panVerificationRecord')}</span>
                       <input
                         type="checkbox"
                         checked={digiLockerConsent.pan}
@@ -547,7 +575,7 @@ export default function IdentityVerificationPage() {
                 disabled={loading || (!digiLockerConsent.aadhaar && !digiLockerConsent.pan)}
                 className="w-full py-4 bg-primary hover:bg-primary/85 text-primary-foreground font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Verifying...' : 'Continue'}
+                {loading ? t('verifying') : tc('continue')}
               </button>
             </div>
           </div>
@@ -558,7 +586,7 @@ export default function IdentityVerificationPage() {
       <Link
         href="/dashboard/support"
         className="fixed bottom-6 right-6 w-12 h-12 bg-primary hover:bg-primary/85 text-primary-foreground rounded-full shadow-lg flex items-center justify-center transition-colors z-40"
-        aria-label="Get help"
+        aria-label={t('getHelpAria')}
       >
         <HelpCircle className="w-6 h-6" />
       </Link>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { ArrowLeft, Bell, Loader2 } from 'lucide-react';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 
@@ -31,6 +32,7 @@ interface Announcement {
 
 export default function AnnouncementDetailPage() {
   const params = useParams();
+  const t = useTranslations('account.announcementDetailPage');
   const id = params?.id as string;
   const [item, setItem] = useState<Announcement | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,9 +61,9 @@ export default function AnnouncementDetailPage() {
   if (error || !item) {
     return (
       <div className="p-4 lg:p-8 max-w-3xl mx-auto">
-        <p className="text-muted-foreground">Announcement not found or no longer available.</p>
+        <p className="text-muted-foreground">{t('notFound')}</p>
         <Link href="/dashboard/announcements" className="mt-4 inline-flex items-center gap-2 text-primary hover:underline">
-          <ArrowLeft className="w-4 h-4" /> Back to announcements
+          <ArrowLeft className="w-4 h-4" /> {t('back')}
         </Link>
       </div>
     );
@@ -73,31 +75,31 @@ export default function AnnouncementDetailPage() {
         href="/dashboard/announcements"
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
       >
-        <ArrowLeft className="w-4 h-4" /> Back to announcements
+        <ArrowLeft className="w-4 h-4" /> {t('back')}
       </Link>
 
       <article className="bg-card rounded-xl border border-border overflow-hidden">
         <div className="p-6 lg:p-8 border-b border-border">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="px-2 py-0.5 bg-accent text-muted-foreground text-xs font-medium rounded capitalize">{item.type}</span>
-            {item.is_pinned && <span className="px-2 py-0.5 bg-warning-light text-warning text-xs font-medium rounded">Pinned</span>}
+          <div className="flex items-start gap-3">
+            <Bell className="w-5 h-5 text-warning mt-1 shrink-0" />
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground">{item.title}</h1>
+              <p className="text-sm text-muted-foreground mt-2">
+                {item.published_at
+                  ? new Date(item.published_at).toLocaleString()
+                  : new Date(item.created_at).toLocaleString()}
+              </p>
+            </div>
           </div>
-          <h1 className="text-xl font-semibold text-foreground">{item.title}</h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            {item.published_at ? new Date(item.published_at).toLocaleString() : new Date(item.created_at).toLocaleString()}
-          </p>
         </div>
-        <div className="p-6 lg:p-8">
-          {item.summary && <p className="text-muted-foreground mb-4">{item.summary}</p>}
-          {item.body ? (
-            <div
-              className="prose prose-sm dark:prose-invert max-w-none text-foreground/80"
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.body) }}
-            />
-          ) : (
-            <p className="text-muted-foreground">No additional content.</p>
-          )}
-        </div>
+        {item.body ? (
+          <div
+            className="p-6 lg:p-8 prose prose-sm dark:prose-invert max-w-none text-foreground/90"
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.body) }}
+          />
+        ) : item.summary ? (
+          <p className="p-6 lg:p-8 text-muted-foreground">{item.summary}</p>
+        ) : null}
       </article>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import {
   ChevronRight,
   Shield,
@@ -14,12 +15,16 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 
 type TwoFaStatus = { enabled: boolean };
 type TwoFaSetup = { secret: string; qrCode: string; otpauthUrl: string };
 
 export default function TwoFactorAuthPage() {
   const { accessToken, updateUser } = useAuthStore();
+  const tc = useTranslations('security.common');
+  const t = useTranslations('security.twoFactorPage');
+  const { fromApi } = useApiErrorMessage();
   const [statusLoading, setStatusLoading] = useState(true);
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [statusError, setStatusError] = useState('');
@@ -50,11 +55,10 @@ export default function TwoFactorAuthPage() {
     if (res.success && res.data) {
       setEnabled(res.data.enabled);
     } else {
-      setStatusError(res.error?.message ?? 'Could not load 2FA status');
-      setEnabled(null);
+      setStatusError(fromApi(res.error, 'auth.twoFaStatusFailed'));
     }
     setStatusLoading(false);
-  }, []);
+  }, [fromApi]);
 
   useEffect(() => {
     if (!accessToken) return;
@@ -63,8 +67,8 @@ export default function TwoFactorAuthPage() {
 
   useEffect(() => {
     if (enablePhase === 'setup' && qrCode) {
-      const t = requestAnimationFrame(() => codeInputRef.current?.focus());
-      return () => cancelAnimationFrame(t);
+      const frame = requestAnimationFrame(() => codeInputRef.current?.focus());
+      return () => cancelAnimationFrame(frame);
     }
   }, [enablePhase, qrCode]);
 
@@ -90,7 +94,7 @@ export default function TwoFactorAuthPage() {
       setEnablePhase('setup');
       setCode('');
     } else {
-      setEnableError(res.error?.message ?? 'Failed to start 2FA setup');
+      setEnableError(fromApi(res.error, 'auth.twoFaSetupFailed'));
     }
     setSetupLoading(false);
   };
@@ -102,7 +106,7 @@ export default function TwoFactorAuthPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      setEnableError('Could not copy to clipboard');
+      setEnableError(t('copyFailed'));
     }
   };
 
@@ -125,7 +129,7 @@ export default function TwoFactorAuthPage() {
       setOtpauthUrl('');
       setCode('');
     } else {
-      setEnableError(res.error?.message ?? 'Invalid code. Try again.');
+      setEnableError(fromApi(res.error, 'auth.twoFaInvalidCode'));
     }
     setEnableLoading(false);
   };
@@ -147,7 +151,7 @@ export default function TwoFactorAuthPage() {
       setDisablePassword('');
       setDisableCode('');
     } else {
-      setDisableError(res.error?.message ?? 'Could not disable 2FA');
+      setDisableError(fromApi(res.error, 'auth.twoFaDisableFailed'));
     }
     setDisableLoading(false);
   };
@@ -179,12 +183,15 @@ export default function TwoFactorAuthPage() {
 
   return (
     <div className="mx-auto max-w-2xl p-4 lg:p-6">
-      <nav className="mb-6 flex items-center gap-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
+      <nav
+        className="mb-6 flex items-center gap-2 text-sm text-muted-foreground"
+        aria-label={tc('breadcrumbAria')}
+      >
         <Link href="/dashboard/security" className="hover:text-primary">
-          Security
+          {tc('security')}
         </Link>
         <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
-        <span className="text-foreground">Two-factor authentication</span>
+        <span className="text-foreground">{t('breadcrumb')}</span>
       </nav>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -194,23 +201,20 @@ export default function TwoFactorAuthPage() {
               <Shield className="h-6 w-6" aria-hidden />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-foreground">Authenticator app (TOTP)</h1>
-              <p className="text-sm text-muted-foreground">
-                Use Google Authenticator or any compatible app for time-based codes.
-              </p>
+              <h1 className="text-xl font-semibold text-foreground">{t('heading')}</h1>
+              <p className="text-sm text-muted-foreground">{t('subheading')}</p>
             </div>
           </div>
         </div>
 
         <div className="space-y-8 p-6">
-          {/* Step 1: Status */}
           <section aria-labelledby="step-status-heading">
             <div className="mb-4 flex items-center gap-3">
               <span className={stepClass(true, true)} aria-hidden>
                 1
               </span>
               <h2 id="step-status-heading" className="text-base font-semibold text-foreground">
-                Account status
+                {t('stepStatus')}
               </h2>
             </div>
             {statusError ? (
@@ -224,26 +228,25 @@ export default function TwoFactorAuthPage() {
                       onClick={() => fetchStatus()}
                       className="mt-2 text-sm font-medium text-primary hover:underline"
                     >
-                      Retry
+                      {tc('retry')}
                     </button>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
-                <p className="text-sm text-muted-foreground">Two-factor authentication</p>
+                <p className="text-sm text-muted-foreground">{t('statusLabel')}</p>
                 <p className="mt-1 text-lg font-medium text-foreground">
                   {enabled ? (
-                    <span className="text-buy">Enabled</span>
+                    <span className="text-buy">{t('enabled')}</span>
                   ) : (
-                    <span>Not enabled</span>
+                    <span>{t('notEnabled')}</span>
                   )}
                 </p>
               </div>
             )}
           </section>
 
-          {/* Enable flow */}
           {!enabled && !statusError && (
             <>
               {enablePhase === 'idle' && (
@@ -252,12 +255,9 @@ export default function TwoFactorAuthPage() {
                     <span className={stepClass(false, false)} aria-hidden>
                       2
                     </span>
-                    <h2 className="text-base font-semibold text-muted-foreground">Scan & verify</h2>
+                    <h2 className="text-base font-semibold text-muted-foreground">{t('stepScanVerify')}</h2>
                   </div>
-                  <p className="mb-4 text-sm text-muted-foreground">
-                    Add a second layer of security. You will need your authenticator app when signing in and for
-                    sensitive actions.
-                  </p>
+                  <p className="mb-4 text-sm text-muted-foreground">{t('enableIntro')}</p>
                   {enableError && (
                     <div className="mb-4 flex gap-2 rounded-lg border border-border bg-muted/50 p-3 text-sm text-foreground">
                       <AlertCircle className="h-5 w-5 shrink-0 text-sell" aria-hidden />
@@ -273,10 +273,10 @@ export default function TwoFactorAuthPage() {
                     {setupLoading ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                        Preparing…
+                        {t('preparing')}
                       </>
                     ) : (
-                      'Enable 2FA'
+                      t('enable2fa')
                     )}
                   </button>
                 </section>
@@ -290,7 +290,7 @@ export default function TwoFactorAuthPage() {
                         2
                       </span>
                       <h2 id="step-setup-heading" className="text-base font-semibold text-foreground">
-                        Scan & verify
+                        {t('stepScanVerify')}
                       </h2>
                     </div>
                     <span className="hidden h-px flex-1 min-w-[2rem] bg-border sm:block" aria-hidden />
@@ -298,7 +298,7 @@ export default function TwoFactorAuthPage() {
                       <span className={stepClass(false, false)} aria-hidden>
                         3
                       </span>
-                      <span className="text-sm font-medium text-muted-foreground">Confirm code</span>
+                      <span className="text-sm font-medium text-muted-foreground">{t('confirmCode')}</span>
                     </div>
                   </div>
 
@@ -306,17 +306,15 @@ export default function TwoFactorAuthPage() {
                     {qrCode ? (
                       <img
                         src={qrCode}
-                        alt="QR code for authenticator setup"
+                        alt={t('qrAlt')}
                         className="h-48 w-48 shrink-0 rounded-xl border border-border bg-background p-2"
                       />
                     ) : null}
                     <div className="w-full min-w-0 space-y-3 text-center sm:text-left">
-                      <p className="text-sm text-foreground">
-                        Scan the QR code with your authenticator app, or enter the secret key manually.
-                      </p>
+                      <p className="text-sm text-foreground">{t('scanInstructions')}</p>
                       {otpauthUrl ? (
                         <p className="break-all text-xs text-muted-foreground">
-                          <span className="font-medium text-foreground">otpauth: </span>
+                          <span className="font-medium text-foreground">{t('otpauthPrefix')} </span>
                           {otpauthUrl.length > 120 ? `${otpauthUrl.slice(0, 120)}…` : otpauthUrl}
                         </p>
                       ) : null}
@@ -325,7 +323,7 @@ export default function TwoFactorAuthPage() {
 
                   <div className="mb-6 rounded-lg border border-border bg-muted/40 p-4">
                     <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Secret key (manual entry)
+                      {t('secretKeyLabel')}
                     </p>
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                       <code className="flex-1 break-all rounded-md bg-background px-3 py-2 font-mono text-sm text-foreground">
@@ -339,12 +337,12 @@ export default function TwoFactorAuthPage() {
                         {copied ? (
                           <>
                             <Check className="h-4 w-4 text-buy" aria-hidden />
-                            Copied
+                            {t('copied')}
                           </>
                         ) : (
                           <>
                             <Copy className="h-4 w-4" aria-hidden />
-                            Copy
+                            {t('copy')}
                           </>
                         )}
                       </button>
@@ -354,11 +352,8 @@ export default function TwoFactorAuthPage() {
                   <div className="mb-6 flex gap-3 rounded-lg border border-border bg-muted/30 p-4">
                     <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
                     <div className="text-sm text-foreground">
-                      <p className="font-medium">Back up your secret</p>
-                      <p className="mt-1 text-muted-foreground">
-                        Store a copy in a safe place. If you lose your phone, you will need this secret to recover
-                        access. We cannot show it again after you finish setup.
-                      </p>
+                      <p className="font-medium">{t('backupTitle')}</p>
+                      <p className="mt-1 text-muted-foreground">{t('backupBody')}</p>
                     </div>
                   </div>
 
@@ -371,7 +366,7 @@ export default function TwoFactorAuthPage() {
                     ) : null}
                     <div>
                       <label htmlFor="totp-code" className="mb-2 block text-sm text-muted-foreground">
-                        6-digit code from your app
+                        {t('codeLabel')}
                       </label>
                       <input
                         id="totp-code"
@@ -382,7 +377,7 @@ export default function TwoFactorAuthPage() {
                         maxLength={6}
                         value={code}
                         onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        placeholder="000000"
+                        placeholder={t('codePlaceholder')}
                         className="w-full max-w-xs rounded-lg border border-border bg-muted/50 px-4 py-3 text-center font-mono text-lg tracking-[0.35em] text-foreground placeholder:text-muted-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary"
                         aria-invalid={enableError ? true : undefined}
                       />
@@ -394,7 +389,7 @@ export default function TwoFactorAuthPage() {
                         className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
                       >
                         {enableLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
-                        Verify & enable
+                        {t('verifyEnable')}
                       </button>
                       <button
                         type="button"
@@ -402,7 +397,7 @@ export default function TwoFactorAuthPage() {
                         disabled={enableLoading}
                         className="rounded-lg border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted"
                       >
-                        Cancel
+                        {tc('cancel')}
                       </button>
                     </div>
                   </form>
@@ -414,34 +409,27 @@ export default function TwoFactorAuthPage() {
                   <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-buy">
                     <Check className="h-7 w-7" aria-hidden />
                   </div>
-                  <h2 className="text-lg font-semibold text-foreground">2FA enabled successfully</h2>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Your account is now protected with an authenticator app. Keep your backup codes or secret in a safe
-                    place.
-                  </p>
+                  <h2 className="text-lg font-semibold text-foreground">{t('successTitle')}</h2>
+                  <p className="mt-2 text-sm text-muted-foreground">{t('successBody')}</p>
                   <Link
                     href="/dashboard/security"
                     className="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
                   >
-                    Back to Security
+                    {tc('backToSecurity')}
                   </Link>
                 </section>
               )}
             </>
           )}
 
-          {/* Disable flow */}
           {enabled && !statusError && (
             <section aria-labelledby="disable-heading">
               <h2 id="disable-heading" className="sr-only">
-                Disable two-factor authentication
+                {t('disableSrOnly')}
               </h2>
               {!showDisable ? (
                 <div className="rounded-lg border border-border bg-muted/20 p-4">
-                  <p className="text-sm text-muted-foreground">
-                    Turning off 2FA reduces account security. You will need your password and a valid app code to
-                    confirm.
-                  </p>
+                  <p className="text-sm text-muted-foreground">{t('disableIntro')}</p>
                   <button
                     type="button"
                     onClick={() => {
@@ -450,12 +438,12 @@ export default function TwoFactorAuthPage() {
                     }}
                     className="mt-4 rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold text-sell hover:bg-muted"
                   >
-                    Disable 2FA
+                    {t('disable2fa')}
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleDisable} className="space-y-4 rounded-lg border border-border bg-muted/20 p-4">
-                  <p className="text-sm text-foreground">Enter your account password and a 6-digit code from your app.</p>
+                  <p className="text-sm text-foreground">{t('disableFormIntro')}</p>
                   {disableError ? (
                     <div className="flex gap-2 rounded-lg border border-border bg-card p-3 text-sm text-foreground">
                       <AlertCircle className="h-5 w-5 shrink-0 text-sell" aria-hidden />
@@ -464,7 +452,7 @@ export default function TwoFactorAuthPage() {
                   ) : null}
                   <div>
                     <label htmlFor="disable-password" className="mb-2 block text-sm text-muted-foreground">
-                      Password
+                      {t('passwordLabel')}
                     </label>
                     <div className="relative max-w-md">
                       <input
@@ -474,13 +462,13 @@ export default function TwoFactorAuthPage() {
                         onChange={(e) => setDisablePassword(e.target.value)}
                         autoComplete="current-password"
                         className="w-full rounded-lg border border-border bg-background px-4 py-3 pr-12 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="Account password"
+                        placeholder={t('passwordPlaceholder')}
                       />
                       <button
                         type="button"
                         onClick={() => setShowDisablePassword((v) => !v)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                        aria-label={showDisablePassword ? 'Hide password' : 'Show password'}
+                        aria-label={showDisablePassword ? tc('hidePassword') : tc('showPassword')}
                       >
                         {showDisablePassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </button>
@@ -488,7 +476,7 @@ export default function TwoFactorAuthPage() {
                   </div>
                   <div>
                     <label htmlFor="disable-code" className="mb-2 block text-sm text-muted-foreground">
-                      Authenticator code
+                      {t('authCodeLabel')}
                     </label>
                     <input
                       id="disable-code"
@@ -498,7 +486,7 @@ export default function TwoFactorAuthPage() {
                       maxLength={6}
                       value={disableCode}
                       onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="000000"
+                      placeholder={t('codePlaceholder')}
                       className="w-full max-w-xs rounded-lg border border-border bg-background px-4 py-3 text-center font-mono text-lg tracking-[0.35em] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
@@ -509,7 +497,7 @@ export default function TwoFactorAuthPage() {
                       className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
                     >
                       {disableLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
-                      Confirm disable
+                      {t('confirmDisable')}
                     </button>
                     <button
                       type="button"
@@ -522,7 +510,7 @@ export default function TwoFactorAuthPage() {
                       disabled={disableLoading}
                       className="rounded-lg border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted"
                     >
-                      Cancel
+                      {tc('cancel')}
                     </button>
                   </div>
                 </form>
@@ -531,11 +519,8 @@ export default function TwoFactorAuthPage() {
           )}
 
           <div className="border-t border-border pt-6">
-            <Link
-              href="/dashboard/security"
-              className="text-sm font-medium text-primary hover:underline"
-            >
-              ← Back to Security
+            <Link href="/dashboard/security" className="text-sm font-medium text-primary hover:underline">
+              {tc('backToSecurityLink')}
             </Link>
           </div>
         </div>

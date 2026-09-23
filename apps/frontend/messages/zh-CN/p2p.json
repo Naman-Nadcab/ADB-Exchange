@@ -23,6 +23,14 @@
   "loading": {
     "label": "正在加载 P2P"
   },
+  "redirectLegacy": "正在跳转到 P2P…",
+  "tradeWindow": {
+    "paymentMethods": "支付方式",
+    "timeRemaining": "剩余时间",
+    "messagePlaceholder": "输入消息…",
+    "price": "价格",
+    "limit": "限额"
+  },
   "errors": {
     "network": "网络错误"
   },
@@ -173,6 +181,27 @@
     "resolutionLabel": "处理结果：",
     "footerNote": "后续沟通通过客服渠道进行。本页显示当前申诉状态。",
     "retry": "重试"
+  },
+  "merchantDashboard": {
+    "title": "商家仪表盘",
+    "subtitle": "P2P 表现概览。统计数据来自商家资料；成交量为当前会话已加载的已完成订单之和。",
+    "badge": "P2P 商家",
+    "completionRate": "完成率",
+    "totalOrders": "总订单数",
+    "allTime": "全部时间",
+    "avgRelease": "平均放币时间",
+    "minutes": "分钟",
+    "completed": "已完成",
+    "recentOrders": "近期订单",
+    "progressVsTarget": "相对目标进度",
+    "targetHint": "95%+",
+    "volumeTitle": "约法币成交量",
+    "volumeDesc": "本页已加载订单中已完成订单的法币金额合计。",
+    "totalFiat": "合计（法币）",
+    "manageAds": "管理广告",
+    "manageAdsDesc": "编辑、暂停或创建广告",
+    "viewOrders": "查看订单",
+    "viewOrdersDesc": "跟踪每笔 P2P 交易"
   },
   "merchantProfile": {
     "backMarketplace": "市场",

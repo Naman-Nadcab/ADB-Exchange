@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -31,6 +32,10 @@ interface ApiKey {
 }
 
 export default function ApiPage() {
+  const t = useTranslations('account.apiManagementPage');
+  const tc = useTranslations('account.common');
+  const ts = useTranslations('security.common');
+  const { fromApi, networkUnreachable } = useApiErrorMessage();
   const tn = useTranslations('common.notifications');
   const tt = useTranslations('account.toasts');
   const router = useRouter();
@@ -93,7 +98,7 @@ export default function ApiPage() {
         setEditKey(null);
         toast({ title: tt('apiKeyUpdatedTitle'), description: tt('apiKeyUpdatedDesc'), variant: 'success' });
       } else {
-        toast({ title: tn('errorTitle'), description: result.error?.message || tt('apiKeyUpdateFailed'), variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message ? fromApi(result.error) : tt('apiKeyUpdateFailed'), variant: 'destructive' });
       }
     } catch {
       toast({ title: tn('errorTitle'), description: tt('apiKeyUpdateFailed'), variant: 'destructive' });
@@ -182,7 +187,7 @@ export default function ApiPage() {
         setRevokeConfirmId(null);
         toast({ title: tt('apiKeyDeletedTitle'), description: tt('apiKeyDeletedDesc'), variant: 'success' });
       } else {
-        toast({ title: tn('errorTitle'), description: result.error?.message || tt('apiKeyDeleteFailed'), variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message ? fromApi(result.error) : tt('apiKeyDeleteFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Delete API key error:', error);
@@ -204,8 +209,8 @@ export default function ApiPage() {
                 <span className="text-2xl">🚀</span>
               </div>
               <div>
-                <h3 className="text-primary-foreground font-semibold">FDM OpenAPI V5</h3>
-                <p className="text-primary-foreground/80 text-sm">Transition from legacy versions to our latest API with enhanced features</p>
+                <h3 className="text-primary-foreground font-semibold">{t('bannerTitle')}</h3>
+                <p className="text-primary-foreground/80 text-sm">{t('bannerSubtitle')}</p>
               </div>
             </div>
             <Link
@@ -213,9 +218,8 @@ export default function ApiPage() {
               target={process.env.NEXT_PUBLIC_API_DOCS_URL ? '_blank' : undefined}
               rel={process.env.NEXT_PUBLIC_API_DOCS_URL ? 'noopener noreferrer' : undefined}
               className="px-4 py-2 bg-card/20 hover:bg-card/30 text-primary-foreground rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-              aria-label="API Documentation"
-            >
-              Documentation <ChevronRight className="w-4 h-4" />
+              aria-label={t('apiDocumentation')}
+            >{t('documentationSection')}<ChevronRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
@@ -223,16 +227,14 @@ export default function ApiPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-xl font-semibold text-foreground">API Management</h1>
-            <p className="text-muted-foreground mt-1">Manage your API keys for automated trading and integrations</p>
+            <h1 className="text-xl font-semibold text-foreground">{t('title')}</h1>
+            <p className="text-muted-foreground mt-1">{t('subtitle')}</p>
           </div>
           <button
             onClick={() => setShowTypeModal(true)}
             className="px-6 py-3 bg-primary hover:bg-primary/85 text-primary-foreground font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 flex items-center gap-2"
           >
-            <Key className="w-5 h-5" />
-            Create New Key
-          </button>
+            <Key className="w-5 h-5" />{t('createNewKey')}</button>
         </div>
 
         {/* Info Cards */}
@@ -263,11 +265,11 @@ export default function ApiPage() {
                 <Shield className="w-5 h-5 text-buy" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">Security</h3>
-                <p className="text-xs text-muted-foreground">IP Whitelisting recommended</p>
+                <h3 className="font-semibold text-foreground">{t('securityCardTitle')}</h3>
+                <p className="text-xs text-muted-foreground">{t('ipWhitelistRecommended')}</p>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">Keys without IP binding expire in 3 months</p>
+            <p className="text-xs text-muted-foreground mt-2">{t('keysExpireNote')}</p>
           </div>
 
           <div className="bg-card rounded-xl p-5 border border-border">
@@ -278,8 +280,8 @@ export default function ApiPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">Community</h3>
-                <p className="text-xs text-muted-foreground">Join our Telegram</p>
+                <h3 className="font-semibold text-foreground">{t('communityTitle')}</h3>
+                <p className="text-xs text-muted-foreground">{t('joinTelegram')}</p>
               </div>
             </div>
             <div className="flex gap-2 mt-2">
@@ -288,17 +290,13 @@ export default function ApiPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-primary hover:text-primary/85"
-              >
-                English Group →
-              </a>
+              >{t('englishGroup')}</a>
               <a
                 href={process.env.NEXT_PUBLIC_TELEGRAM_ZH_URL || process.env.NEXT_PUBLIC_TELEGRAM_EN_URL || 'https://t.me/metherium'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-primary hover:text-primary/85"
-              >
-                中文群组 →
-              </a>
+              >{t('chineseGroup')}</a>
             </div>
           </div>
         </div>
@@ -313,14 +311,14 @@ export default function ApiPage() {
             loading={loading}
           />
           {!loading && apiKeys.length === 0 && (
-            <p className="mt-2 text-xs text-muted-foreground text-center">Stats update in real-time once you start using your API keys.</p>
+            <p className="mt-2 text-xs text-muted-foreground text-center">{t('statsRealtimeNote')}</p>
           )}
         </div>
 
         {/* API Security Indicators & Doc Links */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Security</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">{t('securityCardTitle')}</p>
             <APISecurityIndicators
               ipWhitelistCount={apiKeys.filter((k) => k.ipAddresses?.length > 0).length}
               readOnlyCount={apiKeys.filter((k) => k.permission === 'read_only').length}
@@ -329,7 +327,7 @@ export default function ApiPage() {
             />
           </div>
           <div>
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Documentation</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">{t('documentationSection')}</p>
             <APIDocLinks />
           </div>
         </div>
@@ -337,8 +335,8 @@ export default function ApiPage() {
         {/* API Key Records */}
         <div className="bg-card rounded-xl border border-border overflow-hidden">
           <div className="px-6 py-5 border-b border-border">
-            <h2 className="text-lg font-semibold text-foreground">API Key Records</h2>
-            <p className="text-sm text-muted-foreground mt-1">Your active API keys and their permissions</p>
+            <h2 className="text-lg font-semibold text-foreground">{t('recordsTitle')}</h2>
+            <p className="text-sm text-muted-foreground mt-1">{t('recordsSubtitle')}</p>
           </div>
 
           {loading ? (
@@ -346,15 +344,15 @@ export default function ApiPage() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-muted">
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Type</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">API Key</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Secret</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Permission</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">IP Bound</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Created</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Expires</th>
-                    <th className="px-6 py-4 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colName')}</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colType')}</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colApiKey')}</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colSecret')}</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colPermission')}</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colIpBound')}</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colCreated')}</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colExpires')}</th>
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colActions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -374,16 +372,14 @@ export default function ApiPage() {
                     <path d="M33 36l2 2 4-4" className="stroke-primary" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">No API Keys Yet</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-2">{t('emptyTitle')}</h3>
                 <p className="text-muted-foreground text-center max-w-md mb-6">
                   Create your first API key to start integrating with our trading platform and automate your strategies.
                 </p>
                 <button
                   onClick={() => setShowTypeModal(true)}
                   className="px-6 py-3 bg-primary hover:bg-primary/85 text-primary-foreground font-medium rounded-xl transition-colors"
-                >
-                  Create Your First Key
-                </button>
+                >{t('createFirstKey')}</button>
               </div>
             </div>
           ) : (
@@ -391,15 +387,15 @@ export default function ApiPage() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-muted">
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Type</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">API Key</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Secret</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Permission</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">IP Bound</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Created</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Expires</th>
-                    <th className="px-6 py-4 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colName')}</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colType')}</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colApiKey')}</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colSecret')}</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colPermission')}</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colIpBound')}</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colCreated')}</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colExpires')}</th>
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('colActions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -477,7 +473,7 @@ export default function ApiPage() {
                               {key.ipAddresses.length} IPs
                             </span>
                           ) : (
-                            <span className="text-sm text-muted-foreground">None</span>
+                            <span className="text-sm text-muted-foreground">{t('none')}</span>
                           )}
                         </td>
                         <td className="px-6 py-4 text-sm text-muted-foreground">
@@ -493,7 +489,7 @@ export default function ApiPage() {
                             <button
                               onClick={() => openEditModal(key)}
                               className="p-2 rounded-lg hover:bg-accent transition-colors"
-                              title="Edit API key"
+                              title={t('editApiKeyAria')}
                               aria-label={`Edit API key ${key.name}`}
                             >
                               <Edit3 className="w-4 h-4 text-muted-foreground" aria-hidden />
@@ -505,9 +501,7 @@ export default function ApiPage() {
                                   onClick={() => setRevokeConfirmId(null)}
                                   disabled={!!deletingId}
                                   className="px-2.5 py-1.5 text-xs font-medium rounded-md border border-border text-muted-foreground hover:bg-accent disabled:opacity-50"
-                                >
-                                  Cancel
-                                </button>
+                                >{t('cancel')}</button>
                                 <button
                                   type="button"
                                   onClick={() => void handleDeleteKey(key)}
@@ -522,7 +516,7 @@ export default function ApiPage() {
                                 onClick={() => setRevokeConfirmId(key.id)}
                                 disabled={!!deletingId}
                                 className="p-2 hover:bg-sell-light rounded-lg transition-colors disabled:opacity-50"
-                                title="Delete API key"
+                                title={t('deleteApiKeyAria')}
                                 aria-label={`Delete API key ${key.name}`}
                               >
                                 {deletingId === key.id ? (
@@ -548,11 +542,11 @@ export default function ApiPage() {
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
             <div className="text-sm text-foreground/90">
-              <p className="font-medium mb-1">Security Recommendations</p>
+              <p className="font-medium mb-1">{t('securityNoticeTitle')}</p>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Never share your API secret with anyone</li>
-                <li>Add IP addresses to your keys for enhanced security</li>
-                <li>Regularly rotate your API keys</li>
+                <li>{t('secTip1')}</li>
+                <li>{t('secTip2')}</li>
+                <li>{t('secTip3')}</li>
                 <li>Use read-only permissions when write access isn&apos;t needed</li>
               </ul>
             </div>
@@ -565,25 +559,25 @@ export default function ApiPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-card rounded-xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between p-6 border-b border-border">
-              <h2 className="text-xl font-bold text-foreground">Edit API Key</h2>
+              <h2 className="text-xl font-bold text-foreground">{t('editModalTitle')}</h2>
               <button onClick={() => setEditKey(null)} className="p-2 hover:bg-accent rounded-xl transition-colors">
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
             <div className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Key Name</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">{t('keyName')}</label>
                 <input
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="My trading key"
+                  placeholder={t('myTradingKeyPlaceholder')}
                   maxLength={255}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Permission</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">{t('colPermission')}</label>
                 <div className="grid grid-cols-2 gap-3">
                   {(['read_only', 'read_write'] as const).map((p) => (
                     <button
@@ -598,10 +592,10 @@ export default function ApiPage() {
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1.5">Withdrawals and transfers stay disabled on all API keys.</p>
+                <p className="text-xs text-muted-foreground mt-1.5">{t('withdrawalsDisabledNote')}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">IP Restriction</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">{t('ipRestrictionLabel')}</label>
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   {(['no_restriction', 'ip_only'] as const).map((r) => (
                     <button
@@ -622,7 +616,7 @@ export default function ApiPage() {
                     value={editIpInput}
                     onChange={(e) => setEditIpInput(e.target.value)}
                     className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Comma-separated IPs e.g. 203.0.113.4, 198.51.100.7"
+                    placeholder={t('ipListPlaceholder')}
                   />
                 )}
                 <p className="text-xs text-muted-foreground mt-1.5">
@@ -631,9 +625,7 @@ export default function ApiPage() {
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 p-6 border-t border-border">
-              <button onClick={() => setEditKey(null)} className="px-4 py-2.5 text-sm font-medium rounded-lg border border-border text-muted-foreground hover:bg-accent">
-                Cancel
-              </button>
+              <button onClick={() => setEditKey(null)} className="px-4 py-2.5 text-sm font-medium rounded-lg border border-border text-muted-foreground hover:bg-accent">{t('cancel')}</button>
               <button
                 onClick={() => void handleUpdateKey()}
                 disabled={savingEdit}
@@ -653,9 +645,7 @@ export default function ApiPage() {
           <div className="bg-card rounded-xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-border">
-              <h2 className="text-xl font-bold text-foreground">
-                Select Your API Key Type
-              </h2>
+              <h2 className="text-xl font-bold text-foreground">{t('typeModalTitle')}</h2>
               <button
                 onClick={() => setShowTypeModal(false)}
                 className="p-2 hover:bg-accent rounded-xl transition-colors"
@@ -677,15 +667,15 @@ export default function ApiPage() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-bold text-foreground">System-generated API Keys</h3>
+                      <h3 className="text-lg font-bold text-foreground">{t('systemKeysTitle')}</h3>
                       <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
                     <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                      Uses <span className="font-semibold text-primary">HMAC encryption</span>. You&apos;ll receive a public and private key pair. Keep them secure like passwords.
+                      Uses <span className="font-semibold text-primary">{t('hmacEncryption')}</span>. You&apos;ll receive a public and private key pair. Keep them secure like passwords.
                     </p>
                     <div className="flex items-center gap-2 mt-3">
-                      <span className="px-2 py-1 bg-muted text-primary text-xs font-medium rounded">Recommended</span>
-                      <span className="px-2 py-1 bg-accent text-muted-foreground text-xs rounded">Easier Setup</span>
+                      <span className="px-2 py-1 bg-muted text-primary text-xs font-medium rounded">{t('recommended')}</span>
+                      <span className="px-2 py-1 bg-accent text-muted-foreground text-xs rounded">{t('easierSetup')}</span>
                     </div>
                   </div>
                 </div>
@@ -702,15 +692,15 @@ export default function ApiPage() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-bold text-foreground">Self-generated API Keys</h3>
+                      <h3 className="text-lg font-bold text-foreground">{t('selfKeysTitle')}</h3>
                       <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
                     <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                      Uses <span className="font-semibold text-primary">RSA encryption</span>. Create your own key pair locally. We only store your public key - maximum security.
+                      Uses <span className="font-semibold text-primary">{t('rsaEncryption')}</span>. Create your own key pair locally. We only store your public key - maximum security.
                     </p>
                     <div className="flex items-center gap-2 mt-3">
-                      <span className="px-2 py-1 bg-muted text-primary text-xs font-medium rounded">Advanced</span>
-                      <span className="px-2 py-1 bg-accent text-muted-foreground text-xs rounded">API v3 & v5</span>
+                      <span className="px-2 py-1 bg-muted text-primary text-xs font-medium rounded">{t('advanced')}</span>
+                      <span className="px-2 py-1 bg-accent text-muted-foreground text-xs rounded">{t('apiV3V5')}</span>
                     </div>
                   </div>
                 </div>

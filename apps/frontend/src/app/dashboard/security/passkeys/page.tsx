@@ -20,6 +20,7 @@ import {
   Fingerprint,
 } from 'lucide-react';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { toast } from '@/components/ui/toaster';
 
 interface Passkey {
@@ -30,8 +31,12 @@ interface Passkey {
 }
 
 export default function PasskeysPage() {
+  const t = useTranslations('security.passkeysPage');
+  const ts = useTranslations('security.common');
+  const tc = useTranslations('account.common');
   const tn = useTranslations('common.notifications');
   const tt = useTranslations('account.toasts');
+  const { fromApi } = useApiErrorMessage();
   const { user, accessToken } = useAuthStore();
   const [passkeys, setPasskeys] = useState<Passkey[]>([]);
   const [loading, setLoading] = useState(true);
@@ -175,7 +180,7 @@ export default function PasskeysPage() {
         setVerifyCode(['', '', '', '', '', '']);
         await createPasskey();
       } else {
-        toast({ title: tn('errorTitle'), description: result.error?.message || tt('invalid2faCode'), variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message ? fromApi(result.error) : tt('invalid2faCode'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('2FA verification failed:', error);
@@ -201,7 +206,7 @@ export default function PasskeysPage() {
       const challengeResult = await challengeRes.json();
 
       if (!challengeResult.success) {
-        throw new Error(challengeResult.error?.message || 'Failed to get challenge');
+        throw new Error(challengeResult.error?.message ? fromApi(challengeResult.error) : tt('passkeyRegStartFailed'));
       }
 
       const { challenge, userId, userName, userDisplayName, rpId, rpName } = challengeResult.data;
@@ -294,7 +299,7 @@ export default function PasskeysPage() {
         }
         toast({ title: tt('passkeyAdded'), variant: 'success' });
       } else {
-        throw new Error(registerResult.error?.message || 'Failed to register passkey');
+        throw new Error(registerResult.error?.message ? fromApi(registerResult.error) : tt('passkeyRegisterFailed'));
       }
     } catch (error: any) {
       console.error('Failed to create passkey:', error);
@@ -337,7 +342,7 @@ export default function PasskeysPage() {
         setRenamePasskeyId('');
         setRenameName('');
       } else {
-        toast({ title: tn('errorTitle'), description: result.error?.message || tt('passkeyRenameFailed'), variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message ? fromApi(result.error) : tt('passkeyRenameFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to rename passkey:', error);
@@ -398,7 +403,7 @@ export default function PasskeysPage() {
       const verifyEmailResult = await verifyEmailRes.json();
 
       if (!verifyEmailResult.success) {
-        toast({ title: tn('errorTitle'), description: verifyEmailResult.error?.message || tt('invalidEmailVerificationCode'), variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: verifyEmailResult.error?.message ? fromApi(verifyEmailResult.error) : tt('invalidEmailVerificationCode'), variant: 'destructive' });
         setDeleting(false);
         return;
       }
@@ -416,7 +421,7 @@ export default function PasskeysPage() {
         const verify2faResult = await verify2faRes.json();
 
         if (!verify2faResult.success) {
-          toast({ title: tn('errorTitle'), description: verify2faResult.error?.message || tt('invalid2faCode'), variant: 'destructive' });
+          toast({ title: tn('errorTitle'), description: verify2faResult.error?.message ? fromApi(verify2faResult.error) : tt('invalid2faCode'), variant: 'destructive' });
           setDeleting(false);
           return;
         }
@@ -437,7 +442,7 @@ export default function PasskeysPage() {
           // Already handled by the UI
         }
       } else {
-        toast({ title: tn('errorTitle'), description: result.error?.message || tt('passkeyDeleteFailed'), variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message ? fromApi(result.error) : tt('passkeyDeleteFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to delete passkey:', error);
@@ -471,19 +476,19 @@ export default function PasskeysPage() {
     <div className="p-4 lg:p-6 max-w-5xl">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-        <Link href="/dashboard/security" className="hover:text-primary">Security</Link>
+        <Link href="/dashboard/security" className="hover:text-primary">{ts('security')}</Link>
         <ChevronRight className="w-4 h-4" />
-        <span className="text-foreground">Passkeys</span>
+        <span className="text-foreground">{t('title')}</span>
       </div>
 
       {/* Main Card */}
       <div className="rounded-xl border border-border bg-card p-6">
         {/* Header */}
         <div className="mb-4">
-          <h1 className="text-xl font-semibold text-foreground mb-2">Passkeys</h1>
+          <h1 className="text-xl font-semibold text-foreground mb-2">{t('title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Please add a passkey for faster and more secure account protection.{' '}
-            <Link href="/dashboard/help#passkeys" className="text-primary hover:underline">Learn More →</Link>
+            {t('subtitle')}{' '}
+            <Link href="/dashboard/help#passkeys" className="text-primary hover:underline">{ts('learnMore')}</Link>
           </p>
         </div>
 
@@ -494,7 +499,7 @@ export default function PasskeysPage() {
               <span className="text-xs font-bold text-primary-foreground">!</span>
             </div>
             <span className="text-sm text-foreground">
-              You have created {passkeys.length} passkey(s) (up to 10 can be set).
+              {t('countBanner', { count: passkeys.length })}
             </span>
           </div>
         )}
@@ -504,10 +509,10 @@ export default function PasskeysPage() {
           <table className="w-full">
             <thead>
               <tr className="bg-muted/50">
-                <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Passkey Name</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Creation Time:</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Last Used Time:</th>
-                <th className="text-right px-4 py-3 text-sm font-medium text-muted-foreground">Action</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">{t('colName')}</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">{t('colCreated')}</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">{t('colLastUsed')}</th>
+                <th className="text-right px-4 py-3 text-sm font-medium text-muted-foreground">{t('colAction')}</th>
               </tr>
             </thead>
             <tbody>
@@ -525,14 +530,14 @@ export default function PasskeysPage() {
                       <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
                         <KeyRound className="h-10 w-10" />
                       </div>
-                      <p className="text-muted-foreground mb-4">No Passkeys Available</p>
+                      <p className="text-muted-foreground mb-4">{t('emptyTitle')}</p>
                       <button
                         onClick={handleAddPasskeyClick}
                         disabled={creating}
                         className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary/85 disabled:bg-muted disabled:text-muted-foreground"
                       >
                         {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : '+'}
-                        Add Passkey
+                        {t('addPasskey')}
                       </button>
                     </div>
                   </td>
@@ -554,13 +559,13 @@ export default function PasskeysPage() {
                           onClick={() => handleRenameClick(passkey)}
                           className="text-primary hover:text-primary/85 text-sm font-medium"
                         >
-                          Rename
+                          {t('rename')}
                         </button>
                         <button
                           onClick={() => handleDeleteClick(passkey)}
                           className="text-sm font-medium text-sell hover:text-sell/90"
                         >
-                          Delete
+                          {tc('delete')}
                         </button>
                       </div>
                     </td>
@@ -580,7 +585,7 @@ export default function PasskeysPage() {
               className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary/85 disabled:bg-muted disabled:text-muted-foreground"
             >
               {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : '+'}
-              Add Passkey
+              {t('addPasskey')}
             </button>
           </div>
         )}
@@ -604,16 +609,16 @@ export default function PasskeysPage() {
               </div>
 
               <h2 className="text-xl font-semibold text-foreground text-center mb-6">
-                Add Passkey
+                {t('addModalTitle')}
               </h2>
 
               <div className="space-y-4 mb-6">
                 <div className="flex items-start gap-3">
                   <Lock className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                   <div>
-                    <h3 className="font-medium text-foreground text-sm">No Need to Remember Passwords</h3>
+                    <h3 className="font-medium text-foreground text-sm">{t('benefit1Title')}</h3>
                     <p className="text-sm text-muted-foreground">
-                      With a passkey, you can log in using fingerprint or face recognition.
+                      {t('benefit1Body')}
                     </p>
                   </div>
                 </div>
@@ -621,9 +626,9 @@ export default function PasskeysPage() {
                 <div className="flex items-start gap-3">
                   <Monitor className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                   <div>
-                    <h3 className="font-medium text-foreground text-sm">Works on All Your Devices</h3>
+                    <h3 className="font-medium text-foreground text-sm">{t('benefit2Title')}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Passkeys will automatically be available on all your synced devices.
+                      {t('benefit2Body')}
                     </p>
                   </div>
                 </div>
@@ -631,9 +636,9 @@ export default function PasskeysPage() {
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                   <div>
-                    <h3 className="font-medium text-foreground text-sm">Ensure Your Account&apos;s Security</h3>
+                    <h3 className="font-medium text-foreground text-sm">{t('benefit3Title')}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Passkeys provide state-of-the-art phishing protection.
+                      {t('benefit3Body')}
                     </p>
                   </div>
                 </div>
@@ -644,7 +649,7 @@ export default function PasskeysPage() {
                 onClick={handleContinue}
                 className="w-full rounded-lg bg-primary py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/85"
               >
-                Continue
+                {tc('continue')}
               </button>
             </div>
           </div>
@@ -657,7 +662,7 @@ export default function PasskeysPage() {
           <div className="bg-card rounded-xl w-full max-w-md shadow-xl">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Security Verification</h2>
+                <h2 className="text-lg font-semibold text-foreground">{ts('securityVerification')}</h2>
                 <button onClick={closeAllModals} className="text-muted-foreground hover:text-muted-foreground">
                   <X className="w-5 h-5" />
                 </button>
@@ -666,7 +671,7 @@ export default function PasskeysPage() {
               <div className="mb-6">
                 <label className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                   <Shield className="w-4 h-4" />
-                  Google 2FA Code
+                  {ts('google2faCode')}
                 </label>
                 <div className="flex justify-center gap-2">
                   {verifyCode.map((digit, index) => (
@@ -687,7 +692,7 @@ export default function PasskeysPage() {
               </div>
 
               <Link href="/dashboard/support" className="text-center text-sm text-primary hover:underline cursor-pointer mb-6 block">
-                Having problems with verification?
+                {ts('verificationHelp')}
               </Link>
 
               <button
@@ -698,10 +703,10 @@ export default function PasskeysPage() {
                 {verifying ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Verifying...
+                    {ts('verifying')}
                   </>
                 ) : (
-                  'Confirm'
+                  ts('confirm')
                 )}
               </button>
             </div>
@@ -715,7 +720,7 @@ export default function PasskeysPage() {
           <div className="bg-card rounded-xl w-full max-w-md shadow-xl">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Rename Passkey</h2>
+                <h2 className="text-lg font-semibold text-foreground">{t('renameTitle')}</h2>
                 <button onClick={closeAllModals} className="text-muted-foreground hover:text-muted-foreground">
                   <X className="w-5 h-5" />
                 </button>
@@ -726,7 +731,7 @@ export default function PasskeysPage() {
                   type="text"
                   value={renameName}
                   onChange={e => setRenameName(e.target.value.slice(0, 50))}
-                  placeholder="Enter passkey name"
+                  placeholder={t('renamePlaceholder')}
                   className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/30"
                 />
                 <div className="mt-1 text-right text-sm text-muted-foreground">
@@ -742,10 +747,10 @@ export default function PasskeysPage() {
                 {renaming ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Saving...
+                    {t('saving')}
                   </>
                 ) : (
-                  'Confirm'
+                  ts('confirm')
                 )}
               </button>
             </div>
@@ -772,13 +777,13 @@ export default function PasskeysPage() {
               </div>
 
               <h2 className="text-lg font-semibold text-foreground text-center mb-4">
-                Are you sure you want to delete the passkey?
+                {t('deleteConfirmTitle')}
               </h2>
 
               <div className="mb-6 rounded-lg border border-border bg-muted p-4">
-                <p className="text-sm font-medium text-foreground/80 mb-2">Please note:</p>
+                <p className="text-sm font-medium text-foreground/80 mb-2">{t('deleteNoteTitle')}</p>
                 <p className="text-sm text-muted-foreground">
-                  For account security, please be aware that after deleting your passkey, on-chain withdrawals, internal transfers, fiat withdrawals, Card transactions, P2P Trading, and advertising will be suspended for 24 hours.
+                  {t('deleteNoteBody')}
                 </p>
               </div>
 
@@ -788,14 +793,14 @@ export default function PasskeysPage() {
                   onClick={handleDeleteConfirm}
                   className="flex-1 rounded-lg bg-sell py-3 font-medium text-primary-foreground transition-colors hover:bg-sell/90"
                 >
-                  Delete Passkey
+                  {t('deletePasskey')}
                 </button>
                 <button
                   type="button"
                   onClick={closeAllModals}
                   className="flex-1 rounded-lg border border-border bg-muted py-3 font-medium text-foreground transition-colors hover:bg-muted/80"
                 >
-                  Cancel
+                  {ts('cancel')}
                 </button>
               </div>
             </div>
@@ -809,7 +814,7 @@ export default function PasskeysPage() {
           <div className="bg-card rounded-xl w-full max-w-md shadow-xl">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Security Verification</h2>
+                <h2 className="text-lg font-semibold text-foreground">{ts('securityVerification')}</h2>
                 <button onClick={closeAllModals} className="text-muted-foreground hover:text-muted-foreground">
                   <X className="w-5 h-5" />
                 </button>
@@ -819,14 +824,19 @@ export default function PasskeysPage() {
               <div className="mb-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                   <Mail className="w-4 h-4" />
-                  <span>A verification code will be sent to <strong className="text-foreground">{maskEmail(user?.email || '')}</strong></span>
+                  <span>
+                    {ts.rich('emailCodeSentTo', {
+                      email: maskEmail(user?.email || ''),
+                      strong: (chunks) => <strong className="text-foreground">{chunks}</strong>,
+                    })}
+                  </span>
                 </div>
                 <div className="relative">
                   <input
                     type="text"
                     value={deleteEmailOtp}
                     onChange={e => setDeleteEmailOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="Please enter the email verification code"
+                    placeholder={ts('emailCodePlaceholder')}
                     className="w-full rounded-lg border border-border bg-muted px-4 py-3 pr-24 text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/30"
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -838,7 +848,7 @@ export default function PasskeysPage() {
                         disabled={sendingDeleteEmailOtp}
                         className="text-sm text-primary hover:text-primary/85 font-medium"
                       >
-                        {sendingDeleteEmailOtp ? 'Sending...' : 'Send Verification Code'}
+                        {sendingDeleteEmailOtp ? ts('sending') : ts('sendVerificationCode')}
                       </button>
                     )}
                   </div>
@@ -850,13 +860,13 @@ export default function PasskeysPage() {
                 <div className="mb-6">
                   <label className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                     <Shield className="w-4 h-4" />
-                    Google 2FA Code
+                    {ts('google2faCode')}
                   </label>
                   <input
                     type="text"
                     value={delete2faCode}
                     onChange={e => setDelete2faCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="Please enter the Google Authenticator code"
+                    placeholder={ts('google2faPlaceholder')}
                     className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/30"
                   />
                 </div>
@@ -870,15 +880,15 @@ export default function PasskeysPage() {
                 {deleting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Deleting...
+                    {t('deleting')}
                   </>
                 ) : (
-                  'Next Step'
+                  ts('nextStep')
                 )}
               </button>
 
               <Link href="/dashboard/support" className="text-center text-sm text-primary hover:underline cursor-pointer mt-4 block">
-                Having problems with verification?
+                {ts('verificationHelp')}
               </Link>
             </div>
           </div>

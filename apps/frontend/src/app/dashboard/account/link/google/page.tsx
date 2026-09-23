@@ -2,16 +2,24 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 
 export default function GoogleLinkCallbackPage() {
   const router = useRouter();
   const params = useSearchParams();
+  const t = useTranslations('account.googleLinkPage');
+  const { fromApi } = useApiErrorMessage();
   const { accessToken, _hasHydrated } = useAuthStore();
   const [status, setStatus] = useState<'working' | 'success' | 'error'>('working');
-  const [message, setMessage] = useState('Linking your Google account…');
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    setMessage(t('linking'));
+  }, [t]);
 
   useEffect(() => {
     if (!_hasHydrated) return;
@@ -21,12 +29,12 @@ export default function GoogleLinkCallbackPage() {
 
     if (error || !code || !state) {
       setStatus('error');
-      setMessage(error ? 'Google sign-in was cancelled.' : 'Missing authorization details.');
+      setMessage(error ? t('cancelled') : t('missingAuth'));
       return;
     }
     if (!accessToken) {
       setStatus('error');
-      setMessage('You must be logged in to link an account.');
+      setMessage(t('mustLogin'));
       return;
     }
 
@@ -42,23 +50,23 @@ export default function GoogleLinkCallbackPage() {
         if (cancelled) return;
         if (json.success) {
           setStatus('success');
-          setMessage('Google account linked successfully.');
+          setMessage(t('success'));
           setTimeout(() => router.replace('/dashboard/account'), 1500);
         } else {
           setStatus('error');
-          setMessage(json.error?.message || 'Failed to link Google account.');
+          setMessage(fromApi(json.error ?? json, 'auth.googleLinkStartFailed'));
         }
       } catch {
         if (!cancelled) {
           setStatus('error');
-          setMessage('Network error while linking your account.');
+          setMessage(t('networkError'));
         }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [_hasHydrated, accessToken, params, router]);
+  }, [_hasHydrated, accessToken, params, router, t, fromApi]);
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-6">
@@ -72,7 +80,7 @@ export default function GoogleLinkCallbackPage() {
             onClick={() => router.replace('/dashboard/account')}
             className="mt-5 px-5 py-2.5 text-sm font-medium rounded-lg bg-accent hover:bg-accent/70 text-foreground"
           >
-            Back to Account
+            {t('backToAccount')}
           </button>
         )}
       </div>

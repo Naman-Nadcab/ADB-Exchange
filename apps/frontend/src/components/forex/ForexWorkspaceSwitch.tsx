@@ -1,18 +1,19 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import type { ForexWorkspaceId } from '@/lib/forex/models/types';
 import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { cn } from '@/lib/utils';
 
-const ITEMS: { id: ForexWorkspaceId; label: string }[] = [
-  { id: 'trading', label: 'Trading' },
-  { id: 'analysis', label: 'Analysis' },
-  { id: 'portfolio', label: 'Portfolio' },
-  { id: 'custom', label: 'Custom' },
-];
-
 /** Compact profile presets for panel visibility — used from chart workspace when needed. */
 export function ForexWorkspaceSwitch() {
+  const t = useTranslations('forex.workspaceSwitch');
+  const ITEMS: { id: ForexWorkspaceId; labelKey: 'trading' | 'analysis' | 'portfolio' | 'custom' }[] = [
+    { id: 'trading', labelKey: 'trading' },
+    { id: 'analysis', labelKey: 'analysis' },
+    { id: 'portfolio', labelKey: 'portfolio' },
+    { id: 'custom', labelKey: 'custom' },
+  ];
   const workspace = useForexWorkspaceStore((s) => s.workspace);
   const setWorkspace = useForexWorkspaceStore((s) => s.setWorkspace);
   const panels = useForexWorkspaceStore((s) => s.panels);
@@ -20,7 +21,7 @@ export function ForexWorkspaceSwitch() {
 
   return (
     <div className="flex flex-wrap items-center gap-1 border-b border-border bg-card px-2 py-0.5 text-[10px]">
-      <span className="text-muted-foreground">Profile</span>
+      <span className="text-muted-foreground">{t('profileLabel')}</span>
       {ITEMS.map((w) => (
         <button
           key={w.id}
@@ -47,7 +48,7 @@ export function ForexWorkspaceSwitch() {
             workspace === w.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
           )}
         >
-          {w.label}
+          {t(w.labelKey)}
         </button>
       ))}
       <span className="ml-auto font-mono text-[9px] text-muted-foreground">

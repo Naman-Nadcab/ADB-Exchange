@@ -505,10 +505,26 @@ export default function MarketsPage() {
     if (quoteFilter !== 'ALL') list = list.filter((row) => row.quote === quoteFilter);
     const min = n(minPrice);
     const max = n(maxPrice);
-    if (min > 0) list = list.filter((row) => row.price >= min);
-    if (max > 0) list = list.filter((row) => row.price <= max);
-    if (changeSide === 'positive') list = list.filter((row) => row.change24h > 0);
-    if (changeSide === 'negative') list = list.filter((row) => row.change24h < 0);
+    if (min > 0) {
+      list = list.filter(function (item) {
+        return item.price >= min;
+      });
+    }
+    if (max > 0) {
+      list = list.filter(function (item) {
+        return item.price <= max;
+      });
+    }
+    if (changeSide === 'positive') {
+      list = list.filter(function (item) {
+        return item.change24h > 0;
+      });
+    }
+    if (changeSide === 'negative') {
+      list = list.filter(function (item) {
+        return item.change24h < 0;
+      });
+    }
 
     const mul = sortDir === 'asc' ? 1 : -1;
     return [...list].sort((a, b) => {

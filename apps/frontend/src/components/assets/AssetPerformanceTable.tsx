@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { CoinIcon } from '@/components/ui/CoinIcon';
@@ -18,6 +19,7 @@ export interface AssetPerformanceTableProps {
 }
 
 export function AssetPerformanceTable({ rows, showBalance }: AssetPerformanceTableProps) {
+  const t = useTranslations('wallet.assetPerformance');
   const router = useRouter();
 
   const formatNumber = (num: number, decimals = 2) => {
@@ -28,23 +30,23 @@ export function AssetPerformanceTable({ rows, showBalance }: AssetPerformanceTab
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden card-bybit">
       <h3 className="text-sm font-semibold text-foreground px-5 py-4 border-b border-border">
-        Asset Performance
+        {t('title')}
       </h3>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-muted-foreground border-b border-border">
-              <th className="py-3 px-4 font-medium uppercase tracking-wide">Asset</th>
-              <th className="py-3 px-4 font-medium uppercase tracking-wide text-right">Balance</th>
-              <th className="py-3 px-4 font-medium uppercase tracking-wide text-right">24h Change</th>
-              <th className="py-3 px-4 font-medium uppercase tracking-wide text-right">Value</th>
+              <th className="py-3 px-4 font-medium uppercase tracking-wide">{t('asset')}</th>
+              <th className="py-3 px-4 font-medium uppercase tracking-wide text-right">{t('balance')}</th>
+              <th className="py-3 px-4 font-medium uppercase tracking-wide text-right">{t('change24h')}</th>
+              <th className="py-3 px-4 font-medium uppercase tracking-wide text-right">{t('value')}</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
                 <td colSpan={4} className="py-12 px-6 text-center">
-                  <p className="text-muted-foreground">No assets</p>
+                  <p className="text-muted-foreground">{t('noAssets')}</p>
                 </td>
               </tr>
             ) : (

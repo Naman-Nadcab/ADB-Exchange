@@ -9,15 +9,17 @@
  * streams in the background. `ssr: false` because the chart needs the DOM.
  */
 import dynamic from 'next/dynamic';
+import { useTranslations } from 'next-intl';
 import { Skeleton } from '@/components/ui/Skeleton';
 
 function SpotPageSkeleton() {
+  const tStates = useTranslations('common.states');
   return (
     <div
       className="flex h-full w-full flex-col bg-background"
       role="status"
       aria-busy="true"
-      aria-label="Loading"
+      aria-label={tStates('loading')}
     >
       <div className="flex h-12 shrink-0 items-center gap-3 border-b border-border px-4 dark:border-border">
         <Skeleton className="h-8 w-28" />

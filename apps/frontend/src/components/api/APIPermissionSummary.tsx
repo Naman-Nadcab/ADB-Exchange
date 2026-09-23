@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Key, Shield, Lock, Wallet } from 'lucide-react';
 
 export interface APIPermissionSummaryProps {
@@ -11,25 +12,31 @@ export interface APIPermissionSummaryProps {
   enabledPermissions: string[];
 }
 
-const permissionLabels: Record<string, string> = {
-  unifiedTrading: 'Unified Trading',
-  spotTrade: 'Spot Trading',
-  earn: 'Earn',
-  earnFlexibleSavings: 'Flexible Savings',
-  fiatTrading: 'Fiat Trading',
-  p2pOrders: 'P2P Orders',
-  p2pAds: 'P2P Ads',
-  assets: 'Asset Management',
-  walletAccountTransfer: 'Account Transfer',
-  walletSubaccountTransfer: 'Subaccount Transfer',
-  walletWithdrawal: 'Withdrawal',
-  exchangeConvertHistory: 'Convert History',
-  contractOrders: 'Contract Orders',
-  contractPositions: 'Contract Positions',
-  usdcDerivativesTrading: 'USDC Derivatives',
-  bybitPayOrders: 'Pay Orders',
-  cryptoFiatOrders: 'Crypto-Fiat',
-};
+const PERMISSION_SCOPE_KEYS = [
+  'unifiedTrading',
+  'spotTrade',
+  'earn',
+  'earnFlexibleSavings',
+  'fiatTrading',
+  'p2pOrders',
+  'p2pAds',
+  'assets',
+  'walletAccountTransfer',
+  'walletSubaccountTransfer',
+  'walletWithdrawal',
+  'exchangeConvertHistory',
+  'contractOrders',
+  'contractPositions',
+  'usdcDerivativesTrading',
+  'bybitPayOrders',
+  'cryptoFiatOrders',
+] as const;
+
+type PermissionScopeKey = (typeof PERMISSION_SCOPE_KEYS)[number];
+
+function isPermissionScopeKey(k: string): k is PermissionScopeKey {
+  return (PERMISSION_SCOPE_KEYS as readonly string[]).includes(k);
+}
 
 export function APIPermissionSummary({
   keyName,
@@ -39,14 +46,16 @@ export function APIPermissionSummary({
   withdrawalAccess,
   enabledPermissions,
 }: APIPermissionSummaryProps) {
+  const t = useTranslations('account.apiPermissionSummary');
+
   return (
     <div className="bg-card rounded-xl p-5 border border-border">
-      <h3 className="text-sm font-semibold text-foreground mb-4">Permission Summary</h3>
+      <h3 className="text-sm font-semibold text-foreground mb-4">{t('title')}</h3>
       <div className="space-y-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Key className="w-4 h-4 text-muted-foreground" />
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Key name</span>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('keyName')}</span>
           </div>
           <p className="text-sm font-medium text-foreground truncate">
             {keyName || '—'}
@@ -55,10 +64,10 @@ export function APIPermissionSummary({
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Lock className="w-4 h-4 text-muted-foreground" />
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Permissions</span>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('permissions')}</span>
           </div>
           <p className="text-sm text-foreground">
-            {permission === 'read_only' ? 'Read-Only' : 'Read-Write'}
+            {permission === 'read_only' ? t('readOnly') : t('readWrite')}
           </p>
           {enabledPermissions.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
@@ -67,12 +76,12 @@ export function APIPermissionSummary({
                   key={k}
                   className="px-2 py-0.5 bg-accent text-foreground/80 text-xs rounded"
                 >
-                  {permissionLabels[k] ?? k}
+                  {isPermissionScopeKey(k) ? t(`scopes.${k}`) : k}
                 </span>
               ))}
               {enabledPermissions.length > 6 && (
                 <span className="px-2 py-0.5 text-muted-foreground text-xs">
-                  +{enabledPermissions.length - 6} more
+                  {t('moreCount', { count: enabledPermissions.length - 6 })}
                 </span>
               )}
             </div>
@@ -81,27 +90,31 @@ export function APIPermissionSummary({
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Shield className="w-4 h-4 text-muted-foreground" />
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">IP restrictions</span>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('ipRestrictions')}</span>
           </div>
           <p className="text-sm text-foreground">
             {ipRestriction === 'ip_only'
               ? ipAddressCount > 0
-                ? `${ipAddressCount} IP${ipAddressCount !== 1 ? 's' : ''} whitelisted`
-                : 'IP Whitelist (no IPs added yet)'
-              : 'No restriction'}
+                ? t('ipsWhitelisted', { count: ipAddressCount })
+                : t('ipWhitelistEmpty')
+              : t('noRestriction')}
           </p>
         </div>
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Wallet className="w-4 h-4 text-muted-foreground" />
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Withdrawal access</span>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('withdrawalAccess')}</span>
           </div>
           <p className={`text-sm font-medium ${
             withdrawalAccess === 'enabled' ? 'text-buy' :
             withdrawalAccess === 'read_only' ? 'text-amber-600 dark:text-amber-400' :
             'text-muted-foreground'
           }`}>
-            {withdrawalAccess === 'enabled' ? 'Enabled' : withdrawalAccess === 'read_only' ? 'Not available (read-only key)' : 'Disabled'}
+            {withdrawalAccess === 'enabled'
+              ? t('withdrawalEnabled')
+              : withdrawalAccess === 'read_only'
+                ? t('withdrawalReadOnly')
+                : t('withdrawalDisabled')}
           </p>
         </div>
       </div>

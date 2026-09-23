@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   chartsVisibleForLayout,
   gridClassForLayout,
@@ -11,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { ForexChartFoundation } from './ForexChartFoundation';
 
 export function ForexChartWorkspace() {
+  const tw = useTranslations('forex.chartWorkspace');
   const chartLayout = useForexWorkspaceStore((s) => s.chartLayout);
   const charts = useForexWorkspaceStore((s) => s.charts);
   const activeChartId = useForexWorkspaceStore((s) => s.activeChartId);
@@ -37,7 +39,7 @@ export function ForexChartWorkspace() {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <div className="flex h-6 shrink-0 items-center gap-1 border-b border-border bg-card/80 px-1.5">
-        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Workspace</span>
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{tw('workspaceLabel')}</span>
         <button
           type="button"
           className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
@@ -96,7 +98,7 @@ export function ForexChartWorkspace() {
                 }
                 className="h-5 rounded border border-border bg-card/95 px-0.5 text-[9px] text-foreground"
                 onClick={(e) => e.stopPropagation()}
-                title="Link group — symbol sync; timeframe sync optional via Charts menu"
+                title={tw('linkGroupTitle')}
               >
                 <option value="none">○</option>
                 <option value="A">A</option>

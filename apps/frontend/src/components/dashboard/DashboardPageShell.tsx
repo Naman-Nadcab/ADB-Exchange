@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { ROUTES } from '@/lib/routes';
 import { ChevronRight, Home } from 'lucide-react';
@@ -29,19 +30,20 @@ export function DashboardPageShell({
   children,
   className = '',
 }: DashboardPageShellProps) {
+  const ts = useTranslations('account.dashboardShell');
   const crumbs = breadcrumbs && breadcrumbs.length > 0 ? breadcrumbs : null;
 
   return (
     <div className={`dashboard-stack w-full ${className}`}>
       <header className="dashboard-stack">
         {crumbs && (
-          <nav aria-label="Breadcrumb" className="mb-3 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          <nav aria-label={ts('breadcrumbAria')} className="mb-3 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
             <Link
               href={ROUTES.home}
               className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-accent hover:text-foreground transition-colors"
             >
               <Home className="w-3.5 h-3.5 opacity-80" aria-hidden />
-              <span>Home</span>
+              <span>{ts('home')}</span>
             </Link>
             {crumbs.map((c, i) => {
               const isLast = i === crumbs.length - 1;
@@ -76,7 +78,7 @@ export function DashboardPageShell({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-1.5 min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              Dashboard
+              {ts('eyebrow')}
             </p>
             <h1 className="dashboard-title">
               {title}

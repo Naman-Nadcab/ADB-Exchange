@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import type { IChartApi, IPriceLine, ISeriesApi, MouseEventParams, UTCTimestamp } from 'lightweight-charts';
 import type { DrawingToolMode } from '@/components/trade/chart/extension/types';
 import { DrawingToolManager } from '@/components/trade/chart/tools/DrawingToolManager';
@@ -153,6 +154,7 @@ export function ForexLightweightChart(props: {
   onApi?: (api: ForexChartApi | null) => void;
   onDrawingsChanged?: () => void;
 }) {
+  const tChart = useTranslations('forex.chartFoundation');
   const hostRef = useRef<HTMLDivElement | null>(null);
   const overlayHostRef = useRef<HTMLDivElement | null>(null);
   const [mainChartApi, setMainChartApi] = useState<IChartApi | null>(null);
@@ -1116,7 +1118,7 @@ export function ForexLightweightChart(props: {
   return (
     <div className="absolute inset-0 flex flex-col">
       <div className="relative min-h-0 flex-1">
-        <div ref={hostRef} className="absolute inset-0" role="img" aria-label="Forex chart" />
+        <div ref={hostRef} className="absolute inset-0" role="img" aria-label={tChart('marketChartAria')} />
         <div ref={overlayHostRef} className="pointer-events-none absolute inset-0 z-[1]" />
         {levelDragBadge ? (
           <div

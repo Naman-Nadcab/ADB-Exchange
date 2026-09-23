@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { MousePointerClick, UserPlus, ShieldCheck, TrendingUp, DollarSign } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 
@@ -17,11 +18,11 @@ export interface ReferralFunnelProps {
 }
 
 const steps = [
-  { key: 'linkClicks', label: 'Link Clicks', icon: MousePointerClick },
-  { key: 'signups', label: 'Signups', icon: UserPlus },
-  { key: 'verifiedUsers', label: 'Verified Users', icon: ShieldCheck },
-  { key: 'activeTraders', label: 'Active Traders', icon: TrendingUp },
-  { key: 'revenue', label: 'Revenue', icon: DollarSign },
+  { key: 'linkClicks', icon: MousePointerClick },
+  { key: 'signups', icon: UserPlus },
+  { key: 'verifiedUsers', icon: ShieldCheck },
+  { key: 'activeTraders', icon: TrendingUp },
+  { key: 'revenue', icon: DollarSign },
 ] as const;
 
 const defaultMetrics: ReferralFunnelMetrics = {
@@ -38,12 +39,13 @@ function formatMetric(key: string, value: number): string {
 }
 
 export function ReferralFunnel({ metrics, loading = false }: ReferralFunnelProps) {
+  const t = useTranslations('account.referralFunnel');
   const m = metrics ?? defaultMetrics;
 
   return (
     <div className="bg-card rounded-xl p-6 border border-border card-bybit">
-      <h3 className="text-sm font-semibold text-foreground mb-1">Referral Funnel</h3>
-      <p className="text-xs text-muted-foreground mb-4">Conversion from clicks to revenue</p>
+      <h3 className="text-sm font-semibold text-foreground mb-1">{t('title')}</h3>
+      <p className="text-xs text-muted-foreground mb-4">{t('subtitle')}</p>
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
           {steps.map((s) => (
@@ -67,7 +69,7 @@ export function ReferralFunnel({ metrics, loading = false }: ReferralFunnelProps
                   <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                     <Icon className="w-4 h-4 text-primary" />
                   </div>
-                  <span className="text-xs font-medium text-muted-foreground">{s.label}</span>
+                  <span className="text-xs font-medium text-muted-foreground">{t(s.key)}</span>
                 </div>
                 <span className="text-lg font-bold text-foreground tabular-nums">
                   {formatMetric(s.key, value)}

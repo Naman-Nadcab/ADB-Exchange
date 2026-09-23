@@ -300,7 +300,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
               <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} />
 
-              <nav className="hidden lg:flex items-center gap-1" aria-label="Primary">
+              <nav className="hidden lg:flex items-center gap-1" aria-label={tc('a11y.primaryNav')}>
                 {navItems.map((item) => {
                   const active = isNavItemActive(pathname ?? null, item.href);
                   return (

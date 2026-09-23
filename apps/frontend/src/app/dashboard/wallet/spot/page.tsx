@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/auth';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import Link from 'next/link';
 import { walletPath } from '@/lib/routes';
 import {
@@ -77,31 +79,34 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
 }
 
 function RowActions({ asset }: { asset: string }) {
+  const t = useTranslations('wallet.spotWalletPage');
   return (
     <div className="flex flex-wrap items-center justify-end gap-1.5">
       <Link
         href={`${walletPath.depositCrypto}?coin=${asset}`}
         className="inline-flex items-center rounded-lg border border-border bg-muted/40 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
       >
-        Deposit
+        {t('actionDeposit')}
       </Link>
       <Link
         href={`${walletPath.withdrawCrypto}?coin=${asset}`}
         className="inline-flex items-center rounded-lg border border-border bg-muted/40 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
       >
-        Withdraw
+        {t('actionWithdraw')}
       </Link>
       <Link
         href={`/trade/spot?symbol=${asset}_USDT`}
         className="inline-flex items-center rounded-lg border border-primary/30 bg-primary/10 px-2.5 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
       >
-        <BarChart3 className="mr-1 h-3 w-3" /> Trade
+        <BarChart3 className="mr-1 h-3 w-3" /> {t('actionTrade')}
       </Link>
     </div>
   );
 }
 
 export default function SpotWalletPage() {
+  const t = useTranslations('wallet.spotWalletPage');
+  const { fromApi } = useApiErrorMessage();
   const { accessToken, _hasHydrated } = useAuthStore();
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
   const {
@@ -115,7 +120,10 @@ export default function SpotWalletPage() {
   const isCancelled = queryError instanceof Error &&
     (queryError.name === 'AbortError' || String(queryError.message).toLowerCase().includes('abort'));
   const error = isError && !isCancelled
-    ? (queryError instanceof Error ? queryError.message : 'Failed to load spot balances')
+    ? fromApi(
+        queryError instanceof Error ? { message: queryError.message } : queryError,
+        'generic.unknown',
+      )
     : null;
 
   const [search, setSearch] = useState('');
@@ -229,13 +237,13 @@ export default function SpotWalletPage() {
       {/* ── Header ── */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Spot / Trading Account</h1>
-          <span className="hidden text-sm text-muted-foreground sm:inline">Balances used for spot orders</span>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('title')}</h1>
+          <span className="hidden text-sm text-muted-foreground sm:inline">{t('subtitle')}</span>
           <button
             type="button"
             onClick={() => setBalanceHidden(h => !h)}
             className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-            aria-label={balanceHidden ? 'Show balances' : 'Hide balances'}
+            aria-label={balanceHidden ? t('showBalances') : t('hideBalances')}
           >
             {balanceHidden ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
@@ -244,7 +252,7 @@ export default function SpotWalletPage() {
             onClick={() => refetch()}
             disabled={loading}
             className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
-            aria-label="Refresh"
+            aria-label={t('refreshAria')}
           >
             <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -254,19 +262,19 @@ export default function SpotWalletPage() {
             href={walletPath.depositCrypto}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
           >
-            <Download className="h-4 w-4" /> Deposit
+            <Download className="h-4 w-4" /> {t('deposit')}
           </Link>
           <Link
             href={walletPath.withdrawCrypto}
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
           >
-            <Upload className="h-4 w-4" /> Withdraw
+            <Upload className="h-4 w-4" /> {t('withdraw')}
           </Link>
           <Link
             href={walletPath.transfer}
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
           >
-            <ArrowLeftRight className="h-4 w-4" /> Transfer
+            <ArrowLeftRight className="h-4 w-4" /> {t('transfer')}
           </Link>
         </div>
       </div>
@@ -279,8 +287,8 @@ export default function SpotWalletPage() {
               <Wallet className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estimated total</p>
-              <p className="text-xs text-muted-foreground/90">Spot wallet ({displayCurrency})</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('estimatedTotal')}</p>
+              <p className="text-xs text-muted-foreground/90">{t('spotWallet', { currency: displayCurrency })}</p>
             </div>
           </div>
           <p className="numeric text-3xl font-bold tracking-tight text-foreground">
@@ -293,8 +301,8 @@ export default function SpotWalletPage() {
               <ArrowUpRight className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Available</p>
-              <p className="text-xs text-muted-foreground/90">Free for new orders</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('available')}</p>
+              <p className="text-xs text-muted-foreground/90">{t('availableHint')}</p>
             </div>
           </div>
           <p className="numeric text-3xl font-bold tracking-tight text-foreground">
@@ -307,8 +315,8 @@ export default function SpotWalletPage() {
               <Clock className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">In open orders</p>
-              <p className="text-xs text-muted-foreground/90">Locked margin</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('inOpenOrders')}</p>
+              <p className="text-xs text-muted-foreground/90">{t('lockedMargin')}</p>
             </div>
           </div>
           <p className="numeric text-3xl font-bold tracking-tight text-foreground">
@@ -333,7 +341,7 @@ export default function SpotWalletPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search coin…"
+              placeholder={t('searchCoin')}
               className="h-10 w-full rounded-lg border border-border bg-background py-2 pl-10 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
             {search ? (
@@ -341,7 +349,7 @@ export default function SpotWalletPage() {
                 type="button"
                 onClick={() => setSearch('')}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                aria-label="Clear search"
+                aria-label={t('clearSearchAria')}
               >
                 <X className="h-4 w-4" />
               </button>
@@ -355,11 +363,11 @@ export default function SpotWalletPage() {
                 onChange={(e) => setHideSmall(e.target.checked)}
                 className="h-4 w-4 rounded border-border accent-primary"
               />
-              {`Hide small balances (under ${formatFromUsdt(SMALL_BALANCE_THRESHOLD_USD, 0)})`}
+              {t('hideSmallBalances', { amount: formatFromUsdt(SMALL_BALANCE_THRESHOLD_USD, 0) })}
             </label>
             {!loading && totalFiltered > 0 ? (
               <span className="text-xs text-muted-foreground">
-                {totalFiltered} asset{totalFiltered !== 1 ? 's' : ''}
+                {t(totalFiltered !== 1 ? 'assetCountPlural' : 'assetCount', { count: totalFiltered })}
               </span>
             ) : null}
           </div>
@@ -369,13 +377,13 @@ export default function SpotWalletPage() {
           <table className="w-full min-w-[880px] border-collapse text-sm">
             <thead className="[&_th]:sticky [&_th]:top-0 [&_th]:z-20 [&_th]:bg-muted/95 [&_th]:shadow-[0_1px_0_0_hsl(var(--border))] [&_th]:backdrop-blur-sm">
               <tr className="border-b border-border">
-                <SortableHeader label="Coin" sortKey="asset" current={sortKey} dir={sortDir} onSort={toggleSort} className="pl-6" />
-                <SortableHeader label="Total balance" sortKey="balance" current={sortKey} dir={sortDir} onSort={toggleSort} align="right" />
-                <SortableHeader label="Available" sortKey="available" current={sortKey} dir={sortDir} onSort={toggleSort} align="right" />
-                <SortableHeader label="In order" sortKey="locked" current={sortKey} dir={sortDir} onSort={toggleSort} align="right" />
-                <SortableHeader label={`${displayCurrency} value`} sortKey="usdValue" current={sortKey} dir={sortDir} onSort={toggleSort} align="right" />
+                <SortableHeader label={t('colCoin')} sortKey="asset" current={sortKey} dir={sortDir} onSort={toggleSort} className="pl-6" />
+                <SortableHeader label={t('colTotalBalance')} sortKey="balance" current={sortKey} dir={sortDir} onSort={toggleSort} align="right" />
+                <SortableHeader label={t('colAvailable')} sortKey="available" current={sortKey} dir={sortDir} onSort={toggleSort} align="right" />
+                <SortableHeader label={t('colInOrder')} sortKey="locked" current={sortKey} dir={sortDir} onSort={toggleSort} align="right" />
+                <SortableHeader label={t('colValue', { currency: displayCurrency })} sortKey="usdValue" current={sortKey} dir={sortDir} onSort={toggleSort} align="right" />
                 <th scope="col" className="sticky top-0 z-20 bg-muted/95 px-4 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground shadow-[0_1px_0_0_hsl(var(--border))] backdrop-blur-sm first:pl-6 last:pr-6">
-                  Actions
+                  {t('colActions')}
                 </th>
               </tr>
             </thead>
@@ -408,21 +416,21 @@ export default function SpotWalletPage() {
                     {search || hideSmall ? (
                       <div className="flex flex-col items-center justify-center px-6 py-16 text-center sm:py-20">
                         <Search className="mb-4 h-10 w-10 text-muted-foreground/40" />
-                        <p className="font-medium text-foreground">No matching assets</p>
+                        <p className="font-medium text-foreground">{t('noMatchingAssets')}</p>
                         <p className="mt-2 max-w-sm text-sm text-muted-foreground">
                           {hideSmall && balances.length > 0
-                            ? '“Hide small balances” is hiding rows under $1. Turn it off or search by symbol.'
+                            ? t('emptyFilterHideSmall', { amount: formatFromUsdt(SMALL_BALANCE_THRESHOLD_USD, 0) })
                             : search
-                              ? 'Try another search term or clear the filter.'
-                              : 'Adjust filters to see more rows.'}
+                              ? t('emptyFilterSearch')
+                              : t('emptyFilterAdjust')}
                         </p>
                       </div>
                     ) : (
                       <EmptyState
                         icon={Wallet}
-                        title="No spot balances yet"
-                        description="Transfer from Funding to Spot when you're ready to trade, or deposit first."
-                        actionLabel="Assets overview"
+                        title={t('emptyTitle')}
+                        description={t('emptyDescription')}
+                        actionLabel={t('emptyAction')}
                         actionHref={walletPath.overview}
                       />
                     )}
@@ -475,15 +483,10 @@ export default function SpotWalletPage() {
           <div className="flex flex-col gap-3 border-t border-border px-5 py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-muted-foreground">
-                Showing{' '}
-                <span className="numeric font-medium text-foreground">{rangeStart}</span>
-                {'–'}
-                <span className="numeric font-medium text-foreground">{rangeEnd}</span>
-                {' of '}
-                <span className="numeric font-medium text-foreground">{totalFiltered}</span>
+                {t('showingRange', { start: rangeStart, end: rangeEnd, total: totalFiltered })}
                 <span className="mx-2 hidden text-muted-foreground/50 sm:inline">·</span>
                 <span className="mt-1 block text-xs text-muted-foreground sm:mt-0 sm:inline sm:text-sm">
-                  Portfolio total:{' '}
+                  {t('portfolioTotal')}{' '}
                   <span className="numeric font-semibold text-foreground">
                     {balanceHidden ? '••••••' : formatFromUsdt(totalEquityUsd, 2)}
                   </span>
@@ -497,10 +500,10 @@ export default function SpotWalletPage() {
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
                   >
-                    <ChevronLeft className="h-4 w-4" /> Previous
+                    <ChevronLeft className="h-4 w-4" /> {t('previous')}
                   </button>
                   <span className="numeric px-2 text-sm text-muted-foreground">
-                    Page {page} / {pageCount}
+                    {t('pageOf', { page, pages: pageCount })}
                   </span>
                   <button
                     type="button"
@@ -508,7 +511,7 @@ export default function SpotWalletPage() {
                     onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
                     className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
                   >
-                    Next <ChevronRight className="h-4 w-4" />
+                    {t('next')} <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>
               ) : null}

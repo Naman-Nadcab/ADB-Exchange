@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   computeRiskReward,
   pipSizeFromInstrument,
@@ -13,13 +14,13 @@ import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { fxNum } from './format';
 
 export function ForexRiskTools() {
+  const t = useTranslations('forex.riskTools');
   const selected = useForexWorkspaceStore((s) => s.selectedSymbol);
   const setDraft = useForexWorkspaceStore((s) => s.setTicketDraft);
   const inst = useForexStore((s) => s.instruments[selected]);
   const account = useForexStore((s) => s.account);
   const quote = useForexStore((s) => s.quotes[selected]);
-  const digits = inst?.digits ?? 5;
-  const pipSize = pipSizeFromInstrument({ pipSize: inst?.pipSize, digits });
+  const pipSize = pipSizeFromInstrument({ pipSize: inst?.pipSize, digits: inst?.digits });
   const contract = Number(inst?.contractSize);
   const pipVal = pipValuePerLotFromSpec({ pipSize, contractSize: contract });
   const equity = account ? Number(account.equity) : null;
@@ -59,12 +60,12 @@ export function ForexRiskTools() {
 
   return (
     <div className="space-y-2 rounded-lg border border-border bg-muted/15 p-2">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Pip / R:R calculator</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('title')}</p>
       <div className="grid grid-cols-2 gap-1.5">
-        <Mini label="Entry" value={entry} onChange={setEntry} placeholder={quote ? String(quote.bid) : ''} />
-        <Mini label="Volume" value={volume} onChange={setVolume} />
-        <Mini label="Stop" value={stop} onChange={setStop} />
-        <Mini label="Target" value={target} onChange={setTarget} />
+        <Mini label={t('labelEntry')} value={entry} onChange={setEntry} placeholder={quote ? String(quote.bid) : ''} />
+        <Mini label={t('labelVolume')} value={volume} onChange={setVolume} />
+        <Mini label={t('labelStop')} value={stop} onChange={setStop} />
+        <Mini label={t('labelTarget')} value={target} onChange={setTarget} />
       </div>
       {rr ? (
         <p className="font-mono text-[10px] text-foreground">
@@ -72,21 +73,21 @@ export function ForexRiskTools() {
           {rr.estimatedRiskMoney != null ? ` · Est. ${fxNum(rr.estimatedRiskMoney, 2)} / ${fxNum(rr.estimatedRewardMoney, 2)}` : ''}
         </p>
       ) : (
-        <p className="text-[10px] text-muted-foreground">Enter entry, stop (beyond), and target (beyond) on the same side.</p>
+        <p className="text-[10px] text-muted-foreground">{t('rrHint')}</p>
       )}
       <div className="border-t border-border/70 pt-2">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Position size (estimated)</p>
-        <Mini label="Account risk %" value={riskPct} onChange={setRiskPct} />
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('positionSizeTitle')}</p>
+        <Mini label={t('labelAccountRiskPct')} value={riskPct} onChange={setRiskPct} />
         {equity == null || !(equity > 0) ? (
-          <p className="mt-1 text-[10px] text-muted-foreground">Sign in with a funded SIM account to estimate lots from equity.</p>
+          <p className="mt-1 text-[10px] text-muted-foreground">{t('signInFunded')}</p>
         ) : pipVal == null ? (
-          <p className="mt-1 text-[10px] text-muted-foreground">Instrument pip/contract spec unavailable.</p>
+          <p className="mt-1 text-[10px] text-muted-foreground">{t('specUnavailable')}</p>
         ) : suggested ? (
           <p className="mt-1 font-mono text-[10px] text-foreground">
             Suggested {suggested.lots.toFixed(2)} lots · est. risk {fxNum(suggested.estimatedRisk, 2)}
           </p>
         ) : (
-          <p className="mt-1 text-[10px] text-muted-foreground">Need a valid stop distance.</p>
+          <p className="mt-1 text-[10px] text-muted-foreground">{t('needStopDistance')}</p>
         )}
       </div>
       <button
@@ -104,7 +105,7 @@ export function ForexRiskTools() {
         }}
         className="h-7 w-full rounded border border-border text-[10px] font-medium text-foreground hover:bg-muted disabled:opacity-40"
       >
-        Apply to ticket (preview only)
+        {t('applyTicket')}
       </button>
     </div>
   );

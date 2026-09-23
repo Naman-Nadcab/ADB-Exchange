@@ -26,6 +26,7 @@ import { useBalancesTrading } from '@/lib/balances';
 export default function UnifiedTradingPage() {
   const tConvert = useTranslations('wallet.convertPage');
   const tOverview = useTranslations('wallet.overview');
+  const tu = useTranslations('wallet.unifiedTradingPage');
   const { accessToken, _hasHydrated } = useAuthStore();
   const { data: tradingData, isLoading: loading } = useBalancesTrading(!!_hasHydrated && !!accessToken);
   const balances = tradingData?.balances ?? [];
@@ -55,9 +56,9 @@ export default function UnifiedTradingPage() {
     });
 
   const guideSteps = [
-    { num: 1, title: 'Overview', active: true },
-    { num: 2, title: 'Deposit Funds', active: false },
-    { num: 3, title: 'Start Trading', active: false },
+    { num: 1, title: tu('guideStepOverview'), active: true },
+    { num: 2, title: tu('guideStepDeposit'), active: false },
+    { num: 3, title: tu('guideStepTrade'), active: false },
   ];
 
   return (
@@ -71,7 +72,7 @@ export default function UnifiedTradingPage() {
                     <BookOpen className="w-7 h-7 text-primary-foreground" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground text-lg">Spot Trading Account Guide</h3>
+                    <h3 className="font-semibold text-foreground text-lg">{tu('guideTitle')}</h3>
                     <div className="flex items-center gap-4 mt-2">
                       {guideSteps.map((step, i) => (
                         <div key={step.num} className="flex items-center gap-2">
@@ -95,7 +96,7 @@ export default function UnifiedTradingPage() {
                   onClick={() => setShowGuide(false)}
                   className="px-5 py-2.5 bg-primary hover:bg-primary/85 text-primary-foreground text-sm font-medium rounded-xl transition-colors shadow-lg shadow-blue-500/25"
                 >
-                  Got it
+                  {tu('gotIt')}
                 </button>
               </div>
             </div>
@@ -105,7 +106,7 @@ export default function UnifiedTradingPage() {
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <h1 className="text-xl font-semibold text-foreground">Unified Trading</h1>
+                <h1 className="text-xl font-semibold text-foreground">{tu('title')}</h1>
                 <button
                   onClick={() => setShowBalance(!showBalance)}
                   className="p-2 text-muted-foreground hover:text-primary hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
@@ -115,7 +116,7 @@ export default function UnifiedTradingPage() {
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/30">
                 <BarChart3 className="w-4 h-4 text-primary" />
-                <span className="text-sm text-primary font-medium">Spot Trading</span>
+                <span className="text-sm text-primary font-medium">{tu('spotTradingBadge')}</span>
               </div>
             </div>
 
@@ -125,28 +126,28 @@ export default function UnifiedTradingPage() {
                 className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/85 text-primary-foreground font-medium text-sm rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-blue-500/40"
               >
                 <Download className="w-4 h-4" />
-                Deposit
+                {tu('deposit')}
               </Link>
               <Link
                 href="/wallet/convert"
                 className="flex items-center gap-2 px-5 py-2.5 bg-card text-foreground/80 font-medium text-sm rounded-xl border border-border hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
-                Convert
+                {tu('convert')}
               </Link>
               <Link
                 href="/wallet/transfer"
                 className="flex items-center gap-2 px-5 py-2.5 bg-card text-foreground/80 font-medium text-sm rounded-xl border border-border hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
               >
                 <ArrowLeftRight className="w-4 h-4" />
-                Transfer
+                {tu('transfer')}
               </Link>
               <Link
                 href="/wallet/history"
                 className="flex items-center gap-2 px-4 py-2.5 bg-card text-foreground/80 font-medium text-sm rounded-xl border border-border hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
               >
                 <Clock className="w-4 h-4" />
-                History
+                {tu('history')}
               </Link>
             </div>
           </div>
@@ -160,7 +161,7 @@ export default function UnifiedTradingPage() {
                     <Wallet className="w-5 h-5 text-primary-foreground" />
                   </div>
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-muted-foreground">Total Equity</p>
+                    <p className="text-sm font-medium text-muted-foreground">{tu('totalEquity')}</p>
                     <Link href="/wallet/pnl" className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-primary text-xs rounded-lg flex items-center gap-1 hover:bg-blue-200 dark:hover:bg-blue-800/40 transition-colors">
                       <TrendingUp className="w-3 h-3" /> P&L
                     </Link>
@@ -175,7 +176,7 @@ export default function UnifiedTradingPage() {
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
                     <Activity className="w-5 h-5 text-primary-foreground" />
                   </div>
-                  <p className="text-sm font-medium text-muted-foreground">Available Balance</p>
+                  <p className="text-sm font-medium text-muted-foreground">{tu('availableBalance')}</p>
                 </div>
                 <p className="text-3xl font-bold text-foreground">
                   {showBalance ? formatNumber(availableBalance.usd) : '******'} <span className="text-sm font-normal text-muted-foreground">USD</span>
@@ -186,7 +187,7 @@ export default function UnifiedTradingPage() {
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
                     <TrendingUp className="w-5 h-5 text-primary-foreground" />
                   </div>
-                  <p className="text-sm font-medium text-muted-foreground">Unrealized P&L</p>
+                  <p className="text-sm font-medium text-muted-foreground">{tu('unrealizedPnl')}</p>
                 </div>
                 <p className="text-3xl font-bold text-foreground">
                   {showBalance ? formatNumber(unrealizedPnl.usd) : '******'} <span className="text-sm font-normal text-muted-foreground">USD</span>
@@ -234,7 +235,7 @@ export default function UnifiedTradingPage() {
                   <Sparkles className="w-4 h-4 text-primary-foreground" />
                 </div>
                 <div className="text-sm">
-                  <span className="text-foreground/80">Savings USDT </span>
+                  <span className="text-foreground/80">{tu('savingsUsdt')} </span>
                   <span className="text-green-500 font-semibold">6.14%</span>
                 </div>
                 <ChevronRight className="w-4 h-4 text-primary" />
@@ -245,12 +246,12 @@ export default function UnifiedTradingPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-background">
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-muted-foreground uppercase">Currency</th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold text-muted-foreground uppercase">Total Balance</th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold text-muted-foreground uppercase">Available Balance</th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold text-muted-foreground uppercase">In Orders</th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold text-muted-foreground uppercase">USD Value</th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold text-muted-foreground uppercase">Action</th>
+                  <th className="text-left px-6 py-4 text-xs font-semibold text-muted-foreground uppercase">{tu('colCurrency')}</th>
+                  <th className="text-right px-6 py-4 text-xs font-semibold text-muted-foreground uppercase">{tu('colTotalBalance')}</th>
+                  <th className="text-right px-6 py-4 text-xs font-semibold text-muted-foreground uppercase">{tu('colAvailableBalance')}</th>
+                  <th className="text-right px-6 py-4 text-xs font-semibold text-muted-foreground uppercase">{tu('colInOrders')}</th>
+                  <th className="text-right px-6 py-4 text-xs font-semibold text-muted-foreground uppercase">{tu('colUsdValue')}</th>
+                  <th className="text-right px-6 py-4 text-xs font-semibold text-muted-foreground uppercase">{tu('colAction')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -259,7 +260,7 @@ export default function UnifiedTradingPage() {
                     <td colSpan={6} className="py-16 text-center">
                       <div className="flex flex-col items-center">
                         <RefreshCw className="w-8 h-8 text-primary animate-spin mb-3" />
-                        <p className="text-sm text-muted-foreground">Loading balances...</p>
+                        <p className="text-sm text-muted-foreground">{tu('loadingBalances')}</p>
                       </div>
                     </td>
                   </tr>
@@ -294,7 +295,7 @@ export default function UnifiedTradingPage() {
                           href="/trade/spot"
                           className="px-4 py-1.5 text-sm text-primary hover:text-primary/85 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors font-medium"
                         >
-                          Trade
+                          {tu('trade')}
                         </Link>
                       </td>
                     </tr>
@@ -306,13 +307,13 @@ export default function UnifiedTradingPage() {
                         <div className="w-20 h-20 bg-accent rounded-xl flex items-center justify-center mb-4">
                           <Wallet className="w-10 h-10 text-muted-foreground" />
                         </div>
-                        <p className="text-muted-foreground font-medium">No assets found</p>
-                        <p className="text-sm text-muted-foreground mt-1">Transfer funds to start trading</p>
+                        <p className="text-muted-foreground font-medium">{tu('noAssetsFound')}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{tu('transferToStart')}</p>
                         <Link
                           href="/wallet/transfer"
                           className="mt-4 px-6 py-2.5 bg-primary hover:bg-primary/85 text-primary-foreground font-medium text-sm rounded-xl transition-colors inline-block"
                         >
-                          Transfer Now
+                          {tu('transferNow')}
                         </Link>
                       </div>
                     </td>

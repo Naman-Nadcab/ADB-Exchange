@@ -23,7 +23,29 @@
     "copiedUserId": "Disalin",
     "dismiss": "Tutup",
     "primaryNav": "Navigasi utama",
-    "tradingNav": "Navigasi trading"
+    "tradingNav": "Navigasi trading",
+    "breadcrumb": "Breadcrumb",
+    "moreInformation": "Informasi selengkapnya",
+    "loadingRows": "Memuat"
+  },
+  "notFoundPage": {
+    "eyebrow": "Error",
+    "title": "Halaman tidak ditemukan",
+    "description": "Halaman yang Anda cari tidak ada atau mungkin telah dipindahkan.",
+    "backToHome": "Kembali ke beranda",
+    "logIn": "Masuk",
+    "popularPages": "Halaman populer",
+    "buyCrypto": "Beli kripto"
+  },
+  "routeErrors": {
+    "dashboardSection": "Bagian dashboard gagal dimuat",
+    "dashboardRetry": "Silakan coba lagi bagian ini.",
+    "p2pSection": "Bagian P2P gagal dimuat",
+    "p2pRetry": "Coba lagi untuk melanjutkan alur P2P.",
+    "tradeSection": "Tampilan trading gagal dimuat",
+    "tradeRetry": "Coba lagi untuk memulihkan panel pasar.",
+    "walletSection": "Bagian wallet gagal dimuat",
+    "walletRetry": "Coba lagi untuk memperbarui data wallet."
   },
   "notificationPanel": {
     "title": "Notifikasi",
@@ -85,5 +107,14 @@
     "invalidCodeTitle": "Invalid code",
     "sessionsTitle": "Sessions",
     "activityTitle": "Activity"
+  },
+  "themeToggle": {
+    "changeTheme": "Change theme",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "switchToMode": "Switch to {mode} mode"
   }
 }

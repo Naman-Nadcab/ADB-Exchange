@@ -10,11 +10,13 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { ArrowLeft, HelpCircle, Loader2, MessageCircle, Plus, Send } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { notifyError } from '@/lib/notifyError';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 
 type View = 'list' | 'create' | 'detail';
 
@@ -48,23 +50,18 @@ interface TicketDetail {
   resolution_note: string | null;
 }
 
-const CATEGORIES = [
-  { value: 'general', label: 'General' },
-  { value: 'account', label: 'Account' },
-  { value: 'deposit', label: 'Deposit' },
-  { value: 'withdrawal', label: 'Withdrawal' },
-  { value: 'trading', label: 'Trading' },
-  { value: 'kyc', label: 'KYC / Identity' },
-  { value: 'security', label: 'Security' },
-  { value: 'other', label: 'Other' },
-];
+const CATEGORY_VALUES = [
+  'general',
+  'account',
+  'deposit',
+  'withdrawal',
+  'trading',
+  'kyc',
+  'security',
+  'other',
+] as const;
 
-const PRIORITIES = [
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-  { value: 'urgent', label: 'Urgent' },
-];
+const PRIORITY_VALUES = ['low', 'medium', 'high', 'urgent'] as const;
 
 const STATUS_STYLE: Record<string, string> = {
   open: 'bg-primary/15 text-primary',
@@ -73,10 +70,6 @@ const STATUS_STYLE: Record<string, string> = {
   resolved: 'bg-success/15 text-success',
   closed: 'bg-muted text-muted-foreground',
 };
-
-function formatStatus(s: string) {
-  return s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-}
 
 function formatWhen(iso: string) {
   try {
@@ -87,8 +80,34 @@ function formatWhen(iso: string) {
 }
 
 export default function SupportPage() {
+  const t = useTranslations('account.supportPage');
+  const { fromApi } = useApiErrorMessage();
   const { accessToken } = useAuthStore();
   const apiUrl = useMemo(() => getApiBaseUrl(), []);
+
+  const formatStatus = (s: string) => {
+    try {
+      return t(`statuses.${s}` as Parameters<typeof t>[0]);
+    } catch {
+      return s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+  };
+
+  const categoryLabel = (value: string) => {
+    try {
+      return t(`categories.${value}` as Parameters<typeof t>[0]);
+    } catch {
+      return value;
+    }
+  };
+
+  const priorityLabel = (value: string) => {
+    try {
+      return t(`priorities.${value}` as Parameters<typeof t>[0]);
+    } catch {
+      return value;
+    }
+  };
 
   const [view, setView] = useState<View>('list');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -128,12 +147,12 @@ export default function SupportPage() {
       if (res.ok && json?.success) {
         setTickets(json.data?.tickets || []);
       } else {
-        const message = json?.error?.message || 'Failed to load tickets';
+        const message = fromApi(json, 'generic.unknown') || t('loadTicketsFailed');
         setListError(message);
         notifyError(message);
       }
     } catch {
-      const message = 'Failed to load tickets';
+      const message = t('loadTicketsFailed');
       setListError(message);
       notifyError(message);
     } finally {
@@ -152,12 +171,12 @@ export default function SupportPage() {
         setDetail(json.data.ticket);
         setMessages(json.data.messages || []);
       } else {
-        const message = json?.error?.message || 'Failed to load ticket';
+        const message = fromApi(json, 'generic.unknown') || t('loadTicketFailed');
         setDetailError(message);
         notifyError(message);
       }
     } catch {
-      const message = 'Failed to load ticket';
+      const message = t('loadTicketFailed');
       setDetailError(message);
       notifyError(message);
     } finally {
@@ -179,7 +198,7 @@ export default function SupportPage() {
     e.preventDefault();
     if (!accessToken) return;
     if (subject.trim().length < 3 || message.trim().length < 5) {
-      notifyError('Subject and message are too short');
+      notifyError(t('subjectTooShort'));
       return;
     }
     setCreating(true);
@@ -204,10 +223,10 @@ export default function SupportPage() {
         await fetchList();
         setView('detail');
       } else {
-        notifyError(json?.error?.message || 'Failed to create ticket');
+        notifyError(fromApi(json, 'generic.unknown') || t('createTicketFailed'));
       }
     } catch {
-      notifyError('Failed to create ticket');
+      notifyError(t('createTicketFailed'));
     } finally {
       setCreating(false);
     }
@@ -228,10 +247,10 @@ export default function SupportPage() {
         setReplyText('');
         await fetchDetail(selectedId);
       } else {
-        notifyError(json?.error?.message || 'Failed to send reply');
+        notifyError(fromApi(json, 'generic.unknown') || t('sendReplyFailed'));
       }
     } catch {
-      notifyError('Failed to send reply');
+      notifyError(t('sendReplyFailed'));
     } finally {
       setReplying(false);
     }
@@ -242,17 +261,15 @@ export default function SupportPage() {
   const Header = (
     <div className="flex items-center justify-between gap-3">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Support</h1>
-        <p className="text-sm text-muted-foreground">
-          Questions about deposits, withdrawals, KYC or trading? Open a ticket and our team will respond.
-        </p>
+        <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
       </div>
       {view === 'list' && (
         <button
           onClick={() => setView('create')}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition"
         >
-          <Plus className="w-4 h-4" /> New ticket
+          <Plus className="w-4 h-4" /> {t('newTicket')}
         </button>
       )}
     </div>
@@ -267,17 +284,17 @@ export default function SupportPage() {
           onClick={() => setView('list')}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to tickets
+          <ArrowLeft className="w-4 h-4" /> {t('backToTickets')}
         </button>
 
         <form onSubmit={handleCreate} className="bg-card border border-border rounded-2xl p-6 space-y-5">
           <div>
-            <label className="text-sm font-semibold text-foreground">Subject</label>
+            <label className="text-sm font-semibold text-foreground">{t('subject')}</label>
             <input
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder="Briefly describe the issue"
+              placeholder={t('subjectPlaceholder')}
               maxLength={200}
               className="mt-2 w-full px-4 py-3 rounded-xl bg-muted border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition"
               required
@@ -286,48 +303,48 @@ export default function SupportPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-semibold text-foreground">Category</label>
+              <label className="text-sm font-semibold text-foreground">{t('category')}</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 className="mt-2 w-full px-4 py-3 rounded-xl bg-muted border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
               >
-                {CATEGORIES.map((c) => (
-                  <option key={c.value} value={c.value}>{c.label}</option>
+                {CATEGORY_VALUES.map((value) => (
+                  <option key={value} value={value}>{categoryLabel(value)}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="text-sm font-semibold text-foreground">Priority</label>
+              <label className="text-sm font-semibold text-foreground">{t('priority')}</label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
                 className="mt-2 w-full px-4 py-3 rounded-xl bg-muted border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
               >
-                {PRIORITIES.map((p) => (
-                  <option key={p.value} value={p.value}>{p.label}</option>
+                {PRIORITY_VALUES.map((value) => (
+                  <option key={value} value={value}>{priorityLabel(value)}</option>
                 ))}
               </select>
             </div>
           </div>
 
           <div>
-            <label className="text-sm font-semibold text-foreground">Message</label>
+            <label className="text-sm font-semibold text-foreground">{t('message')}</label>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Include all relevant details: transaction IDs, timestamps, wallet addresses, error messages"
+              placeholder={t('messagePlaceholder')}
               rows={8}
               maxLength={5000}
               className="mt-2 w-full px-4 py-3 rounded-xl bg-muted border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none"
               required
             />
-            <p className="text-xs text-muted-foreground mt-1">{message.length} / 5000</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('charCount', { count: message.length })}</p>
           </div>
 
           <div className="flex items-center justify-between">
             <Link href="/dashboard/help" className="text-sm text-primary hover:underline inline-flex items-center gap-1.5">
-              <HelpCircle className="w-4 h-4" /> Check FAQ first
+              <HelpCircle className="w-4 h-4" /> {t('checkFaq')}
             </Link>
             <button
               type="submit"
@@ -335,7 +352,7 @@ export default function SupportPage() {
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 disabled:opacity-60"
             >
               {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              Submit ticket
+              {t('submitTicket')}
             </button>
           </div>
         </form>
@@ -352,7 +369,7 @@ export default function SupportPage() {
           onClick={() => { setView('list'); setSelectedId(null); setDetail(null); setMessages([]); }}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to tickets
+          <ArrowLeft className="w-4 h-4" /> {t('backToTickets')}
         </button>
 
         {detailLoading ? (
@@ -361,14 +378,14 @@ export default function SupportPage() {
           </div>
         ) : detailError ? (
           <ErrorState
-            title="Could not load this ticket"
+            title={t('couldNotLoadTicket')}
             message={detailError}
             onRetry={() => selectedId && fetchDetail(selectedId)}
           />
         ) : !detail ? (
           <ErrorState
-            title="Ticket not found"
-            message="This ticket may be unavailable or no longer accessible."
+            title={t('ticketNotFound')}
+            message={t('ticketUnavailable')}
             onRetry={() => selectedId && fetchDetail(selectedId)}
           />
         ) : (
@@ -378,7 +395,10 @@ export default function SupportPage() {
                 <div>
                   <h2 className="text-xl font-bold text-foreground">{detail.subject}</h2>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Opened {formatWhen(detail.created_at)} · Updated {formatWhen(detail.updated_at)}
+                    {t('openedUpdated', {
+                      opened: formatWhen(detail.created_at),
+                      updated: formatWhen(detail.updated_at),
+                    })}
                   </p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${STATUS_STYLE[detail.status] || 'bg-muted'}`}>
@@ -386,12 +406,12 @@ export default function SupportPage() {
                 </span>
               </div>
               <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="px-2 py-0.5 rounded bg-muted">{detail.category}</span>
-                <span className="px-2 py-0.5 rounded bg-muted">{detail.priority}</span>
+                <span className="px-2 py-0.5 rounded bg-muted">{categoryLabel(detail.category)}</span>
+                <span className="px-2 py-0.5 rounded bg-muted">{priorityLabel(detail.priority)}</span>
               </div>
               {detail.resolution_note && (
                 <div className="mt-4 p-3 rounded-lg bg-success/10 border border-success/30 text-sm text-foreground">
-                  <p className="font-semibold text-success mb-1">Resolution</p>
+                  <p className="font-semibold text-success mb-1">{t('resolution')}</p>
                   {detail.resolution_note}
                 </div>
               )}
@@ -404,7 +424,7 @@ export default function SupportPage() {
                   onClick={() => selectedId && fetchDetail(selectedId)}
                   className="text-xs font-medium text-primary hover:underline"
                 >
-                  Refresh conversation
+                  {t('refreshConversation')}
                 </button>
               </div>
               {messages.map((m) => (
@@ -418,14 +438,14 @@ export default function SupportPage() {
                       : 'bg-muted text-foreground rounded-bl-sm border border-border'
                   }`}>
                     <p className="text-[11px] opacity-70 mb-1">
-                      {m.sender_type === 'user' ? 'You' : 'Support'} · {formatWhen(m.created_at)}
+                      {m.sender_type === 'user' ? t('you') : t('support')} · {formatWhen(m.created_at)}
                     </p>
                     <p className="whitespace-pre-wrap text-sm">{m.message}</p>
                   </div>
                 </div>
               ))}
               {messages.length === 0 && (
-                <p className="text-center text-sm text-muted-foreground py-8">No messages yet.</p>
+                <p className="text-center text-sm text-muted-foreground py-8">{t('noMessages')}</p>
               )}
             </div>
 
@@ -434,26 +454,26 @@ export default function SupportPage() {
                 <textarea
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Reply to support..."
+                  placeholder={t('replyPlaceholder')}
                   rows={3}
                   maxLength={5000}
                   className="w-full px-4 py-3 rounded-xl bg-muted border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none"
                 />
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">{replyText.length} / 5000</span>
+                  <span className="text-xs text-muted-foreground">{t('charCount', { count: replyText.length })}</span>
                   <button
                     type="submit"
                     disabled={replying || replyText.trim().length === 0}
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 disabled:opacity-60"
                   >
                     {replying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    Send
+                    {t('send')}
                   </button>
                 </div>
               </form>
             ) : (
               <div className="bg-muted border border-border rounded-xl p-4 text-sm text-muted-foreground text-center">
-                This ticket is closed. Open a new ticket if you need further help.
+                {t('ticketClosed')}
               </div>
             )}
           </>
@@ -475,7 +495,7 @@ export default function SupportPage() {
         ) : listError ? (
           <div className="p-4">
             <ErrorState
-              title="Could not load support tickets"
+              title={t('listErrorTitle')}
               message={listError}
               onRetry={() => fetchList()}
             />
@@ -483,36 +503,40 @@ export default function SupportPage() {
         ) : tickets.length === 0 ? (
           <div className="py-16 text-center">
             <MessageCircle className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-            <p className="text-foreground font-semibold">No support tickets yet</p>
-            <p className="text-sm text-muted-foreground mt-1">Check the FAQ or open a new ticket.</p>
+            <p className="text-foreground font-semibold">{t('noTicketsTitle')}</p>
+            <p className="text-sm text-muted-foreground mt-1">{t('noTicketsDesc')}</p>
             <div className="mt-6 flex items-center justify-center gap-3">
               <Link href="/dashboard/help" className="px-4 py-2 rounded-xl border border-border text-sm font-semibold hover:bg-accent">
-                Browse FAQ
+                {t('browseFaq')}
               </Link>
               <button
                 onClick={() => setView('create')}
                 className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90"
               >
-                Open ticket
+                {t('openTicket')}
               </button>
             </div>
           </div>
         ) : (
           <ul className="divide-y divide-border">
-            {tickets.map((t) => (
-              <li key={t.id}>
+            {tickets.map((ticket) => (
+              <li key={ticket.id}>
                 <button
-                  onClick={() => { setSelectedId(t.id); setView('detail'); }}
+                  onClick={() => { setSelectedId(ticket.id); setView('detail'); }}
                   className="w-full text-left px-5 py-4 flex items-start justify-between gap-4 hover:bg-accent/60 transition"
                 >
                   <div className="min-w-0">
-                    <p className="font-semibold text-foreground truncate">{t.subject}</p>
+                    <p className="font-semibold text-foreground truncate">{ticket.subject}</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {t.category} · {t.priority} · {t.message_count} message{t.message_count !== 1 ? 's' : ''} · Updated {formatWhen(t.updated_at)}
+                      {categoryLabel(ticket.category)} · {priorityLabel(ticket.priority)} ·{' '}
+                      {ticket.message_count !== 1
+                        ? t('messageCountPlural', { count: ticket.message_count })
+                        : t('messageCount', { count: ticket.message_count })}{' '}
+                      · {t('updated', { time: formatWhen(ticket.updated_at) })}
                     </p>
                   </div>
-                  <span className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold ${STATUS_STYLE[t.status] || 'bg-muted'}`}>
-                    {formatStatus(t.status)}
+                  <span className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold ${STATUS_STYLE[ticket.status] || 'bg-muted'}`}>
+                    {formatStatus(ticket.status)}
                   </span>
                 </button>
               </li>

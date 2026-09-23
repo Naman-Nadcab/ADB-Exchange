@@ -6,13 +6,16 @@ import Link from 'next/link';
 import { useAuthStore } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { useTranslations } from 'next-intl';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { toast } from '@/components/ui/toaster';
 import { ChevronRight, Loader2, Info, Key, Shield, Check, AlertTriangle, Copy } from 'lucide-react';
 import { APIPermissionSummary } from '@/components/api/APIPermissionSummary';
 
 function CreateApiKeyContent() {
+  const t = useTranslations('account.apiCreatePage');
   const tn = useTranslations('common.notifications');
   const tt = useTranslations('account.toasts');
+  const { fromApi } = useApiErrorMessage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const keyType = searchParams.get('type') as 'system' | 'self' || 'system';
@@ -110,7 +113,11 @@ function CreateApiKeyContent() {
         });
         setShowSuccess(true);
       } else {
-        toast({ title: tn('errorTitle'), description: result.error?.message || tt('apiKeyCreateFailed'), variant: 'destructive' });
+        toast({
+          title: tn('errorTitle'),
+          description: result.error ? fromApi(result.error, 'generic.unknown') : tt('apiKeyCreateFailed'),
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('Failed to create API key:', error);
@@ -129,12 +136,12 @@ function CreateApiKeyContent() {
             <div className="w-20 h-20 bg-buy-light rounded-full flex items-center justify-center mx-auto mb-6">
               <Check className="w-10 h-10 text-buy" />
             </div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">API Key Created!</h2>
-            <p className="text-muted-foreground mb-6">Save your credentials now. The secret will not be shown again.</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">{t('successTitle')}</h2>
+            <p className="text-muted-foreground mb-6">{t('successSubtitle')}</p>
             
             <div className="space-y-4 text-left">
               <div className="p-4 bg-muted rounded-xl">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">API Key</label>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('apiKeyLabel')}</label>
                 <div className="flex items-center gap-2 mt-2">
                   <code className="flex-1 text-sm font-mono text-foreground break-all">{createdKey.apiKey}</code>
                   <button
@@ -168,9 +175,7 @@ function CreateApiKeyContent() {
             <button
               onClick={() => router.push('/dashboard/api')}
               className="w-full mt-6 px-6 py-3 bg-primary hover:bg-primary/85 text-primary-foreground font-semibold rounded-xl transition-colors"
-            >
-              Done
-            </button>
+            >{t('done')}</button>
           </div>
         </div>
       </div>
@@ -202,7 +207,7 @@ function CreateApiKeyContent() {
           <div className="flex items-center gap-2">
             <span className={`font-medium ${checked ? 'text-primary' : 'text-foreground'}`}>{label}</span>
             {recommended && (
-              <span className="px-2 py-0.5 bg-muted text-primary text-xs font-medium rounded">Recommended</span>
+              <span className="px-2 py-0.5 bg-muted text-primary text-xs font-medium rounded">{t('recommended')}</span>
             )}
           </div>
           {description && (
@@ -246,11 +251,9 @@ function CreateApiKeyContent() {
           <button 
             onClick={() => router.push('/dashboard/api')}
             className="text-muted-foreground hover:text-primary transition-colors"
-          >
-            API
-          </button>
+          >{t('breadcrumbApi')}</button>
           <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          <span className="text-foreground font-medium">Create New Key</span>
+          <span className="text-foreground font-medium">{t('breadcrumbCreate')}</span>
         </div>
 
         {/* Header */}
@@ -275,7 +278,7 @@ function CreateApiKeyContent() {
         <div className="space-y-6">
           {/* API Key Usage */}
           <div className="bg-card rounded-xl p-6 border border-border">
-            <h2 className="text-lg font-semibold text-foreground mb-4">API Key Usage</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-4">{t('usageTitle')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <RadioCard
                 checked={apiKeyUsage === 'transaction'}
@@ -296,7 +299,7 @@ function CreateApiKeyContent() {
           {/* Public Key (Self-generated only) */}
           {keyType === 'self' && (
             <div className="bg-card rounded-xl p-6 border border-border">
-              <h2 className="text-lg font-semibold text-foreground mb-4">Your Public Key *</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-4">{t('publicKeyTitle')}</h2>
               <textarea
                 value={publicKey}
                 onChange={e => setPublicKey(e.target.value)}
@@ -320,28 +323,24 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
 
           {/* Key Name & Permissions */}
           <div className="bg-card rounded-xl p-6 border border-border">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Key Configuration</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-4">{t('configTitle')}</h2>
             
             <div className="space-y-6">
               {/* Name */}
               <div>
-                <label className="block text-sm font-medium text-foreground/80 mb-2">
-                  Key Name *
-                </label>
+                <label className="block text-sm font-medium text-foreground/80 mb-2">{t('keyNameLabel')}</label>
                 <input
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  placeholder="e.g., Trading Bot, Portfolio Tracker"
+                  placeholder={t('namePlaceholder')}
                   className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
 
               {/* Permission Level */}
               <div>
-                <label className="block text-sm font-medium text-foreground/80 mb-3">
-                  Permission Level
-                </label>
+                <label className="block text-sm font-medium text-foreground/80 mb-3">{t('permissionLevel')}</label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <RadioCard
                     checked={permission === 'read_only'}
@@ -363,7 +362,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
 
           {/* IP Security */}
           <div className="bg-card rounded-xl p-6 border border-border">
-            <h2 className="text-lg font-semibold text-foreground mb-4">IP Security</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-4">{t('ipSecurityTitle')}</h2>
             
             <div className="space-y-4">
               <RadioCard
@@ -382,9 +381,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
 
               {ipRestriction === 'ip_only' && (
                 <div className="mt-4 pl-8">
-                  <label className="block text-sm font-medium text-foreground/80 mb-2">
-                    IP Addresses (comma separated)
-                  </label>
+                  <label className="block text-sm font-medium text-foreground/80 mb-2">{t('ipAddressesLabel')}</label>
                   <textarea
                     value={ipAddresses}
                     onChange={e => setIpAddresses(e.target.value)}
@@ -392,7 +389,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
                     rows={3}
                     className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none font-mono text-sm"
                   />
-                  <p className="text-xs text-muted-foreground mt-2">Up to 100 IP addresses allowed</p>
+                  <p className="text-xs text-muted-foreground mt-2">{t('ipLimitNote')}</p>
                 </div>
               )}
             </div>
@@ -401,14 +398,14 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
           {/* API Permissions */}
           <div className="bg-card rounded-xl border border-border overflow-hidden">
             <div className="px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-semibold text-foreground">API Permissions</h2>
-              <p className="text-sm text-muted-foreground">Select which features this key can access</p>
+              <h2 className="text-lg font-semibold text-foreground">{t('permissionsTitle')}</h2>
+              <p className="text-sm text-muted-foreground">{t('permissionsSubtitle')}</p>
             </div>
 
             {/* Trading */}
             <div className="border-b border-border">
               <div className="px-6 py-3 bg-muted">
-                <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wider">Trading</h3>
+                <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wider">{t('sectionTrading')}</h3>
               </div>
               <div className="p-2">
                 <PermissionCheckbox
@@ -431,7 +428,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
             {/* Earn */}
             <div className="border-b border-border">
               <div className="px-6 py-3 bg-muted">
-                <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wider">Earn</h3>
+                <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wider">{t('sectionEarn')}</h3>
               </div>
               <div className="p-2">
                 <PermissionCheckbox
@@ -454,7 +451,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
             {/* Fiat */}
             <div className="border-b border-border">
               <div className="px-6 py-3 bg-muted">
-                <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wider">Fiat Trading</h3>
+                <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wider">{t('sectionFiat')}</h3>
               </div>
               <div className="p-2">
                 <PermissionCheckbox
@@ -495,7 +492,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
             {/* Assets */}
             <div>
               <div className="px-6 py-3 bg-muted">
-                <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wider">Assets</h3>
+                <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wider">{t('sectionAssets')}</h3>
               </div>
               <div className="p-2">
                 <PermissionCheckbox
@@ -521,8 +518,8 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
                     <div className="flex items-start gap-3">
                       <div className="w-5 h-5 rounded-md border-2 border-border flex-shrink-0 mt-0.5" />
                       <div>
-                        <span className="text-sm font-medium text-muted-foreground">Withdrawal</span>
-                        <p className="text-xs text-muted-foreground mt-0.5">Not available for read-only keys</p>
+                        <span className="text-sm font-medium text-muted-foreground">{t('withdrawalLabel')}</span>
+                        <p className="text-xs text-muted-foreground mt-0.5">{t('withdrawalDisabledNote')}</p>
                       </div>
                     </div>
                   </div>
@@ -558,22 +555,16 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
             >
               {submitting ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Creating...
-                </>
+                  <Loader2 className="w-5 h-5 animate-spin" />{t('creating')}</>
               ) : (
                 <>
-                  <Key className="w-5 h-5" />
-                  Create API Key
-                </>
+                  <Key className="w-5 h-5" />{t('createButton')}</>
               )}
             </button>
             <button
               onClick={() => router.push('/dashboard/api')}
               className="px-8 py-4 text-muted-foreground hover:text-foreground font-medium transition-colors"
-            >
-              Cancel
-            </button>
+            >{t('cancel')}</button>
           </div>
         </div>
       </div>
@@ -582,12 +573,16 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
 }
 
 export default function CreateApiKeyPage() {
+  const t = useTranslations('account.apiCreatePage');
+  const tc = useTranslations('account.common');
+  const ts = useTranslations('security.common');
+  const { fromApi, networkUnreachable } = useApiErrorMessage();
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center">
           <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">{t('loading')}</p>
         </div>
       </div>
     }>

@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { ArrowLeft, Download, History, Loader2, RefreshCw } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { api } from '@/lib/api';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { CoinIcon } from '@/components/ui/CoinIcon';
 
@@ -63,6 +65,10 @@ function feeDisplay(t: TradeRow): string {
 }
 
 export default function TradeHistoryPage() {
+  const t = useTranslations('orders.tradeHistoryPage');
+  const to = useTranslations('orders');
+  const tc = useTranslations('common');
+  const { fromApi } = useApiErrorMessage();
   const { accessToken, _hasHydrated } = useAuthStore();
   const [trades, setTrades] = useState<TradeRow[]>([]);
   const [page, setPage] = useState(1);
@@ -95,7 +101,7 @@ export default function TradeHistoryPage() {
             setTrades([]);
             setTotalPages(1);
             setPage(1);
-            setFetchError(parsed.error?.message || 'Failed to load trade history');
+            setFetchError(fromApi(parsed.error ?? parsed, 'generic.unknown'));
           }
           return;
         }
@@ -114,13 +120,13 @@ export default function TradeHistoryPage() {
           setTrades([]);
           setTotalPages(1);
           setPage(1);
-          setFetchError('Network error while loading trade history');
+          setFetchError(t('networkError'));
         }
       } finally {
         append ? setLoadingMore(false) : setLoading(false);
       }
     },
-    [accessToken, pairFilter]
+    [accessToken, pairFilter, fromApi, t]
   );
 
   useEffect(() => {
@@ -185,9 +191,9 @@ export default function TradeHistoryPage() {
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" aria-hidden />
-            Orders
+            {t('breadcrumb')}
           </Link>
-          <h1 className="text-xl font-semibold text-foreground">Trade History</h1>
+          <h1 className="text-xl font-semibold text-foreground">{t('title')}</h1>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -197,14 +203,14 @@ export default function TradeHistoryPage() {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-muted text-sm font-medium text-foreground hover:bg-muted/80 disabled:opacity-50 disabled:pointer-events-none"
           >
             <Download className="w-3.5 h-3.5 text-muted-foreground" aria-hidden />
-            Export CSV
+            {t('exportCsv')}
           </button>
           <button
             type="button"
             onClick={() => fetchPage(1, false)}
             disabled={loading || !accessToken}
             className="p-2 rounded-lg border border-border bg-muted text-foreground hover:bg-muted/80 disabled:opacity-50"
-            aria-label="Refresh"
+            aria-label={t('refreshAria')}
           >
             <RefreshCw className={`w-4 h-4 text-muted-foreground ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -214,7 +220,7 @@ export default function TradeHistoryPage() {
       {fetchError && (
         <div className="mb-4 rounded-lg border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3 flex items-center justify-between text-sm">
           <span className="text-amber-800 dark:text-amber-200">{fetchError}</span>
-          <button type="button" onClick={() => void fetchPage(1, false)} className="text-primary hover:underline">Retry</button>
+          <button type="button" onClick={() => void fetchPage(1, false)} className="text-primary hover:underline">{tc('actions.retry')}</button>
         </div>
       )}
 
@@ -224,7 +230,7 @@ export default function TradeHistoryPage() {
             type="text"
             value={pairFilter}
             onChange={(e) => setPairFilter(e.target.value)}
-            placeholder="Pair (e.g. BTC_USDT)"
+            placeholder={t('pairPlaceholder')}
             className="px-3 py-1.5 text-xs bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground min-w-[140px] focus:ring-1 focus:ring-primary/40 outline-none"
           />
           <select
@@ -232,12 +238,12 @@ export default function TradeHistoryPage() {
             onChange={(e) => setSideFilter(e.target.value as '' | 'buy' | 'sell')}
             className="px-3 py-1.5 text-xs bg-muted border border-border rounded-lg text-foreground w-28"
           >
-            <option value="">All sides</option>
-            <option value="buy">Buy</option>
-            <option value="sell">Sell</option>
+            <option value="">{t('allSides')}</option>
+            <option value="buy">{to('buy')}</option>
+            <option value="sell">{to('sell')}</option>
           </select>
           <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span className="whitespace-nowrap">From</span>
+            <span className="whitespace-nowrap">{t('from')}</span>
             <input
               type="date"
               value={dateFrom}
@@ -246,7 +252,7 @@ export default function TradeHistoryPage() {
             />
           </label>
           <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span className="whitespace-nowrap">To</span>
+            <span className="whitespace-nowrap">{t('to')}</span>
             <input
               type="date"
               value={dateTo}
@@ -260,14 +266,14 @@ export default function TradeHistoryPage() {
           <table className="w-full text-xs min-w-[800px]">
             <thead>
               <tr className="text-left text-muted-foreground border-b border-border">
-                <th className="py-2.5 px-3 font-medium">Date</th>
-                <th className="py-2.5 px-3 font-medium">Pair</th>
-                <th className="py-2.5 px-3 font-medium">Side</th>
-                <th className="py-2.5 px-3 font-medium">Price</th>
-                <th className="py-2.5 px-3 font-medium">Amount</th>
-                <th className="py-2.5 px-3 font-medium">Fee</th>
-                <th className="py-2.5 px-3 font-medium">Total</th>
-                <th className="py-2.5 px-3 font-medium">Order ID</th>
+                <th className="py-2.5 px-3 font-medium">{t('colDate')}</th>
+                <th className="py-2.5 px-3 font-medium">{t('colPair')}</th>
+                <th className="py-2.5 px-3 font-medium">{t('colSide')}</th>
+                <th className="py-2.5 px-3 font-medium">{t('colPrice')}</th>
+                <th className="py-2.5 px-3 font-medium">{t('colAmount')}</th>
+                <th className="py-2.5 px-3 font-medium">{t('colFee')}</th>
+                <th className="py-2.5 px-3 font-medium">{t('colTotal')}</th>
+                <th className="py-2.5 px-3 font-medium">{t('colOrderId')}</th>
               </tr>
             </thead>
             <tbody>
@@ -286,9 +292,9 @@ export default function TradeHistoryPage() {
                   <td colSpan={8} className="p-0 align-top">
                     <EmptyState
                       icon={History}
-                      title="No trades yet"
-                      description="Your executed spot fills will appear here."
-                      actionLabel="Spot trading"
+                      title={t('emptyTitle')}
+                      description={t('emptyDesc')}
+                      actionLabel={t('spotTrading')}
                       actionHref="/trade/spot"
                     />
                   </td>
@@ -341,7 +347,7 @@ export default function TradeHistoryPage() {
               className="inline-flex items-center gap-2 py-2 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
             >
               {loadingMore && <Loader2 className="w-4 h-4 animate-spin" aria-hidden />}
-              Load more
+              {t('loadMore')}
             </button>
           </div>
         )}

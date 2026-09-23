@@ -13,6 +13,8 @@ import { useAuthStore } from '@/store/auth';
 
 export default function ForexAccountPage() {
   const tf = useTranslations('forex');
+  const t = useTranslations('forex.accountPage');
+  const tu = useTranslations('forex.riskStates');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const account = useForexStore((s) => s.account);
@@ -25,6 +27,7 @@ export default function ForexAccountPage() {
   const lastHydratedAt = useForexStore((s) => s.lastHydratedAt);
   const activeForexAccountId = useForexStore((s) => s.activeForexAccountId);
   const currency = account?.currency ?? balance?.currency ?? 'USD';
+  const unavailable = tu('unavailable');
 
   return (
     <ForexPageFrame
@@ -35,69 +38,70 @@ export default function ForexAccountPage() {
       {!authed ? (
         <ForexSignInPrompt href="/login?redirect=/forex/account" sectionKey="yourForexAccount" />
       ) : !account && !balance ? (
-        <p className="text-sm text-muted-foreground">Loading account…</p>
+        <p className="text-sm text-muted-foreground">{t('loading')}</p>
       ) : (
         <>
-          <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6" aria-label="Account totals">
-            <ForexMetric label="Balance" value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
-            <ForexMetric label="Equity" value={account?.equity ?? balance?.equity} currency={currency} />
-            <ForexMetric label="Used margin" value={account?.usedMargin ?? margin?.usedMargin} currency={currency} />
-            <ForexMetric label="Free margin" value={account?.freeMargin ?? margin?.freeMargin} currency={currency} />
+          <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6" aria-label={t('accountTotalsAria')}>
+            <ForexMetric label={t('metricBalance')} value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
+            <ForexMetric label={t('metricEquity')} value={account?.equity ?? balance?.equity} currency={currency} />
+            <ForexMetric label={t('metricUsedMargin')} value={account?.usedMargin ?? margin?.usedMargin} currency={currency} />
+            <ForexMetric label={t('metricFreeMargin')} value={account?.freeMargin ?? margin?.freeMargin} currency={currency} />
             <ForexMetric
-              label="Margin level"
+              label={t('metricMarginLevel')}
               value={account?.marginLevel ?? margin?.marginLevel}
               kind="plain"
-              hint={account?.marginLevel == null && margin?.marginLevel == null ? 'Unavailable when unused' : '%'}
+              hint={account?.marginLevel == null && margin?.marginLevel == null ? t('marginLevelUnavailableHint') : '%'}
             />
-            <ForexMetric label="Unrealized P&L" value={account?.unrealizedPnl ?? pnl?.unrealized} currency={currency} signed />
+            <ForexMetric label={t('metricUnrealizedPnl')} value={account?.unrealizedPnl ?? pnl?.unrealized} currency={currency} signed />
           </section>
 
-          <section className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Performance">
-            <ForexMetric label="Realized P&L" value={account?.realizedPnl ?? pnl?.realized} currency={currency} signed />
-            <ForexMetric label="Fees" value={fees?.total} currency={fees?.currency ?? currency} />
-            <ForexMetric label="Swaps" value={swaps?.total} currency={swaps?.currency ?? currency} />
-            <ForexMetric label="Available" value={account?.availableBalance ?? balance?.availableBalance} currency={currency} />
+          <section className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label={t('performanceAria')}>
+            <ForexMetric label={t('metricRealizedPnl')} value={account?.realizedPnl ?? pnl?.realized} currency={currency} signed />
+            <ForexMetric label={t('metricFees')} value={fees?.total} currency={fees?.currency ?? currency} />
+            <ForexMetric label={t('metricSwaps')} value={swaps?.total} currency={swaps?.currency ?? currency} />
+            <ForexMetric label={t('metricAvailable')} value={account?.availableBalance ?? balance?.availableBalance} currency={currency} />
           </section>
 
-          <section className="eda-card p-4 text-sm" aria-label="Trading account identity">
-            <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Trading account</h2>
+          <section className="eda-card p-4 text-sm" aria-label={t('identityAria')}>
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">{t('tradingAccountHeading')}</h2>
             <dl className="mt-3 grid grid-cols-1 gap-2 font-mono text-[12px] md:grid-cols-2">
               <div>
-                <dt className="text-muted-foreground">Account ID (server)</dt>
+                <dt className="text-muted-foreground">{t('accountIdServer')}</dt>
                 <dd>{fxPlain(account?.accountId ?? activeForexAccountId)}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Mode</dt>
-                <dd>SIMULATED / MOCK · server-scoped active account</dd>
+                <dt className="text-muted-foreground">{t('mode')}</dt>
+                <dd>{t('modeValue')}</dd>
               </div>
             </dl>
             <p className="mt-3 text-[11px] text-muted-foreground">
-              Manage demo accounts on{' '}
-              <Link href={FOREX_ROUTES.accounts} className="text-primary underline underline-offset-2">
-                Forex accounts
-              </Link>
-              . Use the terminal bar switcher for quick changes. Orders, positions, ledger, history, risk, margin, and
-              alerts always follow the server-selected active account.
+              {t.rich('manageAccountsHint', {
+                accountsLink: (chunks) => (
+                  <Link href={FOREX_ROUTES.accounts} className="text-primary underline underline-offset-2">
+                    {chunks}
+                  </Link>
+                ),
+              })}
             </p>
           </section>
 
           <section className="eda-card p-4 text-sm">
-            <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Risk</h2>
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">{t('riskHeading')}</h2>
             <dl className="mt-3 grid grid-cols-2 gap-3 font-mono text-[12px] md:grid-cols-4">
               <div>
-                <dt className="text-muted-foreground">State</dt>
+                <dt className="text-muted-foreground">{t('state')}</dt>
                 <dd>{fxPlain(risk?.state)}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Reason</dt>
+                <dt className="text-muted-foreground">{t('reason')}</dt>
                 <dd>{fxPlain(risk?.reason)}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Liquidation lock</dt>
-                <dd>{risk ? String(risk.liquidationLock) : 'Unavailable'}</dd>
+                <dt className="text-muted-foreground">{t('liquidationLock')}</dt>
+                <dd>{risk ? String(risk.liquidationLock) : unavailable}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Calculation</dt>
+                <dt className="text-muted-foreground">{t('calculation')}</dt>
                 <dd>{fxPlain(account?.calculationStatus ?? balance?.calculationStatus)}</dd>
               </div>
             </dl>
@@ -105,15 +109,17 @@ export default function ForexAccountPage() {
 
           <p className="text-sm text-muted-foreground">
             <Link href={FOREX_ROUTES.ledger} className="text-primary underline underline-offset-2">
-              Ledger
+              {t('footerLedger')}
             </Link>
             {' · '}
             <Link href={FOREX_ROUTES.funds} className="text-primary underline underline-offset-2">
-              Funds
+              {t('footerFunds')}
             </Link>
             {' · '}
-            Balance {fxMoney(account?.ledgerBalance ?? balance?.ledgerBalance, currency)}
-            {lastHydratedAt ? ` · Updated ${new Date(lastHydratedAt).toLocaleString()}` : ''}
+            {t('footerBalance', { amount: fxMoney(account?.ledgerBalance ?? balance?.ledgerBalance, currency) })}
+            {lastHydratedAt
+              ? t('footerUpdated', { time: new Date(lastHydratedAt).toLocaleString() })
+              : ''}
           </p>
         </>
       )}

@@ -235,5 +235,18 @@
       "cryptoOverviewPrefix": "Ringkasan Kripto tetap di",
       "cryptoOverviewSuffix": ". Beranda ini tidak menggantikan terminal Spot Kripto."
     }
+  },
+  "productPair": {
+    "eyebrow": "Produk",
+    "title": "Pilih pasar",
+    "description": "Spot Kripto dan Forex adalah produk terpisah. Forex memiliki harga, akun, dan risiko sendiri.",
+    "cryptoLabel": "Kripto",
+    "cryptoTitle": "Spot Kripto",
+    "cryptoDesc": "Perdagangkan pasar spot kripto.",
+    "cryptoCta": "Trading Spot",
+    "forexLabel": "Forex",
+    "forexTitle": "Forex",
+    "forexDesc": "Perdagangkan pasar FX global.",
+    "forexCta": "Buka Forex"
   }
 }

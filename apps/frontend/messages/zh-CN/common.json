@@ -23,7 +23,29 @@
     "copiedUserId": "已复制",
     "dismiss": "关闭",
     "primaryNav": "主导航",
-    "tradingNav": "交易导航"
+    "tradingNav": "交易导航",
+    "breadcrumb": "面包屑",
+    "moreInformation": "更多信息",
+    "loadingRows": "加载中"
+  },
+  "notFoundPage": {
+    "eyebrow": "错误",
+    "title": "页面未找到",
+    "description": "您访问的页面不存在或可能已被移动。",
+    "backToHome": "返回首页",
+    "logIn": "登录",
+    "popularPages": "常用页面",
+    "buyCrypto": "购买加密货币"
+  },
+  "routeErrors": {
+    "dashboardSection": "控制台模块加载失败",
+    "dashboardRetry": "请重试此模块。",
+    "p2pSection": "P2P 模块加载失败",
+    "p2pRetry": "重试以继续 P2P 流程。",
+    "tradeSection": "交易视图加载失败",
+    "tradeRetry": "重试以恢复行情面板。",
+    "walletSection": "钱包模块加载失败",
+    "walletRetry": "重试以刷新钱包数据。"
   },
   "notificationPanel": {
     "title": "通知",
@@ -85,5 +107,14 @@
     "invalidCodeTitle": "Invalid code",
     "sessionsTitle": "Sessions",
     "activityTitle": "Activity"
+  },
+  "themeToggle": {
+    "changeTheme": "Change theme",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "switchToMode": "Switch to {mode} mode"
   }
 }

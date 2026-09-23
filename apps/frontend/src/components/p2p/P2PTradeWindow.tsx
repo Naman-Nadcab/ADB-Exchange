@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { X, MessageCircle, Clock, Shield, Check } from 'lucide-react';
 import type { P2PMerchantRow } from './P2PMerchantTable';
 import { P2PPaymentMethodIcons } from './P2PPaymentMethodIcons';
@@ -24,6 +25,8 @@ export function P2PTradeWindow({
   onClose,
   onConfirmPayment,
 }: P2PTradeWindowProps) {
+  const tp = useTranslations('p2p');
+  const tc = useTranslations('common.actions');
   const [countdown] = useState(900); // 15 min placeholder
   const [chatMessage, setChatMessage] = useState('');
 
@@ -46,7 +49,7 @@ export function P2PTradeWindow({
             type="button"
             onClick={onClose}
             className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-            aria-label="Close"
+            aria-label={tc('close')}
           >
             <X className="w-5 h-5" />
           </button>
@@ -62,7 +65,7 @@ export function P2PTradeWindow({
         {merchant && (
           <div className="p-4 space-y-4 overflow-y-auto flex-1 min-h-0">
             <div>
-              <p className="text-[11px] text-muted-foreground mb-1">Merchant</p>
+              <p className="text-[11px] text-muted-foreground mb-1">{tp('common.merchant')}</p>
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-foreground font-medium">{merchant.merchantName}</p>
                 {merchant.isVerified && (
@@ -80,20 +83,20 @@ export function P2PTradeWindow({
               </div>
             </div>
             <div>
-              <p className="text-[11px] text-muted-foreground mb-1">Price</p>
+              <p className="text-[11px] text-muted-foreground mb-1">{tp('tradeWindow.price')}</p>
               <p className="text-foreground font-mono text-heading">{merchant.price} {fiat}</p>
             </div>
             <div>
-              <p className="text-[11px] text-muted-foreground mb-1">Limit</p>
+              <p className="text-[11px] text-muted-foreground mb-1">{tp('tradeWindow.limit')}</p>
               <p className="text-foreground font-mono">{merchant.limitMin} - {merchant.limitMax} {fiat}</p>
             </div>
             <div>
-              <p className="text-[11px] text-muted-foreground mb-2">Payment methods</p>
+              <p className="text-[11px] text-muted-foreground mb-2">{tp('tradeWindow.paymentMethods')}</p>
               <P2PPaymentMethodIcons methods={merchant.paymentMethods} className="text-[11px]" />
             </div>
             <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-muted border border-border">
               <Clock className="w-4 h-4 text-muted-foreground" />
-              <span className="text-small text-foreground">Time remaining</span>
+              <span className="text-small text-foreground">{tp('tradeWindow.timeRemaining')}</span>
               <span className="font-mono tabular-nums text-primary ml-auto">
                 {minutes}:{seconds.toString().padStart(2, '0')}
               </span>
@@ -108,7 +111,7 @@ export function P2PTradeWindow({
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="Type a message..."
+                  placeholder={tp('tradeWindow.messagePlaceholder')}
                   value={chatMessage}
                   onChange={(e) => setChatMessage(e.target.value)}
                   className="flex-1 h-9 px-3 rounded-lg bg-background border border-input text-foreground text-small placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"

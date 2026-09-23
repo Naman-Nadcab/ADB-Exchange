@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 
 import { useState, useEffect } from 'react';
 import { BrandLogo } from '@/components/brand/BrandLogo';
@@ -50,6 +51,10 @@ interface ReferralData {
 }
 
 export default function MyReferralsPage() {
+  const t = useTranslations('account.myReferralsPage');
+  const tc = useTranslations('account.common');
+  const ts = useTranslations('security.common');
+  const { fromApi, networkUnreachable } = useApiErrorMessage();
   const tn = useTranslations('common.notifications');
   const tt = useTranslations('account.toasts');
   const router = useRouter();
@@ -69,10 +74,10 @@ export default function MyReferralsPage() {
     try {
       const res = await fetch(`${apiUrl}/api/v1/user/referrals`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.json());
       if (res.success && res.data) setData(res.data);
-      else setFetchError(res.error?.message || 'Failed to load referral data');
+      else setFetchError(res.error?.message ? fromApi(res.error) : t('loadFailed'));
     } catch (err) {
       console.error(err);
-      setFetchError('Network error. Please try again.');
+      setFetchError(networkUnreachable());
     } finally {
       setLoading(false);
     }
@@ -110,7 +115,7 @@ export default function MyReferralsPage() {
         toast({ title: tt('earningsClaimedTitle'), description: tt('earningsClaimedDesc', { summary }), variant: 'success' });
         await loadData();
       } else {
-        toast({ title: tt('nothingToClaimTitle'), description: res.error?.message || tt('noClaimableEarnings'), variant: 'default' });
+        toast({ title: tt('nothingToClaimTitle'), description: res.error?.message ? fromApi(res.error) : tt('noClaimableEarnings'), variant: 'default' });
       }
     } catch {
       toast({ title: tn('errorTitle'), description: tt('claimEarningsFailed'), variant: 'destructive' });
@@ -120,32 +125,30 @@ export default function MyReferralsPage() {
   };
 
   const signupTabs: { id: SignupTab; label: string }[] = [
-    { id: 'signups', label: 'Signups' },
-    { id: 'fiat', label: 'Fiat' },
-    { id: 'card', label: 'Card' },
-    { id: 'earn', label: 'Earn' },
+    { id: 'signups', label: t('tabSignups') },
+    { id: 'fiat', label: t('tabFiat') },
+    { id: 'card', label: t('tabCard') },
+    { id: 'earn', label: t('tabEarn') },
   ];
 
   const historyTabs: { id: HistoryTab; label: string }[] = [
-    { id: 'commission', label: 'Commission History' },
-    { id: 'task', label: 'Task Rewards History' },
-    { id: 'lucky', label: 'Lucky Draw Prizes' },
+    { id: 'commission', label: t('commissionHistoryTab') },
+    { id: 'task', label: t('taskRewardsTab') },
+    { id: 'lucky', label: t('luckyDrawTab') },
   ];
-  const spotTabs: { id: SpotTab; label: string }[] = [{ id: 'spot', label: 'Spot' }];
+  const spotTabs: { id: SpotTab; label: string }[] = [{ id: 'spot', label: t('spot') }];
   const content = (
     <div>
       <div className="max-w-5xl mx-auto px-4 lg:px-8 py-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm mb-6">
-          <Link href="/dashboard/referral" className="text-muted-foreground hover:text-foreground">
-            Referral Program
-          </Link>
+          <Link href="/dashboard/referral" className="text-muted-foreground hover:text-foreground">{t('breadcrumbReferral')}</Link>
           <span className="text-muted-foreground dark:text-muted-foreground">{'\u003e'}</span>
-          <span className="text-primary">My Referrals</span>
+          <span className="text-primary">{t('breadcrumbCurrent')}</span>
         </div>
 
         {/* Overview */}
-        <h2 className="text-xl font-semibold text-foreground mb-4">Overview</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-4">{t('overview')}</h2>
         
         {loading ? (
           <div className="flex items-center justify-center py-12">
@@ -154,7 +157,7 @@ export default function MyReferralsPage() {
         ) : fetchError ? (
           <div className="rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-4 mb-6">
             <p className="text-amber-800 dark:text-amber-200">{fetchError}</p>
-            <button onClick={() => window.location.reload()} className="mt-2 text-sm text-primary hover:underline">Retry</button>
+            <button onClick={() => window.location.reload()} className="mt-2 text-sm text-primary hover:underline">{t('retry')}</button>
           </div>
         ) : (
         <div>
@@ -163,26 +166,26 @@ export default function MyReferralsPage() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex items-center gap-1 text-muted-foreground text-sm mb-2">
-                <span>Total Commissions</span>
+                <span>{t('totalCommissions')}</span>
                 <Info className="w-4 h-4" />
               </div>
               <p className="text-3xl font-bold text-foreground">{Number.isFinite(totalEarnings) ? totalEarnings.toFixed(2) : '0.00'} <span className="text-sm text-muted-foreground">USDT</span></p>
             </div>
             <div className="flex items-center gap-8 mt-4 lg:mt-0">
               <div className="text-center">
-                <p className="text-muted-foreground text-sm mb-1">Sign Up</p>
+                <p className="text-muted-foreground text-sm mb-1">{t('signUp')}</p>
                 <p className="text-foreground font-semibold">{referrals.length}</p>
               </div>
               <div className="text-center">
-                <p className="text-muted-foreground text-sm mb-1">P2P volume</p>
+                <p className="text-muted-foreground text-sm mb-1">{t('p2pVolume')}</p>
                 <p className="text-foreground font-semibold">—</p>
               </div>
               <div className="text-center">
-                <p className="text-muted-foreground text-sm mb-1">Card</p>
+                <p className="text-muted-foreground text-sm mb-1">{t('card')}</p>
                 <p className="text-foreground font-semibold">—</p>
               </div>
               <div className="text-center">
-                <p className="text-muted-foreground text-sm mb-1">Earn</p>
+                <p className="text-muted-foreground text-sm mb-1">{t('earn')}</p>
                 <p className="text-foreground font-semibold">—</p>
               </div>
             </div>
@@ -214,18 +217,18 @@ export default function MyReferralsPage() {
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <div className="flex items-center gap-1 text-muted-foreground text-sm mb-2">
-                    <span>My Commission Rate</span>
+                    <span>{t('myCommissionRate')}</span>
                     <Info className="w-4 h-4" />
                   </div>
                   <p className="text-3xl font-bold text-primary">{Math.round(commissionRate)}%</p>
                   <div className="flex items-center gap-1 text-muted-foreground text-sm mt-3">
-                    <span>Total Commission</span>
+                    <span>{t('totalCommission')}</span>
                     <Info className="w-4 h-4" />
                   </div>
                   <p className="text-xl font-semibold text-foreground">{Number.isFinite(totalEarnings) ? totalEarnings.toFixed(2) : '0.00'} <span className="text-sm text-muted-foreground">USDT</span></p>
                 </div>
                 <div className="mt-4 lg:mt-0">
-                  <p className="text-muted-foreground text-sm mb-2">Claimable Balance</p>
+                  <p className="text-muted-foreground text-sm mb-2">{t('claimableBalance')}</p>
                   <div className="flex items-center gap-3">
                     <p className="text-xl font-semibold text-foreground">{claimableUsdt.toFixed(2)} <span className="text-sm text-muted-foreground">USDT</span></p>
                     <button
@@ -251,7 +254,7 @@ export default function MyReferralsPage() {
               {/* Total Bonus */}
               <div className="bg-card rounded-xl p-5 flex items-center justify-between border border-border dark:border-transparent">
                 <div>
-                  <p className="text-muted-foreground text-sm mb-2">Total Bonus</p>
+                  <p className="text-muted-foreground text-sm mb-2">{t('totalBonus')}</p>
                   <p className="text-2xl font-bold text-foreground">{Number.isFinite(totalEarnings) ? totalEarnings.toFixed(2) : '0.00'} <span className="text-sm text-muted-foreground">USDT</span></p>
                 </div>
                 <div className="text-4xl">🎁</div>
@@ -260,10 +263,10 @@ export default function MyReferralsPage() {
               {/* Mystery Box */}
               <div className="bg-card rounded-xl p-5 flex items-center justify-between border border-border dark:border-transparent">
                 <div>
-                  <p className="text-muted-foreground text-sm mb-2">Mystery Box</p>
+                  <p className="text-muted-foreground text-sm mb-2">{t('mysteryBox')}</p>
                   <div className="flex items-center gap-2">
                     <p className="text-2xl font-bold text-foreground">0</p>
-                    <span className="px-2 py-1 bg-blue-500/20 text-primary text-xs rounded">Earned rewards</span>
+                    <span className="px-2 py-1 bg-blue-500/20 text-primary text-xs rounded">{t('earnedRewards')}</span>
                   </div>
                 </div>
                 <div className="text-4xl">📦</div>
@@ -271,7 +274,7 @@ export default function MyReferralsPage() {
             </div>
 
             {/* Rewards History */}
-            <h2 className="text-xl font-semibold text-foreground mb-4">Rewards History</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-4">{t('rewardsHistory')}</h2>
             
             {/* History Tabs */}
             <div className="flex flex-wrap gap-2 mb-4">
@@ -320,13 +323,11 @@ export default function MyReferralsPage() {
             {/* Empty State */}
             <div className="flex flex-col items-center justify-center py-12">
               <div className="w-16 h-16 mb-4 text-5xl">📄</div>
-              <p className="text-muted-foreground mb-4">No records found.</p>
+              <p className="text-muted-foreground mb-4">{t('noRecords')}</p>
               <Link 
                 href="/dashboard/referral"
                 className="px-6 py-2 border border-blue-500 text-primary rounded-full hover:bg-blue-500/10 transition-colors"
-              >
-                Invite Friends
-              </Link>
+              >{t('inviteFriends')}</Link>
             </div>
           </>
         )}
@@ -338,19 +339,19 @@ export default function MyReferralsPage() {
             <div className="bg-card rounded-xl p-5 mb-8 border border-border dark:border-transparent">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <p className="text-muted-foreground text-sm mb-2">Total Rewards</p>
+                  <p className="text-muted-foreground text-sm mb-2">{t('totalRewards')}</p>
                   <p className="text-2xl font-bold text-foreground">0 <span className="text-sm text-muted-foreground">USDT</span></p>
                 </div>
                 <div>
                   <div className="flex items-center gap-1 text-muted-foreground text-sm mb-2">
-                    <span>Tasks Completed by Friends</span>
+                    <span>{t('tasksCompleted')}</span>
                     <Info className="w-4 h-4" />
                   </div>
                   <p className="text-2xl font-bold text-foreground">0</p>
                 </div>
                 <div>
                   <div className="flex items-center gap-1 text-muted-foreground text-sm mb-2">
-                    <span>Tasks Claimed by Friends</span>
+                    <span>{t('tasksClaimed')}</span>
                     <Info className="w-4 h-4" />
                   </div>
                   <p className="text-2xl font-bold text-foreground">0</p>
@@ -359,20 +360,18 @@ export default function MyReferralsPage() {
             </div>
 
             {/* Rewards History */}
-            <h2 className="text-xl font-semibold text-foreground mb-4">Rewards History</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-4">{t('rewardsHistory')}</h2>
 
             {/* Empty State */}
             <div className="flex flex-col items-center justify-center py-16">
               <div className="w-20 h-20 mb-4 flex items-center justify-center">
                 <div className="text-6xl">📋</div>
               </div>
-              <p className="text-muted-foreground mb-4">No records found.</p>
+              <p className="text-muted-foreground mb-4">{t('noRecords')}</p>
               <Link 
                 href="/dashboard/referral"
                 className="px-6 py-2 border border-blue-500 text-primary rounded-full hover:bg-blue-500/10 transition-colors"
-              >
-                Invite Friends
-              </Link>
+              >{t('inviteFriends')}</Link>
             </div>
           </>
         )}
@@ -384,11 +383,11 @@ export default function MyReferralsPage() {
             <div className="bg-card rounded-xl p-5 mb-8 border border-border dark:border-transparent">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <p className="text-muted-foreground text-sm mb-2">Commissions</p>
+                  <p className="text-muted-foreground text-sm mb-2">{t('commissions')}</p>
                   <p className="text-2xl font-bold text-foreground">0 <span className="text-sm text-muted-foreground">USDT</span></p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-sm mb-2">Total Applications</p>
+                  <p className="text-muted-foreground text-sm mb-2">{t('totalApplications')}</p>
                   <p className="text-2xl font-bold text-foreground">0</p>
                 </div>
               </div>
@@ -399,13 +398,11 @@ export default function MyReferralsPage() {
               <div className="w-20 h-20 mb-4 flex items-center justify-center">
                 <div className="text-6xl">📋</div>
               </div>
-              <p className="text-muted-foreground mb-4">No records found.</p>
+              <p className="text-muted-foreground mb-4">{t('noRecords')}</p>
               <Link 
                 href="/dashboard/referral"
                 className="px-6 py-2 border border-blue-500 text-primary rounded-full hover:bg-blue-500/10 transition-colors"
-              >
-                Invite Friends
-              </Link>
+              >{t('inviteFriends')}</Link>
             </div>
           </>
         )}
@@ -417,12 +414,12 @@ export default function MyReferralsPage() {
             <div className="bg-card rounded-xl p-5 mb-8 border border-border dark:border-transparent">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <p className="text-muted-foreground text-sm mb-2">Total Rewards</p>
+                  <p className="text-muted-foreground text-sm mb-2">{t('totalRewards')}</p>
                   <p className="text-2xl font-bold text-foreground">0 <span className="text-sm text-muted-foreground">USDT</span></p>
                 </div>
                 <div>
                   <div className="flex items-center gap-1 text-muted-foreground text-sm mb-2">
-                    <span>Tasks Completed by Friends</span>
+                    <span>{t('tasksCompleted')}</span>
                     <Info className="w-4 h-4" />
                   </div>
                   <p className="text-2xl font-bold text-foreground">0</p>
@@ -431,37 +428,35 @@ export default function MyReferralsPage() {
             </div>
 
             {/* Rewards History */}
-            <h2 className="text-xl font-semibold text-foreground mb-4">Rewards History</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-4">{t('rewardsHistory')}</h2>
 
             {/* Empty State */}
             <div className="flex flex-col items-center justify-center py-16">
               <div className="w-20 h-20 mb-4 flex items-center justify-center">
                 <div className="text-6xl">📋</div>
               </div>
-              <p className="text-muted-foreground mb-4">No records found.</p>
+              <p className="text-muted-foreground mb-4">{t('noRecords')}</p>
               <Link 
                 href="/dashboard/referral"
                 className="px-6 py-2 border border-blue-500 text-primary rounded-full hover:bg-blue-500/10 transition-colors"
-              >
-                Invite Friends
-              </Link>
+              >{t('inviteFriends')}</Link>
             </div>
           </>
         )}
 
         {/* Referral History */}
-        <h2 className="text-xl font-semibold text-foreground mb-4 mt-8">Referral History</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-4 mt-8">{t('referralHistory')}</h2>
         
         {/* Stats Card */}
         <div className="bg-card rounded-xl p-5 mb-4 border border-border dark:border-transparent">
           <div className="flex items-center gap-12">
             <div>
-              <p className="text-muted-foreground text-sm mb-2">Total Friends</p>
+              <p className="text-muted-foreground text-sm mb-2">{t('totalFriends')}</p>
               <p className="text-3xl font-bold text-foreground">{referrals.length}</p>
             </div>
             <div>
               <div className="flex items-center gap-1 text-muted-foreground text-sm mb-2">
-                <span>Qualified Friends</span>
+                <span>{t('qualifiedFriends')}</span>
                 <Info className="w-4 h-4" />
               </div>
               <p className="text-3xl font-bold text-foreground">{qualifiedCount}</p>
@@ -475,11 +470,11 @@ export default function MyReferralsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">Email</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">Username</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">Status</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">Commission earned</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">Joined</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">{t('colEmail')}</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">{t('colUsername')}</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">{t('colStatus')}</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">{t('colCommissionEarned')}</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">{t('colJoined')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -500,22 +495,22 @@ export default function MyReferralsPage() {
         ) : (
           <div className="flex flex-col items-center justify-center py-12">
             <div className="w-16 h-16 mb-4 text-5xl">📄</div>
-            <p className="text-muted-foreground mb-4">No referrals yet.</p>
-            <Link href="/dashboard/referral" className="px-6 py-2 border border-blue-500 text-primary rounded-full hover:bg-blue-500/10 transition-colors">Invite Friends</Link>
+            <p className="text-muted-foreground mb-4">{t('noReferralsYet')}</p>
+            <Link href="/dashboard/referral" className="px-6 py-2 border border-blue-500 text-primary rounded-full hover:bg-blue-500/10 transition-colors">{t('inviteFriends')}</Link>
           </div>
         )}
 
         {/* Commission History (when tab is commission) */}
         {historyTab === 'commission' && recentCommissions.length > 0 && (
           <div className="mt-6">
-            <h3 className="text-lg font-semibold text-foreground mb-3">Recent commission history</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-3">{t('recentCommissionHistory')}</h3>
             <div className="bg-card rounded-xl border border-border dark:border-transparent overflow-hidden">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">Source</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">Amount</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">Date</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">{t('colSource')}</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">{t('colAmount')}</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase">{t('colDate')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -571,40 +566,40 @@ export default function MyReferralsPage() {
 
             {/* About */}
             <div>
-              <h4 className="font-semibold mb-3 text-foreground">About</h4>
+              <h4 className="font-semibold mb-3 text-foreground">{t('footerAbout')}</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/dashboard/help" className="hover:text-foreground">About FDM</Link></li>
-                <li><Link href="/dashboard/announcements" className="hover:text-foreground">Announcements</Link></li>
-                <li><Link href="/dashboard/fee-rates" className="hover:text-foreground">Fees & Transactions Overview</Link></li>
+                <li><Link href="/dashboard/help" className="hover:text-foreground">{t('footerAboutFdm')}</Link></li>
+                <li><Link href="/dashboard/announcements" className="hover:text-foreground">{t('footerAnnouncements')}</Link></li>
+                <li><Link href="/dashboard/fee-rates" className="hover:text-foreground">{t('footerFees')}</Link></li>
               </ul>
             </div>
 
             {/* Services */}
             <div>
-              <h4 className="font-semibold mb-3 text-foreground">Services</h4>
+              <h4 className="font-semibold mb-3 text-foreground">{t('footerServices')}</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/p2p" className="hover:text-foreground">P2P Trading (0 Fees)</Link></li>
-                <li><Link href="/dashboard/referral" className="hover:text-foreground">Referral Program</Link></li>
-                <li><Link href="/dashboard/api" className="hover:text-foreground">API</Link></li>
+                <li><Link href="/p2p" className="hover:text-foreground">{t('footerP2p')}</Link></li>
+                <li><Link href="/dashboard/referral" className="hover:text-foreground">{t('breadcrumbReferral')}</Link></li>
+                <li><Link href="/dashboard/api" className="hover:text-foreground">{t('footerApi')}</Link></li>
               </ul>
             </div>
 
             {/* Support */}
             <div>
-              <h4 className="font-semibold mb-3 text-foreground">Support</h4>
+              <h4 className="font-semibold mb-3 text-foreground">{t('footerSupport')}</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/dashboard/help" className="hover:text-foreground">Help Center</Link></li>
-                <li><Link href="/dashboard/fee-rates" className="hover:text-foreground">Trading Fee</Link></li>
+                <li><Link href="/dashboard/help" className="hover:text-foreground">{t('footerHelp')}</Link></li>
+                <li><Link href="/dashboard/fee-rates" className="hover:text-foreground">{t('footerTradingFee')}</Link></li>
               </ul>
             </div>
 
             {/* Products */}
             <div>
-              <h4 className="font-semibold mb-3 text-foreground">Products</h4>
+              <h4 className="font-semibold mb-3 text-foreground">{t('footerProducts')}</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/trade/spot" className="hover:text-foreground">Trade</Link></li>
-                <li><Link href="/p2p" className="hover:text-foreground">P2P</Link></li>
-                <li><Link href={MARKETS_HREF} className="hover:text-foreground">Markets</Link></li>
+                <li><Link href="/trade/spot" className="hover:text-foreground">{t('footerTrade')}</Link></li>
+                <li><Link href="/p2p" className="hover:text-foreground">{t('footerP2pShort')}</Link></li>
+                <li><Link href={MARKETS_HREF} className="hover:text-foreground">{t('footerMarkets')}</Link></li>
               </ul>
             </div>
           </div>
@@ -612,8 +607,8 @@ export default function MyReferralsPage() {
           {/* Copyright */}
           <div className="pt-6 border-t border-border flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
             <span>© 2018-2026 FDM. All rights reserved.</span>
-            <Link href="/terms" className="hover:text-foreground">Terms of Service</Link>
-            <Link href="/privacy" className="hover:text-foreground">Privacy Terms</Link>
+            <Link href="/terms" className="hover:text-foreground">{t('footerTerms')}</Link>
+            <Link href="/privacy" className="hover:text-foreground">{t('footerPrivacy')}</Link>
           </div>
         </div>
       </footer>

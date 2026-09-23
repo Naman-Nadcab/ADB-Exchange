@@ -10,6 +10,7 @@ import { ChevronRight, Loader2, X, CheckSquare, Square } from 'lucide-react';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { toast } from '@/components/ui/toaster';
 
 interface WithdrawalLimits {
@@ -22,8 +23,11 @@ interface WithdrawalLimits {
 }
 
 export default function WithdrawalLimitsPage() {
+  const t = useTranslations('security.withdrawalLimitsPage');
+  const ts = useTranslations('security.common');
   const tn = useTranslations('common.notifications');
   const tt = useTranslations('account.toasts');
+  const { fromApi } = useApiErrorMessage();
   const router = useRouter();
   const { accessToken } = useAuthStore();
   const apiUrl = getApiBaseUrl();
@@ -157,7 +161,7 @@ export default function WithdrawalLimitsPage() {
         setSmsOtpTimer(60);
         setSmsCheckbox(true);
       } else {
-        toast({ title: tn('errorTitle'), description: result.error?.message || tt('verificationCodeSendFailed'), variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message ? fromApi(result.error) : tt('verificationCodeSendFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to send SMS OTP:', error);
@@ -196,7 +200,7 @@ export default function WithdrawalLimitsPage() {
       const verifyResult = await verifyRes.json();
 
       if (!verifyResult.success) {
-        toast({ title: tn('errorTitle'), description: verifyResult.error?.message || tt('invalidVerificationCode'), variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: verifyResult.error?.message ? fromApi(verifyResult.error) : tt('invalidVerificationCode'), variant: 'destructive' });
         setVerifying(false);
         return;
       }
@@ -214,7 +218,7 @@ export default function WithdrawalLimitsPage() {
         const twoFaResult = await twoFaRes.json();
 
         if (!twoFaResult.success) {
-          toast({ title: tn('errorTitle'), description: twoFaResult.error?.message || tt('invalid2faCode'), variant: 'destructive' });
+          toast({ title: tn('errorTitle'), description: twoFaResult.error?.message ? fromApi(twoFaResult.error) : tt('invalid2faCode'), variant: 'destructive' });
           setVerifying(false);
           return;
         }
@@ -246,7 +250,7 @@ export default function WithdrawalLimitsPage() {
         });
         closeModal();
       } else {
-        toast({ title: tn('errorTitle'), description: result.error?.message || tt('limitsUpdateFailed'), variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message ? fromApi(result.error) : tt('limitsUpdateFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to update limits:', error);
@@ -278,10 +282,10 @@ export default function WithdrawalLimitsPage() {
             className="text-muted-foreground hover:text-primary cursor-pointer"
             onClick={() => router.push('/dashboard/security')}
           >
-            Security
+            {ts('security')}
           </span>
           <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          <span className="text-foreground font-medium">Manage Crypto Withdrawal Limits</span>
+          <span className="text-foreground font-medium">{t('title')}</span>
         </div>
 
         {loading ? (
@@ -294,7 +298,7 @@ export default function WithdrawalLimitsPage() {
             {/* Change Limit Card */}
             <div className="rounded-lg border border-border bg-card p-6">
               <h2 className="mb-4 text-xl font-semibold text-foreground">
-                Change limit
+                {t('changeLimit')}
               </h2>
 
               <div className="mb-6 flex items-start gap-3 rounded-lg border border-border bg-muted p-4">
@@ -302,7 +306,7 @@ export default function WithdrawalLimitsPage() {
                   <span className="text-xs font-bold text-primary-foreground">!</span>
                 </div>
                 <p className="text-sm text-foreground">
-                  Adjusting the withdrawal limit will not impact any withdrawal requests that are currently being processed.
+                  {t('changeNotice')}
                 </p>
               </div>
 
@@ -310,10 +314,10 @@ export default function WithdrawalLimitsPage() {
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm text-muted-foreground inline-flex items-center gap-1">
-                    Daily Withdrawal Amount <InfoTooltip content="Maximum amount you can withdraw in 24 hours. Higher limits may require additional verification." />
+                    {t('dailyAmount')} <InfoTooltip content={t('dailyTooltip')} />
                   </label>
                   <span className="text-sm text-muted-foreground">
-                    Used {formatNumber(limits.dailyUsed)}/{formatNumber(limits.maxDailyLimit)}
+                    {t('used', { used: formatNumber(limits.dailyUsed), max: formatNumber(limits.maxDailyLimit) })}
                   </span>
                 </div>
                 <div className="relative">
@@ -328,7 +332,7 @@ export default function WithdrawalLimitsPage() {
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Withdrawal Limit 0-{limits.maxDailyLimit.toLocaleString()}
+                  {t('limitRange', { max: limits.maxDailyLimit.toLocaleString() })}
                 </p>
               </div>
 
@@ -336,10 +340,10 @@ export default function WithdrawalLimitsPage() {
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm text-muted-foreground inline-flex items-center gap-1">
-                    Monthly Withdrawal Amount <InfoTooltip content="Maximum amount you can withdraw per calendar month. Resets at the start of each month." />
+                    {t('monthlyAmount')} <InfoTooltip content={t('monthlyTooltip')} />
                   </label>
                   <span className="text-sm text-muted-foreground">
-                    Used {formatNumber(limits.monthlyUsed)}/{formatNumber(limits.maxMonthlyLimit)}
+                    {t('used', { used: formatNumber(limits.monthlyUsed), max: formatNumber(limits.maxMonthlyLimit) })}
                   </span>
                 </div>
                 <div className="relative">
@@ -354,7 +358,7 @@ export default function WithdrawalLimitsPage() {
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Withdrawal Limit 0-{limits.maxMonthlyLimit.toLocaleString()}
+                  {t('limitRange', { max: limits.maxMonthlyLimit.toLocaleString() })}
                 </p>
               </div>
 
@@ -364,35 +368,35 @@ export default function WithdrawalLimitsPage() {
                 disabled={submitting}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/85 disabled:bg-muted disabled:text-muted-foreground"
               >
-                Submit
+                {t('submit')}
               </button>
             </div>
 
             {/* Withdrawal Limit Info Card */}
             <div className="rounded-lg border border-border bg-card p-6">
               <h2 className="mb-6 text-xl font-semibold text-foreground">
-                Withdrawal limit info
+                {t('infoTitle')}
               </h2>
 
               {/* Table Header */}
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="text-sm text-muted-foreground">
-                  Identity Verification
+                  {t('identityVerification')}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  VIP
+                  {t('vip')}
                 </div>
               </div>
 
               {/* Table Row */}
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="flex items-center gap-3">
-                  <span className="text-foreground font-medium">Basic</span>
+                  <span className="text-foreground font-medium">{t('basic')}</span>
                   <button 
                     onClick={() => router.push('/dashboard/identity')}
                     className="text-primary hover:text-primary/85 text-sm"
                   >
-                    Upgrade Now
+                    {t('upgradeNow')}
                   </button>
                 </div>
                 <div>
@@ -401,14 +405,14 @@ export default function WithdrawalLimitsPage() {
                     onClick={() => router.push('/dashboard/support')}
                     className="text-primary hover:text-primary/85 text-sm"
                   >
-                    Apply for VIP
+                    {t('applyForVip')}
                   </button>
                 </div>
               </div>
 
               {/* Info Text */}
               <p className="text-sm text-muted-foreground mb-4">
-                The withdrawal limits associated with the VIP level will only be valid after completing Identity Verification at Lv. 1 or above.
+                {t('vipNote')}
               </p>
 
               {/* View More Link */}
@@ -417,7 +421,7 @@ export default function WithdrawalLimitsPage() {
                 onClick={() => router.push('/dashboard/help')}
                 className="text-primary hover:text-primary/85 text-sm flex items-center gap-1"
               >
-                View More
+                {t('viewMore')}
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -432,7 +436,7 @@ export default function WithdrawalLimitsPage() {
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-border">
               <h2 className="text-xl font-semibold text-foreground">
-                Security Verification
+                {ts('securityVerification')}
               </h2>
               <button
                 onClick={closeModal}
@@ -455,7 +459,10 @@ export default function WithdrawalLimitsPage() {
                     )}
                   </button>
                   <span className="text-sm text-muted-foreground">
-                    A verification code will be sent to <span className="font-semibold text-foreground">{maskPhone(userPhone)}</span>
+                    {ts.rich('smsCodeSentTo', {
+                      phone: maskPhone(userPhone),
+                      highlight: (chunks) => <span className="font-semibold text-foreground">{chunks}</span>,
+                    })}
                   </span>
                 </div>
                 <div className="relative">
@@ -463,7 +470,7 @@ export default function WithdrawalLimitsPage() {
                     type="text"
                     value={smsOtp}
                     onChange={e => setSmsOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="Please enter the SMS verification code"
+                    placeholder={ts('smsCodePlaceholder')}
                     className="w-full rounded-lg border border-border bg-muted px-4 py-3 pr-40 text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/30"
                   />
                   <button
@@ -476,7 +483,7 @@ export default function WithdrawalLimitsPage() {
                     ) : smsOtpTimer > 0 ? (
                       `${smsOtpTimer}s`
                     ) : (
-                      'Send Verification Code'
+                      ts('sendVerificationCode')
                     )}
                   </button>
                 </div>
@@ -489,13 +496,13 @@ export default function WithdrawalLimitsPage() {
                     <svg className="w-5 h-5 text-muted-foreground" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
                     </svg>
-                    <span className="text-sm text-muted-foreground">Google 2FA Code</span>
+                    <span className="text-sm text-muted-foreground">{ts('google2faCode')}</span>
                   </div>
                   <input
                     type="text"
                     value={google2faCode}
                     onChange={e => setGoogle2faCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="Please enter the Google Authenticator code"
+                    placeholder={ts('google2faPlaceholder')}
                     className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/30"
                   />
                 </div>
@@ -514,17 +521,17 @@ export default function WithdrawalLimitsPage() {
                 {verifying ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Verifying...
+                    {ts('verifying')}
                   </>
                 ) : (
-                  'Next Step'
+                  ts('nextStep')
                 )}
               </button>
 
               {/* Help Link */}
               <div className="text-center">
                 <Link href="/dashboard/support" className="text-primary hover:text-primary/85 text-sm">
-                  Having problems with verification?
+                  {ts('verificationHelp')}
                 </Link>
               </div>
             </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -39,6 +40,10 @@ interface Asset {
 }
 
 export default function AddressBookPage() {
+  const t = useTranslations('account.addressBookPage');
+  const tc = useTranslations('account.common');
+  const ts = useTranslations('security.common');
+  const { fromApi, networkUnreachable } = useApiErrorMessage();
   const tn = useTranslations('common.notifications');
   const tt = useTranslations('account.toasts');
   const router = useRouter();
@@ -128,11 +133,11 @@ export default function AddressBookPage() {
 
   // Type options
   const typeOptions = [
-    { value: 'All', label: 'All' },
-    { value: 'regular', label: 'Regular Wallet Address' },
-    { value: 'universal', label: 'Universal Wallet Address' },
-    { value: 'internal', label: 'Internal Transfer' },
-    { value: 'web3', label: 'web3' },
+    { value: 'All', label: t('filterAll') },
+    { value: 'regular', label: t('typeRegular') },
+    { value: 'universal', label: t('typeUniversal') },
+    { value: 'internal', label: t('typeInternal') },
+    { value: 'web3', label: t('typeWeb3') },
   ];
 
   // Networks (would come from API based on selected asset)
@@ -303,7 +308,7 @@ export default function AddressBookPage() {
         setWhitelistEmailOtpTimer(120);
         toast({ title: tt('verificationCodeSent'), description: tt('checkEmail'), variant: 'success' });
       } else {
-        toast({ title: tn('errorTitle'), description: result.error?.message || tt('verificationCodeSendFailed'), variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message ? fromApi(result.error) : tt('verificationCodeSendFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to send OTP:', error);
@@ -339,7 +344,7 @@ export default function AddressBookPage() {
       const otpResult = await verifyOtpRes.json();
 
       if (!otpResult.success) {
-        toast({ title: tn('errorTitle'), description: otpResult.error?.message || tt('invalidEmailVerificationCode'), variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: otpResult.error?.message ? fromApi(otpResult.error) : tt('invalidEmailVerificationCode'), variant: 'destructive' });
         setVerifyingWhitelist(false);
         return;
       }
@@ -357,7 +362,7 @@ export default function AddressBookPage() {
         const faResult = await verify2faRes.json();
 
         if (!faResult.success) {
-          toast({ title: tn('errorTitle'), description: faResult.error?.message || tt('invalid2faCode'), variant: 'destructive' });
+          toast({ title: tn('errorTitle'), description: faResult.error?.message ? fromApi(faResult.error) : tt('invalid2faCode'), variant: 'destructive' });
           setVerifyingWhitelist(false);
           return;
         }
@@ -383,7 +388,7 @@ export default function AddressBookPage() {
         setWhitelistEmailOtpTimer(0);
         toast({ title: tn('successTitle'), description: tt('whitelistUpdated', { status: newValue ? tt('whitelistEnabled') : tt('whitelistDisabled') }), variant: 'success' });
       } else {
-        toast({ title: tn('errorTitle'), description: result.error?.message || tt('settingUpdateFailed'), variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message ? fromApi(result.error) : tt('settingUpdateFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to update whitelist:', error);
@@ -436,7 +441,7 @@ export default function AddressBookPage() {
           fetchAddresses();
           toast({ title: tt('updatedTitle'), description: tt('addressUpdated') });
         } else {
-          toast({ title: tn('errorTitle'), description: result.error?.message || tt('addressUpdateFailed'), variant: 'destructive' });
+          toast({ title: tn('errorTitle'), description: result.error?.message ? fromApi(result.error) : tt('addressUpdateFailed'), variant: 'destructive' });
         }
         return;
       }
@@ -474,7 +479,7 @@ export default function AddressBookPage() {
         resetAddForm();
         fetchAddresses();
       } else {
-        toast({ title: tn('errorTitle'), description: result.error?.message || tt('addressAddFailed'), variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message ? fromApi(result.error) : tt('addressAddFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to add address:', error);
@@ -533,7 +538,7 @@ export default function AddressBookPage() {
         setDeleteConfirmId(null);
         fetchAddresses();
       } else {
-        toast({ title: tn('errorTitle'), description: result.error?.message || tt('addressDeleteFailed'), variant: 'destructive' });
+        toast({ title: tn('errorTitle'), description: result.error?.message ? fromApi(result.error) : tt('addressDeleteFailed'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Failed to delete address:', error);
@@ -582,9 +587,7 @@ export default function AddressBookPage() {
         {/* Title and Buttons Row */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-xl font-semibold text-foreground mb-4">
-              Withdrawal Address
-            </h1>
+            <h1 className="text-xl font-semibold text-foreground mb-4">{t('title')}</h1>
 
             {/* Settings Row */}
             <div className="space-y-3">
@@ -599,7 +602,7 @@ export default function AddressBookPage() {
                     <div className="w-2 h-2 rounded-full bg-card" />
                   )}
                 </div>
-                <span className="text-foreground/80">Withdraw via Address Book</span>
+                <span className="text-foreground/80">{t('withdrawViaAddressBook')}</span>
               </div>
 
               {/* 24 Hour Lock */}
@@ -619,9 +622,7 @@ export default function AddressBookPage() {
                 <button 
                   onClick={() => router.push('/dashboard/security')}
                   className="text-primary hover:text-primary/85 flex items-center gap-0.5 font-medium ml-2"
-                >
-                  Set Up
-                  <ChevronRight className="w-4 h-4" />
+                >{t('setUp')}<ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -633,15 +634,11 @@ export default function AddressBookPage() {
               onClick={() => setShowAddModal(true)}
               className="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/85 text-primary-foreground rounded-lg transition-colors font-medium"
             >
-              <Plus className="w-5 h-5" />
-              Add
-            </button>
+              <Plus className="w-5 h-5" />{t('add')}</button>
             <button 
               onClick={() => router.push('/dashboard/address-book/add-batches')}
               className="px-6 py-3 border border-border text-foreground/80 rounded-lg hover:bg-accent transition-colors font-medium"
-            >
-              Add in Batches
-            </button>
+            >{t('addInBatches')}</button>
           </div>
         </div>
 
@@ -649,7 +646,7 @@ export default function AddressBookPage() {
         <div className="flex items-end gap-4 mb-4 flex-wrap">
           {/* Type Dropdown */}
           <div className="relative" ref={typeDropdownRef}>
-            <label className="block text-muted-foreground mb-2">Type:</label>
+            <label className="block text-muted-foreground mb-2">{t('typeLabel')}</label>
             <button
               onClick={() => {
                 setShowTypeDropdown(!showTypeDropdown);
@@ -689,7 +686,7 @@ export default function AddressBookPage() {
 
           {/* Assets Dropdown */}
           <div className="relative" ref={assetDropdownRef}>
-            <label className="block text-muted-foreground mb-2">Assets:</label>
+            <label className="block text-muted-foreground mb-2">{t('assetsLabel')}</label>
             <button
               onClick={() => {
                 setShowAssetDropdown(!showAssetDropdown);
@@ -720,7 +717,7 @@ export default function AddressBookPage() {
                       type="text"
                       value={assetSearchQuery}
                       onChange={e => setAssetSearchQuery(e.target.value)}
-                      placeholder="Search..."
+                      placeholder={t('searchPlaceholder')}
                       autoFocus
                       className="w-full pl-9 pr-3 py-2 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground text-sm outline-none focus:border-primary"
                     />
@@ -741,9 +738,7 @@ export default function AddressBookPage() {
                         ? 'text-primary bg-muted' 
                         : 'text-foreground'
                     }`}
-                  >
-                    All
-                  </button>
+                  >{t('filterAll')}</button>
                   
                   {/* Asset Options */}
                   {loadingAssets ? (
@@ -751,9 +746,7 @@ export default function AddressBookPage() {
                       <Loader2 className="w-5 h-5 animate-spin mx-auto text-muted-foreground" />
                     </div>
                   ) : filteredAssets.length === 0 ? (
-                    <div className="px-4 py-3 text-center text-muted-foreground text-sm">
-                      No assets found
-                    </div>
+                    <div className="px-4 py-3 text-center text-muted-foreground text-sm">{t('noAssetsFound')}</div>
                   ) : (
                     filteredAssets.map(asset => (
                       <button
@@ -781,14 +774,14 @@ export default function AddressBookPage() {
 
           {/* Search Input */}
           <div>
-            <label className="block text-muted-foreground mb-2">Search Address:</label>
+            <label className="block text-muted-foreground mb-2">{t('searchAddressLabel')}</label>
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                placeholder="Enter the address or add a note..."
+                placeholder={t('searchAddressPlaceholder')}
                 className="px-4 py-3 bg-card border border-border rounded-lg text-foreground placeholder:text-muted-foreground w-[300px] outline-none focus:border-primary hover:border-muted-foreground/30"
               />
               <button 
@@ -817,7 +810,7 @@ export default function AddressBookPage() {
               }`}
             />
           </button>
-          <span className="text-foreground/80">Withdrawal Address Whitelist</span>
+          <span className="text-foreground/80">{t('whitelistTitle')}</span>
         </div>
 
         {/* Table */}
@@ -825,13 +818,13 @@ export default function AddressBookPage() {
           <table className="w-full">
             <thead>
               <tr className="bg-muted border-b border-border">
-                <th className="text-left py-4 px-6 text-sm font-normal text-muted-foreground">Assets</th>
-                <th className="text-left py-4 px-6 text-sm font-normal text-muted-foreground">Network</th>
-                <th className="text-left py-4 px-6 text-sm font-normal text-muted-foreground">Note</th>
-                <th className="text-left py-4 px-6 text-sm font-normal text-muted-foreground">Withdrawal Address</th>
-                <th className="text-left py-4 px-6 text-sm font-normal text-muted-foreground">Memo/Tag</th>
-                <th className="text-left py-4 px-6 text-sm font-normal text-muted-foreground">Last Updated</th>
-                <th className="text-left py-4 px-6 text-sm font-normal text-muted-foreground">Change</th>
+                <th className="text-left py-4 px-6 text-sm font-normal text-muted-foreground">{t('colAssets')}</th>
+                <th className="text-left py-4 px-6 text-sm font-normal text-muted-foreground">{t('colNetwork')}</th>
+                <th className="text-left py-4 px-6 text-sm font-normal text-muted-foreground">{t('colNote')}</th>
+                <th className="text-left py-4 px-6 text-sm font-normal text-muted-foreground">{t('title')}</th>
+                <th className="text-left py-4 px-6 text-sm font-normal text-muted-foreground">{t('colMemo')}</th>
+                <th className="text-left py-4 px-6 text-sm font-normal text-muted-foreground">{t('colUpdated')}</th>
+                <th className="text-left py-4 px-6 text-sm font-normal text-muted-foreground">{t('colChange')}</th>
               </tr>
             </thead>
             <tbody>
@@ -862,7 +855,7 @@ export default function AddressBookPage() {
                           </g>
                         </svg>
                       </div>
-                      <p className="text-muted-foreground">No Records</p>
+                      <p className="text-muted-foreground">{t('noRecords')}</p>
                     </div>
                   </td>
                 </tr>
@@ -933,7 +926,7 @@ export default function AddressBookPage() {
           <div className="bg-card rounded-xl w-full max-w-md shadow-xl">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Security Verification</h2>
+                <h2 className="text-lg font-semibold text-foreground">{t('securityVerification')}</h2>
                 <button 
                   onClick={() => {
                     setShowWhitelistVerifyModal(false);
@@ -951,14 +944,19 @@ export default function AddressBookPage() {
               <div className="mb-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                   <Mail className="w-4 h-4" />
-                  <span>A verification code will be sent to <strong className="text-foreground">{maskEmail(user?.email || '')}</strong></span>
+                  <span>
+                    {ts.rich('emailCodeSentTo', {
+                      email: maskEmail(user?.email || ''),
+                      strong: (chunks) => <strong className="text-foreground">{chunks}</strong>,
+                    })}
+                  </span>
                 </div>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={whitelistEmailOtp}
                     onChange={e => setWhitelistEmailOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="Please enter the email verification code"
+                    placeholder={ts('emailCodePlaceholder')}
                     className="flex-1 px-4 py-3 bg-muted border border-border rounded-lg text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm"
                   />
                   <button
@@ -981,12 +979,12 @@ export default function AddressBookPage() {
                   type="text"
                   value={whitelistGoogle2faCode}
                   onChange={e => setWhitelistGoogle2faCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="Please enter the Google Authenticator code"
+                  placeholder={ts('google2faPlaceholder')}
                     className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
                   disabled={!user2faEnabled}
                 />
                 {!user2faEnabled && (
-                  <p className="text-xs text-muted-foreground mt-1">Google 2FA is not enabled</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t('google2faNotEnabled')}</p>
                 )}
               </div>
 
@@ -1008,7 +1006,7 @@ export default function AddressBookPage() {
 
               {/* Help Link */}
               <p className="text-center text-sm text-primary hover:underline cursor-pointer mt-4">
-                <Link href="/dashboard/support">Having problems with verification?</Link>
+                <Link href="/dashboard/support">{ts('verificationHelp')}</Link>
               </p>
             </div>
           </div>
@@ -1063,9 +1061,7 @@ export default function AddressBookPage() {
                       ? 'border-primary text-foreground'
                       : 'border-transparent text-muted-foreground hover:text-foreground/80'
                   }`}
-                >
-                  Internal Transfer
-                </button>
+                >{t('typeInternal')}</button>
               </div>
 
               {/* On-chain Withdrawal Form */}
@@ -1073,7 +1069,7 @@ export default function AddressBookPage() {
                 <div className="space-y-4">
                   {/* Save as Universal Wallet Address */}
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Save as Universal Wallet Address</span>
+                    <span className="text-sm text-muted-foreground">{t('saveAsUniversal')}</span>
                     <div className="w-4 h-4 rounded-full border border-border flex items-center justify-center cursor-help">
                       <span className="text-xs text-muted-foreground">?</span>
                     </div>
@@ -1086,22 +1082,22 @@ export default function AddressBookPage() {
                       onChange={e => setWalletAddressType(e.target.value)}
                       className="w-full px-4 py-3 bg-card border border-border rounded-lg text-foreground outline-none focus:border-primary appearance-none cursor-pointer"
                     >
-                      <option value="regular">Regular Wallet Address</option>
-                      <option value="universal">Universal Wallet Address</option>
+                      <option value="regular">{t('typeRegular')}</option>
+                      <option value="universal">{t('typeUniversal')}</option>
                     </select>
                     <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                   </div>
 
                   {/* Assets */}
                   <div>
-                    <label className="block text-sm text-muted-foreground mb-2">Assets</label>
+                    <label className="block text-sm text-muted-foreground mb-2">{t('colAssets')}</label>
                     <div className="relative">
                       <select
                         value={newAddress.asset}
                         onChange={e => setNewAddress({...newAddress, asset: e.target.value})}
                         className="w-full px-4 py-3 bg-card border border-border rounded-lg text-foreground outline-none focus:border-primary appearance-none cursor-pointer"
                       >
-                        <option value="">Please select</option>
+                        <option value="">{t('pleaseSelect')}</option>
                         {dbAssets.map(asset => (
                           <option key={asset.id} value={asset.symbol}>{asset.symbol}</option>
                         ))}
@@ -1112,26 +1108,26 @@ export default function AddressBookPage() {
 
                   {/* Address */}
                   <div>
-                    <label className="block text-sm text-muted-foreground mb-2">Address</label>
+                    <label className="block text-sm text-muted-foreground mb-2">{t('addressLabel')}</label>
                     <input
                       type="text"
                       value={newAddress.address}
                       onChange={e => setNewAddress({...newAddress, address: e.target.value})}
-                      placeholder="Please input your withdrawal wallet address"
+                      placeholder={t('addressInputPlaceholder')}
                       className="w-full px-4 py-3 bg-card border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
                     />
                   </div>
 
                   {/* Chain Type */}
                   <div>
-                    <label className="block text-sm text-muted-foreground mb-2">Chain Type</label>
+                    <label className="block text-sm text-muted-foreground mb-2">{t('chainTypeLabel')}</label>
                     <div className="relative">
                       <select
                         value={newAddress.network}
                         onChange={e => setNewAddress({...newAddress, network: e.target.value})}
                         className="w-full px-4 py-3 bg-card border border-border rounded-lg text-foreground outline-none focus:border-primary appearance-none cursor-pointer"
                       >
-                        <option value="">Select chain type</option>
+                        <option value="">{t('selectChainType')}</option>
                         {networks.map(network => (
                           <option key={network} value={network}>{network}</option>
                         ))}
@@ -1142,12 +1138,12 @@ export default function AddressBookPage() {
 
                   {/* Remark */}
                   <div>
-                    <label className="block text-sm text-muted-foreground mb-2">Remark</label>
+                    <label className="block text-sm text-muted-foreground mb-2">{t('remarkLabel')}</label>
                     <input
                       type="text"
                       value={newAddress.note}
                       onChange={e => setNewAddress({...newAddress, note: e.target.value})}
-                      placeholder="Add a remark"
+                      placeholder={t('remarkPlaceholder')}
                       className="w-full px-4 py-3 bg-card border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
                     />
                   </div>
@@ -1159,7 +1155,7 @@ export default function AddressBookPage() {
                 <div className="space-y-4">
                   {/* Recipient Account */}
                   <div>
-                    <label className="block text-sm text-muted-foreground mb-2">Recipient Account</label>
+                    <label className="block text-sm text-muted-foreground mb-2">{t('recipientAccount')}</label>
                     
                     {/* Recipient Type Tabs */}
                     <div className="flex gap-2 mb-3">
@@ -1237,7 +1233,7 @@ export default function AddressBookPage() {
                           type="text"
                           value={newAddress.recipientAccount}
                           onChange={e => setNewAddress({...newAddress, recipientAccount: e.target.value.replace(/\D/g, '')})}
-                          placeholder="Please enter"
+                          placeholder={t('enterPlaceholder')}
                           className="flex-1 px-4 py-3 bg-card border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
                         />
                       </div>
@@ -1246,7 +1242,7 @@ export default function AddressBookPage() {
                         type="text"
                         value={newAddress.recipientAccount}
                         onChange={e => setNewAddress({...newAddress, recipientAccount: e.target.value})}
-                        placeholder="Please enter"
+                        placeholder={t('enterPlaceholder')}
                         className="w-full px-4 py-3 bg-card border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
                       />
                     )}
@@ -1254,12 +1250,12 @@ export default function AddressBookPage() {
 
                   {/* Remark */}
                   <div>
-                    <label className="block text-sm text-muted-foreground mb-2">Remark</label>
+                    <label className="block text-sm text-muted-foreground mb-2">{t('remarkLabel')}</label>
                     <input
                       type="text"
                       value={newAddress.note}
                       onChange={e => setNewAddress({...newAddress, note: e.target.value})}
-                      placeholder="Add a remark"
+                      placeholder={t('remarkPlaceholder')}
                       className="w-full px-4 py-3 bg-card border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
                     />
                   </div>
@@ -1270,7 +1266,7 @@ export default function AddressBookPage() {
               <div className="mt-6 pt-4 border-t border-border">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-foreground/80">No verification needed for this address next time</span>
+                    <span className="text-sm text-foreground/80">{t('noVerificationNextTime')}</span>
                     <div className="w-4 h-4 rounded-full border border-border flex items-center justify-center cursor-help">
                       <span className="text-xs text-muted-foreground">?</span>
                     </div>
@@ -1290,7 +1286,7 @@ export default function AddressBookPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Enable no-verification withdrawals</span>
+                  <span className="text-sm text-muted-foreground">{t('enableNoVerification')}</span>
                   <button 
                     onClick={() => {
                       setShowAddModal(false);

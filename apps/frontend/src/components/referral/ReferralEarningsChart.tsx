@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { Skeleton } from '@/components/ui/Skeleton';
 
 export interface EarningsDay {
@@ -14,6 +15,7 @@ export interface ReferralEarningsChartProps {
 }
 
 export function ReferralEarningsChart({ data, loading = false }: ReferralEarningsChartProps) {
+  const t = useTranslations('account.referralEarningsChart');
   const chartData = useMemo(() => (data && data.length > 0 ? data : []), [data]);
 
   const maxEarnings = useMemo(
@@ -45,16 +47,16 @@ export function ReferralEarningsChart({ data, loading = false }: ReferralEarning
 
   return (
     <div className="bg-card rounded-xl p-6 border border-border card-bybit">
-      <h3 className="text-sm font-semibold text-foreground mb-1">Referral Earnings</h3>
-      <p className="text-xs text-muted-foreground mb-4">Last 30 days</p>
+      <h3 className="text-sm font-semibold text-foreground mb-1">{t('title')}</h3>
+      <p className="text-xs text-muted-foreground mb-4">{t('subtitle')}</p>
       {loading ? (
         <div className="h-48 flex items-center justify-center">
           <Skeleton className="h-full w-full rounded-lg" />
         </div>
       ) : chartData.length === 0 ? (
         <div className="h-48 flex flex-col items-center justify-center rounded-lg border border-dashed border-border text-center px-4">
-          <p className="text-sm text-muted-foreground">No daily earnings history yet.</p>
-          <p className="text-xs text-muted-foreground mt-1">Totals above reflect your live referral account.</p>
+          <p className="text-sm text-muted-foreground">{t('emptyHistory')}</p>
+          <p className="text-xs text-muted-foreground mt-1">{t('emptyHint')}</p>
         </div>
       ) : (
         <div className="h-48 relative">

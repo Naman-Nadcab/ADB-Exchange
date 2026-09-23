@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import {
   AlertCircle,
   Check,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 
 type FundPasswordStatus = { enabled?: boolean; hasFundPassword?: boolean };
 
@@ -25,6 +27,9 @@ function inputClassName() {
 
 export default function FundPasswordPage() {
   const { accessToken } = useAuthStore();
+  const tc = useTranslations('security.common');
+  const t = useTranslations('security.fundPasswordPage');
+  const { fromApi } = useApiErrorMessage();
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [enabled, setEnabled] = useState(false);
@@ -69,11 +74,10 @@ export default function FundPasswordPage() {
       const d = res.data;
       setEnabled(Boolean(d.enabled ?? d.hasFundPassword));
     } else {
-      setLoadError(res.error?.message ?? 'Could not load fund password status');
-      setEnabled(false);
+      setLoadError(fromApi(res.error, 'auth.fundPasswordStatusFailed'));
     }
     setLoading(false);
-  }, []);
+  }, [fromApi]);
 
   useEffect(() => {
     if (!accessToken) return;
@@ -85,7 +89,7 @@ export default function FundPasswordPage() {
       setSameAsLogin(null);
       return;
     }
-    const t = window.setTimeout(async () => {
+    const timer = window.setTimeout(async () => {
       setCheckingSame(true);
       const res = await api.post<CheckSameResponse>(
         '/api/v1/auth/fund-password/check-same',
@@ -99,7 +103,7 @@ export default function FundPasswordPage() {
       }
       setCheckingSame(false);
     }, 400);
-    return () => window.clearTimeout(t);
+    return () => window.clearTimeout(timer);
   }, [newPassword]);
 
   const resetForm = () => {
@@ -116,22 +120,22 @@ export default function FundPasswordPage() {
     setSuccess('');
 
     if (enabled && !currentPassword.trim()) {
-      setFormError('Enter your current fund password.');
+      setFormError(t('enterCurrent'));
       return;
     }
 
     if (!isValidNewPassword) {
-      setFormError('Your new fund password does not meet the requirements.');
+      setFormError(t('requirementsNotMet'));
       return;
     }
 
     if (!validations.passwordsMatch) {
-      setFormError('New password and confirmation do not match.');
+      setFormError(t('confirmNoMatch'));
       return;
     }
 
     if (sameAsLogin === true) {
-      setFormError('Fund password must be different from your login password.');
+      setFormError(t('sameAsLogin'));
       return;
     }
 
@@ -148,11 +152,11 @@ export default function FundPasswordPage() {
     );
 
     if (res.success) {
-      setSuccess('Fund password saved successfully.');
+      setSuccess(t('success'));
       setEnabled(true);
       resetForm();
     } else {
-      setFormError(res.error?.message ?? 'Could not save fund password');
+      setFormError(fromApi(res.error, 'auth.fundPasswordSaveFailed'));
     }
     setSubmitting(false);
   };
@@ -168,7 +172,7 @@ export default function FundPasswordPage() {
   if (!accessToken) {
     return (
       <div className="flex min-h-[400px] items-center justify-center p-6">
-        <p className="text-sm text-muted-foreground">Please sign in to manage your fund password.</p>
+        <p className="text-sm text-muted-foreground">{tc('signInRequired')}</p>
       </div>
     );
   }
@@ -183,12 +187,12 @@ export default function FundPasswordPage() {
 
   return (
     <div className="mx-auto max-w-2xl p-4 lg:p-6">
-      <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+      <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground" aria-label={tc('breadcrumbAria')}>
         <Link href="/dashboard/security" className="hover:text-primary">
-          Security
+          {tc('security')}
         </Link>
         <ChevronRight className="h-4 w-4 shrink-0" />
-        <span className="text-foreground">Fund password</span>
+        <span className="text-foreground">{t('title')}</span>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -198,11 +202,8 @@ export default function FundPasswordPage() {
               <KeyRound className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-foreground">Fund password</h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                An extra password used for withdrawals, internal transfers, and other sensitive fund
-                moves—separate from your login password.
-              </p>
+              <h1 className="text-xl font-semibold text-foreground">{t('title')}</h1>
+              <p className="mt-1 text-sm text-muted-foreground">{t('subtitle')}</p>
             </div>
           </div>
 
@@ -215,22 +216,19 @@ export default function FundPasswordPage() {
 
           <div className="mb-6 flex gap-3 rounded-lg border border-border bg-muted p-4">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-            <p className="text-sm text-foreground">
-              Keep this password private. Anyone with your login and fund password could move assets
-              from your account if they bypass other protections.
-            </p>
+            <p className="text-sm text-foreground">{t('privacyWarning')}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {enabled ? (
               <div>
-                <label className="mb-2 block text-sm text-muted-foreground">Current fund password</label>
+                <label className="mb-2 block text-sm text-muted-foreground">{t('currentLabel')}</label>
                 <div className="relative">
                   <input
                     type={showCurrent ? 'text' : 'password'}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="Enter current fund password"
+                    placeholder={t('currentPlaceholder')}
                     className={`${inputClassName()} pr-12`}
                     autoComplete="off"
                   />
@@ -238,7 +236,7 @@ export default function FundPasswordPage() {
                     type="button"
                     onClick={() => setShowCurrent(!showCurrent)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                    aria-label={showCurrent ? 'Hide password' : 'Show password'}
+                    aria-label={showCurrent ? tc('hidePassword') : tc('showPassword')}
                   >
                     {showCurrent ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -248,14 +246,14 @@ export default function FundPasswordPage() {
 
             <div>
               <label className="mb-2 block text-sm text-muted-foreground">
-                {enabled ? 'New fund password' : 'Fund password'}
+                {enabled ? t('newLabel') : t('newLabelCreate')}
               </label>
               <div className="relative">
                 <input
                   type={showNew ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder={enabled ? 'Enter new fund password' : 'Create a fund password'}
+                  placeholder={enabled ? t('newPlaceholderUpdate') : t('newPlaceholderCreate')}
                   className={`${inputClassName()} pr-12`}
                   autoComplete="new-password"
                 />
@@ -263,7 +261,7 @@ export default function FundPasswordPage() {
                   type="button"
                   onClick={() => setShowNew(!showNew)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  aria-label={showNew ? 'Hide password' : 'Show password'}
+                  aria-label={showNew ? tc('hidePassword') : tc('showPassword')}
                 >
                   {showNew ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -275,13 +273,11 @@ export default function FundPasswordPage() {
                     {[0, 1, 2, 3].map((i) => (
                       <div
                         key={i}
-                        className={`h-1.5 flex-1 rounded-full ${
-                          i < strengthCount ? 'bg-primary' : 'bg-muted'
-                        }`}
+                        className={`h-1.5 flex-1 rounded-full ${i < strengthCount ? 'bg-primary' : 'bg-muted'}`}
                       />
                     ))}
                   </div>
-                  <p className="text-xs text-muted-foreground">Password strength</p>
+                  <p className="text-xs text-muted-foreground">{t('strengthLabel')}</p>
                   <ul className="space-y-1 text-xs">
                     <li
                       className={`flex items-center gap-2 ${
@@ -295,7 +291,7 @@ export default function FundPasswordPage() {
                       ) : (
                         <X className="h-3 w-3 shrink-0" />
                       )}
-                      8–30 characters
+                      {t('ruleLength')}
                     </li>
                     <li
                       className={`flex items-center gap-2 ${
@@ -307,7 +303,7 @@ export default function FundPasswordPage() {
                       ) : (
                         <X className="h-3 w-3 shrink-0" />
                       )}
-                      One uppercase letter
+                      {t('ruleUpper')}
                     </li>
                     <li
                       className={`flex items-center gap-2 ${
@@ -319,7 +315,7 @@ export default function FundPasswordPage() {
                       ) : (
                         <X className="h-3 w-3 shrink-0" />
                       )}
-                      One lowercase letter
+                      {t('ruleLower')}
                     </li>
                     <li
                       className={`flex items-center gap-2 ${
@@ -331,27 +327,25 @@ export default function FundPasswordPage() {
                       ) : (
                         <X className="h-3 w-3 shrink-0" />
                       )}
-                      One number
+                      {t('ruleNumber')}
                     </li>
                   </ul>
-                  {checkingSame ? (
-                    <p className="text-xs text-muted-foreground">Checking login password…</p>
-                  ) : null}
+                  {checkingSame ? <p className="text-xs text-muted-foreground">{t('checkingLogin')}</p> : null}
                   {sameAsLogin === true ? (
-                    <p className="text-xs text-primary">Must be different from your login password.</p>
+                    <p className="text-xs text-primary">{t('mustDifferLogin')}</p>
                   ) : null}
                 </div>
               ) : null}
             </div>
 
             <div>
-              <label className="mb-2 block text-sm text-muted-foreground">Confirm password</label>
+              <label className="mb-2 block text-sm text-muted-foreground">{t('confirmLabel')}</label>
               <div className="relative">
                 <input
                   type={showConfirm ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Re-enter fund password"
+                  placeholder={t('confirmPlaceholder')}
                   className={`${inputClassName()} pr-12`}
                   autoComplete="new-password"
                 />
@@ -359,13 +353,13 @@ export default function FundPasswordPage() {
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                  aria-label={showConfirm ? tc('hidePassword') : tc('showPassword')}
                 >
                   {showConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
               {confirmPassword && !validations.passwordsMatch ? (
-                <p className="mt-2 text-xs text-primary">Passwords do not match</p>
+                <p className="mt-2 text-xs text-primary">{t('passwordsNoMatch')}</p>
               ) : null}
             </div>
 
@@ -396,22 +390,19 @@ export default function FundPasswordPage() {
               {submitting ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Saving…
+                  {t('saving')}
                 </>
               ) : enabled ? (
-                'Update fund password'
+                t('updateButton')
               ) : (
-                'Set fund password'
+                t('setButton')
               )}
             </button>
           </form>
 
           <div className="mt-6 border-t border-border pt-4">
-            <Link
-              href="/dashboard/security"
-              className="text-sm font-medium text-primary hover:underline"
-            >
-              ← Back to Security
+            <Link href="/dashboard/security" className="text-sm font-medium text-primary hover:underline">
+              {tc('backToSecurityLink')}
             </Link>
           </div>
         </div>

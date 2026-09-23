@@ -43,6 +43,9 @@ function isCancellable(status: ForexOrderState): boolean {
 
 export default function ForexOrdersPage() {
   const tf = useTranslations('forex');
+  const t = useTranslations('forex.ordersPage');
+  const to = useTranslations('forex.bottomPanels.orders');
+  const tc = useTranslations('common.actions');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const orders = useForexStore((s) => s.orders);
@@ -110,21 +113,21 @@ export default function ForexOrdersPage() {
             ))}
           </div>
           {filtered.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No {tab} Forex orders.</p>
+            <p className="text-sm text-muted-foreground">{t('noOrdersInTab', { tab })}</p>
           ) : (
             <div className="eda-table-wrap overflow-x-auto">
               <table className="eda-table min-w-[960px] font-mono text-[12px]">
                 <thead>
                   <tr>
-                    <th className="sticky left-0 z-10 bg-card px-3 py-2 font-medium">Action</th>
-                    <th className="px-3 py-2 font-medium">Time</th>
-                    <th className="px-3 py-2 font-medium">Symbol</th>
-                    <th className="px-3 py-2 font-medium">Side</th>
-                    <th className="px-3 py-2 font-medium">Type</th>
-                    <th className="px-3 py-2 font-medium">Volume</th>
-                    <th className="px-3 py-2 font-medium">Price</th>
-                    <th className="px-3 py-2 font-medium">Status</th>
-                    <th className="px-3 py-2 font-medium">Order ID</th>
+                    <th className="sticky left-0 z-10 bg-card px-3 py-2 font-medium">{t('colAction')}</th>
+                    <th className="px-3 py-2 font-medium">{t('colTime')}</th>
+                    <th className="px-3 py-2 font-medium">{t('colSymbol')}</th>
+                    <th className="px-3 py-2 font-medium">{t('colSide')}</th>
+                    <th className="px-3 py-2 font-medium">{t('colType')}</th>
+                    <th className="px-3 py-2 font-medium">{t('colVolume')}</th>
+                    <th className="px-3 py-2 font-medium">{t('colPrice')}</th>
+                    <th className="px-3 py-2 font-medium">{t('colStatus')}</th>
+                    <th className="px-3 py-2 font-medium">{t('colOrderId')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -143,14 +146,14 @@ export default function ForexOrdersPage() {
                                   className="rounded border border-primary/40 px-1.5 py-0.5 text-[10px] text-primary disabled:opacity-50"
                                   onClick={() => void submitEdit(o)}
                                 >
-                                  Save
+                                  {to('save')}
                                 </button>
                                 <button
                                   type="button"
                                   className="rounded border border-border px-1.5 py-0.5 text-[10px]"
                                   onClick={() => setEditId(null)}
                                 >
-                                  Abort
+                                  {to('abort')}
                                 </button>
                               </span>
                             ) : cancelId === o.orderId ? (
@@ -161,14 +164,14 @@ export default function ForexOrdersPage() {
                                   onClick={() => runCancel(o.orderId)}
                                   data-testid={`confirm-cancel-${o.orderId.slice(0, 8)}`}
                                 >
-                                  Confirm
+                                  {to('confirm')}
                                 </button>
                                 <button
                                   type="button"
                                   className="rounded border border-border px-1.5 py-0.5 text-[10px]"
                                   onClick={() => setCancelId(null)}
                                 >
-                                  No
+                                  {to('no')}
                                 </button>
                               </span>
                             ) : (
@@ -183,7 +186,7 @@ export default function ForexOrdersPage() {
                                     setEditVol(o.requestedVolume);
                                   }}
                                 >
-                                  Modify
+                                  {to('modify')}
                                 </button>
                                 <button
                                   type="button"
@@ -193,7 +196,7 @@ export default function ForexOrdersPage() {
                                   data-testid={`cancel-order-${o.orderId.slice(0, 8)}`}
                                   aria-label={`Cancel order ${o.orderId.slice(0, 8)}`}
                                 >
-                                  {busyId === o.orderId ? '…' : 'Cancel'}
+                                  {busyId === o.orderId ? '…' : to('cancel')}
                                 </button>
                               </span>
                             )
@@ -215,7 +218,7 @@ export default function ForexOrdersPage() {
                               value={editVol}
                               onChange={(e) => setEditVol(e.target.value)}
                               className="w-16 rounded border border-border bg-background px-1 py-0.5"
-                              aria-label="Modify volume"
+                              aria-label={to('modifyVolumeAria')}
                             />
                           ) : (
                             `${o.filledVolume}/${o.requestedVolume}`
@@ -227,7 +230,7 @@ export default function ForexOrdersPage() {
                               value={editPrice}
                               onChange={(e) => setEditPrice(e.target.value)}
                               className="w-24 rounded border border-border bg-background px-1 py-0.5"
-                              aria-label="Modify price"
+                              aria-label={to('modifyPriceAria')}
                             />
                           ) : (
                             o.requestedPrice ?? '—'
@@ -244,20 +247,20 @@ export default function ForexOrdersPage() {
           )}
 
           <section className="eda-card p-4">
-            <h2 className="mb-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Fills</h2>
+            <h2 className="mb-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">{t('fillsHeading')}</h2>
             {fills.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No Forex executions yet.</p>
+              <p className="text-sm text-muted-foreground">{t('fillsEmpty')}</p>
             ) : (
               <table className="eda-table font-mono text-[12px]">
                 <thead>
                   <tr>
-                    <th className="py-1 font-medium">Time</th>
-                    <th className="py-1 font-medium">Symbol</th>
-                    <th className="py-1 font-medium">Side</th>
-                    <th className="py-1 font-medium">Volume</th>
-                    <th className="py-1 font-medium">Price</th>
-                    <th className="py-1 font-medium">Fill ID</th>
-                    <th className="py-1 font-medium">Order ID</th>
+                    <th className="py-1 font-medium">{t('colTime')}</th>
+                    <th className="py-1 font-medium">{t('colSymbol')}</th>
+                    <th className="py-1 font-medium">{t('colSide')}</th>
+                    <th className="py-1 font-medium">{t('colVolume')}</th>
+                    <th className="py-1 font-medium">{t('colPrice')}</th>
+                    <th className="py-1 font-medium">{t('colFillId')}</th>
+                    <th className="py-1 font-medium">{t('colOrderId')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -283,21 +286,21 @@ export default function ForexOrdersPage() {
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/40 p-3 md:items-center" role="dialog" aria-modal>
           <div className="w-full max-w-lg rounded-xl border border-border bg-card p-4">
             <div className="mb-2 flex justify-between">
-              <h2 className="text-sm font-medium">Order detail</h2>
+              <h2 className="text-sm font-medium">{t('orderDetailTitle')}</h2>
               <button type="button" className="text-[12px] text-primary underline" onClick={() => setDetail(null)}>
-                Close
+                {tc('close')}
               </button>
             </div>
             <dl className="grid grid-cols-2 gap-2 font-mono text-[12px]">
-              <dt className="text-muted-foreground">Order ID</dt>
+              <dt className="text-muted-foreground">{t('colOrderId')}</dt>
               <dd>{detail.orderId}</dd>
-              <dt className="text-muted-foreground">Client order ID</dt>
+              <dt className="text-muted-foreground">{t('clientOrderId')}</dt>
               <dd>{detail.clientOrderId}</dd>
-              <dt className="text-muted-foreground">Status</dt>
+              <dt className="text-muted-foreground">{t('colStatus')}</dt>
               <dd>{detail.status}</dd>
-              <dt className="text-muted-foreground">Reason</dt>
+              <dt className="text-muted-foreground">{t('reason')}</dt>
               <dd>{detail.failureReason ?? '—'}</dd>
-              <dt className="text-muted-foreground">Execution ID</dt>
+              <dt className="text-muted-foreground">{t('executionId')}</dt>
               <dd>{detail.executionId ?? '—'}</dd>
             </dl>
             {isCancellable(detail.status) ? (
@@ -310,7 +313,7 @@ export default function ForexOrdersPage() {
                     setDetail(null);
                   }}
                 >
-                  Cancel order
+                  {t('cancelOrder')}
                 </button>
               </div>
             ) : null}

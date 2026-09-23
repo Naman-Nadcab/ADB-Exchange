@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Download, FileText, History, FileSpreadsheet, Loader2, AlertTriangle } from 'lucide-react';
 import { api } from '@/lib/api';
 import { downloadCsv, ordersToCsv } from '@/lib/exportCsv';
@@ -81,6 +82,7 @@ function walletTransactionsToCsv(rows: WalletTx[]): string {
 }
 
 export default function DataExportPage() {
+  const t = useTranslations('account.dataExportPage');
   const [activeTab, setActiveTab] = useState<TabType>('transaction');
   const [timeRange, setTimeRange] = useState<TimeRangeType>('30days');
   const [startDate, setStartDate] = useState('');
@@ -90,9 +92,9 @@ export default function DataExportPage() {
   const [logs, setLogs] = useState<ExportLog[]>([]);
 
   const tabs: Array<{ id: TabType; label: string; icon: typeof FileText }> = [
-    { id: 'transaction', label: 'Transaction Log', icon: FileText },
-    { id: 'order', label: 'Order History', icon: History },
-    { id: 'account', label: 'Account Statement', icon: FileSpreadsheet },
+    { id: 'transaction', label: t('tabs.transaction'), icon: FileText },
+    { id: 'order', label: t('tabs.order'), icon: History },
+    { id: 'account', label: t('tabs.account'), icon: FileSpreadsheet },
   ];
 
   const canRun = useMemo(() => {
@@ -151,7 +153,7 @@ export default function DataExportPage() {
 
       const txRes = await api.get<WalletTx[]>('/api/v1/wallet/transactions/all', { notifyOnError: false });
       if (!txRes.success || !Array.isArray(txRes.data)) {
-        throw new Error('Unable to fetch wallet transactions.');
+        throw new Error(t('fetchWalletFailed'));
       }
       const filtered = txRes.data.filter((t) => {
         const stamp = t.date_time ?? t.created_at;
@@ -169,7 +171,7 @@ export default function DataExportPage() {
       downloadCsv(fileName, csv);
       appendLog({ kind: 'transaction', status: 'completed', rows: filtered.length, fileName });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Export failed';
+      const message = error instanceof Error ? error.message : t('exportFailed');
       notifyError(message);
       appendLog({ kind: activeTab, status: 'failed', rows: 0, reason: message });
     } finally {
@@ -180,10 +182,8 @@ export default function DataExportPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 lg:p-8">
       <div>
-        <h1 className="text-xl font-semibold text-foreground">Data Export</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Download account activity exports. Account statements are temporarily disabled until backend job pipeline is enabled.
-        </p>
+        <h1 className="text-xl font-semibold text-foreground">{t('title')}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t('subtitle')}</p>
       </div>
 
       <div className="flex flex-wrap gap-2 rounded-xl border border-border bg-card p-2">
@@ -211,10 +211,8 @@ export default function DataExportPage() {
           <div className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <div>
-              <p className="font-medium">Account statement export is not live yet.</p>
-              <p className="mt-1 text-amber-100/80">
-                Use trade and wallet exports for now. This prevents showing a fake export flow.
-              </p>
+              <p className="font-medium">{t('accountDisabledTitle')}</p>
+              <p className="mt-1 text-amber-100/80">{t('accountDisabledBody')}</p>
             </div>
           </div>
         </div>
@@ -222,7 +220,7 @@ export default function DataExportPage() {
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-1 text-sm">
-              <span className="text-muted-foreground">Type</span>
+              <span className="text-muted-foreground">{t('typeLabel')}</span>
               <select
                 value={exportType}
                 onChange={(e) =>
@@ -232,37 +230,37 @@ export default function DataExportPage() {
               >
                 {activeTab === 'order' ? (
                   <>
-                    <option value="all">All orders</option>
-                    <option value="trade">Trade orders</option>
+                    <option value="all">{t('exportTypes.allOrders')}</option>
+                    <option value="trade">{t('exportTypes.tradeOrders')}</option>
                   </>
                 ) : (
                   <>
-                    <option value="all">All transactions</option>
-                    <option value="deposit">Deposits</option>
-                    <option value="withdrawal">Withdrawals</option>
-                    <option value="transfer">Transfers</option>
+                    <option value="all">{t('exportTypes.allTransactions')}</option>
+                    <option value="deposit">{t('exportTypes.deposit')}</option>
+                    <option value="withdrawal">{t('exportTypes.withdrawal')}</option>
+                    <option value="transfer">{t('exportTypes.transfer')}</option>
                   </>
                 )}
               </select>
             </label>
             <label className="space-y-1 text-sm">
-              <span className="text-muted-foreground">Time Range</span>
+              <span className="text-muted-foreground">{t('timeRangeLabel')}</span>
               <select
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value as TimeRangeType)}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2"
               >
-                <option value="7days">Last 7 days</option>
-                <option value="30days">Last 30 days</option>
-                <option value="90days">Last 90 days</option>
-                <option value="custom">Custom range</option>
+                <option value="7days">{t('timeRanges.7days')}</option>
+                <option value="30days">{t('timeRanges.30days')}</option>
+                <option value="90days">{t('timeRanges.90days')}</option>
+                <option value="custom">{t('timeRanges.custom')}</option>
               </select>
             </label>
           </div>
           {timeRange === 'custom' && (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <label className="space-y-1 text-sm">
-                <span className="text-muted-foreground">Start Date</span>
+                <span className="text-muted-foreground">{t('startDate')}</span>
                 <input
                   type="date"
                   value={startDate}
@@ -271,7 +269,7 @@ export default function DataExportPage() {
                 />
               </label>
               <label className="space-y-1 text-sm">
-                <span className="text-muted-foreground">End Date</span>
+                <span className="text-muted-foreground">{t('endDate')}</span>
                 <input
                   type="date"
                   value={endDate}
@@ -290,10 +288,10 @@ export default function DataExportPage() {
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
             >
               {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-              {running ? 'Preparing export...' : 'Export CSV'}
+              {running ? t('preparing') : t('exportCsv')}
             </button>
             <Link href="/wallet/history" className="text-sm text-primary hover:underline">
-              Open full wallet history
+              {t('openWalletHistory')}
             </Link>
           </div>
         </div>
@@ -301,25 +299,28 @@ export default function DataExportPage() {
 
       <div className="rounded-xl border border-border bg-card">
         <div className="border-b border-border px-4 py-3">
-          <h2 className="text-sm font-semibold text-foreground">Export Activity</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t('activityTitle')}</h2>
         </div>
         <div className="p-4">
           {logs.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No export jobs in this session.</p>
+            <p className="text-sm text-muted-foreground">{t('noSessionJobs')}</p>
           ) : (
             <div className="space-y-2">
               {logs.map((log) => (
                 <div key={log.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm">
                   <div>
                     <p className="font-medium text-foreground">
-                      {log.kind} export - {log.status}
+                      {t('logLine', { kind: log.kind, status: log.status })}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(log.requestedAt).toLocaleString()} · rows: {log.rows}
+                      {t('logMeta', {
+                        datetime: new Date(log.requestedAt).toLocaleString(),
+                        rows: log.rows,
+                      })}
                     </p>
                   </div>
                   <span className={log.status === 'completed' ? 'text-emerald-400' : 'text-red-400'}>
-                    {log.fileName ?? log.reason ?? 'Failed'}
+                    {log.fileName ?? log.reason ?? t('failed')}
                   </span>
                 </div>
               ))}

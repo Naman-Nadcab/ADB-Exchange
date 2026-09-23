@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { createForexDemoAccountAndActivate, switchForexActiveAccount } from '@/lib/forex/runtime/hydrate';
@@ -7,6 +8,7 @@ import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useForexStore } from '@/lib/forex/state/store';
 
 export function ForexAccountSwitcher(props?: { compact?: boolean }) {
+  const t = useTranslations('forex.accountSwitcher');
   const accounts = useForexStore((s) => s.forexAccounts);
   const activeId = useForexStore((s) => s.activeForexAccountId);
   const [busy, setBusy] = useState(false);
@@ -57,7 +59,7 @@ export function ForexAccountSwitcher(props?: { compact?: boolean }) {
         className={`flex max-w-[260px] items-center gap-2 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${props?.compact ? 'text-[10px]' : 'text-[11px]'}`}
         aria-expanded={open}
         aria-haspopup="listbox"
-        aria-label="Active Forex account"
+        aria-label={t('activeAccountAria')}
       >
         <span className="min-w-0 truncate">
           <span className="block truncate font-medium text-foreground">

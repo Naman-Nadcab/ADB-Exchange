@@ -159,7 +159,8 @@
       "estimatedFee": "Estimated Fee ({pct}%)",
       "netReceive": "Net Receive",
       "estimatedExecution": "Estimated Execution"
-    }
+    },
+    "loadingRowsAria": "Loading"
   },
   "chart": {
     "chart": "Chart",
@@ -494,5 +495,8 @@
   "chartPanel": {
     "loadingChart": "Loading chart…",
     "depthChartAria": "Orderbook depth chart"
+  },
+  "spotPositionPanel": {
+    "unrealizedPnl": "Unrealized PnL"
   }
 }

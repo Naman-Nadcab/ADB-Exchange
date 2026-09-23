@@ -159,7 +159,8 @@
       "estimatedFee": "Perkiraan Biaya ({pct}%)",
       "netReceive": "Terima Bersih",
       "estimatedExecution": "Perkiraan Eksekusi"
-    }
+    },
+    "loadingRowsAria": "Memuat"
   },
   "chart": {
     "chart": "Grafik",
@@ -494,5 +495,8 @@
   "chartPanel": {
     "loadingChart": "Memuat chart…",
     "depthChartAria": "Chart kedalaman order book"
+  },
+  "spotPositionPanel": {
+    "unrealizedPnl": "PnL belum terealisasi"
   }
 }

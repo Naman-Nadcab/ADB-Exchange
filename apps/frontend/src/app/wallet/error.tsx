@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { ErrorState } from '@/components/ui/ErrorState';
 
 export default function WalletError({
@@ -9,12 +10,15 @@ export default function WalletError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations('common.routeErrors');
+  const tc = useTranslations('common.actions');
   return (
     <div className="p-4 md:p-6">
       <ErrorState
-        title="Wallet section failed to load"
-        message={error.message || 'Retry to refresh wallet data.'}
+        title={t('walletSection')}
+        message={error.message || t('walletRetry')}
         onRetry={reset}
+        retryLabel={tc('retry')}
       />
     </div>
   );

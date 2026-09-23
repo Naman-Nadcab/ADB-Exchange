@@ -235,5 +235,18 @@
       "cryptoOverviewPrefix": "Crypto overview remains at",
       "cryptoOverviewSuffix": ". This home does not replace the Crypto Spot terminal."
     }
+  },
+  "productPair": {
+    "eyebrow": "Products",
+    "title": "Choose a market",
+    "description": "Crypto Spot and Forex are separate products. Forex uses its own prices, account, and risk.",
+    "cryptoLabel": "Crypto",
+    "cryptoTitle": "Crypto Spot",
+    "cryptoDesc": "Trade crypto spot markets.",
+    "cryptoCta": "Trade Spot",
+    "forexLabel": "Forex",
+    "forexTitle": "Forex",
+    "forexDesc": "Trade global FX markets.",
+    "forexCta": "Open Forex"
   }
 }

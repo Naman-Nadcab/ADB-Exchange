@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Loader2 } from 'lucide-react';
 import { handleAppleCallback, consumeOAuthRedirect, resolvePostLoginRedirect } from '@/lib/oauth';
 import { useAuthStore, type User } from '@/store/auth';
@@ -9,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { COOKIE_SESSION_MARKER } from '@/lib/authSession';
 
 export default function AppleCallbackPage() {
+  const t = useTranslations('auth.oauthCallback');
   const searchParams = useSearchParams();
   const { login } = useAuthStore();
   const { setAuthenticated } = useAuth();
@@ -22,13 +24,13 @@ export default function AppleCallbackPage() {
     const errorParam = searchParams.get('error');
 
     if (errorParam) {
-      setError('Apple login was cancelled or failed');
+      setError(t('appleCancelled'));
       setTimeout(() => { window.location.assign('/login'); }, 3000);
       return;
     }
 
     if (!code || !state) {
-      setError('Invalid callback parameters');
+      setError(t('invalidParams'));
       setTimeout(() => { window.location.assign('/login'); }, 3000);
       return;
     }
@@ -54,15 +56,15 @@ export default function AppleCallbackPage() {
           setAuthenticated(userData);
           window.location.assign(resolvePostLoginRedirect(consumeOAuthRedirect()));
         } else {
-          setError(result.error?.message || 'Apple login failed');
+          setError(result.error?.message || t('appleFailed'));
           setTimeout(() => { window.location.assign('/login'); }, 3000);
         }
       })
       .catch(() => {
-        setError('An error occurred during login');
+        setError(t('loginError'));
         setTimeout(() => { window.location.assign('/login'); }, 3000);
       });
-  }, [searchParams, login, setAuthenticated]);
+  }, [searchParams, login, setAuthenticated, t]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -73,12 +75,12 @@ export default function AppleCallbackPage() {
               <span className="text-destructive text-2xl">!</span>
             </div>
             <p className="text-foreground text-lg">{error}</p>
-            <p className="text-muted-foreground text-sm">Redirecting to login...</p>
+            <p className="text-muted-foreground text-sm">{t('redirectingToLogin')}</p>
           </div>
         ) : (
           <div className="space-y-4">
             <Loader2 className="w-12 h-12 mx-auto text-primary animate-spin" />
-            <p className="text-foreground text-lg">Completing Apple sign in...</p>
+            <p className="text-foreground text-lg">{t('completingApple')}</p>
           </div>
         )}
       </div>

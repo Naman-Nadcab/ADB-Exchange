@@ -1152,7 +1152,7 @@ export function ForexChartFoundation(props?: {
 
       {showCalendar && calendarForSymbol.length > 0 && !props?.compactChrome ? (
         <div className="flex h-6 min-w-0 items-center gap-3 overflow-x-auto border-b border-border/70 bg-card/40 px-2 text-[10px] text-muted-foreground">
-          <span className="shrink-0 font-medium text-foreground">Calendar</span>
+          <span className="shrink-0 font-medium text-foreground">{tc('calendarLabel')}</span>
           {calendarForSymbol.map((ev, i) => (
             <span key={`${ev.time}-${i}`} className="shrink-0 whitespace-nowrap">
               <span className="text-primary">{String(ev.impact ?? '').slice(0, 1).toUpperCase() || '·'}</span>{' '}
@@ -1205,9 +1205,9 @@ export function ForexChartFoundation(props?: {
         {candleView.status === 'NO_HISTORY' ? (
           <div className="absolute inset-0 flex items-center justify-center p-6">
             <div className="max-w-sm rounded-lg border border-border bg-card/95 p-4 text-center shadow-lg">
-              <p className="text-sm font-medium text-foreground">Historical data unavailable</p>
+              <p className="text-sm font-medium text-foreground">{tc('noHistoricalTitle')}</p>
               <p className="mt-1 text-[12px] text-muted-foreground">
-                No OHLC for {inst?.displaySymbol ?? selected} on {activeTf}.
+                {tc('noHistoricalBody', { symbol: inst?.displaySymbol ?? selected, timeframe: activeTf })}
               </p>
             </div>
           </div>

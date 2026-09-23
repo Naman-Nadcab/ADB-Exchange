@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { CoinIcon } from '@/components/ui/CoinIcon';
 
 export interface AllocationItem {
@@ -41,6 +42,7 @@ export interface PortfolioAllocationChartProps {
 }
 
 export function PortfolioAllocationChart({ items, size = 180 }: PortfolioAllocationChartProps) {
+  const tw = useTranslations('wallet.overview');
   const { paths, total } = useMemo(() => {
     const filtered = items.filter((i) => i.value > 0);
     const total = filtered.reduce((s, i) => s + i.value, 0);
@@ -67,13 +69,13 @@ export function PortfolioAllocationChart({ items, size = 180 }: PortfolioAllocat
 
   return (
     <div className="bg-card rounded-xl p-5 border border-border card-bybit">
-      <h3 className="text-sm font-semibold text-foreground mb-4">Portfolio Allocation</h3>
+      <h3 className="text-sm font-semibold text-foreground mb-4">{tw('portfolioAllocation')}</h3>
       {paths.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <div className="w-24 h-24 rounded-full border-2 border-dashed border-border flex items-center justify-center mb-3">
-            <span className="text-xs text-muted-foreground">No assets</span>
+            <span className="text-xs text-muted-foreground">{tw('noAssets')}</span>
           </div>
-          <p className="text-sm text-muted-foreground">Deposit to see allocation</p>
+          <p className="text-sm text-muted-foreground">{tw('depositToSeeAllocation')}</p>
         </div>
       ) : (
         <div className="flex flex-col sm:flex-row items-center gap-6">

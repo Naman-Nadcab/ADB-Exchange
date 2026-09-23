@@ -6,6 +6,7 @@
  */
 
 import { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useBalancesByAccount } from '@/lib/balances';
@@ -84,6 +85,7 @@ export function SpotPositionPanel({
   pricePrecision: number;
   qtyPrecision: number;
 }) {
+  const tPos = useTranslations('crypto.spotPositionPanel');
   const { ticker } = useSpotMarketTicker();
   const { data: balancesByAccount = [] } = useBalancesByAccount(isAuth);
 
@@ -151,7 +153,7 @@ export function SpotPositionPanel({
           </p>
         </div>
         <div>
-          <span className="text-muted-foreground">Unrealized PnL</span>
+          <span className="text-muted-foreground">{tPos('unrealizedPnl')}</span>
           <p
             className={`numeric flex items-center gap-0.5 font-semibold ${
               u == null || Math.abs(u) < 1e-12

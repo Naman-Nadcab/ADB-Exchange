@@ -31,6 +31,8 @@ function metalsNote(symbol: string): string | undefined {
 
 export default function ForexMarketsPage() {
   const tf = useTranslations('forex');
+  const tm = useTranslations('forex.marketsPage');
+  const tt = useTranslations('forex.ticketPanel');
   const classLabel = (assetClass: ForexAssetClass): string => {
     if (assetClass === 'fx_major') return tf('markets.classLabels.major');
     if (assetClass === 'fx_cross') return tf('markets.classLabels.cross');
@@ -100,16 +102,16 @@ export default function ForexMarketsPage() {
             )}
           >
             <span className={cn('h-1.5 w-1.5 rounded-full', sessionOpen ? 'bg-buy' : 'bg-sell')} aria-hidden />
-            Session {sessionOpen ? 'Open' : 'Closed'}
+            {tm('sessionLabel', { state: sessionOpen ? tm('sessionOpen') : tm('sessionClosed') })}
           </span>
           <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">
-            {liveCount}/{rows.length} live
+            {tm('liveCount', { live: liveCount, total: rows.length })}
           </span>
         </div>
       }
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Instrument class">
+        <div className="flex flex-wrap gap-1.5" role="tablist" aria-label={tm('instrumentClassAria')}>
           {FILTERS.map((f) => (
             <button
               key={f.id}
@@ -131,32 +133,32 @@ export default function ForexMarketsPage() {
             id="fx-markets-search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search EUR, XAU…"
+            placeholder={tm('searchPlaceholder')}
             className="h-9 w-full min-w-[180px] rounded-lg border border-border bg-card px-3 text-[12px] text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-56"
           />
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as 'symbol' | 'spread')}
             className="h-9 rounded-lg border border-border bg-card px-2 text-[12px] text-foreground"
-            aria-label="Sort markets"
+            aria-label={tm('sortMarketsAria')}
           >
-            <option value="symbol">Sort · Symbol</option>
-            <option value="spread">Sort · Spread</option>
+            <option value="symbol">{tm('sortSymbol')}</option>
+            <option value="spread">{tm('sortSpread')}</option>
           </select>
         </div>
       </div>
 
       {!sessionOpen ? (
-        <p className="text-[12px] text-amber-400">Market session: {sessionReason}. Quotes may still stream in demo mode.</p>
+        <p className="text-[12px] text-amber-400">{tm('sessionClosedNotice', { reason: sessionReason })}</p>
       ) : null}
 
       {rows.length === 0 ? (
         <p className="eda-card p-6 text-sm text-muted-foreground">
           {Object.keys(instruments).length
             ? filter === 'watchlist'
-              ? 'Watchlist is empty. Star a market card to add it.'
-              : 'No instruments for this filter.'
-            : 'Loading market data…'}
+              ? tm('watchlistEmpty')
+              : tm('noInstrumentsFilter')
+            : tm('loadingMarketData')}
         </p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -189,7 +191,7 @@ export default function ForexMarketsPage() {
                   </button>
                   <button
                     type="button"
-                    aria-label={starred ? 'Remove from watchlist' : 'Add to watchlist'}
+                    aria-label={starred ? tm('removeWatchlistAria') : tm('addWatchlistAria')}
                     aria-pressed={starred}
                     onClick={() => toggleWatch(inst.symbol)}
                     className={cn(
@@ -203,13 +205,13 @@ export default function ForexMarketsPage() {
 
                 <dl className="mt-4 grid grid-cols-2 gap-2">
                   <div className="rounded-lg border border-buy/20 bg-buy/5 px-2.5 py-2">
-                    <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Bid</dt>
+                    <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{tt('bid')}</dt>
                     <dd className="eda-quote mt-0.5 font-mono text-[15px] font-semibold text-buy">
                       {q ? fxNum(q.bid, inst.digits) : '—'}
                     </dd>
                   </div>
                   <div className="rounded-lg border border-sell/20 bg-sell/5 px-2.5 py-2">
-                    <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Ask</dt>
+                    <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{tt('ask')}</dt>
                     <dd className="eda-quote mt-0.5 font-mono text-[15px] font-semibold text-sell">
                       {q ? fxNum(q.ask, inst.digits) : '—'}
                     </dd>

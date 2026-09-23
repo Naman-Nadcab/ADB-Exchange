@@ -159,7 +159,8 @@
       "estimatedFee": "预估手续费 ({pct}%)",
       "netReceive": "净收到",
       "estimatedExecution": "预估执行"
-    }
+    },
+    "loadingRowsAria": "加载中"
   },
   "chart": {
     "chart": "K线",
@@ -494,5 +495,8 @@
   "chartPanel": {
     "loadingChart": "正在加载图表…",
     "depthChartAria": "订单簿深度图"
+  },
+  "spotPositionPanel": {
+    "unrealizedPnl": "未实现盈亏"
   }
 }
