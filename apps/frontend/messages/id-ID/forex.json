@@ -224,8 +224,13 @@
     "sectionsAria": "Bagian akun"
   },
   "alertsPage": {
-    "intro": "Alert trading utama dikelola di sini dan di",
-    "tradeTerminal": "terminal trade"
+    "intro": "Status alert server & saluran pengiriman",
+    "manageHere": "Kelola alert harga, margin, dan akun di sini dan di",
+    "manageSuffix": " (tab Alerts).",
+    "tradeTerminal": "terminal trading",
+    "localOnlyBadge": "Hanya browser",
+    "localOnlyTitle": "Alert terminal lokal",
+    "localOnlyBody": "Alert harga di browser memerlukan tab terminal tetap terbuka. Tidak disimpan di server."
   },
   "bottomPanels": {
     "ariaLabel": "Toolbox trade",
@@ -648,8 +653,18 @@
     "delete": "Hapus",
     "eventsTitle": "Event terbaru",
     "noEvents": "Belum ada event terpicu.",
-    "deliveryAvailable": "TERSEDIA",
-    "deliveryNotConfigured": "BELUM DIKONFIGURASI",
+    "deliveryAvailable": "Tersedia",
+    "deliveryNotConfigured": "Belum dikonfigurasi",
+    "deliveryHeading": "Saluran pengiriman",
+    "deliveryReasonHint": "Hubungi dukungan jika saluran tetap tidak tersedia setelah konfigurasi.",
+    "formHeading": "Buat atau edit alert",
+    "activeHeading": "Alert aktif",
+    "statusEnabled": "Aktif",
+    "statusDisabled": "Nonaktif",
+    "statusActiveCount": "Alert aktif",
+    "statusTotalCount": "Total alert",
+    "statusEventsCount": "Event terbaru",
+    "lastTriggered": "Terakhir dipicu {time}",
     "types": {
       "BID": "Bid",
       "ASK": "Ask",
@@ -829,7 +844,17 @@
     "switching": "Mengganti…",
     "switch": "Ganti",
     "empty": "Belum ada akun Forex. Buat akun demo untuk memulai.",
-    "quickSwitchHint": "Ganti cepat: gunakan kontrol akun di bilah akun <tradeLink>terminal trade</tradeLink>."
+    "quickSwitchHint": "Ganti cepat: gunakan kontrol akun di bilah akun <tradeLink>terminal trade</tradeLink>.",
+    "cardsSectionTitle": "Akun Forex Anda",
+    "cardsSectionSubtitle": "Ganti, buka terminal, atau kelola dari setiap kartu akun.",
+    "tableSectionTitle": "Direktori akun",
+    "tableSectionSubtitle": "Tampilan ringkas semua akun server.",
+    "activeBadge": "Aktif",
+    "leverageLabel": "Leverage {value}",
+    "metricBalance": "Saldo",
+    "metricEquity": "Ekuitas",
+    "metricMargin": "Margin terpakai",
+    "manage": "Kelola"
   },
   "positionModeSwitch": {
     "button": "Mode…",
@@ -903,8 +928,22 @@
     "custom": "Kustom"
   },
   "portfolioPage": {
+    "summaryAria": "Ringkasan portofolio",
+    "openPositionsBadge": "{count} posisi terbuka",
+    "exposureSubtitle": "Posisi terbuka dan eksposur nominal",
+    "kpiBalance": "Saldo",
+    "kpiEquity": "Ekuitas",
+    "kpiUsedMargin": "Margin terpakai",
+    "kpiFreeMargin": "Margin bebas",
+    "kpiUnrealizedPnl": "P&L belum direalisasi",
+    "kpiGrossExposure": "Eksposur kotor",
+    "kpiRealizedPnl": "P&L direalisasi",
+    "kpiFees": "Biaya",
+    "kpiSwaps": "Swap",
+    "colPnl": "P&L",
+    "pnlUnavailable": "Tidak tersedia",
     "noOpenPositions": "Tidak ada posisi terbuka.",
-    "exposureHeading": "Eksposur",
+    "exposureHeading": "Posisi terbuka",
     "accountNet": "Net akun",
     "columns": {
       "symbol": "Simbol",
@@ -967,10 +1006,22 @@
     "metricRealizedPnl": "Realized P&L",
     "metricFees": "Fees",
     "metricSwaps": "Swaps",
-    "metricAvailable": "Available"
+    "metricAvailable": "Tersedia",
+    "kindDemo": "Demo",
+    "kindLive": "Live",
+    "positionSummaryHeading": "Aktivitas trading",
+    "openPositionsLabel": "Posisi terbuka",
+    "pendingOrdersLabel": "Order kerja"
   },
   "ledgerPage": {
-    "filterType": "Type",
+    "summaryAria": "Ringkasan buku besar",
+    "kpiLedgerBalance": "Saldo buku besar",
+    "kpiEntryCount": "Entri ditampilkan",
+    "kpiReconciliation": "Rekonsiliasi",
+    "kpiReconciliationPending": "Menunggu",
+    "kpiCurrency": "Mata uang",
+    "filterHeading": "Filter buku besar",
+    "filterType": "Jenis",
     "filterFrom": "From",
     "filterTo": "To",
     "empty": "No Forex account activity.",
@@ -1008,7 +1059,13 @@
     "detailPosition": "Position"
   },
   "fundsPage": {
-    "metricAvailableBalance": "Available balance",
+    "summaryAria": "Ringkasan dana",
+    "demoBodyShort": "Tambahkan kredit demo simulasi ke buku besar Forex terisolasi untuk berlatih di terminal. Bukan deposit nyata.",
+    "technicalDetailsLabel": "Detail teknis",
+    "fundedNoticeShort": "Akun demo didanai · {balance} {currency} · bukan uang nyata.",
+    "realRailsBodyShort": "Rel deposit/penarikan uang nyata Forex tidak tersedia di platform ini.",
+    "realRailsUnavailableBadge": "Tidak tersedia",
+    "metricAvailableBalance": "Saldo tersedia",
     "metricLedgerBalance": "Ledger balance",
     "metricEquity": "Equity",
     "metricUsedMargin": "Used margin",
@@ -1033,7 +1090,16 @@
     "colStatus": "Status"
   },
   "ordersPage": {
-    "noOrdersInTab": "No {tab} Forex orders.",
+    "summaryAria": "Jumlah order per status",
+    "tabsAria": "Tab status order",
+    "tab": {
+      "pending": "Kerja",
+      "open": "Terbuka",
+      "completed": "Selesai",
+      "cancelled": "Dibatalkan",
+      "rejected": "Ditolak"
+    },
+    "noOrdersInTab": "Tidak ada order Forex {tab}.",
     "colAction": "Action",
     "colTime": "Time",
     "colSymbol": "Symbol",
@@ -1053,6 +1119,11 @@
     "cancelOrder": "Cancel order"
   },
   "marketsPage": {
+    "summaryAria": "Ringkasan pasar",
+    "kpiInstruments": "Instrumen",
+    "kpiFiltered": "Ditampilkan",
+    "kpiLiveQuotes": "Quote live",
+    "kpiSession": "Sesi",
     "instrumentClassAria": "Instrument class",
     "searchPlaceholder": "Search EUR, XAU…",
     "sortMarketsAria": "Sort markets",
@@ -1071,6 +1142,13 @@
     "addWatchlistAria": "Add to watchlist"
   },
   "analysisPage": {
+    "summaryAria": "Snapshot riset",
+    "kpiSymbol": "Simbol",
+    "kpiBidAsk": "Bid / Ask",
+    "kpiSpread": "Spread (pip)",
+    "kpiSession": "Sesi",
+    "sessionOpen": "Buka",
+    "sessionClosed": "Tutup",
     "quickSymbolsAria": "Quick symbols",
     "levelsHeading": "Levels",
     "ohlcDerived": "OHLC-derived",

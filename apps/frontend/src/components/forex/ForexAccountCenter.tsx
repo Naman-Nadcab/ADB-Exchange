@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { LayoutGrid, Settings2 } from 'lucide-react';
 import { ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
-import { fxPlain } from '@/components/forex/format';
+import { fxMoney, fxPlain } from '@/components/forex/format';
+import { ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import {
   createForexDemoAccountAndActivate,
@@ -22,6 +24,9 @@ export function ForexAccountCenter() {
   const authed = isAuthenticated || hasForexPrivateSession();
   const accounts = useForexStore((s) => s.forexAccounts);
   const activeId = useForexStore((s) => s.activeForexAccountId);
+  const account = useForexStore((s) => s.account);
+  const balance = useForexStore((s) => s.balance);
+  const margin = useForexStore((s) => s.margin);
   const hydratePhase = useForexStore((s) => s.hydratePhase);
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -83,82 +88,172 @@ export function ForexAccountCenter() {
     return <ForexSignInPrompt href={`/login?redirect=${FOREX_ROUTES.accounts}`} sectionKey="forexAccounts" />;
   }
 
+  const currency = account?.currency ?? balance?.currency ?? 'USD';
+
   return (
-    <>
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          disabled={busy != null}
-          onClick={() => void onCreateDemo()}
-          className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-        >
-          {busy === 'create' ? t('createDemoBusy') : t('createDemo')}
-        </button>
-        <Link
-          href={FOREX_ROUTES.trade}
-          className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold hover:border-primary/40"
-        >
-          {t('openTradeTerminal')}
-        </Link>
-      </div>
-
-      {note ? <p className="text-sm text-buy">{note}</p> : null}
-      {err ? <p className="text-sm text-sell">{err}</p> : null}
-      {hydratePhase === 'hydrating' && !accounts.length ? (
-        <p className="text-sm text-muted-foreground">{t('loadingAccounts')}</p>
-      ) : null}
-
-      <div className="overflow-x-auto rounded-lg border border-border">
-        <table className="w-full min-w-[640px] text-left text-[12px]">
-          <thead className="border-b border-border bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2 font-medium">{t('colAccountId')}</th>
-              <th className="px-3 py-2 font-medium">{t('colType')}</th>
-              <th className="px-3 py-2 font-medium">{t('colStatus')}</th>
-              <th className="px-3 py-2 font-medium">{t('colCurrency')}</th>
-              <th className="px-3 py-2 font-medium">{t('colPositionMode')}</th>
-              <th className="px-3 py-2 font-medium">{t('colLeverage')}</th>
-              <th className="px-3 py-2 font-medium">{t('colActive')}</th>
-              <th className="px-3 py-2 font-medium">{t('colActions')}</th>
-            </tr>
-          </thead>
-          <tbody>
+    <div className="space-y-3">
+      <ForexPortalModuleCard
+        title={t('cardsSectionTitle')}
+        subtitle={t('cardsSectionSubtitle')}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={busy != null}
+              onClick={() => void onCreateDemo()}
+              className="inline-flex min-h-9 items-center rounded border border-primary/40 bg-primary/10 px-3 text-[11px] font-semibold text-primary hover:bg-primary/15 disabled:opacity-50"
+            >
+              {busy === 'create' ? t('createDemoBusy') : t('createDemo')}
+            </button>
+            <Link
+              href={FOREX_ROUTES.trade}
+              className="inline-flex min-h-9 items-center gap-1 rounded border border-border px-3 text-[11px] font-semibold hover:border-primary/40"
+            >
+              <LayoutGrid className="h-3.5 w-3.5" aria-hidden />
+              {t('openTradeTerminal')}
+            </Link>
+          </div>
+        }
+      >
+        {note ? <p className="mb-3 text-sm text-buy">{note}</p> : null}
+        {err ? <p className="mb-3 text-sm text-sell">{err}</p> : null}
+        {hydratePhase === 'hydrating' && !accounts.length ? (
+          <p className="text-sm text-muted-foreground">{t('loadingAccounts')}</p>
+        ) : null}
+        {!accounts.length && hydratePhase !== 'hydrating' ? (
+          <p className="text-sm text-muted-foreground">{t('empty')}</p>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {accounts.map((a) => {
               const isActive = a.accountId === activeId;
-              const lev =
-                'leverageOverride' in a && a.leverageOverride ? String(a.leverageOverride) : '—';
+              const lev = 'leverageOverride' in a && a.leverageOverride ? String(a.leverageOverride) : '—';
+              const kind = a.accountKind.toUpperCase();
               return (
-                <tr key={a.accountId} className={cn('border-b border-border/60', isActive && 'bg-primary/5')}>
-                  <td className="px-3 py-2 font-mono">{fxPlain(a.accountId)}</td>
-                  <td className="px-3 py-2">{kindLabel(a.accountKind)}</td>
-                  <td className="px-3 py-2">{fxPlain(a.status)}</td>
-                  <td className="px-3 py-2">{fxPlain(a.currency)}</td>
-                  <td className="px-3 py-2">{fxPlain(a.positionMode)}</td>
-                  <td className="px-3 py-2 font-mono text-muted-foreground">{lev}</td>
-                  <td className="px-3 py-2">{isActive ? t('yes') : '—'}</td>
-                  <td className="px-3 py-2">
+                <article
+                  key={a.accountId}
+                  className={cn(
+                    'flex flex-col rounded border p-3',
+                    isActive ? 'border-primary/35 bg-primary/[0.06]' : 'border-border/80 bg-card/80'
+                  )}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <ForexPortalStatusBadge tone={kind === 'DEMO' ? 'primary' : 'neutral'}>{kindLabel(a.accountKind)}</ForexPortalStatusBadge>
+                      {isActive ? (
+                        <ForexPortalStatusBadge tone="success" className="ml-1">
+                          {t('activeBadge')}
+                        </ForexPortalStatusBadge>
+                      ) : null}
+                      <p className="mt-2 font-mono text-[13px] font-semibold text-foreground">{fxPlain(a.accountId)}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {fxPlain(a.currency)} · {fxPlain(a.positionMode)} · {t('leverageLabel', { value: lev })}
+                      </p>
+                    </div>
+                    <ForexPortalStatusBadge tone={String(a.status).toUpperCase() === 'ACTIVE' ? 'success' : 'neutral'}>
+                      {fxPlain(a.status)}
+                    </ForexPortalStatusBadge>
+                  </div>
+                  {isActive ? (
+                    <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-border/60 pt-3 font-mono text-[11px]">
+                      <div>
+                        <dt className="text-[9px] uppercase text-muted-foreground">{t('metricBalance')}</dt>
+                        <dd className="mt-0.5 tabular-nums">{fxMoney(account?.ledgerBalance ?? balance?.ledgerBalance, currency)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[9px] uppercase text-muted-foreground">{t('metricEquity')}</dt>
+                        <dd className="mt-0.5 tabular-nums">{fxMoney(account?.equity ?? balance?.equity, currency)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[9px] uppercase text-muted-foreground">{t('metricMargin')}</dt>
+                        <dd className="mt-0.5 tabular-nums">{fxMoney(account?.usedMargin ?? margin?.usedMargin, currency)}</dd>
+                      </div>
+                    </dl>
+                  ) : null}
+                  <div className="mt-3 flex flex-wrap gap-2">
                     {isActive ? (
-                      <span className="text-muted-foreground">{t('current')}</span>
+                      <span className="text-[11px] text-muted-foreground">{t('current')}</span>
                     ) : (
                       <button
                         type="button"
                         disabled={busy != null}
                         onClick={() => void onSwitch(a.accountId)}
-                        className="rounded border border-border px-2 py-1 text-[11px] font-medium hover:border-primary/40 disabled:opacity-50"
+                        className="rounded border border-border px-2.5 py-1 text-[11px] font-medium hover:border-primary/40 disabled:opacity-50"
                       >
                         {busy === a.accountId ? t('switching') : t('switch')}
                       </button>
                     )}
-                  </td>
-                </tr>
+                    <Link
+                      href={FOREX_ROUTES.trade}
+                      className="inline-flex items-center gap-1 rounded border border-border px-2.5 py-1 text-[11px] font-medium hover:border-primary/40"
+                    >
+                      <LayoutGrid className="h-3 w-3" aria-hidden />
+                      {t('openTradeTerminal')}
+                    </Link>
+                    <Link
+                      href={FOREX_ROUTES.account}
+                      className="inline-flex items-center gap-1 rounded border border-border/70 px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+                    >
+                      <Settings2 className="h-3 w-3" aria-hidden />
+                      {t('manage')}
+                    </Link>
+                  </div>
+                </article>
               );
             })}
-          </tbody>
-        </table>
-      </div>
+          </div>
+        )}
+      </ForexPortalModuleCard>
 
-      {!accounts.length && hydratePhase !== 'hydrating' ? (
-        <p className="text-sm text-muted-foreground">{t('empty')}</p>
+      {accounts.length > 0 ? (
+        <ForexPortalModuleCard title={t('tableSectionTitle')} subtitle={t('tableSectionSubtitle')}>
+          <div className="overflow-x-auto rounded border border-border/80">
+            <table className="w-full min-w-[640px] text-left text-[12px]">
+              <thead className="border-b border-border bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2 font-medium">{t('colAccountId')}</th>
+                  <th className="px-3 py-2 font-medium">{t('colType')}</th>
+                  <th className="px-3 py-2 font-medium">{t('colStatus')}</th>
+                  <th className="px-3 py-2 font-medium">{t('colCurrency')}</th>
+                  <th className="px-3 py-2 font-medium">{t('colPositionMode')}</th>
+                  <th className="px-3 py-2 font-medium">{t('colLeverage')}</th>
+                  <th className="px-3 py-2 font-medium">{t('colActive')}</th>
+                  <th className="px-3 py-2 font-medium">{t('colActions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {accounts.map((a) => {
+                  const isActive = a.accountId === activeId;
+                  const lev = 'leverageOverride' in a && a.leverageOverride ? String(a.leverageOverride) : '—';
+                  return (
+                    <tr key={a.accountId} className={cn('border-b border-border/60', isActive && 'bg-primary/5')}>
+                      <td className="px-3 py-2 font-mono">{fxPlain(a.accountId)}</td>
+                      <td className="px-3 py-2">{kindLabel(a.accountKind)}</td>
+                      <td className="px-3 py-2">{fxPlain(a.status)}</td>
+                      <td className="px-3 py-2">{fxPlain(a.currency)}</td>
+                      <td className="px-3 py-2">{fxPlain(a.positionMode)}</td>
+                      <td className="px-3 py-2 font-mono text-muted-foreground">{lev}</td>
+                      <td className="px-3 py-2">{isActive ? t('yes') : '—'}</td>
+                      <td className="px-3 py-2">
+                        {isActive ? (
+                          <span className="text-muted-foreground">{t('current')}</span>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={busy != null}
+                            onClick={() => void onSwitch(a.accountId)}
+                            className="rounded border border-border px-2 py-1 text-[11px] font-medium hover:border-primary/40 disabled:opacity-50"
+                          >
+                            {busy === a.accountId ? t('switching') : t('switch')}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </ForexPortalModuleCard>
       ) : null}
 
       <p className="text-[11px] text-muted-foreground">
@@ -170,6 +265,6 @@ export function ForexAccountCenter() {
           ),
         })}
       </p>
-    </>
+    </div>
   );
 }

@@ -12,6 +12,7 @@ import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
 import { cn } from '@/lib/utils';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexPortalKpiCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 
 const TABS = ['pending', 'open', 'completed', 'cancelled', 'rejected'] as const;
 type Tab = (typeof TABS)[number];
@@ -63,6 +64,14 @@ export default function ForexOrdersPage() {
   const rows = useMemo(() => Object.values(orders).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)), [orders]);
   const filtered = rows.filter((o) => classify(o.status) === tab);
 
+  const tabCounts = useMemo(() => {
+    const counts = { pending: 0, open: 0, completed: 0, cancelled: 0, rejected: 0 } as Record<Tab, number>;
+    for (const o of rows) counts[classify(o.status)] += 1;
+    return counts;
+  }, [rows]);
+
+  const tabLabel = (key: Tab) => t(`tab.${key}`);
+
   async function submitEdit(o: ForexPublicOrder) {
     setBusyId(o.orderId);
     try {
@@ -98,22 +107,38 @@ export default function ForexOrdersPage() {
             </p>
           ) : null}
           {engine.lastNote ? <p className="text-[12px] text-muted-foreground">{engine.lastNote}</p> : null}
-          <div className="flex flex-wrap gap-1.5" role="tablist">
-            {TABS.map((t) => (
+
+          <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" aria-label={t('summaryAria')}>
+            {TABS.map((key) => (
+              <ForexPortalKpiCard
+                key={key}
+                emphasis={tab === key ? 'primary' : 'secondary'}
+                label={tabLabel(key)}
+                value={tabCounts[key]}
+                kind="plain"
+              />
+            ))}
+          </section>
+
+          <div className="flex flex-wrap gap-1.5" role="tablist" aria-label={t('tabsAria')}>
+            {TABS.map((key) => (
               <button
-                key={t}
+                key={key}
                 type="button"
                 role="tab"
-                aria-selected={tab === t}
-                onClick={() => setTab(t)}
-                className={`eda-tab capitalize ${tab === t ? 'eda-tab-active' : ''}`}
+                aria-selected={tab === key}
+                onClick={() => setTab(key)}
+                className={`eda-tab ${tab === key ? 'eda-tab-active' : ''}`}
               >
-                {t}
+                {tabLabel(key)}
+                <ForexPortalStatusBadge tone={tabCounts[key] > 0 ? 'primary' : 'neutral'} className="ml-1.5 !py-0">
+                  {tabCounts[key]}
+                </ForexPortalStatusBadge>
               </button>
             ))}
           </div>
           {filtered.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t('noOrdersInTab', { tab })}</p>
+            <p className="eda-card p-4 text-sm text-muted-foreground">{t('noOrdersInTab', { tab: tabLabel(tab) })}</p>
           ) : (
             <div className="eda-table-wrap overflow-x-auto">
               <table className="eda-table min-w-[960px] font-mono text-[12px]">

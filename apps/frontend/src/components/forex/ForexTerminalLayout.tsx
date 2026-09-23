@@ -201,7 +201,7 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
       ) : null}
 
       {trade && chartMode === 'normal' ? <ForexRiskBar /> : null}
-      {!chromeHidden ? <ForexAccountBar compact={trade} /> : null}
+      {trade && !chromeHidden ? <ForexAccountBar compact={trade} /> : null}
       {!chromeHidden ? <ForexMobileNav /> : null}
       <ForexCommandCenter />
     </div>

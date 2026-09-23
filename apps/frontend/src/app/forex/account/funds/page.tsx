@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { ForexMetric } from '@/components/forex/ForexMetric';
+import { CircleDollarSign, Landmark, Wallet } from 'lucide-react';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { fxPlain } from '@/components/forex/format';
 import { forexApi } from '@/lib/forex/api/client';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
@@ -55,25 +56,47 @@ export default function ForexFundsPage() {
   }
 
   return (
-    <ForexPageFrame
-      title={tf('pages.funds.title')}
-      subtitle={tf('pages.funds.subtitle')}
-    >
+    <ForexPageFrame title={tf('pages.funds.title')} subtitle={tf('pages.funds.subtitle')}>
       {!authed ? (
         <ForexSignInPrompt href="/login?redirect=/forex/account/funds" sectionKey="funds" />
       ) : (
-        <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <ForexMetric label={t('metricAvailableBalance')} value={account?.availableBalance ?? balance?.availableBalance} currency={currency} />
-          <ForexMetric label={t('metricLedgerBalance')} value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
-          <ForexMetric label={t('metricEquity')} value={account?.equity ?? balance?.equity} currency={currency} />
-          <ForexMetric label={t('metricUsedMargin')} value={account?.usedMargin} currency={currency} />
+        <section className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3" aria-label={t('summaryAria')}>
+          <ForexPortalKpiCard
+            emphasis="primary"
+            icon={Wallet}
+            label={t('metricAvailableBalance')}
+            value={account?.availableBalance ?? balance?.availableBalance}
+            currency={currency}
+          />
+          <ForexPortalKpiCard
+            emphasis="primary"
+            icon={Landmark}
+            label={t('metricLedgerBalance')}
+            value={account?.ledgerBalance ?? balance?.ledgerBalance}
+            currency={currency}
+          />
+          <ForexPortalKpiCard
+            emphasis="primary"
+            icon={CircleDollarSign}
+            label={t('metricEquity')}
+            value={account?.equity ?? balance?.equity}
+            currency={currency}
+          />
+          <ForexPortalKpiCard
+            emphasis="secondary"
+            label={t('metricUsedMargin')}
+            value={account?.usedMargin}
+            currency={currency}
+          />
         </section>
       )}
 
-      <section className="eda-card-featured p-5">
-        <p className="text-[11px] uppercase tracking-[0.16em] text-primary">{t('demoBadge')}</p>
-        <h2 className="mt-1 text-lg font-semibold">{t('demoTitle')}</h2>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t('demoBody')}</p>
+      <ForexPortalModuleCard title={t('demoTitle')} accent subtitle={t('demoBadge')}>
+        <p className="max-w-2xl text-sm text-foreground">{t('demoBodyShort')}</p>
+        <details className="mt-3 rounded border border-border/70 bg-muted/10 px-3 py-2 text-[11px] text-muted-foreground">
+          <summary className="cursor-pointer font-medium text-foreground">{t('technicalDetailsLabel')}</summary>
+          <p className="mt-2 leading-relaxed">{t('demoBody')}</p>
+        </details>
         {authed ? (
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {needsDemo ? (
@@ -81,13 +104,13 @@ export default function ForexFundsPage() {
                 type="button"
                 disabled={busy}
                 onClick={() => void claimDemo()}
-                className="inline-flex min-h-11 items-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                className="inline-flex min-h-10 items-center rounded border border-primary/45 bg-primary/15 px-4 text-[12px] font-semibold text-primary hover:bg-primary/20 disabled:opacity-50"
               >
                 {busy ? t('claimBusy') : t('claimButton')}
               </button>
             ) : (
-              <p className="rounded-lg border border-buy/40 bg-buy/10 px-4 py-2 text-sm text-buy">
-                {t('fundedNotice', {
+              <p className="rounded border border-buy/40 bg-buy/10 px-3 py-2 text-sm text-buy">
+                {t('fundedNoticeShort', {
                   balance: fxPlain(account?.ledgerBalance ?? balance?.ledgerBalance),
                   currency,
                 })}
@@ -95,11 +118,11 @@ export default function ForexFundsPage() {
             )}
             <Link
               href={FOREX_ROUTES.trade}
-              className="inline-flex min-h-11 items-center rounded-lg border border-border px-5 text-sm font-semibold hover:border-primary/40"
+              className="inline-flex min-h-10 items-center rounded border border-border px-4 text-[12px] font-semibold hover:border-primary/40"
             >
               {t('openTrade')}
             </Link>
-            <Link href={FOREX_ROUTES.ledger} className="inline-flex min-h-11 items-center px-3 text-sm text-primary hover:underline">
+            <Link href={FOREX_ROUTES.ledger} className="inline-flex min-h-10 items-center px-3 text-[12px] text-primary hover:underline">
               {t('viewLedger')}
             </Link>
           </div>
@@ -110,21 +133,23 @@ export default function ForexFundsPage() {
             {error}
           </p>
         ) : null}
-      </section>
+      </ForexPortalModuleCard>
 
-      <section className="eda-card p-4">
-        <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{t('realRailsBadge')}</p>
-        <h2 className="mt-1 text-base font-semibold">{t('realRailsTitle')}</h2>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t('realRailsBody')}</p>
-      </section>
+      <ForexPortalModuleCard title={t('realRailsTitle')} subtitle={t('realRailsBadge')}>
+        <ForexPortalStatusBadge tone="warning">{t('realRailsUnavailableBadge')}</ForexPortalStatusBadge>
+        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">{t('realRailsBodyShort')}</p>
+        <details className="mt-3 text-[11px] text-muted-foreground">
+          <summary className="cursor-pointer text-foreground">{t('technicalDetailsLabel')}</summary>
+          <p className="mt-2">{t('realRailsBody')}</p>
+        </details>
+      </ForexPortalModuleCard>
 
       {authed ? (
-        <section className="eda-card p-4">
-          <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">{t('activityHeading')}</h2>
+        <ForexPortalModuleCard title={t('activityHeading')}>
           {funding.length === 0 ? (
-            <p className="mt-3 text-sm text-muted-foreground">{t('activityEmpty')}</p>
+            <p className="text-sm text-muted-foreground">{t('activityEmpty')}</p>
           ) : (
-            <div className="eda-table-wrap mt-3">
+            <div className="eda-table-wrap -mx-1">
               <table className="eda-table font-mono text-[12px]">
                 <thead>
                   <tr>
@@ -140,8 +165,8 @@ export default function ForexFundsPage() {
                     <tr key={row.transactionId}>
                       <td>{fxPlain(row.timestamp)}</td>
                       <td>{fxPlain(row.type)}</td>
-                      <td>{fxPlain(row.cashDebit ?? row.debit)}</td>
-                      <td>{fxPlain(row.cashCredit ?? row.credit)}</td>
+                      <td className="text-sell/90">{fxPlain(row.cashDebit ?? row.debit)}</td>
+                      <td className="text-buy/90">{fxPlain(row.cashCredit ?? row.credit)}</td>
                       <td>{fxPlain(row.status)}</td>
                     </tr>
                   ))}
@@ -149,7 +174,7 @@ export default function ForexFundsPage() {
               </table>
             </div>
           )}
-        </section>
+        </ForexPortalModuleCard>
       ) : null}
     </ForexPageFrame>
   );

@@ -1,8 +1,10 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { ForexMetric } from '@/components/forex/ForexMetric';
+import { CircleDollarSign, Gauge, LineChart, Wallet } from 'lucide-react';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { ForexPositionPanel } from '@/components/forex/ForexPositionPanel';
 import { fxMoney, fxNum, fxPlain } from '@/components/forex/format';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
@@ -26,41 +28,38 @@ export default function ForexPortfolioPage() {
   const positions = useForexStore((s) => s.positions);
   const exposure = useForexStore((s) => s.exposure);
   const currency = account?.currency ?? balance?.currency ?? 'USD';
-  const rows = Object.values(positions);
+  const rows = useMemo(() => Object.values(positions).filter((p) => p.status === 'OPEN'), [positions]);
 
   return (
-    <ForexPageFrame
-      wide
-      title={tf('pages.portfolio.title')}
-      subtitle={tf('pages.portfolio.subtitle')}
-    >
+    <ForexPageFrame wide title={tf('pages.portfolio.title')} subtitle={tf('pages.portfolio.subtitle')}>
       {!authed ? (
         <ForexSignInPrompt href="/login?redirect=/forex/portfolio" sectionKey="portfolio" />
       ) : (
         <>
-          <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-            <ForexMetric label="Balance" value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
-            <ForexMetric label="Equity" value={account?.equity ?? balance?.equity} currency={currency} />
-            <ForexMetric label="Used margin" value={account?.usedMargin ?? margin?.usedMargin} currency={currency} />
-            <ForexMetric label="Free margin" value={account?.freeMargin ?? margin?.freeMargin} currency={currency} />
-            <ForexMetric label="Unrealized P&L" value={account?.unrealizedPnl ?? pnl?.unrealized} currency={currency} signed />
-            <ForexMetric label="Gross exposure" value={margin?.grossExposure} currency={currency} />
+          <section className="flex flex-wrap items-center justify-between gap-2">
+            <ForexPortalStatusBadge tone="primary">{tp('openPositionsBadge', { count: rows.length })}</ForexPortalStatusBadge>
           </section>
 
-          <section className="grid grid-cols-2 gap-3 md:grid-cols-3">
-            <ForexMetric label="Realized P&L" value={account?.realizedPnl ?? pnl?.realized} currency={currency} signed />
-            <ForexMetric label="Fees" value={fees?.total} currency={fees?.currency ?? currency} />
-            <ForexMetric label="Swaps" value={swaps?.total} currency={swaps?.currency ?? currency} />
+          <section className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-6 md:gap-3" aria-label={tp('summaryAria')}>
+            <ForexPortalKpiCard emphasis="primary" icon={Wallet} label={tp('kpiBalance')} value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
+            <ForexPortalKpiCard emphasis="primary" icon={CircleDollarSign} label={tp('kpiEquity')} value={account?.equity ?? balance?.equity} currency={currency} />
+            <ForexPortalKpiCard emphasis="secondary" label={tp('kpiUsedMargin')} value={account?.usedMargin ?? margin?.usedMargin} currency={currency} />
+            <ForexPortalKpiCard emphasis="primary" icon={Gauge} label={tp('kpiFreeMargin')} value={account?.freeMargin ?? margin?.freeMargin} currency={currency} />
+            <ForexPortalKpiCard emphasis="primary" icon={LineChart} label={tp('kpiUnrealizedPnl')} value={account?.unrealizedPnl ?? pnl?.unrealized} currency={currency} signed />
+            <ForexPortalKpiCard emphasis="secondary" label={tp('kpiGrossExposure')} value={margin?.grossExposure} currency={currency} />
           </section>
 
-          <section className="eda-card overflow-hidden">
-            <h2 className="border-b border-border px-4 py-3 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
-              {tp('exposureHeading')}
-            </h2>
+          <section className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3">
+            <ForexPortalKpiCard emphasis="secondary" label={tp('kpiRealizedPnl')} value={account?.realizedPnl ?? pnl?.realized} currency={currency} signed />
+            <ForexPortalKpiCard emphasis="secondary" label={tp('kpiFees')} value={fees?.total} currency={fees?.currency ?? currency} />
+            <ForexPortalKpiCard emphasis="secondary" label={tp('kpiSwaps')} value={swaps?.total} currency={swaps?.currency ?? currency} />
+          </section>
+
+          <ForexPortalModuleCard title={tp('exposureHeading')} accent subtitle={tp('exposureSubtitle')}>
             {rows.length === 0 ? (
-              <p className="p-4 text-sm text-muted-foreground">{tp('noOpenPositions')}</p>
+              <p className="text-sm text-muted-foreground">{tp('noOpenPositions')}</p>
             ) : (
-              <div className="eda-table-wrap border-0">
+              <div className="eda-table-wrap -mx-1 border-0">
                 <table className="eda-table min-w-[800px] font-mono text-[12px]">
                   <thead>
                     <tr>
@@ -70,7 +69,7 @@ export default function ForexPortfolioPage() {
                       <th>{tcol('notional')}</th>
                       <th>{tcol('entry')}</th>
                       <th>{tcol('current')}</th>
-                      <th>P&amp;L</th>
+                      <th>{tp('colPnl')}</th>
                       <th>{tcol('margin')}</th>
                     </tr>
                   </thead>
@@ -85,7 +84,7 @@ export default function ForexPortfolioPage() {
                           <td>{fxMoney(p.exposure, currency)}</td>
                           <td>{fxNum(p.entryPrice, 5)}</td>
                           <td>{fxNum(p.currentPrice, 5)}</td>
-                          <td>{upnl.available ? fxMoney(upnl.value, upnl.currency ?? currency) : 'Unavailable'}</td>
+                          <td>{upnl.available ? fxMoney(upnl.value, upnl.currency ?? currency) : tp('pnlUnavailable')}</td>
                           <td>{fxMoney(p.initialMargin, currency)}</td>
                         </tr>
                       );
@@ -95,7 +94,7 @@ export default function ForexPortfolioPage() {
               </div>
             )}
             {exposure ? (
-              <p className="border-t border-border px-4 py-2 text-[11px] text-muted-foreground">
+              <p className="mt-3 border-t border-border/70 pt-2 text-[11px] text-muted-foreground">
                 {tp('accountNet')}{' '}
                 {fxPlain(
                   typeof exposure.net === 'string'
@@ -106,7 +105,7 @@ export default function ForexPortfolioPage() {
                 )}
               </p>
             ) : null}
-          </section>
+          </ForexPortalModuleCard>
 
           <ForexPositionPanel />
         </>

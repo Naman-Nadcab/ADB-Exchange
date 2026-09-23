@@ -224,8 +224,13 @@
     "sectionsAria": "Account sections"
   },
   "alertsPage": {
-    "intro": "Primary trading alerts are managed here and in the",
-    "tradeTerminal": "trade terminal"
+    "intro": "Server-evaluated alerts and delivery status",
+    "manageHere": "Manage price, margin, and account event alerts here and in the",
+    "manageSuffix": " (Alerts tab).",
+    "tradeTerminal": "trade terminal",
+    "localOnlyBadge": "Browser only",
+    "localOnlyTitle": "Local terminal alerts",
+    "localOnlyBody": "Browser-only price alerts require the trade terminal tab to stay open. They are not stored on the server."
   },
   "bottomPanels": {
     "ariaLabel": "Trade toolbox",
@@ -648,8 +653,18 @@
     "delete": "Delete",
     "eventsTitle": "Recent events",
     "noEvents": "No triggered events yet.",
-    "deliveryAvailable": "AVAILABLE",
-    "deliveryNotConfigured": "NOT_CONFIGURED",
+    "deliveryAvailable": "Available",
+    "deliveryNotConfigured": "Not configured",
+    "deliveryHeading": "Delivery channels",
+    "deliveryReasonHint": "Contact support if a channel stays unavailable after configuration.",
+    "formHeading": "Create or edit alert",
+    "activeHeading": "Active alerts",
+    "statusEnabled": "Enabled",
+    "statusDisabled": "Disabled",
+    "statusActiveCount": "Enabled alerts",
+    "statusTotalCount": "Total alerts",
+    "statusEventsCount": "Recent events",
+    "lastTriggered": "Last triggered {time}",
     "types": {
       "BID": "Bid",
       "ASK": "Ask",
@@ -829,7 +844,17 @@
     "switching": "Switching…",
     "switch": "Switch",
     "empty": "No Forex accounts yet. Create a demo account to begin.",
-    "quickSwitchHint": "Quick switch: use the account control on the <tradeLink>trade terminal</tradeLink> account bar."
+    "quickSwitchHint": "Quick switch: use the account control on the <tradeLink>trade terminal</tradeLink> account bar.",
+    "cardsSectionTitle": "Your Forex accounts",
+    "cardsSectionSubtitle": "Switch, open the terminal, or manage from each account card.",
+    "tableSectionTitle": "Account directory",
+    "tableSectionSubtitle": "Compact list view for all server accounts.",
+    "activeBadge": "Active",
+    "leverageLabel": "Leverage {value}",
+    "metricBalance": "Balance",
+    "metricEquity": "Equity",
+    "metricMargin": "Used margin",
+    "manage": "Manage"
   },
   "positionModeSwitch": {
     "button": "Mode…",
@@ -903,8 +928,22 @@
     "custom": "Custom"
   },
   "portfolioPage": {
+    "summaryAria": "Portfolio summary",
+    "openPositionsBadge": "{count} open positions",
+    "exposureSubtitle": "Live open positions and notional exposure",
+    "kpiBalance": "Balance",
+    "kpiEquity": "Equity",
+    "kpiUsedMargin": "Used margin",
+    "kpiFreeMargin": "Free margin",
+    "kpiUnrealizedPnl": "Unrealized P&L",
+    "kpiGrossExposure": "Gross exposure",
+    "kpiRealizedPnl": "Realized P&L",
+    "kpiFees": "Fees",
+    "kpiSwaps": "Swaps",
+    "colPnl": "P&L",
+    "pnlUnavailable": "Unavailable",
     "noOpenPositions": "No open positions.",
-    "exposureHeading": "Exposure",
+    "exposureHeading": "Open positions",
     "accountNet": "Account net",
     "columns": {
       "symbol": "Symbol",
@@ -967,9 +1006,21 @@
     "metricRealizedPnl": "Realized P&L",
     "metricFees": "Fees",
     "metricSwaps": "Swaps",
-    "metricAvailable": "Available"
+    "metricAvailable": "Available",
+    "kindDemo": "Demo",
+    "kindLive": "Live",
+    "positionSummaryHeading": "Trading activity",
+    "openPositionsLabel": "Open positions",
+    "pendingOrdersLabel": "Working orders"
   },
   "ledgerPage": {
+    "summaryAria": "Ledger summary",
+    "kpiLedgerBalance": "Ledger balance",
+    "kpiEntryCount": "Entries shown",
+    "kpiReconciliation": "Reconciliation",
+    "kpiReconciliationPending": "Pending",
+    "kpiCurrency": "Currency",
+    "filterHeading": "Filter ledger",
     "filterType": "Type",
     "filterFrom": "From",
     "filterTo": "To",
@@ -1008,6 +1059,12 @@
     "detailPosition": "Position"
   },
   "fundsPage": {
+    "summaryAria": "Funds summary",
+    "demoBodyShort": "Add simulated demo credits to your isolated Forex ledger so you can practice in the terminal. This is not a real deposit.",
+    "technicalDetailsLabel": "Technical details",
+    "fundedNoticeShort": "Demo account funded · {balance} {currency} · not real money.",
+    "realRailsBodyShort": "Real-money deposit and withdrawal rails are not available for Forex on this platform.",
+    "realRailsUnavailableBadge": "Not available",
     "metricAvailableBalance": "Available balance",
     "metricLedgerBalance": "Ledger balance",
     "metricEquity": "Equity",
@@ -1033,6 +1090,15 @@
     "colStatus": "Status"
   },
   "ordersPage": {
+    "summaryAria": "Order counts by state",
+    "tabsAria": "Order state tabs",
+    "tab": {
+      "pending": "Working",
+      "open": "Open",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "rejected": "Rejected"
+    },
     "noOrdersInTab": "No {tab} Forex orders.",
     "colAction": "Action",
     "colTime": "Time",
@@ -1053,6 +1119,11 @@
     "cancelOrder": "Cancel order"
   },
   "marketsPage": {
+    "summaryAria": "Markets overview",
+    "kpiInstruments": "Instruments",
+    "kpiFiltered": "Shown",
+    "kpiLiveQuotes": "Live quotes",
+    "kpiSession": "Session",
     "instrumentClassAria": "Instrument class",
     "searchPlaceholder": "Search EUR, XAU…",
     "sortMarketsAria": "Sort markets",
@@ -1071,6 +1142,13 @@
     "addWatchlistAria": "Add to watchlist"
   },
   "analysisPage": {
+    "summaryAria": "Research snapshot",
+    "kpiSymbol": "Symbol",
+    "kpiBidAsk": "Bid / Ask",
+    "kpiSpread": "Spread (pips)",
+    "kpiSession": "Session",
+    "sessionOpen": "Open",
+    "sessionClosed": "Closed",
     "quickSymbolsAria": "Quick symbols",
     "levelsHeading": "Levels",
     "ohlcDerived": "OHLC-derived",

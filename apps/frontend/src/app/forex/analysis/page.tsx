@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { ForexChartFoundation } from '@/components/forex/ForexChartFoundation';
 import { ForexPageFrame } from '@/components/forex/ForexPageFrame';
+import { ForexPortalKpiCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { fxNum } from '@/components/forex/format';
 import { latestIndicators } from '@/lib/forex/analysis/indicators';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
@@ -327,6 +328,23 @@ export default function ForexAnalysisPage() {
           >
             {sessionOpen ? 'Open' : sessions?.eligibility.reason ?? 'Closed'}
           </span>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3" aria-label={ta('summaryAria')}>
+        <ForexPortalKpiCard emphasis="primary" label={ta('kpiSymbol')} value={inst?.displaySymbol ?? symbol} kind="plain" />
+        <ForexPortalKpiCard
+          emphasis="secondary"
+          label={ta('kpiBidAsk')}
+          value={quote ? `${fxNum(quote.bid, digits)} / ${fxNum(quote.ask, digits)}` : '—'}
+          kind="plain"
+        />
+        <ForexPortalKpiCard emphasis="secondary" label={ta('kpiSpread')} value={quote?.spreadPips} kind="plain" />
+        <div className="flex min-w-0 flex-col justify-center rounded border border-border/80 bg-card/75 px-2.5 py-2">
+          <span className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground">{ta('kpiSession')}</span>
+          <ForexPortalStatusBadge tone={sessionOpen ? 'success' : 'warning'} className="mt-1.5 w-fit">
+            {sessionOpen ? ta('sessionOpen') : sessions?.eligibility.reason ?? ta('sessionClosed')}
+          </ForexPortalStatusBadge>
         </div>
       </section>
 

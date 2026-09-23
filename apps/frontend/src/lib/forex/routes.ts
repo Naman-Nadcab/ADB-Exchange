@@ -20,9 +20,9 @@ export function isForexAnalysisPath(pathname: string): boolean {
   return pathname === FOREX_ROUTES.analysis || pathname.startsWith(`${FOREX_ROUTES.analysis}/`);
 }
 
-/** Market strip + session bar: hide on Trade/Analysis (chart-first); keep on other Forex pages. */
+/** Ticker + session strip: terminal only (/forex, /forex/trade). Portal routes stay chart-free. */
 export function showForexMarketChrome(pathname: string): boolean {
-  return !isForexTradePath(pathname) && !isForexAnalysisPath(pathname);
+  return isForexTradePath(pathname);
 }
 
 /** Core trader destinations in the top header (portal-only items live in FOREX_PORTAL_NAV). */

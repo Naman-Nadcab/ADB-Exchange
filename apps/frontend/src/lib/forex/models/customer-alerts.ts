@@ -41,7 +41,7 @@ export type ForexAlertTranslate = (key: string, values?: Record<string, string |
 
 export function labelForexServerAlertType(alertType: string, tf?: ForexAlertTranslate): string {
   if (tf) {
-    const key = `serverAlerts.types.${alertType}`;
+    const key = `types.${alertType}`;
     const labeled = tf(key);
     if (labeled !== key) return labeled;
   }
@@ -56,7 +56,7 @@ export function describeAlertCondition(
   const side = condition.side != null ? String(condition.side) : '';
   const price = condition.price ?? condition.level ?? condition.threshold;
   if (type === 'SESSION_OPEN' || type === 'SESSION_CLOSE') {
-    return tf ? tf('serverAlerts.conditionSession') : 'fires on authoritative session transition';
+    return tf ? tf('conditionSession') : 'fires on authoritative session transition';
   }
   if (
     type === 'ORDER_FILLED' ||
@@ -65,17 +65,17 @@ export function describeAlertCondition(
     type === 'TP_TRIGGERED' ||
     type === 'TRAILING_TRIGGERED'
   ) {
-    return tf ? tf('serverAlerts.conditionAccountHook') : 'account event hook';
+    return tf ? tf('conditionAccountHook') : 'account event hook';
   }
   if (type === 'LIQUIDATION') {
-    return tf ? tf('serverAlerts.conditionLiquidation') : 'liquidation eligibility hook';
+    return tf ? tf('conditionLiquidation') : 'liquidation eligibility hook';
   }
   if (price != null && String(price) !== '') {
     return `${side ? `${side} ` : ''}${String(price)}`.trim();
   }
   if (condition.threshold != null) {
     return tf
-      ? tf('serverAlerts.conditionThreshold', { value: String(condition.threshold) })
+      ? tf('conditionThreshold', { value: String(condition.threshold) })
       : `threshold ${String(condition.threshold)}`;
   }
   return '—';
@@ -208,6 +208,6 @@ export function labelDeliveryAdapterStatus(
   },
   tf?: ForexAlertTranslate
 ): string {
-  if (adapter.available) return tf ? tf('serverAlerts.deliveryAvailable') : 'AVAILABLE';
-  return tf ? tf('serverAlerts.deliveryNotConfigured') : 'NOT_CONFIGURED';
+  if (adapter.available) return tf ? tf('deliveryAvailable') : 'AVAILABLE';
+  return tf ? tf('deliveryNotConfigured') : 'NOT_CONFIGURED';
 }

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ForexPageFrame } from '@/components/forex/ForexPageFrame';
+import { ForexPortalKpiCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { fxNum, fxPlain } from '@/components/forex/format';
 import { isQuoteStale } from '@/lib/forex/models/quotes';
 import type { ForexAssetClass } from '@/lib/forex/models/types';
@@ -93,23 +94,24 @@ export default function ForexMarketsPage() {
       wide
       title={tf('pages.markets.title')}
       subtitle={tf('pages.markets.subtitle')}
-      actions={
-        <div className="flex flex-wrap items-center gap-2 text-[11px]">
-          <span
-            className={cn(
-              'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-medium',
-              sessionOpen ? 'border-buy/30 bg-buy/10 text-buy' : 'border-sell/30 bg-sell/10 text-sell'
-            )}
-          >
-            <span className={cn('h-1.5 w-1.5 rounded-full', sessionOpen ? 'bg-buy' : 'bg-sell')} aria-hidden />
-            {tm('sessionLabel', { state: sessionOpen ? tm('sessionOpen') : tm('sessionClosed') })}
-          </span>
-          <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">
-            {tm('liveCount', { live: liveCount, total: rows.length })}
-          </span>
-        </div>
-      }
     >
+      <section className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3" aria-label={tm('summaryAria')}>
+        <ForexPortalKpiCard
+          emphasis="primary"
+          label={tm('kpiInstruments')}
+          value={Object.keys(instruments).length}
+          kind="plain"
+        />
+        <ForexPortalKpiCard emphasis="secondary" label={tm('kpiFiltered')} value={rows.length} kind="plain" />
+        <ForexPortalKpiCard emphasis="secondary" label={tm('kpiLiveQuotes')} value={liveCount} kind="plain" />
+        <div className="flex min-w-0 flex-col justify-center rounded border border-border/80 bg-card/75 px-2.5 py-2">
+          <span className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground">{tm('kpiSession')}</span>
+          <ForexPortalStatusBadge tone={sessionOpen ? 'success' : 'warning'} className="mt-1.5 w-fit">
+            {tm('sessionLabel', { state: sessionOpen ? tm('sessionOpen') : tm('sessionClosed') })}
+          </ForexPortalStatusBadge>
+        </div>
+      </section>
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-1.5" role="tablist" aria-label={tm('instrumentClassAria')}>
           {FILTERS.map((f) => (

@@ -224,8 +224,13 @@
     "sectionsAria": "账户分区"
   },
   "alertsPage": {
-    "intro": "主要交易提醒在此及",
-    "tradeTerminal": "交易终端"
+    "intro": "服务端预警与投递状态",
+    "manageHere": "在此及",
+    "manageSuffix": "（预警标签）管理价格、保证金与账户事件预警。",
+    "tradeTerminal": "交易终端",
+    "localOnlyBadge": "仅浏览器",
+    "localOnlyTitle": "本地终端预警",
+    "localOnlyBody": "仅浏览器的价格预警需保持交易终端标签页打开，不会保存在服务器。"
   },
   "bottomPanels": {
     "ariaLabel": "交易工具箱",
@@ -650,6 +655,16 @@
     "noEvents": "尚无触发事件。",
     "deliveryAvailable": "可用",
     "deliveryNotConfigured": "未配置",
+    "deliveryHeading": "投递渠道",
+    "deliveryReasonHint": "配置后渠道仍不可用时请联系支持。",
+    "formHeading": "创建或编辑预警",
+    "activeHeading": "有效预警",
+    "statusEnabled": "已启用",
+    "statusDisabled": "已禁用",
+    "statusActiveCount": "已启用",
+    "statusTotalCount": "预警总数",
+    "statusEventsCount": "最近事件",
+    "lastTriggered": "上次触发 {time}",
     "types": {
       "BID": "买价",
       "ASK": "卖价",
@@ -829,7 +844,17 @@
     "switching": "切换中…",
     "switch": "切换",
     "empty": "尚无外汇账户。请先创建模拟账户。",
-    "quickSwitchHint": "快速切换：在<tradeLink>交易终端</tradeLink>账户栏使用账户控件。"
+    "quickSwitchHint": "快速切换：在<tradeLink>交易终端</tradeLink>账户栏使用账户控件。",
+    "cardsSectionTitle": "您的 Forex 账户",
+    "cardsSectionSubtitle": "在账户卡片上切换、打开终端或管理。",
+    "tableSectionTitle": "账户列表",
+    "tableSectionSubtitle": "所有服务器账户的紧凑视图。",
+    "activeBadge": "当前",
+    "leverageLabel": "杠杆 {value}",
+    "metricBalance": "余额",
+    "metricEquity": "净值",
+    "metricMargin": "已用保证金",
+    "manage": "管理"
   },
   "positionModeSwitch": {
     "button": "模式…",
@@ -903,8 +928,22 @@
     "custom": "自定义"
   },
   "portfolioPage": {
+    "summaryAria": "投资组合摘要",
+    "openPositionsBadge": "{count} 个持仓",
+    "exposureSubtitle": "当前持仓与名义敞口",
+    "kpiBalance": "余额",
+    "kpiEquity": "净值",
+    "kpiUsedMargin": "已用保证金",
+    "kpiFreeMargin": "可用保证金",
+    "kpiUnrealizedPnl": "浮动盈亏",
+    "kpiGrossExposure": "总敞口",
+    "kpiRealizedPnl": "已实现盈亏",
+    "kpiFees": "手续费",
+    "kpiSwaps": "隔夜费",
+    "colPnl": "盈亏",
+    "pnlUnavailable": "不可用",
     "noOpenPositions": "暂无持仓。",
-    "exposureHeading": "敞口",
+    "exposureHeading": "持仓",
     "accountNet": "账户净额",
     "columns": {
       "symbol": "品种",
@@ -967,10 +1006,22 @@
     "metricRealizedPnl": "Realized P&L",
     "metricFees": "Fees",
     "metricSwaps": "Swaps",
-    "metricAvailable": "Available"
+    "metricAvailable": "可用",
+    "kindDemo": "演示",
+    "kindLive": "实盘",
+    "positionSummaryHeading": "交易活动",
+    "openPositionsLabel": "持仓",
+    "pendingOrdersLabel": "挂单"
   },
   "ledgerPage": {
-    "filterType": "Type",
+    "summaryAria": "账本摘要",
+    "kpiLedgerBalance": "账本余额",
+    "kpiEntryCount": "显示条数",
+    "kpiReconciliation": "对账",
+    "kpiReconciliationPending": "待处理",
+    "kpiCurrency": "货币",
+    "filterHeading": "筛选账本",
+    "filterType": "类型",
     "filterFrom": "From",
     "filterTo": "To",
     "empty": "No Forex account activity.",
@@ -1008,7 +1059,13 @@
     "detailPosition": "Position"
   },
   "fundsPage": {
-    "metricAvailableBalance": "Available balance",
+    "summaryAria": "资金摘要",
+    "demoBodyShort": "为隔离的 Forex 账本添加模拟演示额度，以便在终端练习。这不是真实入金。",
+    "technicalDetailsLabel": "技术说明",
+    "fundedNoticeShort": "演示账户已注资 · {balance} {currency} · 非真实资金。",
+    "realRailsBodyShort": "本平台不提供 Forex 真实资金存取通道。",
+    "realRailsUnavailableBadge": "不可用",
+    "metricAvailableBalance": "可用余额",
     "metricLedgerBalance": "Ledger balance",
     "metricEquity": "Equity",
     "metricUsedMargin": "Used margin",
@@ -1033,7 +1090,16 @@
     "colStatus": "Status"
   },
   "ordersPage": {
-    "noOrdersInTab": "No {tab} Forex orders.",
+    "summaryAria": "各状态订单数量",
+    "tabsAria": "订单状态标签",
+    "tab": {
+      "pending": "进行中",
+      "open": "未成交",
+      "completed": "已成交",
+      "cancelled": "已取消",
+      "rejected": "已拒绝"
+    },
+    "noOrdersInTab": "暂无{tab}订单。",
     "colAction": "Action",
     "colTime": "Time",
     "colSymbol": "Symbol",
@@ -1053,6 +1119,11 @@
     "cancelOrder": "Cancel order"
   },
   "marketsPage": {
+    "summaryAria": "市场概览",
+    "kpiInstruments": "品种数",
+    "kpiFiltered": "当前显示",
+    "kpiLiveQuotes": "实时报价",
+    "kpiSession": "交易时段",
     "instrumentClassAria": "Instrument class",
     "searchPlaceholder": "Search EUR, XAU…",
     "sortMarketsAria": "Sort markets",
@@ -1071,6 +1142,13 @@
     "addWatchlistAria": "Add to watchlist"
   },
   "analysisPage": {
+    "summaryAria": "研究快照",
+    "kpiSymbol": "品种",
+    "kpiBidAsk": "买/卖",
+    "kpiSpread": "点差",
+    "kpiSession": "时段",
+    "sessionOpen": "开市",
+    "sessionClosed": "休市",
     "quickSymbolsAria": "Quick symbols",
     "levelsHeading": "Levels",
     "ohlcDerived": "OHLC-derived",

@@ -3,11 +3,19 @@
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import {
+  ForexPortalKpiCard,
+  ForexPortalModuleCard,
+  ForexPortalStatusBadge,
+  formatLedgerStatusLabel,
+  ledgerStatusTone,
+} from '@/components/forex/ForexPortalKpiCard';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
 import { fxMoney, fxPlain } from '@/components/forex/format';
 import type { ForexLedgerRow } from '@/lib/forex/models/types';
+import { cn } from '@/lib/utils';
 
 function refField(ref: unknown, key: string): string | null {
   if (!ref || typeof ref !== 'object') return null;
@@ -60,51 +68,90 @@ export default function ForexLedgerPage() {
       .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
   }, [ledger, typeFilter, fromDate, toDate]);
 
+  const refShort = (row: ForexLedgerRow) =>
+    refField(row.reference, 'fillId') ??
+    refField(row.reference, 'orderId') ??
+    refField(row.reference, 'positionId') ??
+    '—';
+
   return (
     <ForexPageFrame title={tf('pages.ledger.title')} subtitle={tf('pages.ledger.subtitle')}>
       {!authed ? (
         <ForexSignInPrompt href="/login?redirect=/forex/account/ledger" sectionKey="ledger" />
       ) : (
         <>
-          <div className="flex flex-wrap items-end gap-3 text-[12px]">
-            <label className="flex flex-col gap-1">
-              <span className="text-muted-foreground">{tl('filterType')}</span>
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="h-8 rounded-lg border border-border bg-background px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {types.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-muted-foreground">{tl('filterFrom')}</span>
-              <input
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                className="h-8 rounded-lg border border-border bg-background px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-muted-foreground">{tl('filterTo')}</span>
-              <input
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                className="h-8 rounded-lg border border-border bg-background px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </label>
-          </div>
+          <section className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3" aria-label={tl('summaryAria')}>
+            <ForexPortalKpiCard emphasis="primary" label={tl('kpiLedgerBalance')} value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
+            <ForexPortalKpiCard emphasis="secondary" label={tl('kpiEntryCount')} value={rows.length} kind="plain" />
+            <ForexPortalKpiCard
+              emphasis="secondary"
+              label={tl('kpiReconciliation')}
+              value={reconciliation?.status ?? tl('kpiReconciliationPending')}
+              kind="plain"
+            />
+            <ForexPortalKpiCard emphasis="secondary" label={tl('kpiCurrency')} value={currency} kind="plain" />
+          </section>
+
+          <ForexPortalModuleCard title={tl('filterHeading')}>
+            <div className="flex flex-wrap items-end gap-3 text-[12px]">
+              <label className="flex min-w-[120px] flex-col gap-1">
+                <span className="text-muted-foreground">{tl('filterType')}</span>
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className="h-8 rounded border border-border bg-background px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {types.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-muted-foreground">{tl('filterFrom')}</span>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="h-8 rounded border border-border bg-background px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-muted-foreground">{tl('filterTo')}</span>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="h-8 rounded border border-border bg-background px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </label>
+            </div>
+          </ForexPortalModuleCard>
 
           {rows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{tl('empty')}</p>
+            <p className="eda-card p-4 text-sm text-muted-foreground">{tl('empty')}</p>
           ) : (
-            <div className="eda-table-wrap">
+            <>
+            <ul className="space-y-2 md:hidden">
+              {rows.map((row) => (
+                <li key={row.transactionId} className="eda-card p-3 font-mono text-[11px]">
+                  <button type="button" className="w-full text-left" onClick={() => setOpen(row)}>
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-foreground">{new Date(row.timestamp).toLocaleString()}</span>
+                      <ForexPortalStatusBadge tone={ledgerStatusTone(row.status)}>{formatLedgerStatusLabel(row.status)}</ForexPortalStatusBadge>
+                    </div>
+                    <p className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">{fxPlain(row.type)}</p>
+                    <p className="mt-1 truncate text-[10px] text-muted-foreground">{refShort(row)}</p>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      <span className="text-sell/90">{tl('colDebit')}: {fxPlain(cashDebit(row))}</span>
+                      <span className="text-buy/90">{tl('colCredit')}: {fxPlain(cashCredit(row))}</span>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div className="eda-table-wrap hidden md:block">
               <table className="eda-table min-w-[920px] font-mono text-[12px]">
                 <thead>
                   <tr>
@@ -132,16 +179,15 @@ export default function ForexLedgerPage() {
                         </button>
                       </td>
                       <td className="px-3 py-2">{fxPlain(row.type)}</td>
-                      <td className="px-3 py-2">
-                        {refField(row.reference, 'fillId') ??
-                          refField(row.reference, 'orderId') ??
-                          refField(row.reference, 'positionId') ??
-                          '—'}
+                      <td className="max-w-[140px] truncate px-3 py-2 text-muted-foreground" title={refShort(row)}>
+                        {refShort(row)}
                       </td>
-                      <td className="px-3 py-2">{fxPlain(cashDebit(row))}</td>
-                      <td className="px-3 py-2">{fxPlain(cashCredit(row))}</td>
+                      <td className={cn('px-3 py-2', cashDebit(row) && cashDebit(row) !== '0' && 'text-sell/90')}>{fxPlain(cashDebit(row))}</td>
+                      <td className={cn('px-3 py-2', cashCredit(row) && cashCredit(row) !== '0' && 'text-buy/90')}>{fxPlain(cashCredit(row))}</td>
                       <td className="px-3 py-2">{fxPlain(row.net ?? unavailable)}</td>
-                      <td className="px-3 py-2">{fxPlain(row.status)}</td>
+                      <td className="px-3 py-2">
+                        <ForexPortalStatusBadge tone={ledgerStatusTone(row.status)}>{formatLedgerStatusLabel(row.status)}</ForexPortalStatusBadge>
+                      </td>
                       <td className="px-3 py-2">
                         {row.balanceBefore != null ? fxMoney(row.balanceBefore, currency) : unavailable}
                       </td>
@@ -153,6 +199,7 @@ export default function ForexLedgerPage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
 
           {reconciliation ? (

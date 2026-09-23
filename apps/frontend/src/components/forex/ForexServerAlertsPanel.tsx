@@ -23,6 +23,7 @@ import {
 import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
 import { useForexStore } from '@/lib/forex/state/store';
 import { cn } from '@/lib/utils';
+import { ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 
 type Props = {
   compact?: boolean;
@@ -180,12 +181,25 @@ export function ForexServerAlertsPanel(props: Props) {
     );
   }
 
+  const enabledCount = alerts.filter((a) => a.enabled).length;
+
   return (
     <div className={cn('space-y-3', props.compact ? 'text-[10px]' : 'text-[11px]')}>
-      <div>
-        <p className="font-semibold text-foreground">{tf('title')}</p>
-        <p className="text-muted-foreground">{tf('intro')}</p>
+      <div className="grid gap-2 sm:grid-cols-3">
+        <div className="rounded border border-border/80 bg-card/80 px-3 py-2">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{tf('statusActiveCount')}</p>
+          <p className="mt-1 font-mono text-[18px] tabular-nums text-foreground">{enabledCount}</p>
+        </div>
+        <div className="rounded border border-border/80 bg-card/80 px-3 py-2">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{tf('statusTotalCount')}</p>
+          <p className="mt-1 font-mono text-[18px] tabular-nums text-foreground">{alerts.length}</p>
+        </div>
+        <div className="rounded border border-border/80 bg-card/80 px-3 py-2">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{tf('statusEventsCount')}</p>
+          <p className="mt-1 font-mono text-[18px] tabular-nums text-foreground">{events.length}</p>
+        </div>
       </div>
+
       {err ? (
         <p className="text-destructive" role="alert">
           {err}
@@ -198,16 +212,29 @@ export function ForexServerAlertsPanel(props: Props) {
       ) : null}
 
       {delivery.length > 0 ? (
-        <div className="flex flex-wrap gap-2 rounded border border-border/60 bg-muted/20 px-2 py-1.5 font-mono text-[10px]">
-          {delivery.map((d) => (
-            <span key={String(d.channel)}>
-              {d.channel}: {labelDeliveryAdapterStatus(d, tf)}
-              {d.reason ? ` (${d.reason})` : ''}
-            </span>
-          ))}
-        </div>
-      ) : null}
+        <ForexPortalModuleCard title={tf('deliveryHeading')} subtitle={tf('intro')}>
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {delivery.map((d) => {
+              const available = d.available === true;
+              return (
+                <li key={String(d.channel)} className="flex items-center justify-between gap-2 rounded border border-border/70 bg-muted/10 px-2.5 py-2">
+                  <span className="font-medium uppercase tracking-wide text-foreground">{String(d.channel ?? '—')}</span>
+                  <ForexPortalStatusBadge tone={available ? 'success' : 'warning'}>
+                    {labelDeliveryAdapterStatus(d, tf)}
+                  </ForexPortalStatusBadge>
+                </li>
+              );
+            })}
+          </ul>
+          {delivery.some((d) => d.reason) ? (
+            <p className="mt-2 text-[10px] text-muted-foreground">{tf('deliveryReasonHint')}</p>
+          ) : null}
+        </ForexPortalModuleCard>
+      ) : (
+        <p className="text-muted-foreground">{tf('intro')}</p>
+      )}
 
+      <ForexPortalModuleCard title={tf('formHeading')}>
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex flex-col gap-0.5">
           {tf('typeLabel')}
@@ -309,19 +336,35 @@ export function ForexServerAlertsPanel(props: Props) {
       {editingAlertId ? (
         <p className="font-mono text-[10px] text-amber-200/90">{tf('editing', { id: editingAlertId.slice(0, 8) })}</p>
       ) : null}
+      </ForexPortalModuleCard>
 
+      <ForexPortalModuleCard title={tf('activeHeading')}>
       {alerts.length === 0 ? (
         <p className="text-muted-foreground">{tf('empty')}</p>
       ) : (
-        <ul className="divide-y divide-border/70 rounded border border-border/60">
+        <ul className="space-y-2">
           {alerts.map((a) => (
-            <li key={a.alertId} className="flex flex-wrap items-center justify-between gap-2 px-2 py-1.5 font-mono text-[10px]">
-              <span className={cn(!a.enabled && 'opacity-50')}>
-                {a.symbol ?? '—'} · {labelForexServerAlertType(a.alertType, tf)} ·{' '}
-                {describeAlertCondition(a.alertType, a.condition ?? {}, tf)}
-                {a.lastTriggeredAt ? ` · last ${a.lastTriggeredAt}` : ''}
-              </span>
-              <span className="flex gap-2">
+            <li
+              key={a.alertId}
+              className={cn(
+                'flex flex-wrap items-center justify-between gap-2 rounded border border-border/70 px-2.5 py-2',
+                !a.enabled && 'opacity-60'
+              )}
+            >
+              <div className="min-w-0 font-mono text-[10px]">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <ForexPortalStatusBadge tone={a.enabled ? 'success' : 'neutral'}>
+                    {a.enabled ? tf('statusEnabled') : tf('statusDisabled')}
+                  </ForexPortalStatusBadge>
+                  <span className="font-semibold text-foreground">{labelForexServerAlertType(a.alertType, tf)}</span>
+                  {a.symbol ? <span className="text-primary">{a.symbol}</span> : null}
+                </div>
+                <p className="mt-1 text-muted-foreground">{describeAlertCondition(a.alertType, a.condition ?? {}, tf)}</p>
+                {a.lastTriggeredAt ? (
+                  <p className="mt-0.5 text-[9px] text-muted-foreground">{tf('lastTriggered', { time: a.lastTriggeredAt })}</p>
+                ) : null}
+              </div>
+              <span className="flex shrink-0 gap-2">
                 <button
                   type="button"
                   className="text-primary underline"
@@ -339,7 +382,7 @@ export function ForexServerAlertsPanel(props: Props) {
                 </button>
                 <button
                   type="button"
-                  className="text-primary underline"
+                  className="text-destructive underline"
                   onClick={() => void forexApi.deleteAlert(a.alertId).then(() => reload())}
                 >
                   {tf('delete')}
@@ -349,21 +392,26 @@ export function ForexServerAlertsPanel(props: Props) {
           ))}
         </ul>
       )}
+      </ForexPortalModuleCard>
 
-      <div>
-        <p className="font-semibold text-foreground">{tf('eventsTitle')}</p>
+      <ForexPortalModuleCard title={tf('eventsTitle')}>
         {events.length === 0 ? (
           <p className="text-muted-foreground">{tf('noEvents')}</p>
         ) : (
-          <ul className="mt-1 max-h-40 overflow-auto divide-y divide-border/50 font-mono text-[10px]">
+          <ul className="max-h-48 space-y-2 overflow-auto">
             {events.slice(0, 20).map((ev) => (
-              <li key={ev.eventId} className="py-1">
-                {ev.createdAt} · {ev.deliveryChannel} · {ev.status} · {ev.message}
+              <li key={ev.eventId} className="rounded border border-border/60 bg-muted/10 px-2 py-1.5 font-mono text-[10px]">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-muted-foreground">{ev.createdAt}</span>
+                  <ForexPortalStatusBadge tone="neutral">{ev.deliveryChannel}</ForexPortalStatusBadge>
+                  <ForexPortalStatusBadge tone={ev.status.toUpperCase() === 'FAILED' ? 'danger' : 'success'}>{ev.status}</ForexPortalStatusBadge>
+                </div>
+                <p className="mt-1 text-foreground">{ev.message}</p>
               </li>
             ))}
           </ul>
         )}
-      </div>
+      </ForexPortalModuleCard>
     </div>
   );
 }
