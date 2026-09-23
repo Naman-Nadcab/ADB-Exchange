@@ -1,74 +1,39 @@
-# I18n forensic final certification (evidence-based)
+# I18n forensic final certification
 
 **Branch:** `release/exchange-production-baseline`  
-**Date:** 2026-09-23  
-**Served BUILD_ID:** `8JBLG8-YAelGh3KeZsyTM` (Docker `exchange-frontend` — asset detail + transfer modal batch)
+**Served BUILD_ID:** `3imlR-LRnrfJQVc44Z-gu`  
+**Verdict:** **NOT FULLY VERIFIED**
 
-## Executive verdict
+## Gates (Phase 18)
 
-**Wallet critical regression (user-reported screenshots): PASS** — `/wallet/convert` and `/wallet/history` render localized UI for **zh-CN** and **id-ID** with **zero** detected English leakage from the curated wallet vocabulary list.
-
-**Wallet re-export extensions (funding, PnL): PASS (served)** — `/wallet/funding` and `/wallet/pnl` wired to `wallet.fundingPage` / `wallet.pnlPage`; e2e **2/2 locale suites** (4 routes each, zh-CN + id-ID) **PASS** on BUILD_ID `aUBYx-y9oY6QlvdiafjSg`.
-
-**Full customer platform (every modal/toast/interaction surface): NOT YET CLOSED** — heuristic scan still lists ~241 classified-but-unremediated literals outside wallet; authenticated interaction crawl beyond wallet sample is incomplete.
-
-Do **not** interpret prior route-matrix PASS as proof of rendered wallet UI (this audit confirms that gap).
-
-## Metrics (requested)
-
-| # | Metric | Value |
-| --- | --- | --- |
-| 1 | Discovered routes (`page.tsx`) | **129** |
-| 2 | Customer-facing components (tsx under `src/components`) | **130** |
-| 3 | Interactive UI surfaces inventoried (wallet convert/history) | **16** rows PASS |
-| 4 | Modals (wallet scope) | **0** standalone modals on these pages |
-| 5 | Toasts (wallet scope) | via shared `notifyError` / API — not expanded this pass |
-| 6 | Notifications | NotificationCenter prior pass; not re-crawled |
-| 7 | Alerts | page-level only |
-| 8 | API error presentation paths touched | convert/history load + form errors partially mapped |
-| 9 | Status/enum display mappings touched | `wallet.transactions.*` on history + convert status |
-| 10 | Hardcoded strings (heuristic before) | ~241 candidates (second scan artifact) |
-| 11 | Hardcoded strings (wallet convert/history after) | **0** user-visible English on zh-CN/id-ID critical e2e |
-| 12 | EN PASS (wallet critical e2e) | **2/2 routes** |
-| 13 | zh-CN PASS (wallet critical e2e) | **2/2 routes** |
-| 14 | id-ID PASS (wallet critical e2e) | **2/2 routes** |
-| 15 | First-paint | locale cookie + `html lang` (prior `i18n-locale-behavior.spec.ts`) |
-| 16 | Hydration | no new MISSING_MESSAGE on wallet pages in manual run |
-| 17 | Responsive | not re-run for wallet-only fix |
-| 18 | A11y | aria on convert swap control localized |
-| 19 | Dynamic routes | **15 BLOCKED** |
-| 20 | Rendered English leakage (wallet critical) | **0** |
-| 21 | Missing translation keys (catalog parity) | **0** (`npm run test:i18n`) |
-| 22 | Catalog parity | **PASS** |
-| 23 | Tests | `test:i18n` PASS (+ re-export guard), `npm run build` PASS, wallet e2e **4/4 PASS** convert/history; funding/pnl e2e pending deploy |
-| 24 | BUILD_ID | `aUBYx-y9oY6QlvdiafjSg` |
-| 25 | Commit SHA | `d2cbd33` (+ e2e follow-up pending) |
-| 26 | Remaining blockers | Platform-wide interaction crawl + ~241 heuristic literals triage; 15 dynamic URL patterns |
-
-## Tests run (this pass)
-
-- `npm run test:i18n` — PASS  
-- `npm run build` (frontend) — PASS  
-- `e2e/wallet-convert-history-i18n.spec.ts` — **4/4 PASS** (authenticated, zh-CN + id-ID)
-
-## Files changed (wallet forensic fix)
-
-- `apps/frontend/messages/{en,zh-CN,id-ID}/wallet.json` — `convertPage`, `historyPage` namespaces  
-- `apps/frontend/src/app/dashboard/assets/convert/page.tsx` — full `useTranslations`  
-- `apps/frontend/src/app/dashboard/assets/history/page.tsx` — full `useTranslations`  
-- `apps/frontend/src/app/dashboard/assets/unified/page.tsx` — convert link + hide small balances  
-- `e2e/wallet-convert-history-i18n.spec.ts` — regression guard (+ funding/pnl routes)  
-- `apps/frontend/src/i18n/wallet-route-reexport.test.ts` — re-export target guard  
-- `dashboard/assets/funding/page.tsx`, `dashboard/assets/pnl/page.tsx` — `wallet.fundingPage`, `wallet.pnlPage`  
-- `e2e/i18n-deep-forensic-rendered.spec.ts` — wallet vocabulary in forbidden list  
-
-## Gate status
+Platform-wide certification **not** granted. Evidence below.
 
 | Gate | Status |
 | --- | --- |
-| User-reported wallet convert zh-CN | **PASS** |
-| User-reported wallet history zh-CN | **PASS** |
-| Entire platform every toast/modal/dropdown | **INCOMPLETE** |
-| Dynamic deep links | **BLOCKED** (15) |
+| All customer surfaces discovered | **PARTIAL** — `I18N_CUSTOMER_SURFACE_MASTER.json` (129 routes + 10 shared) |
+| All routes processed | **NO** — 54 surfaces `NEEDS_AUDIT` |
+| Re-exports resolved | **YES** (inventory + test) |
+| API toast localization | **IMPROVED** — `client-notify-api-error.ts` wired in `api.ts` |
+| Hardcoded scan zero customer English | **NO** — 612 heuristic hits remain |
+| Full 113×3 browser crawl | **NOT COMPLETE** |
+| Interaction crawl all domains | **NOT COMPLETE** |
+| Dynamic routes | **15 BLOCKED** (fixtures) |
+| test:i18n / build / forex-models | **PASS** |
+| Wallet + locale e2e (served) | **PASS** |
 
-**Final label:** **WALLET CRITICAL I18N VERIFIED** — **FULL PLATFORM INTERACTION I18N NOT YET VERIFIED**
+## This execution (summary)
+
+- Phase 0 baseline recorded at `d8d915c`
+- Surface master + forensic scan tooling
+- Localized API `notifyOnError` via error catalog + locale cookies
+- Cookie policy page (`auth.cookies`) en/zh-CN/id-ID
+- Prior wallet re-export fixes remain verified on served build
+
+## Blockers to FULL
+
+1. **612** classified-but-unfixed heuristic customer literals (see `i18n-hardcoded-forensic-scan.json`)
+2. **54** route/shared surfaces without `useTranslations` at source
+3. **~15** dynamic URL patterns without safe staging fixtures
+4. Incomplete interaction/toast/modal/responsive/a11y matrix across P2P, Forex terminal strings, account security standalone pages (e.g. `/dashboard/security/2fa`)
+
+**Do not label:** FULL PLATFORM-WIDE I18N VERIFIED

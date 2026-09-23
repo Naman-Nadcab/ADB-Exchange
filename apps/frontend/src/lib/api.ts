@@ -5,7 +5,6 @@
  */
 
 import { useAuthStore } from '@/store/auth';
-import { notifyError } from './notifyError';
 import { getApiBaseUrl } from './getApiUrl';
 import { COOKIE_SESSION_MARKER, isCookieSessionMarker } from './authSession';
 
@@ -120,7 +119,9 @@ export async function apiRequest<T = unknown>(
     } else if (!useAuthStore.getState().isAuthenticated && !isCookieSessionMarker(useAuthStore.getState().accessToken)) {
       const err = { code: 'UNAUTHORIZED', message: 'Please log in' };
       if (notifyOnError && typeof window !== 'undefined') {
-        notifyError(err.message);
+        void import('@/lib/i18n/client-notify-api-error').then(({ notifyCustomerApiError }) =>
+          notifyCustomerApiError({ error: err }, 'auth.codes.UNAUTHORIZED'),
+        );
       }
       return { success: false, error: err } as ApiResponse<T>;
     }
@@ -179,7 +180,9 @@ export async function apiRequest<T = unknown>(
       const raw = d?.error || {};
       const err = { code: raw.code ?? 'REQUEST_FAILED', message: raw.message ?? 'Request failed' };
       if (notifyOnError && typeof window !== 'undefined') {
-        notifyError(err.message || 'Request failed');
+        void import('@/lib/i18n/client-notify-api-error').then(({ notifyCustomerApiError }) =>
+          notifyCustomerApiError({ error: err }, 'generic.unknown'),
+        );
       }
       return { success: false, error: err };
     }
@@ -207,7 +210,13 @@ export async function apiRequest<T = unknown>(
       const now = Date.now();
       if (now - last > 8000) {
         (window as unknown as { [key: string]: number })[key] = now;
-        notifyError(msg.includes('fetch') || msg.includes('Network') ? 'Cannot reach server. Ensure backend is running on port 4000.' : msg);
+        void import('@/lib/i18n/client-notify-api-error').then(({ notifyCustomerApiError, notifyCustomerNetworkError }) => {
+          if (msg.includes('fetch') || msg.includes('Network')) {
+            void notifyCustomerNetworkError();
+          } else {
+            void notifyCustomerApiError({ error: { code: 'NETWORK_ERROR', message: msg } }, 'generic.unknown');
+          }
+        });
       }
     }
     return {

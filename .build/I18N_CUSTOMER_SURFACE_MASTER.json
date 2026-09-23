@@ -1,0 +1,1368 @@
+{
+  "generatedAt": "2026-09-23T06:50:26.341Z",
+  "routeSurfaces": 129,
+  "sharedSurfaces": 10,
+  "needsAudit": 54,
+  "surfaces": [
+    {
+      "id": "ROUTE-1",
+      "kind": "route",
+      "url": "/(auth)/cookies",
+      "wrapper": "apps/frontend/src/app/(auth)/cookies/page.tsx",
+      "source": "apps/frontend/src/app/(auth)/cookies/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-2",
+      "kind": "route",
+      "url": "/(auth)/forgot-password",
+      "wrapper": "apps/frontend/src/app/(auth)/forgot-password/page.tsx",
+      "source": "apps/frontend/src/app/(auth)/forgot-password/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-3",
+      "kind": "route",
+      "url": "/(auth)/login",
+      "wrapper": "apps/frontend/src/app/(auth)/login/page.tsx",
+      "source": "apps/frontend/src/app/(auth)/login/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-4",
+      "kind": "route",
+      "url": "/(auth)/privacy",
+      "wrapper": "apps/frontend/src/app/(auth)/privacy/page.tsx",
+      "source": "apps/frontend/src/app/(auth)/privacy/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-5",
+      "kind": "route",
+      "url": "/(auth)/register",
+      "wrapper": "apps/frontend/src/app/(auth)/register/page.tsx",
+      "source": "apps/frontend/src/app/(auth)/register/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-6",
+      "kind": "route",
+      "url": "/(auth)/signup",
+      "wrapper": "apps/frontend/src/app/(auth)/signup/page.tsx",
+      "source": "apps/frontend/src/app/(auth)/signup/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-7",
+      "kind": "route",
+      "url": "/(auth)/terms",
+      "wrapper": "apps/frontend/src/app/(auth)/terms/page.tsx",
+      "source": "apps/frontend/src/app/(auth)/terms/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-8",
+      "kind": "route",
+      "url": "/admin",
+      "wrapper": "apps/frontend/src/app/admin/page.tsx",
+      "source": "apps/frontend/src/app/admin/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-9",
+      "kind": "route",
+      "url": "/api",
+      "wrapper": "apps/frontend/src/app/api/page.tsx",
+      "source": "apps/frontend/src/app/api/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-10",
+      "kind": "route",
+      "url": "/assets",
+      "wrapper": "apps/frontend/src/app/assets/page.tsx",
+      "source": "apps/frontend/src/app/assets/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-11",
+      "kind": "route",
+      "url": "/auth/callback/apple",
+      "wrapper": "apps/frontend/src/app/auth/callback/apple/page.tsx",
+      "source": "apps/frontend/src/app/auth/callback/apple/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-12",
+      "kind": "route",
+      "url": "/auth/callback/google",
+      "wrapper": "apps/frontend/src/app/auth/callback/google/page.tsx",
+      "source": "apps/frontend/src/app/auth/callback/google/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-13",
+      "kind": "route",
+      "url": "/dashboard/account/link/google",
+      "wrapper": "apps/frontend/src/app/dashboard/account/link/google/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/account/link/google/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-14",
+      "kind": "route",
+      "url": "/dashboard/account/login-history",
+      "wrapper": "apps/frontend/src/app/dashboard/account/login-history/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/account/login-history/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-15",
+      "kind": "route",
+      "url": "/dashboard/account",
+      "wrapper": "apps/frontend/src/app/dashboard/account/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/account/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-16",
+      "kind": "route",
+      "url": "/dashboard/address-book/add-batches",
+      "wrapper": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-17",
+      "kind": "route",
+      "url": "/dashboard/address-book",
+      "wrapper": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-18",
+      "kind": "route",
+      "url": "/dashboard/announcements/[id]",
+      "wrapper": "apps/frontend/src/app/dashboard/announcements/[id]/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/announcements/[id]/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-19",
+      "kind": "route",
+      "url": "/dashboard/announcements",
+      "wrapper": "apps/frontend/src/app/dashboard/announcements/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/announcements/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-20",
+      "kind": "route",
+      "url": "/dashboard/api/create",
+      "wrapper": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-21",
+      "kind": "route",
+      "url": "/dashboard/api",
+      "wrapper": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/api/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-22",
+      "kind": "route",
+      "url": "/dashboard/assets/[symbol]",
+      "wrapper": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-23",
+      "kind": "route",
+      "url": "/dashboard/assets/convert",
+      "wrapper": "apps/frontend/src/app/dashboard/assets/convert/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/convert/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-24",
+      "kind": "route",
+      "url": "/dashboard/assets/funding",
+      "wrapper": "apps/frontend/src/app/dashboard/assets/funding/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/funding/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-25",
+      "kind": "route",
+      "url": "/dashboard/assets/history",
+      "wrapper": "apps/frontend/src/app/dashboard/assets/history/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/history/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-26",
+      "kind": "route",
+      "url": "/dashboard/assets/overview",
+      "wrapper": "apps/frontend/src/app/dashboard/assets/overview/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/overview/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-27",
+      "kind": "route",
+      "url": "/dashboard/assets",
+      "wrapper": "apps/frontend/src/app/dashboard/assets/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-28",
+      "kind": "route",
+      "url": "/dashboard/assets/pnl",
+      "wrapper": "apps/frontend/src/app/dashboard/assets/pnl/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/pnl/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-29",
+      "kind": "route",
+      "url": "/dashboard/assets/unified",
+      "wrapper": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-30",
+      "kind": "route",
+      "url": "/dashboard/convert",
+      "wrapper": "apps/frontend/src/app/dashboard/convert/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/convert/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-31",
+      "kind": "route",
+      "url": "/dashboard/data-export",
+      "wrapper": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-32",
+      "kind": "route",
+      "url": "/dashboard/deposit/crypto",
+      "wrapper": "apps/frontend/src/app/dashboard/deposit/crypto/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/deposit/crypto/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-33",
+      "kind": "route",
+      "url": "/dashboard/earn",
+      "wrapper": "apps/frontend/src/app/dashboard/earn/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/earn/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-34",
+      "kind": "route",
+      "url": "/dashboard/events",
+      "wrapper": "apps/frontend/src/app/dashboard/events/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/events/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-35",
+      "kind": "route",
+      "url": "/dashboard/fee-rates",
+      "wrapper": "apps/frontend/src/app/dashboard/fee-rates/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/fee-rates/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-36",
+      "kind": "route",
+      "url": "/dashboard/help",
+      "wrapper": "apps/frontend/src/app/dashboard/help/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/help/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-37",
+      "kind": "route",
+      "url": "/dashboard/identity",
+      "wrapper": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/identity/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-38",
+      "kind": "route",
+      "url": "/dashboard/identity/success",
+      "wrapper": "apps/frontend/src/app/dashboard/identity/success/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/identity/success/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-39",
+      "kind": "route",
+      "url": "/dashboard/identity/upload",
+      "wrapper": "apps/frontend/src/app/dashboard/identity/upload/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/identity/upload/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-40",
+      "kind": "route",
+      "url": "/dashboard/markets",
+      "wrapper": "apps/frontend/src/app/dashboard/markets/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/markets/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-41",
+      "kind": "route",
+      "url": "/dashboard/orders/p2p",
+      "wrapper": "apps/frontend/src/app/dashboard/orders/p2p/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/orders/p2p/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-42",
+      "kind": "route",
+      "url": "/dashboard/orders",
+      "wrapper": "apps/frontend/src/app/dashboard/orders/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/orders/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-43",
+      "kind": "route",
+      "url": "/dashboard/orders/spot",
+      "wrapper": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-44",
+      "kind": "route",
+      "url": "/dashboard/orders/trades",
+      "wrapper": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-45",
+      "kind": "route",
+      "url": "/dashboard/p2p/[type]/[crypto]/[fiat]/create",
+      "wrapper": "apps/frontend/src/app/dashboard/p2p/[type]/[crypto]/[fiat]/create/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/p2p/[type]/[crypto]/[fiat]/create/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-46",
+      "kind": "route",
+      "url": "/dashboard/p2p/[type]/[crypto]/[fiat]",
+      "wrapper": "apps/frontend/src/app/dashboard/p2p/[type]/[crypto]/[fiat]/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/p2p/[type]/[crypto]/[fiat]/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-47",
+      "kind": "route",
+      "url": "/dashboard/p2p/orders/[orderId]",
+      "wrapper": "apps/frontend/src/app/dashboard/p2p/orders/[orderId]/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/p2p/orders/[orderId]/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-48",
+      "kind": "route",
+      "url": "/dashboard/p2p",
+      "wrapper": "apps/frontend/src/app/dashboard/p2p/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/p2p/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-49",
+      "kind": "route",
+      "url": "/dashboard/p2p/payment-methods",
+      "wrapper": "apps/frontend/src/app/dashboard/p2p/payment-methods/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/p2p/payment-methods/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-50",
+      "kind": "route",
+      "url": "/dashboard",
+      "wrapper": "apps/frontend/src/app/dashboard/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-51",
+      "kind": "route",
+      "url": "/dashboard/preferences",
+      "wrapper": "apps/frontend/src/app/dashboard/preferences/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/preferences/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-52",
+      "kind": "route",
+      "url": "/dashboard/progress",
+      "wrapper": "apps/frontend/src/app/dashboard/progress/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/progress/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-53",
+      "kind": "route",
+      "url": "/dashboard/referral/my-referrals",
+      "wrapper": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-54",
+      "kind": "route",
+      "url": "/dashboard/referral",
+      "wrapper": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/referral/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-55",
+      "kind": "route",
+      "url": "/dashboard/security/2fa",
+      "wrapper": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-56",
+      "kind": "route",
+      "url": "/dashboard/security/anti-phishing",
+      "wrapper": "apps/frontend/src/app/dashboard/security/anti-phishing/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/security/anti-phishing/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-57",
+      "kind": "route",
+      "url": "/dashboard/security/change-password",
+      "wrapper": "apps/frontend/src/app/dashboard/security/change-password/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/security/change-password/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-58",
+      "kind": "route",
+      "url": "/dashboard/security/fund-password",
+      "wrapper": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-59",
+      "kind": "route",
+      "url": "/dashboard/security",
+      "wrapper": "apps/frontend/src/app/dashboard/security/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/security/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-60",
+      "kind": "route",
+      "url": "/dashboard/security/passkeys",
+      "wrapper": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-61",
+      "kind": "route",
+      "url": "/dashboard/security/sessions",
+      "wrapper": "apps/frontend/src/app/dashboard/security/sessions/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/security/sessions/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-62",
+      "kind": "route",
+      "url": "/dashboard/security/withdrawal-limits",
+      "wrapper": "apps/frontend/src/app/dashboard/security/withdrawal-limits/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/security/withdrawal-limits/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-63",
+      "kind": "route",
+      "url": "/dashboard/spot",
+      "wrapper": "apps/frontend/src/app/dashboard/spot/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/spot/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-64",
+      "kind": "route",
+      "url": "/dashboard/support",
+      "wrapper": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/support/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-65",
+      "kind": "route",
+      "url": "/dashboard/trade",
+      "wrapper": "apps/frontend/src/app/dashboard/trade/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/trade/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-66",
+      "kind": "route",
+      "url": "/dashboard/trade/spot",
+      "wrapper": "apps/frontend/src/app/dashboard/trade/spot/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/trade/spot/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-67",
+      "kind": "route",
+      "url": "/dashboard/transfer",
+      "wrapper": "apps/frontend/src/app/dashboard/transfer/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/transfer/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-68",
+      "kind": "route",
+      "url": "/dashboard/wallet/[symbol]",
+      "wrapper": "apps/frontend/src/app/dashboard/wallet/[symbol]/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/wallet/[symbol]/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-69",
+      "kind": "route",
+      "url": "/dashboard/wallet/spot",
+      "wrapper": "apps/frontend/src/app/dashboard/wallet/spot/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/wallet/spot/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-70",
+      "kind": "route",
+      "url": "/dashboard/withdraw/crypto",
+      "wrapper": "apps/frontend/src/app/dashboard/withdraw/crypto/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/withdraw/crypto/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-71",
+      "kind": "route",
+      "url": "/dashboard/withdraw/fiat",
+      "wrapper": "apps/frontend/src/app/dashboard/withdraw/fiat/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/withdraw/fiat/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-72",
+      "kind": "route",
+      "url": "/dashboard/withdraw",
+      "wrapper": "apps/frontend/src/app/dashboard/withdraw/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/withdraw/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-73",
+      "kind": "route",
+      "url": "/earn",
+      "wrapper": "apps/frontend/src/app/earn/page.tsx",
+      "source": "apps/frontend/src/app/earn/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-74",
+      "kind": "route",
+      "url": "/forex/account/accounts",
+      "wrapper": "apps/frontend/src/app/forex/account/accounts/page.tsx",
+      "source": "apps/frontend/src/app/forex/account/accounts/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-75",
+      "kind": "route",
+      "url": "/forex/account/funds",
+      "wrapper": "apps/frontend/src/app/forex/account/funds/page.tsx",
+      "source": "apps/frontend/src/app/forex/account/funds/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-76",
+      "kind": "route",
+      "url": "/forex/account/ledger",
+      "wrapper": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "source": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-77",
+      "kind": "route",
+      "url": "/forex/account",
+      "wrapper": "apps/frontend/src/app/forex/account/page.tsx",
+      "source": "apps/frontend/src/app/forex/account/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-78",
+      "kind": "route",
+      "url": "/forex/alerts",
+      "wrapper": "apps/frontend/src/app/forex/alerts/page.tsx",
+      "source": "apps/frontend/src/app/forex/alerts/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-79",
+      "kind": "route",
+      "url": "/forex/analysis",
+      "wrapper": "apps/frontend/src/app/forex/analysis/page.tsx",
+      "source": "apps/frontend/src/app/forex/analysis/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-80",
+      "kind": "route",
+      "url": "/forex/markets",
+      "wrapper": "apps/frontend/src/app/forex/markets/page.tsx",
+      "source": "apps/frontend/src/app/forex/markets/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-81",
+      "kind": "route",
+      "url": "/forex/orders",
+      "wrapper": "apps/frontend/src/app/forex/orders/page.tsx",
+      "source": "apps/frontend/src/app/forex/orders/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-82",
+      "kind": "route",
+      "url": "/forex",
+      "wrapper": "apps/frontend/src/app/forex/page.tsx",
+      "source": "apps/frontend/src/app/forex/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-83",
+      "kind": "route",
+      "url": "/forex/portfolio",
+      "wrapper": "apps/frontend/src/app/forex/portfolio/page.tsx",
+      "source": "apps/frontend/src/app/forex/portfolio/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-84",
+      "kind": "route",
+      "url": "/forex/trade",
+      "wrapper": "apps/frontend/src/app/forex/trade/page.tsx",
+      "source": "apps/frontend/src/app/forex/trade/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-85",
+      "kind": "route",
+      "url": "/history",
+      "wrapper": "apps/frontend/src/app/history/page.tsx",
+      "source": "apps/frontend/src/app/history/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-86",
+      "kind": "route",
+      "url": "/markets",
+      "wrapper": "apps/frontend/src/app/markets/page.tsx",
+      "source": "apps/frontend/src/app/markets/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-87",
+      "kind": "route",
+      "url": "/orders/history",
+      "wrapper": "apps/frontend/src/app/orders/history/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/history/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-88",
+      "kind": "route",
+      "url": "/orders/p2p",
+      "wrapper": "apps/frontend/src/app/orders/p2p/page.tsx",
+      "source": "apps/frontend/src/app/orders/p2p/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-89",
+      "kind": "route",
+      "url": "/orders",
+      "wrapper": "apps/frontend/src/app/orders/page.tsx",
+      "source": "apps/frontend/src/app/orders/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-90",
+      "kind": "route",
+      "url": "/orders/spot",
+      "wrapper": "apps/frontend/src/app/orders/spot/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-91",
+      "kind": "route",
+      "url": "/orders/trades",
+      "wrapper": "apps/frontend/src/app/orders/trades/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-92",
+      "kind": "route",
+      "url": "/p2p/[type]/[crypto]/[fiat]",
+      "wrapper": "apps/frontend/src/app/p2p/[type]/[crypto]/[fiat]/page.tsx",
+      "source": "apps/frontend/src/app/p2p/[type]/[crypto]/[fiat]/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-93",
+      "kind": "route",
+      "url": "/p2p/create-ad",
+      "wrapper": "apps/frontend/src/app/p2p/create-ad/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/create-ad/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-94",
+      "kind": "route",
+      "url": "/p2p/disputes/[id]",
+      "wrapper": "apps/frontend/src/app/p2p/disputes/[id]/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/disputes/[id]/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-95",
+      "kind": "route",
+      "url": "/p2p/merchant/[id]",
+      "wrapper": "apps/frontend/src/app/p2p/merchant/[id]/page.tsx",
+      "source": "apps/frontend/src/app/p2p/merchant/[id]/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-96",
+      "kind": "route",
+      "url": "/p2p/merchant-dashboard",
+      "wrapper": "apps/frontend/src/app/p2p/merchant-dashboard/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/merchant-dashboard/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-97",
+      "kind": "route",
+      "url": "/p2p/my-ads",
+      "wrapper": "apps/frontend/src/app/p2p/my-ads/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/my-ads/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-98",
+      "kind": "route",
+      "url": "/p2p/orders/[orderId]",
+      "wrapper": "apps/frontend/src/app/p2p/orders/[orderId]/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/orders/[id]/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-99",
+      "kind": "route",
+      "url": "/p2p/orders",
+      "wrapper": "apps/frontend/src/app/p2p/orders/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/orders/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-100",
+      "kind": "route",
+      "url": "/p2p",
+      "wrapper": "apps/frontend/src/app/p2p/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-101",
+      "kind": "route",
+      "url": "/p2p/payment-methods",
+      "wrapper": "apps/frontend/src/app/p2p/payment-methods/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/payment-methods/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-102",
+      "kind": "route",
+      "url": "/p2p/profile/[userId]",
+      "wrapper": "apps/frontend/src/app/p2p/profile/[userId]/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/merchant/[id]/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-103",
+      "kind": "route",
+      "url": "/p2p-v2/create-ad",
+      "wrapper": "apps/frontend/src/app/p2p-v2/create-ad/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/create-ad/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-104",
+      "kind": "route",
+      "url": "/p2p-v2/disputes/[id]",
+      "wrapper": "apps/frontend/src/app/p2p-v2/disputes/[id]/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/disputes/[id]/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-105",
+      "kind": "route",
+      "url": "/p2p-v2/merchant/[id]",
+      "wrapper": "apps/frontend/src/app/p2p-v2/merchant/[id]/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/merchant/[id]/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-106",
+      "kind": "route",
+      "url": "/p2p-v2/merchant-dashboard",
+      "wrapper": "apps/frontend/src/app/p2p-v2/merchant-dashboard/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/merchant-dashboard/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-107",
+      "kind": "route",
+      "url": "/p2p-v2/my-ads",
+      "wrapper": "apps/frontend/src/app/p2p-v2/my-ads/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/my-ads/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-108",
+      "kind": "route",
+      "url": "/p2p-v2/orders/[id]",
+      "wrapper": "apps/frontend/src/app/p2p-v2/orders/[id]/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/orders/[id]/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-109",
+      "kind": "route",
+      "url": "/p2p-v2/orders",
+      "wrapper": "apps/frontend/src/app/p2p-v2/orders/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/orders/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-110",
+      "kind": "route",
+      "url": "/p2p-v2",
+      "wrapper": "apps/frontend/src/app/p2p-v2/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-111",
+      "kind": "route",
+      "url": "/p2p-v2/payment-methods",
+      "wrapper": "apps/frontend/src/app/p2p-v2/payment-methods/page.tsx",
+      "source": "apps/frontend/src/app/p2p-v2/payment-methods/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-112",
+      "kind": "route",
+      "url": "/",
+      "wrapper": "apps/frontend/src/app/page.tsx",
+      "source": "apps/frontend/src/app/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-113",
+      "kind": "route",
+      "url": "/reset-password",
+      "wrapper": "apps/frontend/src/app/reset-password/page.tsx",
+      "source": "apps/frontend/src/app/reset-password/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-114",
+      "kind": "route",
+      "url": "/spot",
+      "wrapper": "apps/frontend/src/app/spot/page.tsx",
+      "source": "apps/frontend/src/app/spot/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-115",
+      "kind": "route",
+      "url": "/trade",
+      "wrapper": "apps/frontend/src/app/trade/page.tsx",
+      "source": "apps/frontend/src/app/trade/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-116",
+      "kind": "route",
+      "url": "/trade/spot",
+      "wrapper": "apps/frontend/src/app/trade/spot/page.tsx",
+      "source": "apps/frontend/src/app/trade/spot/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-117",
+      "kind": "route",
+      "url": "/wallet/[symbol]",
+      "wrapper": "apps/frontend/src/app/wallet/[symbol]/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-118",
+      "kind": "route",
+      "url": "/wallet/convert",
+      "wrapper": "apps/frontend/src/app/wallet/convert/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/convert/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-119",
+      "kind": "route",
+      "url": "/wallet/deposit/crypto",
+      "wrapper": "apps/frontend/src/app/wallet/deposit/crypto/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/deposit/crypto/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-120",
+      "kind": "route",
+      "url": "/wallet/deposit",
+      "wrapper": "apps/frontend/src/app/wallet/deposit/page.tsx",
+      "source": "apps/frontend/src/app/wallet/deposit/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "ROUTE-121",
+      "kind": "route",
+      "url": "/wallet/funding",
+      "wrapper": "apps/frontend/src/app/wallet/funding/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/funding/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-122",
+      "kind": "route",
+      "url": "/wallet/history",
+      "wrapper": "apps/frontend/src/app/wallet/history/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/history/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-123",
+      "kind": "route",
+      "url": "/wallet",
+      "wrapper": "apps/frontend/src/app/wallet/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/overview/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-124",
+      "kind": "route",
+      "url": "/wallet/pnl",
+      "wrapper": "apps/frontend/src/app/wallet/pnl/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/pnl/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-125",
+      "kind": "route",
+      "url": "/wallet/transfer",
+      "wrapper": "apps/frontend/src/app/wallet/transfer/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/transfer/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-126",
+      "kind": "route",
+      "url": "/wallet/unified",
+      "wrapper": "apps/frontend/src/app/wallet/unified/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-127",
+      "kind": "route",
+      "url": "/wallet/withdraw/crypto",
+      "wrapper": "apps/frontend/src/app/wallet/withdraw/crypto/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/withdraw/crypto/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-128",
+      "kind": "route",
+      "url": "/wallet/withdraw/fiat",
+      "wrapper": "apps/frontend/src/app/wallet/withdraw/fiat/page.tsx",
+      "source": "apps/frontend/src/app/dashboard/withdraw/fiat/page.tsx",
+      "reexport": true,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "ROUTE-129",
+      "kind": "route",
+      "url": "/wallet/withdraw",
+      "wrapper": "apps/frontend/src/app/wallet/withdraw/page.tsx",
+      "source": "apps/frontend/src/app/wallet/withdraw/page.tsx",
+      "reexport": false,
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "COMP-130",
+      "kind": "shared_component",
+      "component": "apps/frontend/src/components/TransferModal.tsx",
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "COMP-131",
+      "kind": "shared_component",
+      "component": "apps/frontend/src/components/auth/LanguageSelector.tsx",
+      "hasUseTranslations": false,
+      "status": "NEEDS_AUDIT"
+    },
+    {
+      "id": "COMP-132",
+      "kind": "shared_component",
+      "component": "apps/frontend/src/components/eda/EdaPublicFooter.tsx",
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "COMP-133",
+      "kind": "shared_component",
+      "component": "apps/frontend/src/components/forex/ForexIntelDrawer.tsx",
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "COMP-134",
+      "kind": "shared_component",
+      "component": "apps/frontend/src/components/i18n/LocaleLanguageSelector.tsx",
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "COMP-135",
+      "kind": "shared_component",
+      "component": "apps/frontend/src/components/layout/ExchangeHeader.tsx",
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "COMP-136",
+      "kind": "shared_component",
+      "component": "apps/frontend/src/components/layout/GlobalSearch.tsx",
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "COMP-137",
+      "kind": "shared_component",
+      "component": "apps/frontend/src/components/layout/NotificationCenter.tsx",
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "COMP-138",
+      "kind": "shared_component",
+      "component": "apps/frontend/src/components/layout/PublicFooter.tsx",
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    },
+    {
+      "id": "COMP-139",
+      "kind": "shared_component",
+      "component": "apps/frontend/src/components/layout/PublicHeader.tsx",
+      "hasUseTranslations": true,
+      "status": "SOURCE_I18N_WIRED"
+    }
+  ]
+}

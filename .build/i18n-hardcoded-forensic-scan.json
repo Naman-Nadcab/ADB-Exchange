@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-23T06:10:05.853Z",
-  "count": 640,
+  "generatedAt": "2026-09-23T06:50:26.895Z",
+  "count": 612,
   "hits": [
     {
       "file": "apps/frontend/src/app/(auth)/cookies/page.tsx",
@@ -933,108 +933,6 @@
       "text": "API v3 & v5"
     },
     {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 288,
-      "kind": "jsx",
-      "text": "Assets"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 366,
-      "kind": "jsx",
-      "text": "Total Balance"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 381,
-      "kind": "jsx",
-      "text": "Funding Account"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 390,
-      "kind": "jsx",
-      "text": "Available:"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 391,
-      "kind": "jsx",
-      "text": "Locked:"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 401,
-      "kind": "jsx",
-      "text": "Trading Account"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 432,
-      "kind": "jsx",
-      "text": "Website"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 454,
-      "kind": "jsx",
-      "text": "Supply Progress"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 473,
-      "kind": "jsx",
-      "text": "Show less"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 473,
-      "kind": "jsx",
-      "text": "Read more"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 493,
-      "kind": "jsx",
-      "text": "Transaction History"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 516,
-      "kind": "jsx",
-      "text": "Deposits, withdrawals, and transfers will appear here"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 524,
-      "kind": "jsx",
-      "text": "Type"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 525,
-      "kind": "jsx",
-      "text": "Amount"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 526,
-      "kind": "jsx",
-      "text": "Status"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 527,
-      "kind": "jsx",
-      "text": "Network"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
-      "line": 528,
-      "kind": "jsx",
-      "text": "Date"
-    },
-    {
       "file": "apps/frontend/src/app/dashboard/assets/overview/page.tsx",
       "line": 136,
       "kind": "jsx",
@@ -1081,12 +979,6 @@
       "line": 189,
       "kind": "jsx",
       "text": "Unrealized P&L"
-    },
-    {
-      "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
-      "line": 207,
-      "kind": "attr",
-      "text": "Search coin..."
     },
     {
       "file": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
@@ -3337,66 +3229,6 @@
       "line": 115,
       "kind": "jsx",
       "text": "Dark Mode"
-    },
-    {
-      "file": "apps/frontend/src/components/TransferModal.tsx",
-      "line": 205,
-      "kind": "jsx",
-      "text": "Transfer"
-    },
-    {
-      "file": "apps/frontend/src/components/TransferModal.tsx",
-      "line": 220,
-      "kind": "jsx",
-      "text": "From"
-    },
-    {
-      "file": "apps/frontend/src/components/TransferModal.tsx",
-      "line": 325,
-      "kind": "jsx",
-      "text": "Coin"
-    },
-    {
-      "file": "apps/frontend/src/components/TransferModal.tsx",
-      "line": 342,
-      "kind": "jsx",
-      "text": "Select coin"
-    },
-    {
-      "file": "apps/frontend/src/components/TransferModal.tsx",
-      "line": 356,
-      "kind": "attr",
-      "text": "Search coin..."
-    },
-    {
-      "file": "apps/frontend/src/components/TransferModal.tsx",
-      "line": 368,
-      "kind": "jsx",
-      "text": "Loading..."
-    },
-    {
-      "file": "apps/frontend/src/components/TransferModal.tsx",
-      "line": 371,
-      "kind": "jsx",
-      "text": "No coins found"
-    },
-    {
-      "file": "apps/frontend/src/components/TransferModal.tsx",
-      "line": 408,
-      "kind": "jsx",
-      "text": "Transferable Amount"
-    },
-    {
-      "file": "apps/frontend/src/components/TransferModal.tsx",
-      "line": 428,
-      "kind": "attr",
-      "text": "Enter amount"
-    },
-    {
-      "file": "apps/frontend/src/components/TransferModal.tsx",
-      "line": 456,
-      "kind": "jsx",
-      "text": "Transfer successful!"
     },
     {
       "file": "apps/frontend/src/components/api/APIPermissionSummary.tsx",
