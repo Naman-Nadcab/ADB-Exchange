@@ -29,7 +29,8 @@ export type LiveForexReadiness = {
 export async function buildLiveForexReadiness(): Promise<LiveForexReadiness> {
   const flags = effectiveForexRuntimeFlags();
   const adminCfg = getForexAdminBackendConfig();
-  const realForexEffective = adminCfg.realForex === true && flags.realForex === true;
+  const runtimeRealForex = flags.realForex as boolean;
+  const realForexEffective = adminCfg.realForex === true && runtimeRealForex === true;
   const blockers: string[] = [];
 
   const providerHealth = await getForexLiveAccountProvider().health();
@@ -53,7 +54,7 @@ export async function buildLiveForexReadiness(): Promise<LiveForexReadiness> {
   blockers.push('Withdrawal payout rail not configured');
   blockers.push('Funding webhook reconciliation not configured');
 
-  if (flags.realForex !== false) {
+  if (runtimeRealForex) {
     blockers.push('REAL_FOREX runtime flag must remain off until readiness passes');
   }
 
