@@ -188,12 +188,45 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
               <LayoutGrid className="h-4 w-4" aria-hidden />
               {t('actionTerminal')}
             </Link>
-            <Link
-              href={FOREX_ROUTES.account}
+            <a
+              href="#account-funding"
               className="inline-flex min-h-10 items-center justify-center rounded border border-border px-4 text-[12px] font-semibold hover:border-primary/35"
             >
               {t('actionManage')}
-            </Link>
+            </a>
+            {isDemo ? (
+              <Link
+                href={FOREX_ROUTES.funds}
+                className="inline-flex min-h-10 items-center justify-center rounded border border-border px-4 text-[12px] font-semibold hover:border-primary/35"
+              >
+                {t('demoFundingCta')}
+              </Link>
+            ) : null}
+            {gates.realFundingEnabled ? (
+              <>
+                <Link href={FOREX_ROUTES.fundsDeposit} className="inline-flex min-h-10 items-center justify-center rounded border border-border px-4 text-[12px] font-semibold">
+                  {t('depositCta')}
+                </Link>
+                <Link href={FOREX_ROUTES.fundsWithdraw} className="inline-flex min-h-10 items-center justify-center rounded border border-border px-4 text-[12px] font-semibold">
+                  {t('withdrawCta')}
+                </Link>
+                <Link href={FOREX_ROUTES.fundsTransfer} className="inline-flex min-h-10 items-center justify-center rounded border border-border px-4 text-[12px] font-semibold">
+                  {t('transferCta')}
+                </Link>
+              </>
+            ) : (
+              <>
+                <span className="inline-flex min-h-10 cursor-not-allowed items-center rounded border border-border/50 px-4 text-[12px] text-muted-foreground" title={t('realFundingOffHint')}>
+                  {t('depositCta')}
+                </span>
+                <span className="inline-flex min-h-10 cursor-not-allowed items-center rounded border border-border/50 px-4 text-[12px] text-muted-foreground" title={t('realFundingOffHint')}>
+                  {t('withdrawCta')}
+                </span>
+                <span className="inline-flex min-h-10 cursor-not-allowed items-center rounded border border-border/50 px-4 text-[12px] text-muted-foreground" title={t('realFundingOffHint')}>
+                  {t('transferCta')}
+                </span>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -222,6 +255,7 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
         <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t('financialTitle')}</h3>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
           <ForexPortalKpiCard emphasis="primary" icon={Wallet} label={t('metricBalance')} value={fin?.ledgerBalance} currency={currency} />
+          <ForexPortalKpiCard emphasis="secondary" label={t('metricCredit')} value={undefined} kind="plain" hint={t('metricUnavailable')} />
           <ForexPortalKpiCard emphasis="primary" icon={CircleDollarSign} label={t('metricEquity')} value={fin?.equity} currency={currency} />
           <ForexPortalKpiCard emphasis="primary" icon={Gauge} label={t('metricFreeMargin')} value={fin?.freeMargin} currency={currency} />
           <ForexPortalKpiCard emphasis="secondary" label={t('metricUsedMargin')} value={fin?.usedMargin} currency={currency} />
@@ -246,6 +280,14 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
         {/* Configuration */}
         <ForexPortalModuleCard title={t('configTitle')}>
           <dl className="grid gap-2.5 sm:grid-cols-2 text-[12px]">
+            <div>
+              <dt className="text-[10px] uppercase text-muted-foreground">{t('tradingLoginLabel')}</dt>
+              <dd className="mt-0.5 font-mono">{fxPlain(m.accountId)}</dd>
+            </div>
+            <div>
+              <dt className="text-[10px] uppercase text-muted-foreground">{t('serverLabel')}</dt>
+              <dd className="mt-0.5">{t('serverSimulated')}</dd>
+            </div>
             <div>
               <dt className="text-[10px] uppercase text-muted-foreground">{t('fieldAccountType')}</dt>
               <dd className="mt-0.5 font-medium">{kindLabel}</dd>
@@ -330,7 +372,7 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
       <ForexTradingCredentialPanel />
 
       {/* Funding */}
-      <ForexPortalModuleCard title={t('fundingTitle')} subtitle={t('fundingSubtitle')}>
+      <ForexPortalModuleCard id="account-funding" title={t('fundingTitle')} subtitle={t('fundingSubtitle')}>
         <div className="flex flex-wrap gap-2">
           {isDemo ? (
             <Link href={FOREX_ROUTES.funds} className="inline-flex min-h-9 items-center rounded border border-primary/40 bg-primary/10 px-3 text-[11px] font-semibold text-primary">
@@ -485,7 +527,7 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
       </ForexPortalModuleCard>
 
       {/* Lifecycle */}
-      <ForexPortalModuleCard title={t('managementTitle')}>
+      <ForexPortalModuleCard id="account-management" title={t('managementTitle')}>
         <p className="text-[12px] text-muted-foreground">{t('closeAccountUnavailable')}</p>
       </ForexPortalModuleCard>
     </div>

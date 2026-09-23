@@ -12,7 +12,7 @@ export default function ForexAccountDetailPage() {
   const accountId = String(params?.accountId ?? '');
 
   return (
-    <ForexPageFrame title={tf('pages.accountDetail.title')} subtitle={tf('pages.accountDetail.subtitle')}>
+    <ForexPageFrame wide title={tf('pages.accountDetail.title')} subtitle={tf('pages.accountDetail.subtitle')}>
       <ForexPortalAccountContext />
       <ForexAccountDetailView accountId={accountId} />
     </ForexPageFrame>

@@ -70,6 +70,7 @@ export function ForexPortalKpiCard(props: {
 }
 
 export function ForexPortalModuleCard(props: {
+  id?: string;
   title: string;
   subtitle?: string;
   actions?: ReactNode;
@@ -79,6 +80,7 @@ export function ForexPortalModuleCard(props: {
 }) {
   return (
     <section
+      id={props.id}
       className={cn(
         'eda-card overflow-hidden',
         props.accent && 'border-primary/25',

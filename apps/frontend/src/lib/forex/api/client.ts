@@ -33,6 +33,13 @@ import type {
 import { FOREX_PREFIX } from '../models/types';
 import { getForexActiveAccountHeaders } from './account-context';
 
+export type ForexAccountCardSnapshot = {
+  isSelected: boolean;
+  financialSnapshot: ForexAccountHubPayload['financialSnapshot'];
+  activitySummary: { openPositions: number; pendingOrders: number };
+  riskState?: string;
+};
+
 export type ForexCustomerAccountSummary = {
   accountId: string;
   currency: string;
@@ -45,6 +52,7 @@ export type ForexCustomerAccountSummary = {
   updatedAt?: string;
   groupCode?: string | null;
   groupLabel?: string | null;
+  cardSnapshot?: ForexAccountCardSnapshot;
 };
 
 export type ForexAccountHubPayload = {

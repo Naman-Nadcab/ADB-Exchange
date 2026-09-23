@@ -8,7 +8,7 @@ import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccount
 export default function ForexAccountsPage() {
   const tf = useTranslations('forex');
   return (
-    <ForexPageFrame title={tf('pages.accounts.title')} subtitle={tf('pages.accounts.subtitle')}>
+    <ForexPageFrame wide title={tf('pages.accounts.title')} subtitle={tf('pages.accounts.subtitle')}>
       <ForexPortalAccountContext />
       <ForexAccountCenter />
     </ForexPageFrame>

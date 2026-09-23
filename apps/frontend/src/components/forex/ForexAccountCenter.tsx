@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { LayoutGrid, Settings2 } from 'lucide-react';
+import { LayoutGrid } from 'lucide-react';
 import { ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
-import { fxMoney, fxPlain } from '@/components/forex/format';
-import { ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
-import { forexApi, unwrap, type ForexAccountHubPayload } from '@/lib/forex/api/client';
+import { fxPlain } from '@/components/forex/format';
+import { ForexPortalModuleCard } from '@/components/forex/ForexPortalKpiCard';
+import { ForexAccountCenterCard } from '@/components/forex/ForexAccountCenterCard';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexWalletKyc } from '@/lib/forex/hooks/useForexWalletKyc';
 import {
@@ -29,16 +29,12 @@ export function ForexAccountCenter() {
   const authed = isAuthenticated || hasForexPrivateSession();
   const accounts = useForexStore((s) => s.forexAccounts);
   const activeId = useForexStore((s) => s.activeForexAccountId);
-  const account = useForexStore((s) => s.account);
-  const balance = useForexStore((s) => s.balance);
-  const margin = useForexStore((s) => s.margin);
   const hydratePhase = useForexStore((s) => s.hydratePhase);
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const { gates } = useForexProductGates();
   const kyc = useForexWalletKyc();
-  const [hubs, setHubs] = useState<Record<string, ForexAccountHubPayload>>({});
 
   function kindLabel(kind: string): string {
     const k = kind.toUpperCase();
@@ -55,31 +51,6 @@ export function ForexAccountCenter() {
   useEffect(() => {
     void reload();
   }, [reload]);
-
-  useEffect(() => {
-    if (!authed || accounts.length === 0) {
-      setHubs({});
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      const pairs = await Promise.all(
-        accounts.map(async (a) => {
-          const res = unwrap(await forexApi.getAccountById(a.accountId));
-          return res.ok ? ([a.accountId, res.data] as const) : null;
-        })
-      );
-      if (cancelled) return;
-      const next: Record<string, ForexAccountHubPayload> = {};
-      for (const p of pairs) {
-        if (p) next[p[0]] = p[1];
-      }
-      setHubs(next);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [accounts, authed]);
 
   async function onCreateDemo() {
     if (busy) return;
@@ -120,8 +91,6 @@ export function ForexAccountCenter() {
   if (!authed) {
     return <ForexSignInPrompt href={`/login?redirect=${FOREX_ROUTES.accounts}`} sectionKey="forexAccounts" />;
   }
-
-  const currency = account?.currency ?? balance?.currency ?? 'USD';
 
   return (
     <div className="space-y-3">
@@ -184,117 +153,17 @@ export function ForexAccountCenter() {
         {!accounts.length && hydratePhase !== 'hydrating' ? (
           <p className="text-sm text-muted-foreground">{t('empty')}</p>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {accounts.map((a) => {
-              const isActive = a.accountId === activeId;
-              const lev = 'leverageOverride' in a && a.leverageOverride ? String(a.leverageOverride) : '—';
-              const kind = a.accountKind.toUpperCase();
-              const snap = hubs[a.accountId]?.financialSnapshot;
-              const cardCurrency = snap?.currency ?? a.currency;
-              return (
-                <article
-                  key={a.accountId}
-                  className={cn(
-                    'flex flex-col rounded border p-3',
-                    isActive ? 'border-primary/35 bg-primary/[0.06]' : 'border-border/80 bg-card/80'
-                  )}
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <ForexPortalStatusBadge tone={kind === 'DEMO' ? 'primary' : 'neutral'}>{kindLabel(a.accountKind)}</ForexPortalStatusBadge>
-                      {isActive ? (
-                        <ForexPortalStatusBadge tone="success" className="ml-1">
-                          {t('activeBadge')}
-                        </ForexPortalStatusBadge>
-                      ) : null}
-                      <p className="mt-2 font-mono text-[13px] font-semibold text-foreground">{fxPlain(a.accountId)}</p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {fxPlain(a.currency)} · {t('cardServer')}: {t('cardServerSimulated')} · {t('leverageLabel', { value: lev })}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {t('cardCreated', { date: new Date(a.createdAt).toLocaleDateString() })}
-                      </p>
-                    </div>
-                    <ForexPortalStatusBadge tone={String(a.status).toUpperCase() === 'ACTIVE' ? 'success' : 'neutral'}>
-                      {fxPlain(a.status)}
-                    </ForexPortalStatusBadge>
-                  </div>
-                  {snap ? (
-                    <dl className="mt-3 grid grid-cols-2 gap-2 border-t border-border/60 pt-3 font-mono text-[11px] sm:grid-cols-4">
-                      <div>
-                        <dt className="text-[9px] uppercase text-muted-foreground">{t('metricBalance')}</dt>
-                        <dd className="mt-0.5 tabular-nums">{fxMoney(snap.ledgerBalance, cardCurrency)}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-[9px] uppercase text-muted-foreground">{t('metricEquity')}</dt>
-                        <dd className="mt-0.5 tabular-nums">{fxMoney(snap.equity, cardCurrency)}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-[9px] uppercase text-muted-foreground">{t('metricFreeMargin')}</dt>
-                        <dd className="mt-0.5 tabular-nums">{fxMoney(snap.freeMargin, cardCurrency)}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-[9px] uppercase text-muted-foreground">{t('metricMargin')}</dt>
-                        <dd className="mt-0.5 tabular-nums">{fxMoney(snap.usedMargin, cardCurrency)}</dd>
-                      </div>
-                    </dl>
-                  ) : isActive ? (
-                    <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-border/60 pt-3 font-mono text-[11px]">
-                      <div>
-                        <dt className="text-[9px] uppercase text-muted-foreground">{t('metricBalance')}</dt>
-                        <dd className="mt-0.5 tabular-nums">{fxMoney(account?.ledgerBalance ?? balance?.ledgerBalance, currency)}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-[9px] uppercase text-muted-foreground">{t('metricEquity')}</dt>
-                        <dd className="mt-0.5 tabular-nums">{fxMoney(account?.equity ?? balance?.equity, currency)}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-[9px] uppercase text-muted-foreground">{t('metricMargin')}</dt>
-                        <dd className="mt-0.5 tabular-nums">{fxMoney(account?.usedMargin ?? margin?.usedMargin, currency)}</dd>
-                      </div>
-                    </dl>
-                  ) : (
-                    <p className="mt-3 border-t border-border/60 pt-3 text-[11px] text-muted-foreground">{t('metricsLoading')}</p>
-                  )}
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {isActive ? (
-                      <span className="text-[11px] text-muted-foreground">{t('current')}</span>
-                    ) : (
-                      <button
-                        type="button"
-                        disabled={busy != null}
-                        onClick={() => void onSwitch(a.accountId)}
-                        className="rounded border border-border px-2.5 py-1 text-[11px] font-medium hover:border-primary/40 disabled:opacity-50"
-                      >
-                        {busy === a.accountId ? t('switching') : t('switch')}
-                      </button>
-                    )}
-                    <Link
-                      href={FOREX_ROUTES.trade}
-                      className="inline-flex items-center gap-1 rounded border border-border px-2.5 py-1 text-[11px] font-medium hover:border-primary/40"
-                    >
-                      <LayoutGrid className="h-3 w-3" aria-hidden />
-                      {t('openTradeTerminal')}
-                    </Link>
-                    <Link
-                      href={FOREX_ROUTES.accountDetail(a.accountId)}
-                      className="inline-flex items-center gap-1 rounded border border-border/70 px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground"
-                    >
-                      <Settings2 className="h-3 w-3" aria-hidden />
-                      {t('viewDetail')}
-                    </Link>
-                    {kind === 'DEMO' ? (
-                      <Link
-                        href={FOREX_ROUTES.funds}
-                        className="inline-flex items-center rounded border border-border/70 px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground"
-                      >
-                        {t('demoFundingShort')}
-                      </Link>
-                    ) : null}
-                  </div>
-                </article>
-              );
-            })}
+          <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-2">
+            {accounts.map((a) => (
+              <ForexAccountCenterCard
+                key={a.accountId}
+                account={a}
+                isActive={a.accountId === activeId}
+                busy={busy}
+                kindLabel={kindLabel}
+                onSwitch={(id) => void onSwitch(id)}
+              />
+            ))}
           </div>
         )}
       </ForexPortalModuleCard>
@@ -302,7 +171,7 @@ export function ForexAccountCenter() {
       {accounts.length > 0 ? (
         <ForexPortalModuleCard title={t('tableSectionTitle')} subtitle={t('tableSectionSubtitle')}>
           <div className="overflow-x-auto rounded border border-border/80">
-            <table className="w-full min-w-[640px] text-left text-[12px]">
+            <table className="w-full min-w-[720px] text-left text-[12px]">
               <thead className="border-b border-border bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th className="px-3 py-2 font-medium">{t('colAccountId')}</th>
@@ -311,6 +180,7 @@ export function ForexAccountCenter() {
                   <th className="px-3 py-2 font-medium">{t('colCurrency')}</th>
                   <th className="px-3 py-2 font-medium">{t('colPositionMode')}</th>
                   <th className="px-3 py-2 font-medium">{t('colLeverage')}</th>
+                  <th className="px-3 py-2 font-medium">{t('metricBalance')}</th>
                   <th className="px-3 py-2 font-medium">{t('colActive')}</th>
                   <th className="px-3 py-2 font-medium">{t('colActions')}</th>
                 </tr>
@@ -318,7 +188,8 @@ export function ForexAccountCenter() {
               <tbody>
                 {accounts.map((a) => {
                   const isActive = a.accountId === activeId;
-                  const lev = 'leverageOverride' in a && a.leverageOverride ? String(a.leverageOverride) : '—';
+                  const lev = a.leverageOverride ? String(a.leverageOverride) : t('leverageUnavailable');
+                  const bal = a.cardSnapshot?.financialSnapshot.ledgerBalance;
                   return (
                     <tr key={a.accountId} className={cn('border-b border-border/60', isActive && 'bg-primary/5')}>
                       <td className="px-3 py-2 font-mono">{fxPlain(a.accountId)}</td>
@@ -327,20 +198,24 @@ export function ForexAccountCenter() {
                       <td className="px-3 py-2">{fxPlain(a.currency)}</td>
                       <td className="px-3 py-2">{fxPlain(a.positionMode)}</td>
                       <td className="px-3 py-2 font-mono text-muted-foreground">{lev}</td>
+                      <td className="px-3 py-2 font-mono">{bal ?? '—'}</td>
                       <td className="px-3 py-2">{isActive ? t('yes') : '—'}</td>
                       <td className="px-3 py-2">
-                        {isActive ? (
-                          <span className="text-muted-foreground">{t('current')}</span>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={busy != null}
-                            onClick={() => void onSwitch(a.accountId)}
-                            className="rounded border border-border px-2 py-1 text-[11px] font-medium hover:border-primary/40 disabled:opacity-50"
-                          >
-                            {busy === a.accountId ? t('switching') : t('switch')}
-                          </button>
-                        )}
+                        <div className="flex flex-wrap gap-1">
+                          <Link href={FOREX_ROUTES.accountDetail(a.accountId)} className="text-primary underline-offset-2 hover:underline">
+                            {t('viewDetail')}
+                          </Link>
+                          {!isActive ? (
+                            <button
+                              type="button"
+                              disabled={busy != null}
+                              onClick={() => void onSwitch(a.accountId)}
+                              className="rounded border border-border px-2 py-0.5 text-[11px] disabled:opacity-50"
+                            >
+                              {busy === a.accountId ? t('switching') : t('switch')}
+                            </button>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   );

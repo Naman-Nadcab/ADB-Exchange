@@ -904,7 +904,15 @@
     "metricFreeMargin": "Free margin",
     "demoFundingShort": "Demo funding",
     "metricsLoading": "Loading account metrics…",
-    "openDemoFlow": "Open demo account"
+    "metricsUnavailable": "Financial metrics unavailable for this account.",
+    "openDemoFlow": "Open demo account",
+    "leverageUnavailable": "—",
+    "cardTradingLogin": "Trading login",
+    "cardPositionMode": "Position mode",
+    "cardAccountGroup": "Account group",
+    "groupDefault": "Default",
+    "metricMarginLevel": "Margin level",
+    "cardOpenPositions": "Open positions"
   },
   "positionModeSwitch": {
     "button": "Mode…",
@@ -1285,6 +1293,7 @@
     "readinessKycCta": "Complete verification",
     "financialTitle": "Financial snapshot",
     "metricBalance": "Balance",
+    "metricCredit": "Credit",
     "metricEquity": "Equity",
     "metricFreeMargin": "Free margin",
     "metricUsedMargin": "Used margin",

@@ -904,7 +904,15 @@
     "metricFreeMargin": "Margin bebas",
     "demoFundingShort": "Pendanaan demo",
     "metricsLoading": "Memuat metrik akun…",
-    "openDemoFlow": "Buka akun demo"
+    "metricsUnavailable": "Metrik keuangan tidak tersedia untuk akun ini.",
+    "openDemoFlow": "Buka akun demo",
+    "leverageUnavailable": "—",
+    "cardTradingLogin": "Login trading",
+    "cardPositionMode": "Mode posisi",
+    "cardAccountGroup": "Grup akun",
+    "groupDefault": "Default",
+    "metricMarginLevel": "Level margin",
+    "cardOpenPositions": "Posisi terbuka"
   },
   "positionModeSwitch": {
     "button": "Mode…",
@@ -1285,6 +1293,7 @@
     "readinessKycCta": "Selesaikan verifikasi",
     "financialTitle": "Snapshot keuangan",
     "metricBalance": "Saldo",
+    "metricCredit": "Kredit",
     "metricEquity": "Ekuitas",
     "metricFreeMargin": "Margin bebas",
     "metricUsedMargin": "Margin terpakai",

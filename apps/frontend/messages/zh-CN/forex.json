@@ -904,7 +904,15 @@
     "metricFreeMargin": "可用保证金",
     "demoFundingShort": "演示注资",
     "metricsLoading": "正在加载账户指标…",
-    "openDemoFlow": "开立演示账户"
+    "metricsUnavailable": "无法加载此账户的财务指标。",
+    "openDemoFlow": "开立演示账户",
+    "leverageUnavailable": "—",
+    "cardTradingLogin": "交易登录",
+    "cardPositionMode": "持仓模式",
+    "cardAccountGroup": "账户组",
+    "groupDefault": "默认",
+    "metricMarginLevel": "保证金水平",
+    "cardOpenPositions": "持仓数"
   },
   "positionModeSwitch": {
     "button": "模式…",
@@ -1285,6 +1293,7 @@
     "readinessKycCta": "完成验证",
     "financialTitle": "财务快照",
     "metricBalance": "余额",
+    "metricCredit": "信用额度",
     "metricEquity": "净值",
     "metricFreeMargin": "可用保证金",
     "metricUsedMargin": "已用保证金",

@@ -101,6 +101,16 @@ try {
   await registerForexAccountingRoutes(app);
   await app.ready();
 
+  const list = await app.inject({ method: 'GET', url: '/accounts' });
+  assert.equal(list.statusCode, 200);
+  const listBody = list.json() as {
+    success: boolean;
+    data?: { accounts?: Array<{ accountId: string; cardSnapshot?: { financialSnapshot?: { ledgerBalance: string } } }> };
+  };
+  assert.equal(listBody.success, true);
+  const row = listBody.data?.accounts?.find((x) => x.accountId === A1);
+  assert.ok(row?.cardSnapshot?.financialSnapshot?.ledgerBalance != null);
+
   const own = await app.inject({ method: 'GET', url: `/accounts/${A1}` });
   assert.equal(own.statusCode, 200);
   const ownBody = own.json() as { success: boolean; data?: { account?: { accountId: string }; financialSnapshot?: { ledgerBalance: string } } };

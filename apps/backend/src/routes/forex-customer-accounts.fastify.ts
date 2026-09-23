@@ -33,24 +33,37 @@ export async function registerForexCustomerAccountsRoutes(app: FastifyInstance):
     const active = await import('../services/forex/customer/accounts-service.js').then((m) =>
       m.resolveForexAccountIdForUser(userId)
     );
+    const realForex = getForexAdminBackendConfig().realForex === true;
     return reply.send({
       success: true,
       data: {
         source: 'SIMULATED',
         executionMode: 'MOCK',
-        realForex: false,
+        realForex,
         activeAccountId: active,
         count: accounts.length,
-        accounts: accounts.map((a) => ({
-          accountId: a.accountId,
-          currency: a.currency,
-          status: a.status,
-          accountKind: a.accountKind,
-          label: `${a.accountKind} · ${a.currency}`,
-          positionMode: a.positionMode,
-          leverageOverride: a.leverageOverride,
-          createdAt: a.createdAt,
-        })),
+        accounts: accounts.map((a) => {
+          const hub = buildForexCustomerAccountHubBundle(a, active);
+          return {
+            accountId: a.accountId,
+            currency: a.currency,
+            status: a.status,
+            accountKind: a.accountKind,
+            label: `${a.accountKind} · ${a.currency}`,
+            positionMode: a.positionMode,
+            leverageOverride: a.leverageOverride,
+            groupCode: a.groupCode,
+            groupLabel: a.groupLabel,
+            createdAt: a.createdAt,
+            updatedAt: a.updatedAt,
+            cardSnapshot: {
+              isSelected: hub.isSelected,
+              financialSnapshot: hub.financialSnapshot,
+              activitySummary: hub.activitySummary,
+              riskState: hub.riskSnapshot.state,
+            },
+          };
+        }),
       },
     });
   });
