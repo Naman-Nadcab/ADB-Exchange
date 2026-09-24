@@ -728,6 +728,55 @@
     "validationThresholdInvalid": "Enter a valid threshold.",
     "validationSpreadNegative": "Spread threshold cannot be negative."
   },
+  "mt5Chart": {
+    "menu": "Chart menu",
+    "chartType": "Chart type",
+    "indicators": "Indicators",
+    "indicatorsFavorites": "Favorites",
+    "indicatorsAll": "All indicators",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "calendar": "Economic calendar",
+    "objects": "Objects",
+    "layout": "Expand chart",
+    "settings": "Fullscreen",
+    "sell": "Sell",
+    "buy": "Buy",
+    "bid": "BID",
+    "ask": "ASK",
+    "spr": "SPR",
+    "more": "More",
+    "timeframesAria": "Chart timeframes",
+    "removeIndicator": "Remove indicator",
+    "rail": {
+      "aria": "Drawing tools",
+      "crosshair": "Crosshair",
+      "measure": "Measure",
+      "groupLines": "Lines",
+      "groupChannels": "Channels",
+      "groupFib": "Fibonacci",
+      "groupShapes": "Shapes",
+      "groupAnnot": "Annotations",
+      "groupAdvanced": "Advanced",
+      "objects": "Objects list"
+    },
+    "objects": {
+      "title": "Objects",
+      "empty": "No drawings on this chart.",
+      "hidden": "hidden",
+      "locked": "Locked",
+      "refresh": "Refresh",
+      "clearAll": "Clear all",
+      "hint": "Select a drawing on chart to edit. Use keyboard shortcuts where supported."
+    },
+    "events": {
+      "unavailable": "Calendar data unavailable",
+      "impact": "Impact",
+      "actual": "Actual",
+      "forecast": "Forecast",
+      "previous": "Previous"
+    }
+  },
   "chartToolbar": {
     "draw": "Draw",
     "drawToolsAria": "Drawing tools",
@@ -973,7 +1022,9 @@
   },
   "chartWorkspace": {
     "workspaceLabel": "Workspace",
-    "linkGroupTitle": "Link group — symbol sync; timeframe sync optional via Charts menu"
+    "linkGroupTitle": "Link group — symbol sync; timeframe sync optional via Charts menu",
+    "dupShort": "Dup",
+    "removeShort": "Rm"
   },
   "accountSwitcher": {
     "activeAccountAria": "Active Forex account"

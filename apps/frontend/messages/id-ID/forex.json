@@ -728,6 +728,55 @@
     "validationThresholdInvalid": "Masukkan ambang yang valid.",
     "validationSpreadNegative": "Ambang spread tidak boleh negatif."
   },
+  "mt5Chart": {
+    "menu": "Menu grafik",
+    "chartType": "Jenis grafik",
+    "indicators": "Indikator",
+    "indicatorsFavorites": "Favorit",
+    "indicatorsAll": "Semua indikator",
+    "zoomIn": "Perbesar",
+    "zoomOut": "Perkecil",
+    "calendar": "Kalender ekonomi",
+    "objects": "Objek",
+    "layout": "Perluas grafik",
+    "settings": "Layar penuh",
+    "sell": "Jual",
+    "buy": "Beli",
+    "bid": "BID",
+    "ask": "ASK",
+    "spr": "SPR",
+    "more": "Lainnya",
+    "timeframesAria": "Timeframe grafik",
+    "removeIndicator": "Hapus indikator",
+    "rail": {
+      "aria": "Alat gambar",
+      "crosshair": "Crosshair",
+      "measure": "Ukur",
+      "groupLines": "Garis",
+      "groupChannels": "Channel",
+      "groupFib": "Fibonacci",
+      "groupShapes": "Bentuk",
+      "groupAnnot": "Anotasi",
+      "groupAdvanced": "Lanjutan",
+      "objects": "Daftar objek"
+    },
+    "objects": {
+      "title": "Objek",
+      "empty": "Tidak ada gambar di grafik ini.",
+      "hidden": "tersembunyi",
+      "locked": "Terkunci",
+      "refresh": "Muat ulang",
+      "clearAll": "Hapus semua",
+      "hint": "Pilih objek di grafik untuk mengedit."
+    },
+    "events": {
+      "unavailable": "Data kalender tidak tersedia",
+      "impact": "Dampak",
+      "actual": "Aktual",
+      "forecast": "Perkiraan",
+      "previous": "Sebelumnya"
+    }
+  },
   "chartToolbar": {
     "draw": "Gambar",
     "drawToolsAria": "Alat gambar",
@@ -973,7 +1022,9 @@
   },
   "chartWorkspace": {
     "workspaceLabel": "Workspace",
-    "linkGroupTitle": "Grup tautan — sinkron simbol; kerangka waktu opsional via menu Charts"
+    "linkGroupTitle": "Grup tautan — sinkron simbol; kerangka waktu opsional via menu Charts",
+    "dupShort": "Dup",
+    "removeShort": "Hapus"
   },
   "accountSwitcher": {
     "activeAccountAria": "Akun Forex aktif"

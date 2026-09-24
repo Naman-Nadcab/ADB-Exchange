@@ -38,36 +38,27 @@ export function ForexChartWorkspace() {
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div className="flex h-6 shrink-0 items-center gap-1 border-b border-border bg-card/80 px-1.5">
-        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{tw('workspaceLabel')}</span>
-        <button
-          type="button"
-          className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
-          onClick={() => addChart(selectedSymbol)}
-        >
-          + Chart
-        </button>
-        <button
-          type="button"
-          className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
-          onClick={() => duplicateChart(activeChartId)}
-        >
-          Dup
-        </button>
-        <button
-          type="button"
-          className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
-          onClick={() => removeChart(activeChartId)}
-          disabled={charts.length <= 1}
-        >
-          Remove
-        </button>
-        <span className="ml-auto font-mono text-[9px] text-muted-foreground">
-          {visible.length} chart{visible.length === 1 ? '' : 's'}
-          {linkTimeframe ? ' · TF linked' : ''}
-          {oneClickEnabled ? ' · 1-click' : ''}
-        </span>
-      </div>
+      {visible.length > 1 || chartLayout !== '1' ? (
+        <div className="flex h-5 shrink-0 items-center gap-1 border-b border-border/60 bg-card/60 px-1.5">
+          <button type="button" className="text-[9px] text-muted-foreground hover:text-foreground" onClick={() => addChart(selectedSymbol)} title={tw('workspaceLabel')}>
+            +
+          </button>
+          <button type="button" className="text-[9px] text-muted-foreground hover:text-foreground" onClick={() => duplicateChart(activeChartId)}>
+            {tw('dupShort')}
+          </button>
+          <button
+            type="button"
+            className="text-[9px] text-muted-foreground hover:text-foreground disabled:opacity-40"
+            onClick={() => removeChart(activeChartId)}
+            disabled={charts.length <= 1}
+          >
+            {tw('removeShort')}
+          </button>
+          <span className="ml-auto font-mono text-[8px] text-muted-foreground">
+            {visible.length}×{linkTimeframe ? ' · TF' : ''}
+          </span>
+        </div>
+      ) : null}
 
       <div className={cn('grid min-h-0 flex-1 gap-px bg-border', gridClassForLayout(effectiveLayout))}>
         {visible.map((slot) => (

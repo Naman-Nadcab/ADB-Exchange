@@ -1125,6 +1125,12 @@ input[type="number"] {
 .forex-mt5 .fx-mt5-row:hover {
   background: #1e242c;
 }
+.forex-mt5 .fx-mt5-chrome {
+  flex-shrink: 0;
+}
+.forex-mt5 .fx-mt5-rail {
+  z-index: 10;
+}
 .forex-mt5 .fx-mt5-row--active {
   background: #243041 !important;
   border-left-color: #c9a227 !important;

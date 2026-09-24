@@ -103,8 +103,8 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
         </Suspense>
       ) : null}
       {trade && !chromeHidden ? <ForexAppToolbar /> : null}
-      {!chromeHidden && marketChrome ? <ForexMarketStrip /> : null}
-      {!chromeHidden && marketChrome ? <ForexSessionBar /> : null}
+      {!chromeHidden && marketChrome && !trade ? <ForexMarketStrip /> : null}
+      {!chromeHidden && marketChrome && !trade ? <ForexSessionBar /> : null}
       {hydratePhase === 'error' && hydrateError ? (
         <div className="border-b border-sell/40 bg-sell/10 px-3 py-1 text-[11px] text-sell" role="alert">
           Unable to load Forex workspace. {hydrateError.message}

@@ -31,7 +31,11 @@ import {
   type ForexChartCrosshair,
   type ForexChartType,
 } from './ForexLightweightChart';
-import { ForexChartToolbar, type ForexAnalysisTool } from './ForexChartToolbar';
+import type { ForexAnalysisTool } from './ForexChartToolbar';
+import { ForexMt5ChartChrome } from './mt5-chart/ForexMt5ChartChrome';
+import { ForexMt5DrawingRail } from './mt5-chart/ForexMt5DrawingRail';
+import { ForexMt5EventStrip } from './mt5-chart/ForexMt5EventStrip';
+import { ForexMt5ObjectsPanel, parseDrawingRows } from './mt5-chart/ForexMt5ObjectsPanel';
 import { ForexIntelDrawer } from './ForexIntelDrawer';
 import { fxNum } from './format';
 import { cn } from '@/lib/utils';
@@ -96,15 +100,6 @@ export function ForexChartFoundation(props?: {
   onTimeframeChange?: (tf: string) => void;
 }) {
   const tc = useTranslations('forex.chartFoundation');
-  const chartTypes = useMemo(
-    (): Array<{ id: ForexChartType; label: string }> => [
-      { id: 'candle', label: tc('chartTypes.candle') },
-      { id: 'ohlc', label: tc('chartTypes.ohlc') },
-      { id: 'line', label: tc('chartTypes.line') },
-      { id: 'area', label: tc('chartTypes.area') },
-    ],
-    [tc]
-  );
   const embedded = Boolean(props?.embedded);
   const storeSymbol = useForexWorkspaceStore((s) => s.selectedSymbol);
   const storedTf = useForexWorkspaceStore((s) => s.chartTimeframe);
@@ -174,9 +169,9 @@ export function ForexChartFoundation(props?: {
   const [showMacd, setShowMacd] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showIntel, setShowIntel] = useState(false);
-  /** Drawing toolbar collapsed by default — chart area first (MT5 workstation). */
-  const [toolsOpen, setToolsOpen] = useState(false);
   const [showDrawings, setShowDrawings] = useState(true);
+  const [objectsPanelOpen, setObjectsPanelOpen] = useState(false);
+  const [objectRows, setObjectRows] = useState<ReturnType<typeof parseDrawingRows>>([]);
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; price: number; time: number | null } | null>(null);
   const [calendarEvents, setCalendarEvents] = useState<
     Array<{ time?: string | null; currency?: string | null; event?: string; impact?: string; previous?: string | null; forecast?: string | null; actual?: string | null }>
@@ -702,6 +697,26 @@ export function ForexChartFoundation(props?: {
           ? 'STALE · DEMO'
           : 'DEMO · SIMULATED';
 
+  const refreshObjectRows = useCallback(() => {
+    const raw = chartApiRef.current?.serializeDrawings() ?? [];
+    setObjectRows(parseDrawingRows(raw));
+  }, []);
+
+  const onPickTool = useCallback(
+    (t: ForexAnalysisTool) => {
+      setTool(t);
+      if (t === 'rr') setRrPoints([]);
+      if (t === 'measure') setMeasurePoints([]);
+      chartApiRef.current?.setTool(t);
+    },
+    []
+  );
+
+  const ohlcCompact =
+    ohlcDisplay && !props?.compactChrome
+      ? `O ${fxNum(String(ohlcDisplay.open), digits)} H ${fxNum(String(ohlcDisplay.high), digits)} L ${fxNum(String(ohlcDisplay.low), digits)} C ${fxNum(String(ohlcDisplay.close), digits)}`
+      : null;
+
   const onPricePick = useCallback(
     (price: number, time: number | null) => {
       if (tool === 'alert') {
@@ -841,272 +856,55 @@ export function ForexChartFoundation(props?: {
       aria-label={tc('marketChartAria')}
       onMouseDown={activate}
     >
-      <div
-        className={cn(
-          'forex-chrome-strip flex min-w-0 items-center gap-1.5 overflow-x-auto border-b border-border bg-card/95 px-1.5',
-          props?.compactChrome ? 'h-7' : 'h-8 gap-2 px-2'
-        )}
-      >
-        <span
-          className={cn(
-            'shrink-0 font-mono font-semibold tracking-tight',
-            props?.compactChrome ? 'text-[11px]' : 'text-[13px]'
-          )}
-        >
-          {inst?.displaySymbol ?? selected}
-        </span>
-        {activeTf ? (
-          <span className="shrink-0 rounded bg-primary/15 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-primary">
-            {activeTf}
-          </span>
-        ) : null}
-        {quote ? (
-          <>
-            <span className="eda-quote shrink-0 font-mono text-[12px] font-medium text-buy">
-              BID {fxNum(quote.bid, digits)}
-            </span>
-            <span className="eda-quote shrink-0 font-mono text-[12px] font-medium text-sell">
-              ASK {fxNum(quote.ask, digits)}
-            </span>
-            <span className="shrink-0 font-mono text-[11px] text-muted-foreground">SPR {quote.spreadPips}</span>
-            <span className="inline-flex shrink-0 items-center gap-1 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${quoteModeLabel.includes('DEMO') ? 'bg-amber-400' : 'bg-muted-foreground'}`}
-                aria-hidden
-              />
-              {quoteModeLabel}
-            </span>
-          </>
-        ) : (
-          <span className="text-[11px] text-muted-foreground">{tc('loadingQuote')}</span>
-        )}
-
-        <button
-          type="button"
-          aria-pressed={toolsOpen}
-          aria-label={toolsOpen ? tc('toggleDrawToolsHide') : tc('toggleDrawToolsShow')}
-          onClick={() => setToolsOpen((v) => !v)}
-          className={cn(
-            'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-            toolsOpen ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          Tools
-        </button>
-
-        {ohlcDisplay && !props?.compactChrome ? (
-          <span className="ml-1 hidden items-center gap-2 font-mono text-[10px] xl:inline-flex">
-            <span>
-              O <span className="text-foreground">{fxNum(String(ohlcDisplay.open), digits)}</span>
-            </span>
-            <span>
-              H <span className="text-buy">{fxNum(String(ohlcDisplay.high), digits)}</span>
-            </span>
-            <span>
-              L <span className="text-sell">{fxNum(String(ohlcDisplay.low), digits)}</span>
-            </span>
-            <span>
-              Candle C <span className="text-foreground">{fxNum(String(ohlcDisplay.close), digits)}</span>
-            </span>
-            {chartQuote ? (
-              <span title={tc('quoteTooltip')}>
-                Live{' '}
-                <span className="font-bold text-foreground">
-                  {fxNum(String((chartQuote.bid + chartQuote.ask) / 2), digits)}
-                </span>
-              </span>
-            ) : null}
-          </span>
-        ) : null}
-
-        {timeframes.length > 0 ? (
-          <>
-            <select
-              aria-label={tc('timeframeAria')}
-              className="fx-mt5-field ml-1 h-6 px-1 font-mono text-[10px] sm:hidden"
-              value={activeTf}
-              onChange={(e) => setTf(e.target.value)}
-            >
-              {timeframes.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-            <div className="ml-1 hidden items-center gap-0.5 sm:flex" role="group" aria-label={tc('timeframesGroupAria')}>
-              {timeframes.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  aria-pressed={activeTf === t}
-                  onClick={() => setTf(t)}
-                  className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                    activeTf === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </>
-        ) : null}
-
-        <div className="ml-1 hidden items-center gap-0.5 sm:flex" role="group" aria-label={tc('chartTypeGroupAria')}>
-          {chartTypes.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              aria-pressed={chartType === t.id}
-              onClick={() => setChartType(t.id)}
-              className={`rounded px-1.5 py-0.5 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                chartType === t.id ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+      {!props?.compactChrome ? (
+        <ForexMt5ChartChrome
+          symbolLabel={inst?.displaySymbol ?? selected}
+          activeTf={activeTf}
+          timeframes={timeframes}
+          onTf={setTf}
+          digits={digits}
+          bid={quote?.bid}
+          ask={quote?.ask}
+          spreadPips={quote?.spreadPips}
+          demoSecondary={quote ? quoteModeLabel : tc('loadingQuote')}
+          chartType={chartType}
+          onChartType={setChartType}
+          indicatorStack={indicatorStack}
+          onAddIndicator={addRegistryIndicator}
+          onRemoveIndicator={removeRegistryIndicator}
+          onUpdateIndicatorParam={updateRegistryIndicatorParam}
+          showCalendar={showCalendar}
+          onCalendar={(v) => {
+            setShowCalendar(v);
+            if (v) setShowIntel(false);
+          }}
+          showObjects={objectsPanelOpen}
+          onObjects={() => {
+            setObjectsPanelOpen((o) => {
+              const next = !o;
+              if (next) refreshObjectRows();
+              return next;
+            });
+          }}
+          onZoomIn={() => chartApiRef.current?.zoomIn()}
+          onZoomOut={() => chartApiRef.current?.zoomOut()}
+          onExpand={!embedded && !props?.instanceId ? () => setChartMode(chartMode === 'expand' ? 'normal' : 'expand') : undefined}
+          onFullscreen={!embedded && !props?.instanceId ? () => setChartMode(chartMode === 'fullscreen' ? 'normal' : 'fullscreen') : undefined}
+          expandActive={chartMode === 'expand'}
+          fullscreenActive={chartMode === 'fullscreen'}
+          compact={props?.compactChrome}
+          showOneClick={props?.showOneClick}
+          oneClickBuy={oneClickBuy}
+          oneClickSell={oneClickSell}
+          oneClickDisabled={orderEngine.busy || !chartAuthed}
+          ohlcLine={ohlcCompact}
+        />
+      ) : (
+        <div className="flex h-7 shrink-0 items-center gap-2 border-b border-border px-2 font-mono text-[11px]">
+          <span className="font-semibold">{inst?.displaySymbol ?? selected}</span>
+          <span className="text-muted-foreground">{activeTf}</span>
         </div>
-
-        <label className="ml-1 hidden items-center gap-1 text-[10px] text-muted-foreground md:inline-flex">
-          Add indicator
-          <select
-            defaultValue=""
-            onChange={(e) => {
-              const id = e.target.value;
-              if (id) addRegistryIndicator(id);
-              e.target.value = '';
-            }}
-            className="rounded border border-border bg-background px-1 py-0.5 text-[10px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label={tc('addIndicatorAria')}
-          >
-            <option value="">—</option>
-            {FOREX_INDICATOR_REGISTRY.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name} ({d.pane})
-              </option>
-            ))}
-          </select>
-        </label>
-        {indicatorStack.length > 0 ? (
-          <span className="hidden flex-wrap items-center gap-1 lg:inline-flex">
-            {indicatorStack.map((row) => {
-              const def = getForexIndicatorDefinition(row.id);
-              return (
-                <span key={row.id} className="inline-flex flex-wrap items-center gap-0.5 rounded bg-muted/80 px-1 py-0.5">
-                  <button
-                    type="button"
-                    className="text-[9px] font-medium text-foreground"
-                    onClick={() => removeRegistryIndicator(row.id)}
-                    title={tc('removeIndicatorTitle')}
-                  >
-                    {row.id} ×
-                  </button>
-                  {def?.params.map((p) => (
-                    <label key={p.key} className="inline-flex items-center gap-0.5 text-[9px] text-muted-foreground">
-                      {p.label}
-                      <input
-                        type="number"
-                        min={p.min}
-                        max={p.max}
-                        step={p.key === 'step' || p.key === 'mult' ? 0.01 : 1}
-                        value={row.params[p.key] ?? p.default}
-                        onChange={(e) =>
-                          updateRegistryIndicatorParam(row.id, p.key, Number(e.target.value) || p.default)
-                        }
-                        className="w-10 rounded border border-border bg-background px-0.5 text-[9px] text-foreground"
-                        aria-label={`${def.name} ${p.label}`}
-                      />
-                    </label>
-                  ))}
-                </span>
-              );
-            })}
-          </span>
-        ) : null}
-        <label className="ml-1 hidden items-center gap-1 text-[10px] text-muted-foreground lg:inline-flex">
-          Legacy study
-          <select
-            value={study}
-            onChange={(e) => setStudy(e.target.value as StudyId)}
-            className="rounded border border-border bg-background px-1 py-0.5 text-[10px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label={tc('chartStudyAria')}
-          >
-            <option value="ema20_50">{tc('studies.ema20_50')}</option>
-            <option value="ema20">{tc('studies.ema20')}</option>
-            <option value="sma20">{tc('studies.sma20')}</option>
-            <option value="wma20">{tc('studies.wma20')}</option>
-            <option value="hma21">{tc('studies.hma21')}</option>
-            <option value="bb20">{tc('studies.bb20')}</option>
-            <option value="supertrend">{tc('studies.supertrend')}</option>
-            <option value="none">{tc('studies.none')}</option>
-          </select>
-        </label>
-        {study !== 'none' && study !== 'supertrend' ? (
-          <label className="hidden items-center gap-1 text-[10px] text-muted-foreground md:inline-flex">
-            Period
-            <input
-              type="number"
-              min={2}
-              max={400}
-              value={studyPeriod}
-              onChange={(e) => setStudyPeriod(Number(e.target.value) || 20)}
-              className="w-12 rounded border border-border bg-background px-1 py-0.5 text-[10px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              aria-label={tc('studyPeriodAria')}
-            />
-          </label>
-        ) : null}
-
-        <span className="hidden font-mono text-[10px] text-muted-foreground xl:inline">
-          {atr != null ? `ATR ${atr.toFixed(Math.min(digits, 5))}` : 'ATR n/a'}
-          {macd ? ` · MACD ${macd.macd.toFixed(5)}` : ''}
-          {stoch ? ` · Stoch ${stoch.k.toFixed(1)}` : ''}
-        </span>
-        {!studyReady ? <span className="text-[10px] text-muted-foreground">{tc('insufficientHistory')}</span> : null}
-
-        {props?.showOneClick ? (
-          <div className="ml-auto flex shrink-0 items-center gap-1">
-            <button
-              type="button"
-              disabled={orderEngine.busy || !chartAuthed}
-              onClick={oneClickSell}
-              className="h-6 rounded bg-sell px-2 font-mono text-[10px] font-bold text-white disabled:opacity-40"
-            >
-              SELL
-            </button>
-            <button
-              type="button"
-              disabled={orderEngine.busy || !chartAuthed}
-              onClick={oneClickBuy}
-              className="h-6 rounded bg-buy px-2 font-mono text-[10px] font-bold text-white disabled:opacity-40"
-            >
-              BUY
-            </button>
-          </div>
-        ) : !embedded && !props?.instanceId ? (
-          <div className="ml-auto flex shrink-0 items-center gap-0.5">
-            <button
-              type="button"
-              className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              onClick={() => setChartMode(chartMode === 'expand' ? 'normal' : 'expand')}
-              aria-pressed={chartMode === 'expand'}
-            >
-              {chartMode === 'expand' ? tc('expandRestore') : tc('expand')}
-            </button>
-            <button
-              type="button"
-              className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              onClick={() => setChartMode(chartMode === 'fullscreen' ? 'normal' : 'fullscreen')}
-              aria-pressed={chartMode === 'fullscreen'}
-            >
-              {chartMode === 'fullscreen' ? tc('exitFullscreen') : tc('fullscreen')}
-            </button>
-          </div>
-        ) : (
-          <span className="ml-auto shrink-0 font-mono text-[10px] text-muted-foreground">
-            {candleView.status === 'READY' ? `${candleView.candles.length} bars` : candleView.status}
-          </span>
-        )}
-      </div>
+      )}
       {props?.showOneClick && orderEngine.lastNote ? (
         <p className="border-b border-border px-2 py-0.5 text-[10px] text-muted-foreground">{orderEngine.lastNote}</p>
       ) : null}
@@ -1117,57 +915,28 @@ export function ForexChartFoundation(props?: {
         </p>
       ) : null}
 
-      {toolsOpen && (!props?.compactChrome || props?.active) ? (
-        <ForexChartToolbar
-          tool={tool}
-          onTool={(t) => {
-            setTool(t);
-            if (t === 'rr') setRrPoints([]);
-            if (t === 'measure') setMeasurePoints([]);
-            chartApiRef.current?.setTool(t);
-          }}
-          showSessions={showSessions}
-          onSessions={setShowSessions}
-          showLevels={showLevels}
-          onLevels={setShowLevels}
-          showRsi={indicatorStack.some((i) => i.id === 'rsi' && i.enabled)}
-          onRsi={(v) => (v ? addRegistryIndicator('rsi') : removeRegistryIndicator('rsi'))}
-          showMacd={indicatorStack.some((i) => i.id === 'macd' && i.enabled)}
-          onMacd={(v) => (v ? addRegistryIndicator('macd') : removeRegistryIndicator('macd'))}
-          showCalendar={showCalendar}
-          onCalendar={setShowCalendar}
-          showIntel={showIntel}
-          onIntel={setShowIntel}
-          onClearDrawings={() => chartApiRef.current?.clearDrawings()}
-          showDrawings={showDrawings}
-          onShowDrawings={setShowDrawings}
-          rrSummary={
-            rrResult
-              ? `Risk ${rrResult.riskPips.toFixed(1)}p · Reward ${rrResult.rewardPips.toFixed(1)}p · R:R ${rrResult.rr.toFixed(2)}`
-              : null
-          }
-          measureSummary={measureSummary}
-        />
-      ) : null}
-
-      {showCalendar && calendarForSymbol.length > 0 && !props?.compactChrome ? (
-        <div className="flex h-6 min-w-0 items-center gap-3 overflow-x-auto border-b border-border/70 bg-card/40 px-2 text-[10px] text-muted-foreground">
-          <span className="shrink-0 font-medium text-foreground">{tc('calendarLabel')}</span>
-          {calendarForSymbol.map((ev, i) => (
-            <span key={`${ev.time}-${i}`} className="shrink-0 whitespace-nowrap">
-              <span className="text-primary">{String(ev.impact ?? '').slice(0, 1).toUpperCase() || '·'}</span>{' '}
-              {ev.currency} {ev.event}
-              {ev.time ? ` · ${new Date(ev.time).toLocaleString()}` : ''}
-            </span>
-          ))}
-        </div>
-      ) : null}
-
-      <div className={cn('relative min-h-0 flex-1', embedded && 'min-h-[280px]')}>
+      <div className={cn('flex min-h-0 flex-1', embedded && 'min-h-[280px]')}>
+        {!props?.compactChrome ? (
+          <ForexMt5DrawingRail
+            tool={tool}
+            onTool={onPickTool}
+            objectsOpen={objectsPanelOpen}
+            onObjects={() => {
+              setObjectsPanelOpen((o) => {
+                const next = !o;
+                if (next) refreshObjectRows();
+                return next;
+              });
+            }}
+            measureSummary={measureSummary}
+          />
+        ) : null}
+        <div className={cn('relative flex min-h-0 min-w-0 flex-1 flex-col')}>
         <ForexLightweightChart
           candles={candleView.status === 'READY' ? candleView.candles : []}
           quote={chartQuote}
           dark={dark}
+          canvasLight={!embedded}
           digits={digits}
           chartType={chartType}
           overlay={overlay}
@@ -1200,6 +969,17 @@ export function ForexChartFoundation(props?: {
           onContextMenuPrice={(price, time, x, y) => setCtxMenu({ price, time, x, y })}
           onApi={(api) => {
             chartApiRef.current = api;
+            if (api && objectsPanelOpen) refreshObjectRows();
+          }}
+        />
+        <ForexMt5ObjectsPanel
+          open={objectsPanelOpen && !props?.compactChrome}
+          onClose={() => setObjectsPanelOpen(false)}
+          rows={objectRows}
+          onRefresh={refreshObjectRows}
+          onClearAll={() => {
+            chartApiRef.current?.clearDrawings();
+            refreshObjectRows();
           }}
         />
         {candleView.status === 'NO_HISTORY' ? (
@@ -1499,6 +1279,10 @@ export function ForexChartFoundation(props?: {
             </button>
           </div>
         ) : null}
+        {showCalendar && !props?.compactChrome ? (
+          <ForexMt5EventStrip events={calendarForSymbol} available={calendarMeta.available} reason={calendarMeta.reason} />
+        ) : null}
+        </div>
       </div>
     </section>
   );

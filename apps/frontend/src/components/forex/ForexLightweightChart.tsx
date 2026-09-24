@@ -44,6 +44,8 @@ export type ForexChartApi = {
   setTool: (tool: ForexAnalysisTool) => void;
   clearDrawings: () => void;
   serializeDrawings: () => unknown[];
+  zoomIn: () => void;
+  zoomOut: () => void;
 };
 
 function toBars(candles: ForexCandle[]) {
@@ -113,6 +115,8 @@ export function ForexLightweightChart(props: {
   candles: ForexCandle[];
   quote: QuoteLevels;
   dark: boolean;
+  /** MT5-style light canvas inside dark terminal shell */
+  canvasLight?: boolean;
   digits?: number;
   chartType?: ForexChartType;
   overlay?: OverlayPoint[];
@@ -232,10 +236,11 @@ export function ForexLightweightChart(props: {
     let disposed = false;
     const detach: Array<() => void> = [];
     const colors = getTradingChartColors();
-    const theme = getDomChartThemeOptions(props.dark ? 'dark' : 'light');
+    const visualDark = props.canvasLight ? false : props.dark;
+    const theme = getDomChartThemeOptions(visualDark ? 'dark' : 'light');
     const digits = digitsRef.current;
-    const gridColor = props.dark ? 'rgba(245,184,0,0.06)' : 'rgba(15,23,42,0.06)';
-    const gridVert = props.dark ? 'rgba(148,163,184,0.08)' : 'rgba(15,23,42,0.05)';
+    const gridColor = visualDark ? 'rgba(245,184,0,0.06)' : 'rgba(15,23,42,0.06)';
+    const gridVert = visualDark ? 'rgba(148,163,184,0.08)' : 'rgba(15,23,42,0.05)';
 
     void import('lightweight-charts').then((lwc) => {
       if (disposed || !hostRef.current || !overlayHostRef.current) return;
@@ -727,6 +732,14 @@ export function ForexLightweightChart(props: {
         });
       }
 
+      const zoomBy = (factor: number) => {
+        const range = chart.timeScale().getVisibleLogicalRange();
+        if (!range) return;
+        const span = range.to - range.from;
+        const mid = (range.from + range.to) / 2;
+        const next = Math.max(4, span * factor);
+        chart.timeScale().setVisibleLogicalRange({ from: mid - next / 2, to: mid + next / 2 });
+      };
       props.onApi?.({
         setTool: (tool) => {
           applyToolMode(tool, drawRef.current, extraDrawRef.current, toolRef);
@@ -747,6 +760,8 @@ export function ForexLightweightChart(props: {
           ...(drawRef.current?.serializeDrawings() ?? []),
           ...(extraDrawRef.current?.serialize() ?? []),
         ],
+        zoomIn: () => zoomBy(0.72),
+        zoomOut: () => zoomBy(1.38),
       });
     });
 

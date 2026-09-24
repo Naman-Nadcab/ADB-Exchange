@@ -728,6 +728,55 @@
     "validationThresholdInvalid": "请输入有效阈值。",
     "validationSpreadNegative": "点差阈值不能为负。"
   },
+  "mt5Chart": {
+    "menu": "图表菜单",
+    "chartType": "图表类型",
+    "indicators": "指标",
+    "indicatorsFavorites": "常用",
+    "indicatorsAll": "全部指标",
+    "zoomIn": "放大",
+    "zoomOut": "缩小",
+    "calendar": "经济日历",
+    "objects": "对象",
+    "layout": "扩展图表",
+    "settings": "全屏",
+    "sell": "卖出",
+    "buy": "买入",
+    "bid": "买价",
+    "ask": "卖价",
+    "spr": "点差",
+    "more": "更多",
+    "timeframesAria": "图表周期",
+    "removeIndicator": "移除指标",
+    "rail": {
+      "aria": "绘图工具",
+      "crosshair": "十字线",
+      "measure": "测量",
+      "groupLines": "线条",
+      "groupChannels": "通道",
+      "groupFib": "斐波那契",
+      "groupShapes": "形状",
+      "groupAnnot": "标注",
+      "groupAdvanced": "高级",
+      "objects": "对象列表"
+    },
+    "objects": {
+      "title": "对象",
+      "empty": "此图表无绘图对象。",
+      "hidden": "已隐藏",
+      "locked": "已锁定",
+      "refresh": "刷新",
+      "clearAll": "全部清除",
+      "hint": "在图表上选择对象进行编辑。"
+    },
+    "events": {
+      "unavailable": "日历数据不可用",
+      "impact": "影响",
+      "actual": "实际",
+      "forecast": "预测",
+      "previous": "前值"
+    }
+  },
   "chartToolbar": {
     "draw": "画线",
     "drawToolsAria": "画线工具",
@@ -973,7 +1022,9 @@
   },
   "chartWorkspace": {
     "workspaceLabel": "工作区",
-    "linkGroupTitle": "链接组 — 同步品种；时间周期可在图表菜单中可选同步"
+    "linkGroupTitle": "链接组 — 同步品种；时间周期可在图表菜单中可选同步",
+    "dupShort": "复制",
+    "removeShort": "删"
   },
   "accountSwitcher": {
     "activeAccountAria": "当前 Forex 账户"
