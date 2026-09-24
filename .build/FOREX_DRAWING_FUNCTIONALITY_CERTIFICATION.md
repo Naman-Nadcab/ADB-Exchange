@@ -1,35 +1,38 @@
-# Forex Drawing Functionality Certification
+# Forex drawing functionality certification (runtime)
 
-Verification method: code-path audit against `DrawingToolManager` + `ForexDrawingEngine` + MT5 rail exposure; automated helper test `forex-drawing-objects.test.ts`; manual smoke checklist (Phase 20) when terminal is reachable.
+**Environment:** `http://109.123.254.30/forex/trade`  
+**BUILD_ID:** `us7jr4ATK9_ZRMUtsPWSK`  
+**Commit:** `5bd1058087593c008f387c3be05165c3f0a5d31e`  
+**Method:** Focused manual workflow on deployed VPS (EUR/USD, 15M primary; spot checks on 1H / object panel).  
+**Console:** No `data must be asc ordered by time` (or equivalent) observed during session.
 
-Status key: **PASS** (expected working from implementation) | **PARTIAL** | **FAIL** | **NOT_EXPOSED**
+**DRAWING SYSTEM:** **PARTIAL** — core creation and layout verified; not every exposed tool received full create/move/resize/delete/manager proof in this pass.
 
-| Tool | Create | Move | Resize | Edit | Hide/Show | Lock | Delete | Object Mgr | TF switch | Symbol switch | Persistence | Status |
-|------|--------|------|--------|------|-----------|------|--------|------------|-----------|---------------|-------------|--------|
-| Crosshair (select) | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | PASS | PASS | n/a | PASS |
-| Measure | PASS | n/a | n/a | n/a | n/a | n/a | PASS | PARTIAL | PASS | PASS | n/a | PARTIAL |
-| Trend Line | PASS | PASS | PASS | PARTIAL | n/a | n/a | PASS | PASS | PASS | PASS | PASS | PASS |
-| Ray | PASS | PASS | PASS | PARTIAL | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
-| Horizontal Line | PASS | PASS | n/a | PARTIAL | n/a | n/a | PASS | PASS | PASS | PASS | PASS | PASS |
-| Vertical Line | PASS | PASS | n/a | PARTIAL | n/a | n/a | PASS | PASS | PASS | PASS | PASS | PASS |
-| Parallel Channel | PASS | PASS | PASS | PARTIAL | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PARTIAL |
-| Reg Channel | PASS | PASS | PASS | PARTIAL | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PARTIAL |
-| Fib (native) | PASS | PARTIAL | PARTIAL | PARTIAL | n/a | n/a | PASS | PASS | PASS | PASS | PASS | PARTIAL |
-| Fib retr/ext (extra) | PASS | PASS | PASS | PARTIAL | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PARTIAL |
-| Rectangle | PASS | PASS | PASS | PARTIAL | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
-| Ellipse | PASS | PASS | PASS | PARTIAL | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PARTIAL |
-| Triangle | PASS | PASS | PASS | PARTIAL | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PARTIAL |
-| Arrow | PASS | PASS | PARTIAL | PARTIAL | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PARTIAL |
-| Text | PASS | PASS | n/a | PARTIAL | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PARTIAL |
-| Gann fan/grid/line | PASS | PASS | PARTIAL | PARTIAL | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PARTIAL |
-| Pitchfork / Elliott / Fan | NOT_EXPOSED | — | — | — | — | — | — | — | — | — | — | NOT_EXPOSED |
+Legend: **PASS** | **PARTIAL** | **NOT IMPLEMENTED**
 
-Notes:
+| Tool | Create | Select | Move | Resize | Edit | Hide/Show | Lock | Delete | Object Mgr | TF Switch | Symbol Switch | Zoom/Pan | Runtime |
+|------|--------|--------|------|--------|------|-----------|------|--------|------------|-----------|---------------|----------|---------|
+| Trend Line | PASS | PARTIAL | PARTIAL | PARTIAL | PARTIAL | n/a | n/a | PARTIAL | PARTIAL | PASS | PARTIAL | PARTIAL | Line visible after 2-point placement on 15M |
+| Horizontal Line | PARTIAL | PARTIAL | PARTIAL | n/a | PARTIAL | n/a | n/a | PARTIAL | PARTIAL | PASS | PARTIAL | PARTIAL | Tool exposed; not fully re-run this session |
+| Ray | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PASS | PASS | PARTIAL | PARTIAL | PASS | PARTIAL | PARTIAL | Extra engine; not fully re-run |
+| Parallel Channel | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PASS | PASS | PARTIAL | PARTIAL | PASS | PARTIAL | PARTIAL | Extra engine |
+| Fibonacci (native) | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PARTIAL | n/a | n/a | PARTIAL | PARTIAL | PASS | PARTIAL | PARTIAL | Native manager |
+| Fibonacci (extra) | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PASS | PASS | PARTIAL | PARTIAL | PASS | PARTIAL | PARTIAL | Extra engine |
+| Rectangle | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PASS | PASS | PARTIAL | PARTIAL | PASS | PARTIAL | PARTIAL | Extra engine |
+| Text | PARTIAL | PARTIAL | PARTIAL | n/a | PARTIAL | PASS | PASS | PARTIAL | PARTIAL | PASS | PARTIAL | PARTIAL | Extra engine |
+| Measure | PARTIAL | n/a | n/a | n/a | n/a | n/a | n/a | PARTIAL | n/a | PASS | PARTIAL | PARTIAL | Tool activates; full measure not re-certified |
+| Object Manager UI | n/a | PARTIAL | n/a | n/a | n/a | PARTIAL | PARTIAL | PARTIAL | PASS | PASS | PASS | n/a | Panel opens; Refresh/Clear; list empty until drawing serialized per TF key |
+| Gann (advanced) | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PASS | PASS | PARTIAL | PARTIAL | PASS | PARTIAL | PARTIAL | Implemented in extra engine; limited runtime proof |
+| Pitchfork / Elliott | NOT IMPLEMENTED | — | — | — | — | — | — | — | — | — | — | — | Not exposed on rail |
 
-- Native layer (`hline`, `vline`, `trend`, `fib`): manager list/select/delete via chart API; no hide/lock.
-- Extra layer: full hide/lock/delete/select via `ForexDrawingEngine` + object panel.
-- Persistence: `localStorage` keys `eda-forex-drawings:{instance}:{symbol}:{tf}` (+ `:extra`).
-- TF/symbol switch: new storage key per pair — objects do not auto-carry (MT5-like per-chart storage), not a crash regression.
-- Chart data order: `toBars()` dedupes/sorts; marker pipeline unchanged from `5af06cf` baseline.
+## Architecture notes (expected behavior)
 
-**Drawing system overall:** **PARTIAL** — core tools functional; property editor and native hide/lock remain gaps; manual smoke required for final PASS on production URL.
+- Drawings persist in `localStorage` per `symbol + timeframe` key; switching 15M → 1H shows a **separate** drawing set (not a bug).
+- Native tools (`hline`, `vline`, `trend`, `fib`) support delete/select via chart; hide/lock only on **extra** engine objects.
+- Object Manager lists via `listDrawingObjects()` after mutations; use **Refresh** if panel was opened mid-draw.
+
+## Automated tests (supplement only)
+
+- `forex-drawing-objects.test.ts` — list helper shape **PASS**
+- `forex-drawings.test.ts` — serialize sample **PASS**
+- **Not** a substitute for runtime certification above.

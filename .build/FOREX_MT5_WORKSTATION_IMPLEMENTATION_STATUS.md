@@ -1,62 +1,38 @@
-# Forex MT5 Workstation Implementation Status
+# Forex MT5 workstation implementation status (post-deploy 5bd1058)
 
-Branch: `release/exchange-production-baseline`  
-Chart baseline: `5af06cf` (layout preserved)  
-This pass: gap audit, object-manager API, data window, i18n `objectsToolbar` fix.
+**Runtime URL:** `http://109.123.254.30/forex/trade`  
+**BUILD_ID:** `us7jr4ATK9_ZRMUtsPWSK`  
+**Commit:** `5bd1058087593c008f387c3be05165c3f0a5d31e`
 
-| Capability | Status | Evidence | Blocker |
-|------------|--------|----------|---------|
-| MT5 chart layout | DONE | `ForexMt5ChartChrome`, rail, no horizontal draw strip | — |
-| Chart types / TF / zoom | DONE | LWC + chrome | — |
-| Drawing core tools | PARTIAL | `DrawingToolManager` + `ForexDrawingEngine` | Native hide/lock; property dialog |
-| Object manager | PARTIAL | `listDrawingObjects`, panel select/delete/hide/lock | Deploy + manual smoke |
-| Data window | PARTIAL | `ForexMt5DataWindow` | Toggle in toolbar |
-| Indicators | PARTIAL | Registry + chrome | Full manager UI |
-| Netting | DONE | Backend accounting + account mode | — |
-| Hedging | DONE | `forex-phase1a-hedging.test.ts`, position mode | UI position picker PARTIAL |
-| Order types | PARTIAL | market/limit/stop in ticket; stop_limit gated | Server TIF/stop-limit flags |
-| SL/TP / modify | PARTIAL | Protections API + chart drag | Auth session on trade |
-| One-click | PARTIAL | Chrome BUY/SELL when enabled | Opt-in + validation |
-| Trailing stop | PARTIAL | `trailingDistance` API | Server + UI exposure |
-| Partial close | PARTIAL | Hedging engine tests | UI wiring |
-| Market Watch | DONE | `ForexWatchlist` | Live quotes need session |
-| Symbol spec | DONE | Watchlist modal | — |
-| DOM | EXTERNAL_DEPENDENCY | Stub copy in bottom panels | No depth feed |
-| Time & Sales | EXTERNAL_DEPENDENCY | Not implemented | No tick tape API |
-| Alerts | PARTIAL | Local + server panels | Full MT5 alert matrix |
-| Templates | PARTIAL | Workspace template save/list | Not in MT5 chrome |
-| Economic calendar | PARTIAL | Event strip + markers | Data availability |
-| News | NOT_IMPLEMENTED | — | No feed |
-| Chart data safety | DONE | `toBars` dedupe/sort unchanged | — |
+| Capability | Status | Evidence |
+|------------|--------|----------|
+| Chart (MT5 layout) | **DONE** | Vertical rail, dominant center chart, compact chrome; VPS visual smoke |
+| Drawing | **PARTIAL** | Trend create PASS; full tool matrix PARTIAL — see drawing certification |
+| Object Manager | **PARTIAL** | UI + actions deployed; runtime list depends on completed draw + refresh |
+| Data Window | **DONE** | Toggle + OHLC/spread/indicators on crosshair @ VPS |
+| Netting | **DONE** | Backend + `ForexPositionPanel` mode banner |
+| Hedging | **DONE** | Backend tests + per-`positionId` rows, close/modify/SL/TP/trail by id |
+| Order Types | **PARTIAL** | Market/limit/stop; stop-limit + IOC/FOK when server advertises (runtime shows stop-limit + TIF options) |
+| SL/TP | **DONE** | Ticket fields + post-fill protections API + chart drag when authed |
+| Partial Close | **DONE** | `ForexPositionPanel` volume confirm + `closePosition` API |
+| Trailing Stop | **PARTIAL** | `setTrailing` in position actions when protection API available |
+| One Click | **PARTIAL** | Workspace opt-in + chrome BUY/SELL; requires sign-in + validation |
+| Symbol Specification | **DONE** | Watchlist modal (unchanged) |
+| Market Watch | **DONE** | Terminal watchlist + quotes |
+| DOM | **EXTERNAL_DEPENDENCY** | No genuine depth feed; bottom panel stub |
+| Time & Sales | **EXTERNAL_DEPENDENCY** | No tick tape API |
+| Alerts | **PARTIAL** | Local chart alerts + server alerts panel where wired |
+| Templates | **PARTIAL** | Workspace save/list; not full MT5 template UX in chrome |
+| Economic Calendar | **PARTIAL** | Real intel feed when available; event strip/markers |
 
-## Build / tests (this pass)
+## Build checks (repo @ 5bd1058 + local uncommitted UX WIP in tree)
 
-- `apps/frontend` `npm run build`: **PASS**
-- `apps/frontend` `npm run test:i18n`: run in CI/local (root has no `test:i18n` script)
-- `forex-drawing-objects.test.ts`, `forex-drawings.test.ts`: **PASS**
+- `npm run build` (frontend): **PASS** (2026-09-24)
+- `npm run test:i18n`: **PASS**
 
-## Smoke (production VPS pre-deploy)
+## External blockers
 
-- URL `http://109.123.254.30/forex/trade`: chart region loads, EURUSD 15M, drawing rail present, order ticket present.
-- Raw key `forex.mt5Chart.objects` on toolbar **until frontend redeploy** with `objectsToolbar` fix.
-
-## Final classification (honest)
-
-| Area | Verdict |
-|------|---------|
-| MT5 WORKSTATION | **PARTIAL** |
-| CHART | **PASS** (layout + build; production i18n pending deploy) |
-| DRAWING SYSTEM | **PARTIAL** (implementation + tests; full manual certification pending post-deploy) |
-| NETTING | **DONE** |
-| HEDGING | **DONE** (engine); UI **PARTIAL** |
-| ORDER TYPES | **PARTIAL** |
-| ONE CLICK | **PARTIAL** |
-| TRAILING STOP | **PARTIAL** |
-| PARTIAL CLOSE | **PARTIAL** |
-| DOM | **EXTERNAL_DEPENDENCY** |
-| TIME & SALES | **EXTERNAL_DEPENDENCY** |
-| SYMBOL SPEC | **DONE** |
-| ALERTS | **PARTIAL** |
-| TEMPLATES | **PARTIAL** |
-| DATA WINDOW | **PARTIAL** |
-| ECONOMIC CALENDAR | **PARTIAL** |
+| Item | Requirement |
+|------|-------------|
+| DOM | Level-2 / aggregated depth feed + subscription API |
+| Time & Sales | Tick/trade stream with timestamps and sizes |
