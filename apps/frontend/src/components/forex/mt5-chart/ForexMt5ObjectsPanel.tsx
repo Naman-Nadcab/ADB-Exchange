@@ -23,7 +23,10 @@ export function ForexMt5ObjectsPanel(props: Props) {
   if (!props.open) return null;
 
   return (
-    <div className="absolute right-2 top-2 z-30 w-64 rounded border border-border bg-card/95 shadow-lg backdrop-blur-sm">
+    <div
+      data-testid="drawing-object-manager"
+      className="absolute right-2 top-2 z-30 w-64 rounded border border-border bg-card/95 shadow-lg backdrop-blur-sm"
+    >
       <div className="flex items-center justify-between border-b border-border px-2 py-1">
         <span className="text-[11px] font-semibold">{t('title')}</span>
         <button type="button" className="text-[10px] text-muted-foreground hover:text-foreground" onClick={props.onClose}>
@@ -51,12 +54,10 @@ export function ForexMt5ObjectsPanel(props: Props) {
               {r.hidden ? <span className="text-muted-foreground">{t('hidden')}</span> : null}
               {r.locked ? <span title={t('locked')}>🔒</span> : null}
               <div className="flex w-full gap-0.5 pl-0.5">
-                {r.layer === 'extra' ? (
-                  <>
-                    <MiniAct label={r.hidden ? t('show') : t('hide')} onClick={() => props.onToggleHidden(r)} />
-                    <MiniAct label={r.locked ? t('unlock') : t('lock')} onClick={() => props.onToggleLocked(r)} />
-                  </>
-                ) : null}
+                <>
+                  <MiniAct label={r.hidden ? t('show') : t('hide')} onClick={() => props.onToggleHidden(r)} />
+                  <MiniAct label={r.locked ? t('unlock') : t('lock')} onClick={() => props.onToggleLocked(r)} />
+                </>
                 <MiniAct label={t('delete')} danger onClick={() => props.onDelete(r)} />
               </div>
             </div>

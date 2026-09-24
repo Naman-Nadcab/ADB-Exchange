@@ -188,11 +188,13 @@ export class DrawingToolManager {
 
   private suppressMutate = false;
 
+  /** When true, hit targets stop capturing so measure / RR / alert can reach the chart. */
+  private chartClickThrough = false;
+
   constructor(chart: IChartApi, series: ISeriesApi<'Candlestick'>, overlayHost: HTMLElement) {
     this.chart = chart;
     this.series = series;
     this.root = overlayHost;
-    this.root.style.pointerEvents = 'none';
 
     this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     this.svg.setAttribute('class', 'drawing-tools-svg');
@@ -214,6 +216,11 @@ export class DrawingToolManager {
     this.ro.observe(this.root);
 
     window.addEventListener('keydown', this.boundKey, true);
+  }
+
+  setChartClickThrough(enabled: boolean): void {
+    this.chartClickThrough = enabled;
+    this.redrawOverlayGeometry();
   }
 
   setMode(mode: DrawingToolMode): void {
@@ -1012,5 +1019,22 @@ export class DrawingToolManager {
     }
 
     this.applySelectionStyles();
+    this.applyHitPointerEvents();
+  }
+
+  private applyHitPointerEvents(): void {
+    const block = this.chartClickThrough ? 'none' : 'auto';
+    const stroke = this.chartClickThrough ? 'none' : 'stroke';
+    for (const hl of this.hlines) {
+      hl.hitRect.setAttribute('pointer-events', block);
+    }
+    for (const v of this.vlines) {
+      v.hitRect.setAttribute('pointer-events', block);
+    }
+    for (const t of this.trends) {
+      t.hit.setAttribute('pointer-events', stroke);
+      t.h1.setAttribute('pointer-events', block);
+      t.h2.setAttribute('pointer-events', block);
+    }
   }
 }

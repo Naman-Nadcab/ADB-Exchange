@@ -164,6 +164,8 @@ export function ForexChartFoundation(props?: {
   const [chartType, setChartType] = useState<ForexChartType>('candle');
   const [crosshair, setCrosshair] = useState<ForexChartCrosshair | null>(null);
   const [tool, setTool] = useState<ForexAnalysisTool>('none');
+  const analysisToolRef = useRef<ForexAnalysisTool>('none');
+  analysisToolRef.current = tool;
   const [showSessions, setShowSessions] = useState(false);
   const [showLevels, setShowLevels] = useState(false);
   const [showRsi, setShowRsi] = useState(false);
@@ -556,10 +558,12 @@ export function ForexChartFoundation(props?: {
       const hi = Math.max(t0, t1);
       barsCount = bars.filter((x) => x.time >= lo && x.time <= hi).length;
     }
+    const delta = Math.abs(b - a);
     const parts = [
       pips != null ? `${(b >= a ? '+' : '-')}${pips.toFixed(1)} pips` : null,
       pct != null ? `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%` : null,
       barsCount != null ? `${barsCount} bars` : null,
+      delta > 0 ? `${delta.toFixed(Math.min(5, digits))} Δ` : '0 Δ',
     ].filter(Boolean);
     return parts.join(' · ') || null;
   }, [measurePoints, pipSize, bars]);
@@ -708,6 +712,7 @@ export function ForexChartFoundation(props?: {
 
   const onPickTool = useCallback(
     (t: ForexAnalysisTool) => {
+      analysisToolRef.current = t;
       setTool(t);
       if (t === 'rr') setRrPoints([]);
       if (t === 'measure') setMeasurePoints([]);
@@ -723,7 +728,8 @@ export function ForexChartFoundation(props?: {
 
   const onPricePick = useCallback(
     (price: number, time: number | null) => {
-      if (tool === 'alert') {
+      const activeTool = analysisToolRef.current;
+      if (activeTool === 'alert') {
         const next: LocalAlert = {
           id: `${Date.now()}`,
           symbol: selected,
@@ -742,21 +748,21 @@ export function ForexChartFoundation(props?: {
         setTool('none');
         return;
       }
-      if (tool === 'measure') {
+      if (activeTool === 'measure') {
         setMeasurePoints((cur) => {
           if (cur.length >= 2) return [{ price, time }];
           return [...cur, { price, time }];
         });
         return;
       }
-      if (tool === 'rr') {
+      if (activeTool === 'rr') {
         setRrPoints((cur) => {
           if (cur.length >= 3) return [price];
           return [...cur, price];
         });
       }
     },
-    [tool, selected, lastClose]
+    [selected, lastClose]
   );
 
   const banners: Array<{ tone: 'neutral' | 'warn' | 'error'; text: string }> = [];

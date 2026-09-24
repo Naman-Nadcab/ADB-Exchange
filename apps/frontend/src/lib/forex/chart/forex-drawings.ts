@@ -218,6 +218,7 @@ export class ForexDrawingEngine {
     this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     this.svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:3;';
     this.place = document.createElement('div');
+    this.place.className = 'forex-drawing-place';
     this.place.style.cssText = 'position:absolute;inset:0;z-index:4;pointer-events:none;';
     this.root.appendChild(this.svg);
     this.root.appendChild(this.place);

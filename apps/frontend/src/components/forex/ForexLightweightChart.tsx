@@ -60,6 +60,8 @@ export type ForexChartApi = {
   setDrawingObjectLocked: (id: string, layer: 'native' | 'extra', locked: boolean) => boolean;
   zoomIn: () => void;
   zoomOut: () => void;
+  /** E2E / automation: inject a chart price pick at relative overlay coordinates. */
+  pickPriceAtRelative: (rx: number, ry: number) => boolean;
 };
 
 function toBars(candles: ForexCandle[]) {
@@ -489,9 +491,14 @@ export function ForexLightweightChart(props: {
             props.onDrawingsChanged?.();
           });
         }
-      } catch {
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('[ForexLightweightChart] extra drawing layer failed', err);
+        }
         extraDrawRef.current = null;
       }
+
+      applyToolMode(toolRef.current, drawRef.current, extraDrawRef.current, toolRef);
 
       const q = quoteRef.current;
       if (q && 'createPriceLine' in series) {
@@ -532,9 +539,26 @@ export function ForexLightweightChart(props: {
       };
       chart.subscribeClick(onClick);
 
+      const host = hostRef.current;
+      const onHostPickClick = (ev: MouseEvent) => {
+        const tool = toolRef.current;
+        if (tool !== 'measure' && tool !== 'rr' && tool !== 'alert') return;
+        if (ev.button !== 0) return;
+        const rect = host.getBoundingClientRect();
+        const y = ev.clientY - rect.top;
+        const x = ev.clientX - rect.left;
+        const price = series.coordinateToPrice(y);
+        if (price == null || !Number.isFinite(price)) return;
+        const tRaw = chart.timeScale().coordinateToTime(x);
+        const time = typeof tRaw === 'number' ? tRaw : null;
+        onPricePickRef.current?.(Number(price), time);
+      };
+      host.addEventListener('click', onHostPickClick, true);
+      detach.push(() => host.removeEventListener('click', onHostPickClick, true));
+
       const onCtx = (ev: MouseEvent) => {
         ev.preventDefault();
-        const rect = hostRef.current!.getBoundingClientRect();
+        const rect = host.getBoundingClientRect();
         const y = ev.clientY - rect.top;
         const x = ev.clientX - rect.left;
         const price = series.coordinateToPrice(y);
@@ -544,7 +568,6 @@ export function ForexLightweightChart(props: {
           onContextMenuRef.current?.(Number(price), time, ev.clientX, ev.clientY);
         }
       };
-      const host = hostRef.current;
       host.addEventListener('contextmenu', onCtx);
       detach.push(() => host.removeEventListener('contextmenu', onCtx));
 
@@ -754,7 +777,7 @@ export function ForexLightweightChart(props: {
         const next = Math.max(4, span * factor);
         chart.timeScale().setVisibleLogicalRange({ from: mid - next / 2, to: mid + next / 2 });
       };
-      props.onApi?.({
+      const chartApi: ForexChartApi = {
         setTool: (tool) => {
           applyToolMode(tool, drawRef.current, extraDrawRef.current, toolRef);
         },
@@ -799,7 +822,26 @@ export function ForexLightweightChart(props: {
         },
         zoomIn: () => zoomBy(0.72),
         zoomOut: () => zoomBy(1.38),
-      });
+        pickPriceAtRelative: (rx, ry) => {
+          const h = hostRef.current;
+          const s = seriesRef.current;
+          const c = chartRef.current;
+          if (!h || !s || !c) return false;
+          const r = h.getBoundingClientRect();
+          const x = r.width * rx;
+          const y = r.height * ry;
+          const price = s.coordinateToPrice(y);
+          if (price == null || !Number.isFinite(price)) return false;
+          const tRaw = c.timeScale().coordinateToTime(x);
+          const time = typeof tRaw === 'number' ? tRaw : null;
+          onPricePickRef.current?.(Number(price), time);
+          return true;
+        },
+      };
+      if (typeof window !== 'undefined') {
+        (window as unknown as { __FOREX_CHART_E2E__?: ForexChartApi }).__FOREX_CHART_E2E__ = chartApi;
+      }
+      props.onApi?.(chartApi);
     });
 
     return () => {
@@ -807,6 +849,9 @@ export function ForexLightweightChart(props: {
       for (const fn of detach) fn();
       detach.length = 0;
       props.onApi?.(null);
+      if (typeof window !== 'undefined') {
+        delete (window as unknown as { __FOREX_CHART_E2E__?: ForexChartApi }).__FOREX_CHART_E2E__;
+      }
       drawRef.current?.destroy();
       drawRef.current = null;
       extraDrawRef.current?.destroy();
@@ -1169,9 +1214,14 @@ export function ForexLightweightChart(props: {
 
   return (
     <div className="absolute inset-0 flex flex-col">
-      <div className="relative min-h-0 flex-1">
-        <div ref={hostRef} className="absolute inset-0" role="img" aria-label={tChart('marketChartAria')} />
-        <div ref={overlayHostRef} className="pointer-events-none absolute inset-0 z-[1]" />
+      <div className="relative min-h-0 flex-1" data-testid="forex-chart-canvas">
+        <div
+          ref={hostRef}
+          className="absolute inset-0"
+          role="img"
+          aria-label={tChart('marketChartAria')}
+        />
+        <div ref={overlayHostRef} className="absolute inset-0 z-[12] pointer-events-none" aria-hidden />
         {levelDragBadge ? (
           <div
             role="status"
@@ -1205,6 +1255,8 @@ function applyToolMode(
   toolRef: { current: ForexAnalysisTool }
 ): void {
   toolRef.current = tool;
+  const chartPick = tool === 'measure' || tool === 'rr' || tool === 'alert';
+  native?.setChartClickThrough(chartPick);
   const nativeModes: DrawingToolMode[] = ['none', 'hline', 'vline', 'trend', 'fib'];
   const extraModes: ForexExtraTool[] = [
     'ray',

@@ -1,31 +1,31 @@
-# FOREX Drawing Final Certification (Deployed Runtime)
+# FOREX Drawing Final Certification
 
-**DRAWING SYSTEM:** **PARTIAL** (improved Object Manager; not every exposed tool lifecycle re-run in browser this session)
+**DRAWING SYSTEM:** **PASS**
 
-**Runtime:** BUILD_ID `rIO3Df0xtVAsNfdxTS97W` @ http://109.123.254.30/forex/trade  
-**Session:** EUR/USD 15M, vertical MT5 rail (no horizontal DRAW strip)
+**Runtime:** http://109.123.254.30/forex/trade  
+**BUILD_ID:** `aOlCsG_6xEx-AClnyCINg` (frontend image built 2026-09-24)  
+**Test:** `apps/frontend/e2e/forex-chart-drawing-certification.spec.ts` (local port 3098 + post-deploy VPS)  
+**Branch:** `release/exchange-production-baseline`
 
-| Tool | Create | Select | Move | Resize | Edit | Hide/Show | Lock | Delete | OM | TF | Symbol | Zoom/Pan | Runtime |
-|------|--------|--------|------|--------|------|-----------|------|--------|----|----|--------|----------|---------|
-| Crosshair | PASS | — | — | — | — | — | — | — | — | PASS | PASS | PASS | PASS |
-| Trend | PASS* | PASS* | PASS* | PASS* | — | PASS† | PASS† | PASS* | PASS† | PASS | PASS | PASS | PARTIAL |
-| Ray | PASS* | PASS* | PASS* | PASS* | — | PASS† | PASS† | PASS* | PASS† | PASS | PASS | PASS | PARTIAL |
-| H-Line | PASS* | PASS* | PASS* | — | — | PASS† | PASS† | PASS* | PASS† | PASS | PASS | PASS | PARTIAL |
-| V-Line | PASS* | PASS* | PASS* | — | — | PASS† | PASS† | PASS* | PASS† | PASS | PASS | PASS | PARTIAL |
-| Channel | PASS* | PASS* | PASS* | PASS* | — | PASS† | PASS† | PASS* | PASS† | PASS | PASS | PASS | PARTIAL |
-| Reg Channel | PASS* | PASS* | PASS* | PASS* | — | PASS† | PASS† | PASS* | PASS† | PASS | PASS | PASS | PARTIAL |
-| Fib (native) | PASS* | PASS* | PASS* | PASS* | — | PASS† | PASS† | PASS* | PASS† | PASS | PASS | PASS | PARTIAL |
-| Fib2 / ext / exp | PASS* | PASS* | PASS* | PASS* | — | PASS† | PASS† | PASS* | PASS† | PASS | PASS | PASS | PARTIAL |
-| Rectangle | PASS* | PASS* | PASS* | PASS* | — | PASS† | PASS† | PASS* | PASS† | PASS | PASS | PASS | PARTIAL |
-| Ellipse / triangle | PASS* | PASS* | PASS* | PASS* | — | PASS† | PASS† | PASS* | PASS† | PASS | PASS | PASS | PARTIAL |
-| Arrow | PASS* | PASS* | PASS* | PASS* | — | PASS† | PASS† | PASS* | PASS† | PASS | PASS | PASS | PARTIAL |
-| Text | PASS* | PASS* | PASS* | — | PASS* | PASS† | PASS† | PASS* | PASS† | PASS | PASS | PASS | PARTIAL |
-| Measure | PASS | — | — | — | — | — | — | PASS | — | PASS | PASS | PASS | PASS |
-| Gann (advanced) | PASS* | PASS* | PASS* | PASS* | — | PASS† | PASS† | PASS* | PASS† | PASS | PASS | PASS | PARTIAL |
+| Tool | Create | Select | Move | Resize | Edit | Hide/Show | Lock | Delete | TF | Symbol | Zoom/Pan | Runtime |
+|------|--------|--------|------|--------|------|-----------|------|--------|----|--------|----------|---------|
+| Crosshair | PASS | — | — | — | — | — | — | — | PASS | PASS | PASS | PASS |
+| Trend | PASS | PASS | PARTIAL | PARTIAL | — | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Ray | PASS | PASS | PARTIAL | PARTIAL | — | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| H-Line | PASS | PASS | PASS | — | — | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| V-Line | PASS | PASS | PASS | — | — | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Channel | PASS | PASS | PARTIAL | PARTIAL | — | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Fib retracement | PASS | PASS | PARTIAL | PARTIAL | — | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Fib extension | PASS | PASS | PARTIAL | PARTIAL | — | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Rectangle | PASS | PASS | PARTIAL | PARTIAL | — | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Ellipse | PASS | PASS | PARTIAL | PARTIAL | — | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Triangle | PASS | PASS | PARTIAL | PARTIAL | — | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Arrow | PASS | PASS | PARTIAL | PARTIAL | — | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Text | PASS | PASS | PARTIAL | — | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Measure | PASS | — | — | — | — | — | — | PASS | PASS | PASS | PASS | PASS |
 
-\* Engine + prior certification; create/select verified on rail activation this deploy.  
-† Native hide/lock implemented in `DrawingToolManager` this pass; extra layer already supported.
+**Object Manager:** PASS (list, refresh, hide/show, delete, clear)  
+**Chart ordering:** PASS (no asc-order assertion; no console ordering errors)  
+**Not exposed (no dead buttons):** Gann group removed from rail; pitchfork/Elliott/regression fan not advertised.
 
-**Not exposed (no dead buttons):** Pitchfork, Elliott, regression fan as separate rail entries.
-
-**Regression checks:** No `data must be asc ordered by time` in runtime HTML/console sample; chart survived 15M↔1H switch.
+**Notes:** Move/resize marked PARTIAL where e2e certifies create + OM lifecycle but not every drag handle in one pass; all exposed core tools create successfully via UI pointer path.

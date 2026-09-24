@@ -11,7 +11,6 @@ import {
   Minus,
   MoveHorizontal,
   MoveVertical,
-  Pencil,
   Ruler,
   Square,
   TrendingUp,
@@ -21,6 +20,20 @@ import type { ForexAnalysisTool } from '../ForexChartToolbar';
 import { cn } from '@/lib/utils';
 
 type ToolDef = { id: ForexAnalysisTool; icon: ReactNode; labelKey: string };
+
+const TOOL_TEST_ID: Partial<Record<ForexAnalysisTool, string>> = {
+  none: 'crosshair',
+  measure: 'measure',
+  trend: 'trend',
+  ray: 'ray',
+  hline: 'horizontal',
+  vline: 'vertical',
+  channel: 'channel',
+  fib: 'fibonacci',
+  fibext: 'fibonacci-extension',
+  rect: 'rectangle',
+  text: 'text',
+};
 
 const LINE_GROUP: ToolDef[] = [
   { id: 'trend', icon: <TrendingUp className="h-3.5 w-3.5" />, labelKey: 'trend' },
@@ -52,12 +65,6 @@ const ANNOT_GROUP: ToolDef[] = [
   { id: 'arrow', icon: <ArrowUpRight className="h-3.5 w-3.5" />, labelKey: 'arrow' },
 ];
 
-const ADVANCED_GROUP: ToolDef[] = [
-  { id: 'gannfan', icon: <Pencil className="h-3.5 w-3.5" />, labelKey: 'gannfan' },
-  { id: 'ganngrid', icon: <Pencil className="h-3.5 w-3.5" />, labelKey: 'ganngrid' },
-  { id: 'gannline', icon: <Pencil className="h-3.5 w-3.5" />, labelKey: 'gannline' },
-];
-
 type Props = {
   tool: ForexAnalysisTool;
   onTool: (t: ForexAnalysisTool) => void;
@@ -69,7 +76,7 @@ type Props = {
 export function ForexMt5DrawingRail(props: Props) {
   const t = useTranslations('forex.mt5Chart.rail');
   const tc = useTranslations('forex.chartToolbar.tools');
-  const [flyout, setFlyout] = useState<'lines' | 'channels' | 'fib' | 'shapes' | 'annot' | 'advanced' | null>(null);
+  const [flyout, setFlyout] = useState<'lines' | 'channels' | 'fib' | 'shapes' | 'annot' | null>(null);
 
   const groups = useMemo(
     () =>
@@ -79,7 +86,6 @@ export function ForexMt5DrawingRail(props: Props) {
         { id: 'fib' as const, icon: <GitBranch className="h-3.5 w-3.5" />, title: t('groupFib'), items: FIB_GROUP },
         { id: 'shapes' as const, icon: <Square className="h-3.5 w-3.5" />, title: t('groupShapes'), items: SHAPE_GROUP },
         { id: 'annot' as const, icon: <Type className="h-3.5 w-3.5" />, title: t('groupAnnot'), items: ANNOT_GROUP },
-        { id: 'advanced' as const, icon: <Pencil className="h-3.5 w-3.5" />, title: t('groupAdvanced'), items: ADVANCED_GROUP },
       ],
     [t]
   );
@@ -98,15 +104,23 @@ export function ForexMt5DrawingRail(props: Props) {
       <RailBtn
         pressed={props.tool === 'none'}
         title={t('crosshair')}
+        testId="drawing-tool-crosshair"
         onClick={() => pick('none')}
         icon={<Crosshair className="h-3.5 w-3.5" />}
       />
-      <RailBtn title={t('measure')} pressed={props.tool === 'measure'} onClick={() => pick('measure')} icon={<Ruler className="h-3.5 w-3.5" />} />
+      <RailBtn
+        title={t('measure')}
+        pressed={props.tool === 'measure'}
+        testId="drawing-tool-measure"
+        onClick={() => pick('measure')}
+        icon={<Ruler className="h-3.5 w-3.5" />}
+      />
 
       {groups.map((g) => (
         <div key={g.id} className="relative">
           <RailBtn
             title={g.title}
+            testId={`drawing-group-${g.id}`}
             pressed={g.items.some((x) => x.id === props.tool)}
             onClick={() => setFlyout((cur) => (cur === g.id ? null : g.id))}
             icon={g.icon}
@@ -117,6 +131,7 @@ export function ForexMt5DrawingRail(props: Props) {
                 <button
                   key={`${g.id}-${item.id}-${item.labelKey}`}
                   type="button"
+                  data-testid={`drawing-tool-${TOOL_TEST_ID[item.id] ?? item.id}`}
                   className={cn(
                     'flex items-center gap-2 px-2 py-1 text-left text-[11px] hover:bg-muted',
                     props.tool === item.id && 'bg-primary/15 text-foreground'
@@ -135,6 +150,7 @@ export function ForexMt5DrawingRail(props: Props) {
       <div className="mt-auto flex flex-col gap-0.5">
         <RailBtn
           title={t('objects')}
+          testId="drawing-object-manager-toggle"
           pressed={props.objectsOpen}
           onClick={props.onObjects}
           icon={<Layers className="h-3.5 w-3.5" />}
@@ -149,11 +165,18 @@ export function ForexMt5DrawingRail(props: Props) {
   );
 }
 
-function RailBtn(props: { icon: React.ReactNode; title: string; pressed?: boolean; onClick: () => void }) {
+function RailBtn(props: {
+  icon: React.ReactNode;
+  title: string;
+  testId?: string;
+  pressed?: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
       title={props.title}
+      data-testid={props.testId}
       aria-pressed={props.pressed}
       onClick={props.onClick}
       className={cn(
