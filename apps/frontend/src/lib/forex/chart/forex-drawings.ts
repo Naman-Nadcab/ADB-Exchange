@@ -312,6 +312,54 @@ export class ForexDrawingEngine {
     this.mutate?.();
   }
 
+  listObjects(): Array<{ id: string; kind: string; label: string; hidden: boolean; locked: boolean }> {
+    return this.items.map((it) => ({
+      id: it.id,
+      kind: it.kind,
+      label: (it.label ?? it.kind).slice(0, 48),
+      hidden: Boolean(it.hidden),
+      locked: Boolean(it.locked),
+    }));
+  }
+
+  selectObject(id: string): boolean {
+    if (!this.items.some((i) => i.id === id)) return false;
+    this.selected = id;
+    this.redraw();
+    return true;
+  }
+
+  deleteObject(id: string): boolean {
+    const cur = this.items.find((i) => i.id === id);
+    if (!cur || cur.locked) return false;
+    this.pushHistory();
+    this.items = this.items.filter((i) => i.id !== id);
+    if (this.selected === id) this.selected = null;
+    this.mutate?.();
+    this.redraw();
+    return true;
+  }
+
+  setObjectHidden(id: string, hidden: boolean): boolean {
+    const cur = this.items.find((i) => i.id === id);
+    if (!cur) return false;
+    this.pushHistory();
+    cur.hidden = hidden;
+    this.mutate?.();
+    this.redraw();
+    return true;
+  }
+
+  setObjectLocked(id: string, locked: boolean): boolean {
+    const cur = this.items.find((i) => i.id === id);
+    if (!cur) return false;
+    this.pushHistory();
+    cur.locked = locked;
+    this.mutate?.();
+    this.redraw();
+    return true;
+  }
+
   destroy(): void {
     window.removeEventListener('keydown', this.onKey, true);
     this.place.removeEventListener('mousedown', this.onDown);

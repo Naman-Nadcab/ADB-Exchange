@@ -232,6 +232,47 @@ export class DrawingToolManager {
     return this.selectedId;
   }
 
+  listDrawingObjects(): Array<{ id: string; kind: string; label: string; hidden: boolean; locked: boolean }> {
+    const out: Array<{ id: string; kind: string; label: string; hidden: boolean; locked: boolean }> = [];
+    for (const h of this.hlines) {
+      out.push({ id: h.id, kind: 'hline', label: `H-Line @ ${h.price}`, hidden: false, locked: false });
+    }
+    for (const v of this.vlines) {
+      out.push({ id: v.id, kind: 'vline', label: `V-Line @ ${v.time}`, hidden: false, locked: false });
+    }
+    for (const t of this.trends) {
+      out.push({ id: t.id, kind: 'trend', label: 'Trend Line', hidden: false, locked: false });
+    }
+    for (const f of this.fibs) {
+      out.push({ id: f.id, kind: 'fib', label: 'Fib Retracement', hidden: false, locked: false });
+    }
+    return out;
+  }
+
+  selectDrawingObject(id: string): boolean {
+    const known =
+      this.hlines.some((h) => h.id === id) ||
+      this.vlines.some((v) => v.id === id) ||
+      this.trends.some((t) => t.id === id) ||
+      this.fibs.some((f) => f.id === id);
+    if (!known) return false;
+    this.selectedId = id;
+    this.redrawOverlayGeometry();
+    return true;
+  }
+
+  deleteDrawingObject(id: string): boolean {
+    const known =
+      this.hlines.some((h) => h.id === id) ||
+      this.vlines.some((v) => v.id === id) ||
+      this.trends.some((t) => t.id === id) ||
+      this.fibs.some((f) => f.id === id);
+    if (!known) return false;
+    this.removeDrawingById(id);
+    if (this.selectedId === id) this.selectedId = null;
+    return true;
+  }
+
   setMutateCallback(cb: (() => void) | null): void {
     this.mutateCb = cb;
   }

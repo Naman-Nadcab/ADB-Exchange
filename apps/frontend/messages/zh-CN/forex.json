@@ -737,7 +737,7 @@
     "zoomIn": "放大",
     "zoomOut": "缩小",
     "calendar": "经济日历",
-    "objects": "对象",
+    "objectsToolbar": "对象",
     "layout": "扩展图表",
     "settings": "全屏",
     "sell": "卖出",
@@ -767,7 +767,28 @@
       "locked": "已锁定",
       "refresh": "刷新",
       "clearAll": "全部清除",
-      "hint": "在图表上选择对象进行编辑。"
+      "hint": "在图表上选择对象进行编辑。",
+      "select": "在图表上选中",
+      "delete": "删除",
+      "hide": "隐藏",
+      "show": "显示",
+      "lock": "锁定",
+      "unlock": "解锁"
+    },
+    "dataWindow": {
+      "title": "数据窗口",
+      "toggle": "数据窗口",
+      "noBar": "将十字线移到 K 线上。",
+      "openPrice": "开",
+      "high": "高",
+      "low": "低",
+      "closePrice": "收",
+      "spread": "点差",
+      "indicators": "指标",
+      "ema": "EMA",
+      "ema50": "EMA (2)",
+      "rsi": "RSI",
+      "macd": "MACD"
     },
     "events": {
       "unavailable": "日历数据不可用",

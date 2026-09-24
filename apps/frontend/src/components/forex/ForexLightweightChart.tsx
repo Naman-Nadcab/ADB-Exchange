@@ -40,10 +40,24 @@ export type ForexChartCrosshair = {
   price: number | null;
 };
 
+export type ForexDrawingObjectRef = {
+  id: string;
+  layer: 'native' | 'extra';
+  kind: string;
+  label: string;
+  hidden: boolean;
+  locked: boolean;
+};
+
 export type ForexChartApi = {
   setTool: (tool: ForexAnalysisTool) => void;
   clearDrawings: () => void;
   serializeDrawings: () => unknown[];
+  listDrawingObjects: () => ForexDrawingObjectRef[];
+  selectDrawingObject: (id: string, layer: 'native' | 'extra') => boolean;
+  deleteDrawingObject: (id: string, layer: 'native' | 'extra') => boolean;
+  setDrawingObjectHidden: (id: string, layer: 'native' | 'extra', hidden: boolean) => boolean;
+  setDrawingObjectLocked: (id: string, layer: 'native' | 'extra', locked: boolean) => boolean;
   zoomIn: () => void;
   zoomOut: () => void;
 };
@@ -760,6 +774,29 @@ export function ForexLightweightChart(props: {
           ...(drawRef.current?.serializeDrawings() ?? []),
           ...(extraDrawRef.current?.serialize() ?? []),
         ],
+        listDrawingObjects: () => {
+          const native =
+            drawRef.current?.listDrawingObjects().map((o) => ({ ...o, layer: 'native' as const })) ?? [];
+          const extra =
+            extraDrawRef.current?.listObjects().map((o) => ({ ...o, layer: 'extra' as const })) ?? [];
+          return [...native, ...extra];
+        },
+        selectDrawingObject: (id, layer) => {
+          if (layer === 'native') return drawRef.current?.selectDrawingObject(id) ?? false;
+          return extraDrawRef.current?.selectObject(id) ?? false;
+        },
+        deleteDrawingObject: (id, layer) => {
+          if (layer === 'native') return drawRef.current?.deleteDrawingObject(id) ?? false;
+          return extraDrawRef.current?.deleteObject(id) ?? false;
+        },
+        setDrawingObjectHidden: (id, layer, hidden) => {
+          if (layer === 'native') return false;
+          return extraDrawRef.current?.setObjectHidden(id, hidden) ?? false;
+        },
+        setDrawingObjectLocked: (id, layer, locked) => {
+          if (layer === 'native') return false;
+          return extraDrawRef.current?.setObjectLocked(id, locked) ?? false;
+        },
         zoomIn: () => zoomBy(0.72),
         zoomOut: () => zoomBy(1.38),
       });

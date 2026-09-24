@@ -737,7 +737,7 @@
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "calendar": "Economic calendar",
-    "objects": "Objects",
+    "objectsToolbar": "Objects",
     "layout": "Expand chart",
     "settings": "Fullscreen",
     "sell": "Sell",
@@ -767,7 +767,28 @@
       "locked": "Locked",
       "refresh": "Refresh",
       "clearAll": "Clear all",
-      "hint": "Select a drawing on chart to edit. Use keyboard shortcuts where supported."
+      "hint": "Select a drawing on chart to edit. Use keyboard shortcuts where supported.",
+      "select": "Select on chart",
+      "delete": "Delete",
+      "hide": "Hide",
+      "show": "Show",
+      "lock": "Lock",
+      "unlock": "Unlock"
+    },
+    "dataWindow": {
+      "title": "Data Window",
+      "toggle": "Data window",
+      "noBar": "Move crosshair over a bar.",
+      "openPrice": "Open",
+      "high": "High",
+      "low": "Low",
+      "closePrice": "Close",
+      "spread": "Spread",
+      "indicators": "Indicators",
+      "ema": "EMA",
+      "ema50": "EMA (2)",
+      "rsi": "RSI",
+      "macd": "MACD"
     },
     "events": {
       "unavailable": "Calendar data unavailable",

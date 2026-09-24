@@ -59,6 +59,8 @@ type Props = {
   oneClickBuy?: () => void;
   oneClickDisabled?: boolean;
   ohlcLine?: string | null;
+  showDataWindow?: boolean;
+  onDataWindow?: () => void;
 };
 
 export function ForexMt5ChartChrome(props: Props) {
@@ -159,7 +161,15 @@ export function ForexMt5ChartChrome(props: Props) {
           icon={<Calendar className="h-3.5 w-3.5" />}
           onClick={() => props.onCalendar(!props.showCalendar)}
         />
-        <IconBtn title={t('objects')} pressed={props.showObjects} icon={<Shapes className="h-3.5 w-3.5" />} onClick={props.onObjects} />
+        <IconBtn title={t('objectsToolbar')} pressed={props.showObjects} icon={<Shapes className="h-3.5 w-3.5" />} onClick={props.onObjects} />
+        {props.onDataWindow ? (
+          <IconBtn
+            title={t('dataWindow.toggle')}
+            pressed={props.showDataWindow}
+            icon={<BarChart3 className="h-3.5 w-3.5 opacity-70" />}
+            onClick={props.onDataWindow}
+          />
+        ) : null}
         {props.onExpand ? (
           <IconBtn title={t('layout')} icon={<Maximize2 className="h-3.5 w-3.5" />} onClick={props.onExpand} pressed={props.expandActive} />
         ) : null}

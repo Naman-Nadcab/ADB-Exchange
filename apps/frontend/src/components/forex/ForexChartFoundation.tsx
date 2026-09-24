@@ -35,7 +35,8 @@ import type { ForexAnalysisTool } from './ForexChartToolbar';
 import { ForexMt5ChartChrome } from './mt5-chart/ForexMt5ChartChrome';
 import { ForexMt5DrawingRail } from './mt5-chart/ForexMt5DrawingRail';
 import { ForexMt5EventStrip } from './mt5-chart/ForexMt5EventStrip';
-import { ForexMt5ObjectsPanel, parseDrawingRows } from './mt5-chart/ForexMt5ObjectsPanel';
+import { ForexMt5DataWindow } from './mt5-chart/ForexMt5DataWindow';
+import { ForexMt5ObjectsPanel, objectRowsFromApi, type ObjectPanelRow } from './mt5-chart/ForexMt5ObjectsPanel';
 import { ForexIntelDrawer } from './ForexIntelDrawer';
 import { fxNum } from './format';
 import { cn } from '@/lib/utils';
@@ -171,7 +172,8 @@ export function ForexChartFoundation(props?: {
   const [showIntel, setShowIntel] = useState(false);
   const [showDrawings, setShowDrawings] = useState(true);
   const [objectsPanelOpen, setObjectsPanelOpen] = useState(false);
-  const [objectRows, setObjectRows] = useState<ReturnType<typeof parseDrawingRows>>([]);
+  const [dataWindowOpen, setDataWindowOpen] = useState(true);
+  const [objectRows, setObjectRows] = useState<ObjectPanelRow[]>([]);
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; price: number; time: number | null } | null>(null);
   const [calendarEvents, setCalendarEvents] = useState<
     Array<{ time?: string | null; currency?: string | null; event?: string; impact?: string; previous?: string | null; forecast?: string | null; actual?: string | null }>
@@ -698,8 +700,8 @@ export function ForexChartFoundation(props?: {
           : 'DEMO · SIMULATED';
 
   const refreshObjectRows = useCallback(() => {
-    const raw = chartApiRef.current?.serializeDrawings() ?? [];
-    setObjectRows(parseDrawingRows(raw));
+    const list = chartApiRef.current?.listDrawingObjects() ?? [];
+    setObjectRows(objectRowsFromApi(list));
   }, []);
 
   const onPickTool = useCallback(
@@ -898,6 +900,8 @@ export function ForexChartFoundation(props?: {
           oneClickSell={oneClickSell}
           oneClickDisabled={orderEngine.busy || !chartAuthed}
           ohlcLine={ohlcCompact}
+          showDataWindow={dataWindowOpen}
+          onDataWindow={() => setDataWindowOpen((v) => !v)}
         />
       ) : (
         <div className="flex h-7 shrink-0 items-center gap-2 border-b border-border px-2 font-mono text-[11px]">
@@ -967,10 +971,28 @@ export function ForexChartFoundation(props?: {
           onCrosshair={setCrosshair}
           onPricePick={onPricePick}
           onContextMenuPrice={(price, time, x, y) => setCtxMenu({ price, time, x, y })}
+          onDrawingsChanged={refreshObjectRows}
           onApi={(api) => {
             chartApiRef.current = api;
             if (api && objectsPanelOpen) refreshObjectRows();
           }}
+        />
+        <ForexMt5DataWindow
+          open={dataWindowOpen && !props?.compactChrome && candleView.status === 'READY'}
+          digits={digits}
+          ohlc={
+            ohlcDisplay
+              ? {
+                  open: Number(ohlcDisplay.open),
+                  high: Number(ohlcDisplay.high),
+                  low: Number(ohlcDisplay.low),
+                  close: Number(ohlcDisplay.close),
+                  time: ohlcDisplay.time ?? undefined,
+                }
+              : null
+          }
+          spreadPips={quote?.spreadPips ?? null}
+          indicators={hoverIndicators}
         />
         <ForexMt5ObjectsPanel
           open={objectsPanelOpen && !props?.compactChrome}
@@ -980,6 +1002,20 @@ export function ForexChartFoundation(props?: {
           onClearAll={() => {
             chartApiRef.current?.clearDrawings();
             refreshObjectRows();
+          }}
+          onSelect={(row) => {
+            chartApiRef.current?.selectDrawingObject(row.id, row.layer);
+          }}
+          onDelete={(row) => {
+            if (chartApiRef.current?.deleteDrawingObject(row.id, row.layer)) refreshObjectRows();
+          }}
+          onToggleHidden={(row) => {
+            const next = !row.hidden;
+            if (chartApiRef.current?.setDrawingObjectHidden(row.id, row.layer, next)) refreshObjectRows();
+          }}
+          onToggleLocked={(row) => {
+            const next = !row.locked;
+            if (chartApiRef.current?.setDrawingObjectLocked(row.id, row.layer, next)) refreshObjectRows();
           }}
         />
         {candleView.status === 'NO_HISTORY' ? (
