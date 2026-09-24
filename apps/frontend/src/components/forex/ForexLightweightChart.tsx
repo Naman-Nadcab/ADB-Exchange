@@ -790,11 +790,11 @@ export function ForexLightweightChart(props: {
           return extraDrawRef.current?.deleteObject(id) ?? false;
         },
         setDrawingObjectHidden: (id, layer, hidden) => {
-          if (layer === 'native') return false;
+          if (layer === 'native') return drawRef.current?.setDrawingObjectHidden(id, hidden) ?? false;
           return extraDrawRef.current?.setObjectHidden(id, hidden) ?? false;
         },
         setDrawingObjectLocked: (id, layer, locked) => {
-          if (layer === 'native') return false;
+          if (layer === 'native') return drawRef.current?.setDrawingObjectLocked(id, locked) ?? false;
           return extraDrawRef.current?.setObjectLocked(id, locked) ?? false;
         },
         zoomIn: () => zoomBy(0.72),

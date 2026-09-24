@@ -18,7 +18,7 @@ import { loadScopedForexIndicators, saveScopedForexIndicators } from '@/lib/fore
 import type { OscillatorPaneSpec } from './ForexOscillatorPaneStack';
 import { bollinger, ema, hma, macdSeries, nearestStudy, rsi, sma, supertrend, wma } from '@/lib/forex/chart/studies';
 import { candleTimeMs } from '@/lib/forex/models/candles';
-import { activeProtectionsFor } from '@/lib/forex/models/position';
+import { activeProtectionsFor, chartLinkedOpenPosition } from '@/lib/forex/models/position';
 import { decideQuoteChartOverlay } from '@/lib/forex/market-data/quote-chart-overlay';
 import { deriveStructureLevels } from '@/lib/forex/chart/structure-levels';
 import { buildDraggablePendingLines, FOREX_CHART_PENDING_STATUSES } from '@/lib/forex/chart/pending-order-lines';
@@ -564,9 +564,11 @@ export function ForexChartFoundation(props?: {
     return parts.join(' · ') || null;
   }, [measurePoints, pipSize, bars]);
 
+  const positionMode = useForexStore((s) => s.account?.positionMode ?? 'NETTING');
+  const chartFocusPositionId = useForexWorkspaceStore((s) => s.chartFocusPositionId);
   const openPosition = useMemo(
-    () => Object.values(positions).find((p) => p.status === 'OPEN' && p.symbol === selected) ?? null,
-    [positions, selected]
+    () => chartLinkedOpenPosition(positions, selected, positionMode, chartFocusPositionId),
+    [positions, selected, positionMode, chartFocusPositionId]
   );
 
   const levels = useMemo(() => {

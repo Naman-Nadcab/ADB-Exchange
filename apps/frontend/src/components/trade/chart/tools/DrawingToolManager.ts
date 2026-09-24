@@ -91,6 +91,8 @@ type HLineEntry = {
   price: number;
   priceLine: IPriceLine;
   hitRect: SVGRectElement;
+  hidden?: boolean;
+  locked?: boolean;
 };
 
 type VLineEntry = {
@@ -98,6 +100,8 @@ type VLineEntry = {
   time: number;
   visual: SVGLineElement;
   hitRect: SVGRectElement;
+  hidden?: boolean;
+  locked?: boolean;
 };
 
 type TrendEntry = {
@@ -110,6 +114,8 @@ type TrendEntry = {
   hit: SVGLineElement;
   h1: SVGCircleElement;
   h2: SVGCircleElement;
+  hidden?: boolean;
+  locked?: boolean;
 };
 
 type FibEntry = {
@@ -117,6 +123,8 @@ type FibEntry = {
   high: number;
   low: number;
   lines: IPriceLine[];
+  hidden?: boolean;
+  locked?: boolean;
 };
 
 type PointerSession =
@@ -235,16 +243,34 @@ export class DrawingToolManager {
   listDrawingObjects(): Array<{ id: string; kind: string; label: string; hidden: boolean; locked: boolean }> {
     const out: Array<{ id: string; kind: string; label: string; hidden: boolean; locked: boolean }> = [];
     for (const h of this.hlines) {
-      out.push({ id: h.id, kind: 'hline', label: `H-Line @ ${h.price}`, hidden: false, locked: false });
+      out.push({
+        id: h.id,
+        kind: 'hline',
+        label: `H-Line @ ${h.price}`,
+        hidden: Boolean(h.hidden),
+        locked: Boolean(h.locked),
+      });
     }
     for (const v of this.vlines) {
-      out.push({ id: v.id, kind: 'vline', label: `V-Line @ ${v.time}`, hidden: false, locked: false });
+      out.push({
+        id: v.id,
+        kind: 'vline',
+        label: `V-Line @ ${v.time}`,
+        hidden: Boolean(v.hidden),
+        locked: Boolean(v.locked),
+      });
     }
     for (const t of this.trends) {
-      out.push({ id: t.id, kind: 'trend', label: 'Trend Line', hidden: false, locked: false });
+      out.push({ id: t.id, kind: 'trend', label: 'Trend Line', hidden: Boolean(t.hidden), locked: Boolean(t.locked) });
     }
     for (const f of this.fibs) {
-      out.push({ id: f.id, kind: 'fib', label: 'Fib Retracement', hidden: false, locked: false });
+      out.push({
+        id: f.id,
+        kind: 'fib',
+        label: 'Fib Retracement',
+        hidden: Boolean(f.hidden),
+        locked: Boolean(f.locked),
+      });
     }
     return out;
   }
@@ -262,6 +288,7 @@ export class DrawingToolManager {
   }
 
   deleteDrawingObject(id: string): boolean {
+    if (this.isLocked(id)) return false;
     const known =
       this.hlines.some((h) => h.id === id) ||
       this.vlines.some((v) => v.id === id) ||
@@ -271,6 +298,109 @@ export class DrawingToolManager {
     this.removeDrawingById(id);
     if (this.selectedId === id) this.selectedId = null;
     return true;
+  }
+
+  setDrawingObjectHidden(id: string, hidden: boolean): boolean {
+    const h = this.hlines.find((x) => x.id === id);
+    if (h) {
+      h.hidden = hidden;
+      this.applyEntryVisibility(h);
+      this.notifyMutate();
+      return true;
+    }
+    const v = this.vlines.find((x) => x.id === id);
+    if (v) {
+      v.hidden = hidden;
+      this.applyEntryVisibility(v);
+      this.notifyMutate();
+      return true;
+    }
+    const t = this.trends.find((x) => x.id === id);
+    if (t) {
+      t.hidden = hidden;
+      this.applyEntryVisibility(t);
+      this.notifyMutate();
+      return true;
+    }
+    const f = this.fibs.find((x) => x.id === id);
+    if (f) {
+      f.hidden = hidden;
+      this.applyEntryVisibility(f);
+      this.notifyMutate();
+      return true;
+    }
+    return false;
+  }
+
+  setDrawingObjectLocked(id: string, locked: boolean): boolean {
+    const h = this.hlines.find((x) => x.id === id);
+    if (h) {
+      h.locked = locked;
+      this.notifyMutate();
+      return true;
+    }
+    const v = this.vlines.find((x) => x.id === id);
+    if (v) {
+      v.locked = locked;
+      this.notifyMutate();
+      return true;
+    }
+    const t = this.trends.find((x) => x.id === id);
+    if (t) {
+      t.locked = locked;
+      this.notifyMutate();
+      return true;
+    }
+    const f = this.fibs.find((x) => x.id === id);
+    if (f) {
+      f.locked = locked;
+      this.notifyMutate();
+      return true;
+    }
+    return false;
+  }
+
+  private isLocked(id: string): boolean {
+    return (
+      this.hlines.some((h) => h.id === id && h.locked) ||
+      this.vlines.some((v) => v.id === id && v.locked) ||
+      this.trends.some((t) => t.id === id && t.locked) ||
+      this.fibs.some((f) => f.id === id && f.locked)
+    );
+  }
+
+  private applyEntryVisibility(entry: HLineEntry | VLineEntry | TrendEntry | FibEntry): void {
+    const hidden = Boolean(entry.hidden);
+    if ('priceLine' in entry) {
+      try {
+        entry.priceLine.applyOptions({ lineVisible: !hidden, axisLabelVisible: !hidden });
+      } catch {
+        /* ignore */
+      }
+      entry.hitRect.style.display = hidden ? 'none' : '';
+      return;
+    }
+    if ('lines' in entry) {
+      for (const ln of entry.lines) {
+        try {
+          ln.applyOptions({ lineVisible: !hidden, axisLabelVisible: !hidden });
+        } catch {
+          /* ignore */
+        }
+      }
+      return;
+    }
+    if ('visual' in entry && 'time' in entry) {
+      entry.visual.style.display = hidden ? 'none' : '';
+      entry.hitRect.style.display = hidden ? 'none' : '';
+      return;
+    }
+    if ('vis' in entry) {
+      const t = entry as TrendEntry;
+      for (const el of [t.vis, t.hit, t.h1, t.h2]) {
+        el.style.display = hidden ? 'none' : '';
+      }
+    }
   }
 
   setMutateCallback(cb: (() => void) | null): void {
@@ -364,6 +494,7 @@ export class DrawingToolManager {
 
   private hitTest(x: number, y: number): HitResult | null {
     for (const t of this.trends) {
+      if (t.hidden) continue;
       const x1 = this.chart.timeScale().timeToCoordinate(toTs(t.t1));
       const x2 = this.chart.timeScale().timeToCoordinate(toTs(t.t2));
       const y1 = this.series.priceToCoordinate(t.p1);
@@ -377,6 +508,7 @@ export class DrawingToolManager {
       }
     }
     for (const f of this.fibs) {
+      if (f.hidden) continue;
       const hi = Math.max(f.high, f.low);
       const lo = Math.min(f.high, f.low);
       const range = hi - lo;
@@ -388,10 +520,12 @@ export class DrawingToolManager {
       }
     }
     for (const h of this.hlines) {
+      if (h.hidden) continue;
       const cy = this.series.priceToCoordinate(h.price);
       if (cy != null && Math.abs(y - cy) <= HIT_PX) return { type: 'hline', id: h.id };
     }
     for (const v of this.vlines) {
+      if (v.hidden) continue;
       const xc = this.chart.timeScale().timeToCoordinate(toTs(v.time));
       if (xc != null && Math.abs(x - xc) <= HIT_PX) return { type: 'vline', id: v.id };
     }
@@ -499,6 +633,10 @@ export class DrawingToolManager {
       if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
       const h = this.session.hit;
       if (!h) return;
+      if (this.isLocked(h.id)) {
+        this.session = null;
+        return;
+      }
       if (h.type === 'fib') {
         this.session = null;
         return;
@@ -607,7 +745,7 @@ export class DrawingToolManager {
       return;
     }
     if (e.key !== 'Delete' && e.key !== 'Backspace') return;
-    if (!this.selectedId) return;
+    if (!this.selectedId || this.isLocked(this.selectedId)) return;
     e.preventDefault();
     this.removeDrawingById(this.selectedId);
     this.selectedId = null;

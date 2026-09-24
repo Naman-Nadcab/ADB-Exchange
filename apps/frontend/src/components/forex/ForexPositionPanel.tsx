@@ -49,8 +49,11 @@ export function ForexPositionPanel() {
   const fees = useForexStore((s) => s.fees);
   const swaps = useForexStore((s) => s.swaps);
   const actions = useForexPositionActions();
+  const selectedSymbol = useForexWorkspaceStore((s) => s.selectedSymbol);
   const focusSymbol = useForexWorkspaceStore((s) => s.focusSymbol);
   const setBottomTab = useForexWorkspaceStore((s) => s.setBottomTab);
+  const chartFocusPositionId = useForexWorkspaceStore((s) => s.chartFocusPositionId);
+  const setChartFocusPositionId = useForexWorkspaceStore((s) => s.setChartFocusPositionId);
   const [menu, setMenu] = useState<{ x: number; y: number; positionId: string } | null>(null);
   const [trailDraft, setTrailDraft] = useState<Record<string, string>>({});
 
@@ -98,6 +101,11 @@ export function ForexPositionPanel() {
             {tp('accountMode', { mode: accountMode })}
             {hedging ? tp('hedgingHint') : tp('nettingHint')}
           </p>
+          {hedging &&
+          openRows.filter((p) => p.symbol === selectedSymbol).length > 1 &&
+          !openRows.some((p) => p.positionId === chartFocusPositionId && p.symbol === selectedSymbol) ? (
+            <p className="border-b border-border px-3 py-1 text-[10px] text-amber-800 dark:text-amber-200">{tp('chartFocusHint')}</p>
+          ) : null}
           {status === 'STALE' ? (
             <p className="px-3 pt-2 text-[11px] text-amber-800 dark:text-amber-200">{tp('stale')}</p>
           ) : null}
@@ -139,6 +147,15 @@ export function ForexPositionPanel() {
                     {openRows.map((p) => (
                       <PositionRow
                         key={p.positionId}
+                        chartLinked={chartFocusPositionId === p.positionId}
+                        onSelectChart={
+                          hedging
+                            ? () => {
+                                setChartFocusPositionId(p.positionId);
+                                focusSymbol(p.symbol);
+                              }
+                            : undefined
+                        }
                         position={p}
                         digits={instruments[p.symbol]?.digits ?? 5}
                         live={livePositionValuation({
@@ -395,6 +412,8 @@ function PositionRow(props: {
   onTrailSet: (id: string | null) => void;
   onTrailOff: (id: string | null) => void;
   protBusy: boolean;
+  chartLinked?: boolean;
+  onSelectChart?: () => void;
 }) {
   const tp = useTranslations('forex.positionPanel');
   const ts = useTranslations('forex.sides');
@@ -403,8 +422,37 @@ function PositionRow(props: {
   const live = props.live;
   const sideLabel = p.side === 'long' ? ts('buy') : ts('sell');
   return (
-    <tr className="border-t border-border align-top" onContextMenu={props.onContext}>
-      <td className="px-2 py-1.5" title={p.positionId}>{p.positionId.slice(0, 8)}</td>
+    <tr
+      className={cn(
+        'border-t border-border align-top',
+        props.chartLinked && 'bg-primary/10',
+        props.onSelectChart && 'cursor-pointer hover:bg-muted/40'
+      )}
+      onContextMenu={props.onContext}
+      aria-selected={props.chartLinked}
+    >
+      <td className="px-2 py-1.5" title={p.positionId}>
+        <span className="inline-flex items-center gap-1">
+          {props.onSelectChart ? (
+            <button
+              type="button"
+              className={cn(
+                'rounded px-0.5 font-mono text-[11px] underline-offset-2 hover:underline',
+                props.chartLinked ? 'text-primary font-semibold' : 'text-foreground'
+              )}
+              aria-label={tp('selectForChartAria', { id: p.positionId.slice(0, 8) })}
+              onClick={props.onSelectChart}
+            >
+              {p.positionId.slice(0, 8)}
+            </button>
+          ) : (
+            p.positionId.slice(0, 8)
+          )}
+          {props.chartLinked ? (
+            <span className="rounded bg-primary/20 px-1 text-[9px] uppercase text-primary">{tp('chartLinkedBadge')}</span>
+          ) : null}
+        </span>
+      </td>
       <td className="px-2 py-1.5">{p.symbol}</td>
       <td className="px-2 py-1.5 uppercase">{sideLabel}</td>
       <td className="px-2 py-1.5">{p.volume}</td>

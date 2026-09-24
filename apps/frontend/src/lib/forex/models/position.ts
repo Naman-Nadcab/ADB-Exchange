@@ -149,4 +149,23 @@ export function volumeStepHint(inst: ForexInstrument | undefined): string | null
   return inst?.volumeStep ?? null;
 }
 
+/** Chart entry/SL/TP markers: netting uses the net leg; hedging requires an explicit row focus when multiple legs exist. */
+export function chartLinkedOpenPosition(
+  positions: Record<string, ForexPublicPosition>,
+  symbol: string,
+  positionMode: 'NETTING' | 'HEDGING',
+  focusPositionId: string | null
+): ForexPublicPosition | null {
+  const open = Object.values(positions).filter((p) => p.status === 'OPEN' && p.symbol === symbol);
+  if (!open.length) return null;
+  if (positionMode === 'NETTING' || open.length === 1) {
+    return [...open].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0] ?? null;
+  }
+  if (focusPositionId) {
+    const hit = open.find((p) => p.positionId === focusPositionId);
+    if (hit) return hit;
+  }
+  return null;
+}
+
 export type { ForexUnrealizedPnlRow };

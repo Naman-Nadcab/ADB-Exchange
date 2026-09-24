@@ -102,6 +102,8 @@ export interface ForexWorkspaceState {
   linkTimeframe: boolean;
   oneClickEnabled: boolean;
   oneClickAcked: boolean;
+  /** Hedging: chart SL/TP levels target this open position (session-only). */
+  chartFocusPositionId: string | null;
   /** Chart → ticket draft. Not persisted. */
   ticketDraft: {
     nonce: number;
@@ -142,6 +144,7 @@ export interface ForexWorkspaceState {
   restoreMaximizedChart: () => void;
   setOneClickEnabled: (on: boolean) => void;
   setOneClickAcked: (acked: boolean) => void;
+  setChartFocusPositionId: (positionId: string | null) => void;
   setTicketDraft: (draft: ForexWorkspaceState['ticketDraft']) => void;
   applySnapshot: (snap: ForexWorkspaceSnapshot) => void;
   captureSnapshot: () => ForexWorkspaceSnapshot;
@@ -361,6 +364,7 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
       linkTimeframe: false,
       oneClickEnabled: false,
       oneClickAcked: false,
+      chartFocusPositionId: null,
       ticketDraft: null,
       setWorkspace: (workspace) => set({ workspace }),
       setSelectedSymbol: (selectedSymbol) =>
@@ -564,6 +568,7 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
       },
       setOneClickEnabled: (oneClickEnabled) => set({ oneClickEnabled }),
       setOneClickAcked: (oneClickAcked) => set({ oneClickAcked }),
+      setChartFocusPositionId: (chartFocusPositionId) => set({ chartFocusPositionId }),
       setTicketDraft: (ticketDraft) => set({ ticketDraft }),
       captureSnapshot: () => {
         const s = get();
