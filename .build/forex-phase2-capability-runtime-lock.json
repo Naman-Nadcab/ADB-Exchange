@@ -1,0 +1,160 @@
+{
+  "phase": "2-lockdown-A",
+  "status": "COMPLETE",
+  "timestampUtc": "2026-09-18T14:35:00Z",
+  "git": {
+    "branch": "release/exchange-production-baseline",
+    "head": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "preExistingDirtyNote": "Large WIP tree unchanged; not cleaned."
+  },
+  "deployment": {
+    "backend": {
+      "container": "exchange-backend",
+      "image": "m-live-backend:latest",
+      "digestPreLockCert": "sha256:8776d05c52b1048ed961142c917dfc825ad318cc08c03d2ad20de4f521d29be6",
+      "digestPostLockCert": "sha256:9f7f26e226c676d86bf88e98d872f0e48161ac7a41f8799b0b9334ccfb62c8a6",
+      "health": "healthy",
+      "restarts": 0
+    },
+    "frontend": {
+      "container": "exchange-frontend",
+      "image": "m-live-frontend:latest",
+      "digest": "sha256:ec76bc1f065fee0764d1e2e24c1e5d3709c2c6da437e5fabda2aef1f877aaa63",
+      "health": "healthy",
+      "restarts": 0,
+      "redeployedThisLockdown": false
+    }
+  },
+  "apiEvidence": {
+    "tradingConfigUrl": "http://127.0.0.1:4000/api/v1/forex/trading-config",
+    "snapshotPostCert": ".build/forex-phase2-lockdown-trading-config-post-cert.json",
+    "orderTypes": ["market", "limit", "stop", "stop_limit"],
+    "timeInForce": ["GTC", "IOC", "FOK", "DAY"],
+    "capabilitiesVersion": 1,
+    "quotes": { "source": "SIMULATED", "providerCode": "MOCK-C" }
+  },
+  "browserEvidence": {
+    "url": "http://109.123.254.30/forex/trade",
+    "snapshot": ".build/forex-phase2-lockdown-ui-evidence.json",
+    "screenshot": ".build/forex-phase2-lockdown-trade-ui.png",
+    "orderTypesVisible": ["Market", "Limit", "Stop", "Stop Limit"],
+    "tifVisible": ["GTC", "IOC", "FOK", "DAY"],
+    "gtdVisible": false
+  },
+  "qaJourneyEvidence": ".build/forex-phase2-lockdown-qa-journeys.json",
+  "capabilities": {
+    "market": {
+      "source": "VERIFIED",
+      "test": "TEST_VERIFIED",
+      "apiRuntime": "RUNTIME_VERIFIED",
+      "uiRuntime": "UI_VERIFIED",
+      "orderRuntime": "RUNTIME_VERIFIED",
+      "runtimeCertification": "MOCK_ONLY"
+    },
+    "limit": {
+      "source": "VERIFIED",
+      "test": "TEST_VERIFIED",
+      "apiRuntime": "RUNTIME_VERIFIED",
+      "uiRuntime": "UI_VERIFIED",
+      "orderRuntime": "NOT_PROVEN",
+      "runtimeCertification": "MOCK_ONLY",
+      "note": "Not replayed in this lockdown harness; prior Phase 1/2 MOCK certification preserved."
+    },
+    "stop": {
+      "source": "VERIFIED",
+      "test": "TEST_VERIFIED",
+      "apiRuntime": "RUNTIME_VERIFIED",
+      "uiRuntime": "UI_VERIFIED",
+      "orderRuntime": "NOT_PROVEN",
+      "runtimeCertification": "MOCK_ONLY",
+      "note": "Not replayed in this lockdown harness; prior certification preserved."
+    },
+    "stop_limit": {
+      "source": "VERIFIED",
+      "test": "TEST_VERIFIED",
+      "apiRuntime": "RUNTIME_VERIFIED",
+      "uiRuntime": "UI_VERIFIED",
+      "orderRuntime": "RUNTIME_VERIFIED",
+      "runtimeCertification": "MOCK_ONLY",
+      "journeys": ["buy pending+cancel", "sell trigger+fill"]
+    },
+    "gtc": {
+      "source": "VERIFIED",
+      "test": "TEST_VERIFIED",
+      "apiRuntime": "RUNTIME_VERIFIED",
+      "uiRuntime": "UI_VERIFIED",
+      "orderRuntime": "RUNTIME_VERIFIED",
+      "runtimeCertification": "MOCK_ONLY"
+    },
+    "day": {
+      "source": "VERIFIED",
+      "test": "TEST_VERIFIED",
+      "apiRuntime": "RUNTIME_VERIFIED",
+      "uiRuntime": "UI_VERIFIED",
+      "orderRuntime": "RUNTIME_VERIFIED",
+      "runtimeCertification": "MOCK_ONLY",
+      "journeys": ["DAY stop_limit PENDING accepted"]
+    },
+    "ioc": {
+      "source": "VERIFIED",
+      "test": "TEST_VERIFIED",
+      "apiRuntime": "RUNTIME_VERIFIED",
+      "uiRuntime": "UI_VERIFIED",
+      "orderRuntime": "RUNTIME_VERIFIED",
+      "runtimeCertification": "MOCK_ONLY",
+      "journeys": ["IOC market FILLED remainder 0"]
+    },
+    "fok": {
+      "source": "VERIFIED",
+      "test": "TEST_VERIFIED",
+      "apiRuntime": "RUNTIME_VERIFIED",
+      "uiRuntime": "UI_VERIFIED",
+      "orderRuntime": "RUNTIME_VERIFIED",
+      "runtimeCertification": "MOCK_ONLY",
+      "journeys": ["FOK market FILLED"]
+    },
+    "gtd": {
+      "source": "VERIFIED",
+      "test": "TEST_VERIFIED",
+      "apiRuntime": "RUNTIME_VERIFIED",
+      "uiRuntime": "NOT_EXPOSED",
+      "orderRuntime": "NOT_EXPOSED",
+      "runtimeCertification": "NOT_CERTIFIED",
+      "engine": false,
+      "customerExposed": false
+    }
+  },
+  "contractSourceChanged": [
+    "apps/backend/src/services/forex/capabilities/customer-contract.ts",
+    "apps/backend/src/services/forex/capabilities/customer-contract.test.ts"
+  ],
+  "tests": [
+    { "name": "customer-contract.test.ts", "result": "PASS" },
+    { "name": "forex-phase2-customer-terminal.test.ts", "result": "PASS" }
+  ],
+  "realForex": {
+    "env": "not set",
+    "tradingConfig": false,
+    "executionMode": "MOCK",
+    "mt5": "NOT_CONFIGURED",
+    "fix": "NOT_CONFIGURED",
+    "cTrader": "NOT_CONFIGURED",
+    "externalLP": "NOT_CONFIGURED"
+  },
+  "cryptoFirewall": {
+    "modifiedInLockdown": false,
+    "preExistingDirtyDiffSha256": "c94ba8f955b28b1536f39b8a840aa7ec27f7e5c00cf1098310bfd1bfb136fdaa",
+    "postLockDiffSha256": "c94ba8f955b28b1536f39b8a840aa7ec27f7e5c00cf1098310bfd1bfb136fdaa",
+    "files": ["apps/backend/src/routes/spot.fastify.ts", "apps/backend/src/lib/spot-ticker-db-load.ts"]
+  },
+  "database": {
+    "migration": false,
+    "seed": false,
+    "forex_orders_count": 773,
+    "note": "Count increased by QA harness orders during lockdown replay."
+  },
+  "rollback": {
+    "procedure": "deployment/rollback.sh + docker compose rebuild",
+    "priorBackendDigest": "sha256:8776d05c52b1048ed961142c917dfc825ad318cc08c03d2ad20de4f521d29be6"
+  }
+}

@@ -19,10 +19,13 @@ import { resetForexPricingServiceForTests } from './quotes.service.js';
 import { resetForexAccountPoliciesForTests, setForexAccountPolicy } from './risk/engine.js';
 import { resetForexDealingForTests } from './risk/dealing.js';
 import { resetForexRiskLimitsForTests } from './risk/policy.js';
+import { resetForexSessionExceptionsForTests, setForexSessionNowForTests } from './sessions/eligibility.js';
 import type { ProviderRawQuote } from './types.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const USER = 'preview-user';
+/** Monday midday UTC — within 24x5 NY session for deterministic validation. */
+const OPEN_SESSION_CLOCK = new Date('2026-09-07T16:00:00.000Z');
 
 function raw(
   p: Partial<ProviderRawQuote> & Pick<ProviderRawQuote, 'symbol' | 'bid' | 'ask' | 'providerId' | 'providerCode'>
@@ -34,6 +37,8 @@ function harness() {
   resetForexAccountPoliciesForTests();
   resetForexRiskLimitsForTests();
   resetForexDealingForTests();
+  resetForexSessionExceptionsForTests();
+  setForexSessionNowForTests(OPEN_SESSION_CLOCK);
   const pricing = resetForexPricingServiceForTests();
   const now = new Date();
   pricing.ingestRaw(
@@ -151,4 +156,6 @@ testStaleMissingQuote();
 testNoMutation();
 testLowBalanceBlocks();
 testNoFabricationInSource();
+setForexSessionNowForTests(null);
+resetForexSessionExceptionsForTests();
 console.log('forex-phase104-preview.test.ts ok');

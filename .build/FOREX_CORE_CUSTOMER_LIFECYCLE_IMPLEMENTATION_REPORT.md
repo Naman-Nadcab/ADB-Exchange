@@ -2,8 +2,8 @@
 
 **Baseline:** `4899945d007505e997f3153f47bffed2bb17a005`  
 **Branch:** `release/exchange-production-baseline`  
-**Commit:** _(filled after commit)_  
-**Remote sync:** _(filled after push)_
+**Commit:** `ccb9b47` — `feat(forex): complete core customer account lifecycle`  
+**Remote sync:** `HEAD == origin/release/exchange-production-baseline` at `ccb9b47`
 
 ## A. Implemented now
 
@@ -89,9 +89,21 @@ See commit `feat(forex): complete core customer account lifecycle` (staged paths
 - Backend: `forex-customer-accounts.fastify.ts`, `account-detail-bundle.ts`, `accounts-service.ts`, `forex-multi-account.integration.test.ts`
 - Frontend: hub/center/funds nav, API client, routes, new pages and panels, i18n forex.json (3 locales), `product-gates.test.ts`
 
-## M–O. Git
+## M. Commit hash
 
-_(Updated after commit and push.)_
+`ccb9b476cc54619235a8487d33e94be4a1ce5740` (short: `ccb9b47`)
+
+## N. Branch
+
+`release/exchange-production-baseline`
+
+## O. Remote sync
+
+```
+git rev-parse HEAD
+git rev-parse origin/release/exchange-production-baseline
+# both: ccb9b476cc54619235a8487d33e94be4a1ce5740
+```
 
 ## Separation summary
 

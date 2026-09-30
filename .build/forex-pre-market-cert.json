@@ -1,0 +1,87 @@
+{
+  "kind": "forex-pre-market-cert",
+  "startedAtUtc": "2026-09-19T11:02:26.202Z",
+  "api": "http://127.0.0.1:4000",
+  "tests": {
+    "session_api": {
+      "ok": true,
+      "open": false,
+      "reason": "WEEKEND_CLOSURE"
+    },
+    "preview_rejects_closed_session": {
+      "ok": true,
+      "code": "SESSION_CLOSED",
+      "allowed": false
+    },
+    "account_scoped_self": {
+      "ok": true,
+      "accountA": "14e57a8f-bbd2-4b48-9b60-6bccede41176",
+      "accountB": "dc606f80-223e-41e5-b68f-2a39e328f526"
+    },
+    "idor_position_by_id": {
+      "ok": true,
+      "skipped": "no open position on B"
+    },
+    "idor_order_by_id": {
+      "ok": true,
+      "skipped": "no orders on B"
+    },
+    "idor_margin": {
+      "ok": true,
+      "statusA": 200,
+      "statusB": 200,
+      "accIdA": "14e57a8f-bbd2-4b48-9b60-6bccede41176",
+      "accIdB": "dc606f80-223e-41e5-b68f-2a39e328f526"
+    },
+    "idor_risk": {
+      "ok": true,
+      "statusA": 200,
+      "statusB": 200,
+      "accIdA": "14e57a8f-bbd2-4b48-9b60-6bccede41176",
+      "accIdB": "dc606f80-223e-41e5-b68f-2a39e328f526"
+    },
+    "idor_liquidation": {
+      "ok": true,
+      "statusA": 200,
+      "statusB": 200,
+      "accIdA": "14e57a8f-bbd2-4b48-9b60-6bccede41176",
+      "accIdB": "dc606f80-223e-41e5-b68f-2a39e328f526"
+    },
+    "idor_journal": {
+      "ok": true,
+      "statusA": 200,
+      "statusB": 200,
+      "accIdA": "14e57a8f-bbd2-4b48-9b60-6bccede41176",
+      "accIdB": "dc606f80-223e-41e5-b68f-2a39e328f526"
+    },
+    "idor_ledger": {
+      "ok": true,
+      "statusA": 200,
+      "statusB": 200,
+      "accIdA": "14e57a8f-bbd2-4b48-9b60-6bccede41176",
+      "accIdB": "dc606f80-223e-41e5-b68f-2a39e328f526"
+    },
+    "unauthenticated_forex_account": {
+      "ok": true
+    },
+    "ws_anon_private_subscribe_denied": {
+      "ok": true,
+      "snippets": [
+        "{\"type\":\"welcome\",\"data\":{\"protocol\":\"eda.forex.ws.v1\",\"source\":\"SIMULATED\",\"events\":[\"fx.quote\",\"fx.liquidity\",\"fx.exec",
+        "{\"type\":\"error\",\"channel\":\"fx.risk\",\"data\":{\"code\":\"AUTH_REQUIRED\",\"message\":\"Private Forex channels require an authenti"
+      ]
+    },
+    "ws_invalid_jwt_private_denied": {
+      "ok": true
+    },
+    "ws_bearer_subscribe_ack": {
+      "ok": true,
+      "eventCount": 8
+    },
+    "ws_reconnect_welcome": {
+      "ok": true
+    }
+  },
+  "pass": true,
+  "completedAtUtc": "2026-09-19T11:03:00.827Z"
+}

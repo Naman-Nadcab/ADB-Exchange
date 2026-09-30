@@ -1,4 +1,4 @@
-import type { ForexOrderRequest } from './request.js';
+import type { ForexOrderRequest, ForexTimeInForce } from './request.js';
 import type { ForexOrderEventType, ForexOrderReason, ForexOrderState } from './states.js';
 
 export interface ForexOrderEvent {
@@ -26,6 +26,11 @@ export interface ForexOrderRecord {
   filledVolume: string;
   remainingVolume: string;
   requestedPrice: string | null;
+  /** stop_limit LIMIT price. Retained after the stop triggers. */
+  limitPrice: string | null;
+  timeInForce: ForexTimeInForce;
+  /** GTD expiry instant (UTC ISO). Null for other TIFs. */
+  expireAt: string | null;
   maxSlippage: string | null;
   maxDeviation: string | null;
   status: ForexOrderState;
@@ -65,6 +70,12 @@ export function publicForexOrder(order: ForexOrderRecord) {
     filledVolume: order.filledVolume,
     remainingVolume: order.remainingVolume,
     requestedPrice: order.requestedPrice,
+    limitPrice: order.limitPrice,
+    timeInForce: order.timeInForce,
+    expireAt: order.expireAt,
+    stopLoss: order.request.stopLoss ?? null,
+    takeProfit: order.request.takeProfit ?? null,
+    comment: order.request.comment ?? null,
     status: order.status,
     failureReason: order.failureReason,
     executionId: order.executionId,
@@ -78,6 +89,8 @@ export function publicForexOrder(order: ForexOrderRecord) {
 
 export interface ForexOrderModifyRequest {
   requestedPrice?: string;
+  /** stop_limit only — patch the working LIMIT price. */
+  limitPrice?: string;
   volume?: string;
   stopLoss?: string;
   takeProfit?: string;

@@ -1,0 +1,24 @@
+{
+  "updatedAtUtc": "2026-09-19T07:10:00.000Z",
+  "phase4": {
+    "status": "CONDITIONAL / NOT_PROVEN",
+    "liveBlocked": true,
+    "blocker": "WEEKEND_CLOSURE",
+    "nextOpenUtc": "2026-09-20T21:00:00.000Z",
+    "backendDigest": "sha256:66380c376dad32673fbbed38a98c6f67abf22c55e2b8759dd0b49492857036a7",
+    "frontendDigest": "sha256:b89fed073713b1dd92583fbce944278d810c4373a019cb35b78e17d0eacea3be",
+    "liveCertScript": "scripts/forex-phase4-live-green-cert.mjs",
+    "waitScript": "scripts/forex-phase4-wait-and-green-cert.sh"
+  },
+  "phase5": {
+    "status": "BLOCKED_BY_PHASE_4",
+    "implementation": "MOSTLY_IMPLEMENTED",
+    "runtimeVerified": false,
+    "deployedRiskBarAndWs": true
+  },
+  "safety": {
+    "realForex": false,
+    "execution": "MOCK/SIMULATED",
+    "cryptoIsolation": "PASS"
+  }
+}

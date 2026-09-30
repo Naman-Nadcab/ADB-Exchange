@@ -1,0 +1,85 @@
+{
+  "generatedAtUtc": "2026-09-19T09:27:42.773Z",
+  "commit": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "executionMode": "MOCK",
+  "realForex": false,
+  "source": "SIMULATED",
+  "modes": {
+    "marketExecution": {
+      "mt5": true,
+      "engine": "MOCK instant fill at quote",
+      "customerUi": true,
+      "status": "YELLOW",
+      "note": "MOCK semantics — not LP Request/Instant"
+    },
+    "instantExecution": {
+      "mt5": true,
+      "engine": false,
+      "customerUi": false,
+      "status": "NOT_CONFIGURED"
+    },
+    "requestExecution": {
+      "mt5": true,
+      "engine": false,
+      "customerUi": false,
+      "status": "NOT_CONFIGURED"
+    },
+    "exchangeExecution": {
+      "mt5": true,
+      "engine": false,
+      "customerUi": false,
+      "status": "NOT_CONFIGURED"
+    }
+  },
+  "fillPolicies": {
+    "FOK": {
+      "engine": true,
+      "customerExposed": true,
+      "status": "YELLOW"
+    },
+    "IOC": {
+      "engine": true,
+      "customerExposed": true,
+      "status": "YELLOW"
+    },
+    "RETURN": {
+      "engine": false,
+      "customerExposed": false,
+      "status": "NOT_CONFIGURED"
+    },
+    "BOC": {
+      "engine": false,
+      "customerExposed": false,
+      "status": "NOT_CONFIGURED"
+    }
+  },
+  "timeInForce": {
+    "GTC": {
+      "engine": true,
+      "customerExposed": true,
+      "status": "YELLOW"
+    },
+    "DAY": {
+      "engine": true,
+      "customerExposed": true,
+      "status": "YELLOW"
+    },
+    "IOC": {
+      "engine": true,
+      "customerExposed": true,
+      "status": "YELLOW"
+    },
+    "FOK": {
+      "engine": true,
+      "customerExposed": true,
+      "status": "YELLOW"
+    },
+    "GTD": {
+      "engine": false,
+      "customerExposed": false,
+      "status": "RED",
+      "note": "Not in FOREX_ENGINE_TIME_IN_FORCE"
+    }
+  },
+  "providerGate": "REAL_FOREX off — no live LP execution certification"
+}

@@ -1,0 +1,79 @@
+{
+  "phase3_status": "COMPLETE_WITH_GAPS",
+  "timestampUtc": "2026-09-18T16:20:00Z",
+  "environment": {
+    "executionMode": "MOCK",
+    "source": "SIMULATED",
+    "realForex": false
+  },
+  "orderTypes": {
+    "market_buy": "RUNTIME_VERIFIED",
+    "market_sell": "RUNTIME_VERIFIED",
+    "limit_buy": "RUNTIME_VERIFIED",
+    "limit_sell": "RUNTIME_VERIFIED",
+    "buy_stop": "RUNTIME_VERIFIED",
+    "sell_stop": "RUNTIME_VERIFIED",
+    "buy_stop_limit": "RUNTIME_VERIFIED",
+    "sell_stop_limit": "RUNTIME_VERIFIED"
+  },
+  "timeInForce": {
+    "gtc": "RUNTIME_VERIFIED",
+    "ioc": "RUNTIME_VERIFIED",
+    "fok": "RUNTIME_VERIFIED",
+    "day": "PARTIAL_RUNTIME_VERIFIED",
+    "gtd": "NOT_EXPOSED"
+  },
+  "crossCutting": {
+    "execution_fill_lineage": "RUNTIME_VERIFIED",
+    "journal_persistence": "RUNTIME_VERIFIED",
+    "ledger_effect": "RUNTIME_VERIFIED",
+    "position_management_api": "RUNTIME_VERIFIED",
+    "idempotency_client_order_id": "RUNTIME_VERIFIED",
+    "websocket_private_order": "RUNTIME_VERIFIED",
+    "security_idor_orders": "RUNTIME_VERIFIED",
+    "security_idor_journal": "RUNTIME_VERIFIED",
+    "browser_ui": "NOT_PROVEN",
+    "pending_lifecycle_all_states": "PARTIAL_RUNTIME_VERIFIED",
+    "day_session_expiry": "NOT_PROVEN"
+  },
+  "dbSnapshotPostCert": {
+    "forex_orders": 788,
+    "forex_journal_events": 88,
+    "forex_positions_open": 3,
+    "forex_executions": 676,
+    "forex_fills": 674,
+    "forex_ledger_transactions": 416
+  },
+  "lineageSample": {
+    "clientOrderId": "p3-ssl-1789748201989",
+    "orderId": "82c902ef-b024-4314-8ba9-bd90f2f5adba",
+    "executionId": "9c461e4e-4d6d-47c7-9d17-4380d1af55ce",
+    "fillId": "a9603b63-9d72-4041-a60b-4885f68ee2b1",
+    "journalEventTypes": ["ORDER_ACCEPTED", "ORDER_PENDING", "ORDER_FILLED"]
+  },
+  "tests": {
+    "forex-phase3-customer-execution.cert.ts": "PASS",
+    "forex-phase2-customer-terminal.test.ts": "PASS",
+    "forex-phase1c-stoplimit-tif.test.ts": "PASS"
+  },
+  "firewall": {
+    "cryptoChanged": false,
+    "cryptoDirtySha256": "c94ba8f955b28b1536f39b8a840aa7ec27f7e5c00cf1098310bfd1bfb136fdaa",
+    "realForexChanged": false,
+    "migration": false,
+    "seed": false,
+    "mt5Contacted": false,
+    "fixContacted": false,
+    "cTraderContacted": false,
+    "externalLpContacted": false
+  },
+  "evidenceFiles": [
+    ".build/forex-phase3-customer-execution-cert-results.json",
+    ".build/forex-phase2-journal-runtime-certification.json"
+  ],
+  "knownGaps": [
+    "DAY: accept+cancel proven; end-of-session EXPIRED not waited",
+    "Browser /forex/trade UI not exercised (Playwright unavailable in cert runner environment)",
+    "Engineering lifecycle states TRIGGERING/SUBMITTED not separately asserted in customer journal (journal maps ACCEPTED/PENDING/FILLED)"
+  ]
+}

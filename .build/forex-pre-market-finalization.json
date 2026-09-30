@@ -1,0 +1,91 @@
+{
+  "title": "Forex pre-market finalization",
+  "branch": "release/exchange-production-baseline",
+  "commit": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "completedAtUtc": "2026-09-19T08:30:00.000Z",
+  "verdict": {
+    "phase4NonMarket": "COMPLETE",
+    "phase5NonMarket": "COMPLETE",
+    "preMarketFinalization": "COMPLETE",
+    "phase4Green": false,
+    "phase5Green": false
+  },
+  "deployment": {
+    "backendDigest": "sha256:66380c376dad32673fbbed38a98c6f67abf22c55e2b8759dd0b49492857036a7",
+    "frontendDigest": "sha256:b89fed073713b1dd92583fbce944278d810c4373a019cb35b78e17d0eacea3be",
+    "redeployedThisPass": false,
+    "health": "healthy"
+  },
+  "realForex": { "enabled": false, "containerEnv": "unset" },
+  "cryptoIsolation": {
+    "verified": true,
+    "spotFastifySha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "spotTickerDbLoadSha256": "bb2ffb23ab52ac81f37883bf58b36143a53cc2113614c96b3717fd08ae128613"
+  },
+  "session": { "open": false, "reason": "WEEKEND_CLOSURE" },
+  "phase4": {
+    "gapsFound": [
+      { "item": "forex-phase1c-stoplimit-tif.test.ts weekend SESSION_CLOSED", "class": "B", "fixed": "Open-session test clock" }
+    ],
+    "gapsFixed": [
+      "apps/backend/src/services/forex/forex-phase1c-stoplimit-tif.test.ts",
+      "scripts/forex-pre-market-cert.mjs (new)",
+      "scripts/forex-pre-market-browser.mjs (new)"
+    ],
+    "testsExecuted": [
+      "forex-phase6",
+      "forex-phase104-preview",
+      "forex-phase5",
+      "forex-phase7",
+      "forex-phase8",
+      "forex-phase2-customer-terminal",
+      "forex-phase1c-stoplimit-tif",
+      "entry-price-reconcile",
+      "forex-ws-auth",
+      "forex-pre-market-cert.mjs"
+    ],
+    "browserTests": "forex-pre-market-browser.mjs — desktop/tablet/mobile PASS",
+    "securityIdor": "forex-pre-market-cert.mjs — cross-account position/order + scoped APIs PASS; phase8 unit PASS",
+    "wsMechanics": "pre-market-cert Bearer/anon/invalid/reconnect; browser cookie WS subscribe PASS"
+  },
+  "phase5": {
+    "gapsFound": [
+      { "item": "forex-preview.test.ts stale previewRequestKey", "class": "B", "fixed": true },
+      { "item": "Market watch High/Low", "class": "D", "note": "No authoritative quote DTO — not implemented" },
+      { "item": "Order modify TIF", "class": "C", "note": "Backend contract excludes TIF on modify — correct" }
+    ],
+    "gapsFixed": ["apps/frontend/src/lib/forex/forex-preview.test.ts"],
+    "testsExecuted": [
+      "forex-workstation-ui",
+      "forex-preview",
+      "forex-foundation",
+      "forex-phase11",
+      "forex-positions",
+      "forex-candles",
+      "forex-pre-market-browser.mjs"
+    ],
+    "browserResponsive": "PASS 1600/768/390 — no overflow, no [object Object], ticket present, session closed visible",
+    "securityIdor": "Same as Phase 4 customer API matrix",
+    "wsMechanics": "Cookie-authenticated browser WebSocket subscribe fx.risk"
+  },
+  "dbMigrations": "None applied this pass",
+  "artifacts": [
+    ".build/forex-pre-market-finalization.json",
+    ".build/forex-pre-market-finalization.md",
+    ".build/forex-pre-market-cert.json",
+    ".build/forex-pre-market-browser.json",
+    ".build/forex-phase4-market-only-final-checkpoint.json",
+    ".build/forex-phase5-market-only-final-checkpoint.json"
+  ],
+  "requirementAuditSummary": {
+    "A_implementationGapsClosed": 0,
+    "B_testGapsClosed": 2,
+    "C_verifiedNonMarket": "Accounting, margin, preview validation, risk state machine, liquidation unit paths, ledger/journal, admin risk hub implementation, terminal UI",
+    "D_marketOnlyRemaining": "See market-only checkpoint JSON files"
+  },
+  "resumeWhenOpen": [
+    "node scripts/forex-phase4-live-green-cert.mjs",
+    "node scripts/forex-browser-cert.mjs",
+    "Phase 5 items in .build/forex-phase5-market-only-final-checkpoint.json"
+  ]
+}

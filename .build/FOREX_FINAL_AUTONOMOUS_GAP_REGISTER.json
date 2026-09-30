@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-09-17T17:00:00Z",
+  "pass": "FINAL_AUTONOMOUS_BUILD",
+  "summary": {
+    "required_internal_gaps": 9,
+    "externally_dependent": 4,
+    "verified_domains_this_session": [
+      "finance_ledger_e2e",
+      "account_lifecycle_e2e",
+      "ib_internal_payout_e2e",
+      "automation_live_e2e",
+      "idor_180",
+      "api_smoke_28",
+      "live_journey"
+    ]
+  },
+  "features": [
+    {
+      "domain": "FINANCE",
+      "feature": "maker_checker_ledger",
+      "status": "COMPLETE",
+      "evidence": ".build/forex-pass3-finance-e2e.json"
+    },
+    {
+      "domain": "IB",
+      "feature": "internal_payout_lifecycle",
+      "status": "COMPLETE",
+      "evidence": ".build/forex-pass3-ib-payout-e2e.json",
+      "external_rail": "NOT_CONFIGURED"
+    },
+    {
+      "domain": "AUTOMATION",
+      "feature": "live_event_dispatch",
+      "status": "COMPLETE",
+      "evidence": ".build/forex-pass3-automation-e2e.json"
+    },
+    {
+      "domain": "RISK",
+      "feature": "unified_hub_ui",
+      "status": "PARTIAL",
+      "gap": "margin_level liquidation drill-down E2E"
+    },
+    {
+      "domain": "CRM",
+      "feature": "lead_to_client_conversion",
+      "status": "PARTIAL",
+      "gap": "functional Playwright + full activity types"
+    },
+    {
+      "domain": "DEALING",
+      "feature": "full_workflow_ui",
+      "status": "PARTIAL",
+      "gap": "assign/escalate in UI + Playwright mutations"
+    },
+    {
+      "domain": "COMPLIANCE",
+      "feature": "status_machine_api_e2e",
+      "status": "COMPLETE",
+      "evidence": "e2e/forex-admin/functional-compliance.spec.ts"
+    },
+    {
+      "domain": "UI",
+      "feature": "zero_raw_json_surfaces",
+      "status": "PARTIAL",
+      "gap": "ForexSystemPanel debug payload; browser forensic pass"
+    },
+    {
+      "domain": "CRYPTO",
+      "feature": "phase_3_15_regression",
+      "status": "NOT_RUN",
+      "severity": "P0"
+    },
+    {
+      "domain": "INTEGRATIONS",
+      "feature": "live_mt5_fix_ctrader_lp",
+      "status": "EXTERNALLY_DEPENDENT"
+    }
+  ],
+  "verdict": "TIER-1 FOREX IMPLEMENTATION INCOMPLETE"
+}

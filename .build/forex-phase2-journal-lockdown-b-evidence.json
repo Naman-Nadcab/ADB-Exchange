@@ -1,0 +1,187 @@
+{
+  "clientOrderId": "jlock-b-1789747671",
+  "baseUrl": "http://127.0.0.1:4000",
+  "baseline": {
+    "db": {
+      "forex_orders": 775,
+      "forex_journal_events": 57,
+      "forex_positions_open": 3,
+      "forex_executions": 664,
+      "forex_fills": 662,
+      "forex_ledger_transactions": 409
+    },
+    "ts": "2026-09-18T16:07:51Z"
+  },
+  "accountId": "14e57a8f-bbd2-4b48-9b60-6bccede41176",
+  "order": {
+    "orderId": "6b1cfea3-3faa-4442-aeec-3a872d93093f",
+    "statusAfterSubmit": "PENDING",
+    "timeInForce": "GTC",
+    "requestedPrice": "1.16500",
+    "limitPrice": "1.16500",
+    "executionId": "0094078f-3561-4227-9f99-c98fcea05f85",
+    "finalStatus": "FILLED"
+  },
+  "afterJourney": {
+    "db": {
+      "forex_orders": 776,
+      "forex_journal_events": 60,
+      "forex_positions_open": 3,
+      "forex_executions": 665,
+      "forex_fills": 663,
+      "forex_ledger_transactions": 410
+    },
+    "ts": "2026-09-18T16:07:53Z"
+  },
+  "dbDelta": {
+    "forex_orders": 1,
+    "forex_journal_events": 3,
+    "forex_positions_open": 0,
+    "forex_executions": 1,
+    "forex_fills": 1,
+    "forex_ledger_transactions": 1
+  },
+  "journalDbForOrder": [
+    {
+      "id": "ecb04d92-f071-467d-ba1f-1c93dc4608f2",
+      "event_type": "ORDER_ACCEPTED",
+      "order_id": "6b1cfea3-3faa-4442-aeec-3a872d93093f",
+      "reference_id": "jlock-b-1789747671",
+      "created_at": "2026-09-18 16:07:52.717+00",
+      "symbol": "EURUSD",
+      "side": "buy",
+      "order_type": "stop_limit",
+      "tif": "GTC",
+      "requested_price": "1.16500",
+      "limit_price": "1.16500",
+      "execution_id": null,
+      "status": "ACCEPTED"
+    },
+    {
+      "id": "c3bda6a5-172e-49e9-a166-8b3117dd0f17",
+      "event_type": "ORDER_PENDING",
+      "order_id": "6b1cfea3-3faa-4442-aeec-3a872d93093f",
+      "reference_id": "jlock-b-1789747671",
+      "created_at": "2026-09-18 16:07:52.718+00",
+      "symbol": "EURUSD",
+      "side": "buy",
+      "order_type": "stop_limit",
+      "tif": "GTC",
+      "requested_price": "1.16500",
+      "limit_price": "1.16500",
+      "execution_id": null,
+      "status": "PENDING"
+    },
+    {
+      "id": "2985e0a1-9908-4804-9fbe-975624828a79",
+      "event_type": "ORDER_FILLED",
+      "order_id": "6b1cfea3-3faa-4442-aeec-3a872d93093f",
+      "reference_id": "jlock-b-1789747671",
+      "created_at": "2026-09-18 16:07:52.944+00",
+      "symbol": "EURUSD",
+      "side": "buy",
+      "order_type": "stop_limit",
+      "tif": "GTC",
+      "requested_price": "1.16500",
+      "limit_price": "1.16500",
+      "execution_id": "0094078f-3561-4227-9f99-c98fcea05f85",
+      "status": "FILLED"
+    }
+  ],
+  "journalApiForOrder": [
+    {
+      "id": "2985e0a1-9908-4804-9fbe-975624828a79",
+      "severity": "info",
+      "category": "order",
+      "eventType": "ORDER_FILLED",
+      "orderId": "6b1cfea3-3faa-4442-aeec-3a872d93093f",
+      "positionId": null,
+      "referenceId": "jlock-b-1789747671",
+      "message": "BUY stop_limit EURUSD 0.01 filled",
+      "metadata": {
+        "symbol": "EURUSD",
+        "side": "buy",
+        "orderType": "stop_limit",
+        "status": "FILLED",
+        "timeInForce": "GTC",
+        "requestedVolume": "0.01",
+        "filledVolume": "0.01",
+        "remainingVolume": "0",
+        "requestedPrice": "1.16500",
+        "limitPrice": "1.16500",
+        "reason": "OK",
+        "version": 1,
+        "executionId": "0094078f-3561-4227-9f99-c98fcea05f85"
+      },
+      "timestamp": "2026-09-18T16:07:52.944Z",
+      "source": "SIMULATED",
+      "executionMode": "MOCK",
+      "origin": "SERVER"
+    },
+    {
+      "id": "c3bda6a5-172e-49e9-a166-8b3117dd0f17",
+      "severity": "info",
+      "category": "order",
+      "eventType": "ORDER_PENDING",
+      "orderId": "6b1cfea3-3faa-4442-aeec-3a872d93093f",
+      "positionId": null,
+      "referenceId": "jlock-b-1789747671",
+      "message": "BUY stop_limit EURUSD 0.01 working",
+      "metadata": {
+        "symbol": "EURUSD",
+        "side": "buy",
+        "orderType": "stop_limit",
+        "status": "PENDING",
+        "timeInForce": "GTC",
+        "requestedVolume": "0.01",
+        "filledVolume": "0",
+        "remainingVolume": "0.01",
+        "requestedPrice": "1.16500",
+        "limitPrice": "1.16500",
+        "reason": null,
+        "version": 1,
+        "executionId": null
+      },
+      "timestamp": "2026-09-18T16:07:52.718Z",
+      "source": "SIMULATED",
+      "executionMode": "MOCK",
+      "origin": "SERVER"
+    },
+    {
+      "id": "ecb04d92-f071-467d-ba1f-1c93dc4608f2",
+      "severity": "info",
+      "category": "order",
+      "eventType": "ORDER_ACCEPTED",
+      "orderId": "6b1cfea3-3faa-4442-aeec-3a872d93093f",
+      "positionId": null,
+      "referenceId": "jlock-b-1789747671",
+      "message": "BUY stop_limit EURUSD 0.01 accepted",
+      "metadata": {
+        "symbol": "EURUSD",
+        "side": "buy",
+        "orderType": "stop_limit",
+        "status": "ACCEPTED",
+        "timeInForce": "GTC",
+        "requestedVolume": "0.01",
+        "filledVolume": "0",
+        "remainingVolume": "0.01",
+        "requestedPrice": "1.16500",
+        "limitPrice": "1.16500",
+        "reason": null,
+        "version": 1,
+        "executionId": null
+      },
+      "timestamp": "2026-09-18T16:07:52.717Z",
+      "source": "SIMULATED",
+      "executionMode": "MOCK",
+      "origin": "SERVER"
+    }
+  ],
+  "idempotency": {
+    "replayOrderId": "6b1cfea3-3faa-4442-aeec-3a872d93093f",
+    "sameOrderId": true,
+    "journalCountAfterReplay": 60
+  },
+  "positionsSample": "2e2545fb-9040-45a3-88de-1913da40828d|OPEN|0.06000000\nb1a86a44-1531-4a39-bd07-935205ed3f9c|CLOSED|0.00000000\n63c98f9b-ba21-418d-b592-05a9a7031b96|CLOSED|0.00000000",
+  "executionDb": "0094078f-3561-4227-9f99-c98fcea05f85|FX-6b1cfea3-3faa-4442-aeec-3a872d93093f|FILLED"
+}

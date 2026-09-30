@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-09-20T06:45:00Z",
+  "runtimeChecked": true,
+  "mutationsPerformed": false,
+  "containers": {
+    "exchange-admin": "running (exchange-admin)",
+    "exchange-backend": "running (exchange-backend)",
+    "backendHealth": "not probed on :3000 this pass; containers list verified"
+  },
+  "realForex": {
+    "containerEnv": "REAL_FOREX unset",
+    "apiEvidence": "forex admin config realForex: false in code",
+    "status": "OFF"
+  },
+  "adminUiReachability": "NOT_BROWSER_VERIFIED this pass (container up)",
+  "database": "NOT_QUERIED this pass (read-only policy; schema via migrate.ts inspection only)"
+}

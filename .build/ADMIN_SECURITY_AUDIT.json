@@ -1,0 +1,22 @@
+{
+  "generatedAt": "2026-09-20T09:30:00Z",
+  "findings": [
+    { "id": "SEC-P0-001", "priority": "P0", "title": "Dirty working tree includes customer Crypto route spot.fastify.ts", "impact": "Accidental deploy could alter frozen Crypto surface", "status": "FAIL", "evidence": "git status M apps/backend/src/routes/spot.fastify.ts" },
+    { "id": "SEC-P1-001", "priority": "P1", "title": "Coarse Forex admin write permission forex:controls:manage", "impact": "Vertical privilege within Forex if role mis-assigned", "status": "PARTIAL", "evidence": "admin-rbac-routes.ts ^/forex write rule" },
+    { "id": "SEC-P1-002", "priority": "P1", "title": "UI permission guards not exhaustively mapped to backend for all 106 pages", "impact": "UI-only authorization risk", "status": "UNKNOWN", "evidence": "Partial checks in protected layout; per-page variance" },
+    { "id": "SEC-P1-003", "priority": "P1", "title": "Cross-domain role permissions (risk_manager: control:trading + forex:controls:manage)", "impact": "Intentional ops breadth; document on refactor", "status": "PASS", "evidence": "ADMIN_IMPLICIT_ROLE_PERMISSIONS" },
+    { "id": "SEC-P2-001", "priority": "P2", "title": "IDOR runtime certification not run for full admin API this audit", "status": "UNKNOWN", "evidence": "forex-admin rbac tests exist; full admin IDOR not executed" },
+    { "id": "SEC-P2-002", "priority": "P2", "title": "Shared audit_logs table — tamper resistance via audit_logs_immutable", "status": "PARTIAL", "evidence": "migrate.ts CREATE audit_logs_immutable" },
+    { "id": "SEC-P3-001", "priority": "P3", "title": "Admin zero-trust middleware present", "status": "PASS", "evidence": "admin-zero-trust.middleware.ts" }
+  ],
+  "authModel": {
+    "backend": "getAdminFromRequest + getAdminWithPermission on sensitive handlers",
+    "routeHook": "ADMIN_ROUTE_RULES pattern match default-deny",
+    "superAdmin": "permission all"
+  },
+  "realForexSafety": {
+    "runtime": "REAL_FOREX unset in exchange-backend",
+    "gates": "execution-gate.ts, dealing-actions.ts",
+    "status": "PASS"
+  }
+}

@@ -11,10 +11,10 @@ export type PlatformPublicMetrics = {
   matching_latency_p99_ms: number | null;
   ws_connected: boolean;
   security_metrics: {
-    wallet_risk_score: number;
-    withdrawal_risk_score: number;
-    behavioral_anomaly: number;
-    infrastructure_integrity: number;
+    wallet_risk_score: number | null;
+    withdrawal_risk_score: number | null;
+    behavioral_anomaly: number | null;
+    infrastructure_integrity: number | null;
   };
   service_latencies: Record<string, number | null>;
 };
@@ -96,6 +96,8 @@ export async function getPlatformPublicMetrics(healthPayload?: {
   const loginPenalty = Math.min(40, secAgg.login_fail_24h / 10);
   const withdrawalPenalty = Math.min(35, secAgg.withdrawal_blocks_24h * 5);
   const anomalyPenalty = Math.min(30, secAgg.risk_blocks_24h * 3);
+  const hasSecurityEvidence =
+    secAgg.login_fail_24h > 0 || secAgg.withdrawal_blocks_24h > 0 || secAgg.risk_blocks_24h > 0;
 
   const service_latencies: Record<string, number | null> = {
     database: depLatency.database ?? checks.database?.latency_ms ?? null,
@@ -108,12 +110,13 @@ export async function getPlatformPublicMetrics(healthPayload?: {
   return {
     uptime_percent: uptimePct,
     matching_latency_p99_ms: slo?.slo.order_latency_p99_ms.value ?? null,
-    ws_connected: healthPayload?.status === 'healthy' || healthPayload?.status === 'degraded',
+    // Do not treat a degraded health probe as a live WebSocket session.
+    ws_connected: healthPayload?.status === 'healthy',
     security_metrics: {
-      wallet_risk_score: clampScore(85, loginPenalty),
-      withdrawal_risk_score: clampScore(80, withdrawalPenalty),
-      behavioral_anomaly: clampScore(90, anomalyPenalty),
-      infrastructure_integrity,
+      wallet_risk_score: hasSecurityEvidence ? clampScore(100, loginPenalty) : null,
+      withdrawal_risk_score: hasSecurityEvidence ? clampScore(100, withdrawalPenalty) : null,
+      behavioral_anomaly: hasSecurityEvidence ? clampScore(100, anomalyPenalty) : null,
+      infrastructure_integrity: serviceNames.length > 0 ? infrastructure_integrity : null,
     },
     service_latencies,
   };

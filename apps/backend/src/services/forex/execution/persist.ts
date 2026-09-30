@@ -121,13 +121,116 @@ function str(v: unknown): string {
 }
 
 export async function loadAllExecutions(): Promise<ForexExecutionRecord[]> {
-  const ids = await db.query(`SELECT client_exec_id FROM forex_executions`);
-  const out: ForexExecutionRecord[] = [];
-  for (const row of ids.rows as { client_exec_id?: unknown }[]) {
-    const rec = await loadExecutionByClient(String(row.client_exec_id));
-    if (rec) out.push(rec);
+  const execRes = await db.query(`SELECT * FROM forex_executions ORDER BY created_at DESC`);
+  const execRows = execRes.rows as Record<string, unknown>[];
+  if (execRows.length === 0) return [];
+
+  const executionIds = execRows.map((r) => str(r.execution_id));
+  const [attemptsRes, fillsRes, eventsRes] = await Promise.all([
+    db.query(`SELECT * FROM forex_execution_attempts WHERE execution_id = ANY($1::uuid[]) ORDER BY execution_id, attempt_no`, [
+      executionIds,
+    ]),
+    db.query(`SELECT * FROM forex_fills WHERE execution_id = ANY($1::uuid[]) ORDER BY execution_id, created_at`, [
+      executionIds,
+    ]),
+    db.query(`SELECT * FROM forex_execution_events WHERE execution_id = ANY($1::uuid[]) ORDER BY execution_id, created_at`, [
+      executionIds,
+    ]),
+  ]);
+
+  const attemptsByExec = new Map<string, ForexExecutionAttempt[]>();
+  for (const a of attemptsRes.rows as Record<string, unknown>[]) {
+    const eid = str(a.execution_id);
+    const list = attemptsByExec.get(eid) ?? [];
+    list.push({
+      attemptNo: Number(a.attempt_no),
+      provider: str(a.provider),
+      status: a.status as ForexExecutionAttempt['status'],
+      venueExecId: a.venue_exec_id == null ? null : str(a.venue_exec_id),
+      rejectReason: a.reject_reason == null ? null : str(a.reject_reason),
+      submittedAt: str(a.submitted_at),
+      completedAt: a.completed_at == null ? null : str(a.completed_at),
+    });
+    attemptsByExec.set(eid, list);
   }
-  return out;
+
+  const fillsByExec = new Map<string, ForexFill[]>();
+  for (const f of fillsRes.rows as Record<string, unknown>[]) {
+    const eid = str(f.execution_id);
+    const list = fillsByExec.get(eid) ?? [];
+    list.push({
+      fillId: str(f.fill_id),
+      executionId: str(f.execution_id),
+      clientExecId: str(f.client_exec_id),
+      venueExecId: f.venue_exec_id == null ? null : str(f.venue_exec_id),
+      provider: str(f.provider),
+      symbol: str(f.symbol),
+      side: f.side === 'sell' ? 'sell' : 'buy',
+      price: str(f.price),
+      volume: str(f.volume),
+      timestamp: str(f.fill_timestamp),
+      liquiditySource: 'MOCK',
+    });
+    fillsByExec.set(eid, list);
+  }
+
+  const eventsByExec = new Map<string, ForexExecutionEvent[]>();
+  for (const e of eventsRes.rows as Record<string, unknown>[]) {
+    const eid = str(e.execution_id);
+    const list = eventsByExec.get(eid) ?? [];
+    list.push({
+      eventId: str(e.event_id),
+      executionId: str(e.execution_id),
+      clientExecId: str(e.client_exec_id),
+      timestamp: str(e.created_at),
+      eventType: e.event_type as ForexExecutionEvent['eventType'],
+      provider: e.provider == null ? undefined : str(e.provider),
+      reason: e.reason == null ? undefined : str(e.reason),
+      metadata: (e.metadata as Record<string, unknown> | undefined) ?? {},
+    });
+    eventsByExec.set(eid, list);
+  }
+
+  return execRows.map((row) => {
+    const executionId = str(row.execution_id);
+    const requestJson = (typeof row.request_json === 'object' && row.request_json != null
+      ? row.request_json
+      : {}) as Partial<ForexExecutionRequest>;
+    const request: ForexExecutionRequest = {
+      clientExecId: str(row.client_exec_id),
+      symbol: str(row.symbol),
+      side: row.side === 'sell' ? 'sell' : 'buy',
+      volume: str(row.volume),
+      orderType: row.order_type === 'limit' ? 'limit' : 'market',
+      requestedPrice: row.requested_price != null ? str(row.requested_price) : undefined,
+      maxSlippage: row.max_slippage != null ? str(row.max_slippage) : undefined,
+      maxDeviation: row.max_deviation != null ? str(row.max_deviation) : undefined,
+      accountId: row.account_id != null ? str(row.account_id) : undefined,
+      timestamp: requestJson.timestamp ?? str(row.created_at),
+    };
+    return {
+      executionId,
+      clientExecId: str(row.client_exec_id),
+      fingerprint: str(row.fingerprint),
+      request,
+      status: row.status as ForexExecutionState,
+      selectedProvider: row.selected_provider == null ? null : str(row.selected_provider),
+      routingReason: row.routing_reason == null ? null : str(row.routing_reason),
+      snapshotStatus: row.snapshot_status == null ? null : str(row.snapshot_status),
+      expectedPrice: row.expected_price == null ? null : str(row.expected_price),
+      executionPrice: row.execution_price == null ? null : str(row.execution_price),
+      requestedVolume: str(row.volume),
+      filledVolume: str(row.filled_volume),
+      remainingVolume: str(row.remaining_volume),
+      failureReason: row.failure_reason == null ? null : (str(row.failure_reason) as ForexExecReason),
+      source: 'SIMULATED' as const,
+      attempts: attemptsByExec.get(executionId) ?? [],
+      fills: fillsByExec.get(executionId) ?? [],
+      events: eventsByExec.get(executionId) ?? [],
+      createdAt: str(row.created_at),
+      updatedAt: str(row.updated_at),
+    };
+  });
 }
 
 export async function loadExecutionByClient(clientExecId: string): Promise<ForexExecutionRecord | null> {

@@ -1,0 +1,148 @@
+{
+  "phase": 0,
+  "title": "Forex MT5 parity forensic baseline",
+  "branch": "release/exchange-production-baseline",
+  "commit": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "generatedAtUtc": "2026-09-19T09:27:42.773Z",
+  "realForex": "(container env — verify at deploy)",
+  "cryptoIsolation": {
+    "spotFastifySha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "spotTickerDbLoadSha256": "bb2ffb23ab52ac81f37883bf58b36143a53cc2113614c96b3717fd08ae128613"
+  },
+  "customerSurface": "/forex/trade",
+  "authoritativeTrace": {
+    "contract": "apps/backend/src/services/forex/capabilities/customer-contract.ts",
+    "config": "GET /api/v1/forex/trading-config",
+    "orders": "apps/backend/src/services/forex/orders/service.ts",
+    "positions": "apps/backend/src/services/forex/positions/service.ts",
+    "protections": "apps/backend/src/services/forex/protection/service.ts",
+    "ws": "apps/backend/src/services/forex/ws",
+    "ledger": "apps/backend/src/services/forex/ledger"
+  },
+  "implementationHighlights": [
+    "Order ticket: BUY/SELL + MARKET/LIMIT/STOP/STOP LIMIT labels",
+    "Chart context menu: 8 order drafts → shared ticket draft",
+    "Chart pending drag → POST order modify (requestedPrice / limitPrice)",
+    "Position mode switch modal + PENDING_ORDERS backend guard",
+    "DOM / news / calendar: explicit unavailable or provider-backed only"
+  ],
+  "parityRows": [
+    {
+      "capability": "8 order types (side × kind)",
+      "mt5": "GREEN",
+      "ours": "YELLOW",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "Live fill/trigger MARKET_DEPENDENT"
+    },
+    {
+      "capability": "Chart trading (8 paths)",
+      "mt5": "GREEN",
+      "ours": "YELLOW",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "Live session cert"
+    },
+    {
+      "capability": "Pending chart price drag → modify",
+      "mt5": "GREEN",
+      "ours": "YELLOW",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "Browser + market modify cert"
+    },
+    {
+      "capability": "Netting / Hedging",
+      "mt5": "GREEN",
+      "ours": "YELLOW",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "Hedging runtime multi-position MARKET_DEPENDENT"
+    },
+    {
+      "capability": "Position mode switch UI",
+      "mt5": "GREEN",
+      "ours": "GREEN",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "Flat-account guard verified in code"
+    },
+    {
+      "capability": "SL/TP + trailing",
+      "mt5": "GREEN",
+      "ours": "YELLOW",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "Trigger MARKET_DEPENDENT"
+    },
+    {
+      "capability": "Close / partial / Close By",
+      "mt5": "GREEN",
+      "ours": "YELLOW",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "Close By hedging runtime"
+    },
+    {
+      "capability": "History CSV export",
+      "mt5": "GREEN",
+      "ours": "YELLOW",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "XLSX/PDF roadmap"
+    },
+    {
+      "capability": "DOM",
+      "mt5": "GREEN",
+      "ours": "BLUE",
+      "backend": "RED",
+      "frontend": "BLUE",
+      "status": "BLUE",
+      "gap": "PROVIDER_DEPENDENT depth — UI explicit unavailable"
+    },
+    {
+      "capability": "Time & Sales",
+      "mt5": "GREEN",
+      "ours": "BLUE",
+      "backend": "RED",
+      "frontend": "BLUE",
+      "status": "BLUE",
+      "gap": "No authoritative trade tape"
+    },
+    {
+      "capability": "Server alerts",
+      "mt5": "GREEN",
+      "ours": "ORANGE",
+      "backend": "RED",
+      "frontend": "ORANGE",
+      "status": "ORANGE",
+      "gap": "Local-only disclosed; architecture roadmap"
+    },
+    {
+      "capability": "Command palette (Forex)",
+      "mt5": "partial",
+      "ours": "ORANGE",
+      "backend": "n/a",
+      "frontend": "ORANGE",
+      "status": "ORANGE",
+      "gap": "Global search only — Forex command center roadmap"
+    },
+    {
+      "capability": "MOCK execution disclosure",
+      "mt5": "n/a",
+      "ours": "GREEN",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "GREEN",
+      "gap": "None"
+    }
+  ]
+}

@@ -6,10 +6,10 @@
 |-------|--------|
 | branch | `release/exchange-production-baseline` |
 | old HEAD | `fcace46759d1d2d23793b8864f62d0877a179e2f` |
-| new HEAD | *(set after commit/push)* |
-| remote HEAD | *(set after push)* |
-| commit | `admin: clarify domain rbac and emergency control plane` |
-| push status | *(set after push)* |
+| new HEAD | `f3e04274d7bb27c3ad05e8f3cbe9724749987aea` |
+| remote HEAD | `f3e04274d7bb27c3ad05e8f3cbe9724749987aea` |
+| commit | `f3e0427` — `admin: clarify domain rbac and emergency control plane` |
+| push status | **OK** (`origin/release/exchange-production-baseline`) |
 
 ## 2. RBAC
 

@@ -1,0 +1,128 @@
+{
+  "kind": "forex-pre-market-browser",
+  "base": "http://109.123.254.30",
+  "viewports": {
+    "desktop": {
+      "width": 1600,
+      "height": 950,
+      "overflow": false,
+      "url": "http://109.123.254.30/forex/trade"
+    },
+    "tablet": {
+      "width": 768,
+      "height": 1024,
+      "overflow": false,
+      "url": "http://109.123.254.30/forex/trade"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "url": "http://109.123.254.30/forex/trade"
+    }
+  },
+  "tests": {
+    "desktop_login": {
+      "ok": true,
+      "detail": "http://109.123.254.30/"
+    },
+    "desktop_terminal_route": {
+      "ok": true,
+      "detail": "forex/trade loaded"
+    },
+    "desktop_no_object_object": {
+      "ok": true,
+      "detail": ""
+    },
+    "desktop_no_raw_json_blob": {
+      "ok": true,
+      "detail": ""
+    },
+    "desktop_no_horizontal_overflow": {
+      "ok": true,
+      "detail": ""
+    },
+    "desktop_ticket_present": {
+      "ok": true,
+      "detail": ""
+    },
+    "desktop_session_state_visible": {
+      "ok": true,
+      "detail": "session closed copy present"
+    },
+    "desktop_cookie_api_session": {
+      "ok": true,
+      "detail": ""
+    },
+    "desktop_ws_cookie_subscribe": {
+      "ok": true,
+      "detail": "mlive_at cookie WS"
+    },
+    "tablet_login": {
+      "ok": true,
+      "detail": "http://109.123.254.30/"
+    },
+    "tablet_terminal_route": {
+      "ok": true,
+      "detail": "forex/trade loaded"
+    },
+    "tablet_no_object_object": {
+      "ok": true,
+      "detail": ""
+    },
+    "tablet_no_raw_json_blob": {
+      "ok": true,
+      "detail": ""
+    },
+    "tablet_no_horizontal_overflow": {
+      "ok": true,
+      "detail": ""
+    },
+    "tablet_ticket_present": {
+      "ok": true,
+      "detail": ""
+    },
+    "tablet_session_state_visible": {
+      "ok": true,
+      "detail": "session closed copy present"
+    },
+    "tablet_cookie_api_session": {
+      "ok": true,
+      "detail": ""
+    },
+    "mobile_login": {
+      "ok": true,
+      "detail": "http://109.123.254.30/"
+    },
+    "mobile_terminal_route": {
+      "ok": true,
+      "detail": "forex/trade loaded"
+    },
+    "mobile_no_object_object": {
+      "ok": true,
+      "detail": ""
+    },
+    "mobile_no_raw_json_blob": {
+      "ok": true,
+      "detail": ""
+    },
+    "mobile_no_horizontal_overflow": {
+      "ok": true,
+      "detail": ""
+    },
+    "mobile_ticket_present": {
+      "ok": true,
+      "detail": ""
+    },
+    "mobile_session_state_visible": {
+      "ok": true,
+      "detail": "session closed copy present"
+    },
+    "mobile_cookie_api_session": {
+      "ok": true,
+      "detail": ""
+    }
+  },
+  "pass": true,
+  "completedAtUtc": "2026-09-19T12:04:04.809Z"
+}

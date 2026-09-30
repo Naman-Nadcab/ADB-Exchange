@@ -1,0 +1,81 @@
+{
+  "generatedAtUtc": "2026-09-19T09:51:58.963Z",
+  "commit": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "executiveStatus": "P0/P1 non-market gaps addressed; live runtime still MARKET_DEPENDENT",
+  "gaps": [
+    {
+      "id": "order-model",
+      "class": "A",
+      "status": "GREEN",
+      "note": "side_x_kind + trading-config orderKinds/paths"
+    },
+    {
+      "id": "gtd",
+      "class": "A",
+      "status": "GREEN",
+      "note": "GTD + expireAt + expireGtdOrders"
+    },
+    {
+      "id": "execution-resolver",
+      "class": "A",
+      "status": "GREEN",
+      "note": "resolveForexExecutionCapabilities"
+    },
+    {
+      "id": "server-alerts-foundation",
+      "class": "A",
+      "status": "YELLOW",
+      "note": "DB + CRUD + quote evaluator; push/email gated"
+    },
+    {
+      "id": "command-center",
+      "class": "A",
+      "status": "GREEN",
+      "note": "Forex ⌘/Ctrl+K on /forex"
+    },
+    {
+      "id": "tape-architecture",
+      "class": "E",
+      "status": "BLUE",
+      "note": "UI + provider contract; no fake tape"
+    },
+    {
+      "id": "dom-architecture",
+      "class": "E",
+      "status": "BLUE",
+      "note": "Explicit unavailable + provider hook"
+    },
+    {
+      "id": "timeframes-full-mt5",
+      "class": "F",
+      "status": "ORANGE",
+      "note": "Registry lists all; only verified TFs customerSupported"
+    },
+    {
+      "id": "indicators-full-mt5",
+      "class": "F",
+      "status": "ORANGE",
+      "note": "Subset live; registry roadmap"
+    },
+    {
+      "id": "drawings-full-mt5",
+      "class": "F",
+      "status": "ORANGE",
+      "note": "Existing engine; expansion roadmap"
+    },
+    {
+      "id": "live-fills",
+      "class": "D",
+      "status": "YELLOW",
+      "note": "MARKET_DEPENDENT"
+    }
+  ],
+  "tests": [
+    "customer-contract.test.ts",
+    "order-paths.test.ts",
+    "forex-gtd.test.ts",
+    "forex-phase2-customer-terminal.test.ts",
+    "forex-phase1a-hedging.test.ts",
+    "trailing.test.ts"
+  ]
+}

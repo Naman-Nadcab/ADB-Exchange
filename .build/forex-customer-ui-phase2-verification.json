@@ -1,0 +1,138 @@
+{
+  "verdict": "GREEN_WITH_EXPLICIT_LIMITATIONS",
+  "certificationRule": "Not 'Forex Customer UI Fully Certified' — runtime trigger/delivery remains MARKET_DEPENDENT; deferred product gaps unchanged.",
+  "timestampUtc": "2026-09-19T13:15:00Z",
+  "git": {
+    "branch": "release/exchange-production-baseline",
+    "head": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "aheadOfRemote": 78,
+    "trackedModifiedCount": 110,
+    "stagedFiles": []
+  },
+  "worktreeClassification": {
+    "forexPhase2AlertUiOnly": [
+      "apps/frontend/src/components/forex/ForexServerAlertsPanel.tsx",
+      "apps/frontend/src/lib/forex/models/customer-alerts.ts",
+      "apps/frontend/src/lib/forex/models/customer-alerts.test.ts",
+      "apps/frontend/src/app/forex/alerts/page.tsx",
+      "apps/frontend/src/components/forex/ForexBottomPanels.tsx",
+      "apps/frontend/src/lib/forex/api/client.ts"
+    ],
+    "forexOtherDirty": "Many additional Forex frontend/backend/admin files modified in same branch (outside Phase 2 alert UI ship scope).",
+    "sharedChanges": "None required for Phase 2 alert UI frontend-only deploy.",
+    "cryptoChanges": {
+      "modifiedPaths": ["apps/backend/src/routes/spot.fastify.ts"],
+      "forexRelatedInDiff": false,
+      "summary": "Spot ticker last-good max age, volume COALESCE, stale snapshot TTL — Crypto only.",
+      "workingTreeSha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+      "headBlobSha256": "de50139898cb7c2cb28bb2fff8272bf6fa8d46bd54f7e4d9d5920aacff2c6688",
+      "deployGate": "Backend NOT redeployed; running image unchanged. Do not ship backend until Crypto diff reviewed."
+    },
+    "preExistingDirtyFiles": "110 tracked modifications + large .build untracked artifacts"
+  },
+  "alertFlowAudit": {
+    "singleServerState": "ForexServerAlertsPanel.reload() loads listAlerts + alertEvents + alertDeliveryStatus; no parallel server-alert store.",
+    "create": "POST /api/v1/forex/alerts via forexApi.createAlert → reload",
+    "persistence": "API verified create/list after refresh (browser + curl)",
+    "enableDisable": "PATCH enabled via panel; API verified",
+    "delete": "DELETE via panel; API verified",
+    "events": "GET /api/v1/forex/alerts/events account-scoped",
+    "deliveryStatus": "GET /api/v1/forex/alerts/delivery-status adapters from backend"
+  },
+  "alertTypeMatrix": [
+    {"type":"PRICE","backend":true,"uiSelector":true,"conditionBuilder":"side+price","validation":"form fields only","create":"yes","display":"yes","events":"when fired","deliveryStatus":"channel adapters"},
+    {"type":"BID","backend":true,"uiSelector":true,"conditionBuilder":"side+price","validation":"form fields only; backend accepts empty condition","create":"yes","display":"yes","events":"when fired","deliveryStatus":"channel adapters"},
+    {"type":"ASK","backend":true,"uiSelector":true,"conditionBuilder":"side+price","validation":"form fields only","create":"yes","display":"yes","events":"when fired","deliveryStatus":"channel adapters"},
+    {"type":"SPREAD","backend":true,"uiSelector":true,"conditionBuilder":"side+threshold","validation":"form fields only","create":"yes","display":"yes","events":"when fired","deliveryStatus":"channel adapters"},
+    {"type":"MARGIN","backend":true,"uiSelector":true,"conditionBuilder":"threshold (no symbol)","validation":"form fields only","create":"yes","display":"yes","events":"when fired","deliveryStatus":"channel adapters"},
+    {"type":"DRAWDOWN","backend":true,"uiSelector":true,"conditionBuilder":"threshold (no symbol)","validation":"form fields only","create":"yes","display":"yes","events":"when fired","deliveryStatus":"channel adapters"},
+    {"type":"ORDER_FILLED","backend":true,"uiSelector":true,"conditionBuilder":"empty hook","validation":"minimal","create":"yes","display":"yes","events":"when fired","deliveryStatus":"channel adapters"},
+    {"type":"PENDING_TRIGGERED","backend":true,"uiSelector":true,"conditionBuilder":"symbol hook","validation":"minimal","create":"yes","display":"yes","events":"when fired","deliveryStatus":"channel adapters"},
+    {"type":"SL_TRIGGERED","backend":true,"uiSelector":true,"conditionBuilder":"symbol hook","validation":"minimal","create":"yes","display":"yes","events":"when fired","deliveryStatus":"channel adapters"},
+    {"type":"TP_TRIGGERED","backend":true,"uiSelector":true,"conditionBuilder":"symbol hook","validation":"minimal","create":"yes","display":"yes","events":"when fired","deliveryStatus":"channel adapters"},
+    {"type":"TRAILING_TRIGGERED","backend":true,"uiSelector":true,"conditionBuilder":"symbol hook","validation":"minimal","create":"yes","display":"yes","events":"when fired","deliveryStatus":"channel adapters"},
+    {"type":"LIQUIDATION","backend":true,"uiSelector":true,"conditionBuilder":"empty hook","validation":"minimal","create":"yes","display":"yes","events":"when fired","deliveryStatus":"channel adapters"},
+    {"type":"SESSION_OPEN","backend":true,"uiSelector":true,"conditionBuilder":"session transition","validation":"minimal","create":"yes","display":"yes","events":"when fired","deliveryStatus":"channel adapters"},
+    {"type":"SESSION_CLOSE","backend":true,"uiSelector":true,"conditionBuilder":"session transition","validation":"minimal","create":"yes","display":"yes","events":"when fired","deliveryStatus":"channel adapters"}
+  ],
+  "supportedBackendTypeCount": 14,
+  "eventsVerification": {
+    "endpoint": "GET /api/v1/forex/alerts/events",
+    "authenticated": true,
+    "accountScoped": true,
+    "emptyStateUi": "No triggered events yet.",
+    "sampleCounts": {"qa_trader_a": 0, "qa_trader_b": 0},
+    "idorCrossUserDelete": "404 for user B deleting user A alertId"
+  },
+  "deliveryStatusVerification": {
+    "endpoint": "GET /api/v1/forex/alerts/delivery-status",
+    "channels": {
+      "WEB": {"configured": true, "available": true, "uiLabel": "AVAILABLE"},
+      "PUSH": {"configured": false, "available": false, "uiLabel": "NOT_CONFIGURED"},
+      "EMAIL": {"configured": false, "available": false, "uiLabel": "NOT_CONFIGURED"},
+      "WEBHOOK": {"configured": false, "available": false, "uiLabel": "NOT_CONFIGURED"}
+    },
+    "uiFixAppliedInVerification": "labelDeliveryAdapterStatus maps configured/available; no fake SENT/DELIVERED on adapter row"
+  },
+  "routes": {
+    "forexAlertsPage": "Server primary; Local only badge for terminal localStorage alerts",
+    "terminalAlertsTab": "ForexServerAlertsPanel compact + separate local alerts section"
+  },
+  "security": {
+    "forexAuthenticateOnRoutes": true,
+    "idorDeleteSmoke": "PASS (404)",
+    "eventsIsolation": "Per-account query; separate user event counts independent"
+  },
+  "tests": {
+    "customer-alerts.test.ts": "PASS",
+    "forex-workstation-ui.test.ts": "PASS",
+    "otherForexFrontendTests": "NOT_RUN (narrow scope)"
+  },
+  "build": {
+    "command": "npm run build (apps/frontend)",
+    "result": "PASS"
+  },
+  "browser": {
+    "host": "http://109.123.254.30",
+    "login": "PASS (qa_trader_a)",
+    "forexAlertsPage": "PASS — 14 types, server list, local-only copy, events empty",
+    "createRefresh": "PARTIAL — list loads after session warm; hard refresh may briefly show empty before auth",
+    "terminalAlertsTab": "NOT_RUN (same component; spot-check deferred)",
+    "cryptoMarkets": "PASS",
+    "cryptoTradeSpot": "PASS (page title FDM Crypto — Trade)",
+    "forexLeakIntoCrypto": "NONE (ForexServerAlertsPanel only under forex/*)"
+  },
+  "deployment": {
+    "scope": "frontend-only",
+    "servicesRestarted": ["exchange-frontend"],
+    "servicesNotRestarted": ["exchange-backend", "matching", "postgres", "redis", "nats", "rabbitmq", "indexer", "admin"],
+    "imageBefore": "m-live-frontend@sha256:78a0589f476d158ed0ed8208ce0f275ddbff8ba48f3fc44fb5784cf492bbf9ad",
+    "imageAfter": "m-live-frontend@sha256:384ff1b0b8451703c32f2dec1f2d6be9960a54f957451e8012e52600b7138bbb",
+    "containerHealth": "healthy"
+  },
+  "realForex": {
+    "envUnsetOnRunningBackend": true,
+    "contractInSource": "realForex: false in customer-contract / execution-resolver",
+    "status": "OFF"
+  },
+  "cryptoIsolation": {
+    "backendNotRedeployed": true,
+    "spotFastifyDirtyInWorktreeOnly": true,
+    "frontendCryptoRoutesLoad": true
+  },
+  "deferredNotFailures": [
+    "VWAP",
+    "Standard Deviation",
+    "Heikin Ashi",
+    "Renko",
+    "Alert PATCH condition editing",
+    "Runtime trading certification MARKET_DEPENDENT"
+  ],
+  "honestLimitations": [
+    "No live alert firing/delivery certification without market/runtime triggers",
+    "PUSH/EMAIL/WEBHOOK show NOT_CONFIGURED until env providers enabled",
+    "Backend does not reject empty BID/ASK/PRICE conditions on create",
+    "Large dirty worktree beyond Phase 2; only frontend alert UI shipped",
+    "spot.fastify.ts Crypto diff remains uncommitted and not in running backend image"
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "kind": "forex-phase11-natural-market-runtime-certification",
+  "recordedAtUtc": "2026-09-19T12:13:01Z",
+  "verdict": {
+    "engineering": "GREEN",
+    "phase11Runtime": "NOT_EXECUTED",
+    "finalGreen": false,
+    "summary": "ENGINEERING GREEN — RUNTIME CERTIFICATION PENDING NATURAL MARKET SESSION"
+  },
+  "stopReason": {
+    "code": "WEEKEND_CLOSURE",
+    "message": "Authoritative Forex session is closed; Phase 11 matrix not started per no-fabrication rules.",
+    "authoritativeCheck": {
+      "module": "isForexTradingEligible",
+      "utc": "2026-09-19T12:13:01.938Z",
+      "open": false,
+      "reason": "WEEKEND_CLOSURE",
+      "weekend": true,
+      "source": "SIMULATED"
+    }
+  },
+  "preRuntimeCheck": {
+    "backendDigest": "sha256:dfa20e3ee90c2b5db6daeeb217eb17a748ef19acad7626c0a71ae06f5aeae44d",
+    "frontendDigest": "sha256:78a0589f476d158ed0ed8208ce0f275ddbff8ba48f3fc44fb5784cf492bbf9ad",
+    "realForex": false,
+    "executionMode": "MOCK",
+    "marketDataSource": "SIMULATED",
+    "backendHealth": {
+      "endpoint": "http://127.0.0.1:4000/health/live",
+      "status": "alive",
+      "timestamp": "2026-09-19T12:12:00.827Z"
+    },
+    "capabilitiesApi": {
+      "endpoint": "/api/v1/forex/capabilities",
+      "realForex": false,
+      "runtimeCertificationContract": "MOCK_ONLY"
+    },
+    "database": "exchange",
+    "deploymentRecreated": false,
+    "codeChangesThisPass": false
+  },
+  "cryptoIsolation": {
+    "beforeAfter": "UNCHANGED",
+    "fingerprints": {
+      "spot.fastify.ts": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+      "spot-ticker-db-load.ts": "3d128d47e0152a8a552b8291ab386ad24576949066bf69dea4016484444c086b"
+    }
+  },
+  "customerAuth": {
+    "qaAccount": "qa_trader_a@local.exchange (anonymized label)",
+    "loginApi": "POST /api/v1/auth/login/password — verified reachable pre-stop"
+  },
+  "runtimeMatrix": {
+    "executed": false,
+    "cases": {
+      "orderTypes": {
+        "MARKET_BUY": "MARKET_DEPENDENT",
+        "MARKET_SELL": "MARKET_DEPENDENT",
+        "LIMIT_BUY": "MARKET_DEPENDENT",
+        "LIMIT_SELL": "MARKET_DEPENDENT",
+        "STOP_BUY": "MARKET_DEPENDENT",
+        "STOP_SELL": "MARKET_DEPENDENT",
+        "STOP_LIMIT_BUY": "MARKET_DEPENDENT",
+        "STOP_LIMIT_SELL": "MARKET_DEPENDENT"
+      },
+      "timeInForce": {
+        "GTC": "MARKET_DEPENDENT",
+        "IOC": "MARKET_DEPENDENT",
+        "FOK": "MARKET_DEPENDENT",
+        "DAY": "MARKET_DEPENDENT",
+        "GTD": "MARKET_DEPENDENT"
+      },
+      "pendingOrders": {
+        "CREATE": "MARKET_DEPENDENT",
+        "MODIFY": "MARKET_DEPENDENT",
+        "CANCEL": "MARKET_DEPENDENT",
+        "TRIGGER": "MARKET_DEPENDENT"
+      },
+      "protection": {
+        "SL": "MARKET_DEPENDENT",
+        "TP": "MARKET_DEPENDENT",
+        "TRAILING": "MARKET_DEPENDENT"
+      },
+      "positions": {
+        "NETTING": "MARKET_DEPENDENT",
+        "HEDGING": "MARKET_DEPENDENT",
+        "PARTIAL_CLOSE": "MARKET_DEPENDENT",
+        "FULL_CLOSE": "MARKET_DEPENDENT",
+        "CLOSE_BY": "MARKET_DEPENDENT"
+      },
+      "risk": {
+        "balance": "MARKET_DEPENDENT",
+        "equity": "MARKET_DEPENDENT",
+        "margin": "MARKET_DEPENDENT",
+        "liquidation": "MARKET_DEPENDENT"
+      },
+      "dataConsistency": "MARKET_DEPENDENT",
+      "securityIdor": "MARKET_DEPENDENT",
+      "alertsNaturalHooks": "MARKET_DEPENDENT",
+      "customerUiRuntime": "MARKET_DEPENDENT"
+    }
+  },
+  "providerDependent": {
+    "DOM": "PROVIDER_DEPENDENT",
+    "timeAndSales": "PROVIDER_DEPENDENT",
+    "externalCalendar": "PROVIDER_DEPENDENT",
+    "externalNews": "PROVIDER_DEPENDENT"
+  },
+  "notConfigured": {
+    "REAL_FOREX": "BLOCKED",
+    "alertPush": "NOT_CONFIGURED",
+    "alertEmail": "NOT_CONFIGURED",
+    "alertWebhook": "NOT_CONFIGURED"
+  },
+  "nextStepsWhenOpen": [
+    "Re-run pre-runtime check without redeploy unless digest drift",
+    "Confirm isForexTradingEligible().open === true",
+    "Execute controlled matrix via QA accounts with minimal size and unique clientOrderIds",
+    "Use existing scripts as reference: scripts/forex-phase4-runtime-cert.mjs",
+    "Produce full API/DB/ledger/journal/WS/UI evidence per case",
+    "Post-runtime reconciliation via application APIs only"
+  ],
+  "partialEvidence": {
+    "browserPreMarket": "forex-pre-market-browser.mjs pass on prior deploy (engineering UI, not execution matrix)"
+  }
+}

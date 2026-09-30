@@ -2,10 +2,10 @@ import { forexConfig } from '../config.js';
 import { fxDecimal, fxToPriceString } from '../decimal-fx.js';
 import {
   FOREX_INSTRUMENT_CATALOG,
-  FOREX_MOCK_BASE_PRICES,
   FOREX_MOCK_SPREAD_TICKS,
   getForexInstrumentBySymbol,
 } from '../instruments.catalog.js';
+import { getForexMockBasePrice } from './anchor.js';
 import type {
   ForexMarketDataProvider,
   ForexProviderKind,
@@ -31,25 +31,88 @@ export function deterministicOffsetTicks(symbol: string, sequence: bigint, ampli
 /** Relative bid offset in ticks so A/B/C never print the same book. Zero in DEMO. */
 const PROVIDER_BID_OFFSET_TICKS = [0, 1, -1] as const;
 
-const demoPinnedMids = new Map<string, string>();
+type DemoPin = { mid: string; expiresAtMs: number };
+
+/**
+ * DEMO / MOCK only. Temporary mid override so LIMIT/STOP scenarios can trigger
+ * without a real LP. Must NEVER become a permanent second price universe.
+ *
+ * Lifecycle:
+ *   pin → holds for FOREX_DEMO_PIN_TTL_MS (default 30s) → auto-expire
+ *   unpin / clear → immediate return to anchored MOCK walk
+ *   process restart → map is empty (in-memory only)
+ *
+ * Anchor refresh does not create or extend pins.
+ */
+const demoPinnedMids = new Map<string, DemoPin>();
+
+/** Default 30s covers pending fill polls; certs must clear pins, not rely on restart. */
+export function forexDemoPinTtlMs(): number {
+  const raw = Number.parseInt(process.env.FOREX_DEMO_PIN_TTL_MS ?? '', 10);
+  if (Number.isFinite(raw) && raw >= 1_000 && raw <= 300_000) return raw;
+  return 30_000;
+}
 
 function demoSymbolKey(symbol: string): string {
   return symbol.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
 }
 
+function nowMs(): number {
+  return Date.now();
+}
+
+function activeDemoPin(symbol: string, atMs = nowMs()): DemoPin | undefined {
+  const k = demoSymbolKey(symbol);
+  const pin = demoPinnedMids.get(k);
+  if (!pin) return undefined;
+  if (pin.expiresAtMs <= atMs) {
+    demoPinnedMids.delete(k);
+    return undefined;
+  }
+  return pin;
+}
+
 /** Pin subsequent MOCK ticks around this mid (DEMO trigger / scenario only). */
-export function pinForexDemoMid(symbol: string, mid: string): void {
-  demoPinnedMids.set(demoSymbolKey(symbol), mid);
+export function pinForexDemoMid(symbol: string, mid: string, ttlMs = forexDemoPinTtlMs()): void {
+  const ttl = Number.isFinite(ttlMs) && ttlMs > 0 ? ttlMs : forexDemoPinTtlMs();
+  demoPinnedMids.set(demoSymbolKey(symbol), { mid, expiresAtMs: nowMs() + ttl });
 }
 
 export function unpinForexDemoMid(symbol: string): void {
   demoPinnedMids.delete(demoSymbolKey(symbol));
 }
 
+/** Clear one symbol or every demo mid pin (DEMO hygiene / cert isolation). */
+export function clearForexDemoPins(symbol?: string): { cleared: string[] } {
+  if (symbol) {
+    const k = demoSymbolKey(symbol);
+    const had = demoPinnedMids.has(k);
+    demoPinnedMids.delete(k);
+    return { cleared: had ? [k] : [] };
+  }
+  const cleared = [...demoPinnedMids.keys()].sort();
+  demoPinnedMids.clear();
+  return { cleared };
+}
+
+export function getForexDemoPin(symbol: string): { mid: string; expiresAtMs: number; remainingMs: number } | null {
+  const pin = activeDemoPin(symbol);
+  if (!pin) return null;
+  return { mid: pin.mid, expiresAtMs: pin.expiresAtMs, remainingMs: Math.max(0, pin.expiresAtMs - nowMs()) };
+}
+
+/** Test hook: wipe pins without going through the HTTP clear route. */
+export function resetForexDemoPinsForTests(): void {
+  demoPinnedMids.clear();
+}
+
 export function mockPriceAt(symbol: string, sequence: bigint, providerIndex: number): { bid: string; ask: string } {
   const instrument = getForexInstrumentBySymbol(symbol);
-  const pinned = demoPinnedMids.get(demoSymbolKey(symbol));
-  const base = pinned ?? FOREX_MOCK_BASE_PRICES[demoSymbolKey(symbol)] ?? FOREX_MOCK_BASE_PRICES[symbol];
+  const pinned = activeDemoPin(symbol)?.mid;
+  // Anchored to the same external reference series the chart renders, so one
+  // symbol never has two "current" prices. Still SIMULATED / MOCK.
+  // Expired / absent pin → authoritative MOCK walk base (never Yahoo candle as fill).
+  const base = pinned ?? getForexMockBasePrice(symbol);
   if (!instrument || !base) {
     throw new Error(`No mock base price for ${symbol}`);
   }

@@ -46,4 +46,5 @@
 
 ## Git
 
-_(filled after commit)_
+**Commit:** `a960274` — `feat(forex): complete live account and funding core`  
+**Push:** `HEAD == origin/release/exchange-production-baseline` (`a960274fa2ecf13cedc59188cf60d98c4d8587c8`)

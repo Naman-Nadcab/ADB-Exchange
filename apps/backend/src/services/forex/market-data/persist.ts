@@ -4,6 +4,7 @@ import { forexConfig } from '../config.js';
 import type { ForexRejectReason, NormalizedQuote } from '../types.js';
 
 export async function upsertForexQuote(quote: NormalizedQuote): Promise<void> {
+  if (!forexConfig.persistLatestQuotes) return;
   await db.query(
     `INSERT INTO forex_quotes (
        instrument_id, provider_id, bid, ask, mid, spread, spread_pips, spread_ticks,

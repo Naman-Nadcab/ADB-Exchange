@@ -1,0 +1,31 @@
+{
+  "title": "Forex customer terminal UX completion",
+  "branch": "release/exchange-production-baseline",
+  "completedAtUtc": "2026-09-19T09:05:00.000Z",
+  "builtImages": {
+    "frontend": "sha256:871bca66c6992326e47723d7837e368817713eb3ed43f94c2e1eff1093c646ca",
+    "backend": "sha256:f857b5ded4ecfec6d25307864741122cddd5d0bc9cc26625a2367c37e263806b"
+  },
+  "deployed": true,
+  "changesSummary": [
+    "Order ticket: BUY/SELL toggle + kind select + MT5 labels (Market Buy, Buy Limit, …) + single Place button for pending",
+    "Chart context: explicit 8 order paths + stop-limit drafts open ticket",
+    "Customer contract: trailing, netting/hedging, closeBy customerExposed",
+    "Position panel: account mode banner; reverse removed (not customer-advertised); Close By when HEDGING",
+    "History: server CSV export API + UI buttons",
+    "Alerts: unchanged local-only with explicit banner"
+  ],
+  "tests": [
+    "customer-contract.test.ts PASS",
+    "forex-phase2-customer-terminal.test.ts PASS",
+    "order-type-tif.test.ts PASS",
+    "forex-workstation-ui.test.ts PASS"
+  ],
+  "remainingNonMarket": [
+    "Pending order drag on chart (modify via price line) — NOT_IMPLEMENTED",
+    "Server-backed alerts — NOT_IMPLEMENTED (local-only disclosed)",
+    "DOM — NOT_AVAILABLE_FROM_MARKET_DATA_AUTHORITY",
+    "Hedging mode switch UI (POST position-mode) — read-only mode display; API exists when no open positions"
+  ],
+  "marketDependentOnly": ".build/forex-mt5-market-dependent-gap-register.json"
+}

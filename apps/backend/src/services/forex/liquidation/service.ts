@@ -181,6 +181,7 @@ export class ForexLiquidationService {
         orderType: 'market',
         volume: target.volume,
         intent: 'LIQUIDATION_CLOSE',
+        reducePositionId: target.positionId,
       });
       rec.orderIds.push(order.orderId);
       if (order.status === 'FILLED') {
@@ -273,6 +274,16 @@ export class ForexLiquidationService {
       metadata: extra?.metadata,
     };
     this.store.events.push(event);
+    if (eventType === 'LIQUIDATION_STARTED') {
+      void import('../customer/alert-engine.js').then((m) =>
+        m.evaluateForexAccountEventAlerts({
+          accountId: rec.accountId,
+          alertType: 'LIQUIDATION',
+          message: `Liquidation started for ${rec.accountId}`,
+          metadata: { liquidationId: rec.liquidationId },
+        })
+      );
+    }
     if (!this.persistEnabled) return;
     void import('./persist.js')
       .then((m) => m.persistLiquidationEvent(event))

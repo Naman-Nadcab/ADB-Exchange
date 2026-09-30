@@ -84,11 +84,11 @@ Foreign account id via API: **404**.
 
 ## 16. Git commit
 
-(to be recorded after push)
+`52d282155125b23e3b7819698f17c88927055465` — `fix(infra): persist forex runtime network wiring`
 
 ## 17. Git remote sync
 
-(to be verified after push)
+**YES** — `HEAD == origin/release/exchange-production-baseline`
 
 ## Deployment version
 

@@ -1,0 +1,51 @@
+{
+  "auth": {
+    "ok": true,
+    "timestampUtc": "2026-09-18T14:31:04Z"
+  },
+  "invalid_stop_limit_relation": {
+    "http": 200,
+    "status": "REJECTED",
+    "failureReason": "INVALID_TRIGGER_RELATIONSHIP"
+  },
+  "stop_limit_ioc_reject": {
+    "status": "REJECTED",
+    "failureReason": "UNSUPPORTED_TIME_IN_FORCE"
+  },
+  "buy_stop_limit": {
+    "status": "PENDING",
+    "orderId": "1159daa1-7755-46c9-8c77-d20d6881c8cb",
+    "cancelStatus": "CANCELLED"
+  },
+  "sell_stop_limit": {
+    "submitStatus": "PENDING",
+    "orderId": "416628cd-a103-4ef3-99e4-7e2e94441748",
+    "finalStatus": "FILLED"
+  },
+  "ioc_market": {
+    "status": "FILLED",
+    "timeInForce": "IOC",
+    "filledVolume": "0.05",
+    "remainingVolume": "0"
+  },
+  "fok_market": {
+    "status": "FILLED",
+    "timeInForce": "FOK"
+  },
+  "day_pending": {
+    "status": "PENDING",
+    "timeInForce": "DAY"
+  },
+  "market_regression": {
+    "status": "FILLED"
+  },
+  "verdicts": {
+    "buy_stop_limit": "RUNTIME_VERIFIED",
+    "sell_stop_limit": "RUNTIME_VERIFIED",
+    "ioc": "RUNTIME_VERIFIED",
+    "fok": "RUNTIME_VERIFIED",
+    "day": "RUNTIME_VERIFIED",
+    "invalid_relation_rejected": "RUNTIME_VERIFIED",
+    "stop_limit_ioc_rejected": "RUNTIME_VERIFIED"
+  }
+}

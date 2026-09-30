@@ -1,0 +1,43 @@
+{
+  "generatedAt": "2026-09-20T08:37:34.820Z",
+  "adminBase": "http://127.0.0.1:3001/admin",
+  "apiBase": "http://127.0.0.1:4000",
+  "results": [
+    {
+      "step": "login",
+      "status": "FAIL",
+      "error": "page.fill: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('#email')\n"
+    },
+    {
+      "step": "control_center_landing",
+      "status": "FAIL",
+      "error": "Expected control-center, got http://127.0.0.1:3001/login"
+    },
+    {
+      "step": "switch_crypto",
+      "status": "FAIL",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('tab', { name: 'Crypto' })\n"
+    },
+    {
+      "step": "switch_forex",
+      "status": "FAIL",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('tab', { name: 'Forex' })\n"
+    },
+    {
+      "step": "switch_control",
+      "status": "FAIL",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('tab', { name: 'Control Center' })\n"
+    },
+    {
+      "step": "crypto_route_trading",
+      "status": "FAIL",
+      "error": "trading route failed"
+    },
+    {
+      "step": "forex_route_orders",
+      "status": "FAIL",
+      "error": "forex orders route failed"
+    }
+  ],
+  "overall": "PARTIAL"
+}

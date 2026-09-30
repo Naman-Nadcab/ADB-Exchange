@@ -93,6 +93,7 @@ export class ForexRiskService {
     requestedPrice?: string;
     maxDeviation?: string;
     openOrdersForSymbol: number;
+    reducePositionId?: string;
   }): ForexPreTradeDecision {
     const current = this.positions.listOwned(args.accountId, true);
     const quote = this.pricing.getQuote(args.symbol);
@@ -124,6 +125,7 @@ export class ForexRiskService {
       accountingAvailable: inputs?.accountingAvailable,
       requestedPrice: args.requestedPrice,
       maxDeviation: args.maxDeviation,
+      reducePositionId: args.reducePositionId,
     });
     this.syncState(args.accountId);
     if (!decision.ok) {
@@ -150,6 +152,16 @@ export class ForexRiskService {
     const symbol = positions[0]?.symbol ?? 'EURUSD';
     const exp = calculateForexExposure(positions);
     const snap = this.positions.accountSnapshot(accountId);
+    void import('../customer/drawdown-metrics.js').then(({ computeForexAccountDrawdownMetrics }) => {
+      const dd = computeForexAccountDrawdownMetrics(accountId);
+      void import('../customer/alert-engine.js').then((m) =>
+        m.evaluateForexRiskAlerts({
+          accountId,
+          marginLevel: snap.marginLevel == null ? null : Number(snap.marginLevel),
+          drawdownPct: dd.drawdownPct,
+        })
+      );
+    });
     return {
       source: 'SIMULATED' as const,
       executionMode: 'MOCK' as const,

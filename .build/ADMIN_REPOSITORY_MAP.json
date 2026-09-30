@@ -1,0 +1,46 @@
+{
+  "artifact": "ADMIN_REPO_DISCOVERY",
+  "generatedAt": "2026-09-20T06:45:00Z",
+  "git": {
+    "branch": "release/exchange-production-baseline",
+    "head": "a4d922ee1b30f3bbb0aadebfbc7ac2027bc82623",
+    "remote": "git@github.com:Naman-Nadcab/m-live.git",
+    "dirtyFileCountAtAuditStart": 431,
+    "dirtyFileCountAtAuditEnd": 448,
+    "auditCommits": "none",
+    "auditArtifactsAdded": 17,
+    "productCodeModifiedByAudit": false
+  },
+  "layout": {
+    "adminUi": "apps/admin-panel (Next.js App Router)",
+    "adminBackendMount": "/api/v1/admin",
+    "backendEntry": "apps/backend/src/server.ts",
+    "adminRouteModules": [
+      "apps/backend/src/routes/admin.fastify.ts",
+      "apps/backend/src/routes/admin-aml.fastify.ts",
+      "apps/backend/src/routes/admin-analytics.fastify.ts",
+      "apps/backend/src/routes/admin-control.fastify.ts",
+      "apps/backend/src/routes/admin-forex.fastify.ts",
+      "apps/backend/src/routes/admin-forex-crm.fastify.ts",
+      "apps/backend/src/routes/admin-forex-groups.fastify.ts",
+      "apps/backend/src/routes/admin-forex-ops.fastify.ts",
+      "apps/backend/src/routes/admin-hybrid.fastify.ts",
+      "apps/backend/src/routes/admin-integrations.fastify.ts",
+      "apps/backend/src/routes/admin-mm-control.fastify.ts",
+      "apps/backend/src/routes/admin-operational.fastify.ts",
+      "apps/backend/src/routes/admin-operations.fastify.ts",
+      "apps/backend/src/routes/admin-phase1-compliance.fastify.ts",
+      "apps/backend/src/routes/admin-phase2-4.fastify.ts",
+      "apps/backend/src/routes/admin-security.fastify.ts",
+      "apps/backend/src/routes/admin-spot.fastify.ts"
+    ],
+    "forexAdminServices": "apps/backend/src/services/forex/admin/**",
+    "rbac": "apps/backend/src/lib/admin-rbac-routes.ts",
+    "adminAuth": "apps/backend/src/routes/admin.fastify.ts (getAdminFromRequest, getAdminWithPermission)",
+    "adminWs": "apps/backend/src/services/admin-ws.service.ts, admin-events-ws.service.ts",
+    "zeroTrust": "apps/backend/src/middleware/admin-zero-trust.middleware.ts",
+    "migrations": "apps/backend/src/database/migrate.ts",
+    "packages": ["packages/* shared libs"],
+    "deploy": "docker-compose.production.yml (exchange-admin, exchange-backend)"
+  }
+}

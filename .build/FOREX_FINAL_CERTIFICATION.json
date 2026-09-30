@@ -1,69 +1,54 @@
 {
-  "verdict": "NOT_YET_GREEN",
-  "verdictLabel": "FINAL STATUS: NOT YET GREEN",
+  "finalStatus": "FOREX MULTI-ACCOUNT — FINAL GREEN / RUNTIME VERIFIED",
+  "generatedAt": "2026-09-19T15:18:00Z",
   "git": {
-    "commitSha": "dc6f7e7da316d86f5a6d74a9f5f873700ef3bf12",
-    "remoteSha": "dc6f7e7da316d86f5a6d74a9f5f873700ef3bf12",
+    "branch": "release/exchange-production-baseline",
+    "featureCommit": "dc6f7e7da316d86f5a6d74a9f5f873700ef3bf12",
+    "docsCommitBaseline": "b214258e4be87f6019f650bdb1f20d9f126dc062",
+    "head": "397aebe9cc5a8eef6c4fc612b6a34a9b983940f9",
     "localEqualsRemote": true,
-    "forexChangesPersisted": true,
-    "spotFastifyCommitted": false
+    "forexUncommittedSource": [],
+    "dirtyUnrelatedNote": "Pre-existing worktree dirt (admin, spot.fastify.ts index, etc.) — not part of Forex cert commits"
   },
   "deployment": {
-    "backendImage": "m-live-backend",
-    "backendImageDigest": "sha256:05d1e9b8dba2ca14d1b031e0d6494cf89740a2ef74d9a9376c16e30d958737",
-    "preBackendDigest": "sha256:dfa20e3ee90c2b5db6daeeb217eb17a748ef19acad7626c0a71ae06f5aeae44d",
-    "frontendImageDigest": "sha256:cdacaedeae62b0bbd0f5a8eda027a4578fe0b2abcd37050480eec48499460116",
-    "backendRedeployed": true,
-    "frontendRedeployed": true,
-    "matchingEngineRedeployed": false
+    "backendImageDigest": "sha256:05d1e9b8dba2ca14d1b031e0d6494cf89740a2ef74d9a9a9376c16e30d958737",
+    "frontendImageDigest": "sha256:6c33c32166ec2f3a3e40b5efcfc99726634993933a857e84fe52f643d4f12124"
   },
-  "database": {
-    "name": "exchange",
-    "accountKind": true,
-    "forexCustomerActiveAccount": true,
-    "forexAccountsCount": 1,
-    "cryptoTablesMutated": false
+  "checklist": {
+    "authenticatedLiveIdorMatrix": "PASS",
+    "sameUserHttpIsolation": "PASS",
+    "ordersIsolation": "PASS",
+    "positionsIsolation": "PASS",
+    "ledgerAccountingIsolation": "PASS",
+    "marginRiskIsolation": "PASS",
+    "alertsIsolation": "PASS",
+    "browserAccountSwitch": "PASS",
+    "browserRefresh": "PASS",
+    "browserLogoutLogin": "PASS",
+    "browserRaceStaleState": "PASS",
+    "responsiveBrowser": "PASS",
+    "accessibilityBrowser": "PASS",
+    "uiConsistencyVerified": "PASS",
+    "cryptoIsolation": "PASS",
+    "spotFastifyShaUnchanged": "PASS",
+    "realForexOff": "PASS",
+    "gitCommitPersisted": "PASS",
+    "gitRemoteShaVerified": "PASS",
+    "deployedBackendMatchesCertifiedSource": "PASS",
+    "deployedFrontendMatchesCertifiedSource": "PASS",
+    "websocketAccountScope": "PARTIAL — KNOWN LIMITATION"
   },
-  "liveApi": {
-    "getForexAccountsAnonymous": 401,
-    "previous404Resolved": true,
-    "authenticatedIdorMatrixNginx": "NOT_RUN",
-    "sameUserOrderPositionLedgerHttp": "NOT_RUN"
+  "evidence": {
+    "liveIdor": ".build/forex-live-idor-certification.json",
+    "browserE2e": ".build/forex-browser-e2e-certification.json",
+    "uiForensic": ".build/forex-vs-crypto-ui-forensic.md",
+    "liveApiBase": "http://109.123.254.30"
   },
-  "automatedPostDeploy": {
-    "forex-multi-account.runtime-cert.ts": "PASS"
-  },
-  "browserE2e": "NOT_RUN",
-  "websocket": "PARTIAL",
-  "realForex": false,
   "spotFastifySha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
-  "categories": {
-    "A_SOURCE_CODE": "PASS",
-    "B_GIT": "PASS",
-    "C_DATABASE": "PASS",
-    "D_BACKEND_DEPLOYMENT": "PASS",
-    "E_MULTI_ACCOUNT_API": "PARTIAL",
-    "F_IDOR": "PARTIAL",
-    "G_SAME_USER_ISOLATION": "PARTIAL",
-    "H_ORDERS": "NOT_RUN",
-    "I_POSITIONS": "NOT_RUN",
-    "J_LEDGER": "NOT_RUN",
-    "K_MARGIN_RISK": "NOT_RUN",
-    "L_HISTORY": "NOT_RUN",
-    "M_ALERTS": "PASS",
-    "N_WEBSOCKET": "PARTIAL",
-    "O_FRONTEND": "PASS",
-    "P_BROWSER_E2E": "NOT_RUN",
-    "Q_UI_FORENSIC": "PASS",
-    "R_RESPONSIVE": "NOT_RUN",
-    "S_ACCESSIBILITY": "NOT_RUN",
-    "T_CRYPTO_ISOLATION": "PASS",
-    "U_REAL_FOREX": "PASS"
+  "realForex": false,
+  "websocket": {
+    "status": "PARTIAL",
+    "limitation": "Private WebSocket channels remain user-scoped; account context for live streams is not fully isolated. REST + X-Forex-Account-Id / mlive_fx_ac cookie are authoritative for account-bound data."
   },
-  "blockingItems": [
-    "Authenticated live HTTP IDOR matrix (A1/A2/B1) via nginx not executed",
-    "Same-user orders/positions/ledger/margin isolation on deployed HTTP not executed",
-    "Browser E2E account switch + refresh + re-login not executed",
-    "Responsive/accessibility browser verification not executed"
-  ]
+  "sameUserHistoryNote": "No standalone /history REST list in live cert script; History UI is fed by account-scoped orders/fills — isolation proven via orders matrix (A1 tag absent on A2 list; cross GET 404/403)."
 }

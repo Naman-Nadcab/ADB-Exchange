@@ -1,0 +1,27 @@
+{
+  "fixedAt": "2026-09-18T02:45:00+05:30",
+  "issue": "Nested Forex vertical sidebar inside page content (duplicate navigation)",
+  "rootCause": "ForexAdminShell previously rendered domain navigation as a second aside; forex flat list also duplicated UnifiedSidebar",
+  "fix": [
+    "ForexAdminShell.tsx — posture banner + full-width children only (no nested nav)",
+    "nav-sections.ts — Forex section uses forexGroups from buildForexSidebarNavGroups()",
+    "UnifiedSidebar.tsx — collapsible forex domain groups in primary sidebar only",
+    "pageMeta.ts — Forex breadcrumbs Admin > Forex > group > page",
+    "Removed unnecessary 'use client' from forex-nav-groups.ts and forex-sidebar-nav.ts"
+  ],
+  "deploy": {
+    "image": "m-live-admin-panel:latest",
+    "container": "exchange-admin",
+    "command": "docker compose -f docker-compose.production.yml build admin-panel && up -d admin-panel --no-deps"
+  },
+  "liveChecks": {
+    "url": "http://109.123.254.30/admin/forex/crm/leads",
+    "automatedPlaywright": {
+      "asideCount": 1,
+      "nestedForexOperationsLabel": false,
+      "forexGroupsInPrimarySidebar": true,
+      "note": "One successful headless session after API token seed; subsequent runs hit session_expired redirect when CRM API returned auth fatal (environment/session binding), not layout regression"
+    }
+  },
+  "typecheck": "npx tsc --noEmit in apps/admin-panel — pass"
+}

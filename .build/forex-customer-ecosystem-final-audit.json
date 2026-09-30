@@ -1,0 +1,86 @@
+{
+  "verdict": "GREEN_WITH_EXPLICIT_LIMITATIONS",
+  "auditType": "Forex customer ecosystem forensic closure",
+  "timestampUtc": "2026-09-19T13:35:00Z",
+  "realForex": { "status": "OFF", "evidence": "GET /api/v1/forex/capabilities → realForex false; REAL_FOREX unset in exchange-backend" },
+  "cryptoBoundary": { "modifiedInWorktree": ["apps/backend/src/routes/spot.fastify.ts"], "shipped": false, "frontendForexDigest": "sha256:384ff1b0b8451703c32f2dec1f2d6be9960a54f957451e8012e52600b7138bbb", "backendDeploy": "BLOCKED — spot.fastify.ts provenance unresolved" },
+  "customerRouteInventory": "See forex-customer-ecosystem-gap-matrix.json routeInventory",
+  "capabilityMatrix": "See forex-customer-ecosystem-gap-matrix.json capabilityMatrix",
+  "domainSummaries": {
+    "terminal": "GREEN — watch, chart, ticket, panels, session, command center; PARTIAL WS private + order-type/TIF vs full backend matrix; MISSING advanced chart types",
+    "alerts": "GREEN — Phase 2 server UI verified; PARTIAL condition validation + PATCH condition edit UI",
+    "ordersPositionsHistory": "GREEN — lifecycle states aligned with backend; CSV export; MARKET_DEPENDENT for live fill during closure",
+    "accountRiskMargin": "GREEN — hydrate from /account,/balance,/equity,/margin,/pnl,/risk*; live mark uses bid/ask not mid",
+    "funding": "NOT_IMPLEMENTED real rails; GREEN demo/mock with labeling",
+    "analysisInfo": "PROVIDER_DEPENDENT news/calendar",
+    "responsive": "GREEN mobile companion on /forex/trade; PARTIAL dense terminal on small screens",
+    "security": "GREEN — forexAuthenticate on private routes; alert IDOR 404 cross-user delete"
+  },
+  "spotFastifyProvenance": {
+    "file": "apps/backend/src/routes/spot.fastify.ts",
+    "modifiedVsHead": true,
+    "lastCommitTouchingFile": "c42ff49 feat: production hardening across backend, frontend, admin, and indexer",
+    "workingTreeSha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "headBlobSha256": "de50139898cb7c2cb28bb2fff8272bf6fa8d46bd54f7e4d5920aacff2c6688",
+    "note": "head blob hash from prior verification pass; on-disk matches 925ceffc fingerprint",
+    "diffSummary": [
+      "Added TICKER_LAST_GOOD_MAX_AGE_MS (default 15s) for per-symbol stale snapshot TTL",
+      "volume_24h COALESCE changed: removed candle_24.volume fallback → COALESCE(s.volume,'0') only",
+      "Stale ticker fallback: delete expired last-good; serve only within max age; error paths gated by age"
+    ],
+    "forexReferences": false,
+    "forexFrontendDependency": false,
+    "recommendation": "Do not revert automatically; do not deploy backend until Crypto owners sign off"
+  },
+  "otherCryptoDirtyFiles": "git diff --name-only HEAD | rg spot|p2p|crypto → only spot.fastify.ts (no other Crypto route files in modified set)",
+  "tests": {
+    "customer-alerts.test.ts": "PASS",
+    "forex-workstation-ui.test.ts": "PASS",
+    "forex-phase-a-ui.test.ts": "PASS",
+    "test:forex-phase2-customer (backend)": "PASS",
+    "frontend npm run build": "PASS",
+    "forex-cert-idor-matrix script": "NOT_RUN",
+    "tsc standalone": "NOT_RUN (next build includes TS)"
+  },
+  "browserForensic": {
+    "host": "http://109.123.254.30",
+    "session": "Authenticated from prior QA session in browser",
+    "flows": {
+      "forex/trade": "PASS — nav, watchlist, chart, ticket, bottom tabs incl. Alerts, Market closed status",
+      "forex/alerts": "PASS — 14 types, server/local copy, empty events honest",
+      "fullOrderPlaceClose": "NOT_RUN — market closed; ticket LOADING/disabled",
+      "crypto/markets": "PASS (prior phase2 isolation)",
+      "crypto/trade/spot": "PASS (prior phase2 isolation)"
+    },
+    "refreshReconnect": "PARTIAL — WS reconnect via useForexRuntime; not fully exercised this pass"
+  },
+  "deployment": {
+    "thisPhase": "NO backend deploy; NO service restarts",
+    "frontend": "Remains on verified image sha256:384ff1b0b8451703c32f2dec1f2d6be9960a54f957451e8012e52600b7138bbb"
+  },
+  "remainingLimitations": [
+    "MARKET_DEPENDENT: live order fill, alert trigger, session-open alerts during weekend/closure",
+    "PROVIDER_DEPENDENT: PUSH/EMAIL/WEBHOOK alert delivery; news/calendar providers; real DOM/LP",
+    "PARTIAL: browser Forex WS private channels (REST authoritative)",
+    "PARTIAL: alert PATCH condition editing in UI",
+    "PARTIAL: strict client+server alert condition validation",
+    "MISSING: VWAP, Standard Deviation, Heikin Ashi, Renko",
+    "NOT_IMPLEMENTED: real Forex deposit/withdraw customer rails",
+    "NOT_APPLICABLE: Forex-specific statements/notifications routes (none found)",
+    "BLOCKED: backend deploy until spot.fastify.ts Crypto diff reviewed"
+  ],
+  "genuinelyMissingFeatures": [
+    "VWAP indicator",
+    "Standard Deviation indicator",
+    "Heikin Ashi chart mode",
+    "Renko chart mode",
+    "Real Forex funding UI/backend",
+    "Customer Forex statements surface (if product-required)"
+  ],
+  "filesChangedByThisAudit": [
+    ".build/forex-customer-ecosystem-gap-matrix.json",
+    ".build/forex-customer-ecosystem-gap-matrix.md",
+    ".build/forex-customer-ecosystem-final-audit.json",
+    ".build/forex-customer-ecosystem-final-audit.md"
+  ]
+}

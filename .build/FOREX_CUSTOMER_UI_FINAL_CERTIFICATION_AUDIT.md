@@ -206,7 +206,13 @@ Post-closure staged files (intended):
 
 ## 18. Git Safety Proof
 
-_(Updated after push)_
+| Item | Value |
+|------|--------|
+| Branch | `release/exchange-production-baseline` |
+| HEAD | `4ba7033bf4d48da12f4d42c97b6abb8f75f6795e` |
+| Remote | `4ba7033bf4d48da12f4d42c97b6abb8f75f6795e` |
+| Closure commit | `fix(forex-ui): close post-remediation visual findings` |
+| Changed files (closure) | `errors.ts`, `ledger/page.tsx`, `alerts/page.tsx`, `forex-foundation.test.ts`, `forex-terminal-foundation.spec.ts`, this report |
 
 ---
 

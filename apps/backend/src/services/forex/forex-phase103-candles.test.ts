@@ -8,8 +8,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   FOREX_CANDLE_MAX_LIMIT,
-  FOREX_SUPPORTED_CANDLE_TIMEFRAMES,
   forexCandlesPayload,
+  forexSupportedCandleTimeframes,
 } from './market-data/candles.service.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -29,7 +29,7 @@ function testUnknownSymbol(): void {
 }
 
 function testUnknownTimeframe(): void {
-  const r = forexCandlesPayload({ symbol: 'EURUSD', timeframe: '3m' });
+  const r = forexCandlesPayload({ symbol: 'EURUSD', timeframe: '99x' });
   assert.equal(r.status, 400);
   if (!r.body.success) assert.equal(r.body.error.code, 'FOREX_TIMEFRAME_UNSUPPORTED');
 }
@@ -66,8 +66,7 @@ function testUnavailableEmpty(): void {
   assert.equal(r.body.data.source, 'SIMULATED');
   assert.equal(r.body.data.count, 0);
   assert.deepEqual(r.body.data.candles, []);
-  assert.deepEqual(r.body.data.supportedTimeframes, []);
-  assert.equal(FOREX_SUPPORTED_CANDLE_TIMEFRAMES.length, 0);
+  assert.deepEqual(r.body.data.supportedTimeframes, [...forexSupportedCandleTimeframes()]);
 }
 
 function testNoFabricationAndNoCryptoCoupling(): void {

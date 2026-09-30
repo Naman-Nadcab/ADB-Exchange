@@ -73,7 +73,7 @@ export class ForexSwapService {
         forexSwapSkippedTotal.inc({ reason: 'IDEMPOTENT' });
         continue;
       }
-      const calc = calculateForexSwap({ symbol: p.symbol, side: p.side, volume: p.volume, at });
+      const calc = calculateForexSwap({ symbol: p.symbol, side: p.side, volume: p.volume, at, accountId: p.accountId });
       const event: ForexSwapEvent = {
         eventId: randomUUID(),
         accountId: p.accountId,

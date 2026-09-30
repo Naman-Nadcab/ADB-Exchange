@@ -1,0 +1,69 @@
+{
+  "generated_at": "2026-09-17T20:05:00.000Z",
+  "product": "Unified Trading Platform — Forex",
+  "gaps": [
+    {
+      "id": "FULL-ROUTE-VISUAL-CERT",
+      "domain": "Visual",
+      "severity": "P2",
+      "description": "Full manual/browser visual certification JSON for all ~36 Forex admin routes",
+      "current_state": "ui-navigation 36/36 PASS on :3010; live-phase-a-ui 3/3; populated-state manual pass still open",
+      "required_state": ".build/forex-admin-visual-certification.json all routes PASS",
+      "implementation": "PARTIAL",
+      "test": "PARTIAL",
+      "security": "PASS",
+      "visual": "PARTIAL",
+      "status": "OPEN"
+    },
+    {
+      "id": "DEALING-LIVE-UI-E2E",
+      "domain": "Dealing",
+      "severity": "P2",
+      "description": "Browser E2E for dealing drawer + confirmation dialog interactions",
+      "current_state": "functional-dealing API PASS; UI components present",
+      "required_state": "Playwright interaction test on :3010",
+      "implementation": "PARTIAL",
+      "test": "MISSING",
+      "security": "PASS",
+      "visual": "PARTIAL",
+      "status": "OPEN"
+    },
+    {
+      "id": "CRYPTO-FINAL-ISOLATION-GATE",
+      "domain": "Crypto",
+      "severity": "P0",
+      "description": "Single final forex-safe-crypto-regression.sh after Forex zero-gap",
+      "current_state": "DEFERRED — not run during UI/CRM pass per release policy",
+      "required_state": "PASS once before FOREX_ADMIN_TIER1_FINAL_CERTIFICATION.json",
+      "implementation": "NOT_FOREX",
+      "test": "DEFERRED",
+      "security": "N/A",
+      "visual": "N/A",
+      "status": "DEFERRED_FINAL_GATE"
+    },
+    {
+      "id": "EXT-LP-NOT-CONFIGURED",
+      "domain": "Integrations",
+      "severity": "NOT_APPLICABLE",
+      "description": "Live LP/MT5/FIX — policy OFF",
+      "current_state": "NOT_CONFIGURED",
+      "required_state": "NOT_CONFIGURED",
+      "implementation": "N/A",
+      "test": "N/A",
+      "security": "PASS",
+      "visual": "PASS",
+      "status": "EXTERNALLY_DEPENDENT"
+    }
+  ],
+  "summary": {
+    "open_p0_deferred": 1,
+    "open_p1": 0,
+    "open_p2": 2,
+    "actionable_implementation_gaps": 2
+  },
+  "completion_gate": {
+    "zero_actionable_gaps": false,
+    "forex_ui_crm_core": true,
+    "final_certification_blocked_by": ["FULL-ROUTE-VISUAL-CERT", "DEALING-LIVE-UI-E2E", "CRYPTO-FINAL-ISOLATION-GATE"]
+  }
+}

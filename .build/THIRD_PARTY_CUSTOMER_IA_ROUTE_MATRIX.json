@@ -1,0 +1,2340 @@
+{
+  "auditBaselineCommit": "95fa5cdc53e10032c3173457d6c5c2001ffca6df",
+  "generatedAt": "2026-09-23T13:18:20.403Z",
+  "routeCount": 129,
+  "evidenceSources": [
+    "apps/frontend/src/lib/routes.ts",
+    "apps/frontend/src/app/dashboard/layout.tsx",
+    "apps/frontend/src/components/layout/MobileBottomNav.tsx",
+    "apps/frontend/src/components/layout/ExchangeHeader.tsx",
+    "apps/frontend/src/lib/forex/routes.ts",
+    "apps/frontend/src/components/p2p-v2/P2PHeader.tsx",
+    "apps/frontend/src/components/wallet/WalletOperationsShell.tsx",
+    "apps/frontend/src/lib/tier1-canonical-routes.ts",
+    ".build/I18N_CUSTOMER_SURFACE_MASTER.json"
+  ],
+  "routes": [
+    {
+      "route": "/",
+      "observed": {
+        "currentLocation": "MARKETING",
+        "currentNavigation": "header-logo",
+        "layoutEvidence": "apps/frontend/src/app/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "MARKETING",
+        "parent": "MARKETING",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Public entry; product switcher from here."
+      }
+    },
+    {
+      "route": "/admin",
+      "observed": {
+        "currentLocation": "NON_CUSTOMER",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/admin/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "NON_CUSTOMER",
+        "parent": "NON_CUSTOMER",
+        "navigationLevel": "HIDDEN",
+        "pageType": "redirect",
+        "action": "REMOVE",
+        "reason": "Admin surface; not customer IA."
+      }
+    },
+    {
+      "route": "/api",
+      "observed": {
+        "currentLocation": "LEGACY",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/api/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "LEGACY",
+        "parent": "LEGACY",
+        "navigationLevel": "SECONDARY",
+        "pageType": "redirect",
+        "action": "DEMOTE",
+        "reason": "Legacy or alias routes."
+      }
+    },
+    {
+      "route": "/assets",
+      "observed": {
+        "currentLocation": "MARKETING",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/assets/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "MARKETING",
+        "parent": "MARKETING",
+        "navigationLevel": "SECONDARY",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "Public entry; product switcher from here."
+      }
+    },
+    {
+      "route": "/auth/callback/apple",
+      "observed": {
+        "currentLocation": "AUTH_LEGAL",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/auth/callback/apple/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "AUTH_LEGAL",
+        "parent": "AUTH_LEGAL",
+        "navigationLevel": "HIDDEN",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "OAuth callback; no nav."
+      }
+    },
+    {
+      "route": "/auth/callback/google",
+      "observed": {
+        "currentLocation": "AUTH_LEGAL",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/auth/callback/google/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "AUTH_LEGAL",
+        "parent": "AUTH_LEGAL",
+        "navigationLevel": "HIDDEN",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "OAuth callback; no nav."
+      }
+    },
+    {
+      "route": "/cookies",
+      "observed": {
+        "currentLocation": "AUTH_LEGAL",
+        "currentNavigation": "none",
+        "layoutEvidence": "apps/frontend/src/app/(auth)/cookies/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "AUTH_LEGAL",
+        "parent": "AUTH_LEGAL",
+        "navigationLevel": "HIDDEN",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Pre-auth and legal; no primary nav."
+      }
+    },
+    {
+      "route": "/dashboard",
+      "observed": {
+        "currentLocation": "HOME",
+        "currentNavigation": "secondary-user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "HOME",
+        "parent": "HOME",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Canonical signed-in home hub."
+      }
+    },
+    {
+      "route": "/dashboard/account",
+      "observed": {
+        "currentLocation": "PROFILE_ACCOUNT",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/account/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "PROFILE_ACCOUNT",
+        "parent": "PROFILE_ACCOUNT",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "User account settings and login history."
+      }
+    },
+    {
+      "route": "/dashboard/account/link/google",
+      "observed": {
+        "currentLocation": "PROFILE_ACCOUNT",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/account/link/google/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "PROFILE_ACCOUNT",
+        "parent": "PROFILE_ACCOUNT",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "User account settings and login history."
+      }
+    },
+    {
+      "route": "/dashboard/account/login-history",
+      "observed": {
+        "currentLocation": "PROFILE_ACCOUNT",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/account/login-history/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "PROFILE_ACCOUNT",
+        "parent": "PROFILE_ACCOUNT",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "User account settings and login history."
+      }
+    },
+    {
+      "route": "/dashboard/address-book",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "funds-secondary",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/address-book/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "MOVE",
+        "reason": "Withdrawal addresses are funds operation prep, not generic account."
+      }
+    },
+    {
+      "route": "/dashboard/address-book/add-batches",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "funds-secondary",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/address-book/add-batches/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "MOVE",
+        "reason": "Withdrawal addresses are funds operation prep, not generic account."
+      }
+    },
+    {
+      "route": "/dashboard/announcements",
+      "observed": {
+        "currentLocation": "COMMS",
+        "currentNavigation": "notifications-link",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/announcements/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "COMMS",
+        "parent": "COMMS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "System comms; from notifications panel."
+      }
+    },
+    {
+      "route": "/dashboard/announcements/[id]",
+      "observed": {
+        "currentLocation": "COMMS",
+        "currentNavigation": "notifications-link",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/announcements/[id]/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "COMMS",
+        "parent": "COMMS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "System comms; from notifications panel."
+      }
+    },
+    {
+      "route": "/dashboard/api",
+      "observed": {
+        "currentLocation": "SETTINGS_ADVANCED",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/api/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "SETTINGS_ADVANCED",
+        "parent": "SETTINGS_ADVANCED",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Developer API keys; advanced settings."
+      }
+    },
+    {
+      "route": "/dashboard/api/create",
+      "observed": {
+        "currentLocation": "SETTINGS_ADVANCED",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/api/create/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "SETTINGS_ADVANCED",
+        "parent": "SETTINGS_ADVANCED",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Developer API keys; advanced settings."
+      }
+    },
+    {
+      "route": "/dashboard/assets",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/assets/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "redirect",
+        "action": "DEMOTE",
+        "reason": "Legacy dashboard paths; middleware maps to /wallet/*."
+      }
+    },
+    {
+      "route": "/dashboard/assets/[symbol]",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "legacy-redirect",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/assets/[symbol]/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Legacy dashboard paths; middleware maps to /wallet/*."
+      }
+    },
+    {
+      "route": "/dashboard/assets/convert",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "legacy-redirect",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/assets/convert/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Legacy dashboard paths; middleware maps to /wallet/*."
+      }
+    },
+    {
+      "route": "/dashboard/assets/funding",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "legacy-redirect",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/assets/funding/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Legacy dashboard paths; middleware maps to /wallet/*."
+      }
+    },
+    {
+      "route": "/dashboard/assets/history",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "legacy-redirect",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/assets/history/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Legacy dashboard paths; middleware maps to /wallet/*."
+      }
+    },
+    {
+      "route": "/dashboard/assets/overview",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "legacy-redirect",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/assets/overview/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Legacy dashboard paths; middleware maps to /wallet/*."
+      }
+    },
+    {
+      "route": "/dashboard/assets/pnl",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "legacy-redirect",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/assets/pnl/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Legacy dashboard paths; middleware maps to /wallet/*."
+      }
+    },
+    {
+      "route": "/dashboard/assets/unified",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "legacy-redirect",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/assets/unified/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Legacy dashboard paths; middleware maps to /wallet/*."
+      }
+    },
+    {
+      "route": "/dashboard/convert",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/convert/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "redirect",
+        "action": "DEMOTE",
+        "reason": "Legacy dashboard paths; middleware maps to /wallet/*."
+      }
+    },
+    {
+      "route": "/dashboard/data-export",
+      "observed": {
+        "currentLocation": "SETTINGS",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/data-export/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "SETTINGS",
+        "parent": "SETTINGS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Preferences, fees, export under Settings."
+      }
+    },
+    {
+      "route": "/dashboard/deposit/crypto",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "legacy-redirect",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/deposit/crypto/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Legacy dashboard paths; middleware maps to /wallet/*."
+      }
+    },
+    {
+      "route": "/dashboard/earn",
+      "observed": {
+        "currentLocation": "MARKETS",
+        "currentNavigation": "redirect",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/earn/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "MARKETS",
+        "parent": "MARKETS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "MERGE",
+        "reason": "Earn not launched; redirects to markets (tier1-canonical-routes.ts)."
+      }
+    },
+    {
+      "route": "/dashboard/events",
+      "observed": {
+        "currentLocation": "COMMS",
+        "currentNavigation": "notifications-link",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/events/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "COMMS",
+        "parent": "COMMS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "System comms; from notifications panel."
+      }
+    },
+    {
+      "route": "/dashboard/fee-rates",
+      "observed": {
+        "currentLocation": "SETTINGS",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/fee-rates/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "SETTINGS",
+        "parent": "SETTINGS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Preferences, fees, export under Settings."
+      }
+    },
+    {
+      "route": "/dashboard/help",
+      "observed": {
+        "currentLocation": "SUPPORT",
+        "currentNavigation": "user-menu+search",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/help/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "SUPPORT",
+        "parent": "SUPPORT",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Support/help; discoverable from user menu and global search."
+      }
+    },
+    {
+      "route": "/dashboard/identity",
+      "observed": {
+        "currentLocation": "PROFILE_VERIFICATION",
+        "currentNavigation": "user-menu+banner",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/identity/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "PROFILE_VERIFICATION",
+        "parent": "PROFILE_VERIFICATION",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "MOVE",
+        "reason": "KYC belongs with Profile & Verification, not buried only in banner."
+      }
+    },
+    {
+      "route": "/dashboard/identity/success",
+      "observed": {
+        "currentLocation": "PROFILE_VERIFICATION",
+        "currentNavigation": "user-menu+banner",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/identity/success/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "PROFILE_VERIFICATION",
+        "parent": "PROFILE_VERIFICATION",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "MOVE",
+        "reason": "KYC belongs with Profile & Verification, not buried only in banner."
+      }
+    },
+    {
+      "route": "/dashboard/identity/upload",
+      "observed": {
+        "currentLocation": "PROFILE_VERIFICATION",
+        "currentNavigation": "user-menu+banner",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/identity/upload/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "PROFILE_VERIFICATION",
+        "parent": "PROFILE_VERIFICATION",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "MOVE",
+        "reason": "KYC belongs with Profile & Verification, not buried only in banner."
+      }
+    },
+    {
+      "route": "/dashboard/markets",
+      "observed": {
+        "currentLocation": "MARKETS",
+        "currentNavigation": "primary-top+mobile",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/markets/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "MARKETS",
+        "parent": "MARKETS",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Market discovery for Crypto."
+      }
+    },
+    {
+      "route": "/dashboard/orders",
+      "observed": {
+        "currentLocation": "ORDERS",
+        "currentNavigation": "mobile+header-dropdown",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/orders/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "ORDERS",
+        "parent": "ORDERS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Cross-product order history hub."
+      }
+    },
+    {
+      "route": "/dashboard/orders/p2p",
+      "observed": {
+        "currentLocation": "ORDERS",
+        "currentNavigation": "mobile+header-dropdown",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/orders/p2p/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "ORDERS",
+        "parent": "ORDERS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Cross-product order history hub."
+      }
+    },
+    {
+      "route": "/dashboard/orders/spot",
+      "observed": {
+        "currentLocation": "ORDERS",
+        "currentNavigation": "mobile+header-dropdown",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/orders/spot/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "ORDERS",
+        "parent": "ORDERS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Cross-product order history hub."
+      }
+    },
+    {
+      "route": "/dashboard/orders/trades",
+      "observed": {
+        "currentLocation": "ORDERS",
+        "currentNavigation": "mobile+header-dropdown",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/orders/trades/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "ORDERS",
+        "parent": "ORDERS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Cross-product order history hub."
+      }
+    },
+    {
+      "route": "/dashboard/p2p",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/p2p/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/dashboard/p2p/[type]/[crypto]/[fiat]",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/p2p/[type]/[crypto]/[fiat]/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/dashboard/p2p/[type]/[crypto]/[fiat]/create",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/p2p/[type]/[crypto]/[fiat]/create/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/dashboard/p2p/orders/[orderId]",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/p2p/orders/[orderId]/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/dashboard/p2p/payment-methods",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/p2p/payment-methods/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/dashboard/preferences",
+      "observed": {
+        "currentLocation": "SETTINGS",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/preferences/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "SETTINGS",
+        "parent": "SETTINGS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Preferences, fees, export under Settings."
+      }
+    },
+    {
+      "route": "/dashboard/progress",
+      "observed": {
+        "currentLocation": "INTERNAL",
+        "currentNavigation": "hidden",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/progress/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "INTERNAL",
+        "parent": "INTERNAL",
+        "navigationLevel": "HIDDEN",
+        "pageType": "page",
+        "action": "REMOVE",
+        "reason": "Build progress tracker; not customer task IA (exchangeProgressSteps)."
+      }
+    },
+    {
+      "route": "/dashboard/referral",
+      "observed": {
+        "currentLocation": "GROWTH",
+        "currentNavigation": "user-menu+dashboard-widget",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/referral/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "GROWTH",
+        "parent": "GROWTH",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Referral program; secondary growth surface."
+      }
+    },
+    {
+      "route": "/dashboard/referral/my-referrals",
+      "observed": {
+        "currentLocation": "GROWTH",
+        "currentNavigation": "user-menu+dashboard-widget",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/referral/my-referrals/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "GROWTH",
+        "parent": "GROWTH",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Referral program; secondary growth surface."
+      }
+    },
+    {
+      "route": "/dashboard/security",
+      "observed": {
+        "currentLocation": "PROFILE_SECURITY",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/security/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "PROFILE_SECURITY",
+        "parent": "PROFILE_SECURITY",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Security hub; should pair with identity under Profile & Security parent."
+      }
+    },
+    {
+      "route": "/dashboard/security/2fa",
+      "observed": {
+        "currentLocation": "PROFILE_SECURITY",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/security/2fa/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "PROFILE_SECURITY",
+        "parent": "PROFILE_SECURITY",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Security hub; should pair with identity under Profile & Security parent."
+      }
+    },
+    {
+      "route": "/dashboard/security/anti-phishing",
+      "observed": {
+        "currentLocation": "PROFILE_SECURITY",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/security/anti-phishing/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "PROFILE_SECURITY",
+        "parent": "PROFILE_SECURITY",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Security hub; should pair with identity under Profile & Security parent."
+      }
+    },
+    {
+      "route": "/dashboard/security/change-password",
+      "observed": {
+        "currentLocation": "PROFILE_SECURITY",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/security/change-password/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "PROFILE_SECURITY",
+        "parent": "PROFILE_SECURITY",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Security hub; should pair with identity under Profile & Security parent."
+      }
+    },
+    {
+      "route": "/dashboard/security/fund-password",
+      "observed": {
+        "currentLocation": "PROFILE_SECURITY",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/security/fund-password/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "PROFILE_SECURITY",
+        "parent": "PROFILE_SECURITY",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Security hub; should pair with identity under Profile & Security parent."
+      }
+    },
+    {
+      "route": "/dashboard/security/passkeys",
+      "observed": {
+        "currentLocation": "PROFILE_SECURITY",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/security/passkeys/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "PROFILE_SECURITY",
+        "parent": "PROFILE_SECURITY",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Security hub; should pair with identity under Profile & Security parent."
+      }
+    },
+    {
+      "route": "/dashboard/security/sessions",
+      "observed": {
+        "currentLocation": "PROFILE_SECURITY",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/security/sessions/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "PROFILE_SECURITY",
+        "parent": "PROFILE_SECURITY",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Security hub; should pair with identity under Profile & Security parent."
+      }
+    },
+    {
+      "route": "/dashboard/security/withdrawal-limits",
+      "observed": {
+        "currentLocation": "PROFILE_SECURITY",
+        "currentNavigation": "user-menu",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/security/withdrawal-limits/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "PROFILE_SECURITY",
+        "parent": "PROFILE_SECURITY",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Security hub; should pair with identity under Profile & Security parent."
+      }
+    },
+    {
+      "route": "/dashboard/spot",
+      "observed": {
+        "currentLocation": "TRADE_CRYPTO",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/spot/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "TRADE_CRYPTO",
+        "parent": "TRADE_CRYPTO",
+        "navigationLevel": "PRIMARY",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "Crypto spot terminal; product switcher Crypto."
+      }
+    },
+    {
+      "route": "/dashboard/support",
+      "observed": {
+        "currentLocation": "SUPPORT",
+        "currentNavigation": "user-menu+search",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/support/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "SUPPORT",
+        "parent": "SUPPORT",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Support/help; discoverable from user menu and global search."
+      }
+    },
+    {
+      "route": "/dashboard/trade",
+      "observed": {
+        "currentLocation": "TRADE_CRYPTO",
+        "currentNavigation": "primary-top+mobile",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/trade/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "TRADE_CRYPTO",
+        "parent": "TRADE_CRYPTO",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Crypto spot terminal; product switcher Crypto."
+      }
+    },
+    {
+      "route": "/dashboard/trade/spot",
+      "observed": {
+        "currentLocation": "TRADE_CRYPTO",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/trade/spot/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "TRADE_CRYPTO",
+        "parent": "TRADE_CRYPTO",
+        "navigationLevel": "PRIMARY",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "Crypto spot terminal; product switcher Crypto."
+      }
+    },
+    {
+      "route": "/dashboard/transfer",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "legacy-redirect",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/transfer/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Legacy dashboard paths; middleware maps to /wallet/*."
+      }
+    },
+    {
+      "route": "/dashboard/wallet/[symbol]",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "legacy-redirect",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/wallet/[symbol]/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Legacy wallet under dashboard shell."
+      }
+    },
+    {
+      "route": "/dashboard/wallet/spot",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "legacy-redirect",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/wallet/spot/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Legacy wallet under dashboard shell."
+      }
+    },
+    {
+      "route": "/dashboard/withdraw",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/withdraw/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "redirect",
+        "action": "DEMOTE",
+        "reason": "Legacy dashboard paths; middleware maps to /wallet/*."
+      }
+    },
+    {
+      "route": "/dashboard/withdraw/crypto",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "legacy-redirect",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/withdraw/crypto/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Legacy dashboard paths; middleware maps to /wallet/*."
+      }
+    },
+    {
+      "route": "/dashboard/withdraw/fiat",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "legacy-redirect",
+        "layoutEvidence": "apps/frontend/src/app/dashboard/withdraw/fiat/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "DEMOTE",
+        "reason": "Legacy dashboard paths; middleware maps to /wallet/*."
+      }
+    },
+    {
+      "route": "/earn",
+      "observed": {
+        "currentLocation": "MARKETS",
+        "currentNavigation": "redirect",
+        "layoutEvidence": "apps/frontend/src/app/earn/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "MARKETS",
+        "parent": "MARKETS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "MERGE",
+        "reason": "Earn not launched; redirects to markets (tier1-canonical-routes.ts)."
+      }
+    },
+    {
+      "route": "/forex",
+      "observed": {
+        "currentLocation": "TRADE_FOREX",
+        "currentNavigation": "forex-top-nav",
+        "layoutEvidence": "apps/frontend/src/app/forex/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "TRADE_FOREX",
+        "parent": "TRADE_FOREX",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Forex workstation; separate shell via EdaProductSwitcher."
+      }
+    },
+    {
+      "route": "/forex/account",
+      "observed": {
+        "currentLocation": "TRADE_FOREX",
+        "currentNavigation": "forex-top-nav",
+        "layoutEvidence": "apps/frontend/src/app/forex/account/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "TRADE_FOREX",
+        "parent": "TRADE_FOREX",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Forex workstation; separate shell via EdaProductSwitcher."
+      }
+    },
+    {
+      "route": "/forex/account/accounts",
+      "observed": {
+        "currentLocation": "TRADE_FOREX",
+        "currentNavigation": "forex-top-nav",
+        "layoutEvidence": "apps/frontend/src/app/forex/account/accounts/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "TRADE_FOREX",
+        "parent": "TRADE_FOREX",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Forex workstation; separate shell via EdaProductSwitcher."
+      }
+    },
+    {
+      "route": "/forex/account/funds",
+      "observed": {
+        "currentLocation": "TRADE_FOREX",
+        "currentNavigation": "forex-top-nav",
+        "layoutEvidence": "apps/frontend/src/app/forex/account/funds/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "TRADE_FOREX",
+        "parent": "TRADE_FOREX",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Forex workstation; separate shell via EdaProductSwitcher."
+      }
+    },
+    {
+      "route": "/forex/account/ledger",
+      "observed": {
+        "currentLocation": "TRADE_FOREX",
+        "currentNavigation": "forex-top-nav",
+        "layoutEvidence": "apps/frontend/src/app/forex/account/ledger/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "TRADE_FOREX",
+        "parent": "TRADE_FOREX",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Forex workstation; separate shell via EdaProductSwitcher."
+      }
+    },
+    {
+      "route": "/forex/alerts",
+      "observed": {
+        "currentLocation": "TRADE_FOREX",
+        "currentNavigation": "forex-top-nav",
+        "layoutEvidence": "apps/frontend/src/app/forex/alerts/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "TRADE_FOREX",
+        "parent": "TRADE_FOREX",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Forex workstation; separate shell via EdaProductSwitcher."
+      }
+    },
+    {
+      "route": "/forex/analysis",
+      "observed": {
+        "currentLocation": "TRADE_FOREX",
+        "currentNavigation": "forex-top-nav",
+        "layoutEvidence": "apps/frontend/src/app/forex/analysis/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "TRADE_FOREX",
+        "parent": "TRADE_FOREX",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Forex workstation; separate shell via EdaProductSwitcher."
+      }
+    },
+    {
+      "route": "/forex/markets",
+      "observed": {
+        "currentLocation": "TRADE_FOREX",
+        "currentNavigation": "forex-top-nav",
+        "layoutEvidence": "apps/frontend/src/app/forex/markets/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "TRADE_FOREX",
+        "parent": "TRADE_FOREX",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Forex workstation; separate shell via EdaProductSwitcher."
+      }
+    },
+    {
+      "route": "/forex/orders",
+      "observed": {
+        "currentLocation": "TRADE_FOREX",
+        "currentNavigation": "forex-top-nav",
+        "layoutEvidence": "apps/frontend/src/app/forex/orders/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "TRADE_FOREX",
+        "parent": "TRADE_FOREX",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Forex workstation; separate shell via EdaProductSwitcher."
+      }
+    },
+    {
+      "route": "/forex/portfolio",
+      "observed": {
+        "currentLocation": "TRADE_FOREX",
+        "currentNavigation": "forex-top-nav",
+        "layoutEvidence": "apps/frontend/src/app/forex/portfolio/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "TRADE_FOREX",
+        "parent": "TRADE_FOREX",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Forex workstation; separate shell via EdaProductSwitcher."
+      }
+    },
+    {
+      "route": "/forex/trade",
+      "observed": {
+        "currentLocation": "TRADE_FOREX",
+        "currentNavigation": "forex-top-nav",
+        "layoutEvidence": "apps/frontend/src/app/forex/trade/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "TRADE_FOREX",
+        "parent": "TRADE_FOREX",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Forex workstation; separate shell via EdaProductSwitcher."
+      }
+    },
+    {
+      "route": "/forgot-password",
+      "observed": {
+        "currentLocation": "AUTH_LEGAL",
+        "currentNavigation": "none",
+        "layoutEvidence": "apps/frontend/src/app/(auth)/forgot-password/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "AUTH_LEGAL",
+        "parent": "AUTH_LEGAL",
+        "navigationLevel": "HIDDEN",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Pre-auth and legal; no primary nav."
+      }
+    },
+    {
+      "route": "/history",
+      "observed": {
+        "currentLocation": "LEGACY",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/history/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "LEGACY",
+        "parent": "LEGACY",
+        "navigationLevel": "SECONDARY",
+        "pageType": "redirect",
+        "action": "DEMOTE",
+        "reason": "Legacy or alias routes."
+      }
+    },
+    {
+      "route": "/login",
+      "observed": {
+        "currentLocation": "AUTH_LEGAL",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/(auth)/login/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "AUTH_LEGAL",
+        "parent": "AUTH_LEGAL",
+        "navigationLevel": "HIDDEN",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "Pre-auth and legal; no primary nav."
+      }
+    },
+    {
+      "route": "/markets",
+      "observed": {
+        "currentLocation": "MARKETS",
+        "currentNavigation": "primary-top+mobile",
+        "layoutEvidence": "apps/frontend/src/app/markets/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "MARKETS",
+        "parent": "MARKETS",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Market discovery for Crypto."
+      }
+    },
+    {
+      "route": "/orders",
+      "observed": {
+        "currentLocation": "ORDERS",
+        "currentNavigation": "mobile+header-dropdown",
+        "layoutEvidence": "apps/frontend/src/app/orders/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "ORDERS",
+        "parent": "ORDERS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Cross-product order history hub."
+      }
+    },
+    {
+      "route": "/orders/history",
+      "observed": {
+        "currentLocation": "ORDERS",
+        "currentNavigation": "mobile+header-dropdown",
+        "layoutEvidence": "apps/frontend/src/app/orders/history/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "ORDERS",
+        "parent": "ORDERS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Cross-product order history hub."
+      }
+    },
+    {
+      "route": "/orders/p2p",
+      "observed": {
+        "currentLocation": "ORDERS",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/orders/p2p/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "ORDERS",
+        "parent": "ORDERS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "Cross-product order history hub."
+      }
+    },
+    {
+      "route": "/orders/spot",
+      "observed": {
+        "currentLocation": "ORDERS",
+        "currentNavigation": "mobile+header-dropdown",
+        "layoutEvidence": "apps/frontend/src/app/orders/spot/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "ORDERS",
+        "parent": "ORDERS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Cross-product order history hub."
+      }
+    },
+    {
+      "route": "/orders/trades",
+      "observed": {
+        "currentLocation": "ORDERS",
+        "currentNavigation": "mobile+header-dropdown",
+        "layoutEvidence": "apps/frontend/src/app/orders/trades/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "ORDERS",
+        "parent": "ORDERS",
+        "navigationLevel": "SECONDARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Cross-product order history hub."
+      }
+    },
+    {
+      "route": "/p2p",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p-v2",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p-v2/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p-v2/create-ad",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p-v2/create-ad/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p-v2/disputes/[id]",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p-v2/disputes/[id]/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p-v2/merchant-dashboard",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p-v2/merchant-dashboard/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p-v2/merchant/[id]",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p-v2/merchant/[id]/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p-v2/my-ads",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p-v2/my-ads/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p-v2/orders",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p-v2/orders/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p-v2/orders/[id]",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p-v2/orders/[id]/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p-v2/payment-methods",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p-v2/payment-methods/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p/[type]/[crypto]/[fiat]",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/p2p/[type]/[crypto]/[fiat]/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p/create-ad",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p/create-ad/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p/disputes/[id]",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p/disputes/[id]/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p/merchant-dashboard",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p/merchant-dashboard/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p/merchant/[id]",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/p2p/merchant/[id]/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p/my-ads",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p/my-ads/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p/orders",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p/orders/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p/orders/[orderId]",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p/orders/[orderId]/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p/payment-methods",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p/payment-methods/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/p2p/profile/[userId]",
+      "observed": {
+        "currentLocation": "P2P",
+        "currentNavigation": "primary+p2p-subnav",
+        "layoutEvidence": "apps/frontend/src/app/p2p/profile/[userId]/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "P2P",
+        "parent": "P2P",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "P2P marketplace; canonical /p2p with section tabs."
+      }
+    },
+    {
+      "route": "/privacy",
+      "observed": {
+        "currentLocation": "AUTH_LEGAL",
+        "currentNavigation": "none",
+        "layoutEvidence": "apps/frontend/src/app/(auth)/privacy/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "AUTH_LEGAL",
+        "parent": "AUTH_LEGAL",
+        "navigationLevel": "HIDDEN",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Pre-auth and legal; no primary nav."
+      }
+    },
+    {
+      "route": "/register",
+      "observed": {
+        "currentLocation": "AUTH_LEGAL",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/(auth)/register/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "AUTH_LEGAL",
+        "parent": "AUTH_LEGAL",
+        "navigationLevel": "HIDDEN",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "Pre-auth and legal; no primary nav."
+      }
+    },
+    {
+      "route": "/reset-password",
+      "observed": {
+        "currentLocation": "AUTH_LEGAL",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/reset-password/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "AUTH_LEGAL",
+        "parent": "AUTH_LEGAL",
+        "navigationLevel": "HIDDEN",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "Pre-auth and legal; no primary nav."
+      }
+    },
+    {
+      "route": "/signup",
+      "observed": {
+        "currentLocation": "AUTH_LEGAL",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/(auth)/signup/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "AUTH_LEGAL",
+        "parent": "AUTH_LEGAL",
+        "navigationLevel": "HIDDEN",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "Pre-auth and legal; no primary nav."
+      }
+    },
+    {
+      "route": "/spot",
+      "observed": {
+        "currentLocation": "TRADE_CRYPTO",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/spot/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "TRADE_CRYPTO",
+        "parent": "TRADE_CRYPTO",
+        "navigationLevel": "PRIMARY",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "Crypto spot terminal; product switcher Crypto."
+      }
+    },
+    {
+      "route": "/terms",
+      "observed": {
+        "currentLocation": "AUTH_LEGAL",
+        "currentNavigation": "none",
+        "layoutEvidence": "apps/frontend/src/app/(auth)/terms/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "AUTH_LEGAL",
+        "parent": "AUTH_LEGAL",
+        "navigationLevel": "HIDDEN",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Pre-auth and legal; no primary nav."
+      }
+    },
+    {
+      "route": "/trade",
+      "observed": {
+        "currentLocation": "TRADE_CRYPTO",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/trade/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "TRADE_CRYPTO",
+        "parent": "TRADE_CRYPTO",
+        "navigationLevel": "PRIMARY",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "Crypto spot terminal; product switcher Crypto."
+      }
+    },
+    {
+      "route": "/trade/spot",
+      "observed": {
+        "currentLocation": "TRADE_CRYPTO",
+        "currentNavigation": "primary-top+mobile",
+        "layoutEvidence": "apps/frontend/src/app/trade/spot/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "TRADE_CRYPTO",
+        "parent": "TRADE_CRYPTO",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Crypto spot terminal; product switcher Crypto."
+      }
+    },
+    {
+      "route": "/wallet",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "primary-mobile+header-wallet",
+        "layoutEvidence": "apps/frontend/src/app/wallet/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Tier-1 funds center (canonical)."
+      }
+    },
+    {
+      "route": "/wallet/[symbol]",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "primary-mobile+header-wallet",
+        "layoutEvidence": "apps/frontend/src/app/wallet/[symbol]/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Tier-1 funds center (canonical)."
+      }
+    },
+    {
+      "route": "/wallet/convert",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "primary-mobile+header-wallet",
+        "layoutEvidence": "apps/frontend/src/app/wallet/convert/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Tier-1 funds center (canonical)."
+      }
+    },
+    {
+      "route": "/wallet/deposit",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "redirect-only",
+        "layoutEvidence": "apps/frontend/src/app/wallet/deposit/page.tsx",
+        "redirectOnly": true,
+        "i18nStatus": "REDIRECT_NO_UI"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "PRIMARY",
+        "pageType": "redirect",
+        "action": "KEEP",
+        "reason": "Tier-1 funds center (canonical)."
+      }
+    },
+    {
+      "route": "/wallet/deposit/crypto",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "primary-mobile+header-wallet",
+        "layoutEvidence": "apps/frontend/src/app/wallet/deposit/crypto/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Tier-1 funds center (canonical)."
+      }
+    },
+    {
+      "route": "/wallet/funding",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "primary-mobile+header-wallet",
+        "layoutEvidence": "apps/frontend/src/app/wallet/funding/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Tier-1 funds center (canonical)."
+      }
+    },
+    {
+      "route": "/wallet/history",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "primary-mobile+header-wallet",
+        "layoutEvidence": "apps/frontend/src/app/wallet/history/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Tier-1 funds center (canonical)."
+      }
+    },
+    {
+      "route": "/wallet/pnl",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "primary-mobile+header-wallet",
+        "layoutEvidence": "apps/frontend/src/app/wallet/pnl/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Tier-1 funds center (canonical)."
+      }
+    },
+    {
+      "route": "/wallet/transfer",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "primary-mobile+header-wallet",
+        "layoutEvidence": "apps/frontend/src/app/wallet/transfer/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Tier-1 funds center (canonical)."
+      }
+    },
+    {
+      "route": "/wallet/unified",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "primary-mobile+header-wallet",
+        "layoutEvidence": "apps/frontend/src/app/wallet/unified/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Tier-1 funds center (canonical)."
+      }
+    },
+    {
+      "route": "/wallet/withdraw",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "primary-mobile+header-wallet",
+        "layoutEvidence": "apps/frontend/src/app/wallet/withdraw/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Tier-1 funds center (canonical)."
+      }
+    },
+    {
+      "route": "/wallet/withdraw/crypto",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "primary-mobile+header-wallet",
+        "layoutEvidence": "apps/frontend/src/app/wallet/withdraw/crypto/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Tier-1 funds center (canonical)."
+      }
+    },
+    {
+      "route": "/wallet/withdraw/fiat",
+      "observed": {
+        "currentLocation": "FUNDS",
+        "currentNavigation": "primary-mobile+header-wallet",
+        "layoutEvidence": "apps/frontend/src/app/wallet/withdraw/fiat/page.tsx",
+        "redirectOnly": false,
+        "i18nStatus": "SOURCE_I18N_WIRED"
+      },
+      "recommended": {
+        "section": "FUNDS",
+        "parent": "FUNDS",
+        "navigationLevel": "PRIMARY",
+        "pageType": "page",
+        "action": "KEEP",
+        "reason": "Tier-1 funds center (canonical)."
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "updatedAt": "2026-09-18T06:00:00Z",
+  "batch": "tier1-ui-finalization-market-data-accounts-ops-notifications",
+  "live": {
+    "admin": { "container": "exchange-admin", "image": "m-live-admin-panel", "status": "RECREATED" },
+    "backend": { "container": "exchange-backend", "image": "m-live-backend", "status": "RECREATED" }
+  },
+  "changes": [
+    "GET /forex/market-data/quotes + ForexMarketDataPanel quote monitor",
+    "GET /forex/accounts/list + ForexTradingAccountsPanel (accounts route)",
+    "ForexAdminOpsTable order/execution/position detail modals + columns",
+    "ForexNotificationsPanel operational table + ack/resolve",
+    "scripts/forex-tier1-browser-cert.mjs — 36-route Tier-1 acceptance"
+  ],
+  "operator_url": "http://109.123.254.30/admin"
+}

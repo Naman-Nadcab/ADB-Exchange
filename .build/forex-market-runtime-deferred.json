@@ -1,0 +1,22 @@
+{
+  "deferredAtUtc": "2026-09-19T07:25:00.000Z",
+  "reason": "Forex session closed (WEEKEND_CLOSURE); no fabrication of open session or quotes",
+  "phase4Status": "DEVELOPMENT_COMPLETE — RUNTIME_CERTIFICATION_PENDING",
+  "phase5Status": "DEVELOPMENT_COMPLETE — RUNTIME_CERTIFICATION_PENDING",
+  "session": { "open": false, "reason": "WEEKEND_CLOSURE" },
+  "artifacts": {
+    "phase4DevComplete": ".build/forex-phase4-development-complete.json",
+    "phase5DevComplete": ".build/forex-phase5-development-complete.json",
+    "phase4MarketCheckpoint": ".build/forex-phase4-market-runtime-checkpoint.json",
+    "phase5MarketCheckpoint": ".build/forex-phase5-market-runtime-checkpoint.json"
+  },
+  "tomorrowResumeSequence": [
+    "1. Read .build/forex-phase4-market-runtime-checkpoint.json",
+    "2. curl GET /api/v1/forex/sessions — confirm open",
+    "3. docker inspect exchange-backend/exchange-frontend — confirm digests",
+    "4. node scripts/forex-phase4-live-green-cert.mjs — require exit 0 / GREEN",
+    "5. Browser K/L + Phase 5 checkpoint tests",
+    "6. Emit Phase 4 + Phase 5 GREEN only if all evidence passes"
+  ],
+  "primaryResumeCommand": "node scripts/forex-phase4-live-green-cert.mjs"
+}

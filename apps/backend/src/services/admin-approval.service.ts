@@ -9,7 +9,14 @@ export type ApprovalActionType =
   | 'global_control_action'
   | 'settlement_circuit_reset'
   | 'system_config_change'
-  | 'admin_role_change';
+  | 'admin_role_change'
+  | 'forex_controls_patch'
+  | 'forex_policy_patch'
+  | 'forex_routing_patch'
+  | 'forex_account_group_change'
+  | 'forex_leverage_change'
+  | 'forex_finance_request'
+  | 'forex_partner_payout';
 
 const DEFAULT_APPROVAL_THRESHOLDS: Record<string, number> = {
   withdrawal_approve: 2,
@@ -19,6 +26,13 @@ const DEFAULT_APPROVAL_THRESHOLDS: Record<string, number> = {
   settlement_circuit_reset: 3,
   system_config_change: 2,
   admin_role_change: 2,
+  forex_controls_patch: 2,
+  forex_policy_patch: 2,
+  forex_routing_patch: 2,
+  forex_account_group_change: 2,
+  forex_leverage_change: 2,
+  forex_finance_request: 2,
+  forex_partner_payout: 2,
 };
 
 const DEFAULT_EXPIRY_HOURS = 24;
@@ -293,7 +307,16 @@ class AdminApprovalService {
     if (
       isFullyApproved &&
       config.security.makerCheckerEnabled &&
-      (row.action_type === 'withdrawal_approve' || row.action_type === 'manual_credit' || row.action_type === 'global_control_action')
+      (row.action_type === 'withdrawal_approve' ||
+        row.action_type === 'manual_credit' ||
+        row.action_type === 'global_control_action' ||
+        row.action_type === 'forex_controls_patch' ||
+        row.action_type === 'forex_policy_patch' ||
+        row.action_type === 'forex_routing_patch' ||
+        row.action_type === 'forex_account_group_change' ||
+        row.action_type === 'forex_leverage_change' ||
+        row.action_type === 'forex_finance_request' ||
+        row.action_type === 'forex_partner_payout')
     ) {
       try {
         await db.query(

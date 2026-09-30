@@ -1,0 +1,19 @@
+{
+  "url": "http://109.123.254.30/forex/trade",
+  "ts": "2026-09-18T14:30:06.319Z",
+  "orderTypes": [
+    "Market",
+    "Limit",
+    "Stop",
+    "Stop Limit"
+  ],
+  "tif": [
+    "GTC",
+    "IOC",
+    "FOK",
+    "DAY"
+  ],
+  "gtdPresent": false,
+  "crashObject": false,
+  "screenshot": ".build/forex-phase2-lockdown-trade-ui.png"
+}

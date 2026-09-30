@@ -3,8 +3,26 @@ import { forexConfig } from '../config.js';
 import { listForexSymbols } from '../instruments.catalog.js';
 import { getForexPricingService } from '../quotes.service.js';
 import { forexWsHub } from '../ws/hub.js';
+import { forexMockAnchorEnabled, forexMockAnchorRefreshMs, refreshForexMockAnchors } from './anchor.js';
 
 let timer: ReturnType<typeof setInterval> | null = null;
+let anchorTimer: ReturnType<typeof setInterval> | null = null;
+
+/** Never blocks startup or ticking. Failure leaves the authored constants in place. */
+function scheduleAnchorRefresh(): void {
+  if (!forexMockAnchorEnabled() || anchorTimer) return;
+  const run = () => {
+    void refreshForexMockAnchors(listForexSymbols()).catch((err: unknown) => {
+      logger.warn('Forex mock anchor refresh failed', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    });
+  };
+  run();
+  anchorTimer = setInterval(run, forexMockAnchorRefreshMs());
+  // Anchoring is a background refresh — it must never hold the event loop open.
+  anchorTimer.unref?.();
+}
 
 export function startForexMarketDataWorker(): void {
   if (!forexConfig.marketDataEnabled) {
@@ -14,12 +32,14 @@ export function startForexMarketDataWorker(): void {
   if (timer) return;
   const svc = getForexPricingService();
   svc.startAll(listForexSymbols());
+  scheduleAnchorRefresh();
   timer = setInterval(() => {
     try {
       const now = new Date();
       svc.tick(now);
       for (const symbol of listForexSymbols()) {
         forexWsHub.publishLiquidity(svc.getRoutingSnapshot(symbol, now));
+        void import('../customer/session-alert-watch.js').then((m) => m.evaluateForexSessionTransitionForSymbol(symbol, now));
       }
     } catch (err) {
       logger.warn('Forex market-data tick failed', {
@@ -58,6 +78,10 @@ export function stopForexMarketDataWorker(): void {
   if (timer) {
     clearInterval(timer);
     timer = null;
+  }
+  if (anchorTimer) {
+    clearInterval(anchorTimer);
+    anchorTimer = null;
   }
   getForexPricingService().stopAll();
 }

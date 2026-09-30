@@ -1,0 +1,100 @@
+{
+  "phase": 4,
+  "purpose": "Market-dependent runtime certification only — do not run while session closed",
+  "branch": "release/exchange-production-baseline",
+  "commit": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "prerequisite": {
+    "sessionOpen": "GET /api/v1/forex/sessions → data.eligibility.open === true",
+    "realForexOff": "REAL_FOREX unset or false",
+    "deployment": "Verify backend/frontend digests match expected production Forex deploy"
+  },
+  "safeResumeCommand": "node scripts/forex-phase4-live-green-cert.mjs",
+  "alternateResume": "bash scripts/forex-phase4-wait-and-green-cert.sh",
+  "currentBlocker": "WEEKEND_CLOSURE — eligibility.open false",
+  "tests": [
+    {
+      "id": "A_longBidMark",
+      "reason": "Requires live mock quote progression and open session market buy fill",
+      "script": "scripts/forex-phase4-live-green-cert.mjs (section A)",
+      "expected": "FILLED long; unrealized PnL moves with BID tick",
+      "dbAssertions": "forex_positions, forex_fills increment",
+      "journalAssertions": "order/fill events for account",
+      "wsAssertions": "optional fx.risk update after mark move"
+    },
+    {
+      "id": "B_shortAskMark",
+      "reason": "Live ASK movement with open session sell fill",
+      "script": "forex-phase4-live-green-cert.mjs (B)",
+      "expected": "FILLED short; uPnL tracks ASK",
+      "dbAssertions": "positions + fills",
+      "journalAssertions": "fill attributed to account"
+    },
+    {
+      "id": "C_preTradePreview",
+      "reason": "Preview allowed only when session open for customer intent",
+      "script": "forex-phase4-live-green-cert.mjs (C)",
+      "expected": "allowed true; no DB mutation from preview alone",
+      "dbAssertions": "order/fill/ledger counts unchanged across preview"
+    },
+    {
+      "id": "D_previewVsPlace",
+      "reason": "Same authoritative state for preview and placement",
+      "script": "forex-phase4-live-green-cert.mjs (D)",
+      "expected": "preview allowed ↔ fill; preview denied ↔ reject"
+    },
+    {
+      "id": "E_marginCall",
+      "reason": "Natural quote deterioration on stress volume (qa_trader_b)",
+      "script": "forex-phase4-live-green-cert.mjs (E); env P4_STRESS_VOL",
+      "expected": "margin status MARGIN_CALL; risk RESTRICTED",
+      "dbAssertions": "forex_risk state journaled",
+      "wsAssertions": "fx.margin / fx.risk events"
+    },
+    {
+      "id": "F_stopOutLiquidation",
+      "reason": "Continued adverse marks trigger liquidation worker",
+      "script": "forex-phase4-live-green-cert.mjs (F)",
+      "expected": "liquidation history or LIQUIDATION_ONLY risk state",
+      "dbAssertions": "forex_liquidations count increases",
+      "ledgerAssertions": "forex_ledger_entries reconcile"
+    },
+    {
+      "id": "G_liquidationIdempotency",
+      "reason": "Repeated reads after stop-out must not duplicate economic events",
+      "script": "forex-phase4-live-green-cert.mjs (G)",
+      "expected": "stable liquidation history across polls"
+    },
+    {
+      "id": "H_ledgerReconciliation",
+      "reason": "Post-liquidation fills and ledger API",
+      "script": "forex-phase4-live-green-cert.mjs (H)",
+      "expected": "fills > 0; ledger reconciliation status ok"
+    },
+    {
+      "id": "I_riskWebSocket",
+      "reason": "Live private channel subscribe with Bearer on open stack",
+      "script": "forex-phase4-live-green-cert.mjs (I)",
+      "expected": "subscribed to fx.risk / fx.margin / fx.liquidation",
+      "wsAssertions": "subscribe ack + risk payload"
+    },
+    {
+      "id": "J_idor",
+      "reason": "Cross-account position fetch must 404",
+      "script": "forex-phase4-live-green-cert.mjs (J)",
+      "expected": "User A cannot read User B open position by id"
+    },
+    {
+      "id": "K_customerBrowser",
+      "reason": "Authenticated browser at /forex/trade with live ticket + risk bar",
+      "script": "Manual or Playwright — QA login qa_trader_a@local.exchange",
+      "expected": "Authoritative margin level; order ticket places when session open",
+      "browserAssertions": "No mock KPI; SESSION_CLOSED shown when closed"
+    },
+    {
+      "id": "L_adminRiskHub",
+      "reason": "Admin JWT + Forex Admin Risk Hub live data",
+      "script": "Admin panel forex risk routes",
+      "expected": "Server-authoritative equity/margin/liquidation context"
+    }
+  ]
+}

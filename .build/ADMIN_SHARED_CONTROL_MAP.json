@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-09-20T09:30:00Z",
+  "capabilities": [
+    { "name": "Admin authentication", "ui": "/login", "api": "admin.fastify.ts session/JWT", "classification": "SHARED CORRECTLY", "status": "PASS" },
+    { "name": "Admin users & roles", "ui": "/admin-users", "api": "admin routes + RBAC", "classification": "SHARED CORRECTLY", "status": "PARTIAL", "note": "Roles span Crypto+Forex permissions" },
+    { "name": "RBAC default-deny", "api": "admin-rbac-routes.ts ADMIN_ROUTE_RULES", "classification": "SHARED CORRECTLY", "status": "PASS" },
+    { "name": "Audit logs", "ui": "/audit", "db": "audit_logs, audit_logs_immutable", "classification": "SHARED CORRECTLY", "status": "PARTIAL", "note": "Forex also has forex journal admin views" },
+    { "name": "KYC", "ui": "/kyc", "classification": "SHARED CORRECTLY", "status": "PASS" },
+    { "name": "AML / Risk", "ui": "/risk, /compliance", "api": "admin-aml, phase1-compliance", "classification": "DUPLICATED INCORRECTLY vs Forex /forex/compliance", "status": "PARTIAL" },
+    { "name": "Exchange controls", "ui": "/admin-control, /control-center", "api": "admin-control.fastify.ts", "classification": "SHOULD BE DOMAIN-SCOPED", "status": "PARTIAL", "note": "control:trading may affect crypto halt; Forex has separate /forex/controls" },
+    { "name": "Feature flags", "ui": "ADMIN_FEATURE_FLAGS in admin-panel", "classification": "SHARED CORRECTLY", "status": "PARTIAL" },
+    { "name": "System health", "ui": "/system/health, /monitoring", "classification": "SHARED CORRECTLY", "status": "PASS" },
+    { "name": "Incidents", "ui": "/incidents", "flag": "ADMIN_INCIDENT_SYSTEM", "classification": "SHARED CORRECTLY", "status": "PASS" },
+    { "name": "Notifications", "ui": "/notifications, settings", "classification": "SHARED CORRECTLY", "status": "PASS" },
+    { "name": "Settings / dynamic config", "ui": "/settings/*", "api": "admin settings routes", "classification": "SHARED CORRECTLY", "status": "PARTIAL", "note": "SMTP/SMS/RPC/KYC provider config — audit trail via config change logs" },
+    { "name": "Emergency halt", "crypto": "trading-halt, hedge_emergency_stop settings", "forex": "setForexEmergencyHalt, FOREX_KILL_SWITCH in liquidation", "classification": "SHOULD BE DOMAIN-SCOPED", "status": "PARTIAL" }
+  ]
+}

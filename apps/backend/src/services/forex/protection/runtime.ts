@@ -27,20 +27,36 @@ export async function startForexProtectionRuntime(): Promise<void> {
   const liq = getForexLiquidationService(positions, orders, accounting);
   const risk = getForexRiskService(positions, pricing);
   const swaps = getForexSwapService(positions, accounting);
-  try {
-    await hydrateForexEconomicState({
-      orders,
-      executions,
-      positions,
-      accounting,
-      protections: prot,
-      liquidations: liq,
-      risk,
-      swaps,
-    });
-  } catch (err) {
-    markForexEconomicFailed(err instanceof Error ? err.message : 'FOREX_HYDRATE_FAILED');
-    throw err;
+  const hydrateArgs = {
+    orders,
+    executions,
+    positions,
+    accounting,
+    protections: prot,
+    liquidations: liq,
+    risk,
+    swaps,
+  };
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await hydrateForexEconomicState(hydrateArgs);
+      lastErr = undefined;
+      break;
+    } catch (err) {
+      lastErr = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      const transient = /timeout|ECONNREFUSED|ECONNRESET|too many clients/i.test(msg);
+      if (!transient || attempt === 3) {
+        markForexEconomicFailed(msg);
+        throw err;
+      }
+      await new Promise((r) => setTimeout(r, 2000 * attempt));
+    }
+  }
+  if (lastErr) {
+    markForexEconomicFailed(lastErr instanceof Error ? lastErr.message : 'FOREX_HYDRATE_FAILED');
+    throw lastErr;
   }
   if (!rolloverTimer) {
     rolloverTimer = setInterval(() => {

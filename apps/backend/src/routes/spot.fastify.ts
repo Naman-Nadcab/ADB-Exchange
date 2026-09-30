@@ -463,6 +463,7 @@ export default async function spotRoutes(app: FastifyInstance) {
   const TICKER_SYMBOL_LOCAL_TTL_MS = Number(process.env.SPOT_TICKER_SYMBOL_LOCAL_TTL_MS || 1_500);
   const TICKER_SYMBOL_QUERY_TIMEOUT_MS = Number(process.env.SPOT_TICKER_SYMBOL_QUERY_TIMEOUT_MS || 3_200);
   const TICKER_SYMBOL_SNAPSHOT_THRESHOLD_MS = Number(process.env.SPOT_TICKER_SYMBOL_SNAPSHOT_THRESHOLD_MS || 1_600);
+  const TICKER_LAST_GOOD_MAX_AGE_MS = Number(process.env.SPOT_TICKER_LAST_GOOD_MAX_AGE_MS || 15_000);
   const ORDER_HISTORY_LOCAL_TTL_MS = Number(process.env.SPOT_ORDER_HISTORY_LOCAL_TTL_MS || 1_500);
   const ORDER_HISTORY_QUERY_TIMEOUT_MS = Number(process.env.SPOT_ORDER_HISTORY_QUERY_TIMEOUT_MS || 4_000);
   const ORDER_HISTORY_SNAPSHOT_THRESHOLD_MS = Number(process.env.SPOT_ORDER_HISTORY_SNAPSHOT_THRESHOLD_MS || 1_800);
@@ -566,7 +567,7 @@ export default async function spotRoutes(app: FastifyInstance) {
             candle_1m.close_price::text as candle_1m_last_price,
             COALESCE(s.high, candle_24.high_price::text, '0') as high_24h,
             COALESCE(s.low, candle_24.low_price::text, '0') as low_24h,
-            COALESCE(s.volume, candle_24.volume::text, '0') as volume_24h,
+            COALESCE(s.volume, '0') as volume_24h,
             COALESCE(s.base_volume, '0') as base_volume,
             COALESCE(s.open_24h, candle_24.open_price::text) as open_24h
           FROM spot_markets m
@@ -626,7 +627,7 @@ export default async function spotRoutes(app: FastifyInstance) {
             candle_1m.close_price::text as candle_1m_last_price,
             COALESCE(s.high, candle_24.high_price::text, '0') as high_24h,
             COALESCE(s.low, candle_24.low_price::text, '0') as low_24h,
-            COALESCE(s.volume, candle_24.volume::text, '0') as volume_24h,
+            COALESCE(s.volume, '0') as volume_24h,
             COALESCE(s.base_volume, '0') as base_volume,
             COALESCE(s.open_24h, candle_24.open_price::text) as open_24h
           FROM spot_markets m
@@ -966,7 +967,14 @@ export default async function spotRoutes(app: FastifyInstance) {
       };
 
       const stale = tickerBySymbolLastGoodSnapshot.get(symbol);
-      if (stale?.payload) {
+      const staleUsable =
+        stale?.payload && Date.now() - stale.generatedAt <= TICKER_LAST_GOOD_MAX_AGE_MS
+          ? stale
+          : null;
+      if (stale && !staleUsable) {
+        tickerBySymbolLastGoodSnapshot.delete(symbol);
+      }
+      if (staleUsable?.payload) {
         const refreshStart = Date.now();
         try {
           const payload = await withTimeout(
@@ -986,7 +994,7 @@ export default async function spotRoutes(app: FastifyInstance) {
           const snapshotAgeMs = applySnapshotHeaders(
             reply,
             e instanceof AsyncTimeoutError ? 'query_threshold_exceeded' : 'refresh_failed',
-            stale.generatedAt
+            staleUsable.generatedAt
           );
           logger.warn('Spot ticker serving last-good snapshot', {
             endpoint: `/api/v1/spot/ticker/${symbol}`,
@@ -997,7 +1005,7 @@ export default async function spotRoutes(app: FastifyInstance) {
             fallback_reason: e instanceof AsyncTimeoutError ? 'query_threshold_exceeded' : 'refresh_failed',
             error: e instanceof Error ? e.message : String(e),
           });
-          return reply.send({ success: true, data: stale.payload });
+          return reply.send({ success: true, data: staleUsable.payload });
         }
       }
 
@@ -1005,7 +1013,7 @@ export default async function spotRoutes(app: FastifyInstance) {
       return reply.send(payload);
     } catch (error) {
       const stale = tickerBySymbolLastGoodSnapshot.get(symbol);
-      if (stale?.payload) {
+      if (stale?.payload && Date.now() - stale.generatedAt <= TICKER_LAST_GOOD_MAX_AGE_MS) {
         applySnapshotHeaders(reply, 'request_error', stale.generatedAt);
         return reply.send({ success: true, data: stale.payload });
       }

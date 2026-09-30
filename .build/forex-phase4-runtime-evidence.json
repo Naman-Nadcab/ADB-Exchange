@@ -1,0 +1,35 @@
+{
+  "phase": 4,
+  "pass": "LIVE_GREEN",
+  "verdict": "CONDITIONAL",
+  "startedAtUtc": "2026-09-19T07:11:49.449Z",
+  "tests": {
+    "gate": {
+      "status": "NOT_PROVEN",
+      "reason": "WEEKEND_CLOSURE"
+    }
+  },
+  "blockers": [
+    "SESSION_CLOSED"
+  ],
+  "deployment": {
+    "backendImage": "sha256:66380c376dad32673fbbed38a98c6f67abf22c55e2b8759dd0b49492857036a7"
+  },
+  "session": {
+    "sessions": [],
+    "overlaps": [],
+    "holidayCoverage": "UNCONFIGURED",
+    "holidayRequired": false,
+    "holidaySafe": true,
+    "dstApplied": true,
+    "timezone": "America/New_York",
+    "timestamp": "2026-09-19T07:11:49.592Z",
+    "source": "SIMULATED",
+    "open": false,
+    "reason": "WEEKEND_CLOSURE",
+    "weekend": true,
+    "holiday": false
+  },
+  "completedAtUtc": "2026-09-19T07:11:49.636Z",
+  "phase5Unlocked": false
+}

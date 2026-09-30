@@ -1,0 +1,29 @@
+{
+  "certification": "P3-B natural session-close DAY expiry",
+  "startedAtUtc": "2026-09-18T16:40:59.200Z",
+  "base": "http://127.0.0.1:4000",
+  "qaAccount": "qa_trader_a@local.exchange",
+  "gitHead": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "deployment": {
+    "backendDigest": "sha256:9f7f26e226c676d86bf88e98d872f0e48161ac7a41f8799b0b9334ccfb62c8a6",
+    "frontendDigest": "sha256:ec76bc1f065fee0764d1e2e24c1e5d3709c2c6da437e5fabda2aef1f877aaa63",
+    "backendHealth": "healthy",
+    "frontendHealth": "healthy"
+  },
+  "dbBefore": {},
+  "dbAfter": {},
+  "session": {},
+  "order": {},
+  "demoPrice": {},
+  "idempotency": {},
+  "journalDb": [],
+  "journalApi": [],
+  "verdict": {
+    "P3B": "NOT_PROVEN",
+    "phase3": "CONDITIONAL"
+  },
+  "errors": [
+    "Error: Command failed: docker exec exchange-postgres psql -U exchange -d exchange -t -A -c \"\\nSELECT 'forex_orders|'||count(*) FROM forex_orders\\nUNION ALL SELECT 'forex_journal_events|'||count(*) FROM forex_journal_events\\nUNION ALL SELECT 'forex_positions|'||count(*) FROM forex_positions\\nUNION ALL SELECT 'forex_executions|'||count(*) FROM forex_executions\\nUNION ALL SELECT 'forex_fills|'||count(*) FROM forex_fills\\nUNION ALL SELECT 'forex_ledger_entries|'||count(*) FROM forex_ledger_entries;\"\ninvalid command \\nSELECT\n\n    at checkExecSyncError (node:child_process:890:11)\n    at execSync (node:child_process:962:15)\n    at dbCounts (file:///opt/m-live/scripts/forex-phase3-p3b-natural-close-cert.mjs:67:15)\n    at main (file:///opt/m-live/scripts/forex-phase3-p3b-natural-close-cert.mjs:151:18)\n    at file:///opt/m-live/scripts/forex-phase3-p3b-natural-close-cert.mjs:335:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:195:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:336:24)\n    at async loadESM (node:internal/process/esm_loader:34:7)\n    at async handleMainPromise (node:internal/modules/run_main:106:12)"
+  ],
+  "completedAtUtc": "2026-09-18T16:41:00.580Z"
+}

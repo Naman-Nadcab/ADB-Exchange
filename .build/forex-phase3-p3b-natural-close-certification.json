@@ -1,0 +1,274 @@
+{
+  "phase": "P3-B",
+  "status": "GREEN",
+  "certification": "RUNTIME_VERIFIED",
+  "method": "NATURAL_SESSION_CLOSE",
+  "realForex": false,
+  "executionMode": "MOCK",
+  "startedAtUtc": "2026-09-18T20:49:56.164Z",
+  "session": {
+    "beforeClose": {
+      "source": "SIMULATED",
+      "calendar": {
+        "id": "f0000000-0000-4000-8000-0000000000c1",
+        "code": "FX_WEEK_IANA",
+        "name": "FX 24x5 IANA sessions",
+        "timezone": "America/New_York"
+      },
+      "sessions": [
+        "Sydney",
+        "Tokyo",
+        "London",
+        "New York"
+      ],
+      "eligibility": {
+        "sessions": [
+          "New York"
+        ],
+        "overlaps": [],
+        "holidayCoverage": "UNCONFIGURED",
+        "holidayRequired": false,
+        "holidaySafe": true,
+        "dstApplied": true,
+        "timezone": "America/New_York",
+        "timestamp": "2026-09-18T20:49:56.765Z",
+        "source": "SIMULATED",
+        "open": true,
+        "reason": "OPEN",
+        "weekend": false,
+        "holiday": false
+      },
+      "holidayCoverage": "UNCONFIGURED",
+      "holidayRequired": false,
+      "holidaySafe": true,
+      "exceptionsConfigured": 0,
+      "dstApplied": true,
+      "dstModel": "IANA",
+      "weekendTimezone": "America/New_York",
+      "valuationPolicy": {
+        "longExecutableClose": "BID",
+        "shortExecutableClose": "ASK",
+        "usedMargin": "SUM_INITIAL_MARGIN_OPEN",
+        "equity": "CUSTOMER_CASH + UNREALIZED_PNL",
+        "freeMargin": "EQUITY - USED_MARGIN",
+        "availableBalance": "FREE_MARGIN",
+        "midNeverDrivesLiquidationEquity": true,
+        "source": "SIMULATED"
+      }
+    },
+    "transition": {
+      "note": "waiting for natural Friday NY close (isForexWeekendClosed)"
+    },
+    "lastSnapshot": {
+      "at": "2026-09-18T21:00:05.237Z",
+      "eligibility": {
+        "sessions": [],
+        "overlaps": [],
+        "holidayCoverage": "UNCONFIGURED",
+        "holidayRequired": false,
+        "holidaySafe": true,
+        "dstApplied": true,
+        "timezone": "America/New_York",
+        "timestamp": "2026-09-18T21:00:05.230Z",
+        "source": "SIMULATED",
+        "open": false,
+        "reason": "FRIDAY_CLOSE",
+        "weekend": true,
+        "holiday": false
+      }
+    },
+    "closedObservedAtUtc": "2026-09-18T21:00:05.237Z",
+    "timezone": "America/New_York",
+    "reason": "FRIDAY_CLOSE",
+    "afterClose": {
+      "source": "SIMULATED",
+      "calendar": {
+        "id": "f0000000-0000-4000-8000-0000000000c1",
+        "code": "FX_WEEK_IANA",
+        "name": "FX 24x5 IANA sessions",
+        "timezone": "America/New_York"
+      },
+      "sessions": [
+        "Sydney",
+        "Tokyo",
+        "London",
+        "New York"
+      ],
+      "eligibility": {
+        "sessions": [],
+        "overlaps": [],
+        "holidayCoverage": "UNCONFIGURED",
+        "holidayRequired": false,
+        "holidaySafe": true,
+        "dstApplied": true,
+        "timezone": "America/New_York",
+        "timestamp": "2026-09-18T21:00:05.253Z",
+        "source": "SIMULATED",
+        "open": false,
+        "reason": "FRIDAY_CLOSE",
+        "weekend": true,
+        "holiday": false
+      },
+      "holidayCoverage": "UNCONFIGURED",
+      "holidayRequired": false,
+      "holidaySafe": true,
+      "exceptionsConfigured": 0,
+      "dstApplied": true,
+      "dstModel": "IANA",
+      "weekendTimezone": "America/New_York",
+      "valuationPolicy": {
+        "longExecutableClose": "BID",
+        "shortExecutableClose": "ASK",
+        "usedMargin": "SUM_INITIAL_MARGIN_OPEN",
+        "equity": "CUSTOMER_CASH + UNREALIZED_PNL",
+        "freeMargin": "EQUITY - USED_MARGIN",
+        "availableBalance": "FREE_MARGIN",
+        "midNeverDrivesLiquidationEquity": true,
+        "source": "SIMULATED"
+      }
+    }
+  },
+  "orders": [
+    {
+      "orderId": "921cbb64-dfdd-4130-b3ec-cc24c56ec2a8",
+      "clientOrderId": "p3b-green-day-1789764597288",
+      "symbol": "EURUSD",
+      "side": "buy",
+      "orderType": "limit",
+      "price": "1.05000",
+      "timeInForce": "DAY",
+      "initialStatus": "PENDING",
+      "createdAtUtc": "2026-09-18T20:49:59.071Z",
+      "beforeClose": {
+        "status": "PENDING",
+        "tif": "DAY",
+        "failureReason": "",
+        "clientOrderId": "p3b-green-day-1789764597288",
+        "symbol": "EURUSD",
+        "side": "buy",
+        "price": "1.05000000",
+        "filled": "0.00000000"
+      }
+    }
+  ],
+  "expiryEvidence": [
+    {
+      "status": "CANCELLED",
+      "tif": "DAY",
+      "failureReason": "DAY_ORDER_EXPIRED",
+      "clientOrderId": "p3b-green-day-1789764597288",
+      "symbol": "EURUSD",
+      "side": "buy",
+      "price": "1.05000000",
+      "filled": "0.00000000"
+    },
+    {
+      "source": "api",
+      "order": {
+        "orderId": "921cbb64-dfdd-4130-b3ec-cc24c56ec2a8",
+        "clientOrderId": "p3b-green-day-1789764597288",
+        "clientExecId": "FX-921cbb64-dfdd-4130-b3ec-cc24c56ec2a8",
+        "symbol": "EURUSD",
+        "side": "buy",
+        "type": "limit",
+        "requestedVolume": "0.01",
+        "filledVolume": "0",
+        "remainingVolume": "0.01",
+        "requestedPrice": "1.05000",
+        "limitPrice": null,
+        "timeInForce": "DAY",
+        "stopLoss": null,
+        "takeProfit": null,
+        "comment": null,
+        "status": "CANCELLED",
+        "failureReason": "DAY_ORDER_EXPIRED",
+        "executionId": null,
+        "version": 1,
+        "source": "SIMULATED",
+        "executionMode": "MOCK",
+        "createdAt": "2026-09-18T20:49:57.309Z",
+        "updatedAt": "2026-09-18T21:00:41.308Z"
+      }
+    }
+  ],
+  "journalEvidence": [
+    {
+      "id": "81276643-179c-4062-9955-90253c99c150",
+      "eventType": "ORDER_ACCEPTED",
+      "createdAt": "2026-09-18 20:49:57.361+00"
+    },
+    {
+      "id": "10e1a158-da65-4a47-b768-c28313288018",
+      "eventType": "ORDER_PENDING",
+      "createdAt": "2026-09-18 20:49:57.361+00"
+    },
+    {
+      "id": "e1c4e084-6d02-4c84-8a60-0eec988098fd",
+      "eventType": "ORDER_CANCELLED",
+      "createdAt": "2026-09-18 21:00:41.308+00"
+    }
+  ],
+  "dbBefore": {
+    "forex_orders": 791,
+    "forex_journal_events": 97,
+    "forex_executions": 676,
+    "forex_fills": 674,
+    "forex_ledger_entries": 676,
+    "forex_positions": 301
+  },
+  "dbAfter": {
+    "forex_orders": 792,
+    "forex_journal_events": 100,
+    "forex_executions": 676,
+    "forex_fills": 674,
+    "forex_ledger_entries": 676,
+    "forex_positions": 301
+  },
+  "idempotency": {
+    "method": "wait_5s_for_additional_mock_worker_ticks_no_demo_price",
+    "orderStable": true,
+    "journalCountStable": true,
+    "journalEvents": [
+      "ORDER_ACCEPTED",
+      "ORDER_PENDING",
+      "ORDER_CANCELLED"
+    ]
+  },
+  "browserEvidence": {
+    "status": "NOT_PROVEN",
+    "note": "Automated /forex/trade UI check not run this cert; API+DB prove terminal state"
+  },
+  "tests": {
+    "entry-price-reconcile.test.ts": "PASS",
+    "forex-phase-a-orders.test.ts": "PASS (includes DAY session close)"
+  },
+  "deployment": {
+    "backendDigest": "sha256:1f04a223afccf729a8573866e7ef8cb7b216d911e22f1860c52934fad33e0e5b",
+    "frontendDigest": "sha256:ec76bc1f065fee0764d1e2e24c1e5d3709c2c6da437e5fabda2aef1f877aaa63",
+    "gitHead": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "economicReadyBefore": true
+  },
+  "cryptoIsolation": {
+    "changed": false,
+    "spot.fastify.ts.sha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "spot-ticker-db-load.ts.sha256": "bb2ffb23ab52ac81f37883bf58b36143a53cc2113614c96b3717fd08ae128613"
+  },
+  "acceptanceCriteria": {
+    "naturalSessionClosed": true,
+    "orderWasPending": true,
+    "productionPathNaturalWorker": true,
+    "cancelled": true,
+    "dayOrderExpiredReason": true,
+    "journalCancelled": true,
+    "noFill": true,
+    "execUnchanged": true,
+    "fillsUnchanged": true,
+    "ledgerUnchanged": true,
+    "positionsUnchanged": true,
+    "idempotencyJournalStable": true,
+    "noDemoPrice": true,
+    "noManualDb": true
+  },
+  "errors": [],
+  "completedAtUtc": "2026-09-18T21:00:48.917Z"
+}

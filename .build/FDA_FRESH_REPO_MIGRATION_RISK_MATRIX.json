@@ -1,0 +1,129 @@
+{
+  "audit": "FDA_FRESH_REPO_MIGRATION",
+  "date": "2026-09-30",
+  "git_head": "effd130cb716f3646600f6324beaf4ec6a32c47e",
+  "deploy_rev_stale": "8ef599983974e84679bf44010ca3d8154785665a",
+  "live_frontend_build_commit": "a5156ff934e28c88acfb410279f5cf93b3a4ea63",
+  "risks": [
+    {
+      "id": "R1",
+      "risk": "No single Git commit matches live runtime",
+      "impact": "Fresh archive at HEAD misses BUILD_ID commit or dirty files; wrong UX/backend behavior",
+      "source": "BUILD_ID in container vs HEAD; 228 REQUIRED dirty paths",
+      "evidence": "FDA_FRESH_REPO_RUNTIME_RECONCILIATION.md; dirty-path-classification.json",
+      "mitigation": "Option B forensic snapshot: effd130 + REQUIRED overlay; explicitly choose a5156ff for frontend-only parity",
+      "must_resolve_before_copy": true,
+      "can_resolve_after_copy": false
+    },
+    {
+      "id": "R2",
+      "risk": "228 uncommitted application files lost on naive clone",
+      "impact": "Forex/admin/backend regressions; infra-executor reads host tree",
+      "source": "git status; apps/backend bind mount",
+      "evidence": "docker-compose.production.yml volumes; classification REQUIRED=228",
+      "mitigation": "Export full list to initial commit in fresh repo",
+      "must_resolve_before_copy": true,
+      "can_resolve_after_copy": false
+    },
+    {
+      "id": "R3",
+      "risk": "Production database not reconstructible from repo",
+      "impact": "User/ledger loss on fresh PG volume",
+      "source": "m-live_postgres_data volume",
+      "evidence": "FDA_FRESH_REPO_DATABASE_REBUILD_AUDIT.md; 57 users live",
+      "mitigation": "pg_dump before cutover; restore to new volume",
+      "must_resolve_before_copy": true,
+      "can_resolve_after_copy": true
+    },
+    {
+      "id": "R4",
+      "risk": "Secrets copied into fresh git history",
+      "impact": "Credential leak, compliance failure",
+      "source": ".env on VPS",
+      "evidence": ".gitignore rules; vps-first-boot required_vars",
+      "mitigation": "Never copy .env; rotate all secrets on new repo deploy",
+      "must_resolve_before_copy": true,
+      "can_resolve_after_copy": false
+    },
+    {
+      "id": "R5",
+      "risk": "Stale deploy metadata misleads operators",
+      "impact": "Wrong rollback / wrong SHA reporting",
+      "source": ".deploy-rev 8ef5999",
+      "evidence": "89 commits behind HEAD; frontend image Sep 24",
+      "mitigation": "New deploy rev file tied to fresh initial commit + image digests",
+      "must_resolve_before_copy": false,
+      "can_resolve_after_copy": true
+    },
+    {
+      "id": "R6",
+      "risk": "CI workflow does not match production branch or VPS images",
+      "impact": "GHCR images unused; drift between CI and VPS builds",
+      "source": "production.yml on: main vs release/exchange-production-baseline",
+      "evidence": "FDA_FRESH_REPO_INFRA_REPRODUCIBILITY.md",
+      "mitigation": "Align branch triggers; single registry naming scheme",
+      "must_resolve_before_copy": false,
+      "can_resolve_after_copy": true
+    },
+    {
+      "id": "R7",
+      "risk": "Docker volume rename loses state",
+      "impact": "Empty redis/queues/WAL if project name changed carelessly",
+      "source": "m-live_* volume names",
+      "evidence": "docker volume ls",
+      "mitigation": "Keep compose project name or migrate volumes explicitly",
+      "must_resolve_before_copy": false,
+      "can_resolve_after_copy": true
+    },
+    {
+      "id": "R8",
+      "risk": "migrate.ts monolith without version table",
+      "impact": "Schema drift undetected on partial apply",
+      "source": "apps/backend/src/database/migrate.ts",
+      "evidence": "schema_migrations missing in live DB",
+      "mitigation": "Full migrate on empty DB; add versioning in future engineering",
+      "must_resolve_before_copy": false,
+      "can_resolve_after_copy": true
+    },
+    {
+      "id": "R9",
+      "risk": "External provider URLs still point at old VPS",
+      "impact": "Webhooks/OAuth/RPC failures after cutover",
+      "source": "PUBLIC_* and provider consoles",
+      "evidence": "FDA_FRESH_REPO_EXTERNAL_DEPENDENCIES.md",
+      "mitigation": "Provider dashboard updates at cutover window",
+      "must_resolve_before_copy": false,
+      "can_resolve_after_copy": true
+    },
+    {
+      "id": "R10",
+      "risk": "Old lineage in image names and remotes",
+      "impact": "Brand/confusion; wrong push target",
+      "source": "m-live.git, m-live-* images",
+      "evidence": "FDA_FRESH_REPO_LINEAGE_AUDIT.md",
+      "mitigation": "Rename images/registry; delete product remote from fresh clone",
+      "must_resolve_before_copy": false,
+      "can_resolve_after_copy": true
+    },
+    {
+      "id": "R11",
+      "risk": "Frontend effd130 drawing cert not in live image",
+      "impact": "If snapshot=effd130 but no rebuild, behavior differs from BUILD_ID",
+      "source": "1 commit a5156ff..effd130",
+      "evidence": "BUILD_ID suffix a5156ff",
+      "mitigation": "Rebuild frontend after copy or base snapshot on effd130 intentionally",
+      "must_resolve_before_copy": true,
+      "can_resolve_after_copy": true
+    },
+    {
+      "id": "R12",
+      "risk": "Admin image 10 days older than frontend",
+      "impact": "Admin UI behind customer/host tree",
+      "source": "exchange-admin created 2026-09-20",
+      "evidence": "docker inspect Created dates",
+      "mitigation": "Rebuild admin from same snapshot as backend",
+      "must_resolve_before_copy": false,
+      "can_resolve_after_copy": true
+    }
+  ]
+}

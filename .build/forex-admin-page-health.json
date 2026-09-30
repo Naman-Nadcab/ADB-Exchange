@@ -1,0 +1,262 @@
+{
+  "generated_at": "2026-09-17T20:25:31.613Z",
+  "probes": [
+    {
+      "href": "/forex",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/command",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/notifications",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/compliance",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/automation",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/instruments",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/sessions",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/market-data",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/orders",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/executions",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/positions",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/protection",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/margin-risk",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/liquidation",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/dealing",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/fees-swaps",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/accounts",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/account-groups",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/crm/home",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/crm/my-clients",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/crm/leads",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/crm/clients",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/crm/finance",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/crm/tasks",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/crm/segments",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/crm/pipeline",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/reporting",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/risk-control",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/partners",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/ledger",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/controls",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/lp-execution",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/liquidity/routing",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/integrations",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/journal-audit",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 404,
+      "notes": "live shell OK"
+    },
+    {
+      "href": "/forex/system",
+      "live_http": 200,
+      "cert_http": 200,
+      "api_cert": 200,
+      "notes": "live shell OK"
+    }
+  ],
+  "summary": {
+    "live_200": 36,
+    "cert_200": 36,
+    "total": 36
+  }
+}

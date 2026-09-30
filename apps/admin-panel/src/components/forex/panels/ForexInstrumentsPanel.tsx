@@ -12,13 +12,14 @@ import {
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { ForexPanelShell } from '@/components/forex/primitives/ForexPanelShell';
+import { ForexRouteWorkspace } from '@/components/forex/primitives/ForexRouteWorkspace';
+import { ForexListWorkspace } from '@/components/forex/primitives/ForexListWorkspace';
 import { ForexConfirmModal } from '@/components/forex/primitives/ForexConfirmModal';
 import { ForexDetailGrid } from '@/components/forex/primitives/ForexDetailGrid';
 import { DataTable } from '@/components/ui/DataTable';
 import { Modal, ModalFooter } from '@/components/ui/Modal';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
-import { Eye, PauseCircle, PlayCircle, Search } from 'lucide-react';
+import { CandlestickChart, Eye, PauseCircle, PlayCircle, Search } from 'lucide-react';
 
 export type ForexInstrumentRow = {
   symbol: string;
@@ -127,7 +128,7 @@ export function ForexInstrumentsPanel() {
           <div>
             <span className="font-medium text-foreground">{row.original.symbol}</span>
             {row.original.overridden ? (
-              <span className="ml-1 text-[10px] text-amber-400">override</span>
+              <span className="ml-1 text-[10px] text-admin-warning">override</span>
             ) : null}
           </div>
         ),
@@ -220,27 +221,33 @@ export function ForexInstrumentsPanel() {
   );
 
   const loading = configQ.isLoading || controlsQ.isLoading;
+  const activeCount = rows.filter((r) => r.tradingStatus.toLowerCase() === 'active').length;
+  const haltedCount = rows.filter((r) => ['halted', 'halt', 'closed'].includes(r.tradingStatus.toLowerCase())).length;
 
   return (
     <>
-      <ForexPanelShell
+      <ForexRouteWorkspace
+        routeId="instruments"
+        kpis={[
+          { label: 'Symbols', value: String(rows.length) },
+          { label: 'Active', value: String(activeCount), tone: 'success' },
+          { label: 'Halted / closed', value: String(haltedCount), tone: haltedCount > 0 ? 'warning' : 'default' },
+          { label: 'Filtered view', value: filtered.length === rows.length ? 'All' : String(filtered.length) },
+        ]}
+      />
+      <ForexListWorkspace
+        icon={CandlestickChart}
         title="Instrument catalog"
-        description={`${rows.length} symbols · halt or resume from the desk · policy edits on Margin & Risk`}
-        actions={
+        description="Halt or resume from the desk · policy edits on Margin & Risk"
+        filters={
           <div className="relative w-full min-w-[12rem] sm:w-56">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-admin-muted" />
-            <Input
-              placeholder="Search symbol…"
-              value={q}
-              onChange={(e) => setQ(e.target.value.toUpperCase())}
-              className="h-9 pl-8"
-            />
+            <Input placeholder="Search symbol…" value={q} onChange={(e) => setQ(e.target.value.toUpperCase())} className="h-9 pl-8" />
           </div>
         }
-        noPadding
       >
         <DataTable columns={columns} data={filtered} loading={loading} sortable compact />
-      </ForexPanelShell>
+      </ForexListWorkspace>
 
       <Modal
         open={!!detail}

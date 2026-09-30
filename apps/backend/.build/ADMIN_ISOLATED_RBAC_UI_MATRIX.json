@@ -1,0 +1,142 @@
+{
+  "generatedAt": "2026-09-20T09:20:39.193Z",
+  "apiBase": "http://127.0.0.1:4100/api/v1/admin",
+  "uiBase": "http://127.0.0.1:3010/admin",
+  "report": [
+    {
+      "logical": "FULL",
+      "email": "cert_maker@cert.local",
+      "api": {
+        "login": "PASS",
+        "allow": {
+          "path": "/forex/orders?limit=1",
+          "http": 200
+        }
+      },
+      "ui": {
+        "login": "PASS",
+        "tab_Control Center": "PASS",
+        "tab_Crypto": "PASS",
+        "tab_Forex": "PASS",
+        "allowRoute": {
+          "path": "/forex/orders",
+          "url": "http://127.0.0.1:3010/admin/forex/orders",
+          "pass": "PASS"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "logical": "CRYPTO_ONLY",
+      "email": "cert_support@cert.local",
+      "api": {
+        "login": "PASS",
+        "allow": {
+          "path": "/users?limit=1",
+          "http": 200
+        },
+        "deny": {
+          "path": "/forex/orders?limit=1",
+          "http": 403,
+          "pass": true
+        }
+      },
+      "ui": {
+        "login": "PASS",
+        "tab_Control Center": "PASS",
+        "tab_Crypto": "PASS",
+        "no_tab_Forex": "PASS",
+        "allowRoute": {
+          "path": "/trading",
+          "url": "http://127.0.0.1:3010/admin/trading",
+          "pass": "FAIL_DENIED"
+        },
+        "deny_/forex/orders": {
+          "url": "http://127.0.0.1:3010/admin/control-center",
+          "pass": "PASS"
+        }
+      },
+      "status": "FAIL"
+    },
+    {
+      "logical": "FOREX_ONLY",
+      "email": "cert_forex@cert.local",
+      "api": {
+        "login": "PASS",
+        "allow": {
+          "path": "/forex/orders?limit=1",
+          "http": 200
+        },
+        "deny": {
+          "path": "/dashboard-summary",
+          "http": 403,
+          "pass": true
+        }
+      },
+      "ui": {
+        "login": "PASS",
+        "tab_Control Center": "PASS",
+        "tab_Forex": "PASS",
+        "no_tab_Crypto": "PASS",
+        "allowRoute": {
+          "path": "/forex/orders",
+          "url": "http://127.0.0.1:3010/admin/forex/orders",
+          "pass": "FAIL_DENIED"
+        },
+        "deny_/trading": {
+          "url": "http://127.0.0.1:3010/admin/control-center",
+          "pass": "PASS"
+        }
+      },
+      "status": "FAIL"
+    },
+    {
+      "logical": "CONTROL_ONLY",
+      "email": "cert_control@cert.local",
+      "api": {
+        "login": "PASS",
+        "allow": {
+          "path": "/auth/me",
+          "http": 200
+        },
+        "deny": {
+          "path": "/forex/orders?limit=1",
+          "http": 403,
+          "pass": true
+        }
+      },
+      "ui": {
+        "login": "PASS",
+        "error": "locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n  - waiting for getByRole('navigation', { name: 'Admin workspace' }) to be visible\n"
+      },
+      "status": "FAIL"
+    },
+    {
+      "logical": "WITHDRAWAL_APPROVER",
+      "email": "cert_withdrawal@cert.local",
+      "api": {
+        "login": "PASS",
+        "deny": {
+          "path": "/forex/orders?limit=1",
+          "http": 403,
+          "pass": true
+        },
+        "withdrawalsList": {
+          "http": 403,
+          "note": "GET list expected denied for approver-only role",
+          "pass": "PASS"
+        },
+        "withdrawalsApproveRoute": {
+          "http": 400,
+          "note": "POST approve auth mapped (no successful approval required)",
+          "pass": "PASS"
+        }
+      },
+      "ui": {
+        "login": "PASS",
+        "error": "locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n  - waiting for getByRole('navigation', { name: 'Admin workspace' }) to be visible\n"
+      },
+      "status": "FAIL"
+    }
+  ]
+}

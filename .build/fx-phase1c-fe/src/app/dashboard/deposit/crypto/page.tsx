@@ -1,0 +1,916 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '@/store/auth';
+import { isClientAuthed } from '@/lib/authSession';
+import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { api } from '@/lib/api';
+import Link from 'next/link';
+import Image from 'next/image';
+import { CoinIcon } from '@/components/ui/CoinIcon';
+import { QRCodeSVG } from 'qrcode.react';
+import { notifyError } from '@/lib/notifyError';
+import { toast } from '@/components/ui/toaster';
+import {
+  ChevronDown,
+  Copy,
+  Check,
+  HelpCircle,
+  ExternalLink,
+  Info,
+  Search,
+  RefreshCw,
+  AlertTriangle,
+  X,
+  Shield,
+  Upload,
+  Camera,
+} from 'lucide-react';
+import { WalletOperationsShell } from '@/components/wallet/WalletOperationsShell';
+
+interface Chain {
+  id: string;
+  id_text?: string;
+  name: string;
+  type: string;
+  native_currency: string;
+  confirmations_required?: number;
+  explorer_url?: string;
+  icon?: string;
+}
+
+interface Token {
+  id: string;
+  symbol: string;
+  name: string;
+  decimals: number;
+  is_native: boolean;
+  icon?: string;
+}
+
+interface DepositAddress {
+  address: string;
+  chain: {
+    id: string;
+    name: string;
+    type: string;
+    confirmationsRequired: number;
+    explorerUrl: string;
+  };
+  qrCodeData: string;
+  notice: string;
+}
+
+interface Deposit {
+  id: string;
+  symbol: string;
+  chain_name: string;
+  amount: string;
+  tx_hash?: string;
+  explorer_url?: string;
+  to_address: string;
+  confirmations: number;
+  required_confirmations: number;
+  status: string;
+  created_at: string;
+}
+
+interface KycStatus {
+  verified: boolean;
+  status: string;
+  level: number;
+}
+
+// Coins that require memo/tag on deposit
+const MEMO_TAG_COINS = new Set(['XRP', 'XLM', 'ATOM', 'EOS', 'HBAR', 'STX', 'TON']);
+
+// Popular tokens for quick selection (BTC, ETH, USDT, USDC, BNB, SOL, TRX)
+const POPULAR_TOKENS = ['BTC', 'ETH', 'USDT', 'USDC', 'BNB', 'SOL', 'TRX'];
+
+export default function DepositCryptoPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+  const coinParam = searchParams.get('coin');
+  const { accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
+  const sessionReady = isClientAuthed(_hasHydrated, isAuthenticated);
+  const [tokens, setTokens] = useState<Token[]>([]);
+  const [selectedToken, setSelectedToken] = useState<Token | null>(null);
+  const [initialCoinSet, setInitialCoinSet] = useState(false);
+  const [availableChains, setAvailableChains] = useState<Chain[]>([]);
+  const [selectedChain, setSelectedChain] = useState<Chain | null>(null);
+  const [depositAddress, setDepositAddress] = useState<DepositAddress | null>(null);
+  const [recentDeposits, setRecentDeposits] = useState<Deposit[]>([]);
+  const [recentDepositsLoading, setRecentDepositsLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [addressLoading, setAddressLoading] = useState(false);
+  const [chainsLoading, setChainsLoading] = useState(false);
+  const [chainsError, setChainsError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [showTokenDropdown, setShowTokenDropdown] = useState(false);
+  const [showChainDropdown, setShowChainDropdown] = useState(false);
+  const [tokenSearch, setTokenSearch] = useState('');
+  const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
+  const [showKycModal, setShowKycModal] = useState(false);
+  const [addressError, setAddressError] = useState<string | null>(null);
+
+  const API_URL = getApiBaseUrl();
+
+  // Get chain image path
+  const getChainIcon = (chain: Chain) => {
+    const iconName = chain.icon || chain.name.toLowerCase().replace(/\s+/g, '');
+    // Map common chain names to icon files
+    const iconMapping: Record<string, string> = {
+      'ethereum': 'ethereum',
+      'eth': 'ethereum',
+      'bnb smart chain': 'bnb',
+      'bsc': 'bnb',
+      'polygon': 'polygon',
+      'matic': 'polygon',
+      'arbitrum one': 'arbitrum',
+      'arbitrum': 'arbitrum',
+      'arb': 'arbitrum',
+      'solana': 'solana',
+      'sol': 'solana',
+      'tron': 'tron',
+      'trx': 'tron',
+      'bitcoin': 'bitcoin',
+      'btc': 'bitcoin',
+      'polkadot': 'polkadot',
+      'dot': 'polkadot',
+      'avalanche c-chain': 'avalanche',
+      'avalanche': 'avalanche',
+      'avax': 'avalanche',
+    };
+    const icon = iconMapping[iconName] || iconMapping[chain.id_text?.toLowerCase() || ''] || 'ethereum';
+    return `/assets/upload/blockchain-logo/${icon}.svg`;
+  };
+
+  // 1) Load assets (tokens) on mount
+  useEffect(() => {
+    fetchTokens();
+    if (sessionReady) {
+      fetchKycStatus();
+      fetchRecentDeposits();
+    }
+  }, [sessionReady]);
+
+  // Poll deposit history while on page (pending → completed)
+  useEffect(() => {
+    if (!sessionReady) return;
+    const id = window.setInterval(() => {
+      void fetchRecentDeposits();
+    }, 12_000);
+    return () => window.clearInterval(id);
+  }, [sessionReady]);
+
+  // Auto-select coin from URL parameter
+  useEffect(() => {
+    if (coinParam && tokens.length > 0 && !initialCoinSet) {
+      const matchedToken = tokens.find(
+        t => t.symbol.toUpperCase() === coinParam.toUpperCase()
+      );
+      if (matchedToken) {
+        setSelectedToken(matchedToken);
+        setInitialCoinSet(true);
+      }
+    }
+  }, [coinParam, tokens, initialCoinSet]);
+
+  // 2) When asset (token) is selected: fetch chains that support this asset only
+  useEffect(() => {
+    if (selectedToken) {
+      setSelectedChain(null);
+      setDepositAddress(null);
+      setAddressError(null);
+      fetchChainsForAsset(selectedToken.symbol);
+    } else {
+      setAvailableChains([]);
+      setSelectedChain(null);
+      setDepositAddress(null);
+    }
+  }, [selectedToken?.id]);
+
+  // When chains for asset are loaded, auto-select first chain if none selected
+  useEffect(() => {
+    if (selectedToken && availableChains.length > 0 && !selectedChain) {
+      setSelectedChain(availableChains[0]);
+    }
+  }, [availableChains.length, selectedToken?.id]);
+
+  // Fetch deposit address when chain is selected
+  useEffect(() => {
+    if (selectedChain && _hasHydrated && accessToken) {
+      fetchDepositAddress(selectedChain.id);
+    }
+  }, [selectedChain, _hasHydrated, accessToken]);
+
+  const fetchTokens = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/v1/wallet/tokens`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data) {
+          setTokens(data.data);
+        }
+      }
+    } catch (error) {
+      notifyError('Failed to load tokens. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchKycStatus = async () => {
+    if (!accessToken) return;
+    try {
+      const result = await api.get<{ verified: boolean; status: string; level: number }>('/api/v1/wallet/kyc-status');
+      if (result.success && result.data) {
+        setKycStatus(result.data);
+      }
+    } catch (error) {
+      notifyError('Failed to load KYC status. Please try again.');
+    }
+  };
+
+  // Fetch chains that support the selected asset (token). Asset must be related to chain.
+  const fetchChainsForAsset = async (symbol: string) => {
+    try {
+      setChainsLoading(true);
+      setChainsError(null);
+      const result = await api.get<Chain[]>(`/api/v1/wallet/tokens/${encodeURIComponent(symbol)}/chains`);
+      if (result.success && Array.isArray(result.data)) {
+        setAvailableChains(result.data);
+        setChainsError(null);
+        if (result.data.length === 0) {
+          setChainsError(`No chains support ${symbol}. Add ${symbol} on a chain in admin.`);
+        }
+      } else {
+        setAvailableChains([]);
+        setChainsError(result.error?.message || 'Could not load chains for this asset.');
+      }
+    } catch (error) {
+      notifyError('Failed to load chains. Please try again.');
+      setAvailableChains([]);
+      setChainsError('Network error. Try again.');
+    } finally {
+      setChainsLoading(false);
+    }
+  };
+
+  const fetchDepositAddress = async (chainId: string) => {
+    if (!accessToken) {
+      setAddressError('Please sign in to see your deposit address.');
+      return;
+    }
+    try {
+      setAddressLoading(true);
+      setDepositAddress(null);
+      setAddressError(null);
+      setShowKycModal(false);
+      // Use centralized api client: 401 triggers token refresh and retry automatically
+      const result = await api.get<DepositAddress>(`/api/v1/wallet/deposit-address/${chainId}`);
+      if (result.success && result.data?.address) {
+        setDepositAddress(result.data);
+        setAddressError(null);
+        setShowKycModal(false);
+      } else if (result.error?.code === 'KYC_REQUIRED') {
+        setDepositAddress(null);
+        setAddressError('Complete identity verification (KYC) to view your deposit address.');
+        setShowKycModal(true);
+      } else if (result.error?.code === 'SESSION_EXPIRED' || result.error?.code === 'INVALID_TOKEN') {
+        setDepositAddress(null);
+        setAddressError('Session expired. Please sign in again.');
+        router.push('/login');
+      } else {
+        setDepositAddress(null);
+        const detail = (result.error as { detail?: string } | undefined)?.detail;
+        setAddressError(detail || result.error?.message || 'Could not load address. Try again.');
+      }
+    } catch (error) {
+      setDepositAddress(null);
+      setAddressError('Network error. Check backend and try again.');
+      notifyError('Failed to load deposit address. Please try again.');
+    } finally {
+      setAddressLoading(false);
+    }
+  };
+
+  const fetchRecentDeposits = async () => {
+    if (!sessionReady) return;
+    setRecentDepositsLoading(true);
+    try {
+      await api.post('/api/v1/wallet/deposits/sync', {}, { notifyOnError: false });
+      const result = await api.get<Array<{
+        id: string;
+        symbol?: string;
+        chainName?: string;
+        amount?: string;
+        txHash?: string;
+        explorerUrl?: string;
+        fromAddress?: string;
+        toAddress?: string;
+        confirmations?: number;
+        requiredConfirmations?: number;
+        status?: string;
+        createdAt?: string;
+        created_at?: string;
+      }>>('/api/v1/wallet/deposit-history?limit=10');
+      if (result.success && Array.isArray(result.data)) {
+        const mapped: Deposit[] = result.data.map((d) => ({
+          id: d.id,
+          symbol: d.symbol || 'Unknown',
+          chain_name: d.chainName || 'Unknown',
+          amount: d.amount || '0',
+          tx_hash: d.txHash,
+          explorer_url: d.explorerUrl,
+          to_address: d.fromAddress || d.toAddress || '', // show sender address
+          confirmations: d.confirmations ?? 0,
+          required_confirmations: d.requiredConfirmations ?? 25,
+          status: d.status || 'pending',
+          created_at: d.createdAt || d.created_at || '',
+        }));
+        setRecentDeposits(mapped);
+        queryClient.invalidateQueries({ queryKey: ['balances'] });
+      } else {
+        setRecentDeposits([]);
+      }
+    } catch (error) {
+      notifyError('Failed to load deposit history. Please try again.');
+      setRecentDeposits([]);
+    } finally {
+      setRecentDepositsLoading(false);
+    }
+  };
+
+  const copyAddress = () => {
+    if (depositAddress?.address) {
+      navigator.clipboard.writeText(depositAddress.address);
+      setCopied(true);
+      toast({ title: 'Address copied', description: 'Deposit address copied to clipboard.', variant: 'success' });
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const needsMemoTag = selectedToken ? MEMO_TAG_COINS.has(selectedToken.symbol.toUpperCase()) : false;
+
+  const selectToken = (token: Token) => {
+    setSelectedToken(token);
+    setShowTokenDropdown(false);
+    setTokenSearch('');
+  };
+
+  const selectChain = (chain: Chain) => {
+    setSelectedChain(chain);
+    setShowChainDropdown(false);
+    setDepositAddress(null);
+    // useEffect will handle fetching deposit address
+  };
+
+  const filteredTokens = tokens.filter(t => 
+    t.symbol.toLowerCase().includes(tokenSearch.toLowerCase()) ||
+    t.name.toLowerCase().includes(tokenSearch.toLowerCase())
+  );
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'text-green-500';
+      case 'confirming': return 'text-yellow-500';
+      case 'pending': return 'text-primary';
+      case 'failed': return 'text-red-500';
+      default: return 'text-muted-foreground';
+    }
+  };
+
+  return (
+    <>
+      <WalletOperationsShell
+        title="Deposit crypto"
+        description="Send assets to your funding wallet from an external wallet. Select coin, network, then copy your deposit address."
+        headerRight={
+          <Link
+            href="/p2p"
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/35 hover:bg-accent"
+          >
+            <span className="text-amber-500" aria-hidden>
+              💰
+            </span>
+            Buy with fiat (P2P)
+          </Link>
+        }
+      >
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {/* Left Section - Deposit Form */}
+            <div className="lg:col-span-2">
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              {/* Step 1: Choose Coin */}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center font-medium">1</span>
+                  <span className="font-medium text-foreground">Choose coin to deposit</span>
+                </div>
+
+                {/* Token Dropdown */}
+                <div className="relative mb-4">
+                  <button
+                    onClick={() => setShowTokenDropdown(!showTokenDropdown)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-background border border-border rounded-lg text-left hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
+                  >
+                    {selectedToken ? (
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-accent flex items-center justify-center">
+                          <CoinIcon symbol={selectedToken.symbol} size={32} />
+                        </div>
+                        <div>
+                          <span className="font-medium text-foreground">{selectedToken.symbol}</span>
+                          <span className="text-sm text-muted-foreground ml-2">{selectedToken.name}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">Please Select</span>
+                    )}
+                    <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${showTokenDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {showTokenDropdown && (
+                    <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-xl max-h-96 overflow-hidden">
+                      {/* Search */}
+                      <div className="p-3 border-b border-border">
+                        <div className="flex items-center gap-2 px-3 py-2 bg-background rounded-lg">
+                          <Search className="w-4 h-4 text-muted-foreground" />
+                          <input
+                            type="text"
+                            value={tokenSearch}
+                            onChange={(e) => setTokenSearch(e.target.value)}
+                            placeholder="Search coin"
+                            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
+                            autoFocus
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Token List */}
+                      <div className="max-h-72 overflow-y-auto">
+                        {loading ? (
+                          <div className="flex justify-center py-8">
+                            <RefreshCw className="w-6 h-6 text-primary animate-spin" />
+                          </div>
+                        ) : filteredTokens.length > 0 ? (
+                          filteredTokens.map((token) => (
+                            <button
+                              key={token.id}
+                              onClick={() => selectToken(token)}
+                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors"
+                            >
+                              <div className="w-8 h-8 rounded-full overflow-hidden bg-accent flex items-center justify-center flex-shrink-0">
+                                <CoinIcon symbol={token.symbol} size={32} />
+                              </div>
+                              <div className="flex-1 text-left">
+                                <p className="font-medium text-foreground">{token.symbol}</p>
+                                <p className="text-xs text-muted-foreground">{token.name}</p>
+                              </div>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="py-8 text-center text-muted-foreground">No tokens found</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Popular Tokens */}
+                <div className="flex flex-wrap gap-2">
+                  {POPULAR_TOKENS.map((symbol) => {
+                    const token = tokens.find(t => t.symbol.toUpperCase() === symbol);
+                    if (!token) return null;
+                    return (
+                      <button
+                        key={symbol}
+                        onClick={() => selectToken(token)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-colors ${
+                          selectedToken?.symbol.toUpperCase() === symbol
+                            ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 text-primary'
+                            : 'bg-card dark:bg-background border-border text-foreground/80 hover:border-blue-500 dark:hover:border-blue-500'
+                        }`}
+                      >
+                        <div className="w-5 h-5 rounded-full overflow-hidden bg-accent">
+                          <CoinIcon symbol={symbol} size={20} />
+                        </div>
+                        <span className="text-sm font-medium">{symbol}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Step 2: Choose Chain (filtered by selected asset) */}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={`w-6 h-6 rounded-full text-white text-sm flex items-center justify-center font-medium ${selectedToken ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>2</span>
+                  <span className={`font-medium ${selectedToken ? 'text-foreground' : 'text-muted-foreground'}`}>Choose a Chain</span>
+                </div>
+                {selectedToken && (
+                  <p className="text-xs text-muted-foreground mb-2">Chains that support {selectedToken.symbol}</p>
+                )}
+
+                <div className="relative">
+                  <button
+                    onClick={() => selectedToken && setShowChainDropdown(!showChainDropdown)}
+                    disabled={!selectedToken}
+                    className={`w-full flex items-center justify-between px-4 py-3 bg-background border border-border rounded-lg text-left ${
+                      !selectedToken ? 'opacity-50 cursor-not-allowed' : 'hover:border-blue-500 dark:hover:border-blue-500'
+                    } transition-colors`}
+                  >
+                    {selectedChain ? (
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-full overflow-hidden bg-accent flex items-center justify-center">
+                          <Image
+                            src={getChainIcon(selectedChain)}
+                            alt={selectedChain.name}
+                            width={24}
+                            height={24}
+                            className="object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
+                        <span className="font-medium text-foreground">{selectedChain.name}</span>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">Select chain</span>
+                    )}
+                    <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${showChainDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {showChainDropdown && (
+                    <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-xl overflow-hidden">
+                      {chainsLoading ? (
+                        <div className="flex justify-center py-6">
+                          <RefreshCw className="w-5 h-5 text-primary animate-spin" />
+                        </div>
+                      ) : chainsError ? (
+                        <div className="py-6 px-4 text-center">
+                          <p className="text-amber-600 dark:text-amber-400 text-sm mb-1">No chains available</p>
+                          <p className="text-muted-foreground text-xs">{chainsError}</p>
+                        </div>
+                      ) : availableChains.length > 0 ? (
+                        availableChains.map((chain) => (
+                          <button
+                            key={chain.id}
+                            onClick={() => selectChain(chain)}
+                            className="w-full flex items-center justify-between px-4 py-3 hover:bg-accent transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-6 h-6 rounded-full overflow-hidden bg-accent flex items-center justify-center">
+                                <Image
+                                  src={getChainIcon(chain)}
+                                  alt={chain.name}
+                                  width={24}
+                                  height={24}
+                                  className="object-contain"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                              <span className="font-medium text-foreground">{chain.name}</span>
+                              {chain.type === 'evm' && (
+                                <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-primary rounded">EVM</span>
+                              )}
+                            </div>
+                            <span className="text-xs text-muted-foreground">{chain.confirmations_required} block confirms</span>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="py-6 text-center text-muted-foreground">No chains available. Run backend migrations if the database is empty.</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {selectedToken && selectedChain && (
+                <div className="mb-4 space-y-3">
+                  <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
+                    <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+                    <div className="text-sm text-amber-900 dark:text-amber-100">
+                      <p className="font-medium">Network must match</p>
+                      <p className="mt-0.5">
+                        Only send <span className="font-semibold">{selectedToken.symbol}</span> on{' '}
+                        <span className="font-semibold">{selectedChain.name}</span>. Sending on the wrong network may result in permanent loss.
+                      </p>
+                    </div>
+                  </div>
+                  {needsMemoTag && (
+                    <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
+                      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
+                      <div className="text-sm text-red-900 dark:text-red-100">
+                        <p className="font-medium">Memo / Tag required</p>
+                        <p className="mt-0.5">
+                          {selectedToken.symbol} deposits require the correct memo or destination tag. Deposits without it may not be credited.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step 3: Confirm Deposit Details */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={`w-6 h-6 rounded-full text-white text-sm flex items-center justify-center font-medium ${selectedChain ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>3</span>
+                  <span className={`font-medium ${selectedChain ? 'text-foreground' : 'text-muted-foreground'}`}>Confirm deposit details</span>
+                </div>
+
+                {addressLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <RefreshCw className="w-6 h-6 text-primary animate-spin" />
+                  </div>
+                ) : addressError ? (
+                  <div className="rounded-lg p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                    <p className="text-amber-800 dark:text-amber-200 text-sm">{addressError}</p>
+                    <button
+                      type="button"
+                      onClick={() => selectedChain && fetchDepositAddress(selectedChain.id)}
+                      className="mt-3 text-sm font-medium text-amber-600 dark:text-amber-400 hover:underline"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                ) : depositAddress ? (
+                  <div className="bg-background rounded-lg p-4">
+                    {/* QR Code */}
+                    <div className="flex justify-center mb-4">
+                      <div className="w-40 h-40 bg-card p-3 rounded-lg flex items-center justify-center">
+                        <QRCodeSVG 
+                          value={depositAddress.address}
+                          size={130}
+                          level="H"
+                          includeMargin={false}
+                          bgColor="#FFFFFF"
+                          fgColor="#000000"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Address */}
+                    <div className="mb-4">
+                      <p className="text-sm text-muted-foreground mb-2">Deposit Address</p>
+                      <div className="flex items-center gap-2 bg-card rounded-lg p-3 border border-border">
+                        <span className="flex-1 text-sm font-mono text-foreground break-all">
+                          {depositAddress.address}
+                        </span>
+                        <button
+                          onClick={copyAddress}
+                          className="flex-shrink-0 p-2 hover:bg-accent rounded-lg transition-colors"
+                        >
+                          {copied ? (
+                            <Check className="w-5 h-5 text-green-500" />
+                          ) : (
+                            <Copy className="w-5 h-5 text-muted-foreground" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Deposit Info */}
+                    {selectedChain && (
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div className="bg-muted rounded-lg p-3">
+                          <p className="text-muted-foreground mb-0.5">Confirmations Required</p>
+                          <p className="text-foreground font-medium">{selectedChain.confirmations_required ?? '—'} blocks</p>
+                        </div>
+                        <div className="bg-muted rounded-lg p-3">
+                          <p className="text-muted-foreground mb-0.5">Network</p>
+                          <p className="text-foreground font-medium">{selectedChain.name} ({selectedChain.type})</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Notice */}
+                    <div className="flex items-start gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                      <AlertTriangle className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+                      <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                        <p className="font-medium mb-1">Important</p>
+                        <p>{depositAddress.notice}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    {selectedChain ? 'Loading deposit address…' : 'Select a coin and chain to see the deposit address'}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Section - FAQ */}
+          <div className="lg:col-span-1">
+            <div className="bg-card rounded-xl p-6 border border-border dark:border-transparent">
+              <h3 className="text-lg font-semibold text-foreground mb-4">FAQ</h3>
+              
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/dashboard/help#deposit-how-to" className="text-sm text-muted-foreground hover:text-primary dark:hover:text-blue-400 flex items-start gap-1">
+                    <span className="mt-1">•</span>
+                    <span>How to Make a Deposit</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/help#deposit-recovery" className="text-sm text-muted-foreground hover:text-primary dark:hover:text-blue-400 flex items-start gap-1">
+                    <span className="mt-1">•</span>
+                    <span>Unsupported Deposit Recovery Procedure Rules</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/help#deposit-faq" className="text-sm text-muted-foreground hover:text-primary dark:hover:text-blue-400 flex items-start gap-1">
+                    <span className="mt-1">•</span>
+                    <span>FAQ — Crypto Deposit</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/help#deposit-memo" className="text-sm text-muted-foreground hover:text-primary dark:hover:text-blue-400 flex items-start gap-1">
+                    <span className="mt-1">•</span>
+                    <span>How to Recover a Deposit with Wrong or Missing Tag/Memo</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/help#self-service" className="text-sm text-primary hover:text-primary/85 flex items-start gap-1">
+                    <span className="mt-1">•</span>
+                    <span>Deposits yet to be credited? <span className="text-yellow-500">Self-Service →</span></span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/help#deposit-withdraw-status" className="text-sm text-primary hover:text-primary/85 flex items-start gap-1">
+                    <span className="mt-1">•</span>
+                    <span>Deposit/Withdrawal Status of All Coins <span className="text-yellow-500">Find Out →</span></span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Deposits */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-foreground">Recent Deposits</h2>
+            <button
+              onClick={fetchRecentDeposits}
+              disabled={recentDepositsLoading}
+              className="text-sm text-primary hover:text-primary/85 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw className={`w-4 h-4 ${recentDepositsLoading ? 'animate-spin' : ''}`} />
+              {recentDepositsLoading ? 'Refreshing...' : 'Refresh'}
+            </button>
+          </div>
+
+          <div className="bg-card rounded-xl border border-border dark:border-transparent overflow-hidden">
+            {/* Table Header */}
+            <div className="grid grid-cols-7 gap-4 px-4 py-3 bg-background border-b border-border text-sm text-muted-foreground">
+              <span>Coin</span>
+              <span>Chain Type</span>
+              <span>Qty</span>
+              <span>Address</span>
+              <span>Txid</span>
+              <span className="flex items-center gap-1">
+                Status <Info className="w-3 h-3" />
+              </span>
+              <span>Date & Time</span>
+            </div>
+
+            {/* Table Body */}
+            {recentDeposits.length > 0 ? (
+              <div className="divide-y divide-border">
+                {recentDeposits.map((deposit) => (
+                  <div key={deposit.id} className="grid grid-cols-7 gap-4 px-4 py-3 text-sm">
+                    <span className="text-foreground font-medium">{deposit.symbol}</span>
+                    <span className="text-muted-foreground">{deposit.chain_name}</span>
+                    <span className="text-foreground">{deposit.amount}</span>
+                    <span className="text-muted-foreground truncate">
+                      {deposit.to_address.slice(0, 8)}...{deposit.to_address.slice(-6)}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {deposit.tx_hash ? (
+                        deposit.explorer_url ? (
+                          <a href={deposit.explorer_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate block">
+                            {deposit.tx_hash.slice(0, 8)}...
+                          </a>
+                        ) : (
+                          <span className="truncate block">{deposit.tx_hash.slice(0, 8)}...</span>
+                        )
+                      ) : '-'}
+                    </span>
+                    <span className={getStatusColor(deposit.status)}>
+                      {(deposit.status === 'confirming' || deposit.status === 'pending') && deposit.required_confirmations
+                        ? `${deposit.confirmations}/${deposit.required_confirmations} Confirmations`
+                        : deposit.status}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {new Date(deposit.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                <div className="w-20 h-20 mb-4 flex items-center justify-center">
+                  <div className="text-6xl">📋</div>
+                </div>
+                <p className="text-muted-foreground font-medium">No on-chain deposits yet</p>
+                <p className="mt-2 text-sm text-muted-foreground max-w-md">
+                  After you send crypto to your deposit address, it appears here automatically (usually within 1–3 minutes).
+                  Transfers between Funding and Trading show under Overview → Recent Activity, not here.
+                </p>
+                <Link href="/dashboard/assets/history?tab=deposit" className="mt-4 text-sm text-primary hover:underline">
+                  View full deposit history
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {recentDeposits.length > 0 && (
+            <Link
+              href="/wallet/history?tab=deposit"
+              className="inline-flex items-center gap-1 mt-4 text-sm text-yellow-500 hover:text-yellow-600"
+            >
+              View More <ExternalLink className="w-4 h-4" />
+            </Link>
+          )}
+        </div>
+      </WalletOperationsShell>
+
+      {/* Help Button */}
+      <Link href="/dashboard/help" className="fixed bottom-6 right-6 w-12 h-12 bg-primary hover:bg-primary/85 text-white rounded-full shadow-lg flex items-center justify-center transition-colors z-40">
+        <HelpCircle className="w-6 h-6" />
+      </Link>
+
+      {/* KYC Verification Modal */}
+      {showKycModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card rounded-xl w-full max-w-md mx-4 overflow-hidden shadow-2xl">
+            {/* Modal Header */}
+            <div className="flex justify-end p-4">
+              <button
+                onClick={() => setShowKycModal(false)}
+                className="p-1 hover:bg-accent rounded-full transition-colors"
+              >
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="px-8 pb-8 text-center">
+              {/* Icon */}
+              <div className="w-20 h-20 mx-auto mb-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                <Shield className="w-10 h-10 text-primary" />
+              </div>
+
+              {/* Title */}
+              <h2 className="text-xl font-bold text-foreground mb-2">
+                Identity Verification Required
+              </h2>
+
+              {/* Description */}
+              <p className="text-muted-foreground mb-2">
+                To comply with regulatory requirements, please take three (3) minutes to complete your identity verification.
+              </p>
+              <Link href="/dashboard/identity" className="text-primary hover:text-primary/85 text-sm">
+                Why does this matter?
+              </Link>
+
+              {/* Requirements */}
+              <div className="mt-6 mb-6 text-left bg-background rounded-lg p-4">
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-3 text-foreground/80">
+                    <Upload className="w-5 h-5 text-primary" />
+                    <span>Upload ID card</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-foreground/80">
+                    <Camera className="w-5 h-5 text-primary" />
+                    <span>Upload a Selfie</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* CTA Button */}
+              <Link
+                href="/dashboard/identity"
+                className="block w-full py-3 bg-primary hover:bg-primary/85 text-white font-semibold rounded-lg transition-colors"
+                onClick={() => setShowKycModal(false)}
+              >
+                Verify Identity
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

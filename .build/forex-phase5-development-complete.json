@@ -1,0 +1,47 @@
+{
+  "phase": 5,
+  "title": "Advanced customer Forex terminal",
+  "status": "DEVELOPMENT_COMPLETE",
+  "runtimeCertification": "PENDING_MARKET_DEPENDENT_CHECKS",
+  "route": "/forex/trade",
+  "branch": "release/exchange-production-baseline",
+  "commit": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "completedAtUtc": "2026-09-19T07:25:00.000Z",
+  "deployment": {
+    "frontendImageDigest": "sha256:b89fed073713b1dd92583fbce944278d810c4373a019cb35b78e17d0eacea3be",
+    "backendImageDigest": "sha256:66380c376dad32673fbbed38a98c6f67abf22c55e2b8759dd0b49492857036a7"
+  },
+  "features": {
+    "terminalShell": "IMPLEMENTED — ForexTerminalLayout, no duplicate Crypto shell",
+    "marketWatch": "IMPLEMENTED — bid/ask/spread/change/session via store; High/Low omitted (no authoritative quote fields)",
+    "orderTicket": "IMPLEMENTED — market/limit/stop/stop_limit; TIF GTC/IOC/FOK/DAY; GTD not exposed",
+    "pendingOrders": "IMPLEMENTED — cancel/modify (price/SL/TP/volume; TIF modify not in API contract)",
+    "positions": "IMPLEMENTED — close/partial/modify SL/TP via backend paths",
+    "chart": "IMPLEMENTED — LightweightCharts M1–D1; markers; trade-from-chart uses ticket draft",
+    "indicators": "IMPLEMENTED — SMA/EMA/RSI/MACD/Bollinger; ATR study readout not full overlay",
+    "drawings": "SESSION_LOCAL — localStorage",
+    "multiChart": "IMPLEMENTED — 1/2/4 layout",
+    "workspacePersist": "IMPLEMENTED — eda-forex-workspace-v5",
+    "history": "PARTIAL — period filter; CSV only if backend export exists",
+    "alerts": "PARTIAL — client price alerts; margin/risk alerts backend-scoped where WS/API exist",
+    "realtime": "IMPLEMENTED — orders/positions/risk; WS cookie auth on backend",
+    "responsive": "NOT_PROVEN — requires browser pass"
+  },
+  "workspaceChangesThisPass": [
+    "apps/frontend/src/lib/forex/forex-preview.test.ts",
+    "Prior pass: ForexRiskBar.tsx, backend resolveForexWsUserId"
+  ],
+  "testsExecuted": [
+    { "suite": "forex-workstation-ui.test.ts", "result": "PASS" },
+    { "suite": "forex-preview.test.ts", "result": "PASS" },
+    { "suite": "forex-foundation.test.ts", "result": "PASS" },
+    { "suite": "forex-phase11.test.ts", "result": "PASS" },
+    { "suite": "forex-phase2-customer-terminal.test.ts", "result": "PASS" }
+  ],
+  "knownLimitations": [
+    "Order modify TIF: ForexOrderModifyRequest has no timeInForce — UI correctly omits",
+    "Market watch High/Low: no backend day high/low on quote DTO — do not fake",
+    "Phase 5 GREEN blocked until Phase 4 live GREEN + browser/WS runtime proof"
+  ],
+  "remainingMarketDependent": ".build/forex-phase5-market-runtime-checkpoint.json"
+}

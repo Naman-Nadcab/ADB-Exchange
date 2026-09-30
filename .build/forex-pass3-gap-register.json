@@ -1,0 +1,930 @@
+{
+  "generated_at": "2026-09-17T16:13:42.440Z",
+  "summary": {
+    "total_marker_hits": 188,
+    "required_or_review": 37,
+    "false_positives": 76,
+    "legitimate_mock": 5
+  },
+  "required_gaps": [
+    {
+      "id": "CRYPTO-STAGING-FULL",
+      "domain": "CRYPTO",
+      "status": "BLOCKED",
+      "severity": "P0"
+    },
+    {
+      "id": "EXT-LP-LIVE",
+      "domain": "INTEGRATIONS",
+      "status": "EXTERNALLY_DEPENDENT",
+      "severity": "P0"
+    },
+    {
+      "id": "IB-EXTERNAL-PAYOUT",
+      "domain": "IB",
+      "status": "EXTERNALLY_DEPENDENT",
+      "severity": "P1"
+    },
+    {
+      "id": "MARKER-1",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/adapters/registry.ts",
+      "line": 29,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-2",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/adapters/types.ts",
+      "line": 46,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-3",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/admin/account-groups.ts",
+      "line": 2,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-4",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/admin/config.ts",
+      "line": 3,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-5",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/admin/execution-gate.ts",
+      "line": 3,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-6",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/admin/execution.ts",
+      "line": 56,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-7",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/config.ts",
+      "line": 36,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-8",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/execution/mock-venue.ts",
+      "line": 107,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-9",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/execution/mock-venue.ts",
+      "line": 108,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-10",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/execution/mock-venue.ts",
+      "line": 110,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-11",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/execution/mock-venue.ts",
+      "line": 111,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-12",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/execution/service.ts",
+      "line": 247,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-13",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/execution/service.ts",
+      "line": 274,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-14",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/execution/service.ts",
+      "line": 400,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-15",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/execution/venue.ts",
+      "line": 7,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-16",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/forex-live-journey.cert.ts",
+      "line": 297,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-17",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/forex-phase1a-hedging.cert.ts",
+      "line": 159,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-18",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/liquidity/routing-rules.ts",
+      "line": 35,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-19",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/market-data/validate.ts",
+      "line": 58,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-20",
+      "domain": "FOREX",
+      "file": "apps/backend/src/services/forex/positions/hedging.ts",
+      "line": 29,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-21",
+      "domain": "FOREX",
+      "file": "apps/backend/src/routes/admin-control.fastify.ts",
+      "line": 783,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-22",
+      "domain": "FOREX",
+      "file": "apps/backend/src/routes/admin-control.fastify.ts",
+      "line": 798,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-23",
+      "domain": "FOREX",
+      "file": "apps/backend/src/routes/admin-control.fastify.ts",
+      "line": 804,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-24",
+      "domain": "FOREX",
+      "file": "apps/backend/src/routes/admin-control.fastify.ts",
+      "line": 811,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-25",
+      "domain": "FOREX",
+      "file": "apps/backend/src/routes/admin-control.fastify.ts",
+      "line": 819,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-26",
+      "domain": "FOREX",
+      "file": "apps/backend/src/routes/admin-mm-control.fastify.ts",
+      "line": 137,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-27",
+      "domain": "FOREX",
+      "file": "apps/backend/src/routes/admin-mm-control.fastify.ts",
+      "line": 163,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-28",
+      "domain": "FOREX",
+      "file": "apps/backend/src/routes/admin-operational.fastify.ts",
+      "line": 235,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-29",
+      "domain": "FOREX",
+      "file": "apps/backend/src/routes/admin.fastify.ts",
+      "line": 4589,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-30",
+      "domain": "FOREX",
+      "file": "apps/backend/src/routes/admin.fastify.ts",
+      "line": 7952,
+      "classification": "REQUIRED_IMPLEMENTATION",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-31",
+      "domain": "FOREX",
+      "file": "apps/backend/src/routes/auth.fastify.ts",
+      "line": 2481,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-32",
+      "domain": "FOREX",
+      "file": "apps/backend/src/routes/auth.oauth.ts",
+      "line": 804,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-33",
+      "domain": "FOREX",
+      "file": "apps/backend/src/routes/spot.fastify.ts",
+      "line": 2273,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-34",
+      "domain": "FOREX",
+      "file": "apps/backend/src/routes/spot.fastify.ts",
+      "line": 3240,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-35",
+      "domain": "FOREX",
+      "file": "apps/admin-panel/src/components/forex/ForexPolicyPanel.tsx",
+      "line": 110,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-36",
+      "domain": "FOREX",
+      "file": "apps/admin-panel/src/components/forex/ForexPolicyPanel.tsx",
+      "line": 111,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "MARKER-37",
+      "domain": "FOREX",
+      "file": "apps/admin-panel/src/components/forex/panels/ForexRoadmapPanel.tsx",
+      "line": 23,
+      "classification": "REVIEW_REQUIRED",
+      "status": "OPEN"
+    }
+  ],
+  "hits_sample": [
+    {
+      "file": "apps/backend/src/services/forex/account/account-group-runtime-policy.ts",
+      "line": 14,
+      "text": "function parseCommissionProfile(raw: unknown): Partial<{",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/account/account-group-runtime-policy.ts",
+      "line": 24,
+      "text": "const patch: Partial<{",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/account/account-group-runtime-policy.ts",
+      "line": 40,
+      "text": "function parseSwapProfile(raw: unknown): Partial<{",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/account/account-group-runtime-policy.ts",
+      "line": 50,
+      "text": "const patch: Partial<{",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/account/account-group-runtime-policy.ts",
+      "line": 70,
+      "text": "function parseSpreadProfile(raw: unknown): Partial<{ maxSpread: string }> | null {",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/accounting/ledger-public.test.ts",
+      "line": 6,
+      "text": "partial: Pick<ForexLedgerTransaction, 'transactionId' | 'type' | 'createdAt'> & {",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/accounting/ledger-public.test.ts",
+      "line": 12,
+      "text": "const credit = partial.cashCredit ?? '0';",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/accounting/ledger-public.test.ts",
+      "line": 13,
+      "text": "const debit = partial.cashDebit ?? '0';",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/accounting/ledger-public.test.ts",
+      "line": 15,
+      "text": "transactionId: partial.transactionId,",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/accounting/ledger-public.test.ts",
+      "line": 16,
+      "text": "idempotencyKey: partial.transactionId,",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/accounting/ledger-public.test.ts",
+      "line": 17,
+      "text": "fingerprint: partial.transactionId,",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/accounting/ledger-public.test.ts",
+      "line": 18,
+      "text": "type: partial.type,",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/accounting/ledger-public.test.ts",
+      "line": 22,
+      "text": "createdAt: partial.createdAt,",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/accounting/ledger-public.test.ts",
+      "line": 24,
+      "text": "metadata: partial.fillId ? { fillId: partial.fillId } : {},",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/accounting/ledger-public.test.ts",
+      "line": 27,
+      "text": "entryId: `${partial.transactionId}-c`,",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/accounting/ledger-public.test.ts",
+      "line": 28,
+      "text": "transactionId: partial.transactionId,",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/accounting/ledger-public.test.ts",
+      "line": 34,
+      "text": "timestamp: partial.createdAt,",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/accounting/ledger-public.test.ts",
+      "line": 35,
+      "text": "referenceType: partial.fillId ? 'FILL' : null,",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/accounting/ledger-public.test.ts",
+      "line": 36,
+      "text": "referenceId: partial.fillId ?? null,",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/adapters/registry.ts",
+      "line": 29,
+      "text": "notes: 'Not connected — adapter stub only.',",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/adapters/types.ts",
+      "line": 46,
+      "text": "* Provider adapter surface — full trading ops for future MT5/FIX/LP plugins.",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/account-groups.ts",
+      "line": 2,
+      "text": "* Forex account groups — admin control plane (profiles stored; engine wiring is partial).",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/compliance-cases.ts",
+      "line": 2,
+      "text": "* Forex compliance case management (manual review; external providers NOT_CONNECTED).",
+      "classification": "LEGITIMATE_EXTERNAL_OR_MOCK_STATE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/config.ts",
+      "line": 3,
+      "text": "* Future Admin UI reads this contract. Routes must not hardcode policy values.",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/crm-client-360.ts",
+      "line": 30,
+      "text": "provider_status: 'NOT_CONNECTED';",
+      "classification": "LEGITIMATE_EXTERNAL_OR_MOCK_STATE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/crm-client-360.ts",
+      "line": 163,
+      "text": "provider_status: 'NOT_CONNECTED' as const,",
+      "classification": "LEGITIMATE_EXTERNAL_OR_MOCK_STATE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/effective-config.ts",
+      "line": 9,
+      "text": "const leverageOverrides: Partial<Record<LeverageKey, string>> = {};",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/effective-config.ts",
+      "line": 10,
+      "text": "const marginOverrides: Partial<Record<MarginKey, string>> = {};",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/effective-config.ts",
+      "line": 69,
+      "text": "export function forexLeverageRuntimeOverrides(): Partial<Record<LeverageKey, string>> {",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/effective-config.ts",
+      "line": 73,
+      "text": "export function forexMarginRuntimeOverrides(): Partial<Record<MarginKey, string>> {",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/execution-gate.ts",
+      "line": 3,
+      "text": "* effective real-money execution stays OFF until a future certified release enables it.",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/execution.ts",
+      "line": 56,
+      "text": "totals: { executions: number; filled: number; failed: number; partial: number };",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/execution.ts",
+      "line": 77,
+      "text": "let partial = 0;",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/execution.ts",
+      "line": 84,
+      "text": "else if (st === 'PARTIAL') partial += n;",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/execution.ts",
+      "line": 99,
+      "text": "totals: { executions, filled, failed, partial },",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/runtime-controls.ts",
+      "line": 18,
+      "text": "const boolOverrides: Partial<Record<ForexRuntimeBoolKey, boolean>> = {};",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/admin/runtime-controls.ts",
+      "line": 58,
+      "text": "export function forexRuntimeBoolOverrides(): Partial<Record<ForexRuntimeBoolKey, boolean>> {",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/config.ts",
+      "line": 36,
+      "text": "/** Reject provider timestamps too far in the future. */",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/execution/mock-venue.ts",
+      "line": 107,
+      "text": "status = filled.lt(volume) ? 'partial' : 'accepted';",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/execution/mock-venue.ts",
+      "line": 108,
+      "text": "if (status === 'partial') this.partialCount += 1;",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/execution/mock-venue.ts",
+      "line": 110,
+      "text": "} else if (req.clientExecId.includes('PARTIAL') || req.volume.endsWith('03')) {",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/execution/mock-venue.ts",
+      "line": 111,
+      "text": "status = 'partial';",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/execution/persist.ts",
+      "line": 198,
+      "text": ": {}) as Partial<ForexExecutionRequest>;",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/execution/persist.ts",
+      "line": 253,
+      "text": ": {}) as Partial<ForexExecutionRequest>;",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/execution/service.ts",
+      "line": 247,
+      "text": "if (more !== 'ok' && more !== 'partial') break;",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/execution/service.ts",
+      "line": 274,
+      "text": "): Promise<'ok' | 'partial' | 'reject' | 'timeout' | 'malformed' | 'slippage' | 'overfill'> {",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/execution/service.ts",
+      "line": 400,
+      "text": "return 'partial';",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/execution/venue.ts",
+      "line": 7,
+      "text": "export type ForexExecStatus = 'accepted' | 'rejected' | 'partial';",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/fees/policy.ts",
+      "line": 18,
+      "text": "const globalRule: Partial<ForexCommissionRule> = {",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/fees/policy.ts",
+      "line": 22,
+      "text": "const instrumentRules = new Map<string, Partial<ForexCommissionRule>>();",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/fees/policy.ts",
+      "line": 23,
+      "text": "const accountRules = new Map<string, Partial<ForexCommissionRule>>();",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/fees/policy.ts",
+      "line": 35,
+      "text": "export function setForexGlobalCommission(rule: Partial<ForexCommissionRule>): void {",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/fees/policy.ts",
+      "line": 43,
+      "text": "export function setForexInstrumentCommission(symbol: string, rule: Partial<ForexCommissionRule>): void {",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/fees/policy.ts",
+      "line": 47,
+      "text": "export function setForexAccountCommission(accountId: string, rule: Partial<ForexCommissionRule>): void {",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/fees/policy.ts",
+      "line": 53,
+      "text": "const catalog: Partial<ForexCommissionRule> = inst",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/fees/policy.ts",
+      "line": 77,
+      "text": "instruments: Array<{ symbol: string; rule: Partial<ForexCommissionRule> }>;",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/fees/policy.ts",
+      "line": 78,
+      "text": "accounts: Array<{ accountId: string; rule: Partial<ForexCommissionRule> }>;",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-demo-cert.test.ts",
+      "line": 7,
+      "text": "*   → SL/TP → pending trigger → partial close → full close → ledger reconcile",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-demo-cert.test.ts",
+      "line": 49,
+      "text": "p: Partial<ProviderRawQuote> & Pick<ProviderRawQuote, 'symbol' | 'bid' | 'ask' | 'providerId' | 'providerCode'>",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-demo-cert.test.ts",
+      "line": 268,
+      "text": "const half = await closeForexPosition(DEMO, { positionId: pos!.positionId, clientOrderId: 'demo-partial', volume: '0.05' }, h);",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-demo-cert.test.ts",
+      "line": 277,
+      "text": "assertInvariants('partial close', partView);",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-demo-cert.test.ts",
+      "line": 281,
+      "text": "assert.equal(recPart.ok, true, recPart.reason ?? 'partial reconcile');",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-live-journey.cert.ts",
+      "line": 297,
+      "text": "'partial-close',",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase-a-orders.test.ts",
+      "line": 61,
+      "text": "p: Partial<ProviderRawQuote> & Pick<ProviderRawQuote, 'symbol' | 'bid' | 'ask' | 'providerId' | 'providerCode'>",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase-a-orders.test.ts",
+      "line": 96,
+      "text": "function usableQuote(pricing: ReturnType<typeof seedBook>, patch: Partial<ForexQuoteDto> = {}): ForexQuoteDto {",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase-a-orders.test.ts",
+      "line": 407,
+      "text": "clientOrderId: 'pa-ioc-partial',",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase-a-orders.test.ts",
+      "line": 422,
+      "text": "// --- TIF: FOK cancels rather than resting on a partial ---",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase-a-orders.test.ts",
+      "line": 427,
+      "text": "clientOrderId: 'pa-fok-partial',",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase-a-orders.test.ts",
+      "line": 436,
+      "text": "console.log('  PASS  FOK never rests on a partial fill');",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase-a-orders.test.ts",
+      "line": 444,
+      "text": "clientOrderId: 'pa-gtc-partial',",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase-a-orders.test.ts",
+      "line": 450,
+      "text": "assert.equal(gtc.status, 'PARTIALLY_FILLED', 'GTC partial-fill behaviour must not change');",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase-a-orders.test.ts",
+      "line": 452,
+      "text": "console.log('  PASS  GTC partial fill behaviour preserved');",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase1.test.ts",
+      "line": 29,
+      "text": "function rawQuote(overrides: Partial<ProviderRawQuote> & Pick<ProviderRawQuote, 'symbol' | 'bid' | 'ask'>): ProviderRawQuote {",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase1.test.ts",
+      "line": 44,
+      "text": "function validateOf(symbol: string, bid: string, ask: string, extra: Partial<Parameters<typeof validateProviderQuote>[0]> = {}) {",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase1.test.ts",
+      "line": 124,
+      "text": "const future = new Date(Date.now() + 60_000);",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase1.test.ts",
+      "line": 126,
+      "text": "failReason(validateOf('EURUSD', '1.08500', '1.08506', { providerTimestamp: future, receivedTimestamp: new Date() })),",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase104-preview.test.ts",
+      "line": 28,
+      "text": "p: Partial<ProviderRawQuote> & Pick<ProviderRawQuote, 'symbol' | 'bid' | 'ask' | 'providerId' | 'providerCode'>",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase105b-close.test.ts",
+      "line": 28,
+      "text": "p: Partial<ProviderRawQuote> & Pick<ProviderRawQuote, 'symbol' | 'bid' | 'ask' | 'providerId' | 'providerCode'>",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase105b-close.test.ts",
+      "line": 116,
+      "text": "const pos = await openLong(h, '0.20', 'open-partial');",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase1a-hedging.cert.ts",
+      "line": 159,
+      "text": "// Partial",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase1a-hedging.test.ts",
+      "line": 38,
+      "text": "p: Partial<ProviderRawQuote> & Pick<ProviderRawQuote, 'symbol' | 'bid' | 'ask' | 'providerId' | 'providerCode'>",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase1a-hedging.test.ts",
+      "line": 182,
+      "text": "// --- TEST D: partial close ---",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase1a-hedging.test.ts",
+      "line": 197,
+      "text": "console.log('  PASS  TEST D partial close isolation');",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase1b-close-by-reverse.cert.ts",
+      "line": 131,
+      "text": "// Partial Close By",
+      "classification": "FALSE_POSITIVE_TYPESCRIPT"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase1b-close-by-reverse.test.ts",
+      "line": 38,
+      "text": "p: Partial<ProviderRawQuote> & Pick<ProviderRawQuote, 'symbol' | 'bid' | 'ask' | 'providerId' | 'providerCode'>",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase1b-close-by-reverse.test.ts",
+      "line": 111,
+      "text": "console.log('  PASS  matchCloseByVolume equal/partial/validation');",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase1b-close-by-reverse.test.ts",
+      "line": 138,
+      "text": "// --- Close By partial ---",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase1b-close-by-reverse.test.ts",
+      "line": 157,
+      "text": "console.log('  PASS  Close By partial → BUY 0.40 remains, SELL closed');",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase1c-stoplimit-tif.test.ts",
+      "line": 30,
+      "text": "p: Partial<ProviderRawQuote> & Pick<ProviderRawQuote, 'symbol' | 'bid' | 'ask' | 'providerId' | 'providerCode'>",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase2.test.ts",
+      "line": 22,
+      "text": "function raw(partial: Partial<ProviderRawQuote> & Pick<ProviderRawQuote, 'symbol' | 'bid' | 'ask' | 'providerId' | 'providerCode'>): ProviderRawQuote {",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase2.test.ts",
+      "line": 27,
+      "text": "...partial,",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase2.test.ts",
+      "line": 229,
+      "text": "// L M N O. Mock execution — accept / reject / partial / no financial writes",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase2.test.ts",
+      "line": 238,
+      "text": "const part = await venue.placeOrder({ clientExecId: 'PARTIAL-1', symbol: 'EURUSD', side: 'sell', volume: '2.00', price: '1.16620' });",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase2.test.ts",
+      "line": 239,
+      "text": "assert.equal(part.status, 'partial');",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase3.test.ts",
+      "line": 18,
+      "text": "function raw(p: Partial<ProviderRawQuote> & Pick<ProviderRawQuote, 'symbol' | 'bid' | 'ask' | 'providerId' | 'providerCode'>): ProviderRawQuote {",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase3.test.ts",
+      "line": 29,
+      "text": "function req(overrides: Partial<ForexExecutionRequest> = {}): ForexExecutionRequest {",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase3.test.ts",
+      "line": 195,
+      "text": "const multi = await pexec.execute(req({ clientExecId: 'PARTIAL-multi', volume: '1.00' }));",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase4.test.ts",
+      "line": 25,
+      "text": "p: Partial<ProviderRawQuote> & Pick<ProviderRawQuote, 'symbol' | 'bid' | 'ask' | 'providerId' | 'providerCode'>",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase4.test.ts",
+      "line": 46,
+      "text": "function req(overrides: Partial<ForexOrderRequest> = {}): ForexOrderRequest {",
+      "classification": "TEST_FIXTURE"
+    },
+    {
+      "file": "apps/backend/src/services/forex/forex-phase4.test.ts",
+      "line": 226,
+      "text": "const leftover = await orders.place(USER, req({ clientOrderId: 'cx-partial', volume: '1.00' }));",
+      "classification": "TEST_FIXTURE"
+    }
+  ],
+  "completion_gate": {
+    "required_gaps_zero": false
+  }
+}

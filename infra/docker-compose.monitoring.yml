@@ -6,7 +6,7 @@ services:
     container_name: exchange-prometheus
     restart: unless-stopped
     ports:
-      - '9090:9090'
+      - '127.0.0.1:9090:9090'
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
@@ -25,12 +25,13 @@ services:
     container_name: exchange-grafana
     restart: unless-stopped
     ports:
-      - '3001:3000'
+      - '127.0.0.1:3001:3000'
     env_file:
       - ../.env
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD required}
+      # Password lives in the grafana-data volume. Do not require a host env
+      # value on recreate; an empty interpolation would fail the whole stack.
       GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro

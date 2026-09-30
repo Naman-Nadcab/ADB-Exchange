@@ -1,0 +1,60 @@
+{
+  "verdict": "GREEN_WITH_EXPLICIT_LIMITATIONS",
+  "timestampUtc": "2026-09-19T14:25:00Z",
+  "revalidationArtifact": ".build/forex-remaining-gaps-revalidation.json",
+  "implementedForexOnly": [
+    "apps/frontend/src/lib/forex/models/customer-alerts.ts — validateAlertFormInput, buildAlertPatchBody, alertFormFromRow",
+    "apps/frontend/src/components/forex/ForexServerAlertsPanel.tsx — Edit/Save/Cancel, PATCH condition",
+    "apps/frontend/src/lib/forex/models/customer-alerts.test.ts — validation + patch tests",
+    "apps/frontend/src/lib/forex/chart/studies-extended.ts — stdDevSeries from OHLC closes",
+    "apps/frontend/src/lib/forex/chart/indicator-registry.ts — Std Dev oscillator"
+  ],
+  "notImplementedByDesign": {
+    "VWAP": "BACKEND_DEPENDENT — no authoritative candle volume",
+    "Heikin Ashi": "BACKEND_DEPENDENT — chart-type pipeline not in scope",
+    "Renko": "BACKEND_DEPENDENT — no tick/brick data",
+    "realForexFunding": "INTENTIONALLY_NOT_IMPLEMENTED",
+    "providerFeatures": "PROVIDER_DEPENDENT — no fake data",
+    "marketRuntime": "MARKET_DEPENDENT",
+    "backendDeploy": "NOT_SAFE — spot.fastify.ts Crypto provenance unresolved"
+  },
+  "alertPatchStatus": "GREEN — UI Edit loads condition, UX validate, PATCH, reload; API smoke verified persistence",
+  "alertValidationStatus": "GREEN UX — blocks empty/invalid price, threshold, symbol; hook types unchanged; backend still authoritative",
+  "webSocketStatus": "PARTIAL — unchanged; same-origin cookie auth on upgrade exists; REST authoritative; no Crypto WS changes",
+  "indicatorStatus": {
+    "stdDev": "GREEN — added to registry",
+    "vwap": "MISSING",
+    "heikinRenko": "MISSING"
+  },
+  "fundingStatus": "UNCHANGED — SIMULATED demo labeling on funds page",
+  "tests": {
+    "customer-alerts.test.ts": "PASS",
+    "forex-workstation-ui.test.ts": "PASS",
+    "indicator-registry.test.ts": "PASS",
+    "test:forex-phase2-customer": "NOT_RUN this pass",
+    "frontend build": "PASS"
+  },
+  "browserTests": {
+    "alertEditUi": "NOT_RUN full browser this pass — API PATCH persistence verified",
+    "note": "Deploy frontend then manual /forex/alerts Edit flow recommended"
+  },
+  "deployment": {
+    "backend": "NOT_DEPLOYED",
+    "frontendBefore": "sha256:384ff1b0b8451703c32f2dec1f2d6be9960a54f957451e8012e52600b7138bbb",
+    "frontendAfter": "sha256:630100fcbe92e4e7185e1254ef016fc344ef9fc4227499c45d5453cb73324438",
+    "container": "exchange-frontend healthy"
+  },
+  "cryptoIsolation": {
+    "spotFastifyTouchedThisPhase": false,
+    "cryptoFilesModifiedThisPhase": []
+  },
+  "realForex": "OFF",
+  "remainingLimitations": [
+    "MARKET_DEPENDENT live trading and alert firing",
+    "PROVIDER_DEPENDENT news, calendar, DOM, external alert delivery",
+    "PARTIAL private WS when cross-origin dev or cookie-only edge cases",
+    "VWAP / Heikin Ashi / Renko not implemented",
+    "Real Forex funding not implemented",
+    "Backend deploy blocked by pre-existing spot.fastify.ts dirty state"
+  ]
+}

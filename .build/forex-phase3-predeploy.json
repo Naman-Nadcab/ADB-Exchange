@@ -1,0 +1,24 @@
+{
+  "phase": 3,
+  "timestampUtc": "2026-09-18T16:20:00Z",
+  "startConditions": {
+    "forex-phase2-capability-runtime-lock.json": "present",
+    "forex-phase2-journal-runtime-certification.json": "present",
+    "deploymentHealthy": true
+  },
+  "git": {
+    "branch": "release/exchange-production-baseline",
+    "head": "7f0bf68e753969778683e04b19d43bc78014d02d"
+  },
+  "implementationChanges": [
+    "apps/backend/src/services/forex/forex-phase3-customer-execution.cert.ts"
+  ],
+  "testsPlanned": [
+    "forex-phase3-customer-execution.cert.ts (live)",
+    "forex-phase2-customer-terminal.test.ts",
+    "forex-phase1c-stoplimit-tif.test.ts"
+  ],
+  "buildRequired": false,
+  "deployRequired": false,
+  "note": "Cert harness runs via tsx against live :4000; runtime unchanged from Phase 2 lockdown."
+}

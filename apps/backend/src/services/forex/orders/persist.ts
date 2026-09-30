@@ -1,7 +1,7 @@
 import { db } from '../../../lib/database.js';
 import { forexIsoTimestamp, forexStr, fxq, type ForexQueryable } from '../durability/tx.js';
 import type { ForexOrderEvent, ForexOrderRecord } from './models.js';
-import type { ForexOrderRequest } from './request.js';
+import { FOREX_DEFAULT_TIME_IN_FORCE, normalizeForexTimeInForce, type ForexOrderRequest } from './request.js';
 import type { ForexOrderReason, ForexOrderState } from './states.js';
 
 export async function persistOrder(record: ForexOrderRecord, client?: ForexQueryable): Promise<void> {
@@ -9,13 +9,20 @@ export async function persistOrder(record: ForexOrderRecord, client?: ForexQuery
     `INSERT INTO forex_orders (
        order_id, client_order_id, client_exec_id, account_id, fingerprint, symbol, side, order_type,
        requested_volume, filled_volume, remaining_volume, requested_price, max_slippage, max_deviation,
-       status, failure_reason, execution_id, fill_ids, request_json, source, execution_mode
+       status, failure_reason, execution_id, fill_ids, request_json, limit_price, time_in_force, expire_at, source, execution_mode
      ) VALUES (
-       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,'SIMULATED','MOCK'
+       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,'SIMULATED','MOCK'
      )
      ON CONFLICT (order_id) DO UPDATE SET
+       order_type = EXCLUDED.order_type,
+       requested_volume = EXCLUDED.requested_volume,
        filled_volume = EXCLUDED.filled_volume,
        remaining_volume = EXCLUDED.remaining_volume,
+       requested_price = EXCLUDED.requested_price,
+       limit_price = EXCLUDED.limit_price,
+       time_in_force = EXCLUDED.time_in_force,
+       expire_at = EXCLUDED.expire_at,
+       request_json = EXCLUDED.request_json,
        status = EXCLUDED.status,
        failure_reason = EXCLUDED.failure_reason,
        execution_id = EXCLUDED.execution_id,
@@ -41,6 +48,9 @@ export async function persistOrder(record: ForexOrderRecord, client?: ForexQuery
       record.executionId,
       record.fillIds,
       JSON.stringify(record.request),
+      record.limitPrice,
+      record.timeInForce,
+      record.expireAt,
     ]
   );
 }
@@ -68,17 +78,38 @@ function str(v: unknown): string {
   return forexStr(v);
 }
 
+function rowOrderType(value: unknown): ForexOrderRequest['orderType'] {
+  if (value === 'limit') return 'limit';
+  if (value === 'stop') return 'stop';
+  if (value === 'stop_limit') return 'stop_limit';
+  return 'market';
+}
+
 function rowToOrder(row: Record<string, unknown>, events: ForexOrderEvent[] = []): ForexOrderRecord {
+  const timeInForce = normalizeForexTimeInForce(row.time_in_force) ?? FOREX_DEFAULT_TIME_IN_FORCE;
   const request: ForexOrderRequest = {
     clientOrderId: str(row.client_order_id),
     symbol: str(row.symbol),
     side: row.side === 'sell' ? 'sell' : 'buy',
-    orderType: row.order_type === 'limit' ? 'limit' : row.order_type === 'stop' ? 'stop' : 'market',
+    orderType: rowOrderType(row.order_type),
     volume: str(row.requested_volume),
     requestedPrice: row.requested_price != null ? str(row.requested_price) : undefined,
+    limitPrice: row.limit_price != null ? str(row.limit_price) : undefined,
+    timeInForce,
+    expireAt: row.expire_at != null ? str(row.expire_at) : undefined,
     maxSlippage: row.max_slippage != null ? str(row.max_slippage) : undefined,
     maxDeviation: row.max_deviation != null ? str(row.max_deviation) : undefined,
   };
+  const rawReq = row.request_json;
+  if (rawReq && typeof rawReq === 'object') {
+    const j = rawReq as Record<string, unknown>;
+    if (j.stopLoss != null) request.stopLoss = String(j.stopLoss);
+    if (j.takeProfit != null) request.takeProfit = String(j.takeProfit);
+    if (j.comment != null) request.comment = String(j.comment);
+    if (j.intent != null) request.intent = j.intent as ForexOrderRequest['intent'];
+    if (j.reducePositionId != null) request.reducePositionId = String(j.reducePositionId);
+    if (j.expireAt != null) request.expireAt = String(j.expireAt);
+  }
   const fillIds = Array.isArray(row.fill_ids) ? (row.fill_ids as unknown[]).map((x) => String(x)) : [];
   return {
     orderId: str(row.order_id),
@@ -94,6 +125,9 @@ function rowToOrder(row: Record<string, unknown>, events: ForexOrderEvent[] = []
     filledVolume: str(row.filled_volume),
     remainingVolume: str(row.remaining_volume),
     requestedPrice: row.requested_price == null ? null : str(row.requested_price),
+    limitPrice: row.limit_price == null ? null : str(row.limit_price),
+    timeInForce,
+    expireAt: row.expire_at == null ? null : str(row.expire_at),
     maxSlippage: row.max_slippage == null ? null : str(row.max_slippage),
     maxDeviation: row.max_deviation == null ? null : str(row.max_deviation),
     status: row.status as ForexOrderState,

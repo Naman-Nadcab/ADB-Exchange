@@ -1,0 +1,68 @@
+{
+  "phase": 4,
+  "title": "Risk / Margin / Liquidation",
+  "status": "DEVELOPMENT_COMPLETE",
+  "runtimeCertification": "PENDING_MARKET_SESSION",
+  "branch": "release/exchange-production-baseline",
+  "commit": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "completedAtUtc": "2026-09-19T07:25:00.000Z",
+  "deployment": {
+    "backendImageDigest": "sha256:66380c376dad32673fbbed38a98c6f67abf22c55e2b8759dd0b49492857036a7",
+    "frontendImageDigest": "sha256:b89fed073713b1dd92583fbce944278d810c4373a019cb35b78e17d0eacea3be",
+    "health": "healthy",
+    "redeployRequiredThisPass": false,
+    "note": "Runtime images include resolveForexWsUserId WS cookie/Bearer upgrade; this pass added tests only."
+  },
+  "realForex": { "enabled": false, "containerEnv": "unset" },
+  "executionMode": "SIMULATED",
+  "cryptoIsolation": {
+    "verified": true,
+    "method": "sha256_baseline_files_unchanged",
+    "spotFastifySha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "spotTickerDbLoadSha256": "bb2ffb23ab52ac81f37883bf58b36143a53cc2113614c96b3717fd08ae128613",
+    "note": "Uncommitted WIP may list spot paths in git diff; on-disk hashes match known Crypto baseline."
+  },
+  "sessionAtCert": {
+    "open": false,
+    "reason": "WEEKEND_CLOSURE",
+    "source": "GET /api/v1/forex/sessions"
+  },
+  "implementationSummary": {
+    "accountEquity": "accounting/service.ts + margin/engine.ts authoritative chain",
+    "markToMarket": "LONG bid / SHORT ask — forex-phase6.test.ts unit proof",
+    "marginPreview": "orders/preview.ts shared with pre-trade risk",
+    "marginCallStopOut": "risk/engine.ts + liquidation/service.ts",
+    "ledgerJournal": "Forex ledger + journal emitters on liquidation path",
+    "apis": "account, margin, risk/status, exposure, liquidation, orders/preview",
+    "websockets": "fx.risk, fx.margin, fx.liquidation — cookie+B Bearer auth on upgrade",
+    "adminRiskHub": "admin/risk-hub.ts server-authoritative"
+  },
+  "workspaceChangesThisPass": [
+    "apps/backend/src/services/forex/auth/forex-ws-auth.test.ts",
+    "apps/backend/src/services/forex/forex-phase2-customer-terminal.test.ts — open-session test clock",
+    "apps/frontend/src/lib/forex/forex-preview.test.ts — previewRequestKey alignment"
+  ],
+  "testsExecuted": [
+    { "suite": "forex-phase6.test.ts", "result": "PASS" },
+    { "suite": "forex-phase104-preview.test.ts", "result": "PASS" },
+    { "suite": "forex-phase5.test.ts", "result": "PASS" },
+    { "suite": "forex-phase7.test.ts", "result": "PASS" },
+    { "suite": "forex-phase8.test.ts", "result": "PASS" },
+    { "suite": "forex-phase2-customer-terminal.test.ts", "result": "PASS" },
+    { "suite": "entry-price-reconcile.test.ts", "result": "PASS" },
+    { "suite": "auth/forex-ws-auth.test.ts", "result": "PASS" },
+    { "suite": "forex-workstation-ui.test.ts", "result": "PASS" },
+    { "suite": "forex-preview.test.ts", "result": "PASS" },
+    { "suite": "forex-foundation.test.ts", "result": "PASS" },
+    { "suite": "forex-phase11.test.ts", "result": "PASS" },
+    { "suite": "forex-phase4-live-green-cert.mjs", "result": "CONDITIONAL", "blocker": "SESSION_CLOSED" }
+  ],
+  "knownLimitations": [
+    "Phase 4 GREEN requires open session live matrix A–L",
+    "LONG BID live mark not proven at runtime (unit proven in phase6)",
+    "Margin call / stop-out / liquidation not live-proven while session closed",
+    "Browser customer + Admin Risk Hub browser cert deferred"
+  ],
+  "remainingMarketDependent": "see .build/forex-phase4-market-runtime-checkpoint.json",
+  "resumeWhenSessionOpen": "node scripts/forex-phase4-live-green-cert.mjs"
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "startUrl": "http://127.0.0.1:3001/admin",
+    "status": 200,
+    "finalUrl": "http://127.0.0.1:3001/login",
+    "title": "Grafana",
+    "hasEmail": false,
+    "visibleTextSample": "Welcome to Grafana\nEmail or username\nPassword\nLog in\nForgot your password?\n Documentation Support CommunityOpen Sourcev10.4.0 (03f502a94d17f7dc4e6c34acdf8428aedd986e4c) New version available!",
+    "consoleErrors": [],
+    "networkFails": []
+  },
+  {
+    "startUrl": "http://127.0.0.1:3001/login",
+    "status": 200,
+    "finalUrl": "http://127.0.0.1:3001/login",
+    "title": "Grafana",
+    "hasEmail": false,
+    "visibleTextSample": "Welcome to Grafana\nEmail or username\nPassword\nLog in\nForgot your password?\n Documentation Support CommunityOpen Sourcev10.4.0 (03f502a94d17f7dc4e6c34acdf8428aedd986e4c) New version available!",
+    "consoleErrors": [],
+    "networkFails": []
+  },
+  {
+    "startUrl": "http://127.0.0.1/admin/login",
+    "status": 200,
+    "finalUrl": "http://127.0.0.1/admin/login",
+    "title": "FDM Admin",
+    "hasEmail": true,
+    "visibleTextSample": "ADMIN ACCESS ONLY\n\nExchange\n\nAdmin Control Panel\n\nAll actions are monitored and audited for compliance.\n\nEMAIL\nPASSWORD\nSign in\n\nAuthorized personnel only. Unauthorized access is prohibited.",
+    "consoleErrors": [],
+    "networkFails": []
+  },
+  {
+    "startUrl": "http://127.0.0.1/admin",
+    "status": 200,
+    "finalUrl": "http://127.0.0.1/admin/login",
+    "title": "FDM Admin",
+    "hasEmail": true,
+    "visibleTextSample": "ADMIN ACCESS ONLY\n\nExchange\n\nAdmin Control Panel\n\nAll actions are monitored and audited for compliance.\n\nEMAIL\nPASSWORD\nSign in\n\nAuthorized personnel only. Unauthorized access is prohibited.",
+    "consoleErrors": [],
+    "networkFails": []
+  }
+]

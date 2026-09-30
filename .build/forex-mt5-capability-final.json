@@ -1,0 +1,57 @@
+{
+  "verdict": "GREEN_WITH_EXPLICIT_LIMITATIONS",
+  "certificationNote": "MT5-CLASS CAPABILITY COVERAGE where genuinely implemented — not MT5-equivalent platform",
+  "timestampUtc": "2026-09-19T15:00:00Z",
+  "artifacts": {
+    "capabilityAudit": ".build/forex-mt5-capability-audit.json",
+    "capabilityAuditMd": ".build/forex-mt5-capability-audit.md"
+  },
+  "multiAccountArchitecture": {
+    "verdict": "ARCHITECTURE_DEPENDENT",
+    "customerModel": "One trading context per login (accountId = userId)",
+    "dbModel": "Multiple forex_accounts per user possible; admin/CRM only",
+    "customerSwitcher": "MISSING — intentional until API phase",
+    "securityNote": "Cross-user IDOR blocked; same-user alternate account_ids not reachable via customer routes"
+  },
+  "mt5ClassCoverageSummary": {
+    "tradingExecution": "GREEN (MOCK; MARKET_DEPENDENT runtime)",
+    "positionsRiskMargin": "GREEN",
+    "chartIndicatorsDrawings": "GREEN with VWAP/Heikin/Renko gaps",
+    "alerts": "GREEN; external delivery PROVIDER_DEPENDENT",
+    "reporting": "PARTIAL (CSV GREEN; statements MISSING)",
+    "marketDataProviders": "PROVIDER_DEPENDENT",
+    "multiAccount": "ARCHITECTURE_DEPENDENT",
+    "automationBacktestCopyVps": "MISSING / FUTURE MODULE"
+  },
+  "implementedThisPhase": [
+    "apps/frontend/src/app/forex/account/page.tsx — accountId display + multi-account architecture disclosure"
+  ],
+  "tests": {
+    "customer-alerts.test.ts": "PASS",
+    "forex-workstation-ui.test.ts": "PASS",
+    "frontend build": "PASS",
+    "multiAccountE2E": "NOT_RUN — no customer multi-account API"
+  },
+  "cryptoIsolation": {
+    "spotFastifyModifiedThisPhase": false,
+    "spotFastifyPreExistingDirty": true,
+    "backendDeploy": "NOT_DEPLOYED"
+  },
+  "realForex": "OFF",
+  "deployment": {
+    "scope": "frontend-only",
+    "frontendBefore": "sha256:630100fcbe92e4e7185e1254ef016fc344ef9fc4227499c45d5453cb73324438",
+    "frontendAfter": "sha256:eb24bfed5389014d17b0311f7671f51a0c685248eb1e3767b78fddfa98c0dd92",
+    "backend": "NOT_DEPLOYED"
+  },
+  "remainingLimitations": [
+    "Multi-account customer UX requires backend account selection contract",
+    "VWAP requires authoritative volume",
+    "Heikin Ashi / Renko require chart/data architecture",
+    "Private WS PARTIAL in browser",
+    "Real funding NOT_IMPLEMENTED",
+    "Provider news/calendar/DOM/tape/delivery",
+    "MARKET_DEPENDENT live execution and alert firing",
+    "Backend deploy BLOCKED (spot.fastify.ts Crypto provenance)"
+  ]
+}

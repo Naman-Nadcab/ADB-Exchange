@@ -1,0 +1,152 @@
+{
+  "generated_at": "2026-09-17T13:57:35.471Z",
+  "git_sha": "8ef599983974e84679bf44010ca3d8154785665a",
+  "admin_ui": {
+    "forex_page_files": 37,
+    "nav_route_entries": 40,
+    "pages": [
+      "apps/admin-panel/src/app/(protected)/forex/account-groups/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/accounts/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/automation/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/command/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/compliance/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/controls/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/crm/clients/[accountId]/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/crm/clients/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/crm/finance/[accountId]/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/crm/finance/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/crm/leads/[leadId]/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/crm/leads/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/crm/pipeline/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/crm/tasks/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/dealing/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/executions/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/fees-swaps/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/instruments/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/integrations/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/journal-audit/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/layout.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/ledger/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/liquidation/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/liquidity/routing/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/lp-execution/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/margin-risk/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/market-data/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/notifications/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/orders/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/partners/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/positions/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/protection/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/reporting/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/risk-control/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/sessions/page.tsx",
+      "apps/admin-panel/src/app/(protected)/forex/system/page.tsx"
+    ]
+  },
+  "backend": {
+    "route_registrations": [
+      {
+        "file": "apps/backend/src/routes/admin-forex.fastify.ts",
+        "handler_count": 13
+      },
+      {
+        "file": "apps/backend/src/routes/admin-forex-crm.fastify.ts",
+        "handler_count": 2
+      },
+      {
+        "file": "apps/backend/src/routes/admin-forex-groups.fastify.ts",
+        "handler_count": 1
+      },
+      {
+        "file": "apps/backend/src/routes/admin-forex-ops.fastify.ts",
+        "handler_count": 1
+      }
+    ],
+    "total_handlers": 17
+  },
+  "database": {
+    "forex_table_names": [
+      "forex_account_groups",
+      "forex_account_risk_states",
+      "forex_accounting_events",
+      "forex_accounting_outbox",
+      "forex_accounts",
+      "forex_automation_runs",
+      "forex_automation_workflows",
+      "forex_compliance_cases",
+      "forex_crm_activities",
+      "forex_crm_client_profiles",
+      "forex_crm_client_tags",
+      "forex_crm_lead_sources",
+      "forex_crm_lead_stages",
+      "forex_crm_leads",
+      "forex_crm_notes",
+      "forex_crm_tags",
+      "forex_crm_tasks",
+      "forex_dealing_actions",
+      "forex_execution_attempts",
+      "forex_execution_events",
+      "forex_executions",
+      "forex_fee_events",
+      "forex_fills",
+      "forex_finance_requests",
+      "forex_holiday_calendar_state",
+      "forex_holiday_dates",
+      "forex_instruments",
+      "forex_journal_events",
+      "forex_ledger_accounts",
+      "forex_ledger_entries",
+      "forex_ledger_transactions",
+      "forex_liquidation_events",
+      "forex_liquidation_locks",
+      "forex_liquidations",
+      "forex_lp_providers",
+      "forex_lp_quotes",
+      "forex_operator_notifications",
+      "forex_order_events",
+      "forex_order_modifications",
+      "forex_orders",
+      "forex_partner_attributions",
+      "forex_partner_profiles",
+      "forex_pending_orders",
+      "forex_position_events",
+      "forex_position_fills",
+      "forex_positions",
+      "forex_protection_events",
+      "forex_protections",
+      "forex_quote_rejections",
+      "forex_quote_ticks",
+      "forex_quotes",
+      "forex_reconciliation_events",
+      "forex_risk_events",
+      "forex_routing_rules",
+      "forex_session_calendars",
+      "forex_session_exceptions",
+      "forex_session_windows",
+      "forex_swap_events"
+    ],
+    "forex_table_count": 58
+  },
+  "e2e": {
+    "playwright_forex_admin": [
+      "e2e/forex-admin/api-smoke.spec.ts",
+      "e2e/forex-admin/ui-navigation.spec.ts"
+    ],
+    "cert_scripts": [
+      "forex-cert-api-suite.ts",
+      "forex-cert-db-guard.ts",
+      "forex-cert-exhaustive-idor.ts",
+      "forex-cert-idor-matrix.ts",
+      "forex-cert-isolated-db.sh",
+      "forex-cert-run-all.sh",
+      "forex-cert-runtime-suite.ts",
+      "forex-cert-seed.ts",
+      "forex-mt5-admin-inventory.ts"
+    ]
+  },
+  "execution_mode": {
+    "REAL_FOREX": "false",
+    "note": "MOCK/SIMULATED unless REAL_FOREX explicitly enabled (forbidden in cert)"
+  }
+}

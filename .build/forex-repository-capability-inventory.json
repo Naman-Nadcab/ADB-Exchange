@@ -1,0 +1,473 @@
+{
+  "generatedAt": "2026-09-17T21:32:23.426Z",
+  "capabilities": [
+    {
+      "routeId": "F0",
+      "href": "/forex",
+      "repo": {
+        "uiRoute": true,
+        "panel": null
+      },
+      "live": {
+        "apiPath": null,
+        "apiOk": null,
+        "http": null
+      }
+    },
+    {
+      "routeId": "command",
+      "href": "/forex/command",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexCommandDeskPanel"
+      },
+      "live": {
+        "apiPath": "/forex/overview",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "notifications",
+      "href": "/forex/notifications",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexNotificationsPanel"
+      },
+      "live": {
+        "apiPath": "/forex/notifications",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "compliance",
+      "href": "/forex/compliance",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexCompliancePanel"
+      },
+      "live": {
+        "apiPath": "/forex/compliance/cases?limit=1",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "automation",
+      "href": "/forex/automation",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexAutomationPanel"
+      },
+      "live": {
+        "apiPath": "/forex/automation/workflows",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "instruments",
+      "href": "/forex/instruments",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexInstrumentsPanel"
+      },
+      "live": {
+        "apiPath": "/forex/instruments",
+        "apiOk": false,
+        "http": 404
+      }
+    },
+    {
+      "routeId": "sessions",
+      "href": "/forex/sessions",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexSessionsPanel"
+      },
+      "live": {
+        "apiPath": "/forex/config",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "market-data",
+      "href": "/forex/market-data",
+      "repo": {
+        "uiRoute": true,
+        "panel": null
+      },
+      "live": {
+        "apiPath": "/forex/market-data",
+        "apiOk": false,
+        "http": 404
+      }
+    },
+    {
+      "routeId": "orders",
+      "href": "/forex/orders",
+      "repo": {
+        "uiRoute": true,
+        "panel": null
+      },
+      "live": {
+        "apiPath": "/forex/orders?limit=1",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "executions",
+      "href": "/forex/executions",
+      "repo": {
+        "uiRoute": true,
+        "panel": null
+      },
+      "live": {
+        "apiPath": "/forex/executions?limit=1",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "positions",
+      "href": "/forex/positions",
+      "repo": {
+        "uiRoute": true,
+        "panel": null
+      },
+      "live": {
+        "apiPath": "/forex/positions?limit=1",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "protection",
+      "href": "/forex/protection",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexProtectionPanel"
+      },
+      "live": {
+        "apiPath": "/forex/protection",
+        "apiOk": false,
+        "http": 404
+      }
+    },
+    {
+      "routeId": "margin-risk",
+      "href": "/forex/margin-risk",
+      "repo": {
+        "uiRoute": true,
+        "panel": null
+      },
+      "live": {
+        "apiPath": "/forex/risk/hub",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "liquidation",
+      "href": "/forex/liquidation",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexLiquidationPanel"
+      },
+      "live": {
+        "apiPath": "/forex/liquidation/journal?limit=1",
+        "apiOk": false,
+        "http": 404
+      }
+    },
+    {
+      "routeId": "dealing",
+      "href": "/forex/dealing",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexDealingDeskPanel"
+      },
+      "live": {
+        "apiPath": "/forex/dealing/queue",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "fees-swaps",
+      "href": "/forex/fees-swaps",
+      "repo": {
+        "uiRoute": true,
+        "panel": null
+      },
+      "live": {
+        "apiPath": "/forex/config",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "accounts",
+      "href": "/forex/accounts",
+      "repo": {
+        "uiRoute": true,
+        "panel": null
+      },
+      "live": {
+        "apiPath": "/forex/ledger/accounts?limit=1",
+        "apiOk": false,
+        "http": 404
+      }
+    },
+    {
+      "routeId": "account-groups",
+      "href": "/forex/account-groups",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexAccountGroupsPanel"
+      },
+      "live": {
+        "apiPath": "/forex/account-groups",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "crm-home",
+      "href": "/forex/crm/home",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexCrmHomePanel"
+      },
+      "live": {
+        "apiPath": "/forex/crm/home",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "crm-my-clients",
+      "href": "/forex/crm/my-clients",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexCrmMyClientsPanel"
+      },
+      "live": {
+        "apiPath": "/forex/crm/workspace",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "crm-leads",
+      "href": "/forex/crm/leads",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexCrmLeadsPanel"
+      },
+      "live": {
+        "apiPath": "/forex/crm/leads?limit=1",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "crm-clients",
+      "href": "/forex/crm/clients",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexCrmClientsPanel"
+      },
+      "live": {
+        "apiPath": "/forex/crm/clients?limit=1",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "crm-finance",
+      "href": "/forex/crm/finance",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexCrmFinanceAccountPanel"
+      },
+      "live": {
+        "apiPath": "/forex/crm/finance/requests?limit=1",
+        "apiOk": false,
+        "http": 404
+      }
+    },
+    {
+      "routeId": "crm-tasks",
+      "href": "/forex/crm/tasks",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexCrmTasksPanel"
+      },
+      "live": {
+        "apiPath": "/forex/crm/tasks?limit=1",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "crm-segments",
+      "href": "/forex/crm/segments",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexCrmSegmentsPanel"
+      },
+      "live": {
+        "apiPath": "/forex/crm/segments",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "crm-pipeline",
+      "href": "/forex/crm/pipeline",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexCrmPipelinePanel"
+      },
+      "live": {
+        "apiPath": "/forex/crm/pipeline",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "forex-reporting",
+      "href": "/forex/reporting",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexReportingPanel"
+      },
+      "live": {
+        "apiPath": "/forex/reporting/summary",
+        "apiOk": false,
+        "http": 404
+      }
+    },
+    {
+      "routeId": "risk-control",
+      "href": "/forex/risk-control",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexRiskControlPanel"
+      },
+      "live": {
+        "apiPath": "/forex/risk/control-plane",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "forex-partners",
+      "href": "/forex/partners",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexPartnersPanel"
+      },
+      "live": {
+        "apiPath": "/forex/partners",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "ledger",
+      "href": "/forex/ledger",
+      "repo": {
+        "uiRoute": true,
+        "panel": null
+      },
+      "live": {
+        "apiPath": "/forex/ledger/accounts?limit=1",
+        "apiOk": false,
+        "http": 404
+      }
+    },
+    {
+      "routeId": "controls",
+      "href": "/forex/controls",
+      "repo": {
+        "uiRoute": true,
+        "panel": null
+      },
+      "live": {
+        "apiPath": "/forex/controls",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "lp-execution",
+      "href": "/forex/lp-execution",
+      "repo": {
+        "uiRoute": true,
+        "panel": null
+      },
+      "live": {
+        "apiPath": "/forex/execution",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "liquidity-routing",
+      "href": "/forex/liquidity/routing",
+      "repo": {
+        "uiRoute": true,
+        "panel": null
+      },
+      "live": {
+        "apiPath": "/forex/routing/desk",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "integrations",
+      "href": "/forex/integrations",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexIntegrationsPanel"
+      },
+      "live": {
+        "apiPath": "/forex/integrations",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "journal-audit",
+      "href": "/forex/journal-audit",
+      "repo": {
+        "uiRoute": true,
+        "panel": null
+      },
+      "live": {
+        "apiPath": "/forex/journal?limit=1",
+        "apiOk": true,
+        "http": 200
+      }
+    },
+    {
+      "routeId": "system",
+      "href": "/forex/system",
+      "repo": {
+        "uiRoute": true,
+        "panel": "ForexSystemPanel"
+      },
+      "live": {
+        "apiPath": "/forex/system",
+        "apiOk": true,
+        "http": 200
+      }
+    }
+  ]
+}

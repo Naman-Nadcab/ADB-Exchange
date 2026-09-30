@@ -211,6 +211,7 @@ export function resolveEffectiveLimits(args: { symbol: string; accountId: string
       [
         { v: g.maxSpread, src: 'GLOBAL' },
         { v: i.maxSpread, src: 'INSTRUMENT' },
+        { v: a.maxSpread, src: 'ACCOUNT' },
       ],
       'maxSpread',
       sources

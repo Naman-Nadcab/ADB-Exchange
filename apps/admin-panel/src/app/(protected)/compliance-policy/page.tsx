@@ -132,7 +132,8 @@ export default function CompliancePolicyPage() {
           <p className="text-sm font-semibold text-amber-200">Live runtime policy</p>
           <p className="text-xs text-amber-200/70 mt-1">
             Changing these policies affects live exchange behavior immediately. No deployment or restart required.
-            KYC and AML remain fully implemented — only enforcement modes change.
+            Enforcement modes change immediately. KYC is only as real as the configured
+            provider. If the provider is mock/manual, this is not licensed identity verification.
           </p>
         </div>
       </div>

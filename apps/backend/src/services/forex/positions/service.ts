@@ -13,7 +13,7 @@ import {
   forexPositionReversalTotal,
   forexStopOutReadyTotal,
 } from '../../../lib/forex-prometheus-metrics.js';
-import { fxDecimal } from '../decimal-fx.js';
+import { fxDecimal, fxToPriceString } from '../decimal-fx.js';
 import type { ForexAccountingService } from '../accounting/service.js';
 import { isForexAccountLiquidationLocked } from '../liquidation/lock.js';
 import type { ForexLiquidationService } from '../liquidation/service.js';
@@ -24,7 +24,7 @@ import { getForexAccountPolicy, evaluateAccountRisk, type ForexRiskDecision } fr
 import type { ForexPricingService } from '../quotes.service.js';
 import { forexWsHub } from '../ws/hub.js';
 import { lockForexAccount, lockForexPosition, withForexTransaction, type ForexQueryable } from '../durability/tx.js';
-import { FOREX_ACTIVE_POSITION_MODE } from './mode.js';
+import { getAccountPositionMode } from './account-mode.js';
 import type {
   ForexAppliedFill,
   ForexPositionEvent,
@@ -33,6 +33,7 @@ import type {
   ForexPositionSide,
 } from './models.js';
 import { ForexPositionError, publicForexPosition } from './models.js';
+import { applyHedgingOpen, applyHedgingReduce } from './hedging.js';
 import { applyNettingFill, replayNetting, type NettingState } from './netting.js';
 import { ForexPositionStore } from './store.js';
 
@@ -44,6 +45,11 @@ type FillPlan = {
   reversed: boolean;
   ledgerTxs: import('../ledger/models.js').ForexLedgerTransaction[];
 };
+
+function isReduceIntent(intent: ForexPositionFillInput['intent'] | undefined, reducePositionId?: string): boolean {
+  if (reducePositionId) return true;
+  return intent === 'CUSTOMER_CLOSE' || intent === 'PROTECTION_CLOSE' || intent === 'LIQUIDATION_CLOSE';
+}
 
 export class ForexPositionService {
   private readonly lastMarginStatus = new Map<string, string>();
@@ -181,7 +187,6 @@ export class ForexPositionService {
 
   previewAfterFill(input: ForexPositionFillInput): ForexPositionRecord[] {
     const open = this.store.listByAccount(input.accountId, true).map((p) => ({ ...p, appliedFills: [...p.appliedFills] }));
-    const existing = open.find((p) => p.symbol === input.symbol) ?? null;
     const fill: ForexAppliedFill = {
       fillId: input.fillId,
       side: input.side,
@@ -189,6 +194,32 @@ export class ForexPositionService {
       price: input.price,
       timestamp: input.timestamp,
     };
+    const mode = getAccountPositionMode(input.accountId);
+    if (mode === 'HEDGING') {
+      if (isReduceIntent(input.intent, input.reducePositionId)) {
+        const id = input.reducePositionId;
+        if (!id) return open;
+        const existing = open.find((p) => p.positionId === id) ?? null;
+        if (!existing) return open;
+        try {
+          const result = applyHedgingReduce(toNet(existing), fill);
+          const others = open.filter((p) => p.positionId !== id);
+          if (result.after.status === 'CLOSED') return others;
+          const next = this.materialize(input.accountId, input.symbol, result.after, existing, [...existing.appliedFills, fill], input.price);
+          next.positionId = existing.positionId;
+          next.openedAt = existing.openedAt;
+          next.version = existing.version + 1;
+          next.mode = existing.mode;
+          return [...others, next];
+        } catch {
+          return open;
+        }
+      }
+      const result = applyHedgingOpen(fill);
+      const next = this.materialize(input.accountId, input.symbol, result.after, null, [fill], input.price);
+      return [...open, next];
+    }
+    const existing = open.find((p) => p.symbol === input.symbol) ?? null;
     const result = applyNettingFill(existing ? toNet(existing) : null, fill);
     const others = open.filter((p) => p.symbol !== input.symbol);
     if (result.after.status === 'CLOSED') return others;
@@ -207,10 +238,11 @@ export class ForexPositionService {
     if (!replayed || replayed.status === 'CLOSED') {
       return failRec(position, 'open position does not replay from fills');
     }
-    if (replayed.side !== position.side || !fxDecimal(replayed.volume).eq(position.volume)) {
+    if (replayed.side !== position.side || !persistScaleEq(replayed.volume, position.volume)) {
       return failRec(position, `replay ${replayed.side} ${replayed.volume} != ${position.side} ${position.volume}`);
     }
-    if (!fxDecimal(replayed.entryPrice).eq(position.entryPrice)) {
+    // forex_positions.entry_price is NUMERIC(20,8). Replay keeps full average precision.
+    if (!persistEntryPriceEq(replayed.entryPrice, position.entryPrice)) {
       return failRec(position, `entry ${replayed.entryPrice} != ${position.entryPrice}`);
     }
     return { ok: true };
@@ -302,14 +334,11 @@ export class ForexPositionService {
     return open;
   }
 
-  private async persistFillPlan(input: ForexPositionFillInput, client: ForexQueryable): Promise<FillPlan | null> {
-    const persist = await import('./persist.js');
-    const seen = await client.query(`SELECT fill_id FROM forex_position_fills WHERE fill_id = $1`, [input.fillId]);
-    if ((seen.rowCount ?? 0) > 0 || this.store.hasFill(input.fillId)) {
-      await this.hydrateOpenSymbol(input.accountId, input.symbol, persist, client);
-      return null;
-    }
-    await this.hydrateOpenSymbol(input.accountId, input.symbol, persist, client);
+  private resolveFillApplication(input: ForexPositionFillInput): {
+    fill: ForexAppliedFill;
+    existing: ForexPositionRecord | null;
+    result: ReturnType<typeof applyNettingFill>;
+  } {
     const fill: ForexAppliedFill = {
       fillId: input.fillId,
       side: input.side,
@@ -319,8 +348,60 @@ export class ForexPositionService {
       executionId: input.executionId,
       orderId: input.orderId,
     };
-    const existing = this.store.getOpen(input.accountId, input.symbol) ?? null;
+    const mode = getAccountPositionMode(input.accountId);
+    const reduce = isReduceIntent(input.intent, input.reducePositionId);
+
+    if (mode === 'HEDGING') {
+      if (reduce) {
+        const id = input.reducePositionId?.trim();
+        if (!id) {
+          throw new ForexPositionError('REDUCE_POSITION_REQUIRED', 'reducePositionId is required for HEDGING closes', 400);
+        }
+        const existing = this.store.get(id);
+        if (!existing || existing.accountId !== input.accountId) {
+          throw new ForexPositionError('POSITION_NOT_FOUND', 'Position not found', 404);
+        }
+        if (existing.status !== 'OPEN' || !fxDecimal(existing.volume).gt(0)) {
+          throw new ForexPositionError('POSITION_CLOSED', 'Position is not open', 409);
+        }
+        if (existing.symbol !== input.symbol) {
+          throw new ForexPositionError('POSITION_SYMBOL_MISMATCH', 'Close symbol does not match position', 400);
+        }
+        try {
+          const result = applyHedgingReduce(toNet(existing), fill);
+          return { fill, existing, result };
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : 'HEDGE_REDUCE_FAILED';
+          throw new ForexPositionError(msg, msg, 409);
+        }
+      }
+      return { fill, existing: null, result: applyHedgingOpen(fill) };
+    }
+
+    // NETTING — existing behavior. Optional reducePositionId must match the open book.
+    let existing = this.store.getOpen(input.accountId, input.symbol) ?? null;
+    if (input.reducePositionId) {
+      const targeted = this.store.get(input.reducePositionId);
+      if (!targeted || targeted.accountId !== input.accountId) {
+        throw new ForexPositionError('POSITION_NOT_FOUND', 'Position not found', 404);
+      }
+      if (targeted.status === 'OPEN' && targeted.symbol === input.symbol) {
+        existing = targeted;
+      }
+    }
     const result = applyNettingFill(existing ? toNet(existing) : null, fill);
+    return { fill, existing, result };
+  }
+
+  private async persistFillPlan(input: ForexPositionFillInput, client: ForexQueryable): Promise<FillPlan | null> {
+    const persist = await import('./persist.js');
+    const seen = await client.query(`SELECT fill_id FROM forex_position_fills WHERE fill_id = $1`, [input.fillId]);
+    if ((seen.rowCount ?? 0) > 0 || this.store.hasFill(input.fillId)) {
+      await this.hydrateOpenSymbol(input.accountId, input.symbol, persist, client);
+      return null;
+    }
+    await this.hydrateOpenSymbol(input.accountId, input.symbol, persist, client);
+    const { fill, existing, result } = this.resolveFillApplication(input);
     const now = new Date().toISOString();
     const valuationSide: ForexPositionSide =
       result.after.status === 'CLOSED' ? (existing?.side ?? result.after.side) : result.after.side;
@@ -378,6 +459,7 @@ export class ForexPositionService {
       target.positionId = existing.positionId;
       target.openedAt = existing.openedAt;
       target.version = existing.version + 1;
+      target.mode = existing.mode;
     }
     const claimed = await persist.persistAppliedFill(input.accountId, target.positionId, fill, client);
     if (!claimed) {
@@ -411,23 +493,17 @@ export class ForexPositionService {
     client: ForexQueryable
   ): Promise<void> {
     const open = await persist.loadOpenPositions(client);
-    const match = open.find((p) => p.accountId === accountId && p.symbol === symbol);
-    if (match) this.store.put(match);
+    for (const match of open.filter((p) => p.accountId === accountId && p.symbol === symbol)) {
+      this.store.put(match);
+    }
   }
 
   private async applyFillMemory(input: ForexPositionFillInput): Promise<ForexPositionRecord | null> {
-    if (this.store.hasFill(input.fillId)) return this.store.getOpen(input.accountId, input.symbol) ?? null;
-    const fill: ForexAppliedFill = {
-      fillId: input.fillId,
-      side: input.side,
-      volume: input.volume,
-      price: input.price,
-      timestamp: input.timestamp,
-      executionId: input.executionId,
-      orderId: input.orderId,
-    };
-    const existing = this.store.getOpen(input.accountId, input.symbol) ?? null;
-    const result = applyNettingFill(existing ? toNet(existing) : null, fill);
+    if (this.store.hasFill(input.fillId)) {
+      if (input.reducePositionId) return this.store.get(input.reducePositionId) ?? null;
+      return this.store.getOpen(input.accountId, input.symbol) ?? null;
+    }
+    const { fill, existing, result } = this.resolveFillApplication(input);
     if (this.accounting && fxDecimal(result.closedVolume).gt(0) && existing) {
       await this.accounting.postRealizedFromFill({
         accountId: input.accountId,
@@ -469,6 +545,7 @@ export class ForexPositionService {
       target.positionId = existing.positionId;
       target.openedAt = existing.openedAt;
       target.version = existing.version + 1;
+      target.mode = existing.mode;
     }
     this.commitFillMemory({ fill, existing, target, result, reversed: false });
     return target;
@@ -555,7 +632,7 @@ export class ForexPositionService {
       maintenanceMargin: state.status === 'CLOSED' ? '0' : m.maintenanceMargin,
       exposure: state.status === 'CLOSED' ? '0' : m.exposure,
       status: state.status,
-      mode: FOREX_ACTIVE_POSITION_MODE,
+      mode: existing?.mode ?? getAccountPositionMode(accountId),
       version: existing ? existing.version + 1 : 1,
       appliedFills: fills,
       source: 'SIMULATED',
@@ -656,6 +733,25 @@ export class ForexPositionService {
 
 function toNet(p: ForexPositionRecord): NettingState {
   return { side: p.side, volume: p.volume, entryPrice: p.entryPrice, status: p.status };
+}
+
+/** Matches `forex_positions.entry_price` / fill `price` columns (NUMERIC(20,8)). */
+const FOREX_POSITION_ENTRY_PRICE_DECIMALS = 8;
+
+function persistScaleEq(a: string, b: string): boolean {
+  return fxDecimal(a).minus(b).abs().lte('0.00000001');
+}
+
+/**
+ * Compare replayed average entry to persisted NUMERIC(20,8) row.
+ * Equal at persist scale, or within one 8th-decimal unit (replay vs stored column).
+ */
+function persistEntryPriceEq(replayed: string, persisted: string): boolean {
+  const scale = FOREX_POSITION_ENTRY_PRICE_DECIMALS;
+  const canonReplay = fxToPriceString(fxDecimal(replayed), scale);
+  const canonPersist = fxToPriceString(fxDecimal(persisted), scale);
+  if (canonReplay === canonPersist) return true;
+  return fxDecimal(replayed).minus(persisted).abs().lt('0.000000012');
 }
 
 function failRec(position: ForexPositionRecord, detail: string) {

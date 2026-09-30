@@ -1,9 +1,9 @@
 /**
  * Position identity.
  *
- * Active mode: NETTING (one open position per account+symbol).
- * HEDGING is reserved: same interface can key by account+symbol+side+openId
- * without a destructive redesign.
+ * Default / legacy: NETTING (one open position per account+symbol).
+ * HEDGING: independent positions per fill; keyed by positionId.
+ * Per-account mode lives in account-mode.ts — not a process-wide toggle.
  */
 export const FOREX_ACTIVE_POSITION_MODE = 'NETTING' as const;
 export type ForexPositionMode = 'NETTING' | 'HEDGING';

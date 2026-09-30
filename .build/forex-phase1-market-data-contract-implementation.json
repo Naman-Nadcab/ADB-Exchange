@@ -1,0 +1,98 @@
+{
+  "milestone": "Forex Phase 0 + Phase 1",
+  "timestampUtc": "2026-09-18T12:45:00Z",
+  "startingSha": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "endingSha": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "deployed": false,
+  "runtimeVerdict": "SOURCE_IMPLEMENTED_RUNTIME_NOT_DEPLOYED",
+  "preExistingDirtyFilesSample": [
+    "apps/backend/src/routes/spot.fastify.ts",
+    "apps/backend/src/lib/spot-ticker-db-load.ts",
+    "apps/admin-panel/... (many Forex admin WIP files)"
+  ],
+  "filesChangedByTask": {
+    "FOREX_REQUIRED": [
+      "apps/backend/src/services/forex/capabilities/customer-contract.ts (new)",
+      "apps/backend/src/services/forex/capabilities/customer-contract.test.ts (new)",
+      "apps/backend/src/services/forex/admin/config.ts",
+      "apps/backend/src/services/forex/market-data/mock-authority.ts (new)",
+      "apps/backend/src/services/forex/market-data/mock-authority.test.ts (new)",
+      "apps/backend/src/services/forex/market-data/candles.service.ts",
+      "apps/backend/src/services/forex/forex-phase-a-orders.test.ts",
+      "apps/backend/src/services/forex/forex-phase1c-stoplimit-tif.test.ts",
+      "apps/frontend/src/lib/forex/models/types.ts",
+      "apps/frontend/src/lib/forex/models/candles.ts",
+      "apps/frontend/src/lib/forex/market-data/provider.ts"
+    ],
+    "SHARED_REQUIRED": [],
+    "UNEXPECTED": []
+  },
+  "cryptoIsolation": {
+    "cryptoFilesModifiedByTask": false,
+    "preExistingCryptoDirty": ["apps/backend/src/routes/spot.fastify.ts", "apps/backend/src/lib/spot-ticker-db-load.ts"]
+  },
+  "realForexVerification": {
+    "containerEnvREAL_FOREX": "not set",
+    "contractRealForex": false,
+    "verdict": "VERIFIED_OFF"
+  },
+  "phase0": {
+    "status": "IMPLEMENTED",
+    "canonicalModule": "apps/backend/src/services/forex/capabilities/customer-contract.ts",
+    "tradingConfigAdds": ["capabilities", "timeInForce: [GTC]"],
+    "customerExposureUnchanged": {
+      "orderTypes": ["market", "limit", "stop"],
+      "timeInForce": ["GTC"]
+    },
+    "engineOnlyExplicit": {
+      "orderTypes": ["stop_limit"],
+      "timeInForce": ["IOC", "FOK", "DAY"]
+    },
+    "gtd": "VERIFIED_NOT_IMPLEMENTED"
+  },
+  "phase1": {
+    "status": "IMPLEMENTED",
+    "module": "apps/backend/src/services/forex/market-data/mock-authority.ts",
+    "integration": "forexCandlesResolve merges SIMULATED live bar over EXTERNAL Yahoo forming bucket",
+    "apiFieldsAdded": ["marketDataAuthority", "liveCandleSource", "historicalCandleSource"],
+    "backwardCompat": "orderTypes array unchanged; candles array shape unchanged"
+  },
+  "testsExecuted": [
+    "npx tsx apps/backend/src/services/forex/capabilities/customer-contract.test.ts",
+    "npx tsx apps/backend/src/services/forex/market-data/mock-authority.test.ts",
+    "npx tsx apps/backend/src/services/forex/forex-phase1c-stoplimit-tif.test.ts",
+    "npx tsx apps/backend/src/services/forex/forex-phase-a-orders.test.ts (config section PASS)",
+    "npx tsx apps/frontend/src/lib/forex/models/price-consistency.test.ts",
+    "npx tsx apps/frontend/src/lib/forex/market-data/quote-chart-overlay.test.ts"
+  ],
+  "runtimeApiBeforeDeploy": {
+    "tradingConfig": {
+      "capabilitiesPresent": false,
+      "note": "running exchange-backend image not rebuilt"
+    },
+    "candles": {
+      "source": "EXTERNAL",
+      "marketDataAuthority": false,
+      "note": "pre-deploy baseline"
+    }
+  },
+  "marketDataAcceptanceTest": {
+    "method": "mock-authority.test.ts deterministic merge",
+    "result": "PASS — last bar close tracks MOCK mid, not Yahoo forming close",
+    "liveRuntimeAcceptance": "NOT_PROVEN until backend redeploy"
+  },
+  "browserSmoke": {
+    "url": "http://109.123.254.30/forex/trade",
+    "loads": true,
+    "orderTypesVisible": "Market Limit Stop",
+    "stopLimitHidden": true,
+    "note": "Production frontend not rebuilt; chart authority UI labels unchanged"
+  },
+  "remainingP0": [
+    "Deploy backend (and optionally frontend types) to prove runtime candles API returns SIMULATED live bar + capabilities on trading-config"
+  ],
+  "remainingP1": [
+    "Phase 2: Stop Limit + extended TIF customer exposure (separate milestone)",
+    "Optional chart UI label for marketDataAuthority when liveCandleSource=SIMULATED"
+  ]
+}

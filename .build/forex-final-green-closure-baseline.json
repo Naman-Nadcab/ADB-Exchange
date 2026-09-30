@@ -1,0 +1,37 @@
+{
+  "kind": "forex-final-green-closure-baseline",
+  "recordedAt": "2026-09-19T11:45:00Z",
+  "git": {
+    "branch": "release/exchange-production-baseline",
+    "head": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "workingTreeDirty": true
+  },
+  "deployedBeforeClosure": {
+    "backend": "sha256:4a269b848befec39b76d8c74a51e18279e451364045821bd8d7b2799fbb410a0",
+    "frontend": "sha256:69b83bbbd4652ea9d4ef6e68bdeb70f4988a49a25640ad076defc0505afeee28"
+  },
+  "cryptoFingerprints": {
+    "spot.fastify.ts": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "spot-ticker-db-load.ts": "3d128d47e0152a8a552b8291ab386ad24576949066bf69dea4016484444c086b"
+  },
+  "realForex": "OFF",
+  "forexHealth": {
+    "backendLive": "http://127.0.0.1:4000/health/live OK"
+  },
+  "schemaMarkers": {
+    "forex_orders.expire_at": "present_in_migrate",
+    "forex_customer_alerts": "present_in_migrate",
+    "forex_customer_alert_events": "present_in_migrate"
+  },
+  "architectureConfirmed": {
+    "indicatorRegistry": "apps/frontend/src/lib/forex/chart/indicator-registry.ts",
+    "oscillatorPaneStack": "apps/frontend/src/components/forex/ForexOscillatorPaneStack.tsx",
+    "drawingEngine": "apps/frontend/src/lib/forex/chart/forex-drawings.ts + DrawingToolManager",
+    "alertEngine": "apps/backend/src/services/forex/customer/alert-engine.ts"
+  },
+  "currentScopeGapsAtBaseline": [
+    "oscillator_panes_wiring",
+    "drawing_catalog_completion",
+    "session_drawdown_alert_evaluators"
+  ]
+}

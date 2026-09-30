@@ -1,0 +1,135 @@
+{
+  "auditBaselineCommit": "95fa5cdc53e10032c3173457d6c5c2001ffca6df",
+  "scope": "Forex customer UI only — routes under /forex",
+  "generatedAt": "2026-09-23T00:00:00.000Z",
+  "routeCount": 11,
+  "evidenceSources": [
+    "apps/frontend/src/app/forex/layout.tsx",
+    "apps/frontend/src/components/forex/ForexTerminalLayout.tsx",
+    "apps/frontend/src/lib/forex/routes.ts",
+    "apps/frontend/src/components/forex/ForexTopNav.tsx",
+    "apps/frontend/src/components/forex/ForexAccountNav.tsx",
+    "apps/frontend/src/components/forex/ForexAccountBar.tsx",
+    "apps/frontend/src/components/forex/ForexMobileNav.tsx",
+    "apps/frontend/src/app/forex/**/page.tsx",
+    "apps/frontend/messages/en/forex.json"
+  ],
+  "featuresNotPresentInForexCustomerUI": [
+    "Real deposit / withdrawal / bank transfer (copy: forex.fundsPage.realRailsBody)",
+    "Open live account wizard (only createDemoAccount in ForexAccountCenter)",
+    "Forex-local KYC, documents, agreements, 2FA, support tickets",
+    "VPS, Copy Trading, PAMM, promotions, platform downloads"
+  ],
+  "routes": [
+    {
+      "route": "/forex",
+      "currentUiLocation": "TRADING_TERMINAL",
+      "currentNavigation": "ForexTopNav → Trade; ForexMobileNav → Trade tab",
+      "recommendedCanonicalLocation": "TRADING_TERMINAL",
+      "recommendedAccess": "primary-top-nav",
+      "action": "KEEP",
+      "reason": "isForexTradePath includes /forex root; terminal shell renders chart workspace (ForexTerminalLayout.tsx L113–186).",
+      "risk": "HIGH if terminal layout changed"
+    },
+    {
+      "route": "/forex/trade",
+      "currentUiLocation": "TRADING_TERMINAL",
+      "currentNavigation": "Same as /forex",
+      "recommendedCanonicalLocation": "TRADING_TERMINAL",
+      "recommendedAccess": "primary-top-nav",
+      "action": "KEEP",
+      "reason": "Canonical terminal route FOREX_ROUTES.trade.",
+      "risk": "HIGH if terminal layout changed"
+    },
+    {
+      "route": "/forex/markets",
+      "currentUiLocation": "PORTAL_RESEARCH",
+      "currentNavigation": "ForexTopNav → Markets; mobile Markets tab",
+      "recommendedCanonicalLocation": "RESEARCH → Markets browser",
+      "recommendedAccess": "primary-top-nav",
+      "action": "KEEP",
+      "reason": "Instrument discovery with link into terminal symbol focus.",
+      "risk": "LOW"
+    },
+    {
+      "route": "/forex/portfolio",
+      "currentUiLocation": "PORTAL_ACTIVITY",
+      "currentNavigation": "ForexTopNav → Portfolio; also linked from ForexAccountNav",
+      "recommendedCanonicalLocation": "ACTIVITY → Positions (portal view)",
+      "recommendedAccess": "primary-top-nav + terminal-toolbox-positions",
+      "action": "MERGE_LABELS",
+      "reason": "Duplicates terminal position panel but needed for portal-style review; keep both entry points with same account context.",
+      "risk": "LOW"
+    },
+    {
+      "route": "/forex/orders",
+      "currentUiLocation": "PORTAL_ACTIVITY",
+      "currentNavigation": "ForexTopNav → Orders; mobile Orders tab",
+      "recommendedCanonicalLocation": "ACTIVITY → Orders (portal management)",
+      "recommendedAccess": "primary-top-nav + terminal-toolbox-orders",
+      "action": "KEEP",
+      "reason": "Full-page order management with cancel/modify; terminal bottom panel is companion.",
+      "risk": "LOW"
+    },
+    {
+      "route": "/forex/analysis",
+      "currentUiLocation": "PORTAL_RESEARCH",
+      "currentNavigation": "ForexTopNav → Analysis; market chrome hidden on this path",
+      "recommendedCanonicalLocation": "RESEARCH → Technical analysis + economic calendar",
+      "recommendedAccess": "secondary-top-nav",
+      "action": "KEEP",
+      "reason": "Hosts calendar/news/levels/sessions (analysis/page.tsx); terminal also has calendar tab via CommandCenter.",
+      "risk": "LOW"
+    },
+    {
+      "route": "/forex/alerts",
+      "currentUiLocation": "PORTAL_TOOLS",
+      "currentNavigation": "ForexTopNav → Alerts",
+      "recommendedCanonicalLocation": "TOOLS → Server alerts",
+      "recommendedAccess": "secondary-top-nav + terminal-alerts-tab",
+      "action": "DEMOTE",
+      "reason": "Page explains server vs local alerts; primary alert UX remains terminal Alerts tab.",
+      "risk": "LOW"
+    },
+    {
+      "route": "/forex/account",
+      "currentUiLocation": "PORTAL_ACCOUNT_HOME",
+      "currentNavigation": "ForexTopNav → Account; mobile More → account route",
+      "recommendedCanonicalLocation": "PORTAL_HOME → Account overview",
+      "recommendedAccess": "primary-top-nav",
+      "action": "ELEVATE",
+      "reason": "No dedicated /forex/home; this is the closest portal landing (metrics + risk + account id).",
+      "risk": "LOW"
+    },
+    {
+      "route": "/forex/account/accounts",
+      "currentUiLocation": "PORTAL_ACCOUNT",
+      "currentNavigation": "ForexAccountNav → Accounts; ForexAccountCenter",
+      "recommendedCanonicalLocation": "ACCOUNTS → Manage trading accounts",
+      "recommendedAccess": "account-subnav",
+      "action": "KEEP",
+      "reason": "Demo create + switch table; open terminal CTA.",
+      "risk": "LOW"
+    },
+    {
+      "route": "/forex/account/funds",
+      "currentUiLocation": "PORTAL_FUNDS",
+      "currentNavigation": "ForexAccountNav → Funds only (not top nav)",
+      "recommendedCanonicalLocation": "FUNDS → Demo funding + activity",
+      "recommendedAccess": "account-subnav + portal-home-cta",
+      "action": "MOVE_VISIBILITY",
+      "reason": "Funding is buried under Account; real rails explicitly unavailable in copy.",
+      "risk": "LOW"
+    },
+    {
+      "route": "/forex/account/ledger",
+      "currentUiLocation": "PORTAL_FUNDS",
+      "currentNavigation": "ForexAccountNav → Ledger",
+      "recommendedCanonicalLocation": "FUNDS → Accounting ledger / reconciliation",
+      "recommendedAccess": "account-subnav",
+      "action": "KEEP",
+      "reason": "Distinct from order fills; ledger store hydrated privately.",
+      "risk": "LOW"
+    }
+  ]
+}

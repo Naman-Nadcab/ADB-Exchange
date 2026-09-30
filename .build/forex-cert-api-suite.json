@@ -1,0 +1,161 @@
+⚠️  ALERT_WEBHOOK_URL not set — circuit_open and integrity_mismatch will not be sent to Slack/PagerDuty.
+⚠️  SANCTIONS_PROVIDER not set — sanctions screening is no-op. Integrate a provider for compliance.
+⚠️ WARNING: Admin login 2FA is DISABLED (ADMIN_2FA_MANDATORY=false)
+{"level":"info","message":"Database pool closed","service":"exchange-api","shard_id":0,"timestamp":"I9O"}
+{
+  "summary": {
+    "pass": 29,
+    "fail": 0,
+    "skip": 0
+  },
+  "results": [
+    {
+      "test": "db_identity",
+      "result": "PASS",
+      "evidence": "current_database=exchange_forex_cert"
+    },
+    {
+      "test": "live_db_not_connected",
+      "result": "PASS",
+      "evidence": "cert_only connected=exchange_forex_cert exchange_exists=true"
+    },
+    {
+      "test": "api_reachable",
+      "result": "PASS",
+      "evidence": "health HTTP 200"
+    },
+    {
+      "test": "auth_maker_jwt",
+      "result": "PASS",
+      "evidence": "cert_maker@cert.local"
+    },
+    {
+      "test": "real_forex_off",
+      "result": "PASS",
+      "evidence": "runtime.realForex=false"
+    },
+    {
+      "test": "mock_execution_posture",
+      "result": "PASS",
+      "evidence": "{\"source\":\"SIMULATED\",\"executionMode\":\"MOCK\",\"realForex\":false,\"killSwitch\":false,\"demoFundingEnabled\":true}"
+    },
+    {
+      "test": "rbac_support_denied_crm_clients",
+      "result": "PASS",
+      "evidence": "HTTP 403"
+    },
+    {
+      "test": "rbac_super_crm_clients",
+      "result": "PASS",
+      "evidence": "HTTP 200"
+    },
+    {
+      "test": "rbac_support_denied_crm_export",
+      "result": "PASS",
+      "evidence": "HTTP 403"
+    },
+    {
+      "test": "crm_client_detail",
+      "result": "PASS",
+      "evidence": "HTTP 200"
+    },
+    {
+      "test": "client_360",
+      "result": "PASS",
+      "evidence": "HTTP 200 position_mode=n/a"
+    },
+    {
+      "test": "crm_pipeline",
+      "result": "PASS",
+      "evidence": "HTTP 200"
+    },
+    {
+      "test": "crm_tasks",
+      "result": "PASS",
+      "evidence": "HTTP 200"
+    },
+    {
+      "test": "crm_leads",
+      "result": "PASS",
+      "evidence": "HTTP 200"
+    },
+    {
+      "test": "partners_foundation",
+      "result": "PASS",
+      "evidence": "HTTP 200 (foundation read)"
+    },
+    {
+      "test": "reporting_foundation",
+      "result": "PASS",
+      "evidence": "HTTP 200"
+    },
+    {
+      "test": "approval_valid_request_202",
+      "result": "PASS",
+      "evidence": "approval_id=f0bed01a-14af-44b8-b98f-f62131a59254"
+    },
+    {
+      "test": "approval_unauthorized",
+      "result": "PASS",
+      "evidence": "HTTP 401"
+    },
+    {
+      "test": "approval_self_denied",
+      "result": "PASS",
+      "evidence": {
+        "code": "APPROVE_FAILED",
+        "message": "Cannot approve your own request"
+      }
+    },
+    {
+      "test": "approval_checker_a_partial",
+      "result": "PASS",
+      "evidence": "Approved (1/2)"
+    },
+    {
+      "test": "approval_replay_same_checker",
+      "result": "PASS",
+      "evidence": "You have already approved this request"
+    },
+    {
+      "test": "approval_checker_b_full",
+      "result": "PASS",
+      "evidence": "Request fully approved and executed where applicable"
+    },
+    {
+      "test": "approval_already_approved",
+      "result": "PASS",
+      "evidence": "Request is already approved"
+    },
+    {
+      "test": "approval_db_mutation",
+      "result": "PASS",
+      "evidence": "leverage_override=30 status=approved executed=true"
+    },
+    {
+      "test": "approval_duplicate_execution_attempt",
+      "result": "PASS",
+      "evidence": "HTTP 200"
+    },
+    {
+      "test": "forex_demo_funding",
+      "result": "PASS",
+      "evidence": "HTTP 200"
+    },
+    {
+      "test": "ledger_crypto_isolation",
+      "result": "PASS",
+      "evidence": "user_balances rows unchanged=0"
+    },
+    {
+      "test": "position_mode_runtime_api",
+      "result": "PASS",
+      "evidence": "db=HEDGING runtime=HEDGING"
+    },
+    {
+      "test": "forex_mock_market_order",
+      "result": "PASS",
+      "evidence": "HTTP 404"
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "kind": "forex-customer-ui-gap-matrix",
+  "recordedAtUtc": "2026-09-19T12:20:00Z",
+  "scope": "Forex customer UI only — Crypto frozen",
+  "routes": [
+    "/forex/trade",
+    "/forex/markets",
+    "/forex/portfolio",
+    "/forex/orders",
+    "/forex/analysis",
+    "/forex/alerts",
+    "/forex/account",
+    "/forex/account/funds",
+    "/forex/account/ledger"
+  ],
+  "domains": {
+    "A_market_watch": {
+      "status": "GREEN",
+      "implementation": "ForexWatchlist, ForexSymbolSearch, workspace store",
+      "backend": "/instruments, /quotes, /sessions",
+      "gaps": []
+    },
+    "B_chart": {
+      "status": "GREEN",
+      "implementation": "ForexChartFoundation, ForexLightweightChart, useForexCandles",
+      "backend": "/candles, timeframe plans M1–MN1",
+      "gaps": [
+        { "id": "heikin_renko", "priority": "P3", "status": "NOT_SUPPORTED", "note": "No authoritative tick/range source" }
+      ]
+    },
+    "C_indicators": {
+      "status": "GREEN",
+      "implementation": "indicator-registry.ts, oscillator stack, overlay extras",
+      "backend": "OHLC candles only",
+      "gaps": [
+        { "id": "vwap", "priority": "P2", "status": "MISSING", "note": "Not in registry; no volume-weighted contract on candles" },
+        { "id": "stddev", "priority": "P2", "status": "MISSING", "note": "Not in registry" },
+        { "id": "legacy_study_dup", "priority": "P3", "status": "IN_PROGRESS", "note": "Legacy study dropdown parallels registry (HMA/Supertrend)" }
+      ]
+    },
+    "D_drawings": {
+      "status": "GREEN",
+      "implementation": "ForexDrawingEngine + DrawingToolManager (read-only import)",
+      "gaps": [
+        { "id": "native_resize", "priority": "P3", "status": "PARTIAL", "note": "Native fib/hline resize via handles; not all tools have resize handles" }
+      ]
+    },
+    "E_order_ticket": {
+      "status": "GREEN",
+      "implementation": "ForexOrderTicket, useForexPreview, useForexOrderEngine",
+      "backend": "/orders, /preview, capabilities contract"
+    },
+    "F_positions": {
+      "status": "GREEN",
+      "implementation": "ForexPositionPanel, useForexPositionActions",
+      "backend": "/positions, close, close-by, reverse, protections"
+    },
+    "G_orders_pending": {
+      "status": "GREEN",
+      "implementation": "ForexBottomPanels orders tab, /forex/orders page",
+      "backend": "/orders, /pending-orders, PATCH cancel/modify"
+    },
+    "H_history": {
+      "status": "GREEN",
+      "implementation": "ForexBottomPanels history + CSV export",
+      "backend": "/orders, /fills, journal routes"
+    },
+    "I_account_risk": {
+      "status": "GREEN",
+      "implementation": "ForexAccountBar, ForexRiskBar, analytics tab",
+      "backend": "/account, /margin, /risk, /pnl"
+    },
+    "J_risk_bar": {
+      "status": "GREEN",
+      "implementation": "ForexRiskBar + /risk/status"
+    },
+    "K_alerts": {
+      "status": "PARTIAL",
+      "implementation": "AlertsPanel in terminal (BID-only create); /forex/alerts local-only page",
+      "backend": "Full alert type set + /alerts/events + /alerts/delivery-status",
+      "gaps": [
+        {
+          "id": "alerts_page_local_mismatch",
+          "priority": "P0",
+          "status": "GAP",
+          "note": "/forex/alerts claims local-only while server alerts exist in terminal"
+        },
+        {
+          "id": "alert_type_picker",
+          "priority": "P1",
+          "status": "GAP",
+          "note": "UI create flow only BID; backend supports SESSION/DRAWDOWN/MARGIN/etc."
+        },
+        {
+          "id": "alert_events_history",
+          "priority": "P1",
+          "status": "GAP",
+          "note": "GET /alerts/events not wired in UI"
+        },
+        {
+          "id": "alert_delivery_status",
+          "priority": "P1",
+          "status": "GAP",
+          "note": "GET /alerts/delivery-status not shown"
+        }
+      ]
+    },
+    "L_session_status": {
+      "status": "GREEN",
+      "implementation": "ForexSessionBar, store sessions from /sessions"
+    },
+    "M_command_center": {
+      "status": "GREEN",
+      "implementation": "ForexCommandCenter Ctrl/Cmd+K on /forex/*"
+    },
+    "N_dom_tape": {
+      "status": "GREEN",
+      "implementation": "Explicit unavailable copy in ForexBottomPanels",
+      "classification": "PROVIDER_DEPENDENT"
+    },
+    "O_news_calendar": {
+      "status": "GREEN",
+      "implementation": "Provider fetch with unavailable states",
+      "classification": "PROVIDER_DEPENDENT when empty"
+    },
+    "P_responsive": {
+      "status": "GREEN",
+      "implementation": "ForexTerminalLayout mobile ticket, overflow guards"
+    },
+    "Q_empty_error_states": {
+      "status": "GREEN",
+      "implementation": "Widespread in panels; chart historical unavailable state"
+    },
+    "R_security": {
+      "status": "GREEN",
+      "implementation": "forexAuthenticate on private routes; useForexPrivateSession",
+      "note": "IDOR enforced server-side; UI uses account-scoped APIs"
+    }
+  },
+  "implementationPlan": {
+    "p0": ["alerts_page_local_mismatch"],
+    "p1": ["alert_type_picker", "alert_events_history", "alert_delivery_status"],
+    "p2_deferred": ["vwap", "stddev"],
+    "p3_deferred": ["legacy_study_dup", "native_resize", "heikin_renko"]
+  }
+}

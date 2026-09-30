@@ -1,0 +1,43 @@
+{
+  "phase": 5,
+  "scope": "GENUINELY_MARKET_DEPENDENT_ONLY",
+  "updatedUtc": "2026-09-19T08:30:00.000Z",
+  "prerequisite": "Phase 4 live GREEN recommended",
+  "items": [
+    {
+      "requirement": "Live market/limit/stop/stop_limit placement from ticket",
+      "why": "SESSION_CLOSED blocks customer placement now",
+      "evidence": "POST /forex/orders while eligibility.open"
+    },
+    {
+      "requirement": "Trade-from-chart execution",
+      "why": "Requires fillable session",
+      "evidence": "Chart BUY → same orders API"
+    },
+    {
+      "requirement": "Pending trigger and SL/TP execution paths",
+      "why": "Quote must cross trigger prices",
+      "evidence": "Protection worker + live marks"
+    },
+    {
+      "requirement": "History/deals after genuine live mock fills",
+      "why": "Empty or stale history without new deals",
+      "evidence": "Bottom panels history tabs"
+    },
+    {
+      "requirement": "Live margin/risk alert convergence",
+      "why": "Alerts tied to moving risk metrics",
+      "evidence": "WS fx.risk/fx.margin after stress"
+    },
+    {
+      "requirement": "Price consistency invariant across watch/chart/ticket",
+      "why": "Requires live quote surfaces during movement",
+      "evidence": "forex-browser-cert.mjs PART 2"
+    },
+    {
+      "requirement": "Position lifecycle UI (open → modify SL/TP → close)",
+      "why": "Requires open session fills",
+      "evidence": "forex-browser-cert.mjs PART 3"
+    }
+  ]
+}

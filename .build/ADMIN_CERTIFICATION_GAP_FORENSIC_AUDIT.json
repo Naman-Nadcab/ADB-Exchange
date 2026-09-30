@@ -1,0 +1,173 @@
+{
+  "generatedAt": "2026-09-20T08:20:00Z",
+  "git": {
+    "branch": "release/exchange-production-baseline",
+    "head": "fcace46759d1d2d23793b8864f62d0877a179e2f",
+    "remoteHead": "fcace46759d1d2d23793b8864f62d0877a179e2f",
+    "match": true
+  },
+  "spotFastify": {
+    "workingTreeSha": "2ccdd1f03fd2b17d01062b26382ae12944ceee8d",
+    "headBlobSha": "0c4cdaaa8e7b908bce85079551ea05b540031d5b",
+    "modifiedThisPhase": false
+  },
+  "digests": {
+    "admin": "sha256:0b5d9980a86df015b3862dfb5462551c9b26bf24b4ba49ddb6b6111198796f7d",
+    "backend": "sha256:fe8179874d1b6116cfd598adb321169e70e15f0c56da4476f1172ed90268cbc3",
+    "frontend": "sha256:08c4cb9747fda5c5f8a65cbc89bdc462c5265eac6cb2ecb83d000f65e0e43dc0",
+    "matchingEngine": "sha256:35f759eddf433b6301ad35e1e96b28d5a461d424edebef6d5693826c2732c76a",
+    "indexerContainerId": "6bc07dbd55f2d4d2d647e4db68d13754b6eff89a30d6112deac59008497e1d2a"
+  },
+  "gapClassification": {
+    "rbac": "EVIDENCE_GAP",
+    "rbacShellVsBackendNote": "PARTIAL_REAL_DEFECT_RISK for control-only matrix vs withdrawal_approver",
+    "emergencyControls": "REAL_DESIGN_GAP",
+    "databaseProof": "EVIDENCE_GAP"
+  },
+  "productionAdminUsers": [
+    { "email": "admin@example.com", "role": "super_admin" },
+    { "email": "test@gmail.com", "role": "super_admin" },
+    { "email": "approver@example.com", "role": "withdrawal_approver" }
+  ],
+  "safeOffProductionMechanisms": [
+    "apps/backend/src/lib/admin-rbac-routes.test.ts (unit matrix; one case currently fails on HEAD — not repaired)",
+    "apps/backend/scripts/forex-cert-idor-matrix.ts + exchange_forex_cert @ :4100",
+    "e2e/forex-admin/admin-cert-auth.ts (cert_maker@cert.local, cert_support@cert.local, cert_risk@cert.local)",
+    "apps/admin-panel/src/lib/admin/admin-domain.ts (static domain rules — not runtime-proven for scoped roles)"
+  ],
+  "emergencyControlMatrix": [
+    {
+      "control": "Safe mode",
+      "uiRoute": "/control-center",
+      "uiComponent": "apps/admin-panel/src/app/(protected)/control-center/page.tsx",
+      "uiLabel": "Safe mode — Halts trading, withdrawals, and API access",
+      "apiClient": "postSystemSafeMode → /system/safe-mode",
+      "backendRoute": "POST /api/v1/admin/system/safe-mode",
+      "backendFile": "apps/backend/src/routes/admin.fastify.ts",
+      "backendEffect": "setTradingHalt + system_settings emergency_* keys",
+      "permissionRule": "admin-rbac-routes ^/(system|settings|control) write settings:edit",
+      "classification": "GLOBAL",
+      "notes": "Affects spot trading halt path (trading-halt.ts); not Forex kill_switch"
+    },
+    {
+      "control": "Spot trading halt toggle",
+      "uiRoute": "/control-center",
+      "uiLabel": "Spot trading / Order matching",
+      "apiClient": "setTradingHalt → /trading/halt",
+      "backendRoute": "POST /api/v1/admin/trading/halt",
+      "backendFile": "apps/backend/src/lib/trading-halt.ts",
+      "backendEffect": "Redis trading_halt:global — disables spot and P2P order creation",
+      "permissionRule": "^/(trading|trading-halt...) write markets:manage",
+      "classification": "CRYPTO"
+    },
+    {
+      "control": "Withdrawal freeze toggle",
+      "uiRoute": "/control-center",
+      "uiLabel": "Withdrawals",
+      "apiClient": "patchOperationalWalletStatus",
+      "backendRoute": "PATCH /api/v1/admin/operational/wallet-status",
+      "backendFile": "apps/backend/src/routes/admin-operational.fastify.ts",
+      "backendEffect": "feature_toggles withdrawal.enabled",
+      "permissionRule": "operational/* via ^/(operations|operational|mm-control) — write settings:edit; handler requires control:commands",
+      "classification": "CRYPTO",
+      "notes": "Crypto wallet rail; not forex ledger"
+    },
+    {
+      "control": "P2P emergency disable",
+      "uiRoute": "/control-center",
+      "uiLabel": "P2P trading",
+      "apiClient": "postEmergencyAction",
+      "backendRoute": "POST /api/v1/admin/system/emergency",
+      "backendFile": "apps/backend/src/routes/admin.fastify.ts",
+      "classification": "CRYPTO"
+    },
+    {
+      "control": "Exchange emergency levels / circuit / MM pause",
+      "uiRoute": "/admin-control",
+      "uiComponent": "apps/admin-panel/src/app/(protected)/admin-control/page.tsx",
+      "uiLabel": "Trading Halt (L1), Financial Lockdown, Full Emergency; Pause matching engine",
+      "backendRoutes": [
+        "POST /control/emergency-level",
+        "POST /control/circuit",
+        "POST /control/emergency-mode",
+        "POST /control/liquidity-kill"
+      ],
+      "backendFile": "apps/backend/src/routes/admin.fastify.ts",
+      "permission": "control:commands (handlers)",
+      "classification": "GLOBAL",
+      "notes": "Legacy exchange control plane; spot/matching-engine/settlement scoped"
+    },
+    {
+      "control": "MM desk / circuit",
+      "uiRoute": "/admin/mm-control",
+      "backendPattern": "^/(operations|operational|mm-control)",
+      "classification": "CRYPTO"
+    },
+    {
+      "control": "Forex global kill switch",
+      "uiRoute": "/forex/controls",
+      "uiComponent": "apps/admin-panel/src/components/forex/ForexGlobalControlsPanel.tsx",
+      "uiLabel": "Global kill switch (Forex module copy)",
+      "backendRoute": "PATCH /api/v1/admin/forex/controls (kill_switch)",
+      "backendFile": "apps/backend/src/routes/admin-forex.fastify.ts",
+      "service": "apps/backend/src/services/forex/admin/runtime-controls.ts",
+      "permission": "forex:controls:manage",
+      "classification": "FOREX"
+    },
+    {
+      "control": "Forex dealing / emergency halt",
+      "uiRoute": "/forex/dealing, /forex/risk-control",
+      "service": "apps/backend/src/services/forex/risk/dealing.ts (setForexEmergencyHalt)",
+      "classification": "FOREX",
+      "notes": "Engine-level Forex risk; separate from Redis trading_halt:global"
+    },
+    {
+      "control": "Platform maintenance_mode",
+      "uiRoute": "/settings/system (typical)",
+      "dbKey": "system_settings.maintenance_mode",
+      "migrationSeed": "apps/backend/src/database/migrate.ts",
+      "classification": "GLOBAL",
+      "notes": "Not prominently labeled on /control-center in source review"
+    }
+  ],
+  "rbacForensic": {
+    "fullAccess": {
+      "method": "Production Playwright + prior cert",
+      "result": "VERIFIED",
+      "evidence": "scripts/admin-shell-domain-cert.mjs PASS; admin@example.com"
+    },
+    "cryptoOnly": {
+      "method": "Production DB + auth",
+      "result": "NOT_VERIFIED",
+      "reason": "No crypto-only admin_users row; no documented prod password for scoped roles"
+    },
+    "forexOnly": {
+      "method": "Production DB + auth",
+      "result": "NOT_VERIFIED",
+      "reason": "No forex-only admin_users row"
+    },
+    "controlOnly": {
+      "method": "Production login approver@example.com",
+      "result": "NOT_VERIFIED",
+      "reason": "API INVALID_CREDENTIALS; password not available without mutation",
+      "staticNote": "withdrawal_approver has withdrawals:approve → admin-domain.ts grants CRYPTO workspace (not pure control-only)"
+    },
+    "offProductionOption": {
+      "method": "forex-cert stack :4100 + cert_*@cert.local",
+      "result": "NOT_EXECUTED",
+      "reason": "Safe mechanism exists but not run in this forensic pass; would not prove production RBAC"
+    }
+  },
+  "databaseForensic": {
+    "migrationMetadataTable": false,
+    "migrationCommandThisPhase": false,
+    "adminContainerRecreated": "2026-09-20T07:42:11Z",
+    "backendLogsMigrationLines": "none in tail grep",
+    "independentProof": "NOT_VERIFIED",
+    "negativeEvidence": [
+      "No npm migrate executed in certification phases",
+      "Admin-only docker rebuild",
+      "No schema_migrations table in public"
+    ]
+  }
+}

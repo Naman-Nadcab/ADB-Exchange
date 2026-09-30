@@ -1,0 +1,199 @@
+{
+  "audit": "forex-mt5-class-customer-terminal",
+  "branch": "release/exchange-production-baseline",
+  "commit": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "auditedAtUtc": "2026-09-19T09:00:00.000Z",
+  "executionEnvironment": {
+    "realForex": false,
+    "source": "SIMULATED",
+    "executionMode": "MOCK",
+    "defaultPositionMode": "NETTING",
+    "hedgingApi": true,
+    "hedgingCustomerExposed": false
+  },
+  "executiveVerdict": "PARTIALLY_MT5_CLASS",
+  "summary": "Core order types, TIF, SL/TP, positions, chart, multi-chart, and server-authoritative risk are implemented for MOCK execution. Gaps vs professional MT5: no true DOM/depth, no GTD, no Request/Instant/Exchange execution modes, local-only alerts/drawings, chart stop-limit was draft-only (patched), no tick/time&sales, limited history export, news/calendar ancillary only.",
+  "orderTypeMatrix": {
+    "marketBuy": { "status": "YELLOW", "ui": "side buy + market", "api": "POST /orders", "backend": "orders/service.ts", "semantics": "side=buy, orderType=market" },
+    "marketSell": { "status": "YELLOW", "ui": "side sell + market", "api": true, "backend": true },
+    "buyLimit": { "status": "YELLOW", "ui": "buy + limit + requestedPrice", "trigger": "ask <= price", "backend": "pending.ts L45" },
+    "sellLimit": { "status": "YELLOW", "ui": "sell + limit", "trigger": "bid >= price", "backend": "pending.ts L46" },
+    "buyStop": { "status": "YELLOW", "ui": "buy + stop", "trigger": "ask >= price", "backend": "pending.ts L47" },
+    "sellStop": { "status": "YELLOW", "ui": "sell + stop", "trigger": "bid <= price", "backend": "pending.ts L48" },
+    "buyStopLimit": { "status": "YELLOW", "ui": "buy + stop_limit + limitPrice", "trigger": "ask >= stop then limit", "backend": "pending.ts L49-50, service activateStopLimit" },
+    "sellStopLimit": { "status": "YELLOW", "ui": "sell + stop_limit", "trigger": "bid <= stop", "backend": true }
+  },
+  "capabilities": [
+    {
+      "capability": "Market orders",
+      "mt5Ref": "Instant market buy/sell",
+      "contract": "market + buy|sell",
+      "status": "YELLOW",
+      "ui": "ForexOrderTicket, one-click chart",
+      "api": "POST /forex/orders",
+      "backend": "orders/service.ts → execution MOCK",
+      "persistence": "forex_orders, fills, positions",
+      "ws": "fx.order, fx.position",
+      "journal": true,
+      "tests": "phase1c, phase5, pre-market-cert",
+      "browser": "pre-market-browser PASS; live fill MARKET_DEPENDENT",
+      "marketDependency": "Placement/fill when session open"
+    },
+    {
+      "capability": "Pending orders (limit/stop/stop_limit)",
+      "status": "YELLOW",
+      "ui": "ForexOrderTicket, chart context (limit/stop/stop_limit draft)",
+      "backend": "pending.ts trigger semantics verified",
+      "marketDependency": "Trigger + fill when quotes cross"
+    },
+    {
+      "capability": "SL / TP",
+      "status": "YELLOW",
+      "ui": "Ticket, position panel, chart drag",
+      "api": "/protections",
+      "backend": "protection/service.ts",
+      "marketDependency": "Trigger execution"
+    },
+    {
+      "capability": "Trailing stop",
+      "status": "PARTIALLY_IMPLEMENTED",
+      "contract": "engine yes, customerExposed false in customer-contract.ts",
+      "ui": "ForexPositionPanel trailing distance",
+      "api": "PATCH /protections trailingDistance",
+      "backend": "protection/trailing.ts",
+      "note": "Implemented but not advertised in trading-config contract"
+    },
+    {
+      "capability": "Close / partial close",
+      "status": "YELLOW",
+      "ui": "ForexPositionPanel",
+      "api": "POST /positions/:id/close",
+      "backend": "orders/close.ts"
+    },
+    {
+      "capability": "Close By",
+      "status": "GRAY",
+      "design": "HEDGING only; contract customerExposed false",
+      "ui": "Shown only when positionMode HEDGING",
+      "api": "POST /positions/close-by"
+    },
+    {
+      "capability": "Reverse position",
+      "status": "GRAY",
+      "ui": "ForexPositionPanel reverse action",
+      "api": "POST /positions/:id/reverse",
+      "contract": "customerExposed false"
+    },
+    {
+      "capability": "TIF GTC/IOC/FOK/DAY",
+      "status": "YELLOW",
+      "ui": "order-type-tif.ts mirrored validation",
+      "backend": "validate.ts + service TIF handling",
+      "gtD": "NOT_SUPPORTED_BY_DESIGN"
+    },
+    {
+      "capability": "Fill policy RETURN/BOC",
+      "status": "NOT_SUPPORTED_BY_DESIGN",
+      "note": "Architecture uses TIF IOC/FOK not separate fillPolicy enum"
+    },
+    {
+      "capability": "Execution modes (Request/Instant/Exchange)",
+      "status": "ORANGE",
+      "note": "MOCK simulated only; slippage/maxDeviation on request"
+    },
+    {
+      "capability": "One-click trading",
+      "status": "YELLOW",
+      "ui": "ForexAppToolbar ack + chart BUY/SELL",
+      "safety": "oneClickAcked gate, min volume, session/risk blocks",
+      "marketDependency": "Live execution"
+    },
+    {
+      "capability": "DOM / Depth of Market",
+      "status": "NOT_AVAILABLE_FROM_MARKET_DATA_AUTHORITY",
+      "ui": "Explicit unavailable message ForexBottomPanels",
+      "providerDependent": true
+    },
+    {
+      "capability": "Market Watch",
+      "status": "YELLOW",
+      "fields": "bid, ask, spread, change, session, status",
+      "missing": "day high/low (no quote DTO), tick volume",
+      "symbolSpec": "SymbolSpec modal from instruments API"
+    },
+    {
+      "capability": "Chart trading",
+      "status": "YELLOW",
+      "paths": "Same useForexOrderEngine for market one-click; pending via ticket draft",
+      "chartTypes": "candle, line, area, ohlc",
+      "timeframes": "M1,M5,M15,M30,H1,H4,D1"
+    },
+    {
+      "capability": "Indicators",
+      "status": "YELLOW",
+      "implemented": "SMA, EMA, WMA, HMA, Bollinger, Supertrend, RSI, MACD, ATR readout",
+      "note": "Client-computed from API candles; not fake"
+    },
+    {
+      "capability": "Drawings",
+      "status": "PARTIALLY_IMPLEMENTED",
+      "persist": "localStorage session-local",
+      "tools": "trend, hline, vline, rect, text, fib, channel, measure",
+      "mt5FibFull": "OPTIONAL — partial fib tool present"
+    },
+    {
+      "capability": "Multi-chart",
+      "status": "IMPLEMENTED",
+      "layouts": "1, 2h, 2v, 2x2, 2x3, 3x3",
+      "ws": "Shared store quotes; per-slot candles"
+    },
+    {
+      "capability": "History / deals",
+      "status": "PARTIALLY_IMPLEMENTED",
+      "ui": "ForexBottomPanels history from ledger+orders",
+      "csvExport": "NOT_IMPLEMENTED",
+      "filters": "Period filter partial"
+    },
+    {
+      "capability": "Alerts",
+      "status": "PARTIALLY_IMPLEMENTED",
+      "backend": false,
+      "ui": "localStorage price alerts vs store quotes"
+    },
+    {
+      "capability": "News / calendar",
+      "status": "OPTIONAL",
+      "ui": "Bottom tabs; forexApi news/calendar if configured",
+      "scope": "Product ancillary not core trading"
+    },
+    {
+      "capability": "Account / risk bar",
+      "status": "YELLOW",
+      "source": "hydrate private APIs + WS",
+      "browser": "pre-market verified"
+    },
+    {
+      "capability": "Security IDOR",
+      "status": "IMPLEMENTED",
+      "evidence": "forex-pre-market-cert.json, phase8 unit"
+    },
+    {
+      "capability": "Responsive UX",
+      "status": "YELLOW",
+      "evidence": "forex-pre-market-browser.json desktop/tablet/mobile PASS"
+    }
+  ],
+  "fixesThisAudit": [
+    "Chart context: open ticket panel on limit/stop drafts",
+    "Chart context: Buy/Sell Stop Limit draft → ticket (limit price on ticket)",
+    "ticketDraft.limitPrice + ForexOrderTicket apply"
+  ],
+  "statusLegend": {
+    "GREEN": "IMPLEMENTED AND VERIFIED non-market",
+    "YELLOW": "IMPLEMENTED BUT MARKET-RUNTIME VERIFICATION PENDING",
+    "BLUE": "SUPPORTED BY DESIGN BUT NOT EXPOSED",
+    "GRAY": "NOT_SUPPORTED_BY_DESIGN or hedging-only",
+    "ORANGE": "PROVIDER_DEPENDENT / MOCK_ONLY",
+    "RED": "IMPLEMENTATION GAP / BROKEN"
+  }
+}

@@ -74,6 +74,7 @@ export async function closeForexPosition(
     orderType: 'market',
     volume: vol.toFixed(),
     intent: 'CUSTOMER_CLOSE',
+    reducePositionId: position.positionId,
   });
   if (order.status === 'REJECTED' || order.status === 'FAILED') {
     throw new ForexOrderError(

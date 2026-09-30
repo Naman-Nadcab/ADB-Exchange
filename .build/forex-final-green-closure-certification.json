@@ -1,0 +1,68 @@
+{
+  "kind": "forex-final-green-closure-certification",
+  "recordedAt": "2026-09-19T11:50:00Z",
+  "verdict": "ENGINEERING_GREEN",
+  "finalGreen": false,
+  "finalGreenBlockers": ["RUNTIME_CERTIFICATION_MARKET_DEPENDENT"],
+  "git": {
+    "branch": "release/exchange-production-baseline",
+    "head": "7f0bf68e753969778683e04b19d43bc78014d02d"
+  },
+  "deployment": {
+    "backendImage": "m-live-backend@sha256:f32d7c7415aa9e2081360bea55be250cbf2d399d97db9616f720d36ef18c4fe2",
+    "frontendImage": "m-live-frontend@sha256:468f89021bd001b00f4d235906a6d1989e283561154bedd9fe01f3c0c54c400b",
+    "backendHealth": "alive",
+    "migration": {
+      "method": "docker compose exec backend node dist/database/migrate.js",
+      "result": "Forex customer schema markers verified (GTD + alerts)"
+    }
+  },
+  "cryptoIsolation": {
+    "status": "UNCHANGED",
+    "spot.fastify.ts": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "spot-ticker-db-load.ts": "3d128d47e0152a8a552b8291ab386ad24576949066bf69dea4016484444c086b"
+  },
+  "realForex": "OFF",
+  "currentScopeEngineeringGaps": 0,
+  "testsExecuted": [
+    "apps/frontend/src/lib/forex/chart/indicator-registry.test.ts",
+    "apps/frontend/src/lib/forex/chart/forex-drawings.test.ts",
+    "apps/backend/src/services/forex/customer/forex-alert-engine.test.ts",
+    "apps/backend/src/services/forex/customer/session-alert-watch.test.ts",
+    "apps/frontend npm run build",
+    "apps/backend npm run build"
+  ],
+  "browserVerification": {
+    "script": "scripts/forex-pre-market-browser.mjs",
+    "pass": true,
+    "routes": ["/forex/trade"],
+    "manual": {
+      "rsiOscillatorPane": "Add indicator RSI → chip rsi × + secondary chart pane observed",
+      "indicatorRegistryDropdown": "overlay/oscillator labels visible"
+    }
+  },
+  "security": {
+    "note": "Pre-market script validates auth session + WS cookie; full IDOR matrix not re-run this pass"
+  },
+  "capabilities": {
+    "indicators": "GREEN",
+    "oscillatorPanes": "GREEN",
+    "drawings": "GREEN",
+    "alertsSessionOpenClose": "GREEN",
+    "alertsDrawdown": "GREEN",
+    "customerOrderRuntimeMatrix": "MARKET_DEPENDENT",
+    "dom": "PROVIDER_DEPENDENT",
+    "tape": "PROVIDER_DEPENDENT",
+    "news": "PROVIDER_DEPENDENT",
+    "calendar": "PROVIDER_DEPENDENT",
+    "pushEmailWebhookDelivery": "NOT_CONFIGURED"
+  },
+  "drawdownSemantics": {
+    "source": "SIMULATED ledger CUSTOMER_CASH peak + position service equityReference",
+    "module": "apps/backend/src/services/forex/customer/drawdown-metrics.ts"
+  },
+  "sessionAlertSemantics": {
+    "source": "isForexTradingEligible(now).open transitions per symbol in market-data worker",
+    "module": "apps/backend/src/services/forex/customer/session-alert-watch.ts"
+  }
+}

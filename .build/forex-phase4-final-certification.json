@@ -1,0 +1,14 @@
+{
+  "phase": 4,
+  "verdict": "CONDITIONAL",
+  "green": false,
+  "tests": {
+    "gate": {
+      "status": "NOT_PROVEN",
+      "reason": "WEEKEND_CLOSURE"
+    }
+  },
+  "blockers": [
+    "SESSION_CLOSED"
+  ]
+}

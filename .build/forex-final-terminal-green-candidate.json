@@ -1,0 +1,66 @@
+{
+  "generatedAt": "2026-09-19T11:06:00.000Z",
+  "stopConditionMet": false,
+  "deployed": true,
+  "backendImage": "sha256:4a269b848befec39b76d8c74a51e18279e451364045821bd8d7b2799fbb410a0",
+  "frontendImage": "sha256:69b83bbbd4652ea9d4ef6e68bdeb70f4988a49a25640ad076defc0505afeee28",
+  "verification": {
+    "migrateForexSchemaMarkers": "PASS",
+    "forexPreMarketCert": "PASS",
+    "forexPreMarketBrowser": "PASS",
+    "gtdExpireAtAfterRestart": "PASS",
+    "alertAfterRestart": "PASS",
+    "cryptoUnchanged": true
+  },
+  "sections": {
+    "migrationRunner": "GREEN",
+    "gtd": "GREEN",
+    "alerts": "YELLOW",
+    "indicators": "YELLOW",
+    "drawings": "YELLOW",
+    "timeframes": "YELLOW",
+    "chart": "YELLOW",
+    "orderTicket": "GREEN",
+    "pendingOrders": "YELLOW",
+    "positions": "GREEN",
+    "hedgingNetting": "GREEN",
+    "risk": "GREEN",
+    "history": "GREEN",
+    "analytics": "YELLOW",
+    "marketWatch": "YELLOW",
+    "symbolSpecifications": "GREEN",
+    "commandCenter": "GREEN",
+    "workspace": "GREEN",
+    "dom": "BLUE",
+    "timeAndSales": "BLUE",
+    "calendar": "BLUE",
+    "news": "BLUE",
+    "desktopUI": "GREEN",
+    "tabletUI": "GREEN",
+    "mobileUI": "GREEN",
+    "security": "GREEN",
+    "dbLedgerJournal": "GREEN",
+    "websocket": "GREEN",
+    "deployment": "GREEN"
+  },
+  "exactRemainingItems": [
+    {
+      "classification": "MARKET_DEPENDENT",
+      "item": "Live fill/trigger/TIF expiry/SL/TP/trailing certification with executable session"
+    },
+    {
+      "classification": "MARKET_DEPENDENT",
+      "item": "GTD PENDING→CANCELLED GTD_ORDER_EXPIRED at natural expireAt (not clock manipulation)"
+    },
+    {
+      "classification": "PROVIDER_DEPENDENT",
+      "item": "DOM depth, Time & Sales tape, calendar content, news content, PUSH/EMAIL/WEBHOOK delivery providers"
+    }
+  ],
+  "inScopeEngineeringRemaining": [
+    "Oscillator-pane rendering for full indicator registry (RSI/MACD/Stoch/etc.) on chart",
+    "Complete drawing tool catalog (Gann grid/fan, fib time zones, polygon, regression channel) beyond current ForexDrawingEngine + DrawingToolManager subset",
+    "SESSION_OPEN/SESSION_CLOSE alert evaluation wired to session transition events",
+    "DRAWDOWN alert evaluation wired to authoritative drawdown metric from ledger analytics"
+  ]
+}

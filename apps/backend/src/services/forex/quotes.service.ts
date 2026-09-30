@@ -18,7 +18,12 @@ import { fxDecimal, fxToPriceString } from './decimal-fx.js';
 import { getForexInstrumentBySymbol, listForexSymbols } from './instruments.catalog.js';
 import { ForexQuoteAggregator } from './market-data/aggregator.js';
 import { ForexProviderHealthRegistry } from './market-data/health.js';
-import { createMockProviders, MockForexProvider, pinForexDemoMid } from './market-data/mock-provider.js';
+import {
+  clearForexDemoPins,
+  createMockProviders,
+  MockForexProvider,
+  pinForexDemoMid,
+} from './market-data/mock-provider.js';
 import { normalizeProviderQuote } from './market-data/normalize.js';
 import { EdaReceiveSequence, ProviderSequenceTracker } from './market-data/sequence.js';
 import { evaluateStaleness } from './market-data/staleness.js';
@@ -236,8 +241,9 @@ export class ForexPricingService {
   }
 
   /**
-   * DEMO / MOCK only. Pins the simulated mid and ingests Bid=Ask so pending
-   * LIMIT/STOP orders can trigger without a real LP. Sequences stay monotonic.
+   * DEMO / MOCK only. Pins the simulated mid (TTL) and ingests Bid=Ask so
+   * pending LIMIT/STOP orders can trigger without a real LP.
+   * Sequences stay monotonic. Pin auto-expires; never a permanent universe.
    */
   applyDemoPrice(symbol: string, price: string): ForexQuoteDto | null {
     const instrument = getForexInstrumentBySymbol(symbol);
@@ -251,6 +257,23 @@ export class ForexPricingService {
       if (dto) last = dto;
     }
     return last;
+  }
+
+  /**
+   * DEMO hygiene: drop sticky scenario pins so the anchored MOCK walk resumes.
+   * Does not alter anchors, candles, or ledger state.
+   */
+  /**
+   * DEMO hygiene: drop sticky scenario pins so the anchored MOCK walk resumes.
+   * Does not alter anchors, candles, or ledger state.
+   * Optionally forces an immediate tick so the book does not keep the last pinned mid.
+   */
+  clearDemoPins(symbol?: string, opts?: { retick?: boolean }): { cleared: string[] } {
+    const { cleared } = clearForexDemoPins(symbol);
+    if (opts?.retick !== false) {
+      this.tick(new Date());
+    }
+    return { cleared };
   }
 
   getQuote(symbol: string): ForexQuoteDto | undefined {

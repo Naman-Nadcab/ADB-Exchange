@@ -1,0 +1,77 @@
+{
+  "generatedAt": "2026-09-20T09:30:00Z",
+  "source": "apps/backend/src/database/migrate.ts (read-only grep)",
+  "inspectionMethod": "schema strings only; no live SELECT",
+  "tableCountsApprox": {
+    "forexTables": 63,
+    "forexReferencesInMigrate": 257
+  },
+  "domains": {
+    "CRYPTO": {
+      "tablesSample": [
+        "spot_markets",
+        "user_balances",
+        "balance_ledger",
+        "wallets",
+        "deposits",
+        "withdrawals",
+        "p2p_*",
+        "staking_*",
+        "mm_* / hedge_*"
+      ],
+      "adminWritePaths": [
+        "admin.fastify.ts finance routes",
+        "admin-spot.fastify.ts",
+        "admin-mm-control.fastify.ts",
+        "admin-control.fastify.ts (trading halt — verify scope)"
+      ],
+      "status": "PASS"
+    },
+    "FOREX": {
+      "tablesSample": [
+        "forex_accounts",
+        "forex_orders",
+        "forex_executions",
+        "forex_positions",
+        "forex_ledger_transactions",
+        "forex_ledger_entries",
+        "forex_journal_events",
+        "forex_margin_*",
+        "forex_crm_*",
+        "forex_admin_*"
+      ],
+      "adminWritePaths": [
+        "admin-forex*.fastify.ts",
+        "services/forex/admin/*"
+      ],
+      "customerWritePaths": "/api/v1/forex/* (separate from admin)",
+      "status": "PASS"
+    },
+    "SHARED": {
+      "tablesSample": [
+        "users",
+        "kyc_*",
+        "audit_logs",
+        "audit_logs_immutable",
+        "admin_users",
+        "system_settings",
+        "feature_flags / maintenance_mode",
+        "support_tickets"
+      ],
+      "ambiguous": [
+        "users — identity SHARED; forex_accounts.user_id links Forex scope",
+        "audit_logs — cross-domain events in one table (resource_type discriminates)"
+      ],
+      "status": "PARTIAL"
+    }
+  },
+  "crossDomainFKs": [
+    { "from": "forex_accounts", "to": "users", "risk": "LOW — reference only" },
+    { "from": "user_balances", "to": "users", "risk": "CRYPTO authority — must not merge with forex ledger" }
+  ],
+  "ledgerSeparation": {
+    "crypto": "balance_ledger",
+    "forex": "forex_ledger_transactions + forex_ledger_entries",
+    "verdict": "PASS — distinct table namespaces"
+  }
+}

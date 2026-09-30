@@ -10,6 +10,7 @@ import { persistReconciliationEvent } from '../advanced/persist.js';
 import { loadSwapEvents } from '../advanced/persist.js';
 import { loadAllExecutions } from '../execution/persist.js';
 import type { ForexExecutionService } from '../execution/service.js';
+import { getForexJournalService } from '../journal/service.js';
 import { loadAllLedgerTransactions } from '../ledger/persist.js';
 import { hydrateForexLiquidationLocksFromDb } from '../liquidation/lock.js';
 import type { ForexLiquidationService } from '../liquidation/service.js';
@@ -58,8 +59,37 @@ export async function hydrateForexEconomicState(args: {
     for (const fillId of fills) args.positions.store.markFill(fillId);
     args.accounting.ledger.store.hydrate(ledger);
     for (const tx of ledger) args.accounting.ensureAccount(tx.accountId);
+    try {
+      const { hydrateAccountPositionModes } = await import('../positions/account-mode-persist.js');
+      await hydrateAccountPositionModes();
+    } catch {
+      /* optional column / soft-fail */
+    }
+    try {
+      const { hydrateForexAccountLeveragePoliciesFromDb } = await import('../account/account-leverage-policy.js');
+      await hydrateForexAccountLeveragePoliciesFromDb();
+    } catch {
+      /* optional columns / soft-fail */
+    }
+    try {
+      const { hydrateForexAccountGroupRuntimePoliciesFromDb } = await import('../account/account-group-runtime-policy.js');
+      await hydrateForexAccountGroupRuntimePoliciesFromDb();
+    } catch {
+      /* optional columns / soft-fail */
+    }
     args.swaps.hydrate(swaps);
     await hydrateForexHolidayCalendar();
+
+    // Journal is audit-class: a cold cache must never block Forex readiness.
+    const journal = getForexJournalService();
+    journal.setPersistEnabled(true);
+    try {
+      await journal.hydrateFromDb();
+    } catch (e) {
+      logger.warn('Forex journal hydrate skipped', {
+        error: e instanceof Error ? e.message : 'unknown',
+      });
+    }
 
     await args.protections.hydrateFromDb();
     await args.liquidations.hydrateFromDb();

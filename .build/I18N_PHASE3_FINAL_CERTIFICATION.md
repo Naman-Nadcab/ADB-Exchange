@@ -106,7 +106,7 @@ No migration, seed, provision, or financial data mutation. Production deployment
 
 ## 9. Git
 
-Commit: `fix(ui): close p2p and wallet responsive overflow` (exact SHA after push).
+**Local = remote:** `f79770b` — `fix(ui): close p2p and wallet responsive overflow`
 
 ---
 

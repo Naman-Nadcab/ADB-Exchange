@@ -1,0 +1,263 @@
+{
+  "phase": 35,
+  "title": "Forex MT5 parity+ program snapshot",
+  "branch": "release/exchange-production-baseline",
+  "commit": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "generatedAtUtc": "2026-09-19T09:27:42.773Z",
+  "executiveStatus": "PARTIALLY_MT5_CLASS — pre-market implementation pass; live GREEN not claimed",
+  "deployment": {
+    "gitSha": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "backendImage": "sha256:e14d1977902cba478604508e77b4f8cdf35a04e062a39586c341751b4dfeeee0",
+    "frontendImage": "sha256:74d47263a26862810b34598bfb3c4ee42e9eefcaf7081f3d761a19ab8e448835",
+    "health": "healthy",
+    "realForex": false,
+    "cryptoSpotSha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "cryptoTickerSha256": "bb2ffb23ab52ac81f37883bf58b36143a53cc2113614c96b3717fd08ae128613"
+  },
+  "certification": {
+    "preMarketApi": ".build/forex-pre-market-cert.json PASS",
+    "preMarketBrowser": ".build/forex-pre-market-browser.json PASS",
+    "liveGreen": "NOT_RUN MARKET_DEPENDENT"
+  },
+  "classification": {
+    "implementedVerified": [
+      "Crypto isolation fingerprints",
+      "REAL_FOREX off",
+      "8 order type discoverability",
+      "DOM not faked"
+    ],
+    "implementedMarketDependent": [
+      "Fills",
+      "Pending triggers",
+      "SL/TP/trailing triggers",
+      "Live uPnL/margin"
+    ],
+    "implementedProviderDependent": [
+      "DOM depth",
+      "Time & Sales tape",
+      "Live news/calendar when provider empty"
+    ],
+    "implementationGaps": [
+      "GTD",
+      "Server-backed customer alerts",
+      "Forex-dedicated command palette",
+      "XLSX/PDF export"
+    ],
+    "productRoadmap": [
+      "AI assistants",
+      "Strategy builder",
+      "Cloud workspace sync"
+    ]
+  },
+  "artifacts": [
+    ".build/forex-mt5-parity-baseline.json",
+    ".build/forex-execution-capability-matrix.json",
+    ".build/forex-mt5-parity-final.json",
+    ".build/forex-pre-market-cert.json",
+    ".build/forex-pre-market-browser.json"
+  ],
+  "parityRows": [
+    {
+      "capability": "8 order types (side × kind)",
+      "mt5": "GREEN",
+      "ours": "YELLOW",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "Live fill/trigger MARKET_DEPENDENT"
+    },
+    {
+      "capability": "Chart trading (8 paths)",
+      "mt5": "GREEN",
+      "ours": "YELLOW",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "Live session cert"
+    },
+    {
+      "capability": "Pending chart price drag → modify",
+      "mt5": "GREEN",
+      "ours": "YELLOW",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "Browser + market modify cert"
+    },
+    {
+      "capability": "Netting / Hedging",
+      "mt5": "GREEN",
+      "ours": "YELLOW",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "Hedging runtime multi-position MARKET_DEPENDENT"
+    },
+    {
+      "capability": "Position mode switch UI",
+      "mt5": "GREEN",
+      "ours": "GREEN",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "Flat-account guard verified in code"
+    },
+    {
+      "capability": "SL/TP + trailing",
+      "mt5": "GREEN",
+      "ours": "YELLOW",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "Trigger MARKET_DEPENDENT"
+    },
+    {
+      "capability": "Close / partial / Close By",
+      "mt5": "GREEN",
+      "ours": "YELLOW",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "Close By hedging runtime"
+    },
+    {
+      "capability": "History CSV export",
+      "mt5": "GREEN",
+      "ours": "YELLOW",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "YELLOW",
+      "gap": "XLSX/PDF roadmap"
+    },
+    {
+      "capability": "DOM",
+      "mt5": "GREEN",
+      "ours": "BLUE",
+      "backend": "RED",
+      "frontend": "BLUE",
+      "status": "BLUE",
+      "gap": "PROVIDER_DEPENDENT depth — UI explicit unavailable"
+    },
+    {
+      "capability": "Time & Sales",
+      "mt5": "GREEN",
+      "ours": "BLUE",
+      "backend": "RED",
+      "frontend": "BLUE",
+      "status": "BLUE",
+      "gap": "No authoritative trade tape"
+    },
+    {
+      "capability": "Server alerts",
+      "mt5": "GREEN",
+      "ours": "ORANGE",
+      "backend": "RED",
+      "frontend": "ORANGE",
+      "status": "ORANGE",
+      "gap": "Local-only disclosed; architecture roadmap"
+    },
+    {
+      "capability": "Command palette (Forex)",
+      "mt5": "partial",
+      "ours": "ORANGE",
+      "backend": "n/a",
+      "frontend": "ORANGE",
+      "status": "ORANGE",
+      "gap": "Global search only — Forex command center roadmap"
+    },
+    {
+      "capability": "MOCK execution disclosure",
+      "mt5": "n/a",
+      "ours": "GREEN",
+      "backend": "GREEN",
+      "frontend": "GREEN",
+      "status": "GREEN",
+      "gap": "None"
+    }
+  ],
+  "executionMatrix": {
+    "generatedAtUtc": "2026-09-19T09:27:42.773Z",
+    "commit": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "executionMode": "MOCK",
+    "realForex": false,
+    "source": "SIMULATED",
+    "modes": {
+      "marketExecution": {
+        "mt5": true,
+        "engine": "MOCK instant fill at quote",
+        "customerUi": true,
+        "status": "YELLOW",
+        "note": "MOCK semantics — not LP Request/Instant"
+      },
+      "instantExecution": {
+        "mt5": true,
+        "engine": false,
+        "customerUi": false,
+        "status": "NOT_CONFIGURED"
+      },
+      "requestExecution": {
+        "mt5": true,
+        "engine": false,
+        "customerUi": false,
+        "status": "NOT_CONFIGURED"
+      },
+      "exchangeExecution": {
+        "mt5": true,
+        "engine": false,
+        "customerUi": false,
+        "status": "NOT_CONFIGURED"
+      }
+    },
+    "fillPolicies": {
+      "FOK": {
+        "engine": true,
+        "customerExposed": true,
+        "status": "YELLOW"
+      },
+      "IOC": {
+        "engine": true,
+        "customerExposed": true,
+        "status": "YELLOW"
+      },
+      "RETURN": {
+        "engine": false,
+        "customerExposed": false,
+        "status": "NOT_CONFIGURED"
+      },
+      "BOC": {
+        "engine": false,
+        "customerExposed": false,
+        "status": "NOT_CONFIGURED"
+      }
+    },
+    "timeInForce": {
+      "GTC": {
+        "engine": true,
+        "customerExposed": true,
+        "status": "YELLOW"
+      },
+      "DAY": {
+        "engine": true,
+        "customerExposed": true,
+        "status": "YELLOW"
+      },
+      "IOC": {
+        "engine": true,
+        "customerExposed": true,
+        "status": "YELLOW"
+      },
+      "FOK": {
+        "engine": true,
+        "customerExposed": true,
+        "status": "YELLOW"
+      },
+      "GTD": {
+        "engine": false,
+        "customerExposed": false,
+        "status": "RED",
+        "note": "Not in FOREX_ENGINE_TIME_IN_FORCE"
+      }
+    },
+    "providerGate": "REAL_FOREX off — no live LP execution certification"
+  }
+}

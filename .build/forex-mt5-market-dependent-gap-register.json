@@ -1,0 +1,20 @@
+{
+  "register": "forex-mt5-market-dependent-only",
+  "updatedUtc": "2026-09-19T09:00:00.000Z",
+  "items": [
+    { "id": "exec_market_all_types", "capability": "Market buy/sell fill", "why": "SESSION_CLOSED / need executable session" },
+    { "id": "exec_pending_trigger", "capability": "Limit/stop/stop_limit trigger and fill", "why": "Quote must cross trigger" },
+    { "id": "exec_sl_tp_trigger", "capability": "Protection SL/TP/trailing trigger", "why": "Mark cross + close order fill" },
+    { "id": "mtm_live", "capability": "Live uPnL / margin / risk WS payloads", "why": "Economic state change from quotes" },
+    { "id": "margin_call_liq", "capability": "Margin call / stop-out / liquidation", "why": "Natural quote deterioration" },
+    { "id": "chart_oneclick_live", "capability": "One-click chart market execution proof", "why": "Fill when open" },
+    { "id": "chart_pending_live", "capability": "Chart draft → ticket → placed pending → trigger", "why": "Full chain with live quotes" },
+    { "id": "history_post_deal", "capability": "History/deals after new fills", "why": "Needs genuine deals" },
+    { "id": "price_consistency_live", "capability": "Watch/chart/ticket price sync under movement", "why": "forex-browser-cert PART 2" },
+    { "id": "position_lifecycle_ui", "capability": "UI open → modify SL/TP → close", "why": "forex-browser-cert PART 3" }
+  ],
+  "resume": [
+    "node scripts/forex-phase4-live-green-cert.mjs",
+    "node scripts/forex-browser-cert.mjs"
+  ]
+}

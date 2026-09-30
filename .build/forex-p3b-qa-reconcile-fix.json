@@ -1,0 +1,109 @@
+{
+  "task": "P3-B QA reconciliation recovery + controlled order cleanup",
+  "completedAtUtc": "2026-09-18T20:40:00Z",
+  "P3B": {
+    "verdict": "NOT_PROVEN",
+    "reason": "LIVE_SESSION_CLOSE_NOT_CURRENTLY_OBSERVABLE",
+    "note": "Cleanup used normal customer cancel — not DAY_ORDER_EXPIRED certification"
+  },
+  "phase3": "CONDITIONAL",
+  "rootCause": {
+    "symptom": "FOREX_NOT_READY / economicReady=false after backend restart",
+    "reconcileReason": "POSITION_MISMATCH",
+    "qaAccount": "14e57a8f-bbd2-4b48-9b60-6bccede41176",
+    "positionId": "2e2545fb-9040-45a3-88de-1913da40828d",
+    "symbol": "EURUSD",
+    "side": "short",
+    "volume": "0.05000000",
+    "persistedEntryPrice": "1.03450518",
+    "replayEntryPriceFull": "1.0345051691100823046",
+    "replayEntryPriceAt8dp": "1.03450517",
+    "classification": "Same economic average; full-precision fill replay vs NUMERIC(20,8) persisted entry compared with 1e-8 abs tolerance (too strict for adjacent 8dp quanta)",
+    "path": "hydrate → accounting.reconcile → positions.reconcile → persistEntryPriceEq"
+  },
+  "canonicalPrecisionRule": {
+    "entryPriceColumn": "NUMERIC(20,8)",
+    "comparison": "fxToPriceString ROUND_HALF_EVEN at 8dp match OR abs(replay−persisted) < 1.2e-8 (one 8th-decimal unit boundary for replay vs stored row)",
+    "library": "decimal-fx fxDecimal / fxToPriceString — no JS float compare"
+  },
+  "codeChanges": [
+    {
+      "file": "apps/backend/src/services/forex/positions/service.ts",
+      "change": "persistEntryPriceEq for position reconcile entry_price"
+    },
+    {
+      "file": "apps/backend/src/services/forex/orders/service.ts",
+      "change": "pending-working cancel skips *risk* queue (avoids deadlock with in-flight quote evaluation on same account)"
+    },
+    {
+      "file": "apps/backend/src/services/forex/positions/entry-price-reconcile.test.ts",
+      "change": "regression test (QA fill chain + fail on material entry drift)"
+    }
+  ],
+  "testsRun": [
+    { "name": "entry-price-reconcile.test.ts", "result": "PASS" }
+  ],
+  "deployment": {
+    "service": "backend only",
+    "container": "exchange-backend",
+    "imageDigest": "sha256:1f04a223afccf729a8573866e7ef8cb7b216d911e22f1860c52934fad33e0e5b",
+    "health": "healthy",
+    "gitHead": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "migration": false,
+    "seed": false
+  },
+  "economicReady": {
+    "beforeFix": false,
+    "afterDeploy": true,
+    "afterCleanup": true
+  },
+  "originalPositionAfter": {
+    "entry_price": "1.03450518",
+    "volume": "0.05000000",
+    "side": "short",
+    "unchanged": true
+  },
+  "cleanupOrders": [
+    {
+      "orderId": "eab3dfa3-f80f-44a2-a5d0-8dc9f5debd00",
+      "clientOrderId": "p3b-day-natural-1789749675064",
+      "before": "PENDING",
+      "after": "CANCELLED",
+      "failureReason": null,
+      "method": "POST /api/v1/forex/orders/:id/cancel"
+    },
+    {
+      "orderId": "0ec1c8f6-9257-457e-80ff-e9f03b472329",
+      "clientOrderId": "p3b-day-natural-1789751517107",
+      "before": "PENDING",
+      "after": "CANCELLED",
+      "failureReason": null,
+      "method": "POST /api/v1/forex/orders/:id/cancel"
+    },
+    {
+      "orderId": "38806f23-d7d2-46ce-9de6-42df17b5f996",
+      "clientOrderId": "p3b-day-natural-1789755535885",
+      "before": "PENDING",
+      "after": "CANCELLED",
+      "failureReason": null,
+      "method": "POST /api/v1/forex/orders/:id/cancel"
+    }
+  ],
+  "journalEvidence": {
+    "customerVisible": "ORDER_CANCELLED per order (3 new rows; 97 total journal events)",
+    "notDAY_ORDER_EXPIRED": true
+  },
+  "financialReconciliation": {
+    "executionsDelta": 0,
+    "fillsDelta": 0,
+    "ledgerDelta": 0,
+    "positionsDelta": 0,
+    "ordersDelta": 0
+  },
+  "dbCounts": {
+    "beforeCleanupAttempt": { "forex_orders": 791, "forex_journal_events": 94, "executions": 676, "fills": 674, "ledger": 676 },
+    "afterCleanup": { "forex_orders": 791, "forex_journal_events": 97, "executions": 676, "fills": 674, "ledger": 676 }
+  },
+  "cryptoFirewall": { "changed": false, "spotSha": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1", "tickerSha": "bb2ffb23ab52ac81f37883bf58b36143a53cc2113614c96b3717fd08ae128613" },
+  "realForexFirewall": { "realForex": false, "execution": "MOCK/SIMULATED" }
+}

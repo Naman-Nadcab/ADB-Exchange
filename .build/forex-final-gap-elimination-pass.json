@@ -1,0 +1,73 @@
+{
+  "generatedAt": "2026-09-19T11:06:00.000Z",
+  "gitHead": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "deployedBackendImage": "sha256:4a269b848befec39b76d8c74a51e18279e451364045821bd8d7b2799fbb410a0",
+  "deployedFrontendImage": "sha256:69b83bbbd4652ea9d4ef6e68bdeb70f4988a49a25640ad076defc0505afeee28",
+  "cryptoFingerprints": {
+    "spot.fastify.ts": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "spot-ticker-db-load.ts": "bb2ffb23ab52ac81f37883bf58b36143a53cc2113614c96b3717fd08ae128613"
+  },
+  "realForex": false,
+  "issues": {
+    "migrationRunner": {
+      "classification": "CURRENT_IMPLEMENTATION",
+      "status": "FIXED",
+      "detail": "migrate uses m-live-backend image; vps-migrate.sh builds backend first; migrate.js verifies GTD/alerts schema markers"
+    },
+    "deployTimeframesAlerts": {
+      "classification": "CURRENT_IMPLEMENTATION",
+      "status": "DEPLOYED",
+      "detail": "New backend/frontend images running; health OK"
+    },
+    "gtdPersistence": {
+      "classification": "CURRENT_IMPLEMENTATION",
+      "status": "VERIFIED",
+      "detail": "expireAt survives restart (API GET order); natural GTD expiry MARKET_DEPENDENT when session open"
+    },
+    "alertPersistence": {
+      "classification": "CURRENT_IMPLEMENTATION",
+      "status": "VERIFIED",
+      "detail": "Server alert survives backend restart"
+    },
+    "alertEvaluatorMatrix": {
+      "classification": "CURRENT_IMPLEMENTATION",
+      "status": "PARTIAL",
+      "detail": "Quote/spread/order/protection/risk/liquidation hooks; SESSION_OPEN/CLOSE + drawdown need session/drawdown emitters"
+    },
+    "alertDelivery": {
+      "classification": "CURRENT_IMPLEMENTATION",
+      "status": "WEB_COMPLETE",
+      "detail": "PUSH/EMAIL/WEBHOOK adapters architecture + NOT_CONFIGURED events"
+    },
+    "indicatorRegistry": {
+      "classification": "CURRENT_IMPLEMENTATION",
+      "status": "IMPLEMENTED",
+      "detail": "indicator-registry.ts + studies-extended.ts; chart UI selector + localStorage persistence"
+    },
+    "drawingEngine": {
+      "classification": "CURRENT_IMPLEMENTATION",
+      "status": "PARTIAL",
+      "detail": "ForexDrawingEngine + undo/redo; full MT5 tool catalog (Gann/time zones/polygon) not complete"
+    },
+    "cloudWorkspace": {
+      "classification": "CURRENT_IMPLEMENTATION",
+      "status": "LOCAL_BY_DESIGN",
+      "detail": "Forex workspace is localStorage-scoped; no account-scoped server workspace API in Forex module — cross-device sync is out of current Forex surface"
+    },
+    "xlsxExport": {
+      "classification": "CURRENT_IMPLEMENTATION",
+      "status": "NOT_REQUIRED",
+      "detail": "CSV is the certified Forex history export; no xlsx dependency in Forex customer path"
+    },
+    "marketRuntime": {
+      "classification": "MARKET_DEPENDENT",
+      "status": "PENDING",
+      "detail": "Session closed; fills/triggers/GTD expiry runtime"
+    },
+    "domTapeCalendarNews": {
+      "classification": "PROVIDER_DEPENDENT",
+      "status": "CONTRACT_COMPLETE",
+      "detail": "Honest unavailable UI"
+    }
+  }
+}

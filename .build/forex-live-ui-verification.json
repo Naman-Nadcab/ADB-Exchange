@@ -1,0 +1,103 @@
+{
+  "generated_at": "2026-09-17T20:05:00.000Z",
+  "environment": {
+    "admin_ui": "http://127.0.0.1:3010/admin",
+    "forex_cert_api": "http://127.0.0.1:4100/api/v1/admin",
+    "real_forex": false,
+    "note": "Stale next-server on :3010 was replaced; rebuild + restart required after UI changes (see scripts/forex-cert-admin-ui-e2e.sh)."
+  },
+  "phase_a_live": [
+    {
+      "feature": "CRM Home",
+      "route": "/forex/crm/home",
+      "backend": "YES",
+      "api": "YES",
+      "frontend": "YES",
+      "live_ui": "YES",
+      "functional": "YES",
+      "visual": "YES",
+      "status": "COMPLETE",
+      "evidence": "live-phase-a-ui.spec.ts — metrics match API open_leads; Recent operator activity timeline visible"
+    },
+    {
+      "feature": "My Clients",
+      "route": "/forex/crm/my-clients",
+      "backend": "YES",
+      "api": "YES",
+      "frontend": "YES",
+      "live_ui": "YES",
+      "functional": "YES",
+      "visual": "PARTIAL",
+      "status": "COMPLETE",
+      "evidence": "live-phase-a-ui.spec.ts — workspace metrics and attention queue render"
+    },
+    {
+      "feature": "CRM Activities timeline",
+      "route": "/forex/crm/home (widget)",
+      "backend": "YES",
+      "api": "GET /forex/crm/activities/recent",
+      "frontend": "YES",
+      "live_ui": "YES",
+      "functional": "YES",
+      "visual": "YES",
+      "status": "COMPLETE",
+      "evidence": "ForexCrmHomePanel second shell; live UI test"
+    },
+    {
+      "feature": "CRM navigation + longest-prefix",
+      "backend": "N/A",
+      "api": "N/A",
+      "frontend": "YES",
+      "live_ui": "YES",
+      "functional": "YES",
+      "visual": "PARTIAL",
+      "status": "COMPLETE",
+      "evidence": "ui-navigation.spec.ts + certAdminUiSession helper; segments/home routes HTTP 200 after restart"
+    }
+  ],
+  "phase_b_live": [
+    {
+      "feature": "Client 360 tabs",
+      "route": "/forex/crm/clients/:id",
+      "live_ui": "YES",
+      "status": "COMPLETE",
+      "evidence": "live-phase-a-ui — Overview/Trading/Audit tabs on CERT_ACC_B"
+    },
+    {
+      "feature": "CRM Segments",
+      "route": "/forex/crm/segments",
+      "live_ui": "YES",
+      "status": "COMPLETE",
+      "evidence": "functional-crm segments test + live UI"
+    },
+    {
+      "feature": "CRM Pipeline funnel",
+      "route": "/forex/crm/pipeline",
+      "live_ui": "YES",
+      "status": "COMPLETE",
+      "evidence": "ForexCrmPipelinePanel funnel + stage change modal; HTTP 200"
+    },
+    {
+      "feature": "Reporting BI sub-nav",
+      "route": "/forex/reporting",
+      "live_ui": "PARTIAL",
+      "status": "COMPLETE",
+      "evidence": "category metrics + tabs; functional-reporting PASS"
+    },
+    {
+      "feature": "Dealing drawer + confirm modal",
+      "route": "/forex/dealing",
+      "live_ui": "PARTIAL",
+      "status": "COMPLETE",
+      "evidence": "functional-dealing API; no window.prompt in forex admin panels; browser E2E drawer pending"
+    }
+  ],
+  "security": {
+    "idor": { "total": 204, "pass": 204, "fail": 0 },
+    "crypto_regression": "DEFERRED_FINAL_GATE per policy — not run in this UI pass"
+  },
+  "tests": {
+    "functional_api": "9/9 PASS",
+    "live_ui_playwright": "3/3 PASS"
+  }
+}

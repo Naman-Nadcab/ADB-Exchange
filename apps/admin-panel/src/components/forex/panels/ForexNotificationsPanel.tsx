@@ -10,13 +10,15 @@ import {
   postForexNotificationResolve,
   type ForexAdminNotificationRow,
 } from '@/lib/admin/forex-api';
-import { ForexPanelShell } from '@/components/forex/primitives/ForexPanelShell';
 import { ForexConfirmModal } from '@/components/forex/primitives/ForexConfirmModal';
+import { ForexWorkspaceHeader } from '@/components/forex/primitives/ForexWorkspaceHeader';
+import { ForexFilterBar, ForexSectionLabel, ForexWorkspaceSurface } from '@/components/forex/primitives/forex-visual-kit';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
-import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { cn } from '@/lib/cn';
+import { Bell, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 
 function fmtTime(s: string): string {
   try {
@@ -32,6 +34,7 @@ export function ForexNotificationsPanel() {
   const [page, setPage] = useState(1);
   const [unresolvedOnly, setUnresolvedOnly] = useState(true);
   const [resolveId, setResolveId] = useState<string | null>(null);
+  const [severityFilter, setSeverityFilter] = useState<string>('all');
 
   const q = useQuery({
     queryKey: ['admin', 'forex', 'notifications', token, page, unresolvedOnly],
@@ -57,15 +60,31 @@ export function ForexNotificationsPanel() {
     },
   });
 
+  const rows = q.data?.rows ?? [];
+  const filteredRows = useMemo(() => {
+    if (severityFilter === 'all') return rows;
+    return rows.filter((r) => r.severity === severityFilter);
+  }, [rows, severityFilter]);
+
+  const pageStats = useMemo(() => {
+    let open = 0;
+    let critical = 0;
+    for (const r of rows) {
+      if (!r.resolved_at) open += 1;
+      if (r.severity === 'critical' && !r.resolved_at) critical += 1;
+    }
+    return { open, critical, total: q.data?.pagination.total ?? rows.length };
+  }, [rows, q.data?.pagination.total]);
+
   const columns = useMemo<ColumnDef<ForexAdminNotificationRow>[]>(
     () => [
-      { accessorKey: 'created_at', header: 'When', cell: ({ getValue }) => fmtTime(String(getValue())) },
-      { accessorKey: 'category', header: 'Category', cell: ({ getValue }) => <Badge variant="info" className="font-normal">{String(getValue())}</Badge> },
+      { accessorKey: 'created_at', header: 'When', cell: ({ getValue }) => <span className="whitespace-nowrap text-[10px] tabular-nums">{fmtTime(String(getValue()))}</span> },
+      { accessorKey: 'category', header: 'Domain', cell: ({ getValue }) => <Badge variant="info" className="text-[9px] font-normal uppercase">{String(getValue())}</Badge> },
       {
         accessorKey: 'severity',
         header: 'Severity',
         cell: ({ row }) => (
-          <Badge variant={row.original.severity === 'critical' ? 'danger' : row.original.severity === 'high' ? 'warning' : 'default'} className="font-normal capitalize">
+          <Badge variant={row.original.severity === 'critical' ? 'danger' : row.original.severity === 'high' ? 'warning' : 'default'} className="text-[9px] font-normal capitalize">
             {row.original.severity}
           </Badge>
         ),
@@ -74,26 +93,29 @@ export function ForexNotificationsPanel() {
         accessorKey: 'title',
         header: 'Alert',
         cell: ({ row }) => (
-          <div>
-            <p className="font-medium">{row.original.title}</p>
-            {row.original.body ? <p className="text-xs text-admin-muted line-clamp-2">{row.original.body}</p> : null}
+          <div className="max-w-md">
+            <p className="text-sm font-medium">{row.original.title}</p>
+            {row.original.body ? <p className="line-clamp-1 text-[10px] text-admin-muted">{row.original.body}</p> : null}
           </div>
         ),
       },
       {
         id: 'state',
         header: 'State',
-        cell: ({ row }) => (
-          <span className="text-xs text-admin-muted">
-            {row.original.resolved_at ? 'Resolved' : row.original.acknowledged_at ? 'Acknowledged' : 'Open'}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const state = row.original.resolved_at ? 'Resolved' : row.original.acknowledged_at ? 'Acknowledged' : 'Open';
+          return (
+            <Badge variant={state === 'Open' ? 'warning' : state === 'Resolved' ? 'success' : 'default'} className="text-[9px] font-normal">
+              {state}
+            </Badge>
+          );
+        },
       },
       {
         id: 'actions',
-        header: 'Actions',
+        header: '',
         cell: ({ row }) => (
-          <div className="flex gap-1">
+          <div className="flex justify-end gap-1">
             {!row.original.acknowledged_at ? (
               <ProtectedAction permission="forex:view" fallback="disabled">
                 <Button type="button" size="sm" variant="secondary" className="h-7 text-[10px]" disabled={ackM.isPending} onClick={() => ackM.mutate(row.original.notification_id)}>
@@ -118,43 +140,76 @@ export function ForexNotificationsPanel() {
   const pagination = q.data?.pagination;
 
   return (
-    <>
-      <ForexPanelShell
-        title="Operator notifications"
-        description="Cross-desk alerts — acknowledge (view) and resolve (controls manage)"
-        actions={
-          <Button size="sm" variant="ghost" onClick={() => void q.refetch()}>
-            <RefreshCw className={`h-3.5 w-3.5 ${q.isFetching ? 'animate-spin' : ''}`} />
+    <div className="space-y-4">
+      <ForexWorkspaceHeader
+        title="Alerts & notifications"
+        purpose="Cross-desk operator alerts — acknowledge and resolve with audit."
+        dataSource="forex_operator_notifications"
+        posture="MOCK"
+        kpis={[
+          { label: 'In scope (total)', value: String(pageStats.total) },
+          { label: 'Open (this page)', value: String(pageStats.open) },
+          { label: 'Critical (page)', value: String(pageStats.critical), tone: pageStats.critical > 0 ? 'danger' : undefined },
+          { label: 'Filter', value: unresolvedOnly ? 'Unresolved' : 'All' },
+        ]}
+      />
+
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <StatChip label="Total matching" value={String(pageStats.total)} />
+        <StatChip label="Open on page" value={String(pageStats.open)} highlight={pageStats.open > 0} />
+        <StatChip label="Critical on page" value={String(pageStats.critical)} warn={pageStats.critical > 0} />
+        <StatChip label="Page" value={pagination ? `${pagination.page}/${Math.max(1, pagination.totalPages)}` : '—'} />
+      </div>
+
+      <ForexWorkspaceSurface noPadding>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-admin-border px-4 py-3">
+          <ForexSectionLabel icon={Bell}>Alert queue</ForexSectionLabel>
+          <Button size="sm" variant="ghost" className="h-8" onClick={() => void q.refetch()}>
+            <RefreshCw className={cn('h-3.5 w-3.5', q.isFetching && 'animate-spin')} />
           </Button>
-        }
-        noPadding
-      >
-        <div className="border-b border-admin-border p-3">
-          <label className="flex items-center gap-2 text-xs text-admin-muted">
-            <input type="checkbox" checked={unresolvedOnly} onChange={(e) => { setUnresolvedOnly(e.target.checked); setPage(1); }} />
-            Unresolved only
-          </label>
+        </div>
+        <div className="border-b border-admin-border/60 px-4 py-2">
+          <ForexFilterBar className="border-0 bg-transparent p-0">
+            <label className="flex items-center gap-2 text-xs text-admin-muted">
+              <input type="checkbox" checked={unresolvedOnly} onChange={(e) => { setUnresolvedOnly(e.target.checked); setPage(1); }} />
+              Unresolved only
+            </label>
+            {(['all', 'critical', 'high', 'medium', 'info'] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setSeverityFilter(s)}
+                className={cn(
+                  'rounded-md px-2 py-1 text-[10px] font-medium uppercase',
+                  severityFilter === s ? 'bg-violet-500/20 text-violet-200' : 'text-admin-muted hover:bg-white/5',
+                )}
+              >
+                {s}
+              </button>
+            ))}
+          </ForexFilterBar>
         </div>
         {q.isError ? (
           <p className="p-4 text-sm text-red-400">{q.error instanceof Error ? q.error.message : 'Failed'}</p>
         ) : (
-          <DataTable columns={columns} data={q.data?.rows ?? []} loading={q.isLoading} compact emptyMessage="No notifications match filters." />
+          <DataTable columns={columns} data={filteredRows} loading={q.isLoading} compact emptyMessage="No notifications match filters." />
         )}
-      </ForexPanelShell>
-
-      {pagination ? (
-        <div className="mt-3 flex items-center justify-between text-sm text-admin-muted">
-          <span>Page {pagination.page} of {Math.max(1, pagination.totalPages)}</span>
-          <div className="flex gap-1">
-            <Button type="button" variant="ghost" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button type="button" variant="ghost" size="sm" disabled={pagination.totalPages > 0 && page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+        {pagination ? (
+          <div className="flex items-center justify-between border-t border-admin-border px-4 py-2 text-xs text-admin-muted">
+            <span>
+              Page {pagination.page} of {Math.max(1, pagination.totalPages)} · {pagination.total} total
+            </span>
+            <div className="flex gap-1">
+              <Button type="button" variant="ghost" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button type="button" variant="ghost" size="sm" disabled={pagination.totalPages > 0 && page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
+      </ForexWorkspaceSurface>
 
       <ForexConfirmModal
         open={!!resolveId}
@@ -167,6 +222,15 @@ export function ForexNotificationsPanel() {
           if (resolveId) resolveM.mutate(resolveId);
         }}
       />
-    </>
+    </div>
+  );
+}
+
+function StatChip(props: { label: string; value: string; highlight?: boolean; warn?: boolean }) {
+  return (
+    <div className="rounded-lg border border-admin-border/60 bg-admin-bg/30 px-3 py-2">
+      <p className="text-[9px] uppercase tracking-wide text-admin-muted">{props.label}</p>
+      <p className={cn('text-lg font-semibold tabular-nums', props.warn && 'text-red-400', props.highlight && !props.warn && 'text-amber-300')}>{props.value}</p>
+    </div>
   );
 }

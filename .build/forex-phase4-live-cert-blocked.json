@@ -1,0 +1,66 @@
+{
+  "phase": 4,
+  "liveCertAttempt": "FINAL_GREEN_PASS",
+  "status": "BLOCKED",
+  "verdict": "CONDITIONAL / NOT_PROVEN",
+  "message": "PHASE 4 LIVE CERTIFICATION BLOCKED — SESSION CLOSED",
+  "checkedAtUtc": "2026-09-19T04:18:12.228Z",
+  "session": {
+    "open": false,
+    "reason": "WEEKEND_CLOSURE",
+    "weekend": true,
+    "timezone": "America/New_York",
+    "timestampFromApi": "2026-09-19T04:18:12.228Z",
+    "nextExpectedOpenNy": "2026-09-20T17:00:00-04:00",
+    "nextExpectedOpenUtc": "2026-09-20T21:00:00.000Z",
+    "contract": "FX 24x5 — closed Friday 17:00 NY through Sunday 17:00 NY (IANA DST)"
+  },
+  "quotes": {
+    "source": "SIMULATED",
+    "note": "MOCK quotes may still tick while session closed; customer order/preview gate remains SESSION_CLOSED"
+  },
+  "precheck": {
+    "branch": "release/exchange-production-baseline",
+    "gitHead": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "backendDigest": "sha256:1f04a223afccf729a8573866e7ef8cb7b216d911e22f1860c52934fad33e0e5b",
+    "backendHealthy": true,
+    "frontendHealthy": true,
+    "realForex": false,
+    "executionMode": "MOCK/SIMULATED",
+    "cryptoIsolation": {
+      "spot.fastify.ts": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+      "spot-ticker-db-load.ts": "bb2ffb23ab52ac81f37883bf58b36143a53cc2113614c96b3717fd08ae128613",
+      "matchPhase3Baseline": true
+    }
+  },
+  "liveTestsExecuted": [],
+  "liveTestsBlocked": [
+    "TEST_A_LONG_BID_MARK",
+    "TEST_B_PRE_TRADE_PREVIEW",
+    "TEST_C_PREVIEW_VS_PLACE",
+    "TEST_D_MARGIN_CALL",
+    "TEST_E_STOP_OUT",
+    "TEST_F_LIQUIDATION_ORDERING",
+    "TEST_G_DOUBLE_LIQUIDATION",
+    "TEST_H_LEDGER_INTEGRITY_LIVE",
+    "TEST_I_RISK_WEBSOCKET_LIVE",
+    "TEST_J_IDOR_LIVE",
+    "CUSTOMER_BROWSER",
+    "ADMIN_RISK_HUB"
+  ],
+  "unitTestsThisPass": {
+    "forex-phase6.test.ts": "PASS",
+    "forex-phase5.test.ts": "PASS",
+    "forex-phase7.test.ts": "PASS",
+    "forex-phase8.test.ts": "PASS",
+    "forex-phase104-preview.test.ts": "NOT_RUN_IN_BATCH",
+    "entry-price-reconcile.test.ts": "NOT_RUN_IN_BATCH",
+    "note": "Unit test clock ≠ live certification per Phase-4 policy"
+  },
+  "deployment": {
+    "redeployRequired": false,
+    "reason": "No code changes; session gate prevents live cert"
+  },
+  "phase5Unlocked": false,
+  "resumeInstruction": "Re-run live certification when GET /api/v1/forex/sessions reports eligibility.open=true (expected from 2026-09-20T21:00:00Z). Use scripts/forex-phase4-runtime-cert.mjs extended for full A–J matrix."
+}

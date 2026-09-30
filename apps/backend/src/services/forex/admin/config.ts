@@ -19,8 +19,19 @@ import { snapshotForexRiskPolicy } from '../risk/policy.js';
 import { getForexDealingSnapshot } from '../risk/dealing.js';
 import { forexSessionSnapshot } from '../sessions/eligibility.js';
 import { listForexSwapPolicies } from '../swap/policy.js';
+import {
+  FOREX_CUSTOMER_EXPOSED_ORDER_TYPES,
+  FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE,
+  FOREX_CUSTOMER_ORDER_TYPES,
+  getForexCustomerCapabilityContract,
+} from '../capabilities/customer-contract.js';
+import { listForexCustomerOrderPaths, FOREX_ORDER_KINDS, FOREX_ORDER_SIDES } from '../capabilities/order-paths.js';
+import { resolveForexExecutionCapabilities } from '../capabilities/execution-resolver.js';
+import { forexCustomerSupportedTimeframes } from '../market-data/timeframe-registry.js';
+import { mockForexMarketDataProviderCapabilities } from '../market-data/provider-contracts.js';
 
-export const FOREX_CUSTOMER_ORDER_TYPES = ['market', 'limit', 'stop'] as const;
+export { FOREX_CUSTOMER_ORDER_TYPES };
+export { FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE as FOREX_CUSTOMER_TIME_IN_FORCE };
 
 export function getForexAdminBackendConfig() {
   const sessions = forexSessionSnapshot();
@@ -76,10 +87,23 @@ export function getForexAdminBackendConfig() {
 
 export function getForexCustomerTradingConfig() {
   const admin = getForexAdminBackendConfig();
+  const capabilities = getForexCustomerCapabilityContract();
   return {
     source: 'SIMULATED' as const,
     executionMode: 'MOCK' as const,
-    orderTypes: admin.orderTypes,
+    /** Canonical KIND values (combine with allowedSides for 8 customer paths). */
+    orderTypes: [...FOREX_CUSTOMER_EXPOSED_ORDER_TYPES],
+    orderKinds: [...FOREX_ORDER_KINDS],
+    allowedSides: [...FOREX_ORDER_SIDES],
+    orderModel: 'side_x_kind' as const,
+    customerOrderPaths: listForexCustomerOrderPaths(),
+    timeInForce: [...FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE],
+    capabilities,
+    executionCapabilities: resolveForexExecutionCapabilities(),
+    marketData: {
+      provider: mockForexMarketDataProviderCapabilities(),
+      supportedTimeframes: forexCustomerSupportedTimeframes(),
+    },
     sessions: admin.sessions,
     fees: { global: admin.fees.global, model: admin.fees.global.model },
     swaps: { rolloverTime: admin.swaps.global.rolloverTime, timezone: admin.swaps.global.timezone },

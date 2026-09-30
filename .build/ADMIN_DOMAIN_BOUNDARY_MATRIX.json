@@ -1,0 +1,36 @@
+{
+  "generatedAt": "2026-09-20T06:45:00Z",
+  "cryptoAuthority": {
+    "ledger": "Crypto balance_ledger / user_balances (NOT forex_ledger_*)",
+    "matching": "matching-engine service — admin routes /engine, /spot",
+    "wallets": "admin wallet/deposit/withdrawal routes",
+    "status": "PASS",
+    "evidence": "Separate route patterns in admin-rbac-routes.ts; no forex_* writes in admin-spot.fastify.ts"
+  },
+  "forexAuthority": {
+    "ledger": "forex_ledger_transactions, forex_ledger_entries",
+    "journal": "forex_journal_events",
+    "orders": "forex_orders, forex_executions, forex_positions",
+    "adminApi": "apps/backend/src/routes/admin-forex*.fastify.ts",
+    "customerApi": "/api/v1/forex/* (separate from admin)",
+    "status": "PASS",
+    "realForex": {
+      "runtimeEnv": "REAL_FOREX unset in exchange-backend container (2026-09-20)",
+      "codeGate": "apps/backend/src/services/forex/admin/execution-gate.ts, dealing-actions.ts REAL_FOREX checks",
+      "adminConfig": "getForexAdminBackendConfig realForex: false",
+      "classification": "MOCK/DEMO operational; LIVE_CAPABLE_BUT_DISABLED"
+    }
+  },
+  "sharedPlane": {
+    "users": "SHARED — /users, KYC",
+    "audit": "SHARED — /audit + forex journal admin views",
+    "settings": "SHARED — /settings, /system",
+    "status": "PARTIAL",
+    "note": "User records shared; Forex account IDs are VARCHAR scoped in forex_* tables"
+  },
+  "leakageRisks": [
+    { "area": "control:trading permission", "domains": ["CRYPTO halt", "Forex controls alias"], "severity": "P1", "action": "RE-SCOPE on refactor" },
+    { "area": "/fees admin page", "domains": ["CRYPTO fees vs Forex fees-swaps"], "severity": "P2", "action": "RENAME/MOVE for clarity" },
+    { "area": "Dirty working tree spot.fastify.ts", "domains": ["CRYPTO"], "severity": "P0 for future admin work", "action": "DO NOT TOUCH — isolate before any shared refactor" }
+  ]
+}

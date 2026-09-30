@@ -1,0 +1,367 @@
+{
+  "phase": 3,
+  "timestampUtc": "2026-09-18T16:16:57.411Z",
+  "baseUrl": "http://127.0.0.1:4000",
+  "traderA": "qa_trader_a@local.exchange",
+  "traderB": "qa_trader_b@local.exchange",
+  "dbBaseline": {},
+  "dbAfter": {},
+  "matrix": {
+    "market_buy": {
+      "verdict": "RUNTIME_VERIFIED",
+      "orderId": "97cb25ca-ed08-4ab0-9320-9d9c2d20d87f",
+      "clientOrderId": "p3-mkt-buy-1789748201989",
+      "executionId": "9cd0e634-98ed-4bdd-bd8e-0e8d976d3eb5",
+      "finalStatus": "FILLED",
+      "notes": [
+        "wsPrivateOrderEvent: true"
+      ]
+    },
+    "market_sell": {
+      "verdict": "RUNTIME_VERIFIED",
+      "orderId": "61ccca06-6586-485a-8a05-a1531d70ab83",
+      "clientOrderId": "p3-mkt-sell-1789748201989",
+      "executionId": "927acfe8-087b-4b8b-87c5-9560627e72f0",
+      "finalStatus": "FILLED"
+    },
+    "limit_buy": {
+      "verdict": "RUNTIME_VERIFIED",
+      "orderId": "309831a0-ea59-47c5-9ce2-53b9b5a49baf",
+      "clientOrderId": "p3-lim-buy-1789748201989",
+      "executionId": "1a910a28-26f0-4614-b56f-308d7d6e5f33",
+      "finalStatus": "FILLED"
+    },
+    "limit_sell": {
+      "verdict": "RUNTIME_VERIFIED",
+      "orderId": "c9a8f045-75ef-4ad9-9f24-117743ce414e",
+      "clientOrderId": "p3-lim-sell-1789748201989",
+      "executionId": "b6ab86dc-808f-40c9-9060-f730eee8c3fd",
+      "finalStatus": "FILLED"
+    },
+    "buy_stop": {
+      "verdict": "RUNTIME_VERIFIED",
+      "orderId": "296d4181-7848-4ef5-a53f-fd6536a0bf89",
+      "clientOrderId": "p3-buy-stop-1789748201989",
+      "finalStatus": "FILLED",
+      "notes": [
+        "trigger 0.73146 vs ask path"
+      ]
+    },
+    "sell_stop": {
+      "verdict": "RUNTIME_VERIFIED",
+      "orderId": "778f29f6-c875-4bc9-8ccf-a68e47c9350a",
+      "clientOrderId": "p3-sell-stop-1789748201989",
+      "finalStatus": "FILLED"
+    },
+    "buy_stop_limit": {
+      "verdict": "RUNTIME_VERIFIED",
+      "orderId": "de1da218-f1c6-4d0e-a30a-88aa860c6f42",
+      "clientOrderId": "p3-bsl-1789748201989",
+      "executionId": "42b60bed-29e4-466d-b0aa-5346d12ab3b3",
+      "finalStatus": "FILLED",
+      "notes": [
+        "journalEvents: 4"
+      ]
+    },
+    "sell_stop_limit": {
+      "verdict": "RUNTIME_VERIFIED",
+      "orderId": "82c902ef-b024-4314-8ba9-bd90f2f5adba",
+      "clientOrderId": "p3-ssl-1789748201989",
+      "executionId": "9c461e4e-4d6d-47c7-9d17-4380d1af55ce",
+      "finalStatus": "FILLED"
+    },
+    "tif_ioc": {
+      "verdict": "RUNTIME_VERIFIED",
+      "orderId": "97c901a2-e480-4d8d-a076-0e73f70be594",
+      "clientOrderId": "p3-ioc-1789748201989",
+      "finalStatus": "FILLED"
+    },
+    "tif_fok": {
+      "verdict": "RUNTIME_VERIFIED",
+      "orderId": "5e08ac49-b09a-4b6a-ac23-a2fae921e1a1",
+      "clientOrderId": "p3-fok-1789748201989",
+      "finalStatus": "FILLED"
+    },
+    "tif_day": {
+      "verdict": "PARTIAL_RUNTIME_VERIFIED",
+      "orderId": "3331158b-7da5-4373-a8bd-a0bb3e87430f",
+      "clientOrderId": "p3-day-1789748201989",
+      "finalStatus": "CANCELLED",
+      "notes": [
+        "DAY session expiry not waited; accept+cancel path only"
+      ]
+    },
+    "tif_gtc": {
+      "verdict": "RUNTIME_VERIFIED",
+      "notes": [
+        "exercised via limit_buy GTC path",
+        "limitBuyTif GTC"
+      ]
+    },
+    "tif_gtd": {
+      "verdict": "NOT_PROVEN",
+      "notes": [
+        "GTD not exposed; engine rejects if sent"
+      ]
+    },
+    "idempotency_client_order_id": {
+      "verdict": "RUNTIME_VERIFIED",
+      "orderId": "708073d2-99a9-4be1-a5af-114b3ee55851",
+      "notes": [
+        "replayOrderId 708073d2-99a9-4be1-a5af-114b3ee55851"
+      ]
+    },
+    "execution_lineage": {
+      "verdict": "RUNTIME_VERIFIED",
+      "orderId": "82c902ef-b024-4314-8ba9-bd90f2f5adba",
+      "executionId": "9c461e4e-4d6d-47c7-9d17-4380d1af55ce",
+      "notes": [
+        "journalEvents 3",
+        "clientOrderId p3-ssl-1789748201989"
+      ]
+    },
+    "position_management": {
+      "verdict": "RUNTIME_VERIFIED",
+      "notes": [
+        "openPositions 1"
+      ]
+    }
+  },
+  "security": {
+    "crossAccountOrder": "RUNTIME_VERIFIED",
+    "crossAccountJournal": "RUNTIME_VERIFIED"
+  },
+  "wsEvidence": {
+    "privateOrderChannel": {
+      "events": [
+        "{\"type\":\"welcome\",\"data\":{\"protocol\":\"eda.forex.ws.v1\",\"source\":\"SIMULATED\",\"events\":[\"fx.quote\",\"fx.liquidity\",\"fx.execution\"],\"authenticatedEvents\":[\"fx.order\",\"fx.position\",\"fx.margin\",\"fx.risk\",\"fx.account\",\"fx.balance\",\"fx.pnl\",\"fx.equ",
+        "{\"type\":\"subscribed\",\"channel\":\"fx.order\",\"data\":{\"ok\":true,\"source\":\"SIMULATED\"},\"timestamp\":1789748204512}",
+        "{\"type\":\"fx.order\",\"channel\":\"fx.order\",\"data\":{\"source\":\"SIMULATED\",\"status\":\"SUBSCRIBED\"},\"timestamp\":1789748204513}",
+        "{\"type\":\"fx.order.created\",\"channel\":\"fx.order.created\",\"data\":{\"source\":\"SIMULATED\",\"executionMode\":\"MOCK\",\"event\":\"fx.order.created\",\"order\":{\"orderId\":\"97cb25ca-ed08-4ab0-9320-9d9c2d20d87f\",\"clientOrderId\":\"p3-mkt-buy-1789748201989\",\"cli",
+        "{\"type\":\"fx.order.filled\",\"channel\":\"fx.order.filled\",\"data\":{\"source\":\"SIMULATED\",\"executionMode\":\"MOCK\",\"event\":\"fx.order.filled\",\"order\":{\"orderId\":\"97cb25ca-ed08-4ab0-9320-9d9c2d20d87f\",\"clientOrderId\":\"p3-mkt-buy-1789748201989\",\"client"
+      ],
+      "sawFxOrder": true
+    }
+  },
+  "tradingConfig": {
+    "source": "SIMULATED",
+    "executionMode": "MOCK",
+    "orderTypes": [
+      "market",
+      "limit",
+      "stop",
+      "stop_limit"
+    ],
+    "timeInForce": [
+      "GTC",
+      "IOC",
+      "FOK",
+      "DAY"
+    ],
+    "capabilities": {
+      "version": 1,
+      "executionMode": "MOCK",
+      "source": "SIMULATED",
+      "realForex": false,
+      "orderTypes": {
+        "market": {
+          "engine": true,
+          "customerExposed": true,
+          "runtimeCertification": "MOCK_ONLY"
+        },
+        "limit": {
+          "engine": true,
+          "customerExposed": true,
+          "runtimeCertification": "MOCK_ONLY"
+        },
+        "stop": {
+          "engine": true,
+          "customerExposed": true,
+          "runtimeCertification": "MOCK_ONLY"
+        },
+        "stopLimit": {
+          "engine": true,
+          "customerExposed": true,
+          "runtimeCertification": "MOCK_ONLY"
+        }
+      },
+      "timeInForce": {
+        "gtc": {
+          "engine": true,
+          "customerExposed": true,
+          "runtimeCertification": "MOCK_ONLY"
+        },
+        "day": {
+          "engine": true,
+          "customerExposed": true,
+          "runtimeCertification": "MOCK_ONLY"
+        },
+        "ioc": {
+          "engine": true,
+          "customerExposed": true,
+          "runtimeCertification": "MOCK_ONLY"
+        },
+        "fok": {
+          "engine": true,
+          "customerExposed": true,
+          "runtimeCertification": "MOCK_ONLY"
+        },
+        "gtd": {
+          "engine": false,
+          "customerExposed": false,
+          "runtimeCertification": "NOT_CERTIFIED"
+        }
+      },
+      "positionModes": {
+        "netting": {
+          "engine": true,
+          "customerExposed": false,
+          "runtimeCertification": "NOT_CERTIFIED"
+        },
+        "hedging": {
+          "engine": true,
+          "customerExposed": false,
+          "runtimeCertification": "NOT_CERTIFIED"
+        }
+      },
+      "protections": {
+        "sl": {
+          "engine": true,
+          "customerExposed": true,
+          "runtimeCertification": "NOT_CERTIFIED"
+        },
+        "tp": {
+          "engine": true,
+          "customerExposed": true,
+          "runtimeCertification": "NOT_CERTIFIED"
+        },
+        "trailing": {
+          "engine": true,
+          "customerExposed": false,
+          "runtimeCertification": "NOT_CERTIFIED"
+        }
+      },
+      "positionActions": {
+        "close": {
+          "engine": true,
+          "customerExposed": true,
+          "runtimeCertification": "NOT_CERTIFIED"
+        },
+        "partialClose": {
+          "engine": true,
+          "customerExposed": true,
+          "runtimeCertification": "NOT_CERTIFIED"
+        },
+        "closeBy": {
+          "engine": true,
+          "customerExposed": false,
+          "runtimeCertification": "NOT_CERTIFIED"
+        },
+        "reverse": {
+          "engine": true,
+          "customerExposed": false,
+          "runtimeCertification": "NOT_CERTIFIED"
+        }
+      },
+      "customer": {
+        "orderTypes": [
+          "market",
+          "limit",
+          "stop",
+          "stop_limit"
+        ],
+        "timeInForce": [
+          "GTC",
+          "IOC",
+          "FOK",
+          "DAY"
+        ]
+      },
+      "engine": {
+        "orderTypes": [
+          "market",
+          "limit",
+          "stop",
+          "stop_limit"
+        ],
+        "timeInForce": [
+          "GTC",
+          "IOC",
+          "FOK",
+          "DAY"
+        ]
+      }
+    },
+    "sessions": {
+      "source": "SIMULATED",
+      "calendar": {
+        "id": "f0000000-0000-4000-8000-0000000000c1",
+        "code": "FX_WEEK_IANA",
+        "name": "FX 24x5 IANA sessions",
+        "timezone": "America/New_York"
+      },
+      "sessions": [
+        "Sydney",
+        "Tokyo",
+        "London",
+        "New York"
+      ],
+      "eligibility": {
+        "sessions": [
+          "New York"
+        ],
+        "overlaps": [],
+        "holidayCoverage": "UNCONFIGURED",
+        "holidayRequired": false,
+        "holidaySafe": true,
+        "dstApplied": true,
+        "timezone": "America/New_York",
+        "timestamp": "2026-09-18T16:16:44.224Z",
+        "source": "SIMULATED",
+        "open": true,
+        "reason": "OPEN",
+        "weekend": false,
+        "holiday": false
+      },
+      "holidayCoverage": "UNCONFIGURED",
+      "holidayRequired": false,
+      "holidaySafe": true,
+      "exceptionsConfigured": 0,
+      "dstApplied": true,
+      "dstModel": "IANA",
+      "weekendTimezone": "America/New_York",
+      "valuationPolicy": {
+        "longExecutableClose": "BID",
+        "shortExecutableClose": "ASK",
+        "usedMargin": "SUM_INITIAL_MARGIN_OPEN",
+        "equity": "CUSTOMER_CASH + UNREALIZED_PNL",
+        "freeMargin": "EQUITY - USED_MARGIN",
+        "availableBalance": "FREE_MARGIN",
+        "midNeverDrivesLiquidationEquity": true,
+        "source": "SIMULATED"
+      }
+    },
+    "fees": {
+      "global": {
+        "model": "per_lot",
+        "rate": "0",
+        "minimum": "0"
+      },
+      "model": "per_lot"
+    },
+    "swaps": {
+      "rolloverTime": "21:00",
+      "timezone": "UTC"
+    },
+    "leverage": {
+      "globalMax": "100",
+      "defaultAccount": "50"
+    },
+    "holiday": {
+      "coverage": "UNCONFIGURED",
+      "required": false,
+      "holidaySafe": true,
+      "dstApplied": true
+    }
+  }
+}

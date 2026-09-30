@@ -1,0 +1,79 @@
+{
+  "generated_at": "2026-09-17T20:18:19.315Z",
+  "product": "Unified Trading Platform — Forex Admin / CRM / Operations",
+  "repository": {
+    "commit": "8ef599983974e84679bf44010ca3d8154785665a",
+    "branch": "release/exchange-production-baseline",
+    "forex_admin_routes": 36
+  },
+  "execution": {
+    "real_forex": false,
+    "mock_simulated": true,
+    "external_lp": "NOT_CONFIGURED",
+    "mt4": "DISABLED",
+    "mt5": "DISABLED",
+    "fix": "DISABLED",
+    "ctrader": "DISABLED"
+  },
+  "environments": {
+    "certification": {
+      "admin": "http://127.0.0.1:3010/admin (host next start, API :4100)",
+      "forex_api": "http://127.0.0.1:4100 (forex-cert-backend, exchange_forex_cert DB)",
+      "container": "forex-cert-backend"
+    },
+    "live_vps": {
+      "operator_url": "http://109.123.254.30/admin",
+      "nginx_upstream": "admin-panel:3001 → exchange-admin container",
+      "api": "exchange-backend :4000 via nginx /api",
+      "host": "vmi3391742"
+    }
+  },
+  "deployment_drift_probe": [
+    {
+      "path": "/forex/crm/home",
+      "cert_3010": 200,
+      "live_80": 200,
+      "public_vps": 200
+    },
+    {
+      "path": "/forex/crm/my-clients",
+      "cert_3010": 200,
+      "live_80": 200,
+      "public_vps": 200
+    },
+    {
+      "path": "/forex/crm/segments",
+      "cert_3010": 200,
+      "live_80": 200,
+      "public_vps": 200
+    }
+  ],
+  "domains": [
+    "Command Center",
+    "CRM",
+    "Client 360",
+    "Trading",
+    "Dealing",
+    "Risk",
+    "Accounts",
+    "Markets",
+    "Finance",
+    "Partners",
+    "Compliance",
+    "Automation",
+    "Reporting",
+    "Global Controls",
+    "Audit",
+    "Integrations",
+    "System"
+  ],
+  "prior_artifacts": [
+    ".build/forex-tier1-ui-completion-inventory.json",
+    ".build/forex-tier1-gap-register.json",
+    ".build/forex-live-ui-verification.json"
+  ],
+  "notes": [
+    "Cert :3010 and live :80/admin are different processes; CRM Phase A routes 404 on live until exchange-admin image rebuild.",
+    "Crypto financial core must not be modified during Forex UI deployment."
+  ]
+}

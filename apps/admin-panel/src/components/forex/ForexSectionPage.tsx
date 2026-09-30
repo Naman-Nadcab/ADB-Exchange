@@ -43,10 +43,27 @@ import { FOREX_ADMIN_ROUTES } from '@/lib/admin/forex-admin-nav';
 import { forexRouteMaturity } from '@/lib/admin/forex-nav-groups';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { ForexWorkspaceHeader } from '@/components/forex/primitives/ForexWorkspaceHeader';
+import { ForexRouteWorkspace } from '@/components/forex/primitives/ForexRouteWorkspace';
 
 /** Panels that render their own workspace header (avoid duplicate). */
-const PANEL_OWN_WORKSPACE_HEADER = new Set(['command', 'dealing', 'market-data', 'accounts', 'automation']);
+const PANEL_OWN_WORKSPACE_HEADER = new Set([
+  'command',
+  'dealing',
+  'market-data',
+  'accounts',
+  'automation',
+  'notifications',
+  'system',
+  'orders',
+  'executions',
+  'positions',
+  'protection',
+  'instruments',
+  'controls',
+  'fees-swaps',
+  'margin-risk',
+  'crm-home',
+]);
 
 const OPS_TABLE_KIND: Record<string, ForexOpsTableKind> = {
   orders: 'orders',
@@ -250,15 +267,10 @@ export function ForexSectionPage({ sectionId }: { sectionId: string }) {
       }}
       quickActions={maturityQuickBadge(routeId)}
     >
-      {!PANEL_OWN_WORKSPACE_HEADER.has(routeId) ? (
-        <ForexWorkspaceHeader
-          title={route.label}
-          purpose={route.description}
-          dataSource="Admin Forex API · PostgreSQL (MOCK/SIMULATED venue)"
-          posture="MOCK"
-        />
-      ) : null}
-      {renderBody()}
+      <div className="space-y-4">
+        {!PANEL_OWN_WORKSPACE_HEADER.has(routeId) ? <ForexRouteWorkspace routeId={routeId} /> : null}
+        {renderBody()}
+      </div>
     </AdminPageFrame>
   );
 }

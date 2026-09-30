@@ -49,8 +49,8 @@ Live funding, broker trading/investor passwords, account closure, broker credit 
 
 ## 9. Commit
 
-_(filled after commit)_
+`978ba02` — `fix(forex): surface complete account management experience`
 
 ## 10. Push verification
 
-_(filled after push)_
+`HEAD == origin/release/exchange-production-baseline` → `978ba025cc70aa595ead13a015c0bc8820095398`

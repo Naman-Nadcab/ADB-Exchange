@@ -10,7 +10,8 @@ import { evaluatePreTradeRisk } from '../risk/pretrade.js';
 import type { ForexPricingService } from '../quotes.service.js';
 import type { ForexPositionService } from '../positions/service.js';
 import type { ForexOrderService } from './service.js';
-import type { ForexCustomerOrderType, ForexOrderRequest } from './request.js';
+import type { ForexCustomerOrderType, ForexOrderRequest, ForexTimeInForce } from './request.js';
+import { isForexPendingOrderType } from './pending.js';
 import { validateForexOrderRequest } from './validate.js';
 
 export type ForexPreviewRequest = {
@@ -19,6 +20,8 @@ export type ForexPreviewRequest = {
   orderType: ForexCustomerOrderType;
   volume: string;
   requestedPrice?: string;
+  limitPrice?: string;
+  timeInForce?: ForexTimeInForce;
   maxSlippage?: string;
   maxDeviation?: string;
 };
@@ -73,9 +76,18 @@ export function previewForexOrder(
     clientOrderId: 'preview',
     symbol: raw.symbol,
     side: raw.side === 'sell' ? 'sell' : 'buy',
-    orderType: raw.orderType === 'limit' ? 'limit' : raw.orderType === 'stop' ? 'stop' : 'market',
+    orderType:
+      raw.orderType === 'limit'
+        ? 'limit'
+        : raw.orderType === 'stop'
+          ? 'stop'
+          : raw.orderType === 'stop_limit'
+            ? 'stop_limit'
+            : 'market',
     volume: String(raw.volume ?? ''),
     requestedPrice: raw.requestedPrice,
+    limitPrice: raw.limitPrice,
+    timeInForce: raw.timeInForce,
     maxSlippage: raw.maxSlippage,
     maxDeviation: raw.maxDeviation,
   };
@@ -123,7 +135,7 @@ export function previewForexOrder(
         })
       : current;
 
-  const pendingLike = req.orderType === 'limit' || req.orderType === 'stop';
+  const pendingLike = isForexPendingOrderType(req.orderType);
   const openForSymbol = deps.orders
     .listOwned(accountId)
     .filter((o) => o.symbol === symbol && !['FILLED', 'REJECTED', 'CANCELLED', 'FAILED'].includes(o.status)).length;

@@ -134,6 +134,12 @@ export class ForexExecutionService {
     }
     record.request.symbol = pre.symbol;
 
+    const { assertBrokerAdapterReadyForExecution } = await import('../adapters/execution-bridge.js');
+    const adapterGate = await assertBrokerAdapterReadyForExecution();
+    if (!adapterGate.ok) {
+      return await this.finish(record, 'REJECTED', adapterGate.reason, started);
+    }
+
     this.transition(record, 'ROUTING');
     const now = new Date();
     const snap = this.pricing.getRoutingSnapshot(pre.symbol, now);

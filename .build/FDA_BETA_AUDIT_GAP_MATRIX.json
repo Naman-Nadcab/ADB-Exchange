@@ -1,0 +1,41 @@
+{
+  "audit": "FDA_BETA_FRESH_2026-09-30",
+  "git_head": "effd130cb716f3646600f6324beaf4ec6a32c47e",
+  "features": [
+    {"feature": "Crypto Spot", "user_ui": "REAL", "admin_ui": "REAL", "backend": "REAL", "database": "REAL", "runtime": "NOT_PROVEN", "external": "ME+NATS", "status": "NOT_PROVEN"},
+    {"feature": "Crypto Deposits", "user_ui": "REAL", "admin_ui": "REAL", "backend": "REAL", "database": "REAL", "runtime": "NOT_PROVEN", "external": "INDEXER+CHAIN", "status": "NOT_PROVEN"},
+    {"feature": "Crypto Withdrawals", "user_ui": "REAL", "admin_ui": "REAL", "backend": "REAL", "database": "REAL", "runtime": "NOT_PROVEN", "external": "SIGNING", "status": "NOT_PROVEN"},
+    {"feature": "Crypto Wallet", "user_ui": "REAL", "admin_ui": "REAL", "backend": "REAL", "database": "REAL", "runtime": "NOT_PROVEN", "external": "N/A", "status": "NOT_PROVEN"},
+    {"feature": "Crypto P2P", "user_ui": "REAL", "admin_ui": "REAL", "backend": "REAL", "database": "REAL", "runtime": "NOT_PROVEN", "external": "N/A", "status": "NOT_PROVEN"},
+    {"feature": "Crypto Ledger", "user_ui": "GATED", "admin_ui": "REAL", "backend": "REAL", "database": "REAL", "runtime": "NOT_PROVEN", "external": "N/A", "status": "NOT_PROVEN"},
+    {"feature": "Forex Market Data", "user_ui": "REAL", "admin_ui": "REAL", "backend": "SIMULATED", "database": "REAL", "runtime": "SIMULATED", "external": "Yahoo ref bars", "status": "SIMULATED"},
+    {"feature": "Forex Execution", "user_ui": "REAL", "admin_ui": "REAL", "backend": "MOCK", "database": "REAL", "runtime": "MOCK", "external": "NONE", "status": "MOCK"},
+    {"feature": "Forex Accounts", "user_ui": "REAL", "admin_ui": "REAL", "backend": "REAL", "database": "REAL", "runtime": "REAL", "external": "N/A", "status": "DONE"},
+    {"feature": "Forex Deposits", "user_ui": "REAL", "admin_ui": "REAL", "backend": "SIMULATED", "database": "REAL", "runtime": "GATED", "external": "PSP", "status": "GATED"},
+    {"feature": "Forex Withdrawals", "user_ui": "REAL", "admin_ui": "REAL", "backend": "SIMULATED", "database": "REAL", "runtime": "GATED", "external": "PSP", "status": "GATED"},
+    {"feature": "Forex Transfers", "user_ui": "REAL", "admin_ui": "REAL", "backend": "REAL", "database": "REAL", "runtime": "SIMULATED", "external": "N/A", "status": "DEMO"},
+    {"feature": "Forex Ledger", "user_ui": "REAL", "admin_ui": "REAL", "backend": "REAL", "database": "REAL", "runtime": "REAL", "external": "N/A", "status": "DONE"},
+    {"feature": "Forex Risk/Liquidation", "user_ui": "PARTIAL", "admin_ui": "REAL", "backend": "REAL", "database": "REAL", "runtime": "NOT_PROVEN", "external": "N/A", "status": "NOT_PROVEN"},
+    {"feature": "Forex MT5 UI", "user_ui": "REAL", "admin_ui": "N/A", "backend": "N/A", "database": "N/A", "runtime": "NOT_PROVEN", "external": "NO MT5 BRIDGE", "status": "NOT_CONNECTED"},
+    {"feature": "KYC", "user_ui": "REAL", "admin_ui": "REAL", "backend": "REAL", "database": "REAL", "runtime": "NOT_PROVEN", "external": "PROVIDER", "status": "NOT_PROVEN"},
+    {"feature": "AML", "user_ui": "GATED", "admin_ui": "REAL", "backend": "REAL", "database": "REAL", "runtime": "NOT_PROVEN", "external": "N/A", "status": "NOT_PROVEN"},
+    {"feature": "Sanctions", "user_ui": "GATED", "admin_ui": "PARTIAL", "backend": "PARTIAL", "database": "PARTIAL", "runtime": "NOT_PROVEN", "external": "N/A", "status": "NOT_PROVEN"},
+    {"feature": "Notifications", "user_ui": "REAL", "admin_ui": "REAL", "backend": "PARTIAL", "database": "REAL", "runtime": "NOT_PROVEN", "external": "EMAIL/SMS", "status": "NOT_PROVEN"},
+    {"feature": "Cards", "user_ui": "MISSING", "admin_ui": "MISSING", "backend": "MISSING", "database": "MISSING", "runtime": "MISSING", "external": "N/A", "status": "MISSING"},
+    {"feature": "Fiat INR", "user_ui": "REAL", "admin_ui": "REAL", "backend": "REAL", "database": "REAL", "runtime": "NOT_PROVEN", "external": "BANK", "status": "NOT_PROVEN"},
+    {"feature": "Treasury", "user_ui": "GATED", "admin_ui": "REAL", "backend": "REAL", "database": "REAL", "runtime": "NOT_PROVEN", "external": "N/A", "status": "NOT_PROVEN"},
+    {"feature": "Reconciliation", "user_ui": "GATED", "admin_ui": "REAL", "backend": "REAL", "database": "REAL", "runtime": "NOT_PROVEN", "external": "N/A", "status": "NOT_PROVEN"}
+  ],
+  "findings": [
+    {"id": "P0-001", "severity": "P0", "domain": "SECURITY", "title": "Admin fiat routes lack RBAC + zero-trust route map gap", "evidence": "admin-fiat.fastify.ts auth-only; /approval-requests unmapped in admin-rbac-routes.ts"},
+    {"id": "P0-002", "severity": "P0", "domain": "DEPLOY", "title": "Repo working tree massively dirty vs HEAD", "evidence": "~808 git status paths; runtime image provenance unclear"},
+    {"id": "P0-003", "severity": "P0", "domain": "DEPLOY", "title": "Deploy rev file stale vs HEAD", "evidence": ".deploy-rev=8ef5999, HEAD=effd130"},
+    {"id": "P1-001", "severity": "P1", "domain": "FOREX", "title": "Live execution is MOCK/SIMULATED only", "evidence": "GET /api/v1/forex/capabilities realForex:false executionMode:MOCK"},
+    {"id": "P1-002", "severity": "P1", "domain": "DATABASE", "title": "No migration version table", "evidence": "migrate.ts sequential re-run; validate-migrations.ts checks subset only"},
+    {"id": "P1-003", "severity": "P1", "domain": "SECURITY", "title": "Cross-product admin permission aliasing", "evidence": "forex-admin-rbac.ts control:trading→forex controls; deposits:credit→forex finance"},
+    {"id": "P1-004", "severity": "P1", "domain": "FOREX", "title": "MT5-style UI not connected to MT5/broker", "evidence": "adapters/registry stubs; capabilities MOCK_ONLY"},
+    {"id": "P2-001", "severity": "P2", "domain": "CUSTOMER", "title": "Forex terminal drawing lifecycle not re-proven in this audit", "evidence": "e2e spec exists in repo; no Playwright run during read-only audit"},
+    {"id": "P2-002", "severity": "P2", "domain": "INFRA", "title": "Dual compose network naming (exchange-network vs exchange_network)", "evidence": "docker-compose.yml vs docker-compose.production.yml"},
+    {"id": "P3-001", "severity": "P3", "domain": "OBSERVABILITY", "title": "Misleading health URL via /api/v1/health", "evidence": "404; /health works at nginx root"}
+  ]
+}

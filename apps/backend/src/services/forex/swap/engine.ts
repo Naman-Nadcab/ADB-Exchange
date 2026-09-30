@@ -10,6 +10,7 @@ export interface ForexSwapCalcInput {
   side: 'long' | 'short';
   volume: string;
   at: Date;
+  accountId?: string;
 }
 
 export interface ForexSwapCalcResult {
@@ -32,7 +33,7 @@ export function isTripleSwapDay(at: Date, tripleSwapDay: number): boolean {
 }
 
 export function calculateForexSwap(input: ForexSwapCalcInput): ForexSwapCalcResult {
-  const rule = resolveForexSwap(input.symbol);
+  const rule = resolveForexSwap(input.symbol, input.accountId);
   const rate = fxDecimal(input.side === 'long' ? rule.longSwap : rule.shortSwap);
   const triple = isTripleSwapDay(input.at, rule.tripleSwapDay);
   const multiplier = triple ? fxDecimal(3) : fxDecimal(1);

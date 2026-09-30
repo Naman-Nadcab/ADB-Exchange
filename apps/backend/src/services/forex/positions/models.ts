@@ -113,4 +113,11 @@ export interface ForexPositionFillInput {
   timestamp: string;
   executionId?: string;
   orderId?: string;
+  /**
+   * When set, apply as reduce-only against this position (HEDGING closes /
+   * protection / liquidation). Required for HEDGING reduce intents.
+   */
+  reducePositionId?: string;
+  /** Order intent hint — open vs reduce. Default treated as open/customer. */
+  intent?: 'CUSTOMER' | 'CUSTOMER_CLOSE' | 'PROTECTION_CLOSE' | 'LIQUIDATION_CLOSE';
 }

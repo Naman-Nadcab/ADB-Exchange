@@ -1,0 +1,42 @@
+{
+  "generatedAt": "2026-09-20T09:30:00Z",
+  "summaryCounts": {
+    "cryptoCapabilities": 24,
+    "forexCapabilities": 38,
+    "sharedCapabilities": 32,
+    "totalRowsApprox": 94
+  },
+  "legend": {
+    "exists": "PASS|PARTIAL|MISSING|MOCK|NOT_CONFIGURED",
+    "runtimeVerified": "this audit pass unless noted"
+  },
+  "cryptoSample": [
+    { "capability": "Spot trading engine admin", "ui": "PASS", "api": "PASS", "service": "PASS", "db": "PASS", "rbac": "PARTIAL", "audit": "PARTIAL", "domain": "CRYPTO", "risk": "HIGH" },
+    { "capability": "MM control", "ui": "PASS", "api": "PASS", "service": "PASS", "db": "PASS", "rbac": "PARTIAL", "audit": "PARTIAL", "domain": "CRYPTO", "risk": "HIGH" },
+    { "capability": "Deposits/Withdrawals admin", "ui": "PASS", "api": "PASS", "service": "PASS", "db": "PASS", "rbac": "PASS", "audit": "PASS", "domain": "CRYPTO", "risk": "HIGH" },
+    { "capability": "P2P disputes", "ui": "PASS", "api": "PASS", "service": "PASS", "db": "PASS", "rbac": "PARTIAL", "domain": "CRYPTO", "risk": "HIGH" },
+    { "capability": "Crypto reports/reconciliation", "ui": "PASS", "api": "PARTIAL", "service": "PARTIAL", "domain": "CRYPTO", "risk": "MEDIUM" }
+  ],
+  "forexSample": [
+    { "capability": "Forex dashboard/overview", "ui": "PASS", "api": "PASS", "service": "PASS", "db": "PASS", "domain": "FOREX", "runtime": "PARTIAL" },
+    { "capability": "Accounts", "ui": "PASS", "api": "PASS", "service": "PASS", "db": "forex_accounts", "domain": "FOREX" },
+    { "capability": "Orders/Executions/Positions", "ui": "PASS", "api": "PASS", "service": "PASS", "db": "PASS", "domain": "FOREX" },
+    { "capability": "Dealing desk", "ui": "PASS", "api": "PASS", "service": "MOCK when REAL_FOREX off", "domain": "FOREX" },
+    { "capability": "LP execution", "ui": "PASS", "api": "PARTIAL", "service": "NOT_CONFIGURED", "domain": "FOREX", "note": "REAL_FOREX OFF" },
+    { "capability": "Ledger/Journal", "ui": "PASS", "api": "PASS", "service": "PASS", "db": "forex_ledger_*", "domain": "FOREX" },
+    { "capability": "CRM", "ui": "PASS", "api": "PASS", "service": "PASS", "tests": "crm-client-360-scoping.test.ts", "domain": "FOREX" },
+    { "capability": "Liquidation admin", "ui": "PASS", "api": "PASS", "service": "PASS", "domain": "FOREX" }
+  ],
+  "sharedSample": [
+    { "capability": "Admin users", "ui": "PASS", "api": "PASS", "domain": "SHARED" },
+    { "capability": "Global settings", "ui": "PASS", "api": "PASS", "domain": "SHARED" },
+    { "capability": "KYC review", "ui": "PASS", "api": "PASS", "domain": "SHARED" },
+    { "capability": "System health", "ui": "PASS", "api": "PASS", "domain": "SHARED" },
+    { "capability": "Domain-scoped emergency controls", "ui": "PARTIAL", "api": "PARTIAL", "domain": "SHARED", "action": "RE-SCOPE" }
+  ],
+  "targetGaps": [
+    { "target": "Crypto Reports (dedicated)", "status": "PARTIAL", "action": "KEEP /analytics + reconciliation" },
+    { "target": "Forex Margin (standalone nav)", "status": "PASS", "path": "/forex/margin-risk" },
+    { "target": "Shared Emergency Controls page", "status": "PARTIAL", "split": "admin-control vs forex/controls" }
+  ]
+}

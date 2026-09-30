@@ -1,0 +1,90 @@
+{
+  "generatedAt": "2026-09-19T10:30:00.000Z",
+  "gitHead": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "stopConditionMet": false,
+  "overallStatus": "YELLOW",
+  "verification": {
+    "backendHealth": "healthy @ 127.0.0.1:4000",
+    "forexPreMarketCert": { "pass": true, "script": "scripts/forex-pre-market-cert.mjs" },
+    "forexPreMarketBrowser": { "pass": true, "script": "scripts/forex-pre-market-browser.mjs" },
+    "unitTests": [
+      "forex-gtd.test.ts PASS",
+      "forex-phase1a-hedging.test.ts PASS",
+      "forex-phase1c-stoplimit-tif.test.ts PASS",
+      "forex-phase103-candles.test.ts PASS"
+    ],
+    "gtdRestartPersistence": "NOT_RUN — requires deploy + create GTD pending + backend restart",
+    "alertRestartPersistence": "NOT_RUN — requires deploy + create alert + backend restart",
+    "deployThisPass": false,
+    "liveDigests": "unchanged from prior deploy — new timeframe/alerts UI not in running images"
+  },
+  "cryptoIsolation": {
+    "unchanged": true,
+    "spot.fastify.ts": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "spot-ticker-db-load.ts": "bb2ffb23ab52ac81f37883bf58b36143a53cc2113614c96b3717fd08ae128613"
+  },
+  "realForex": false,
+  "sections": {
+    "orderTypes": { "color": "GREEN", "detail": "8 paths; contract MOCK_ONLY" },
+    "tifGtd": { "color": "GREEN", "detail": "Engine + DB expire_at; restart cert pending" },
+    "executionCapabilities": { "color": "GREEN", "detail": "Resolver + capabilities endpoint" },
+    "hedgingNetting": { "color": "GREEN", "detail": "Tests PASS; mode switch guarded" },
+    "slTpTrailing": { "color": "YELLOW", "detail": "Engine GREEN; SL/TP runtime cert NOT_CERTIFIED in contract until market" },
+    "pendingOrders": { "color": "YELLOW", "detail": "API + drag; market trigger cert pending" },
+    "chart": { "color": "YELLOW", "detail": "Trading overlays; full type modes partial" },
+    "timeframes": { "color": "YELLOW", "detail": "Full registry in code; live deploy verify pending" },
+    "indicators": { "color": "YELLOW", "detail": "Calculations exist; registry/UI parity incomplete" },
+    "drawings": { "color": "YELLOW", "detail": "Subset persisted; professional catalog incomplete" },
+    "dom": { "color": "BLUE", "detail": "PROVIDER_DEPENDENT — no authoritative depth" },
+    "timeAndSales": { "color": "BLUE", "detail": "PROVIDER_DEPENDENT — no trade tape feed" },
+    "marketWatch": { "color": "YELLOW", "detail": "Quote fields; no fabricated O/H/L" },
+    "symbolSpecifications": { "color": "GREEN", "detail": "Catalog authoritative MOCK" },
+    "alerts": { "color": "YELLOW", "detail": "Server BID/ASK/PRICE + UI; full type matrix + PUSH/EMAIL partial" },
+    "historyExports": { "color": "YELLOW", "detail": "CSV; XLSX not certified" },
+    "performanceAnalytics": { "color": "YELLOW", "detail": "Ledger-based subset" },
+    "commandCenter": { "color": "GREEN", "detail": "Browser cert includes terminal routes" },
+    "riskCockpit": { "color": "GREEN", "detail": "Pre-market cert IDOR + WS" },
+    "workspace": { "color": "YELLOW", "detail": "Local persistence only" },
+    "economicCalendar": { "color": "BLUE", "detail": "PROVIDER_DEPENDENT" },
+    "news": { "color": "BLUE", "detail": "PROVIDER_DEPENDENT" },
+    "desktopVerification": { "color": "GREEN", "detail": "forex-pre-market-browser.mjs PASS" },
+    "tabletVerification": { "color": "GREEN", "detail": "forex-pre-market-browser.mjs PASS" },
+    "mobileVerification": { "color": "GREEN", "detail": "forex-pre-market-browser.mjs PASS" },
+    "securityIdor": { "color": "GREEN", "detail": "forex-pre-market-cert.mjs PASS" },
+    "dbLedgerJournal": { "color": "GREEN", "detail": "Schema verified; journal routes scoped" },
+    "websocket": { "color": "GREEN", "detail": "Auth + reconnect cert PASS" },
+    "marketRuntimeCertification": { "color": "YELLOW", "detail": "MARKET_DEPENDENT — session closed" },
+    "deployment": { "color": "YELLOW", "detail": "Code delta not deployed this pass" }
+  },
+  "exactRemainingItems": [
+    {
+      "classification": "MARKET_DEPENDENT",
+      "item": "Live certification of market/limit/stop/stop-limit fills, pending triggers, stop-limit activation, GTD/DAY expiry at session boundary, SL/TP/trailing ratchet under executable quotes"
+    },
+    {
+      "classification": "PROVIDER_DEPENDENT",
+      "item": "Authoritative DOM depth feed (getDepth) and Time & Sales tape — contracts and UI honest-unavailable only"
+    },
+    {
+      "classification": "PROVIDER_DEPENDENT",
+      "item": "Economic calendar and news content providers — abstraction and empty/unavailable UI only"
+    },
+    {
+      "classification": "MARKET_DEPENDENT",
+      "item": "GTD and server-alert restart persistence certification on running production images after next deploy"
+    },
+    {
+      "classification": "PROVIDER_DEPENDENT",
+      "item": "Alert delivery adapters PUSH/EMAIL/WEBHOOK — internal events table only until providers configured"
+    }
+  ],
+  "inScopeGapsRequiringImplementation": [
+    "Unified indicator registry wired to chart UI for full MT5 baseline set (SMMA, Stochastic, CCI, Momentum, ROC, Williams %R, ADX, Parabolic SAR, OBV, MFI, etc.)",
+    "Professional drawing catalog (Fib extension/time zones, Gann, polygon, undo/redo stack) beyond current ForexDrawingEngine subset",
+    "Chart types Heikin Ashi / Renko / Range / Tick where architecture supports without synthetic trades",
+    "History XLSX export if product standard requires",
+    "Cloud workspace persistence using existing user profile architecture",
+    "Server alert evaluators for ORDER_FILLED, PENDING_TRIGGERED, MARGIN, DRAWDOWN, SESSION_OPEN/CLOSE, LIQUIDATION",
+    "Docker migrate job must apply forex GTD/alerts DDL on fresh deploy (root cause fix)"
+  ]
+}

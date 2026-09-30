@@ -1,0 +1,87 @@
+{
+  "generatedAt": "2026-09-19T14:00:00Z",
+  "method": "Read-only re-inspection of current source (not historical reports alone)",
+  "gaps": [
+    {
+      "id": "indicators-vwap",
+      "description": "VWAP indicator",
+      "stillPresent": true,
+      "evidence": "ForexCandle has OHLC only (models/candles.ts); studies.ts: no volume-based studies; OBV uses proxy",
+      "classification": "BACKEND_DEPENDENT"
+    },
+    {
+      "id": "indicators-std-dev",
+      "description": "Standard Deviation indicator",
+      "stillPresent": true,
+      "evidence": "Not in indicator-registry; BB computes sd internally from closes",
+      "classification": "CLOSABLE_NOW",
+      "note": "Std dev of close prices from authoritative OHLC — no new data pipeline"
+    },
+    {
+      "id": "indicators-heikin",
+      "description": "Heikin Ashi chart mode",
+      "stillPresent": true,
+      "evidence": "Chart uses standard OHLC candles only; no heikin transform in ForexLightweightChart",
+      "classification": "BACKEND_DEPENDENT",
+      "note": "Requires chart-type pipeline beyond registry indicator; not fakeable without product decision"
+    },
+    {
+      "id": "indicators-renko",
+      "description": "Renko",
+      "stillPresent": true,
+      "evidence": "No tick/brick pipeline; OHLC-only candles",
+      "classification": "BACKEND_DEPENDENT"
+    },
+    {
+      "id": "alert-patch-condition",
+      "description": "Server alert condition editing UI",
+      "stillPresent": true,
+      "evidence": "ForexServerAlertsPanel only patchAlert({ enabled }); backend patchForexCustomerAlert supports condition/symbol/alertType/cooldown",
+      "classification": "CLOSABLE_NOW"
+    },
+    {
+      "id": "alert-validation",
+      "description": "Client UX validation before create",
+      "stillPresent": true,
+      "evidence": "create() calls buildAlertCreateBody without validate; backend create accepts empty BID condition",
+      "classification": "CLOSABLE_NOW"
+    },
+    {
+      "id": "ws-private-browser",
+      "description": "Private Forex WS in browser",
+      "stillPresent": true,
+      "evidence": "manager openSocket() no Authorization; backend resolveForexWsUserId accepts httpOnly cookie on upgrade; getForexWsUrl uses getApiBaseUrl (same-origin when hostname match)",
+      "classification": "NOT_SAFE_TO_CHANGE",
+      "note": "Cookie WS works same-origin; Bearer-in-memory + cross-origin dev may stay PARTIAL. No Crypto WS changes. REST authoritative."
+    },
+    {
+      "id": "real-funding",
+      "description": "Real Forex deposit/withdraw",
+      "stillPresent": true,
+      "evidence": "funds page demo only; REAL_FOREX off",
+      "classification": "INTENTIONALLY_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "provider-news-dom",
+      "description": "News/calendar/DOM/time&sales/live delivery",
+      "stillPresent": true,
+      "evidence": "info-providers + simulated liquidity; delivery adapters env-gated",
+      "classification": "PROVIDER_DEPENDENT"
+    },
+    {
+      "id": "market-runtime",
+      "description": "Live trading / alert firing",
+      "stillPresent": true,
+      "evidence": "Session/market closure; alert engine server-side",
+      "classification": "MARKET_DEPENDENT"
+    },
+    {
+      "id": "backend-deploy",
+      "description": "Backend deployment",
+      "stillPresent": true,
+      "evidence": "spot.fastify.ts pre-existing Crypto dirty diff",
+      "classification": "NOT_SAFE_TO_CHANGE"
+    }
+  ],
+  "implementThisPhase": ["alert-patch-condition", "alert-validation", "indicators-std-dev"]
+}

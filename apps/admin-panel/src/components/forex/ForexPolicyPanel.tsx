@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { ForexDetailGrid } from '@/components/forex/primitives/ForexDetailGrid';
 import { ForexPanelShell } from '@/components/forex/primitives/ForexPanelShell';
+import { ForexRouteWorkspace } from '@/components/forex/primitives/ForexRouteWorkspace';
 import { ForexConfirmModal } from '@/components/forex/primitives/ForexConfirmModal';
 import {
   extractForexApprovalPending,
@@ -119,8 +120,23 @@ export function ForexPolicyPanel(props: { mode: 'fees-swaps' | 'margin-risk' }) 
     return <p className="text-sm text-admin-muted">Loading policy…</p>;
   }
 
+  const routeId = mode === 'fees-swaps' ? 'fees-swaps' : 'margin-risk';
+
   return (
     <div className="space-y-4">
+      <ForexRouteWorkspace
+        routeId={routeId}
+        kpis={
+          form
+            ? [
+                { label: 'Global max lev.', value: `${form.globalMaxLev}×` },
+                { label: 'Stop-out', value: `${form.stopOut}%`, tone: 'warning' },
+                { label: 'Commission', value: form.commModel },
+                { label: 'Swap TZ', value: form.swapTz || '—' },
+              ]
+            : undefined
+        }
+      />
       <ForexApprovalPendingNotice info={approvalNotice} onDismiss={() => setApprovalNotice(null)} />
       <ForexPanelShell
         title="Policy change"
@@ -135,7 +151,7 @@ export function ForexPolicyPanel(props: { mode: 'fees-swaps' | 'margin-risk' }) 
           Confirm each save with an audit reason (minimum 8 characters). Requires settings edit permission.
         </p>
         {patchM.isError ? (
-          <p className="mt-2 text-sm text-red-400">{patchM.error instanceof Error ? patchM.error.message : 'Update failed'}</p>
+          <p className="mt-2 text-sm text-admin-danger">{patchM.error instanceof Error ? patchM.error.message : 'Update failed'}</p>
         ) : null}
       </ForexPanelShell>
 

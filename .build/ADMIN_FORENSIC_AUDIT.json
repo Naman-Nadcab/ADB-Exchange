@@ -1,0 +1,59 @@
+{
+  "report": "ADMIN FORENSIC AUDIT",
+  "generatedAt": "2026-09-20T09:35:00Z",
+  "readOnly": true,
+  "productCodeChanged": false,
+  "git": {
+    "branch": "release/exchange-production-baseline",
+    "head": "a4d922ee1b30f3bbb0aadebfbc7ac2027bc82623",
+    "dirtyFilesAtAuditStart": 431,
+    "dirtyFilesAtAuditEnd": "see final git status — audit adds .build/ only",
+    "remote": "git@github.com:Naman-Nadcab/m-live.git"
+  },
+  "executiveStatus": {
+    "adminOverall": "PARTIAL",
+    "cryptoAdmin": "PASS",
+    "forexAdmin": "PARTIAL",
+    "sharedControlPlane": "PARTIAL",
+    "domainSeparation": "PARTIAL",
+    "rbac": "PARTIAL",
+    "security": "PARTIAL",
+    "auditability": "PARTIAL",
+    "runtime": "PARTIAL"
+  },
+  "counts": {
+    "adminUiRoutes": 106,
+    "adminApiRegistrationsApprox": 277,
+    "permissionsDiscovered": 41,
+    "rolesDiscovered": 17,
+    "cryptoCapabilities": 24,
+    "forexCapabilities": 38,
+    "sharedCapabilities": 32,
+    "P0": 1,
+    "P1": 4,
+    "P2": 8,
+    "P3": 6
+  },
+  "realForex": "OFF (unset in exchange-backend; FOREX_DEMO_FUNDING=true)",
+  "databaseChecked": "schema-only via migrate.ts",
+  "runtimeChecked": true,
+  "artifacts": [
+    ".build/ADMIN_FORENSIC_AUDIT.md",
+    ".build/ADMIN_FORENSIC_AUDIT.json",
+    ".build/ADMIN_REPOSITORY_MAP.json",
+    ".build/ADMIN_ROUTE_MAP.json",
+    ".build/ADMIN_UI_ROUTE_MAP.json",
+    ".build/ADMIN_RBAC_MATRIX.json",
+    ".build/ADMIN_DOMAIN_BOUNDARY_MATRIX.json",
+    ".build/ADMIN_DATABASE_AUTHORITY_MAP.json",
+    ".build/ADMIN_CRYPTO_SAFETY_MAP.json",
+    ".build/ADMIN_FOREX_SAFETY_MAP.json",
+    ".build/ADMIN_SHARED_CONTROL_MAP.json",
+    ".build/ADMIN_FEATURE_MATRIX.json",
+    ".build/ADMIN_SECURITY_AUDIT.json",
+    ".build/ADMIN_RUNTIME_CERTIFICATION.json",
+    ".build/ADMIN_GAP_REGISTER.json",
+    ".build/ADMIN_TARGET_ARCHITECTURE.md",
+    ".build/ADMIN_REFACTOR_PLAN.md"
+  ]
+}

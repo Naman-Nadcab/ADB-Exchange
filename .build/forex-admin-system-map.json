@@ -1,0 +1,478 @@
+{
+  "generated_at": "2026-09-17T20:25:23.695Z",
+  "product": "Unified Trading Platform — Forex Admin",
+  "repository_commit": "8ef599983974e84679bf44010ca3d8154785665a",
+  "route_count": 18,
+  "nav_groups": [
+    {
+      "id": "command",
+      "label": "Command center"
+    },
+    {
+      "id": "trading",
+      "label": "Trading"
+    },
+    {
+      "id": "risk",
+      "label": "Risk"
+    },
+    {
+      "id": "crm",
+      "label": "Clients & CRM"
+    },
+    {
+      "id": "accounts",
+      "label": "Accounts"
+    },
+    {
+      "id": "markets",
+      "label": "Markets"
+    },
+    {
+      "id": "liquidity",
+      "label": "Liquidity & execution"
+    },
+    {
+      "id": "finance",
+      "label": "Finance"
+    },
+    {
+      "id": "partners",
+      "label": "Partners / IB"
+    },
+    {
+      "id": "compliance",
+      "label": "Compliance"
+    },
+    {
+      "id": "automation",
+      "label": "Automation"
+    },
+    {
+      "id": "reporting",
+      "label": "Reporting"
+    },
+    {
+      "id": "system",
+      "label": "System"
+    }
+  ],
+  "routes": [
+    {
+      "id": "F0",
+      "href": "/forex",
+      "label": "Command Desk"
+    },
+    {
+      "id": "notifications",
+      "href": "/forex/notifications",
+      "label": "Compliance"
+    },
+    {
+      "id": "automation",
+      "href": "/forex/automation",
+      "label": "Instruments"
+    },
+    {
+      "id": "sessions",
+      "href": "/forex/sessions",
+      "label": "Market Data"
+    },
+    {
+      "id": "orders",
+      "href": "/forex/orders",
+      "label": "Executions & Fills"
+    },
+    {
+      "id": "positions",
+      "href": "/forex/positions",
+      "label": "Protection"
+    },
+    {
+      "id": "margin-risk",
+      "href": "/forex/margin-risk",
+      "label": "Liquidation"
+    },
+    {
+      "id": "dealing",
+      "href": "/forex/dealing",
+      "label": "Fees & Swaps"
+    },
+    {
+      "id": "accounts",
+      "href": "/forex/accounts",
+      "label": "Account Groups"
+    },
+    {
+      "id": "crm-home",
+      "href": "/forex/crm/home",
+      "label": "My Clients"
+    },
+    {
+      "id": "crm-leads",
+      "href": "/forex/crm/leads",
+      "label": "CRM — Clients"
+    },
+    {
+      "id": "crm-finance",
+      "href": "/forex/crm/finance",
+      "label": "CRM — Tasks"
+    },
+    {
+      "id": "crm-segments",
+      "href": "/forex/crm/segments",
+      "label": "CRM — Pipeline"
+    },
+    {
+      "id": "forex-reporting",
+      "href": "/forex/reporting",
+      "label": "Risk controls"
+    },
+    {
+      "id": "forex-partners",
+      "href": "/forex/partners",
+      "label": "Ledger & Recon"
+    },
+    {
+      "id": "controls",
+      "href": "/forex/controls",
+      "label": "LP & Execution"
+    },
+    {
+      "id": "liquidity-routing",
+      "href": "/forex/liquidity/routing",
+      "label": "Integrations"
+    },
+    {
+      "id": "journal-audit",
+      "href": "/forex/journal-audit",
+      "label": "System"
+    }
+  ],
+  "features": [
+    {
+      "route_id": "F0",
+      "href": "/forex",
+      "label": "Command Desk",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "notifications",
+      "href": "/forex/notifications",
+      "label": "Compliance",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "automation",
+      "href": "/forex/automation",
+      "label": "Instruments",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "sessions",
+      "href": "/forex/sessions",
+      "label": "Market Data",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "orders",
+      "href": "/forex/orders",
+      "label": "Executions & Fills",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "positions",
+      "href": "/forex/positions",
+      "label": "Protection",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "margin-risk",
+      "href": "/forex/margin-risk",
+      "label": "Liquidation",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "dealing",
+      "href": "/forex/dealing",
+      "label": "Fees & Swaps",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "accounts",
+      "href": "/forex/accounts",
+      "label": "Account Groups",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "crm-home",
+      "href": "/forex/crm/home",
+      "label": "My Clients",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "crm-leads",
+      "href": "/forex/crm/leads",
+      "label": "CRM — Clients",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "crm-finance",
+      "href": "/forex/crm/finance",
+      "label": "CRM — Tasks",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "crm-segments",
+      "href": "/forex/crm/segments",
+      "label": "CRM — Pipeline",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "forex-reporting",
+      "href": "/forex/reporting",
+      "label": "Risk controls",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "forex-partners",
+      "href": "/forex/partners",
+      "label": "Ledger & Recon",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "controls",
+      "href": "/forex/controls",
+      "label": "LP & Execution",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "liquidity-routing",
+      "href": "/forex/liquidity/routing",
+      "label": "Integrations",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    },
+    {
+      "route_id": "journal-audit",
+      "href": "/forex/journal-audit",
+      "label": "System",
+      "backend": "PARTIAL",
+      "api": "PARTIAL",
+      "db": "PARTIAL",
+      "frontend": "YES",
+      "cert_ui": "PARTIAL",
+      "live_vps_ui": "PARTIAL",
+      "functional": "PARTIAL",
+      "rbac": "PARTIAL",
+      "audit": "PARTIAL",
+      "test": "PARTIAL",
+      "visual": "PARTIAL",
+      "notes": "Auto-generated shell; run page-health script for live probes."
+    }
+  ],
+  "environments": {
+    "certification": {
+      "admin": "127.0.0.1:3010/admin",
+      "api": "127.0.0.1:4100"
+    },
+    "live_operator": {
+      "admin": "http://109.123.254.30/admin",
+      "api": "http://109.123.254.30/api/v1/admin"
+    }
+  },
+  "external_integrations": {
+    "lp": "NOT_CONFIGURED",
+    "mt4": "DISABLED",
+    "mt5": "DISABLED",
+    "fix": "DISABLED",
+    "ctrader": "DISABLED",
+    "real_forex": false
+  }
+}

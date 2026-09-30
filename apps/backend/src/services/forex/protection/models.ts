@@ -21,6 +21,8 @@ export interface ForexProtectionRecord {
   type: ForexProtectionType;
   volume: string;
   triggerPrice: string;
+  /** Absolute price distance. Absent/null when trailing is not set. */
+  trailingDistance?: string | null;
   status: ForexProtectionState;
   fingerprint: string;
   lastQuoteKey: string | null;
@@ -51,6 +53,7 @@ export interface ForexProtectionRequest {
   type: ForexProtectionType;
   triggerPrice: string;
   volume?: string;
+  trailingDistance?: string;
 }
 
 export function protectionFingerprint(req: {
@@ -72,6 +75,7 @@ export function publicForexProtection(p: ForexProtectionRecord) {
     type: p.type,
     volume: p.volume,
     triggerPrice: p.triggerPrice,
+    trailingDistance: p.trailingDistance,
     status: p.status,
     lastEvalPrice: p.lastEvalPrice,
     lastEvalSource: p.lastEvalSource,

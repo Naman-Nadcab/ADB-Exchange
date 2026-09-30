@@ -127,6 +127,8 @@ function dummyOrder(accountId: string, clientOrderId: string): ForexOrderRecord 
     filledVolume: '1',
     remainingVolume: '0',
     requestedPrice: null,
+    limitPrice: null,
+    timeInForce: 'GTC',
     maxSlippage: null,
     maxDeviation: null,
     status: 'FILLED',

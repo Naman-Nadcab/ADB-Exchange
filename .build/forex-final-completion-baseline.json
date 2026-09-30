@@ -1,0 +1,49 @@
+{
+  "generatedAt": "2026-09-19T10:30:00.000Z",
+  "gitHead": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "scope": "Forex customer terminal /forex/trade — MT5 parity+ current scope",
+  "constraints": {
+    "cryptoFrozen": true,
+    "realForexOff": true,
+    "executionMode": "MOCK"
+  },
+  "cryptoFingerprints": {
+    "spot.fastify.ts": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "spot-ticker-db-load.ts": "bb2ffb23ab52ac81f37883bf58b36143a53cc2113614c96b3717fd08ae128613"
+  },
+  "dbProduction": {
+    "database": "exchange",
+    "forex_orders_expire_at": true,
+    "forex_customer_alerts": true,
+    "forex_customer_alert_events": true,
+    "idx_forex_orders_gtd_expire": true,
+    "migrateContainerAutoApply": "YELLOW — DDL present in migrate.ts; manual psql applied on prod; container migrate did not apply before manual fix"
+  },
+  "capabilities": {
+    "orderSideKindPaths": { "status": "IMPLEMENTED", "notes": "8 explicit SIDE×KIND paths; order-paths.ts + ticket" },
+    "timeInForce": { "status": "IMPLEMENTED", "notes": "GTC DAY IOC FOK GTD engine + UI; GTD expire_at persisted" },
+    "executionResolver": { "status": "IMPLEMENTED", "notes": "MOCK capabilities; UI shows unavailable when disallowed" },
+    "hedgingNetting": { "status": "IMPLEMENTED", "notes": "phase1a hedging PASS; close-by pretrade fix" },
+    "trailing": { "status": "IMPLEMENTED", "notes": "server authoritative; trailing.test.ts" },
+    "pendingOrdersChartDrag": { "status": "PARTIAL", "notes": "pending-order-lines; browser cert on prior deploy" },
+    "chartTimeframes": { "status": "PARTIAL", "notes": "candle-timeframe-plans M1–MN1 wired in repo; deploy pending for live candles API" },
+    "chartTypes": { "status": "PARTIAL", "notes": "Candlestick/OHLC/Line/Area; Heikin/Renko/Range/Tick not complete" },
+    "indicatorEngine": { "status": "PARTIAL", "notes": "studies.ts + local-indicators; no unified registry exposing full MT5 baseline set in chart UI" },
+    "drawingEngine": { "status": "PARTIAL", "notes": "ForexDrawingEngine + DrawingToolManager subset; not full Fib/Gann/shape catalog" },
+    "dom": { "status": "PROVIDER_DEPENDENT", "notes": "Normalized contract; no authoritative depth feed" },
+    "timeAndSales": { "status": "PROVIDER_DEPENDENT", "notes": "Tape tab shows unavailable honestly" },
+    "marketWatch": { "status": "PARTIAL", "notes": "Bid/Ask/Spread/Chg; O/H/L/session status limited by quote authority" },
+    "symbolSpecification": { "status": "IMPLEMENTED", "notes": "Instrument catalog + spec panel" },
+    "serverAlerts": { "status": "PARTIAL", "notes": "DB + API + PRICE/BID/ASK eval; UI server panel in repo; ORDER_FILLED hooks partial" },
+    "historyExports": { "status": "PARTIAL", "notes": "CSV; XLSX not verified" },
+    "performanceAnalytics": { "status": "PARTIAL", "notes": "Bottom panel analytics from ledger; not full MT5 analytics suite" },
+    "commandCenter": { "status": "IMPLEMENTED", "notes": "ForexCommandCenter Ctrl+K" },
+    "riskCockpit": { "status": "IMPLEMENTED", "notes": "WS-driven margin/equity panels" },
+    "workspace": { "status": "PARTIAL", "notes": "localStorage profiles; cloud sync not implemented" },
+    "economicCalendar": { "status": "PROVIDER_DEPENDENT", "notes": "API abstraction; provider unavailable UI" },
+    "news": { "status": "PROVIDER_DEPENDENT", "notes": "API abstraction; provider unavailable UI" },
+    "securityIdor": { "status": "IMPLEMENTED", "notes": "forex-pre-market-cert.mjs PASS" },
+    "websocket": { "status": "IMPLEMENTED", "notes": "auth + subscribe cert PASS" },
+    "marketRuntime": { "status": "MARKET_DEPENDENT", "notes": "Weekend closure; fills/triggers/pending activation pending open market" }
+  }
+}

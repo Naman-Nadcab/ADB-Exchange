@@ -32,8 +32,21 @@ export default async function adminPhase1ComplianceRoutes(app: FastifyInstance) 
   app.get('/compliance/policy', async (_request, reply) => {
     try {
       const { getCompliancePolicy } = await import('../services/compliance-policy.service.js');
+      const { config } = await import('../config/index.js');
       const policy = await getCompliancePolicy();
-      return reply.send({ success: true, data: policy });
+      const kycProvider = config.kyc.provider;
+      return reply.send({
+        success: true,
+        data: policy,
+        honesty: {
+          kyc_provider: kycProvider,
+          kyc_is_licensed_provider: kycProvider !== 'mock',
+          representation:
+            kycProvider === 'mock'
+              ? 'KYC is mock/manual. Closed-beta enforcement may be disabled. Do not treat this as licensed identity verification.'
+              : `KYC provider is configured as ${kycProvider}. Reachability must be verified separately.`,
+        },
+      });
     } catch (e) {
       logger.warn('Compliance policy fetch error', { error: e instanceof Error ? e.message : 'Unknown' });
       return reply.status(500).send({ success: false, error: { code: 'FETCH_FAILED', message: 'Failed to fetch compliance policy' } });

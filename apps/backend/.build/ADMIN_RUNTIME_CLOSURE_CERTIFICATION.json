@@ -1,0 +1,117 @@
+{
+  "generatedAt": "2026-09-20T08:54:26.734Z",
+  "adminBase": "http://127.0.0.1/admin",
+  "results": [
+    {
+      "check": "responsive_1440x900_login",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "responsive_1440x900_tabs",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "responsive_1440x900_console",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "responsive_1280x800_login",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "responsive_1280x800_tabs",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "responsive_1280x800_console",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "responsive_768x1024_login",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "responsive_768x1024_tabs",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "responsive_768x1024_console",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "responsive_390x844_login",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "responsive_390x844_tabs",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "responsive_390x844_console",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "ia_control_center_platform",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "ia_control_center_crypto_ops",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "ia_no_forex_kill_in_cc",
+      "status": "FAIL",
+      "detail": ""
+    },
+    {
+      "check": "ia_forex_pointer",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "ia_admin_control_label",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "ia_forex_kill_label",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "route__dashboard",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "route__trading",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "route__audit",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "route__forex_orders",
+      "status": "PASS",
+      "detail": ""
+    }
+  ],
+  "overall": "PARTIAL"
+}

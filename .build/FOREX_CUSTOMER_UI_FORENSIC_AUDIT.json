@@ -1,0 +1,28 @@
+{
+  "generatedAt": "2026-09-20T09:45:00.000Z",
+  "gitHead": "f3e04274d7bb27c3ad05e8f3cbe9724749987aea",
+  "branch": "release/exchange-production-baseline",
+  "scope": "customer-side Forex UI only (apps/frontend)",
+  "auditMode": "read-only",
+  "productCodeModified": false,
+  "evidence": {
+    "sourceForensics": true,
+    "browserScreenshots": true,
+    "screenshotDir": "apps/frontend/.build/forex-ui-screenshots",
+    "viewports": ["1440x900", "1280x800", "1024x768", "768x1024", "390x844"],
+    "routesCaptured": [
+      "/forex/trade",
+      "/forex/markets",
+      "/forex/portfolio",
+      "/forex/orders",
+      "/forex/analysis",
+      "/forex/alerts",
+      "/forex/account"
+    ],
+    "playwrightE2e": "forex-terminal-foundation.spec.ts NOT RUN (webServer backend failed to start in this environment)"
+  },
+  "routeCount": 11,
+  "forexComponentFiles": 45,
+  "conclusion": "PASS WITH FINDINGS",
+  "tier1Certified": false
+}

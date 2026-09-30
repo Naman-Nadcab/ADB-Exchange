@@ -2,15 +2,27 @@ import { db } from '../../../lib/database.js';
 import { forexIsoTimestamp, forexStr } from '../durability/tx.js';
 import type { ForexProtectionEvent, ForexProtectionRecord } from './models.js';
 
+let trailingColumnReady = false;
+
+async function ensureTrailingColumn(): Promise<void> {
+  if (trailingColumnReady) return;
+  await db.query(`ALTER TABLE forex_protections ADD COLUMN IF NOT EXISTS trailing_distance NUMERIC(20,8)`);
+  trailingColumnReady = true;
+}
+
 export async function persistProtection(p: ForexProtectionRecord): Promise<void> {
+  await ensureTrailingColumn();
   await db.query(
     `INSERT INTO forex_protections (
        protection_id, client_protection_id, account_id, position_id, symbol, position_side, type,
-       volume, trigger_price, status, fingerprint, last_quote_key, last_eval_price, last_eval_source,
+       volume, trigger_price, trailing_distance, status, fingerprint, last_quote_key, last_eval_price, last_eval_source,
        order_id, failure_reason, source, execution_mode, created_at, updated_at
-     ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,'SIMULATED','MOCK',$17,$18)
+     ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,'SIMULATED','MOCK',$18,$19)
      ON CONFLICT (protection_id) DO UPDATE SET
        status = EXCLUDED.status,
+       trigger_price = EXCLUDED.trigger_price,
+       trailing_distance = EXCLUDED.trailing_distance,
+       fingerprint = EXCLUDED.fingerprint,
        last_quote_key = EXCLUDED.last_quote_key,
        last_eval_price = EXCLUDED.last_eval_price,
        last_eval_source = EXCLUDED.last_eval_source,
@@ -27,6 +39,7 @@ export async function persistProtection(p: ForexProtectionRecord): Promise<void>
       p.type,
       p.volume,
       p.triggerPrice,
+      p.trailingDistance ?? null,
       p.status,
       p.fingerprint,
       p.lastQuoteKey,
@@ -55,6 +68,7 @@ function rowToProtection(row: Record<string, unknown>): ForexProtectionRecord {
     type: row.type === 'TAKE_PROFIT' ? 'TAKE_PROFIT' : 'STOP_LOSS',
     volume: str(row.volume),
     triggerPrice: str(row.trigger_price),
+    trailingDistance: row.trailing_distance == null ? null : str(row.trailing_distance),
     status: str(row.status) as ForexProtectionRecord['status'],
     fingerprint: str(row.fingerprint),
     lastQuoteKey: row.last_quote_key == null ? null : str(row.last_quote_key),

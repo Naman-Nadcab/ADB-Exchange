@@ -1,0 +1,11 @@
+{
+  "phase3FinalStatus": "GREEN",
+  "P3A": "PARTIAL_RUNTIME_VERIFIED",
+  "P3B": {
+    "verdict": "RUNTIME_VERIFIED",
+    "method": "NATURAL_SESSION_CLOSE",
+    "orderId": "921cbb64-dfdd-4130-b3ec-cc24c56ec2a8"
+  },
+  "P3C": "DOCUMENTED_BY_DESIGN",
+  "evidence": "/opt/m-live/.build/forex-phase3-p3b-natural-close-certification.json"
+}

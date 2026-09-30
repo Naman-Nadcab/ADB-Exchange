@@ -1,0 +1,34 @@
+{
+  "phase": 4,
+  "updatedUtc": "2026-09-19T07:00:00.000Z",
+  "sessionGate": {
+    "open": false,
+    "reason": "WEEKEND_CLOSURE",
+    "nextOpenUtc": "2026-09-20T21:00:00.000Z",
+    "liveCertBlocked": true
+  },
+  "matrix": {
+    "A_longBidMark": "NOT_PROVEN",
+    "B_shortAskMark": "NOT_PROVEN",
+    "C_preTradePreview": "NOT_PROVEN",
+    "D_previewVsPlace": "NOT_PROVEN",
+    "E_marginCall": "NOT_PROVEN",
+    "F_stopOutLiquidation": "NOT_PROVEN",
+    "G_liquidationIdempotency": "NOT_PROVEN",
+    "H_ledgerReconciliation": "NOT_PROVEN",
+    "I_riskWebSocket": "NOT_PROVEN",
+    "J_idor": "NOT_PROVEN",
+    "K_customerBrowser": "NOT_PROVEN",
+    "L_adminRiskHub": "NOT_PROVEN"
+  },
+  "implementation": {
+    "canonicalRiskChain": "IMPLEMENTED",
+    "wsCookieAuthFix": "IMPLEMENTED_NOT_DEPLOYED",
+    "liveGreenScript": "scripts/forex-phase4-live-green-cert.mjs",
+    "waitScript": "scripts/forex-phase4-wait-and-green-cert.sh"
+  },
+  "targetedUnitTests": "RUNTIME_VERIFIED",
+  "deploymentDigest": "sha256:1f04a223afccf729a8573866e7ef8cb7b216d911e22f1860c52934fad33e0e5b",
+  "phase4Green": false,
+  "phase5Unlocked": false
+}

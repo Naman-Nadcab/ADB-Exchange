@@ -1,0 +1,207 @@
+{
+  "generatedAt": "2026-09-17T21:32:23.426Z",
+  "repository": {
+    "gitHead": "8ef599983974e84679bf44010ca3d8154785665a",
+    "gitBranch": "release/exchange-production-baseline",
+    "dirty": "272"
+  },
+  "liveTopology": {
+    "operatorUrl": "http://109.123.254.30/admin",
+    "nginx": "exchange-nginx → admin-panel:3001, backend:4000",
+    "adminContainer": {
+      "name": "exchange-admin",
+      "image": "m-live-admin-panel",
+      "created": "2026-09-17T21:31:47.79645117Z"
+    },
+    "backendContainer": {
+      "name": "exchange-backend",
+      "created": "2026-09-17T21:23:58.082847559Z"
+    },
+    "probedApiBase": "http://127.0.0.1:4000/api/v1/admin",
+    "authBlocked": false
+  },
+  "forexRouteCount": 36,
+  "forexPanelComponents": 35,
+  "liveApiProbes": {
+    "overview": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "command": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "sessions": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "instruments": {
+      "http": 404,
+      "ok": false,
+      "code": null
+    },
+    "market-data": {
+      "http": 404,
+      "ok": false,
+      "code": null
+    },
+    "orders": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "executions": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "positions": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "dealing": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "crm-home": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "crm-leads": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "crm-pipeline": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "crm-clients": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "crm-my-clients": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "crm-segments": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "crm-tasks": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "crm-finance": {
+      "http": 404,
+      "ok": false,
+      "code": null
+    },
+    "forex-reporting": {
+      "http": 404,
+      "ok": false,
+      "code": null
+    },
+    "risk-control": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "margin-risk": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "forex-partners": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "ledger": {
+      "http": 404,
+      "ok": false,
+      "code": null
+    },
+    "compliance": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "automation": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "controls": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "journal-audit": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "lp-execution": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "liquidity-routing": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "integrations": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "system": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "notifications": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "protection": {
+      "http": 404,
+      "ok": false,
+      "code": null
+    },
+    "liquidation": {
+      "http": 404,
+      "ok": false,
+      "code": null
+    },
+    "accounts": {
+      "http": 404,
+      "ok": false,
+      "code": null
+    },
+    "account-groups": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    },
+    "fees-swaps": {
+      "http": 200,
+      "ok": true,
+      "code": null
+    }
+  }
+}

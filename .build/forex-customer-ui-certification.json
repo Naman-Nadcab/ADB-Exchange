@@ -1,0 +1,33 @@
+{
+  "kind": "forex-customer-ui-certification",
+  "recordedAtUtc": "2026-09-19T12:35:00Z",
+  "verdict": "COMPLETE_FOR_SUPPORTED_BACKEND",
+  "cryptoTouched": false,
+  "realForex": "OFF",
+  "phase0": "forex-customer-ui-gap-matrix.json",
+  "implementedThisPass": {
+    "p0": ["alerts_page aligned with server alert system"],
+    "p1": [
+      "ForexServerAlertsPanel — all backend alert types on create",
+      "alert events list",
+      "delivery adapter status display",
+      "shared between /forex/alerts and terminal Alerts tab"
+    ]
+  },
+  "tests": [
+    "customer-alerts.test.ts",
+    "forex-workstation-ui.test.ts",
+    "frontend npm run build"
+  ],
+  "remainingP2": ["VWAP", "Standard Deviation indicators"],
+  "remainingP3": ["legacy study dropdown overlap", "Heikin Ashi / Renko"],
+  "providerBlocked": ["DOM", "Time & Sales", "external news/calendar when empty"],
+  "filesChangedForexOnly": [
+    "apps/frontend/src/lib/forex/models/customer-alerts.ts",
+    "apps/frontend/src/lib/forex/models/customer-alerts.test.ts",
+    "apps/frontend/src/lib/forex/api/client.ts",
+    "apps/frontend/src/components/forex/ForexServerAlertsPanel.tsx",
+    "apps/frontend/src/components/forex/ForexBottomPanels.tsx",
+    "apps/frontend/src/app/forex/alerts/page.tsx"
+  ]
+}

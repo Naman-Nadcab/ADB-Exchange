@@ -1,0 +1,1721 @@
+{
+  "generated_at": "2026-09-17T20:02:03.927Z",
+  "admin_base": "http://127.0.0.1:4100/api/v1/admin",
+  "database": "exchange_forex_cert",
+  "summary": {
+    "total": 204,
+    "pass": 204,
+    "fail": 0
+  },
+  "failed": [],
+  "results": [
+    {
+      "method": "GET",
+      "path": "/forex/config",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/config",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/config",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/config",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/overview",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/overview",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/overview",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/overview",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/system",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/system",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/system",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/system",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/orders?limit=3",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/orders?limit=3",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/orders?limit=3",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/orders?limit=3",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/orders/export?limit=3",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/orders/export?limit=3",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/orders/export?limit=3",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/orders/export?limit=3",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/executions?limit=3",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/executions?limit=3",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/executions?limit=3",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/executions?limit=3",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/positions?limit=3",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/positions?limit=3",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/positions?limit=3",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/positions?limit=3",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/controls",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/controls",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/controls",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/controls",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/policy",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/policy",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/policy",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/policy",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/execution",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/execution",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/execution",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/execution",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/integrations",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/integrations",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/integrations",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/integrations",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/export",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/export",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/export",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/export",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/CERT_ACC_B",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/CERT_ACC_B",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/CERT_ACC_B",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/CERT_ACC_B",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/IDOR_FAKE_ACCOUNT_X",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/IDOR_FAKE_ACCOUNT_X",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/IDOR_FAKE_ACCOUNT_X",
+      "role": "risk",
+      "expected": [
+        404,
+        403
+      ],
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/IDOR_FAKE_ACCOUNT_X",
+      "role": "super",
+      "expected": [
+        404,
+        403
+      ],
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/CERT_ACC_B/360",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/CERT_ACC_B/360",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/CERT_ACC_B/360",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/CERT_ACC_B/360",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/CERT_ACC_B/activity?limit=5",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/CERT_ACC_B/activity?limit=5",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/CERT_ACC_B/activity?limit=5",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/clients/CERT_ACC_B/activity?limit=5",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/finance/accounts",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/finance/accounts",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/finance/accounts",
+      "role": "risk",
+      "expected": [
+        403,
+        200
+      ],
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/finance/accounts",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/home",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/home",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/home",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/home",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/workspace",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/workspace",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/workspace",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/workspace",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/activities/recent",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/activities/recent",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/activities/recent",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/activities/recent",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/segments",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/segments",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/segments",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/segments",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/segments/vip",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/segments/vip",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/segments/vip",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/segments/vip",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/segments/nonexistent_segment",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/segments/nonexistent_segment",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/segments/nonexistent_segment",
+      "role": "risk",
+      "expected": [
+        404,
+        400
+      ],
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/segments/nonexistent_segment",
+      "role": "super",
+      "expected": [
+        404,
+        400
+      ],
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/pipeline",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/pipeline",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/pipeline",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/pipeline",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/leads",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/leads",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/leads",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/leads",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/leads/stages",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/leads/stages",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/leads/stages",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/leads/stages",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/tasks",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/tasks",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/tasks",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/tasks",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/permissions",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/permissions",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/permissions",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/permissions",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/reporting/snapshot",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/reporting/snapshot",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/reporting/snapshot",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/reporting/snapshot",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/risk/control-plane",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/risk/control-plane",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/risk/control-plane",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/risk/control-plane",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/partners",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/partners",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/partners",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/partners",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/dealing/queue",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/dealing/queue",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/dealing/queue",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/dealing/queue",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/routing/desk",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/routing/desk",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/routing/desk",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/routing/desk",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/ledger",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/ledger",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/ledger",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/ledger",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/journal?limit=3",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/journal?limit=3",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/journal?limit=3",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/journal?limit=3",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/audit?limit=3",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/audit?limit=3",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/audit?limit=3",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/audit?limit=3",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/audit/search?limit=3",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/audit/search?limit=3",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/audit/search?limit=3",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/audit/search?limit=3",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/risk/hub",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/risk/hub",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/risk/hub",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/risk/hub",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/search?q=CERT",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/search?q=CERT",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/search?q=CERT",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/search?q=CERT",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/dealing/orders/00000000-0000-4000-8000-000000009998/assign",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/dealing/orders/00000000-0000-4000-8000-000000009998/assign",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/dealing/orders/00000000-0000-4000-8000-000000009998/assign",
+      "role": "risk",
+      "expected": [
+        403,
+        404
+      ],
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/dealing/orders/00000000-0000-4000-8000-000000009998/assign",
+      "role": "super",
+      "expected": [
+        404,
+        400
+      ],
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/account-groups",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/account-groups",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/account-groups",
+      "role": "risk",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/account-groups",
+      "role": "super",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/accounts/CERT_ACC_A/leverage-override",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/accounts/CERT_ACC_A/leverage-override",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/accounts/CERT_ACC_A/leverage-override",
+      "role": "risk",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/accounts/CERT_ACC_A/leverage-override",
+      "role": "super",
+      "expected": 202,
+      "actual": 202,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/accounts/IDOR_FAKE_ACCOUNT_X/leverage-override",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/accounts/IDOR_FAKE_ACCOUNT_X/leverage-override",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/accounts/IDOR_FAKE_ACCOUNT_X/leverage-override",
+      "role": "risk",
+      "expected": [
+        403,
+        404
+      ],
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/accounts/IDOR_FAKE_ACCOUNT_X/leverage-override",
+      "role": "super",
+      "expected": [
+        404,
+        400
+      ],
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/account-groups",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/account-groups",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/account-groups",
+      "role": "risk",
+      "expected": [
+        403,
+        400,
+        200
+      ],
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/account-groups",
+      "role": "super",
+      "expected": [
+        200,
+        400
+      ],
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/forex/account-groups/00000000-0000-4000-8000-000000009999",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/forex/account-groups/00000000-0000-4000-8000-000000009999",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/forex/account-groups/00000000-0000-4000-8000-000000009999",
+      "role": "risk",
+      "expected": [
+        403,
+        404
+      ],
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/forex/account-groups/00000000-0000-4000-8000-000000009999",
+      "role": "super",
+      "expected": [
+        404,
+        400
+      ],
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/crm/leads",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/crm/leads",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/crm/leads",
+      "role": "risk",
+      "expected": [
+        403,
+        201,
+        400,
+        200
+      ],
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/crm/leads",
+      "role": "super",
+      "expected": [
+        201,
+        400,
+        200
+      ],
+      "actual": 400,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/leads/00000000-0000-4000-8000-000000009997",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/leads/00000000-0000-4000-8000-000000009997",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/leads/00000000-0000-4000-8000-000000009997",
+      "role": "risk",
+      "expected": [
+        404,
+        403
+      ],
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/forex/crm/leads/00000000-0000-4000-8000-000000009997",
+      "role": "super",
+      "expected": [
+        404,
+        403
+      ],
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/orders/00000000-0000-4000-8000-000000000001/force-cancel",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/orders/00000000-0000-4000-8000-000000000001/force-cancel",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/orders/00000000-0000-4000-8000-000000000001/force-cancel",
+      "role": "risk",
+      "expected": [
+        403,
+        404,
+        202
+      ],
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/orders/00000000-0000-4000-8000-000000000001/force-cancel",
+      "role": "super",
+      "expected": [
+        404,
+        202,
+        400
+      ],
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/orders/00000000-0000-4000-8000-000000009998/force-cancel",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/orders/00000000-0000-4000-8000-000000009998/force-cancel",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/orders/00000000-0000-4000-8000-000000009998/force-cancel",
+      "role": "risk",
+      "expected": [
+        403,
+        404
+      ],
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/forex/orders/00000000-0000-4000-8000-000000009998/force-cancel",
+      "role": "super",
+      "expected": [
+        404,
+        400
+      ],
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/approval-requests/00000000-0000-4000-8000-000000000001/approve",
+      "role": "none",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/approval-requests/00000000-0000-4000-8000-000000000001/approve",
+      "role": "support",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/approval-requests/00000000-0000-4000-8000-000000000001/approve",
+      "role": "risk",
+      "expected": [
+        403,
+        404,
+        400
+      ],
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/approval-requests/00000000-0000-4000-8000-000000000001/approve",
+      "role": "super",
+      "expected": [
+        404,
+        400
+      ],
+      "actual": 400,
+      "pass": true
+    }
+  ]
+}

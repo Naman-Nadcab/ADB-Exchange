@@ -1,0 +1,74 @@
+{
+  "kind": "forex-master-roadmap-certification",
+  "recordedAt": "2026-09-19T12:12:00Z",
+  "verdict": {
+    "engineering": "GREEN",
+    "terminalCustomer": "GREEN",
+    "runtimeExecution": "MARKET_DEPENDENT",
+    "finalPlatformGreen": false
+  },
+  "stopConditions": {
+    "currentScopeEngineeringGaps": 0,
+    "deadCustomerControls": 0,
+    "cryptoRegression": 0,
+    "migrationRegression": 0,
+    "realForexOff": true,
+    "securityGapsKnown": 0
+  },
+  "deployment": {
+    "backend": "sha256:dfa20e3ee90c2b5db6daeeb217eb17a748ef19acad7626c0a71ae06f5aeae44d",
+    "frontend": "sha256:78a0589f476d158ed0ed8208ce0f275ddbff8ba48f3fc44fb5784cf492bbf9ad",
+    "migrationVerified": true
+  },
+  "cryptoIsolation": {
+    "status": "UNCHANGED",
+    "fingerprints": {
+      "spot.fastify.ts": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+      "spot-ticker-db-load.ts": "3d128d47e0152a8a552b8291ab386ad24576949066bf69dea4016484444c086b"
+    }
+  },
+  "phase1ClosureThisPass": {
+    "indicatorPanes": [
+      "registry stack + oscillator pane stack",
+      "parameter editing per indicator",
+      "registry overlay rendering + overlayExtras (Ichimoku multi-line)"
+    ],
+    "drawings": [
+      "full extended catalog in forex-drawings",
+      "native DrawingToolManager undo/redo wired in Forex chart host only"
+    ],
+    "alerts": ["SESSION_OPEN/CLOSE", "DRAWDOWN", "dedupeKey on session events"]
+  },
+  "tests": [
+    "indicator-registry.test.ts",
+    "forex-drawings.test.ts",
+    "forex-alert-engine.test.ts",
+    "session-alert-watch.test.ts",
+    "frontend npm run build",
+    "backend npm run build"
+  ],
+  "browserEvidence": {
+    "forex-pre-market-browser.mjs": "pass",
+    "route": "/forex/trade",
+    "viewports": ["desktop", "tablet", "mobile"]
+  },
+  "marketDependencies": [
+    "Full order type + TIF + pending trigger + position mode runtime matrix",
+    "DAY/GTD session-bound behavior at natural session boundaries"
+  ],
+  "providerDependencies": [
+    "DOM",
+    "Time and Sales",
+    "Economic Calendar authoritative feed",
+    "News feed",
+    "External LP / MT5 / FIX / cTrader"
+  ],
+  "notConfigured": [
+    "Alert PUSH",
+    "Alert EMAIL",
+    "Alert WEBHOOK",
+    "REAL_FOREX execution",
+    "DR backup/restore certification"
+  ],
+  "workspaceModel": "LOCAL_WORKSPACE (symbol/timeframe/indicators/drawings scoped localStorage — not server cross-device sync)"
+}

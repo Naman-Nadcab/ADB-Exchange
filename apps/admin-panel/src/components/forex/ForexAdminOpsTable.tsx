@@ -20,10 +20,12 @@ import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { ProtectedAction } from '@/components/rbac/ProtectedAction';
-import { ChevronLeft, ChevronRight, Download, RefreshCw } from 'lucide-react';
-import { ForexPanelShell } from '@/components/forex/primitives/ForexPanelShell';
+import { ChevronLeft, ChevronRight, Download, Layers, RefreshCw, ShoppingCart, Zap } from 'lucide-react';
 import { ForexDetailGrid } from '@/components/forex/primitives/ForexDetailGrid';
+import { ForexWorkspaceHeader } from '@/components/forex/primitives/ForexWorkspaceHeader';
+import { ForexFilterBar, ForexSectionLabel, ForexWorkspaceSurface } from '@/components/forex/primitives/forex-visual-kit';
 import { Modal } from '@/components/ui/Modal';
+import Link from 'next/link';
 
 export type ForexOpsTableKind = 'orders' | 'executions' | 'positions';
 
@@ -63,13 +65,22 @@ function StatusBadge({ status }: { status: string }) {
 function SideBadge({ side }: { side: string }) {
   const buyish = side === 'buy' || side === 'long';
   return (
-    <span className={buyish ? 'text-emerald-400' : 'text-red-400'}>{side.toUpperCase()}</span>
+    <Badge variant={buyish ? 'success' : 'danger'} className="text-[9px] font-normal uppercase">
+      {side}
+    </Badge>
   );
 }
 
 const TERMINAL_ORDER = new Set(['FILLED', 'REJECTED', 'CANCELLED', 'FAILED']);
 
-export function ForexAdminOpsTable({ kind }: { kind: ForexOpsTableKind }) {
+export function ForexAdminOpsTable({
+  kind,
+  layout = 'page',
+}: {
+  kind: ForexOpsTableKind;
+  /** `section` = nested block (no page header / trading nav). */
+  layout?: 'page' | 'section';
+}) {
   const token = useAdminAuthStore((s) => s.accessToken);
   const searchParams = useSearchParams();
   const qc = useQueryClient();
@@ -253,115 +264,150 @@ export function ForexAdminOpsTable({ kind }: { kind: ForexOpsTableKind }) {
     kind === 'orders' ? 'Orders' : kind === 'executions' ? 'Executions & fills' : 'Positions';
   const description =
     kind === 'orders'
-      ? 'Working and historical customer orders'
+      ? 'Working, pending, and historical customer orders — MOCK venue.'
       : kind === 'executions'
-        ? 'Venue fills, slippage, and lineage'
-        : 'Open exposure by account and symbol';
+        ? 'MOCK venue fills, slippage, and fill lineage.'
+        : 'NETTING/HEDGING posture, open exposure, Close By / Reverse audit.';
 
-  return (
-    <div className="space-y-3">
+  const pageStats = useMemo(() => {
+    if (kind === 'orders') {
+      const r = rows as ForexAdminOrderRow[];
+      return {
+        a: String(pagination?.total ?? r.length),
+        b: String(r.filter((x) => !TERMINAL_ORDER.has(x.status.toUpperCase())).length),
+        c: String(r.filter((x) => x.failure_reason).length),
+        d: symbol || accountId ? 'Filtered' : 'All',
+      };
+    }
+    if (kind === 'executions') {
+      const r = rows as ForexAdminExecutionRow[];
+      return {
+        a: String(pagination?.total ?? r.length),
+        b: String(r.filter((x) => x.status.toUpperCase() === 'FILLED').length),
+        c: String(r.filter((x) => x.failure_reason).length),
+        d: symbol || accountId ? 'Filtered' : 'All',
+      };
+    }
+    const r = rows as ForexAdminPositionRow[];
+    return {
+      a: String(pagination?.total ?? r.length),
+      b: String(r.filter((x) => x.status.toUpperCase() === 'OPEN').length),
+      c: String(new Set(r.map((x) => x.symbol)).size),
+      d: symbol || accountId ? 'Filtered' : 'All',
+    };
+  }, [kind, rows, pagination?.total, symbol, accountId]);
+
+  const headerIcon = kind === 'orders' ? ShoppingCart : kind === 'executions' ? Zap : Layers;
+
+  const workspace = (
+    <>
+
       {kind === 'orders' ? (
-        <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-3">
-          <label className="mb-1 block text-xs text-admin-muted">Force-cancel audit reason (min 8 chars)</label>
-          <Input value={opsReason} onChange={(e) => setOpsReason(e.target.value)} placeholder="Ops ticket reference" className="h-9 max-w-md" />
-        </div>
+        <ForexWorkspaceSurface className="border-admin-danger/30 bg-admin-danger/10">
+          <ForexSectionLabel>Force-cancel audit</ForexSectionLabel>
+          <Input value={opsReason} onChange={(e) => setOpsReason(e.target.value)} placeholder="Ops ticket reference (min 8 chars)" className="h-9 max-w-lg text-sm" />
+        </ForexWorkspaceSurface>
       ) : null}
-      <ForexPanelShell title={`Filters · ${title}`} description={description}>
-      <div className="flex flex-wrap items-end gap-2">
-        <div className="min-w-[7rem] flex-1">
-          <label className="mb-1 block text-xs text-admin-muted">Symbol</label>
-          <Input
-            placeholder="EURUSD"
-            value={draftSymbol}
-            onChange={(e) => setDraftSymbol(e.target.value.toUpperCase())}
-            className="h-9"
-          />
+
+      <ForexWorkspaceSurface noPadding>
+        <div className="border-b border-admin-border px-4 py-3">
+          <ForexSectionLabel icon={headerIcon}>Trading workspace · {title}</ForexSectionLabel>
+          <ForexFilterBar className="mt-2 border-0 bg-transparent p-0">
+            <Input placeholder="Symbol" value={draftSymbol} onChange={(e) => setDraftSymbol(e.target.value.toUpperCase())} className="h-9 w-28" />
+            <Input placeholder="Account ID" value={draftAccount} onChange={(e) => setDraftAccount(e.target.value)} className="h-9 w-40 font-mono text-xs" />
+            <select
+              className="h-9 rounded-md border border-admin-border bg-admin-bg px-2 text-xs"
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
+            >
+              {statusOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            <select
+              className="h-9 rounded-md border border-admin-border bg-admin-bg px-2 text-xs"
+              value={side}
+              onChange={(e) => {
+                setSide(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="all">All sides</option>
+              <option value="buy">Buy / Long</option>
+              <option value="sell">Sell / Short</option>
+            </select>
+            <Button
+              type="button"
+              variant="secondary"
+              className="h-9"
+              onClick={() => {
+                setSymbol(draftSymbol.trim());
+                setAccountId(draftAccount.trim());
+                setPage(1);
+              }}
+            >
+              Apply
+            </Button>
+            <Button type="button" variant="ghost" className="h-9 gap-1" onClick={() => void listQ.refetch()}>
+              <RefreshCw className={`h-3.5 w-3.5 ${listQ.isFetching ? 'animate-spin' : ''}`} />
+            </Button>
+            {exportPath ? (
+              <Button
+                type="button"
+                variant="secondary"
+                className="h-9 gap-1"
+                onClick={() =>
+                  void downloadForexAdminCsv(token, exportPath, `forex-${kind}.csv`, {
+                    symbol: symbol || undefined,
+                    account_id: accountId || undefined,
+                    status: status === 'all' ? undefined : status,
+                    side: side === 'all' ? undefined : side,
+                  }).catch((e) => alert(e instanceof Error ? e.message : 'Export failed'))
+                }
+              >
+                <Download className="h-3.5 w-3.5" />
+                CSV
+              </Button>
+            ) : null}
+          </ForexFilterBar>
         </div>
-        <div className="min-w-[10rem] flex-1">
-          <label className="mb-1 block text-xs text-admin-muted">Account ID</label>
-          <Input placeholder="forex account" value={draftAccount} onChange={(e) => setDraftAccount(e.target.value)} className="h-9" />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs text-admin-muted">Status</label>
-          <select
-            className="h-9 rounded-md border border-admin-border bg-admin-bg px-2 text-sm"
-            value={status}
-            onChange={(e) => {
-              setStatus(e.target.value);
-              setPage(1);
-            }}
-          >
-            {statusOptions.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-xs text-admin-muted">Side</label>
-          <select
-            className="h-9 rounded-md border border-admin-border bg-admin-bg px-2 text-sm"
-            value={side}
-            onChange={(e) => {
-              setSide(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="all">All</option>
-            <option value="buy">Buy / Long</option>
-            <option value="sell">Sell / Short</option>
-          </select>
-        </div>
-        <Button
-          type="button"
-          variant="secondary"
-          className="h-9"
-          onClick={() => {
-            setSymbol(draftSymbol.trim());
-            setAccountId(draftAccount.trim());
-            setPage(1);
-          }}
-        >
-          Apply
-        </Button>
-        <Button type="button" variant="ghost" className="h-9 gap-1" onClick={() => void listQ.refetch()}>
-          <RefreshCw className="h-3.5 w-3.5" />
-          Refresh
-        </Button>
-        {exportPath ? (
-          <Button
-            type="button"
-            variant="secondary"
-            className="h-9 gap-1"
-            onClick={() =>
-              void downloadForexAdminCsv(token, exportPath, `forex-${kind}.csv`, {
-                symbol: symbol || undefined,
-                account_id: accountId || undefined,
-                status: status === 'all' ? undefined : status,
-                side: side === 'all' ? undefined : side,
-              }).catch((e) => alert(e instanceof Error ? e.message : 'Export failed'))
-            }
-          >
-            <Download className="h-3.5 w-3.5" />
-            Export CSV
-          </Button>
+        {cancelM.isError ? (
+          <p className="px-4 py-2 text-xs text-red-400">{cancelM.error instanceof Error ? cancelM.error.message : 'Cancel failed'}</p>
         ) : null}
-      </div>
-      </ForexPanelShell>
-      {cancelM.isError ? (
-        <p className="text-sm text-red-400">{cancelM.error instanceof Error ? cancelM.error.message : 'Cancel failed'}</p>
-      ) : null}
-
-      <ForexPanelShell title={title} noPadding>
-      {kind === 'orders' ? (
-        <DataTable columns={orderColumns} data={rows as ForexAdminOrderRow[]} loading={listQ.isLoading} sortable={false} compact />
-      ) : kind === 'executions' ? (
-        <DataTable columns={execColumns} data={rows as ForexAdminExecutionRow[]} loading={listQ.isLoading} sortable={false} compact />
-      ) : (
-        <DataTable columns={posColumns} data={rows as ForexAdminPositionRow[]} loading={listQ.isLoading} sortable={false} compact />
-      )}
-      </ForexPanelShell>
+        {kind === 'orders' ? (
+          <DataTable columns={orderColumns} data={rows as ForexAdminOrderRow[]} loading={listQ.isLoading} sortable={false} compact />
+        ) : kind === 'executions' ? (
+          <DataTable columns={execColumns} data={rows as ForexAdminExecutionRow[]} loading={listQ.isLoading} sortable={false} compact />
+        ) : (
+          <DataTable columns={posColumns} data={rows as ForexAdminPositionRow[]} loading={listQ.isLoading} sortable={false} compact />
+        )}
+        {pagination ? (
+          <div className="flex items-center justify-between border-t border-admin-border px-4 py-2 text-xs text-admin-muted">
+            <span>
+              Page {pagination.page} of {Math.max(1, pagination.totalPages)} · {pagination.total} total
+            </span>
+            <div className="flex gap-1">
+              <Button type="button" variant="ghost" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={pagination.totalPages > 0 && page >= pagination.totalPages}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </ForexWorkspaceSurface>
 
       {listQ.isError ? (
         <p className="text-sm text-red-400">{listQ.error instanceof Error ? listQ.error.message : 'Load failed'}</p>
@@ -429,34 +475,63 @@ export function ForexAdminOpsTable({ kind }: { kind: ForexOpsTableKind }) {
           />
         ) : null}
       </Modal>
+    </>
+  );
 
-      {pagination ? (
-        <div className="flex items-center justify-between text-sm text-admin-muted">
-          <span>
-            Page {pagination.page} of {Math.max(1, pagination.totalPages)} · {pagination.total} total
-          </span>
-          <div className="flex gap-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              disabled={pagination.totalPages > 0 && page >= pagination.totalPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      ) : null}
+  if (layout === 'section') {
+    return <div className="space-y-3">{workspace}</div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <ForexWorkspaceHeader
+        title={title}
+        purpose={description}
+        dataSource={`Admin Forex API · ${kind} list`}
+        posture="MOCK"
+        kpis={
+          kind === 'orders'
+            ? [
+                { label: 'Total (scope)', value: pageStats.a },
+                { label: 'Non-terminal (page)', value: pageStats.b, tone: Number(pageStats.b) > 0 ? 'warning' : undefined },
+                { label: 'Reject hint (page)', value: pageStats.c },
+                { label: 'Scope', value: pageStats.d },
+              ]
+            : kind === 'executions'
+              ? [
+                  { label: 'Total (scope)', value: pageStats.a },
+                  { label: 'Filled (page)', value: pageStats.b, tone: 'success' },
+                  { label: 'Failures (page)', value: pageStats.c, tone: Number(pageStats.c) > 0 ? 'warning' : undefined },
+                  { label: 'Scope', value: pageStats.d },
+                ]
+              : [
+                  { label: 'Total (scope)', value: pageStats.a },
+                  { label: 'Open (page)', value: pageStats.b },
+                  { label: 'Symbols (page)', value: pageStats.c },
+                  { label: 'Scope', value: pageStats.d },
+                ]
+        }
+      />
+
+      <div className="flex flex-wrap gap-2 text-[10px]">
+        <Link href="/forex/orders" className="rounded-md border border-admin-border/60 px-2 py-1 hover:border-violet-500/40">
+          Orders
+        </Link>
+        <Link href="/forex/executions" className="rounded-md border border-admin-border/60 px-2 py-1 hover:border-violet-500/40">
+          Executions
+        </Link>
+        <Link href="/forex/positions" className="rounded-md border border-admin-border/60 px-2 py-1 hover:border-violet-500/40">
+          Positions
+        </Link>
+        <Link href="/forex/dealing" className="rounded-md border border-admin-border/60 px-2 py-1 hover:border-violet-500/40">
+          Dealing desk
+        </Link>
+        <Link href="/forex/protection" className="rounded-md border border-admin-border/60 px-2 py-1 hover:border-violet-500/40">
+          Protection
+        </Link>
+      </div>
+
+      {workspace}
     </div>
   );
 }

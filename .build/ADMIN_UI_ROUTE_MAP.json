@@ -1,0 +1,69 @@
+{
+  "generatedAt": "2026-09-20T06:45:00Z",
+  "source": "apps/admin-panel/src/app/**/page.tsx",
+  "totalPages": 106,
+  "domainCounts": {
+    "FOREX": 41,
+    "CRYPTO": 18,
+    "SHARED": 44,
+    "AUTH": 2,
+    "UNKNOWN": 1
+  },
+  "navigationSource": "apps/admin-panel/src/lib/admin/nav-sections.ts + forex-sidebar-nav.ts",
+  "forexNavGroups": "apps/admin-panel/src/lib/admin/forex-nav-groups.ts (command, trading, risk, crm, accounts, markets, liquidity, finance, partners, compliance, automation, reporting, system)",
+  "forexUiRoutesSample": [
+    "/forex/overview",
+    "/forex/command",
+    "/forex/accounts",
+    "/forex/orders",
+    "/forex/positions",
+    "/forex/executions",
+    "/forex/dealing",
+    "/forex/margin-risk",
+    "/forex/liquidation",
+    "/forex/risk-control",
+    "/forex/controls",
+    "/forex/ledger",
+    "/forex/journal-audit",
+    "/forex/fees-swaps",
+    "/forex/lp-execution",
+    "/forex/liquidity/routing",
+    "/forex/crm/home",
+    "/forex/crm/clients",
+    "/forex/reporting"
+  ],
+  "cryptoUiRoutesSample": [
+    "/trading",
+    "/markets",
+    "/orders",
+    "/trades",
+    "/p2p",
+    "/wallets",
+    "/deposits",
+    "/withdrawals",
+    "/admin/mm-control",
+    "/liquidity",
+    "/reconciliation",
+    "/staking",
+    "/fees"
+  ],
+  "sharedUiRoutesSample": [
+    "/dashboard",
+    "/control-center",
+    "/admin-control",
+    "/monitoring",
+    "/users",
+    "/kyc",
+    "/audit",
+    "/settings",
+    "/admin-users",
+    "/approvals",
+    "/incidents",
+    "/system/health"
+  ],
+  "notes": [
+    "Sidebar section 'Trading' is Crypto spot engine; separate collapsible 'Forex' section exists — PARTIAL IA alignment with target model.",
+    "Route /trading is Crypto; Forex trading ops live under /forex/*.",
+    "Hidden/dynamic: users/[id], markets/[symbol], forex/crm/clients/[accountId], deposits/[id], withdrawals/[id]."
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "phase": 5,
+  "title": "Advanced customer Forex terminal",
+  "auditedAtUtc": "2026-09-19T06:35:00.000Z",
+  "route": "/forex/trade",
+  "overallStatus": "DEVELOPMENT_COMPLETE",
+  "runtimeCertification": "PENDING_MARKET_DEPENDENT_CHECKS",
+  "phase4GreenRequiredForPhase5Green": true,
+  "legend": {
+    "IMPLEMENTED": "Present and wired to authoritative backend",
+    "PARTIAL": "Exists with gaps or not runtime-certified",
+    "MISSING": "Not in codebase",
+    "BROKEN": "Known defect",
+    "NOT_PROVEN": "Not browser/runtime certified"
+  },
+  "features": {
+    "5.2_order_workspace": { "status": "IMPLEMENTED", "paths": ["ForexBottomPanels.tsx", "ForexOrderTicket.tsx"] },
+    "5.3_order_modification": { "status": "IMPLEMENTED", "note": "TIF omitted — backend ForexOrderModifyRequest has no timeInForce field" },
+    "5.4_position_workspace": { "status": "IMPLEMENTED", "paths": ["ForexPositionPanel.tsx"] },
+    "5.5_sl_tp": { "status": "IMPLEMENTED", "runtime": "NOT_PROVEN" },
+    "5.6_trailing_stop": { "status": "PARTIAL", "runtime": "NOT_PROVEN" },
+    "5.7_market_watch": { "status": "PARTIAL", "gap": "No High/Low columns; SIMULATED labeled in footer" },
+    "5.8_chart": { "status": "IMPLEMENTED", "runtime": "NOT_PROVEN" },
+    "5.9_trade_from_chart": { "status": "PARTIAL", "gap": "Market/context; full limit/stop from chart via ticket draft" },
+    "5.10_timeframes": { "status": "IMPLEMENTED" },
+    "5.11_indicators": { "status": "PARTIAL", "gap": "ATR readout not overlay" },
+    "5.12_drawings": { "status": "IMPLEMENTED", "persistence": "localStorage only" },
+    "5.13_workspace": { "status": "IMPLEMENTED", "persistence": "eda-forex-workspace-v5" },
+    "5.14_multi_chart": { "status": "IMPLEMENTED" },
+    "5.15_history": { "status": "PARTIAL", "gap": "Period filter; no CSV; limited filters" },
+    "5.16_alerts": { "status": "PARTIAL", "gap": "Local price alerts only" },
+    "5.17_risk_panel": { "status": "PARTIAL", "note": "ForexAccountBar authoritative; ForexRiskBar enhanced with level/free/uPnL" },
+    "5.18_websocket_ux": { "status": "PARTIAL", "note": "Backend WS cookie auth added; browser cert NOT_PROVEN" },
+    "5.19_responsive": { "status": "PARTIAL", "runtime": "NOT_PROVEN" },
+    "5.20_performance": { "status": "NOT_PROVEN" },
+    "5.21_security_idor": { "status": "IMPLEMENTED", "runtime": "NOT_PROVEN_THIS_PASS" }
+  },
+  "workspaceChangesThisPass": [
+    "apps/backend/src/services/forex/auth/forex-authenticate.ts — resolveForexWsUserId for cookie/Bearer WS",
+    "apps/backend/src/routes/forex.fastify.ts — WS upgrade uses resolveForexWsUserId",
+    "apps/frontend/src/components/forex/ForexRiskBar.tsx — show authoritative level/free/uPnL from account"
+  ],
+  "deploymentRequired": true,
+  "phase5Green": false,
+  "developmentCompleteArtifact": ".build/forex-phase5-development-complete.json",
+  "marketCheckpointArtifact": ".build/forex-phase5-market-runtime-checkpoint.json"
+}

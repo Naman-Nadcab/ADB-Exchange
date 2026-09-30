@@ -1,0 +1,47 @@
+{
+  "ok": true,
+  "account_id": "CERT_ACC_A",
+  "steps": [
+    {
+      "name": "db_identity",
+      "ok": true,
+      "detail": "exchange_forex_cert"
+    },
+    {
+      "name": "account_exists",
+      "ok": true,
+      "detail": "CERT_ACC_A"
+    },
+    {
+      "name": "to_restricted",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "db_restricted",
+      "ok": true,
+      "detail": "RESTRICTED"
+    },
+    {
+      "name": "crm_activity",
+      "ok": true,
+      "detail": "3"
+    },
+    {
+      "name": "short_reason_denied",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "name": "to_active",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "audit_rows",
+      "ok": true,
+      "detail": "2"
+    }
+  ],
+  "generated_at": "2026-09-17T16:12:24.350Z"
+}

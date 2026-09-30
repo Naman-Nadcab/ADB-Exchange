@@ -136,3 +136,6 @@
 {"route":"/trade/spot","locale":"zh-CN","viewport":"1440x900","status":"PASS","unexpectedEnglish":[],"missingTranslation":[],"consoleErrors":[],"missingKeys":[]}
 {"route":"/trade/spot","locale":"en","viewport":"1440x900","status":"PASS","unexpectedEnglish":[],"missingTranslation":[],"consoleErrors":[],"missingKeys":[]}
 {"route":"/trade/spot","locale":"id-ID","viewport":"1440x900","status":"PASS","unexpectedEnglish":[],"missingTranslation":[],"consoleErrors":[],"missingKeys":[]}
+{"route":"/cookies","locale":"en","viewport":"1440x900","status":"PASS","unexpectedEnglish":[],"missingTranslation":[],"consoleErrors":[],"missingKeys":[]}
+{"route":"/cookies","locale":"zh-CN","viewport":"1440x900","status":"PASS","unexpectedEnglish":[],"missingTranslation":[],"consoleErrors":[],"missingKeys":[]}
+{"route":"/cookies","locale":"id-ID","viewport":"1440x900","status":"PASS","unexpectedEnglish":[],"missingTranslation":[],"consoleErrors":[],"missingKeys":[]}

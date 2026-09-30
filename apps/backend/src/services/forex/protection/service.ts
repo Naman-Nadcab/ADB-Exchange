@@ -5,6 +5,8 @@ import {
   forexProtectionTriggeredTotal,
   forexTriggerRejectTotal,
 } from '../../../lib/forex-prometheus-metrics.js';
+import type { ForexJournalSeverity } from '../journal/models.js';
+import { recordForexJournalEvent } from '../journal/service.js';
 import type { ForexOrderService } from '../orders/service.js';
 import type { ForexPositionService } from '../positions/service.js';
 import type { ForexPricingService } from '../quotes.service.js';
@@ -27,7 +29,19 @@ import {
   quoteUsableForTrigger,
   triggerPriceSide,
 } from './trigger.js';
+import { parseTrailingDistance, ratchetTrailingStop } from './trailing.js';
 import { validateProtectionCreate } from './validate.js';
+
+/** Protection lifecycle points the customer journal reports on. */
+const FOREX_PROTECTION_JOURNAL: Readonly<Record<string, { severity: ForexJournalSeverity; label: string }>> = {
+  PROTECTION_CREATED: { severity: 'info', label: 'created' },
+  PROTECTION_MODIFIED: { severity: 'info', label: 'updated' },
+  TRAILING_UPDATED: { severity: 'info', label: 'trailing moved' },
+  PROTECTION_CANCELLED: { severity: 'warn', label: 'cancelled' },
+  PROTECTION_TRIGGERED: { severity: 'warn', label: 'triggered' },
+  PROTECTION_FILLED: { severity: 'info', label: 'filled' },
+  PROTECTION_FAILED: { severity: 'error', label: 'failed' },
+};
 
 export class ForexProtectionService {
   constructor(
@@ -54,6 +68,14 @@ export class ForexProtectionService {
 
   listOwned(accountId: string): ForexProtectionRecord[] {
     return this.store.listByAccount(accountId);
+  }
+
+  async update(
+    accountId: string,
+    protectionId: string,
+    patch: { triggerPrice?: string; trailingDistance?: string | null }
+  ): Promise<ForexProtectionRecord> {
+    return this.store.enqueue(accountId, () => this.updateLocked(accountId, protectionId, patch));
   }
 
   async cancel(accountId: string, protectionId: string): Promise<ForexProtectionRecord> {
@@ -166,6 +188,7 @@ export class ForexProtectionService {
       type: validated.type,
       volume: validated.volume,
       triggerPrice: validated.triggerPrice,
+      trailingDistance: validated.type === 'STOP_LOSS' ? parseTrailingDistance(raw.trailingDistance) : null,
       status: 'ACTIVE',
       fingerprint: fp,
       lastQuoteKey: null,
@@ -186,6 +209,55 @@ export class ForexProtectionService {
     return rec;
   }
 
+  private async updateLocked(
+    accountId: string,
+    protectionId: string,
+    patch: { triggerPrice?: string; trailingDistance?: string | null }
+  ): Promise<ForexProtectionRecord> {
+    const p = this.getOwned(accountId, protectionId);
+    if (p.status !== 'ACTIVE') {
+      throw new ForexProtectionError('PROTECTION_NOT_ACTIVE', `Cannot modify protection in ${p.status}`, 409);
+    }
+    const position = this.positions.getOwned(accountId, p.positionId);
+    const quote = this.pricing.getQuote(position.symbol);
+    const nextTrail =
+      patch.trailingDistance === null
+        ? null
+        : patch.trailingDistance !== undefined
+          ? parseTrailingDistance(patch.trailingDistance)
+          : p.trailingDistance ?? null;
+    if (patch.trailingDistance !== undefined && patch.trailingDistance !== null && !nextTrail) {
+      throw new ForexProtectionError('INVALID_TRAILING_DISTANCE', 'trailingDistance must be a positive decimal');
+    }
+    const nextTrigger = patch.triggerPrice != null ? String(patch.triggerPrice) : p.triggerPrice;
+    const validated = validateProtectionCreate({
+      clientProtectionId: p.clientProtectionId,
+      type: p.type,
+      triggerPrice: nextTrigger,
+      volume: p.volume,
+      position,
+      quote,
+    });
+    if (p.type === 'TAKE_PROFIT' && nextTrail) {
+      throw new ForexProtectionError('TRAILING_NOT_SUPPORTED', 'Trailing applies to STOP_LOSS only');
+    }
+    p.triggerPrice = validated.triggerPrice;
+    p.trailingDistance = p.type === 'STOP_LOSS' ? nextTrail : null;
+    p.fingerprint = protectionFingerprint({
+      type: p.type,
+      positionId: p.positionId,
+      volume: p.volume,
+      triggerPrice: p.triggerPrice,
+    });
+    p.updatedAt = new Date().toISOString();
+    this.persist(p);
+    this.emit(p, 'PROTECTION_MODIFIED', {
+      metadata: { triggerPrice: p.triggerPrice, trailingDistance: p.trailingDistance },
+    });
+    this.publish(p, 'fx.protection');
+    return p;
+  }
+
   private async evaluateOne(p: ForexProtectionRecord, quote: ForexQuoteDto): Promise<void> {
     const key = quoteKey(quote);
     if (p.lastQuoteKey === key) return;
@@ -194,6 +266,19 @@ export class ForexProtectionService {
     p.lastEvalPrice = executableTriggerPrice(p.positionSide, quote);
     p.lastEvalSource = triggerPriceSide(p.positionSide);
     p.updatedAt = new Date().toISOString();
+    const trail = ratchetTrailingStop({ protection: p, quote });
+    if (trail.moved) {
+      p.triggerPrice = trail.triggerPrice;
+      p.fingerprint = protectionFingerprint({
+        type: p.type,
+        positionId: p.positionId,
+        volume: p.volume,
+        triggerPrice: p.triggerPrice,
+      });
+      this.persist(p);
+      this.emit(p, 'TRAILING_UPDATED', { quoteKey: key, metadata: { triggerPrice: p.triggerPrice, trailingDistance: p.trailingDistance } });
+      this.publish(p, 'fx.protection');
+    }
     if (!isProtectionTriggered(p, p.lastEvalPrice)) {
       this.emit(p, 'PROTECTION_EVALUATED', { quoteKey: key, metadata: { triggered: false } });
       return;
@@ -214,6 +299,7 @@ export class ForexProtectionService {
         orderType: 'market',
         volume: p.volume,
         intent: 'PROTECTION_CLOSE',
+        reducePositionId: p.positionId,
       });
       p.orderId = order.orderId;
       if (order.status === 'FILLED') {
@@ -251,10 +337,53 @@ export class ForexProtectionService {
       metadata: extra?.metadata,
     };
     this.store.events.push(event);
+    this.journal(p, event);
     if (!this.persistEnabled) return;
     void import('./persist.js')
       .then((m) => m.persistProtectionEvent(event))
       .catch(() => undefined);
+  }
+
+  private journal(p: ForexProtectionRecord, event: ForexProtectionEvent): void {
+    const mapped = FOREX_PROTECTION_JOURNAL[event.eventType];
+    if (!mapped) return;
+    const reason = event.reason == null ? null : String(event.reason);
+    recordForexJournalEvent({
+      accountId: p.accountId,
+      severity: mapped.severity,
+      category: 'protection',
+      eventType: event.eventType,
+      orderId: p.orderId,
+      positionId: p.positionId,
+      referenceId: p.protectionId,
+      message:
+        `${p.type} ${p.symbol} ${p.volume} @ ${p.triggerPrice} ${mapped.label}` +
+        (p.trailingDistance ? ` · trail ${p.trailingDistance}` : '') +
+        (reason ? ` · ${reason}` : ''),
+      metadata: {
+        symbol: p.symbol,
+        protectionType: p.type,
+        positionSide: p.positionSide,
+        volume: p.volume,
+        triggerPrice: p.triggerPrice,
+        trailingDistance: p.trailingDistance,
+        status: p.status,
+        reason,
+        quoteKey: event.quoteKey ?? null,
+      },
+    });
+    void (async () => {
+      const { evaluateForexAccountEventAlerts, forexProtectionEventToAlertType } = await import('../customer/alert-engine.js');
+      const alertType = forexProtectionEventToAlertType(event.eventType, p.type);
+      if (!alertType) return;
+      await evaluateForexAccountEventAlerts({
+        accountId: p.accountId,
+        alertType,
+        symbol: p.symbol,
+        message: `${p.type} ${event.eventType}`,
+        metadata: { positionId: p.positionId, protectionId: p.protectionId, protectionType: p.type },
+      });
+    })();
   }
 
   private persist(p: ForexProtectionRecord): void {

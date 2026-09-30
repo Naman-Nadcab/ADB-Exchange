@@ -1,0 +1,168 @@
+⚠️  ALERT_WEBHOOK_URL not set — circuit_open and integrity_mismatch will not be sent to Slack/PagerDuty.
+⚠️  SANCTIONS_PROVIDER not set — sanctions screening is no-op. Integrate a provider for compliance.
+⚠️ WARNING: Admin login 2FA is DISABLED (ADMIN_2FA_MANDATORY=false)
+{"level":"info","message":"Database pool closed","service":"exchange-api","shard_id":0,"timestamp":"I5O"}
+{
+  "summary": {
+    "pass": 26,
+    "fail": 0
+  },
+  "results": [
+    {
+      "id": "unauth_config",
+      "result": "PASS",
+      "http": 401,
+      "note": "no token"
+    },
+    {
+      "id": "super_crm_clients",
+      "result": "PASS",
+      "http": 200,
+      "note": "expected 200"
+    },
+    {
+      "id": "support_crm_clients_denied",
+      "result": "PASS",
+      "http": 403,
+      "note": "expected 403"
+    },
+    {
+      "id": "super_crm_export",
+      "result": "PASS",
+      "http": 200,
+      "note": "expected 200"
+    },
+    {
+      "id": "support_crm_export_denied",
+      "result": "PASS",
+      "http": 403,
+      "note": "expected 403"
+    },
+    {
+      "id": "super_client_detail",
+      "result": "PASS",
+      "http": 200,
+      "note": "expected 200"
+    },
+    {
+      "id": "support_client_detail_denied",
+      "result": "PASS",
+      "http": 403,
+      "note": "expected 403"
+    },
+    {
+      "id": "super_client_360",
+      "result": "PASS",
+      "http": 200,
+      "note": "expected 200"
+    },
+    {
+      "id": "super_leads",
+      "result": "PASS",
+      "http": 200,
+      "note": "expected 200"
+    },
+    {
+      "id": "support_leads_denied",
+      "result": "PASS",
+      "http": 403,
+      "note": "expected 403"
+    },
+    {
+      "id": "super_tasks",
+      "result": "PASS",
+      "http": 200,
+      "note": "expected 200"
+    },
+    {
+      "id": "super_pipeline",
+      "result": "PASS",
+      "http": 200,
+      "note": "expected 200"
+    },
+    {
+      "id": "super_orders",
+      "result": "PASS",
+      "http": 200,
+      "note": "expected 200"
+    },
+    {
+      "id": "support_orders_denied",
+      "result": "PASS",
+      "http": 403,
+      "note": "expected 403"
+    },
+    {
+      "id": "super_positions",
+      "result": "PASS",
+      "http": 200,
+      "note": "expected 200"
+    },
+    {
+      "id": "super_partners",
+      "result": "PASS",
+      "http": 200,
+      "note": "expected 200"
+    },
+    {
+      "id": "super_reporting",
+      "result": "PASS",
+      "http": 200,
+      "note": "expected 200"
+    },
+    {
+      "id": "super_risk_plane",
+      "result": "PASS",
+      "http": 200,
+      "note": "expected 200"
+    },
+    {
+      "id": "super_dealing_queue",
+      "result": "PASS",
+      "http": 200,
+      "note": "expected 200"
+    },
+    {
+      "id": "super_account_groups",
+      "result": "PASS",
+      "http": 200,
+      "note": "expected 200"
+    },
+    {
+      "id": "support_account_groups_denied",
+      "result": "PASS",
+      "http": 403,
+      "note": "expected 403"
+    },
+    {
+      "id": "support_leverage_mut_denied",
+      "result": "PASS",
+      "http": 403,
+      "note": "expected 403,401"
+    },
+    {
+      "id": "super_leverage_mut_202",
+      "result": "PASS",
+      "http": 202,
+      "note": "expected 202"
+    },
+    {
+      "id": "support_no_leverage_db_mutation",
+      "result": "PASS",
+      "http": 0,
+      "note": "before=30 after=30"
+    },
+    {
+      "id": "risk_manager_crm_clients",
+      "result": "PASS",
+      "http": 200,
+      "note": "risk_manager has forex:crm:view in implicit matrix"
+    },
+    {
+      "id": "risk_manager_approval_route_denied",
+      "result": "PASS",
+      "http": 403,
+      "note": "zero-trust: /approval-requests unmapped for non-super"
+    }
+  ]
+}

@@ -1,8 +1,9 @@
-import { FOREX_ACTIVE_POSITION_MODE, nettingKey } from './mode.js';
+import { nettingKey } from './mode.js';
 import type { ForexPositionRecord } from './models.js';
 
 export class ForexPositionStore {
   private readonly byId = new Map<string, ForexPositionRecord>();
+  /** NETTING only: one open position per account+symbol. */
   private readonly openByKey = new Map<string, string>();
   private readonly fills = new Set<string>();
   private tails = new Map<string, Promise<unknown>>();
@@ -10,7 +11,7 @@ export class ForexPositionStore {
   put(record: ForexPositionRecord): void {
     this.byId.set(record.positionId, record);
     const key = nettingKey(record.accountId, record.symbol);
-    if (record.status === 'OPEN' && FOREX_ACTIVE_POSITION_MODE === 'NETTING') {
+    if (record.status === 'OPEN' && record.mode === 'NETTING') {
       this.openByKey.set(key, record.positionId);
     } else if (this.openByKey.get(key) === record.positionId) {
       this.openByKey.delete(key);

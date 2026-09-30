@@ -22,6 +22,9 @@ for i in $(seq 1 60); do
   sleep 1
 done
 
+echo "=== Building backend image (includes dist/database/migrate.js) ==="
+"${COMPOSE[@]}" build backend
+
 echo "=== Running migrations (node dist/database/migrate.js) ==="
 "${COMPOSE[@]}" --profile tools run --rm migrate
 

@@ -1,0 +1,139 @@
+{
+  "phase": "2-lockdown-B",
+  "finalVerdict": "RUNTIME_VERIFIED",
+  "timestampUtc": "2026-09-18T16:10:00Z",
+  "deployment": {
+    "backend": {
+      "container": "exchange-backend",
+      "image": "m-live-backend:latest",
+      "digest": "sha256:9f7f26e226c676d86bf88e98d872f0e48161ac7a41f8799b0b9334ccfb62c8a6",
+      "health": "healthy"
+    },
+    "frontend": {
+      "container": "exchange-frontend",
+      "image": "m-live-frontend:latest",
+      "digest": "sha256:ec76bc1f065fee0764d1e2e24c1e5d3709c2c6da437e5fabda2aef1f877aaa63",
+      "health": "healthy"
+    },
+    "gitHead": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "branch": "release/exchange-production-baseline",
+    "implementationChanges": false,
+    "redeployRequired": false
+  },
+  "journalPathTrace": {
+    "entry": "ForexOrderService.emit → journal() → recordForexJournalEvent()",
+    "persist": "ForexJournalService.record → persistForexJournalEvent (when persistEnabled)",
+    "hydrate": "hydrateForexEconomicState sets journal.setPersistEnabled(true) + hydrateFromDb",
+    "table": "forex_journal_events",
+    "apiRead": "GET /api/v1/forex/journal (listDurable)"
+  },
+  "schemaVerification": {
+    "migrationRequired": false,
+    "fieldsRepresentedInMetadata": [
+      "symbol",
+      "side",
+      "orderType",
+      "timeInForce",
+      "requestedPrice",
+      "limitPrice",
+      "requestedVolume",
+      "filledVolume",
+      "executionId",
+      "status",
+      "reason"
+    ],
+    "columns": [
+      "id",
+      "account_id",
+      "severity",
+      "category",
+      "event_type",
+      "order_id",
+      "position_id",
+      "reference_id",
+      "message",
+      "metadata",
+      "created_at"
+    ]
+  },
+  "baselineDb": {
+    "forex_orders": 775,
+    "forex_journal_events": 57,
+    "forex_positions_open": 3,
+    "forex_executions": 664,
+    "forex_fills": 662,
+    "forex_ledger_transactions": 409
+  },
+  "testJourney": {
+    "accountId": "14e57a8f-bbd2-4b48-9b60-6bccede41176",
+    "clientOrderId": "jlock-b-1789747671",
+    "orderId": "6b1cfea3-3faa-4442-aeec-3a872d93093f",
+    "executionId": "0094078f-3561-4227-9f99-c98fcea05f85",
+    "clientExecId": "FX-6b1cfea3-3faa-4442-aeec-3a872d93093f",
+    "type": "buy stop_limit GTC",
+    "volume": "0.01",
+    "triggerAndLimit": "1.16500",
+    "statusFlow": "PENDING → FILLED (MOCK demo-price pin)",
+    "evidenceFile": ".build/forex-phase2-journal-lockdown-b-evidence.json"
+  },
+  "afterJourneyDb": {
+    "forex_orders": 776,
+    "forex_journal_events": 60,
+    "forex_executions": 665,
+    "forex_fills": 663,
+    "forex_ledger_transactions": 410
+  },
+  "controlledDelta": {
+    "forex_orders": 1,
+    "forex_journal_events": 3,
+    "forex_executions": 1,
+    "forex_fills": 1,
+    "forex_ledger_transactions": 1
+  },
+  "journalEventIdsForOrder": [
+    "ecb04d92-f071-467d-ba1f-1c93dc4608f2",
+    "c3bda6a5-172e-49e9-a166-8b3117dd0f17",
+    "2985e0a1-9908-4804-9fbe-975624828a79"
+  ],
+  "journalLineage": [
+    { "eventType": "ORDER_ACCEPTED", "status": "ACCEPTED" },
+    { "eventType": "ORDER_PENDING", "status": "PENDING" },
+    { "eventType": "ORDER_FILLED", "status": "FILLED", "executionId": "0094078f-3561-4227-9f99-c98fcea05f85" }
+  ],
+  "noteOnTriggerEvents": "ORDER_TRIGGERING/ORDER_TRIGGERED are engineering lifecycle events; customer journal mapping records ACCEPTED/PENDING/MODIFIED/FILLED per FOREX_ORDER_JOURNAL.",
+  "idempotency": {
+    "clientOrderIdReplay": true,
+    "sameOrderId": true,
+    "journalCountUnchangedOnReplay": true,
+    "journalCountAfterReplay": 60,
+    "verdict": "RUNTIME_VERIFIED"
+  },
+  "restartDurability": {
+    "action": "docker restart exchange-backend only",
+    "journalRowsForOrderAfterRestart": 3,
+    "apiJournalEventsForOrderAfterRestart": 3,
+    "verdict": "RUNTIME_VERIFIED"
+  },
+  "browser": {
+    "dedicatedJournalUiProof": "NOT_PROVEN",
+    "terminalLoadsViaExistingCert": "UI_VERIFIED",
+    "orderRetrievalApiAfterRestart": "FILLED stop_limit",
+    "note": "Customer Journal tab exists; this lockdown did not assert journal tab rows for test order."
+  },
+  "tests": [
+    { "name": "forex-phase-a-orders.test.ts (journal lifecycle)", "result": "PASS" }
+  ],
+  "realForexFirewall": {
+    "realForex": false,
+    "executionMode": "MOCK",
+    "externalProviders": "NOT_CONFIGURED"
+  },
+  "cryptoFirewall": {
+    "modifiedInLockdown": false,
+    "dirtyDiffSha256": "c94ba8f955b28b1536f39b8a840aa7ec27f7e5c00cf1098310bfd1bfb136fdaa"
+  },
+  "priorAuditReconciliation": {
+    "priorClaim": "journal DB count 0 with writers present",
+    "currentFinding": "forex_journal_events persists on live MOCK runtime when persistEnabled via hydrate; controlled journey added exactly 3 linked rows"
+  }
+}

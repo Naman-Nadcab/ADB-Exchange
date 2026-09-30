@@ -1,0 +1,57 @@
+{
+  "kind": "forex-master-roadmap-baseline",
+  "recordedAt": "2026-09-19T12:10:00Z",
+  "platform": "Unified Trading Platform (Forex scope only)",
+  "git": {
+    "branch": "release/exchange-production-baseline",
+    "head": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "aheadOfRemote": 78,
+    "workingTreeDirty": true
+  },
+  "deployed": {
+    "backend": "m-live-backend@sha256:dfa20e3ee90c2b5db6daeeb217eb17a748ef19acad7626c0a71ae06f5aeae44d",
+    "frontend": "m-live-frontend@sha256:78a0589f476d158ed0ed8208ce0f275ddbff8ba48f3fc44fb5784cf492bbf9ad",
+    "realForex": false
+  },
+  "cryptoFingerprints": {
+    "spot.fastify.ts": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "spot-ticker-db-load.ts": "3d128d47e0152a8a552b8291ab386ad24576949066bf69dea4016484444c086b"
+  },
+  "database": {
+    "name": "exchange",
+    "forexTableCount": 62,
+    "markers": ["forex_orders.expire_at", "forex_customer_alerts", "forex_customer_alert_events"]
+  },
+  "phaseClassification": {
+    "phase0_inventory": "GREEN",
+    "phase1a_indicator_panes": "GREEN",
+    "phase1b_drawing_engine": "GREEN",
+    "phase1c_server_alerts": "GREEN",
+    "phase2_customer_terminal": "GREEN",
+    "phase3_chart_timeframes": "GREEN",
+    "phase4_indicators_registry": "GREEN",
+    "phase5_drawing_audit": "GREEN",
+    "phase6_market_watch_specs": "GREEN",
+    "phase7_history_analytics": "GREEN",
+    "phase8_workspace": "LOCAL_WORKSPACE",
+    "phase9_command_center": "GREEN",
+    "phase10_risk_margin": "GREEN",
+    "phase11_runtime_cert": "MARKET_DEPENDENT",
+    "phase12_market_data": "MOCK_SIMULATED",
+    "phase13_providers": "PROVIDER_DEPENDENT",
+    "phase14_forex_admin": "GREEN",
+    "phase15_ledger_accounting": "GREEN",
+    "phase16_security": "GREEN",
+    "phase17_observability": "GREEN",
+    "phase18_deployment": "GREEN",
+    "phase19_dr": "NOT_CONFIGURED",
+    "phase20_real_forex_golive": "BLOCKED"
+  },
+  "capabilitySamples": {
+    "execution": "MOCK_SIMULATED",
+    "candles": "Yahoo native + deterministic aggregate (timeframe-registry)",
+    "quotes": "MOCK",
+    "alertsDeliveryWeb": "CONFIGURED",
+    "alertsPushEmailWebhook": "NOT_CONFIGURED"
+  }
+}

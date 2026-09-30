@@ -1,0 +1,122 @@
+{
+  "task": "P3-B QA DAY order cleanup (normal customer cancel)",
+  "timestampUtc": "2026-09-18T20:05:00Z",
+  "outcome": "INCOMPLETE",
+  "cleanupVerdict": "BLOCKED",
+  "blocker": "FOREX_NOT_READY — customer Forex mutations return HTTP 503; cancel API not reachable",
+  "blockerDetail": "FOREX_RECONCILE_FAILED:14e57a8f-bbd2-4b48-9b60-6bccede41176:POSITION_MISMATCH (pre-existing OPEN EURUSD short entry_price rounding vs fill replay; surfaced on backend restart during cleanup)",
+  "P3BStatus": {
+    "verdict": "NOT_PROVEN",
+    "reason": "LIVE_SESSION_CLOSE_NOT_CURRENTLY_OBSERVABLE"
+  },
+  "phase3": "CONDITIONAL",
+  "qaAccount": "qa_trader_a@local.exchange",
+  "targetOrders": [
+    {
+      "orderId": "eab3dfa3-f80f-44a2-a5d0-8dc9f5debd00",
+      "clientOrderId": "p3b-day-natural-1789749675064",
+      "before": {
+        "status": "PENDING",
+        "timeInForce": "DAY",
+        "symbol": "EURUSD",
+        "side": "buy",
+        "requestedVolume": "0.01",
+        "requestedPrice": "1.05000000",
+        "filledVolume": "0"
+      },
+      "after": { "status": "PENDING", "unchanged": true },
+      "cancelAttempt": { "http": 503, "code": "FOREX_NOT_READY" }
+    },
+    {
+      "orderId": "0ec1c8f6-9257-457e-80ff-e9f03b472329",
+      "clientOrderId": "p3b-day-natural-1789751517107",
+      "before": {
+        "status": "PENDING",
+        "timeInForce": "DAY",
+        "symbol": "EURUSD",
+        "side": "buy",
+        "requestedVolume": "0.01",
+        "requestedPrice": "1.05000000",
+        "filledVolume": "0"
+      },
+      "after": { "status": "PENDING", "unchanged": true },
+      "cancelAttempt": { "http": 503, "code": "FOREX_NOT_READY" }
+    },
+    {
+      "orderId": "38806f23-d7d2-46ce-9de6-42df17b5f996",
+      "clientOrderId": "p3b-day-natural-1789755535885",
+      "before": {
+        "status": "PENDING",
+        "timeInForce": "DAY",
+        "symbol": "EURUSD",
+        "side": "buy",
+        "requestedVolume": "0.01",
+        "requestedPrice": "1.05000000",
+        "filledVolume": "0"
+      },
+      "after": { "status": "PENDING", "unchanged": true },
+      "cancelAttempt": { "http": 503, "code": "FOREX_NOT_READY" }
+    }
+  ],
+  "beforeCleanupDb": {
+    "source": "pre-cleanup read (same as post-abort baseline)",
+    "forex_orders": 791,
+    "forex_journal_events": 94,
+    "forex_positions": 301,
+    "forex_executions": 676,
+    "forex_fills": 674,
+    "forex_ledger_entries": 676
+  },
+  "afterAttemptDb": {
+    "forex_orders": 791,
+    "forex_journal_events": 94,
+    "forex_positions": 301,
+    "forex_executions": 676,
+    "forex_fills": 674,
+    "forex_ledger_entries": 676,
+    "note": "No order/journal/financial delta from failed cancel attempts"
+  },
+  "financialSafety": {
+    "newExecutions": 0,
+    "newFills": 0,
+    "newPositions": 0,
+    "ledgerMovementFromCleanup": 0
+  },
+  "journalEvidence": "No ORDER_CANCELLED — cancels did not execute",
+  "operationsPerformed": [
+    "Verified 3 orders PENDING DAY far limit via DB + API (before restart)",
+    "POST /api/v1/forex/orders/:id/cancel — hung on first attempts (pre-restart)",
+    "docker compose restart backend (service name: backend) — clear stuck queues; not a deploy",
+    "POST cancel — HTTP 503 FOREX_NOT_READY (post-restart)",
+    "GET /api/v1/forex/readiness — economicReady false, POSITION_MISMATCH"
+  ],
+  "operationsNotPerformed": [
+    "Manual DB status/journal updates",
+    "Admin force-cancel",
+    "DAY expiry / demo-price",
+    "Production code changes",
+    "Deploy"
+  ],
+  "deployment": "NONE",
+  "serviceHealth": {
+    "exchange-backend": "healthy",
+    "exchange-frontend": "healthy",
+    "forexEconomicReady": false
+  },
+  "realForexFirewall": {
+    "realForex": false,
+    "execution": "MOCK/SIMULATED"
+  },
+  "cryptoFirewall": {
+    "cryptoChanged": false,
+    "spot.fastify.ts.sha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "spot-ticker-db-load.ts.sha256": "bb2ffb23ab52ac81f37883bf58b36143a53cc2113614c96b3717fd08ae128613"
+  },
+  "certScript": {
+    "path": "scripts/forex-phase3-p3b-natural-close-cert.mjs",
+    "tracked": false,
+    "deployed": false,
+    "action": "left untracked per policy"
+  },
+  "recommendedUnblock": "Restore Forex economicReady (QA position reconcile) then re-run customer POST .../cancel for each order; no manual journal/DB order status edits"
+}

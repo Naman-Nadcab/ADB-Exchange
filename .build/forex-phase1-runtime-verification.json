@@ -1,0 +1,124 @@
+{
+  "timestampUtc": "2026-09-18T13:26:00Z",
+  "startingSha": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "endingSha": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "deployment": {
+    "workflow": "docker compose -f docker-compose.production.yml build backend && docker compose -f docker-compose.production.yml up -d --no-deps backend",
+    "reference": "deployment/README.md (VPS stack; backend-only rebuild, no migrate/seed/full deploy.sh)",
+    "targetHost": "109.123.254.30 (VPS staging/production compose stack)",
+    "migrationsRun": false,
+    "frontendRebuilt": false
+  },
+  "runtimeIdentity": {
+    "container": "exchange-backend",
+    "image": "m-live-backend:latest",
+    "imageDigest": "sha256:64dc02980c1da78e432cf8f4adced55665e7a8411fe77bdb7a30a995d41e3da1",
+    "containerCreated": "2026-09-18T13:23:30.413944258Z",
+    "health": "healthy",
+    "compiledModuleCheck": "mergeMockAuthorityLiveBar function present in dist/services/forex/market-data/mock-authority.js"
+  },
+  "preDeployDbCounts": { "forex_journal_events": 0, "forex_orders": 741, "forex_positions_open": 3 },
+  "postDeployDbCounts": { "forex_journal_events": 0, "forex_orders": 741, "forex_positions_open": 3 },
+  "realForex": {
+    "envREAL_FOREX": "not set",
+    "tradingConfigRealForex": false,
+    "executionMode": "MOCK",
+    "verdict": "VERIFIED_OFF"
+  },
+  "cryptoIsolation": {
+    "taskModifiedCryptoFiles": false,
+    "preExistingDirty": ["apps/backend/src/routes/spot.fastify.ts", "apps/backend/src/lib/spot-ticker-db-load.ts"]
+  },
+  "testsPreDeploy": [
+    { "cmd": "npx tsx apps/backend/src/services/forex/capabilities/customer-contract.test.ts", "result": "PASS" },
+    { "cmd": "npx tsx apps/backend/src/services/forex/market-data/mock-authority.test.ts", "result": "PASS" },
+    { "cmd": "npx tsx apps/backend/src/services/forex/forex-phase1c-stoplimit-tif.test.ts", "result": "PASS" },
+    { "cmd": "npx tsx apps/backend/src/services/forex/forex-phase-a-orders.test.ts", "result": "PASS (forex-phase-a-orders.test: ok)" },
+    { "cmd": "npx tsx apps/frontend/src/lib/forex/models/price-consistency.test.ts", "result": "PASS 4/4" },
+    { "cmd": "npx tsx apps/frontend/src/lib/forex/market-data/quote-chart-overlay.test.ts", "result": "PASS" }
+  ],
+  "tradingConfigEvidence": {
+    "url": "http://127.0.0.1:4000/api/v1/forex/trading-config",
+    "orderTypes": ["market", "limit", "stop"],
+    "timeInForce": ["GTC"],
+    "executionMode": "MOCK",
+    "capabilitiesVersion": 1,
+    "stopLimit": { "engine": true, "customerExposed": false, "runtimeCertification": "NOT_CERTIFIED" },
+    "tifDayIocFok": { "engine": true, "customerExposed": false },
+    "gtd": { "engine": false, "customerExposed": false },
+    "verdict": "RUNTIME_VERIFIED"
+  },
+  "candlesEvidence": {
+    "url": "http://127.0.0.1:4000/api/v1/forex/candles?symbol=EURUSD&timeframe=15m&limit=3",
+    "source": "SIMULATED",
+    "reason": "SIMULATED_MOCK_WITH_REFERENCE_HISTORY",
+    "liveCandleSource": "SIMULATED",
+    "historicalCandleSource": "EXTERNAL",
+    "marketDataAuthority": {
+      "authority": "SIMULATED",
+      "mode": "MOCK",
+      "executableSource": "SIMULATED",
+      "referenceSource": "EXTERNAL",
+      "referenceProvider": "yahoo",
+      "liveBarSource": "SIMULATED"
+    },
+    "sampleLastBar": {
+      "timestamp": "2026-09-18T13:15:00.000Z",
+      "close": "1.14673"
+    },
+    "penultimateClose": "1.1467890739440918",
+    "verdict": "RUNTIME_VERIFIED"
+  },
+  "quotesEvidence": {
+    "url": "http://127.0.0.1:4000/api/v1/forex/quotes?symbols=EURUSD",
+    "EURUSD": {
+      "bid": "1.14671",
+      "ask": "1.14671",
+      "mid": "1.14671",
+      "source": "SIMULATED",
+      "providerCode": "MOCK-C"
+    },
+    "verdict": "RUNTIME_VERIFIED"
+  },
+  "mockAuthorityCheck": {
+    "quoteMid": 1.14671,
+    "liveBarClose": 1.14662,
+    "relativeDiff": 0.00007848540607470371,
+    "note": "Live bucket close tracks MOCK mid (~0.008% delta between sequential requests); penultimate bar remains EXTERNAL reference close",
+    "verdict": "RUNTIME_VERIFIED"
+  },
+  "healthChecks": {
+    "backendLive": 200,
+    "nginxForexTrade": 200,
+    "nginxTradingConfig": 200,
+    "nginxQuotes": 200,
+    "nginxCandles": 200,
+    "exchangeFrontend": "not redeployed (unchanged image)"
+  },
+  "browserEvidence": {
+    "url": "http://109.123.254.30/forex/trade",
+    "loads": true,
+    "chartRegionPresent": true,
+    "orderTypes": "Market Limit Stop",
+    "stopLimitUnavailableText": true,
+    "tifGtcOnlyDisabled": true,
+    "domUnavailable": true,
+    "buySellDisabledSignedOut": true,
+    "quoteOverlayInitialHydration": "bid/ask show — on first paint then populate (timing)",
+    "authorityLabelInUI": false,
+    "verdict": "PARTIAL_RUNTIME_VERIFIED"
+  },
+  "finalVerdict": {
+    "phase0Runtime": "RUNTIME_VERIFIED",
+    "phase1Runtime": "RUNTIME_VERIFIED",
+    "tradingConfig": "RUNTIME_VERIFIED",
+    "mockMarketData": "RUNTIME_VERIFIED",
+    "candles": "RUNTIME_VERIFIED",
+    "quotes": "RUNTIME_VERIFIED",
+    "chart": "PARTIAL_RUNTIME_VERIFIED"
+  },
+  "remainingP0": [
+    "Optional frontend redeploy to surface marketDataAuthority in UI (types/docs only in current frontend image)"
+  ],
+  "unexpectedChanges": []
+}

@@ -38,6 +38,8 @@ export const forexConfig = {
   marketDataIntervalMs: envInt('FOREX_MARKET_DATA_INTERVAL_MS', 250),
   /** Phase 1 default: latest-only. Tick history table exists for later replay. */
   persistQuoteTicks: envBool('FOREX_QUOTE_TICKS_PERSIST', false),
+  /** Latest forex_quotes / forex_lp_quotes rows — off by default (MOCK ticks are in-memory). */
+  persistLatestQuotes: envBool('FOREX_PERSIST_LATEST_QUOTES', false),
   degradedErrorRate: 0.05,
   /** Venue placeOrder timeout. */
   executionTimeoutMs: envInt('FOREX_EXECUTION_TIMEOUT_MS', 1500),
@@ -89,4 +91,8 @@ export const forexConfig = {
    * Default false for MOCK: no invented holiday list; state stays explicit.
    */
   holidayRequired: envBool('FOREX_HOLIDAY_REQUIRED', false),
+  /** Admin routing desk v2 + richer symbol routing visibility (default off). */
+  routingV2Enabled: envBool('FOREX_ROUTING_V2', false),
+  /** Pre-routing health check on default broker adapter (default off). */
+  adapterLayerHookEnabled: envBool('FOREX_ADAPTER_LAYER_HOOK', false),
 } as const;

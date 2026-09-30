@@ -1,0 +1,230 @@
+{
+    "success": true,
+    "data": {
+        "source": "SIMULATED",
+        "executionMode": "MOCK",
+        "orderTypes": [
+            "market",
+            "limit",
+            "stop",
+            "stop_limit"
+        ],
+        "timeInForce": [
+            "GTC",
+            "IOC",
+            "FOK",
+            "DAY"
+        ],
+        "capabilities": {
+            "version": 1,
+            "executionMode": "MOCK",
+            "source": "SIMULATED",
+            "realForex": false,
+            "orderTypes": {
+                "market": {
+                    "engine": true,
+                    "customerExposed": true,
+                    "runtimeCertification": "MOCK_ONLY"
+                },
+                "limit": {
+                    "engine": true,
+                    "customerExposed": true,
+                    "runtimeCertification": "MOCK_ONLY"
+                },
+                "stop": {
+                    "engine": true,
+                    "customerExposed": true,
+                    "runtimeCertification": "MOCK_ONLY"
+                },
+                "stopLimit": {
+                    "engine": true,
+                    "customerExposed": true,
+                    "runtimeCertification": "NOT_CERTIFIED"
+                }
+            },
+            "timeInForce": {
+                "gtc": {
+                    "engine": true,
+                    "customerExposed": true,
+                    "runtimeCertification": "MOCK_ONLY"
+                },
+                "day": {
+                    "engine": true,
+                    "customerExposed": true,
+                    "runtimeCertification": "NOT_CERTIFIED"
+                },
+                "ioc": {
+                    "engine": true,
+                    "customerExposed": true,
+                    "runtimeCertification": "NOT_CERTIFIED"
+                },
+                "fok": {
+                    "engine": true,
+                    "customerExposed": true,
+                    "runtimeCertification": "NOT_CERTIFIED"
+                },
+                "gtd": {
+                    "engine": false,
+                    "customerExposed": false,
+                    "runtimeCertification": "NOT_CERTIFIED"
+                }
+            },
+            "positionModes": {
+                "netting": {
+                    "engine": true,
+                    "customerExposed": false,
+                    "runtimeCertification": "NOT_CERTIFIED"
+                },
+                "hedging": {
+                    "engine": true,
+                    "customerExposed": false,
+                    "runtimeCertification": "NOT_CERTIFIED"
+                }
+            },
+            "protections": {
+                "sl": {
+                    "engine": true,
+                    "customerExposed": true,
+                    "runtimeCertification": "NOT_CERTIFIED"
+                },
+                "tp": {
+                    "engine": true,
+                    "customerExposed": true,
+                    "runtimeCertification": "NOT_CERTIFIED"
+                },
+                "trailing": {
+                    "engine": true,
+                    "customerExposed": false,
+                    "runtimeCertification": "NOT_CERTIFIED"
+                }
+            },
+            "positionActions": {
+                "close": {
+                    "engine": true,
+                    "customerExposed": true,
+                    "runtimeCertification": "NOT_CERTIFIED"
+                },
+                "partialClose": {
+                    "engine": true,
+                    "customerExposed": true,
+                    "runtimeCertification": "NOT_CERTIFIED"
+                },
+                "closeBy": {
+                    "engine": true,
+                    "customerExposed": false,
+                    "runtimeCertification": "NOT_CERTIFIED"
+                },
+                "reverse": {
+                    "engine": true,
+                    "customerExposed": false,
+                    "runtimeCertification": "NOT_CERTIFIED"
+                }
+            },
+            "customer": {
+                "orderTypes": [
+                    "market",
+                    "limit",
+                    "stop",
+                    "stop_limit"
+                ],
+                "timeInForce": [
+                    "GTC",
+                    "IOC",
+                    "FOK",
+                    "DAY"
+                ]
+            },
+            "engine": {
+                "orderTypes": [
+                    "market",
+                    "limit",
+                    "stop",
+                    "stop_limit"
+                ],
+                "timeInForce": [
+                    "GTC",
+                    "IOC",
+                    "FOK",
+                    "DAY"
+                ]
+            }
+        },
+        "sessions": {
+            "source": "SIMULATED",
+            "calendar": {
+                "id": "f0000000-0000-4000-8000-0000000000c1",
+                "code": "FX_WEEK_IANA",
+                "name": "FX 24x5 IANA sessions",
+                "timezone": "America/New_York"
+            },
+            "sessions": [
+                "Sydney",
+                "Tokyo",
+                "London",
+                "New York"
+            ],
+            "eligibility": {
+                "sessions": [
+                    "London",
+                    "New York"
+                ],
+                "overlaps": [
+                    [
+                        "London",
+                        "New York"
+                    ]
+                ],
+                "holidayCoverage": "UNCONFIGURED",
+                "holidayRequired": false,
+                "holidaySafe": true,
+                "dstApplied": true,
+                "timezone": "America/New_York",
+                "timestamp": "2026-09-18T14:29:49.494Z",
+                "source": "SIMULATED",
+                "open": true,
+                "reason": "OPEN",
+                "weekend": false,
+                "holiday": false
+            },
+            "holidayCoverage": "UNCONFIGURED",
+            "holidayRequired": false,
+            "holidaySafe": true,
+            "exceptionsConfigured": 0,
+            "dstApplied": true,
+            "dstModel": "IANA",
+            "weekendTimezone": "America/New_York",
+            "valuationPolicy": {
+                "longExecutableClose": "BID",
+                "shortExecutableClose": "ASK",
+                "usedMargin": "SUM_INITIAL_MARGIN_OPEN",
+                "equity": "CUSTOMER_CASH + UNREALIZED_PNL",
+                "freeMargin": "EQUITY - USED_MARGIN",
+                "availableBalance": "FREE_MARGIN",
+                "midNeverDrivesLiquidationEquity": true,
+                "source": "SIMULATED"
+            }
+        },
+        "fees": {
+            "global": {
+                "model": "per_lot",
+                "rate": "0",
+                "minimum": "0"
+            },
+            "model": "per_lot"
+        },
+        "swaps": {
+            "rolloverTime": "21:00",
+            "timezone": "UTC"
+        },
+        "leverage": {
+            "globalMax": "100",
+            "defaultAccount": "50"
+        },
+        "holiday": {
+            "coverage": "UNCONFIGURED",
+            "required": false,
+            "holidaySafe": true,
+            "dstApplied": true
+        }
+    }
+}

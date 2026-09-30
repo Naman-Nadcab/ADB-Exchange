@@ -1,0 +1,92 @@
+{
+  "generated_at": "2026-09-17T16:09:17.636Z",
+  "account_id": "CERT_ACC_B",
+  "request_id": "8383f341-941a-4fc8-91f9-d89b8e3cda6f",
+  "approval_id": "5b15cbc8-35c6-4868-8be3-e5c24a185564",
+  "ledger_transaction_id": "dd3a87ca-b5a0-4703-9174-a84e38fdc030",
+  "balance_before": "0",
+  "balance_after": "17.25000000",
+  "steps": [
+    {
+      "name": "db_identity",
+      "ok": true,
+      "detail": "exchange_forex_cert"
+    },
+    {
+      "name": "admin_logins",
+      "ok": true,
+      "detail": "maker + 2 checkers"
+    },
+    {
+      "name": "balance_before",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "create_request",
+      "ok": true,
+      "detail": "HTTP 202"
+    },
+    {
+      "name": "unauth_approve_denied",
+      "ok": true,
+      "detail": "HTTP 401"
+    },
+    {
+      "name": "self_approve_denied",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "name": "checker_a_approve",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "checker_b_approve",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "request_completed",
+      "ok": true,
+      "detail": "status=COMPLETED"
+    },
+    {
+      "name": "ledger_tx_linked",
+      "ok": true,
+      "detail": "dd3a87ca-b5a0-4703-9174-a84e38fdc030"
+    },
+    {
+      "name": "ledger_entries_count",
+      "ok": true,
+      "detail": "count=2"
+    },
+    {
+      "name": "customer_cash_credit",
+      "ok": true,
+      "detail": "{\"ledger_account\":\"CUSTOMER_CASH\",\"debit\":\"0.00000000\",\"credit\":\"17.25000000\"}"
+    },
+    {
+      "name": "clearing_debit",
+      "ok": true,
+      "detail": "{\"ledger_account\":\"CLEARING\",\"debit\":\"17.25000000\",\"credit\":\"0.00000000\"}"
+    },
+    {
+      "name": "balance_increased",
+      "ok": true,
+      "detail": "before=0 after=17.25000000 delta=17.25"
+    },
+    {
+      "name": "audit_create",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "name": "idempotent_replay",
+      "ok": true,
+      "detail": "REPLAY"
+    }
+  ],
+  "ok": true
+}

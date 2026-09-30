@@ -1,0 +1,99 @@
+{
+  "phase": 4,
+  "title": "Forex Risk, Margin & Liquidation — preflight",
+  "timestampUtc": "2026-09-18T21:15:00Z",
+  "baseline": {
+    "repo": "/opt/m-live",
+    "branch": "release/exchange-production-baseline",
+    "gitHead": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "phase3Status": "GREEN",
+    "phase3Evidence": ".build/forex-phase3-final-green-certification.json",
+    "backendDigest": "sha256:1f04a223afccf729a8573866e7ef8cb7b216d911e22f1860c52934fad33e0e5b",
+    "frontendDigest": "sha256:ec76bc1f065fee0764d1e2e24c1e5d3709c2c6da437e5fabda2aef1f877aaa63",
+    "backendHealth": "healthy",
+    "frontendHealth": "healthy",
+    "forexEconomicReady": true,
+    "realForex": false,
+    "executionMode": "MOCK/SIMULATED",
+    "externalLp": "NOT_CONFIGURED",
+    "postgres": "exchange (container exchange-postgres)"
+  },
+  "cryptoIsolation": {
+    "baselineFromPhase3": {
+      "spot.fastify.ts.sha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+      "spot-ticker-db-load.ts.sha256": "bb2ffb23ab52ac81f37883bf58b36143a53cc2113614c96b3717fd08ae128613"
+    },
+    "preflightSha256": {
+      "spot.fastify.ts": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+      "spot-ticker-db-load.ts": "bb2ffb23ab52ac81f37883bf58b36143a53cc2113614c96b3717fd08ae128613"
+    },
+    "changed": false
+  },
+  "architectureSummary": {
+    "authoritativeRiskChain": "ForexPricingService (executable quotes) → position mark (BID/ASK via valuation policy) → unrealized PnL → ForexAccountingService.riskInputs → equity / usedMargin / freeMargin / marginLevel → classifyMarginLevel / deriveAccountRiskState → ForexRiskService.syncState → liquidation eligibility → ForexLiquidationService.evaluateAccount",
+    "valuationPolicy": "apps/backend/src/services/forex/accounting/valuation.ts — LONG=BID, SHORT=ASK, equity=CUSTOMER_CASH+UNREALIZED_PNL",
+    "marginEngine": "apps/backend/src/services/forex/margin/engine.ts",
+    "riskEngine": "apps/backend/src/services/forex/risk/engine.ts, pretrade.ts, service.ts, states.ts",
+    "liquidation": "apps/backend/src/services/forex/liquidation/* (eligibility, priority, lock, service, persist)",
+    "preTradePreview": "apps/backend/src/services/forex/orders/preview.ts + POST /api/v1/forex/orders/preview",
+    "customerApis": [
+      "GET /api/v1/forex/margin",
+      "GET /api/v1/forex/risk/status",
+      "GET /api/v1/forex/risk/summary",
+      "GET /api/v1/forex/exposure",
+      "GET /api/v1/forex/liquidation",
+      "POST /api/v1/forex/orders/preview"
+    ],
+    "websocketChannels": [
+      "fx.margin",
+      "fx.risk",
+      "fx.liquidation",
+      "fx.equity",
+      "fx.exposure"
+    ],
+    "adminRisk": "apps/backend/src/services/forex/admin/risk-hub.ts + admin-forex routes (policy/margin thresholds)",
+    "protectionRuntime": "apps/backend/src/services/forex/protection/runtime.ts (quote-driven; separate from liquidation worker attachment on positions)"
+  },
+  "gapMap": {
+    "canonicalBackendRiskModel": { "status": "EXISTING", "notes": "Accounting + exposure + margin engine; single valuation policy document" },
+    "equityUsedFreeMarginMarginLevel": { "status": "EXISTING", "notes": "accountSnapshot, risk/status, accounting tryAccountView" },
+    "longBidShortAskMarking": { "status": "EXISTING", "notes": "FOREX_VALUATION_POLICY; pnl/engine executableClosePrice" },
+    "preTradeMarginPreview": { "status": "EXISTING", "notes": "previewForexOrder read-only; customer route wired" },
+    "previewVsActualConsistency": { "status": "PARTIAL", "notes": "Shared validate + evaluatePreTradeRisk; needs Phase-4 runtime cert under MOCK" },
+    "marginCallState": { "status": "EXISTING", "notes": "MARGIN_CALL/WARNING/STOP_OUT_READY via classifyMarginLevel + account risk states" },
+    "stopOutLiquidationPath": { "status": "EXISTING", "notes": "ForexLiquidationService; quote-driven evaluateAccount; phase7 tests" },
+    "liquidationOrdering": { "status": "EXISTING", "notes": "rankLiquidationCandidates in liquidation/priority.ts" },
+    "liquidationIdempotency": { "status": "PARTIAL", "notes": "locks + store enqueue; phase7 coverage; live double-eval NOT_PROVEN" },
+    "partialLiquidation": { "status": "EXISTING", "notes": "PARTIALLY_LIQUIDATED state in liquidation service" },
+    "customerRiskUi": { "status": "PARTIAL", "notes": "ForexRiskBar + account page; may not show full margin level semantics everywhere" },
+    "riskWebsocket": { "status": "EXISTING", "notes": "fx.risk publish from risk service + position riskSnapshot" },
+    "customerIdor": { "status": "PARTIAL", "notes": "JWT account scoping on routes; phase5/8 WS tests; Phase-4 live re-cert NOT_PROVEN" },
+    "adminRiskCockpit": { "status": "PARTIAL", "notes": "risk-hub DB aggregates; comment: not always live mark-to-market; drilldown via admin forex routes" },
+    "auditJournalLiquidation": { "status": "PARTIAL", "notes": "Risk events + liquidation persist; map to user-facing journal names needs cert" },
+    "phase4RuntimeCertification": { "status": "MISSING", "notes": "No .build/forex-phase4-final-certification.* yet" },
+    "phase4LiveMockTests1to9": { "status": "NOT_PROVEN", "notes": "QA margin call / stop-out / liquidation journeys not recorded for Phase 4" },
+    "browserCustomerAdmin": { "status": "NOT_PROVEN", "notes": "No Phase-4 browser evidence artifact" }
+  },
+  "targetedTestInventory": {
+    "forex-phase5.test.ts": "Margin utilization + reconciliation + fx.risk WS subscribe",
+    "forex-phase6.test.ts": "Accounting reconcile / equity",
+    "forex-phase7.test.ts": "Liquidation eligibility, priority, protection, liquidation HTTP",
+    "forex-phase8.test.ts": "Pre-trade risk, dealing, account risk states, fx.risk WS",
+    "forex-phase9.test.ts": "Risk + session + reconcile (mixed)",
+    "forex-phase-a-orders.test.ts": "Orders/journal (not primary Phase 4)",
+    "forex-phase4.test.ts": "MISNAMED — legacy order execution suite, not risk Phase 4",
+    "entry-price-reconcile.test.ts": "Phase 3 reconcile regression (prerequisite only)"
+  },
+  "recommendedNextSteps": [
+    "Run targeted phase7 + phase8 + phase6 tests (no full admin/crypto suites)",
+    "Build Phase-4 gap register with IMPLEMENTED vs RUNTIME_VERIFIED per acceptance criterion",
+    "Design live MOCK certification harness (QA accounts, legitimate funding path, no SQL)",
+    "Certify preview vs place consistency on same quote tick",
+    "Certify margin-call and stop-out transitions with journal + WS + admin hub",
+    "Prove liquidation idempotency on repeated quote evaluation",
+    "Browser spot-check /forex/trade + admin risk cockpit",
+    "Deploy only if code fixes required; otherwise certify on current digest"
+  ],
+  "phase4VerdictPreflight": "CONDITIONAL — substantial IMPLEMENTATION exists; RUNTIME_VERIFIED incomplete",
+  "phase5Unlocked": false
+}

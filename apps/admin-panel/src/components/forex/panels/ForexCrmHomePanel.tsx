@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { ForexMetricTile } from '@/components/forex/primitives/ForexMetricTile';
 import { ForexPanelShell } from '@/components/forex/primitives/ForexPanelShell';
+import { ForexRouteWorkspace } from '@/components/forex/primitives/ForexRouteWorkspace';
 
 type StageRow = ForexCrmHomeSnapshot['funnel']['by_stage'][number];
 
@@ -68,7 +69,24 @@ export function ForexCrmHomePanel() {
   const snap = qry.data;
 
   return (
-    <div className="admin-stack-lg">
+    <div className="space-y-4">
+      <ForexRouteWorkspace
+        routeId="crm-home"
+        kpis={
+          snap
+            ? [
+                { label: 'Open leads', value: String(snap.funnel.open_leads) },
+                { label: 'Forex accounts', value: String(snap.clients.forex_accounts) },
+                { label: 'Tasks overdue', value: String(snap.tasks.overdue), tone: snap.tasks.overdue > 0 ? 'warning' : 'default' },
+                {
+                  label: 'Open positions',
+                  value: String(snap.clients.with_open_positions),
+                  tone: snap.clients.with_open_positions > 0 ? 'success' : 'default',
+                },
+              ]
+            : undefined
+        }
+      />
       <ForexPanelShell
         title="CRM home"
         description="Institutional CRM overview — all metrics from PostgreSQL (no forecast KPIs)."

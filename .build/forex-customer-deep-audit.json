@@ -1,0 +1,83 @@
+{
+  "generatedAt": "2026-09-19T20:00:00+05:30",
+  "auditType": "FOREX_CUSTOMER_DEEP_CAPABILITY_UX_ACCESSIBILITY_JOURNEY",
+  "phase0": {
+    "branch": "release/exchange-production-baseline",
+    "head": "397aebe9cc5a8eef6c4fc612b6a34a9b983940f9",
+    "originHead": "af55da7765eb856829f1cdf5929dc2edca53c549",
+    "localEqualsOrigin": false,
+    "backendDigest": "sha256:05d1e9b8dba2ca14d1b031e0d6494cf89740a2ef74d9a9a9376c16e30d958737",
+    "frontendDigest": "sha256:6c33c32166ec2f3a3e40b5efcfc99726634993933a857e84fe52f643d4f12124",
+    "database": "exchange (Postgres forex_* tables)",
+    "realForex": "OFF (unset in exchange-backend container)",
+    "spotFastifySha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "executionMode": "MOCK / SIMULATED",
+    "cryptoModified": false
+  },
+  "multiAccountVerdict": {
+    "switching": "IMPLEMENTED + DISCOVERABLE",
+    "switchPath": "Forex Trade (/forex/trade) → Account bar → Active Forex account button → select option",
+    "creation": "IMPLEMENTED + DISCOVERABLE (DEMO only)",
+    "createPath": "Same switcher dropdown → + Create demo account",
+    "createApi": "POST /api/v1/forex/accounts { kind: DEMO }",
+    "liveAccountRequest": "NOT CUSTOMER-AVAILABLE",
+    "accountListPage": "MISSING (no /forex/accounts route; list only in switcher)",
+    "closeAccount": "NOT IMPLEMENTED (backend + UI)",
+    "transferBetweenForexAccounts": "NOT IMPLEMENTED",
+    "forexCryptoTransfer": "NOT OFFERED (intentional boundary)",
+    "leverageCustomerEdit": "NOT CUSTOMER-AVAILABLE (instrument/account defaults only)",
+    "accountStatusInSwitcher": "PARTIAL (kind + currency; status not prominent)"
+  },
+  "informationArchitecture": {
+    "globalProductSwitch": "EdaProductSwitcher in ForexTopNav → Crypto / Forex / etc.",
+    "forexTopNav": ["Trade", "Markets", "Portfolio", "Orders", "Analysis", "Alerts", "Account"],
+    "forexMobileBottomNav": ["Trade", "Markets", "Portfolio", "Orders", "More → Account"],
+    "accountSubNav": ["Overview", "Funds", "Ledger", "Portfolio"],
+    "tradeWorkstation": ["Market Watch (md+)", "Chart", "Order Ticket (lg+ / mobile stack)", "Toolbox bottom tabs", "Account bar", "Risk bar", "Command center ⌘/Ctrl+K"],
+    "directRoutes": {
+      "/forex": "redirects to trade layout (mobile companion panels)",
+      "/forex/trade": "primary terminal",
+      "/forex/markets": "symbol browser",
+      "/forex/portfolio": "positions + metrics page",
+      "/forex/orders": "full-page order manager",
+      "/forex/analysis": "research + chart + news/calendar widgets",
+      "/forex/alerts": "dedicated alerts page",
+      "/forex/account": "overview",
+      "/forex/account/funds": "demo funding",
+      "/forex/account/ledger": "ledger table"
+    }
+  },
+  "customerProductCompleteness": {
+    "status": "SIMULATED DEMO TERMINAL — STRONG CORE TRADING UX; MT5-CLASS GAPS IN LIVE ACCOUNT OPS, DOM/TAPE, REPORTS PDF, REVERSE, FULL ACCOUNT ADMIN",
+    "discoverabilityScoreNote": "Core trade path is discoverable; several backend APIs lack customer entry points",
+    "p0": [],
+    "p1": [
+      { "id": "P1-REVERSE-NO-UI", "title": "Reverse position API exists; no customer control", "domain": "FRONTEND" },
+      { "id": "P1-ACCOUNT-LIST", "title": "No dedicated accounts management page (multi-account only via switcher)", "domain": "UX" },
+      { "id": "P1-LIVE-ACCOUNT", "title": "No customer path to request/open live account (REAL_FOREX off)", "domain": "ARCHITECTURE" }
+    ],
+    "p2": [
+      { "id": "P2-SWITCHER-STATUS", "title": "Account switcher does not surface status/leverage/margin mode clearly", "domain": "UX" },
+      { "id": "P2-ALERTS-DUAL", "title": "Alerts in toolbox tab + /forex/alerts (discoverability overlap)", "domain": "UX" },
+      { "id": "P2-MOBILE-WATCHLIST", "title": "Market watch hidden on desktop trade until md breakpoint; mobile uses Watch tab", "domain": "MOBILE" },
+      { "id": "P2-WS-SCOPE", "title": "WebSocket private channels user-scoped not account-scoped", "domain": "SECURITY" }
+    ],
+    "p3": [
+      { "id": "P3-EDA-CARD", "title": "Forex account pages use eda-card vs spot Card naming", "domain": "COSMETIC" }
+    ]
+  },
+  "implementationOrder": [
+    "Customer accounts list/management page wired to GET/POST /forex/accounts",
+    "Expose reverse position in position actions if product wants parity",
+    "Account switcher UX: status, leverage read-only, margin mode badge",
+    "Live account request flow (only when REAL_FOREX product-ready)",
+    "WebSocket account-scoped private channels",
+    "PDF/XLSX statements if required beyond CSV export",
+    "DOM/Tape when authoritative provider exists"
+  ],
+  "evidence": {
+    "priorRuntimeCert": ".build/FOREX_FINAL_CERTIFICATION.json",
+    "browserMultiAccount": ".build/forex-browser-e2e-certification.json",
+    "uiForensic": ".build/forex-vs-crypto-ui-forensic.md"
+  }
+}

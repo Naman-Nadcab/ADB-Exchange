@@ -3,6 +3,10 @@
 import { cn } from '@/lib/cn';
 import { Badge } from '@/components/ui/Badge';
 import type { LucideIcon } from 'lucide-react';
+import { FOREX_SEMANTIC, forexSemanticToneFromSeverity } from '@/components/forex/primitives/forex-semantic-system';
+
+export { FOREX_SEMANTIC, ForexSemanticSurface, ForexSemanticBadge, ForexSideSemantic } from '@/components/forex/primitives/forex-semantic-system';
+export type { ForexSemanticTone } from '@/components/forex/primitives/forex-semantic-system';
 
 /** Premium work surface — exchange admin-card depth, Forex accent. */
 export function ForexWorkspaceSurface(props: { className?: string; children: React.ReactNode; noPadding?: boolean }) {
@@ -70,12 +74,12 @@ export function ForexExposureBar(props: { long: number; short: number; symbol?: 
     <div className="space-y-1">
       {props.symbol ? <p className="text-xs font-medium text-foreground">{props.symbol}</p> : null}
       <div className="flex h-2 overflow-hidden rounded-full bg-admin-border/80">
-        <div className="bg-emerald-500/80 transition-all" style={{ width: `${longPct}%` }} title={`Long ${props.long}`} />
-        <div className="bg-red-500/70 transition-all" style={{ width: `${100 - longPct}%` }} title={`Short ${props.short}`} />
+        <div className="bg-admin-success/80 transition-all" style={{ width: `${longPct}%` }} title={`Long ${props.long}`} />
+        <div className="bg-admin-danger/70 transition-all" style={{ width: `${100 - longPct}%` }} title={`Short ${props.short}`} />
       </div>
       <div className="flex justify-between text-[10px] tabular-nums text-admin-muted">
-        <span className="text-emerald-400/90">L {props.long.toFixed(2)}</span>
-        <span className="text-red-400/90">S {props.short.toFixed(2)}</span>
+        <span className={FOREX_SEMANTIC.success.text}>L {props.long.toFixed(2)}</span>
+        <span className={FOREX_SEMANTIC.danger.text}>S {props.short.toFixed(2)}</span>
       </div>
     </div>
   );
@@ -88,7 +92,7 @@ export function ForexSpreadBar(props: { spreadPips: string; stale?: boolean }) {
     <div className="flex items-center gap-2">
       <div className="h-1.5 w-16 overflow-hidden rounded-full bg-admin-border">
         <div
-          className={cn('h-full rounded-full', props.stale ? 'bg-amber-500' : 'bg-violet-500/80')}
+          className={cn('h-full rounded-full', props.stale ? 'bg-admin-warning' : 'bg-admin-primary/80')}
           style={{ width: `${width}%` }}
         />
       </div>
@@ -105,20 +109,14 @@ export function ForexAttentionCard(props: {
   href: string;
   category: string;
 }) {
-  const stripe =
-    props.severity === 'critical'
-      ? 'border-l-red-500'
-      : props.severity === 'high'
-        ? 'border-l-amber-500'
-        : props.severity === 'medium'
-          ? 'border-l-violet-500'
-          : 'border-l-admin-border';
+  const tone = forexSemanticToneFromSeverity(props.severity);
+  const sem = FOREX_SEMANTIC[tone];
   return (
     <a
       href={props.href}
       className={cn(
-        'group flex items-stretch gap-3 rounded-lg border border-admin-border/70 border-l-4 bg-admin-bg/40 p-3 transition-all hover:border-violet-500/30 hover:bg-violet-500/5',
-        stripe,
+        'group flex items-stretch gap-3 rounded-lg border border-admin-border/70 border-l-4 bg-admin-bg/40 p-3 transition-all hover:border-admin-primary/30 hover:bg-admin-primary/5',
+        sem.stripe,
       )}
     >
       <div className="min-w-0 flex-1">
@@ -149,7 +147,13 @@ export function ForexDealerActionBar(props: {
         type="button"
         disabled={props.disabled}
         onClick={props.onAccept}
-        className="rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-emerald-300 transition hover:bg-emerald-500/25 disabled:opacity-40"
+        className={cn(
+          'rounded-lg border px-3 py-2.5 text-xs font-semibold uppercase tracking-wide transition disabled:opacity-40',
+          FOREX_SEMANTIC.success.border,
+          FOREX_SEMANTIC.success.surface,
+          FOREX_SEMANTIC.success.text,
+          'hover:bg-admin-success/20',
+        )}
       >
         Accept
       </button>
@@ -157,7 +161,13 @@ export function ForexDealerActionBar(props: {
         type="button"
         disabled={props.disabled}
         onClick={props.onReject}
-        className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-red-300 transition hover:bg-red-500/20 disabled:opacity-40"
+        className={cn(
+          'rounded-lg border px-3 py-2.5 text-xs font-semibold uppercase tracking-wide transition disabled:opacity-40',
+          FOREX_SEMANTIC.danger.border,
+          FOREX_SEMANTIC.danger.surface,
+          FOREX_SEMANTIC.danger.text,
+          'hover:bg-admin-danger/20',
+        )}
       >
         Reject
       </button>
@@ -173,7 +183,13 @@ export function ForexDealerActionBar(props: {
         type="button"
         disabled={props.disabled}
         onClick={props.onEscalate}
-        className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-amber-200 transition hover:bg-amber-500/20 disabled:opacity-40"
+        className={cn(
+          'rounded-lg border px-3 py-2.5 text-xs font-semibold uppercase tracking-wide transition disabled:opacity-40',
+          FOREX_SEMANTIC.warning.border,
+          FOREX_SEMANTIC.warning.surface,
+          FOREX_SEMANTIC.warning.text,
+          'hover:bg-admin-warning/20',
+        )}
       >
         Escalate
       </button>

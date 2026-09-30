@@ -176,6 +176,7 @@ export async function executeMakerCheckerIfFullyApproved(req: ApprovalRequest): 
       req.id,
     ]);
     logger.info('maker-checker: manual credit executed', { requestId: req.id, userId });
+    return;
   }
 
   if (req.action_type === 'global_control_action') {
@@ -204,5 +205,20 @@ export async function executeMakerCheckerIfFullyApproved(req: ApprovalRequest): 
     await executeGlobalControlAction(action, payload, lastApprover);
     await db.query(`UPDATE admin_approval_requests SET action_executed = TRUE, execution_error = NULL, updated_at = NOW() WHERE id = $1`, [req.id]);
     logger.info('maker-checker: global control action executed', { requestId: req.id, action });
+    return;
+  }
+
+  const forexTypes = new Set([
+    'forex_controls_patch',
+    'forex_policy_patch',
+    'forex_routing_patch',
+    'forex_account_group_change',
+    'forex_leverage_change',
+    'forex_finance_request',
+    'forex_partner_payout',
+  ]);
+  if (forexTypes.has(req.action_type)) {
+    const { executeForexApprovalIfFullyApproved } = await import('./forex/admin/forex-approval-execute.service.js');
+    await executeForexApprovalIfFullyApproved(req);
   }
 }

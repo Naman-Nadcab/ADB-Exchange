@@ -1,0 +1,123 @@
+{
+  "phase": "3-remaining-gaps-closure",
+  "timestampUtc": "2026-09-18T16:45:00Z",
+  "phase3FinalStatus": "CONDITIONAL",
+  "deploymentIdentity": {
+    "gitSha": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "branch": "release/exchange-production-baseline",
+    "backend": {
+      "container": "exchange-backend",
+      "image": "m-live-backend:latest",
+      "digest": "sha256:9f7f26e226c676d86bf88e98d872f0e48161ac7a41f8799b0b9334ccfb62c8a6",
+      "health": "healthy",
+      "restarts": 0,
+      "redeployedThisClosure": false
+    },
+    "frontend": {
+      "container": "exchange-frontend",
+      "image": "m-live-frontend:latest",
+      "digest": "sha256:ec76bc1f065fee0764d1e2e24c1e5d3709c2c6da437e5fabda2aef1f877aaa63",
+      "health": "healthy",
+      "redeployedThisClosure": false
+    },
+    "realForex": false,
+    "executionMode": "MOCK",
+    "quoteProvider": "SIMULATED/MOCK-C",
+    "candleAuthority": "SIMULATED live + EXTERNAL historical (unchanged Phase 1)"
+  },
+  "dbBaseline": { "forex_orders": 788, "forex_journal_events": 88 },
+  "dbFinal": { "forex_orders": 788, "forex_journal_events": 88, "note": "read-only closure; no cert orders placed" },
+  "P3-A": {
+    "verdict": "PARTIAL_RUNTIME_VERIFIED",
+    "subVerdicts": {
+      "authentication": "RUNTIME_VERIFIED",
+      "terminalLoad": "RUNTIME_VERIFIED",
+      "orderTicketTypes": "RUNTIME_VERIFIED",
+      "stopLimitFields": "RUNTIME_VERIFIED",
+      "tifGtcIocFokDay": "RUNTIME_VERIFIED",
+      "gtdAbsent": "RUNTIME_VERIFIED",
+      "desktopResponsive": "RUNTIME_VERIFIED",
+      "mobileResponsive": "RUNTIME_VERIFIED",
+      "browserOrderSubmitJourney": "NOT_PROVEN",
+      "privateWebSocketInBrowser": "NOT_PROVEN"
+    },
+    "evidence": {
+      "script": "scripts/forex-phase3-p3a-browser-cert.mjs",
+      "json": ".build/forex-phase3-p3a-browser-evidence.json",
+      "screenshot": ".build/forex-phase3-p3a-browser-desktop.png",
+      "authMethod": "QA password login (qa_trader_a@local.exchange) — no OTP bypass",
+      "url": "http://109.123.254.30/forex/trade",
+      "checksPassed": "12/12 UI checks"
+    },
+    "crossReference": "Authenticated order execution journeys remain RUNTIME_VERIFIED via forex-phase3-customer-execution.cert.ts (API + WS); browser script did not submit orders to avoid duplicate stack mutation."
+  },
+  "P3-B": {
+    "verdict": "NOT_PROVEN",
+    "subVerdicts": {
+      "productionExpiryPath": "TEST_VERIFIED",
+      "liveSessionCloseObservation": "NOT_PROVEN",
+      "liveJournalOnExpiry": "NOT_PROVEN",
+      "liveApiAfterExpiry": "NOT_PROVEN",
+      "liveUiAfterExpiry": "NOT_PROVEN"
+    },
+    "sessionEngine": {
+      "implementation": "isForexTradingEligible() + expireDayOrders() on quote evaluation",
+      "expiryState": "CANCELLED",
+      "failureReason": "DAY_ORDER_EXPIRED",
+      "engineeringEvents": ["ORDER_CANCEL_REQUESTED", "ORDER_CANCELLED"],
+      "customerJournalEvent": "ORDER_CANCELLED (warn)"
+    },
+    "liveBlocker": {
+      "sessionOpenAtCert": true,
+      "sessionReason": "OPEN",
+      "forex_orders_with_DAY_ORDER_EXPIRED_in_db": 0,
+      "deterministicLiveClock": "none — setForexSessionNowForTests is in-process test hook only",
+      "policy": "Did not modify production scheduling or DB to force PASS"
+    },
+    "testEvidence": {
+      "test": "forex-phase-a-orders.test.ts — DAY pending orders expire when the session closes",
+      "result": "PASS",
+      "mechanism": "setForexSessionNowForTests(CLOSED_CLOCK) + evaluateQuote triggers expireDayOrders()"
+    }
+  },
+  "P3-C": {
+    "verdict": "DOCUMENTED_BY_DESIGN",
+    "analysis": {
+      "triggeringPersisted": true,
+      "submittedPersisted": true,
+      "apiVisibleViaOrderStatus": true,
+      "customerJournalMapsOnly": [
+        "ORDER_ACCEPTED",
+        "ORDER_PENDING",
+        "ORDER_MODIFIED",
+        "ORDER_FILLED",
+        "ORDER_CANCELLED",
+        "ORDER_REJECTED",
+        "ORDER_FAILED"
+      ],
+      "engineeringAuditTrail": "forex_order_events includes ORDER_TRIGGERING, ORDER_SUBMITTED, ORDER_ROUTING, etc.",
+      "journalPurpose": "customer-visible observability — not full engineering duplicate (journal/models.ts)",
+      "canonicalCustomerLifecycle": "ACCEPTED → PENDING → (FILLED | CANCELLED | REJECTED | FAILED)",
+      "transientStates": ["TRIGGERING", "ROUTING", "SUBMITTED", "PARTIALLY_FILLED"],
+      "codeChangeRequired": false
+    }
+  },
+  "safety": {
+    "cryptoChanged": false,
+    "cryptoDirtySha256": "c94ba8f955b28b1536f39b8a840aa7ec27f7e5c00cf1098310bfd1bfb136fdaa",
+    "realForexChanged": false,
+    "migration": false,
+    "seed": false,
+    "mt5": "NOT_CONFIGURED",
+    "fix": "NOT_CONFIGURED",
+    "cTrader": "NOT_CONFIGURED",
+    "externalLp": "NOT_CONFIGURED"
+  },
+  "testsRun": [
+    { "name": "forex-phase3-p3a-browser-cert.mjs", "result": "PASS 12/12" },
+    { "name": "forex-phase-a-orders.test.ts (DAY section)", "result": "PASS" }
+  ],
+  "changedFilesThisClosure": [
+    "scripts/forex-phase3-p3a-browser-cert.mjs"
+  ]
+}

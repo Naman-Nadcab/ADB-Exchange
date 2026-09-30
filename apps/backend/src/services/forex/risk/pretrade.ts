@@ -78,9 +78,15 @@ export function evaluatePreTradeRisk(args: {
   accountingAvailable?: boolean;
   requestedPrice?: string;
   maxDeviation?: string;
+  reducePositionId?: string;
 }): ForexPreTradeDecision {
   const intent = args.intent ?? 'CUSTOMER';
-  const current = args.currentPositions.find((p) => p.symbol === args.symbol && p.status === 'OPEN') ?? null;
+  const current =
+    (intent === 'CUSTOMER_CLOSE' && args.reducePositionId
+      ? args.currentPositions.find((p) => p.positionId === args.reducePositionId && p.status === 'OPEN')
+      : null) ??
+    args.currentPositions.find((p) => p.symbol === args.symbol && p.status === 'OPEN') ??
+    null;
   const classified = classifyForexOrderRisk({ side: args.side, volume: args.volume, position: current });
   const reducing =
     classified.direction === 'REDUCING' ||

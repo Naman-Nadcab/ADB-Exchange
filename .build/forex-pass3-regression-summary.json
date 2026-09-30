@@ -1,0 +1,34 @@
+{
+  "generated_at": "2026-09-17T18:05:00.000Z",
+  "verdict": "TIER-1 FOREX IMPLEMENTATION INCOMPLETE",
+  "forex_cert": {
+    "api_smoke": { "result": "28/28 PASS", "project": "forex-admin-api" },
+    "functional_api": {
+      "result": "7/7 PASS",
+      "specs": [
+        "functional-compliance",
+        "functional-crm",
+        "functional-holidays",
+        "functional-reporting",
+        "functional-automation",
+        "functional-partners",
+        "functional-dealing"
+      ]
+    },
+    "ui_navigation": { "result": "33/33 PASS", "base": "http://127.0.0.1:3010/admin", "api": "http://127.0.0.1:4100" },
+    "idor_exhaustive": { "result": "180/180 PASS", "artifact": ".build/forex-admin-exhaustive-idor.json" }
+  },
+  "remaining_gates": {
+    "crypto_staging_full": "IN_PROGRESS — host REDIS_URL fixed in forex-safe-crypto-regression.sh; tier1 phases 5–15 not in repo (only phase0–4 + security/treasury/hardening scripts)",
+    "external_lp_live": "EXTERNALLY_DEPENDENT",
+    "ib_external_payout": "EXTERNALLY_DEPENDENT",
+    "marker_scan_false_positives": "mock/partial-fill keywords — not product gaps"
+  },
+  "fixes_this_session": [
+    "functional-crm referral_code length + partners accrual reason",
+    "ForexReportingPanel date range wired to GET /forex/reporting/snapshot",
+    "ForexPartnersPanel adminFetch import from @/lib/api",
+    "ui-navigation login waitForURL /admin/ prefix",
+    "forex-cert-admin-ui-e2e.sh stale pid + functional specs for dealing/partners/automation/reporting"
+  ]
+}

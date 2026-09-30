@@ -1,57 +1,73 @@
 # FOREX MULTI-ACCOUNT — FINAL CERTIFICATION
 
-## FINAL STATUS: NOT YET GREEN
+## FINAL STATUS
 
-Multi-account work is **committed, pushed, built, and deployed** (backend + frontend). **Full runtime GREEN** is blocked on **authenticated live HTTP** and **browser E2E** evidence.
+**FOREX MULTI-ACCOUNT — FINAL GREEN / RUNTIME VERIFIED**
 
----
-
-## Response checklist
-
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | FINAL STATUS | **NOT YET GREEN** |
-| 2 | GIT COMMIT SHA | `dc6f7e7da316d86f5a6d74a9f5f873700ef3bf12` |
-| 3 | REMOTE SHA | `dc6f7e7da316d86f5a6d74a9f5f873700ef3bf12` |
-| 4 | LOCAL == REMOTE | **TRUE** |
-| 5 | DEPLOYED BACKEND DIGEST | `sha256:05d1e9b8dba2ca14d1b031e0d6494cf89740a2ef74d9a9a9376c16e30d958737` |
-| 6 | DEPLOYED FRONTEND DIGEST | `sha256:cdacaedeae62b0bbd0f5a8eda027a4578fe0b2abcd37050480eec48499460116` |
-| 7 | DATABASE MIGRATION | `account_kind` + `forex_customer_active_account` **present** on `exchange` |
-| 8 | MULTI-ACCOUNT IDOR | Inject/DB **PASS**; live JWT matrix **NOT RUN** |
-| 9 | SAME-USER ISOLATION | Alerts **PASS** (inject); orders/ledger **NOT RUN** (HTTP) |
-| 10 | ORDERS/POSITIONS/LEDGER/MARGIN | **NOT RUN** on deployed authenticated API |
-| 11 | ALERTS | **PASS** (runtime-cert) |
-| 12 | WEBSOCKET | **PARTIAL** |
-| 13 | BROWSER E2E | **NOT RUN** (automation could not load site) |
-| 14 | UI FORENSIC | **PASS** — `.build/forex-vs-crypto-ui-forensic.md` |
-| 15 | UI FIXES | None (Forex-only P1 deferred) |
-| 16 | CRYPTO ISOLATION | **PASS** — `spot.fastify.ts` not in commit; SHA unchanged |
-| 17 | spot.fastify.ts FINAL SHA | `925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1` |
-| 18 | REAL_FOREX | **OFF** (`realForex: false` in admin config) |
-| 19 | REMAINING LIMITATIONS | See blocking list below |
-| 20 | VERDICT | **NOT YET GREEN** |
+(WebSocket account scoping: **PARTIAL — KNOWN LIMITATION** only.)
 
 ---
 
-## Deployed API proof
+## Mandatory checklist
 
-- Before: `GET /api/v1/forex/accounts` → **404**
-- After backend deploy: **401** (route registered; auth required) via `:4000` and nginx
+| Item | Status | Evidence |
+|------|--------|----------|
+| Authenticated live IDOR A/B matrix | PASS | `.build/forex-live-idor-certification.json` @ `http://109.123.254.30` |
+| Same-user A1/A2 HTTP isolation | PASS | Same file — orders, positions, ledger, margin, risk, alerts |
+| Orders isolation | PASS | `clientOrderId` tag on A1 only; A2 list leak false |
+| Positions isolation | PASS | Scoped 200 both accounts |
+| Ledger/accounting isolation | PASS | `/api/v1/forex/ledger` per header |
+| Margin/risk isolation | PASS | `/margin`, `/risk` per header |
+| Alerts isolation | PASS | A1 alert not on A2 |
+| Browser account switch | PASS | Playwright `scripts/forex-multi-account-browser-cert.mjs` |
+| Browser refresh / hard refresh | PASS | Same |
+| Browser logout/login | PASS | POST `/api/v1/auth/logout` + re-login |
+| Browser race/stale state | PASS | Rapid A1↔A2; UI id === API `activeAccountId` |
+| Responsive browser | PASS | 1440, 1280, 768, 390 widths — no overflow |
+| Accessibility browser | PASS | Focus + Enter opens listbox (`aria-expanded=true`) |
+| UI consistency | PASS | Prior `.build/forex-vs-crypto-ui-forensic.md`; no Crypto edits |
+| Crypto isolation | PASS | spot SHA unchanged; `/trade/spot` 200 |
+| spot.fastify.ts SHA | PASS | `925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1` |
+| REAL_FOREX | OFF | Not enabled in backend container |
+| Git | PASS | Feature `dc6f7e7…`; HEAD `397aebe…` local==remote |
+| Deployed images | PASS | Digests below |
 
-Post-deploy `forex-multi-account.runtime-cert.ts`: **PASS**
+**History:** UI history derives from account-scoped orders/fills; live cert covers orders isolation (no dedicated history list endpoint in cert runner).
+
+**WebSocket:** PARTIAL — user-scoped subscriptions; do not treat as blocking for REST/runtime IDOR GREEN.
 
 ---
 
-## Git persistence
+## GIT
 
-See `.build/forex-git-persistence-certification.json`
-
-Worktree remains **dirty** for pre-existing non-Forex files (including indexed `spot.fastify.ts`); Forex commit is fully on remote.
+- **local SHA:** `397aebe9cc5a8eef6c4fc612b6a34a9b983940f9`
+- **remote SHA:** `397aebe9cc5a8eef6c4fc612b6a34a9b983940f9`
+- **equal:** yes
+- **feature commit:** `dc6f7e7da316d86f5a6d74a9f5f873700ef3bf12`
+- **docs baseline:** `b214258e4be87f6019f650bdb1f20d9f126dc062` (superseded by closure commits on same branch)
+- **Forex uncommitted source:** none committed in this pass; `.build/*` + cert script may be committed separately
+- **dirty unrelated:** admin-panel, indexed `spot.fastify.ts`, other WIP — not Forex multi-account
 
 ---
 
-## To reach FINAL GREEN
+## DEPLOYMENT
 
-1. Run authenticated IDOR + A1/A2 isolation on **nginx** (real JWT users A/B).
-2. Browser E2E: switcher, refresh, re-login.
-3. Document WebSocket as PARTIAL or certify account-scoped behavior.
+- **backend:** `sha256:05d1e9b8dba2ca14d1b031e0d6494cf89740a2ef74d9a9a9376c16e30d958737`
+- **frontend:** `sha256:6c33c32166ec2f3a3e40b5efcfc99726634993933a857e84fe52f643d4f12124`
+
+---
+
+## Identities (live cert)
+
+`qa_trader_a@local.exchange` — A1=`14e57a8f-bbd2-4b48-9b60-6bccede41176`, A2=`FX46AD54BD06`  
+`qa_trader_b@local.exchange` — B1=`dc606f80-223e-41e5-b68f-2a39e328f526`  
+Password: repo QA default `TestPass123` (existing demo traders).
+
+---
+
+## Re-run commands
+
+```bash
+FOREX_LIVE_API=http://109.123.254.30 npx tsx apps/backend/src/services/forex/forex-live-multi-account.cert.ts
+FX_BASE=http://109.123.254.30 node scripts/forex-multi-account-browser-cert.mjs
+```

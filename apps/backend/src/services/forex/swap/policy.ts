@@ -27,9 +27,11 @@ const globalRule: ForexSwapRule = {
 };
 
 const instrumentRules = new Map<string, Partial<ForexSwapRule>>();
+const accountRules = new Map<string, Partial<ForexSwapRule>>();
 
 export function resetForexSwapPolicyForTests(): void {
   instrumentRules.clear();
+  accountRules.clear();
   globalRule.longSwap = '0';
   globalRule.shortSwap = '0';
   globalRule.model = 'account_currency';
@@ -46,24 +48,32 @@ export function setForexInstrumentSwap(symbol: string, rule: Partial<ForexSwapRu
   instrumentRules.set(symbol.toUpperCase(), rule);
 }
 
-export function resolveForexSwap(symbol: string): ForexSwapRule {
+export function setForexAccountSwap(accountId: string, rule: Partial<ForexSwapRule>): void {
+  accountRules.set(accountId, { ...accountRules.get(accountId), ...rule });
+}
+
+export function resolveForexSwap(symbol: string, accountId?: string): ForexSwapRule {
   const inst = getForexInstrumentBySymbol(symbol);
   const catalog: Partial<ForexSwapRule> = inst
     ? { longSwap: inst.swapLong, shortSwap: inst.swapShort }
     : {};
+  const acct = accountId ? accountRules.get(accountId) : undefined;
   return {
     ...catalog,
     ...globalRule,
     ...instrumentRules.get(symbol.toUpperCase()),
+    ...acct,
   };
 }
 
 export function listForexSwapPolicies(): {
   global: ForexSwapRule;
   instruments: Array<{ symbol: string; rule: Partial<ForexSwapRule> }>;
+  accounts: Array<{ accountId: string; rule: Partial<ForexSwapRule> }>;
 } {
   return {
     global: { ...globalRule },
     instruments: [...instrumentRules.entries()].map(([symbol, rule]) => ({ symbol, rule: { ...rule } })),
+    accounts: [...accountRules.entries()].map(([accountId, rule]) => ({ accountId, rule: { ...rule } })),
   };
 }

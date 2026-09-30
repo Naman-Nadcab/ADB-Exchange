@@ -1,0 +1,11 @@
+{
+  "phase": 5,
+  "verdict": "BLOCKED_BY_PHASE_4",
+  "green": false,
+  "certifiedAtUtc": "2026-09-19T06:36:00.000Z",
+  "reason": "Phase 4 not GREEN; browser/runtime certification not executed",
+  "gapRegister": ".build/forex-phase5-gap-register.json",
+  "preflight": ".build/forex-phase5-preflight.md",
+  "pendingWorkspaceChanges": true,
+  "deployRequired": true
+}

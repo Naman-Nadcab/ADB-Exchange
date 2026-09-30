@@ -1,0 +1,97 @@
+{
+  "generatedAt": "2026-09-20T09:06:00.000Z",
+  "gitHead": "f3e04274d7bb27c3ad05e8f3cbe9724749987aea",
+  "harness": {
+    "database": "exchange_forex_cert",
+    "apiBase": "http://127.0.0.1:4100/api/v1/admin",
+    "certIdentitiesInDb": [
+      "cert_maker@cert.local",
+      "cert_support@cert.local",
+      "cert_risk@cert.local",
+      "cert_checker_a@cert.local",
+      "cert_checker_b@cert.local"
+    ],
+    "missingFixtures": [
+      "FOREX_ONLY (e.g. dealer) cert admin",
+      "CONTROL_ONLY cert admin",
+      "withdrawal_approver cert admin"
+    ],
+    "forexCertIdorMatrix": { "pass": 26, "fail": 0, "evidence": ".build/forex-cert-idor-matrix-run.json" }
+  },
+  "roles": [
+    {
+      "logicalRole": "FULL",
+      "testIdentity": "cert_maker@cert.local (super_admin)",
+      "allowedWorkspace": "control, crypto, forex",
+      "forbiddenWorkspace": "none",
+      "visibleTabs": "NOT_VERIFIED (cert UI :3010 login did not reach /control-center)",
+      "directRoutes": {
+        "/forex/orders": "API GET 200",
+        "/trading": "UI NOT_VERIFIED",
+        "/withdrawals": "API GET 200"
+      },
+      "backendAuthorization": "evaluateAdminRouteRbac super_admin GET /forex/orders allowed=true; forex-cert-idor-matrix super_* PASS",
+      "capability": "GET /users?limit=1 → 200; GET /dashboard-summary → 200",
+      "status": "PARTIAL PASS",
+      "evidence": ["forex-cert-idor-matrix.ts", "curl probes 2026-09-20", "admin-domain visibleAdminDomains super_admin → [control,crypto,forex]"]
+    },
+    {
+      "logicalRole": "CRYPTO_ONLY",
+      "testIdentity": "cert_support@cert.local (support) — proxy; no cert_* role named crypto_only",
+      "allowedWorkspace": "control + crypto (UI static: visibleAdminDomains support → [control,crypto])",
+      "forbiddenWorkspace": "forex",
+      "visibleTabs": "NOT_VERIFIED UI",
+      "directRoutes": {
+        "/forex/orders": "API GET 403; UI NOT_VERIFIED",
+        "/trading": "UI static canAccessAdminPath support /trading → true; UI NOT_VERIFIED"
+      },
+      "backendAuthorization": "GET /forex/orders → 403; GET /users → 200; GET /dashboard-summary → 403; idor-matrix support_* PASS",
+      "capability": "GET /withdrawals?limit=1 → 200 (withdrawals:view); POST approve denied in admin-rbac-routes.test",
+      "status": "PARTIAL PASS",
+      "evidence": ["admin-domain.test.ts support/crypto/forex split", "forex-cert-idor-matrix", "curl probes", "evaluateAdminRouteRbac support GET /forex/orders false"]
+    },
+    {
+      "logicalRole": "FOREX_ONLY",
+      "testIdentity": "NONE in exchange_forex_cert seed",
+      "allowedWorkspace": "expected control + forex only — no runtime identity",
+      "forbiddenWorkspace": "crypto",
+      "visibleTabs": "NOT_VERIFIED",
+      "directRoutes": "NOT_VERIFIED",
+      "backendAuthorization": "Static: dealer GET /forex/orders allowed=true; PATCH /hybrid/config false. No cert login.",
+      "capability": "NOT_VERIFIED",
+      "status": "NOT_VERIFIED",
+      "evidence": ["forex-cert-seed.ts admins list", "evaluateAdminRouteRbac dealer (library only)", "Note: admin-panel rbac.ts lacks dealer → UI domain cannot show Forex tab for dealer without fixture"]
+    },
+    {
+      "logicalRole": "CONTROL_ONLY",
+      "testIdentity": "NONE in exchange_forex_cert seed",
+      "allowedWorkspace": "control only",
+      "forbiddenWorkspace": "crypto, forex",
+      "visibleTabs": "NOT_VERIFIED",
+      "directRoutes": "NOT_VERIFIED",
+      "backendAuthorization": "NOT_VERIFIED runtime",
+      "capability": "NOT_VERIFIED",
+      "status": "NOT_VERIFIED",
+      "evidence": ["forex-cert-seed.ts — no control-only admin user"]
+    },
+    {
+      "logicalRole": "WITHDRAWAL_APPROVER",
+      "testIdentity": "NONE in exchange_forex_cert; static role withdrawal_approver",
+      "allowedWorkspace": "control (visibleAdminDomains → [control])",
+      "forbiddenWorkspace": "crypto workspace tab; forex",
+      "visibleTabs": "NOT_VERIFIED UI",
+      "directRoutes": {
+        "/withdrawals": "UI static canAccessAdminPath → true",
+        "/trading": "UI static → false"
+      },
+      "backendAuthorization": "POST /withdrawals/x/approve allowed=true; GET /withdrawals allowed=false; GET /trading/halt allowed=false (evaluateAdminRouteRbac)",
+      "capability": "withdrawals:approve without broad crypto workspace — admin-domain.test.ts PASS",
+      "status": "PARTIAL PASS",
+      "evidence": ["apps/admin-panel/src/lib/admin/admin-domain.test.ts", "admin-rbac-routes.test.ts cases (suite fails unrelated compliance case)"]
+    }
+  ],
+  "harnessGaps": [
+    "cert_risk@cert.local is risk_manager (control+crypto+forex) — not usable for FOREX_ONLY",
+    "Cert admin UI on :3010 (Sep-17) did not complete login to /control-center for cert users in this run — likely API base mismatch vs :4100; no restart performed per no-deploy rule"
+  ]
+}

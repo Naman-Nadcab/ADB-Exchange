@@ -1,0 +1,11 @@
+{
+  "updatedAt": "2026-09-18T06:00:00Z",
+  "certification_status": "GREEN",
+  "automated_route_audit": { "routes_functional": 36, "routes_total": 36 },
+  "tier1_browser_cert": { "file": ".build/forex-final-certification.json", "status": "GREEN", "tier1_routes": 36 },
+  "genuine_remaining_gaps": [],
+  "not_configured_by_design": [
+    "REAL_FOREX / live LP / MT5 / FIX / cTrader connectivity",
+    "External IB payout rails"
+  ]
+}

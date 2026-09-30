@@ -1,0 +1,501 @@
+{
+  "base": "http://127.0.0.1",
+  "capturedAt": "2026-09-21T06:31:16.710Z",
+  "log": [
+    {
+      "vp": "1440x900",
+      "route": "/forex",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 2,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": true
+    },
+    {
+      "vp": "1440x900",
+      "route": "/forex/trade",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 2,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": true
+    },
+    {
+      "vp": "1440x900",
+      "route": "/forex/markets",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1440x900",
+      "route": "/forex/portfolio",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1440x900",
+      "route": "/forex/orders",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1440x900",
+      "route": "/forex/analysis",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1440x900",
+      "route": "/forex/alerts",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1440x900",
+      "route": "/forex/account",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1440x900",
+      "route": "/forex/account/funds",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1440x900",
+      "route": "/forex/account/ledger",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1440x900",
+      "route": "/forex/account/accounts",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1280x800",
+      "route": "/forex",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 2,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": true
+    },
+    {
+      "vp": "1280x800",
+      "route": "/forex/trade",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 2,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": true
+    },
+    {
+      "vp": "1280x800",
+      "route": "/forex/markets",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1280x800",
+      "route": "/forex/portfolio",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1280x800",
+      "route": "/forex/orders",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1280x800",
+      "route": "/forex/analysis",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1280x800",
+      "route": "/forex/alerts",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1280x800",
+      "route": "/forex/account",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1280x800",
+      "route": "/forex/account/funds",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1280x800",
+      "route": "/forex/account/ledger",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1280x800",
+      "route": "/forex/account/accounts",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1024x768",
+      "route": "/forex",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 2,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": true
+    },
+    {
+      "vp": "1024x768",
+      "route": "/forex/trade",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 2,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": true
+    },
+    {
+      "vp": "1024x768",
+      "route": "/forex/markets",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1024x768",
+      "route": "/forex/portfolio",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1024x768",
+      "route": "/forex/orders",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1024x768",
+      "route": "/forex/analysis",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1024x768",
+      "route": "/forex/alerts",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1024x768",
+      "route": "/forex/account",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1024x768",
+      "route": "/forex/account/funds",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1024x768",
+      "route": "/forex/account/ledger",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "1024x768",
+      "route": "/forex/account/accounts",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "768x1024",
+      "route": "/forex",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 1,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": true
+    },
+    {
+      "vp": "768x1024",
+      "route": "/forex/trade",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 1,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": true
+    },
+    {
+      "vp": "768x1024",
+      "route": "/forex/markets",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "768x1024",
+      "route": "/forex/portfolio",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "768x1024",
+      "route": "/forex/orders",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "768x1024",
+      "route": "/forex/analysis",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "768x1024",
+      "route": "/forex/alerts",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "768x1024",
+      "route": "/forex/account",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "768x1024",
+      "route": "/forex/account/funds",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "768x1024",
+      "route": "/forex/account/ledger",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "768x1024",
+      "route": "/forex/account/accounts",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "390x844",
+      "route": "/forex",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 1,
+      "hasMobileMenu": true,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "390x844",
+      "route": "/forex/trade",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 1,
+      "hasMobileMenu": true,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "390x844",
+      "route": "/forex/markets",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "390x844",
+      "route": "/forex/portfolio",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "390x844",
+      "route": "/forex/orders",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "390x844",
+      "route": "/forex/analysis",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "390x844",
+      "route": "/forex/alerts",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "390x844",
+      "route": "/forex/account",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "390x844",
+      "route": "/forex/account/funds",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "390x844",
+      "route": "/forex/account/ledger",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    },
+    {
+      "vp": "390x844",
+      "route": "/forex/account/accounts",
+      "status": 200,
+      "jwtHits": 0,
+      "newOrderCount": 0,
+      "hasMobileMenu": false,
+      "hasDesktopMenus": false
+    }
+  ]
+}

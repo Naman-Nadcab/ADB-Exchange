@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "baselineCommit": "0c37409a8c3c2fbfb53d3feac741b805bdc802ad",
+    "branch": "release/exchange-production-baseline",
+    "executionMode": "MOCK",
+    "realForexCustomer": false,
+    "auditor": "third-party product audit",
+    "classifications": ["EXISTS", "PARTIAL", "BACKEND_ONLY", "UI_ONLY", "PROVIDER_DEPENDENT", "NOT_IMPLEMENTED", "NOT_APPLICABLE", "FUTURE"]
+  },
+  "stages": [
+    {
+      "stage": "USER_REGISTRATION",
+      "description": "Platform user account exists",
+      "state": "EXISTS",
+      "backend": "Platform auth",
+      "ui": "Login/signup",
+      "customerAccess": true,
+      "evidence": ["apps/frontend/src/app/login", "useAuthStore"]
+    },
+    {
+      "stage": "FOREX_ELIGIBILITY",
+      "description": "User allowed to access Forex product",
+      "state": "PARTIAL",
+      "backend": "Forex routes + auth; no dedicated Forex eligibility API for customer",
+      "ui": "Forex pages public; private requires session",
+      "customerAccess": true,
+      "evidence": ["forexAuthenticate", "hasForexPrivateSession"]
+    },
+    {
+      "stage": "KYC_VERIFICATION",
+      "description": "Identity verification for regulated actions",
+      "state": "PARTIAL",
+      "backend": "kyc_applications (platform); admin CRM segments",
+      "ui": "ForexPortalUserMenu → /dashboard/identity only",
+      "customerAccess": "Platform yes; Forex dashboard no",
+      "evidence": ["ForexPortalUserMenu.tsx", "crm-segments kyc_pending"]
+    },
+    {
+      "stage": "OPEN_DEMO_ACCOUNT",
+      "description": "Customer creates isolated Forex demo account",
+      "state": "EXISTS",
+      "backend": "POST /api/v1/forex/accounts { kind: DEMO }",
+      "ui": "ForexAccountCenter create demo",
+      "customerAccess": true,
+      "evidence": ["forex-customer-accounts.fastify.ts", "createForexDemoAccountAndActivate"]
+    },
+    {
+      "stage": "DEMO_ACCOUNT_ACTIVE",
+      "description": "Demo account selected and hydrated",
+      "state": "EXISTS",
+      "backend": "forex_customer_active_account + select endpoint",
+      "ui": "ForexAccountSwitcher, switch on cards",
+      "customerAccess": true,
+      "evidence": ["selectAccount", "syncForexAccountsFromServer"]
+    },
+    {
+      "stage": "DEMO_FUNDING",
+      "description": "Initial simulated credit to Forex ledger",
+      "state": "EXISTS",
+      "backend": "POST /funding/demo INITIAL_FUNDING",
+      "ui": "/forex/account/funds claim button",
+      "customerAccess": true,
+      "evidence": ["forex-accounting.fastify.ts", "claimDemoFunds"]
+    },
+    {
+      "stage": "TRADE_DEMO",
+      "description": "Place and manage orders in MOCK execution",
+      "state": "EXISTS",
+      "backend": "orders/positions/execution service",
+      "ui": "Terminal + /forex/orders modify/cancel",
+      "customerAccess": true,
+      "evidence": ["useForexOrderEngine", "ForexOrderTicket"]
+    },
+    {
+      "stage": "POSITIONS_ORDERS_PORTAL",
+      "description": "Non-terminal management views",
+      "state": "EXISTS",
+      "backend": "Same active-account APIs",
+      "ui": "/forex/portfolio, /forex/orders",
+      "customerAccess": true,
+      "evidence": ["hydrateForexPrivate positions/orders"]
+    },
+    {
+      "stage": "ACCOUNT_HISTORY",
+      "description": "Ledger + fills + reconciliation",
+      "state": "PARTIAL",
+      "backend": "ledger, fills, reconciliation",
+      "ui": "Ledger page; fills on orders; no portal CSV",
+      "customerAccess": true,
+      "evidence": ["ledger page", "history/export in forex-advanced.fastify.ts terminal only"]
+    },
+    {
+      "stage": "OPEN_LIVE_ACCOUNT",
+      "description": "Customer opens live Forex account",
+      "state": "NOT_IMPLEMENTED",
+      "backend": "POST /accounts rejects non-DEMO",
+      "ui": "No live create flow",
+      "customerAccess": false,
+      "evidence": ["UNSUPPORTED_ACCOUNT_KIND in forex-customer-accounts.fastify.ts"]
+    },
+    {
+      "stage": "LIVE_ACCOUNT_ACTIVATION",
+      "description": "Compliance + funding readiness",
+      "state": "FUTURE",
+      "backend": "Not exposed",
+      "ui": "Not exposed",
+      "customerAccess": false,
+      "evidence": ["realForex false in listAccounts payload"]
+    },
+    {
+      "stage": "FUND_LIVE_DEPOSIT",
+      "description": "Real money deposit to Forex ledger",
+      "state": "NOT_IMPLEMENTED",
+      "backend": "Internal credit/withdraw in accounting; no customer deposit rail",
+      "ui": "Funds page informational unavailable",
+      "customerAccess": false,
+      "evidence": ["fundsPage realRails*", "no POST /funding/deposit customer"]
+    },
+    {
+      "stage": "TRADE_LIVE",
+      "description": "Real LP execution",
+      "state": "PROVIDER_DEPENDENT",
+      "backend": "REAL_FOREX off; MOCK only",
+      "ui": "Same terminal; labels SIMULATED",
+      "customerAccess": false,
+      "evidence": ["capabilities realForex", "execution-resolver INTERNAL inactive"]
+    },
+    {
+      "stage": "WITHDRAW_LIVE",
+      "description": "Customer withdrawal from Forex account",
+      "state": "BACKEND_ONLY",
+      "backend": "accounting.withdraw in service/tests",
+      "ui": "None",
+      "customerAccess": false,
+      "evidence": ["accounting/service.ts withdraw", "no customer route"]
+    },
+    {
+      "stage": "INTERNAL_TRANSFER",
+      "description": "Move funds between accounts/rails",
+      "state": "NOT_IMPLEMENTED",
+      "backend": "Not found for customer",
+      "ui": "None",
+      "customerAccess": false,
+      "evidence": []
+    },
+    {
+      "stage": "ACCOUNT_MANAGEMENT",
+      "description": "Settings, alias, leverage, mode",
+      "state": "PARTIAL",
+      "backend": "position-mode POST; leverage in DB",
+      "ui": "Position mode terminal; leverage in table only",
+      "customerAccess": "Partial",
+      "evidence": ["setPositionMode API", "ForexPositionModeSwitch terminal"]
+    },
+    {
+      "stage": "ACCOUNT_CLOSURE",
+      "description": "Close or archive account",
+      "state": "NOT_IMPLEMENTED",
+      "backend": "status field exists",
+      "ui": "None",
+      "customerAccess": false,
+      "evidence": ["forex_accounts.status not managed in UI"]
+    },
+    {
+      "stage": "SUSPENSION_LIFECYCLE_END",
+      "description": "Restricted trading / liquidation",
+      "state": "PARTIAL",
+      "backend": "risk status, dealing flags, liquidation routes",
+      "ui": "Risk on overview; terminal blocks",
+      "customerAccess": true,
+      "evidence": ["ForexRiskStatus", "ForexOrderTicket blocks"]
+    }
+  ],
+  "demoVsLive": {
+    "accountCreation": { "demo": "EXISTS", "live": "NOT_IMPLEMENTED" },
+    "kyc": { "demo": "NOT_APPLICABLE", "live": "PARTIAL_PLATFORM_ONLY" },
+    "funding": { "demo": "EXISTS_claimDemo", "live": "NOT_IMPLEMENTED" },
+    "withdrawal": { "demo": "NOT_APPLICABLE", "live": "BACKEND_ONLY" },
+    "transfer": { "demo": "NOT_IMPLEMENTED", "live": "NOT_IMPLEMENTED" },
+    "trading": { "demo": "EXISTS_MOCK", "live": "PROVIDER_DEPENDENT" },
+    "risk": { "demo": "EXISTS", "live": "EXISTS_engine" },
+    "reporting": { "demo": "PARTIAL", "live": "PARTIAL" },
+    "credentials": { "demo": "NOT_APPLICABLE_web", "live": "FUTURE" },
+    "accountSettings": { "demo": "PARTIAL", "live": "PARTIAL" },
+    "status": { "demo": "EXISTS", "live": "NOT_IMPLEMENTED" },
+    "closure": { "demo": "NOT_IMPLEMENTED", "live": "NOT_IMPLEMENTED" },
+    "support": { "demo": "PARTIAL_link", "live": "PARTIAL_link" }
+  }
+}

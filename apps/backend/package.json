@@ -64,7 +64,11 @@
     "admin:reset-dev-login": "tsx scripts/reset-admin-dev-login.ts",
     "qa:database-target": "tsx scripts/print-database-target.ts",
     "verify:admin-hybrid": "tsx scripts/verify-admin-hybrid.ts",
-    "start:signing-service": "node dist/signing/signing-http-main.js"
+    "start:signing-service": "node dist/signing/signing-http-main.js",
+    "test:forex-phase-a": "FOREX_SILENT_LOG=1 tsx src/services/forex/forex-phase-a-orders.test.ts",
+    "test:forex-phase2-customer": "FOREX_SILENT_LOG=1 tsx src/services/forex/forex-phase2-customer-terminal.test.ts",
+    "test:forex-anchor": "FOREX_SILENT_LOG=1 tsx src/services/forex/market-data/anchor.test.ts",
+    "test:forex-price-cert": "FOREX_SILENT_LOG=1 tsx src/services/forex/forex-price-consistency.cert.ts"
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.989.0",

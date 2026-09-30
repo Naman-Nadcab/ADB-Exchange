@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-09-20T06:45:00Z",
+  "uiToDbTrace": "Forex admin panels → forex-api.ts → /api/v1/admin/forex/* → services/forex/admin/* → forex_* tables",
+  "mutations": [
+    { "control": "kill_switch / demo_funding", "file": "admin-forex.fastify.ts + runtime-controls.ts", "scope": "FOREX", "cryptoImpact": "NONE if flags forex-only" },
+    { "control": "adminForceCancelForexOrder", "file": "services/forex/admin/ops-actions.ts", "scope": "FOREX" },
+    { "control": "dealing-actions", "file": "services/forex/admin/dealing-actions.ts", "blockedWhenRealForex": true },
+    { "control": "account lifecycle", "file": "admin-forex-ops.fastify.ts", "scope": "FOREX accounts" }
+  ],
+  "readMostlySections": [
+    "overview",
+    "orders list",
+    "positions list",
+    "executions",
+    "ledger recon snapshot",
+    "journal-audit search",
+    "reporting snapshot"
+  ],
+  "crm": "admin-forex-crm.fastify.ts — notes, leads, tasks, client 360",
+  "certificationScripts": [".build/forex-admin-*", "scripts/forex-cert-admin-ui-e2e.sh"]
+}

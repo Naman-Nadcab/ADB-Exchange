@@ -1,0 +1,70 @@
+{
+  "timestampUtc": "2026-09-18T16:26:02.670Z",
+  "base": "http://109.123.254.30",
+  "auth": "qa_trader_a password login (existing QA harness)",
+  "results": [
+    {
+      "id": "auth_qa_password",
+      "ok": true,
+      "detail": "http://109.123.254.30/"
+    },
+    {
+      "id": "terminal_load",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "no_object_object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "shell_panels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "ticket_order_types",
+      "ok": true,
+      "detail": "Market, Limit, Stop, Stop Limit"
+    },
+    {
+      "id": "ticket_tif",
+      "ok": true,
+      "detail": "GTC,IOC,FOK,DAY"
+    },
+    {
+      "id": "ticket_no_gtd",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "stop_limit_fields",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "desktop_no_overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "mobile_no_overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "mobile_ticket_visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "console_fatal",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "verdict": "UI_VERIFIED",
+  "p3aRecommended": "RUNTIME_VERIFIED",
+  "note": "Ticket/load/TIF/Stop Limit UI only; no live order submission in browser script (API cert covers execution)."
+}

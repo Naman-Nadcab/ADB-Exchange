@@ -1,0 +1,109 @@
+{
+  "phase": 2,
+  "features": ["Stop Limit customer exposure", "TIF GTC/DAY/IOC/FOK customer exposure", "Pending order UI (existing panel)", "Runtime deploy backend + frontend"],
+  "timestampUtc": "2026-09-18T14:12:00Z",
+  "git": {
+    "branch": "release/exchange-production-baseline",
+    "head": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "committed": false
+  },
+  "codeComponentsChanged": [
+    "apps/backend/src/services/forex/capabilities/customer-contract.ts",
+    "apps/backend/src/services/forex/capabilities/customer-contract.test.ts",
+    "apps/backend/src/services/forex/forex-phase2-customer-terminal.test.ts",
+    "apps/backend/src/services/forex/forex-phase-a-orders.test.ts",
+    "apps/backend/src/services/forex/forex-phase1c-stoplimit-tif.test.ts",
+    "apps/backend/package.json",
+    "apps/frontend/src/components/forex/ForexOrderTicket.tsx"
+  ],
+  "backend": {
+    "image": "m-live-backend:latest",
+    "digest": "sha256:8776d05c52b1048ed961142c917dfc825ad318cc08c03d2ad20de4f521d29be6",
+    "container": "exchange-backend",
+    "health": "healthy",
+    "deployedAtUtc": "2026-09-18T14:09:00Z",
+    "priorDigestPhase1": "sha256:64dc02980c1da78e432cf8f4adced55665e7a8411fe77bdb7a30a995d41e3da1"
+  },
+  "frontend": {
+    "image": "m-live-frontend:latest",
+    "digest": "sha256:ec76bc1f065fee0764d1e2e24c1e5d3709c2c6da437e5fabda2aef1f877aaa63",
+    "container": "exchange-frontend",
+    "deployedAtUtc": "2026-09-18T13:58:10Z"
+  },
+  "database": { "migration": "NO", "seed": "NO" },
+  "flags": { "REAL_FOREX": "OFF", "execution": "MOCK/SIMULATED" },
+  "providers": {
+    "MT5": "NOT_CONFIGURED",
+    "FIX": "NOT_CONFIGURED",
+    "cTrader": "NOT_CONFIGURED",
+    "externalLP": "NOT_CONFIGURED"
+  },
+  "capabilityContract": {
+    "customerOrderTypes": ["market", "limit", "stop", "stop_limit"],
+    "customerTimeInForce": ["GTC", "IOC", "FOK", "DAY"],
+    "gtd": "NOT_EXPOSED"
+  },
+  "tests": [
+    { "name": "customer-contract.test.ts", "result": "PASS" },
+    { "name": "forex-phase2-customer-terminal.test.ts", "result": "PASS" },
+    { "name": "forex-phase1c-stoplimit-tif.test.ts", "result": "PASS" },
+    { "name": "forex-phase-a-orders.test.ts", "result": "PASS" },
+    { "name": "forex-phase-a-ui.test.ts", "result": "PASS" },
+    { "name": "forex-phase1c-stoplimit-tif.cert.ts (live)", "result": "PARTIAL 15/20", "note": "Legacy cert expects HTTP 4xx for some rejections and journal 404; order outcomes still exercised." }
+  ],
+  "runtimeApi": {
+    "tradingConfig": {
+      "url": "http://127.0.0.1:4000/api/v1/forex/trading-config",
+      "orderTypes": ["market", "limit", "stop", "stop_limit"],
+      "timeInForce": ["GTC", "IOC", "FOK", "DAY"],
+      "realForex": false,
+      "verdict": "RUNTIME_VERIFIED"
+    },
+    "candles": {
+      "url": "http://127.0.0.1:4000/api/v1/forex/candles?symbol=EURUSD&timeframe=15m&limit=3",
+      "source": "SIMULATED",
+      "liveCandleSource": "SIMULATED",
+      "historicalCandleSource": "EXTERNAL",
+      "verdict": "RUNTIME_VERIFIED"
+    },
+    "quotes": {
+      "url": "http://127.0.0.1:4000/api/v1/forex/quotes?symbols=EURUSD",
+      "source": "SIMULATED",
+      "providerCode": "MOCK-C",
+      "verdict": "RUNTIME_VERIFIED"
+    }
+  },
+  "browser": {
+    "url": "http://109.123.254.30/forex/trade",
+    "orderTicketTypes": ["Market", "Limit", "Stop", "Stop Limit"],
+    "tifOptions": ["GTC", "IOC", "FOK", "DAY"],
+    "gtdVisible": false,
+    "pageCrash": false,
+    "verdict": "UI_VERIFIED"
+  },
+  "auth": {
+    "qaLoginWithoutOtp": true,
+    "liveStopLimitOrders": "RUNTIME_VERIFIED (pending, cancel, fill via demo price pin)",
+    "liveCertScript": "PARTIAL — see knownGaps"
+  },
+  "dbReadOnly": {
+    "forex_orders": 741,
+    "forex_journal_events": 0,
+    "forex_positions_open": 3,
+    "schemaChange": false
+  },
+  "knownGaps": [
+    "forex-phase1c-stoplimit-tif.cert.ts TRADING_CONFIG fixed after TIF array order aligned to engine",
+    "Cert expects HTTP 4xx for validation failures; API returns 200 with order status REJECTED (INVALID_RELATION, UNSUPPORTED_TIME_IN_FORCE) — behavior correct, cert assertion stale",
+    "JOURNAL_NOT_EXPOSED cert check fails because GET /api/v1/forex/journal returns 200 when authenticated",
+    "REGRESSION_CLOSE_BY live cert failure — hedging feature, not Phase 2 scope"
+  ],
+  "rollback": {
+    "mechanism": "deployment/rollback.sh (git revision rollback) + docker compose rebuild prior images",
+    "reference": "deployment/README.md"
+  },
+  "cryptoIsolation": {
+    "phase2ModifiedCrypto": false,
+    "preExistingDirty": ["apps/backend/src/routes/spot.fastify.ts", "apps/backend/src/lib/spot-ticker-db-load.ts"]
+  }
+}

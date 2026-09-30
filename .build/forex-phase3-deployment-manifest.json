@@ -1,0 +1,23 @@
+{
+  "phase": 3,
+  "timestampUtc": "2026-09-18T16:20:00Z",
+  "redeployed": false,
+  "backend": {
+    "container": "exchange-backend",
+    "image": "m-live-backend:latest",
+    "digest": "sha256:9f7f26e226c676d86bf88e98d872f0e48161ac7a41f8799b0b9334ccfb62c8a6",
+    "health": "healthy",
+    "startedAt": "2026-09-18T16:08:15.043529277Z"
+  },
+  "frontend": {
+    "container": "exchange-frontend",
+    "image": "m-live-frontend:latest",
+    "digest": "sha256:ec76bc1f065fee0764d1e2e24c1e5d3709c2c6da437e5fabda2aef1f877aaa63",
+    "health": "healthy"
+  },
+  "gitSha": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "migration": false,
+  "seed": false,
+  "certHarness": "apps/backend/src/services/forex/forex-phase3-customer-execution.cert.ts",
+  "results": ".build/forex-phase3-customer-execution-cert-results.json"
+}

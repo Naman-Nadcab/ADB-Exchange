@@ -1,0 +1,53 @@
+{
+  "phase": 4,
+  "scope": "GENUINELY_MARKET_DEPENDENT_ONLY",
+  "updatedUtc": "2026-09-19T08:30:00.000Z",
+  "resumeCommand": "node scripts/forex-phase4-live-green-cert.mjs",
+  "items": [
+    {
+      "requirement": "Live LONG mark-to-market uses BID with quote movement",
+      "why": "Needs open session + executable market buy + ticking mock BID",
+      "evidence": "Unit: forex-phase6.test.ts; Live: cert test A"
+    },
+    {
+      "requirement": "Live SHORT mark-to-market uses ASK with quote movement",
+      "why": "Needs open session + sell fill + ASK ticks",
+      "evidence": "Partial live history; cert test B"
+    },
+    {
+      "requirement": "Preview vs placement parity on live stack",
+      "why": "Preview allowed only when session open for CUSTOMER",
+      "evidence": "cert test D"
+    },
+    {
+      "requirement": "Margin call from natural quote deterioration",
+      "why": "Stress volume + live quote path over time",
+      "evidence": "cert test E"
+    },
+    {
+      "requirement": "Stop-out and liquidation economic lineage",
+      "why": "Margin breach from legitimate marks → fill → ledger",
+      "evidence": "cert tests F, G, H"
+    },
+    {
+      "requirement": "Live risk WS payloads after economic state change",
+      "why": "Subscribe proven; payload movement needs risk events",
+      "evidence": "cert test I after E/F"
+    },
+    {
+      "requirement": "Live IDOR with B open position",
+      "why": "Cross-account 404 needs B to hold open position during cert",
+      "evidence": "cert test J (API IDOR matrix done pre-market when flat)"
+    },
+    {
+      "requirement": "Customer browser full trade lifecycle",
+      "why": "Market buy/sell UI while session open",
+      "evidence": "cert K; scripts/forex-browser-cert.mjs PART 3"
+    },
+    {
+      "requirement": "Admin Risk Hub live MTM refresh",
+      "why": "Hub uses DB quotes; live state change after deals",
+      "evidence": "cert L; admin panel browser"
+    }
+  ]
+}

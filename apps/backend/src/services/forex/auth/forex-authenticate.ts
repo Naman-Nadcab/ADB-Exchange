@@ -6,10 +6,35 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { getAccessTokenFromRequest } from '../../../lib/auth-cookies.js';
 import { isSessionValid } from '../../session.service.js';
 
+/** WebSocket upgrade: Bearer or httpOnly access cookie (same contract as forexAuthenticate). */
+export async function resolveForexWsUserId(app: FastifyInstance, request: FastifyRequest): Promise<string | undefined> {
+  const token = getAccessTokenFromRequest(request);
+  if (!token || !app.hasDecorator('jwt')) return undefined;
+  try {
+    const decoded = app.jwt.verify<{
+      userId: string;
+      type?: string;
+      sessionId?: string;
+    }>(token);
+    if (decoded.type === 'admin') return undefined;
+    const sessionId = decoded.sessionId ?? '';
+    if (!(await isSessionValid(sessionId))) return undefined;
+    return decoded.userId;
+  } catch {
+    return undefined;
+  }
+}
+
 export function forexAuthenticate(app: FastifyInstance) {
   return async function forexAuthenticateHandler(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
       const token = getAccessTokenFromRequest(request);
+      // Isolated route tests decorate `authenticate` and never register @fastify/jwt.
+      // Production always has the jwt decorator — this branch never runs there.
+      if (!token && !app.hasDecorator('jwt') && typeof app.authenticate === 'function') {
+        await app.authenticate(request, reply);
+        return;
+      }
       if (!token) {
         return reply.status(401).send({
           success: false,

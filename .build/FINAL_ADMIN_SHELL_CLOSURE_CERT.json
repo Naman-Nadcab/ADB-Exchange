@@ -1,0 +1,109 @@
+{
+  "generatedAt": "2026-09-20T07:49:25.849Z",
+  "rbac": {
+    "full": {
+      "email": "admin@example.com",
+      "label": "full_access",
+      "controlTab": true,
+      "cryptoTab": true,
+      "forexTab": true,
+      "loginOk": true,
+      "landing": "http://127.0.0.1/admin/control-center",
+      "directForexUrl": "http://127.0.0.1/admin/forex/orders",
+      "forexDirectBlocked": false,
+      "directTradingUrl": "http://127.0.0.1/admin/trading",
+      "cryptoDirectBlocked": false,
+      "status": "PASS"
+    },
+    "controlOnly": {
+      "email": "approver@example.com",
+      "label": "control_only",
+      "controlTab": false,
+      "cryptoTab": false,
+      "forexTab": false,
+      "loginOk": false,
+      "landing": "http://127.0.0.1/admin/login",
+      "status": "NOT_VERIFIED",
+      "reason": "login failed"
+    },
+    "cryptoOnly": {
+      "status": "NOT_VERIFIED",
+      "reason": "No crypto-only admin_users row in production DB (only super_admin x2, withdrawal_approver)"
+    },
+    "forexOnly": {
+      "status": "NOT_VERIFIED",
+      "reason": "No forex-only admin_users row in production DB"
+    }
+  },
+  "breadcrumbs": {
+    "/control-center": {
+      "path": "/control-center",
+      "expectDomain": "Control Center",
+      "crumbText": "",
+      "pass": false
+    },
+    "/trading": {
+      "path": "/trading",
+      "expectDomain": "Crypto",
+      "crumbText": "",
+      "pass": false
+    },
+    "/forex/orders": {
+      "path": "/forex/orders",
+      "expectDomain": "Forex",
+      "crumbText": "",
+      "pass": false
+    }
+  },
+  "emergencyLabels": {
+    "controlCenter": {
+      "path": "/control-center",
+      "sampleLabels": [
+        "mm",
+        "EMERGENCY",
+        "Safe mode",
+        "Kill switch",
+        "mm",
+        "Safe mode",
+        "withdrawal",
+        "safe mode",
+        "Withdrawal",
+        "withdrawal",
+        "withdrawal",
+        "withdrawal"
+      ]
+    },
+    "forexControls": {
+      "path": "/forex/controls",
+      "sampleLabels": [
+        "Kill switch",
+        "Kill switch",
+        "KILL SWITCH",
+        "kill switch"
+      ]
+    },
+    "adminControl": {
+      "path": "/admin-control",
+      "sampleLabels": [
+        "emergency",
+        "Withdrawal",
+        "Emergency",
+        "Withdrawal",
+        "EMERGENCY",
+        "Kill Switch",
+        "MM",
+        "Emergency",
+        "withdrawal",
+        "safe mode",
+        "withdrawal",
+        "Withdrawal"
+      ]
+    },
+    "settingsSystem": {
+      "path": "/settings/system",
+      "sampleLabels": []
+    }
+  },
+  "errors": [],
+  "executionPerformed": false
+}

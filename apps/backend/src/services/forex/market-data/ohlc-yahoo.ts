@@ -4,6 +4,7 @@
  * No API key. Fail closed to UNAVAILABLE — never synthesize bars.
  */
 import { isValidOhlcRelation } from './ohlc-validate.js';
+import { resolveForexCandleTimeframePlan } from './candle-timeframe-plans.js';
 
 export const YAHOO_SUPPORTED_TIMEFRAMES = ['1m', '5m', '15m', '1h', '1D'] as const;
 export type YahooForexTimeframe = (typeof YAHOO_SUPPORTED_TIMEFRAMES)[number];
@@ -68,6 +69,21 @@ export function weekStartUtcMs(ms: number): number {
   return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - daysSinceMonday);
 }
 
+export function monthStartUtcMs(ms: number): number {
+  const d = new Date(ms);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
+}
+
+export function aggregateToBucketMs(
+  bars: ExternalOhlcBar[],
+  bucketMs: number,
+  bucketFn: 'floor' | 'week' | 'month' = 'floor'
+): ExternalOhlcBar[] {
+  const fn =
+    bucketFn === 'week' ? weekStartUtcMs : bucketFn === 'month' ? monthStartUtcMs : (ms: number) => Math.floor(ms / bucketMs) * bucketMs;
+  return aggregateBarsToBucket(bars, bucketMs, fn);
+}
+
 /**
  * Roll valid bars into fixed UTC buckets.
  * Open = first open, High = max, Low = min, Close = last close.
@@ -116,20 +132,23 @@ export function aggregateBarsToBucket(
 
 /** Align / dedupe bars onto timeframe boundaries (fixes Yahoo partial last bar seconds). */
 export function alignBarsToTimeframe(bars: ExternalOhlcBar[], timeframe: string): ExternalOhlcBar[] {
-  const size: Record<string, number> = {
-    '1m': 60_000,
-    '5m': 300_000,
-    '15m': 900_000,
-    '30m': THIRTY_M_MS,
-    '1h': 3_600_000,
-    '4h': FOUR_H_MS,
-    '1D': DAY_MS,
-    '1W': 7 * DAY_MS,
-  };
-  const ms = size[timeframe];
-  if (!ms) return bars;
-  if (timeframe === '1W') return aggregateBarsToBucket(bars, ms, weekStartUtcMs);
-  return aggregateBarsToBucket(bars, ms);
+  const plan = resolveForexCandleTimeframePlan(timeframe);
+  if (!plan) return bars;
+  if (plan.kind === 'yahoo') {
+    const size: Record<string, number> = {
+      '1m': 60_000,
+      '5m': 300_000,
+      '15m': 900_000,
+      '1h': 3_600_000,
+      '1D': DAY_MS,
+    };
+    const ms = size[plan.timeframe];
+    if (!ms) return bars;
+    return aggregateBarsToBucket(bars, ms);
+  }
+  const bucketFn =
+    plan.bucketFn === 'week' ? weekStartUtcMs : plan.bucketFn === 'month' ? monthStartUtcMs : (ms: number) => Math.floor(ms / plan.bucketMs) * plan.bucketMs;
+  return aggregateBarsToBucket(bars, plan.bucketMs, bucketFn);
 }
 
 /** Roll valid 1h bars into UTC 4h buckets. */

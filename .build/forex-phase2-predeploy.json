@@ -1,0 +1,47 @@
+{
+  "phase": 2,
+  "timestampUtc": "2026-09-18T14:12:00Z",
+  "repo": "/opt/m-live",
+  "branch": "release/exchange-production-baseline",
+  "head": "7f0bf68e753969778683e04b19d43bc78014d02d",
+  "headMovedForCommit": false,
+  "preExistingDirtyBaseline": {
+    "cryptoLocked": [
+      "apps/backend/src/routes/spot.fastify.ts",
+      "apps/backend/src/lib/spot-ticker-db-load.ts"
+    ],
+    "note": "Large pre-existing WIP tree; not cleaned or reset."
+  },
+  "expectedPhase2SourceChanges": [
+    "apps/backend/src/services/forex/capabilities/customer-contract.ts",
+    "apps/backend/src/services/forex/capabilities/customer-contract.test.ts",
+    "apps/backend/src/services/forex/forex-phase2-customer-terminal.test.ts",
+    "apps/backend/src/services/forex/forex-phase-a-orders.test.ts",
+    "apps/backend/src/services/forex/forex-phase1c-stoplimit-tif.test.ts",
+    "apps/backend/package.json",
+    "apps/frontend/src/components/forex/ForexOrderTicket.tsx"
+  ],
+  "tests": [
+    { "name": "customer-contract.test.ts", "result": "PASS" },
+    { "name": "forex-phase2-customer-terminal.test.ts", "result": "PASS" },
+    { "name": "forex-phase1c-stoplimit-tif.test.ts", "result": "PASS" },
+    { "name": "forex-phase-a-orders.test.ts", "result": "PASS" },
+    { "name": "forex-phase-a-ui.test.ts (frontend)", "result": "PASS" }
+  ],
+  "build": {
+    "backend": "PASS (docker compose build backend)",
+    "frontend": "PASS (docker compose build frontend — ticket TIF copy fix)"
+  },
+  "capabilityMatrixAfterPhase2": {
+    "customerOrderTypes": ["market", "limit", "stop", "stop_limit"],
+    "customerTimeInForce": ["GTC", "IOC", "FOK", "DAY"],
+    "gtd": "NOT_EXPOSED",
+    "realForex": false,
+    "executionMode": "MOCK"
+  },
+  "deploymentComponentsRequired": ["backend", "frontend"],
+  "databaseMigration": false,
+  "seed": false,
+  "realForex": false,
+  "cryptoTouchedByPhase2": false
+}

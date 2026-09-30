@@ -1,0 +1,20 @@
+{
+  "generatedAt": "2026-09-20T06:45:00Z",
+  "doNotTouch": [
+    "apps/backend/src/routes/spot.fastify.ts (customer crypto — frozen)",
+    "matching-engine/",
+    "apps/backend/src/routes/admin-spot.fastify.ts (admin crypto ops — HIGH RISK)",
+    "apps/backend/src/routes/admin-mm-control.fastify.ts",
+    "Crypto wallet/deposit/withdrawal services touched by admin.fastify.ts finance routes"
+  ],
+  "adminCryptoCapabilities": [
+    { "ui": "/trading", "api": "/trading*, /engine, /matches", "risk": "HIGH" },
+    { "ui": "/orders", "api": "admin order views", "risk": "HIGH" },
+    { "ui": "/markets", "api": "/markets", "risk": "MEDIUM" },
+    { "ui": "/admin/mm-control", "api": "/mm-control", "risk": "HIGH" },
+    { "ui": "/p2p", "api": "/p2p", "risk": "HIGH" },
+    { "ui": "/wallets,/deposits,/withdrawals", "api": "finance routes", "risk": "HIGH" },
+    { "ui": "/reconciliation", "api": "operational", "risk": "MEDIUM" }
+  ],
+  "refactorRisk": "Any change to admin-rbac-routes.ts ADMIN_ROUTE_RULES affects Crypto and Forex — MEDIUM-HIGH"
+}

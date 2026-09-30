@@ -46,6 +46,8 @@ export interface ForexAccountView {
   marginLevel: string | null;
   unrealizedPnl: string;
   realizedPnl: string;
+  /** Server-authoritative position accounting mode. */
+  positionMode: 'NETTING' | 'HEDGING';
   timestamp: string;
   source: 'SIMULATED';
   calculationStatus: PnlCalculationStatus | 'ACCOUNTING_UNAVAILABLE';

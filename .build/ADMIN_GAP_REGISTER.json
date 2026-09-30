@@ -1,0 +1,58 @@
+{
+  "generatedAt": "2026-09-20T06:45:00Z",
+  "prioritization": {
+    "P0": 1,
+    "P1": 4,
+    "P2": 8,
+    "P3": 6
+  },
+  "P0": [
+    {
+      "id": "P0-001",
+      "title": "Uncommitted Crypto spot.fastify.ts in working tree",
+      "evidence": "git status shows M apps/backend/src/routes/spot.fastify.ts",
+      "action": "DO NOT TOUCH during admin refactor; restore baseline before unrelated work"
+    }
+  ],
+  "P1": [
+    {
+      "id": "P1-001",
+      "title": "Navigation IA vs target: Crypto 'Trading' section adjacent to Forex section",
+      "action": "MOVE labels only — minimal restructure under CRYPTO OPERATIONS header"
+    },
+    {
+      "id": "P1-002",
+      "title": "Forex LP execution admin UI exists; REAL_FOREX OFF — must stay honest NOT_CONFIGURED",
+      "evidence": "forex-nav-groups liquidity description; execution-gate.ts",
+      "action": "KEEP UI with clear MOCK/DISABLED states (already partially present)"
+    },
+    {
+      "id": "P1-003",
+      "title": "RBAC: global /forex write permission coarse",
+      "action": "RE-SCOPE per-endpoint permissions on refactor, not blanket controls:manage"
+    },
+    {
+      "id": "P1-004",
+      "title": "End-to-end RBAC bypass testing not fully evidenced for all admin routes",
+      "action": "Add IDOR/RBAC cert suite post-refactor"
+    }
+  ],
+  "P2": [
+    "Duplicate 'fees' concept (/fees crypto vs /forex/fees-swaps)",
+    "Some Forex admin pages depend on large panel components — loading/error states vary by panel",
+    "Users/[id] may show mixed crypto+forex user tab — verify scoping",
+    "Command Center mixes global + domain metrics",
+    "Analytics scheduled reports domain mix UNKNOWN without deep trace",
+    "Mobile admin UX largely unverified",
+    "Alert providers settings shared across domains",
+    "Treasury/fiat withdrawals India-specific — SHARED finance"
+  ],
+  "P3": [
+    "Sidebar density / command palette parity",
+    "Breadcrumb consistency",
+    "Table keyboard a11y spot checks",
+    "Report export format parity",
+    "Observability domain tagging in metrics",
+    "Documentation drift vs forex-admin-nav.ts"
+  ]
+}

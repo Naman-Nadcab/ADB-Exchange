@@ -1,0 +1,57 @@
+{
+  "phase": 5,
+  "purpose": "Customer terminal runtime checks requiring open session and/or live browser",
+  "prerequisite": {
+    "phase4LiveGreen": "Phase 4 live-green-cert GREEN (recommended before Phase 5 GREEN claim)",
+    "sessionOpen": true,
+    "qaUser": "qa_trader_a@local.exchange / TestPass123"
+  },
+  "safeResumeCommand": "After Phase 4 cert: manual browser + optional e2e; verify WS with mlive_at cookie",
+  "currentBlocker": "SESSION_CLOSED + Phase 4 not GREEN",
+  "tests": [
+    {
+      "id": "P5_live_market_ticket",
+      "reason": "Market/limit/stop placement while session open",
+      "steps": "Login → /forex/trade → place each type → verify pending/positions API",
+      "expected": "Server status matches UI; journal/WS updates",
+      "browser": true
+    },
+    {
+      "id": "P5_preview_ticket_parity",
+      "reason": "Ticket preview matches placement when open",
+      "steps": "Preview panel vs submit same params",
+      "expected": "Same allowed/margin projection as POST order"
+    },
+    {
+      "id": "P5_trade_from_chart",
+      "reason": "Chart context menu → ticket draft → same POST /orders path",
+      "steps": "Trade from chart → submit market",
+      "expected": "Single backend execution path; fill when open"
+    },
+    {
+      "id": "P5_ws_cookie_reconnect",
+      "reason": "Browser uses httpOnly mlive_at on WS upgrade",
+      "steps": "Login with cookie → connect /api/v1/forex/ws → subscribe private channels",
+      "expected": "Subscribed; reconnect converges state",
+      "wsAssertions": "fx.order, fx.position, fx.risk without duplicate handlers"
+    },
+    {
+      "id": "P5_sl_tp_live",
+      "reason": "SL/TP attach and trigger need quotes",
+      "steps": "Set SL/TP on position; optional trigger if marks cross",
+      "expected": "Persisted; execution per policy when triggered"
+    },
+    {
+      "id": "P5_responsive_smoke",
+      "reason": "Layout at desktop/tablet/mobile widths",
+      "steps": "Viewport 1280/768/390 — no overflow, ticket usable",
+      "browser": true
+    },
+    {
+      "id": "P5_history_live",
+      "reason": "History tabs after live deals",
+      "steps": "Execute trades → orders/deals/ledger tabs",
+      "expected": "Account-scoped rows match API"
+    }
+  ]
+}

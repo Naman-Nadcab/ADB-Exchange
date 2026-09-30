@@ -1,0 +1,373 @@
+{
+  "auditMeta": {
+    "auditId": "forex-customer-terminal-second-confirmation",
+    "timestampUtc": "2026-09-18T12:38:18Z",
+    "mode": "READ_ONLY_CROSS_VERIFICATION",
+    "priorAuditLead": ".build/forex-customer-terminal-fresh-forensic-audit.json",
+    "priorAuditNotEvidence": true,
+    "integrity": {
+      "codeChanges": false,
+      "dbWrites": false,
+      "deployment": false,
+      "cryptoModifications": false,
+      "ordersSubmitted": false
+    }
+  },
+  "environmentSnapshot": {
+    "gitHead": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "branch": "release/exchange-production-baseline",
+    "workingTree": "DIRTY (unchanged class from prior audit; not modified by this audit)",
+    "environmentChangedVsFirstAudit": {
+      "answer": "NO",
+      "detail": "Same HEAD SHA; same journal/orders/open-positions counts; quote prices moved (expected). Backend container recreated 2026-09-18T05:51Z vs first audit note ~7h uptime."
+    }
+  },
+  "runtimeIdentity": {
+    "customerBrowserEntry": "http://109.123.254.30/forex/trade",
+    "path": "Browser → exchange-nginx (nginx:alpine) → exchange-frontend (m-live-frontend, created 2026-09-16) → /api/v1/forex → exchange-backend (m-live-backend, created 2026-09-18) → exchange-postgres",
+    "nginxTradingConfigVerified": {
+      "url": "http://109.123.254.30/api/v1/forex/trading-config",
+      "httpStatus": 200,
+      "orderTypes": ["market", "limit", "stop"]
+    },
+    "localhostBackendVerified": {
+      "host": "127.0.0.1:4000",
+      "note": "Same payloads as nginx path for trading-config/quotes/candles (spot-checked)"
+    },
+    "sourceRuntimeMismatch": {
+      "flag": "CONDITIONAL",
+      "why": "Working tree has extensive uncommitted changes; container images (m-live-frontend/backend) cannot be byte-proven equal to current git HEAD without image digest ↔ build provenance. Runtime API/UI evidence used for customer truth; source used for execution-path truth."
+    }
+  },
+  "evidenceMethodology": {
+    "levelsUsed": ["A_runtime_browser", "B_api", "C_db_readonly", "D_source"],
+    "levelEUsedOnlyAsLead": true
+  },
+  "p0MarketDataAuthority": {
+    "previousClaim": "P0-MARKET-DATA-SPLIT: Yahoo EXTERNAL candles vs MOCK SIMULATED quotes",
+    "verdict": "VERIFIED_SPLIT_WITH_IMPACT",
+    "levelB_candles": {
+      "request": "GET http://127.0.0.1:4000/api/v1/forex/candles?symbol=EURUSD&timeframe=15m&limit=3",
+      "httpStatus": 200,
+      "source": "EXTERNAL",
+      "provider": "yahoo",
+      "reason": "EXTERNAL_YAHOO",
+      "sampleBar": {
+        "timestamp": "2026-09-18T12:15:00.000Z",
+        "close": "1.1461317539215088"
+      }
+    },
+    "levelB_quotes": {
+      "request": "GET http://127.0.0.1:4000/api/v1/forex/quotes?symbols=EURUSD",
+      "httpStatus": 200,
+      "EURUSD": {
+        "bid": "1.14670",
+        "ask": "1.14670",
+        "spread": "0.00000",
+        "source": "SIMULATED",
+        "providerCode": "MOCK-C",
+        "quality": "SIMULATED",
+        "providerTimestamp": "2026-09-18T12:38:19.633Z"
+      }
+    },
+    "levelD_mitigationDocumented": {
+      "file": "apps/backend/src/services/forex/market-data/anchor.ts",
+      "lines": "1-16",
+      "summary": "Code states chart uses external OHLC while executable quotes use MOCK walk; anchor pins MOCK base to latest reference close to reduce drift — does not merge API source fields at runtime."
+    },
+    "impactAnalysis": {
+      "sameAuthorityAtApiLayer": false,
+      "materiallyDifferentStatesPossible": true,
+      "observedSameSessionDelta": "EURUSD candle close 1.14613 vs quote 1.14670 (~5.7 pips at observed sample)",
+      "uiLabeling": "Ticket shows SIMULATED/MOCK; chart does not expose yahoo source in DOM snapshot; DOM tab states UNAVAILABLE for fabricated depth"
+    },
+    "crossCheckFirstAudit": "MATCH (confirmed; added anchor mitigation context)"
+  },
+  "p0ConfigVsEngine": {
+    "previousClaim": "trading-config advertises market/limit/stop only; engine supports stop_limit and IOC/FOK/DAY",
+    "verdict": "CONTRADICTORY_EVIDENCE",
+    "levelB_tradingConfig": {
+      "executionMode": "MOCK",
+      "orderTypes": ["market", "limit", "stop"],
+      "timeInForceFieldPresent": false
+    },
+    "levelD_configSource": {
+      "file": "apps/backend/src/services/forex/admin/config.ts",
+      "FOREX_CUSTOMER_ORDER_TYPES": ["market", "limit", "stop"],
+      "getForexCustomerTradingConfig": "exports admin.orderTypes only"
+    },
+    "levelD_engineAcceptance": {
+      "validateForexOrderRequest": "apps/backend/src/services/forex/orders/validate.ts:36-37 accepts market OR pending types limit|stop|stop_limit",
+      "FOREX_PENDING_ORDER_TYPES": "apps/backend/src/services/forex/orders/pending.ts:24 stop_limit included",
+      "FOREX_TIME_IN_FORCE": "apps/backend/src/services/forex/orders/request.ts:6 GTC, IOC, FOK, DAY — no GTD"
+    },
+    "levelD_executionPaths": {
+      "stop_limitTriggerRewrite": "apps/backend/src/services/forex/orders/service.ts ~469-518",
+      "IOC_FOK_DAYEnforcement": "service.ts FOK partial reject, DAY session filter ~186-199, validate.ts IOC/FOK pending rejection"
+    },
+    "levelA_ui": {
+      "url": "http://109.123.254.30/forex/trade",
+      "orderTypeCombobox": "Market, Limit, Stop only",
+      "unavailableText": "Stop Limit unavailable · Time in Force unavailable · SIMULATED / MOCK"
+    },
+    "crossCheckFirstAudit": "MATCH"
+  },
+  "buyStopSellStopForensics": {
+    "engineTriggerConditions": {
+      "file": "apps/backend/src/services/forex/orders/pending.ts",
+      "buyStop": "line 47: ask.gte(requested)",
+      "sellStop": "line 48: bid.lte(requested)",
+      "quoteAuthority": "comment lines 11-12: backend quotes only"
+    },
+    "validation": "pendingTriggerValid() same file lines 69+",
+    "customerExposure": {
+      "ui": "Stop type selectable (Level A combobox includes Stop)",
+      "tradingConfig": "stop advertised",
+      "apiSchema": "ForexOrderRequest orderType includes stop (request.ts:14)"
+    },
+    "runtimeProven": false,
+    "whyNotProven": "MUTATION_PROHIBITED — no order placement; AUTH_BLOCKED for authenticated preview",
+    "verdicts": {
+      "BUY_STOP": { "engine": "VERIFIED_FUNCTIONAL", "customerExposed": "VERIFIED_FUNCTIONAL", "runtimeProven": "NOT_PROVEN" },
+      "SELL_STOP": { "engine": "VERIFIED_FUNCTIONAL", "customerExposed": "VERIFIED_FUNCTIONAL", "runtimeProven": "NOT_PROVEN" }
+    }
+  },
+  "stopLimitForensics": {
+    "engine": {
+      "validation": "validate.ts + pendingTriggerValid for stop_limit",
+      "trigger": "pending.ts lines 49-50",
+      "stateTransition": "service.ts stop_limit → limit rewrite when triggered but not marketable",
+      "persistence": "order model includes limitPrice (request.ts:18-19)"
+    },
+    "customer": {
+      "tradingConfigAdvertised": false,
+      "ui": "ForexOrderTicket uses availableOrderTypes(config) — stop_limit excluded; unavailableTicketFeatures adds label (order-type-tif.ts:87)",
+      "frontendCodeReady": "ForexOrderTicket.tsx references stop_limit fields when type would be stop_limit"
+    },
+    "verdict": "VERIFIED_NOT_EXPOSED (customer) + VERIFIED_BACKEND_ONLY (acceptance path in validate/service)"
+  },
+  "tifForensics": {
+    "GTC": { "apiAccepted": true, "default": "request.ts:8", "uiExposed": true, "enforcement": "default resting", "runtimeProven": "NOT_PROVEN" },
+    "DAY": { "apiAccepted": true, "uiExposed": false, "enforcement": "validate.ts:51-56 market rejected; service session expiry ~186", "verdict": "VERIFIED_BACKEND_ONLY" },
+    "IOC": { "apiAccepted": true, "uiExposed": false, "enforcement": "validate market-only for pending; service partial fill logic", "verdict": "VERIFIED_BACKEND_ONLY" },
+    "FOK": { "apiAccepted": true, "uiExposed": false, "enforcement": "service.ts ~536 canFillFullVolume", "verdict": "VERIFIED_BACKEND_ONLY" },
+    "GTD": { "apiAccepted": false, "source": "no GTD in FOREX_TIME_IN_FORCE", "verdict": "VERIFIED_NOT_IMPLEMENTED" }
+  },
+  "journalForensics": {
+    "previousClaim": "forex_journal_events count 0",
+    "levelC_freshQuery": { "forex_journal_events": 0, "forex_orders": 741, "open_positions": 3 },
+    "levelD_writingPath": {
+      "recordForexJournalEvent": "orders/service.ts:1042 on lifecycle",
+      "persistEnabledOnHydrate": "durability/hydrate.ts:85 journal.setPersistEnabled(true)",
+      "persistInsert": "journal/persist.ts INSERT forex_journal_events",
+      "defaultSingletonPersist": "journal/service.ts:90 persistEnabled false until hydrate"
+    },
+    "verdict": "EMPTY_BUT_WRITING_PATH_EXISTS",
+    "whyNotBrokenConclusion": "741 historical orders do not imply journal backfill; empty DB consistent with no persisted journal rows since durable persist enabled or no post-hydrate lifecycle events",
+    "crossCheckFirstAudit": "MATCH (count); nuance upgraded from implied broken to writing path exists"
+  },
+  "drawingsForensics": {
+    "levelA": "Drawing toolbar buttons exist when Tools expanded (prior session); this session Tools collapsed — toolbar NOT_EXECUTED expand+draw",
+    "levelD": {
+      "ForexLightweightChart.tsx": "DrawingToolManager + ForexDrawingEngine; localStorage load/save on drawingsKey",
+      "persistence": "eda-forex-drawings:{instanceId}:{symbol}:{timeframe}",
+      "toolsInventory": ["H-Line", "V-Line", "Trend", "Ray", "Extend", "Rect", "Arrow", "Fib Retr", "Fib Ext", "Channel", "S/R", "Text", "Measure", "R:R", "Alert"]
+    },
+    "verdict": "PARTIAL — UI_CONTROL_EXISTS + SOURCE paths for create/persist; RUNTIME_PROVEN NOT_PROVEN"
+  },
+  "indicatorsForensics": {
+    "levelA": "Chart study combobox: EMA fast/slow, EMA, SMA, WMA, HMA, Bollinger, Supertrend, None; RSI/MACD buttons in toolbar",
+    "levelD": "apps/frontend/src/lib/forex/chart/studies.ts implements ema, rsi, macdSeries, etc.",
+    "verdict": "PARTIAL — ACTUAL_INDICATOR_FUNCTIONALITY_EXISTS in source; RUNTIME_PROVEN NOT_PROVEN"
+  },
+  "workspaceForensics": {
+    "persistence": "localStorage eda-forex-workspace-v5 (workspace.ts partialize); saveWorkspaceProfile in ForexAppToolbar",
+    "drawingsInWorkspacePersist": false,
+    "verdict": "NOT_PROVEN (save/restore browser cycle NOT_EXECUTED)"
+  },
+  "multiChartForensics": {
+    "levelA": "Layout buttons 1, 2H, 2V, 2×2, 2×3, 3×3 visible",
+    "levelD": "workspace.ts charts[] slots, chartsVisibleForLayout, per-chart instanceId for drawingsKey",
+    "verdict": "NOT_PROVEN (layout click/render isolation NOT_EXECUTED)"
+  },
+  "positionManagementForensics": {
+    "close": { "api": "POST /positions/:positionId/close", "ui": "ForexPositionPanel + useForexPositionActions", "runtimeProven": "NOT_PROVEN" },
+    "partialClose": { "api": "volume on close body (demo cert tests)", "ui": "closeVolumeAllowed in client", "runtimeProven": "NOT_PROVEN" },
+    "closeBy": { "api": "POST /positions/close-by", "engine": "orders/close-by.ts", "runtimeProven": "NOT_PROVEN" },
+    "reverse": { "api": "POST /positions/:positionId/reverse", "runtimeProven": "NOT_PROVEN" },
+    "slTpTrailing": { "api": "/protections", "runtimeProven": "NOT_PROVEN" },
+    "positionModeNettingHedging": { "api": "GET/POST /account/position-mode", "uiSwitch": "NOT_FOUND in customer UI grep", "verdict": "VERIFIED_BACKEND_ONLY" }
+  },
+  "riskAccountingForensics": {
+    "apis": ["/margin", "/risk", "/equity", "/balance", "/ledger", "/fills", "/pnl"],
+    "uiSignedOut": "Sign in prompts on account/trade panels (Level A)",
+    "dbTablesExist": "forex_ledger_*, forex_fills, forex_executions (schema present)",
+    "customerRuntimeProven": "NOT_PROVEN (AUTH_BLOCKED)"
+  },
+  "websocketForensics": {
+    "endpoint": "ws://127.0.0.1:4000/api/v1/forex/ws",
+    "levelB_anonymousConnect": {
+      "executed": true,
+      "firstMessage": "type welcome, protocol eda.forex.ws.v1, source SIMULATED, public events fx.quote/fx.liquidity/fx.execution",
+      "jwtQueryParam": "rejected per forex.fastify.ts:203-205"
+    },
+    "authenticatedPrivateChannels": "AUTH_REQUIRED per source; NOT_PROVEN in browser",
+    "verdict": "PARTIAL — connection + welcome VERIFIED; quote stream ordering/reconnect NOT_PROVEN"
+  },
+  "authenticationForensics": {
+    "forexMiddleware": "apps/backend/src/services/forex/auth/forex-authenticate.ts — user JWT, admin rejected",
+    "loginAttempt": {
+      "request": "POST http://127.0.0.1:4000/api/v1/auth/login",
+      "body": "email+password without otp",
+      "response": "AUTH_ERROR body must have required property 'otp'"
+    },
+    "verdict": "AUTHENTICATED_BROWSER_CERTIFICATION_BLOCKED",
+    "securityArchitecture": "CONDITIONAL — middleware source verified; authenticated runtime NOT_PROVEN"
+  },
+  "realForexSafety": {
+    "runtimeEnv": "REAL_FOREX not set in exchange-backend container env (inspected)",
+    "effectiveFlags": "runtime-controls.ts effectiveForexRuntimeFlags realForex: false, executionMode MOCK",
+    "executionGate": "execution-gate.ts effectiveRealForex always false in F5",
+    "adapters": "registry.ts only internal-fdm registered; mt5/fix/ctrader catalog only",
+    "verdict": "VERIFIED"
+  },
+  "cryptoIsolation": {
+    "forexApiPrefix": "/api/v1/forex",
+    "forexAuth": "forex-authenticate.ts explicit Forex-only gate",
+    "auditCryptoTouch": false,
+    "preExistingDirtyCryptoFiles": ["apps/backend/src/routes/spot.fastify.ts", "apps/backend/src/lib/spot-ticker-db-load.ts"],
+    "verdict": "VERIFIED (architectural separation; no audit modifications)"
+  },
+  "previousAuditCrossCheck": [
+    { "id": 1, "claim": "P0 market data split", "match": "MATCH", "confidence": "HIGH", "evidence": "API candles EXTERNAL/yahoo vs quotes SIMULATED" },
+    { "id": 2, "claim": "P0 config-engine gap", "match": "MATCH", "confidence": "HIGH", "evidence": "trading-config vs validate.ts stop_limit/TIF" },
+    { "id": 3, "claim": "Stop limit not exposed", "match": "MATCH", "confidence": "HIGH", "evidence": "UI combobox + order-type-tif.ts" },
+    { "id": 4, "claim": "IOC/FOK/DAY backend-only", "match": "MATCH", "confidence": "HIGH", "evidence": "request.ts + UI availableTimeInForce" },
+    { "id": 5, "claim": "Buy stop semantics", "match": "MATCH", "confidence": "HIGH", "evidence": "pending.ts:47" },
+    { "id": 6, "claim": "Sell stop semantics", "match": "MATCH", "confidence": "HIGH", "evidence": "pending.ts:48" },
+    { "id": 7, "claim": "Journal empty", "match": "MATCH_WITH_NUANCE", "confidence": "HIGH", "evidence": "DB count 0; writing path exists" },
+    { "id": 8, "claim": "Drawings unproven", "match": "MATCH", "confidence": "HIGH", "evidence": "source handlers; no draw interaction executed" },
+    { "id": 9, "claim": "Indicators unproven", "match": "MATCH", "confidence": "MEDIUM", "evidence": "studies.ts + UI controls" },
+    { "id": 10, "claim": "Workspace unproven", "match": "MATCH", "confidence": "HIGH" },
+    { "id": 11, "claim": "Multi-chart unproven", "match": "MATCH", "confidence": "HIGH" },
+    { "id": 12, "claim": "Position management unproven", "match": "MATCH", "confidence": "HIGH" },
+    { "id": 13, "claim": "WebSocket unproven", "match": "PARTIALLY_CONTRADICTED", "confidence": "MEDIUM", "evidence": "anonymous welcome message now captured; first audit said fully NOT_PROVEN" },
+    { "id": 14, "claim": "Auth OTP blocker", "match": "MATCH", "confidence": "HIGH" },
+    { "id": 15, "claim": "REAL_FOREX OFF", "match": "MATCH", "confidence": "HIGH" },
+    { "id": 16, "claim": "Crypto isolation", "match": "MATCH", "confidence": "HIGH" }
+  ],
+  "crossCheckSummary": {
+    "verifiedAgainstPrior": 15,
+    "contradicted": 0,
+    "notReproduced": 0,
+    "nuancedOrPartial": 2,
+    "stillUnprovenCapabilities": "Authenticated trading, drawings interaction, indicators render, workspace restore, multi-chart isolation, mobile viewports, private WS channels"
+  },
+  "contradictionMatrix": [
+    {
+      "id": "C1",
+      "observation": "trading-config orderTypes [market,limit,stop]",
+      "vs": "validateForexOrderRequest accepts stop_limit",
+      "verdict": "CONTRADICTORY_EVIDENCE",
+      "resolution": "Intentional customer contract vs broader engine (admin config FOREX_CUSTOMER_ORDER_TYPES)"
+    },
+    {
+      "id": "C2",
+      "observation": "UI Stop Limit unavailable",
+      "vs": "API validation would accept stop_limit if sent",
+      "verdict": "CONTRADICTORY_EVIDENCE",
+      "resolution": "UI gated by trading-config; direct API not customer path tested"
+    },
+    {
+      "id": "C3",
+      "observation": "Chart candle API EXTERNAL/yahoo",
+      "vs": "Quote API SIMULATED MOCK",
+      "verdict": "CONTRADICTORY_EVIDENCE",
+      "resolution": "Documented in anchor.ts; mitigation not same as single source field"
+    }
+  ],
+  "capabilityTruthMatrix": [
+    { "capability": "Market", "ui": "A: selectable", "api": "B: advertised", "db": "C: orders exist", "source": "D: validate+service", "runtime": "NOT_PROVEN", "priorClaim": "NOT_PROVEN", "verdict": "CONDITIONAL", "confidence": "MEDIUM", "missingProof": "Authenticated submit + fill" },
+    { "capability": "Limit", "ui": "A: selectable", "api": "B: advertised", "source": "D: pending limit", "runtime": "NOT_PROVEN", "verdict": "CONDITIONAL", "missingProof": "Pending create/trigger" },
+    { "capability": "Buy Stop", "ui": "A: Stop+side", "api": "B: advertised", "source": "D: pending.ts:47", "runtime": "NOT_PROVEN", "verdict": "CONDITIONAL", "missingProof": "Trigger execution" },
+    { "capability": "Sell Stop", "ui": "A: Stop+side", "source": "D: pending.ts:48", "runtime": "NOT_PROVEN", "verdict": "CONDITIONAL", "missingProof": "Trigger execution" },
+    { "capability": "Stop Limit", "ui": "A: unavailable label", "api": "B: not advertised", "source": "D: engine yes", "runtime": "NOT_PROVEN", "verdict": "VERIFIED_NOT_EXPOSED", "missingProof": "Customer UI exposure" },
+    { "capability": "GTC", "ui": "A: only TIF", "source": "D: default", "runtime": "NOT_PROVEN", "verdict": "CONDITIONAL", "missingProof": "Order lifecycle" },
+    { "capability": "DAY", "ui": "hidden", "source": "D: validate+service", "verdict": "VERIFIED_BACKEND_ONLY", "missingProof": "Customer UI + runtime" },
+    { "capability": "IOC", "ui": "hidden", "source": "D: validate+service", "verdict": "VERIFIED_BACKEND_ONLY", "missingProof": "Customer UI + runtime" },
+    { "capability": "FOK", "ui": "hidden", "source": "D: service FOK gate", "verdict": "VERIFIED_BACKEND_ONLY", "missingProof": "Customer UI + runtime" },
+    { "capability": "GTD", "source": "absent from FOREX_TIME_IN_FORCE", "verdict": "VERIFIED_NOT_IMPLEMENTED", "missingProof": "N/A" },
+    { "capability": "SL/TP", "source": "protections API + ticket fields", "runtime": "NOT_PROVEN", "verdict": "CONDITIONAL", "missingProof": "Post-fill attach flow" },
+    { "capability": "Trailing", "source": "protection trailingDistance", "runtime": "NOT_PROVEN", "verdict": "NOT_PROVEN", "missingProof": "UI+API exercise" },
+    { "capability": "Close", "api": "POST close", "source": "ForexPositionPanel", "runtime": "NOT_PROVEN", "verdict": "CONDITIONAL", "missingProof": "Auth close" },
+    { "capability": "Partial Close", "source": "close with volume", "runtime": "NOT_PROVEN", "verdict": "NOT_PROVEN", "missingProof": "Auth partial close" },
+    { "capability": "Close By", "api": "POST close-by", "source": "close-by.ts", "runtime": "NOT_PROVEN", "verdict": "VERIFIED_BACKEND_ONLY", "missingProof": "Customer UI proof" },
+    { "capability": "Reverse", "api": "POST reverse", "runtime": "NOT_PROVEN", "verdict": "VERIFIED_BACKEND_ONLY", "missingProof": "Customer UI proof" },
+    { "capability": "NETTING/HEDGING UI", "api": "position-mode", "ui": "not found", "verdict": "VERIFIED_BACKEND_ONLY", "missingProof": "Customer mode switch" },
+    { "capability": "Margin/Risk", "api": "yes", "ui": "auth gated", "runtime": "NOT_PROVEN", "verdict": "CONDITIONAL", "missingProof": "Auth session" },
+    { "capability": "Ledger/Fills", "api": "yes", "runtime": "NOT_PROVEN", "verdict": "CONDITIONAL", "missingProof": "Auth read" },
+    { "capability": "Journal", "db": "0 rows", "source": "writer exists", "runtime": "NOT_PROVEN", "verdict": "PARTIAL", "missingProof": "Non-empty read after activity" },
+    { "capability": "DOM", "ui": "UNAVAILABLE messaging", "verdict": "VERIFIED_UNAVAILABLE", "missingProof": "N/A" },
+    { "capability": "Time & Sales", "verdict": "VERIFIED_NOT_IMPLEMENTED", "missingProof": "N/A" },
+    { "capability": "Candles", "api": "EXTERNAL yahoo", "verdict": "VERIFIED_FUNCTIONAL", "missingProof": "N/A" },
+    { "capability": "Quotes", "api": "SIMULATED MOCK", "verdict": "VERIFIED_MOCK_ONLY", "missingProof": "N/A" },
+    { "capability": "WebSocket", "runtime": "welcome+protocol", "verdict": "PARTIAL", "missingProof": "Stream events + auth channels" },
+    { "capability": "Drawings", "ui": "toolbar", "source": "managers", "runtime": "NOT_PROVEN", "verdict": "NOT_PROVEN", "missingProof": "Canvas interaction" },
+    { "capability": "Indicators", "ui": "controls", "source": "studies.ts", "runtime": "NOT_PROVEN", "verdict": "NOT_PROVEN", "missingProof": "Render verification" },
+    { "capability": "Workspace", "source": "localStorage", "runtime": "NOT_PROVEN", "verdict": "NOT_PROVEN", "missingProof": "Save/load cycle" },
+    { "capability": "Multi-chart", "ui": "layout buttons", "source": "charts[]", "runtime": "NOT_PROVEN", "verdict": "NOT_PROVEN", "missingProof": "Layout switch proof" },
+    { "capability": "Trade-from-chart", "ui": "1-Click OFF", "runtime": "NOT_PROVEN", "verdict": "NOT_PROVEN", "missingProof": "Chart order placement" },
+    { "capability": "Mobile", "runtime": "NOT_EXECUTED", "verdict": "NOT_PROVEN", "missingProof": "Viewport tests" },
+    { "capability": "REAL_FOREX gate", "runtime": "OFF", "verdict": "VERIFIED", "missingProof": "N/A" },
+    { "capability": "MT5 adapter", "verdict": "VERIFIED_NOT_CONFIGURED", "missingProof": "N/A" },
+    { "capability": "FIX adapter", "verdict": "VERIFIED_NOT_CONFIGURED", "missingProof": "N/A" },
+    { "capability": "cTrader adapter", "verdict": "VERIFIED_NOT_CONFIGURED", "missingProof": "N/A" }
+  ],
+  "finalCertification": {
+    "CUSTOMER_TERMINAL": "CONDITIONAL",
+    "ORDER_ENTRY": "CONDITIONAL",
+    "MARKET": "NOT_PROVEN",
+    "LIMIT": "NOT_PROVEN",
+    "BUY_STOP": "NOT_PROVEN",
+    "SELL_STOP": "NOT_PROVEN",
+    "STOP_LIMIT": "VERIFIED_NOT_EXPOSED",
+    "PENDING_LIFECYCLE": "NOT_PROVEN",
+    "TIF": "CONDITIONAL",
+    "POSITION_MANAGEMENT": "NOT_PROVEN",
+    "RISK": "NOT_PROVEN",
+    "ACCOUNTING": "NOT_PROVEN",
+    "MARKET_DATA": "VERIFIED_SPLIT_WITH_IMPACT",
+    "CHART": "CONDITIONAL",
+    "DRAWINGS": "NOT_PROVEN",
+    "INDICATORS": "NOT_PROVEN",
+    "WORKSPACE": "NOT_PROVEN",
+    "MULTI_CHART": "NOT_PROVEN",
+    "WEBSOCKET": "PARTIAL",
+    "MOBILE": "NOT_PROVEN",
+    "SECURITY": "CONDITIONAL",
+    "JOURNAL": "PARTIAL",
+    "MT5_ADAPTER": "VERIFIED_NOT_CONFIGURED",
+    "FIX_ADAPTER": "VERIFIED_NOT_CONFIGURED",
+    "CTRADER_ADAPTER": "VERIFIED_NOT_CONFIGURED",
+    "REAL_FOREX_SAFETY": "VERIFIED",
+    "CRYPTO_ISOLATION": "VERIFIED"
+  },
+  "remainingUncertainties": [
+    { "topic": "Order submit/fill", "minimumSafeProof": "OTP-capable test user + MOCK preview/submit on staging OR read-only replay of existing filled orders in UI" },
+    { "topic": "Drawings", "minimumSafeProof": "Unsigned canvas interaction test (no auth) creating H-Line + reload page" },
+    { "topic": "Private WS", "minimumSafeProof": "Authenticated WS subscribe to fx.order without placing new orders (listen only)" },
+    { "topic": "Source=runtime parity", "minimumSafeProof": "Image digest vs git SHA build record from deploy pipeline" }
+  ],
+  "noAssumptionFinalStatement": {
+    "confirmedFromPrior": ["P0 split at API layer", "P0 config vs engine contradiction", "Stop limit hidden", "Extended TIF backend-only", "Stop trigger semantics in pending.ts", "REAL_FOREX off", "Crypto audit isolation", "OTP auth blocker"],
+    "contradictedFromPrior": ["None material — WebSocket partially more proven than first audit"],
+    "notReproduced": ["None required — environment stable at HEAD/counts"],
+    "runtimeGenuine": ["Public Forex APIs", "MOCK quotes stream metadata", "Yahoo candle API", "Terminal shell route", "DOM unavailable honesty", "Anonymous WS welcome"],
+    "sourceOnly": ["stop_limit full lifecycle", "IOC/FOK/DAY enforcement", "close-by/reverse", "position-mode API"],
+    "visibleNotProven": ["Drawings", "Indicators render", "Multi-chart layouts", "Order buttons when signed out disabled"],
+    "genuinelyUnavailable": ["DOM/L2", "GTD", "External adapters live execution"],
+    "contradictionsPresent": true,
+    "p0BlockersEvidence": ["Dual market-data authority at API (EXTERNAL vs SIMULATED)", "Customer contract omits engine capabilities (stop_limit/TIF)"],
+    "minimumNextVerification": "OTP test harness for read-only authenticated GETs; optional non-mutating WS subscribe; drawing reload test without login"
+  }
+}

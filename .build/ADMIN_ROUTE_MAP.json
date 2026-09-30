@@ -1,0 +1,45 @@
+{
+  "generatedAt": "2026-09-20T06:45:00Z",
+  "prefix": "/api/v1/admin",
+  "handlerRegistrationsApprox": 277,
+  "evidence": "rg app.(get|post|put|patch|delete) on apps/backend/src/routes/admin*.fastify.ts",
+  "modules": {
+    "admin.fastify.ts": { "registrations": 214, "domain": "SHARED+CRYPTO+USERS+FINANCE" },
+    "admin-forex.fastify.ts": { "registrations": 14, "domain": "FOREX", "file": "F1-F6 FDM ops read APIs + exports + controls" },
+    "admin-forex-crm.fastify.ts": { "registrations": 5, "domain": "FOREX" },
+    "admin-forex-ops.fastify.ts": { "registrations": 2, "domain": "FOREX", "note": "dealing, automation, compliance, finance requests" },
+    "admin-forex-groups.fastify.ts": { "registrations": 1, "domain": "FOREX" },
+    "admin-spot.fastify.ts": { "registrations": 1, "domain": "CRYPTO" },
+    "admin-mm-control.fastify.ts": { "registrations": 3, "domain": "CRYPTO" },
+    "admin-control.fastify.ts": { "registrations": 7, "domain": "SHARED", "note": "exchange controls, safe mode" },
+    "admin-operations.fastify.ts": { "registrations": 10, "domain": "SHARED" },
+    "admin-phase1-compliance.fastify.ts": { "registrations": 5, "domain": "SHARED" },
+    "admin-aml.fastify.ts": { "registrations": 2, "domain": "SHARED" }
+  },
+  "forexEndpointFamilies": [
+    "/forex/overview",
+    "/forex/controls",
+    "/forex/orders",
+    "/forex/positions",
+    "/forex/executions",
+    "/forex/ledger",
+    "/forex/journal",
+    "/forex/crm/*",
+    "/forex/dealing/*",
+    "/forex/risk/*",
+    "/forex/exports/*"
+  ],
+  "cryptoEndpointFamilies": [
+    "/spot/*",
+    "/trading*",
+    "/matches",
+    "/engine",
+    "/hybrid",
+    "/mm-control",
+    "/wallets",
+    "/deposits",
+    "/withdrawals",
+    "/p2p"
+  ],
+  "globalRbacHook": "admin-rbac-routes.ts ADMIN_ROUTE_RULES default-deny by URL pattern"
+}

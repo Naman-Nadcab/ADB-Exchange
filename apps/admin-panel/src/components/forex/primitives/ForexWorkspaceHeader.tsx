@@ -51,9 +51,9 @@ export function ForexWorkspaceHeader(props: {
               <dd
                 className={cn(
                   'mt-0.5 text-base font-semibold tabular-nums tracking-tight',
-                  k.tone === 'danger' && 'text-red-400',
-                  k.tone === 'warning' && 'text-amber-400',
-                  k.tone === 'success' && 'text-emerald-400',
+                  k.tone === 'danger' && 'text-admin-danger',
+                  k.tone === 'warning' && 'text-admin-warning',
+                  k.tone === 'success' && 'text-admin-success',
                 )}
               >
                 {k.value}

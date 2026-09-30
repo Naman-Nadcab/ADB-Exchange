@@ -1,0 +1,136 @@
+{
+  "artifact": "P3-B run aborted safely",
+  "stoppedAtUtc": "2026-09-18T18:54:00Z",
+  "stopReason": "User-directed STOP — do not continue polling for natural session close",
+  "verdict": {
+    "P3B": "NOT_PROVEN",
+    "blocker": "LIVE_SESSION_CLOSE_NOT_CURRENTLY_OBSERVABLE",
+    "phase3": "CONDITIONAL"
+  },
+  "process": {
+    "command": "node /opt/m-live/scripts/forex-phase3-p3b-natural-close-cert.mjs",
+    "wrapper": "tee /opt/m-live/.build/p3b-natural-close-cert.log",
+    "pidsTerminated": [2191209, 2191223, 2191224],
+    "terminationSignal": "SIGTERM",
+    "unrelatedContainersTouched": false,
+    "backendRestarted": false
+  },
+  "processBehavior": {
+    "intent": "Place DAY buy limit while session OPEN, poll GET /api/v1/forex/sessions every 15s until open=false, then POST demo-price → evaluateQuote → expireDayOrders",
+    "wasPolling": true,
+    "wasWaitingWallClockSessionClose": true,
+    "stuck": false,
+    "lastSuccessfulOperation": "POST /api/v1/forex/orders — DAY PENDING limit 1.05000 (most recent run)",
+    "lastSuccessfulOperationUtc": "2026-09-18T18:18:57Z",
+    "lastApiCallType": "GET /api/v1/forex/sessions (poll loop; no demo-price invoked)",
+    "lastDbCheck": "dbCounts() at script start per successful run",
+    "demoPriceInvoked": false,
+    "expireDayOrdersObservedLive": false,
+    "elapsedApprox": {
+      "longestRunWallClock": "~2h13m from first successful order placement (16:41 UTC) to user stop (~18:54 UTC)",
+      "userReportedWait": "~1 hour active polling"
+    },
+    "failedAttemptsBeforeSuccess": [
+      {
+        "atUtc": "2026-09-18T16:41:00Z",
+        "error": "dbCounts() docker psql multiline -c failed (invalid command)"
+      }
+    ]
+  },
+  "sessionAtStop": {
+    "open": true,
+    "reason": "OPEN",
+    "timezone": "America/New_York",
+    "apiTimestampUtc": "2026-09-18T18:53:46.643Z",
+    "note": "Friday NY close still in future at stop (~21:00 UTC / 17:00 EDT)"
+  },
+  "deploymentIdentity": {
+    "gitHead": "7f0bf68e753969778683e04b19d43bc78014d02d",
+    "backendDigest": "sha256:9f7f26e226c676d86bf88e98d872f0e48161ac7a41f8799b0b9334ccfb62c8a6",
+    "frontendDigest": "sha256:ec76bc1f065fee0764d1e2e24c1e5d3709c2c6da437e5fabda2aef1f877aaa63",
+    "backendHealth": "healthy",
+    "frontendHealth": "healthy",
+    "redeployed": false
+  },
+  "realForexFirewall": {
+    "realForex": false,
+    "execution": "MOCK/SIMULATED",
+    "externalProvider": false,
+    "note": "No REAL_FOREX env in exchange-backend container"
+  },
+  "qaAccount": "qa_trader_a@local.exchange",
+  "qaDayOrdersCreated": true,
+  "qaDayOrders": [
+    {
+      "orderId": "eab3dfa3-f80f-44a2-a5d0-8dc9f5debd00",
+      "clientOrderId": "p3b-day-natural-1789749675064",
+      "status": "PENDING",
+      "timeInForce": "DAY",
+      "requestedPrice": "1.05000000",
+      "failureReason": null,
+      "createdAtUtc": "2026-09-18T16:41:15.153574+00",
+      "journal": ["ORDER_ACCEPTED", "ORDER_PENDING"]
+    },
+    {
+      "orderId": "0ec1c8f6-9257-457e-80ff-e9f03b472329",
+      "clientOrderId": "p3b-day-natural-1789751517107",
+      "status": "PENDING",
+      "timeInForce": "DAY",
+      "requestedPrice": "1.05000000",
+      "failureReason": null,
+      "createdAtUtc": "2026-09-18T17:11:58.869025+00",
+      "journal": ["ORDER_ACCEPTED", "ORDER_PENDING"]
+    },
+    {
+      "orderId": "38806f23-d7d2-46ce-9de6-42df17b5f996",
+      "clientOrderId": "p3b-day-natural-1789755535885",
+      "status": "PENDING",
+      "timeInForce": "DAY",
+      "requestedPrice": "1.05000000",
+      "failureReason": null,
+      "createdAtUtc": "2026-09-18T18:18:57.107881+00",
+      "journal": ["ORDER_ACCEPTED", "ORDER_PENDING"]
+    }
+  ],
+  "qaOrdersManuallyAltered": false,
+  "dbBaselinePreRun": {
+    "source": ".build/forex-phase3-remaining-gaps-final-lock.json",
+    "forex_orders": 788,
+    "forex_journal_events": 88,
+    "forex_positions": 301,
+    "forex_executions": 676,
+    "forex_fills": 674,
+    "forex_ledger_entries": 676
+  },
+  "dbAtStop": {
+    "forex_orders": 791,
+    "forex_journal_events": 94,
+    "forex_positions": 301,
+    "forex_executions": 676,
+    "forex_fills": 674,
+    "forex_ledger_entries": 676
+  },
+  "dbDeltaExplained": {
+    "forex_orders": "+3 (three cert script placements)",
+    "forex_journal_events": "+6 (ORDER_ACCEPTED + ORDER_PENDING per order)",
+    "fills_executions_ledger_positions": "unchanged — no fills"
+  },
+  "whatWasVerified": [
+    "DAY buy limit placement on live API while session OPEN (PENDING, TIF=DAY)",
+    "Acceptance journal ORDER_ACCEPTED / ORDER_PENDING persisted",
+    "Production expireDayOrders at session close — NOT observed live",
+    "forex-phase-a-orders.test.ts DAY expiry — TEST_VERIFIED (prior runs, unchanged)"
+  ],
+  "codeChangesThisRun": {
+    "productionBackend": false,
+    "deployed": false,
+    "newUntrackedCertScript": "scripts/forex-phase3-p3b-natural-close-cert.mjs",
+    "note": "Cert harness only; not deployed"
+  },
+  "cryptoFirewall": {
+    "cryptoChangedThisStop": false,
+    "spot.fastify.ts.sha256": "925ceffc408e494180b2e513b85cbc8eb3d780abfa8f3d999a120ff86b20efe1",
+    "spot-ticker-db-load.ts.sha256": "bb2ffb23ab52ac81f37883bf58b36143a53cc2113614c96b3717fd08ae128613"
+  },
+  "phase3GreenClaimed": false
+}
