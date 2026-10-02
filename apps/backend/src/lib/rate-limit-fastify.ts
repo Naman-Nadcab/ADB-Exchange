@@ -79,8 +79,31 @@ function sendRateLimitUnavailable(reply: FastifyReply, retryAfterSec = 60): bool
 }
 
 /**
- * Send 429 and log. Returns true so caller can "return" after sending.
+ * Consume one rate-limit slot without sending a response.
+ * Callers that already hold a database transaction can reject before commit.
  */
+export async function takeRateLimitSlot(
+  scope: string,
+  identifier: string,
+  limit: number,
+  windowSeconds: number,
+  failClosed = false
+): Promise<{ allowed: boolean; unavailable: boolean }> {
+  const key = buildKey(scope, identifier);
+  const result = await checkLimit(key, limit, windowSeconds, failClosed);
+  return { allowed: result.allowed, unavailable: Boolean(result.unavailable) };
+}
+
+export function replyToRateLimit(
+  reply: FastifyReply,
+  scope: string,
+  identifier: string,
+  unavailable: boolean
+): void {
+  if (unavailable) sendRateLimitUnavailable(reply);
+  else sendRateLimitExceeded(reply, scope, identifier);
+}
+
 function sendRateLimitExceeded(
   reply: FastifyReply,
   scope: string,
