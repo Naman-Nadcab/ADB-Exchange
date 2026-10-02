@@ -22,7 +22,25 @@ export type RateLimitOptions = {
   failClosed?: boolean;
   /** When true, skip Redis limiter for this user (e.g. internal market maker). */
   skipUser?: (userId: string) => boolean;
+  /**
+   * When true, keep the identifier's case.
+   * Default false lowercases, which existing email and phone limiters rely on.
+   * Wallet challenges pass an already-normalized address and set this so a
+   * Solana base58 address is not lowercased.
+   */
+  preserveCase?: boolean;
 };
+
+/** Trim an identifier for a rate-limit key. Lowercase unless preserveCase is set. */
+export function normalizeRateLimitIdentifier(
+  raw: string | null | undefined,
+  preserveCase = false
+): string {
+  if (typeof raw !== 'string') return '';
+  const trimmed = raw.trim();
+  if (!trimmed) return '';
+  return preserveCase ? trimmed : trimmed.toLowerCase();
+}
 
 /**
  * Check rate limit and return result. Does not send response.
@@ -125,9 +143,10 @@ export function rateLimitByIdentifier(
   options?: RateLimitOptions
 ): (request: FastifyRequest, reply: FastifyReply) => Promise<void> {
   const failClosed = options?.failClosed ?? false;
+  const preserveCase = options?.preserveCase ?? false;
   return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
     const raw = extract(request);
-    const identifier = typeof raw === 'string' ? raw.trim().toLowerCase() : '';
+    const identifier = normalizeRateLimitIdentifier(raw, preserveCase);
     if (!identifier) return; // nothing to limit against; let IP limiter handle it
     const key = buildKey(scope, `id:${identifier}`);
     const result = await checkLimit(key, limit, windowSeconds, failClosed);
