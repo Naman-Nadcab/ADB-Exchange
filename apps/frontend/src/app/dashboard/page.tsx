@@ -143,6 +143,7 @@ function RailCardPreviewSkeleton() {
 
 export default function DashboardPage() {
   const t = useTranslations('account.dashboard');
+  const tCommon = useTranslations('common');
   const tNav = useTranslations('navigation');
   const tHelp = useTranslations('account.help');
   const tw = useTranslations('wallet.nav');
@@ -541,8 +542,8 @@ export default function DashboardPage() {
     return () => clearTimeout(id);
   }, [displayedMarketData]);
 
-  const maskEmail = (email: string) => {
-    if (!email) return '***@****';
+  const maskEmail = (email: string | null | undefined) => {
+    if (email == null || email.trim() === '' || email.toLowerCase() === 'null' || email.toLowerCase() === 'undefined') return tCommon('states.notAdded');
     const [local, domain] = email.split('@');
     if (!domain) return '***@****';
     const maskedLocal = local.slice(0, 3) + '***';

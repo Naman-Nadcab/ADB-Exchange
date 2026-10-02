@@ -41,6 +41,7 @@ interface Asset {
 
 export default function AddressBookPage() {
   const t = useTranslations('account.addressBookPage');
+  const tCommon = useTranslations('common');
   const tc = useTranslations('account.common');
   const ts = useTranslations('security.common');
   const { fromApi, networkUnreachable } = useApiErrorMessage();
@@ -277,8 +278,8 @@ export default function AddressBookPage() {
   };
 
   // Mask email for display
-  const maskEmail = (email: string) => {
-    if (!email) return '';
+  const maskEmail = (email: string | null | undefined) => {
+    if (email == null || email.trim() === '' || email.toLowerCase() === 'null' || email.toLowerCase() === 'undefined') return tCommon('states.notAdded');
     const [localPart, domain] = email.split('@');
     if (!localPart || !domain) return email;
     const maskedLocal = localPart.slice(0, 3) + '****';

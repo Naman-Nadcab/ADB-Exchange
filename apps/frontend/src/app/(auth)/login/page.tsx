@@ -11,6 +11,7 @@ import { getPasskeyAssertion, isPlatformAuthenticatorAvailable, isWebAuthnSuppor
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { consumeOAuthRedirect, getStoredRedirect, resolvePostLoginRedirect } from '@/lib/oauth';
 import AuthSplitLayout from '@/components/auth/AuthSplitLayout';
+import { WalletAuthPanel } from '@/components/auth/WalletAuthPanel';
 import { useTranslations } from 'next-intl';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 
@@ -39,6 +40,7 @@ export default function LoginPage() {
   const { login } = useAuthStore();
   const { setAuthenticated } = useAuth();
   const t = useTranslations('auth.login');
+  const tw = useTranslations('auth.wallet');
   const tc = useTranslations('common');
   const { fromApi, networkUnreachable } = useApiErrorMessage();
 
@@ -55,6 +57,7 @@ export default function LoginPage() {
   const [countdown, setCountdown] = useState(0);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
   const [passkeyAvailable, setPasskeyAvailable] = useState(false);
+  const [showLegacy, setShowLegacy] = useState(false);
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
@@ -327,12 +330,30 @@ export default function LoginPage() {
       )}
 
       {step === 'identifier' && mode === 'password' && (
-        <form onSubmit={(e) => { e.preventDefault(); passwordLogin(); }} className="space-y-6">
+        <div className="space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
             <p className="mt-1 text-sm text-muted-foreground">{t('subtitlePassword')}</p>
           </div>
 
+          <WalletAuthPanel actionLabel={tw('signIn')} onSuccess={completeLogin} />
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-accent" />
+            <span className="text-xs text-muted-foreground font-medium">{tc('actions.or')}</span>
+            <div className="flex-1 h-px bg-accent" />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => { setShowLegacy((value) => !value); setError(''); }}
+            className="w-full py-3 rounded-xl border border-border text-foreground font-medium hover:bg-accent/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            {showLegacy ? tw('hideLegacy') : tw('useLegacy')}
+          </button>
+
+          {showLegacy && (
+        <form onSubmit={(e) => { e.preventDefault(); passwordLogin(); }} className="space-y-6">
           <div className="space-y-4">
             <input
               type="email"
@@ -408,11 +429,14 @@ export default function LoginPage() {
             {t('signInWithCode')}
           </button>
 
+        </form>
+          )}
+
           <p className="text-center text-sm text-muted-foreground">
             {t('noAccount')}{' '}
             <Link href="/signup" className="text-primary underline underline-offset-2 font-medium">{t('signUp')}</Link>
           </p>
-        </form>
+        </div>
       )}
 
       {step === 'identifier' && mode === 'otp' && (

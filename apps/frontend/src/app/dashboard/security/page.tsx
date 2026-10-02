@@ -223,6 +223,7 @@ const ToggleSwitch = ({ enabled, onChange, loading }: { enabled: boolean; onChan
 
 export default function SecurityPage() {
   const ta = useTranslations('account');
+  const tCommon = useTranslations('common');
   const tn = useTranslations('common.notifications');
   const tt = useTranslations('account.toasts');
   const router = useRouter();
@@ -488,8 +489,8 @@ export default function SecurityPage() {
     }
   }, [smsChangeOtpTimer]);
 
-  const maskEmail = (email: string) => {
-    if (!email) return '***@****';
+  const maskEmail = (email: string | null | undefined) => {
+    if (email == null || email.trim() === '' || email.toLowerCase() === 'null' || email.toLowerCase() === 'undefined') return tCommon('states.notAdded');
     const [local, domain] = email.split('@');
     if (!domain) return '***@****';
     const maskedLocal = local.slice(0, 3) + '***';

@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { maskAccountEmail } from '@/lib/account-email';
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
@@ -95,12 +96,12 @@ function isNavItemActive(pathname: string | null, href: string): boolean {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   const tn = useTranslations('common.notifications');
+  const tc = useTranslations('common');
   const tt = useTranslations('account.toasts');
   const tNav = useTranslations('navigation');
   const tShell = useTranslations('account.shell');
   const tOrders = useTranslations('orders');
   const tw = useTranslations('wallet.nav');
-  const tc = useTranslations('common');
   const tPanel = useTranslations('common.notificationPanel');
   const pathname = usePathname();
   const { user, accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
@@ -225,12 +226,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     await performLogout('/login');
   };
 
-  const maskEmail = (email: string) => {
-    if (!email) return '***@****';
-    const [local, domain] = email.split('@');
-    if (!domain) return '***@****';
-    return `${local.slice(0, 3)}**${local.length > 5 ? local.slice(-1) : ''}@****`;
-  };
+  const maskEmail = (email: string | null | undefined) => maskAccountEmail(email, tc('states.notAdded'));
 
   const copyUID = () => {
     if (user?.id) {
