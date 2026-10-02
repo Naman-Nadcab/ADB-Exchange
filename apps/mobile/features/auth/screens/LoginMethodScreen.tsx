@@ -32,6 +32,13 @@ export function LoginMethodScreen({ navigation }: Props) {
           variant="outline"
           onPress={() => navigation.navigate('LoginPasskey')}
         />
+        <PrimaryButton
+          title="Connect wallet"
+          accessibilityLabel="Connect wallet"
+          size="xl"
+          variant="outline"
+          onPress={() => navigation.navigate('LoginWallet')}
+        />
         <AuthDivider />
         <PrimaryButton
           title="Google"

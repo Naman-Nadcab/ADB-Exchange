@@ -29,12 +29,14 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     name: 'FDM',
     slug: 'metheorium-mobile',
     scheme: 'metheorium',
+    plugins: [...(config.plugins ?? []), './plugins/withWalletSchemeQueries'],
     extra: {
       appEnv: APP_ENV,
       apiUrl: env.apiUrl,
       wsUrl: env.wsUrl,
       certPreview: process.env.EXPO_PUBLIC_CERT_PREVIEW ?? '0',
       authPreview: process.env.EXPO_PUBLIC_AUTH_PREVIEW ?? '0',
+      walletConnectProjectId: process.env.EXPO_PUBLIC_WALLETCONNECT_PROJECT_ID ?? '',
       eas: {
         projectId: process.env.EAS_PROJECT_ID ?? 'metheorium-mobile-placeholder',
       },
@@ -50,6 +52,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           'FDM uses the camera for identity verification (KYC) when you choose to verify.',
         NSPhotoLibraryUsageDescription:
           'FDM uses your photo library to update your profile avatar.',
+        LSApplicationQueriesSchemes: ['metamask', 'trust', 'cbwallet', 'phantom'],
       },
     },
     android: {

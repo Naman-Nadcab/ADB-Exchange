@@ -5,6 +5,7 @@ export { LoginPasswordScreen } from './screens/LoginPasswordScreen';
 export { LoginOtpScreen } from './screens/LoginOtpScreen';
 export { LoginVerifyStepScreen } from './screens/LoginVerifyStepScreen';
 export { LoginPasskeyScreen } from './screens/LoginPasskeyScreen';
+export { LoginWalletScreen } from './screens/LoginWalletScreen';
 export { SignupIdentifierScreen } from './screens/SignupIdentifierScreen';
 export { SignupOtpScreen } from './screens/SignupOtpScreen';
 export { SignupPasswordScreen } from './screens/SignupPasswordScreen';

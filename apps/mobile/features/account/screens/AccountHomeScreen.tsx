@@ -63,7 +63,7 @@ export function AccountHomeScreen({ navigation }: Props) {
 
   const unread = (notifQ.data ?? []).filter((n) => !n.read).length;
   const p = profileQ.data;
-  const displayName = p?.first_name ?? user?.username ?? user?.email ?? 'Guest';
+  const displayName = p?.first_name ?? user?.username ?? user?.email ?? (isGuest ? 'Guest' : 'Account');
   const kycStatus = kycQ.data?.status ?? p?.kyc_status;
 
   const guardedNav = (action: () => void) => {
