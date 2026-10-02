@@ -103,12 +103,48 @@ FOR UPDATE
 
 const CONSUME_CHALLENGE_SQL = `
 UPDATE wallet_auth_challenges
-SET consumed_at = $2
+SET consumed_at = $2,
+    user_id = COALESCE($4::uuid, user_id)
 WHERE id = $1::uuid
   AND consumed_at IS NULL
   AND expires_at > $3
 RETURNING id
 `;
+
+/**
+ * Raised inside the verification transaction when the signature is valid
+ * but login must still be refused (disabled wallet, inactive account).
+ * The challenge is consumed and the transaction commits; no session is created.
+ */
+export class WalletAuthDenied extends Error {
+  readonly code: 'WALLET_UNAVAILABLE' | 'ACCOUNT_INACTIVE' | 'ACCOUNT_LOCKED';
+  readonly userId?: string;
+  readonly lockedUntil?: Date;
+
+  constructor(
+    code: 'WALLET_UNAVAILABLE' | 'ACCOUNT_INACTIVE' | 'ACCOUNT_LOCKED',
+    userId?: string,
+    lockedUntil?: Date
+  ) {
+    super(code);
+    this.name = 'WalletAuthDenied';
+    this.code = code;
+    this.userId = userId;
+    this.lockedUntil = lockedUntil;
+  }
+}
+
+export type VerifiedChallengeContext = {
+  query: ChallengeQuery;
+  now: Date;
+  row: WalletAuthChallengeRow;
+  address: string;
+  namespace: 'eip155' | 'solana';
+  chainReference: string;
+  normalizedAddress: string;
+  caip10: string;
+  assignUserId: (userId: string) => void;
+};
 
 function asDate(value: Date | string): Date {
   return value instanceof Date ? value : new Date(value);
@@ -238,13 +274,20 @@ export async function verifyWalletAuthChallenge(input: {
     namespace: string;
     chainReference: string;
   }) => Promise<void>;
+  /**
+   * Runs after the signature matches and before the challenge is consumed.
+   * Used by wallet login to resolve users.id in the same transaction.
+   * WalletAuthDenied still consumes the challenge, then commits.
+   */
+  afterVerified?: (ctx: VerifiedChallengeContext) => Promise<void>;
 }): Promise<VerifiedWallet> {
   if (!UUID_PATTERN.test(input.challengeId)) {
     throw new WalletVerifyError('INVALID_CHALLENGE', { challengeId: input.challengeId });
   }
   const now = input.now ?? new Date();
+  let linkedUserId: string | null = null;
 
-  return input.transaction(async (query) => {
+  const outcome = await input.transaction(async (query) => {
     const found = await query(LOCK_CHALLENGE_SQL, [input.challengeId]);
     const row = found.rows[0];
     if (!row) throw new WalletVerifyError('INVALID_CHALLENGE', { challengeId: input.challengeId });
@@ -271,19 +314,48 @@ export async function verifyWalletAuthChallenge(input: {
       throw new WalletVerifyError('INVALID_SIGNATURE', ctx);
     }
 
-    const consumed = await query(CONSUME_CHALLENGE_SQL, [row.id, now, now]);
+    const caip10 = `${bound.namespace}:${bound.chainReference}:${bound.address}`;
+    let denial: WalletAuthDenied | null = null;
+    if (input.afterVerified) {
+      try {
+        await input.afterVerified({
+          query,
+          now,
+          row,
+          address: bound.address,
+          namespace: bound.namespace,
+          chainReference: bound.chainReference,
+          normalizedAddress: row.normalized_address,
+          caip10,
+          assignUserId: (userId: string) => {
+            linkedUserId = userId;
+          },
+        });
+      } catch (err) {
+        if (err instanceof WalletAuthDenied) denial = err;
+        else throw err;
+      }
+    }
+
+    const consumed = await query(CONSUME_CHALLENGE_SQL, [row.id, now, now, linkedUserId]);
     if (consumed.rows.length !== 1) throw new WalletVerifyError('CHALLENGE_UNAVAILABLE', ctx);
 
     return {
-      verified: true,
-      challengeId: row.id,
-      normalizedAddress: row.normalized_address,
-      wallet: {
-        namespace: bound.namespace,
-        chainReference: bound.chainReference,
-        address: bound.address,
-        caip10: `${bound.namespace}:${bound.chainReference}:${bound.address}`,
+      denial,
+      verified: {
+        verified: true as const,
+        challengeId: row.id,
+        normalizedAddress: row.normalized_address,
+        wallet: {
+          namespace: bound.namespace,
+          chainReference: bound.chainReference,
+          address: bound.address,
+          caip10,
+        },
       },
     };
   });
+
+  if (outcome.denial) throw outcome.denial;
+  return outcome.verified;
 }
