@@ -31,6 +31,7 @@ import {
   Monitor,
 } from 'lucide-react';
 import { WalletManagementSection } from '@/components/security/WalletManagementSection';
+import { WalletRecoverySection } from '@/components/security/WalletRecoverySection';
 import { 
   createPasskey,
   isPlatformAuthenticatorAvailable,
@@ -1329,7 +1330,10 @@ export default function SecurityPage() {
         )}
 
         {(securityTab === 'all' || securityTab === 'login') && (
-          <WalletManagementSection accessToken={accessToken ?? null} />
+          <>
+            <WalletManagementSection accessToken={accessToken ?? null} />
+            <WalletRecoverySection accessToken={accessToken ?? null} />
+          </>
         )}
 
         {(securityTab === 'all' || securityTab === 'twoFactor') && (

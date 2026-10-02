@@ -11,6 +11,9 @@ import type { WalletNamespace } from './caip10.js';
 export const LINK_WALLET_ACTION = 'link_wallet';
 export const SET_PRIMARY_ACTION = 'set_primary_wallet';
 export const UNLINK_WALLET_ACTION = 'unlink_wallet';
+export const AUTHORIZE_RECOVERY_ACTION = 'authorize_wallet_recovery';
+export const MARK_COMPROMISED_ACTION = 'mark_wallet_compromised';
+export const REPLACE_WALLET_ACTION = 'replace_wallet';
 
 export const WALLET_ACTION_DOMAIN_NAME = 'Fintech Digital Market';
 export const WALLET_ACTION_DOMAIN_VERSION = '1';
@@ -23,6 +26,12 @@ export const SET_PRIMARY_STATEMENT =
   'Confirm setting this wallet as your primary sign-in wallet. This does not send funds or create a transaction.';
 export const UNLINK_STATEMENT =
   'Confirm removing this wallet from your sign-in methods. This does not send funds or remove assets.';
+export const AUTHORIZE_RECOVERY_STATEMENT =
+  'Confirm a wallet recovery for your existing account. This does not send funds or create a transaction.';
+export const MARK_COMPROMISED_STATEMENT =
+  'Confirm marking a sign-in wallet unavailable. This does not send funds or move assets.';
+export const REPLACE_WALLET_STATEMENT =
+  'Confirm adding this wallet as a replacement sign-in method. This does not send funds, move assets, or create a deposit address.';
 
 const RFC3339_SECONDS = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
 const NONCE_PATTERN = /^[A-Za-z0-9]{8,128}$/;
@@ -30,10 +39,27 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 const PROVIDER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,63}$/;
 const EVM_CHAIN = /^(0|[1-9][0-9]{0,15})$/;
 
-export type WalletManagementAction = typeof SET_PRIMARY_ACTION | typeof UNLINK_WALLET_ACTION;
+export type WalletManagementAction =
+  | typeof SET_PRIMARY_ACTION
+  | typeof UNLINK_WALLET_ACTION
+  | typeof AUTHORIZE_RECOVERY_ACTION
+  | typeof MARK_COMPROMISED_ACTION
+  | typeof REPLACE_WALLET_ACTION;
+
+const ACTION_STATEMENTS: Record<WalletManagementAction, string> = {
+  [SET_PRIMARY_ACTION]: SET_PRIMARY_STATEMENT,
+  [UNLINK_WALLET_ACTION]: UNLINK_STATEMENT,
+  [AUTHORIZE_RECOVERY_ACTION]: AUTHORIZE_RECOVERY_STATEMENT,
+  [MARK_COMPROMISED_ACTION]: MARK_COMPROMISED_STATEMENT,
+  [REPLACE_WALLET_ACTION]: REPLACE_WALLET_STATEMENT,
+};
 
 export function statementForAction(action: WalletManagementAction): string {
-  return action === SET_PRIMARY_ACTION ? SET_PRIMARY_STATEMENT : UNLINK_STATEMENT;
+  return ACTION_STATEMENTS[action];
+}
+
+export function isWalletManagementAction(value: string): value is WalletManagementAction {
+  return Object.prototype.hasOwnProperty.call(ACTION_STATEMENTS, value);
 }
 
 export function normalizeWalletProvider(value: unknown): string | null {
@@ -275,7 +301,7 @@ export function parseEvmActionTypedData(message: string): EvmActionTypedData | n
   }
   const body = typed.message;
   if (!body || typeof body !== 'object') return null;
-  if (body.action !== SET_PRIMARY_ACTION && body.action !== UNLINK_WALLET_ACTION) return null;
+  if (!isWalletManagementAction(body.action)) return null;
   if (body.statement !== statementForAction(body.action)) return null;
   if (body.namespace !== 'eip155') return null;
   if (!UUID_PATTERN.test(body.userId) || !UUID_PATTERN.test(body.targetWalletId)) return null;
@@ -367,7 +393,7 @@ export function parseSolanaActionMessage(message: string): ParsedSolanaActionMes
   if (!uri || version !== '1' || !chain || !nonce || !issuedAt || !expirationTime || !userId || !action || !walletId) {
     return null;
   }
-  if (action !== SET_PRIMARY_ACTION && action !== UNLINK_WALLET_ACTION) return null;
+  if (!isWalletManagementAction(action)) return null;
   if (lines[3] !== statementForAction(action)) return null;
   if (!chain.startsWith('solana:')) return null;
   const chainReference = chain.slice('solana:'.length);

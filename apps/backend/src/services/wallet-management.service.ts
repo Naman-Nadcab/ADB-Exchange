@@ -857,25 +857,9 @@ export async function setPrimaryWallet(input: {
 }
 
 async function hasRecoveryFactor(query: ManagementQuery, userId: string): Promise<boolean> {
-  const user = await query(
-    `SELECT
-       COALESCE(totp_enabled, FALSE) AS totp_enabled,
-       COALESCE(two_fa_enabled, FALSE) AS two_fa_enabled,
-       COALESCE(two_factor_enabled, FALSE) AS two_factor_enabled
-     FROM users
-     WHERE id = $1::uuid`,
-    [userId]
-  );
-  const row = user.rows[0];
-  if (!row) return false;
-  if (bool(row.totp_enabled) || bool(row.two_fa_enabled) || bool(row.two_factor_enabled)) return true;
-  const passkeys = await query(
-    `SELECT count(*)::int AS n
-     FROM user_passkeys
-     WHERE user_id = $1::uuid AND deleted_at IS NULL`,
-    [userId]
-  );
-  return countFrom(passkeys.rows[0]?.n) > 0;
+  const { canUnlinkLastWallet, loadFactorSnapshot } = await import('./wallet-factor-policy.service.js');
+  const snapshot = await loadFactorSnapshot(query, userId);
+  return canUnlinkLastWallet(snapshot);
 }
 
 export async function unlinkWallet(input: {

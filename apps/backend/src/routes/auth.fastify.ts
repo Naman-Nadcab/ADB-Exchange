@@ -21,6 +21,7 @@ import {
   logUserActivity,
   getDeviceIdFromRequest,
 } from '../services/activity-monitor.service.js';
+import { canDisableTotp, canRemoveLastPasskey, loadFactorSnapshot } from '../services/wallet-factor-policy.service.js';
 import { rateLimitByIp, rateLimitByIdentifier } from '../lib/rate-limit-fastify.js';
 import { getClientIp } from '../lib/client-ip.js';
 import { config } from '../config/index.js';
@@ -44,6 +45,7 @@ const DISPLAY_CURRENCIES = new Set(['USDT', 'INR']);
 
 function sanitizePreferencesInput(updates: Record<string, unknown>): { ok: true; value: Record<string, unknown> } | { ok: false; message: string } {
   const normalized: Record<string, unknown> = { ...updates };
+  delete normalized.walletRecovery;
   const rawDisplay =
     typeof updates.displayCurrency === 'string'
       ? updates.displayCurrency
@@ -2324,7 +2326,7 @@ export default async function authRoutes(app: FastifyInstance) {
       const userId = (request.user?.userId ?? request.user?.id)!;
 
       // Get user info
-      const userResult = await db.query<{ id: string; email: string; username: string | null }>(
+      const userResult = await db.query<{ id: string; email: string | null; username: string | null }>(
         `SELECT id, email, username FROM users WHERE id = $1 AND deleted_at IS NULL`,
         [userId]
       );
@@ -2359,8 +2361,8 @@ export default async function authRoutes(app: FastifyInstance) {
         rpName: RP_NAME,
         rpID: RP_ID,
         userID: new TextEncoder().encode(userId),
-        userName: user.email,
-        userDisplayName: user.username || user.email,
+        userName: user.email || user.username || `user-${userId}`,
+        userDisplayName: user.username || user.email || `user-${userId}`,
         attestationType: 'none',
         excludeCredentials,
         authenticatorSelection: {
@@ -3000,6 +3002,16 @@ export default async function authRoutes(app: FastifyInstance) {
       if (!(await jwtVerifyWithSession(request, reply))) return;
       const userId = (request.user?.userId ?? request.user?.id)!;
       const { passkeyId } = request.params as { passkeyId: string };
+      const factors = await loadFactorSnapshot(async (sql, params) => {
+        const rows = await db.query(sql, params);
+        return { rows: rows.rows as Array<Record<string, unknown>> };
+      }, userId);
+      if (factors.passkeyCount <= 1 && !canRemoveLastPasskey(factors)) {
+        return reply.status(409).send({
+          success: false,
+          error: { code: 'LAST_FACTOR', message: 'Add another sign-in method before removing this one.' },
+        });
+      }
 
       // Soft delete the passkey
       const result = await db.query(
@@ -4179,12 +4191,12 @@ export default async function authRoutes(app: FastifyInstance) {
     try {
       if (!(await jwtVerifyWithSession(request, reply))) return;
       const userId = (request.user?.userId ?? request.user?.id)!;
-      const { password, code } = request.body as { password: string; code: string };
+      const { password, code } = request.body as { password?: string; code?: string };
 
-      if (!password || !code) {
+      if (!code) {
         return reply.status(400).send({
           success: false,
-          error: { code: 'MISSING_DATA', message: 'Password and 2FA code are required' },
+          error: { code: 'MISSING_DATA', message: 'A 2FA code is required' },
         });
       }
 
@@ -4215,8 +4227,14 @@ export default async function authRoutes(app: FastifyInstance) {
         });
       }
 
-      // Verify password
+      // A login password is required only when the account still has one.
       if (user.password_hash) {
+        if (!password) {
+          return reply.status(400).send({
+            success: false,
+            error: { code: 'MISSING_DATA', message: 'Password and 2FA code are required' },
+          });
+        }
         const passwordValid = await bcrypt.compare(password, user.password_hash);
         if (!passwordValid) {
           return reply.status(400).send({
@@ -4260,6 +4278,17 @@ export default async function authRoutes(app: FastifyInstance) {
         return reply.status(400).send({
           success: false,
           error: { code: 'INVALID_CODE', message: 'Invalid 2FA code' },
+        });
+      }
+
+      const factors = await loadFactorSnapshot(async (sql, params) => {
+        const rows = await db.query(sql, params);
+        return { rows: rows.rows as Array<Record<string, unknown>> };
+      }, userId);
+      if (!canDisableTotp(factors)) {
+        return reply.status(409).send({
+          success: false,
+          error: { code: 'LAST_FACTOR', message: 'Add another sign-in method before turning off 2FA.' },
         });
       }
 
@@ -4905,7 +4934,8 @@ export default async function authRoutes(app: FastifyInstance) {
         });
       }
 
-      const preferences = result.rows[0]?.preferences || {};
+      const preferences = { ...(result.rows[0]?.preferences || {}) };
+      delete preferences.walletRecovery;
       const legacyDisplay =
         typeof preferences.displayCurrency === 'string'
           ? preferences.displayCurrency
@@ -4972,7 +5002,10 @@ export default async function authRoutes(app: FastifyInstance) {
       }
 
       const currentPreferences = currentResult.rows[0]?.preferences || {};
+      const serverRecovery = currentPreferences.walletRecovery;
       const newPreferences = { ...currentPreferences, ...sanitized.value };
+      if (serverRecovery === undefined) delete newPreferences.walletRecovery;
+      else newPreferences.walletRecovery = serverRecovery;
 
       // Update preferences
       await db.query(
