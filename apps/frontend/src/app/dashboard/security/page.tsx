@@ -30,6 +30,7 @@ import {
   BadgeCheck,
   Monitor,
 } from 'lucide-react';
+import { WalletManagementSection } from '@/components/security/WalletManagementSection';
 import { 
   createPasskey,
   isPlatformAuthenticatorAvailable,
@@ -1325,6 +1326,10 @@ export default function SecurityPage() {
               />
             </div>
           </section>
+        )}
+
+        {(securityTab === 'all' || securityTab === 'login') && (
+          <WalletManagementSection accessToken={accessToken ?? null} />
         )}
 
         {(securityTab === 'all' || securityTab === 'twoFactor') && (

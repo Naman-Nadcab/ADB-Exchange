@@ -49,6 +49,7 @@ type ActiveSession = {
   namespace: 'eip155' | 'solana';
   getAccount: () => Promise<WalletAccountSnapshot>;
   signMessage: (message: string) => Promise<string>;
+  signTypedData?: (typedDataJson: string) => Promise<string>;
   watch: (onChange: (kind: WalletChangeKind) => void) => () => void;
   disconnect: () => Promise<void>;
 };
@@ -170,6 +171,12 @@ export async function signWalletMessage(message: string): Promise<string> {
   return active.signMessage(message);
 }
 
+/** EVM step-up uses eth_signTypedData_v4. Solana step-up stays on signMessage. */
+export async function signWalletTypedData(typedDataJson: string): Promise<string> {
+  if (!active?.signTypedData) throw new Error('TYPED_DATA_UNSUPPORTED');
+  return active.signTypedData(typedDataJson);
+}
+
 export function watchWallet(onChange: (kind: WalletChangeKind) => void): () => void {
   if (!active) return () => {};
   return active.watch(onChange);
@@ -189,6 +196,7 @@ async function openEvm(provider: Eip1193Provider): Promise<ActiveSession> {
     namespace: 'eip155',
     getAccount: () => readEvmAccount(provider),
     signMessage: (message) => signEvm(provider, message),
+    signTypedData: (typedDataJson) => signEvmTypedData(provider, typedDataJson),
     watch: (onChange) => watchEvm(provider, onChange),
     disconnect: async () => {},
   };
@@ -207,6 +215,16 @@ async function signEvm(provider: Eip1193Provider, message: string): Promise<stri
   const signature = await provider.request({
     method: 'personal_sign',
     params: [utf8MessageToHex(message), account.address],
+  });
+  if (typeof signature !== 'string' || !signature.startsWith('0x')) throw new Error('BAD_SIGNATURE');
+  return signature;
+}
+
+async function signEvmTypedData(provider: Eip1193Provider, typedDataJson: string): Promise<string> {
+  const account = await readEvmAccount(provider);
+  const signature = await provider.request({
+    method: 'eth_signTypedData_v4',
+    params: [account.address, typedDataJson],
   });
   if (typeof signature !== 'string' || !signature.startsWith('0x')) throw new Error('BAD_SIGNATURE');
   return signature;
@@ -236,7 +254,7 @@ async function openWalletConnect(projectId: string): Promise<ActiveSession> {
     projectId,
     showQrModal: true,
     optionalChains: [1],
-    methods: ['personal_sign', 'eth_chainId', 'eth_accounts', 'eth_requestAccounts'],
+    methods: ['personal_sign', 'eth_signTypedData_v4', 'eth_chainId', 'eth_accounts', 'eth_requestAccounts'],
     events: ['accountsChanged', 'chainChanged'],
     qrModalOptions: { themeMode: 'dark' },
     metadata: {
@@ -252,6 +270,7 @@ async function openWalletConnect(projectId: string): Promise<ActiveSession> {
     namespace: 'eip155',
     getAccount: () => readEvmAccount(eip),
     signMessage: (message) => signEvm(eip, message),
+    signTypedData: (typedDataJson) => signEvmTypedData(eip, typedDataJson),
     watch: (onChange) => watchEvm(eip, onChange),
     disconnect: async () => {
       await provider.disconnect();

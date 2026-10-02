@@ -296,6 +296,9 @@ export async function verifyWalletAuthChallenge(input: {
     if (asDate(row.expires_at).getTime() <= now.getTime()) {
       throw new WalletVerifyError('CHALLENGE_EXPIRED', ctx);
     }
+    // A row already bound to an account is a management challenge.
+    // Sign-in must not accept it or consume it.
+    if (row.user_id != null) throw new WalletVerifyError('CHALLENGE_UNAVAILABLE', ctx);
 
     if (input.beforeSignature) {
       await input.beforeSignature({

@@ -51,6 +51,7 @@ import oauthRoutes from './routes/auth.oauth.js';
 import walletChallengeRoutes from './routes/auth-wallet-challenge.fastify.js';
 import walletVerifyRoutes from './routes/auth-wallet-verify.fastify.js';
 import walletLoginRoutes from './routes/auth-wallet-login.fastify.js';
+import walletManagementRoutes from './routes/auth-wallet-management.fastify.js';
 import tradingRoutes from './routes/trading.fastify.js';
 import p2pRoutes from './routes/p2p.fastify.js';
 import fiatRoutes from './routes/fiat.fastify.js';
@@ -976,6 +977,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(walletChallengeRoutes, { prefix: '/api/v1/auth' });
   await app.register(walletVerifyRoutes, { prefix: '/api/v1/auth' });
   await app.register(walletLoginRoutes, { prefix: '/api/v1/auth' });
+  await app.register(walletManagementRoutes, { prefix: '/api/v1/auth' });
   await app.register(tradingRoutes, { prefix: '/api/v1/trading' });
   await app.register(p2pRoutes, { prefix: '/api/v1/p2p' });
   await app.register(fiatRoutes, { prefix: '/api/v1/fiat' });
