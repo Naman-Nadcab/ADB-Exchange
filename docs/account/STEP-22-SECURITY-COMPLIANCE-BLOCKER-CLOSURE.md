@@ -210,4 +210,4 @@ The withdraw page's raw fetches for limits, history, and preview still send the 
 
 Isolated backend image: `sha256:3099bd08a79d637f5d6e8fd44b5b3dd716b8d0a1ec7143869a777bb77e9eb9e3`, tag `rc20-backend:step22`. Frontend, admin, nginx, postgres, and redis image ids are unchanged from STEP 21. Registry digests are empty.
 
-Before SHA `a27ae63effee97f217a7488646bcd251690de0be`. Branch `cursor/local-kms-provider-fb5f`.
+Before SHA `a27ae63effee97f217a7488646bcd251690de0be`. Implementation SHA `cfce3c4cb0285fb72ee2de337a1507d17834c9ee`. Branch `cursor/local-kms-provider-fb5f`.
