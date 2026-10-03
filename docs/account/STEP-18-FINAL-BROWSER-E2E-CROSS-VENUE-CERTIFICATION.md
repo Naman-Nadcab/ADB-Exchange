@@ -221,7 +221,7 @@ Still present, and not a customer login form: the security section title “Logi
 | Post-journey database integrity | NOT VERIFIED (browser used stubs) |
 | Production mutation | PASS (read-only; unchanged) |
 
-Counts: PASS 16, FAIL 0, BLOCKED 5, NOT VERIFIED 8, PRE-EXISTING 1. The Playwright file is one PASS row. The 17 wallet-login tests are one PASS row. Mobile Jest is one PASS row.
+Counts: PASS 16, FAIL 0, BLOCKED 5, NOT VERIFIED 6, PRE-EXISTING 1. The Playwright file is one PASS row. The 17 wallet-login tests are one PASS row. Mobile Jest is one PASS row.
 
 ## 29. Remaining issues
 
