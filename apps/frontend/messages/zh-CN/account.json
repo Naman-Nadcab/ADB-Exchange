@@ -38,7 +38,7 @@
   },
   "profile": {
     "title": "账户信息",
-    "subtitle": "管理个人资料与账户设置",
+    "subtitle": "加密与外汇共用一个交易所账户。资料、安全与身份共用。交易余额仍留在各自场所。",
     "lastLogin": "上次登录：",
     "securityAlert": "安全提醒",
     "securityLow": "您的账户安全等级较低。",
@@ -96,9 +96,79 @@
     },
     "sections": {
       "loginPassword": "登录与密码",
+      "signIn": "登录安全",
       "twoFactor": "双重验证",
       "advanced": "高级保护",
       "withdrawal": "提币安全"
+    },
+    "wallets": {
+      "title": "登录钱包",
+      "description": "可用于登录的钱包。关联钱包不会转移资金。",
+      "add": "添加钱包",
+      "empty": "还没有登录钱包。",
+      "loading": "正在加载登录钱包…",
+      "primary": "主钱包",
+      "setPrimary": "设为主登录钱包",
+      "remove": "从登录方式中移除",
+      "linked": "关联于",
+      "lastUsed": "最近使用",
+      "copy": "复制地址",
+      "statusActive": "可用",
+      "statusDisabled": "已停用",
+      "statusCompromised": "不可用",
+      "fundsNote": "移除登录钱包不会移除资金。",
+      "confirmPrimary": "确认将钱包 {address} 设为您的主登录钱包。",
+      "confirmRemove": "确认将钱包 {address} 从登录方式中移除。",
+      "cancel": "取消",
+      "signing": "正在等待您的签名…",
+      "successLinked": "钱包已加入您的登录方式。",
+      "successPrimary": "主登录钱包已更新。",
+      "successRemoved": "钱包已从登录方式中移除。您的资金未发生变化。",
+      "alreadyLinked": "此钱包已关联到您的账户。",
+      "unavailable": "此钱包无法关联。",
+      "lastFactor": "请先添加其他登录方式，再移除此钱包。",
+      "primaryRequired": "请先将其他钱包设为主登录钱包，再移除此钱包。",
+      "mismatch": "请连接您正在更新的钱包。",
+      "rejected": "签名已取消。",
+      "failed": "无法更新登录钱包。请重试。",
+      "expired": "此请求已过期。请重新开始。",
+      "rateLimit": "尝试次数过多。请稍后再试。",
+      "network": "网络异常。请重试。",
+      "noWallets": "此浏览器中未发现钱包。",
+      "namespaceEvm": "EVM",
+      "namespaceSolana": "Solana"
+    },
+    "recovery": {
+      "title": "账户恢复",
+      "description": "如果丢失登录钱包，恢复仍使用此账户。钱包签名不是身份核验，仅邮箱不能添加登录钱包。",
+      "lostWallet": "丢失钱包？",
+      "factors": "恢复因素",
+      "wallets": "有效登录钱包",
+      "passkey": "通行密钥",
+      "totp": "验证器",
+      "available": "可用",
+      "notSet": "未设置",
+      "emailNote": "邮箱仅用于联系。它不能替换登录钱包。",
+      "soleFactorWarning": "您只有一个登录钱包，且未设置通行密钥或验证器。如果该钱包丢失，您将无法自行恢复登录。在依赖此账户之前，请添加第二个钱包、通行密钥或验证器。",
+      "status": "恢复状态",
+      "none": "无",
+      "withdrawalsPaused": "恢复保护期间提现已暂停。",
+      "withdrawalsNormal": "当前没有恢复引起的提现限制。",
+      "cooldownUntil": "保护截止",
+      "credentialNote": "替换钱包只是登录凭证。它不会加入提现地址，也不会转移资金。",
+      "cancel": "取消恢复请求",
+      "dialogTitle": "恢复登录",
+      "dialogBody": "这将为此账户打开恢复请求。它不会立即替换钱包，也不会转移资金。",
+      "confirm": "打开恢复请求",
+      "close": "关闭",
+      "working": "处理中…",
+      "loading": "正在加载恢复状态…",
+      "requested": "已打开恢复请求。请验证剩余登录方式，或等待审核。",
+      "cancelled": "已取消恢复请求。钱包未改变。",
+      "alreadyOpen": "已有进行中的恢复请求。",
+      "emailBlocked": "邮箱验证不能添加或替换登录钱包。",
+      "failed": "无法更新账户恢复。请重试。",
+      "network": "网络异常。请重试。"
     },
     "level": {
       "high": "高",
@@ -108,7 +178,10 @@
     "features": {
       "loginPassword": {
         "title": "登录密码",
-        "description": "用于账户登录"
+        "description": "用于账户登录",
+        "walletOnlyTitle": "账户密码",
+        "walletOnlyDescription": "密码不是登录方式。请使用钱包签名登录。",
+        "walletOnlyStatus": "不是登录方式"
       },
       "activeSessions": {
         "title": "活跃会话",
@@ -117,11 +190,13 @@
       "emailAuth": {
         "title": "邮箱验证",
         "descriptionPrefix": "用于登录、提币及安全验证。",
+        "walletOnlyPrefix": "可选的安全通知联系方式。邮箱不是登录方式。",
         "changeEmail": "修改邮箱"
       },
       "phone": {
         "title": "手机验证",
-        "description": "验证手机号，用于登录、重置密码及安全操作"
+        "description": "验证手机号，用于登录、重置密码及安全操作",
+        "walletOnlyDescription": "可选的安全通知联系方式。短信不是登录方式。"
       },
       "google2fa": {
         "title": "Google 双重验证",
@@ -130,6 +205,7 @@
       "passkeys": {
         "title": "通行密钥（Touch ID / Face ID）",
         "description": "使用生物识别快速安全登录",
+        "walletOnlyDescription": "通行密钥可用于确认敏感操作，不是登录方式。",
         "registered": "已注册 {count} 个"
       },
       "fundPassword": {
@@ -681,15 +757,15 @@
     "title": "概览",
     "description": "资产、行情与账户动态 — 您的交易指挥中心。",
     "balance": {
-      "estimatedTotal": "预估总资产",
-      "estimatedTotalTooltip": "资金账户与交易账户余额合计，按您选择的显示货币计价。",
+      "estimatedTotal": "预估加密与法币",
+      "estimatedTotalTooltip": "加密资金账户加现货，按显示货币计价。不包含外汇净值。",
       "portfolioPnl24h": "24 小时组合盈亏",
       "portfolioPnlTooltip": "暂无法在此汇总中显示日环比组合变化。",
       "updated": "更新于 {datetime}",
-      "funding": "资金账户",
-      "fundingHint": "充值与 P2P",
-      "trading": "交易账户",
-      "tradingHint": "现货与当前委托"
+      "funding": "加密资金",
+      "fundingHint": "充值与 P2P。不是外汇。",
+      "trading": "加密现货",
+      "tradingHint": "现货委托。不是外汇保证金。"
     },
     "accountCard": {
       "label": "账户",
@@ -997,6 +1073,7 @@
   "identityPage": {
     "checkingStatus": "正在检查认证状态…",
     "headerTitle": "身份认证",
+    "accountWideNote": "此验证属于您的交易所账户。加密合规使用该状态。仅当外汇 KYC 策略开启时，外汇才要求验证。",
     "verifiedTitle": "身份已认证",
     "verifiedSubtitle": "您的身份已成功通过认证，现已可使用平台的全部功能。",
     "verificationLevel": "认证等级",
@@ -1008,6 +1085,8 @@
     "goToAccount": "前往账户",
     "pendingTitle": "认证审核中",
     "pendingSubtitle": "您的文件正在审核，通常需要 1–2 个工作日。",
+    "rejectedTitle": "身份验证未通过",
+    "rejectedSubtitle": "此账户最近一次身份申请已被拒绝。您可以重新提交。外汇不使用另一套身份。",
     "businessVerification": "企业认证",
     "helpAria": "帮助",
     "accountAria": "账户设置",

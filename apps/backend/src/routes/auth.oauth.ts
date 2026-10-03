@@ -8,6 +8,15 @@ import { logger } from '../lib/logger.js';
 import { config } from '../config/index.js';
 import { getClientIp } from '../lib/client-ip.js';
 import { resolveProviderSecret } from '../lib/provider-secret.js';
+import {
+  canUseLegacySignup,
+  canUseCustomerOAuthLogin,
+  legacyDisabledBody,
+  LEGACY_DISABLED_MESSAGE,
+  LEGACY_SIGNUP_MESSAGE,
+  LegacyCustomerLoginClosed,
+  LegacySignupClosed,
+} from '../services/legacy-auth-policy.service.js';
 
 interface GoogleTokenResponse {
   access_token: string;
@@ -70,7 +79,7 @@ function generateReferralCode(): string {
 }
 
 // Create or get user from OAuth
-async function findOrCreateOAuthUser(
+export async function findOrCreateOAuthUser(
   app: FastifyInstance,
   provider: 'google' | 'apple' | 'telegram',
   providerId: string,
@@ -80,6 +89,7 @@ async function findOrCreateOAuthUser(
   avatarUrl: string | null,
   request: FastifyRequest
 ) {
+  if (!(await canUseCustomerOAuthLogin())) throw new LegacyCustomerLoginClosed();
   // Check if user exists with this OAuth provider
   const existingOAuth = await db.query<{
     user_id: string;
@@ -110,6 +120,7 @@ async function findOrCreateOAuthUser(
         [userId, provider, providerId]
       );
     } else {
+      if (!(await canUseLegacySignup())) throw new LegacySignupClosed();
       // Create new user
       isNewUser = true;
       const salt = await bcrypt.genSalt(12);
@@ -150,6 +161,7 @@ async function findOrCreateOAuthUser(
       logger.info('New OAuth user created', { userId, provider });
     }
   } else {
+    if (!(await canUseLegacySignup())) throw new LegacySignupClosed();
     // No email from provider (e.g., Telegram without email)
     isNewUser = true;
     const salt = await bcrypt.genSalt(12);
@@ -224,6 +236,7 @@ async function findOrCreateOAuthUser(
     userId,
     isActive: true,
     createdAt: Date.now(),
+    authMethod: 'oauth',
   }, 7 * 24 * 60 * 60);
 
   // Generate tokens
@@ -457,6 +470,12 @@ export default async function oauthRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
+      if (error instanceof LegacyCustomerLoginClosed) {
+        return reply.status(403).send(legacyDisabledBody(LEGACY_DISABLED_MESSAGE));
+      }
+      if (error instanceof LegacySignupClosed) {
+        return reply.status(403).send(legacyDisabledBody(LEGACY_SIGNUP_MESSAGE, 'LEGACY_SIGNUP_CLOSED'));
+      }
       logger.error('Google OAuth error', { error: error instanceof Error ? error.message : 'Unknown' });
       return reply.status(500).send({
         success: false,
@@ -588,6 +607,12 @@ export default async function oauthRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
+      if (error instanceof LegacyCustomerLoginClosed) {
+        return reply.status(403).send(legacyDisabledBody(LEGACY_DISABLED_MESSAGE));
+      }
+      if (error instanceof LegacySignupClosed) {
+        return reply.status(403).send(legacyDisabledBody(LEGACY_SIGNUP_MESSAGE, 'LEGACY_SIGNUP_CLOSED'));
+      }
       logger.error('Apple OAuth error', { error: error instanceof Error ? error.message : 'Unknown' });
       return reply.status(500).send({
         success: false,
@@ -653,6 +678,12 @@ export default async function oauthRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
+      if (error instanceof LegacyCustomerLoginClosed) {
+        return reply.status(403).send(legacyDisabledBody(LEGACY_DISABLED_MESSAGE));
+      }
+      if (error instanceof LegacySignupClosed) {
+        return reply.status(403).send(legacyDisabledBody(LEGACY_SIGNUP_MESSAGE, 'LEGACY_SIGNUP_CLOSED'));
+      }
       logger.error('Telegram OAuth error', { error: error instanceof Error ? error.message : 'Unknown' });
       return reply.status(500).send({
         success: false,

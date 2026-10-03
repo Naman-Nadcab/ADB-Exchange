@@ -16,7 +16,8 @@ export type ApprovalActionType =
   | 'forex_account_group_change'
   | 'forex_leverage_change'
   | 'forex_finance_request'
-  | 'forex_partner_payout';
+  | 'forex_partner_payout'
+  | 'wallet_recovery';
 
 const DEFAULT_APPROVAL_THRESHOLDS: Record<string, number> = {
   withdrawal_approve: 2,
@@ -33,6 +34,7 @@ const DEFAULT_APPROVAL_THRESHOLDS: Record<string, number> = {
   forex_leverage_change: 2,
   forex_finance_request: 2,
   forex_partner_payout: 2,
+  wallet_recovery: 1,
 };
 
 const DEFAULT_EXPIRY_HOURS = 24;

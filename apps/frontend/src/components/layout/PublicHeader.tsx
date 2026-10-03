@@ -20,6 +20,7 @@ import { useTranslations } from 'next-intl';
  */
 export function PublicHeader() {
   const tn = useTranslations('navigation');
+  const tc = useTranslations('common');
   const tA11y = useTranslations('common.a11y');
   const [menuOpen, setMenuOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
@@ -41,10 +42,12 @@ export function PublicHeader() {
     await performLogout('/');
   };
 
-  const maskEmail = (email: string) => {
-    if (!email) return '***@****';
+  const maskEmail = (email: string | null | undefined) => {
+    if (email == null || email.trim() === '' || email.toLowerCase() === 'null' || email.toLowerCase() === 'undefined') {
+      return tc('states.notAdded');
+    }
     const [local, domain] = email.split('@');
-    if (!domain) return '***@****';
+    if (!local || !domain) return tc('states.notAdded');
     return `${local.slice(0, 3)}**@****`;
   };
 
@@ -137,7 +140,7 @@ export function PublicHeader() {
                 {userOpen ? (
                   <div className="absolute right-0 top-12 w-60 overflow-hidden rounded-xl border border-[#F5B8001F] bg-[#0D1118] shadow-xl">
                     <div className="border-b border-[#F5B8001F] px-4 py-3">
-                      <p className="truncate text-sm font-medium text-white">{maskEmail(user?.email || '')}</p>
+                      <p className="truncate text-sm font-medium text-white">{maskEmail(user?.email)}</p>
                       <p className="mt-0.5 text-[11px] text-[#9CA3AF]">UID: {user?.id?.slice(0, 8) || '******'}</p>
                     </div>
                     <div className="p-1.5">

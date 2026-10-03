@@ -30,7 +30,7 @@
   },
   "deposit": {
     "title": "Deposit crypto",
-    "description": "Send assets to your funding wallet from an external wallet. Select coin, network, then copy your deposit address.",
+    "description": "Send assets to your funding wallet from an external wallet. Select coin, network, then copy your exchange deposit address. That address is not your sign-in wallet, and signing in does not move funds.",
     "buyWithFiat": "Buy with fiat (P2P)",
     "step1": "Choose coin to deposit",
     "step2": "Choose a Chain",
@@ -233,8 +233,9 @@
     "typeTransfer": "Transfer"
   },
   "overview": {
-    "title": "Assets Overview",
-    "totalBalance": "Total Balance",
+    "title": "Crypto & fiat",
+    "totalBalance": "Crypto & fiat total",
+    "totalBalanceScope": "Funding, spot, and fiat in the display currency. Forex equity is not included.",
     "toggleBalanceAria": "Toggle balance visibility",
     "approxBtc": "≈ {amount} BTC",
     "pnlPeriod": "{period} P&L",

@@ -4,12 +4,11 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { revokeServerSession } from '@/lib/authLogout';
 import { useAuthStore } from '@/store/auth';
 
 /**
  * Protected layout wrapper: never full-screen infinite spinner.
- * Unauthenticated users: clear stale cookies, then redirect to login (no manual fallback).
+ * Unauthenticated users redirect to login. The httpOnly session is revoked only by an explicit logout.
  */
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
   const t = useTranslations('auth.requireAuth');
@@ -28,11 +27,8 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
     if (redirectDone.current) return;
     redirectDone.current = true;
     setRedirecting(true);
-    void (async () => {
-      await revokeServerSession();
-      useAuthStore.getState().clearAuthState();
-      router.replace(loginHref);
-    })();
+    useAuthStore.getState().clearAuthState();
+    router.replace(loginHref);
   }, [authResolved, isAuthenticated, loginHref, router]);
 
   if (!authResolved || redirecting || !isAuthenticated) {

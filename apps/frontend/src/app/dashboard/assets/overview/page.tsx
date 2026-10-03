@@ -624,6 +624,7 @@ export default function AssetsOverviewPage() {
                   </div>
                 )}
                 <p className="mt-1 text-sm text-muted-foreground">≈ <span className="numeric">{mask(fmtBtc(totalBtc))}</span> BTC</p>
+                <p className="mt-2 max-w-md text-xs text-muted-foreground">{tw('overview.totalBalanceScope')}</p>
               </div>
 
               {/* PnL badge */}

@@ -35,7 +35,7 @@ import { toast } from '@/components/ui/toaster';
 
 interface UserProfile {
   id: string;
-  email: string;
+  email: string | null;
   phone: string | null;
   first_name: string | null;
   last_name: string | null;
@@ -54,6 +54,7 @@ interface UserProfile {
 
 export default function AccountInfoPage() {
   const ta = useTranslations('account');
+  const tCommon = useTranslations('common');
   const tn = useTranslations('common.notifications');
   const tt = useTranslations('account.toasts');
   const router = useRouter();
@@ -277,8 +278,8 @@ export default function AccountInfoPage() {
 
   const kycDisplay = getKycStatusDisplay();
 
-  const maskEmail = (email: string) => {
-    if (!email) return '***@****';
+  const maskEmail = (email: string | null | undefined) => {
+    if (email == null || email.trim() === '' || email.toLowerCase() === 'null' || email.toLowerCase() === 'undefined') return tCommon('states.notAdded');
     const [local, domain] = email.split('@');
     if (!domain) return '***@****';
     const maskedLocal = local.slice(0, 3) + '***';

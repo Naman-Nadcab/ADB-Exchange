@@ -16,6 +16,7 @@
     "start:workers": "RUN_MODE=workers node dist/server.js",
     "lint": "eslint src --ext .ts",
     "migrate": "tsx src/database/migrate.ts",
+    "test:certification": "bash scripts/run-isolated-certification.sh",
     "migrate:prod": "node dist/database/migrate.js",
     "provision:hot-wallets": "tsx scripts/provision-hot-wallets.ts",
     "migrate:down": "tsx src/database/migrate.ts down",

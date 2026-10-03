@@ -8,6 +8,7 @@ export const linking = {
         screens: {
           Welcome: 'auth/welcome',
           LoginPassword: 'login',
+          LoginWallet: 'wallet-auth',
           LoginIdentifier: 'login/otp',
           ForgotPasswordRequest: 'forgot-password',
           SignupIdentifier: 'signup',

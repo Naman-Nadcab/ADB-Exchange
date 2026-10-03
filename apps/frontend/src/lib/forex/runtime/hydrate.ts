@@ -5,7 +5,7 @@ import { normalizeForexError } from '../models/errors';
 import { useForexStore } from '../state/store';
 import { forexWsManager } from '../websocket/manager';
 
-export async function hydrateForexPublic(signal?: AbortSignal): Promise<void> {
+export async function hydrateForexPublic(signal?: AbortSignal): Promise<boolean> {
   void signal;
   const store = useForexStore.getState();
   const [instruments, quotes, sessions, config, health] = await Promise.all([
@@ -37,6 +37,25 @@ export async function hydrateForexPublic(signal?: AbortSignal): Promise<void> {
         : undefined,
     sessions: sess.ok ? sess.data : undefined,
     tradingConfig: cfg.ok ? cfg.data : undefined,
+  });
+  return inst.ok && q.ok;
+}
+
+const HYDRATE_TIMEOUT_MS = 12_000;
+
+function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Forex hydrate failed')), ms);
+    work.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err: unknown) => {
+        clearTimeout(timer);
+        reject(err);
+      },
+    );
   });
 }
 
@@ -200,10 +219,15 @@ export async function hydrateForexAll(): Promise<void> {
   const store = useForexStore.getState();
   store.setHydratePhase('hydrating');
   try {
-    await hydrateForexPublic();
-    await hydrateForexPrivate();
-    store.setHydratePhase('ready');
+    const publicOk = await withTimeout(hydrateForexPublic(), HYDRATE_TIMEOUT_MS);
+    if (!publicOk) {
+      const err = useForexStore.getState().lastError ?? normalizeForexError(undefined, 'Forex hydrate failed');
+      useForexStore.getState().setHydratePhase('error', err);
+      return;
+    }
+    await withTimeout(hydrateForexPrivate(), HYDRATE_TIMEOUT_MS);
+    useForexStore.getState().setHydratePhase('ready');
   } catch (e) {
-    store.setHydratePhase('error', normalizeForexError(e, 'Forex hydrate failed'));
+    useForexStore.getState().setHydratePhase('error', normalizeForexError(e, 'Forex hydrate failed'));
   }
 }

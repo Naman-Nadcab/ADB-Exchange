@@ -8,6 +8,7 @@ import {
   LoginOtpScreen,
   LoginVerifyStepScreen,
   LoginPasskeyScreen,
+  LoginWalletScreen,
   SignupIdentifierScreen,
   SignupOtpScreen,
   SignupPasswordScreen,
@@ -56,6 +57,11 @@ export function AuthNavigator() {
         name="LoginPasskey"
         component={LoginPasskeyScreen}
         initialParams={previewParams('LoginPasskey')}
+      />
+      <Stack.Screen
+        name="LoginWallet"
+        component={LoginWalletScreen}
+        initialParams={previewParams('LoginWallet')}
       />
       <Stack.Screen
         name="SignupIdentifier"

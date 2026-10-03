@@ -135,7 +135,7 @@ export function WalletHistoryScreen({ navigation, route, initialTab }: WalletHis
           ListEmptyComponent={
             <EmptyState
               title="No history yet"
-              message="Your wallet activity will appear here once you deposit, withdraw, transfer, or convert."
+              message="Crypto funding activity will appear here once you deposit, withdraw, transfer, or convert. This is not Forex history and not your sign-in wallet."
             />
           }
           ListFooterComponent={q.isFetchingNextPage ? <SkeletonList rows={2} /> : null}

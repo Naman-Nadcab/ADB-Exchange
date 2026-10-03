@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/auth';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { isCookieSessionMarker } from '@/lib/authSession';
 import Link from 'next/link';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { ROUTES } from '@/lib/routes';
@@ -107,15 +108,17 @@ export default function IdentityVerificationPage() {
   const [checkingKyc, setCheckingKyc] = useState(true);
 
   const API_URL = getApiBaseUrl();
+  const cookieSession = isCookieSessionMarker(accessToken);
 
-  // Check KYC status on mount
+  // Check KYC status on mount. Cookie sessions must not send the marker as a Bearer token.
   useEffect(() => {
     const checkKycStatus = async () => {
       if (!_hasHydrated || !accessToken) return;
       
       try {
         const response = await fetch(`${API_URL}/api/v1/auth/profile`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
+          credentials: 'include',
+          headers: cookieSession ? {} : { Authorization: `Bearer ${accessToken}` },
         });
         const result = await response.json();
         
@@ -131,7 +134,7 @@ export default function IdentityVerificationPage() {
     };
     
     checkKycStatus();
-  }, [accessToken, _hasHydrated]);
+  }, [accessToken, _hasHydrated, API_URL, cookieSession]);
 
   const availableDocuments = documentTypes[selectedCountry.code] || documentTypes['default'];
   const quickVerification = availableDocuments.find(d => d.recommended);
@@ -154,9 +157,10 @@ export default function IdentityVerificationPage() {
       // Simulate DigiLocker verification
       const response = await fetch(`${API_URL}/api/v1/kyc/initiate`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
+          ...(cookieSession || !accessToken ? {} : { Authorization: `Bearer ${accessToken}` }),
         },
         body: JSON.stringify({
           country: selectedCountry.code,
@@ -323,6 +327,13 @@ export default function IdentityVerificationPage() {
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-6 py-12">
+        <p className="mb-4 text-sm text-muted-foreground">{t('accountWideNote')}</p>
+        {kycStatus === 'rejected' ? (
+          <div className="mb-4 rounded-xl border border-sell/40 bg-sell/10 px-4 py-3 text-sm" role="status">
+            <p className="font-semibold text-sell">{t('rejectedTitle')}</p>
+            <p className="mt-1 text-foreground/80">{t('rejectedSubtitle')}</p>
+          </div>
+        ) : null}
         <div className="bg-card rounded-xl p-8 shadow-sm border border-border">
           <h2 className="text-2xl font-bold text-foreground mb-8">
             {t('proofTitle')}

@@ -8,7 +8,6 @@ import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageF
 import { ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
-import { useForexWalletKyc } from '@/lib/forex/hooks/useForexWalletKyc';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useAuthStore } from '@/store/auth';
 
@@ -17,10 +16,11 @@ export default function ForexOpenLiveAccountPage() {
   const t = useTranslations('forex.openLive');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
-  const kyc = useForexWalletKyc();
   const [eligibility, setEligibility] = useState<{
     available: boolean;
     applicationAccepted?: boolean;
+    kycRequired: boolean;
+    kycVerified: boolean;
     message: string;
     reason: string;
     blockers?: string[];
@@ -37,6 +37,8 @@ export default function ForexOpenLiveAccountPage() {
         setEligibility({
           available: res.data.liveAccountOpeningAvailable,
           applicationAccepted: res.data.applicationAccepted,
+          kycRequired: res.data.kycRequired !== false,
+          kycVerified: res.data.kycVerified === true,
           message: res.data.message,
           reason: res.data.reason,
           blockers: res.data.blockers,
@@ -60,6 +62,10 @@ export default function ForexOpenLiveAccountPage() {
     const status = String((res.data.application as { status?: string }).status ?? 'PENDING');
     setAppStatus(status);
   }
+
+  const kycRequired = eligibility?.kycRequired !== false;
+  const kycVerified = eligibility?.kycVerified === true;
+  const canApply = eligibility != null && eligibility.applicationAccepted !== false && (!kycRequired || kycVerified);
 
   return (
     <ForexPageFrame title={tf('pages.openLive.title')} subtitle={tf('pages.openLive.subtitle')}>
@@ -85,11 +91,11 @@ export default function ForexOpenLiveAccountPage() {
           </ForexPortalModuleCard>
           <ForexPortalModuleCard title={t('checklistTitle')}>
             <ul className="space-y-2 text-[12px]">
-              <li>{kyc.verified ? t('kycDone') : t('kycPending')}</li>
+              <li>{!kycRequired ? t('kycOptional') : kycVerified ? t('kycDone') : t('kycPending')}</li>
               <li>{t('providerPending')}</li>
               <li>{t('provisioningPending')}</li>
             </ul>
-            {!kyc.verified ? (
+            {kycRequired && !kycVerified ? (
               <Link href={ROUTES.dashboard.identity} className="mt-3 inline-block text-[12px] font-semibold text-primary underline-offset-2 hover:underline">
                 {t('kycCta')}
               </Link>
@@ -97,7 +103,7 @@ export default function ForexOpenLiveAccountPage() {
           </ForexPortalModuleCard>
           <ForexPortalModuleCard title={t('applicationTitle')}>
             <p className="text-sm text-muted-foreground">{t('applicationBody')}</p>
-            {kyc.verified && eligibility?.applicationAccepted !== false ? (
+            {canApply ? (
               <button
                 type="button"
                 disabled={busy}

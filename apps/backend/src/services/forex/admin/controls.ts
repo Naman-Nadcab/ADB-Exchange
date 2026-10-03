@@ -15,6 +15,7 @@ import { FOREX_INSTRUMENT_CATALOG, getForexInstrumentBySymbol } from '../instrum
 import { forexReadinessSnapshot } from '../durability/ready.js';
 import type { ForexTradingStatus } from '../types.js';
 import { FOREX_TRADING_STATUSES } from '../types.js';
+import { getForexKycPolicy, type ForexKycPolicy } from '../customer/forex-kyc-policy.service.js';
 
 const STATUS_SET = new Set<string>(FOREX_TRADING_STATUSES);
 
@@ -44,6 +45,14 @@ export function buildForexAdminControlsSnapshot() {
     readiness: forexReadinessSnapshot(),
     dealing: getForexAdminBackendConfig().dealing,
   };
+}
+
+/** Persisted Forex KYC policy is not an in-memory env override. */
+export async function buildForexAdminControlsSnapshotWithKyc(): Promise<
+  ReturnType<typeof buildForexAdminControlsSnapshot> & { kycPolicy: ForexKycPolicy }
+> {
+  const kycPolicy = await getForexKycPolicy();
+  return { ...buildForexAdminControlsSnapshot(), kycPolicy };
 }
 
 const KEY_MAP: Record<string, ForexRuntimeBoolKey> = {

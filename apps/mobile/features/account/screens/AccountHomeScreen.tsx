@@ -63,7 +63,7 @@ export function AccountHomeScreen({ navigation }: Props) {
 
   const unread = (notifQ.data ?? []).filter((n) => !n.read).length;
   const p = profileQ.data;
-  const displayName = p?.first_name ?? user?.username ?? user?.email ?? 'Guest';
+  const displayName = p?.first_name ?? user?.username ?? user?.email ?? (isGuest ? 'Guest' : 'Account');
   const kycStatus = kycQ.data?.status ?? p?.kyc_status;
 
   const guardedNav = (action: () => void) => {
@@ -112,6 +112,11 @@ export function AccountHomeScreen({ navigation }: Props) {
               <Text style={[theme.typography.bodyMd, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
                 {isGuest ? 'Browse markets · Sign in for full access' : user?.email ?? user?.phone ?? '—'}
               </Text>
+              {!isGuest ? (
+                <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[1] }]}>
+                  One exchange account. Crypto and Forex are venues. Their balances stay separate.
+                </Text>
+              ) : null}
               {!isGuest ? (
                 <View style={{ flexDirection: 'row', gap: theme.spacing[2], marginTop: theme.spacing[2], flexWrap: 'wrap' }}>
                   <View

@@ -4,7 +4,6 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import { useAuthStore, type User } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { COOKIE_SESSION_MARKER, isCookieSessionMarker } from '@/lib/authSession';
-import { revokeServerSession } from '@/lib/authLogout';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -129,7 +128,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [setAuthResolved, setAuthFlags]);
 
   const setUnauthenticated = useCallback(() => {
-    void revokeServerSession();
     setAuthFlags(0);
     useAuthStore.getState().clearAuthState();
     setUserState(null);
@@ -171,8 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!isMountedRef.current) return;
       controller.abort();
       setAuthResolved(true);
-      setAuthFlags(0);
-      setUnauthenticated();
+      if (hasLikelySession()) setStatus('authenticated');
     }, AUTH_ME_TIMEOUT_MS);
     const fallbackId = setTimeout(() => {
       if (!isMountedRef.current) return;
@@ -184,20 +181,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, FALLBACK_RESOLVE_MS);
 
     const apiUrl = getApiBaseUrl();
-
-    if (!hasLikelySession()) {
-      clearTimeout(timeoutId);
-      clearTimeout(fallbackId);
-      setAuthResolved(true);
-      setAuthFlags(0);
-      setUnauthenticated();
-      return () => {
-        isMountedRef.current = false;
-        clearTimeout(timeoutId);
-        clearTimeout(fallbackId);
-        meCalled.current = false;
-      };
-    }
 
     const runMe = async () => {
       const clearAuthTimeout = () => clearTimeout(timeoutId);
@@ -277,8 +260,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if ((e as Error).name === 'AbortError') {
           safeSet(() => {
             setAuthResolved(true);
-            setAuthFlags(0);
-            setUnauthenticated();
+            if (hasLikelySession()) setStatus('authenticated');
           });
           return;
         }

@@ -30,7 +30,7 @@
   },
   "deposit": {
     "title": "Deposit kripto",
-    "description": "Kirim aset ke dompet funding dari dompet eksternal. Pilih koin, jaringan, lalu salin alamat deposit.",
+    "description": "Kirim aset ke dompet funding dari dompet eksternal. Pilih koin, jaringan, lalu salin alamat deposit bursa. Alamat itu bukan dompet masuk Anda, dan menandatangani masuk tidak memindahkan dana.",
     "buyWithFiat": "Beli dengan fiat (P2P)",
     "step1": "Pilih koin untuk deposit",
     "step2": "Pilih jaringan",
@@ -233,8 +233,9 @@
     "typeTransfer": "Transfer"
   },
   "overview": {
-    "title": "Ringkasan Aset",
-    "totalBalance": "Total saldo",
+    "title": "Kripto & fiat",
+    "totalBalance": "Total kripto & fiat",
+    "totalBalanceScope": "Funding, spot, dan fiat dalam mata uang tampilan. Ekuitas Forex tidak termasuk.",
     "toggleBalanceAria": "Tampilkan/sembunyikan saldo",
     "approxBtc": "≈ {amount} BTC",
     "pnlPeriod": "P&L {period}",

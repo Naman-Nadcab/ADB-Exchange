@@ -58,7 +58,9 @@
       "AUTH_ERROR": "认证失败，请重试。",
       "INVALID_BODY": "请求无效，请刷新页面后重试。",
       "INVALID_INPUT": "输入无效，请检查您的信息。",
-      "VALIDATION_ERROR": "请检查输入后重试。"
+      "VALIDATION_ERROR": "请检查输入后重试。",
+      "LEGACY_AUTH_DISABLED": "此账户使用钱包登录。",
+      "LEGACY_SIGNUP_CLOSED": "请连接钱包以继续。"
     }
   },
   "network": {

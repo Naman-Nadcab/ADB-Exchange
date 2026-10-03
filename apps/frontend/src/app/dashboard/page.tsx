@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { useAuthStore } from '@/store/auth';
 import Link from 'next/link';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { isCookieSessionMarker } from '@/lib/authSession';
 import { ORDERS_HREF, walletPath } from '@/lib/routes';
 import {
   Star,
@@ -143,6 +144,7 @@ function RailCardPreviewSkeleton() {
 
 export default function DashboardPage() {
   const t = useTranslations('account.dashboard');
+  const tCommon = useTranslations('common');
   const tNav = useTranslations('navigation');
   const tHelp = useTranslations('account.help');
   const tw = useTranslations('wallet.nav');
@@ -152,7 +154,7 @@ export default function DashboardPage() {
 
   const { user, accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
   const md = useMarketDataUxCopy();
-  const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
+  const { formatFromUsdt } = useDisplayCurrency();
   const { data: balanceData } = useBalancesSummary(!!_hasHydrated && isAuthenticated);
   const totalUsd = (balanceData?.fundingBalance?.totalUsd ?? 0) + (balanceData?.tradingBalance?.totalUsd ?? 0);
   const fundingUsd = balanceData?.fundingBalance?.totalUsd ?? 0;
@@ -202,17 +204,14 @@ export default function DashboardPage() {
     setAnnouncementsLoading(true);
     setAnnouncementsError(null);
     const url = getApiBaseUrl();
-    if (!url) {
-      setAnnouncementsLoading(false);
-      setAnnouncementsError('apiUrlNotConfigured');
-      return;
-    }
+    const bearer = accessToken && !isCookieSessionMarker(accessToken) ? accessToken : '';
     (async () => {
       const { ok, status, data } = await fetchJsonWithTimeout<{
         success?: boolean;
         data?: { announcements?: AnnouncementItem[] };
       }>(`${url}/api/v1/user/announcements?limit=5`, {
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        headers: bearer ? { Authorization: `Bearer ${bearer}` } : {},
+        credentials: 'include',
         timeoutMs: 12000,
       });
       if (cancelled) return;
@@ -239,11 +238,6 @@ export default function DashboardPage() {
     const url = getApiBaseUrl();
     setMarketsLoading(true);
     setMarketsLoadFailed(false);
-    if (!url) {
-      setMarketsLoading(false);
-      setMarketsLoadFailed(true);
-      return;
-    }
     (async () => {
       const { ok, status, data } = await fetchJsonWithTimeout<{
         success?: boolean;
@@ -541,8 +535,8 @@ export default function DashboardPage() {
     return () => clearTimeout(id);
   }, [displayedMarketData]);
 
-  const maskEmail = (email: string) => {
-    if (!email) return '***@****';
+  const maskEmail = (email: string | null | undefined) => {
+    if (email == null || email.trim() === '' || email.toLowerCase() === 'null' || email.toLowerCase() === 'undefined') return tCommon('states.notAdded');
     const [local, domain] = email.split('@');
     if (!domain) return '***@****';
     const maskedLocal = local.slice(0, 3) + '***';
@@ -604,7 +598,6 @@ export default function DashboardPage() {
                       </p>
                       <p className="mt-1.5 text-3xl font-bold tabular-nums tracking-tight text-foreground sm:text-4xl">
                         {Number.isFinite(totalUsd) ? formatFromUsdt(totalUsd, 2) : '—'}
-                        <span className="ml-2 text-lg font-semibold text-muted-foreground sm:text-xl">{displayCurrency}</span>
                       </p>
                     </div>
                     <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
@@ -623,13 +616,13 @@ export default function DashboardPage() {
                         </p>
                       ) : null}
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-lg border border-border bg-muted/50 p-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div className="min-w-0 rounded-lg border border-border bg-muted/50 p-3">
                         <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t('balance.funding')}</p>
                         <p className="mt-1 text-base font-bold tabular-nums text-foreground sm:text-lg">{formatFromUsdt(fundingUsd, 2)}</p>
                         <p className="mt-0.5 text-[10px] text-muted-foreground">{t('balance.fundingHint')}</p>
                       </div>
-                      <div className="rounded-lg border border-border bg-muted/50 p-3">
+                      <div className="min-w-0 rounded-lg border border-border bg-muted/50 p-3">
                         <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t('balance.trading')}</p>
                         <p className="mt-1 text-base font-bold tabular-nums text-foreground sm:text-lg">{formatFromUsdt(tradingUsd, 2)}</p>
                         <p className="mt-0.5 text-[10px] text-muted-foreground">{t('balance.tradingHint')}</p>

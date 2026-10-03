@@ -88,7 +88,8 @@
   "states": {
     "loading": "Loading…",
     "noData": "No data",
-    "somethingWrong": "Something went wrong"
+    "somethingWrong": "Something went wrong",
+    "notAdded": "Not added"
   },
   "notifications": {
     "errorTitle": "Error",

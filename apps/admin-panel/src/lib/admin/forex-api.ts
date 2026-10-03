@@ -404,6 +404,10 @@ export type ForexAdminControlsSnapshot = {
   }>;
   readiness: ForexAdminConfigResponse['readiness'];
   dealing: Record<string, unknown>;
+  kycPolicy?: {
+    required: boolean;
+    source: 'default' | 'system_settings';
+  };
 };
 
 export function getForexAdminControls(token: string | null) {
@@ -418,6 +422,7 @@ export function patchForexAdminControls(
     demo_funding?: boolean;
     funding_test_api?: boolean;
     execution_test_api?: boolean;
+    kyc_required?: boolean;
   },
 ) {
   return adminFetch<{ changes: unknown[]; snapshot: ForexAdminControlsSnapshot }>('/forex/controls', {

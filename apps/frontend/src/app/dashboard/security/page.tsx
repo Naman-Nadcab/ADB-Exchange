@@ -30,6 +30,8 @@ import {
   BadgeCheck,
   Monitor,
 } from 'lucide-react';
+import { WalletManagementSection } from '@/components/security/WalletManagementSection';
+import { WalletRecoverySection } from '@/components/security/WalletRecoverySection';
 import { 
   createPasskey,
   isPlatformAuthenticatorAvailable,
@@ -223,10 +225,26 @@ const ToggleSwitch = ({ enabled, onChange, loading }: { enabled: boolean; onChan
 
 export default function SecurityPage() {
   const ta = useTranslations('account');
+  const tCommon = useTranslations('common');
   const tn = useTranslations('common.notifications');
   const tt = useTranslations('account.toasts');
   const router = useRouter();
   const { user, accessToken, _hasHydrated } = useAuthStore();
+  const [legacyLogin, setLegacyLogin] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${getApiBaseUrl()}/api/v1/auth/wallet-cutover`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body: { data?: { legacyEntryAvailable?: boolean } } | null) => {
+        if (!cancelled) setLegacyLogin(body?.data?.legacyEntryAvailable === true);
+      })
+      .catch(() => {
+        if (!cancelled) setLegacyLogin(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [withdrawalWhitelist, setWithdrawalWhitelist] = useState(false);
   const [withdrawViaAddressBook, setWithdrawViaAddressBook] = useState(false);
   const [newAddressLock, setNewAddressLock] = useState(false);
@@ -488,8 +506,8 @@ export default function SecurityPage() {
     }
   }, [smsChangeOtpTimer]);
 
-  const maskEmail = (email: string) => {
-    if (!email) return '***@****';
+  const maskEmail = (email: string | null | undefined) => {
+    if (email == null || email.trim() === '' || email.toLowerCase() === 'null' || email.toLowerCase() === 'undefined') return tCommon('states.notAdded');
     const [local, domain] = email.split('@');
     if (!domain) return '***@****';
     const maskedLocal = local.slice(0, 3) + '***';
@@ -1276,7 +1294,7 @@ export default function SecurityPage() {
           {(
             [
               ['all', ta('security.tabs.all')],
-              ['login', ta('security.tabs.login')],
+              ['login', legacyLogin ? ta('security.tabs.login') : ta('security.sections.signIn')],
               ['twoFactor', ta('security.tabs.twoFactor')],
               ['advanced', ta('security.tabs.advanced')],
               ['withdrawal', ta('security.tabs.withdrawal')],
@@ -1300,14 +1318,14 @@ export default function SecurityPage() {
         {/** Section helper */}
         {(securityTab === 'all' || securityTab === 'login') && (
           <section className="mb-8">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">{ta('security.sections.loginPassword')}</h2>
+            <h2 className="mb-4 text-lg font-semibold text-foreground">{legacyLogin ? ta('security.sections.loginPassword') : ta('security.sections.signIn')}</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <SecurityFeatureCard
                 icon={Lock}
-                title={ta('security.features.loginPassword.title')}
-                description={ta('security.features.loginPassword.description')}
-                status={ta('common.enabled')}
-                statusTone="enabled"
+                title={legacyLogin ? ta('security.features.loginPassword.title') : ta('security.features.loginPassword.walletOnlyTitle')}
+                description={legacyLogin ? ta('security.features.loginPassword.description') : ta('security.features.loginPassword.walletOnlyDescription')}
+                status={legacyLogin ? ta('common.enabled') : ta('security.features.loginPassword.walletOnlyStatus')}
+                statusTone={legacyLogin ? 'enabled' : 'recommended'}
                 actionLabel={ta('common.change')}
                 actionVariant="primary"
                 onAction={handlePasswordChangeClick}
@@ -1326,6 +1344,13 @@ export default function SecurityPage() {
           </section>
         )}
 
+        {(securityTab === 'all' || securityTab === 'login') && (
+          <>
+            <WalletManagementSection accessToken={accessToken ?? null} />
+            <WalletRecoverySection accessToken={accessToken ?? null} />
+          </>
+        )}
+
         {(securityTab === 'all' || securityTab === 'twoFactor') && (
           <section className="mb-8">
             <h2 className="mb-4 text-lg font-semibold text-foreground">{ta('security.sections.twoFactor')}</h2>
@@ -1335,7 +1360,7 @@ export default function SecurityPage() {
                 title={ta('security.features.emailAuth.title')}
                 description={
                   <>
-                    {ta('security.features.emailAuth.descriptionPrefix')}{' '}
+                    {legacyLogin ? ta('security.features.emailAuth.descriptionPrefix') : ta('security.features.emailAuth.walletOnlyPrefix')}{' '}
                     <button
                       type="button"
                       onClick={() => router.push('/dashboard/support')}
@@ -1345,8 +1370,8 @@ export default function SecurityPage() {
                     </button>
                   </>
                 }
-                status={ta('common.verified')}
-                statusTone="enabled"
+                status={user?.email ? ta('common.verified') : ta('common.notConfigured')}
+                statusTone={user?.email ? 'enabled' : 'neutral'}
                 statusValue={maskEmail(user?.email || '')}
                 actionLabel={ta('security.features.emailAuth.changeEmail')}
                 actionVariant="default"
@@ -1355,7 +1380,7 @@ export default function SecurityPage() {
               <SecurityFeatureCard
                 icon={Smartphone}
                 title={ta('security.features.phone.title')}
-                description={ta('security.features.phone.description')}
+                description={legacyLogin ? ta('security.features.phone.description') : ta('security.features.phone.walletOnlyDescription')}
                 status={userPhone ? (smsAuthEnabled ? ta('common.on') : ta('common.off')) : ta('common.notConfigured')}
                 statusTone={
                   userPhone ? (smsAuthEnabled ? 'enabled' : 'recommended') : 'neutral'
@@ -1391,7 +1416,7 @@ export default function SecurityPage() {
               <SecurityFeatureCard
                 icon={Fingerprint}
                 title={ta('security.features.passkeys.title')}
-                description={ta('security.features.passkeys.description')}
+                description={legacyLogin ? ta('security.features.passkeys.description') : ta('security.features.passkeys.walletOnlyDescription')}
                 status={passkeysCount > 0 ? ta('security.features.passkeys.registered', { count: passkeysCount }) : ta('common.notConfigured')}
                 statusTone={passkeysCount > 0 ? 'enabled' : 'neutral'}
                 loading={loadingPasskeys}

@@ -97,9 +97,9 @@ export async function creditDepositIfConfirmed(depositId: string): Promise<Credi
       symbol: string | null;
     }>(
       `SELECT d.id, d.user_id, d.currency_id, d.amount::text AS amount,
-              d.to_address, c.symbol
+              d.to_address,
+              (SELECT c.symbol FROM currencies c WHERE c.id = d.currency_id) AS symbol
        FROM deposits d
-       LEFT JOIN currencies c ON c.id = d.currency_id
        WHERE d.id = $1
          AND d.status = 'pending'
          AND (d.is_flagged IS NOT TRUE OR d.is_flagged IS NULL)

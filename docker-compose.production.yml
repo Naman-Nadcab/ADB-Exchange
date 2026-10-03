@@ -206,6 +206,9 @@ services:
     container_name: exchange-frontend
     environment:
       NODE_ENV: production
+      # Shared .env sets PORT=4000 for the API. Next standalone honors PORT,
+      # while nginx proxies this service on 3000.
+      PORT: "3000"
     depends_on:
       backend:
         condition: service_healthy

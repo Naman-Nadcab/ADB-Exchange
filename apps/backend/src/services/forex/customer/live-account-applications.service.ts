@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { getForexLiveAccountProvider } from './live-account-provider.registry.js';
 import { buildLiveForexReadiness } from './live-funding-readiness.js';
-import { getPlatformKycSnapshot } from './platform-kyc.js';
+import { assertForexLiveKyc } from './forex-kyc-policy.service.js';
 
 export type ForexLiveApplicationStatus =
   | 'PENDING'
@@ -66,9 +66,9 @@ export async function createLiveAccountApplication(args: {
     return { ok: false, code: 'LIVE_APPLICATION_BLOCKED', message: 'Live account applications are not accepted in the current environment.' };
   }
 
-  const kyc = await getPlatformKycSnapshot(args.userId);
-  if (!kyc.verified) {
-    return { ok: false, code: 'KYC_REQUIRED', message: 'Identity verification must be approved before applying for a live Forex account.' };
+  const kycGate = await assertForexLiveKyc(args.userId);
+  if (!kycGate.ok) {
+    return { ok: false, code: kycGate.code, message: kycGate.message };
   }
 
   const pending = listLiveApplicationsForUser(args.userId).find((a) =>

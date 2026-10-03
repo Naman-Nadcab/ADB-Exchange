@@ -115,9 +115,17 @@ export function AddressQRCard({
             lineHeight: 20,
           },
         ]}
-        accessibilityLabel="Deposit address"
+        accessibilityLabel="Exchange deposit address"
       >
         {address}
+      </Text>
+      <Text
+        style={[
+          theme.typography.bodySm,
+          { color: hsl(theme.colors.foregroundSecondary), textAlign: 'center', marginTop: theme.spacing[2] },
+        ]}
+      >
+        Exchange deposit address. Not your sign-in wallet.
       </Text>
 
       {memo ? (

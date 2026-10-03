@@ -155,7 +155,8 @@ export default function ChangePasswordPage() {
 
           <div className="flex gap-3 p-4 mb-6 rounded-lg border border-border bg-muted">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-            <p className="text-sm text-foreground">{t('securityWarning')}</p>
+            <p className="text-sm font-medium text-foreground">{t('notASignIn')}</p>
+            <p className="mt-2 text-sm text-foreground">{t('securityWarning')}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">

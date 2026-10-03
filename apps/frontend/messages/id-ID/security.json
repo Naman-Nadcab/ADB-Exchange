@@ -27,6 +27,7 @@
   },
   "changePasswordPage": {
     "title": "Ubah kata sandi",
+    "notASignIn": "Kata sandi bukan metode masuk. Masuk dengan dompet Anda.",
     "securityWarning": "Demi keamanan akun, setelah mengubah kata sandi, penarikan on-chain, transfer internal, penarikan fiat, transaksi FDM Card, trading P2P, dan iklan akan ditangguhkan selama 24 jam.",
     "oldPassword": "Kata sandi lama",
     "oldPasswordPlaceholder": "Masukkan kata sandi saat ini",

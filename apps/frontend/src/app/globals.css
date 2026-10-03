@@ -139,10 +139,15 @@
   .dashboard-page-wrap {
     padding-inline: var(--dashboard-page-x);
     padding-block: var(--dashboard-page-y);
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
   }
   .dashboard-stack {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--dashboard-section-gap);
+    min-width: 0;
   }
   .dashboard-card {
     border-radius: var(--dashboard-card-radius);

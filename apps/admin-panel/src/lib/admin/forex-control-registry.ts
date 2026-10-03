@@ -44,6 +44,7 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
       { id: 'demo_funding', label: 'Demo funding API', description: 'Allow demo ledger credits', kind: 'toggle', phase: 'F3', wired: true },
       { id: 'funding_test_api', label: 'Funding test API', description: 'Ops-only funding test header', kind: 'toggle', phase: 'F3', wired: true },
       { id: 'execution_test_api', label: 'Execution test API', description: 'Simulated test execution endpoint', kind: 'toggle', phase: 'F3', wired: true },
+      { id: 'forex_kyc_required', label: 'Forex KYC required', description: 'When on, live Forex applications require approved platform KYC. Crypto KYC is unchanged.', kind: 'toggle', phase: 'F3', wired: true },
       { id: 'order_types_policy', label: 'Customer order types', description: 'market / limit / stop / stop_limit', kind: 'select', phase: 'F4', wired: false },
       { id: 'tif_policy', label: 'Time in force', description: 'GTC / IOC / FOK / DAY', kind: 'select', phase: 'F4', wired: false },
     ],

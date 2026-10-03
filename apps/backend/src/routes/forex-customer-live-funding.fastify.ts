@@ -16,6 +16,7 @@ import {
 import { buildLiveForexReadiness } from '../services/forex/customer/live-funding-readiness.js';
 import { getForexBrokerCredentialsProvider } from '../services/forex/customer/live-account-provider.registry.js';
 import { getPlatformKycSnapshot } from '../services/forex/customer/platform-kyc.js';
+import { isForexKycRequired } from '../services/forex/customer/forex-kyc-policy.service.js';
 import {
   listForexAccountsForUser,
   userOwnsForexAccount,
@@ -242,10 +243,12 @@ export async function registerForexCustomerLiveFundingRoutes(app: FastifyInstanc
     }
     const readiness = await buildLiveForexReadiness();
     const kyc = await getPlatformKycSnapshot(userId);
+    const kycRequired = await isForexKycRequired();
     return reply.send({
       success: true,
       data: {
         source: 'SIMULATED',
+        kycRequired,
         kycVerified: kyc.verified,
         kycStatus: kyc.status,
         liveAccountOpeningAvailable: readiness.capabilities.liveAccountProvisioning,

@@ -30,7 +30,7 @@
   },
   "deposit": {
     "title": "充值加密货币",
-    "description": "从外部钱包向资金账户充值。选择币种、网络后复制充值地址。",
+    "description": "从外部钱包向资金账户充值。选择币种、网络后复制交易所充值地址。该地址不是您的登录钱包，登录签名不会转移资金。",
     "buyWithFiat": "法币购买 (P2P)",
     "step1": "选择充值币种",
     "step2": "选择网络",
@@ -233,8 +233,9 @@
     "typeTransfer": "划转"
   },
   "overview": {
-    "title": "资产总览",
-    "totalBalance": "总余额",
+    "title": "加密与法币",
+    "totalBalance": "加密与法币合计",
+    "totalBalanceScope": "资金、现货与法币，按显示货币计价。不包含外汇净值。",
     "toggleBalanceAria": "切换余额显示",
     "approxBtc": "≈ {amount} BTC",
     "pnlPeriod": "{period} 盈亏",
