@@ -17298,6 +17298,12 @@ export default async function adminRoutes(app: FastifyInstance) {
   // API SETTINGS MANAGEMENT
   // ============================================
 
+  function redactApiSettingRow(row: Record<string, unknown> | undefined) {
+    if (!row) return row;
+    const { api_secret, ...rest } = row;
+    return { ...rest, api_secret: null, has_secret: Boolean(api_secret) };
+  }
+
   /**
    * GET /admin/settings/api
    * Get API settings by category
@@ -17437,7 +17443,7 @@ export default async function adminRoutes(app: FastifyInstance) {
 
       return reply.send({
         success: true,
-        data: { setting: result.rows[0] },
+        data: { setting: redactApiSettingRow(result.rows[0] as Record<string, unknown>) },
       });
     } catch (error) {
       logger.error('Error saving API setting', { error: error instanceof Error ? error.message : String(error) });
@@ -17594,7 +17600,7 @@ export default async function adminRoutes(app: FastifyInstance) {
 
       return reply.send({
         success: true,
-        data: { setting: result.rows[0] },
+        data: { setting: redactApiSettingRow(result.rows[0] as Record<string, unknown>) },
       });
     } catch (error) {
       logger.error('Error updating API setting', { error: error instanceof Error ? error.message : String(error) });
