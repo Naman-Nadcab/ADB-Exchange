@@ -17,7 +17,7 @@ import {
 import { forexApi, unwrap, type ForexAccountHubPayload } from '@/lib/forex/api/client';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { FOREX_PRODUCT } from '@/lib/forex/brand';
-import { useForexWalletKyc } from '@/lib/forex/hooks/useForexWalletKyc';
+import { useForexLiveKycPolicy } from '@/lib/forex/hooks/useForexLiveKycPolicy';
 import { useForexProductGates } from '@/lib/forex/hooks/useForexProductGates';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { hydrateForexPrivate, switchForexActiveAccount, syncForexAccountsFromServer } from '@/lib/forex/runtime/hydrate';
@@ -34,7 +34,7 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
   const storeFees = useForexStore((s) => s.fees);
   const storeSwaps = useForexStore((s) => s.swaps);
   const { gates } = useForexProductGates();
-  const kyc = useForexWalletKyc();
+  const kycPolicy = useForexLiveKycPolicy();
 
   const [hub, setHub] = useState<ForexAccountHubPayload | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -75,8 +75,12 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
     const items: Array<{ key: string; done: boolean; label: string }> = [];
     items.push({
       key: 'identity',
-      done: kyc.verified,
-      label: kyc.verified ? t('readinessIdentityDone') : t('readinessIdentityPending'),
+      done: !kycPolicy.kycRequired || kycPolicy.kycVerified,
+      label: !kycPolicy.kycRequired
+        ? t('readinessIdentityOptional')
+        : kycPolicy.kycVerified
+          ? t('readinessIdentityDone')
+          : t('readinessIdentityPending'),
     });
     items.push({
       key: 'account',
@@ -86,7 +90,7 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
     if (gates.liveAccountEnabled) {
       items.push({
         key: 'live',
-        done: !isDemo && kyc.verified,
+        done: !isDemo && (!kycPolicy.kycRequired || kycPolicy.kycVerified),
         label: t('readinessLiveEligible'),
       });
       items.push({
@@ -98,7 +102,7 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
       items.push({ key: 'live-off', done: false, label: t('readinessLiveOff') });
     }
     return items;
-  }, [gates.liveAccountEnabled, gates.realFundingEnabled, isDemo, kyc.verified, m?.accountId, t]);
+  }, [gates.liveAccountEnabled, gates.realFundingEnabled, isDemo, kycPolicy.kycRequired, kycPolicy.kycVerified, m?.accountId, t]);
 
   async function onSwitchHere() {
     if (busy) return;
@@ -256,7 +260,7 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
             </li>
           ))}
         </ul>
-        {!kyc.verified && !kyc.loading ? (
+        {kycPolicy.kycRequired && !kycPolicy.kycVerified && !kycPolicy.loading ? (
           <Link href={ROUTES.dashboard.identity} className="mt-3 inline-block text-[12px] font-semibold text-primary underline-offset-2 hover:underline">
             {t('readinessKycCta')}
           </Link>

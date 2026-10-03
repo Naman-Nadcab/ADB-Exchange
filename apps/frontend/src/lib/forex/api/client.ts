@@ -152,7 +152,9 @@ export const forexApi = {
       realForex: boolean;
       liveAccountOpeningAvailable: boolean;
       applicationAccepted?: boolean;
+      kycRequired?: boolean;
       kycVerified?: boolean;
+      kycStatus?: string;
       blockers?: string[];
       reason: string;
       message: string;

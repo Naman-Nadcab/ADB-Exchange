@@ -1,59 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/lib/routes';
-import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { ForexPortalModuleCard, ForexPortalStatusBadge } from './ForexPortalKpiCard';
 import { useForexProductGates } from '@/lib/forex/hooks/useForexProductGates';
+import { useForexLiveKycPolicy } from '@/lib/forex/hooks/useForexLiveKycPolicy';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
 
-type KycSnapshot = { verified: boolean; status: string } | null;
-
 export function ForexCustomerGuidanceBanner() {
   const t = useTranslations('forex.customerGuidance');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const accessToken = useAuthStore((s) => s.accessToken);
   const authed = isAuthenticated || hasForexPrivateSession();
   const accounts = useForexStore((s) => s.forexAccounts);
   const account = useForexStore((s) => s.account);
   const balance = useForexStore((s) => s.balance);
   const { gates } = useForexProductGates();
-  const [kyc, setKyc] = useState<KycSnapshot>(null);
-  const [kycLoading, setKycLoading] = useState(false);
-
-  useEffect(() => {
-    if (!authed) {
-      setKyc(null);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      setKycLoading(true);
-      try {
-        const res = await fetch(`${getApiBaseUrl()}/api/v1/wallet/kyc-status`, {
-          credentials: 'include',
-          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-        });
-        if (!res.ok || cancelled) return;
-        const data = await res.json();
-        if (data.success && data.data) {
-          setKyc({ verified: Boolean(data.data.verified), status: String(data.data.status ?? 'unknown') });
-        }
-      } catch {
-        if (!cancelled) setKyc(null);
-      } finally {
-        if (!cancelled) setKycLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [authed, accessToken]);
+  const kycPolicy = useForexLiveKycPolicy();
 
   if (!authed) return null;
 
@@ -92,7 +58,7 @@ export function ForexCustomerGuidanceBanner() {
       title: t('liveUnavailableTitle'),
       body: t('liveUnavailableBody'),
     });
-  } else if (kyc && !kyc.verified && !kycLoading) {
+  } else if (kycPolicy.kycRequired && !kycPolicy.kycVerified && !kycPolicy.loading) {
     items.push({
       key: 'kyc',
       tone: 'warning',
