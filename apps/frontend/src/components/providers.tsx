@@ -14,7 +14,27 @@ import { useTranslations } from 'next-intl';
 /** Zustand unblock fallback if persist is slow (AuthProvider /me still needs `_hasHydrated`). */
 const REHYDRATE_MAX_MS = 1200;
 
+function readPersistedAuth(): { user?: unknown; isAuthenticated?: boolean } | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem('auth-storage');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { state?: { user?: unknown; isAuthenticated?: boolean } };
+    return parsed.state ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function unblockAuthHydration() {
+  const persisted = readPersistedAuth();
+  const state = useAuthStore.getState();
+  if (!state.isAuthenticated && persisted?.isAuthenticated && persisted.user && typeof persisted.user === 'object') {
+    useAuthStore.setState({
+      user: persisted.user as NonNullable<typeof state.user>,
+      isAuthenticated: true,
+    });
+  }
   useAuthStore.getState().setHasHydrated(true);
   useAuthStore.getState().setLoading(false);
 }

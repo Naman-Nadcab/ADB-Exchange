@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { useAuthStore } from '@/store/auth';
 import Link from 'next/link';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { isCookieSessionMarker } from '@/lib/authSession';
 import { ORDERS_HREF, walletPath } from '@/lib/routes';
 import {
   Star,
@@ -203,17 +204,14 @@ export default function DashboardPage() {
     setAnnouncementsLoading(true);
     setAnnouncementsError(null);
     const url = getApiBaseUrl();
-    if (!url) {
-      setAnnouncementsLoading(false);
-      setAnnouncementsError('apiUrlNotConfigured');
-      return;
-    }
+    const bearer = accessToken && !isCookieSessionMarker(accessToken) ? accessToken : '';
     (async () => {
       const { ok, status, data } = await fetchJsonWithTimeout<{
         success?: boolean;
         data?: { announcements?: AnnouncementItem[] };
       }>(`${url}/api/v1/user/announcements?limit=5`, {
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        headers: bearer ? { Authorization: `Bearer ${bearer}` } : {},
+        credentials: 'include',
         timeoutMs: 12000,
       });
       if (cancelled) return;
@@ -240,11 +238,6 @@ export default function DashboardPage() {
     const url = getApiBaseUrl();
     setMarketsLoading(true);
     setMarketsLoadFailed(false);
-    if (!url) {
-      setMarketsLoading(false);
-      setMarketsLoadFailed(true);
-      return;
-    }
     (async () => {
       const { ok, status, data } = await fetchJsonWithTimeout<{
         success?: boolean;
