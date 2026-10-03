@@ -11,6 +11,7 @@ import {
   blacklistToken 
 } from '../middleware/auth.js';
 import { walletService } from './wallet.service.js';
+import { canUseLegacyPassword, LEGACY_DISABLED_MESSAGE } from './legacy-auth-policy.service.js';
 import { 
   User, 
   UserRole, 
@@ -711,6 +712,10 @@ class AuthService {
 
     if (!verification.userId) {
       throw new Error('Invalid reset request');
+    }
+
+    if (!(await canUseLegacyPassword(verification.userId))) {
+      throw new Error(LEGACY_DISABLED_MESSAGE);
     }
 
     // Validate new password

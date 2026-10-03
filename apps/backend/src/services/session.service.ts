@@ -8,6 +8,8 @@ import { db } from '../lib/database.js';
 import { redis } from '../lib/redis.js';
 import { logger } from '../lib/logger.js';
 
+export type SessionAuthMethod = 'password' | 'otp' | 'wallet' | 'passkey' | 'oauth' | 'legacy';
+
 export interface CreateSessionParams {
   userId: string;
   deviceId?: string | null;
@@ -15,6 +17,8 @@ export interface CreateSessionParams {
   ipAddress?: string | null;
   userAgent?: string | null;
   ttlSeconds?: number;
+  /** How this session was issued. Stored on the Redis session record, not in the JWT. */
+  authMethod?: SessionAuthMethod;
 }
 
 export interface SessionRow {
@@ -49,6 +53,7 @@ export async function createSession(params: CreateSessionParams): Promise<{
     ipAddress = null,
     userAgent = null,
     ttlSeconds = DEFAULT_TTL_SECONDS,
+    authMethod = 'legacy',
   } = params;
 
   const sessionId = uuidv4();
@@ -78,6 +83,7 @@ export async function createSession(params: CreateSessionParams): Promise<{
         isActive: true,
         createdAt: Date.now(),
         expiresAt: expiresAt.getTime(),
+        authMethod,
       },
       ttlSeconds
     );

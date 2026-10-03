@@ -25,6 +25,7 @@ import {
   type WalletAuditEvent,
 } from '../services/wallet-management.service.js';
 import { messageSha256 } from '../services/wallet-auth-verify.service.js';
+import { logCutoverEvent } from '../services/legacy-auth-policy.service.js';
 
 export const WALLET_MANAGE_USER_LIMIT = 10;
 export const WALLET_MANAGE_USER_WINDOW_SEC = 10 * 60;
@@ -218,6 +219,20 @@ export default async function walletManagementRoutes(app: FastifyInstance): Prom
         transaction: transaction(),
       });
       await audit(request, userId, result.audit, body.message);
+      if (!result.alreadyLinked) {
+        const legacy = await db.query<{ legacy: boolean }>(
+          `SELECT (email IS NOT NULL OR password_hash IS NOT NULL) AS legacy
+             FROM users WHERE id = $1 AND deleted_at IS NULL`,
+          [userId]
+        );
+        if (legacy.rows[0]?.legacy === true) {
+          logCutoverEvent('wallet_migration_completed', {
+            userId,
+            outcome: 'success',
+            ip: getClientIp(request),
+          });
+        }
+      }
       if (result.alreadyLinked) {
         return reply.status(409).send({
           success: false,

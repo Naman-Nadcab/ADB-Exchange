@@ -54,6 +54,8 @@ import walletLoginRoutes from './routes/auth-wallet-login.fastify.js';
 import walletManagementRoutes from './routes/auth-wallet-management.fastify.js';
 import walletRecoveryRoutes from './routes/auth-wallet-recovery.fastify.js';
 import adminWalletRecoveryRoutes from './routes/admin-wallet-recovery.fastify.js';
+import adminWalletMigrationRoutes from './routes/admin-wallet-migration.fastify.js';
+import authLegacyCutoverRoutes from './routes/auth-legacy-cutover.fastify.js';
 import tradingRoutes from './routes/trading.fastify.js';
 import p2pRoutes from './routes/p2p.fastify.js';
 import fiatRoutes from './routes/fiat.fastify.js';
@@ -975,6 +977,7 @@ export async function buildServer(): Promise<FastifyInstance> {
 
   // Register routes
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
+  await app.register(authLegacyCutoverRoutes, { prefix: '/api/v1/auth' });
   await app.register(oauthRoutes, { prefix: '/api/v1/auth' });
   await app.register(walletChallengeRoutes, { prefix: '/api/v1/auth' });
   await app.register(walletVerifyRoutes, { prefix: '/api/v1/auth' });
@@ -987,6 +990,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(userRoutes, { prefix: '/api/v1/user' });
   await app.register(adminRoutes, { prefix: '/api/v1/admin' });
   await app.register(adminWalletRecoveryRoutes, { prefix: '/api/v1/admin' });
+  await app.register(adminWalletMigrationRoutes, { prefix: '/api/v1/admin' });
   await app.register(adminAmlRoutes, { prefix: '/api/v1/admin' });
   await app.register(adminFiatRoutes, { prefix: '/api/v1/admin' });
   await app.register(adminSecurityRoutes, { prefix: '/api/v1/admin' });

@@ -58,6 +58,7 @@ export default function LoginPage() {
   const [passkeyLoading, setPasskeyLoading] = useState(false);
   const [passkeyAvailable, setPasskeyAvailable] = useState(false);
   const [showLegacy, setShowLegacy] = useState(false);
+  const [walletPrimary, setWalletPrimary] = useState(false);
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
@@ -67,6 +68,19 @@ export default function LoginPage() {
     const r = searchParams.get('redirect') || searchParams.get('returnUrl');
     if (r?.startsWith('/') && typeof sessionStorage !== 'undefined') sessionStorage.setItem('oauth_redirect', r);
   }, [searchParams]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${API}/api/v1/auth/wallet-cutover`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((body: { data?: { walletPrimary?: boolean } } | null) => {
+        if (!cancelled && body?.data?.walletPrimary) setWalletPrimary(true);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -337,6 +351,10 @@ export default function LoginPage() {
           </div>
 
           <WalletAuthPanel actionLabel={tw('signIn')} onSuccess={completeLogin} />
+
+          {walletPrimary && (
+            <p className="text-sm text-muted-foreground">{tw('walletPrimaryNote')}</p>
+          )}
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-accent" />

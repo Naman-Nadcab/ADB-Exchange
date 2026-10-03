@@ -175,6 +175,7 @@ export default async function walletLoginRoutes(app: FastifyInstance): Promise<v
           ipAddress: ip,
           userAgent: request.headers['user-agent'],
           ttlSeconds: SESSION_TTL_SECONDS,
+          authMethod: 'wallet',
         });
         sessionId = opened.sessionId;
       } catch (sessionError) {
