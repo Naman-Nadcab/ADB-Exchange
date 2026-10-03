@@ -15,7 +15,7 @@ export default function ForgotPasswordPage() {
   const tf = useTranslations('auth.forgot');
   const tw = useTranslations('auth.wallet');
   const { fromApi, networkUnreachable } = useApiErrorMessage();
-  const [legacyEntryAvailable, setLegacyEntryAvailable] = useState(true);
+  const [legacyEntryAvailable, setLegacyEntryAvailable] = useState<boolean | null>(null);
   const [step, setStep] = useState<Step>('request');
   const [identifier, setIdentifier] = useState('');
   const [identifierType, setIdentifierType] = useState<'email' | 'phone'>('email');
@@ -35,9 +35,11 @@ export default function ForgotPasswordPage() {
     fetch(`${API_URL}/api/v1/auth/wallet-cutover`)
       .then((response) => (response.ok ? response.json() : null))
       .then((body: { data?: { legacyEntryAvailable?: boolean } } | null) => {
-        if (!cancelled && body?.data?.legacyEntryAvailable === false) setLegacyEntryAvailable(false);
+        if (!cancelled) setLegacyEntryAvailable(body?.data?.legacyEntryAvailable === true);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) setLegacyEntryAvailable(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -186,7 +188,7 @@ export default function ForgotPasswordPage() {
           {tf('backToLogin')}
         </Link>
         <div className="bg-card rounded-xl shadow-xl border border-border p-8">
-          {!legacyEntryAvailable ? (
+          {legacyEntryAvailable !== true ? (
             <div className="space-y-4">
               <h1 className="text-2xl font-bold text-foreground">{tf('requestTitle')}</h1>
               <p className="text-muted-foreground">{tw('forgotClosed')}</p>

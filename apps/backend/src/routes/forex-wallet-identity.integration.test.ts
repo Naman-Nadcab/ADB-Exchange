@@ -1041,6 +1041,24 @@ async function run(): Promise<void> {
   anon.ws.close();
   console.log('PASS 38 Forex websocket identity is the Forex account and private events stay there');
 
+  const { setCutoverMode } = await import('../services/legacy-auth-policy.service.js');
+  await setCutoverMode('WALLET_ONLY', 'step14-forex');
+  const onlyLogin = await walletLogin(existingWalletA);
+  assert.equal(onlyLogin.status, 200, onlyLogin.body);
+  assert.equal(onlyLogin.userId, EXISTING_USER);
+  const onlyAccounts = await authed('GET', '/api/v1/forex/accounts', onlyLogin.token);
+  assert.equal(onlyAccounts.statusCode, 200, brief(onlyAccounts));
+  assert.equal(onlyAccounts.body.includes(EXISTING_USER), true);
+  assert.equal(onlyAccounts.body.toLowerCase().includes(existingWalletA.address.toLowerCase()), false);
+  const onlyPassword = await app.inject({
+    method: 'POST',
+    url: '/api/v1/auth/login/password',
+    payload: { email: existingEmail, password: LEGACY_PASSWORD },
+  });
+  assert.equal(onlyPassword.statusCode, 403, brief(onlyPassword));
+  await setCutoverMode('LEGACY_AND_WALLET', 'step14-forex');
+  console.log('PASS wallet-only policy keeps Forex on users.id and denies password login');
+
   await app.close();
   await pool.end();
   await rateRedis.quit();

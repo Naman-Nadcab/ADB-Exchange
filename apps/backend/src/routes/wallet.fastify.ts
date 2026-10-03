@@ -2656,7 +2656,8 @@ export default async function walletRoutes(app: FastifyInstance) {
         requiresWithdrawalApproval(withdrawAmountDec.toString(), {
           is_high_risk: token.is_high_risk,
         });
-      const initialStatus = needsApproval ? 'pending_approval' : 'pending';
+      const { initialOnchainWithdrawalStatus } = await import('../services/withdrawal-email-policy.js');
+      const initialStatus = initialOnchainWithdrawalStatus(needsApproval);
       const initialTreasuryStage = needsApproval ? 'pending' : 'checker_approved';
 
       // 6. Create withdrawal record and lock balance atomically (on-chain). No record exists if any prior step blocked.
@@ -3004,13 +3005,16 @@ export default async function walletRoutes(app: FastifyInstance) {
       if (!wRow.rows[0]) return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Withdrawal not found' } });
       if (wRow.rows[0].user_id !== userId) return reply.status(403).send({ success: false, error: { code: 'FORBIDDEN', message: 'Not your withdrawal' } });
       if (wRow.rows[0].email_verified) return reply.send({ success: true, data: { message: 'Already verified' } });
-      if (!['pending_email_verify', 'pending'].includes(wRow.rows[0].status)) {
+      if (wRow.rows[0].status !== 'pending_email_verify') {
         return reply.status(400).send({ success: false, error: { code: 'INVALID_STATUS', message: 'Withdrawal is not awaiting email verification' } });
       }
 
-      const userRow = await db.query<{ email: string }>(`SELECT email FROM users WHERE id = $1`, [userId]);
+      const userRow = await db.query<{ email: string | null }>(`SELECT email FROM users WHERE id = $1`, [userId]);
       const email = userRow.rows[0]?.email;
-      if (!email) return reply.status(400).send({ success: false, error: { code: 'NO_EMAIL', message: 'No email on account' } });
+      const { withdrawalCanUseEmailOtp } = await import('../services/withdrawal-email-policy.js');
+      if (!withdrawalCanUseEmailOtp(wRow.rows[0].status, email) || !email) {
+        return reply.status(400).send({ success: false, error: { code: 'NO_EMAIL', message: 'No email on account' } });
+      }
 
       const otpCode = String(Math.floor(100000 + Math.random() * 900000));
       const redisKey = `withdrawal:email:otp:${withdrawalId}`;
@@ -3055,6 +3059,9 @@ export default async function walletRoutes(app: FastifyInstance) {
       if (!wRow.rows[0]) return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Withdrawal not found' } });
       if (wRow.rows[0].user_id !== userId) return reply.status(403).send({ success: false, error: { code: 'FORBIDDEN', message: 'Not your withdrawal' } });
       if (wRow.rows[0].email_verified) return reply.send({ success: true, data: { message: 'Already verified', status: wRow.rows[0].status } });
+      if (wRow.rows[0].status !== 'pending_email_verify') {
+        return reply.status(400).send({ success: false, error: { code: 'INVALID_STATUS', message: 'Withdrawal is not awaiting email verification' } });
+      }
 
       const redisKey = `withdrawal:email:otp:${withdrawalId}`;
       const storedOtp = await redis.get(redisKey);

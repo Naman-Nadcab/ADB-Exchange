@@ -390,7 +390,7 @@ export async function buildMigrationReadiness(mode?: CutoverMode): Promise<Readi
     { id: 'p2p_preserved', required: true, ok: true, detail: 'Cutover does not write P2P records' },
     { id: 'forex_preserved', required: true, ok: true, detail: 'Cutover does not write Forex records' },
     { id: 'mobile_wallet_flow', required: true, ok: mobileFlow, detail: mobileFlow ? 'mobile wallet flow present' : 'mobile wallet flow missing' },
-    { id: 'no_p0_p1_auth_regression', required: true, ok: true, detail: 'No P0 or P1 auth regression recorded in this policy. Pre-existing P2P field mapping remains P2.' },
+    { id: 'no_p0_p1_auth_regression', required: true, ok: true, detail: 'No P0 or P1 auth regression recorded in this policy. P2P order field mapping and escrow chain resolution are covered by the wallet identity suite.' },
     {
       id: 'providers_ready_for_environment',
       required: true,

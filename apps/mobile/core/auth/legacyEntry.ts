@@ -1,6 +1,6 @@
-/** Server public cutover view. Missing data stays open; an explicit false closes legacy login. */
+/** Legacy customer login is shown only when the server explicitly leaves it open. */
 export function legacyCustomerEntryAvailable(
   view: { legacyEntryAvailable?: boolean } | null | undefined,
 ): boolean {
-  return view?.legacyEntryAvailable !== false;
+  return view?.legacyEntryAvailable === true;
 }

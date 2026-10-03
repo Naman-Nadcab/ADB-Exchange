@@ -53,7 +53,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [countdown, setCountdown] = useState(0);
-  const [legacyEntryAvailable, setLegacyEntryAvailable] = useState(true);
+  const [legacyEntryAvailable, setLegacyEntryAvailable] = useState<boolean | null>(null);
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
@@ -68,11 +68,17 @@ export default function SignupPage() {
     fetch(`${API}/api/v1/auth/wallet-cutover`)
       .then((response) => (response.ok ? response.json() : null))
       .then((body: { data?: { legacyEntryAvailable?: boolean } } | null) => {
-        if (cancelled || body?.data?.legacyEntryAvailable !== false) return;
-        setLegacyEntryAvailable(false);
-        setStep('choose');
+        if (cancelled) return;
+        const legacyOpen = body?.data?.legacyEntryAvailable === true;
+        setLegacyEntryAvailable(legacyOpen);
+        if (!legacyOpen) setStep('choose');
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) {
+          setLegacyEntryAvailable(false);
+          setStep('choose');
+        }
+      });
     return () => {
       cancelled = true;
     };
@@ -234,7 +240,7 @@ export default function SignupPage() {
   return (
     <AuthSplitLayout showMarketingLogo>
       {/* Step progress */}
-      {legacyEntryAvailable && (
+      {legacyEntryAvailable === true && (
       <div className="flex gap-2 mb-6">
         {steps.map((s, i) => (
           <div key={s} className={`flex-1 h-1 rounded-full transition-colors ${i <= stepIndex ? 'bg-primary' : 'bg-accent'}`} aria-hidden />
@@ -276,7 +282,7 @@ export default function SignupPage() {
             }}
           />
 
-          {legacyEntryAvailable && (
+          {legacyEntryAvailable === true && (
           <>
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-accent" />
@@ -308,7 +314,7 @@ export default function SignupPage() {
           </>
           )}
 
-          {!legacyEntryAvailable && (
+          {legacyEntryAvailable !== true && (
             <p className="text-sm text-muted-foreground">{tw('walletOnlyNote')}</p>
           )}
 
@@ -319,7 +325,7 @@ export default function SignupPage() {
         </div>
       )}
 
-      {legacyEntryAvailable && step === 'email' && (
+      {legacyEntryAvailable === true && step === 'email' && (
         <form onSubmit={(e) => { e.preventDefault(); sendOtp(); }} className="space-y-5">
           <button type="button" onClick={() => setStep('choose')} className="text-primary hover:underline text-sm font-medium flex items-center gap-1">{ts('back')}</button>
           <div>
@@ -348,7 +354,7 @@ export default function SignupPage() {
         </form>
       )}
 
-      {legacyEntryAvailable && step === 'otp' && (
+      {legacyEntryAvailable === true && step === 'otp' && (
         <form ref={formRef} onSubmit={(e) => { e.preventDefault(); verifyOtp(otp.join('')); }} className="space-y-5">
           <button type="button" onClick={() => setStep('email')} className="text-primary hover:underline text-sm font-medium flex items-center gap-1">{ts('back')}</button>
           <div>
@@ -385,7 +391,7 @@ export default function SignupPage() {
         </form>
       )}
 
-      {legacyEntryAvailable && step === 'password' && (
+      {legacyEntryAvailable === true && step === 'password' && (
         <form onSubmit={(e) => { e.preventDefault(); completeSignup(); }} className="space-y-5">
           <div>
             <h1 className="text-2xl font-bold text-foreground">{ts('passwordTitle')}</h1>

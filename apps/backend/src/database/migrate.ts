@@ -5301,6 +5301,21 @@ CREATE INDEX IF NOT EXISTS idx_wallet_auth_challenges_user_id
 COMMENT ON TABLE wallet_auth_challenges IS
   'Single-use SIWE/SIWS challenges. nonce is unique. consumed_at NULL means unused. Not a session and not a bearer token.';
 `,
+
+  // P2P orders store the customer's saved payout method. The application writes
+  // user_p2p_payment_methods.id. Older dumps pointed this foreign key at payment_methods.
+  `DO $$
+BEGIN
+  IF to_regclass('public.p2p_orders') IS NULL OR to_regclass('public.user_p2p_payment_methods') IS NULL THEN
+    RETURN;
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'p2p_orders_payment_method_id_fkey') THEN
+    ALTER TABLE p2p_orders DROP CONSTRAINT p2p_orders_payment_method_id_fkey;
+  END IF;
+  ALTER TABLE p2p_orders
+    ADD CONSTRAINT p2p_orders_payment_method_id_fkey
+    FOREIGN KEY (payment_method_id) REFERENCES user_p2p_payment_methods(id);
+END $$;`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

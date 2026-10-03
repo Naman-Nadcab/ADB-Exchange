@@ -25,6 +25,36 @@ function toAmount(amount: string): string {
   return new Decimal(amount).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN).toString();
 }
 
+/**
+ * Escrow is locked on the funding row that actually holds escrow_balance.
+ * moveToEscrow prefers the token chain and falls back to the global row.
+ * Release and refund must debit that same row. A hard-coded global chain
+ * misses token-chain escrow and fails the balance update.
+ */
+async function lockEscrowFundingChain(
+  client: PoolClient,
+  userId: string,
+  currencyId: string,
+  amountStr: string
+): Promise<string> {
+  const found = await client.query<{ chain_id: string }>(
+    `SELECT COALESCE(chain_id, '') AS chain_id
+     FROM user_balances
+     WHERE user_id = $1
+       AND currency_id = $2
+       AND account_type = 'funding'
+       AND COALESCE(escrow_balance, 0) >= $3::numeric
+     ORDER BY COALESCE(escrow_balance, 0) DESC, COALESCE(chain_id, '') ASC
+     LIMIT 1
+     FOR UPDATE`,
+    [userId, currencyId, amountStr]
+  );
+  if (found.rows.length === 0) {
+    throw new Error('escrow funding row not found');
+  }
+  return found.rows[0]!.chain_id;
+}
+
 export interface MoveToEscrowResult {
   escrowId: string;
 }
@@ -220,8 +250,7 @@ export async function releaseFromEscrow(
   const currencyId = row.currency_id;
   const amountStr = toAmount(row.amount);
 
-  const chainId = CHAIN_ID_GLOBAL;
-  await ensureUserBalanceRow(sellerId, currencyId, chainId, 'funding', client);
+  const chainId = await lockEscrowFundingChain(client, sellerId, currencyId, amountStr);
   await ensureUserBalanceRow(buyerId, currencyId, chainId, 'funding', client);
 
   const sellerSel = await client.query<{ escrow_balance: string | null }>(
@@ -330,8 +359,7 @@ export async function refundFromEscrow(
   const currencyId = row.currency_id;
   const amountStr = toAmount(row.amount);
 
-  const chainId = CHAIN_ID_GLOBAL;
-  await ensureUserBalanceRow(sellerId, currencyId, chainId, 'funding', client);
+  const chainId = await lockEscrowFundingChain(client, sellerId, currencyId, amountStr);
 
   const sellerSel = await client.query<{ escrow_balance: string | null; available_balance: string }>(
     `SELECT escrow_balance::text AS escrow_balance, available_balance::text AS available_balance FROM user_balances

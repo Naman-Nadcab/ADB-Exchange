@@ -38,7 +38,8 @@ describe('mobile legacy auth follows the server', () => {
   });
 
   it('hides legacy buttons only when the server closes them', () => {
-    expect(legacyCustomerEntryAvailable(undefined)).toBe(true);
+    expect(legacyCustomerEntryAvailable(undefined)).toBe(false);
+    expect(legacyCustomerEntryAvailable({})).toBe(false);
     expect(legacyCustomerEntryAvailable({ legacyEntryAvailable: true })).toBe(true);
     expect(legacyCustomerEntryAvailable({ legacyEntryAvailable: false })).toBe(false);
   });

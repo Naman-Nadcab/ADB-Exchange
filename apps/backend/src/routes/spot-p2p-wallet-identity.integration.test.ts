@@ -519,41 +519,18 @@ async function run(): Promise<void> {
   });
   assert.equal(otherPm.statusCode, 201, brief(otherPm));
   const ordersBeforeCreate = await count(`SELECT count(*)::int AS n FROM p2p_orders WHERE ad_id = $1`, [adId]);
+  const otherPmBody = otherPm.json() as { data?: { id?: string } };
   const p2pOrder = await authed('POST', '/api/v1/p2p/orders', other.token, {
     adId,
     quantity: '1',
-    paymentMethodId,
+    paymentMethodId: otherPmBody.data?.id,
   }, { 'idempotency-key': crypto.randomUUID() });
-  const createMapped = p2pOrder.statusCode === 400 && p2pOrder.body.includes('Invalid argument: undefined');
-  if (p2pOrder.statusCode === 201) {
-    console.log('PASS 4 P2P order create stored buyer and seller through the service');
-  } else {
-    assert.equal(createMapped, true, brief(p2pOrder));
-    assert.equal(await count(`SELECT count(*)::int AS n FROM p2p_orders WHERE ad_id = $1`, [adId]), ordersBeforeCreate);
-    console.log('PRE-EXISTING P2P createOrder reads minAmount while Postgres returns min_amount; no order row was written');
-  }
-  const adToken = await pool.query<{ token_id: string }>(`SELECT token_id FROM p2p_ads WHERE id = $1`, [adId]);
-  const escrowIns = await pool.query<{ id: string }>(
-    `INSERT INTO escrows (user_id, token_id, currency_id, amount, status)
-     VALUES ($1, $2, $3, 1, 'locked') RETURNING id`,
-    [native.userId, adToken.rows[0]!.token_id, usdtId]
-  );
-  const legacyPm = await pool.query<{ id: string }>(
-    `INSERT INTO payment_methods (user_id, type, name, details_encrypted, is_active, created_at, updated_at)
-     VALUES ($1, 'bank_transfer', 'Bank account', 'isolated-bank-fixture', TRUE, NOW(), NOW())
-     RETURNING id`,
-    [other.userId]
-  );
-  assert.equal(legacyPm.rows[0]!.id === walletOther.address, false);
-  const orderIns = await pool.query<{ id: string }>(
-    `INSERT INTO p2p_orders (
-       ad_id, buyer_id, seller_id, token_id, fiat_currency, price, quantity, fiat_amount,
-       payment_method_id, escrow_id, status, expires_at
-     ) VALUES ($1, $2, $3, $4, 'USD', 1, 1, 1, $5, $6, 'payment_pending', NOW() + INTERVAL '15 minutes')
-     RETURNING id`,
-    [adId, other.userId, native.userId, adToken.rows[0]!.token_id, legacyPm.rows[0]!.id, escrowIns.rows[0]!.id]
-  );
-  const p2pOrderId = (p2pOrder.json() as { data?: { id?: string } }).data?.id || orderIns.rows[0]!.id;
+  assert.equal(p2pOrder.body.includes('Invalid argument: undefined'), false, brief(p2pOrder));
+  assert.equal(p2pOrder.statusCode, 201, brief(p2pOrder));
+  assert.equal(await count(`SELECT count(*)::int AS n FROM p2p_orders WHERE ad_id = $1`, [adId]) > ordersBeforeCreate, true);
+  console.log('PASS 4 P2P order create stored buyer and seller through the service');
+  const p2pOrderId = (p2pOrder.json() as { data?: { id?: string } }).data?.id ?? '';
+  assert.match(p2pOrderId, UUID_RE);
   const parties = await pool.query<{ buyer_id: string; seller_id: string; escrow_id: string }>(
     `SELECT buyer_id::text, seller_id::text, escrow_id::text FROM p2p_orders WHERE id = $1`,
     [p2pOrderId]
@@ -620,14 +597,9 @@ async function run(): Promise<void> {
     [parties.rows[0]!.escrow_id]
   );
   assert.equal(escrowAfter.rows[0]?.user_id, native.userId);
-  if (ownerCancel.statusCode === 200) {
-    assert.equal(escrowAfter.rows[0]?.status, 'refunded');
-    console.log('PASS P2P cancel refund stays on seller users.id');
-  } else {
-    assert.equal(ownerCancel.body.includes('Not authorized') || ownerCancel.body.includes('CANCEL_FAILED'), true, brief(ownerCancel));
-    assert.equal(escrowAfter.rows[0]?.status, 'locked');
-    console.log('PRE-EXISTING P2P cancelOrder compares buyerId while Postgres returns buyer_id; cancel is fail-closed and escrow user_id stays the seller');
-  }
+  assert.equal(ownerCancel.statusCode, 200, brief(ownerCancel));
+  assert.equal(escrowAfter.rows[0]?.status, 'refunded');
+  console.log('PASS P2P cancel refund stays on seller users.id');
 
   const [burstA, burstB] = await Promise.all([
     placeLimit(secondaryLogin.token, `step9-burst-a-${crypto.randomUUID()}`),
@@ -903,6 +875,22 @@ async function run(): Promise<void> {
   assert.equal(crossed.rows[0]?.balances, 0);
   assert.equal(crossed.rows[0]?.forex, 0);
   console.log('PASS wallet address is not stored as a financial owner');
+
+  const { setCutoverMode } = await import('../services/legacy-auth-policy.service.js');
+  await setCutoverMode('WALLET_ONLY', 'step14-spot');
+  const onlyLogin = await walletLogin(existingWalletA);
+  assert.equal(onlyLogin.userId, EXISTING_USER);
+  const onlyOrders = await authed('GET', '/api/v1/spot/orders?status=ALL', onlyLogin.token);
+  assert.equal(onlyOrders.statusCode, 200, brief(onlyOrders));
+  await clearLimits();
+  const onlyPassword = await app.inject({
+    method: 'POST',
+    url: '/api/v1/auth/login/password',
+    payload: { email: existingEmail, password: LEGACY_PASSWORD },
+  });
+  assert.equal(onlyPassword.statusCode, 403, brief(onlyPassword));
+  await setCutoverMode('LEGACY_AND_WALLET', 'step14-spot');
+  console.log('PASS wallet-only policy keeps Spot on users.id and denies password login');
 
   for (const table of preserved) {
     assert.equal(await tableCount(table), beforePreserved[table], `${table} changed`);

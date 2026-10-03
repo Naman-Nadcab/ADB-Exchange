@@ -534,31 +534,44 @@ class P2PService {
         }
 
         const ad = adResult.rows[0]!;
+        const adRowRaw = ad as unknown as Record<string, unknown>;
+        const textField = (camel: string, snake: string): string => {
+          const value = adRowRaw[camel] ?? adRowRaw[snake];
+          return value == null ? '' : String(value);
+        };
+        const adUserId = textField('userId', 'user_id');
+        const minAmount = textField('minAmount', 'min_amount');
+        const maxAmount = textField('maxAmount', 'max_amount');
+        const availableAmount = textField('availableAmount', 'available_amount') || '0';
+        const adTokenId = textField('tokenId', 'token_id') || textField('cryptoCurrencyId', 'crypto_currency_id');
 
         if (ad.status !== P2PAdStatus.ACTIVE) {
           throw new Error('Ad is not active');
         }
 
-        const avail = (ad as { availableAmount?: string }).availableAmount ?? (ad as { available_amount?: string }).available_amount ?? '0';
+        const avail = availableAmount;
         if (new Decimal(avail).lessThanOrEqualTo(0)) {
           throw new Error('Ad has no available amount');
         }
 
-        if (ad.userId === userId) {
+        if (adUserId === userId) {
           throw new Error('Cannot trade with your own ad');
         }
 
         const qtyDec = new Decimal(quantity);
-        if (qtyDec.lessThan(ad.minAmount) || qtyDec.greaterThan(ad.maxAmount)) {
-          throw new Error(`Amount must be between ${ad.minAmount} and ${ad.maxAmount}`);
+        if (!minAmount || !maxAmount) {
+          throw new Error('Ad is missing amount limits');
+        }
+        if (qtyDec.lessThan(minAmount) || qtyDec.greaterThan(maxAmount)) {
+          throw new Error(`Amount must be between ${minAmount} and ${maxAmount}`);
         }
 
-        if (qtyDec.greaterThan(ad.availableAmount)) {
+        if (qtyDec.greaterThan(availableAmount)) {
           throw new Error('Insufficient available amount');
         }
 
-        const buyerId = ad.type === P2PAdType.SELL ? userId : ad.userId;
-        const sellerId = ad.type === P2PAdType.SELL ? ad.userId : userId;
+        const buyerId = ad.type === P2PAdType.SELL ? userId : adUserId;
+        const sellerId = ad.type === P2PAdType.SELL ? adUserId : userId;
 
         const userPm = await client.query<{ id: string; is_active: boolean | null }>(
           'SELECT id, is_active FROM user_p2p_payment_methods WHERE id = $1 AND user_id = $2',
@@ -646,7 +659,7 @@ class P2PService {
         await assertP2PTradeTierLimitsInTransaction(client, buyerId, sellerId, fiatInrApprox);
 
         // PHASE-11: Dedicated escrow. Move seller's available -> escrow_balance (not locked_balance).
-        const tokenId = (ad as { tokenId?: string }).tokenId ?? (ad as { crypto_currency_id?: string }).crypto_currency_id;
+        const tokenId = adTokenId;
         if (!tokenId) throw new Error('Ad missing token/crypto currency');
         const { escrowId } = await moveToEscrow(sellerId, tokenId, quantity, null, client);
 
@@ -1046,7 +1059,8 @@ class P2PService {
         throw new Error('Cannot cancel order in current status');
       }
 
-      if (order.buyerId !== userId && order.sellerId !== userId) {
+      const { buyerId, sellerId } = rowUserIds(order);
+      if (buyerId !== userId && sellerId !== userId) {
         throw new Error('Not authorized to cancel this order');
       }
 

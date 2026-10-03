@@ -16,6 +16,7 @@ type WalletMode = {
   loginCode?: string;
   abortLogin?: boolean;
   userId?: string;
+  cutover?: 'open' | 'wallet-only' | 'failed';
 };
 
 function fakeJwt(): string {
@@ -247,6 +248,26 @@ async function installApi(page: Page, mode: WalletMode = {}) {
       });
       return;
     }
+    if (url.includes('/api/v1/auth/wallet-cutover')) {
+      if (mode.cutover === 'failed') {
+        await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ success: false }) });
+        return;
+      }
+      const walletOnly = mode.cutover === 'wallet-only';
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            mode: walletOnly ? 'WALLET_ONLY' : 'LEGACY_AND_WALLET',
+            walletPrimary: walletOnly,
+            legacyEntryAvailable: !walletOnly,
+          },
+        }),
+      });
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -458,6 +479,25 @@ test('legacy password, OTP, and passkey entry remain available', async ({ page }
   for (let i = 0; i < 6; i += 1) await digits.nth(i).fill(String(i + 1));
   await page.waitForFunction(() => window.location.pathname === '/', null, { timeout: 20_000 });
   await expect(page.getByRole('heading', { name: 'Customer command center' })).toBeVisible();
+});
+
+test('wallet-only and a failed cutover fetch hide legacy login', async ({ page }) => {
+  await installApi(page, { cutover: 'wallet-only' });
+  await openLogin(page);
+  await expect(page.getByRole('button', { name: 'Sign in with your wallet' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Use email / phone instead' })).toHaveCount(0);
+  await expect(page.getByLabel('Email address')).toHaveCount(0);
+  await expect(page.getByRole('textbox', { name: 'Password' })).toHaveCount(0);
+  await page.unroute('**/api/v1/**');
+  await installApi(page, { cutover: 'failed' });
+  await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('button', { name: 'Sign in with your wallet' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Use email / phone instead' })).toHaveCount(0);
+  await page.goto('/signup', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('button', { name: 'Sign up with Google' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Email' })).toHaveCount(0);
+  await page.goto('/forgot-password', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByLabel('Email address')).toHaveCount(0);
 });
 
 test('passkey control still reaches the existing options request', async ({ page }) => {

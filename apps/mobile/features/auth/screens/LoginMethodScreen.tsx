@@ -17,16 +17,18 @@ export function LoginMethodScreen({ navigation }: Props) {
   const { theme } = useTheme();
   const google = useGoogleOAuth();
   const apple = useAppleOAuth();
-  const [legacyEntryAvailable, setLegacyEntryAvailable] = useState(true);
+  const [legacyEntryAvailable, setLegacyEntryAvailable] = useState<boolean | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     fetch(`${getApiBaseUrl()}/auth/wallet-cutover`)
       .then((response) => (response.ok ? response.json() : null))
       .then((body: { data?: { legacyEntryAvailable?: boolean } } | null) => {
-        if (!cancelled) setLegacyEntryAvailable(legacyCustomerEntryAvailable(body?.data));
+        if (!cancelled) setLegacyEntryAvailable(body?.data?.legacyEntryAvailable === true);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) setLegacyEntryAvailable(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -36,7 +38,7 @@ export function LoginMethodScreen({ navigation }: Props) {
     <AuthSplitLayout testID="S-101" showMarketingLogo onBack={() => navigation.goBack()}>
       <AuthFormHeading
         title="Welcome back"
-        subtitle={legacyEntryAvailable ? 'Choose how you want to sign in' : 'Sign in with your wallet'}
+        subtitle={legacyEntryAvailable === true ? 'Choose how you want to sign in' : 'Sign in with your wallet'}
       />
       <View style={{ gap: theme.spacing[3] }}>
         <PrimaryButton
@@ -45,12 +47,12 @@ export function LoginMethodScreen({ navigation }: Props) {
           size="xl"
           onPress={() => navigation.navigate('LoginWallet')}
         />
-        {!legacyEntryAvailable ? (
+        {legacyEntryAvailable !== true ? (
           <Text style={{ color: `hsl(${theme.colors.foregroundSecondary})` }}>
             Email, phone, password, and social login are not a sign-in method.
           </Text>
         ) : null}
-        {legacyEntryAvailable ? (
+        {legacyEntryAvailable === true ? (
           <>
             <PrimaryButton title="Email or Phone" size="xl" variant="outline" onPress={() => navigation.navigate('LoginIdentifier')} />
             <PrimaryButton
@@ -85,7 +87,7 @@ export function LoginMethodScreen({ navigation }: Props) {
           </>
         ) : null}
       </View>
-      {legacyEntryAvailable ? (
+      {legacyEntryAvailable === true ? (
         <PrimaryButton
           title="Create account"
           variant="ghost"
