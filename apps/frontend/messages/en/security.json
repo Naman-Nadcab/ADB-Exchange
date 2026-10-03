@@ -27,6 +27,7 @@
   },
   "changePasswordPage": {
     "title": "Change Password",
+    "notASignIn": "A password is not a sign-in method. Sign in with your wallet.",
     "securityWarning": "For account security, please be aware that after changing your password, on-chain withdrawals, internal transfers, fiat withdrawals, FDM Card transactions, P2P Trading, and advertising will be suspended for 24 hours.",
     "oldPassword": "Old Password",
     "oldPasswordPlaceholder": "Enter your current password",

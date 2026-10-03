@@ -38,7 +38,7 @@
   },
   "profile": {
     "title": "Account Info",
-    "subtitle": "Manage your profile and account settings",
+    "subtitle": "One exchange account for Crypto and Forex. Profile, security, and identity are shared. Trading balances stay in their own venues.",
     "lastLogin": "Last login:",
     "securityAlert": "Security Alert",
     "securityLow": "Your account security level is low.",
@@ -750,15 +750,15 @@
     "title": "Overview",
     "description": "Portfolio, markets, and account activity — your trading command center.",
     "balance": {
-      "estimatedTotal": "Estimated total balance",
-      "estimatedTotalTooltip": "Combined funding and trading account balance in your selected display currency.",
+      "estimatedTotal": "Estimated crypto & fiat",
+      "estimatedTotalTooltip": "Crypto funding plus spot, in your display currency. Forex equity is not included.",
       "portfolioPnl24h": "24h portfolio PnL",
       "portfolioPnlTooltip": "Day-over-day portfolio change is not available from this summary yet.",
       "updated": "Updated {datetime}",
-      "funding": "Funding",
-      "fundingHint": "Deposits & P2P",
-      "trading": "Trading",
-      "tradingHint": "Spot & open orders"
+      "funding": "Crypto funding",
+      "fundingHint": "Deposits and P2P. Not Forex.",
+      "trading": "Crypto spot",
+      "tradingHint": "Spot orders. Not Forex margin."
     },
     "accountCard": {
       "label": "Account",
@@ -1066,6 +1066,7 @@
   "identityPage": {
     "checkingStatus": "Checking verification status...",
     "headerTitle": "Identity Verification",
+    "accountWideNote": "This verification belongs to your exchange account. Crypto compliance uses this status. Forex requires it only when the Forex KYC policy is on.",
     "verifiedTitle": "Identity Verified",
     "verifiedSubtitle": "Your identity has been successfully verified. You now have full access to all platform features.",
     "verificationLevel": "Verification Level",

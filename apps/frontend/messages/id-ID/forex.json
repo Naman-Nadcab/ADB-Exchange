@@ -29,9 +29,12 @@
     "tools": "Alat"
   },
   "userMenu": {
-    "label": "Menu platform",
-    "verification": "Verifikasi",
+    "label": "Akun",
+    "profile": "Profil",
     "security": "Keamanan",
+    "identity": "Identitas",
+    "cryptoAssets": "Kripto & fiat",
+    "verification": "Identitas",
     "support": "Dukungan",
     "help": "Pusat bantuan",
     "platformDashboard": "Dasbor kripto"
@@ -1446,19 +1449,24 @@
     "recentFundingTitle": "Aktivitas pendanaan terbaru"
   },
   "customerIdentity": {
-    "title": "Profil pelanggan",
-    "subtitle": "Identitas platform Anda yang terhubung ke akun trading Forex.",
+    "title": "Akun bursa",
+    "subtitle": "Pelanggan yang sama dengan Kripto. Akun trading Forex adalah buku terpisah di bawah ID pelanggan ini, bukan login kedua.",
     "customerId": "ID pelanggan",
+    "displayName": "Nama",
+    "nameUnset": "Belum diisi",
     "unknown": "Masuk untuk melihat",
     "profile": "Profil",
-    "profileLink": "Profil platform"
+    "profileLink": "Profil",
+    "securityLink": "Keamanan",
+    "identityLink": "Identitas",
+    "kycNote": "Verifikasi identitas milik pelanggan ini. Kepatuhan kripto memakai status itu. Forex memintanya hanya saat kebijakan KYC Forex aktif."
   },
   "credentials": {
     "title": "Kredensial & akses",
     "subtitle": "Akses aman ke akun trading — rahasia tidak pernah ditampilkan di sini.",
-    "platformLoginTitle": "Kata sandi login platform",
-    "platformLoginBody": "Gunakan kata sandi platform utama untuk masuk. Ubah dari pengaturan keamanan platform.",
-    "changePlatformPassword": "Ubah kata sandi",
+    "platformLoginTitle": "Keamanan akun bursa",
+    "platformLoginBody": "Dompet masuk, sesi, dan pemulihan ada di Pusat Keamanan. Kata sandi bukan metode masuk.",
+    "changePlatformPassword": "Buka Keamanan",
     "tradingPasswordTitle": "Kata sandi trading",
     "tradingPasswordBody": "Kata sandi trading broker terpisah tidak dikonfigurasi untuk akun Forex simulasi di lingkungan ini.",
     "unavailableBadge": "Tidak tersedia",

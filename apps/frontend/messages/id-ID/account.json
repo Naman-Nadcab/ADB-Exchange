@@ -38,7 +38,7 @@
   },
   "profile": {
     "title": "Info Akun",
-    "subtitle": "Kelola profil dan pengaturan akun",
+    "subtitle": "Satu akun bursa untuk Kripto dan Forex. Profil, keamanan, dan identitas dipakai bersama. Saldo trading tetap di tempatnya masing-masing.",
     "lastLogin": "Login terakhir:",
     "securityAlert": "Peringatan Keamanan",
     "securityLow": "Tingkat keamanan akun Anda rendah.",
@@ -750,15 +750,15 @@
     "title": "Ringkasan",
     "description": "Portofolio, pasar, dan aktivitas akun — pusat komando trading Anda.",
     "balance": {
-      "estimatedTotal": "Perkiraan total saldo",
-      "estimatedTotalTooltip": "Gabungan saldo akun funding dan trading dalam mata uang tampilan yang Anda pilih.",
+      "estimatedTotal": "Perkiraan kripto & fiat",
+      "estimatedTotalTooltip": "Funding kripto ditambah spot, dalam mata uang tampilan. Ekuitas Forex tidak termasuk.",
       "portfolioPnl24h": "PnL portofolio 24j",
       "portfolioPnlTooltip": "Perubahan portofolio harian belum tersedia dari ringkasan ini.",
       "updated": "Diperbarui {datetime}",
-      "funding": "Funding",
-      "fundingHint": "Deposit & P2P",
-      "trading": "Trading",
-      "tradingHint": "Spot & order terbuka"
+      "funding": "Funding kripto",
+      "fundingHint": "Deposit dan P2P. Bukan Forex.",
+      "trading": "Spot kripto",
+      "tradingHint": "Order spot. Bukan margin Forex."
     },
     "accountCard": {
       "label": "Akun",
@@ -1066,6 +1066,7 @@
   "identityPage": {
     "checkingStatus": "Memeriksa status verifikasi...",
     "headerTitle": "Verifikasi Identitas",
+    "accountWideNote": "Verifikasi ini milik akun bursa Anda. Kepatuhan kripto memakai status ini. Forex mewajibkannya hanya saat kebijakan KYC Forex aktif.",
     "verifiedTitle": "Identitas Terverifikasi",
     "verifiedSubtitle": "Identitas Anda berhasil diverifikasi. Anda kini memiliki akses penuh ke semua fitur platform.",
     "verificationLevel": "Level verifikasi",

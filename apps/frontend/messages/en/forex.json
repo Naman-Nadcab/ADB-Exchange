@@ -29,9 +29,12 @@
     "tools": "Tools"
   },
   "userMenu": {
-    "label": "Platform menu",
-    "verification": "Verification",
+    "label": "Account",
+    "profile": "Profile",
     "security": "Security",
+    "identity": "Identity",
+    "cryptoAssets": "Crypto & fiat",
+    "verification": "Identity",
     "support": "Support",
     "help": "Help center",
     "platformDashboard": "Crypto dashboard"
@@ -1446,19 +1449,24 @@
     "recentFundingTitle": "Recent funding activity"
   },
   "customerIdentity": {
-    "title": "Customer profile",
-    "subtitle": "Your platform identity linked to Forex trading accounts.",
+    "title": "Exchange account",
+    "subtitle": "Same customer as Crypto. A Forex trading account is a separate ledger under this customer ID, not a second login.",
     "customerId": "Customer ID",
+    "displayName": "Name",
+    "nameUnset": "Not set",
     "unknown": "Sign in to view",
     "profile": "Profile",
-    "profileLink": "Platform profile"
+    "profileLink": "Profile",
+    "securityLink": "Security",
+    "identityLink": "Identity",
+    "kycNote": "Identity verification belongs to this customer. Crypto compliance uses that status. Forex asks for it only when the Forex KYC policy is on."
   },
   "credentials": {
     "title": "Credentials & access",
     "subtitle": "Secure access to your trading account — secrets are never shown here.",
-    "platformLoginTitle": "Platform login password",
-    "platformLoginBody": "Use your main platform password to sign in. Change it from platform security settings.",
-    "changePlatformPassword": "Change password",
+    "platformLoginTitle": "Exchange account security",
+    "platformLoginBody": "Sign-in wallets, sessions, and recovery live in the Security Center. A password is not a sign-in method.",
+    "changePlatformPassword": "Open Security",
     "tradingPasswordTitle": "Trading password",
     "tradingPasswordBody": "A separate broker trading password is not configured for simulated Forex accounts on this environment.",
     "unavailableBadge": "Not available",

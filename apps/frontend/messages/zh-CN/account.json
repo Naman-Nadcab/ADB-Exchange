@@ -38,7 +38,7 @@
   },
   "profile": {
     "title": "账户信息",
-    "subtitle": "管理个人资料与账户设置",
+    "subtitle": "加密与外汇共用一个交易所账户。资料、安全与身份共用。交易余额仍留在各自场所。",
     "lastLogin": "上次登录：",
     "securityAlert": "安全提醒",
     "securityLow": "您的账户安全等级较低。",
@@ -750,15 +750,15 @@
     "title": "概览",
     "description": "资产、行情与账户动态 — 您的交易指挥中心。",
     "balance": {
-      "estimatedTotal": "预估总资产",
-      "estimatedTotalTooltip": "资金账户与交易账户余额合计，按您选择的显示货币计价。",
+      "estimatedTotal": "预估加密与法币",
+      "estimatedTotalTooltip": "加密资金账户加现货，按显示货币计价。不包含外汇净值。",
       "portfolioPnl24h": "24 小时组合盈亏",
       "portfolioPnlTooltip": "暂无法在此汇总中显示日环比组合变化。",
       "updated": "更新于 {datetime}",
-      "funding": "资金账户",
-      "fundingHint": "充值与 P2P",
-      "trading": "交易账户",
-      "tradingHint": "现货与当前委托"
+      "funding": "加密资金",
+      "fundingHint": "充值与 P2P。不是外汇。",
+      "trading": "加密现货",
+      "tradingHint": "现货委托。不是外汇保证金。"
     },
     "accountCard": {
       "label": "账户",
@@ -1066,6 +1066,7 @@
   "identityPage": {
     "checkingStatus": "正在检查认证状态…",
     "headerTitle": "身份认证",
+    "accountWideNote": "此验证属于您的交易所账户。加密合规使用该状态。仅当外汇 KYC 策略开启时，外汇才要求验证。",
     "verifiedTitle": "身份已认证",
     "verifiedSubtitle": "您的身份已成功通过认证，现已可使用平台的全部功能。",
     "verificationLevel": "认证等级",

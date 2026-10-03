@@ -233,8 +233,9 @@
     "typeTransfer": "Transfer"
   },
   "overview": {
-    "title": "Ringkasan Aset",
-    "totalBalance": "Total saldo",
+    "title": "Kripto & fiat",
+    "totalBalance": "Total kripto & fiat",
+    "totalBalanceScope": "Funding, spot, dan fiat dalam mata uang tampilan. Ekuitas Forex tidak termasuk.",
     "toggleBalanceAria": "Tampilkan/sembunyikan saldo",
     "approxBtc": "≈ {amount} BTC",
     "pnlPeriod": "P&L {period}",

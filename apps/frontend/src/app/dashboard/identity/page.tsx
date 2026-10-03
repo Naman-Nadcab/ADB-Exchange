@@ -323,6 +323,7 @@ export default function IdentityVerificationPage() {
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-6 py-12">
+        <p className="mb-4 text-sm text-muted-foreground">{t('accountWideNote')}</p>
         <div className="bg-card rounded-xl p-8 shadow-sm border border-border">
           <h2 className="text-2xl font-bold text-foreground mb-8">
             {t('proofTitle')}

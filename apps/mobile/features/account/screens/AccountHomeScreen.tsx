@@ -113,6 +113,11 @@ export function AccountHomeScreen({ navigation }: Props) {
                 {isGuest ? 'Browse markets · Sign in for full access' : user?.email ?? user?.phone ?? '—'}
               </Text>
               {!isGuest ? (
+                <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})`, marginTop: theme.spacing[1] }]}>
+                  One exchange account. Crypto and Forex are venues. Their balances stay separate.
+                </Text>
+              ) : null}
+              {!isGuest ? (
                 <View style={{ flexDirection: 'row', gap: theme.spacing[2], marginTop: theme.spacing[2], flexWrap: 'wrap' }}>
                   <View
                     style={{

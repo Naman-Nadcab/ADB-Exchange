@@ -29,9 +29,12 @@
     "tools": "工具"
   },
   "userMenu": {
-    "label": "平台菜单",
-    "verification": "身份验证",
+    "label": "账户",
+    "profile": "资料",
     "security": "安全",
+    "identity": "身份",
+    "cryptoAssets": "加密与法币",
+    "verification": "身份",
     "support": "支持",
     "help": "帮助中心",
     "platformDashboard": "加密仪表盘"
@@ -1446,19 +1449,24 @@
     "recentFundingTitle": "近期资金活动"
   },
   "customerIdentity": {
-    "title": "客户资料",
-    "subtitle": "与外汇交易账户关联的平台身份。",
+    "title": "交易所账户",
+    "subtitle": "与加密交易是同一客户。外汇交易账户是该客户 ID 下的独立账本，不是第二次登录。",
     "customerId": "客户 ID",
+    "displayName": "姓名",
+    "nameUnset": "未设置",
     "unknown": "请登录后查看",
     "profile": "资料",
-    "profileLink": "平台资料"
+    "profileLink": "资料",
+    "securityLink": "安全",
+    "identityLink": "身份",
+    "kycNote": "身份验证属于此客户。加密合规使用该状态。仅当外汇 KYC 策略开启时，外汇才要求验证。"
   },
   "credentials": {
     "title": "凭证与访问",
     "subtitle": "安全访问交易账户——此处从不显示密钥。",
-    "platformLoginTitle": "平台登录密码",
-    "platformLoginBody": "使用主平台密码登录。可在平台安全设置中修改。",
-    "changePlatformPassword": "修改密码",
+    "platformLoginTitle": "交易所账户安全",
+    "platformLoginBody": "登录钱包、会话与恢复都在安全中心。密码不是登录方式。",
+    "changePlatformPassword": "打开安全中心",
     "tradingPasswordTitle": "交易密码",
     "tradingPasswordBody": "本环境的模拟外汇账户未配置独立经纪商交易密码。",
     "unavailableBadge": "不可用",

@@ -233,8 +233,9 @@
     "typeTransfer": "划转"
   },
   "overview": {
-    "title": "资产总览",
-    "totalBalance": "总余额",
+    "title": "加密与法币",
+    "totalBalance": "加密与法币合计",
+    "totalBalanceScope": "资金、现货与法币，按显示货币计价。不包含外汇净值。",
     "toggleBalanceAria": "切换余额显示",
     "approxBtc": "≈ {amount} BTC",
     "pnlPeriod": "{period} 盈亏",
