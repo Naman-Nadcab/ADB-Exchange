@@ -153,7 +153,7 @@ export default function DashboardPage() {
 
   const { user, accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
   const md = useMarketDataUxCopy();
-  const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
+  const { formatFromUsdt } = useDisplayCurrency();
   const { data: balanceData } = useBalancesSummary(!!_hasHydrated && isAuthenticated);
   const totalUsd = (balanceData?.fundingBalance?.totalUsd ?? 0) + (balanceData?.tradingBalance?.totalUsd ?? 0);
   const fundingUsd = balanceData?.fundingBalance?.totalUsd ?? 0;
@@ -605,7 +605,6 @@ export default function DashboardPage() {
                       </p>
                       <p className="mt-1.5 text-3xl font-bold tabular-nums tracking-tight text-foreground sm:text-4xl">
                         {Number.isFinite(totalUsd) ? formatFromUsdt(totalUsd, 2) : '—'}
-                        <span className="ml-2 text-lg font-semibold text-muted-foreground sm:text-xl">{displayCurrency}</span>
                       </p>
                     </div>
                     <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
@@ -624,13 +623,13 @@ export default function DashboardPage() {
                         </p>
                       ) : null}
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-lg border border-border bg-muted/50 p-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div className="min-w-0 rounded-lg border border-border bg-muted/50 p-3">
                         <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t('balance.funding')}</p>
                         <p className="mt-1 text-base font-bold tabular-nums text-foreground sm:text-lg">{formatFromUsdt(fundingUsd, 2)}</p>
                         <p className="mt-0.5 text-[10px] text-muted-foreground">{t('balance.fundingHint')}</p>
                       </div>
-                      <div className="rounded-lg border border-border bg-muted/50 p-3">
+                      <div className="min-w-0 rounded-lg border border-border bg-muted/50 p-3">
                         <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t('balance.trading')}</p>
                         <p className="mt-1 text-base font-bold tabular-nums text-foreground sm:text-lg">{formatFromUsdt(tradingUsd, 2)}</p>
                         <p className="mt-0.5 text-[10px] text-muted-foreground">{t('balance.tradingHint')}</p>

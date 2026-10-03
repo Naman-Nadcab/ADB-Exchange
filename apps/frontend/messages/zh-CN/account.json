@@ -177,7 +177,10 @@
     "features": {
       "loginPassword": {
         "title": "登录密码",
-        "description": "用于账户登录"
+        "description": "用于账户登录",
+        "walletOnlyTitle": "账户密码",
+        "walletOnlyDescription": "密码不是登录方式。请使用钱包签名登录。",
+        "walletOnlyStatus": "不是登录方式"
       },
       "activeSessions": {
         "title": "活跃会话",
@@ -186,11 +189,13 @@
       "emailAuth": {
         "title": "邮箱验证",
         "descriptionPrefix": "用于登录、提币及安全验证。",
+        "walletOnlyPrefix": "可选的安全通知联系方式。邮箱不是登录方式。",
         "changeEmail": "修改邮箱"
       },
       "phone": {
         "title": "手机验证",
-        "description": "验证手机号，用于登录、重置密码及安全操作"
+        "description": "验证手机号，用于登录、重置密码及安全操作",
+        "walletOnlyDescription": "可选的安全通知联系方式。短信不是登录方式。"
       },
       "google2fa": {
         "title": "Google 双重验证",
@@ -199,6 +204,7 @@
       "passkeys": {
         "title": "通行密钥（Touch ID / Face ID）",
         "description": "使用生物识别快速安全登录",
+        "walletOnlyDescription": "通行密钥可用于确认敏感操作，不是登录方式。",
         "registered": "已注册 {count} 个"
       },
       "fundPassword": {

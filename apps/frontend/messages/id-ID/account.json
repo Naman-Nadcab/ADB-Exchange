@@ -177,7 +177,10 @@
     "features": {
       "loginPassword": {
         "title": "Kata sandi login",
-        "description": "Digunakan untuk login akun"
+        "description": "Digunakan untuk login akun",
+        "walletOnlyTitle": "Kata sandi akun",
+        "walletOnlyDescription": "Kata sandi bukan metode masuk. Masuk dengan dompet Anda.",
+        "walletOnlyStatus": "Bukan metode masuk"
       },
       "activeSessions": {
         "title": "Sesi aktif",
@@ -186,11 +189,13 @@
       "emailAuth": {
         "title": "Autentikasi email",
         "descriptionPrefix": "Untuk login, penarikan, dan verifikasi keamanan.",
+        "walletOnlyPrefix": "Kontak opsional untuk pemberitahuan keamanan. Email bukan metode masuk.",
         "changeEmail": "Ubah email"
       },
       "phone": {
         "title": "Verifikasi telepon",
-        "description": "Verifikasi nomor ponsel dan gunakan SMS untuk login, reset kata sandi, dan tindakan keamanan"
+        "description": "Verifikasi nomor ponsel dan gunakan SMS untuk login, reset kata sandi, dan tindakan keamanan",
+        "walletOnlyDescription": "Kontak opsional untuk pemberitahuan keamanan. SMS bukan metode masuk."
       },
       "google2fa": {
         "title": "Google 2FA",
@@ -199,6 +204,7 @@
       "passkeys": {
         "title": "Passkey (Touch ID / Face ID)",
         "description": "Gunakan biometrik untuk login cepat dan aman",
+        "walletOnlyDescription": "Passkey dapat menyetujui tindakan sensitif. Passkey bukan metode masuk.",
         "registered": "{count} terdaftar"
       },
       "fundPassword": {

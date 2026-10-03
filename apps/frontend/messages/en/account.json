@@ -177,7 +177,10 @@
     "features": {
       "loginPassword": {
         "title": "Login password",
-        "description": "Used for account login"
+        "description": "Used for account login",
+        "walletOnlyTitle": "Account password",
+        "walletOnlyDescription": "A password is not a sign-in method. Sign in with your wallet.",
+        "walletOnlyStatus": "Not a sign-in method"
       },
       "activeSessions": {
         "title": "Active sessions",
@@ -186,11 +189,13 @@
       "emailAuth": {
         "title": "Email authentication",
         "descriptionPrefix": "For login, withdrawal, and security verification.",
+        "walletOnlyPrefix": "Optional contact for security notices. Email is not a sign-in method.",
         "changeEmail": "Change email"
       },
       "phone": {
         "title": "Phone verification",
-        "description": "Verify your mobile number and use SMS for login, password reset, and security actions"
+        "description": "Verify your mobile number and use SMS for login, password reset, and security actions",
+        "walletOnlyDescription": "Optional contact for security notices. A text message is not a sign-in method."
       },
       "google2fa": {
         "title": "Google 2FA",
@@ -199,6 +204,7 @@
       "passkeys": {
         "title": "Passkeys (Touch ID / Face ID)",
         "description": "Use biometrics for fast and secure login",
+        "walletOnlyDescription": "A passkey can approve a sensitive action. It is not a sign-in method.",
         "registered": "{count} registered"
       },
       "fundPassword": {
