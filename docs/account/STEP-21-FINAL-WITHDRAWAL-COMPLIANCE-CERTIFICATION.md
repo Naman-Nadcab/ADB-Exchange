@@ -234,9 +234,11 @@ Production is therefore on the same fail-closed placeholder path as the STEP 20 
 
 ## 18. Git persistence
 
-Recorded in the commit that adds this document.
+Branch: `cursor/local-kms-provider-fb5f`.
 
-Before this step: branch `cursor/local-kms-provider-fb5f`, HEAD `1f56a1f7780708d88016eab3378436a1046c50a0`, remote matched, working tree clean.
+Before this step: `1f56a1f7780708d88016eab3378436a1046c50a0`. Remote matched. Working tree was clean.
+
+Evidence commit: `6536230076fd1bf6adf15ba2a8c90591704d7fef` (screening contract harness, admin secret redaction, and this certification). The follow-up commit that inserts this paragraph is the branch HEAD. After push, local HEAD must equal `origin/cursor/local-kms-provider-fb5f`, and the working tree must be clean.
 
 ## Other security checks
 
