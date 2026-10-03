@@ -196,4 +196,4 @@ Earlier in STEP 22 the same host had database `exchange`, no wallet cutover row,
 | GHCR push from this session | NOT VERIFIED |
 | Native Android / iOS | NOT VERIFIED |
 
-Before SHA `c55c3dac8e2ddbecec8de81f1c6b39d321ec2546`. Isolated backend image `sha256:79326a1f73cebaafbcd32f133881a056d95b75400ee8dc0c2d81ee4cbddb136f`.
+Before SHA `c55c3dac8e2ddbecec8de81f1c6b39d321ec2546`. Implementation SHA `63002b241f2e6a2c83a13e2160dc283c11f4399f`. Isolated backend image `sha256:79326a1f73cebaafbcd32f133881a056d95b75400ee8dc0c2d81ee4cbddb136f`.
