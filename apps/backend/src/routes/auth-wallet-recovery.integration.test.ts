@@ -788,8 +788,12 @@ async function run(): Promise<void> {
   );
   const otpSend = await authed('POST', `/api/v1/wallet/withdrawals/${withdrawalId}/send-email-otp`, session.token, {});
   assert.equal(otpSend.statusCode, 400);
-  assert.equal((otpSend.json() as ApiBody).error?.code, 'NO_EMAIL');
-  console.log('PASS 22 withdrawal email step returns NO_EMAIL instead of assuming an address');
+  assert.equal((otpSend.json() as ApiBody).error?.code, 'INVALID_STATUS');
+  await pool.query(`UPDATE withdrawals SET status = 'pending_email_verify' WHERE id = $1`, [withdrawalId]);
+  const historicalOtp = await authed('POST', `/api/v1/wallet/withdrawals/${withdrawalId}/send-email-otp`, session.token, {});
+  assert.equal(historicalOtp.statusCode, 400);
+  assert.equal((historicalOtp.json() as ApiBody).error?.code, 'NO_EMAIL');
+  console.log('PASS 22 pending withdrawal is not an email gate and a historical email row cannot proceed without an email');
 
   assert.equal(await count(`SELECT count(*)::int AS n FROM wallets`), custodyBefore);
   assert.equal(await count(`SELECT count(*)::int AS n FROM user_master_keys`), 1);

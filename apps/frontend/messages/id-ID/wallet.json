@@ -30,7 +30,7 @@
   },
   "deposit": {
     "title": "Deposit kripto",
-    "description": "Kirim aset ke dompet funding dari dompet eksternal. Pilih koin, jaringan, lalu salin alamat deposit.",
+    "description": "Kirim aset ke dompet funding dari dompet eksternal. Pilih koin, jaringan, lalu salin alamat deposit bursa. Alamat itu bukan dompet masuk Anda, dan menandatangani masuk tidak memindahkan dana.",
     "buyWithFiat": "Beli dengan fiat (P2P)",
     "step1": "Pilih koin untuk deposit",
     "step2": "Pilih jaringan",

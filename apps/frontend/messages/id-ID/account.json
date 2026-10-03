@@ -148,6 +148,7 @@
       "available": "Tersedia",
       "notSet": "Belum diatur",
       "emailNote": "Email hanya saluran kontak. Email tidak dapat mengganti dompet masuk.",
+      "soleFactorWarning": "Anda hanya memiliki satu dompet masuk dan tidak memiliki passkey atau autentikator. Jika dompet itu hilang, Anda tidak dapat memulihkan login sendiri. Tambahkan dompet kedua, passkey, atau autentikator sebelum mengandalkan akun ini.",
       "status": "Status pemulihan",
       "none": "Tidak ada",
       "withdrawalsPaused": "Penarikan dijeda selama perlindungan pemulihan.",

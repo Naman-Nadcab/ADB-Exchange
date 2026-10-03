@@ -469,6 +469,8 @@ test('legacy password, OTP, and passkey entry remain available', async ({ page }
   });
   await page.context().clearCookies();
   await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  await expect(page).toHaveURL(/\/login/);
+  await expect(page.getByRole('button', { name: 'Use email / phone instead' })).toBeVisible();
   await page.getByRole('button', { name: 'Use email / phone instead' }).click();
   await page.getByRole('button', { name: 'Sign in with one-time code' }).click();
   await page.getByRole('button', { name: 'Email', exact: true }).click();

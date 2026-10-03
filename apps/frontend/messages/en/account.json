@@ -148,6 +148,7 @@
       "available": "Available",
       "notSet": "Not set",
       "emailNote": "Email is a contact channel. It cannot replace a sign-in wallet.",
+      "soleFactorWarning": "You have one sign-in wallet and no passkey or authenticator. If that wallet is lost, you cannot restore login yourself. Add a second wallet, a passkey, or an authenticator before you rely on this account.",
       "status": "Recovery status",
       "none": "None",
       "withdrawalsPaused": "Withdrawals are paused during recovery protection.",

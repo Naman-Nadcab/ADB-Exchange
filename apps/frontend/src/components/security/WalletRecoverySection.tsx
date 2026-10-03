@@ -127,6 +127,11 @@ export function WalletRecoverySection({ accessToken }: Props) {
               <li>{t('security.recovery.totp')}: {factorLabel(Boolean(factors?.totpEnabled), t('security.recovery.available'), t('security.recovery.notSet'))}</li>
               <li>{t('security.recovery.emailNote')}</li>
             </ul>
+            {factors && factors.activeWalletCount <= 1 && factors.passkeyCount === 0 && !factors.totpEnabled && (
+              <p className="mt-3 text-sm text-amber-700 dark:text-amber-300" role="status" data-testid="sole-wallet-warning">
+                {t('security.recovery.soleFactorWarning')}
+              </p>
+            )}
           </div>
           <div className="rounded-2xl border border-border bg-card p-4" data-testid="recovery-status">
             <h3 className="mb-2 text-sm font-semibold text-foreground">{t('security.recovery.status')}</h3>
