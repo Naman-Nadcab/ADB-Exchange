@@ -449,6 +449,18 @@ export async function buildServer(): Promise<FastifyInstance> {
     if (tradingHalted) warnings.push('trading_halt_active');
     if (settlementCircuitOpen) warnings.push('settlement_circuit_open');
 
+    let sanctionsPublicLists: Record<string, unknown> | null = null;
+    try {
+      const { readOfficialPublicListsHealth, isOfficialPublicListsProvider } = await import('./services/sanctions/official-public-lists.js');
+      const lists = await readOfficialPublicListsHealth();
+      sanctionsPublicLists = { ...lists };
+      if (isOfficialPublicListsProvider(process.env.SANCTIONS_PROVIDER ?? '') && lists.status !== 'ready') {
+        warnings.push('sanctions_public_lists_not_ready');
+      }
+    } catch {
+      sanctionsPublicLists = null;
+    }
+
     let status: 'healthy' | 'degraded' | 'unhealthy';
     if (!coreOk) {
       status = 'unhealthy';
@@ -576,6 +588,7 @@ export async function buildServer(): Promise<FastifyInstance> {
       depth,
       ...(staleMarkets.length > 0 && { stale_markets: staleMarkets }),
       ...(orderbookWriter && { orderbook_writer: orderbookWriter }),
+      ...(sanctionsPublicLists && { sanctions_public_lists: sanctionsPublicLists }),
     };
     const statusCode = status === 'unhealthy' ? 503 : 200;
     const cacheTtlMs = status === 'unhealthy' ? HEALTH_UNHEALTHY_CACHE_TTL_MS : HEALTH_CACHE_TTL_MS;

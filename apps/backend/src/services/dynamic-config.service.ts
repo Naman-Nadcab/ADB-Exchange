@@ -600,7 +600,7 @@ class DynamicConfigService {
     const row = rows[0];
     if (!row) return null;
     const key = resolveProviderSecret(row.api_secret, row.secret_encrypted) || row.api_key?.trim() || '';
-    if (!key && row.provider !== 'noop') return null;
+    if (!key && row.provider !== 'noop' && row.provider !== 'official_public_lists') return null;
     return {
       provider: row.provider,
       apiUrl: row.api_url?.trim() || '',

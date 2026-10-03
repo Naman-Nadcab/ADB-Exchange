@@ -9,6 +9,10 @@ import { config } from '../config/index.js';
 import { logger } from '../lib/logger.js';
 import { db } from '../lib/database.js';
 import { resolveProviderSecret } from '../lib/provider-secret.js';
+import {
+  isOfficialPublicListsProvider,
+  screenOfficialPublicLists,
+} from './sanctions/official-public-lists.js';
 
 export interface SanctionsCheckParams {
   /** On-chain address or counterparty identifier */
@@ -279,6 +283,16 @@ export async function checkSanctions(params: SanctionsCheckParams): Promise<Sanc
     return {
       allowed: false,
       reason: SANCTIONS_NOT_CONFIGURED,
+    };
+  }
+
+  if (isOfficialPublicListsProvider(provider)) {
+    const listed = await screenOfficialPublicLists({ address: params.address });
+    return {
+      allowed: listed.allowed,
+      reason: listed.reason,
+      provider: listed.provider,
+      riskScore: listed.riskScore,
     };
   }
 
