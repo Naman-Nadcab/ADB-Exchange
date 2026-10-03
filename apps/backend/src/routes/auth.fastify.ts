@@ -750,8 +750,12 @@ export default async function authRoutes(app: FastifyInstance) {
         id: string;
         email: string | null;
         phone: string | null;
+        status: string;
+        is_locked: boolean;
       }>(
-        'SELECT id, email, phone FROM users WHERE id = $1 AND deleted_at IS NULL',
+        `SELECT id, email, phone, status,
+                (locked_until IS NOT NULL AND locked_until > NOW()) AS is_locked
+         FROM users WHERE id = $1 AND deleted_at IS NULL`,
         [decoded.userId]
       );
 
@@ -763,6 +767,11 @@ export default async function authRoutes(app: FastifyInstance) {
       }
 
       const user = userResult.rows[0]!;
+      const { customerStatusBlock } = await import('../services/customer-financial-access.js');
+      const statusBlock = customerStatusBlock(user.status, user.is_locked);
+      if (statusBlock) {
+        return reply.status(403).send({ success: false, error: statusBlock });
+      }
       const walletCounts = await countWalletCredentials(user.id);
       const refreshAllowed = legacyRefreshAllowed({
         mode: await getCutoverMode(),

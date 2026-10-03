@@ -36,6 +36,13 @@ export interface SanctionsCheckResult {
 const SANCTIONS_UNAVAILABLE = 'Sanctions service unavailable';
 const SANCTIONS_NOT_CONFIGURED = 'Sanctions provider not configured (production requires screening)';
 
+/** Provider explicitly denied the withdrawal. Transport and configuration failures are not matches. */
+export function isSanctionsMatch(result: SanctionsCheckResult): boolean {
+  if (result.allowed) return false;
+  const reason = result.reason ?? '';
+  return reason !== SANCTIONS_UNAVAILABLE && reason !== SANCTIONS_NOT_CONFIGURED;
+}
+
 /** Env/admin values that mean "no provider" — must not block api_settings activation. */
 export function isPlaceholderSanctionsProvider(provider: string): boolean {
   const p = (provider || '').trim().toLowerCase();

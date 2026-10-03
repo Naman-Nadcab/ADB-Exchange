@@ -974,6 +974,8 @@ export async function buildServer(): Promise<FastifyInstance> {
 
   const { registerAdminZeroTrustHooks } = await import('./middleware/admin-zero-trust.middleware.js');
   registerAdminZeroTrustHooks(app);
+  const { registerCustomerFinancialStatusGuard } = await import('./services/customer-financial-access.js');
+  registerCustomerFinancialStatusGuard(app);
 
   // Register routes
   await app.register(authRoutes, { prefix: '/api/v1/auth' });

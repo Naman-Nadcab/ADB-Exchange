@@ -2568,6 +2568,29 @@ export default async function walletRoutes(app: FastifyInstance) {
       });
       if (!sanctionsResult.allowed) {
         logger.warn('Withdrawal creation failed: SANCTIONS_BLOCKED', { ...withdrawalLogContext, reason: sanctionsResult.reason });
+        const { isSanctionsMatch } = await import('../services/sanctions-screening.service.js');
+        if (isSanctionsMatch(sanctionsResult)) {
+          try {
+            const { logSanctionsBlock } = await import('../lib/withdrawal-audit.js');
+            await logSanctionsBlock({
+              userId,
+              asset: token.symbol,
+              amount: withdrawAmountDec.toString(),
+              chainId: token.chain_id ?? null,
+              toAddress: toAddress!,
+              provider: sanctionsResult.provider,
+              reason: sanctionsResult.reason,
+              requestId: req.requestId ?? null,
+              ip: req.clientIp ?? request.ip ?? null,
+              userAgent: typeof request.headers['user-agent'] === 'string' ? request.headers['user-agent'] : null,
+            });
+          } catch (auditErr) {
+            logger.error('Sanctions block audit insert failed', {
+              userId,
+              error: auditErr instanceof Error ? auditErr.message : String(auditErr),
+            });
+          }
+        }
         return reply.status(403).send({
           success: false,
           error: {
