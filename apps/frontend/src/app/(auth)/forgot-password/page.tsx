@@ -13,7 +13,9 @@ type Step = 'request' | 'reset';
 
 export default function ForgotPasswordPage() {
   const tf = useTranslations('auth.forgot');
+  const tw = useTranslations('auth.wallet');
   const { fromApi, networkUnreachable } = useApiErrorMessage();
+  const [legacyEntryAvailable, setLegacyEntryAvailable] = useState(true);
   const [step, setStep] = useState<Step>('request');
   const [identifier, setIdentifier] = useState('');
   const [identifierType, setIdentifierType] = useState<'email' | 'phone'>('email');
@@ -27,6 +29,19 @@ export default function ForgotPasswordPage() {
   const [countdown, setCountdown] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const API_URL = getApiBaseUrl();
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${API_URL}/api/v1/auth/wallet-cutover`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((body: { data?: { legacyEntryAvailable?: boolean } } | null) => {
+        if (!cancelled && body?.data?.legacyEntryAvailable === false) setLegacyEntryAvailable(false);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [API_URL]);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -171,7 +186,13 @@ export default function ForgotPasswordPage() {
           {tf('backToLogin')}
         </Link>
         <div className="bg-card rounded-xl shadow-xl border border-border p-8">
-          {step === 'request' ? (
+          {!legacyEntryAvailable ? (
+            <div className="space-y-4">
+              <h1 className="text-2xl font-bold text-foreground">{tf('requestTitle')}</h1>
+              <p className="text-muted-foreground">{tw('forgotClosed')}</p>
+              <Link href="/login" className="inline-flex text-primary font-medium hover:underline">{tf('logIn')}</Link>
+            </div>
+          ) : step === 'request' ? (
             <form onSubmit={handleRequestSubmit} className="space-y-6">
               <div>
                 <h1 className="text-2xl font-bold text-foreground mb-1">{tf('requestTitle')}</h1>

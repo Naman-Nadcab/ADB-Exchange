@@ -101,6 +101,7 @@ async function run(): Promise<void> {
     CutoverRefused,
     buildMigrationReadiness,
     LegacySignupClosed,
+    LegacyCustomerLoginClosed,
     LEGACY_DISABLED_MESSAGE,
   } = await import('../services/legacy-auth-policy.service.js');
 
@@ -634,6 +635,190 @@ async function run(): Promise<void> {
   assert.equal(rolled.data.walletPrimary, false);
   const walletStill = await issueLogin(linkedWallet);
   assert.equal(walletStill.statusCode, 200, walletStill.body);
+
+  const previousOnlyEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'production';
+  try {
+    await assert.rejects(() => setCutoverMode('WALLET_ONLY', 'step13-test'), CutoverRefused);
+  } finally {
+    process.env.NODE_ENV = previousOnlyEnv;
+  }
+  const modeBeforeOnly = await pool.query<{ value: { mode?: string } }>(
+    `SELECT value FROM system_settings WHERE key = 'wallet_auth_cutover_mode'`
+  );
+  assert.equal(modeBeforeOnly.rows[0]?.value.mode, 'LEGACY_AND_WALLET');
+
+  await setCutoverMode('WALLET_ONLY', 'step13-test');
+  const onlyView = JSON.parse((await app.inject({ method: 'GET', url: '/api/v1/auth/wallet-cutover' })).body) as {
+    data: { mode: string; walletPrimary: boolean; legacyEntryAvailable: boolean };
+  };
+  assert.equal(onlyView.data.mode, 'WALLET_ONLY');
+  assert.equal(onlyView.data.walletPrimary, true);
+  assert.equal(onlyView.data.legacyEntryAvailable, false);
+
+  await clearRates();
+  const zeroPassword = await postPassword(EMAIL.legacy);
+  assert.equal(zeroPassword.statusCode, 403, zeroPassword.body);
+  assert.equal(codeOf(zeroPassword.body), 'LEGACY_AUTH_DISABLED');
+  assert.equal(await hashSame(IDS.legacy), true);
+  assert.equal(await count(`SELECT count(*)::int AS n FROM user_wallets WHERE user_id = $1`, [IDS.legacy]), 0);
+
+  await clearRates();
+  const wrongOnly = await postPassword(EMAIL.legacy, 'WrongPass1');
+  assert.equal(wrongOnly.statusCode, 401, wrongOnly.body);
+  assert.equal(messageOf(wrongOnly.body).includes('wallet'), false);
+
+  const zeroOtp = await otpService.createOTP(EMAIL.legacy, 'email', IDS.legacy);
+  await clearRates();
+  const zeroOtpLogin = await app.inject({
+    method: 'POST',
+    url: '/api/v1/auth/login',
+    payload: { email: EMAIL.legacy, otp: zeroOtp.otp },
+  });
+  assert.equal(zeroOtpLogin.statusCode, 403, zeroOtpLogin.body);
+  assert.equal(codeOf(zeroOtpLogin.body), 'LEGACY_AUTH_DISABLED');
+  assert.equal(await count(`SELECT count(*)::int AS n FROM user_wallets WHERE user_id = $1`, [IDS.legacy]), 0);
+
+  const phoneOtp = await otpService.createOTP('+15550001111', 'phone', IDS.sms);
+  await clearRates();
+  const phoneOtpLogin = await app.inject({
+    method: 'POST',
+    url: '/api/v1/auth/login',
+    payload: { phone: '+15550001111', otp: phoneOtp.otp },
+  });
+  assert.equal(phoneOtpLogin.statusCode, 403, phoneOtpLogin.body);
+  assert.equal(codeOf(phoneOtpLogin.body), 'LEGACY_AUTH_DISABLED');
+  assert.equal(await count(`SELECT count(*)::int AS n FROM user_wallets WHERE user_id = $1`, [IDS.sms]), 1);
+
+  const { authService } = await import('../services/auth.service.js');
+  await assert.rejects(
+    () => authService.login({ email: EMAIL.legacy, password: PASSWORD, ip: '127.0.0.1' }),
+    (error: unknown) => error instanceof Error && error.message === LEGACY_DISABLED_MESSAGE
+  );
+  await assert.rejects(
+    () => authService.oauthLogin({
+      provider: 'google',
+      providerUserId: 'step13-express-oauth',
+      email: EMAIL.oauth,
+      ip: '127.0.0.1',
+    }),
+    (error: unknown) => error instanceof Error && error.message === LEGACY_DISABLED_MESSAGE
+  );
+  await assert.rejects(
+    () => authService.signup({ email: EMAIL.fresh, password: PASSWORD, provider: 'email', ip: '127.0.0.1' }),
+    (error: unknown) => error instanceof Error && error.message === 'Connect your wallet to continue.'
+  );
+
+  const passwordIssued = await createSession({ userId: IDS.legacy, authMethod: 'password', ipAddress: '127.0.0.1' });
+  const passwordRefresh = await app.inject({
+    method: 'POST',
+    url: '/api/v1/auth/refresh',
+    payload: {
+      refreshToken: app.jwt.sign(
+        { userId: IDS.legacy, sessionId: passwordIssued.sessionId, type: 'refresh' },
+        { expiresIn: '7d' }
+      ),
+    },
+  });
+  assert.equal(passwordRefresh.statusCode, 403, passwordRefresh.body);
+  const passwordKept = await redis.getJson<{ isActive: boolean; authMethod?: string }>(`session:${passwordIssued.sessionId}`);
+  assert.equal(passwordKept?.isActive, true);
+  assert.equal(passwordKept?.authMethod, 'password');
+  const { generateTokens: expressTokens } = await import('../middleware/auth.js');
+  const expressRefresh = expressTokens(IDS.legacy, EMAIL.legacy, 'user' as import('../types/index.js').UserRole, passwordIssued.sessionId).refreshToken;
+  await assert.rejects(
+    () => authService.refreshToken(expressRefresh, '127.0.0.1'),
+    (error: unknown) => error instanceof Error && error.message === LEGACY_DISABLED_MESSAGE
+  );
+  const expressKept = await redis.getJson<{ isActive: boolean }>(`session:${passwordIssued.sessionId}`);
+  assert.equal(expressKept?.isActive, true);
+
+  for (const method of ['passkey', 'oauth'] as const) {
+    const issued = await createSession({ userId: IDS.linked, authMethod: method, ipAddress: '127.0.0.1' });
+    const refreshed = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/refresh',
+      payload: {
+        refreshToken: app.jwt.sign(
+          { userId: IDS.linked, sessionId: issued.sessionId, type: 'refresh' },
+          { expiresIn: '7d' }
+        ),
+      },
+    });
+    assert.equal(refreshed.statusCode, 403, `${method} ${refreshed.body}`);
+  }
+
+  const freshOnly = await issueLogin(Wallet.createRandom());
+  assert.equal(freshOnly.statusCode, 200, freshOnly.body);
+  const freshOnlySession = sessionOf(freshOnly.body);
+  assert.equal(freshOnlySession.email, null);
+  assert.equal(await count(`SELECT count(*)::int AS n FROM user_wallets WHERE user_id = $1 AND status = 'active' AND is_primary IS TRUE`, [freshOnlySession.userId]), 1);
+
+  const onlyWallet = await issueLogin(linkedWallet);
+  assert.equal(onlyWallet.statusCode, 200, onlyWallet.body);
+  const onlyWalletSession = sessionOf(onlyWallet.body);
+  assert.equal(onlyWalletSession.userId, IDS.linked);
+  const onlyWalletRefresh = await app.inject({
+    method: 'POST',
+    url: '/api/v1/auth/refresh',
+    payload: { refreshToken: onlyWalletSession.refreshToken },
+  });
+  assert.equal(onlyWalletRefresh.statusCode, 200, onlyWalletRefresh.body);
+  const refreshedAccess = (JSON.parse(onlyWalletRefresh.body) as { data?: { accessToken?: string } }).data?.accessToken;
+  assert.equal(typeof refreshedAccess, 'string');
+  const refreshedIdentity = app.jwt.verify<{ userId: string; type?: string }>(refreshedAccess!);
+  assert.equal(refreshedIdentity.userId, IDS.linked);
+  assert.notEqual(refreshedIdentity.type, 'admin');
+
+  await clearRates();
+  const passkeyClosed = await app.inject({
+    method: 'POST',
+    url: '/api/v1/auth/passkey/authenticate/verify',
+    payload: {},
+  });
+  assert.equal(passkeyClosed.statusCode, 403, passkeyClosed.body);
+  assert.equal(codeOf(passkeyClosed.body), 'LEGACY_AUTH_DISABLED');
+
+  const oauthUsers = await count(`SELECT count(*)::int AS n FROM users WHERE email = $1`, [EMAIL.oauth]);
+  await assert.rejects(
+    () => findOrCreateOAuthUser(app, 'google', 'step12-google-subject', EMAIL.oauth, 'O', 'Auth', null, fakeRequest),
+    LegacyCustomerLoginClosed
+  );
+  assert.equal(await count(`SELECT count(*)::int AS n FROM users WHERE email = $1`, [EMAIL.oauth]), oauthUsers);
+
+  const resetBefore = await hashSame(IDS.legacy);
+  await clearRates();
+  const resetOnly = await app.inject({
+    method: 'POST',
+    url: '/api/v1/auth/password/reset/request',
+    payload: { identifier: EMAIL.legacy },
+  });
+  assert.equal(resetOnly.statusCode, 200, resetOnly.body);
+  assert.match(JSON.parse(resetOnly.body).data?.message ?? '', /If an account exists/);
+  assert.equal(await hashSame(IDS.legacy), resetBefore);
+
+  const closedOnly = await app.inject({
+    method: 'POST',
+    url: '/api/v1/auth/signup',
+    payload: { email: EMAIL.fresh, password: PASSWORD },
+  });
+  assert.equal(closedOnly.statusCode, 403, closedOnly.body);
+  assert.equal(await count(`SELECT count(*)::int AS n FROM users WHERE email = $1`, [EMAIL.fresh]), 0);
+
+  const customerOnly = await app.inject({
+    method: 'POST',
+    url: '/api/v1/admin/wallet-migration/mode',
+    headers: { authorization: `Bearer ${onlyWalletSession.accessToken}` },
+    payload: { mode: 'LEGACY_AND_WALLET' },
+  });
+  assert.equal(customerOnly.statusCode, 401, customerOnly.body);
+
+  await setCutoverMode('LEGACY_AND_WALLET', 'step13-test');
+  await clearRates();
+  const restoredAfterOnly = await postPassword(EMAIL.legacy);
+  assert.equal(restoredAfterOnly.statusCode, 200, restoredAfterOnly.body);
+  assert.equal(sessionOf(restoredAfterOnly.body).userId, IDS.legacy);
+  assert.equal(await count(`SELECT count(*)::int AS n FROM user_wallets WHERE user_id = $1`, [IDS.legacy]), 0);
 
   await clearRates();
   let limited = 0;

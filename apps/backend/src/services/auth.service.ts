@@ -11,7 +11,16 @@ import {
   blacklistToken 
 } from '../middleware/auth.js';
 import { walletService } from './wallet.service.js';
-import { canUseLegacyPassword, LEGACY_DISABLED_MESSAGE } from './legacy-auth-policy.service.js';
+import {
+  canUseCustomerOAuthLogin,
+  canUseLegacyPassword,
+  canUseLegacySignup,
+  countWalletCredentials,
+  getCutoverMode,
+  legacyRefreshAllowed,
+  LEGACY_DISABLED_MESSAGE,
+  LEGACY_SIGNUP_MESSAGE,
+} from './legacy-auth-policy.service.js';
 import { 
   User, 
   UserRole, 
@@ -114,6 +123,9 @@ class AuthService {
    * Sign up new user with email/password
    */
   async signup(data: SignupData): Promise<AuthResult> {
+    if (!(await canUseLegacySignup())) {
+      throw new Error(LEGACY_SIGNUP_MESSAGE);
+    }
     const { email, password, phone, referralCode, provider, providerUserId, ip = '127.0.0.1' } = data;
 
     // Check if email exists
@@ -281,6 +293,10 @@ class AuthService {
       throw new Error('Invalid email or password');
     }
 
+    if (!(await canUseLegacyPassword(user.id))) {
+      throw new Error(LEGACY_DISABLED_MESSAGE);
+    }
+
     // Check account status
     if (user.status === UserStatus.BANNED) {
       throw new Error('Account has been banned');
@@ -339,6 +355,9 @@ class AuthService {
    * OAuth login/signup
    */
   async oauthLogin(data: OAuthLoginData): Promise<AuthResult> {
+    if (!(await canUseCustomerOAuthLogin())) {
+      throw new Error(LEGACY_DISABLED_MESSAGE);
+    }
     const { provider, providerUserId, email, ip, userAgent } = data;
 
     // Check for existing auth provider link
@@ -451,7 +470,7 @@ class AuthService {
     }
 
     // Check session
-    const sessionData = await redis.getJson<{ userId: string; isActive: boolean }>(
+    const sessionData = await redis.getJson<{ userId: string; isActive: boolean; authMethod?: string }>(
       `session:${payload.sessionId}`
     );
 
@@ -470,6 +489,15 @@ class AuthService {
     }
 
     const user = userResult.rows[0]!;
+    const walletCounts = await countWalletCredentials(user.id);
+    const refreshAllowed = legacyRefreshAllowed({
+      mode: await getCutoverMode(),
+      walletCredentialCount: walletCounts.credentials,
+      authMethod: sessionData.authMethod,
+    });
+    if (!refreshAllowed) {
+      throw new Error(LEGACY_DISABLED_MESSAGE);
+    }
 
     // Generate new tokens
     const tokens = generateTokens(

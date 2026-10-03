@@ -1,6 +1,7 @@
 /**
  * Public cutover view. Does not change the mode and does not identify a user.
- * Unmigrated customers still need the legacy entry, so it stays available.
+ * legacyEntryAvailable is false only in WALLET_ONLY. A failed read stays open
+ * in the UI; the server still refuses legacy session issuance.
  */
 
 import type { FastifyInstance } from 'fastify';

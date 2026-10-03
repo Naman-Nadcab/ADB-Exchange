@@ -10,8 +10,11 @@ import { getClientIp } from '../lib/client-ip.js';
 import { resolveProviderSecret } from '../lib/provider-secret.js';
 import {
   canUseLegacySignup,
+  canUseCustomerOAuthLogin,
   legacyDisabledBody,
+  LEGACY_DISABLED_MESSAGE,
   LEGACY_SIGNUP_MESSAGE,
+  LegacyCustomerLoginClosed,
   LegacySignupClosed,
 } from '../services/legacy-auth-policy.service.js';
 
@@ -86,6 +89,7 @@ export async function findOrCreateOAuthUser(
   avatarUrl: string | null,
   request: FastifyRequest
 ) {
+  if (!(await canUseCustomerOAuthLogin())) throw new LegacyCustomerLoginClosed();
   // Check if user exists with this OAuth provider
   const existingOAuth = await db.query<{
     user_id: string;
@@ -466,6 +470,9 @@ export default async function oauthRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
+      if (error instanceof LegacyCustomerLoginClosed) {
+        return reply.status(403).send(legacyDisabledBody(LEGACY_DISABLED_MESSAGE));
+      }
       if (error instanceof LegacySignupClosed) {
         return reply.status(403).send(legacyDisabledBody(LEGACY_SIGNUP_MESSAGE, 'LEGACY_SIGNUP_CLOSED'));
       }
@@ -600,6 +607,9 @@ export default async function oauthRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
+      if (error instanceof LegacyCustomerLoginClosed) {
+        return reply.status(403).send(legacyDisabledBody(LEGACY_DISABLED_MESSAGE));
+      }
       if (error instanceof LegacySignupClosed) {
         return reply.status(403).send(legacyDisabledBody(LEGACY_SIGNUP_MESSAGE, 'LEGACY_SIGNUP_CLOSED'));
       }
@@ -668,6 +678,9 @@ export default async function oauthRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
+      if (error instanceof LegacyCustomerLoginClosed) {
+        return reply.status(403).send(legacyDisabledBody(LEGACY_DISABLED_MESSAGE));
+      }
       if (error instanceof LegacySignupClosed) {
         return reply.status(403).send(legacyDisabledBody(LEGACY_SIGNUP_MESSAGE, 'LEGACY_SIGNUP_CLOSED'));
       }

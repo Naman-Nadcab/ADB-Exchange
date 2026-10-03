@@ -1,6 +1,7 @@
 import { AuthRepository } from '@core/repositories/AuthRepository';
 import { ApiError } from '@core/api/errors/ApiError';
 import type { HttpClient } from '@core/api/httpClient';
+import { legacyCustomerEntryAvailable } from '@core/auth/legacyEntry';
 
 describe('mobile legacy auth follows the server', () => {
   it('still posts password, OTP, and wallet login to the server routes', async () => {
@@ -34,5 +35,11 @@ describe('mobile legacy auth follows the server', () => {
     expect(error.message).toBe('This account uses wallet sign-in.');
     expect(error.code).toBe('LEGACY_AUTH_DISABLED');
     expect(error.message).not.toMatch(/0x[a-fA-F0-9]{8}/);
+  });
+
+  it('hides legacy buttons only when the server closes them', () => {
+    expect(legacyCustomerEntryAvailable(undefined)).toBe(true);
+    expect(legacyCustomerEntryAvailable({ legacyEntryAvailable: true })).toBe(true);
+    expect(legacyCustomerEntryAvailable({ legacyEntryAvailable: false })).toBe(false);
   });
 });

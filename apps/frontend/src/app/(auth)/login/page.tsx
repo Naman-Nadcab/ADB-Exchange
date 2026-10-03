@@ -59,6 +59,7 @@ export default function LoginPage() {
   const [passkeyAvailable, setPasskeyAvailable] = useState(false);
   const [showLegacy, setShowLegacy] = useState(false);
   const [walletPrimary, setWalletPrimary] = useState(false);
+  const [legacyEntryAvailable, setLegacyEntryAvailable] = useState(true);
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
@@ -73,8 +74,15 @@ export default function LoginPage() {
     let cancelled = false;
     fetch(`${API}/api/v1/auth/wallet-cutover`)
       .then((response) => (response.ok ? response.json() : null))
-      .then((body: { data?: { walletPrimary?: boolean } } | null) => {
-        if (!cancelled && body?.data?.walletPrimary) setWalletPrimary(true);
+      .then((body: { data?: { walletPrimary?: boolean; legacyEntryAvailable?: boolean } } | null) => {
+        if (cancelled || !body?.data) return;
+        if (body.data.walletPrimary) setWalletPrimary(true);
+        if (body.data.legacyEntryAvailable === false) {
+          setLegacyEntryAvailable(false);
+          setShowLegacy(false);
+          setMode('password');
+          setStep('identifier');
+        }
       })
       .catch(() => {});
     return () => {
@@ -347,15 +355,21 @@ export default function LoginPage() {
         <div className="space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{t('subtitlePassword')}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {legacyEntryAvailable ? t('subtitlePassword') : tw('walletOnlyNote')}
+            </p>
           </div>
 
           <WalletAuthPanel actionLabel={tw('signIn')} onSuccess={completeLogin} />
 
           {walletPrimary && (
-            <p className="text-sm text-muted-foreground">{tw('walletPrimaryNote')}</p>
+            <p className="text-sm text-muted-foreground">
+              {legacyEntryAvailable ? tw('walletPrimaryNote') : tw('walletOnlyNote')}
+            </p>
           )}
 
+          {legacyEntryAvailable && (
+          <>
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-accent" />
             <span className="text-xs text-muted-foreground font-medium">{tc('actions.or')}</span>
@@ -449,6 +463,8 @@ export default function LoginPage() {
 
         </form>
           )}
+          </>
+          )}
 
           <p className="text-center text-sm text-muted-foreground">
             {t('noAccount')}{' '}
@@ -457,7 +473,7 @@ export default function LoginPage() {
         </div>
       )}
 
-      {step === 'identifier' && mode === 'otp' && (
+      {legacyEntryAvailable && step === 'identifier' && mode === 'otp' && (
         <form onSubmit={(e) => { e.preventDefault(); sendOtp(); }} className="space-y-6">
           <div>
             <button type="button" onClick={switchToPassword} className="text-primary hover:underline text-sm font-medium mb-3">
@@ -495,7 +511,7 @@ export default function LoginPage() {
         </form>
       )}
 
-      {step === 'otp' && (
+      {legacyEntryAvailable && step === 'otp' && (
         <form ref={formRef} onSubmit={(e) => { e.preventDefault(); verifyOtp(otp.join('')); }} className="space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground">{t('verifyTitle')}</h1>

@@ -26,6 +26,7 @@ import {
   canUseLegacyOtp,
   canUseLegacyPassword,
   canUseLegacySignup,
+  canUseCustomerPasskeyLogin,
   getCutoverMode,
   legacyDisabledBody,
   legacyRefreshAllowed,
@@ -2774,6 +2775,10 @@ export default async function authRoutes(app: FastifyInstance) {
     preHandler: [rateLimitByIp('auth:passkey', 10, 60, { failClosed: config.rateLimit.failClosed })],
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
+      if (!(await canUseCustomerPasskeyLogin())) {
+        logCutoverEvent('legacy_auth_blocked', { outcome: 'blocked', ip: getClientIp(request) });
+        return reply.status(403).send(legacyDisabledBody());
+      }
       const { credential, challenge } = request.body as { credential: AuthenticationResponseJSON; challenge: string };
 
       if (!credential || !challenge) {

@@ -15,7 +15,7 @@ export const CUTOVER_SETTING_KEY = 'wallet_auth_cutover_mode';
 export const LEGACY_DISABLED_MESSAGE = 'This account uses wallet sign-in.';
 export const LEGACY_SIGNUP_MESSAGE = 'Connect your wallet to continue.';
 
-export const CUTOVER_MODES = ['LEGACY_AND_WALLET', 'WALLET_PREFERRED', 'WALLET_FIRST'] as const;
+export const CUTOVER_MODES = ['LEGACY_AND_WALLET', 'WALLET_PREFERRED', 'WALLET_FIRST', 'WALLET_ONLY'] as const;
 export type CutoverMode = (typeof CUTOVER_MODES)[number];
 
 export type MigrationStatus = 'UNMIGRATED' | 'WALLET_LINKED' | 'LEGACY_DISABLED';
@@ -39,15 +39,24 @@ export type LegacyDecision = {
 
 /**
  * Single decision for password and OTP session issuance.
- * WALLET_FIRST blocks legacy sessions when any wallet credential exists,
- * including disabled or compromised credentials. That is not an automatic
- * return to password login. Unmigrated users stay on legacy auth.
+ * WALLET_FIRST blocks legacy sessions when any wallet credential exists.
+ * Unmigrated users stay on legacy auth during that migration window.
+ * WALLET_ONLY is the final customer contract: no password or OTP session
+ * for any customer, including accounts that have not linked a wallet.
+ * Those accounts are not deleted. Rollback to LEGACY_AND_WALLET restores
+ * password and OTP without changing balances, KYC, or wallet rows.
  */
 export function legacySessionDecision(input: {
   mode: CutoverMode;
   walletCredentialCount: number;
   activeWalletCount: number;
 }): LegacyDecision {
+  if (input.mode === 'WALLET_ONLY') {
+    return {
+      allowed: false,
+      status: input.walletCredentialCount > 0 ? 'LEGACY_DISABLED' : 'UNMIGRATED',
+    };
+  }
   if (input.mode === 'WALLET_FIRST' && input.walletCredentialCount > 0) {
     return { allowed: false, status: 'LEGACY_DISABLED' };
   }
@@ -58,7 +67,17 @@ export function legacySessionDecision(input: {
 }
 
 export function legacySignupAllowed(mode: CutoverMode): boolean {
-  return mode !== 'WALLET_FIRST';
+  return mode !== 'WALLET_FIRST' && mode !== 'WALLET_ONLY';
+}
+
+/** Passkey WebAuthn verify must not mint a customer session in the final mode. */
+export function customerPasskeyLoginAllowed(mode: CutoverMode): boolean {
+  return mode !== 'WALLET_ONLY';
+}
+
+/** OAuth callbacks must not mint a customer session in the final mode. */
+export function customerOAuthLoginAllowed(mode: CutoverMode): boolean {
+  return mode !== 'WALLET_ONLY';
 }
 
 export function legacyRefreshAllowed(input: {
@@ -66,8 +85,9 @@ export function legacyRefreshAllowed(input: {
   walletCredentialCount: number;
   authMethod: string | null | undefined;
 }): boolean {
-  if (input.mode !== 'WALLET_FIRST' || input.walletCredentialCount === 0) return true;
   const method = normalizeAuthMethod(input.authMethod);
+  if (input.mode === 'WALLET_ONLY') return method === 'wallet';
+  if (input.mode !== 'WALLET_FIRST' || input.walletCredentialCount === 0) return true;
   return CONTINUING_METHODS.has(method);
 }
 
@@ -172,6 +192,14 @@ export async function canUseLegacySignup(): Promise<boolean> {
   return legacySignupAllowed(await getCutoverMode());
 }
 
+export async function canUseCustomerPasskeyLogin(): Promise<boolean> {
+  return customerPasskeyLoginAllowed(await getCutoverMode());
+}
+
+export async function canUseCustomerOAuthLogin(): Promise<boolean> {
+  return customerOAuthLoginAllowed(await getCutoverMode());
+}
+
 export async function shouldOfferLegacyLogin(): Promise<boolean> {
   return true;
 }
@@ -181,6 +209,15 @@ export class LegacySignupClosed extends Error {
   constructor() {
     super(LEGACY_SIGNUP_MESSAGE);
     this.name = 'LegacySignupClosed';
+  }
+}
+
+/** Final wallet-only mode rejected a non-wallet customer login. */
+export class LegacyCustomerLoginClosed extends Error {
+  readonly code = 'LEGACY_AUTH_DISABLED' as const;
+  constructor() {
+    super(LEGACY_DISABLED_MESSAGE);
+    this.name = 'LegacyCustomerLoginClosed';
   }
 }
 
@@ -244,7 +281,7 @@ export async function setCutoverMode(mode: CutoverMode, actor: string): Promise<
     throw new CutoverRefused(['invalid_mode']);
   }
   const current = await getCutoverMode();
-  if (mode === 'WALLET_FIRST') {
+  if (mode === 'WALLET_FIRST' || mode === 'WALLET_ONLY') {
     const report = await buildMigrationReadiness(current);
     const failed = walletFirstBlockers(report);
     if (failed.length > 0) {
@@ -259,10 +296,10 @@ export async function setCutoverMode(mode: CutoverMode, actor: string): Promise<
     [CUTOVER_SETTING_KEY, JSON.stringify({ mode }), 'Customer wallet-first authentication cutover mode']
   );
   if (process.env.NODE_ENV === 'test') testMode = null;
-  if (mode === 'WALLET_FIRST') {
+  if (mode === 'WALLET_FIRST' || mode === 'WALLET_ONLY') {
     logCutoverEvent('wallet_cutover_enabled', { actor, outcome: 'success' });
     logCutoverEvent('legacy_auth_disabled', { actor, outcome: 'success' });
-  } else if (current === 'WALLET_FIRST' && mode === 'LEGACY_AND_WALLET') {
+  } else if ((current === 'WALLET_FIRST' || current === 'WALLET_ONLY') && mode === 'LEGACY_AND_WALLET') {
     logCutoverEvent('wallet_cutover_rolled_back', { actor, outcome: 'success' });
     logCutoverEvent('legacy_auth_restored', { actor, outcome: 'success' });
   } else {
@@ -448,6 +485,6 @@ export async function publicCutoverView(): Promise<{
   return {
     mode,
     walletPrimary: mode !== 'LEGACY_AND_WALLET',
-    legacyEntryAvailable: true,
+    legacyEntryAvailable: mode !== 'WALLET_ONLY',
   };
 }
