@@ -47,7 +47,6 @@ process.env.LOG_LEVEL = 'error';
 const EXISTING_USER = 'a0000000-0000-4000-8000-00000000aa01';
 const LEGACY_PASSWORD = 'Step9Legacy!1';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const BANK_METHOD = 'eed33fe6-5fcc-4793-a859-cbeeb4316e02';
 
 type EngineHit = { url: string; body: string; userHeader: string };
 
@@ -452,8 +451,13 @@ async function run(): Promise<void> {
     [native.userId, usdtId]
   );
   assert.equal(await tableCount('user_p2p_payment_methods'), paymentMethodsBeforeLogin);
+  const bankCatalog = await pool.query<{ id: string }>(
+    `SELECT id::text FROM p2p_payment_methods WHERE code = 'bank_transfer' AND is_active IS TRUE LIMIT 1`
+  );
+  assert.equal(bankCatalog.rows.length, 1, 'migrated p2p_payment_methods must include active bank_transfer');
+  const bankMethodId = bankCatalog.rows[0]!.id;
   const pm = await authed('POST', '/api/v1/p2p/my-payment-methods', replay.token, {
-    payment_method_id: BANK_METHOD,
+    payment_method_id: bankMethodId,
     display_name: 'Bank account',
     payment_details: { holder: 'Trader', bank: 'Test Bank' },
   });
@@ -513,7 +517,7 @@ async function run(): Promise<void> {
     [other.userId, usdtId]
   );
   const otherPm = await authed('POST', '/api/v1/p2p/my-payment-methods', other.token, {
-    payment_method_id: BANK_METHOD,
+    payment_method_id: bankMethodId,
     display_name: 'Other bank',
     payment_details: { holder: 'Other', bank: 'Other Bank' },
   });

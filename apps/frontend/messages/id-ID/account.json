@@ -96,6 +96,7 @@
     },
     "sections": {
       "loginPassword": "Login & kata sandi",
+      "signIn": "Keamanan masuk",
       "twoFactor": "Autentikasi dua faktor",
       "advanced": "Perlindungan lanjutan",
       "withdrawal": "Keamanan penarikan"
@@ -1084,6 +1085,8 @@
     "goToAccount": "Ke Akun",
     "pendingTitle": "Verifikasi Sedang Diproses",
     "pendingSubtitle": "Dokumen Anda sedang ditinjau. Biasanya 1–2 hari kerja.",
+    "rejectedTitle": "Verifikasi tidak disetujui",
+    "rejectedSubtitle": "Pengajuan identitas terbaru pada akun ini ditolak. Anda dapat mengajukan ulang. Forex tidak memakai identitas terpisah.",
     "businessVerification": "Verifikasi Bisnis",
     "helpAria": "Bantuan",
     "accountAria": "Pengaturan akun",

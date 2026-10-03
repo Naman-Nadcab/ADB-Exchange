@@ -96,6 +96,7 @@
     },
     "sections": {
       "loginPassword": "Login & password",
+      "signIn": "Sign-in security",
       "twoFactor": "Two-factor authentication",
       "advanced": "Advanced protection",
       "withdrawal": "Withdrawal security"
@@ -1084,6 +1085,8 @@
     "goToAccount": "Go to Account",
     "pendingTitle": "Verification In Progress",
     "pendingSubtitle": "Your documents are being reviewed. This usually takes 1-2 business days.",
+    "rejectedTitle": "Verification was not approved",
+    "rejectedSubtitle": "The latest identity application on this account was rejected. You can submit a new application. Forex does not use a separate identity.",
     "businessVerification": "Business Verification",
     "helpAria": "Help",
     "accountAria": "Account settings",

@@ -20,23 +20,28 @@ function restoreEnv() {
   Object.assign(process.env, prevEnv);
 }
 
+function setEnv(name: string, value: string | undefined) {
+  if (value === undefined) delete process.env[name];
+  else process.env[name] = value;
+}
+
 test('x-forwarded-proto http disables secure on production NODE_ENV', () => {
-  process.env.NODE_ENV = 'production';
-  delete process.env.AUTH_COOKIE_SECURE;
+  setEnv('NODE_ENV', 'production');
+  setEnv('AUTH_COOKIE_SECURE', undefined);
   assert.equal(resolveLocaleCookieSecure('http'), false);
   restoreEnv();
 });
 
 test('x-forwarded-proto https enables secure', () => {
-  process.env.NODE_ENV = 'production';
-  delete process.env.AUTH_COOKIE_SECURE;
+  setEnv('NODE_ENV', 'production');
+  setEnv('AUTH_COOKIE_SECURE', undefined);
   assert.equal(resolveLocaleCookieSecure('https'), true);
   restoreEnv();
 });
 
 test('AUTH_COOKIE_SECURE=false overrides production default', () => {
-  process.env.NODE_ENV = 'production';
-  process.env.AUTH_COOKIE_SECURE = 'false';
+  setEnv('NODE_ENV', 'production');
+  setEnv('AUTH_COOKIE_SECURE', 'false');
   assert.equal(resolveLocaleCookieSecure(null), false);
   restoreEnv();
 });

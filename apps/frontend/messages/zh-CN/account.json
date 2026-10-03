@@ -96,6 +96,7 @@
     },
     "sections": {
       "loginPassword": "登录与密码",
+      "signIn": "登录安全",
       "twoFactor": "双重验证",
       "advanced": "高级保护",
       "withdrawal": "提币安全"
@@ -1084,6 +1085,8 @@
     "goToAccount": "前往账户",
     "pendingTitle": "认证审核中",
     "pendingSubtitle": "您的文件正在审核，通常需要 1–2 个工作日。",
+    "rejectedTitle": "身份验证未通过",
+    "rejectedSubtitle": "此账户最近一次身份申请已被拒绝。您可以重新提交。外汇不使用另一套身份。",
     "businessVerification": "企业认证",
     "helpAria": "帮助",
     "accountAria": "账户设置",

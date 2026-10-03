@@ -1422,7 +1422,7 @@ const migrations = [
     actor_id UUID,
     action VARCHAR(80) NOT NULL,
     resource_type VARCHAR(50),
-    resource_id UUID,
+    resource_id TEXT,
     old_value TEXT,
     new_value TEXT,
     ip_address INET,
@@ -3594,6 +3594,19 @@ const migrations = [
   `INSERT INTO audit_chain_state (id, last_entry_hash) VALUES (1, 'genesis') ON CONFLICT (id) DO NOTHING;`,
   `ALTER TABLE audit_logs_immutable ADD COLUMN IF NOT EXISTS prev_hash VARCHAR(64);`,
   `ALTER TABLE audit_logs_immutable ADD COLUMN IF NOT EXISTS entry_hash VARCHAR(64);`,
+  `DO $$
+   BEGIN
+     IF EXISTS (
+       SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND table_name = 'audit_logs_immutable'
+         AND column_name = 'resource_id'
+         AND udt_name = 'uuid'
+     ) THEN
+       ALTER TABLE audit_logs_immutable
+         ALTER COLUMN resource_id TYPE TEXT USING resource_id::text;
+     END IF;
+   END $$;`,
   `CREATE INDEX IF NOT EXISTS idx_audit_immutable_entry_hash ON audit_logs_immutable(entry_hash) WHERE entry_hash IS NOT NULL;`,
   `ALTER TABLE admin_approval_requests ADD COLUMN IF NOT EXISTS maker_unlock_at TIMESTAMPTZ;`,
   `ALTER TABLE admin_approval_requests ADD COLUMN IF NOT EXISTS action_executed BOOLEAN NOT NULL DEFAULT FALSE;`,

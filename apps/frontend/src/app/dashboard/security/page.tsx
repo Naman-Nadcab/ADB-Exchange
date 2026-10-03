@@ -1294,7 +1294,7 @@ export default function SecurityPage() {
           {(
             [
               ['all', ta('security.tabs.all')],
-              ['login', ta('security.tabs.login')],
+              ['login', legacyLogin ? ta('security.tabs.login') : ta('security.sections.signIn')],
               ['twoFactor', ta('security.tabs.twoFactor')],
               ['advanced', ta('security.tabs.advanced')],
               ['withdrawal', ta('security.tabs.withdrawal')],
@@ -1318,7 +1318,7 @@ export default function SecurityPage() {
         {/** Section helper */}
         {(securityTab === 'all' || securityTab === 'login') && (
           <section className="mb-8">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">{ta('security.sections.loginPassword')}</h2>
+            <h2 className="mb-4 text-lg font-semibold text-foreground">{legacyLogin ? ta('security.sections.loginPassword') : ta('security.sections.signIn')}</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <SecurityFeatureCard
                 icon={Lock}

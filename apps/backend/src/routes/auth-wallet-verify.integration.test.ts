@@ -84,6 +84,25 @@ CREATE TABLE IF NOT EXISTS wallet_auth_challenges (
 );
 `;
 
+/** One fixture user on a slim schema. A migrated database already has the seed user, whose referral_code is NOT NULL. */
+const FIXTURE_USER_SQL = `
+DO $$
+BEGIN
+  IF (SELECT count(*) FROM users) = 0 THEN
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'referral_code'
+    ) THEN
+      INSERT INTO users (id, referral_code)
+      VALUES ('00000000-0000-0000-0000-000000000001', 'wauthfix0001');
+    ELSE
+      INSERT INTO users (id)
+      VALUES ('00000000-0000-0000-0000-000000000001');
+    END IF;
+  END IF;
+END $$;
+`;
+
 type SideCounts = {
   users: number;
   user_wallets: number;
@@ -113,7 +132,7 @@ async function run(): Promise<void> {
 
   const pool = new Pool({ connectionString: testUrl, max: 4 });
   await pool.query(SCHEMA_SQL);
-  await pool.query(`INSERT INTO users (id) VALUES ('00000000-0000-0000-0000-000000000001') ON CONFLICT DO NOTHING`);
+  await pool.query(FIXTURE_USER_SQL);
   await pool.query('DELETE FROM wallet_auth_challenges');
 
   async function transaction<T>(fn: (query: (sql: string, params: unknown[]) => Promise<{ rows: never[] }>) => Promise<T>): Promise<T> {

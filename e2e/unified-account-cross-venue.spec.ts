@@ -46,7 +46,7 @@ async function installWallet(page: Page) {
   });
 }
 
-async function installApi(page: Page, kycRequired: boolean) {
+async function installApi(page: Page, kycRequired: boolean, kycStatus = 'not_submitted') {
   const token = fakeJwt();
   const user = {
     id: USER_ID,
@@ -59,8 +59,8 @@ async function installApi(page: Page, kycRequired: boolean) {
     emailVerified: false,
     phoneVerified: false,
     tierLevel: 0,
-    kycStatus: 'not_submitted',
-    kycLevel: 0,
+    kycStatus,
+    kycLevel: kycStatus === 'approved' ? 1 : 0,
   };
   await page.route('**/api/v1/**', async (route: Route) => {
     const url = route.request().url();
@@ -147,8 +147,9 @@ async function installApi(page: Page, kycRequired: boolean) {
       await json({
         success: true,
         data: {
-          fundingBalance: { totalUsd: 12.5, balances: [] },
-          tradingBalance: { totalUsd: 3.25, balances: [] },
+          funding: { type: 'funding', totalUsd: '12.5', totalBtc: '0' },
+          trading: { type: 'trading', totalUsd: '3.25', totalBtc: '0' },
+          total: { totalUsd: '15.75', totalBtc: '0' },
         },
       });
       return;
@@ -285,11 +286,16 @@ test.beforeAll(() => {
 });
 
 test('wallet-only customer keeps one account across crypto and forex', async ({ page }) => {
+  test.setTimeout(90_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   await installWallet(page);
   await installApi(page, false);
   await signIn(page);
   await expect(page.getByText('Estimated crypto & fiat').first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('15.75 USDT').first()).toBeVisible();
+  await expect(page.getByText('12.5 USDT').first()).toBeVisible();
+  await expect(page.getByText('3.25 USDT').first()).toBeVisible();
+  await expect(page.getByText('USDT USDT')).toHaveCount(0);
   await expect(page.getByText('Crypto funding').first()).toBeVisible();
   await expect(page.getByText(USER_ID.slice(0, 8)).first()).toBeVisible();
   await page.screenshot({ path: `${SHOTS}/desktop-dashboard.png`, fullPage: false });
@@ -310,6 +316,8 @@ test('wallet-only customer keeps one account across crypto and forex', async ({ 
   await page.screenshot({ path: `${SHOTS}/desktop-profile.png`, fullPage: false });
 
   await page.goto('/dashboard/security', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { name: 'Sign-in security' })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('Login & password')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Sign-in wallets' })).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText('Wallets you can use to sign in. Linking a wallet does not move funds.')).toBeVisible();
   await expect(page.getByText('Primary').first()).toBeVisible();
@@ -320,6 +328,7 @@ test('wallet-only customer keeps one account across crypto and forex', async ({ 
 
   await page.goto('/dashboard/identity', { waitUntil: 'domcontentloaded' });
   await expect(page.getByText('This verification belongs to your exchange account').first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('Proof of Identity').first()).toBeVisible();
 
   await page.goto('/forex/account/accounts/open-live', { waitUntil: 'domcontentloaded' });
   await expect(page.getByText('Identity verification is optional for Forex').first()).toBeVisible({ timeout: 15_000 });
@@ -331,6 +340,19 @@ test('wallet-only customer keeps one account across crypto and forex', async ({ 
   await expect(page.getByText('Identity verification required').first()).toBeVisible({ timeout: 15_000 });
   await expect(page.getByRole('link', { name: 'Complete verification' }).first()).toBeVisible();
   await page.screenshot({ path: `${SHOTS}/desktop-forex-kyc-on.png`, fullPage: false });
+
+  for (const state of [
+    { status: 'pending', text: 'Verification In Progress' },
+    { status: 'rejected', text: 'Verification was not approved' },
+    { status: 'approved', text: 'Identity Verified' },
+  ]) {
+    await page.unroute('**/api/v1/**');
+    await installApi(page, true, state.status);
+    await page.goto('/dashboard/identity', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByText(state.text).first()).toBeVisible({ timeout: 15_000 });
+  }
+  await page.unroute('**/api/v1/**');
+  await installApi(page, true);
 
   await page.goto('/wallet/deposit/crypto', { waitUntil: 'domcontentloaded' });
   await expect(page.getByText(/not your sign-in wallet/i).first()).toBeVisible({ timeout: 15_000 });

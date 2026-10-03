@@ -324,6 +324,12 @@ export default function IdentityVerificationPage() {
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-6 py-12">
         <p className="mb-4 text-sm text-muted-foreground">{t('accountWideNote')}</p>
+        {kycStatus === 'rejected' ? (
+          <div className="mb-4 rounded-xl border border-sell/40 bg-sell/10 px-4 py-3 text-sm" role="status">
+            <p className="font-semibold text-sell">{t('rejectedTitle')}</p>
+            <p className="mt-1 text-foreground/80">{t('rejectedSubtitle')}</p>
+          </div>
+        ) : null}
         <div className="bg-card rounded-xl p-8 shadow-sm border border-border">
           <h2 className="text-2xl font-bold text-foreground mb-8">
             {t('proofTitle')}
