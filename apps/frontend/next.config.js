@@ -137,4 +137,12 @@ const nextConfig = {
   },
 };
 
-module.exports = withNextIntl(nextConfig);
+const intlConfig = withNextIntl(nextConfig);
+// next-intl sets env._next_intl_trailing_slash to undefined when trailingSlash is off.
+// Next 14.0.4 warns because env values must be strings. 'false' keeps the plugin's
+// `'true' === env` check off and removes the missing-string warning.
+intlConfig.env = {
+  ...(intlConfig.env || {}),
+  _next_intl_trailing_slash: intlConfig.trailingSlash ? 'true' : 'false',
+};
+module.exports = intlConfig;

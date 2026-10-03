@@ -2340,10 +2340,17 @@ export default async function walletRoutes(app: FastifyInstance) {
           error: { code: 'INVALID_TOKEN', message: 'Currency not found for this token' }
         });
       }
-      const chainIdCheck = token.chain_id ?? CHAIN_ID_GLOBAL;
       const withdrawBalances = await readUserBalances(userId, accountType);
-      const withdrawRow = withdrawBalances.find(r => r.currency_id === currencyId);
-      const availableBalance = withdrawRow ? new Decimal(withdrawRow.available_balance || '0').toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN) : new Decimal(0);
+      // readUserBalances can return both the token-chain row and the global funding row.
+      // The lock spends the chain row when it covers the total, otherwise the global row.
+      // The first row may be a zero chain row and must not hide a funded global row.
+      const availableBalance = withdrawBalances
+        .filter((r) => r.currency_id === currencyId)
+        .reduce((max, r) => {
+          const value = new Decimal(r.available_balance || '0');
+          return value.gt(max) ? value : max;
+        }, new Decimal(0))
+        .toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN);
       const totalRequired = withdrawAmountDec.plus(feeDec).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN);
       const netAmount = withdrawAmountDec.minus(feeDec).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN);
 
