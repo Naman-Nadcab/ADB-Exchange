@@ -218,11 +218,11 @@ export default function ReferralProgramPage() {
       ctx.fill();
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 30px Arial';
-      ctx.fillText('M', 63, 88);
+      ctx.fillText('A', 63, 88);
       
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 24px Arial';
-      ctx.fillText('FDM', 115, 85);
+      ctx.fillText('ADB Exchange', 115, 85);
       
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 32px Arial';
@@ -742,7 +742,7 @@ export default function ReferralProgramPage() {
 
                       <h3 className="text-2xl font-bold text-white mb-2">{t('joinEarnRewards')}</h3>
                       <p className="text-blue-200">
-                        Refer friends and earn commissions when they trade eligible products on FDM.
+                        Refer friends and earn commissions when they trade eligible products on ADB Exchange.
                       </p>
                     </div>
 

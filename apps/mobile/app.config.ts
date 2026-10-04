@@ -26,7 +26,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
   return {
     ...config,
-    name: 'FDM',
+    name: 'ADB Exchange',
     slug: 'metheorium-mobile',
     scheme: 'metheorium',
     plugins: [...(config.plugins ?? []), './plugins/withWalletSchemeQueries'],
@@ -47,11 +47,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       associatedDomains: ['applinks:app.metheorium.com'],
       infoPlist: {
         NSFaceIDUsageDescription:
-          'FDM uses Face ID to unlock the app and protect your account.',
+          'ADB Exchange uses Face ID to unlock the app and protect your account.',
         NSCameraUsageDescription:
-          'FDM uses the camera for identity verification (KYC) when you choose to verify.',
+          'ADB Exchange uses the camera for identity verification when you choose to verify.',
         NSPhotoLibraryUsageDescription:
-          'FDM uses your photo library to update your profile avatar.',
+          'ADB Exchange uses your photo library when you update your profile photo.',
         LSApplicationQueriesSchemes: ['metamask', 'trust', 'cbwallet', 'phantom'],
       },
     },

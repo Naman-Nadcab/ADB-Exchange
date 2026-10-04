@@ -1802,7 +1802,7 @@ const migrations = [
   `INSERT INTO api_settings (category, provider, name, is_active, is_default, additional_config) VALUES ('sms', 'fast2sms', 'Fast2SMS', FALSE, TRUE, '{"sender_id":"INRXPE","message_id":"181649","route":"dlt"}') ON CONFLICT (category, provider) DO NOTHING;`,
   `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('sms', 'twilio', 'Twilio SMS', FALSE, FALSE) ON CONFLICT (category, provider) DO NOTHING;`,
   `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('sms', 'msg91', 'MSG91', FALSE, FALSE) ON CONFLICT (category, provider) DO NOTHING;`,
-  `INSERT INTO api_settings (category, provider, name, is_active, is_default, additional_config) VALUES ('email', 'smtp', 'SMTP Email', FALSE, TRUE, '{"host":"","port":"465","secure":"true","from_email":"noreply@exchange.com","from_name":"Metherium"}') ON CONFLICT (category, provider) DO NOTHING;`,
+  `INSERT INTO api_settings (category, provider, name, is_active, is_default, additional_config) VALUES ('email', 'smtp', 'SMTP Email', FALSE, TRUE, '{"host":"","port":"465","secure":"true","from_email":"noreply@exchange.com","from_name":"ADB Exchange"}') ON CONFLICT (category, provider) DO NOTHING;`,
   `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('email', 'resend', 'Resend', FALSE, FALSE) ON CONFLICT (category, provider) DO NOTHING;`,
   `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('email', 'sendgrid', 'SendGrid', FALSE, FALSE) ON CONFLICT (category, provider) DO NOTHING;`,
   `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('kyc', 'hyperverge', 'HyperVerge', FALSE, TRUE) ON CONFLICT (category, provider) DO NOTHING;`,

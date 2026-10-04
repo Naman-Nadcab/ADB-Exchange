@@ -78,7 +78,7 @@ export function ForexIntegrationsPanel() {
     <div className="admin-stack-lg">
       <ForexPanelShell
         title="Adapter layer"
-        description="Provider-agnostic execution — Internal FDM is active; external brokers are catalog placeholders until adapters are certified."
+        description="Provider-agnostic execution. The internal Forex adapter is active. External brokers stay as catalog placeholders until an adapter is certified."
       >
         {q.isLoading ? (
           <p className="text-sm text-admin-muted">Loading integration catalog…</p>

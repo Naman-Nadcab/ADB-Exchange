@@ -78,7 +78,7 @@ function sanitizePreferencesInput(updates: Record<string, unknown>): { ok: true;
 }
 
 // WebAuthn configuration
-const RP_NAME = process.env.WEBAUTHN_RP_NAME || 'FDM';
+const RP_NAME = process.env.WEBAUTHN_RP_NAME || 'ADB Exchange';
 const RP_ID = process.env.WEBAUTHN_RP_ID || 'localhost';
 const ORIGIN = process.env.WEBAUTHN_ORIGIN || 'http://localhost:3000';
 const CHALLENGE_TTL = 300; // 5 minutes
@@ -1979,7 +1979,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
           const OTPAuth = await import('otpauth');
           const totp = new OTPAuth.TOTP({
-            issuer: 'FDM',
+            issuer: 'ADB Exchange',
             label: 'user',
             algorithm: 'SHA1',
             digits: 6,
@@ -4021,7 +4021,7 @@ export default async function authRoutes(app: FastifyInstance) {
       const totpSecret = new OTPAuth.Secret({ size: 20 });
 
       const totp = new OTPAuth.TOTP({
-        issuer: 'FDM',
+        issuer: 'ADB Exchange',
         label: user.email,
         algorithm: 'SHA1',
         digits: 6,
@@ -4105,7 +4105,7 @@ export default async function authRoutes(app: FastifyInstance) {
       const OTPAuth = await import('otpauth');
       
       const totp = new OTPAuth.TOTP({
-        issuer: 'FDM',
+        issuer: 'ADB Exchange',
         label: 'user',
         algorithm: 'SHA1',
         digits: 6,
@@ -4233,7 +4233,7 @@ export default async function authRoutes(app: FastifyInstance) {
       // Verify code
       const OTPAuth = await import('otpauth');
       const totp = new OTPAuth.TOTP({
-        issuer: 'FDM',
+        issuer: 'ADB Exchange',
         label: 'user',
         algorithm: 'SHA1',
         digits: 6,
@@ -4346,7 +4346,7 @@ export default async function authRoutes(app: FastifyInstance) {
       // Verify 2FA code
       const OTPAuth = await import('otpauth');
       const totp = new OTPAuth.TOTP({
-        issuer: 'FDM',
+        issuer: 'ADB Exchange',
         label: 'user',
         algorithm: 'SHA1',
         digits: 6,

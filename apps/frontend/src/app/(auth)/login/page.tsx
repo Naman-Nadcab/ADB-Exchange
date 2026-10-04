@@ -373,10 +373,8 @@ export default function LoginPage() {
 
           <WalletAuthPanel actionLabel={tw('signIn')} onSuccess={completeLogin} />
 
-          {(walletPrimary || legacyEntryAvailable !== true) && (
-            <p className="text-sm text-muted-foreground">
-              {legacyEntryAvailable === true ? tw('walletPrimaryNote') : tw('walletOnlyNote')}
-            </p>
+          {legacyEntryAvailable === true && walletPrimary && (
+            <p className="text-sm text-muted-foreground">{tw('walletPrimaryNote')}</p>
           )}
 
           {legacyEntryAvailable === true && (

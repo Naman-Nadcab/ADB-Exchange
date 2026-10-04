@@ -628,7 +628,7 @@
     "footerTradingFee": "交易手续费",
     "footerApi": "API",
     "footerHelpCenter": "帮助中心",
-    "footerCopyright": "© 2026 FDM",
+    "footerCopyright": "© 2026 ADB Exchange",
     "requirements": {
       "spot-volume": {
         "title": "30 日现货成交量（USD）",
@@ -656,7 +656,7 @@
     "depositCta": "去充值",
     "dashboardCta": "前往控制台",
     "redirecting": "5 秒后跳转至控制台…",
-    "footerCopyright": "© 2018-2026 FDM. 保留所有权利。",
+    "footerCopyright": "© 2018-2026 ADB Exchange. 保留所有权利。",
     "steps": {
       "fund": {
         "title": "为账户充值",
@@ -1099,8 +1099,8 @@
     "otherDocuments": "没有 {doc}？使用其他证件。",
     "verifyToEarn": "认证领 $20",
     "continueOnApp": "您也可以在",
-    "fdmApp": "📱 FDM App",
-    "footerCopyright": "© 2018-2026 FDM. 保留所有权利。",
+    "fdmApp": "ADB Exchange App",
+    "footerCopyright": "© 2018-2026 ADB Exchange. 保留所有权利。",
     "termsOfService": "服务条款",
     "privacyPolicy": "隐私政策",
     "verificationFailed": "认证失败",
@@ -1478,17 +1478,17 @@
     "line": "Line",
     "more": "More",
     "loadFailed": "加载推荐数据失败",
-    "inviteEarn": "邀请好友使用 FDM Earn",
-    "inviteCard": "推荐好友办理 FDM 卡",
+    "inviteEarn": "邀请好友使用 ADB Exchange Earn",
+    "inviteCard": "推荐好友办理 ADB Exchange 卡",
     "inviteCopyTrading": "推荐好友使用跟单交易",
     "typeWeb3": "web3",
-    "shareTitle": "加入 FDM，赢取加密奖励！",
-    "shareTextPrefix": "通过我的推荐链接加入 FDM，参与推荐计划并获取符合条件的奖励：",
+    "shareTitle": "加入 ADB Exchange，赢取加密奖励！",
+    "shareTextPrefix": "通过我的推荐链接加入 ADB Exchange，参与推荐计划并获取符合条件的奖励：",
     "loadingCode": "加载中…",
     "canvasJoinTitle": "加入并赢取奖励！",
-    "canvasReferLine1": "推荐好友加入 FDM",
+    "canvasReferLine1": "推荐好友加入 ADB Exchange",
     "canvasReferLine2": "获取符合条件的佣金。",
-    "canvasScanPrompt": "扫码加入 FDM！",
+    "canvasScanPrompt": "扫码加入 ADB Exchange！",
     "canvasReferralCode": "推荐码：{code}"
   },
   "myReferralsPage": {
@@ -1541,7 +1541,7 @@
     "footerServices": "Services",
     "footerSupport": "Support",
     "footerProducts": "Products",
-    "footerAboutFdm": "About FDM",
+    "footerAboutFdm": "About ADB Exchange",
     "footerAnnouncements": "Announcements",
     "footerFees": "Fees & Transactions Overview",
     "footerP2p": "P2P Trading (0 Fees)",
@@ -1557,7 +1557,7 @@
     "loadFailed": "加载推荐数据失败"
   },
   "apiManagementPage": {
-    "bannerTitle": "FDM OpenAPI V5",
+    "bannerTitle": "ADB Exchange OpenAPI V5",
     "title": "API 管理",
     "createNewKey": "创建新密钥",
     "securityCardTitle": "安全",

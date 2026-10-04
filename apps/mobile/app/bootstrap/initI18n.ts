@@ -5,7 +5,7 @@ import { initReactI18next } from 'react-i18next';
 void i18n.use(initReactI18next).init({
   lng: 'en',
   fallbackLng: 'en',
-  resources: { en: { translation: { app_name: 'FDM' } } },
+  resources: { en: { translation: { app_name: 'ADB Exchange' } } },
 });
 
 export { i18n };

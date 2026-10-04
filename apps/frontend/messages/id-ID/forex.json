@@ -47,7 +47,7 @@
   "pages": {
     "markets": {
       "title": "Pasar",
-      "subtitle": "Bid, Ask, dan spread live dari kuotasi Forex FDM. Perubahan harga tidak ditampilkan kecuali feed menyediakannya."
+      "subtitle": "Bid, Ask, dan spread live dari kuotasi Forex ADB Exchange. Perubahan harga tidak ditampilkan kecuali feed menyediakannya."
     },
     "portfolio": {
       "title": "Portofolio",
@@ -1356,7 +1356,7 @@
     "platformCustomerIdLabel": "ID pelanggan platform",
     "brokerLoginLabel": "Login trading broker",
     "serverLabel": "Server",
-    "serverSimulated": "FDM Forex · latihan",
+    "serverSimulated": "ADB Exchange Forex · latihan",
     "demoFundsNotice": "Saldo demo disimulasikan — bukan uang riil.",
     "actionSwitch": "Ganti ke akun ini",
     "actionTerminal": "Buka terminal",
@@ -1569,7 +1569,7 @@
     "fieldPositionMode": "Mode posisi",
     "fieldLeverage": "Leverage",
     "fieldPlatform": "Platform",
-    "platformValue": "FDM Forex",
+    "platformValue": "ADB Exchange Forex",
     "technicalDetailsLabel": "Detail teknis",
     "technicalDetailsBody": "Eksekusi dan saldo mengikuti akun yang dipilih server. Pendanaan demo hanya buku besar dan dibedakan dari deposit riil.",
     "financialAria": "Snapshot keuangan",

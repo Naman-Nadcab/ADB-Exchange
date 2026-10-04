@@ -607,7 +607,7 @@ export default function MyReferralsPage() {
 
           {/* Copyright */}
           <div className="pt-6 border-t border-border flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
-            <span>© 2018-2026 FDM. All rights reserved.</span>
+            <span>© 2018-2026 ADB Exchange. All rights reserved.</span>
             <Link href="/terms" className="hover:text-foreground">{t('footerTerms')}</Link>
             <Link href="/privacy" className="hover:text-foreground">{t('footerPrivacy')}</Link>
           </div>

@@ -1019,6 +1019,67 @@ input[type="number"] {
  * cannot blow up to the PNG intrinsic size (816×186). Tailwind classes in brand.ts
  * are not scanned by content paths — see brand-logo--* modifiers below.
  */
+.brand-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  background: transparent;
+  color: #f5f7fa;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.brand-wordmark__mark {
+  color: #e8b923;
+}
+
+.brand-wordmark--header {
+  height: 26px;
+  font-size: 15px;
+}
+
+@media (min-width: 640px) {
+  .brand-wordmark--header {
+    height: 40px;
+    font-size: 22px;
+  }
+}
+
+.brand-wordmark--footer {
+  height: 22px;
+  max-width: 180px;
+  font-size: 13px;
+}
+
+.brand-wordmark--marketing {
+  height: 28px;
+  font-size: 18px;
+}
+
+@media (min-width: 1024px) {
+  .brand-wordmark--marketing {
+    height: 32px;
+    font-size: 20px;
+  }
+}
+
+.brand-wordmark--icon {
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+  font-size: 12px;
+}
+
+@media (min-width: 1024px) {
+  .brand-wordmark--icon {
+    width: 48px;
+    height: 48px;
+    font-size: 13px;
+  }
+}
+
 .brand-logo-img.brand-logo--header {
   height: 26px;
   width: auto;

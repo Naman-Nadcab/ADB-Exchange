@@ -526,7 +526,7 @@ export default function IdentityVerificationPage() {
                 </div>
 
                 <p className="text-muted-foreground text-sm mb-4">
-                  {t('digilockerConsent', { brand: 'FDM' })}
+                  {t('digilockerConsent', { brand: 'ADB Exchange' })}
                 </p>
 
                 {/* Documents List */}

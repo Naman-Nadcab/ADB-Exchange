@@ -628,7 +628,7 @@
     "footerTradingFee": "Fee Trading",
     "footerApi": "API",
     "footerHelpCenter": "Pusat Bantuan",
-    "footerCopyright": "© 2026 FDM",
+    "footerCopyright": "© 2026 ADB Exchange",
     "requirements": {
       "spot-volume": {
         "title": "Volume Trading Spot 30 Hari (USD)",
@@ -656,7 +656,7 @@
     "depositCta": "Lakukan deposit",
     "dashboardCta": "Ke dashboard",
     "redirecting": "Mengalihkan ke dashboard dalam 5 detik…",
-    "footerCopyright": "© 2018-2026 FDM. Hak cipta dilindungi.",
+    "footerCopyright": "© 2018-2026 ADB Exchange. Hak cipta dilindungi.",
     "steps": {
       "fund": {
         "title": "Danai akun Anda",
@@ -1099,8 +1099,8 @@
     "otherDocuments": "Tidak punya {doc}? Gunakan dokumen lain.",
     "verifyToEarn": "Verifikasi dapat $20",
     "continueOnApp": "Anda juga dapat melanjutkan di",
-    "fdmApp": "📱 Aplikasi FDM",
-    "footerCopyright": "© 2018-2026 FDM. Hak cipta dilindungi.",
+    "fdmApp": "Aplikasi ADB Exchange",
+    "footerCopyright": "© 2018-2026 ADB Exchange. Hak cipta dilindungi.",
     "termsOfService": "Ketentuan Layanan",
     "privacyPolicy": "Kebijakan Privasi",
     "verificationFailed": "Verifikasi gagal",
@@ -1478,17 +1478,17 @@
     "line": "Line",
     "more": "More",
     "loadFailed": "Gagal memuat data referral",
-    "inviteEarn": "Undang teman ke FDM Earn",
-    "inviteCard": "Referensikan teman ke FDM Card",
+    "inviteEarn": "Undang teman ke ADB Exchange Earn",
+    "inviteCard": "Referensikan teman ke ADB Exchange Card",
     "inviteCopyTrading": "Referensikan teman ke Copy Trading",
     "typeWeb3": "web3",
-    "shareTitle": "Gabung FDM dan dapatkan reward kripto!",
-    "shareTextPrefix": "Gabung FDM dengan link referral saya dan ikuti program referral jika reward tersedia: ",
+    "shareTitle": "Gabung ADB Exchange dan dapatkan reward kripto!",
+    "shareTextPrefix": "Gabung ADB Exchange dengan link referral saya dan ikuti program referral jika reward tersedia: ",
     "loadingCode": "MEMUAT…",
     "canvasJoinTitle": "Gabung & Dapatkan Reward!",
-    "canvasReferLine1": "Referensikan teman ke FDM",
+    "canvasReferLine1": "Referensikan teman ke ADB Exchange",
     "canvasReferLine2": "dan dapatkan komisi yang memenuhi syarat.",
-    "canvasScanPrompt": "Pindai QR dan gabung FDM!",
+    "canvasScanPrompt": "Pindai QR dan gabung ADB Exchange!",
     "canvasReferralCode": "Kode Referral: {code}"
   },
   "myReferralsPage": {
@@ -1541,7 +1541,7 @@
     "footerServices": "Services",
     "footerSupport": "Support",
     "footerProducts": "Products",
-    "footerAboutFdm": "About FDM",
+    "footerAboutFdm": "About ADB Exchange",
     "footerAnnouncements": "Announcements",
     "footerFees": "Fees & Transactions Overview",
     "footerP2p": "P2P Trading (0 Fees)",
@@ -1557,7 +1557,7 @@
     "loadFailed": "Gagal memuat data referral"
   },
   "apiManagementPage": {
-    "bannerTitle": "FDM OpenAPI V5",
+    "bannerTitle": "ADB Exchange OpenAPI V5",
     "title": "Manajemen API",
     "createNewKey": "Buat Kunci Baru",
     "securityCardTitle": "Keamanan",

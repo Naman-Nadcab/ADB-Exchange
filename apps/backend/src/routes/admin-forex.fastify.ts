@@ -1,5 +1,5 @@
 /**
- * Admin Forex FDM — ops (F1–F3). Mounted at /api/v1/admin.
+ * Admin Forex operations. Mounted at /api/v1/admin.
  * F3 control mutations require forex:controls:manage (+ audit log).
  */
 import type { FastifyInstance } from 'fastify';

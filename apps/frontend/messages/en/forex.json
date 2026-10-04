@@ -47,7 +47,7 @@
   "pages": {
     "markets": {
       "title": "Markets",
-      "subtitle": "Live Bid, Ask and spread from FDM Forex quotes. Change is not shown unless the quote feed provides it."
+      "subtitle": "Live Bid, Ask and spread from ADB Exchange Forex quotes. Change is not shown unless the quote feed provides it."
     },
     "portfolio": {
       "title": "Portfolio",
@@ -884,9 +884,9 @@
     "signInPrompt": "Sign in to view balance, equity and margin.",
     "signIn": "Sign in",
     "loading": "Loading account…",
-    "loadFailed": "Unable to load account.",
+    "loadFailed": "Unable to load the account. Please try again.",
     "claimDemoFunds": "Claim demo funds",
-    "positionModeTitle": "Server-authoritative position mode",
+    "positionModeTitle": "Position mode",
     "hedging": "Hedging",
     "netting": "Netting"
   },
@@ -1356,7 +1356,7 @@
     "platformCustomerIdLabel": "Platform customer ID",
     "brokerLoginLabel": "Broker trading login",
     "serverLabel": "Server",
-    "serverSimulated": "FDM Forex · practice",
+    "serverSimulated": "ADB Exchange Forex · Simulated",
     "demoFundsNotice": "Demo balances are simulated — not real money.",
     "actionSwitch": "Switch to this account",
     "actionTerminal": "Open terminal",
@@ -1569,7 +1569,7 @@
     "fieldPositionMode": "Position mode",
     "fieldLeverage": "Leverage",
     "fieldPlatform": "Platform",
-    "platformValue": "FDM Forex",
+    "platformValue": "ADB Exchange Forex",
     "technicalDetailsLabel": "Technical details",
     "technicalDetailsBody": "Execution and balances follow the server-selected account. Demo funding is ledger-only and labelled separately from real deposits.",
     "financialAria": "Financial snapshot",

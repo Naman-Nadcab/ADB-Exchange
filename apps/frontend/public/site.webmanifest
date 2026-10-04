@@ -1,7 +1,7 @@
 {
-  "name": "Fintech Digital Market",
-  "short_name": "FDM",
-  "description": "FDM — Fintech Digital Market. Crypto spot, Forex, P2P, wallet, and account security on one professional platform.",
+  "name": "ADB Exchange",
+  "short_name": "ADB Exchange",
+  "description": "ADB Exchange. Crypto spot, Forex, P2P, wallet, and account security.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#05070B",

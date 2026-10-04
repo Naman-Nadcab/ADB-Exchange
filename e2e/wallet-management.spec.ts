@@ -144,7 +144,7 @@ async function installApi(page: Page, mode: { failLink?: boolean } = {}) {
           success: true,
           challenge: {
             id: '22222222-2222-4222-8222-222222222222',
-            message: '{"domain":{"name":"Fintech Digital Market","version":"1","chainId":1,"verifyingContract":"0x0000000000000000000000000000000000000000"},"types":{"WalletAction":[]},"primaryType":"WalletAction","message":{}}',
+            message: '{"domain":{"name":"ADB Exchange","version":"1","chainId":1,"verifyingContract":"0x0000000000000000000000000000000000000000"},"types":{"WalletAction":[]},"primaryType":"WalletAction","message":{}}',
             signing: 'typed_data',
             address: SECONDARY,
           },

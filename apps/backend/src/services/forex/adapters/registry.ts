@@ -8,7 +8,7 @@ const PLANNED: CatalogSeed[] = [
     providerId: 'internal-fdm',
     adapterId: 'internal-fdm',
     type: 'INTERNAL_FDM',
-    displayName: 'Internal FDM (in-repo)',
+    displayName: 'Internal Forex (in-repo)',
     protocol: 'In-process',
     isDefault: true,
     enabled: true,
@@ -112,7 +112,7 @@ export function defaultBrokerAdapterId(): string {
 
 export function providerTypeLabel(type: ForexProviderType): string {
   const labels: Record<ForexProviderType, string> = {
-    INTERNAL_FDM: 'Internal FDM',
+    INTERNAL_FDM: 'Internal Forex',
     MT5: 'MT5',
     MT4: 'MT4',
     CTRADER: 'cTrader',

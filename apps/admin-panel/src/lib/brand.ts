@@ -1,6 +1,7 @@
-/** Admin display branding — mirrors frontend master brand. */
-export const BRAND_NAME_SHORT = 'FDM';
-export const BRAND_NAME_FULL = 'Fintech Digital Market';
+/** Admin display branding. Separate from the customer UI, same product name. */
+export const BRAND_NAME_SHORT = 'ADB Exchange';
+export const BRAND_NAME_FULL = 'ADB Exchange';
+export const ADMIN_SURFACE_LABEL = 'Administration';
 
 export const BRAND = {
   iconGold: '/brand/icon.png',

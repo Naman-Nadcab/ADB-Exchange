@@ -32,7 +32,7 @@ export async function buildForexAdminIntegrationsSnapshot(): Promise<ForexAdminI
     realForexGate: execution.realForexGate,
     notes: [
       'Credentials for external brokers are never stored in admin responses — use encrypted integration vault when wired.',
-      'Only Internal FDM is connected today; MT5/MT4/cTrader/FIX rows are integration placeholders.',
+      'Only the internal Forex adapter is connected. MT5, MT4, cTrader, and FIX rows are integration placeholders.',
       'MOCK LP rows in execution refer to simulated quote/ fill providers, not live brokerage.',
     ],
   };

@@ -89,7 +89,7 @@
     "loading": "Loading…",
     "noData": "No data",
     "somethingWrong": "Something went wrong",
-    "notAdded": "Not added"
+    "notAdded": "Not configured"
   },
   "notifications": {
     "errorTitle": "Error",

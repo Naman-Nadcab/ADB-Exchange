@@ -1,6 +1,6 @@
 /**
  * Multi-broker / multi-LP adapter contracts (provider-agnostic Forex core).
- * Implementations live in this folder; execution remains on Internal FDM until adapters are armed.
+ * Implementations live in this folder. Execution stays on the internal Forex adapter until another adapter is armed.
  */
 
 export type ForexProviderType =
@@ -44,7 +44,7 @@ export type ForexProviderCatalogEntry = {
 
 /**
  * Provider adapter surface — full trading ops for future MT5/FIX/LP plugins.
- * Internal FDM implements a subset today; others remain catalog-only until wired.
+ * The internal Forex adapter implements a subset today. Other adapters stay catalog-only until wired.
  */
 export interface BrokerAdapter {
   readonly adapterId: string;

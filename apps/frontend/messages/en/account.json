@@ -628,7 +628,7 @@
     "footerTradingFee": "Trading Fee",
     "footerApi": "API",
     "footerHelpCenter": "Help Center",
-    "footerCopyright": "© 2026 FDM",
+    "footerCopyright": "© 2026 ADB Exchange",
     "requirements": {
       "spot-volume": {
         "title": "30-Day Spot Trading Volume (USD)",
@@ -656,7 +656,7 @@
     "depositCta": "Make a deposit",
     "dashboardCta": "Go to dashboard",
     "redirecting": "Redirecting to dashboard in 5 seconds…",
-    "footerCopyright": "© 2018-2026 FDM. All rights reserved.",
+    "footerCopyright": "© 2018-2026 ADB Exchange. All rights reserved.",
     "steps": {
       "fund": {
         "title": "Fund your account",
@@ -1099,8 +1099,8 @@
     "otherDocuments": "No {doc}? Use other documents.",
     "verifyToEarn": "Verify to Earn $20",
     "continueOnApp": "You can also continue on",
-    "fdmApp": "📱 FDM App",
-    "footerCopyright": "© 2018-2026 FDM. All rights reserved.",
+    "fdmApp": "ADB Exchange app",
+    "footerCopyright": "© 2018-2026 ADB Exchange. All rights reserved.",
     "termsOfService": "Terms of Service",
     "privacyPolicy": "Privacy Policy",
     "verificationFailed": "Verification failed",
@@ -1478,17 +1478,17 @@
     "line": "Line",
     "more": "More",
     "loadFailed": "Failed to load referral data",
-    "inviteEarn": "Invite a friend to FDM Earn",
-    "inviteCard": "Refer a friend to FDM Card",
+    "inviteEarn": "Invite a friend to ADB Exchange Earn",
+    "inviteCard": "Refer a friend to ADB Exchange Card",
     "inviteCopyTrading": "Refer a friend to Copy Trading",
     "typeWeb3": "web3",
-    "shareTitle": "Join FDM and earn crypto rewards!",
-    "shareTextPrefix": "Join FDM with my referral link and participate in the referral program when eligible rewards are available: ",
+    "shareTitle": "Join ADB Exchange",
+    "shareTextPrefix": "Join ADB Exchange with my referral link and participate in the referral program when eligible rewards are available: ",
     "loadingCode": "LOADING...",
     "canvasJoinTitle": "Join & Earn Rewards!",
-    "canvasReferLine1": "Refer friends to FDM",
+    "canvasReferLine1": "Refer friends to ADB Exchange",
     "canvasReferLine2": "and earn eligible commissions.",
-    "canvasScanPrompt": "Scan QR code and join me at FDM!",
+    "canvasScanPrompt": "Scan the QR code to join ADB Exchange.",
     "canvasReferralCode": "Referral Code: {code}"
   },
   "myReferralsPage": {
@@ -1541,7 +1541,7 @@
     "footerServices": "Services",
     "footerSupport": "Support",
     "footerProducts": "Products",
-    "footerAboutFdm": "About FDM",
+    "footerAboutFdm": "About ADB Exchange",
     "footerAnnouncements": "Announcements",
     "footerFees": "Fees & Transactions Overview",
     "footerP2p": "P2P Trading (0 Fees)",
@@ -1557,7 +1557,7 @@
     "loadFailed": "Failed to load referral data"
   },
   "apiManagementPage": {
-    "bannerTitle": "FDM OpenAPI V5",
+    "bannerTitle": "ADB Exchange API",
     "title": "API Management",
     "createNewKey": "Create New Key",
     "securityCardTitle": "Security",

@@ -15,7 +15,7 @@ export const AUTHORIZE_RECOVERY_ACTION = 'authorize_wallet_recovery';
 export const MARK_COMPROMISED_ACTION = 'mark_wallet_compromised';
 export const REPLACE_WALLET_ACTION = 'replace_wallet';
 
-export const WALLET_ACTION_DOMAIN_NAME = 'Fintech Digital Market';
+export const WALLET_ACTION_DOMAIN_NAME = 'ADB Exchange';
 export const WALLET_ACTION_DOMAIN_VERSION = '1';
 export const WALLET_ACTION_VERIFYING_CONTRACT = '0x0000000000000000000000000000000000000000';
 export const WALLET_ACTION_PRIMARY_TYPE = 'WalletAction';

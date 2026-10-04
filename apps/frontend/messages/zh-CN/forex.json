@@ -47,7 +47,7 @@
   "pages": {
     "markets": {
       "title": "市场",
-      "subtitle": "来自 FDM 外汇报价的实时买价、卖价与点差。除非报价源提供，否则不显示涨跌幅。"
+      "subtitle": "来自 ADB Exchange 外汇报价的实时买价、卖价与点差。除非报价源提供，否则不显示涨跌幅。"
     },
     "portfolio": {
       "title": "持仓",
@@ -1356,7 +1356,7 @@
     "platformCustomerIdLabel": "平台客户 ID",
     "brokerLoginLabel": "经纪商交易登录",
     "serverLabel": "服务器",
-    "serverSimulated": "FDM Forex · 练习",
+    "serverSimulated": "ADB Exchange Forex · 练习",
     "demoFundsNotice": "演示余额为模拟资金——非真实货币。",
     "actionSwitch": "切换到此账户",
     "actionTerminal": "打开终端",
@@ -1569,7 +1569,7 @@
     "fieldPositionMode": "持仓模式",
     "fieldLeverage": "杠杆",
     "fieldPlatform": "平台",
-    "platformValue": "FDM Forex",
+    "platformValue": "ADB Exchange Forex",
     "technicalDetailsLabel": "技术详情",
     "technicalDetailsBody": "执行与余额跟随服务端所选账户。演示注资仅记入账本，并与真实入金明确区分。",
     "financialAria": "财务快照",

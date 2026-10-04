@@ -99,7 +99,7 @@ export function EdaProductSwitcher({ variant = 'marketing' }: { variant?: EdaPro
         }}
       >
         <>
-          <span className={marketing ? 'text-white/80' : 'font-semibold text-foreground'}>FDM</span>
+          <span className={marketing ? 'text-white/80' : 'font-semibold text-foreground'}>ADB Exchange</span>
           <span className={marketing ? 'text-[#F5B800]' : 'text-muted-foreground'}>/</span>
           <span className={marketing ? undefined : 'text-foreground'}>{labelFor(product, variant)}</span>
           {!marketing ? (

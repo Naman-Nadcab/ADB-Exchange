@@ -1,5 +1,5 @@
 /**
- * Maximum control catalog for Forex FDM admin — UI maps every planned knob.
+ * Maximum control catalog for Forex administration. The UI maps every planned control.
  * `wired: true` when `/api/v1/admin/forex/*` or section UI implements the control.
  */
 import type { ForexAdminPhase } from '@/lib/admin/forex-admin-nav';

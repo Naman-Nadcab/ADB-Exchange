@@ -1156,7 +1156,7 @@ export default function MarketsPage() {
                   <article key={item.title} className="rounded-lg border border-[#F5B80012] bg-[#05070B] px-3 py-2.5 transition hover:border-[#F5B80036] hover:bg-[#0B1016]">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-[11px] uppercase tracking-[0.1em] text-[#F5B800]">{item.badge}</p>
-                      <p className="text-[11px] text-[#AEB6C4]">FDM · {item.ago}</p>
+                      <p className="text-[11px] text-[#AEB6C4]">ADB Exchange · {item.ago}</p>
                     </div>
                     <p className="mt-1 text-sm leading-6 text-[#d8dde7]">{item.title}</p>
                   </article>

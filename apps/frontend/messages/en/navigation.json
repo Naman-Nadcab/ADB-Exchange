@@ -35,9 +35,9 @@
     "productsMenu": "Products",
     "productsHeading": "Products",
     "allMarkets": "All Markets",
-    "allMarketsHint": "FDM overview",
-    "cryptoHint": "FDM Crypto — digital assets",
-    "forexHint": "FDM Forex — global FX",
+    "allMarketsHint": "ADB Exchange overview",
+    "cryptoHint": "ADB Exchange Crypto — digital assets",
+    "forexHint": "ADB Exchange Forex — global FX",
     "terminalCrypto": "Crypto",
     "terminalForex": "Forex"
   },
