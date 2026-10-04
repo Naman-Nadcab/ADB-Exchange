@@ -463,6 +463,47 @@ export async function runAdmin(account: AccountRun): Promise<Suite> {
     expect(audit.length === 1 && audit[0]!.new_value?.includes('favor_buyer'), 'dispute resolution not audited');
   });
 
+  await suite.check('Emergency mode: activating writes every emergency setting, blocks customer withdrawals with WITHDRAWALS_PAUSED; deactivating restores; audited', async () => {
+    const on = await adm(admin, 'POST', '/control/emergency-mode', { enabled: true });
+    expectStatus(on, 200, `emergency on ${on.text.slice(0, 160)}`);
+    const rows = await q<{ key: string; value: unknown; updated_by: string | null }>(
+      `SELECT key, value, updated_by FROM system_settings WHERE key IN ('emergency_pause_trading','emergency_disable_withdrawals','emergency_disable_deposits','safe_mode')`,
+    );
+    expect(rows.length === 4 && rows.every((r) => String(r.value) === '1' && r.updated_by === admin.adminId), `emergency settings ${JSON.stringify(rows)}`);
+    const to = `0x${'5'.repeat(39)}c`;
+    const blocked = await api('POST', '/api/v1/wallet/withdrawals', { token: c.accessToken, body: { symbol: 'USDT', chainId: 'ethereum', amount: '20', toAddress: to } });
+    expect(blocked.status === 503 && blocked.json?.error?.code === 'WITHDRAWALS_PAUSED', `withdrawal during emergency → ${blocked.status} ${blocked.text.slice(0, 120)}`);
+    const off = await adm(admin, 'POST', '/control/emergency-mode', { enabled: false });
+    expectStatus(off, 200, `emergency off ${off.text.slice(0, 160)}`);
+    const after = await q<{ value: unknown }>(`SELECT value FROM system_settings WHERE key = 'emergency_disable_withdrawals'`);
+    expect(String(after[0]?.value) === '0', `emergency not cleared ${JSON.stringify(after)}`);
+    const audit = await auditRows('control_emergency_mode');
+    expect(audit.length >= 2, 'emergency mode changes not audited');
+  });
+
+  await suite.check('System settings: save of text/bool/number values persists as JSON, is read back as strings, versioned and diffable; invalid payload rejected', async () => {
+    const keyText = `s26_probe_text_${runTag}`;
+    const keyBool = `s26_probe_bool_${runTag}`;
+    const bad = await adm(admin, 'PATCH', '/system/settings', { [keyText]: { nested: true } });
+    expect(bad.status === 400, `nested value → ${bad.status}`);
+    const save = await adm(admin, 'PATCH', '/system/settings', { [keyText]: 'smtp.example.com', [keyBool]: 'true', [`${keyBool}_description`]: 'step26 probe' });
+    expectStatus(save, 200, `settings save ${save.text.slice(0, 160)}`);
+    const rows = await q<{ key: string; value: unknown; type: string }>(`SELECT key, value, jsonb_typeof(value) AS type FROM system_settings WHERE key IN ($1, $2) ORDER BY key`, [keyBool, keyText]);
+    expect(rows.length === 2 && rows.find((r) => r.key === keyBool)?.type === 'boolean' && rows.find((r) => r.key === keyText)?.value === 'smtp.example.com', `stored rows ${JSON.stringify(rows)}`);
+    const read = await adm(admin, 'GET', '/system/settings');
+    expectStatus(read, 200, 'settings read');
+    expect(read.json.data.settings[keyText]?.value === 'smtp.example.com' && read.json.data.settings[keyBool]?.value === 'true', `settings read back ${JSON.stringify(read.json.data.settings[keyText])}`);
+    const hist = await adm(admin, 'GET', '/system/settings/history');
+    expectStatus(hist, 200, 'settings history');
+    const version = (hist.json.data.versions as any[]).find((v) => String(v.change_summary).includes(keyText));
+    expect(version, 'settings change not versioned');
+    const diff = await adm(admin, 'GET', `/system/settings/versions/${version.id}/diff`);
+    expect(diff.status === 200 && diff.json.data.after[keyText] === 'smtp.example.com', `version diff ${diff.text.slice(0, 160)}`);
+    const audit = await auditRows('system_settings_updated', keyText);
+    expect(audit.length === 1, 'settings change not audited');
+    await q(`DELETE FROM system_settings WHERE key IN ($1, $2)`, [keyBool, keyText]);
+  });
+
   const providerName = `step26-sms-${runTag}`;
   const SECRET = `s26-secret-${randomUUID()}`;
   let providerId = '';
