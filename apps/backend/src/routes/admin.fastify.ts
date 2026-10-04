@@ -2129,25 +2129,33 @@ export default async function adminRoutes(app: FastifyInstance) {
   // GLOBAL CONFIGURATION & FEATURE FLAGS
   // ===============================
 
+  // system_settings.value is JSONB (migrate.ts). The settings page edits plain strings, so values are
+  // stored as JSON scalars when the text parses as JSON ('true', '10000', '{"a":1}') and as a JSON
+  // string otherwise ('smtp.example.com'). Reads unwrap JSON strings and serialise everything else.
+  const settingValueToJson = (value: string): string => {
+    try {
+      JSON.parse(value);
+      return value;
+    } catch {
+      return JSON.stringify(value);
+    }
+  };
+  const settingValueToString = (value: unknown): string => {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'string') return value;
+    return JSON.stringify(value);
+  };
+
   app.get('/system/settings', async (request, reply) => {
     const admin = await getAdminFromRequest(app, request, reply, false);
     if (!admin) return;
     try {
-      await db.query(`
-        CREATE TABLE IF NOT EXISTS system_settings (
-          key TEXT PRIMARY KEY,
-          value TEXT NOT NULL DEFAULT '',
-          description TEXT,
-          updated_at TIMESTAMPTZ DEFAULT NOW(),
-          updated_by TEXT
-        )
-      `);
-      const rows = await db.query<{ key: string; value: string; description: string | null; updated_at: string | null; updated_by: string | null }>(
+      const rows = await db.query<{ key: string; value: unknown; description: string | null; updated_at: string | null; updated_by: string | null }>(
         'SELECT key, value, description, updated_at::text, updated_by FROM system_settings'
       );
       const settings: Record<string, { value: string; description: string | null; updated_at: string | null; updated_by?: string | null }> = {};
       for (const r of rows.rows) {
-        settings[r.key] = { value: r.value, description: r.description ?? null, updated_at: r.updated_at ?? null, updated_by: r.updated_by ?? null };
+        settings[r.key] = { value: settingValueToString(r.value), description: r.description ?? null, updated_at: r.updated_at ?? null, updated_by: r.updated_by ?? null };
       }
       return reply.send({ success: true, data: { settings } });
     } catch (e) {
@@ -2162,22 +2170,21 @@ export default async function adminRoutes(app: FastifyInstance) {
     if (!requirePermission(admin, 'settings:edit', reply)) return;
     const body = (request.body || {}) as Record<string, unknown>;
     try {
-      await db.query(`
-        CREATE TABLE IF NOT EXISTS system_settings (
-          key TEXT PRIMARY KEY,
-          value TEXT NOT NULL DEFAULT '',
-          description TEXT,
-          updated_at TIMESTAMPTZ DEFAULT NOW(),
-          updated_by TEXT
-        )
-      `);
       const updates = Object.entries(body).filter(([k]) => k !== 'key' && typeof k === 'string' && !k.endsWith('_description'));
       if (updates.length === 0) {
         return reply.send({ success: true, data: { updated: true } });
       }
-      const prevRows = await db.query<{ key: string; value: string }>('SELECT key, value FROM system_settings');
+      for (const [key, v] of updates) {
+        if (!/^[A-Za-z0-9_.:\-]{1,100}$/.test(key) || (v !== null && typeof v === 'object')) {
+          return reply.status(400).send({
+            success: false,
+            error: { code: 'VALIDATION_ERROR', message: `Setting "${key}" must be a scalar keyed by a plain identifier` },
+          });
+        }
+      }
+      const prevRows = await db.query<{ key: string; value: unknown }>('SELECT key, value FROM system_settings');
       const beforeSnapshot: Record<string, string> = {};
-      for (const r of prevRows.rows) beforeSnapshot[r.key] = r.value;
+      for (const r of prevRows.rows) beforeSnapshot[r.key] = settingValueToString(r.value);
       const changes: { key: string; oldValue: string; newValue: string }[] = [];
       for (const [key, v] of updates) {
         const value = v != null ? String(v) : '';
@@ -2185,9 +2192,9 @@ export default async function adminRoutes(app: FastifyInstance) {
         const oldVal = beforeSnapshot[key] ?? '';
         if (oldVal !== value) changes.push({ key, oldValue: oldVal, newValue: value });
         await db.query(
-          `INSERT INTO system_settings (key, value, description, updated_at, updated_by) VALUES ($1, $2, $3, NOW(), $4)
-           ON CONFLICT (key) DO UPDATE SET value = $2, description = COALESCE($3, system_settings.description), updated_at = NOW(), updated_by = $4`,
-          [key, value, desc, admin.adminId]
+          `INSERT INTO system_settings (key, value, description, updated_at, updated_by) VALUES ($1, $2::jsonb, $3, NOW(), $4)
+           ON CONFLICT (key) DO UPDATE SET value = $2::jsonb, description = COALESCE($3, system_settings.description), updated_at = NOW(), updated_by = $4`,
+          [key, settingValueToJson(value), desc, admin.adminId]
         );
         beforeSnapshot[key] = value;
       }
@@ -2201,9 +2208,9 @@ export default async function adminRoutes(app: FastifyInstance) {
           created_at TIMESTAMPTZ DEFAULT NOW()
         )
       `);
-      const afterRows = await db.query<{ key: string; value: string }>('SELECT key, value FROM system_settings');
+      const afterRows = await db.query<{ key: string; value: unknown }>('SELECT key, value FROM system_settings');
       const afterSnapshot: Record<string, string> = {};
-      for (const r of afterRows.rows) afterSnapshot[r.key] = r.value;
+      for (const r of afterRows.rows) afterSnapshot[r.key] = settingValueToString(r.value);
       const changeSummary = changes.length ? changes.map((c) => `${c.key}: ${c.oldValue} → ${c.newValue}`).join('; ') : 'No value changes';
       await db.query(
         `INSERT INTO system_settings_versions (settings_snapshot, change_summary, updated_by) VALUES ($1, $2, $3)`,
@@ -2309,9 +2316,9 @@ export default async function adminRoutes(app: FastifyInstance) {
         return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Version not found' } });
       }
       const before = (verRows.rows[0]!.settings_snapshot as Record<string, string>) || {};
-      const currRows = await db.query<{ key: string; value: string }>('SELECT key, value FROM system_settings');
+      const currRows = await db.query<{ key: string; value: unknown }>('SELECT key, value FROM system_settings');
       const after: Record<string, string> = {};
-      for (const r of currRows.rows) after[r.key] = r.value;
+      for (const r of currRows.rows) after[r.key] = settingValueToString(r.value);
       return reply.send({ success: true, data: { before, after } });
     } catch (e) {
       logger.error('System settings diff error', { error: e instanceof Error ? e.message : 'Unknown' });
@@ -2344,9 +2351,9 @@ export default async function adminRoutes(app: FastifyInstance) {
       }
       for (const [key, value] of Object.entries(snapshot)) {
         await db.query(
-          `INSERT INTO system_settings (key, value, updated_at, updated_by) VALUES ($1, $2, NOW(), $3)
-           ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW(), updated_by = $3`,
-          [key, value, admin.adminId]
+          `INSERT INTO system_settings (key, value, updated_at, updated_by) VALUES ($1, $2::jsonb, NOW(), $3)
+           ON CONFLICT (key) DO UPDATE SET value = $2::jsonb, updated_at = NOW(), updated_by = $3`,
+          [key, settingValueToJson(settingValueToString(value)), admin.adminId]
         );
       }
       await db.query(`

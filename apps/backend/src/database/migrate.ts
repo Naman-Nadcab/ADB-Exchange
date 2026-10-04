@@ -5358,6 +5358,26 @@ END $$;`,
   `CREATE INDEX IF NOT EXISTS idx_conversions_user_created ON conversions(user_id, created_at DESC);`,
   `CREATE INDEX IF NOT EXISTS idx_conversions_pending_limit ON conversions(status, expires_at) WHERE conversion_type = 'limit' AND status = 'pending';`,
 
+  // system_settings.updated_by was UUID REFERENCES users(id) while every writer stores an
+  // admin_users.id (or a worker name such as 'safety_trigger_worker'), so emergency mode, the
+  // System Settings page and the control routes all failed with an FK violation. Actor ids are
+  // recorded as text; the immutable audit log is the authoritative actor record.
+  `DO $$
+BEGIN
+  IF to_regclass('public.system_settings') IS NULL THEN
+    RETURN;
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'system_settings_updated_by_fkey') THEN
+    ALTER TABLE system_settings DROP CONSTRAINT system_settings_updated_by_fkey;
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'system_settings' AND column_name = 'updated_by' AND data_type = 'uuid'
+  ) THEN
+    ALTER TABLE system_settings ALTER COLUMN updated_by TYPE TEXT USING updated_by::text;
+  END IF;
+END $$;`,
+
   // ============================================
   // ADMIN ACTOR FOREIGN KEYS
   // p2p_disputes.admin_id and fiat_withdrawals.admin_id were declared against users(id) while the
