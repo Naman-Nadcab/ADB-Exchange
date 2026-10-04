@@ -142,7 +142,8 @@ function ChartPanelInner({
     intervalSeconds,
     theme,
     viewMode,
-    pricePrecision
+    pricePrecision,
+    wsStreamPhase === 'live'
   );
   const rootRef = useRef<HTMLDivElement | null>(null);
   const initialPrefs = useMemo(() => loadChartUiPrefs(), []);
@@ -400,7 +401,7 @@ function ChartPanelInner({
   const pendingLivePriceRef = useRef<string | null>(null);
   const lastTradeAppliedTsRef = useRef<number>(0);
   useEffect(() => {
-    if (viewMode !== 'chart' || chartLoading || chartError || chartEmpty) return;
+    if (viewMode !== 'chart' || chartLoading || chartError) return;
     if (!livePrice) return;
     pendingLivePriceRef.current = livePrice;
     if (livePriceRafRef.current != null) return;

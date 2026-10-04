@@ -781,8 +781,13 @@ input[type="number"] {
     overflow-x: hidden;
   }
 
+  /*
+   * `1fr` alone is `minmax(auto, 1fr)`: the single column would grow to the widest panel's
+   * min-content (the order-entry chrome / pair-header stats) and push the whole terminal past the
+   * viewport. Clamp the track so panels wrap/scroll inside the screen instead.
+   */
   .spot-terminal-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     grid-template-rows: 40px auto minmax(0, 1fr) 52px !important;
   }
 

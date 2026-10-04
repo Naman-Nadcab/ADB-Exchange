@@ -12,7 +12,9 @@ export function useChartAdapter(
   intervalSeconds: number,
   theme: ChartTheme = 'dark',
   viewMode: 'chart' | 'depth' = 'chart',
-  pricePrecision: number = 6
+  pricePrecision: number = 6,
+  /** When the shared trade stream is live, do not poll candles again. */
+  liveStream: boolean = false
 ): {
   adapterRef: RefObject<LightweightChartsAdapter | null>;
   chartError: string | null;
@@ -333,6 +335,7 @@ export function useChartAdapter(
         if (resyncAc === ac) resyncAc = null;
       }
     };
+    if (liveStream) return;
     const id = window.setInterval(resync, 15_000);
     return () => {
       window.clearInterval(id);
@@ -341,7 +344,7 @@ export function useChartAdapter(
         resyncAc = null;
       }
     };
-  }, [symbol, intervalSeconds, viewMode, chartLoading]);
+  }, [symbol, intervalSeconds, viewMode, chartLoading, liveStream]);
 
   return { adapterRef, chartError, chartLoading, chartEmpty, chartStale, chartStaleReason, chartLastUpdatedAtMs, retryChart };
 }
