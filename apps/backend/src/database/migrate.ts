@@ -5357,6 +5357,45 @@ END $$;`,
   );`,
   `CREATE INDEX IF NOT EXISTS idx_conversions_user_created ON conversions(user_id, created_at DESC);`,
   `CREATE INDEX IF NOT EXISTS idx_conversions_pending_limit ON conversions(status, expires_at) WHERE conversion_type = 'limit' AND status = 'pending';`,
+
+  // ============================================
+  // ADMIN ACTOR FOREIGN KEYS
+  // p2p_disputes.admin_id and fiat_withdrawals.admin_id were declared against users(id) while the
+  // services write admin_users.id, so every admin dispute resolution / fiat decision failed with an
+  // FK violation. Retarget both to admin_users(id); any value that is not an admin id is cleared.
+  // ============================================
+  `DO $$
+BEGIN
+  IF to_regclass('public.p2p_disputes') IS NULL OR to_regclass('public.admin_users') IS NULL THEN
+    RETURN;
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint c
+    WHERE c.conname = 'p2p_disputes_admin_id_fkey' AND c.confrelid = 'public.users'::regclass
+  ) THEN
+    ALTER TABLE p2p_disputes DROP CONSTRAINT p2p_disputes_admin_id_fkey;
+    UPDATE p2p_disputes SET admin_id = NULL
+      WHERE admin_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM admin_users a WHERE a.id = p2p_disputes.admin_id);
+    ALTER TABLE p2p_disputes
+      ADD CONSTRAINT p2p_disputes_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES admin_users(id);
+  END IF;
+END $$;`,
+  `DO $$
+BEGIN
+  IF to_regclass('public.fiat_withdrawals') IS NULL OR to_regclass('public.admin_users') IS NULL THEN
+    RETURN;
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint c
+    WHERE c.conname = 'fiat_withdrawals_admin_id_fkey' AND c.confrelid = 'public.users'::regclass
+  ) THEN
+    ALTER TABLE fiat_withdrawals DROP CONSTRAINT fiat_withdrawals_admin_id_fkey;
+    UPDATE fiat_withdrawals SET admin_id = NULL
+      WHERE admin_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM admin_users a WHERE a.id = fiat_withdrawals.admin_id);
+    ALTER TABLE fiat_withdrawals
+      ADD CONSTRAINT fiat_withdrawals_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES admin_users(id);
+  END IF;
+END $$;`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */
