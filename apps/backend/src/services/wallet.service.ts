@@ -155,7 +155,7 @@ class WalletService {
           `INSERT INTO wallets (user_id, chain_id, address, encrypted_private_key, hd_path, hd_index)
            VALUES ($1, $2, $3, $4, $5, $6)
            ON CONFLICT (user_id, chain_id) DO NOTHING
-           RETURNING *`,
+           RETURNING id, user_id AS "userId", chain_id AS "chainId", address, hd_path AS "hdPath", is_active AS "isActive", created_at AS "createdAt"`,
           [userId, chainId, wallet.address, encryptedKey, hdPath, index]
         );
 
@@ -215,7 +215,7 @@ class WalletService {
           `INSERT INTO wallets (user_id, chain_id, address, encrypted_private_key, hd_path, hd_index)
            VALUES ($1, $2, $3, $4, $5, $6)
            ON CONFLICT (user_id, chain_id) DO NOTHING
-           RETURNING *`,
+           RETURNING id, user_id AS "userId", chain_id AS "chainId", address, hd_path AS "hdPath", is_active AS "isActive", created_at AS "createdAt"`,
           [userId, chainId, address, encryptedKey, hdPath, index]
         );
 
@@ -291,8 +291,10 @@ class WalletService {
    */
   async getUserWallets(userId: string): Promise<Wallet[]> {
     const result = await db.query<Wallet>(
-      `SELECT id, user_id, chain_id, address, hd_path, hd_index, is_active, created_at
-       FROM wallets WHERE user_id = $1 AND is_active = TRUE`,
+      `SELECT id, user_id AS "userId", chain_id AS "chainId", address, hd_path AS "hdPath", hd_index AS "hdIndex",
+              is_active AS "isActive", created_at AS "createdAt"
+       FROM wallets WHERE user_id = $1 AND is_active = TRUE
+       ORDER BY chain_id`,
       [userId]
     );
 
