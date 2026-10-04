@@ -31,6 +31,9 @@ export default async function userRoutes(app: FastifyInstance) {
           u.tier_level,
           u.daily_withdrawal_limit, u.monthly_withdrawal_limit,
           u.created_at, u.last_login_at,
+          u.preferences->>'timezone' AS timezone,
+          u.preferences->>'language' AS language,
+          u.preferences->>'displayCurrency' AS default_fiat_currency,
           rc.code as referral_code,
           pms.total_orders as p2p_total_orders,
           pms.completion_rate as p2p_completion_rate,
@@ -111,19 +114,26 @@ export default async function userRoutes(app: FastifyInstance) {
         params.push(lastName);
       }
 
-      if (timezone !== undefined) {
-        updates.push(`timezone = $${paramIndex++}`);
-        params.push(timezone);
-      }
-
-      if (language !== undefined) {
-        updates.push(`language = $${paramIndex++}`);
-        params.push(language);
-      }
-
+      // users has no timezone/language/default_fiat_currency columns; these live in users.preferences (jsonb),
+      // the same store GET/POST /auth/preferences reads and writes.
+      const preferencePatch: Record<string, string> = {};
+      if (timezone !== undefined) preferencePatch.timezone = String(timezone).slice(0, 64);
+      if (language !== undefined) preferencePatch.language = String(language).slice(0, 16);
       if (defaultFiatCurrency !== undefined) {
-        updates.push(`default_fiat_currency = $${paramIndex++}`);
-        params.push(defaultFiatCurrency.toUpperCase());
+        const fiat = String(defaultFiatCurrency).trim().toUpperCase().slice(0, 12);
+        // Same allow-list as GET/POST /auth/preferences so both readers agree.
+        if (!['USDT', 'INR'].includes(fiat)) {
+          return reply.status(400).send({
+            success: false,
+            error: { code: 'INVALID_FIAT_CURRENCY', message: 'defaultFiatCurrency must be one of USDT, INR' },
+          });
+        }
+        preferencePatch.displayCurrency = fiat;
+        preferencePatch.equivalentCurrency = fiat;
+      }
+      if (Object.keys(preferencePatch).length > 0) {
+        updates.push(`preferences = COALESCE(preferences, '{}'::jsonb) || $${paramIndex++}::jsonb`);
+        params.push(JSON.stringify(preferencePatch));
       }
 
       if (updates.length === 0) {
@@ -137,7 +147,12 @@ export default async function userRoutes(app: FastifyInstance) {
       params.push(userId);
 
       const result = await db.query(
-        `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+        `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex}
+         RETURNING id, email, phone, username, first_name, last_name, avatar_url, status, tier_level,
+                   preferences->>'timezone' AS timezone,
+                   preferences->>'language' AS language,
+                   preferences->>'displayCurrency' AS default_fiat_currency,
+                   created_at, updated_at`,
         params
       );
 
@@ -146,6 +161,7 @@ export default async function userRoutes(app: FastifyInstance) {
         data: result.rows[0],
       });
     } catch (error) {
+      logger.error('Profile update failed', { userId: request.user?.id, error: error instanceof Error ? error.message : String(error) });
       return reply.status(500).send({
         success: false,
         error: { code: 'UPDATE_FAILED', message: 'Failed to update profile' },
@@ -763,11 +779,10 @@ export default async function userRoutes(app: FastifyInstance) {
       const { id: userId } = request.user!;
 
       const result = await db.query(`
-        SELECT 
-          id, kyc_level, status, 
-          legal_first_name, legal_last_name,
+        SELECT
+          id, kyc_level, status,
           submitted_at, reviewed_at,
-          rejection_reason, expires_at
+          rejection_reason, country, document_type
         FROM kyc_applications
         WHERE user_id = $1
         ORDER BY created_at DESC
@@ -779,6 +794,7 @@ export default async function userRoutes(app: FastifyInstance) {
         data: result.rows[0] || null,
       });
     } catch (error) {
+      logger.error('Failed to fetch KYC status', { userId: request.user?.id, error: error instanceof Error ? error.message : String(error) });
       return reply.status(500).send({
         success: false,
         error: { code: 'FETCH_FAILED', message: 'Failed to fetch KYC status' },

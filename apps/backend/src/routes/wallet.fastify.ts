@@ -1162,7 +1162,7 @@ export default async function walletRoutes(app: FastifyInstance) {
         SELECT 
           daily_withdrawal_limit,
           monthly_withdrawal_limit,
-          vip_level
+          COALESCE(tier_level, 0) AS vip_level
         FROM users
         WHERE id = $1
       `, [userId]);
@@ -3724,7 +3724,13 @@ export default async function walletRoutes(app: FastifyInstance) {
   }, async (request, reply) => {
     try {
       const userId = request.user!.id;
-      const { fromAccount, toAccount, tokenId, amount } = request.body;
+      // The customer-facing "Spot" account is user_balances.account_type = 'trading' (the account the
+      // matching engine debits/credits). The legacy 'spot' enum bucket is not read by any venue, so a
+      // transfer into it would strand funds; alias it to the real Spot account.
+      const normalizeAccount = (v: unknown): string => (v === 'spot' ? 'trading' : String(v ?? ''));
+      const fromAccount = normalizeAccount(request.body?.fromAccount);
+      const toAccount = normalizeAccount(request.body?.toAccount);
+      const { tokenId, amount } = request.body;
 
       // Idempotency: check before balance operations
       const idempotencyKeyRaw = (request.headers[IDEMPOTENCY_KEY_HEADER] ?? request.headers['Idempotency-Key']) as string | undefined;
@@ -3768,8 +3774,8 @@ export default async function walletRoutes(app: FastifyInstance) {
         });
       }
 
-      // Validate accounts (funding, spot, trading only; no unified)
-      const validAccounts = ['funding', 'spot', 'trading'];
+      // Validate accounts (funding and trading only; 'spot' was aliased to trading above)
+      const validAccounts = ['funding', 'trading'];
       if (!validAccounts.includes(fromAccount) || !validAccounts.includes(toAccount)) {
         return reply.status(400).send({
           success: false,
@@ -4813,15 +4819,15 @@ export async function registerAdvancedWalletRoutes(app: FastifyInstance): Promis
         }>(
           `SELECT
              CASE
-               WHEN reference_type = 'deposit' THEN 'Deposit'
-               WHEN reference_type = 'withdrawal' THEN 'Withdrawal'
-               WHEN reference_type = 'internal_transfer' THEN 'Transfer'
-               WHEN reference_type = 'conversion' THEN 'Convert'
-               WHEN reference_type IN ('spot_trade', 'trade') THEN 'Trade'
-               ELSE reference_type
+               WHEN bl.reference_type::text = 'deposit' THEN 'Deposit'
+               WHEN bl.reference_type::text = 'withdrawal' THEN 'Withdrawal'
+               WHEN bl.reference_type::text = 'internal_transfer' THEN 'Transfer'
+               WHEN bl.reference_type::text = 'conversion' THEN 'Convert'
+               WHEN bl.reference_type::text IN ('spot_trade', 'trade', 'trade_buy', 'trade_sell') THEN 'Trade'
+               ELSE bl.reference_type::text
              END AS type,
              c.symbol,
-             bl.amount,
+             (COALESCE(bl.credit, 0) - COALESCE(bl.debit, 0))::text AS amount,
              '0' AS fee,
              'completed' AS status,
              bl.created_at::TEXT AS created_at,

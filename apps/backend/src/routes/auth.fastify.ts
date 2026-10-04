@@ -40,6 +40,7 @@ import { getClientIp } from '../lib/client-ip.js';
 import { config } from '../config/index.js';
 import { getFeeTierDisplay } from '../services/volume-fee-tier.service.js';
 import { isSessionValid } from '../services/session.service.js';
+import { addAddress as addWhitelistAddress } from '../services/withdrawal-whitelist.service.js';
 import { setAuthCookies, clearAuthCookies, getRefreshTokenFromRequest, getAccessTokenFromRequest } from '../lib/auth-cookies.js';
 import {
   generateRegistrationOptions,
@@ -5120,11 +5121,19 @@ export default async function authRoutes(app: FastifyInstance) {
       if (!(await jwtVerifyWithSession(request, reply))) return;
       const userId = (request.user?.userId ?? request.user?.id)!;
 
+      // users has no *_withdrawal_used columns; usage is derived from the withdrawals table (same rule as
+      // GET /wallet/withdrawal-limits) so the security page and the withdraw page agree.
       const result = await db.query(
-        `SELECT daily_withdrawal_limit, monthly_withdrawal_limit, 
-                COALESCE(daily_withdrawal_used, 0) as daily_withdrawal_used,
-                COALESCE(monthly_withdrawal_used, 0) as monthly_withdrawal_used
-         FROM users WHERE id = $1 AND deleted_at IS NULL`,
+        `SELECT u.daily_withdrawal_limit, u.monthly_withdrawal_limit,
+                COALESCE((SELECT SUM(w.amount) FROM withdrawals w
+                          WHERE w.user_id = u.id
+                            AND w.status IN ('pending_approval', 'pending_email_verify', 'pending_2fa', 'pending_blockchain', 'processing', 'completed')
+                            AND w.created_at >= CURRENT_DATE), 0) AS daily_withdrawal_used,
+                COALESCE((SELECT SUM(w.amount) FROM withdrawals w
+                          WHERE w.user_id = u.id
+                            AND w.status IN ('pending_approval', 'pending_email_verify', 'pending_2fa', 'pending_blockchain', 'processing', 'completed')
+                            AND w.created_at >= DATE_TRUNC('month', CURRENT_DATE)), 0) AS monthly_withdrawal_used
+         FROM users u WHERE u.id = $1 AND u.deleted_at IS NULL`,
         [userId]
       );
 
@@ -5475,12 +5484,19 @@ export default async function authRoutes(app: FastifyInstance) {
       if (!(await jwtVerifyWithSession(request, reply))) return;
       const userId = (request.user?.userId ?? request.user?.id)!;
 
+      // Join the enforced whitelist so the UI can show whether the 24h new-address timelock has expired.
       const result = await db.query(
-        `SELECT id, asset, network, note, address, memo, is_whitelisted, 
-                created_at as last_updated
-         FROM withdrawal_addresses 
-         WHERE user_id = $1 AND deleted_at IS NULL
-         ORDER BY created_at DESC`,
+        `SELECT wa.id, wa.asset, wa.network, wa.note, wa.address, wa.memo, wa.address_type,
+                (wl.id IS NOT NULL AND wl.enabled) AS is_whitelisted,
+                (SELECT MAX(t.unlock_at) FROM withdrawal_address_timelocks t WHERE t.address_id = wl.id) AS unlock_at,
+                wa.created_at as last_updated
+         FROM withdrawal_addresses wa
+         LEFT JOIN withdrawal_address_whitelist wl
+           ON wl.user_id = wa.user_id
+          AND wl.asset = UPPER(wa.asset)
+          AND LOWER(TRIM(wl.address)) = LOWER(TRIM(wa.address))
+         WHERE wa.user_id = $1 AND wa.deleted_at IS NULL
+         ORDER BY wa.created_at DESC`,
         [userId]
       );
 
@@ -5589,11 +5605,26 @@ export default async function authRoutes(app: FastifyInstance) {
         ]
       );
 
-      logger.info('Withdrawal address added', { userId, asset, addressType });
+      // The withdrawal gate checks withdrawal_address_whitelist (+ timelock), not this address book.
+      // Register the on-chain address there too, otherwise a customer could never withdraw to it.
+      let unlockAt: Date | null = null;
+      if (addressType === 'onchain' && asset && address) {
+        const whitelisted = await addWhitelistAddress({ userId, asset, address, label: note ?? null });
+        unlockAt = whitelisted.unlockAt;
+        await db.query(`UPDATE withdrawal_addresses SET is_whitelisted = TRUE WHERE id = $1`, [result.rows[0]!.id]);
+      }
+
+      logger.info('Withdrawal address added', { userId, asset, addressType, unlockAt: unlockAt?.toISOString() ?? null });
 
       return reply.send({
         success: true,
-        data: { id: result.rows[0]!.id, message: 'Address added successfully' },
+        data: {
+          id: result.rows[0]!.id,
+          unlockAt: unlockAt ? unlockAt.toISOString() : null,
+          message: unlockAt && unlockAt.getTime() > Date.now()
+            ? `Address added. Withdrawals to it unlock at ${unlockAt.toISOString()}.`
+            : 'Address added successfully',
+        },
       });
 
     } catch (error) {
@@ -5654,10 +5685,10 @@ export default async function authRoutes(app: FastifyInstance) {
       const userId = (request.user?.userId ?? request.user?.id)!;
       const { id } = request.params as { id: string };
 
-      const result = await db.query(
+      const result = await db.query<{ id: string; asset: string | null; address: string | null }>(
         `UPDATE withdrawal_addresses SET deleted_at = CURRENT_TIMESTAMP
          WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL
-         RETURNING id`,
+         RETURNING id, asset, address`,
         [id, userId]
       );
 
@@ -5666,6 +5697,16 @@ export default async function authRoutes(app: FastifyInstance) {
           success: false,
           error: { code: 'NOT_FOUND', message: 'Address not found' },
         });
+      }
+
+      // Removing it from the address book must also remove it from the enforced whitelist.
+      const removed = result.rows[0]!;
+      if (removed.asset && removed.address) {
+        await db.query(
+          `UPDATE withdrawal_address_whitelist SET enabled = FALSE
+           WHERE user_id = $1 AND asset = UPPER($2) AND LOWER(TRIM(address)) = LOWER(TRIM($3))`,
+          [userId, removed.asset, removed.address]
+        );
       }
 
       logger.info('Withdrawal address deleted', { userId, addressId: id });

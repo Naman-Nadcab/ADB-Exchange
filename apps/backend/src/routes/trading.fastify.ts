@@ -230,7 +230,7 @@ export default async function tradingRoutes(app: FastifyInstance) {
 
   /**
    * GET /trading/balances
-   * Get user balances
+   * Get user balances (live schema: user_balances + currencies; chain comes from tokens when present)
    */
   app.get('/balances', {
     preHandler: [app.authenticate],
@@ -239,25 +239,25 @@ export default async function tradingRoutes(app: FastifyInstance) {
       const { id: userId } = request.user!;
 
       const result = await db.query(`
-        SELECT 
+        SELECT
           ub.id,
-          ub.available_balance,
-          ub.locked_balance,
-          ub.pending_balance,
-          c.id as currency_id,
+          ub.account_type,
+          ub.available_balance::text AS available_balance,
+          ub.locked_balance::text AS locked_balance,
+          COALESCE(ub.pending_balance, 0)::text AS pending_balance,
+          c.id AS currency_id,
           c.symbol,
           c.name,
           c.currency_type,
           c.decimals,
           c.logo_url,
-          b.chain_symbol
+          ub.chain_id AS chain_symbol
         FROM user_balances ub
         JOIN currencies c ON ub.currency_id = c.id
-        LEFT JOIN blockchains b ON c.blockchain_id = b.id
         WHERE ub.user_id = $1
-        ORDER BY 
+        ORDER BY
           CASE WHEN ub.available_balance + ub.locked_balance > 0 THEN 0 ELSE 1 END,
-          c.symbol
+          c.symbol, ub.account_type
       `, [userId]);
 
       return reply.send({
@@ -265,7 +265,7 @@ export default async function tradingRoutes(app: FastifyInstance) {
         data: result.rows,
       });
     } catch (error) {
-      logger.error('Failed to fetch balances', { error });
+      logger.error('Failed to fetch balances', { error: error instanceof Error ? error.message : String(error) });
       return reply.status(500).send({
         success: false,
         error: { code: 'FETCH_FAILED', message: 'Failed to fetch balances' },
@@ -275,7 +275,7 @@ export default async function tradingRoutes(app: FastifyInstance) {
 
   /**
    * GET /trading/wallets
-   * Get user wallet addresses
+   * Custodial deposit addresses of the customer (wallets table), one row per chain.
    */
   app.get('/wallets', {
     preHandler: [app.authenticate],
@@ -284,19 +284,17 @@ export default async function tradingRoutes(app: FastifyInstance) {
       const { id: userId } = request.user!;
 
       const result = await db.query(`
-        SELECT 
-          uw.id,
-          uw.address,
-          uw.address_tag,
-          uw.is_active,
-          uw.created_at,
-          b.chain_symbol,
-          b.chain_name,
-          b.explorer_url
-        FROM user_wallets uw
-        JOIN blockchains b ON uw.blockchain_id = b.id
-        WHERE uw.user_id = $1 AND uw.is_active = TRUE
-        ORDER BY b.chain_name
+        SELECT
+          w.id,
+          w.address,
+          w.chain_id AS chain_symbol,
+          ch.name AS chain_name,
+          ch.explorer_url,
+          w.created_at
+        FROM wallets w
+        LEFT JOIN chains ch ON ch.id = w.chain_id
+        WHERE w.user_id = $1
+        ORDER BY w.chain_id
       `, [userId]);
 
       return reply.send({
@@ -304,7 +302,7 @@ export default async function tradingRoutes(app: FastifyInstance) {
         data: result.rows,
       });
     } catch (error) {
-      logger.error('Failed to fetch wallets', { error });
+      logger.error('Failed to fetch wallets', { error: error instanceof Error ? error.message : String(error) });
       return reply.status(500).send({
         success: false,
         error: { code: 'FETCH_FAILED', message: 'Failed to fetch wallets' },
@@ -314,49 +312,49 @@ export default async function tradingRoutes(app: FastifyInstance) {
 
   /**
    * GET /trading/orders
-   * Get user orders
+   * Spot orders of the customer (live schema: spot_orders keyed by market symbol).
    */
   app.get('/orders', {
     preHandler: [app.authenticate],
   }, async (request, reply) => {
     try {
       const { id: userId } = request.user!;
-      const { status, pairId, limit = 50 } = request.query as any;
+      const { status, pairId, symbol, limit = 50 } = request.query as { status?: string; pairId?: string; symbol?: string; limit?: string | number };
 
       let query = `
-        SELECT 
+        SELECT
           so.id,
           so.client_order_id,
-          so.order_type,
+          so.type AS order_type,
           so.side,
-          so.price,
-          so.quantity,
-          so.filled_quantity,
-          so.remaining_quantity,
-          so.avg_fill_price,
+          so.price::text AS price,
+          so.quantity::text AS quantity,
+          so.filled_quantity::text AS filled_quantity,
+          so.remaining_quantity::text AS remaining_quantity,
           so.status,
           so.created_at,
-          so.filled_at,
-          tp.symbol as pair_symbol
+          so.updated_at,
+          so.market AS pair_symbol
         FROM spot_orders so
-        JOIN trading_pairs tp ON so.trading_pair_id = tp.id
         WHERE so.user_id = $1
       `;
-      const params: any[] = [userId];
+      const params: unknown[] = [userId];
       let paramIndex = 2;
 
       if (status) {
         query += ` AND so.status = $${paramIndex++}`;
-        params.push(status);
+        params.push(String(status));
       }
 
-      if (pairId) {
-        query += ` AND so.trading_pair_id = $${paramIndex++}`;
-        params.push(pairId);
+      const market = (symbol ?? pairId)?.toString().trim();
+      if (market) {
+        query += ` AND so.market = $${paramIndex++}`;
+        params.push(market.toUpperCase());
       }
 
+      const lim = Math.min(Math.max(parseInt(String(limit), 10) || 50, 1), 500);
       query += ` ORDER BY so.created_at DESC LIMIT $${paramIndex}`;
-      params.push(parseInt(limit));
+      params.push(lim);
 
       const result = await db.query(query, params);
 
@@ -365,7 +363,7 @@ export default async function tradingRoutes(app: FastifyInstance) {
         data: result.rows,
       });
     } catch (error) {
-      logger.error('Failed to fetch orders', { error });
+      logger.error('Failed to fetch orders', { error: error instanceof Error ? error.message : String(error) });
       return reply.status(500).send({
         success: false,
         error: { code: 'FETCH_FAILED', message: 'Failed to fetch orders' },
@@ -375,42 +373,43 @@ export default async function tradingRoutes(app: FastifyInstance) {
 
   /**
    * GET /trading/history
-   * Get trade history
+   * Spot trade history of the customer (live schema: spot_trades).
    */
   app.get('/history', {
     preHandler: [app.authenticate],
   }, async (request, reply) => {
     try {
       const { id: userId } = request.user!;
-      const { pairId, limit = 50, offset = 0 } = request.query as any;
+      const { pairId, symbol, limit = 50, offset = 0 } = request.query as { pairId?: string; symbol?: string; limit?: string | number; offset?: string | number };
 
       let query = `
-        SELECT 
-          uth.id,
-          uth.side,
-          uth.role,
-          uth.price,
-          uth.quantity,
-          uth.quote_amount,
-          uth.fee,
-          uth.created_at,
-          tp.symbol as pair_symbol,
-          c.symbol as fee_currency
-        FROM user_trade_history uth
-        JOIN trading_pairs tp ON uth.trading_pair_id = tp.id
-        JOIN currencies c ON uth.fee_currency_id = c.id
-        WHERE uth.user_id = $1
+        SELECT
+          st.id,
+          st.order_id,
+          st.side,
+          st.price::text AS price,
+          st.quantity::text AS quantity,
+          (st.price * st.quantity)::text AS quote_amount,
+          COALESCE(st.fee, 0)::text AS fee,
+          st.fee_asset AS fee_currency,
+          st.created_at,
+          st.market AS pair_symbol
+        FROM spot_trades st
+        WHERE st.user_id = $1
       `;
-      const params: any[] = [userId];
+      const params: unknown[] = [userId];
       let paramIndex = 2;
 
-      if (pairId) {
-        query += ` AND uth.trading_pair_id = $${paramIndex++}`;
-        params.push(pairId);
+      const market = (symbol ?? pairId)?.toString().trim();
+      if (market) {
+        query += ` AND st.market = $${paramIndex++}`;
+        params.push(market.toUpperCase());
       }
 
-      query += ` ORDER BY uth.created_at DESC LIMIT $${paramIndex++} OFFSET $${paramIndex}`;
-      params.push(parseInt(limit), parseInt(offset));
+      const lim = Math.min(Math.max(parseInt(String(limit), 10) || 50, 1), 500);
+      const off = Math.max(parseInt(String(offset), 10) || 0, 0);
+      query += ` ORDER BY st.created_at DESC LIMIT $${paramIndex++} OFFSET $${paramIndex}`;
+      params.push(lim, off);
 
       const result = await db.query(query, params);
 
@@ -419,7 +418,7 @@ export default async function tradingRoutes(app: FastifyInstance) {
         data: result.rows,
       });
     } catch (error) {
-      logger.error('Failed to fetch trade history', { error });
+      logger.error('Failed to fetch trade history', { error: error instanceof Error ? error.message : String(error) });
       return reply.status(500).send({
         success: false,
         error: { code: 'FETCH_FAILED', message: 'Failed to fetch trade history' },
@@ -429,12 +428,12 @@ export default async function tradingRoutes(app: FastifyInstance) {
 
   /**
    * GET /trading/currencies
-   * Get all currencies
+   * Active currencies with their supported chains (live schema: currencies + tokens + chains).
    */
-  app.get('/currencies', async (request, reply) => {
+  app.get('/currencies', async (_request, reply) => {
     try {
       const result = await db.query(`
-        SELECT 
+        SELECT
           c.id,
           c.symbol,
           c.name,
@@ -443,14 +442,18 @@ export default async function tradingRoutes(app: FastifyInstance) {
           c.logo_url,
           c.deposit_enabled,
           c.withdrawal_enabled,
-          c.min_deposit,
-          c.min_withdrawal,
-          c.withdrawal_fee,
-          b.chain_symbol,
-          b.chain_name
+          c.trade_enabled,
+          c.min_deposit::text AS min_deposit,
+          c.min_withdrawal::text AS min_withdrawal,
+          c.withdrawal_fee::text AS withdrawal_fee,
+          COALESCE(
+            (SELECT json_agg(json_build_object('chain_id', t.chain_id, 'chain_name', ch.name) ORDER BY t.chain_id)
+             FROM tokens t LEFT JOIN chains ch ON ch.id = t.chain_id
+             WHERE t.symbol = c.symbol),
+            '[]'::json
+          ) AS chains
         FROM currencies c
-        LEFT JOIN blockchains b ON c.blockchain_id = b.id
-        WHERE c.is_active = TRUE AND c.is_listed = TRUE
+        WHERE c.is_active = TRUE
         ORDER BY c.symbol
       `);
 
@@ -459,7 +462,7 @@ export default async function tradingRoutes(app: FastifyInstance) {
         data: result.rows,
       });
     } catch (error) {
-      logger.error('Failed to fetch currencies', { error });
+      logger.error('Failed to fetch currencies', { error: error instanceof Error ? error.message : String(error) });
       return reply.status(500).send({
         success: false,
         error: { code: 'FETCH_FAILED', message: 'Failed to fetch currencies' },
