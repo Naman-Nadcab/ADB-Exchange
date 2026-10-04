@@ -42,6 +42,7 @@ export function isCustomerFinancialMutation(method: string, path: string): boole
   if (p === '/api/v1/wallet/transfer') return true;
   if (p === '/api/v1/fiat/withdrawals') return true;
   if (p === '/api/v1/spot/order' || p === '/api/v1/spot/orders') return true;
+  if (p === '/api/v1/convert/instant' || p === '/api/v1/convert/limit') return true;
   if (p === '/api/v1/p2p/ads' || p === '/api/v1/p2p/orders') return true;
   if (/^\/api\/v1\/p2p\/orders\/[^/]+\/(pay|release|verify-payment)$/.test(p)) return true;
   if (p === '/api/v1/forex/orders') return true;
