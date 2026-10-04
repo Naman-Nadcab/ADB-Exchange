@@ -11,7 +11,7 @@ import jwt from '@fastify/jwt';
 import multipart from '@fastify/multipart';
 import websocket from '@fastify/websocket';
 import { config } from './config/index.js';
-import { ACCESS_COOKIE } from './lib/auth-cookies.js';
+import { ACCESS_COOKIE, COOKIE_SESSION_MARKER } from './lib/auth-cookies.js';
 import { db } from './lib/database.js';
 import { redis } from './lib/redis.js';
 import { logger } from './lib/logger.js';
@@ -221,10 +221,17 @@ export async function buildServer(): Promise<FastifyInstance> {
     const id = (request.headers['x-request-id'] as string)?.trim() || crypto.randomUUID();
     request.requestId = id;
     // Promote httpOnly access cookie to Authorization for JWT decorators (CSRF mitigated via SameSite=Lax + CORS allow-list).
-    if (!request.headers.authorization?.startsWith('Bearer ')) {
+    // A cookie-backed browser session has no JWT in memory; the web client then sends the literal
+    // COOKIE_SESSION_MARKER as the bearer value. Treat that marker (or an empty bearer) as "no header".
+    const bearer = request.headers.authorization?.startsWith('Bearer ')
+      ? request.headers.authorization.slice(7).trim()
+      : '';
+    if (!bearer || bearer === COOKIE_SESSION_MARKER) {
       const cookieToken = request.cookies?.[ACCESS_COOKIE];
       if (typeof cookieToken === 'string' && cookieToken.length > 0) {
         request.headers.authorization = `Bearer ${cookieToken}`;
+      } else if (bearer === COOKIE_SESSION_MARKER) {
+        delete request.headers.authorization;
       }
     }
   });
