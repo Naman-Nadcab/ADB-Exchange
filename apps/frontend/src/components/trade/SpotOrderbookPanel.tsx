@@ -614,12 +614,12 @@ export function SpotOrderbookPanel({
   const midContent = (
     <div className="flex flex-col items-center gap-0.5 py-0.5">
       <div
-        className={`flex items-center justify-center gap-1 text-base font-bold leading-tight tracking-tight numeric ${midPriceClass}`}
+        className={`numeric flex items-center justify-center gap-1 text-[15px] font-semibold leading-tight tracking-tight ${midPriceClass}`}
       >
-        {lastMove === 'up' && <ChevronUp className="h-4 w-4 shrink-0 text-buy" strokeWidth={2.5} aria-hidden />}
-        {lastMove === 'down' && <ChevronDown className="h-4 w-4 shrink-0 text-sell" strokeWidth={2.5} aria-hidden />}
+        {lastMove === 'up' && <ChevronUp className="h-3.5 w-3.5 shrink-0 text-buy" strokeWidth={2.5} aria-hidden />}
+        {lastMove === 'down' && <ChevronDown className="h-3.5 w-3.5 shrink-0 text-sell" strokeWidth={2.5} aria-hidden />}
         <span>{formatValueFixedTrim(lastDisplay, effectivePricePrecision)}</span>
-        <span className="text-label font-semibold text-muted-foreground">{quoteAsset}</span>
+        <span className="font-sans text-[10px] font-medium text-muted-foreground">{quoteAsset}</span>
       </div>
       {(spreadAbs > 0 || spreadBps > 0) && (
         <p className="text-center terminal-text-label leading-none numeric text-muted-foreground">
@@ -913,7 +913,7 @@ export function SpotOrderbookPanel({
       {tab === 'ladder' ? (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <div className="border-b border-border bg-muted/50 px-1.5 py-1 dark:bg-muted/35">
-            <div className={`${COL_GRID} items-center numeric terminal-text-label font-semibold uppercase leading-none text-muted-foreground`}>
+            <div className={`${COL_GRID} items-center font-sans text-[10px] font-medium uppercase leading-none tracking-wide text-muted-foreground`}>
               <OrderbookColumnHeaders quoteAsset={quoteAsset} baseAsset={baseAsset} leftLabel={tc('orderbook.asksPriceLabel')} />
             </div>
           </div>
@@ -941,7 +941,7 @@ export function SpotOrderbookPanel({
       ) : tab === 'trades' ? (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <div className="border-b border-border bg-muted/50 px-1.5 py-1 dark:bg-muted/35">
-            <div className={`${COL_GRID} items-center numeric terminal-text-label font-semibold uppercase leading-none text-muted-foreground`}>
+            <div className={`${COL_GRID} items-center font-sans text-[10px] font-medium uppercase leading-none tracking-wide text-muted-foreground`}>
               <OrderbookColumnHeaders quoteAsset={quoteAsset} baseAsset={baseAsset} />
             </div>
           </div>
@@ -999,7 +999,7 @@ export function SpotOrderbookPanel({
       ) : (
         <>
           <div className="border-b border-border bg-muted/60 px-2 py-2 dark:bg-muted/40">
-            <div className={`${COL_GRID} items-center numeric terminal-text-label font-bold uppercase tracking-wide text-muted-foreground`}>
+            <div className={`${COL_GRID} items-center font-sans text-[10px] font-medium uppercase leading-none tracking-wide text-muted-foreground`}>
               <OrderbookColumnHeaders quoteAsset={quoteAsset} baseAsset={baseAsset} />
             </div>
           </div>

@@ -9,8 +9,8 @@ import {
   type UTCTimestamp,
 } from 'lightweight-charts';
 import type { ChartAdapter, ChartTheme, CandleData, TradeMarker } from './ChartAdapter';
-import { getDomChartCrosshairColors, getDomChartThemeOptions, getTradingChartColors } from './cssTradingColors';
-import { formatFixedTrim } from '../terminalFormat';
+import { chartUiFontFamily, getDomChartCrosshairColors, getDomChartThemeOptions, getTradingChartColors } from './cssTradingColors';
+import { formatFixedTrim, visualPriceDecimals } from '../terminalFormat';
 import type { ChartExtensionsConfig, DrawingToolMode, SerializedDrawing } from './extension/types';
 import { throttleLeading } from './utils/throttle';
 import { DrawingToolManager } from './tools/DrawingToolManager';
@@ -20,10 +20,12 @@ import { RsiPanePlugin } from './indicators/plugins/RsiPanePlugin';
 import { VolumeMaPlugin } from './indicators/plugins/VolumeMaPlugin';
 import type { OverlayStudyId } from './indicators';
 import {
+  candleSeriesIsSparse,
   candlestickDataFromSanitized,
   histogramSeriesDataFromCandles,
   sanitizeCandles,
   sanitizeTradeMarkersForChart,
+  seriesHasVolume,
 } from './lightweightChartsData';
 
 const toTs = (t: number) => t as UTCTimestamp;
@@ -34,7 +36,10 @@ const ENABLE_TRADE_MARKERS = true;
 export class LightweightChartsAdapter implements ChartAdapter {
   private chart: IChartApi | null = null;
   private series: ISeriesApi<'Candlestick'> | null = null;
+  private closePath: ISeriesApi<'Line'> | null = null;
   private volumeSeries: ISeriesApi<'Histogram'> | null = null;
+  private volumeVisible = false;
+  private closePathVisible = false;
   private volumeMaEnabled = true;
   private priceScaleMode: 'normal' | 'log' | 'percent' = 'normal';
   private lastBar: CandleData | null = null;
@@ -42,8 +47,8 @@ export class LightweightChartsAdapter implements ChartAdapter {
   private nextCandleTime = 0;
   private allCandles: CandleData[] = [];
   private theme: ChartTheme = 'dark';
-  private pricePrecision = 6;
-  private legendPrecision = 6;
+  /** Instrument tick decimals. Axis/legend use `visualPriceDecimals` of this. */
+  private instrumentPrecision = 6;
   private legendCallback: ((text: string) => void) | null = null;
   private overlayStudy: OverlayStudyId = 'none';
   private rsiEnabled = false;
@@ -222,16 +227,34 @@ export class LightweightChartsAdapter implements ChartAdapter {
     this.nextCandleTime = this.lastBar ? this.lastBar.time + this.intervalSeconds : 0;
   }
 
+  private layoutType() {
+    return {
+      fontFamily: chartUiFontFamily(),
+      fontSize: 11,
+    };
+  }
+
+  private displayDecimals(): number {
+    return visualPriceDecimals(this.instrumentPrecision, this.lastBar?.close ?? null);
+  }
+
+  private closePathColor(): string {
+    return this.theme === 'dark' ? 'rgba(226, 232, 240, 0.9)' : 'rgba(30, 41, 59, 0.88)';
+  }
+
   private applyLayout(): void {
     if (!this.chart || !this.series || !this.volumeSeries) return;
     const rsiOn = this.rsiEnabled && (this.rsiPlugin?.isActive() ?? false);
+    const vol = this.volumeVisible;
     if (rsiOn) {
-      this.series.priceScale().applyOptions({ scaleMargins: { top: 0.06, bottom: 0.36 } });
+      this.series.priceScale().applyOptions({ scaleMargins: { top: 0.06, bottom: vol ? 0.36 : 0.22 } });
       this.volumeSeries.priceScale().applyOptions({ scaleMargins: { top: 0.68, bottom: 0.2 } });
       this.chart.priceScale('rsi').applyOptions({ scaleMargins: { top: 0.84, bottom: 0.02 } });
-    } else {
+    } else if (vol) {
       this.series.priceScale().applyOptions({ scaleMargins: { top: 0.08, bottom: 0.22 } });
       this.volumeSeries.priceScale().applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
+    } else {
+      this.series.priceScale().applyOptions({ scaleMargins: { top: 0.08, bottom: 0.04 } });
     }
   }
 
@@ -248,8 +271,7 @@ export class LightweightChartsAdapter implements ChartAdapter {
       ...opts,
       layout: {
         ...opts.layout,
-        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-        fontSize: 11,
+        ...this.layoutType(),
       },
       grid: { ...opts.grid },
       crosshair: {
@@ -272,7 +294,7 @@ export class LightweightChartsAdapter implements ChartAdapter {
         scaleMargins: { top: 0.08, bottom: 0.22 },
         borderVisible: true,
         alignLabels: true,
-        minimumWidth: 64,
+        minimumWidth: 72,
       },
       timeScale: {
         ...opts.timeScale,
@@ -332,6 +354,15 @@ export class LightweightChartsAdapter implements ChartAdapter {
       priceLineColor: colors.up,
       ...this.priceFormatOptions(),
     });
+    this.closePath = this.chart.addLineSeries({
+      ...this.priceFormatOptions(),
+      color: this.closePathColor(),
+      lineWidth: 2,
+      priceLineVisible: false,
+      lastValueVisible: false,
+      crosshairMarkerVisible: false,
+      visible: false,
+    });
     this.volumeSeries = this.chart.addHistogramSeries({
       priceFormat: { type: 'volume' },
       priceScaleId: '',
@@ -350,7 +381,7 @@ export class LightweightChartsAdapter implements ChartAdapter {
   }
 
   private priceFormatOptions() {
-    const p = Math.min(12, Math.max(0, Math.floor(this.pricePrecision)));
+    const p = this.displayDecimals();
     const minMove = 10 ** -p;
     return {
       priceFormat: {
@@ -361,18 +392,26 @@ export class LightweightChartsAdapter implements ChartAdapter {
     };
   }
 
+  private applyPriceFormat(): void {
+    const opts = this.priceFormatOptions();
+    this.series?.applyOptions(opts);
+    this.closePath?.applyOptions(opts);
+  }
+
   setLegendCallback(cb: ((text: string) => void) | null): void {
     this.legendCallback = cb;
     this.emitLegend(this.lastBar);
   }
 
   setLegendPrecision(decimals: number): void {
-    this.legendPrecision = Math.min(12, Math.max(0, Math.floor(decimals)));
+    this.instrumentPrecision = Math.min(12, Math.max(0, Math.floor(decimals)));
+    this.applyPriceFormat();
+    this.emitLegend(this.lastBar);
   }
 
   setPricePrecision(decimals: number): void {
-    this.pricePrecision = Math.min(12, Math.max(0, Math.floor(decimals)));
-    this.series?.applyOptions(this.priceFormatOptions());
+    this.instrumentPrecision = Math.min(12, Math.max(0, Math.floor(decimals)));
+    this.applyPriceFormat();
   }
 
   /** Seconds until current candle closes (UTC bar time). */
@@ -462,7 +501,7 @@ export class LightweightChartsAdapter implements ChartAdapter {
   }
 
   private fmtPrice(n: number): string {
-    return formatFixedTrim(n, this.legendPrecision);
+    return formatFixedTrim(n, this.displayDecimals());
   }
 
   private fmtVol(v: number | undefined): string {
@@ -645,7 +684,7 @@ export class LightweightChartsAdapter implements ChartAdapter {
     const cx = getDomChartCrosshairColors();
     const colors = getTradingChartColors();
     this.chart.applyOptions({
-      layout: opts.layout,
+      layout: { ...opts.layout, ...this.layoutType() },
       grid: opts.grid,
       crosshair: {
         vertLine: { color: cx.line, labelBackgroundColor: cx.labelBg },
@@ -665,6 +704,7 @@ export class LightweightChartsAdapter implements ChartAdapter {
       wickDownColor: colors.downVolume,
       ...this.priceFormatOptions(),
     });
+    this.closePath?.applyOptions({ color: this.closePathColor() });
     this.updatePriceLineColor();
     this.applyLayout();
     this.applyPriceScaleMode();
@@ -725,12 +765,68 @@ export class LightweightChartsAdapter implements ChartAdapter {
   }
 
   private updatePriceLineColor(): void {
-    if (!this.series || !this.lastBar) return;
+    if (!this.lastBar) return;
     const colors = getTradingChartColors();
     const up = this.lastBar.close >= this.lastBar.open;
-    this.series.applyOptions({
-      priceLineColor: up ? colors.up : colors.down,
+    const priceLineColor = up ? colors.up : colors.down;
+    this.series?.applyOptions({ priceLineColor });
+    if (this.closePathVisible) this.closePath?.applyOptions({ priceLineColor });
+  }
+
+  /**
+   * Sparse history (hourly prints on a 1m axis) is drawn as a close path
+   * through the real bars. Dense history stays candlesticks. Zero volume
+   * stays off the price pane so a 0-line does not sit under the price.
+   */
+  private syncSeriesPresentation(candles: CandleData[]): void {
+    const sparse = candleSeriesIsSparse(candles, this.intervalSeconds);
+    this.closePathVisible = sparse;
+    this.volumeVisible = seriesHasVolume(candles);
+    this.series?.applyOptions({
+      visible: !sparse,
+      priceLineVisible: !sparse,
+      lastValueVisible: !sparse,
     });
+    if (this.closePath) {
+      const line = sparse
+        ? candles.map((c) => ({ time: toTs(c.time), value: c.close }))
+        : [];
+      this.closePath.applyOptions({
+        visible: sparse,
+        color: this.closePathColor(),
+        priceLineVisible: sparse,
+        lastValueVisible: sparse,
+        ...this.priceFormatOptions(),
+      });
+      try {
+        this.closePath.setData(line);
+      } catch {
+        try {
+          this.closePath.setData([]);
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+    this.volumeSeries?.applyOptions({ visible: this.volumeVisible, lastValueVisible: this.volumeVisible });
+    if (!this.volumeVisible) {
+      try {
+        this.volumeSeries?.setData([]);
+      } catch {
+        /* ignore */
+      }
+    }
+    this.applyLayout();
+    this.applyPriceFormat();
+  }
+
+  private syncClosePathPoint(bar: CandleData): void {
+    if (!this.closePath || !this.closePathVisible) return;
+    try {
+      this.closePath.update({ time: toTs(bar.time), value: bar.close });
+    } catch {
+      /* next full setCandles repairs the path */
+    }
   }
 
   setCandles(data: CandleData[]): void {
@@ -772,6 +868,7 @@ export class LightweightChartsAdapter implements ChartAdapter {
       if (seriesApplied) {
         this.lastSeriesTime = this.lastBar?.time ?? -1;
       }
+      this.syncSeriesPresentation(normalized);
       this.refreshStudies('full');
       this.updatePriceLineColor();
       this.emitLegend(this.lastBar);
@@ -806,6 +903,11 @@ export class LightweightChartsAdapter implements ChartAdapter {
       tt = floor;
     }
     const volAdd = volumeDelta != null && Number.isFinite(volumeDelta) && volumeDelta > 0 ? volumeDelta : 0;
+    if (volAdd > 0 && !this.volumeVisible) {
+      this.volumeVisible = true;
+      this.volumeSeries?.applyOptions({ visible: true });
+      this.applyLayout();
+    }
 
     if (!this.lastBar) {
       const bar: CandleData = { time: tt, open: price, high: price, low: price, close: price, volume: volAdd };
@@ -818,6 +920,7 @@ export class LightweightChartsAdapter implements ChartAdapter {
         color: this.volColor(true),
       });
       this.syncLastBarIntoHistory();
+      this.syncClosePathPoint(bar);
       this.updatePriceLineColor();
       this.emitLegend(this.lastBar);
       this.refreshStudies('full');
@@ -842,6 +945,7 @@ export class LightweightChartsAdapter implements ChartAdapter {
         color: this.volColor(this.lastBar.close >= this.lastBar.open),
       });
       this.syncLastBarIntoHistory();
+      this.syncClosePathPoint(this.lastBar);
       this.updatePriceLineColor();
       this.emitLegend(this.lastBar);
       this.throttledLightRefresh();
@@ -900,6 +1004,7 @@ export class LightweightChartsAdapter implements ChartAdapter {
       color: this.volColor(this.lastBar.close >= this.lastBar.open),
     });
     this.syncLastBarIntoHistory();
+    this.syncClosePathPoint(this.lastBar);
     this.updatePriceLineColor();
     this.emitLegend(this.lastBar);
     this.refreshStudies('full');
@@ -1059,7 +1164,10 @@ export class LightweightChartsAdapter implements ChartAdapter {
     const c = this.chart;
     this.chart = null;
     this.series = null;
+    this.closePath = null;
     this.volumeSeries = null;
+    this.closePathVisible = false;
+    this.volumeVisible = false;
     try {
       c?.remove();
     } catch {

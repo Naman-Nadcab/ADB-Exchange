@@ -56,6 +56,8 @@ const TB_SEG_OFF = 'text-foreground/75 hover:bg-accent hover:text-accent-foregro
 const TB_TOGGLE_ON = 'border-primary/50 bg-primary/15 text-foreground';
 const TB_TOGGLE_OFF = 'border-border text-foreground/75 hover:bg-accent hover:text-foreground/90';
 const TB_FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1';
+/** Forex-density chrome: 11px medium, one row, no bold 13px controls. */
+const TB_TYPE = 'h-6 px-1.5 py-0 text-[11px] font-medium leading-none';
 
 type ChartUiPrefs = {
   overlayStudy?: OverlayStudyId;
@@ -573,8 +575,8 @@ function ChartPanelInner({
           <div className="flex flex-wrap items-start justify-between gap-2 px-2 py-1">
             <div className="flex min-w-0 flex-wrap items-end gap-x-4 gap-y-1">
               <div className="min-w-0">
-                <div className="text-label font-bold uppercase tracking-wide text-muted-foreground">{t('chart.lastLabel')}</div>
-                <div className={`numeric text-mid font-bold leading-snug tracking-wide ${lastColor}`}>
+                <div className="font-sans text-[10px] font-medium normal-case tracking-normal text-muted-foreground">{t('chart.lastLabel')}</div>
+                <div className={`numeric text-[18px] font-semibold leading-none tracking-tight ${lastColor}`}>
                   {quoteAsset === 'USDT' && lastPrice != null && lastPrice !== ''
                     ? `$${formatValueFixedTrim(lastPrice, pricePrecision)}`
                     : formatValueFixedTrim(lastPrice, pricePrecision)}
@@ -682,7 +684,7 @@ function ChartPanelInner({
           {hideDuplicatePairSummary && viewMode === 'chart' && (
             <>
               <span
-                className="shrink-0 max-w-[min(42vw,320px)] truncate text-label leading-tight text-muted-foreground"
+                className="shrink-0 max-w-[min(42vw,320px)] truncate font-sans text-[11px] leading-tight text-muted-foreground"
                 title={`${pairLabel} · ${intervalLabel} · Bar ${barEta} · ${ohlcLegend || '—'}`}
               >
                 <span className="font-semibold text-foreground">{pairLabel}</span>
@@ -700,7 +702,7 @@ function ChartPanelInner({
                 type="button"
                 onClick={() => onViewModeChange('chart')}
                 aria-pressed={viewMode === 'chart'}
-                className={`inline-flex h-7 min-h-7 max-md:min-h-8 touch-manipulation items-center gap-1 px-2 py-0 text-label font-semibold transition-colors ${
+                className={`inline-flex touch-manipulation items-center gap-1 ${TB_TYPE} transition-colors ${
                   viewMode === 'chart' ? TB_SEG_ON : TB_SEG_OFF
                 } ${TB_FOCUS}`}
               >
@@ -711,7 +713,7 @@ function ChartPanelInner({
                 type="button"
                 onClick={() => onViewModeChange('depth')}
                 aria-pressed={viewMode === 'depth'}
-                className={`inline-flex h-7 min-h-7 max-md:min-h-10 touch-manipulation items-center gap-1 border-l border-border px-2 py-0 text-label font-semibold transition-colors ${
+                className={`inline-flex touch-manipulation items-center gap-1 border-l border-border ${TB_TYPE} transition-colors ${
                   viewMode === 'depth' ? TB_SEG_ON : TB_SEG_OFF
                 } ${TB_FOCUS}`}
               >
@@ -739,7 +741,7 @@ function ChartPanelInner({
                     onClick={() => setChartPriceScale(id)}
                     aria-pressed={chartPriceScale === id}
                     aria-label={t('chart.priceScaleAria', { label })}
-                    className={`numeric min-h-8 touch-manipulation px-2 py-1.5 text-price font-bold ${
+                    className={`numeric touch-manipulation ${TB_TYPE} ${
                       i > 0 ? 'border-l border-border' : ''
                     } ${chartPriceScale === id ? TB_SEG_ON : TB_SEG_OFF}`}
                   >
@@ -750,7 +752,7 @@ function ChartPanelInner({
               <select
                 value={overlayStudy}
                 onChange={(e) => setOverlayStudy(e.target.value as OverlayStudyId)}
-                className={`max-w-[11rem] shrink-0 cursor-pointer rounded-md border border-border bg-card px-2 py-1.5 text-price font-semibold text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring ${TB_FOCUS}`}
+                className={`max-w-[11rem] shrink-0 cursor-pointer rounded-md border border-border bg-card text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring ${TB_TYPE} ${TB_FOCUS}`}
                 aria-label={t('chart.overlayAria')}
               >
                 {OVERLAY_OPTIONS.map(({ id, label }) => (
@@ -763,7 +765,7 @@ function ChartPanelInner({
                 type="button"
                 aria-pressed={showVolumeMa}
                 onClick={() => setShowVolumeMa((v) => !v)}
-                className={`shrink-0 rounded-md border px-2 py-1.5 text-price font-semibold transition-colors ${
+                className={`shrink-0 rounded-md border transition-colors ${TB_TYPE} ${
                   showVolumeMa ? TB_TOGGLE_ON : TB_TOGGLE_OFF
                 } ${TB_FOCUS}`}
                 title={t('chart.volSma9Title')}
@@ -774,7 +776,7 @@ function ChartPanelInner({
                 type="button"
                 aria-pressed={showRsi}
                 onClick={() => setShowRsi((v) => !v)}
-                className={`shrink-0 rounded-md border px-2 py-1.5 text-price font-semibold transition-colors ${
+                className={`shrink-0 rounded-md border transition-colors ${TB_TYPE} ${
                   showRsi ? TB_TOGGLE_ON : TB_TOGGLE_OFF
                 } ${TB_FOCUS}`}
                 title={t('chart.rsi14Title')}
@@ -793,7 +795,7 @@ function ChartPanelInner({
                   onClick={() => onIntervalSecondsChange(seconds)}
                   aria-pressed={intervalSeconds === seconds}
                   aria-label={t('chart.timeframeAria', { label })}
-                  className={`numeric shrink-0 rounded px-2.5 py-1.5 text-price font-bold transition-colors ${
+                  className={`numeric shrink-0 rounded transition-colors ${TB_TYPE} ${
                     intervalSeconds === seconds ? TB_SEG_ON : TB_SEG_OFF
                   } ${TB_FOCUS}`}
                 >
@@ -810,7 +812,7 @@ function ChartPanelInner({
               onClick={() => setExtStackOpen((v) => !v)}
               aria-pressed={extStackOpen}
               aria-expanded={extStackOpen}
-              className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold transition-colors ${
+              className={`inline-flex items-center gap-1 rounded-md transition-colors ${TB_TYPE} ${
                 extStackOpen ? TB_SEG_ON : TB_SEG_OFF
               } ${TB_FOCUS}`}
               title={extStackOpen ? t('chart.studiesHideTitle') : t('chart.studiesShowTitle')}
@@ -823,7 +825,7 @@ function ChartPanelInner({
             type="button"
             onClick={handleReset}
             aria-label={t('chart.resetViewportAria')}
-            className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold text-muted-foreground hover:bg-accent/80 dark:text-muted-foreground dark:hover:bg-accent ${TB_FOCUS}`}
+            className={`inline-flex items-center gap-1 rounded-md text-muted-foreground hover:bg-accent/80 dark:text-muted-foreground dark:hover:bg-accent ${TB_TYPE} ${TB_FOCUS}`}
             title={t('chart.fitContent')}
           >
             <RefreshCw className="h-3.5 w-3.5" />
@@ -833,7 +835,7 @@ function ChartPanelInner({
             type="button"
             onClick={handleFullscreen}
             aria-label={isFullscreen ? t('chart.fullscreenExitAria') : t('chart.fullscreenEnterAria')}
-            className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold text-muted-foreground hover:bg-accent/80 dark:text-muted-foreground dark:hover:bg-accent ${TB_FOCUS}`}
+            className={`inline-flex items-center gap-1 rounded-md text-muted-foreground hover:bg-accent/80 dark:text-muted-foreground dark:hover:bg-accent ${TB_TYPE} ${TB_FOCUS}`}
             title={t('chart.fullscreenTitle')}
             aria-pressed={isFullscreen}
           >
@@ -843,7 +845,7 @@ function ChartPanelInner({
             type="button"
             onClick={handleScreenshot}
             aria-label={t('chart.screenshotAria')}
-            className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-price font-semibold text-muted-foreground hover:bg-accent/80 dark:text-muted-foreground dark:hover:bg-accent ${TB_FOCUS}`}
+            className={`inline-flex items-center gap-1 rounded-md text-muted-foreground hover:bg-accent/80 dark:text-muted-foreground dark:hover:bg-accent ${TB_TYPE} ${TB_FOCUS}`}
             title={t('chart.screenshotTitle')}
           >
             <Camera className="h-3.5 w-3.5" aria-hidden />
@@ -856,12 +858,12 @@ function ChartPanelInner({
               <button
                 type="button"
                 onClick={() => setExtStackOpen(false)}
-                className="shrink-0 rounded px-1 py-0.5 text-label font-bold uppercase tracking-wide text-muted-foreground hover:bg-accent"
+                className="shrink-0 rounded px-1 py-0.5 font-sans text-[10px] font-medium uppercase tracking-wide text-muted-foreground hover:bg-accent"
                 title={t('chart.studiesHideToolbar')}
               >
                 {t('chart.studiesHide')}
               </button>
-              <span className="shrink-0 text-label font-bold uppercase text-muted-foreground">{t('chart.emaLabel')}</span>
+              <span className="shrink-0 font-sans text-[10px] font-medium uppercase text-muted-foreground">{t('chart.emaLabel')}</span>
               {([7, 20, 50, 200] as const).map((p) => {
                 const k = `ema${p}` as keyof ChartExtensionsConfig;
                 const on = Boolean(extConfig[k]);
