@@ -83,10 +83,11 @@ export async function readChainlinkUsdPrices(url: string, nowSec = Math.floor(Da
   }));
   const provider = new JsonRpcProvider(url, 1, { staticNetwork: true });
   const multicall = new Contract(MULTICALL3, MULTICALL_ABI, provider);
+  const aggregate3 = multicall.getFunction('aggregate3');
   await recordRpcOutbound('other');
   let rows: Array<{ success: boolean; returnData: string }>;
   try {
-    rows = await multicall.aggregate3.staticCall(calls);
+    rows = await aggregate3.staticCall(calls);
   } catch (error) {
     const blob = error instanceof Error ? error.message : String(error);
     if (/429|rate limit|too many requests/i.test(blob)) await recordRpc429();
@@ -129,7 +130,8 @@ function buildAssetBooks(chainlink: Map<string, number>, gecko: Map<string, Geck
   if (gecko) {
     for (const [asset, id] of Object.entries(COINGECKO_IDS)) {
       const coin = gecko.get(id);
-      const px = coin?.current_price;
+      if (!coin) continue;
+      const px = coin.current_price;
       if (px == null || !Number.isFinite(px) || px <= 0) continue;
       const spark = coin.sparkline_in_7d?.price ?? [];
       const points = sparklineToPoints(spark, nowMs);
