@@ -306,9 +306,11 @@ class AdminApprovalService {
       }
     }
 
+    // Execution must not depend on MAKER_CHECKER_ENABLED: forex/global-control routes always
+    // route through an approval request, so a fully approved request that is never executed
+    // would show as "approved" while the control never changed.
     if (
       isFullyApproved &&
-      config.security.makerCheckerEnabled &&
       (row.action_type === 'withdrawal_approve' ||
         row.action_type === 'manual_credit' ||
         row.action_type === 'global_control_action' ||
