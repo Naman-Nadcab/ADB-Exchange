@@ -15,6 +15,8 @@ import { effectiveForexRuntimeFlags } from '../admin/runtime-controls.js';
 import { forexConfig } from '../config.js';
 import { isForexAccountLiquidationLocked } from '../liquidation/lock.js';
 import type { ForexOrderIntent } from '../orders/request.js';
+import { ForexConversionError } from '../pnl/conversion.js';
+import type { ForexPositionRecord } from '../positions/models.js';
 import type { ForexPositionService } from '../positions/service.js';
 import type { ForexPricingService } from '../quotes.service.js';
 import { forexWsHub } from '../ws/hub.js';
@@ -98,17 +100,36 @@ export class ForexRiskService {
     const current = this.positions.listOwned(args.accountId, true);
     const quote = this.pricing.getQuote(args.symbol);
     const px = quote ? (args.side === 'buy' ? quote.ask : quote.bid) : undefined;
-    const preview = px
-      ? this.positions.previewAfterFill({
-          fillId: `risk-preview-${args.accountId}-${args.symbol}`,
-          accountId: args.accountId,
-          symbol: args.symbol,
-          side: args.side,
-          volume: args.volume,
-          price: px,
-          timestamp: new Date().toISOString(),
-        })
-      : current;
+    let preview: ForexPositionRecord[];
+    try {
+      preview = px
+        ? this.positions.previewAfterFill({
+            fillId: `risk-preview-${args.accountId}-${args.symbol}`,
+            accountId: args.accountId,
+            symbol: args.symbol,
+            side: args.side,
+            volume: args.volume,
+            price: px,
+            timestamp: new Date().toISOString(),
+          })
+        : current;
+    } catch (err) {
+      // Cross-pair margin cannot be expressed in USD without a conversion
+      // rate: reject the order rather than risk-check a JPY/CHF notional as USD.
+      if (err instanceof ForexConversionError) {
+        forexRiskRejectionTotal.inc({ reason: err.reason });
+        return {
+          ok: false,
+          reason: err.reason,
+          state: this.syncState(args.accountId).state,
+          direction: 'INCREASING',
+          kind: 'OPEN',
+          source: 'SIMULATED',
+          executionMode: 'MOCK',
+        };
+      }
+      throw err;
+    }
     const inputs = this.positions.riskAccountingInputs(args.accountId);
     const decision = evaluatePreTradeRisk({
       accountId: args.accountId,

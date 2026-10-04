@@ -19,6 +19,7 @@ import { isForexAccountLiquidationLocked } from '../liquidation/lock.js';
 import type { ForexLiquidationService } from '../liquidation/service.js';
 import type { ForexProtectionService } from '../protection/service.js';
 import { executableClosePrice } from '../pnl/engine.js';
+import { ForexConversionError, ForexQuoteConversionSource } from '../pnl/conversion.js';
 import { classifyMarginLevel, marginLevel, positionMarginSnapshot } from '../margin/engine.js';
 import { getForexAccountPolicy, evaluateAccountRisk, type ForexRiskDecision } from '../risk/engine.js';
 import type { ForexPricingService } from '../quotes.service.js';
@@ -57,11 +58,15 @@ export class ForexPositionService {
   private protection: ForexProtectionService | null = null;
   private liquidation: ForexLiquidationService | null = null;
 
+  private readonly conversionRates: ForexQuoteConversionSource;
+
   constructor(
     readonly store: ForexPositionStore,
     private readonly pricing?: ForexPricingService,
     private persistEnabled = false
-  ) {}
+  ) {
+    this.conversionRates = new ForexQuoteConversionSource(pricing);
+  }
 
   setPersistEnabled(on: boolean): void {
     this.persistEnabled = on;
@@ -614,6 +619,7 @@ export class ForexPositionService {
       entryPrice: px,
       currentPrice,
       accountMaxLeverage: getForexAccountPolicy(accountId).maxLeverage,
+      rates: this.conversionRates,
     });
     forexMarginCalculationTotal.inc({ symbol });
     return {
@@ -646,13 +652,23 @@ export class ForexPositionService {
   private refreshValuation(p: ForexPositionRecord): ForexPositionRecord {
     if (p.status !== 'OPEN') return p;
     const current = this.currentPrice(p.symbol, p.entryPrice, p.side);
-    const m = positionMarginSnapshot({
-      symbol: p.symbol,
-      volume: p.volume,
-      entryPrice: p.entryPrice,
-      currentPrice: current,
-      accountMaxLeverage: getForexAccountPolicy(p.accountId).maxLeverage,
-    });
+    let m: ReturnType<typeof positionMarginSnapshot>;
+    try {
+      m = positionMarginSnapshot({
+        symbol: p.symbol,
+        volume: p.volume,
+        entryPrice: p.entryPrice,
+        currentPrice: current,
+        accountMaxLeverage: getForexAccountPolicy(p.accountId).maxLeverage,
+        rates: this.conversionRates,
+      });
+    } catch (err) {
+      // Cross-pair conversion rate unavailable/stale: keep the last good USD
+      // valuation (same policy as a stale quote falling back to entry) rather
+      // than publishing a quote-currency figure as USD.
+      if (err instanceof ForexConversionError) return p;
+      throw err;
+    }
     p.currentPrice = current;
     p.lastPriceTimestamp = new Date().toISOString();
     p.contractSize = m.contractSize;
