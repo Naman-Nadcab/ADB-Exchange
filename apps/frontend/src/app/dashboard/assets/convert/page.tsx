@@ -55,7 +55,7 @@ interface ConversionHistoryRow {
   account_type: string;
 }
 
-type AccountType = 'funding' | 'spot' | 'trading';
+type AccountType = 'funding' | 'trading';
 
 function formatCountdown(ms: number): string {
   if (ms <= 0) return '0:00';
@@ -101,7 +101,7 @@ export default function ConvertPage() {
   const [fromCurrency, setFromCurrency] = useState<Currency | null>(null);
   const [toCurrency, setToCurrency] = useState<Currency | null>(null);
   const [fromAmount, setFromAmount] = useState('');
-  const [accountType, setAccountType] = useState<AccountType>('spot');
+  const [accountType, setAccountType] = useState<AccountType>('funding');
 
   const [showFromDropdown, setShowFromDropdown] = useState(false);
   const [showToDropdown, setShowToDropdown] = useState(false);
@@ -461,8 +461,7 @@ export default function ConvertPage() {
               className="rounded-lg border border-border bg-muted px-3 py-1.5 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="funding">{t('accountFunding')}</option>
-              <option value="spot">{t('accountSpot')}</option>
-              <option value="trading">{t('accountTrading')}</option>
+              <option value="trading">{t('accountSpot')}</option>
             </select>
           </div>
 

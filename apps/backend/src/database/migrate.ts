@@ -5329,6 +5329,34 @@ BEGIN
     ADD CONSTRAINT p2p_orders_payment_method_id_fkey
     FOREIGN KEY (payment_method_id) REFERENCES user_p2p_payment_methods(id);
 END $$;`,
+
+  // ============================================
+  // CONVERT / SWAP (routes/convert.fastify.ts)
+  // The convert routes have always written to `conversions`, but no migration ever created it,
+  // so instant and limit conversions rolled back with 500 on every migrate.ts-built database.
+  // ============================================
+  `CREATE TABLE IF NOT EXISTS conversions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    conversion_type VARCHAR(16) NOT NULL CHECK (conversion_type IN ('instant', 'limit')),
+    from_currency_id UUID NOT NULL REFERENCES currencies(id),
+    from_amount DECIMAL(36,18) NOT NULL CHECK (from_amount > 0),
+    to_currency_id UUID NOT NULL REFERENCES currencies(id),
+    to_amount DECIMAL(36,18) NOT NULL CHECK (to_amount >= 0),
+    conversion_rate DECIMAL(36,18) NOT NULL,
+    target_rate DECIMAL(36,18),
+    fee_amount DECIMAL(36,18) NOT NULL DEFAULT 0,
+    account_type VARCHAR(20) NOT NULL DEFAULT 'funding',
+    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'cancelled', 'expired', 'failed')),
+    expires_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    cancelled_at TIMESTAMP WITH TIME ZONE,
+    ip_address VARCHAR(64),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_conversions_user_created ON conversions(user_id, created_at DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_conversions_pending_limit ON conversions(status, expires_at) WHERE conversion_type = 'limit' AND status = 'pending';`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */
