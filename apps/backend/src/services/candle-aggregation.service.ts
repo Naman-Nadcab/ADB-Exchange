@@ -4,13 +4,14 @@
  * Uses Redis lock to prevent duplicate runs across multiple instances.
  * Scheduled every 2 min in server.ts when runWorkers is true; disable via DISABLE_CANDLE_AGGREGATION=true.
  *
- * Synthetic external seeding is disabled by default and must be explicitly enabled
- * with ALLOW_SYNTHETIC_CANDLES=true (non Tier-1 / controlled environments only).
+ * Chart history backfill writes reference OHLC only (volume 0, trade_count 0).
+ * Real trade candles are never replaced. Set ALLOW_SYNTHETIC_CANDLES=false to skip it.
  */
 
 import { db } from '../lib/database.js';
 import { redis } from '../lib/redis.js';
 import { logger } from '../lib/logger.js';
+import { CHART_HISTORY_BARS, CHART_HISTORY_URL, needsChartHistoryBackfill, referenceKline } from './chart-history.js';
 
 const CANDLE_AGG_LOCK_KEY = 'candle_agg:run';
 const CANDLE_AGG_LOCK_TTL_MS = 150_000; // 2.5 min
@@ -32,9 +33,16 @@ const LOOKBACK_HOURS_DEFAULT = Math.max(
   Math.min(LOOKBACK_HOURS_MAX, Number(process.env.CANDLE_AGG_LOOKBACK_HOURS ?? 24))
 );
 
-const BINANCE_KLINE_URL = 'https://api.binance.com/api/v3/klines';
-const SYNTHETIC_FETCH_TIMEOUT_MS = 12_000;
-const SYNTHETIC_LOOKBACK_CANDLES = 500;
+const CHART_HISTORY_LOCK_KEY = 'chart_history:run';
+const CHART_HISTORY_LOCK_TTL_MS = 180_000;
+const CHART_HISTORY_TIMEOUT_MS = 12_000;
+const REFERENCE_CONFLICT = `ON CONFLICT (trading_pair_id, interval_type, open_time) DO UPDATE SET
+  open_price = EXCLUDED.open_price,
+  high_price = EXCLUDED.high_price,
+  low_price = EXCLUDED.low_price,
+  close_price = EXCLUDED.close_price,
+  close_time = EXCLUDED.close_time
+WHERE ohlcv_candles.trade_count = 0`;
 
 /**
  * Aggregate spot_trades into ohlcv_candles for all symbols.
@@ -192,19 +200,34 @@ const BINANCE_INTERVAL_MAP: Record<string, string> = {
   '1d': '1d',
 };
 
+async function mapPool<T>(items: T[], limit: number, fn: (item: T) => Promise<void>): Promise<void> {
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(limit, Math.max(1, items.length)) }, async () => {
+    for (;;) {
+      const idx = cursor;
+      cursor += 1;
+      if (idx >= items.length) return;
+      await fn(items[idx]!);
+    }
+  });
+  await Promise.all(workers);
+}
+
 /**
- * For each active market that has zero candles in the last LOOKBACK_HOURS,
- * fetch historical klines from Binance and seed them as synthetic candles.
- * Runs after trade-based aggregation; only fills gaps — never overwrites real trade data.
+ * Fill each spot chart interval with reference OHLC when the stored series
+ * is short or flat. One public kline request per thin series. Exchange
+ * trades (trade_count > 0) and their volume are not replaced.
  */
 export async function seedSyntheticCandles(): Promise<{ seeded: number; errors: string[] }> {
   const errors: string[] = [];
   let seeded = 0;
-  const syntheticEnabled = process.env.ALLOW_SYNTHETIC_CANDLES === 'true';
-  if (!syntheticEnabled) {
-    logger.info('Synthetic candle seeding skipped (ALLOW_SYNTHETIC_CANDLES != true)');
+  if (process.env.ALLOW_SYNTHETIC_CANDLES === 'false') {
+    logger.info('Chart history backfill skipped (ALLOW_SYNTHETIC_CANDLES=false)');
     return { seeded, errors };
   }
+
+  const lockValue = await redis.acquireLock(CHART_HISTORY_LOCK_KEY, CHART_HISTORY_LOCK_TTL_MS, 1, 0);
+  if (!lockValue) return { seeded, errors };
 
   try {
     const hasOhlcv = await db.query<{ exists: boolean }>(
@@ -219,83 +242,84 @@ export async function seedSyntheticCandles(): Promise<{ seeded: number; errors: 
        WHERE sm.status IN ('active', 'maintenance')`
     );
 
-    logger.info('Synthetic candle seeder starting', { markets: markets.rows.length });
+    logger.info('Chart history backfill starting', { markets: markets.rows.length });
 
-    for (const m of markets.rows) {
-      const recent = await db.query<{ cnt: string }>(
-        `SELECT COUNT(*)::text AS cnt FROM ohlcv_candles
-         WHERE trading_pair_id = $1 AND interval_type = '1m'
-           AND open_time >= NOW() - INTERVAL '2 hours'`,
-        [m.id]
-      );
-      const recentCount = parseInt(recent.rows[0]?.cnt ?? '0', 10);
-      if (recentCount > 5) continue;
-
+    await mapPool(markets.rows, 3, async (m) => {
       const oracleSym = toOracleSymbol(m.symbol);
-
-      for (const { intervalType } of INTERVAL_SECONDS_TO_TYPE) {
+      for (const { seconds, intervalType } of INTERVAL_SECONDS_TO_TYPE) {
         const binanceInterval = BINANCE_INTERVAL_MAP[intervalType];
         if (!binanceInterval) continue;
-
         try {
+          const windowSec = seconds * CHART_HISTORY_BARS;
+          const coverage = await db.query<{ n: number; flat: number }>(
+            `SELECT count(*)::int AS n,
+                    count(*) FILTER (
+                      WHERE open_price = high_price AND high_price = low_price AND low_price = close_price
+                    )::int AS flat
+             FROM ohlcv_candles
+             WHERE trading_pair_id = $1 AND interval_type = $2
+               AND open_time >= NOW() - ($3::int * INTERVAL '1 second')`,
+            [m.id, intervalType, windowSec]
+          );
+          const row = coverage.rows[0];
+          if (!needsChartHistoryBackfill(row?.n ?? 0, row?.flat ?? 0)) continue;
+
           const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), SYNTHETIC_FETCH_TIMEOUT_MS);
-          const url = `${BINANCE_KLINE_URL}?symbol=${oracleSym}&interval=${binanceInterval}&limit=${SYNTHETIC_LOOKBACK_CANDLES}`;
+          const timeout = setTimeout(() => controller.abort(), CHART_HISTORY_TIMEOUT_MS);
+          const url = `${CHART_HISTORY_URL}?symbol=${oracleSym}&interval=${binanceInterval}&limit=${CHART_HISTORY_BARS}`;
           const res = await fetch(url, { signal: controller.signal });
           clearTimeout(timeout);
           if (!res.ok) {
-            if (res.status === 400) continue;
-            errors.push(`${m.symbol}/${intervalType}: Binance ${res.status}`);
+            if (res.status !== 400) errors.push(`${m.symbol}/${intervalType}: market data ${res.status}`);
             continue;
           }
           const klines = (await res.json()) as Array<Array<number | string>>;
-          if (!Array.isArray(klines) || klines.length === 0) continue;
+          if (!Array.isArray(klines) || klines.length < 50) continue;
+          const candles = klines.map(referenceKline).filter((k): k is NonNullable<typeof k> => k != null);
+          if (candles.length < 50) continue;
 
-          const BATCH = 50;
-          for (let i = 0; i < klines.length; i += BATCH) {
-            const chunk = klines.slice(i, i + BATCH);
+          const BATCH = 80;
+          for (let i = 0; i < candles.length; i += BATCH) {
+            const chunk = candles.slice(i, i + BATCH);
             const values: string[] = [];
-            const params: (string | number | Date)[] = [];
-            let idx = 1;
-
-            for (const k of chunk) {
-              const openTimeMs = Number(k[0]);
-              const closeTimeMs = Number(k[6]);
-              if (!Number.isFinite(openTimeMs) || !Number.isFinite(closeTimeMs)) continue;
-              values.push(`($${idx}, $${idx + 1}, $${idx + 2}, $${idx + 3}, $${idx + 4}::numeric, $${idx + 5}::numeric, $${idx + 6}::numeric, $${idx + 7}::numeric, $${idx + 8}::numeric, $${idx + 9}::numeric, $${idx + 10})`);
-              params.push(
-                m.id, intervalType,
-                new Date(openTimeMs), new Date(closeTimeMs + 1),
-                String(k[1]), String(k[2]), String(k[3]), String(k[4]),
-                String(k[5]), String(k[7]), Number(k[8]) || 0
+            const params: Array<string | Date> = [];
+            chunk.forEach((k, n) => {
+              const idx = n * 8;
+              values.push(
+                `($${idx + 1}, $${idx + 2}, $${idx + 3}, $${idx + 4}, $${idx + 5}::numeric, $${idx + 6}::numeric, $${idx + 7}::numeric, $${idx + 8}::numeric, 0, 0, 0)`
               );
-              idx += 11;
-            }
-
-            if (values.length > 0) {
-              await db.query(
-                `INSERT INTO ohlcv_candles (
-                  trading_pair_id, interval_type, open_time, close_time,
-                  open_price, high_price, low_price, close_price,
-                  volume, quote_volume, trade_count
-                ) VALUES ${values.join(', ')}
-                ON CONFLICT (trading_pair_id, interval_type, open_time) DO NOTHING`,
-                params
-              );
-              seeded += values.length;
-            }
+              params.push(m.id, intervalType, k.openTime, k.closeTime, k.open, k.high, k.low, k.close);
+            });
+            await db.query(
+              `INSERT INTO ohlcv_candles (
+                 trading_pair_id, interval_type, open_time, close_time,
+                 open_price, high_price, low_price, close_price,
+                 volume, quote_volume, trade_count
+               ) VALUES ${values.join(', ')}
+               ${REFERENCE_CONFLICT}`,
+              params
+            );
+            seeded += chunk.length;
           }
+
+          const first = candles[0]!.openTime;
+          const last = candles[candles.length - 1]!.openTime;
+          await db.query(
+            `DELETE FROM ohlcv_candles
+             WHERE trading_pair_id = $1 AND interval_type = $2 AND trade_count = 0
+               AND (open_time < $3 OR open_time > $4)`,
+            [m.id, intervalType, first, last]
+          );
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
-          if (!msg.includes('aborted')) {
-            errors.push(`${m.symbol}/${intervalType}: ${msg}`);
-          }
+          if (!msg.includes('aborted')) errors.push(`${m.symbol}/${intervalType}: ${msg}`);
         }
       }
-      logger.debug('Synthetic candles seeded for market', { symbol: m.symbol, totalSeeded: seeded });
-    }
+    });
   } catch (err) {
-    logger.error('Synthetic candle seeding failed', { error: err instanceof Error ? err.message : String(err) });
+    logger.error('Chart history backfill failed', { error: err instanceof Error ? err.message : String(err) });
+  } finally {
+    await redis.releaseLock(CHART_HISTORY_LOCK_KEY, lockValue).catch(() => {});
   }
 
   return { seeded, errors };
