@@ -94,10 +94,17 @@ async function forexWs(ctx: FxCtx): Promise<{ events: any[]; close: () => void }
       /* ignore */
     }
   });
-  for (const ch of ['fx.position', 'fx.order', 'fx.account', 'fx.margin', 'fx.quote.EURUSD']) {
+  const channels = ['fx.position', 'fx.order', 'fx.account', 'fx.margin', 'fx.quote.EURUSD'];
+  for (const ch of channels) {
     ws.send(JSON.stringify({ type: 'subscribe', channel: ch }));
   }
-  await sleep(400);
+  // Every subscribe must be acknowledged by the server; an AUTH_REQUIRED/error frame here is a real defect.
+  await waitFor(async () => {
+    const acked = channels.every((ch) => events.some((e) => e.type === 'subscribed' && e.channel === ch));
+    const errored = events.find((e) => e.type === 'error' && channels.includes(e.channel));
+    if (errored) throw new Error(`forex ws subscribe rejected: ${JSON.stringify(errored).slice(0, 200)}`);
+    return acked ? true : null;
+  }, 8000);
   return { events, close: () => ws.close() };
 }
 

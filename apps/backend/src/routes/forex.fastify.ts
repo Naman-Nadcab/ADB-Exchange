@@ -216,6 +216,16 @@ export default async function forexRoutes(app: FastifyInstance) {
       /* ignore */
     }
 
+    // The client sees the socket as open before the JWT/account lookups below finish. Frames sent in
+    // that window (typically the first subscribe batch) must be buffered, not dropped, or the client
+    // silently ends up with no subscriptions.
+    const earlyFrames: Buffer[] = [];
+    let onMessage: ((buf: Buffer) => void) | null = null;
+    socket.on('message', (buf: Buffer) => {
+      if (onMessage) onMessage(buf);
+      else earlyFrames.push(buf);
+    });
+
     const userId = await resolveForexWsUserId(app, req);
     let forexAccountId: string | undefined;
     if (userId) {
@@ -246,7 +256,7 @@ export default async function forexRoutes(app: FastifyInstance) {
       forexWsHub.unregister(connId);
     });
 
-    socket.on('message', (buf: Buffer) => {
+    const handleMessage = (buf: Buffer) => {
       let msg: { type?: string; channel?: string; client_ts?: number };
       try {
         msg = JSON.parse(buf.toString()) as { type?: string; channel?: string; client_ts?: number };
@@ -354,6 +364,8 @@ export default async function forexRoutes(app: FastifyInstance) {
         return;
       }
       socket.send(forexWsEnvelope('error', undefined, { message: 'Unsupported message type' }));
-    });
+    };
+    onMessage = handleMessage;
+    for (const buf of earlyFrames.splice(0)) handleMessage(buf);
   });
 }
