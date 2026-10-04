@@ -18,6 +18,9 @@ import { useAdminAuthStore } from '@/store/auth';
 import { adminFetch } from '@/lib/admin/apiClient';
 import { createMonitoringIncident } from '@/lib/monitoring-api';
 import { getAuditActivityLogs } from '@/lib/api';
+import { patchOperationalWalletStatus } from '@/lib/system-api';
+import { useAdminToast } from '@/components/admin-shell/AdminToast';
+import { formatSaveError } from '@/lib/admin-save-feedback';
 import {
   searchCommands, groupCommands,
   type CommandEntry, type CommandCategory,
@@ -100,6 +103,7 @@ function GlobalCommandPaletteInner() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const token = useAdminAuthStore((s) => s.accessToken);
+  const toast = useAdminToast();
   _openPalette = useCallback(() => setOpen(true), []);
 
   useKeyboardShortcuts([
@@ -174,12 +178,21 @@ function GlobalCommandPaletteInner() {
             token,
           });
           queryClient.invalidateQueries({ queryKey: ['admin', 'trading-halt'] });
+          toast.success('Trading halt requested.');
           break;
         case 'act-freeze-withdrawals':
-          await adminFetch('/control/freeze-withdrawals', { method: 'POST', body: { freeze: true }, token });
+          // Same control the Control Center uses: writes feature_toggles and customers get WITHDRAWALS_PAUSED.
+          await patchOperationalWalletStatus(token, { withdrawalPaused: true }, {
+            reason: 'Command palette: emergency withdrawal freeze — operator must document incident in runbook/audit.',
+          });
+          queryClient.invalidateQueries({ queryKey: ['admin', 'operational'] });
+          toast.success('Withdrawals frozen. Unfreeze from Control Center → Wallet status.');
           break;
         case 'act-emergency-mode':
-          await adminFetch('/control/emergency', { method: 'POST', body: { activate: true }, token });
+          await adminFetch('/control/emergency-mode', { method: 'POST', body: { enabled: true }, token });
+          queryClient.invalidateQueries({ queryKey: ['admin', 'trading-halt'] });
+          queryClient.invalidateQueries({ queryKey: ['admin', 'control'] });
+          toast.success('Emergency mode activated (trading halted, deposits and withdrawals disabled).');
           break;
         case 'act-create-incident':
           await createMonitoringIncident(token, {
@@ -206,12 +219,14 @@ function GlobalCommandPaletteInner() {
           queryClient.invalidateQueries();
           break;
       }
+    } catch (error) {
+      toast.error(formatSaveError(error, `${cmd.label} failed.`));
     } finally {
       setExecuting(false);
       setOpen(false);
       setConfirmAction(null);
     }
-  }, [token, queryClient, router]);
+  }, [token, queryClient, router, toast]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
