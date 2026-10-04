@@ -331,8 +331,13 @@ class P2PService {
     }
     if (updates.maxAmount !== undefined) {
       const avail = (ad as { availableAmount?: string }).availableAmount ?? (ad as { available_amount?: string }).available_amount ?? '0';
-      if (new Decimal(updates.maxAmount).lessThan(avail)) {
-        throw new Error('max_amount cannot be less than available_amount');
+      // Same relation as createAd: the per-order ceiling cannot exceed what the ad still has on offer.
+      if (new Decimal(updates.maxAmount).greaterThan(avail)) {
+        throw new Error('max_amount cannot exceed available_amount');
+      }
+      const effectiveMin = updates.minAmount ?? (ad as { minAmount?: string }).minAmount ?? (ad as { min_amount?: string }).min_amount ?? '0';
+      if (new Decimal(effectiveMin).greaterThan(updates.maxAmount)) {
+        throw new Error('Minimum amount cannot exceed maximum amount');
       }
       setClauses.push(`max_amount = $${paramIndex++}`);
       values.push(updates.maxAmount);
@@ -714,7 +719,7 @@ class P2PService {
           orderId: order.id,
           sellerId,
           buyerId,
-          asset: ad.tokenId,
+          asset: adTokenId,
           amount: quantity,
           action: 'created',
           timestamp: Date.now(),
@@ -1000,11 +1005,13 @@ class P2PService {
         [adIdForComplete]
       );
 
-      // Record transaction
+      // Record transaction (rows come back snake_case from SELECT *; the camelCase type is nominal)
+      const orderTokenId = (order as { tokenId?: string }).tokenId ?? (order as { token_id?: string }).token_id;
+      if (!orderTokenId) throw new Error('Order missing token_id');
       await client.query(
         `INSERT INTO transactions (user_id, token_id, type, status, amount, reference_id, reference_type)
          VALUES ($1, $2, 'p2p_escrow_release', 'completed', $3, $4, 'p2p_order')`,
-        [buyerId, order.tokenId, order.quantity, orderId]
+        [buyerId, orderTokenId, qty, orderId]
       );
 
       await rabbitmq.sendToQueue(QUEUES.P2P_ESCROW_RELEASED, {
@@ -1012,8 +1019,8 @@ class P2PService {
         orderId: order.id,
         sellerId,
         buyerId,
-        asset: order.tokenId,
-        amount: order.quantity,
+        asset: orderTokenId,
+        amount: qty,
         action: 'released',
         timestamp: Date.now(),
       } as P2PEscrowMessage);

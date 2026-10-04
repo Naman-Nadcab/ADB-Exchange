@@ -838,10 +838,12 @@ export default async function p2pRoutes(app: FastifyInstance) {
         error: { code: 'VALIDATION_ERROR', message: 'available_amount must be a non-negative number' },
       });
     }
-    if (availNum > maxNum) {
+    // max_amount is the per-order ceiling; it can never exceed the crypto the ad has on offer
+    // (p2p.service enforces the same relation, so the two layers must agree).
+    if (maxNum > availNum) {
       return reply.status(400).send({
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'available_amount cannot exceed max_amount' },
+        error: { code: 'VALIDATION_ERROR', message: 'max_amount cannot exceed available_amount' },
       });
     }
     if (paymentMethodIds.length === 0) {
@@ -939,21 +941,24 @@ export default async function p2pRoutes(app: FastifyInstance) {
         remarks: remarks || undefined,
         autoReply: autoReply || undefined,
       });
+      // createAd returns the inserted row (snake_case); pick either shape so the response is never undefined.
+      const adRow = ad as unknown as Record<string, unknown>;
+      const pick = (camel: string, snake: string): unknown => adRow[camel] ?? adRow[snake] ?? null;
       return reply.status(201).send({
         success: true,
         data: {
           id: ad.id,
           ad_type: ad.type,
           crypto_currency_id: cryptoCurrencyId,
-          fiat_currency: ad.fiatCurrency,
+          fiat_currency: pick('fiatCurrency', 'fiat_currency'),
           current_price: ad.price,
-          min_amount: ad.minAmount,
-          max_amount: ad.maxAmount,
-          available_amount: ad.availableAmount,
-          payment_time_limit: ad.paymentTimeLimit,
-          accepted_payment_methods: ad.paymentMethods,
+          min_amount: pick('minAmount', 'min_amount'),
+          max_amount: pick('maxAmount', 'max_amount'),
+          available_amount: pick('availableAmount', 'available_amount'),
+          payment_time_limit: pick('paymentTimeLimit', 'payment_time_limit'),
+          accepted_payment_methods: pick('paymentMethods', 'payment_methods'),
           status: ad.status,
-          created_at: ad.createdAt,
+          created_at: pick('createdAt', 'created_at'),
         },
       });
     } catch (error) {
@@ -1930,7 +1935,7 @@ export default async function p2pRoutes(app: FastifyInstance) {
       }
       return reply.send(cached.response);
     }
-    const cooldownKey = `p2p:cooldown:${orderId}`;
+    const cooldownKey = `p2p:cooldown:${orderId}:${userId}`;
     if (!(await redis.setNxEx(cooldownKey, '1', P2P_ORDER_COOLDOWN_SECONDS))) {
       return reply.status(429).send({
         success: false,
@@ -2030,7 +2035,7 @@ export default async function p2pRoutes(app: FastifyInstance) {
       }
       return reply.send(cached.response);
     }
-    const cooldownKey = `p2p:cooldown:${orderId}`;
+    const cooldownKey = `p2p:cooldown:${orderId}:${userId}`;
     if (!(await redis.setNxEx(cooldownKey, '1', P2P_ORDER_COOLDOWN_SECONDS))) {
       return reply.status(429).send({
         success: false,
@@ -2172,7 +2177,7 @@ export default async function p2pRoutes(app: FastifyInstance) {
       }
       return reply.send(cached.response);
     }
-    const cooldownKey = `p2p:cooldown:${orderId}`;
+    const cooldownKey = `p2p:cooldown:${orderId}:${userId}`;
     if (!(await redis.setNxEx(cooldownKey, '1', P2P_ORDER_COOLDOWN_SECONDS))) {
       return reply.status(429).send({
         success: false,
@@ -2340,7 +2345,7 @@ export default async function p2pRoutes(app: FastifyInstance) {
       }
       return reply.send(cached.response);
     }
-    const cooldownKey = `p2p:cooldown:${orderId}`;
+    const cooldownKey = `p2p:cooldown:${orderId}:${userId}`;
     if (!(await redis.setNxEx(cooldownKey, '1', P2P_ORDER_COOLDOWN_SECONDS))) {
       return reply.status(429).send({
         success: false,

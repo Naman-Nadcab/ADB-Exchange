@@ -170,8 +170,8 @@ export function P2PAdsTable({
           const priceShown = formatP2pFiatPrice(rawPrice, fiat);
           const minA = ad.min_amount ?? '0';
           const maxA = ad.max_amount ?? '0';
-          const minF = formatP2pFiatPrice(minA, fiat);
-          const maxF = formatP2pFiatPrice(maxA, fiat);
+          const minF = formatP2pCryptoQty(String(minA));
+          const maxF = formatP2pCryptoQty(String(maxA));
           const avail = formatP2pCryptoQty(String(ad.available_amount ?? ''));
           const payments = parsePayments(ad);
           const verified = Boolean((ad as { verified_merchant?: boolean }).verified_merchant);
@@ -219,7 +219,7 @@ export function P2PAdsTable({
                 <div>
                   <span className="block text-xs font-medium text-muted-foreground">{tp('adsTable.limit')}</span>
                   <span className="numeric font-medium tabular-nums text-foreground">
-                    {sym}{minF} – {sym}{maxF}
+                    {minF} – {maxF} {ad.crypto_symbol}
                   </span>
                 </div>
               </div>
@@ -285,8 +285,8 @@ export function P2PAdsTable({
               const priceShown = formatP2pFiatPrice(rawPrice, fiat);
               const minA = ad.min_amount ?? '0';
               const maxA = ad.max_amount ?? '0';
-              const minF = formatP2pFiatPrice(minA, fiat);
-              const maxF = formatP2pFiatPrice(maxA, fiat);
+              const minF = formatP2pCryptoQty(String(minA));
+              const maxF = formatP2pCryptoQty(String(maxA));
               const avail = formatP2pCryptoQty(String(ad.available_amount ?? ''));
               const payments = parsePayments(ad);
               const verified = Boolean((ad as { verified_merchant?: boolean }).verified_merchant);
@@ -349,7 +349,7 @@ export function P2PAdsTable({
                       <p>
                         <span className="text-muted-foreground">{tp('adsTable.limit')} </span>
                         <span className="numeric font-medium tabular-nums text-foreground">
-                          {sym}{minF} – {sym}{maxF}
+                          {minF} – {maxF} {ad.crypto_symbol}
                         </span>
                       </p>
                     </div>

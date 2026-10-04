@@ -125,7 +125,7 @@ function TakeOrderModal({
           <span className="mx-2 text-border/40">·</span>
           {tp('modal.limits')}{' '}
           <span className="numeric font-semibold tabular-nums text-foreground">
-            {sym}{formatP2pFiatPrice(min, fiat)} – {sym}{formatP2pFiatPrice(max, fiat)}
+            {formatP2pCryptoQty(String(min))} – {formatP2pCryptoQty(String(max))} {ad.crypto_symbol}
           </span>
         </div>
 

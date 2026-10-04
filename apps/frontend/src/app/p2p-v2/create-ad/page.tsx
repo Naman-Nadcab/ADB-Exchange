@@ -305,11 +305,11 @@ function CreateAdForm() {
             </h2>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className={labelCls}>{t('minFiat', { fiat })}</label>
+                <label className={labelCls}>{t('minCrypto', { crypto })}</label>
                 <input value={minAmt} onChange={(e) => setMinAmt(e.target.value)} placeholder={t('minPlaceholder')} className={`${inputCls} font-mono`} />
               </div>
               <div>
-                <label className={labelCls}>{t('maxFiat', { fiat })}</label>
+                <label className={labelCls}>{t('maxCrypto', { crypto })}</label>
                 <input value={maxAmt} onChange={(e) => setMaxAmt(e.target.value)} placeholder={t('maxPlaceholder')} className={`${inputCls} font-mono`} />
               </div>
               <div>
