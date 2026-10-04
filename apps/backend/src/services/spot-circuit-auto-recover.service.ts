@@ -33,15 +33,9 @@ export async function markCircuitTripped(symbol: string): Promise<void> {
   const trippedKey = `${CIRCUIT_COUNTER_PREFIX}${symbol}${CIRCUIT_TRIPPED_SUFFIX}`;
   try {
     const payload = JSON.stringify({ symbol, trippedAt: Date.now() });
-    const client = redis as unknown as {
-      setex?: (k: string, ttl: number, v: string) => Promise<unknown>;
-      set?: (k: string, v: string, ...args: unknown[]) => Promise<unknown>;
-    };
-    if (typeof client.setex === 'function') {
-      await client.setex(trippedKey, TRIPPED_TTL_SECONDS, payload);
-    } else if (typeof client.set === 'function') {
-      await client.set(trippedKey, payload, 'EX', TRIPPED_TTL_SECONDS);
-    }
+    // lib/redis.ts wraps ioredis as set(key, value, ttlSeconds); calling ioredis' setex/set
+    // argument order here produced "ERR value is not an integer" and the trip was never recorded.
+    await redis.set(trippedKey, payload, TRIPPED_TTL_SECONDS);
   } catch (e) {
     logger.warn('markCircuitTripped failed', {
       symbol,

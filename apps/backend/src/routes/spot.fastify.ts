@@ -218,6 +218,20 @@ async function pushSpotUpdates(symbol: string, userId: string, orderPayload: obj
   spotWs.sendToUserSerialized(userId, 'user.trades', spotWs.wireEnvelope('trade', 'user.trades', userTradesPayload));
 }
 
+const CUSTOMER_REJECTION_MESSAGES = new Set([
+  'INSUFFICIENT_BALANCE',
+  'INSUFFICIENT_QUOTE_BALANCE',
+  'INSUFFICIENT_BASE_BALANCE',
+  'MARKET_NOT_FOUND',
+  'NO_LIQUIDITY',
+  'FOK_NOT_FILLABLE',
+  'POST_ONLY_REQUIRES_GTC',
+  'POST_ONLY_WOULD_TAKE',
+  'IOC_NOT_FILLABLE',
+  'PRICE_OUT_OF_BAND',
+  'ORDER_TOO_SMALL',
+]);
+
 async function recordCircuitBreaker(symbol: string): Promise<void> {
   const key = `${CIRCUIT_KEY_PREFIX}${symbol}`;
   const n = await redis.incr(key);
@@ -2069,7 +2083,12 @@ export default async function spotRoutes(app: FastifyInstance) {
       });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unknown';
-      void recordCircuitBreaker(marketSymbol).catch(() => {});
+      // Only infrastructure faults count toward the market circuit breaker. Customer-side rejections
+      // (insufficient balance, no liquidity, FOK, post-only, ...) are expected traffic; counting them
+      // would let any customer put a market into maintenance with a handful of bad orders.
+      if (!CUSTOMER_REJECTION_MESSAGES.has(msg) && !(err instanceof MarketEngineRoutingError)) {
+        void recordCircuitBreaker(marketSymbol).catch(() => {});
+      }
       if (err instanceof MarketEngineRoutingError) {
         return reply.status(400).send({
           success: false,
