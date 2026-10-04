@@ -251,18 +251,30 @@ export async function seedSyntheticCandles(): Promise<{ seeded: number; errors: 
         if (!binanceInterval) continue;
         try {
           const windowSec = seconds * CHART_HISTORY_BARS;
-          const coverage = await db.query<{ n: number; flat: number }>(
+          const coverage = await db.query<{ n: number; flat: number; recent_flat: number }>(
             `SELECT count(*)::int AS n,
                     count(*) FILTER (
                       WHERE open_price = high_price AND high_price = low_price AND low_price = close_price
-                    )::int AS flat
+                    )::int AS flat,
+                    count(*) FILTER (
+                      WHERE open_time >= NOW() - INTERVAL '30 minutes'
+                        AND open_price = high_price AND high_price = low_price AND low_price = close_price
+                    )::int AS recent_flat
              FROM ohlcv_candles
              WHERE trading_pair_id = $1 AND interval_type = $2
                AND open_time >= NOW() - ($3::int * INTERVAL '1 second')`,
             [m.id, intervalType, windowSec]
           );
           const row = coverage.rows[0];
-          if (!needsChartHistoryBackfill(row?.n ?? 0, row?.flat ?? 0)) continue;
+          if (!needsChartHistoryBackfill(row?.n ?? 0, row?.flat ?? 0, CHART_HISTORY_BARS, row?.recent_flat ?? 0)) {
+            await db.query(
+              `DELETE FROM ohlcv_candles
+               WHERE trading_pair_id = $1 AND interval_type = $2 AND trade_count = 0
+                 AND open_time < NOW() - ($3::int * INTERVAL '1 second')`,
+              [m.id, intervalType, windowSec]
+            );
+            continue;
+          }
 
           const controller = new AbortController();
           const timeout = setTimeout(() => controller.abort(), CHART_HISTORY_TIMEOUT_MS);

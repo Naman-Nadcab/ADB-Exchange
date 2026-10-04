@@ -6,6 +6,8 @@ test('a short or flat series needs a full OHLC backfill', () => {
   assert.equal(needsChartHistoryBackfill(1114, 1100), true);
   assert.equal(needsChartHistoryBackfill(120, 10), true);
   assert.equal(needsChartHistoryBackfill(1000, 40), false);
+  assert.equal(needsChartHistoryBackfill(1000, 40, 1000, 8), true);
+  assert.equal(needsChartHistoryBackfill(1000, 40, 1000, 0), false);
 });
 
 test('reference klines keep OHLC and drop venue volume', () => {

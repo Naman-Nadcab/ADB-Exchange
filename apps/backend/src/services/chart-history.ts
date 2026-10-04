@@ -6,9 +6,16 @@
 export const CHART_HISTORY_BARS = 1000;
 export const CHART_HISTORY_URL = 'https://data-api.binance.vision/api/v3/klines';
 
-export function needsChartHistoryBackfill(count: number, flat: number, target = CHART_HISTORY_BARS): boolean {
+export function needsChartHistoryBackfill(
+  count: number,
+  flat: number,
+  target = CHART_HISTORY_BARS,
+  recentFlat = 0
+): boolean {
   const n = Number.isFinite(count) ? count : 0;
   const flatN = Number.isFinite(flat) ? flat : 0;
+  const recent = Number.isFinite(recentFlat) ? recentFlat : 0;
+  if (recent >= 5) return true;
   if (n < Math.floor(target * 0.8)) return true;
   if (n <= 0) return true;
   return flatN / n > 0.5;
