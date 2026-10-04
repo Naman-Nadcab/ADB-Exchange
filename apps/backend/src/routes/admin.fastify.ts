@@ -2789,8 +2789,29 @@ export default async function adminRoutes(app: FastifyInstance) {
 
       const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
+      // Admin mutations are written to audit_logs_immutable via logAuditFromRequest; admin_activity_logs
+      // only holds logins and a few explicit inserts. The activity view must show both or admin actions
+      // (KYC, withdrawals, suspensions, forex controls, ...) silently disappear from the Activity tab.
+      const activitySource = `(
+        SELECT l.id, l.admin_id, l.action, l.details, l.ip_address, l.user_agent, l.created_at
+        FROM admin_activity_logs l
+        UNION ALL
+        SELECT i.id, i.actor_id AS admin_id, i.action,
+               jsonb_strip_nulls(jsonb_build_object(
+                 'source', 'immutable',
+                 'resource_type', i.resource_type,
+                 'resource_id', i.resource_id,
+                 'old_value', i.old_value,
+                 'new_value', i.new_value,
+                 'request_id', i.request_id
+               )) AS details,
+               i.ip_address, i.user_agent, i.created_at
+        FROM audit_logs_immutable i
+        WHERE i.actor_type = 'admin'
+      )`;
+
       const countResult = await db.query<{ count: string }>(
-        `SELECT COUNT(*)::text AS count FROM admin_activity_logs a ${where}`,
+        `SELECT COUNT(*)::text AS count FROM ${activitySource} a ${where}`,
         params
       );
       const total = parseInt(countResult.rows[0]?.count ?? '0', 10);
@@ -2804,7 +2825,7 @@ export default async function adminRoutes(app: FastifyInstance) {
       }>(
         `SELECT a.id, a.admin_id, u.name AS admin_name, u.role AS admin_role,
                 a.action, a.details, a.ip_address::text, a.user_agent, a.created_at::text
-         FROM admin_activity_logs a
+         FROM ${activitySource} a
          LEFT JOIN admin_users u ON u.id = a.admin_id
          ${where}
          ORDER BY a.created_at DESC
@@ -6074,6 +6095,7 @@ export default async function adminRoutes(app: FastifyInstance) {
         token_name: string;
         chain_id: string | null;
         chain_name: string | null;
+        account_type: string;
         available_balance: string;
         locked_balance: string;
         total_balance: string;
@@ -6083,17 +6105,18 @@ export default async function adminRoutes(app: FastifyInstance) {
           c.id AS token_id,
           c.symbol AS token_symbol,
           c.name AS token_name,
-          b.id AS chain_id,
-          b.chain_name AS chain_name,
+          NULLIF(ub.chain_id, '') AS chain_id,
+          ch.name AS chain_name,
+          ub.account_type::text AS account_type,
           ub.available_balance::text AS available_balance,
           COALESCE(ub.locked_balance, 0)::text AS locked_balance,
           (ub.available_balance + COALESCE(ub.locked_balance, 0))::text AS total_balance,
           ub.updated_at::text AS updated_at
         FROM user_balances ub
         JOIN currencies c ON ub.currency_id = c.id
-        LEFT JOIN blockchains b ON c.blockchain_id = b.id
+        LEFT JOIN chains ch ON ch.id = ub.chain_id
         WHERE ub.user_id = $1
-        ORDER BY (ub.available_balance + COALESCE(ub.locked_balance, 0)) DESC NULLS LAST, c.symbol
+        ORDER BY (ub.available_balance + COALESCE(ub.locked_balance, 0)) DESC NULLS LAST, c.symbol, ub.account_type
       `, [id]);
 
       return reply.send({
@@ -6564,11 +6587,31 @@ export default async function adminRoutes(app: FastifyInstance) {
       const { id } = request.params as { id: string };
       const { action, reason } = request.body as { action: 'approve' | 'reject'; reason?: string };
 
+      if (action !== 'approve' && action !== 'reject') {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'VALIDATION_ERROR', message: 'action must be approve or reject' },
+        });
+      }
       const status = action === 'approve' ? 'approved' : 'rejected';
 
       const prevRow = await db.query<{ status: string; user_id: string }>('SELECT status, user_id FROM kyc_applications WHERE id = $1', [id]);
+      if (prevRow.rows.length === 0) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: 'KYC_NOT_FOUND', message: 'KYC application not found' },
+        });
+      }
       const prevStatus = prevRow.rows[0]?.status ?? null;
       const userId = prevRow.rows[0]?.user_id ?? null;
+      // Approved/rejected applications are terminal: a re-review would silently re-run tier
+      // side effects or flip a decision without the customer re-submitting documents.
+      if (prevStatus === 'approved' || prevStatus === 'rejected') {
+        return reply.status(409).send({
+          success: false,
+          error: { code: 'KYC_ALREADY_REVIEWED', message: `KYC application is already ${prevStatus}` },
+        });
+      }
 
       await db.query(`
         UPDATE kyc_applications 
@@ -6727,23 +6770,36 @@ export default async function adminRoutes(app: FastifyInstance) {
    * GET /admin/p2p/disputes
    * Get P2P disputes
    */
-  app.get('/p2p/disputes', async (request, reply) => {
+  app.get<{ Querystring: { status?: string; limit?: string } }>('/p2p/disputes', async (request, reply) => {
     const admin = await getAdminFromRequest(app, request, reply, false);
     if (!admin) return;
     try {
+      const requested = (request.query.status ?? '').trim().toLowerCase();
+      const statuses = requested === 'all'
+        ? null
+        : requested && ['open', 'under_review', 'resolved', 'cancelled'].includes(requested)
+          ? [requested]
+          : ['open', 'under_review'];
+      const limit = Math.min(500, Math.max(1, parseInt(request.query.limit ?? '200', 10) || 200));
+      const params: unknown[] = [limit];
+      if (statuses) params.push(statuses);
       const result = await db.query(`
-        SELECT 
+        SELECT
           d.*,
-          o.buyer_id, o.seller_id, o.crypto_amount, o.fiat_amount, o.fiat_currency,
+          o.buyer_id, o.seller_id, o.quantity, o.quantity AS crypto_amount, o.fiat_amount, o.fiat_currency,
+          o.price, o.status AS order_status, o.escrow_id,
+          t.symbol AS crypto_symbol,
           buyer.email as buyer_email, buyer.username as buyer_username,
           seller.email as seller_email, seller.username as seller_username
         FROM p2p_disputes d
         JOIN p2p_orders o ON d.order_id = o.id
+        LEFT JOIN tokens t ON t.id = o.token_id
         JOIN users buyer ON o.buyer_id = buyer.id
         JOIN users seller ON o.seller_id = seller.id
-        WHERE d.status IN ('open', 'under_review')
+        ${statuses ? 'WHERE d.status = ANY($2::text[])' : ''}
         ORDER BY d.created_at ASC
-      `);
+        LIMIT $1
+      `, params);
 
       return reply.send({
         success: true,
@@ -6751,9 +6807,11 @@ export default async function adminRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      return reply.send({
-        success: true,
-        data: [],
+      // An empty list here used to mask a broken query; disputes must never silently vanish.
+      logger.error('Admin P2P disputes list error', { error: error instanceof Error ? error.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to load P2P disputes' },
       });
     }
   });
@@ -6780,7 +6838,24 @@ export default async function adminRoutes(app: FastifyInstance) {
         });
       }
 
-      await p2pService.resolveDispute(id, admin.adminId, resolution as 'favor_buyer' | 'favor_seller' | 'cancelled', notes ?? '');
+      const resolved = await p2pService.resolveDispute(id, admin.adminId, resolution as 'favor_buyer' | 'favor_seller' | 'cancelled', notes ?? '');
+
+      try {
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'p2p_dispute_resolved',
+          resourceType: 'p2p_dispute',
+          resourceId: id,
+          oldValue: { status: 'open' },
+          newValue: {
+            status: 'resolved',
+            resolution,
+            notes: notes ?? null,
+            order_id: (resolved as unknown as { order_id?: string; orderId?: string }).order_id ?? (resolved as { orderId?: string }).orderId ?? null,
+          },
+        });
+      } catch { /* best-effort */ }
 
       return reply.send({
         success: true,
@@ -14278,11 +14353,24 @@ export default async function adminRoutes(app: FastifyInstance) {
       const exists = await db.query('SELECT id FROM admin_users WHERE email = $1', [email]);
       if (exists.rows?.length) return reply.status(409).send({ success: false, error: { code: 'CONFLICT', message: 'Email already in use' } });
       const hash = await bcrypt.hash(password, 10);
-      const perms = role === 'SUPER_ADMIN' ? ['all'] : role === 'RISK_OFFICER' ? ['risk:view', 'risk:edit', 'users:view'] : role === 'COMPLIANCE_OFFICER' ? ['compliance:view', 'compliance:edit'] : ['support:view', 'users:view'];
+      // admin_users.permissions is TEXT[]; explicit permissions mirror the implicit
+      // role grants so the row is self-describing for audit/export.
+      const perms = isSuperAdminRole(role) ? ['all'] : getImplicitRolePermissions(role);
       const result = await db.query(
-        `INSERT INTO admin_users (email, name, role, password_hash, permissions, is_active, two_factor_enabled) VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7) RETURNING id::text, email, name, role, is_active, created_at::text`,
-        [email.toLowerCase(), name, role, hash, JSON.stringify(perms), true, false]
+        `INSERT INTO admin_users (email, name, role, password_hash, permissions, is_active, two_factor_enabled) VALUES ($1, $2, $3, $4, $5::text[], $6, $7) RETURNING id::text, email, name, role, is_active, created_at::text`,
+        [email.toLowerCase(), name, role, hash, perms, true, false]
       );
+      const created = result.rows[0] as { id: string; email: string; role: string };
+      try {
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'admin_user_created',
+          resourceType: 'admin_user',
+          resourceId: created.id,
+          newValue: { email: created.email, role: created.role, permissions: perms },
+        });
+      } catch { /* best-effort */ }
       return reply.status(201).send({ success: true, data: result.rows[0] });
     } catch (e) {
       logger.error('Create admin error', { error: e instanceof Error ? e.message : 'Unknown' });
@@ -16535,6 +16623,19 @@ export default async function adminRoutes(app: FastifyInstance) {
           error: { code: 'NOT_FOUND', message: 'Feature not found' },
         });
       }
+
+      const toggled = result.rows[0] as { feature_key: string; is_enabled: boolean };
+      try {
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'feature_toggle_updated',
+          resourceType: 'feature_toggles',
+          resourceId: toggled.feature_key,
+          oldValue: { is_enabled: !toggled.is_enabled },
+          newValue: { is_enabled: toggled.is_enabled },
+        });
+      } catch { /* best-effort */ }
 
       return reply.send({
         success: true,
