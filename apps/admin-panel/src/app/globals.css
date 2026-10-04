@@ -75,13 +75,28 @@ body {
   padding-block: var(--admin-page-y);
 }
 
+/*
+ * Implicit grid tracks must size as minmax(0, 1fr): the default `auto` track otherwise grows to
+ * the min-content width of wide children (KPI grids, min-width tables), pushing the whole page
+ * wider than the viewport instead of letting the child's own overflow-x-auto container scroll.
+ * Applies to every `grid` that has no explicit `grid-cols-*` at the current breakpoint (e.g.
+ * `grid gap-3 xl:grid-cols-12` below xl). Explicit templates are unaffected.
+ */
+@layer base {
+  .grid {
+    grid-auto-columns: minmax(0, 1fr);
+  }
+}
+
 .admin-stack-lg {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--admin-gap-lg);
 }
 
 .admin-stack-md {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--admin-gap-md);
 }
 
