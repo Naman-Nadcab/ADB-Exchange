@@ -643,10 +643,14 @@ export function SpotTradingGrid() {
     }, 45000);
 
     fetchMarkets(ac.signal, { silent: markets.length > 0 }).finally(() => clearTimeout(fallback));
+    const refresh = window.setInterval(() => {
+      void fetchMarkets(undefined, { silent: true });
+    }, 30_000);
 
     return () => {
       ac.abort();
       clearTimeout(fallback);
+      window.clearInterval(refresh);
     };
   }, [symbolParam, fetchMarkets, markets.length, tc]);
 

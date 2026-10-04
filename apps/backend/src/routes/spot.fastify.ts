@@ -936,7 +936,7 @@ export default async function spotRoutes(app: FastifyInstance) {
           }
           const bid = stats.bid ?? null;
           const ask = stats.ask ?? null;
-          const suppress24h = stats.last_price_stale === true;
+          const suppress24h = stats.last_price_stale === true && stats.last_price_source === 'trade';
           const open24 = suppress24h ? null : (stats.open_24h ?? null);
           const high24 = suppress24h ? null : (stats.high_24h ?? null);
           const low24 = suppress24h ? null : (stats.low_24h ?? null);

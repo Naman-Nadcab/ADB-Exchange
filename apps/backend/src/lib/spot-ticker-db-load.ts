@@ -161,7 +161,7 @@ async function fallback24hFrom1mCandles(
   const sane = (n: number) =>
     ref == null || !Number.isFinite(ref) || ref <= 0 || (Math.abs(n - ref) / ref <= 0.25 && n > 0);
 
-  const openRow = r.rows[0]!;
+  const openRow = r.rows.find((row) => sane(Number(row.open_price))) ?? r.rows[0]!;
   const openTimeMs = Date.parse(String(openRow.open_time));
   let high = -Infinity;
   let low = Infinity;
@@ -172,7 +172,7 @@ async function fallback24hFrom1mCandles(
     const v = Number(row.volume);
     if (Number.isFinite(h) && sane(h)) high = Math.max(high, h);
     if (Number.isFinite(l) && sane(l)) low = Math.min(low, l);
-    if (Number.isFinite(v) && v > 0) vol += v;
+    if (Number.isFinite(v) && v > 0 && sane(h) && sane(l)) vol += v;
   }
 
   if (!Number.isFinite(high) || !Number.isFinite(low)) {

@@ -1,7 +1,8 @@
 /**
  * Phase D: Price oracle.
- * Fetches spot prices from an external API (e.g. Binance) and upserts into market_prices
- * for convert, balance valuation, and liquidity bot mid price.
+ * Prefers one Chainlink multicall on ETH_RPC_URL (crypto RPC) plus one CoinGecko
+ * history read. Binance remains the fallback when both of those are unavailable.
+ * Upserts market_prices for convert, balance valuation, and the spot chart.
  */
 import { db } from '../lib/database.js';
 import { logger } from '../lib/logger.js';
@@ -65,6 +66,17 @@ function pushOracleTickerToWs(symbol: string, price: string): void {
 
 export async function runPriceOracleUpdate(): Promise<{ updated: number; errors: string[] }> {
   const errors: string[] = [];
+  try {
+    const { refreshCryptoSpotMarketData } = await import('./crypto-market-data.service.js');
+    const crypto = await refreshCryptoSpotMarketData();
+    if (crypto.updated > 0) {
+      return { updated: crypto.updated, errors: crypto.errors };
+    }
+    errors.push(...crypto.errors);
+  } catch (error) {
+    errors.push(error instanceof Error ? error.message : String(error));
+  }
+
   let updated = 0;
   const broadcastSymbols: string[] = [];
 

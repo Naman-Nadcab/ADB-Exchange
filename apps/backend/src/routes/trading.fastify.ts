@@ -5,6 +5,7 @@ import { logger } from '../lib/logger.js';
 import { rateLimitByIp } from '../lib/rate-limit-fastify.js';
 import { config } from '../config/index.js';
 import { tradingPairsAssetJoin } from '../lib/trading-pairs-schema-cache.js';
+import { anchorFromNewestCloses, filterCandlesNearAnchor } from '../lib/candle-series-filter.js';
 
 type CandleApiRow = { time: number; open: string; high: string; low: string; close: string; volume: string };
 type CandlePayload = { success: true; data: CandleApiRow[] };
@@ -211,7 +212,23 @@ export default async function tradingRoutes(app: FastifyInstance) {
         ORDER BY open_time ${direction.toUpperCase()}
         LIMIT $${params.length}
       `, params);
-      const rows = direction === 'desc' ? result.rows.reverse() : result.rows;
+      const ordered = direction === 'desc' ? result.rows.reverse() : result.rows;
+      let anchor = anchorFromNewestCloses(ordered.map((row) => Number(row.close)));
+      try {
+        const oracle = await db.query<{ price: string }>(
+          `SELECT mp.price::text AS price
+           FROM market_prices mp
+           JOIN spot_markets sm ON sm.base_currency_id = mp.base_currency_id AND sm.quote_currency_id = mp.quote_currency_id
+           WHERE sm.symbol = $1
+           LIMIT 1`,
+          [symbol]
+        );
+        const oraclePx = Number(oracle.rows[0]?.price);
+        if (Number.isFinite(oraclePx) && oraclePx > 0) anchor = oraclePx;
+      } catch {
+        /* chart still returns the stored series */
+      }
+      const rows = filterCandlesNearAnchor(ordered, anchor);
       const payload: CandlePayload = { success: true, data: rows };
       const asOfSec = deriveAsOfSec(rows);
       candlesLocalCache.set(cacheKey, {
