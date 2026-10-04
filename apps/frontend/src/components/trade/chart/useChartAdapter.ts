@@ -312,7 +312,7 @@ export function useChartAdapter(
       resyncAc = ac;
       try {
         const now = Math.floor(Date.now() / 1000);
-        const fillingEmpty = lastCandlesRef.current.length === 0;
+        const fillingEmpty = (lastCandlesRef.current?.length ?? 0) === 0;
         const fresh = await getChartCandles(activeSymbol, activeInterval, {
           to: now,
           limit: fillingEmpty ? 500 : 5,
@@ -321,7 +321,7 @@ export function useChartAdapter(
         });
         if (!fresh.length) return;
         if (activeSymbol !== symbol || activeInterval !== intervalSeconds) return;
-        if (lastCandlesRef.current.length === 0) {
+        if ((lastCandlesRef.current?.length ?? 0) === 0) {
           lastCandlesRef.current = fresh;
           adapter.setIntervalSeconds(activeInterval);
           adapter.setCandles(fresh);
@@ -344,7 +344,7 @@ export function useChartAdapter(
         if (resyncAc === ac) resyncAc = null;
       }
     };
-    const waitingForHistory = lastCandlesRef.current.length === 0;
+    const waitingForHistory = (lastCandlesRef.current?.length ?? 0) === 0;
     if (liveStream && !waitingForHistory) return;
     const id = window.setInterval(resync, waitingForHistory ? 5_000 : 15_000);
     return () => {
