@@ -2690,6 +2690,21 @@ export default async function walletRoutes(app: FastifyInstance) {
       const initialStatus = initialOnchainWithdrawalStatus(needsApproval);
       const initialTreasuryStage = needsApproval ? 'pending' : 'checker_approved';
 
+      if (initialStatus === 'pending') {
+        const { getHotWalletByChainId } = await import('../services/hot-wallet.service.js');
+        const hot = token.chain_id ? await getHotWalletByChainId(token.chain_id) : null;
+        if (!hot) {
+          logger.warn('Withdrawal creation failed: WITHDRAWAL_SIGNING_UNAVAILABLE', withdrawalLogContext);
+          return reply.status(503).send({
+            success: false,
+            error: {
+              code: 'WITHDRAWAL_SIGNING_UNAVAILABLE',
+              message: 'On-chain signing is not available for this network. No balance was locked.',
+            },
+          });
+        }
+      }
+
       // 6. Create withdrawal record and lock balance atomically (on-chain). No record exists if any prior step blocked.
       // Stores amount, fee, net_amount; lock uses amount + fee.
       const chainIdForLock = token.chain_id ?? CHAIN_ID_GLOBAL;
@@ -2870,8 +2885,29 @@ export default async function walletRoutes(app: FastifyInstance) {
       let enqueueCode: string | undefined;
       let enqueueReason: string | undefined;
       if (initialStatus === 'pending') {
-        const { enqueueWithdrawal } = await import('../services/withdrawal-signing.service.js');
+        const { enqueueWithdrawal, NO_HOT_WALLET_REASON, releasePendingWithdrawalWithoutSigner } = await import(
+          '../services/withdrawal-signing.service.js'
+        );
         const enqueueResult = await enqueueWithdrawal(withdrawal.id);
+        if (!enqueueResult.enqueued && enqueueResult.reason === NO_HOT_WALLET_REASON) {
+          const released = await releasePendingWithdrawalWithoutSigner(withdrawal.id, enqueueResult.reason).catch((err) => {
+            logger.error('Unsigned withdrawal release failed', {
+              withdrawalId: withdrawal.id,
+              error: err instanceof Error ? err.message : String(err),
+            });
+            return false;
+          });
+          return reply.status(released ? 503 : 500).send({
+            success: false,
+            error: {
+              code: 'WITHDRAWAL_SIGNING_UNAVAILABLE',
+              message: released
+                ? 'On-chain signing is not available for this network. No balance was locked.'
+                : 'On-chain signing is not available and the balance lock could not be released.',
+              withdrawalId: withdrawal.id,
+            },
+          });
+        }
         if (!enqueueResult.enqueued && enqueueResult.reason) {
           logger.warn('Withdrawal not enqueued for signing', { withdrawalId: withdrawal.id, reason: enqueueResult.reason });
           enqueueCode = enqueueResult.code;

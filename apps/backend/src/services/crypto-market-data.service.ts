@@ -1,8 +1,10 @@
 /**
  * One Chainlink multicall on the crypto RPC updates every spot pair that has
- * an on-chain feed. One CoinGecko markets call fills assets without a feed
- * and supplies the shared hourly history. Both writes land in market_prices
- * and ohlcv_candles so the ticker, markets list, and chart read the same snapshot.
+ * an on-chain feed. One CoinGecko markets call fills assets without a feed.
+ * Prices land in market_prices. Chart OHLC stays the reference series
+ * (Binance backfill / real trades). A live tick only moves the close of an
+ * existing reference bar. It never inserts a flat candle and never overwrites
+ * a bar that already counts an exchange trade.
  */
 import { Contract, Interface, JsonRpcProvider } from 'ethers';
 import { db } from '../lib/database.js';
@@ -20,11 +22,9 @@ import {
   CHAINLINK_USD_FEEDS,
   COINGECKO_IDS,
   decodeChainlinkRound,
-  foldCandles,
   formatOraclePrice,
   priceInQuote,
   sparklineToPoints,
-  window24h,
   type PricePoint,
 } from './crypto-market-data.js';
 
@@ -59,7 +59,6 @@ type GeckoCoin = {
 };
 
 let geckoCache: { at: number; byId: Map<string, GeckoCoin> } | null = null;
-let historyWrittenAt = 0;
 
 function rpcUrl(): string {
   return config.blockchain.ethereum.rpcUrl?.trim() ?? '';
@@ -182,102 +181,65 @@ async function upsertPrices(
   );
 }
 
-const FORMING_CONFLICT = `ON CONFLICT (trading_pair_id, interval_type, open_time) DO UPDATE SET
-  high_price = GREATEST(ohlcv_candles.high_price, EXCLUDED.high_price),
-  low_price = LEAST(ohlcv_candles.low_price, EXCLUDED.low_price),
-  close_price = EXCLUDED.close_price,
-  close_time = EXCLUDED.close_time
-WHERE ohlcv_candles.trade_count = 0`;
-
-async function writeCandleRows(
-  rows: Array<{ pairId: string; intervalType: string; open: Date; close: Date; openPx: string; highPx: string; lowPx: string; closePx: string }>,
-  conflictSql: string
-): Promise<void> {
+/** Move the close of an existing reference bar. Never inserts a flat candle. */
+async function touchFormingClose(rows: Array<{ pairId: string; price: string }>): Promise<void> {
+  const nowSec = Math.floor(Date.now() / 1000);
+  const pairIds: string[] = [];
+  const intervals: string[] = [];
+  const opens: Date[] = [];
+  const closes: Date[] = [];
+  const prices: string[] = [];
+  for (const row of rows) {
+    if (!row.pairId || !row.price) continue;
+    for (const interval of CANDLE_INTERVALS) {
+      const openTimeSec = Math.floor(nowSec / interval.seconds) * interval.seconds;
+      pairIds.push(row.pairId);
+      intervals.push(interval.intervalType);
+      opens.push(new Date(openTimeSec * 1000));
+      closes.push(new Date((openTimeSec + interval.seconds) * 1000));
+      prices.push(row.price);
+    }
+  }
+  if (!pairIds.length) return;
   const BATCH = 80;
-  for (let offset = 0; offset < rows.length; offset += BATCH) {
-    const chunk = rows.slice(offset, offset + BATCH);
-    const values: string[] = [];
-    const params: Array<string | Date> = [];
-    chunk.forEach((row, i) => {
-      const n = i * 8;
-      values.push(
-        `($${n + 1}, $${n + 2}, $${n + 3}, $${n + 4}, $${n + 5}::numeric, $${n + 6}::numeric, $${n + 7}::numeric, $${n + 8}::numeric, 0, 0, 0)`
-      );
-      params.push(row.pairId, row.intervalType, row.open, row.close, row.openPx, row.highPx, row.lowPx, row.closePx);
-    });
+  for (let offset = 0; offset < pairIds.length; offset += BATCH) {
+    const end = offset + BATCH;
     await db.query(
-      `INSERT INTO ohlcv_candles (
-         trading_pair_id, interval_type, open_time, close_time,
-         open_price, high_price, low_price, close_price, volume, quote_volume, trade_count
-       ) VALUES ${values.join(', ')}
-       ${conflictSql}`,
-      params
+      `UPDATE ohlcv_candles AS c SET
+         high_price = GREATEST(c.high_price, v.px),
+         low_price = LEAST(c.low_price, v.px),
+         close_price = v.px,
+         close_time = v.close_time
+       FROM (
+         SELECT
+           u.pair_id,
+           u.interval_type::candle_interval AS interval_type,
+           u.open_time,
+           u.close_time,
+           u.px
+         FROM UNNEST($1::uuid[], $2::text[], $3::timestamptz[], $4::timestamptz[], $5::numeric[])
+           AS u(pair_id, interval_type, open_time, close_time, px)
+       ) AS v
+       WHERE c.trading_pair_id = v.pair_id
+         AND c.interval_type = v.interval_type
+         AND c.open_time = v.open_time
+         AND c.trade_count = 0`,
+      [pairIds.slice(offset, end), intervals.slice(offset, end), opens.slice(offset, end), closes.slice(offset, end), prices.slice(offset, end)]
     );
   }
 }
 
-async function insertHistory(rows: Array<{ pairId: string; points: PricePoint[] }>): Promise<void> {
-  const flat: Array<{ pairId: string; intervalType: string; open: Date; close: Date; openPx: string; highPx: string; lowPx: string; closePx: string }> = [];
-  for (const row of rows) {
-    for (const interval of CANDLE_INTERVALS) {
-      for (const candle of foldCandles(row.points, interval.seconds)) {
-        const openPx = formatOraclePrice(candle.open);
-        const highPx = formatOraclePrice(candle.high);
-        const lowPx = formatOraclePrice(candle.low);
-        const closePx = formatOraclePrice(candle.close);
-        if (!openPx || !closePx) continue;
-        flat.push({
-          pairId: row.pairId,
-          intervalType: interval.intervalType,
-          open: new Date(candle.openTimeSec * 1000),
-          close: new Date(candle.closeTimeSec * 1000),
-          openPx,
-          highPx,
-          lowPx,
-          closePx,
-        });
-      }
-    }
-  }
-  await writeCandleRows(flat, 'ON CONFLICT (trading_pair_id, interval_type, open_time) DO NOTHING');
-}
-
-async function upsertForming(rows: Array<{ pairId: string; points: PricePoint[] }>): Promise<void> {
-  const flat: Array<{ pairId: string; intervalType: string; open: Date; close: Date; openPx: string; highPx: string; lowPx: string; closePx: string }> = [];
-  for (const row of rows) {
-    for (const interval of CANDLE_INTERVALS) {
-      const candles = foldCandles(row.points, interval.seconds);
-      const candle = candles[candles.length - 1];
-      if (!candle) continue;
-      const px = formatOraclePrice(candle.close);
-      if (!px) continue;
-      flat.push({
-        pairId: row.pairId,
-        intervalType: interval.intervalType,
-        open: new Date(candle.openTimeSec * 1000),
-        close: new Date(candle.closeTimeSec * 1000),
-        openPx: formatOraclePrice(candle.open) || px,
-        highPx: formatOraclePrice(candle.high) || px,
-        lowPx: formatOraclePrice(candle.low) || px,
-        closePx: px,
-      });
-    }
-  }
-  await writeCandleRows(flat, FORMING_CONFLICT);
-}
-
-function publishTicker(symbol: string, price: string, points: PricePoint[], nowSec: number): void {
-  const stats = window24h(points, nowSec);
+function publishTicker(symbol: string, price: string): void {
   const snap = getTickerSnapshot(symbol);
   hydrateTickerFromDb(symbol, {
     last_price: price,
     bid: snap?.bid ?? null,
     ask: snap?.ask ?? null,
-    high_24h: stats ? formatOraclePrice(stats.high) : price,
-    low_24h: stats ? formatOraclePrice(stats.low) : price,
-    open_24h: stats ? formatOraclePrice(stats.open) : price,
-    volume_24h: snap?.volume_24h ?? '0',
-    base_volume_24h: snap?.base_volume_24h ?? '0',
+    high_24h: snap?.high_24h,
+    low_24h: snap?.low_24h,
+    open_24h: snap?.open_24h,
+    volume_24h: snap?.volume_24h,
+    base_volume_24h: snap?.base_volume_24h,
   });
   broadcastPublicSpotFeeds(symbol);
 }
@@ -312,7 +274,7 @@ export async function refreshCryptoSpotMarketData(): Promise<{ updated: number; 
   const usdtUsd = books.get('USDT')?.usd ?? chainlink.get('USDT') ?? 1;
   const btcUsd = books.get('BTC')?.usd ?? chainlink.get('BTC') ?? 0;
   const priceRows: Array<{ baseId: string; quoteId: string; price: string }> = [];
-  const writes: Array<{ symbol: string; pairId: string | null; price: string; points: PricePoint[] }> = [];
+  const writes: Array<{ symbol: string; pairId: string | null; price: string }> = [];
 
   for (const market of markets) {
     const book = books.get(market.base_asset.toUpperCase());
@@ -321,14 +283,12 @@ export async function refreshCryptoSpotMarketData(): Promise<{ updated: number; 
     if (quoted == null) continue;
     const price = formatOraclePrice(quoted);
     if (!price) continue;
-    const quoteScale = market.quote_asset.toUpperCase() === 'BTC' && btcUsd > 0 ? btcUsd : usdtUsd > 0 ? usdtUsd : 1;
-    const points = book.points.map((pt) => ({ t: pt.t, p: pt.p / quoteScale }));
     let baseId = market.base_currency_id;
     let quoteId = market.quote_currency_id;
     if (!baseId) baseId = (await getCurrencyIdBySymbol(market.base_asset)) ?? null;
     if (!quoteId) quoteId = (await getCurrencyIdBySymbol(market.quote_asset)) ?? null;
     if (baseId && quoteId) priceRows.push({ baseId, quoteId, price });
-    writes.push({ symbol: market.symbol, pairId: market.trading_pair_id, price, points });
+    writes.push({ symbol: market.symbol, pairId: market.trading_pair_id, price });
   }
 
   if (priceRows.length) {
@@ -340,20 +300,15 @@ export async function refreshCryptoSpotMarketData(): Promise<{ updated: number; 
   }
 
   const candleRows = writes.filter((row): row is typeof row & { pairId: string } => Boolean(row.pairId));
-  const writeHistory = nowMs - historyWrittenAt >= HISTORY_TTL_MS;
   try {
-    if (writeHistory) {
-      await insertHistory(candleRows.map((row) => ({ pairId: row.pairId, points: row.points })));
-      historyWrittenAt = nowMs;
-    }
-    await upsertForming(candleRows.map((row) => ({ pairId: row.pairId, points: row.points.slice(-1) })));
+    await touchFormingClose(candleRows.map((row) => ({ pairId: row.pairId, price: row.price })));
   } catch (error) {
     errors.push(error instanceof Error ? error.message : String(error));
   }
 
   for (const row of writes) {
     try {
-      publishTicker(row.symbol, row.price, row.points, nowSec);
+      publishTicker(row.symbol, row.price);
     } catch (error) {
       logger.warn('Crypto spot ticker broadcast failed', {
         symbol: row.symbol,
@@ -374,7 +329,6 @@ export async function refreshCryptoSpotMarketData(): Promise<{ updated: number; 
     markets: writes.length,
     chainlink: chainlink.size,
     rpcCalls,
-    history: writeHistory,
   });
   return { updated: writes.length, errors, rpcCalls };
 }

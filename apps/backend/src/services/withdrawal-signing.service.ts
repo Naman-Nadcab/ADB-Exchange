@@ -62,7 +62,7 @@ export async function enqueueWithdrawal(withdrawalId: string): Promise<EnqueueRe
       }
       const hot = await getHotWalletByChainId(chainId);
       if (!hot) {
-        return { enqueued: false, reason: 'No hot wallet for chain' };
+        return { enqueued: false, reason: NO_HOT_WALLET_REASON };
       }
       const capCheck = await checkHotWalletCaps(chainId, netAmount);
       if (!capCheck.allowed) {
@@ -92,6 +92,111 @@ export async function enqueueWithdrawal(withdrawalId: string): Promise<EnqueueRe
     }
     return { enqueued: false, reason: msg };
   }
+}
+
+/** Reason returned when the chain has no active hot wallet. */
+export const NO_HOT_WALLET_REASON = 'No hot wallet for chain';
+
+/**
+ * Pending withdrawal that cannot be signed: reject it and unlock the balance.
+ * Leaves pending_approval rows for an admin decision.
+ */
+export async function releasePendingWithdrawalWithoutSigner(withdrawalId: string, reason: string): Promise<boolean> {
+  const released = await db.transaction(async (client) => {
+    const row = await client.query<{
+      id: string;
+      status: string;
+      user_id: string;
+      token_id: string;
+      chain_id: string;
+      balance_chain_id: string | null;
+      amount: string;
+      fee: string;
+      account_type: string;
+    }>(
+      `SELECT id, status, user_id, token_id, chain_id, balance_chain_id, amount, fee, account_type
+       FROM withdrawals WHERE id = $1 FOR UPDATE`,
+      [withdrawalId]
+    );
+    const withdrawal = row.rows[0];
+    if (!withdrawal || withdrawal.status !== 'pending') return false;
+
+    const totalRefund = new Decimal(withdrawal.amount).plus(withdrawal.fee).toString();
+    const rawAccountType = withdrawal.account_type || 'funding';
+    const accountType = ['funding', 'spot', 'trading'].includes(rawAccountType) ? rawAccountType : 'funding';
+    const chainId = withdrawal.balance_chain_id ?? withdrawal.chain_id ?? CHAIN_ID_GLOBAL;
+    const currencyId = await getCurrencyIdForToken(withdrawal.token_id);
+    if (!currencyId) {
+      logger.error('No currency_id for token on unsigned withdrawal release', { withdrawalId, tokenId: withdrawal.token_id });
+      return false;
+    }
+
+    const updated = await client.query(
+      `UPDATE withdrawals
+       SET status = 'rejected', treasury_stage = 'rejected', failed_reason = $1, rejection_reason = $1,
+           rejected_at = CURRENT_TIMESTAMP, processed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2 AND status = 'pending'`,
+      [reason, withdrawalId]
+    );
+    if ((updated.rowCount ?? 0) < 1) return false;
+
+    await ensureUserBalanceRow(withdrawal.user_id, currencyId, chainId, accountType, client);
+    const lockSel = await client.query<{ available_balance: string; locked_balance: string }>(
+      `SELECT available_balance::text, locked_balance::text FROM user_balances
+       WHERE user_id = $1 AND currency_id = $2 AND COALESCE(chain_id, '') = $3 AND account_type = $4
+         AND locked_balance >= $5::numeric
+       FOR UPDATE`,
+      [withdrawal.user_id, currencyId, chainId, accountType, totalRefund]
+    );
+    if (lockSel.rows.length === 0) {
+      throw new Error('UNSIGNED_WITHDRAWAL_LOCK_MISSING');
+    }
+    const avBefore = lockSel.rows[0]!.available_balance ?? '0';
+    const lockBefore = lockSel.rows[0]!.locked_balance ?? '0';
+    const updateResult = await client.query(
+      `UPDATE user_balances
+       SET available_balance = available_balance + $1::numeric, locked_balance = locked_balance - $1::numeric, updated_at = NOW()
+       WHERE user_id = $2 AND currency_id = $3 AND COALESCE(chain_id, '') = $4 AND account_type = $5
+         AND locked_balance >= $1::numeric
+       RETURNING *`,
+      [totalRefund, withdrawal.user_id, currencyId, chainId, accountType]
+    );
+    assertUserBalanceUpdated('withdrawal_reject', updateResult, withdrawal.user_id, currencyId, accountType, chainId);
+    assertBalanceInvariant(updateResult.rows[0]);
+    const ubRow = updateResult.rows[0] as { available_balance?: string; locked_balance?: string } | undefined;
+    await insertBalanceLedger({
+      client,
+      userId: withdrawal.user_id,
+      currencyId,
+      accountType,
+      debit: '0',
+      credit: totalRefund,
+      balanceBefore: avBefore,
+      balanceAfter: String(ubRow?.available_balance ?? 0),
+      referenceType: 'withdrawal',
+      referenceId: withdrawalId,
+      balanceType: 'available',
+    });
+    await insertBalanceLedger({
+      client,
+      userId: withdrawal.user_id,
+      currencyId,
+      accountType,
+      debit: totalRefund,
+      credit: '0',
+      balanceBefore: lockBefore,
+      balanceAfter: String(ubRow?.locked_balance ?? 0),
+      referenceType: 'withdrawal',
+      referenceId: withdrawalId,
+      balanceType: 'locked',
+    });
+    return true;
+  });
+
+  if (released) {
+    logger.info('Unsigned withdrawal rejected and balance released', { withdrawalId, reason });
+  }
+  return released;
 }
 
 interface WithdrawalRow {

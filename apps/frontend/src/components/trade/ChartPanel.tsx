@@ -169,6 +169,8 @@ function ChartPanelInner({
       }),
     [turnoverQuote24h, volume24h]
   );
+  const exchangeBase = Number(volume24h ?? 0);
+  const chartIsReference = !(Number.isFinite(exchangeBase) && exchangeBase > 0);
   const turnoverTooltip =
     turnoverSource === 'reference' ? md.TOOLTIP_REFERENCE_VOLUME_24H : md.TOOLTIP_QUOTE_VOLUME_24H;
 
@@ -664,7 +666,7 @@ function ChartPanelInner({
           >
             <span className="font-semibold text-foreground">{pairLabel}</span>
             <span className="text-muted-foreground"> · {t('chart.spotLabel')} · {intervalLabel}</span>
-            {turnoverSource === 'reference' && (
+            {chartIsReference && (
               <span className="ml-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground" title={t('chart.refDataTitle')}>
                 {t('chart.refDataBadge')}
               </span>
@@ -693,6 +695,14 @@ function ChartPanelInner({
                 <span className="text-muted-foreground"> · </span>
                 <span className="numeric font-medium text-foreground/90">{ohlcLegend || '—'}</span>
               </span>
+              {chartIsReference && (
+                <span
+                  className="shrink-0 rounded bg-muted px-1 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+                  title={t('chart.refDataTitle')}
+                >
+                  {t('chart.refDataBadge')}
+                </span>
+              )}
               <span className="h-4 w-px shrink-0 bg-border/80" aria-hidden />
             </>
           )}

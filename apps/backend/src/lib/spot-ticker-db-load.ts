@@ -1,11 +1,39 @@
 /**
  * Shared DB reads for spot ticker (REST + WS subscribe snapshot).
  * Uses same schema branching as GET /spot/ticker/:symbol (market vs trading_pair_id).
- * When no trades: last_price prefers latest 1m candle close (same series as default chart), then oracle, then any candle.
+ * Display last prefers a fresh oracle. 24h high/low/open follow that last:
+ * exchange prints when the tape is fresh, otherwise the 1m reference window.
  */
 import { db } from './database.js';
 import { getSpotMarketsHasLastPrice, getSpotTradesUseMarket } from './spot-schema-cache.js';
 import { resolveSpotLastPrice, type SpotLastPriceSource } from './spot-ticker-price-resolve.js';
+
+export type Reference24h = { high: string; low: string; open: string };
+
+/** Rolling 1m high/low/open for the markets list. Same window as the per-symbol ticker. */
+export async function loadReference24hBySymbol(symbols: string[]): Promise<Map<string, Reference24h>> {
+  const unique = [...new Set(symbols.filter((s) => typeof s === 'string' && s.length > 0))];
+  const out = new Map<string, Reference24h>();
+  if (!unique.length) return out;
+  const r = await db.query<{ symbol: string; high: string; low: string; open: string }>(
+    `SELECT tp.symbol,
+            MAX(oc.high_price)::text AS high,
+            MIN(oc.low_price)::text AS low,
+            (array_agg(oc.open_price ORDER BY oc.open_time ASC))[1]::text AS open
+     FROM ohlcv_candles oc
+     JOIN trading_pairs tp ON tp.id = oc.trading_pair_id
+     WHERE oc.interval_type = '1m'
+       AND oc.open_time >= NOW() - INTERVAL '24 hours'
+       AND tp.symbol = ANY($1::text[])
+     GROUP BY tp.symbol`,
+    [unique]
+  );
+  for (const row of r.rows) {
+    if (!row.symbol) continue;
+    out.set(row.symbol, { high: row.high, low: row.low, open: row.open });
+  }
+  return out;
+}
 
 export type SpotTickerDbStats = {
   last_price: string | null;
