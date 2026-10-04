@@ -615,6 +615,11 @@
   box-shadow: inset 0 1px 0 hsl(var(--border) / 0.9);
 }
 
+/* Shown only by the ≤900px single-column rules below. */
+.spot-terminal-mobile-tabs {
+  display: none;
+}
+
 .spot-terminal-grid .spot-terminal-header .mobile-app-topbar {
   position: relative;
   border-bottom: none;
@@ -802,7 +807,12 @@ input[type="number"] {
     overflow: hidden !important;
   }
 
+  /*
+   * The tab bar is the only way to reach Book / Trade / Markets once the single-column layout
+   * is active, so it must follow the same 900px breakpoint as the layout (not Tailwind's md:768).
+   */
   .spot-terminal-mobile-tabs {
+    display: flex;
     grid-column: 1 / -1 !important;
     grid-row: 4 !important;
   }
