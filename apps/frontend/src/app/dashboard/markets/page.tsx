@@ -139,6 +139,16 @@ const fmtCompact = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 });
 
+function formatUsdCompact(n: number, emptyLabel: string): string {
+  if (!Number.isFinite(n) || n <= 0) return emptyLabel;
+  return `$${fmtCompact.format(n)}`;
+}
+
+function formatVolCompact(n: number, emptyLabel: string): string {
+  if (!Number.isFinite(n) || n <= 0) return emptyLabel;
+  return `Vol $${fmtCompact.format(n)}`;
+}
+
 function n(v: unknown): number {
   const parsed = Number(String(v ?? 0));
   return Number.isFinite(parsed) ? parsed : 0;
@@ -358,12 +368,13 @@ export default function MarketsPage() {
     const totalCap = rows.reduce((acc, row) => acc + row.marketCap, 0);
     const totalVol = rows.reduce((acc, row) => acc + row.volume24h, 0);
     const btcCap = rows.find((r) => r.asset === 'BTC')?.marketCap ?? 0;
-    const btcDominance = totalCap > 0 ? (btcCap / totalCap) * 100 : 0;
+    const btcDominance = totalCap > 0 && btcCap > 0 ? (btcCap / totalCap) * 100 : 0;
     const fearGreed = intelligence?.sentiment?.fear_greed_index ?? 50;
     return {
       marketCap: totalCap,
       volume24h: totalVol,
       btcDominance,
+      btcDominanceKnown: btcCap > 0 && totalCap > 0,
       fearGreed,
       assetsListed: rows.length,
     };
@@ -601,17 +612,17 @@ export default function MarketsPage() {
 
   return (
     <div className="min-h-screen bg-[#05070B] text-white">
-      <div className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6 lg:space-y-8 lg:px-8 lg:py-8">
-        <div className="flex flex-col gap-2.5">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t('title')}</h1>
-          <p className="max-w-3xl text-sm leading-6 text-[#AEB6C4] sm:text-base">{t('description')}</p>
+      <div className="mx-auto max-w-[1400px] space-y-4 px-4 py-4 sm:px-6 lg:px-8 lg:py-5">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-semibold tracking-tight">{t('title')}</h1>
+          <p className="max-w-3xl text-sm text-[#AEB6C4]">{t('description')}</p>
         </div>
 
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {[
-            { label: t('metrics.marketCap'), value: '$' + fmtCompact.format(globalMetrics.marketCap), icon: Globe2 },
-            { label: t('metrics.volume24h'), value: '$' + fmtCompact.format(globalMetrics.volume24h), icon: Activity },
-            { label: t('metrics.btcDominance'), value: `${globalMetrics.btcDominance.toFixed(1)}%`, icon: Gem },
+            { label: t('metrics.marketCap'), value: formatUsdCompact(globalMetrics.marketCap, '—'), icon: Globe2 },
+            { label: t('metrics.volume24h'), value: formatUsdCompact(globalMetrics.volume24h, t('metrics.noExchangePrints')), icon: Activity },
+            { label: t('metrics.btcDominance'), value: globalMetrics.btcDominanceKnown ? `${globalMetrics.btcDominance.toFixed(1)}%` : t('metrics.notInFeed'), icon: Gem },
             {
               label: t('metrics.fearGreed'),
               value: `${Math.round(globalMetrics.fearGreed)}/100`,
@@ -670,9 +681,9 @@ export default function MarketsPage() {
                     {row.change24h.toFixed(2)}%
                   </p>
                   <p className="text-[#AEB6C4]">{t('fields.volume')}</p>
-                  <p className="text-right tabular-nums">${fmtCompact.format(row.volume24h)}</p>
+                  <p className="text-right tabular-nums">{formatUsdCompact(row.volume24h, t('metrics.noExchangePrints'))}</p>
                   <p className="text-[#AEB6C4]">{t('fields.mktCap')}</p>
-                  <p className="text-right tabular-nums">${fmtCompact.format(row.marketCap)}</p>
+                  <p className="text-right tabular-nums">{formatUsdCompact(row.marketCap, '—')}</p>
                 </div>
               </Link>
             ))}
@@ -724,7 +735,7 @@ export default function MarketsPage() {
                 </div>
                 <p className="text-xs text-[#AEB6C4]">{row.symbol.replace('_', '/')}</p>
                 <p className="mt-2 text-xs tabular-nums text-[#AEB6C4]">
-                  Vol ${fmtCompact.format(row.volume24h)}
+                  {formatVolCompact(row.volume24h, t('metrics.noExchangePrints'))}
                 </p>
               </Link>
             ))}
@@ -803,9 +814,9 @@ export default function MarketsPage() {
                             ) : null}
                           </div>
                           <div className="mt-1 flex items-center gap-2.5 text-[9px] text-[#d5d9e2] sm:text-[10px]">
-                            <span>Vol ${fmtCompact.format(row.volume24h)}</span>
-                            <span>Liq ${fmtCompact.format(row.liquidity)}</span>
-                            <span className="hidden sm:inline">MCap ${fmtCompact.format(row.marketCap)}</span>
+                            <span>{formatVolCompact(row.volume24h, t('metrics.noExchangePrints'))}</span>
+                            <span>Liq {formatUsdCompact(row.liquidity, '—')}</span>
+                            <span className="hidden sm:inline">MCap {formatUsdCompact(row.marketCap, '—')}</span>
                           </div>
                         </div>
                         <div className="text-right">
@@ -917,7 +928,7 @@ export default function MarketsPage() {
                         </span>
                       </div>
                       <p className="mt-1 text-[11px] text-[#AEB6C4]">
-                        {leader.symbol.replace('_', '/')} · Vol ${fmtCompact.format(leader.volume24h)}
+                        {leader.symbol.replace('_', '/')} · {formatVolCompact(leader.volume24h, t('metrics.noExchangePrints'))}
                       </p>
                     </Link>
                   ))}
@@ -937,7 +948,7 @@ export default function MarketsPage() {
                         <div className="h-full rounded-full bg-[#F5B800]/80" style={{ width: `${Math.min(100, row.share)}%` }} />
                       </div>
                       <p className="mt-1 text-[11px] text-[#AEB6C4]">
-                        {t('sectors.assetsVol', { count: row.count, vol: `$${fmtCompact.format(row.volume)}` })}
+                        {t('sectors.assetsVol', { count: row.count, vol: formatUsdCompact(row.volume, t('metrics.noExchangePrints')) })}
                       </p>
                     </div>
                   ))}
@@ -1070,8 +1081,8 @@ export default function MarketsPage() {
                         {row.change7d >= 0 ? '+' : ''}
                         {row.change7d.toFixed(2)}%
                       </span>
-                      <span className="text-sm tabular-nums text-[#AEB6C4]">${fmtCompact.format(row.volume24h)}</span>
-                      <span className="text-sm tabular-nums text-[#AEB6C4]">${fmtCompact.format(row.marketCap)}</span>
+                      <span className="text-sm tabular-nums text-[#AEB6C4]">{formatUsdCompact(row.volume24h, t('metrics.noExchangePrints'))}</span>
+                      <span className="text-sm tabular-nums text-[#AEB6C4]">{formatUsdCompact(row.marketCap, '—')}</span>
                       <span className="text-sm tabular-nums text-[#AEB6C4]">{row.liquidity.toFixed(1)}</span>
                       <div className="text-right">
                         <Link
@@ -1189,7 +1200,7 @@ export default function MarketsPage() {
                       </p>
                     </div>
                     <p className="mt-1 text-xs text-[#AEB6C4]">
-                      {row.asset} · Vol ${fmtCompact.format(row.volume24h)}
+                      {row.asset} · {formatVolCompact(row.volume24h, t('metrics.noExchangePrints'))}
                     </p>
                   </Link>
                 ))}
@@ -1247,7 +1258,7 @@ export default function MarketsPage() {
                   <span className="text-sm font-semibold">{row.symbol.replace('_', '/')}</span>
                   <Activity className="h-3.5 w-3.5 text-[#F5B800]" />
                 </div>
-                <p className="text-xs text-[#9CA3AF]">Vol ${fmtCompact.format(row.volume24h)}</p>
+                <p className="text-xs text-[#9CA3AF]">{formatVolCompact(row.volume24h, t('metrics.noExchangePrints'))}</p>
                 <p className={`mt-1 inline-flex items-center gap-0.5 text-xs font-semibold ${pctClass(row.change24h)}`}>
                   {row.change24h >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
                   {row.change24h >= 0 ? '+' : ''}

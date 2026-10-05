@@ -474,7 +474,7 @@ export default function PasskeysPage() {
   };
 
   return (
-    <div className="p-4 lg:p-6 max-w-5xl">
+    <div>
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
         <Link href="/dashboard/security" className="hover:text-primary">{ts('security')}</Link>

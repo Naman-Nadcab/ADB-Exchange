@@ -573,16 +573,26 @@ export function SpotOrderbookPanel({
   const bookIsEmpty = !loading && bidRows.length === 0 && askRows.length === 0;
 
   const emptyBookMessage = (
-    <div className="flex flex-1 flex-col items-center justify-center px-3 py-5 text-center">
-      <p className="terminal-text-label font-semibold text-foreground">{tc('empty.noExecutableLiquidity')}</p>
-      <p className="mt-1.5 max-w-[15rem] text-label leading-snug text-muted-foreground">
-        {lastDisplay
-          ? tc('orderbook.emptyLiquidityDescWithRef', {
-              price: formatValueFixedTrim(lastDisplay, effectivePricePrecision),
-              quote: quoteAsset,
-            })
-          : tc('orderbook.emptyLiquidityDescNoRef')}
-      </p>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="mx-1.5 mt-1.5 shrink-0 rounded border border-border bg-muted/40 px-2 py-1.5 text-left">
+        <p className="terminal-text-label font-semibold text-foreground">{tc('empty.noExecutableLiquidity')}</p>
+        <p className="mt-0.5 text-label leading-snug text-muted-foreground">
+          {lastDisplay
+            ? tc('orderbook.emptyLiquidityDescWithRef', {
+                price: formatValueFixedTrim(lastDisplay, effectivePricePrecision),
+                quote: quoteAsset,
+              })
+            : tc('orderbook.emptyLiquidityDescNoRef')}
+        </p>
+      </div>
+      <div
+        className="mt-1 min-h-0 flex-1"
+        aria-hidden
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(to bottom, transparent 0, transparent 27px, hsl(var(--border) / 0.55) 28px)',
+        }}
+      />
     </div>
   );
 
@@ -947,16 +957,26 @@ export function SpotOrderbookPanel({
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain spot-rail-scroll [scrollbar-gutter:stable]">
             {recentTrades.length === 0 ? (
-              <div className="px-3 py-8 text-center">
-                <p className="text-label font-semibold text-muted-foreground">{tc('orderbook.noPublicTrades')}</p>
-                <p className="mx-auto mt-1.5 max-w-[14rem] text-label leading-snug text-muted-foreground/80">
-                  {lastDisplay
-                    ? tc('orderbook.noPublicTradesDescWithRef', {
-                        price: formatValueFixedTrim(lastDisplay, effectivePricePrecision),
-                        quote: quoteAsset,
-                      })
-                    : tc('orderbook.noPublicTradesDescNoRef')}
-                </p>
+              <div className="flex min-h-full flex-col">
+                <div className="mx-1.5 mt-1.5 shrink-0 rounded border border-border bg-muted/40 px-2 py-1.5 text-left">
+                  <p className="text-label font-semibold text-foreground">{tc('orderbook.noPublicTrades')}</p>
+                  <p className="mt-0.5 text-label leading-snug text-muted-foreground">
+                    {lastDisplay
+                      ? tc('orderbook.noPublicTradesDescWithRef', {
+                          price: formatValueFixedTrim(lastDisplay, effectivePricePrecision),
+                          quote: quoteAsset,
+                        })
+                      : tc('orderbook.noPublicTradesDescNoRef')}
+                  </p>
+                </div>
+                <div
+                  className="mt-1 min-h-[8rem] flex-1"
+                  aria-hidden
+                  style={{
+                    backgroundImage:
+                      'repeating-linear-gradient(to bottom, transparent 0, transparent 27px, hsl(var(--border) / 0.55) 28px)',
+                  }}
+                />
               </div>
             ) : (
               recentTrades.slice(0, 48).map((t) => {

@@ -602,7 +602,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Main content — no sidebar, full width */}
         <main id="main-content" tabIndex={-1} className={`min-h-[calc(100vh-3.5rem)] ${MOBILE_NAV_PAD}`}>
-          <div className="dashboard-page-wrap mx-auto max-w-[1200px]">
+          <div className="dashboard-page-wrap mx-auto max-w-[1480px]">
             {children}
           </div>
         </main>

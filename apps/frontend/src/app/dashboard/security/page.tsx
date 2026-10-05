@@ -1248,17 +1248,17 @@ export default function SecurityPage() {
 
   // OTP Input Component
   return (
-    <div className="p-4 lg:p-8 bg-background min-h-full">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-full bg-background">
+      <div>
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-3">
           <h1 className="text-xl font-semibold text-foreground">{ta('security.centerTitle')}</h1>
-          <p className="mt-2 text-muted-foreground">{ta('security.centerSubtitle')}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{ta('security.centerSubtitle')}</p>
         </div>
 
         {/* Security overview */}
         <div className="mb-8 overflow-hidden rounded-xl border border-border bg-card">
-          <div className="p-6 lg:p-8">
+          <div className="p-4">
             <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
               <div className="flex items-center gap-6">
                 <div

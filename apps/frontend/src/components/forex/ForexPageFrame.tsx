@@ -20,7 +20,7 @@ export function ForexPageFrame(props: {
   return (
     <div
       className={cn(
-        props.wide ? 'mx-auto max-w-[1400px]' : 'mx-auto max-w-6xl',
+        'mx-auto w-full max-w-[1480px]',
         dense ? 'space-y-3 px-3 py-3 sm:px-4' : 'space-y-5 px-4 py-6 sm:px-6',
         props.className
       )}
@@ -67,11 +67,14 @@ export function ForexSignInPrompt({
   const tf = useTranslations('forex');
   const section = tf(`signIn.sections.${sectionKey}`);
   return (
-    <p className="eda-card p-4 text-sm text-muted-foreground">
-      {tf('signIn.prompt', { section })}{' '}
-      <Link href={href} className="text-primary underline underline-offset-2">
+    <div className="eda-card flex flex-wrap items-center justify-between gap-3 border-primary/30 bg-card px-4 py-3">
+      <p className="text-sm text-foreground">{tf('signIn.prompt', { section })}</p>
+      <Link
+        href={href}
+        className="inline-flex min-h-9 items-center rounded bg-primary px-4 text-sm font-semibold text-primary-foreground"
+      >
         {tf('signIn.link')}
       </Link>
-    </p>
+    </div>
   );
 }

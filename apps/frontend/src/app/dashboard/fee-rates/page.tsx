@@ -231,10 +231,10 @@ export default function FeeRatesPage() {
   };
 
   return (
-    <div className="p-4 lg:p-8 bg-background min-h-full">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-full bg-background">
+      <div>
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-3">
           <h1 className="text-xl font-semibold text-foreground">{tf('title')}</h1>
         </div>
 

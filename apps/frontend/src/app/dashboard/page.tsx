@@ -584,8 +584,8 @@ export default function DashboardPage() {
         description={t('description')}
         breadcrumbs={[{ label: tNav('overview') }]}
       >
-        <div className="flex flex-col gap-6 lg:gap-8 xl:flex-row">
-          <div className="min-w-0 flex-1 space-y-5 lg:space-y-6">
+        <div className="flex flex-col gap-4 xl:flex-row">
+          <div className="min-w-0 flex-1 space-y-4">
             {/* Portfolio summary */}
             <section className="rounded-xl border border-border bg-card shadow-sm">
               <div className="border-b border-border p-4 sm:p-5">

@@ -100,6 +100,7 @@ export default function ForexFundsPage() {
         </>
       )}
 
+      <div className="grid gap-3 lg:grid-cols-2">
       <ForexPortalModuleCard title={t('demoTitle')} accent subtitle={t('demoBadge')}>
         <p className="max-w-2xl text-sm text-foreground">{t('demoBodyShort')}</p>
         <details className="mt-3 rounded border border-border/70 bg-muted/10 px-3 py-2 text-[11px] text-muted-foreground">
@@ -174,6 +175,7 @@ export default function ForexFundsPage() {
           </details>
         )}
       </ForexPortalModuleCard>
+      </div>
 
       {authed ? (
         <ForexPortalModuleCard title={t('activityHeading')}>
