@@ -66,7 +66,15 @@ export function ForexSignInPrompt({
   sectionKey: ForexSignInSectionKey;
 }) {
   const tf = useTranslations('forex');
+  const ta = useTranslations('forex.accountPage');
   const section = tf(`signIn.sections.${sectionKey}`);
+  const showBooks = sectionKey === 'yourForexAccount';
+  const books = [
+    ta('metricBalance'),
+    ta('metricEquity'),
+    ta('metricFreeMargin'),
+    ta('openPositionsLabel'),
+  ];
   const destinations = [
     { href: FOREX_ROUTES.trade, label: tf('nav.trade') },
     { href: FOREX_ROUTES.markets, label: tf('nav.markets') },
@@ -86,6 +94,16 @@ export function ForexSignInPrompt({
           {tf('signIn.link')}
         </Link>
       </div>
+      {showBooks ? (
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+          {books.map((label) => (
+            <div key={label} className="eda-card flex min-h-[88px] flex-col justify-between px-3 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
+              <p className="font-mono text-2xl font-semibold text-foreground">—</p>
+            </div>
+          ))}
+        </div>
+      ) : null}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {destinations.map((item) => (
           <Link
