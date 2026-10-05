@@ -1474,7 +1474,37 @@
     "unavailableBadge": "Tidak tersedia",
     "investorPasswordTitle": "Akses investor (read-only)",
     "investorPasswordBody": "Kredensial read-only memerlukan integrasi broker live.",
-    "credentialReason": "Manajemen kredensial tidak tersedia ({reason})."
+    "credentialReason": "Manajemen kredensial tidak tersedia ({reason}).",
+    "availableBadge": "Broker dapat menerbitkan",
+    "requestTrading": "Minta kata sandi trading",
+    "requestInvestor": "Minta kata sandi investor",
+    "requesting": "Meminta…",
+    "requested": "Broker menerima permintaan. Rahasia baru tidak ditampilkan di sini.",
+    "requestBody": "Ini meminta broker menerbitkan kata sandi baru. Bursa tidak pernah menampilkannya."
+  },
+  "liveCash": {
+    "depositTitle": "Deposit broker",
+    "depositSubtitle": "Mengisi akun Forex live ini hanya setelah broker menyelesaikan kas.",
+    "withdrawTitle": "Penarikan broker",
+    "withdrawSubtitle": "Mendebit akun Forex live ini hanya setelah broker menyelesaikan kas.",
+    "account": "Akun live",
+    "amount": "Jumlah (USD)",
+    "submitDeposit": "Minta deposit",
+    "submitWithdraw": "Minta penarikan",
+    "submitting": "Mengirim…",
+    "needLive": "Jalur ini hanya mencatat ke akun Forex live.",
+    "needLiveBody": "Buka akun live dulu. Saldo demo tetap simulasi dan tidak dikirim ke broker.",
+    "openLive": "Buka akun live",
+    "successDeposit": "Broker menerima deposit. Referensi {ref}.",
+    "successWithdraw": "Broker menerima penarikan. Referensi {ref}.",
+    "notice": "Tidak ada kredit sebelum broker mengembalikan status settled. Dompet kripto tidak dipakai."
+  },
+  "paymentMethodsList": {
+    "title": "Kas broker",
+    "subtitle": "Jalur untuk deposit dan penarikan live. Metode tidak disimpan di bursa ini.",
+    "loading": "Memuat metode pembayaran…",
+    "empty": "Tidak ada metode pembayaran.",
+    "rail": "Jalur"
   },
   "accountSettings": {
     "title": "Pengaturan akun",

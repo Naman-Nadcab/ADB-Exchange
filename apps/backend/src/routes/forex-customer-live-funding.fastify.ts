@@ -30,6 +30,12 @@ function userIdFromRequest(request: { user?: { id?: string } }): string | null {
   return id?.trim() ? id.trim() : null;
 }
 
+function credentialAvailability(supported: boolean, ready: boolean): { available: boolean; reason: string | null } {
+  if (supported && ready) return { available: true, reason: null };
+  if (!ready) return { available: false, reason: 'LIVE_FOREX_NOT_READY' };
+  return { available: false, reason: 'BROKER_CREDENTIALS_UNAVAILABLE' };
+}
+
 function accounting() {
   const pricing = getForexPricingService();
   return getForexAccountingService(getForexPositionService(pricing), pricing);
@@ -122,19 +128,60 @@ export async function registerForexCustomerLiveFundingRoutes(app: FastifyInstanc
       }
       const cred = getForexBrokerCredentialsProvider();
       const readiness = await buildLiveForexReadiness();
+      const ready = readiness.capabilities.brokerCredentials;
       return reply.send({
         success: true,
         data: {
           accountId,
-          tradingPassword: {
-            available: cred.supports('TRADING') && readiness.capabilities.brokerCredentials,
-            reason: readiness.capabilities.brokerCredentials ? 'BROKER_NOT_CONNECTED' : 'LIVE_FOREX_NOT_READY',
-          },
-          investorPassword: {
-            available: cred.supports('INVESTOR') && readiness.capabilities.brokerCredentials,
-            reason: 'INVESTOR_ACCESS_NOT_CONFIGURED',
-          },
+          tradingPassword: credentialAvailability(cred.supports('TRADING'), ready),
+          investorPassword: credentialAvailability(cred.supports('INVESTOR'), ready),
         },
+      });
+    }
+  );
+
+  app.post<{ Params: { accountId: string } }>(
+    '/accounts/:accountId/credentials',
+    { preHandler: [forexAuthenticate(app)] },
+    async (request, reply) => {
+      const userId = userIdFromRequest(request);
+      if (!userId) {
+        return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+      }
+      const accountId = String(request.params.accountId ?? '');
+      if (!(await userOwnsForexAccount(userId, accountId))) {
+        return reply.status(404).send({ success: false, error: { code: 'FOREX_ACCOUNT_NOT_FOUND', message: 'Account not found' } });
+      }
+      if ((await loadForexAccountKind(accountId)) !== 'LIVE') {
+        return reply.status(403).send({
+          success: false,
+          error: { code: 'LIVE_ACCOUNT_REQUIRED', message: 'Broker passwords are issued only for a live Forex account.' },
+        });
+      }
+      const body = (request.body ?? {}) as { kind?: string; idempotencyKey?: string };
+      const kind = body.kind === 'INVESTOR' ? 'INVESTOR' : body.kind === 'TRADING' ? 'TRADING' : '';
+      const idempotencyKey = String(body.idempotencyKey ?? request.headers['idempotency-key'] ?? '').trim();
+      if (!kind || !idempotencyKey) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'INVALID_REQUEST', message: 'kind (TRADING or INVESTOR) and idempotencyKey are required' },
+        });
+      }
+      const readiness = await buildLiveForexReadiness();
+      const cred = getForexBrokerCredentialsProvider();
+      if (!readiness.capabilities.brokerCredentials || !cred.supports(kind)) {
+        return reply.status(503).send({
+          success: false,
+          error: { code: 'BROKER_CREDENTIALS_UNAVAILABLE', message: 'Broker credential API is not ready.' },
+        });
+      }
+      const changed = await cred.changePassword({ userId, accountId, kind, idempotencyKey });
+      if (!changed.ok) {
+        return reply.status(503).send({ success: false, error: { code: changed.code, message: changed.message } });
+      }
+      return reply.status(202).send({
+        success: true,
+        data: { accountId, kind, status: changed.status },
       });
     }
   );

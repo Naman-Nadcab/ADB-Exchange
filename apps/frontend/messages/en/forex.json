@@ -1474,7 +1474,37 @@
     "unavailableBadge": "Not available",
     "investorPasswordTitle": "Investor (read-only) access",
     "investorPasswordBody": "Read-only credentials require a live broker integration.",
-    "credentialReason": "Credential management unavailable ({reason})."
+    "credentialReason": "Credential management unavailable ({reason}).",
+    "availableBadge": "Broker can issue",
+    "requestTrading": "Request trading password",
+    "requestInvestor": "Request investor password",
+    "requesting": "Requesting…",
+    "requested": "The broker accepted the request. The new secret is not shown here.",
+    "requestBody": "This asks the broker to issue a new password. The exchange never displays it."
+  },
+  "liveCash": {
+    "depositTitle": "Broker deposit",
+    "depositSubtitle": "Credits this live Forex account only after the broker settles the cash.",
+    "withdrawTitle": "Broker withdrawal",
+    "withdrawSubtitle": "Debits this live Forex account only after the broker settles the cash.",
+    "account": "Live account",
+    "amount": "Amount (USD)",
+    "submitDeposit": "Request deposit",
+    "submitWithdraw": "Request withdrawal",
+    "submitting": "Sending…",
+    "needLive": "This rail posts only to a live Forex account.",
+    "needLiveBody": "Open a live account first. Demo balances stay simulated and are not sent to a broker.",
+    "openLive": "Open live account",
+    "successDeposit": "Broker accepted the deposit. Reference {ref}.",
+    "successWithdraw": "Broker accepted the withdrawal. Reference {ref}.",
+    "notice": "Nothing is credited until the broker returns settled. Crypto wallets are not used."
+  },
+  "paymentMethodsList": {
+    "title": "Broker cash",
+    "subtitle": "The rail used for live deposits and withdrawals. Methods are not stored on this exchange.",
+    "loading": "Loading payment methods…",
+    "empty": "No payment method is available.",
+    "rail": "Rail"
   },
   "accountSettings": {
     "title": "Account settings",

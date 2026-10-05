@@ -34,8 +34,8 @@ export async function buildForexAdminIntegrationsSnapshot(): Promise<ForexAdminI
     notes: [
       'Credentials for external brokers are never stored in admin responses — use encrypted integration vault when wired.',
       isBrokerGatewayConfigured()
-        ? 'Broker HTTP gateway is enabled. MT5, MT4, cTrader, and FIX protocol drivers stay disconnected.'
-        : 'Only the internal Forex adapter is connected. MT5, MT4, cTrader, and FIX rows are integration placeholders.',
+        ? 'Broker HTTP gateway is enabled. MT4, MT5, cTrader, and FIX drivers stay out of this catalog until an adapter exists.'
+        : 'Only the internal Forex adapter is connected. Protocol drivers stay out of this catalog until an adapter exists.',
       'MOCK LP rows in execution refer to simulated quote/ fill providers, not live brokerage.',
     ],
   };

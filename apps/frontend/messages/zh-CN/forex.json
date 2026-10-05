@@ -1474,7 +1474,37 @@
     "unavailableBadge": "不可用",
     "investorPasswordTitle": "投资者（只读）访问",
     "investorPasswordBody": "只读凭证需要真实经纪商集成。",
-    "credentialReason": "凭证管理不可用（{reason}）。"
+    "credentialReason": "凭证管理不可用（{reason}）。",
+    "availableBadge": "经纪商可签发",
+    "requestTrading": "申请交易密码",
+    "requestInvestor": "申请投资者密码",
+    "requesting": "正在申请…",
+    "requested": "经纪商已接受申请。新密码不会在这里显示。",
+    "requestBody": "这会请经纪商签发新密码。交易所从不显示该密码。"
+  },
+  "liveCash": {
+    "depositTitle": "经纪商入金",
+    "depositSubtitle": "只有经纪商结算后，才会记入这个真实外汇账户。",
+    "withdrawTitle": "经纪商出金",
+    "withdrawSubtitle": "只有经纪商结算后，才会从这个真实外汇账户扣款。",
+    "account": "真实账户",
+    "amount": "金额（USD）",
+    "submitDeposit": "申请入金",
+    "submitWithdraw": "申请出金",
+    "submitting": "发送中…",
+    "needLive": "这条通道只记入真实外汇账户。",
+    "needLiveBody": "请先开通真实账户。模拟余额不会发给经纪商。",
+    "openLive": "开通真实账户",
+    "successDeposit": "经纪商已接受入金。参考号 {ref}。",
+    "successWithdraw": "经纪商已接受出金。参考号 {ref}。",
+    "notice": "经纪商返回已结算之前不会入账。不使用加密钱包。"
+  },
+  "paymentMethodsList": {
+    "title": "经纪商现金",
+    "subtitle": "用于真实入金和出金的通道。本交易所不保存支付方式。",
+    "loading": "正在加载支付方式…",
+    "empty": "没有可用的支付方式。",
+    "rail": "通道"
   },
   "accountSettings": {
     "title": "账户设置",

@@ -15,6 +15,7 @@ import {
   applyForexInstrumentPolicyPatch,
   buildForexAdminPolicySnapshot,
 } from '../services/forex/admin/policy.js';
+import { isLiveForexReleaseOpen } from '../services/forex/admin/execution-gate.js';
 import { effectiveForexRuntimeFlags } from '../services/forex/admin/runtime-controls.js';
 import { logAuditFromRequest } from '../services/audit-log.service.js';
 import { getForexAdminBackendConfig } from '../services/forex/admin/config.js';
@@ -106,6 +107,7 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
         readiness: forexReadinessSnapshot(),
         runtime: {
           realForex: false,
+          liveReleaseOpen: isLiveForexReleaseOpen(),
           positionMode: forexConfig.positionMode,
           marketData: forexMarketDataWorkerSnapshot(),
           symbolCount: listForexSymbols().length,
@@ -124,6 +126,7 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
 
     const counts = await loadForexAdminOverviewCounts();
     const readiness = forexReadinessSnapshot();
+    const flags = effectiveForexRuntimeFlags();
 
     return reply.send({
       success: true,
@@ -131,11 +134,11 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
         counts,
         readiness,
         posture: {
-          source: 'SIMULATED',
-          executionMode: 'MOCK',
-          realForex: false,
-          killSwitch: effectiveForexRuntimeFlags().killSwitch,
-          demoFundingEnabled: effectiveForexRuntimeFlags().demoFundingEnabled,
+          source: flags.source,
+          executionMode: flags.executionMode,
+          realForex: isLiveForexReleaseOpen(),
+          killSwitch: flags.killSwitch,
+          demoFundingEnabled: flags.demoFundingEnabled,
         },
       },
     });
