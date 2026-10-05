@@ -1,6 +1,6 @@
-import { getForexAdminBackendConfig } from '../admin/config.js';
 import { buildForexProviderCatalog } from '../adapters/registry.js';
 import { effectiveForexRuntimeFlags } from '../admin/runtime-controls.js';
+import { isLiveForexReleaseOpen } from '../admin/execution-gate.js';
 import { brokerLiveReady, getBrokerGateway } from '../broker/gateway.js';
 import { getForexLiveAccountProvider } from './live-account-provider.registry.js';
 
@@ -8,7 +8,7 @@ export type LiveForexReadiness = {
   liveForexReady: boolean;
   realForexEffective: boolean;
   executionMode: string;
-  source: 'SIMULATED';
+  source: 'SIMULATED' | 'LIVE';
   blockers: string[];
   capabilities: {
     liveAccountApplication: boolean;
@@ -29,9 +29,8 @@ export type LiveForexReadiness = {
 
 export async function buildLiveForexReadiness(): Promise<LiveForexReadiness> {
   const flags = effectiveForexRuntimeFlags();
-  const adminCfg = getForexAdminBackendConfig();
+  const realForexEffective = isLiveForexReleaseOpen();
   const runtimeRealForex = flags.realForex as boolean;
-  const realForexEffective = adminCfg.realForex === true && runtimeRealForex === true;
   const blockers: string[] = [];
 
   const providerHealth = await getForexLiveAccountProvider().health();
@@ -73,7 +72,7 @@ export async function buildLiveForexReadiness(): Promise<LiveForexReadiness> {
     liveForexReady,
     realForexEffective,
     executionMode: flags.executionMode,
-    source: 'SIMULATED',
+    source: realForexEffective ? 'LIVE' : 'SIMULATED',
     blockers,
     capabilities: {
       liveAccountApplication: !realForexEffective,

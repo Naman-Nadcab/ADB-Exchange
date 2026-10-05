@@ -3,6 +3,8 @@
  * Installed only when FOREX_BROKER_BASE_URL is set.
  */
 import type {
+  ForexBrokerCredentialsProvider,
+  ForexCredentialKind,
   ForexLiveAccountApplicationInput,
   ForexLiveAccountProvider,
   ForexLiveAccountProviderHealth,
@@ -21,7 +23,7 @@ export class BrokerGatewayAccountProvider implements ForexLiveAccountProvider {
     return {
       configured: health.configured,
       provisioningAvailable: accounts,
-      credentialsSupported: false,
+      credentialsSupported: health.configured && health.ok && health.accounts,
       message: accounts
         ? 'Broker account API is reachable.'
         : 'Broker account API is not ready.',
@@ -60,5 +62,31 @@ export class BrokerGatewayAccountProvider implements ForexLiveAccountProvider {
       internalAccountId: created.internalAccountId,
       providerReference: created.providerReference,
     };
+  }
+}
+
+/** Installed only when FOREX_BROKER_BASE_URL is set. Unset URL keeps the unconfigured provider. */
+export class BrokerGatewayCredentialsProvider implements ForexBrokerCredentialsProvider {
+  readonly providerId = 'broker-gateway';
+
+  supports(_kind: ForexCredentialKind): boolean {
+    return true;
+  }
+
+  async changePassword(args: {
+    userId: string;
+    accountId: string;
+    kind: ForexCredentialKind;
+    idempotencyKey: string;
+  }): Promise<{ ok: false; code: string; message: string } | { ok: true; status: 'REQUESTED' }> {
+    const changed = await getBrokerGateway().changeCredentials({
+      accountId: args.accountId,
+      kind: args.kind,
+      idempotencyKey: args.idempotencyKey,
+    });
+    if (!changed.ok) {
+      return { ok: false, code: 'BROKER_CREDENTIALS_UNAVAILABLE', message: changed.message };
+    }
+    return { ok: true, status: 'REQUESTED' };
   }
 }

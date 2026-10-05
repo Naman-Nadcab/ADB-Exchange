@@ -137,6 +137,7 @@ function dummyOrder(accountId: string, clientOrderId: string): ForexOrderRecord 
     fillIds: [],
     source: 'SIMULATED',
     executionMode: 'MOCK',
+    venueOrderId: null,
     events: [],
     version: 1,
     lastQuoteKey: null,

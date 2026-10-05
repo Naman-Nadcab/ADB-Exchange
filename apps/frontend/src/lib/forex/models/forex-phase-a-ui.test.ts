@@ -92,11 +92,16 @@ function quote(over: Partial<ForexQuoteDto> = {}): ForexQuoteDto {
 
 // --- TIF legality mirrors validate.ts ---
 {
-  const all: ForexTimeInForce[] = ['GTC', 'IOC', 'FOK', 'DAY'];
-  for (const tif of all) assert(isTimeInForceAllowed('market', tif) === (tif !== 'DAY'), `market/${tif}`);
+  const all: ForexTimeInForce[] = ['GTC', 'IOC', 'FOK', 'DAY', 'GTD', 'RETURN', 'BOC'];
+  for (const tif of all) {
+    const marketOk = tif !== 'DAY' && tif !== 'GTD' && tif !== 'BOC';
+    assert(isTimeInForceAllowed('market', tif) === marketOk, `market/${tif}`);
+  }
   for (const type of ['limit', 'stop', 'stop_limit'] as const) {
     assert(isTimeInForceAllowed(type, 'GTC'), `${type}/GTC must be allowed`);
     assert(isTimeInForceAllowed(type, 'DAY'), `${type}/DAY must be allowed`);
+    assert(isTimeInForceAllowed(type, 'RETURN'), `${type}/RETURN must be allowed`);
+    assert(isTimeInForceAllowed(type, 'BOC'), `${type}/BOC must be allowed`);
     assert(isTimeInForceAllowed(type, 'IOC') === false, `${type}/IOC must be blocked`);
     assert(isTimeInForceAllowed(type, 'FOK') === false, `${type}/FOK must be blocked`);
   }

@@ -386,6 +386,7 @@ const USER_B = 'user-b';
     fillIds: [],
     source: 'SIMULATED',
     executionMode: 'MOCK',
+    venueOrderId: null,
     events: [],
     version: 1,
     lastQuoteKey: null,

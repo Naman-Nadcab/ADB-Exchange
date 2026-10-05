@@ -905,8 +905,8 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
         action: 'forex_real_forex_arm',
         resourceType: 'forex_runtime',
         resourceId: 'real_forex_arm',
-        oldValue: { armRequested: result.previous, effectiveRealForex: false, reason },
-        newValue: { armRequested: result.next, effectiveRealForex: false, reason },
+        oldValue: { armRequested: result.previous, effectiveRealForex: result.previousEffective, reason },
+        newValue: { armRequested: result.next, effectiveRealForex: result.gate.effectiveRealForex, reason },
       });
       const snapshot = await buildForexAdminExecutionSnapshot();
       return reply.send({ success: true, data: { ...result, snapshot } });

@@ -1,3 +1,4 @@
+import { getBrokerGateway, isBrokerGatewayConfigured } from '../broker/gateway.js';
 import { getInternalFdmBrokerAdapter } from './internal-fdm.adapter.js';
 import type { BrokerAdapter, ForexProviderCatalogEntry, ForexProviderType } from './types.js';
 
@@ -92,7 +93,7 @@ export async function buildForexProviderCatalog(): Promise<ForexProviderCatalogE
   const internal = getInternalFdmBrokerAdapter();
   const internalHealth = await internal.healthCheck();
 
-  return PLANNED.map((seed) => {
+  const rows: ForexProviderCatalogEntry[] = PLANNED.map((seed) => {
     if (seed.adapterId === 'internal-fdm') {
       return {
         ...seed,
@@ -104,6 +105,23 @@ export async function buildForexProviderCatalog(): Promise<ForexProviderCatalogE
       status: seed.status ?? 'not_configured',
     } as ForexProviderCatalogEntry;
   });
+  if (isBrokerGatewayConfigured()) {
+    const health = await getBrokerGateway().health();
+    rows.push({
+      providerId: 'broker-gateway',
+      adapterId: 'broker-gateway',
+      type: 'BRIDGE',
+      displayName: 'Broker HTTP gateway',
+      protocol: 'HTTPS /v1',
+      status: health.ok ? 'connected' : 'degraded',
+      isDefault: false,
+      enabled: true,
+      priority: 10,
+      capabilities: ['quotes', 'orders', 'accounts', 'cash'],
+      notes: 'HTTP gateway. MT4, MT5, cTrader, and FIX stay disconnected.',
+    });
+  }
+  return rows;
 }
 
 export function defaultBrokerAdapterId(): string {

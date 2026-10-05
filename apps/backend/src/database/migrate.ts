@@ -5416,6 +5416,37 @@ BEGIN
       ADD CONSTRAINT fiat_withdrawals_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES admin_users(id);
   END IF;
 END $$;`,
+
+  `ALTER TABLE forex_orders ADD COLUMN IF NOT EXISTS venue_order_id VARCHAR(64);`,
+  `CREATE TABLE IF NOT EXISTS forex_live_applications (
+    application_id VARCHAR(64) PRIMARY KEY,
+    user_id VARCHAR(64) NOT NULL,
+    status VARCHAR(24) NOT NULL,
+    currency VARCHAR(8) NOT NULL DEFAULT 'USD',
+    position_mode VARCHAR(16) NOT NULL,
+    leverage VARCHAR(32),
+    group_code VARCHAR(64),
+    idempotency_key VARCHAR(128) NOT NULL,
+    broker_trading_login VARCHAR(128),
+    broker_server VARCHAR(128),
+    internal_account_id VARCHAR(64),
+    failure_reason TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT forex_live_applications_user_key UNIQUE (user_id, idempotency_key)
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_live_applications_user ON forex_live_applications(user_id, created_at DESC);`,
+  `CREATE TABLE IF NOT EXISTS forex_broker_reconciliation_reports (
+    report_id UUID PRIMARY KEY,
+    account_id VARCHAR(64) NOT NULL,
+    ledger_balance VARCHAR(64) NOT NULL,
+    broker_balance VARCHAR(64),
+    cash_delta VARCHAR(64),
+    position_drift JSONB NOT NULL DEFAULT '[]'::jsonb,
+    status VARCHAR(16) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_broker_recon_account ON forex_broker_reconciliation_reports(account_id, created_at DESC);`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */
@@ -5441,6 +5472,9 @@ async function verifyForexCustomerSchema(pool: { query: (sql: string, params?: u
   };
   await col('forex_orders', 'expire_at');
   await col('forex_orders', 'time_in_force');
+  await col('forex_orders', 'venue_order_id');
+  await tbl('forex_live_applications');
+  await tbl('forex_broker_reconciliation_reports');
   await tbl('forex_customer_alerts');
   await tbl('forex_customer_alert_events');
 }

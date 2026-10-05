@@ -460,7 +460,9 @@
     "IOC": "IOC · Immediate or cancel",
     "FOK": "FOK · Fill or kill",
     "DAY": "DAY · Expires at session close",
-    "GTD": "GTD · Good till date (server expiry)"
+    "GTD": "GTD · Good till date (server expiry)",
+    "RETURN": "RETURN · Partial remainder rests",
+    "BOC": "BOC · Book or cancel"
   },
   "tifBlocked": {
     "pendingOnly": "{tif} applies to pending orders only (Limit / Stop / Stop Limit).",

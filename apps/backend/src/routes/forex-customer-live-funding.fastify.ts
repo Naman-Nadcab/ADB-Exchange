@@ -11,11 +11,12 @@ import { ForexLedgerError } from '../services/forex/ledger/models.js';
 import {
   createLiveAccountApplication,
   getLiveApplicationForUser,
+  hydrateLiveApplicationsFromDb,
   listLiveApplicationsForUser,
 } from '../services/forex/customer/live-account-applications.service.js';
 import { buildLiveForexReadiness } from '../services/forex/customer/live-funding-readiness.js';
 import { loadForexAccountKind } from '../services/forex/broker/account-kind.js';
-import { creditForexAfterBrokerSettle, debitForexAfterBrokerSettle } from '../services/forex/broker/cash-rail.js';
+import { applyBrokerCashWebhook, creditForexAfterBrokerSettle, debitForexAfterBrokerSettle } from '../services/forex/broker/cash-rail.js';
 import { getForexBrokerCredentialsProvider } from '../services/forex/customer/live-account-provider.registry.js';
 import { getPlatformKycSnapshot } from '../services/forex/customer/platform-kyc.js';
 import { isForexKycRequired } from '../services/forex/customer/forex-kyc-policy.service.js';
@@ -35,6 +36,17 @@ function accounting() {
 }
 
 export async function registerForexCustomerLiveFundingRoutes(app: FastifyInstance): Promise<void> {
+  app.post('/live/broker/cash', async (request, reply) => {
+    const result = await applyBrokerCashWebhook(accounting(), {
+      authorization: request.headers.authorization,
+      body: request.body,
+    });
+    if (!result.ok) {
+      return reply.status(result.httpStatus).send({ success: false, error: { code: result.code, message: result.code } });
+    }
+    return reply.send({ success: true, data: { status: 'SETTLED', brokerRef: result.brokerRef ?? null } });
+  });
+
   app.get('/live/readiness', { preHandler: [forexAuthenticate(app)] }, async (_request, reply) => {
     const readiness = await buildLiveForexReadiness();
     return reply.send({ success: true, data: readiness });
@@ -45,6 +57,7 @@ export async function registerForexCustomerLiveFundingRoutes(app: FastifyInstanc
     if (!userId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
+    await hydrateLiveApplicationsFromDb();
     const apps = listLiveApplicationsForUser(userId);
     return reply.send({ success: true, data: { count: apps.length, applications: apps } });
   });
@@ -57,6 +70,7 @@ export async function registerForexCustomerLiveFundingRoutes(app: FastifyInstanc
       if (!userId) {
         return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
       }
+      await hydrateLiveApplicationsFromDb();
       const appRec = getLiveApplicationForUser(userId, String(request.params.applicationId ?? ''));
       if (!appRec) {
         return reply.status(404).send({ success: false, error: { code: 'APPLICATION_NOT_FOUND', message: 'Application not found' } });

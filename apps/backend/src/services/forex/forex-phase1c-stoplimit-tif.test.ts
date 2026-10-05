@@ -85,8 +85,8 @@ function setMid(h: ReturnType<typeof harness>, mid: string) {
 {
   assert.ok(FOREX_ENGINE_ORDER_TYPES.includes('stop_limit'));
   assert.ok(FOREX_CUSTOMER_EXPOSED_ORDER_TYPES.includes('stop_limit'));
-  assert.deepEqual([...FOREX_ENGINE_TIME_IN_FORCE], ['GTC', 'IOC', 'FOK', 'DAY', 'GTD']);
-  assert.deepEqual([...FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE], ['GTC', 'IOC', 'FOK', 'DAY', 'GTD']);
+  assert.deepEqual([...FOREX_ENGINE_TIME_IN_FORCE], ['GTC', 'IOC', 'FOK', 'DAY', 'GTD', 'RETURN', 'BOC']);
+  assert.deepEqual([...FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE], ['GTC', 'IOC', 'FOK', 'DAY', 'GTD', 'RETURN', 'BOC']);
   console.log('  PASS  capability contract: Phase 2 customer stop_limit + TIF exposure');
 }
 

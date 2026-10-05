@@ -26,7 +26,10 @@ import type { ProviderRawQuote } from '../types.js';
 import { buildLiveForexReadiness } from '../customer/live-funding-readiness.js';
 import { resetForexLiveAccountProviderForTests } from '../customer/live-account-provider.registry.js';
 import { rememberForexAccountKind, resetForexAccountKindsForTests } from './account-kind.js';
-import { creditForexAfterBrokerSettle } from './cash-rail.js';
+import { applyBrokerCashWebhook, creditForexAfterBrokerSettle } from './cash-rail.js';
+import { diffBrokerCashAndPositions } from './snapshot-diff.js';
+import { bocLimitWouldTake } from '../orders/fill-policy.js';
+import { buildForexRealForexGateState, isLiveForexReleaseOpen } from '../admin/execution-gate.js';
 import {
   brokerQuoteDto,
   getBrokerGateway,
@@ -34,6 +37,9 @@ import {
   parseBrokerHealth,
   parseBrokerOrder,
   parseBrokerQuotes,
+  parseBrokerSnapshot,
+  parseSseQuoteFrames,
+  quoteSequenceHasGap,
   resetBrokerGatewayForTests,
   setBrokerFetchForTests,
   setBrokerGatewayConfigForTests,
@@ -72,7 +78,14 @@ function readyFetch(cash: 'settled' | 'rejected' = 'settled'): BrokerFetch {
       };
     }
     if (url.endsWith('/v1/orders')) {
-      const body = JSON.parse(init?.body ?? '{}') as { volume?: string };
+      const body = JSON.parse(init?.body ?? '{}') as { volume?: string; price?: string };
+      if (body.price) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ status: 'working', filledVolume: '0', venueOrderId: 'BR-LIMIT' }),
+        };
+      }
       return {
         ok: true,
         status: 200,
@@ -127,6 +140,29 @@ describe('broker gateway parsers', () => {
     assert.equal(cash.ok, false);
     assert.deepEqual(parseBrokerQuotes({ quotes: [{ symbol: 'EURUSD', bid: '1.1', ask: '1.2' }] }).length, 1);
     assert.equal(parseBrokerHealth({ ok: true, quotes: true }).orders, false);
+    const working = parseBrokerOrder({ status: 'working', venueOrderId: 'W1', filledVolume: '0' }, '1');
+    assert.equal(working.status, 'working');
+    assert.equal(working.venueOrderId, 'W1');
+    const bare = parseBrokerOrder({ status: 'working', filledVolume: '0' }, '1');
+    assert.equal(bare.status, 'rejected');
+    assert.equal(quoteSequenceHasGap(4, 6), true);
+    assert.equal(quoteSequenceHasGap(4, 5), false);
+    const frames = parseSseQuoteFrames('data: {"quotes":[{"symbol":"EURUSD","bid":"1.1","ask":"1.2","sequence":3}]}\n\n');
+    assert.equal(frames[0]?.sequence, 3);
+    const snap = parseBrokerSnapshot({ balance: '10', positions: [{ symbol: 'EURUSD', side: 'buy', volume: '0.1', price: '1.2' }] });
+    assert.equal(snap?.positions.length, 1);
+    const diff = diffBrokerCashAndPositions({
+      ledgerBalance: '8',
+      brokerBalance: '10',
+      localPositions: [{ symbol: 'EURUSD', side: 'buy', volume: '0.2' }],
+      brokerPositions: [{ symbol: 'EURUSD', side: 'buy', volume: '0.1' }],
+    });
+    assert.equal(fxDecimal(diff.cashDelta ?? '0').eq('2'), true);
+    assert.equal(diff.positionDrift.length, 1);
+    const quote = brokerQuoteDto({ symbol: 'EURUSD', bid: '1.10000', ask: '1.10010', timestamp: new Date().toISOString(), sequence: 1 }, new Date());
+    assert.ok(quote);
+    assert.equal(bocLimitWouldTake('buy', '1.2', quote!), true);
+    assert.equal(bocLimitWouldTake('buy', '1.05', quote!), false);
   });
 
   it('stays unconfigured when the broker URL is unset', async () => {
@@ -240,6 +276,7 @@ describe('live forex uses the broker, demo keeps the mock book', () => {
       requestedPrice: '1.20000',
     });
     assert.equal(pending.status, 'PENDING', pending.failureReason ?? 'limit');
+    assert.equal(pending.venueOrderId, 'BR-LIMIT');
     const mockQuote = pricing.getQuote('EURUSD');
     assert.ok(mockQuote);
     await orders.evaluateQuote(mockQuote!);
@@ -278,6 +315,70 @@ describe('live forex uses the broker, demo keeps the mock book', () => {
     assert.equal(demo.executionMode, 'MOCK');
     assert.equal(counted.calls(), 1);
     assert.equal(fxDecimal(positions.listOwned(DEMO, true)[0]!.entryPrice).eq('1.25005'), false);
+    let returnSliceUsed = false;
+    for (const venue of counted.venues.values()) {
+      const original = venue.placeOrder.bind(venue);
+      venue.placeOrder = async (req) => {
+        if (!returnSliceUsed) {
+          returnSliceUsed = true;
+          const ack = await original(req);
+          return {
+            ...ack,
+            status: 'partial',
+            filledVolume: '0.01',
+            remainingVolume: fxDecimal(req.volume).minus('0.01').toFixed(),
+          };
+        }
+        return {
+          clientExecId: req.clientExecId,
+          venueOrderId: null,
+          status: 'rejected',
+          filledVolume: '0',
+          remainingVolume: req.volume,
+          avgPrice: null,
+          rejectReason: 'MOCK_REJECT',
+          venueCode: 'MOCK',
+          latencyMs: 0,
+          timestamp: new Date().toISOString(),
+        };
+      };
+    }
+
+    const bocTake = await orders.place(DEMO, {
+      clientOrderId: 'demo-boc-take',
+      symbol: 'EURUSD',
+      side: 'buy',
+      orderType: 'limit',
+      volume: '0.10',
+      requestedPrice: '1.20000',
+      timeInForce: 'BOC',
+    });
+    assert.equal(bocTake.status, 'REJECTED');
+    assert.equal(bocTake.failureReason, 'BOC_WOULD_TAKE');
+
+    const bocRest = await orders.place(DEMO, {
+      clientOrderId: 'demo-boc-rest',
+      symbol: 'EURUSD',
+      side: 'buy',
+      orderType: 'limit',
+      volume: '0.10',
+      requestedPrice: '1.10000',
+      timeInForce: 'BOC',
+    });
+    assert.equal(bocRest.status, 'PENDING', bocRest.failureReason ?? 'boc rest');
+
+    const returned = await orders.place(DEMO, {
+      clientOrderId: 'demo-return',
+      symbol: 'EURUSD',
+      side: 'buy',
+      orderType: 'market',
+      volume: '0.10',
+      timeInForce: 'RETURN',
+    });
+    assert.equal(returned.status, 'PENDING', returned.failureReason ?? 'return');
+    assert.equal(returned.orderType, 'limit');
+    assert.equal(returned.failureReason, 'RETURN_REMAINDER_RESTING');
+    assert.equal(fxDecimal(returned.remainingVolume).gt(0), true);
   });
 
   it('reports liveForexReady only when quote, order, account, and cash health all pass', async () => {
@@ -289,5 +390,46 @@ describe('live forex uses the broker, demo keeps the mock book', () => {
     assert.equal(ready.realForexEffective, false);
     assert.equal(ready.blockers.includes('Payment provider for Forex deposits not configured'), false);
     assert.equal(ready.blockers.includes('No external broker/LP adapter enabled'), false);
+    assert.equal(isLiveForexReleaseOpen(), false);
+    const gate = buildForexRealForexGateState({ mockProvidersOnly: true, marketDataRunning: false });
+    assert.equal(gate.effectiveRealForex, false);
+    assert.equal(gate.releaseBlocked, true);
+  });
+
+  it('posts webhook cash only after a settled bearer callback', async () => {
+    const pricing = seedBook();
+    const positions = new ForexPositionService(new ForexPositionStore(), pricing, false);
+    const accounting = resetForexAccountingServiceForTests(positions, pricing);
+    const blocked = await applyBrokerCashWebhook(accounting, {
+      authorization: undefined,
+      body: { status: 'settled', accountId: 'wh', direction: 'credit', amount: '5', idempotencyKey: 'wh-1', brokerRef: 'B' },
+    });
+    assert.equal(blocked.httpStatus, 503);
+    assert.equal(accounting.ledgerBalance('wh'), '0');
+
+    useBroker(readyFetch());
+    const denied = await applyBrokerCashWebhook(accounting, {
+      authorization: 'Bearer wrong',
+      body: { status: 'settled', accountId: 'wh', direction: 'credit', amount: '5', idempotencyKey: 'wh-1', brokerRef: 'B' },
+    });
+    assert.equal(denied.httpStatus, 401);
+    const unsettled = await applyBrokerCashWebhook(accounting, {
+      authorization: 'Bearer test-key',
+      body: { status: 'rejected', accountId: 'wh', direction: 'credit', amount: '5', idempotencyKey: 'wh-1', brokerRef: 'B' },
+    });
+    assert.equal(unsettled.httpStatus, 409);
+    assert.equal(accounting.ledgerBalance('wh'), '0');
+    const settled = await applyBrokerCashWebhook(accounting, {
+      authorization: 'Bearer test-key',
+      body: { status: 'settled', accountId: 'wh', direction: 'credit', amount: '5', idempotencyKey: 'wh-1', brokerRef: 'B' },
+    });
+    assert.equal(settled.ok, true);
+    assert.equal(fxDecimal(accounting.ledgerBalance('wh')).eq('5'), true);
+    const replay = await applyBrokerCashWebhook(accounting, {
+      authorization: 'Bearer test-key',
+      body: { status: 'settled', accountId: 'wh', direction: 'credit', amount: '5', idempotencyKey: 'wh-1', brokerRef: 'B' },
+    });
+    assert.equal(replay.ok, true);
+    assert.equal(fxDecimal(accounting.ledgerBalance('wh')).eq('5'), true);
   });
 });

@@ -36,6 +36,8 @@ export type ForexCustomerCapabilityContract = {
     ioc: ForexCapabilityTriState;
     fok: ForexCapabilityTriState;
     gtd: ForexCapabilityTriState;
+    return: ForexCapabilityTriState;
+    boc: ForexCapabilityTriState;
   };
   positionModes: {
     netting: ForexCapabilityTriState;
@@ -73,13 +75,13 @@ function tri(engine: boolean, customer: boolean, cert: ForexRuntimeCertification
 
 /** Customer ticket / trading-config advertisement (Phase 2: stop_limit + full implemented TIF). */
 export const FOREX_CUSTOMER_EXPOSED_ORDER_TYPES = ['market', 'limit', 'stop', 'stop_limit'] as const satisfies readonly ForexCustomerOrderType[];
-export const FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE = ['GTC', 'IOC', 'FOK', 'DAY', 'GTD'] as const satisfies readonly ForexTimeInForce[];
+export const FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE = ['GTC', 'IOC', 'FOK', 'DAY', 'GTD', 'RETURN', 'BOC'] as const satisfies readonly ForexTimeInForce[];
 
 /** Backward-compatible alias used by admin config exports. */
 export const FOREX_CUSTOMER_ORDER_TYPES = FOREX_CUSTOMER_EXPOSED_ORDER_TYPES;
 
 export const FOREX_ENGINE_ORDER_TYPES = ['market', 'limit', 'stop', 'stop_limit'] as const satisfies readonly ForexCustomerOrderType[];
-export const FOREX_ENGINE_TIME_IN_FORCE = ['GTC', 'IOC', 'FOK', 'DAY', 'GTD'] as const satisfies readonly ForexTimeInForce[];
+export const FOREX_ENGINE_TIME_IN_FORCE = ['GTC', 'IOC', 'FOK', 'DAY', 'GTD', 'RETURN', 'BOC'] as const satisfies readonly ForexTimeInForce[];
 
 export function getForexCustomerCapabilityContract(): ForexCustomerCapabilityContract {
   const orderEngine = true;
@@ -103,6 +105,8 @@ export function getForexCustomerCapabilityContract(): ForexCustomerCapabilityCon
       ioc: tri(true, true, MOCK_ONLY),
       fok: tri(true, true, MOCK_ONLY),
       gtd: tri(true, true, MOCK_ONLY),
+      return: tri(true, true, MOCK_ONLY),
+      boc: tri(true, true, MOCK_ONLY),
     },
     positionModes: {
       netting: tri(true, true, MOCK_ONLY),

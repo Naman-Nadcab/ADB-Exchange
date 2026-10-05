@@ -460,7 +460,9 @@
     "IOC": "IOC · 立即成交否则取消",
     "FOK": "FOK · 全部成交否则取消",
     "DAY": "DAY · 会话收盘过期",
-    "GTD": "GTD · 指定日期有效（服务端到期）"
+    "GTD": "GTD · 指定日期有效（服务端到期）",
+    "RETURN": "RETURN · 未成交部分继续挂单",
+    "BOC": "BOC · 只挂单不成交"
   },
   "tifBlocked": {
     "pendingOnly": "{tif} 仅适用于挂单（限价 / 止损 / 止损限价）。",

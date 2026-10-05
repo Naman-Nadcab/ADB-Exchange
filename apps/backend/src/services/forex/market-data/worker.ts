@@ -22,10 +22,12 @@ function scheduleBrokerRefresh(nowMs: number): void {
       const health = await gateway.health();
       if (!health.configured || !health.ok || !health.quotes) return;
       const symbols = listForexSymbols();
-      await gateway.refreshQuotes(symbols);
+      const streamed = await gateway.pullQuoteStream(symbols);
+      if (!streamed) await gateway.refreshQuotes(symbols);
       const { peekForexOrderService } = await import('../orders/service.js');
       const { peekForexProtectionService } = await import('../protection/service.js');
       const orders = peekForexOrderService();
+      if (orders) await orders.syncBrokerWorkingOrders();
       const protection = peekForexProtectionService();
       for (const symbol of symbols) {
         const quote = gateway.getQuote(symbol);

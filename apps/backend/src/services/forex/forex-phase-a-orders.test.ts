@@ -104,7 +104,7 @@ function usableQuote(pricing: ReturnType<typeof seedBook>, patch: Partial<ForexQ
   const customer = getForexCustomerTradingConfig();
   assert.deepEqual(admin.orderTypes, ['market', 'limit', 'stop', 'stop_limit']);
   assert.deepEqual(customer.orderTypes, ['market', 'limit', 'stop', 'stop_limit']);
-  assert.deepEqual(customer.timeInForce, ['GTC', 'IOC', 'FOK', 'DAY']);
+  assert.deepEqual(customer.timeInForce, ['GTC', 'IOC', 'FOK', 'DAY', 'GTD', 'RETURN', 'BOC']);
   assert.ok(customer.capabilities?.orderTypes.stopLimit.engine === true);
   assert.ok(customer.capabilities?.orderTypes.stopLimit.customerExposed === true);
   assert.ok(customer.capabilities?.timeInForce.day.engine === true);

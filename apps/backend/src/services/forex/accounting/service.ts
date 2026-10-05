@@ -175,6 +175,7 @@ export class ForexAccountingService {
     amount: string;
     idempotencyKey: string;
     referenceId: string;
+    externalRail?: 'NOT_CONFIGURED' | 'SETTLED';
   }): Promise<ForexLedgerTransaction> {
     const amount = requirePositive(args.amount);
     const ref = args.referenceId;
@@ -194,7 +195,11 @@ export class ForexAccountingService {
         },
         { ledgerAccount: 'CLEARING', debit: '0', credit: amount, referenceType: 'ADJUSTMENT', referenceId: ref },
       ],
-      metadata: { rail: 'PARTNER_PAYOUT_INTERNAL', partnerId: args.partnerId, external_rail: 'NOT_CONFIGURED' },
+      metadata: {
+        rail: 'PARTNER_PAYOUT_INTERNAL',
+        partnerId: args.partnerId,
+        external_rail: args.externalRail ?? 'NOT_CONFIGURED',
+      },
     });
     return tx;
   }

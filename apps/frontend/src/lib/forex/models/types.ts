@@ -39,7 +39,7 @@ export type ForexProtectionState =
 export type ForexOrderType = 'market' | 'limit' | 'stop' | 'stop_limit';
 export type ForexSide = 'buy' | 'sell';
 /** Backend contract: IOC/FOK are market-only, DAY is pending-only, GTC is universal. */
-export type ForexTimeInForce = 'GTC' | 'IOC' | 'FOK' | 'DAY' | 'GTD';
+export type ForexTimeInForce = 'GTC' | 'IOC' | 'FOK' | 'DAY' | 'GTD' | 'RETURN' | 'BOC';
 export type ForexJournalSeverity = 'info' | 'warn' | 'error';
 export type ForexJournalOrigin = 'SERVER' | 'CLIENT-OBSERVED';
 export type ForexConnectionState =

@@ -460,7 +460,9 @@
     "IOC": "IOC · Immediate or cancel",
     "FOK": "FOK · Fill or kill",
     "DAY": "DAY · Kedaluwarsa saat sesi tutup",
-    "GTD": "GTD · Good till date (kedaluwarsa server)"
+    "GTD": "GTD · Good till date (kedaluwarsa server)",
+    "RETURN": "RETURN · Sisa sebagian tetap mengantung",
+    "BOC": "BOC · Book or cancel"
   },
   "tifBlocked": {
     "pendingOnly": "{tif} hanya untuk order pending (Limit / Stop / Stop Limit).",
