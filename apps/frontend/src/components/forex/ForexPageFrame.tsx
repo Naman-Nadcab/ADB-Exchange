@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { cn } from '@/lib/utils';
 
 export function ForexPageFrame(props: {
@@ -66,15 +67,36 @@ export function ForexSignInPrompt({
 }) {
   const tf = useTranslations('forex');
   const section = tf(`signIn.sections.${sectionKey}`);
+  const destinations = [
+    { href: FOREX_ROUTES.trade, label: tf('nav.trade') },
+    { href: FOREX_ROUTES.markets, label: tf('nav.markets') },
+    { href: FOREX_ROUTES.portfolio, label: tf('nav.portfolio') },
+    { href: FOREX_ROUTES.accounts, label: tf('portalNav.accounts') },
+    { href: FOREX_ROUTES.funds, label: tf('portalNav.funds') },
+    { href: FOREX_ROUTES.ledger, label: tf('portalNav.ledger') },
+  ];
   return (
-    <div className="eda-card flex flex-wrap items-center justify-between gap-3 border-primary/30 bg-card px-4 py-3">
-      <p className="text-sm text-foreground">{tf('signIn.prompt', { section })}</p>
-      <Link
-        href={href}
-        className="inline-flex min-h-9 items-center rounded bg-primary px-4 text-sm font-semibold text-primary-foreground"
-      >
-        {tf('signIn.link')}
-      </Link>
+    <div className="space-y-3">
+      <div className="eda-card flex flex-wrap items-center justify-between gap-3 border-primary/30 bg-card px-4 py-3">
+        <p className="text-sm text-foreground">{tf('signIn.prompt', { section })}</p>
+        <Link
+          href={href}
+          className="inline-flex min-h-9 items-center rounded bg-primary px-4 text-sm font-semibold text-primary-foreground"
+        >
+          {tf('signIn.link')}
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {destinations.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="eda-card px-3 py-3 text-sm font-semibold text-foreground hover:border-primary/40"
+          >
+            {item.label}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

@@ -590,7 +590,7 @@ export function SpotOrderbookPanel({
         aria-hidden
         style={{
           backgroundImage:
-            'repeating-linear-gradient(to bottom, transparent 0, transparent 27px, hsl(var(--border) / 0.55) 28px)',
+            'repeating-linear-gradient(to bottom, transparent 0, transparent 27px, hsl(var(--primary) / 0.16) 28px)',
         }}
       />
     </div>
@@ -974,7 +974,7 @@ export function SpotOrderbookPanel({
                   aria-hidden
                   style={{
                     backgroundImage:
-                      'repeating-linear-gradient(to bottom, transparent 0, transparent 27px, hsl(var(--border) / 0.55) 28px)',
+                      'repeating-linear-gradient(to bottom, transparent 0, transparent 27px, hsl(var(--primary) / 0.16) 28px)',
                   }}
                 />
               </div>
