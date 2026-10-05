@@ -509,7 +509,7 @@ export function ForexOrderTicket() {
               id="fx-ticket-sl"
               value={sl}
               onChange={(e) => setSl(e.target.value)}
-              placeholder={protectMode === 'pips' ? tf('ticketPanel.pipsPlaceholder') : exec ? fxNum(exec, digits) : tf('ticketPanel.price')}
+              placeholder={protectMode === 'pips' ? tf('ticketPanel.pipsPlaceholder') : ''}
               aria-label={tf('ticketPanel.stopLossAria')}
               className="fx-mt5-field h-7 w-full px-1.5 text-[12px]"
               inputMode="decimal"
@@ -521,7 +521,7 @@ export function ForexOrderTicket() {
               id="fx-ticket-tp"
               value={tp}
               onChange={(e) => setTp(e.target.value)}
-              placeholder={protectMode === 'pips' ? tf('ticketPanel.pipsPlaceholder') : exec ? fxNum(exec, digits) : tf('ticketPanel.price')}
+              placeholder={protectMode === 'pips' ? tf('ticketPanel.pipsPlaceholder') : ''}
               aria-label={tf('ticketPanel.takeProfitAria')}
               className="fx-mt5-field h-7 w-full px-1.5 text-[12px]"
               inputMode="decimal"
