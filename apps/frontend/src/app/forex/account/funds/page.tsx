@@ -13,6 +13,7 @@ import { forexApi } from '@/lib/forex/api/client';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
+import { useForexProductGates } from '@/lib/forex/hooks/useForexProductGates';
 import { hydrateForexPrivate } from '@/lib/forex/runtime/hydrate';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
@@ -30,6 +31,8 @@ export default function ForexFundsPage() {
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const { gates } = useForexProductGates();
+  const railsOn = gates.realFundingEnabled || gates.withdrawalEnabled;
   const ledger = Number(account?.ledgerBalance ?? balance?.ledgerBalance ?? 0);
   const needsDemo = Number.isFinite(ledger) && ledger <= 0;
 
@@ -141,13 +144,35 @@ export default function ForexFundsPage() {
         ) : null}
       </ForexPortalModuleCard>
 
-      <ForexPortalModuleCard title={t('realRailsTitle')} subtitle={t('realRailsBadge')}>
-        <ForexPortalStatusBadge tone="warning">{t('realRailsUnavailableBadge')}</ForexPortalStatusBadge>
-        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">{t('realRailsBodyShort')}</p>
-        <details className="mt-3 text-[11px] text-muted-foreground">
-          <summary className="cursor-pointer text-foreground">{t('technicalDetailsLabel')}</summary>
-          <p className="mt-2">{t('realRailsBody')}</p>
-        </details>
+      <ForexPortalModuleCard title={railsOn ? t('realRailsOnTitle') : t('realRailsTitle')} subtitle={t('realRailsBadge')}>
+        <ForexPortalStatusBadge tone={railsOn ? 'success' : 'warning'}>
+          {railsOn ? t('realRailsOnBadge') : t('realRailsUnavailableBadge')}
+        </ForexPortalStatusBadge>
+        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">{railsOn ? t('realRailsOnBody') : t('realRailsBodyShort')}</p>
+        {railsOn ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {gates.realFundingEnabled ? (
+              <Link href={FOREX_ROUTES.fundsDeposit} className="inline-flex min-h-10 items-center rounded border border-primary/40 bg-primary/10 px-4 text-[12px] font-semibold text-primary">
+                {t('goDeposit')}
+              </Link>
+            ) : null}
+            {gates.withdrawalEnabled ? (
+              <Link href={FOREX_ROUTES.fundsWithdraw} className="inline-flex min-h-10 items-center rounded border border-border px-4 text-[12px] font-semibold">
+                {t('goWithdraw')}
+              </Link>
+            ) : null}
+            {gates.paymentMethodsEnabled ? (
+              <Link href={FOREX_ROUTES.fundsPaymentMethods} className="inline-flex min-h-10 items-center rounded border border-border px-4 text-[12px] font-semibold">
+                {t('goPaymentMethods')}
+              </Link>
+            ) : null}
+          </div>
+        ) : (
+          <details className="mt-3 text-[11px] text-muted-foreground">
+            <summary className="cursor-pointer text-foreground">{t('technicalDetailsLabel')}</summary>
+            <p className="mt-2">{t('realRailsBody')}</p>
+          </details>
+        )}
       </ForexPortalModuleCard>
 
       {authed ? (

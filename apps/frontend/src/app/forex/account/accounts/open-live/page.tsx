@@ -27,7 +27,21 @@ export default function ForexOpenLiveAccountPage() {
   } | null>(null);
   const [busy, setBusy] = useState(false);
   const [appStatus, setAppStatus] = useState<string | null>(null);
+  const [applications, setApplications] = useState<Array<{ applicationId: string; status: string; createdAt?: string; failureReason?: string | null }>>([]);
   const [err, setErr] = useState<string | null>(null);
+
+  async function loadApplications() {
+    const listed = unwrap(await forexApi.listLiveApplications());
+    if (!listed.ok) return;
+    setApplications(
+      listed.data.applications.map((row) => ({
+        applicationId: String(row.applicationId ?? ''),
+        status: String(row.status ?? ''),
+        createdAt: row.createdAt == null ? undefined : String(row.createdAt),
+        failureReason: row.failureReason == null ? null : String(row.failureReason),
+      })),
+    );
+  }
 
   useEffect(() => {
     if (!authed) return;
@@ -44,6 +58,7 @@ export default function ForexOpenLiveAccountPage() {
           blockers: res.data.blockers,
         });
       }
+      await loadApplications();
     })();
   }, [authed]);
 
@@ -61,6 +76,7 @@ export default function ForexOpenLiveAccountPage() {
     }
     const status = String((res.data.application as { status?: string }).status ?? 'PENDING');
     setAppStatus(status);
+    await loadApplications();
   }
 
   const kycRequired = eligibility?.kycRequired !== false;
@@ -92,8 +108,8 @@ export default function ForexOpenLiveAccountPage() {
           <ForexPortalModuleCard title={t('checklistTitle')}>
             <ul className="space-y-2 text-[12px]">
               <li>{!kycRequired ? t('kycOptional') : kycVerified ? t('kycDone') : t('kycPending')}</li>
-              <li>{t('providerPending')}</li>
-              <li>{t('provisioningPending')}</li>
+              <li>{eligibility?.available ? t('providerReady') : t('providerPending')}</li>
+              <li>{eligibility?.available ? t('provisioningReady') : t('provisioningPending')}</li>
             </ul>
             {kycRequired && !kycVerified ? (
               <Link href={ROUTES.dashboard.identity} className="mt-3 inline-block text-[12px] font-semibold text-primary underline-offset-2 hover:underline">
@@ -117,6 +133,21 @@ export default function ForexOpenLiveAccountPage() {
               <p className="mt-2 text-sm text-buy">{t('applicationStatus', { status: appStatus })}</p>
             ) : null}
             {err ? <p className="mt-2 text-sm text-sell">{err}</p> : null}
+            <div className="mt-4 border-t border-border/70 pt-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t('applicationsTitle')}</p>
+              {applications.length === 0 ? (
+                <p className="mt-2 text-[12px] text-muted-foreground">{t('applicationsEmpty')}</p>
+              ) : (
+                <ul className="mt-2 space-y-1 font-mono text-[11px]">
+                  {applications.map((row) => (
+                    <li key={row.applicationId}>
+                      {row.status}
+                      {row.failureReason ? ` · ${row.failureReason}` : ''}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <Link href={FOREX_ROUTES.accounts} className="mt-3 inline-block text-[12px] text-primary underline-offset-2 hover:underline">
               {t('backAccounts')}
             </Link>
