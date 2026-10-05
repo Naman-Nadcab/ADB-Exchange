@@ -18,6 +18,7 @@ import type { ForexAccountingService } from '../accounting/service.js';
 import { isForexAccountLiquidationLocked } from '../liquidation/lock.js';
 import type { ForexLiquidationService } from '../liquidation/service.js';
 import type { ForexProtectionService } from '../protection/service.js';
+import { executableQuoteForAccount } from '../broker/gateway.js';
 import { executableClosePrice } from '../pnl/engine.js';
 import { ForexConversionError, ForexQuoteConversionSource } from '../pnl/conversion.js';
 import { classifyMarginLevel, marginLevel, positionMarginSnapshot } from '../margin/engine.js';
@@ -410,7 +411,7 @@ export class ForexPositionService {
     const now = new Date().toISOString();
     const valuationSide: ForexPositionSide =
       result.after.status === 'CLOSED' ? (existing?.side ?? result.after.side) : result.after.side;
-    const currentPx = this.currentPrice(input.symbol, input.price, valuationSide);
+    const currentPx = this.currentPrice(input.accountId, input.symbol, input.price, valuationSide);
     const ledgerTxs: import('../ledger/models.js').ForexLedgerTransaction[] = [];
 
     if (result.eventType === 'POSITION_REVERSED' && existing) {
@@ -524,7 +525,7 @@ export class ForexPositionService {
     const now = new Date().toISOString();
     const valuationSide: ForexPositionSide =
       result.after.status === 'CLOSED' ? (existing?.side ?? result.after.side) : result.after.side;
-    const currentPx = this.currentPrice(input.symbol, input.price, valuationSide);
+    const currentPx = this.currentPrice(input.accountId, input.symbol, input.price, valuationSide);
     if (result.eventType === 'POSITION_REVERSED' && existing) {
       const closeFill: ForexAppliedFill = { ...fill, volume: result.closedVolume };
       const openFill: ForexAppliedFill = { ...fill, volume: result.openedVolume };
@@ -651,7 +652,7 @@ export class ForexPositionService {
 
   private refreshValuation(p: ForexPositionRecord): ForexPositionRecord {
     if (p.status !== 'OPEN') return p;
-    const current = this.currentPrice(p.symbol, p.entryPrice, p.side);
+    const current = this.currentPrice(p.accountId, p.symbol, p.entryPrice, p.side);
     let m: ReturnType<typeof positionMarginSnapshot>;
     try {
       m = positionMarginSnapshot({
@@ -683,8 +684,8 @@ export class ForexPositionService {
    * Executable close for risk/exposure. LONG=BID, SHORT=ASK.
    * Mid is never used. Stale/unusable quote falls back to entry, not mid.
    */
-  private currentPrice(symbol: string, fallback: string, side?: ForexPositionSide): string {
-    const q = this.pricing?.getQuote(symbol);
+  private currentPrice(accountId: string, symbol: string, fallback: string, side?: ForexPositionSide): string {
+    const q = executableQuoteForAccount(this.pricing, accountId, symbol);
     if (!q || !side) return fallback;
     if (q.freshness === 'STALE' || q.quality === 'STALE' || q.status !== 'TRADEABLE') return fallback;
     return executableClosePrice(side, q).price;

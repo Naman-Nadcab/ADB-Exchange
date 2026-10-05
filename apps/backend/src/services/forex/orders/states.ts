@@ -136,6 +136,8 @@ export const FOREX_ORDER_REASONS = [
   'DAY_ORDER_EXPIRED',
   'GTD_ORDER_EXPIRED',
   'INVALID_EXPIRE_AT',
+  'LIVE_BROKER_UNAVAILABLE',
+  'BROKER_REJECTED',
 ] as const;
 
 export type ForexOrderReason = (typeof FOREX_ORDER_REASONS)[number];

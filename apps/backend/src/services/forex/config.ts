@@ -10,6 +10,8 @@
  *   FOREX_QUOTE_MAX_FUTURE_SKEW_MS
  *   FOREX_MARKET_DATA_INTERVAL_MS
  *   FOREX_QUOTE_TICKS_PERSIST
+ *   FOREX_BROKER_BASE_URL   (unset → live forex stays fail-closed)
+ *   FOREX_BROKER_API_KEY
  */
 
 function envBool(name: string, fallback: boolean): boolean {

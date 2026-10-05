@@ -1,10 +1,11 @@
 import { getForexAdminBackendConfig } from '../admin/config.js';
 import { buildForexProviderCatalog } from '../adapters/registry.js';
 import { effectiveForexRuntimeFlags } from '../admin/runtime-controls.js';
+import { brokerLiveReady, getBrokerGateway } from '../broker/gateway.js';
 import { getForexLiveAccountProvider } from './live-account-provider.registry.js';
 
 export type LiveForexReadiness = {
-  liveForexReady: false;
+  liveForexReady: boolean;
   realForexEffective: boolean;
   executionMode: string;
   source: 'SIMULATED';
@@ -44,21 +45,26 @@ export async function buildLiveForexReadiness(): Promise<LiveForexReadiness> {
     blockers.push('Broker trading/investor credential API unavailable');
   }
 
+  const gateway = await getBrokerGateway().health();
+  const gatewayReady = brokerLiveReady(gateway);
+
   const catalog = await buildForexProviderCatalog();
   const externalBroker = catalog.some((p) => p.enabled && p.adapterId !== 'internal-fdm');
-  if (!externalBroker) {
+  if (!externalBroker && !gatewayReady) {
     blockers.push('No external broker/LP adapter enabled');
   }
 
-  blockers.push('Payment provider for Forex deposits not configured');
-  blockers.push('Withdrawal payout rail not configured');
-  blockers.push('Funding webhook reconciliation not configured');
+  if (!gatewayReady) {
+    blockers.push('Payment provider for Forex deposits not configured');
+    blockers.push('Withdrawal payout rail not configured');
+    blockers.push('Funding webhook reconciliation not configured');
+  }
 
   if (runtimeRealForex) {
     blockers.push('REAL_FOREX runtime flag must remain off until readiness passes');
   }
 
-  const liveForexReady = false as const;
+  const liveForexReady = gatewayReady;
 
   const internalTransfer =
     flags.executionMode === 'MOCK' && !realForexEffective && !flags.killSwitch;
@@ -71,13 +77,13 @@ export async function buildLiveForexReadiness(): Promise<LiveForexReadiness> {
     blockers,
     capabilities: {
       liveAccountApplication: !realForexEffective,
-      liveAccountProvisioning: providerHealth.provisioningAvailable && realForexEffective,
+      liveAccountProvisioning: providerHealth.provisioningAvailable,
       brokerCredentials: providerHealth.credentialsSupported && realForexEffective,
-      deposit: false,
-      withdrawal: false,
+      deposit: gatewayReady,
+      withdrawal: gatewayReady,
       internalTransfer,
-      paymentMethods: false,
-      fundingReconciliation: false,
+      paymentMethods: gatewayReady,
+      fundingReconciliation: gatewayReady,
     },
     identity: {
       platformCustomerIdField: 'user_id',

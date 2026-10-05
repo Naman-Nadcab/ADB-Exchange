@@ -14,6 +14,8 @@ import {
   forexPendingTriggerEvaluationsTotal,
   forexRiskRejectionTotal,
 } from '../../../lib/forex-prometheus-metrics.js';
+import { isLiveForexAccount, loadForexAccountKind } from '../broker/account-kind.js';
+import { brokerOrdersReady, getBrokerGateway } from '../broker/gateway.js';
 import { fxDecimal } from '../decimal-fx.js';
 import { ForexExecutionError } from '../execution/models.js';
 import type { ForexExecutionRecord, ForexFill } from '../execution/models.js';
@@ -144,7 +146,7 @@ export class ForexOrderService {
     return this.listOwned(accountId).filter((o) => isPendingWorkingStatus(o.status));
   }
 
-  listFills(accountId: string): Array<{ fillId: string; orderId: string; symbol: string; side: string; volume: string; price: string; timestamp: string; source: 'SIMULATED' }> {
+  listFills(accountId: string): Array<{ fillId: string; orderId: string; symbol: string; side: string; volume: string; price: string; timestamp: string; source: 'SIMULATED' | 'LIVE' }> {
     const out = [];
     for (const order of this.listOwned(accountId)) {
       const exec = this.execution.get(order.clientExecId);
@@ -158,7 +160,7 @@ export class ForexOrderService {
           volume: f.volume,
           price: f.price,
           timestamp: f.timestamp,
-          source: 'SIMULATED' as const,
+          source: f.liquiditySource === 'BROKER' ? ('LIVE' as const) : ('SIMULATED' as const),
         });
       }
     }
@@ -179,9 +181,11 @@ export class ForexOrderService {
       forexPendingTriggerEvaluationsTotal.inc({ result: 'rejected_quote' });
       return;
     }
-    const pending = this.store
-      .listOpen()
-      .filter((o) => o.symbol === quote.symbol && isPendingWorkingStatus(o.status));
+    const pending = this.store.listOpen().filter((o) => {
+      if (o.symbol !== quote.symbol || !isPendingWorkingStatus(o.status)) return false;
+      const live = isLiveForexAccount(o.accountId);
+      return quote.source === 'LIVE' ? live : !live;
+    });
     for (const order of pending) {
       await this.store.enqueue(order.accountId, order.orderId, () => this.evaluateOne(order, quote));
     }
@@ -334,6 +338,22 @@ export class ForexOrderService {
     order.symbol = pre.symbol;
     order.request.symbol = pre.symbol;
 
+    const kind = await loadForexAccountKind(accountId);
+    if (kind === 'LIVE') {
+      order.source = 'LIVE';
+      order.executionMode = 'BROKER';
+      const gateway = getBrokerGateway();
+      const health = await gateway.health();
+      if (!brokerOrdersReady(health)) {
+        return await this.finish(order, 'REJECTED', 'LIVE_BROKER_UNAVAILABLE', started, 'Broker gateway is not ready');
+      }
+      await gateway.refreshQuotes([pre.symbol]);
+      const liveQuote = gateway.getQuote(pre.symbol);
+      if (!quoteUsableForTrigger(liveQuote)) {
+        return await this.finish(order, 'REJECTED', 'STALE_MARKET', started, 'Broker quote is missing or stale');
+      }
+    }
+
     if (this.positions) {
       const gate = this.riskGate(accountId, pre.symbol, req.side, req.volume, req.intent ?? 'CUSTOMER', this.riskRequest(req));
       if (!gate.ok) {
@@ -354,7 +374,9 @@ export class ForexOrderService {
       await this.persistPending(order);
       this.publish(order, 'fx.order.pending');
       this.refreshPendingGauge();
-      const quote = this.pricing?.getQuote(order.symbol);
+      const quote = isLiveForexAccount(accountId)
+        ? getBrokerGateway().getQuote(order.symbol)
+        : this.pricing?.getQuote(order.symbol);
       if (quote) await this.evaluateOne(order, quote, started);
       return this.store.get(order.orderId) ?? order;
     }
@@ -528,7 +550,15 @@ export class ForexOrderService {
     this.refreshPendingGauge();
 
     if (this.positions) {
-      const gate = this.riskGate(order.accountId, order.symbol, order.side, order.requestedVolume, order.request.intent ?? 'CUSTOMER', this.riskRequest(order.request));
+      const gate = this.riskGate(
+        order.accountId,
+        order.symbol,
+        order.side,
+        order.requestedVolume,
+        order.request.intent ?? 'CUSTOMER',
+        this.riskRequest(order.request),
+        isLiveForexAccount(order.accountId) ? quote : undefined
+      );
       if (!gate.ok) {
         forexRiskRejectionTotal.inc({ reason: gate.reason ?? 'RISK_REJECTED' });
         await this.finish(order, 'FAILED', 'RISK_REJECTED', started, gate.reason ?? 'risk limit');
@@ -581,6 +611,10 @@ export class ForexOrderService {
     this.emit(order, 'ORDER_ROUTING');
     this.transition(order, 'SUBMITTED');
     this.emit(order, 'ORDER_SUBMITTED', { metadata: { clientExecId: order.clientExecId } });
+
+    if (isLiveForexAccount(order.accountId)) {
+      return this.executeOnBroker(order, req, symbol, started);
+    }
 
     let exec: ForexExecutionRecord;
     const prevPersist = this.persistEnabled ? 'deferred' : 'off';
@@ -703,11 +737,68 @@ export class ForexOrderService {
   }
 
   /**
+   * LIVE fills are broker prints. MOCK venues are not asked.
+   */
+  private async executeOnBroker(
+    order: ForexOrderRecord,
+    req: ForexOrderRequest,
+    symbol: string,
+    started: number
+  ): Promise<ForexOrderRecord> {
+    const gateway = getBrokerGateway();
+    const health = await gateway.health();
+    if (!brokerOrdersReady(health)) {
+      return await this.finish(order, 'REJECTED', 'LIVE_BROKER_UNAVAILABLE', started, 'Broker gateway is not ready');
+    }
+    await gateway.refreshQuotes([symbol]);
+    if (!quoteUsableForTrigger(gateway.getQuote(symbol))) {
+      return await this.finish(order, 'REJECTED', 'STALE_MARKET', started, 'Broker quote is missing or stale');
+    }
+    const placed = await gateway.placeOrder({
+      clientOrderId: order.clientExecId,
+      accountId: order.accountId,
+      symbol,
+      side: req.side,
+      volume: order.remainingVolume,
+      price: req.requestedPrice,
+    });
+    if (placed.status !== 'filled' || !placed.avgPrice) {
+      const reason = placed.reason === 'LIVE_BROKER_UNAVAILABLE' ? 'LIVE_BROKER_UNAVAILABLE' : 'BROKER_REJECTED';
+      return await this.finish(order, 'REJECTED', reason, started, placed.reason ?? 'Broker rejected the order');
+    }
+    let exec: ForexExecutionRecord;
+    try {
+      exec = await this.execution.recordBrokerFill({
+        clientExecId: order.clientExecId,
+        accountId: order.accountId,
+        symbol,
+        side: req.side,
+        requestedVolume: order.requestedVolume,
+        filledVolume: placed.filledVolume,
+        price: placed.avgPrice,
+        venueOrderId: placed.venueOrderId,
+      });
+    } catch (err) {
+      return await this.finish(order, 'FAILED', 'ORDER_FAILED', started, err instanceof Error ? err.message : 'broker fill failed');
+    }
+    try {
+      await this.commitExecutionLifecycle(order, exec, started);
+    } catch (err) {
+      if (err instanceof ForexOrderError && err.reason === 'OVERFILL') {
+        return await this.finish(order, 'FAILED', 'OVERFILL', started, err.message);
+      }
+      throw err;
+    }
+    return this.store.get(order.orderId) ?? order;
+  }
+
+  /**
    * FOK needs an all-or-nothing decision before routing. MOCK liquidity covers
-   * the full requested volume for any quotable symbol.
+   * the full requested volume for any quotable symbol. LIVE uses the broker quote only.
    */
   private canFillFullVolume(order: ForexOrderRecord, symbol: string): boolean {
     if (!fxDecimal(order.remainingVolume).gt(0)) return false;
+    if (isLiveForexAccount(order.accountId)) return quoteUsableForTrigger(getBrokerGateway().getQuote(symbol));
     if (!this.pricing) return true;
     return this.pricing.getQuote(symbol) != null;
   }
@@ -748,7 +839,8 @@ export class ForexOrderService {
     side: 'buy' | 'sell',
     volume: string,
     intent: import('./request.js').ForexOrderIntent = 'CUSTOMER',
-    req?: import('./request.js').ForexOrderRequest
+    req?: import('./request.js').ForexOrderRequest,
+    quote?: ForexQuoteDto
   ) {
     if (!this.positions) return { ok: true, reason: null };
     const openForSymbol = this.store.listByAccount(accountId).filter((o) => o.symbol === symbol && !['FILLED', 'REJECTED', 'CANCELLED', 'FAILED'].includes(o.status)).length;
@@ -762,6 +854,7 @@ export class ForexOrderService {
       maxDeviation: req?.maxDeviation,
       openOrdersForSymbol: openForSymbol,
       reducePositionId: req?.reducePositionId,
+      ...(quote ? { quote } : {}),
     });
     if (!decision.ok) return { ok: false, reason: decision.reason };
     return { ok: true, reason: null };
@@ -1084,16 +1177,20 @@ export class ForexOrderService {
     };
     recordForexJournalEvent(entry);
     void (async () => {
-      const { evaluateForexAccountEventAlerts, forexOrderEventToAlertType } = await import('../customer/alert-engine.js');
-      const alertType = forexOrderEventToAlertType(event.eventType);
-      if (!alertType) return;
-      await evaluateForexAccountEventAlerts({
-        accountId: order.accountId,
-        alertType,
-        symbol: order.symbol,
-        message: entry.message,
-        metadata: { orderId: order.orderId, eventType: event.eventType, ...(entry.metadata as Record<string, unknown>) },
-      });
+      try {
+        const { evaluateForexAccountEventAlerts, forexOrderEventToAlertType } = await import('../customer/alert-engine.js');
+        const alertType = forexOrderEventToAlertType(event.eventType);
+        if (!alertType) return;
+        await evaluateForexAccountEventAlerts({
+          accountId: order.accountId,
+          alertType,
+          symbol: order.symbol,
+          message: entry.message,
+          metadata: { orderId: order.orderId, eventType: event.eventType, ...(entry.metadata as Record<string, unknown>) },
+        });
+      } catch {
+        /* alerts are advisory; a missing table must not fail the order */
+      }
     })();
   }
 
@@ -1203,6 +1300,10 @@ export function getForexOrderService(): ForexOrderService {
       void orderSingleton?.evaluateQuote(q);
     });
   }
+  return orderSingleton;
+}
+
+export function peekForexOrderService(): ForexOrderService | null {
   return orderSingleton;
 }
 

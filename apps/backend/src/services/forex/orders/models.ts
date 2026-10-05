@@ -37,8 +37,8 @@ export interface ForexOrderRecord {
   failureReason: ForexOrderReason | string | null;
   executionId: string | null;
   fillIds: string[];
-  source: 'SIMULATED';
-  executionMode: 'MOCK';
+  source: 'SIMULATED' | 'LIVE';
+  executionMode: 'MOCK' | 'BROKER';
   events: ForexOrderEvent[];
   version: number;
   lastQuoteKey: string | null;

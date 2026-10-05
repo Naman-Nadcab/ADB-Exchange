@@ -12,6 +12,7 @@ import {
   forexRiskStateChangeTotal,
 } from '../../../lib/forex-prometheus-metrics.js';
 import { effectiveForexRuntimeFlags } from '../admin/runtime-controls.js';
+import { executableQuoteForAccount } from '../broker/gateway.js';
 import { forexConfig } from '../config.js';
 import { isForexAccountLiquidationLocked } from '../liquidation/lock.js';
 import type { ForexOrderIntent } from '../orders/request.js';
@@ -19,6 +20,7 @@ import { ForexConversionError } from '../pnl/conversion.js';
 import type { ForexPositionRecord } from '../positions/models.js';
 import type { ForexPositionService } from '../positions/service.js';
 import type { ForexPricingService } from '../quotes.service.js';
+import type { ForexQuoteDto } from '../types.js';
 import { forexWsHub } from '../ws/hub.js';
 import { getForexDealingSnapshot } from './dealing.js';
 import { calculateForexExposure } from './exposure.js';
@@ -96,9 +98,10 @@ export class ForexRiskService {
     maxDeviation?: string;
     openOrdersForSymbol: number;
     reducePositionId?: string;
+    quote?: ForexQuoteDto;
   }): ForexPreTradeDecision {
     const current = this.positions.listOwned(args.accountId, true);
-    const quote = this.pricing.getQuote(args.symbol);
+    const quote = args.quote ?? executableQuoteForAccount(this.pricing, args.accountId, args.symbol);
     const px = quote ? (args.side === 'buy' ? quote.ask : quote.bid) : undefined;
     let preview: ForexPositionRecord[];
     try {

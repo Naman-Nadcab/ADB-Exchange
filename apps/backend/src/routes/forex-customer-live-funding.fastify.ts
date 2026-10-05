@@ -14,6 +14,8 @@ import {
   listLiveApplicationsForUser,
 } from '../services/forex/customer/live-account-applications.service.js';
 import { buildLiveForexReadiness } from '../services/forex/customer/live-funding-readiness.js';
+import { loadForexAccountKind } from '../services/forex/broker/account-kind.js';
+import { creditForexAfterBrokerSettle, debitForexAfterBrokerSettle } from '../services/forex/broker/cash-rail.js';
 import { getForexBrokerCredentialsProvider } from '../services/forex/customer/live-account-provider.registry.js';
 import { getPlatformKycSnapshot } from '../services/forex/customer/platform-kyc.js';
 import { isForexKycRequired } from '../services/forex/customer/forex-kyc-policy.service.js';
@@ -129,15 +131,46 @@ export async function registerForexCustomerLiveFundingRoutes(app: FastifyInstanc
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
     const readiness = await buildLiveForexReadiness();
-    return reply.status(503).send({
-      success: false,
-      error: {
-        code: 'FOREX_DEPOSIT_UNAVAILABLE',
-        message: 'Live Forex deposits are not available on this environment.',
-        blockers: readiness.blockers,
-        capabilities: readiness.capabilities,
-      },
-    });
+    if (!readiness.capabilities.deposit) {
+      return reply.status(503).send({
+        success: false,
+        error: {
+          code: 'FOREX_DEPOSIT_UNAVAILABLE',
+          message: 'Live Forex deposits are not available on this environment.',
+          blockers: readiness.blockers,
+          capabilities: readiness.capabilities,
+        },
+      });
+    }
+    const body = (request.body ?? {}) as { accountId?: string; amount?: string; idempotencyKey?: string };
+    const accountId = String(body.accountId ?? '').trim();
+    const amount = String(body.amount ?? '').trim();
+    const idempotencyKey = String(body.idempotencyKey ?? request.headers['idempotency-key'] ?? '').trim();
+    if (!accountId || !amount || !idempotencyKey) {
+      return reply.status(400).send({ success: false, error: { code: 'INVALID_REQUEST', message: 'accountId, amount, idempotencyKey required' } });
+    }
+    if (!(await userOwnsForexAccount(userId, accountId))) {
+      return reply.status(404).send({ success: false, error: { code: 'FOREX_ACCOUNT_NOT_FOUND', message: 'Account not found' } });
+    }
+    if ((await loadForexAccountKind(accountId)) !== 'LIVE') {
+      return reply.status(403).send({ success: false, error: { code: 'LIVE_ACCOUNT_REQUIRED', message: 'Broker deposits post only to a live Forex account.' } });
+    }
+    try {
+      const settled = await creditForexAfterBrokerSettle(accounting(), { accountId, amount, idempotencyKey });
+      if (!settled.ok) {
+        const status = settled.code === 'BROKER_REJECTED' ? 409 : 503;
+        return reply.status(status).send({ success: false, error: { code: settled.code, message: settled.message } });
+      }
+      return reply.status(201).send({
+        success: true,
+        data: { rail: 'BROKER', brokerRef: settled.brokerRef, transaction: publicLedgerRow(settled.transaction) },
+      });
+    } catch (e) {
+      if (e instanceof ForexLedgerError) {
+        return reply.status(e.statusCode).send({ success: false, error: { code: e.reason, message: e.message } });
+      }
+      throw e;
+    }
   });
 
   app.post('/funding/withdrawals', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
@@ -161,7 +194,27 @@ export async function registerForexCustomerLiveFundingRoutes(app: FastifyInstanc
         },
       });
     }
-    return reply.status(503).send({ success: false, error: { code: 'UNREACHABLE', message: 'Withdrawal rail not wired' } });
+    const amount = String(body.amount ?? '').trim();
+    const idempotencyKey = String(body.idempotencyKey ?? request.headers['idempotency-key'] ?? '').trim();
+    if (!amount || !idempotencyKey) {
+      return reply.status(400).send({ success: false, error: { code: 'INVALID_REQUEST', message: 'amount and idempotencyKey are required' } });
+    }
+    if ((await loadForexAccountKind(accountId)) !== 'LIVE') {
+      return reply.status(403).send({ success: false, error: { code: 'LIVE_ACCOUNT_REQUIRED', message: 'Broker withdrawals post only to a live Forex account.' } });
+    }
+    try {
+      const settled = await debitForexAfterBrokerSettle(accounting(), { accountId, amount, idempotencyKey });
+      if (!settled.ok) {
+        const status = settled.code === 'BROKER_REJECTED' ? 409 : 503;
+        return reply.status(status).send({ success: false, error: { code: settled.code, message: settled.message } });
+      }
+      return reply.status(201).send({ success: true, data: { rail: 'BROKER', brokerRef: settled.brokerRef, status: 'POSTED' } });
+    } catch (e) {
+      if (e instanceof ForexLedgerError) {
+        return reply.status(e.statusCode).send({ success: false, error: { code: e.reason, message: e.message } });
+      }
+      throw e;
+    }
   });
 
   app.post('/funding/transfers', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
@@ -228,8 +281,10 @@ export async function registerForexCustomerLiveFundingRoutes(app: FastifyInstanc
       success: true,
       data: {
         available: readiness.capabilities.paymentMethods,
-        count: 0,
-        methods: [] as unknown[],
+        count: readiness.capabilities.paymentMethods ? 1 : 0,
+        methods: readiness.capabilities.paymentMethods
+          ? [{ id: 'broker-cash', label: 'Broker account', rail: 'BROKER' }]
+          : ([] as unknown[]),
         reason: readiness.capabilities.paymentMethods ? null : 'FOREX_PAYMENT_PROVIDER_NOT_CONFIGURED',
         blockers: readiness.blockers,
       },
