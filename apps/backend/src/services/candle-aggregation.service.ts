@@ -18,6 +18,8 @@ import {
   needsChartHistoryBackfill,
   needsChartTailSync,
   referenceKline,
+  referenceTailLimit,
+  seriesHasReferenceGap,
 } from './chart-history.js';
 
 const CANDLE_AGG_LOCK_KEY = 'candle_agg:run';
@@ -323,12 +325,13 @@ export async function seedSyntheticCandles(): Promise<{ seeded: number; errors: 
                     )::int AS flat,
                     count(*) FILTER (
                       WHERE open_time >= NOW() - INTERVAL '30 minutes'
+                        AND open_time < NOW() - ($4::int * INTERVAL '1 second')
                         AND open_price = high_price AND high_price = low_price AND low_price = close_price
                     )::int AS recent_flat
              FROM ohlcv_candles
              WHERE trading_pair_id = $1 AND interval_type = $2
                AND open_time >= NOW() - ($3::int * INTERVAL '1 second')`,
-            [m.id, intervalType, windowSec]
+            [m.id, intervalType, windowSec, seconds * 2]
           );
           const row = coverage.rows[0];
           if (!needsChartHistoryBackfill(row?.n ?? 0, row?.flat ?? 0, CHART_HISTORY_BARS, row?.recent_flat ?? 0)) {
@@ -345,9 +348,12 @@ export async function seedSyntheticCandles(): Promise<{ seeded: number; errors: 
               [m.id, intervalType]
             );
             const newestMs = newest.rows[0]?.open_time ? new Date(newest.rows[0].open_time).getTime() : null;
-            if (!needsChartTailSync(newestMs, seconds)) continue;
+            const staleTip = needsChartTailSync(newestMs, seconds);
+            const gap = seriesHasReferenceGap(row?.n ?? 0);
+            if (!staleTip && !gap) continue;
 
-            const tail = await fetchReferenceKlines(oracleSym, binanceInterval, CHART_TAIL_BARS);
+            const tailLimit = gap ? referenceTailLimit(row?.n ?? 0) : CHART_TAIL_BARS;
+            const tail = await fetchReferenceKlines(oracleSym, binanceInterval, tailLimit);
             if (!tail.ok) {
               if (tail.error) errors.push(`${m.symbol}/${intervalType}: ${tail.error}`);
               continue;

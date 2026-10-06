@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { needsChartHistoryBackfill, needsChartTailSync, referenceKline } from './chart-history.js';
+import {
+  needsChartHistoryBackfill,
+  needsChartTailSync,
+  referenceKline,
+  referenceTailLimit,
+  seriesHasReferenceGap,
+} from './chart-history.js';
 
 test('a short or flat series needs a full OHLC backfill', () => {
   assert.equal(needsChartHistoryBackfill(1114, 1100), true);
@@ -19,6 +25,13 @@ test('a full series still needs a short tail when the newest bar is behind', () 
   assert.equal(needsChartTailSync(currentOpen - 120_000, intervalSec, nowMs), true);
   assert.equal(needsChartTailSync(null, intervalSec, nowMs), true);
   assert.equal(needsChartTailSync(currentOpen - 3_600_000, 3600, nowMs), false);
+});
+
+test('a hole behind a fresh tip asks for a tail the size of the hole', () => {
+  assert.equal(seriesHasReferenceGap(1000), false);
+  assert.equal(seriesHasReferenceGap(825), true);
+  assert.equal(referenceTailLimit(1000), 30);
+  assert.equal(referenceTailLimit(825), 205);
 });
 
 test('reference klines keep OHLC and drop venue volume', () => {

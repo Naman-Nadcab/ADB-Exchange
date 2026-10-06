@@ -42,6 +42,29 @@ export function needsChartTailSync(
   return currentOpenMs - newestOpenMs >= lagIntervals * bucketMs;
 }
 
+/** A fresh tip can still hide a hole. Fill that hole without reloading the whole series. */
+export function seriesHasReferenceGap(
+  storedBars: number,
+  target = CHART_HISTORY_BARS,
+  minTail = CHART_TAIL_BARS
+): boolean {
+  const n = Number.isFinite(storedBars) ? storedBars : 0;
+  const goal = Number.isFinite(target) && target > 0 ? target : CHART_HISTORY_BARS;
+  return goal - n > minTail / 2;
+}
+
+export function referenceTailLimit(
+  storedBars: number,
+  target = CHART_HISTORY_BARS,
+  minTail = CHART_TAIL_BARS
+): number {
+  const n = Number.isFinite(storedBars) ? Math.max(0, storedBars) : 0;
+  const goal = Number.isFinite(target) && target > 0 ? target : CHART_HISTORY_BARS;
+  const shortfall = Math.max(0, goal - n);
+  if (shortfall <= minTail / 2) return minTail;
+  return Math.min(goal, shortfall + minTail);
+}
+
 export type ReferenceKline = {
   openTime: Date;
   closeTime: Date;
