@@ -9,7 +9,7 @@ import { p2pService } from '../services/p2p.service.js';
 import { evaluateP2PRisk } from '../services/abuse-resilience.service.js';
 import { recordAndEvaluate } from '../services/aml-transaction-monitor.service.js';
 import { KycPendingError } from '../services/kyc-enforcement.service.js';
-import { checkSanctions } from '../services/sanctions-screening.service.js';
+import { checkSanctionsForUser } from '../services/sanctions-screening.service.js';
 import { getCurrencyIdBySymbol, getTokenIdsByCurrencyId } from '../lib/currency-resolver.js';
 import { rateLimitByUser } from '../lib/rate-limit-fastify.js';
 import { P2PAdType, P2PAdStatus, P2PPriceType } from '../types/index.js';
@@ -892,18 +892,16 @@ export default async function p2pRoutes(app: FastifyInstance) {
         });
       }
     }
-    if (type === 'sell') {
-      const sellerSanctions = await checkSanctions({
-        userId,
-        amount: availableAmount || maxAmount,
-        asset: currency,
+    const ownerSanctions = await checkSanctionsForUser({
+      userId,
+      amount: String(availableAmount || maxAmount || ''),
+      asset: currency,
+    });
+    if (!ownerSanctions.allowed) {
+      return reply.status(403).send({
+        success: false,
+        error: { code: 'SANCTIONS_BLOCKED', message: ownerSanctions.reason ?? 'Cannot create ad due to compliance check.' },
       });
-      if (!sellerSanctions.allowed) {
-        return reply.status(403).send({
-          success: false,
-          error: { code: 'SANCTIONS_BLOCKED', message: sellerSanctions.reason ?? 'Cannot create sell ad due to compliance check.' },
-        });
-      }
     }
 
     const cryptoCurrencyId = await getCurrencyIdBySymbol(currency);
@@ -1739,8 +1737,8 @@ export default async function p2pRoutes(app: FastifyInstance) {
     const adType = adParty.rows[0]!.type;
     const buyerId = adType === 'sell' ? userId : adOwnerId;
     const sellerId = adType === 'sell' ? adOwnerId : userId;
-    const buyerCheck = await checkSanctions({ userId: buyerId, amount: body.quantity, asset: 'P2P' });
-    const sellerCheck = await checkSanctions({ userId: sellerId, amount: body.quantity, asset: 'P2P' });
+    const buyerCheck = await checkSanctionsForUser({ userId: buyerId, amount: String(body.quantity), asset: 'P2P' });
+    const sellerCheck = await checkSanctionsForUser({ userId: sellerId, amount: String(body.quantity), asset: 'P2P' });
     if (!buyerCheck.allowed) {
       return reply.status(403).send({
         success: false,
@@ -2233,8 +2231,8 @@ export default async function p2pRoutes(app: FastifyInstance) {
         error: { code: 'FORBIDDEN', message: 'Only seller can release crypto' },
       });
     }
-    const buyerSanctions = await checkSanctions({ userId: ord.buyer_id, amount: ord.quantity, asset: 'P2P' });
-    const sellerSanctions = await checkSanctions({ userId: ord.seller_id, amount: ord.quantity, asset: 'P2P' });
+    const buyerSanctions = await checkSanctionsForUser({ userId: ord.buyer_id, amount: String(ord.quantity), asset: 'P2P' });
+    const sellerSanctions = await checkSanctionsForUser({ userId: ord.seller_id, amount: String(ord.quantity), asset: 'P2P' });
     if (!buyerSanctions.allowed || !sellerSanctions.allowed) {
       const reason = !buyerSanctions.allowed ? buyerSanctions.reason : sellerSanctions.reason;
       return reply.status(403).send({

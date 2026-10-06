@@ -1717,6 +1717,31 @@ async function start() {
       logger.info('Price oracle disabled (PRICE_ORACLE_ENABLED=false)');
     }
 
+    if ((process.env.SANCTIONS_PROVIDER ?? '').trim().toLowerCase() === 'official_public_lists') {
+      const refreshLists = async (): Promise<void> => {
+        const { refreshOfficialPublicLists } = await import('./services/sanctions/official-public-lists.js');
+        const manifest = await refreshOfficialPublicLists({ timeoutMs: 120_000 });
+        logger.info('OFAC public sanctions list refreshed', {
+          addressCount: manifest.addressCount,
+          version: manifest.version,
+        });
+      };
+      void refreshLists().catch((err) => {
+        logger.warn('OFAC public sanctions list refresh failed', {
+          error: err instanceof Error ? err.message : String(err),
+        });
+      });
+      const sanctionsListIntervalMs = 12 * 60 * 60 * 1000;
+      setInterval(() => {
+        void refreshLists().catch((err) => {
+          logger.warn('OFAC public sanctions list refresh failed', {
+            error: err instanceof Error ? err.message : String(err),
+          });
+        });
+      }, sanctionsListIntervalMs);
+      logger.info('OFAC public sanctions list scheduled (startup, then every 12h)');
+    }
+
     if (config.liquidityBot.enabled && config.liquidityBot.apiKey) {
       const scheduleLiquidityBot = (): void => {
         const tick = async (): Promise<void> => {
