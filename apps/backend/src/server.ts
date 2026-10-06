@@ -1720,17 +1720,25 @@ async function start() {
     if ((process.env.SANCTIONS_PROVIDER ?? '').trim().toLowerCase() === 'official_public_lists') {
       const refreshLists = async (): Promise<void> => {
         const { refreshOfficialPublicLists } = await import('./services/sanctions/official-public-lists.js');
-        const manifest = await refreshOfficialPublicLists({ timeoutMs: 120_000 });
-        logger.info('OFAC public sanctions list refreshed', {
-          addressCount: manifest.addressCount,
-          version: manifest.version,
-        });
+        let lastError = 'unknown';
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            const manifest = await refreshOfficialPublicLists({ timeoutMs: 180_000 });
+            logger.info('OFAC public sanctions list refreshed', {
+              addressCount: manifest.addressCount,
+              version: manifest.version,
+              attempt,
+            });
+            return;
+          } catch (err) {
+            lastError = err instanceof Error ? err.message : String(err);
+            logger.warn('OFAC public sanctions list refresh failed', { error: lastError, attempt });
+            if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 15_000));
+          }
+        }
+        logger.warn('OFAC public sanctions list remains unavailable', { error: lastError });
       };
-      void refreshLists().catch((err) => {
-        logger.warn('OFAC public sanctions list refresh failed', {
-          error: err instanceof Error ? err.message : String(err),
-        });
-      });
+      void refreshLists();
       const sanctionsListIntervalMs = 12 * 60 * 60 * 1000;
       setInterval(() => {
         void refreshLists().catch((err) => {

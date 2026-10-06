@@ -39,6 +39,27 @@ async function tempRoot(): Promise<string> {
   return mkdtemp(path.join(tmpdir(), 'ofac-lists-'));
 }
 
+async function testPublishedFeatureTypeIds(): Promise<void> {
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<Sanctions>
+  <ReferenceValueSets>
+    <FeatureType ID="345" FeatureTypeGroupID="1">Digital Currency Address - ETH</FeatureType>
+    <FeatureType ID="25">Other</FeatureType>
+  </ReferenceValueSets>
+  <DistinctParty>
+    <Feature ID="1" FeatureTypeID="345">
+      <FeatureVersion ID="2"><VersionDetail DetailTypeID="1432">${MATCH}</VersionDetail></FeatureVersion>
+    </Feature>
+    <Feature ID="3" FeatureTypeID="25">
+      <FeatureVersion ID="4"><VersionDetail>not-a-wallet</VersionDetail></FeatureVersion>
+    </Feature>
+  </DistinctParty>
+</Sanctions>`;
+  const addresses = extractOfacDigitalCurrencyAddresses(xml);
+  assert.deepEqual(addresses, [MATCH]);
+  console.log('PASS published FeatureTypeID address extraction');
+}
+
 async function testExtractAndScreen(): Promise<void> {
   const addresses = extractOfacDigitalCurrencyAddresses(fixture());
   assert.deepEqual(addresses, [BTC, MATCH].sort());
@@ -147,6 +168,7 @@ async function testRefreshDoesNotReplaceOnFailure(): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  await testPublishedFeatureTypeIds();
   await testExtractAndScreen();
   await testRejectedUpdatesKeepPrevious();
   await testChecksumAndStale();

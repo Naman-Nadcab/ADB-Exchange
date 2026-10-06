@@ -72,7 +72,18 @@ function assertCompleteSnapshot(xml: string): void {
   }
 }
 
-/** Pull exact digital-currency identifiers. No fuzzy name matching. */
+function rememberAddress(found: Set<string>, raw: string): void {
+  const address = raw.trim();
+  if (address.length < 8 || address.length > 256 || /\s/.test(address)) return;
+  found.add(address);
+}
+
+/**
+ * Pull exact digital-currency identifiers. No fuzzy name matching.
+ * The published SDN advanced file defines "Digital Currency Address - …" as a
+ * FeatureType id, then stores the address on Feature FeatureTypeID="…".
+ * The inline fixture form (type text next to VersionDetail) is still accepted.
+ */
 export function extractOfacDigitalCurrencyAddresses(xml: string): string[] {
   assertCompleteSnapshot(xml);
   const found = new Set<string>();
@@ -82,11 +93,27 @@ export function extractOfacDigitalCurrencyAddresses(xml: string): string[] {
     /Digital Currency Address\s*-\s*[A-Za-z0-9]+[\s\S]{0,800}?<VersionDetail\b[^>]*>\s*([^<]+?)\s*<\/VersionDetail>/gi;
   for (const pattern of [idPair, featurePair]) {
     for (const match of xml.matchAll(pattern)) {
-      const raw = match[1]?.trim() ?? '';
-      if (raw.length < 8 || raw.length > 256 || /\s/.test(raw)) continue;
-      found.add(raw);
+      rememberAddress(found, match[1] ?? '');
     }
   }
+
+  const typeIds = new Set<string>();
+  const typeRe = /<FeatureType\b[^>]*\bID="(\d+)"[^>]*>\s*Digital Currency Address\s*-/gi;
+  for (const match of xml.matchAll(typeRe)) {
+    if (match[1]) typeIds.add(match[1]);
+  }
+  if (typeIds.size > 0) {
+    const featureRe = /<Feature\b([^>]*)>([\s\S]*?)<\/Feature>/gi;
+    for (const feature of xml.matchAll(featureRe)) {
+      const typeId = feature[1]?.match(/\bFeatureTypeID="(\d+)"/)?.[1];
+      if (!typeId || !typeIds.has(typeId)) continue;
+      const detailRe = /<VersionDetail\b[^>]*>\s*([^<]+?)\s*<\/VersionDetail>/gi;
+      for (const detail of (feature[2] ?? '').matchAll(detailRe)) {
+        rememberAddress(found, detail[1] ?? '');
+      }
+    }
+  }
+
   if (found.size === 0) throw new Error('snapshot contained no digital currency addresses');
   return [...found].sort();
 }
