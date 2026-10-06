@@ -192,7 +192,7 @@ export default function P2PV2MarketplacePage() {
   const [filters, setFilters] = useState<P2PFiltersValue>({
     side: 'buy',
     crypto: 'USDT',
-    fiat: 'INR',
+    fiat: 'USD',
     paymentCode: '',
   });
   const [modalAd, setModalAd] = useState<P2PAdRow | null>(null);

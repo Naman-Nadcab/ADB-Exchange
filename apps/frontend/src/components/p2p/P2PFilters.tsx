@@ -3,7 +3,7 @@
 import { ShoppingCart, Banknote } from 'lucide-react';
 
 const CRYPTO_OPTIONS = ['USDT', 'BTC', 'ETH', 'USDC'];
-const FIAT_OPTIONS = ['INR', 'USD', 'EUR', 'GBP'];
+const FIAT_OPTIONS = ['USD', 'INR', 'EUR', 'GBP'];
 const PAYMENT_OPTIONS = ['All', 'Bank Transfer', 'UPI', 'PayPal', 'PayTM'];
 
 interface P2PFiltersProps {

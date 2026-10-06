@@ -11,7 +11,7 @@ export type P2PFiltersValue = {
 };
 
 const CRYPTOS = ['USDT', 'BTC', 'ETH', 'USDC'];
-const FIATS = ['INR', 'USD', 'EUR', 'GBP'];
+const FIATS = ['USD', 'INR', 'EUR', 'GBP'];
 type Props = {
   value: P2PFiltersValue;
   onChange: (v: P2PFiltersValue) => void;
