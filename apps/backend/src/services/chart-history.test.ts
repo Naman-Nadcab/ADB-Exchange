@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { needsChartHistoryBackfill, referenceKline } from './chart-history.js';
+import { needsChartHistoryBackfill, needsChartTailSync, referenceKline } from './chart-history.js';
 
 test('a short or flat series needs a full OHLC backfill', () => {
   assert.equal(needsChartHistoryBackfill(1114, 1100), true);
@@ -8,6 +8,17 @@ test('a short or flat series needs a full OHLC backfill', () => {
   assert.equal(needsChartHistoryBackfill(1000, 40), false);
   assert.equal(needsChartHistoryBackfill(1000, 40, 1000, 8), true);
   assert.equal(needsChartHistoryBackfill(1000, 40, 1000, 0), false);
+});
+
+test('a full series still needs a short tail when the newest bar is behind', () => {
+  const intervalSec = 60;
+  const nowMs = Date.parse('2026-10-06T18:32:00.000Z');
+  const currentOpen = Math.floor(nowMs / 60_000) * 60_000;
+  assert.equal(needsChartTailSync(currentOpen, intervalSec, nowMs), false);
+  assert.equal(needsChartTailSync(currentOpen - 60_000, intervalSec, nowMs), false);
+  assert.equal(needsChartTailSync(currentOpen - 120_000, intervalSec, nowMs), true);
+  assert.equal(needsChartTailSync(null, intervalSec, nowMs), true);
+  assert.equal(needsChartTailSync(currentOpen - 3_600_000, 3600, nowMs), false);
 });
 
 test('reference klines keep OHLC and drop venue volume', () => {

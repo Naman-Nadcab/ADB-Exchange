@@ -5,6 +5,9 @@
  */
 export const CHART_HISTORY_BARS = 1000;
 export const CHART_HISTORY_URL = 'https://data-api.binance.vision/api/v3/klines';
+/** Small public tail. Used only when stored history is already full but the newest bar has stopped moving. */
+export const CHART_TAIL_BARS = 30;
+export const CHART_TAIL_LAG_INTERVALS = 2;
 
 export function needsChartHistoryBackfill(
   count: number,
@@ -19,6 +22,24 @@ export function needsChartHistoryBackfill(
   if (n < Math.floor(target * 0.8)) return true;
   if (n <= 0) return true;
   return flatN / n > 0.5;
+}
+
+/**
+ * A full series can still be stuck: backfill stops once the window looks healthy,
+ * so new minutes never arrive. Sync a short tail when the newest bar is at least
+ * two intervals behind the current bucket.
+ */
+export function needsChartTailSync(
+  newestOpenMs: number | null,
+  intervalSec: number,
+  nowMs = Date.now(),
+  lagIntervals = CHART_TAIL_LAG_INTERVALS
+): boolean {
+  if (!Number.isFinite(intervalSec) || intervalSec <= 0) return false;
+  if (newestOpenMs == null || !Number.isFinite(newestOpenMs) || newestOpenMs <= 0) return true;
+  const bucketMs = intervalSec * 1000;
+  const currentOpenMs = Math.floor(nowMs / bucketMs) * bucketMs;
+  return currentOpenMs - newestOpenMs >= lagIntervals * bucketMs;
 }
 
 export type ReferenceKline = {

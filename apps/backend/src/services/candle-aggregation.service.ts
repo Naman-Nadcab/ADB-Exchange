@@ -11,7 +11,14 @@
 import { db } from '../lib/database.js';
 import { redis } from '../lib/redis.js';
 import { logger } from '../lib/logger.js';
-import { CHART_HISTORY_BARS, CHART_HISTORY_URL, needsChartHistoryBackfill, referenceKline } from './chart-history.js';
+import {
+  CHART_HISTORY_BARS,
+  CHART_HISTORY_URL,
+  CHART_TAIL_BARS,
+  needsChartHistoryBackfill,
+  needsChartTailSync,
+  referenceKline,
+} from './chart-history.js';
 
 const CANDLE_AGG_LOCK_KEY = 'candle_agg:run';
 const CANDLE_AGG_LOCK_TTL_MS = 150_000; // 2.5 min
@@ -200,6 +207,64 @@ const BINANCE_INTERVAL_MAP: Record<string, string> = {
   '1d': '1d',
 };
 
+type RefCandle = NonNullable<ReturnType<typeof referenceKline>>;
+
+async function fetchReferenceKlines(
+  oracleSym: string,
+  binanceInterval: string,
+  limit: number
+): Promise<{ ok: true; candles: RefCandle[] } | { ok: false; error?: string }> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), CHART_HISTORY_TIMEOUT_MS);
+  try {
+    const url = `${CHART_HISTORY_URL}?symbol=${encodeURIComponent(oracleSym)}&interval=${binanceInterval}&limit=${limit}`;
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) {
+      return { ok: false, error: res.status === 400 ? undefined : `market data ${res.status}` };
+    }
+    const klines = (await res.json()) as Array<Array<number | string>>;
+    if (!Array.isArray(klines)) return { ok: false };
+    const candles = klines.map(referenceKline).filter((k): k is RefCandle => k != null);
+    const minBars = limit >= 50 ? 50 : 1;
+    if (candles.length < minBars) return { ok: false };
+    return { ok: true, candles };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes('aborted')) return { ok: false };
+    return { ok: false, error: msg };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function upsertReferenceCandles(pairId: string, intervalType: string, candles: RefCandle[]): Promise<number> {
+  let seeded = 0;
+  const BATCH = 80;
+  for (let i = 0; i < candles.length; i += BATCH) {
+    const chunk = candles.slice(i, i + BATCH);
+    const values: string[] = [];
+    const params: Array<string | Date> = [];
+    chunk.forEach((k, n) => {
+      const idx = n * 8;
+      values.push(
+        `($${idx + 1}, $${idx + 2}, $${idx + 3}, $${idx + 4}, $${idx + 5}::numeric, $${idx + 6}::numeric, $${idx + 7}::numeric, $${idx + 8}::numeric, 0, 0, 0)`
+      );
+      params.push(pairId, intervalType, k.openTime, k.closeTime, k.open, k.high, k.low, k.close);
+    });
+    await db.query(
+      `INSERT INTO ohlcv_candles (
+         trading_pair_id, interval_type, open_time, close_time,
+         open_price, high_price, low_price, close_price,
+         volume, quote_volume, trade_count
+       ) VALUES ${values.join(', ')}
+       ${REFERENCE_CONFLICT}`,
+      params
+    );
+    seeded += chunk.length;
+  }
+  return seeded;
+}
+
 async function mapPool<T>(items: T[], limit: number, fn: (item: T) => Promise<void>): Promise<void> {
   let cursor = 0;
   const workers = Array.from({ length: Math.min(limit, Math.max(1, items.length)) }, async () => {
@@ -273,46 +338,31 @@ export async function seedSyntheticCandles(): Promise<{ seeded: number; errors: 
                  AND open_time < NOW() - ($3::int * INTERVAL '1 second')`,
               [m.id, intervalType, windowSec]
             );
-            continue;
-          }
-
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), CHART_HISTORY_TIMEOUT_MS);
-          const url = `${CHART_HISTORY_URL}?symbol=${oracleSym}&interval=${binanceInterval}&limit=${CHART_HISTORY_BARS}`;
-          const res = await fetch(url, { signal: controller.signal });
-          clearTimeout(timeout);
-          if (!res.ok) {
-            if (res.status !== 400) errors.push(`${m.symbol}/${intervalType}: market data ${res.status}`);
-            continue;
-          }
-          const klines = (await res.json()) as Array<Array<number | string>>;
-          if (!Array.isArray(klines) || klines.length < 50) continue;
-          const candles = klines.map(referenceKline).filter((k): k is NonNullable<typeof k> => k != null);
-          if (candles.length < 50) continue;
-
-          const BATCH = 80;
-          for (let i = 0; i < candles.length; i += BATCH) {
-            const chunk = candles.slice(i, i + BATCH);
-            const values: string[] = [];
-            const params: Array<string | Date> = [];
-            chunk.forEach((k, n) => {
-              const idx = n * 8;
-              values.push(
-                `($${idx + 1}, $${idx + 2}, $${idx + 3}, $${idx + 4}, $${idx + 5}::numeric, $${idx + 6}::numeric, $${idx + 7}::numeric, $${idx + 8}::numeric, 0, 0, 0)`
-              );
-              params.push(m.id, intervalType, k.openTime, k.closeTime, k.open, k.high, k.low, k.close);
-            });
-            await db.query(
-              `INSERT INTO ohlcv_candles (
-                 trading_pair_id, interval_type, open_time, close_time,
-                 open_price, high_price, low_price, close_price,
-                 volume, quote_volume, trade_count
-               ) VALUES ${values.join(', ')}
-               ${REFERENCE_CONFLICT}`,
-              params
+            const newest = await db.query<{ open_time: Date | null }>(
+              `SELECT MAX(open_time) AS open_time
+               FROM ohlcv_candles
+               WHERE trading_pair_id = $1 AND interval_type = $2`,
+              [m.id, intervalType]
             );
-            seeded += chunk.length;
+            const newestMs = newest.rows[0]?.open_time ? new Date(newest.rows[0].open_time).getTime() : null;
+            if (!needsChartTailSync(newestMs, seconds)) continue;
+
+            const tail = await fetchReferenceKlines(oracleSym, binanceInterval, CHART_TAIL_BARS);
+            if (!tail.ok) {
+              if (tail.error) errors.push(`${m.symbol}/${intervalType}: ${tail.error}`);
+              continue;
+            }
+            seeded += await upsertReferenceCandles(m.id, intervalType, tail.candles);
+            continue;
           }
+
+          const history = await fetchReferenceKlines(oracleSym, binanceInterval, CHART_HISTORY_BARS);
+          if (!history.ok) {
+            if (history.error) errors.push(`${m.symbol}/${intervalType}: ${history.error}`);
+            continue;
+          }
+          const candles = history.candles;
+          seeded += await upsertReferenceCandles(m.id, intervalType, candles);
 
           const first = candles[0]!.openTime;
           const last = candles[candles.length - 1]!.openTime;

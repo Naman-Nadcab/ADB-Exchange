@@ -181,7 +181,7 @@ async function upsertPrices(
   );
 }
 
-/** Move the close of an existing reference bar. Never inserts a flat candle. */
+/** Open the current reference bucket if it is missing, then move its close. Real trade bars stay untouched. */
 async function touchFormingClose(rows: Array<{ pairId: string; price: string }>): Promise<void> {
   const nowSec = Math.floor(Date.now() / 1000);
   const pairIds: string[] = [];
@@ -205,25 +205,26 @@ async function touchFormingClose(rows: Array<{ pairId: string; price: string }>)
   for (let offset = 0; offset < pairIds.length; offset += BATCH) {
     const end = offset + BATCH;
     await db.query(
-      `UPDATE ohlcv_candles AS c SET
-         high_price = GREATEST(c.high_price, v.px),
-         low_price = LEAST(c.low_price, v.px),
-         close_price = v.px,
-         close_time = v.close_time
-       FROM (
-         SELECT
-           u.pair_id,
-           u.interval_type::candle_interval AS interval_type,
-           u.open_time,
-           u.close_time,
-           u.px
-         FROM UNNEST($1::uuid[], $2::text[], $3::timestamptz[], $4::timestamptz[], $5::numeric[])
-           AS u(pair_id, interval_type, open_time, close_time, px)
-       ) AS v
-       WHERE c.trading_pair_id = v.pair_id
-         AND c.interval_type = v.interval_type
-         AND c.open_time = v.open_time
-         AND c.trade_count = 0`,
+      `INSERT INTO ohlcv_candles (
+         trading_pair_id, interval_type, open_time, close_time,
+         open_price, high_price, low_price, close_price,
+         volume, quote_volume, trade_count
+       )
+       SELECT
+         u.pair_id,
+         u.interval_type::candle_interval,
+         u.open_time,
+         u.close_time,
+         u.px, u.px, u.px, u.px,
+         0, 0, 0
+       FROM UNNEST($1::uuid[], $2::text[], $3::timestamptz[], $4::timestamptz[], $5::numeric[])
+         AS u(pair_id, interval_type, open_time, close_time, px)
+       ON CONFLICT (trading_pair_id, interval_type, open_time) DO UPDATE SET
+         high_price = GREATEST(ohlcv_candles.high_price, EXCLUDED.high_price),
+         low_price = LEAST(ohlcv_candles.low_price, EXCLUDED.low_price),
+         close_price = EXCLUDED.close_price,
+         close_time = EXCLUDED.close_time
+       WHERE ohlcv_candles.trade_count = 0`,
       [pairIds.slice(offset, end), intervals.slice(offset, end), opens.slice(offset, end), closes.slice(offset, end), prices.slice(offset, end)]
     );
   }

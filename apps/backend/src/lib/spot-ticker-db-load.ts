@@ -373,16 +373,10 @@ export async function loadSpotTickerDbStats(symbol: string): Promise<SpotTickerD
     if (fb.high) highPrice = fb.high;
     if (fb.low) lowPrice = fb.low;
     if (fb.open) openPrice = fb.open;
-    if (fb.volume) {
-      const base = parseFloat(fb.volume);
-      const px = parseFloat(lastPrice ?? '');
-      if (Number.isFinite(base) && base > 0) {
-        baseVol = fb.volume;
-        volPrice = Number.isFinite(px) && px > 0 ? String(base * px) : fb.volume;
-      }
-    }
   };
 
+  const tapeQuote = s?.quote_volume ?? '0';
+  const tapeBase = s?.base_volume ?? '0';
   const oracleDrivenLast = lastPriceSource === 'oracle' || lastPriceSource === 'candle';
   if (oracleDrivenLast) {
     applyReference24h(await fallback24hStats(symbol, refFor24h));
@@ -390,12 +384,12 @@ export async function loadSpotTickerDbStats(symbol: string): Promise<SpotTickerD
     highPrice = tradeFresh && s?.high && s.high !== '0' ? s.high : null;
     lowPrice = tradeFresh && s?.low && s.low !== '0' ? s.low : null;
     openPrice = tradeFresh ? (s?.open_24h ?? null) : null;
-    volPrice = tradeFresh ? (s?.quote_volume ?? '0') : '0';
-    baseVol = tradeFresh ? (s?.base_volume ?? '0') : '0';
-    if (!highPrice || !openPrice || volPrice === '0' || baseVol === '0') {
+    if (!highPrice || !openPrice) {
       applyReference24h(await fallback24hStats(symbol, refFor24h));
     }
   }
+  volPrice = tapeQuote;
+  baseVol = tapeBase;
 
   // Guard against tiny anomalous prints polluting 24h fields (common in QA/local when
   // a single synthetic fill is far from market). If drift is extreme at very low volume,
@@ -416,8 +410,6 @@ export async function loadSpotTickerDbStats(symbol: string): Promise<SpotTickerD
       openPrice = null;
       highPrice = null;
       lowPrice = null;
-      volPrice = '0';
-      baseVol = '0';
     }
   }
 

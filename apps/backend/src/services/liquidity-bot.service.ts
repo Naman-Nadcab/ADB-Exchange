@@ -59,6 +59,7 @@ import {
   setMmToxicFlow,
   setMmPairFillRate,
 } from './mm-runtime-config.service.js';
+import { liftQtyToMarketMinimum } from './liquidity-bot-size.js';
 import {
   applyGlobalModeToSpreadBps,
   calculateSpread,
@@ -162,6 +163,21 @@ async function getPricePrecision(symbol: string): Promise<number> {
     [symbol]
   );
   return r.rows[0]?.price_precision ?? 8;
+}
+
+async function getMarketSizeLimits(symbol: string): Promise<{
+  minQty: string;
+  minNotional: string;
+  qtyPrecision: number;
+} | null> {
+  const r = await db.query<{ min_qty: string; min_notional: string; qty_precision: number }>(
+    `SELECT min_qty::text, min_notional::text, COALESCE(qty_precision, 8)::int AS qty_precision
+     FROM spot_markets WHERE symbol = $1`,
+    [symbol]
+  );
+  const row = r.rows[0];
+  if (!row) return null;
+  return { minQty: row.min_qty, minNotional: row.min_notional, qtyPrecision: row.qty_precision };
 }
 
 export type BotOpenLimit = {
@@ -599,6 +615,7 @@ export async function runLiquidityBotCycle(): Promise<{ placed: number; errors: 
       const coreHalfBpsForElite = Math.max(1, Math.round((bidCore + askCore) / 2));
 
       const precision = await getPricePrecision(symbol);
+      const sizeLimits = await getMarketSizeLimits(symbol);
       const maxPosUsd = resolveEffectiveMaxPositionUsdForSymbol(symbol);
       const posGuard = await getMmPositionGuard(symbol, userId, mid, maxPosUsd);
       const pairCapUsd = getPairCapital(symbol);
@@ -742,8 +759,14 @@ export async function runLiquidityBotCycle(): Promise<{ placed: number; errors: 
           .times(decay.pow(i))
           .times(depthSizeLevelMult(i, L))
           .toDecimalPlaces(8, ROUND_DOWN);
-        const bidQtyStr = baseQty.times(inv.bidSizeMult).toDecimalPlaces(8, ROUND_DOWN).toString();
-        const askQtyStr = baseQty.times(inv.askSizeMult).toDecimalPlaces(8, ROUND_DOWN).toString();
+        const rawBidQty = baseQty.times(inv.bidSizeMult).toDecimalPlaces(8, ROUND_DOWN).toString();
+        const rawAskQty = baseQty.times(inv.askSizeMult).toDecimalPlaces(8, ROUND_DOWN).toString();
+        const bidQtyStr = sizeLimits
+          ? liftQtyToMarketMinimum({ quantity: rawBidQty, price: bidPrice.toString(), ...sizeLimits })
+          : rawBidQty;
+        const askQtyStr = sizeLimits
+          ? liftQtyToMarketMinimum({ quantity: rawAskQty, price: askPrice.toString(), ...sizeLimits })
+          : rawAskQty;
 
         const primaryBid = buys[i];
         const primaryAsk = sells[i];
