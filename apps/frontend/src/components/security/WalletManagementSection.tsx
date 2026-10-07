@@ -14,6 +14,7 @@ import {
   type DiscoveredWallet,
 } from '@/lib/wallet-auth/browser-connector';
 import { sameWalletAddress, shortAddress } from '@/lib/wallet-auth/display';
+import { mobileWalletHandoffs, type MobileWalletHandoff } from '@/lib/wallet-auth/mobile-wallet-handoff';
 import {
   listManagedWallets,
   requestLinkChallenge,
@@ -48,6 +49,7 @@ export function WalletManagementSection({ accessToken }: Props) {
   const [mode, setMode] = useState<DialogMode>(null);
   const [target, setTarget] = useState<ManagedWallet | null>(null);
   const [choices, setChoices] = useState<DiscoveredWallet[]>([]);
+  const [handoffs, setHandoffs] = useState<MobileWalletHandoff[]>([]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -94,7 +96,9 @@ export function WalletManagementSection({ accessToken }: Props) {
     setError('');
     setNotice('');
     setTarget(null);
-    setChoices(discoverWallets());
+    const found = discoverWallets();
+    setChoices(found);
+    setHandoffs(found.length === 0 ? mobileWalletHandoffs(navigator.userAgent, window.location.href) : []);
     setMode('add');
   };
 
@@ -104,6 +108,7 @@ export function WalletManagementSection({ accessToken }: Props) {
     setNotice('');
     setTarget(wallet);
     setChoices(discoverWallets());
+    setHandoffs([]);
     setMode(next);
   };
 
@@ -331,8 +336,24 @@ export function WalletManagementSection({ accessToken }: Props) {
             </p>
           )}
           {error && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{error}</p>}
-          {choices.length === 0 ? (
+          {choices.length === 0 && handoffs.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t('security.wallets.noWallets')}</p>
+          ) : choices.length === 0 ? (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">{t('auth.wallet.mobileHint')}</p>
+              <ul className="space-y-2">
+                {handoffs.map((wallet) => (
+                  <li key={wallet.id}>
+                    <a
+                      href={wallet.href}
+                      className="block w-full truncate rounded-xl border border-border px-4 py-3 text-left text-sm font-medium text-foreground hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      {wallet.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ) : (
             <ul className="space-y-2">
               {choices.map((choice) => (

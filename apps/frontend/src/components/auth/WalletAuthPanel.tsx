@@ -15,6 +15,7 @@ import {
 } from '@/lib/wallet-auth/browser-connector';
 import { walletChallenge, walletVerify } from '@/lib/wallet-auth/api';
 import { runWalletAuthentication, type WalletAuthFailureCode, type WalletAuthPhase } from '@/lib/wallet-auth/flow';
+import { mobileWalletHandoffs, type MobileWalletHandoff } from '@/lib/wallet-auth/mobile-wallet-handoff';
 
 type Props = {
   actionLabel: string;
@@ -28,6 +29,7 @@ export function WalletAuthPanel({ actionLabel, disabled, onSuccess }: Props) {
   const t = useTranslations('auth.wallet');
   const [open, setOpen] = useState(false);
   const [wallets, setWallets] = useState<DiscoveredWallet[]>([]);
+  const [handoffs, setHandoffs] = useState<MobileWalletHandoff[]>([]);
   const [phase, setPhase] = useState<WalletAuthPhase>('idle');
   const [error, setError] = useState('');
   const running = useRef(false);
@@ -55,7 +57,9 @@ export function WalletAuthPanel({ actionLabel, disabled, onSuccess }: Props) {
     if (disabled || busy || running.current) return;
     setError('');
     setPhase('idle');
-    setWallets(discoverWallets());
+    const found = discoverWallets();
+    setWallets(found);
+    setHandoffs(found.length === 0 ? mobileWalletHandoffs(navigator.userAgent, window.location.href) : []);
     setOpen(true);
   };
 
@@ -141,8 +145,27 @@ export function WalletAuthPanel({ actionLabel, disabled, onSuccess }: Props) {
             </p>
           )}
           {error && <p className="text-destructive text-sm rounded-lg bg-destructive/10 px-3 py-2" role="alert">{error}</p>}
-          {wallets.length === 0 ? (
+          {wallets.length === 0 && handoffs.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t('none')}</p>
+          ) : wallets.length === 0 ? (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">{t('mobileHint')}</p>
+              <ul className="space-y-2">
+                {handoffs.map((wallet) => (
+                  <li key={wallet.id}>
+                    <a
+                      href={wallet.href}
+                      className="block w-full truncate rounded-xl border border-border px-4 py-3 text-left text-sm font-medium text-foreground hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      {wallet.name}
+                      <span className="ml-2 text-xs font-normal text-muted-foreground">
+                        {wallet.namespace === 'solana' ? 'Solana' : 'EVM'}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ) : (
             <ul className="space-y-2">
               {wallets.map((wallet) => (
