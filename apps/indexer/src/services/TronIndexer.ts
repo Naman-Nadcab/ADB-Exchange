@@ -149,47 +149,46 @@ export class TronIndexer {
   // --- internal -----------------------------------------------------------
 
   private async loadConfig(): Promise<void> {
+    // Live schema stores confirmations on chains.confirmations_required.
+    // blockchains has no required_confirmations column, so that lookup aborted startup.
     const cfgRes = await query(
-      `SELECT required_confirmations FROM blockchains
-        WHERE LOWER(chain_symbol) = 'trx' OR LOWER(chain_name) = 'tron' LIMIT 1`
+      `SELECT confirmations_required FROM chains WHERE id = 'tron' AND is_active = TRUE LIMIT 1`
     );
-    if (cfgRes.rows[0]?.required_confirmations) {
-      this.requiredConfirmations = Number(cfgRes.rows[0].required_confirmations) || DEFAULT_REQUIRED_CONFIRMATIONS;
+    const configured = Number(cfgRes.rows[0]?.confirmations_required);
+    if (Number.isFinite(configured) && configured > 0) {
+      this.requiredConfirmations = configured;
     }
 
-    // Tron blockchain_id in the `blockchains` table; used to scope currencies.
-    const blockchainRes = await query(
-      `SELECT id FROM blockchains WHERE LOWER(chain_symbol) = 'trx' OR LOWER(chain_name) = 'tron' LIMIT 1`
+    // deposits.currency_id references currencies. Those rows are not tagged with
+    // blockchain_id, so resolve TRX by symbol and TRC-20 contracts from tokens.
+    const trxRes = await query(
+      `SELECT id FROM currencies
+        WHERE UPPER(symbol) = 'TRX' AND contract_address IS NULL
+        LIMIT 1`
     );
-    const blockchainId = blockchainRes.rows[0]?.id;
+    this.trxCurrencyId = trxRes.rows[0]?.id || null;
 
-    if (blockchainId) {
-      // Native TRX
-      const trxRes = await query(
-        `SELECT id FROM currencies
-          WHERE UPPER(symbol) = 'TRX' AND blockchain_id = $1 AND contract_address IS NULL
-          LIMIT 1`,
-        [blockchainId]
-      );
-      this.trxCurrencyId = trxRes.rows[0]?.id || null;
-
-      // TRC-20 tokens
-      const trc20Res = await query(
-        `SELECT id, symbol, contract_address, decimals FROM currencies
-          WHERE blockchain_id = $1 AND contract_address IS NOT NULL AND is_active = TRUE`,
-        [blockchainId]
-      );
-      this.trc20Currencies.clear();
-      for (const r of trc20Res.rows as Array<{
-        id: string; symbol: string; contract_address: string; decimals: number;
-      }>) {
-        // Tron contract addresses are case-sensitive base58 — store exact.
-        this.trc20Currencies.set(r.contract_address, {
-          currencyId: r.id,
-          symbol: r.symbol,
-          decimals: Number(r.decimals) || 6,
-        });
-      }
+    const trc20Res = await query(
+      `SELECT DISTINCT ON (UPPER(t.symbol))
+              t.symbol, t.contract_address, t.decimals, c.id AS currency_id
+         FROM tokens t
+         JOIN currencies c ON UPPER(c.symbol) = UPPER(t.symbol)
+        WHERE t.chain_id = 'tron'
+          AND t.is_active = TRUE
+          AND t.contract_address IS NOT NULL
+          AND btrim(t.contract_address) <> ''
+        ORDER BY UPPER(t.symbol), (c.contract_address IS NULL)`
+    );
+    this.trc20Currencies.clear();
+    for (const r of trc20Res.rows as Array<{
+      currency_id: string; symbol: string; contract_address: string; decimals: number;
+    }>) {
+      // Tron contract addresses are case-sensitive base58 — store exact.
+      this.trc20Currencies.set(r.contract_address, {
+        currencyId: r.currency_id,
+        symbol: r.symbol,
+        decimals: Number(r.decimals) || 6,
+      });
     }
 
     logger.info('Tron indexer: config loaded', {
