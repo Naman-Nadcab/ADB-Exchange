@@ -257,6 +257,7 @@ services:
       - ./nginx/nginx.tls.conf:/etc/nginx/nginx.tls.conf:ro
       - ./nginx/nginx.http-only.conf:/etc/nginx/nginx.http-only.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/acme:/var/www/acme:ro
     entrypoint: ["/docker-entrypoint.sh"]
     depends_on:
       frontend:
