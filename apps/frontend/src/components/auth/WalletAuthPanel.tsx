@@ -16,6 +16,7 @@ import {
 import { walletChallenge, walletVerify } from '@/lib/wallet-auth/api';
 import { runWalletAuthentication, type WalletAuthFailureCode, type WalletAuthPhase } from '@/lib/wallet-auth/flow';
 import { mobileWalletHandoffs, type MobileWalletHandoff } from '@/lib/wallet-auth/mobile-wallet-handoff';
+import { WalletChoiceRow } from '@/components/auth/WalletChoiceRow';
 
 type Props = {
   actionLabel: string;
@@ -132,8 +133,8 @@ export function WalletAuthPanel({ actionLabel, disabled, onSuccess }: Props) {
       )}
 
       <Dialog open={open} onOpenChange={(next) => { if (!busy) setOpen(next); }}>
-        <DialogContent className="max-w-md rounded-xl border-border bg-card p-6" aria-busy={busy}>
-          <DialogHeader>
+        <DialogContent className="max-w-md rounded-2xl border-primary/20 bg-card p-5 shadow-2xl sm:p-6" aria-busy={busy}>
+          <DialogHeader className="text-left">
             <DialogTitle className="text-foreground">{t('choose')}</DialogTitle>
             <DialogDescription className="text-muted-foreground">{t('security')}</DialogDescription>
           </DialogHeader>
@@ -146,22 +147,19 @@ export function WalletAuthPanel({ actionLabel, disabled, onSuccess }: Props) {
           )}
           {error && <p className="text-destructive text-sm rounded-lg bg-destructive/10 px-3 py-2" role="alert">{error}</p>}
           {wallets.length === 0 && handoffs.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t('none')}</p>
+            <p className="rounded-xl border border-dashed border-border px-3 py-4 text-sm text-muted-foreground">{t('none')}</p>
           ) : wallets.length === 0 ? (
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">{t('mobileHint')}</p>
+            <div className="space-y-2.5">
+              <p className="rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-xs leading-relaxed text-foreground">{t('mobileHint')}</p>
               <ul className="space-y-2">
                 {handoffs.map((wallet) => (
                   <li key={wallet.id}>
-                    <a
+                    <WalletChoiceRow
+                      name={wallet.name}
+                      namespace={wallet.namespace}
+                      networkLabel={wallet.namespace === 'solana' ? t('networkSolana') : t('networkEvm')}
                       href={wallet.href}
-                      className="block w-full truncate rounded-xl border border-border px-4 py-3 text-left text-sm font-medium text-foreground hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    >
-                      {wallet.name}
-                      <span className="ml-2 text-xs font-normal text-muted-foreground">
-                        {wallet.namespace === 'solana' ? 'Solana' : 'EVM'}
-                      </span>
-                    </a>
+                    />
                   </li>
                 ))}
               </ul>
@@ -170,17 +168,13 @@ export function WalletAuthPanel({ actionLabel, disabled, onSuccess }: Props) {
             <ul className="space-y-2">
               {wallets.map((wallet) => (
                 <li key={wallet.id}>
-                  <button
-                    type="button"
+                  <WalletChoiceRow
+                    name={wallet.name}
+                    namespace={wallet.namespace}
+                    networkLabel={wallet.namespace === 'solana' ? t('networkSolana') : t('networkEvm')}
                     disabled={busy}
                     onClick={() => { void start(wallet); }}
-                    className="w-full truncate rounded-xl border border-border px-4 py-3 text-left text-sm font-medium text-foreground hover:bg-accent/50 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  >
-                    {wallet.name}
-                    <span className="ml-2 text-xs font-normal text-muted-foreground">
-                      {wallet.namespace === 'solana' ? 'Solana' : 'EVM'}
-                    </span>
-                  </button>
+                  />
                 </li>
               ))}
             </ul>
@@ -189,7 +183,7 @@ export function WalletAuthPanel({ actionLabel, disabled, onSuccess }: Props) {
             type="button"
             disabled={busy}
             onClick={() => setOpen(false)}
-            className="w-full py-3 rounded-xl border border-border text-foreground font-medium hover:bg-accent/50 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="w-full rounded-xl border border-border bg-background py-3 text-sm font-medium text-foreground hover:bg-accent/50 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             {t('close')}
           </button>

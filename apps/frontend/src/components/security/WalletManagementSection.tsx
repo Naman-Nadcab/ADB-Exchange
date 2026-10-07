@@ -15,6 +15,7 @@ import {
 } from '@/lib/wallet-auth/browser-connector';
 import { sameWalletAddress, shortAddress } from '@/lib/wallet-auth/display';
 import { mobileWalletHandoffs, type MobileWalletHandoff } from '@/lib/wallet-auth/mobile-wallet-handoff';
+import { WalletChoiceRow } from '@/components/auth/WalletChoiceRow';
 import {
   listManagedWallets,
   requestLinkChallenge,
@@ -344,12 +345,12 @@ export function WalletManagementSection({ accessToken }: Props) {
               <ul className="space-y-2">
                 {handoffs.map((wallet) => (
                   <li key={wallet.id}>
-                    <a
+                    <WalletChoiceRow
+                      name={wallet.name}
+                      namespace={wallet.namespace}
+                      networkLabel={wallet.namespace === 'solana' ? t('auth.wallet.networkSolana') : t('auth.wallet.networkEvm')}
                       href={wallet.href}
-                      className="block w-full truncate rounded-xl border border-border px-4 py-3 text-left text-sm font-medium text-foreground hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    >
-                      {wallet.name}
-                    </a>
+                    />
                   </li>
                 ))}
               </ul>
@@ -358,17 +359,13 @@ export function WalletManagementSection({ accessToken }: Props) {
             <ul className="space-y-2">
               {choices.map((choice) => (
                 <li key={choice.id}>
-                  <button
-                    type="button"
+                  <WalletChoiceRow
+                    name={choice.name}
+                    namespace={choice.namespace}
+                    networkLabel={choice.namespace === 'solana' ? t('auth.wallet.networkSolana') : t('auth.wallet.networkEvm')}
                     disabled={busy}
                     onClick={() => { void (mode === 'add' ? runAdd(choice) : runSensitive(choice)); }}
-                    className="w-full truncate rounded-xl border border-border px-4 py-3 text-left text-sm font-medium text-foreground hover:bg-accent/50 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  >
-                    {choice.name}
-                    <span className="ml-2 text-xs font-normal text-muted-foreground">
-                      {choice.namespace === 'solana' ? t('security.wallets.namespaceSolana') : t('security.wallets.namespaceEvm')}
-                    </span>
-                  </button>
+                  />
                 </li>
               ))}
             </ul>

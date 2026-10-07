@@ -113,7 +113,7 @@ export function PublicHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <LocaleLanguageSelector className="hidden sm:block" />
+          <LocaleLanguageSelector variant="compact" className="shrink-0" />
           {authed ? (
             <>
               <Link href={WALLET_HREF} prefetch className="tap-target hidden items-center gap-2 rounded-lg border border-[#F5B8001F] px-3 py-2 text-sm text-[#9CA3AF] transition hover:text-white sm:inline-flex">

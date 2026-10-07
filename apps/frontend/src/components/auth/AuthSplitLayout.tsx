@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { CandlestickChart, LineChart, Shield } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
+import { LocaleLanguageSelector } from '@/components/i18n/LocaleLanguageSelector';
 import { ROUTES } from '@/lib/routes';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { BrandLogo } from '@/components/brand/BrandLogo';
@@ -71,6 +72,7 @@ export default function AuthSplitLayout({
         <div className="flex items-center justify-between p-5 lg:p-6">
           <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} className="lg:hidden" />
           <div className="ml-auto flex items-center gap-2">
+            <LocaleLanguageSelector variant="compact" />
             <ThemeToggle variant="icon" size="sm" />
           </div>
         </div>

@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import SessionManager from '@/components/SessionManager';
 import ThemeToggle from '@/components/ThemeToggle';
+import { LocaleLanguageSelector } from '@/components/i18n/LocaleLanguageSelector';
 import { toast } from '@/components/ui/toaster';
 import { performLogout } from '@/lib/authLogout';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
@@ -348,6 +349,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 )}
               </button>
 
+              <LocaleLanguageSelector variant="compact" />
               <ThemeToggle variant="icon" size="sm" />
 
               <button
