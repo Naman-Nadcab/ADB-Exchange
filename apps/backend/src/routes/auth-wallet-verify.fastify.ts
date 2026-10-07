@@ -7,6 +7,7 @@
 import type { FastifyInstance } from 'fastify';
 import { config } from '../config/index.js';
 import { getClientIp } from '../lib/client-ip.js';
+import { walletFrontendUrl } from '../lib/wallet-frontend-url.js';
 import { db } from '../lib/database.js';
 import { logger } from '../lib/logger.js';
 import { rateLimitByIdentifier, rateLimitByIp, replyToRateLimit, takeRateLimitSlot } from '../lib/rate-limit-fastify.js';
@@ -99,7 +100,7 @@ export default async function walletVerifyRoutes(app: FastifyInstance): Promise<
         challengeId,
         message,
         signature,
-        frontendUrl: config.frontendUrl,
+        frontendUrl: walletFrontendUrl(request.headers.origin),
         transaction: (fn) => db.transaction((client) => fn((sql, params) => client.query(sql, params))),
         beforeSignature: (row) => enforceAddressLimit(row.normalizedAddress),
       });

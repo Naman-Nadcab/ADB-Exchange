@@ -8,6 +8,7 @@ import type { FastifyInstance } from 'fastify';
 import { config } from '../config/index.js';
 import { parseCaip10, CaipParseError } from '../lib/caip10.js';
 import { getClientIp } from '../lib/client-ip.js';
+import { walletFrontendUrl } from '../lib/wallet-frontend-url.js';
 import { db } from '../lib/database.js';
 import { logger } from '../lib/logger.js';
 import { rateLimitByIdentifier, rateLimitByIp } from '../lib/rate-limit-fastify.js';
@@ -81,7 +82,7 @@ export default async function walletChallengeRoutes(app: FastifyInstance): Promi
     try {
       const challenge = await createWalletAuthChallenge({
         caip10: request.body.caip10,
-        frontendUrl: config.frontendUrl,
+        frontendUrl: walletFrontendUrl(request.headers.origin),
         query: (sql, params) => db.query(sql, params),
       });
       logger.info('Wallet auth challenge issued', {

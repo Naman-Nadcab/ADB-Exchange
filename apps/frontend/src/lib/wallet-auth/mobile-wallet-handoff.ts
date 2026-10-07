@@ -5,8 +5,21 @@ export type MobileWalletHandoff = {
   href: string;
 };
 
+/** Wallet in-app browsers reject the IP certificate. This name resolves to that same server. */
+export const WALLET_BROWSER_ORIGIN = 'https://169.58.39.2.sslip.io';
+
 export function isMobileWalletBrowser(userAgent: string): boolean {
   return /Android|iPhone|iPad|iPod/i.test(userAgent);
+}
+
+function walletBrowserUrl(pageUrl: URL): string {
+  if (pageUrl.hostname !== '169.58.39.2') return pageUrl.toString();
+  const alias = new URL(WALLET_BROWSER_ORIGIN);
+  const next = new URL(pageUrl.toString());
+  next.protocol = alias.protocol;
+  next.hostname = alias.hostname;
+  next.port = alias.port;
+  return next.toString();
 }
 
 /** Phone browsers do not expose an installed wallet. These links open this page inside the wallet app. */
@@ -19,9 +32,10 @@ export function mobileWalletHandoffs(userAgent: string, pageUrl: string): Mobile
     return [];
   }
   if (url.protocol !== 'https:' && url.protocol !== 'http:') return [];
-  const absolute = url.toString();
+  const absolute = walletBrowserUrl(url);
+  const opened = new URL(absolute);
   const encoded = encodeURIComponent(absolute);
-  const dappPath = `${url.host}${url.pathname}${url.search}`;
+  const dappPath = `${opened.host}${opened.pathname}${opened.search}`;
   return [
     {
       id: 'mobile:metamask',
@@ -45,7 +59,7 @@ export function mobileWalletHandoffs(userAgent: string, pageUrl: string): Mobile
       id: 'mobile:phantom',
       name: 'Phantom',
       namespace: 'solana',
-      href: `https://phantom.app/ul/browse/${encoded}?ref=${encodeURIComponent(url.origin)}`,
+      href: `https://phantom.app/ul/browse/${encoded}?ref=${encodeURIComponent(opened.origin)}`,
     },
   ];
 }

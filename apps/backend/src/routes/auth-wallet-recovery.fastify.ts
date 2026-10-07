@@ -6,6 +6,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { config } from '../config/index.js';
 import { getClientIp } from '../lib/client-ip.js';
+import { walletFrontendUrl } from '../lib/wallet-frontend-url.js';
 import { db } from '../lib/database.js';
 import { logger } from '../lib/logger.js';
 import {
@@ -223,7 +224,7 @@ export default async function walletRecoveryRoutes(app: FastifyInstance): Promis
         passkeyId: body.passkeyId,
         assertion: body.assertion,
         totpCode: body.factor === 'totp' ? body.totpCode : undefined,
-        frontendUrl: config.frontendUrl,
+        frontendUrl: walletFrontendUrl(request.headers.origin),
         transaction: transaction(),
       });
       await audit(request, userId, result.audit, body.message);
@@ -254,7 +255,7 @@ export default async function walletRecoveryRoutes(app: FastifyInstance): Promis
         caip10: body.caip10 ?? '',
         action: body.action as typeof AUTHORIZE_RECOVERY_ACTION,
         lostWalletId: body.lostWalletId ?? null,
-        frontendUrl: config.frontendUrl,
+        frontendUrl: walletFrontendUrl(request.headers.origin),
         transaction: transaction(),
       });
       return reply.send({ success: true, challenge });
@@ -289,7 +290,7 @@ export default async function walletRecoveryRoutes(app: FastifyInstance): Promis
         challengeId: body.challengeId ?? '',
         message: body.message ?? '',
         signature: body.signature ?? '',
-        frontendUrl: config.frontendUrl,
+        frontendUrl: walletFrontendUrl(request.headers.origin),
         sessionId: request.user?.sessionId ?? null,
         transaction: transaction(),
       });
@@ -320,7 +321,7 @@ export default async function walletRecoveryRoutes(app: FastifyInstance): Promis
         challengeId: body.challengeId ?? '',
         message: body.message ?? '',
         signature: body.signature ?? '',
-        frontendUrl: config.frontendUrl,
+        frontendUrl: walletFrontendUrl(request.headers.origin),
         sessionId: request.user?.sessionId ?? null,
         transaction: transaction(),
       });

@@ -9,6 +9,7 @@ import {
   AUTH_ONLY_STATEMENT,
   CHALLENGE_TTL_MS,
   authOriginFromFrontendUrl,
+  resolveWalletFrontendUrl,
   buildAuthMessage,
   createWalletAuthChallenge,
   generateWalletAuthNonce,
@@ -67,6 +68,10 @@ async function run(): Promise<void> {
   assert.equal(origin.domain, 'wallet-auth.test:3000');
   assert.equal(origin.uri, 'http://wallet-auth.test:3000');
   assert.throws(() => authOriginFromFrontendUrl('ftp://wallet-auth.test'));
+  const alias = 'https://169.58.39.2.sslip.io';
+  assert.equal(resolveWalletFrontendUrl(FRONTEND, alias, [alias]), alias);
+  assert.equal(resolveWalletFrontendUrl(FRONTEND, 'https://evil.example', [alias]), FRONTEND);
+  assert.equal(resolveWalletFrontendUrl(FRONTEND, undefined, [alias]), FRONTEND);
 
   const issuedAt = '2026-10-02T10:00:00Z';
   const expirationTime = '2026-10-02T10:10:00Z';

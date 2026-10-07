@@ -154,6 +154,7 @@ const envSchema = z.object({
   RUN_MODE: z.enum(['api', 'workers', 'all']).default('all'),
   PORT: z.coerce.number().default(4000),
   FRONTEND_URL: z.string().default('http://localhost:3000'),
+  WALLET_BROWSER_ORIGINS: z.string().default(''),
   API_VERSION: z.string().default('v1'),
 
   // Rate Limiting
@@ -825,6 +826,7 @@ export const config = {
   env: parsed.data.NODE_ENV,
   port: parsed.data.PORT,
   frontendUrl: parsed.data.FRONTEND_URL,
+  walletBrowserOrigins: parsed.data.WALLET_BROWSER_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean),
   apiVersion: parsed.data.API_VERSION,
   isProduction: parsed.data.NODE_ENV === 'production',
   isDevelopment: parsed.data.NODE_ENV === 'development',

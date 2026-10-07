@@ -6,6 +6,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { config } from '../config/index.js';
 import { getClientIp } from '../lib/client-ip.js';
+import { walletFrontendUrl } from '../lib/wallet-frontend-url.js';
 import { db } from '../lib/database.js';
 import { logger } from '../lib/logger.js';
 import { normalizeWalletProvider, type WalletManagementAction } from '../lib/wallet-action-message.js';
@@ -174,7 +175,7 @@ export default async function walletManagementRoutes(app: FastifyInstance): Prom
         userId,
         caip10: body.caip10 ?? '',
         provider,
-        frontendUrl: config.frontendUrl,
+        frontendUrl: walletFrontendUrl(request.headers.origin),
         query: query(),
       });
       return reply.send({ success: true, challenge });
@@ -215,7 +216,7 @@ export default async function walletManagementRoutes(app: FastifyInstance): Prom
         challengeId: body.challengeId,
         message: body.message,
         signature: body.signature,
-        frontendUrl: config.frontendUrl,
+        frontendUrl: walletFrontendUrl(request.headers.origin),
         transaction: transaction(),
       });
       await audit(request, userId, result.audit, body.message);
@@ -281,7 +282,7 @@ export default async function walletManagementRoutes(app: FastifyInstance): Prom
         userId,
         walletId: request.params.id,
         action: request.body.action,
-        frontendUrl: config.frontendUrl,
+        frontendUrl: walletFrontendUrl(request.headers.origin),
         transaction: transaction(),
       });
       return reply.send({ success: true, challenge });
@@ -314,7 +315,7 @@ export default async function walletManagementRoutes(app: FastifyInstance): Prom
         challengeId: request.body.challengeId,
         message: request.body.message,
         signature: request.body.signature,
-        frontendUrl: config.frontendUrl,
+        frontendUrl: walletFrontendUrl(request.headers.origin),
         transaction: transaction(),
       });
       await audit(request, userId, result.audit, request.body.message);
@@ -348,7 +349,7 @@ export default async function walletManagementRoutes(app: FastifyInstance): Prom
         challengeId: request.body.challengeId,
         message: request.body.message,
         signature: request.body.signature,
-        frontendUrl: config.frontendUrl,
+        frontendUrl: walletFrontendUrl(request.headers.origin),
         transaction: transaction(),
       });
       await audit(request, userId, result.audit, request.body.message);

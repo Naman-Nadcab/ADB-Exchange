@@ -81,6 +81,37 @@ export function truncateToSeconds(date: Date): Date {
  * Domain is the URL authority (host[:port]). URI is the origin.
  * Both come from the trusted frontend URL, never from the client.
  */
+/**
+ * Use the browser origin only when it is the configured site or an allowlisted
+ * wallet-browser alias. Anything else keeps the configured frontend URL.
+ */
+export function resolveWalletFrontendUrl(
+  configuredFrontendUrl: string,
+  originHeader: string | string[] | undefined,
+  extraOrigins: readonly string[],
+): string {
+  const header = Array.isArray(originHeader) ? originHeader[0] : originHeader;
+  if (!header) return configuredFrontendUrl;
+  let requestOrigin: string;
+  try {
+    const url = new URL(header);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return configuredFrontendUrl;
+    requestOrigin = url.origin;
+  } catch {
+    return configuredFrontendUrl;
+  }
+  const allowed = new Set<string>();
+  for (const candidate of [configuredFrontendUrl, ...extraOrigins]) {
+    try {
+      const url = new URL(candidate);
+      if (url.protocol === 'https:' || url.protocol === 'http:') allowed.add(url.origin);
+    } catch {
+      /* an unparseable allowlist entry is ignored */
+    }
+  }
+  return allowed.has(requestOrigin) ? requestOrigin : configuredFrontendUrl;
+}
+
 export function authOriginFromFrontendUrl(frontendUrl: string): { domain: string; uri: string } {
   let url: URL;
   try {
