@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { ForexFundingUnavailablePanel } from '@/components/forex/ForexFundingUnavailablePanel';
+import { ForexPaymentMethodsList } from '@/components/forex/ForexPaymentMethodsList';
 import { ForexFundsSubNav } from '@/components/forex/ForexFundsSubNav';
 import { ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
@@ -15,7 +16,7 @@ export default function ForexFundsPaymentMethodsPage() {
     <ForexPageFrame title={tf('pages.fundsPaymentMethods.title')} subtitle={tf('pages.fundsPaymentMethods.subtitle')}>
       <ForexPortalAccountContext />
       <ForexFundsSubNav />
-      {!gates.paymentMethodsEnabled ? <ForexFundingUnavailablePanel variant="paymentMethods" /> : null}
+      {gates.paymentMethodsEnabled ? <ForexPaymentMethodsList /> : <ForexFundingUnavailablePanel variant="paymentMethods" />}
     </ForexPageFrame>
   );
 }

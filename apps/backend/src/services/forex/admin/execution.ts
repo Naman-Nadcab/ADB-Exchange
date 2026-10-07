@@ -10,6 +10,7 @@ import { effectiveForexRuntimeFlags } from './runtime-controls.js';
 import {
   assertCanSetRealForexArmRequested,
   buildForexRealForexGateState,
+  isLiveForexReleaseOpen,
   setForexRealForexArmRequested,
   type ForexRealForexGateState,
 } from './execution-gate.js';
@@ -36,7 +37,7 @@ export type ForexAdminExecutionSnapshot = {
   posture: {
     source: string;
     executionMode: string;
-    realForex: false;
+    realForex: boolean;
     killSwitch: boolean;
   };
   routing: {
@@ -125,7 +126,7 @@ export async function buildForexAdminExecutionSnapshot(): Promise<ForexAdminExec
     posture: {
       source: flags.source,
       executionMode: flags.executionMode,
-      realForex: false,
+      realForex: isLiveForexReleaseOpen(),
       killSwitch: flags.killSwitch,
     },
     routing: { rules, mockProvidersOnly },
@@ -190,6 +191,7 @@ export function applyForexAdminRoutingPatch(
 export function applyForexRealForexArmPatch(requested: boolean): {
   previous: boolean;
   next: boolean;
+  previousEffective: boolean;
   gate: ForexRealForexGateState;
 } {
   const pricing = getForexPricingService();
@@ -201,10 +203,11 @@ export function applyForexRealForexArmPatch(requested: boolean): {
   });
 
   assertCanSetRealForexArmRequested(requested, gate);
+  const previousEffective = gate.effectiveRealForex;
   const { previous, next } = setForexRealForexArmRequested(requested);
   const gateAfter = buildForexRealForexGateState({
     mockProvidersOnly,
     marketDataRunning: forexMarketDataWorkerSnapshot().running,
   });
-  return { previous, next, gate: gateAfter };
+  return { previous, next, previousEffective, gate: gateAfter };
 }

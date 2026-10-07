@@ -1,5 +1,5 @@
 /**
- * Admin Forex FDM — ops (F1–F3). Mounted at /api/v1/admin.
+ * Admin Forex operations. Mounted at /api/v1/admin.
  * F3 control mutations require forex:controls:manage (+ audit log).
  */
 import type { FastifyInstance } from 'fastify';
@@ -7,13 +7,15 @@ import { getAdminFromRequest, getAdminWithPermission } from './admin.fastify.js'
 import {
   applyForexAdminControlsPatch,
   applyForexInstrumentStatusPatch,
-  buildForexAdminControlsSnapshot,
+  buildForexAdminControlsSnapshotWithKyc,
 } from '../services/forex/admin/controls.js';
+import { getForexKycPolicy, setForexKycRequired } from '../services/forex/customer/forex-kyc-policy.service.js';
 import {
   applyForexAdminPolicyPatch,
   applyForexInstrumentPolicyPatch,
   buildForexAdminPolicySnapshot,
 } from '../services/forex/admin/policy.js';
+import { isLiveForexReleaseOpen } from '../services/forex/admin/execution-gate.js';
 import { effectiveForexRuntimeFlags } from '../services/forex/admin/runtime-controls.js';
 import { logAuditFromRequest } from '../services/audit-log.service.js';
 import { getForexAdminBackendConfig } from '../services/forex/admin/config.js';
@@ -105,6 +107,7 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
         readiness: forexReadinessSnapshot(),
         runtime: {
           realForex: false,
+          liveReleaseOpen: isLiveForexReleaseOpen(),
           positionMode: forexConfig.positionMode,
           marketData: forexMarketDataWorkerSnapshot(),
           symbolCount: listForexSymbols().length,
@@ -123,6 +126,7 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
 
     const counts = await loadForexAdminOverviewCounts();
     const readiness = forexReadinessSnapshot();
+    const flags = effectiveForexRuntimeFlags();
 
     return reply.send({
       success: true,
@@ -130,11 +134,11 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
         counts,
         readiness,
         posture: {
-          source: 'SIMULATED',
-          executionMode: 'MOCK',
-          realForex: false,
-          killSwitch: effectiveForexRuntimeFlags().killSwitch,
-          demoFundingEnabled: effectiveForexRuntimeFlags().demoFundingEnabled,
+          source: flags.source,
+          executionMode: flags.executionMode,
+          realForex: isLiveForexReleaseOpen(),
+          killSwitch: flags.killSwitch,
+          demoFundingEnabled: flags.demoFundingEnabled,
         },
       },
     });
@@ -221,7 +225,7 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
   app.get('/forex/controls', async (request, reply) => {
     const admin = await getAdminFromRequest(app, request, reply, false);
     if (!admin) return;
-    return reply.send({ success: true, data: buildForexAdminControlsSnapshot() });
+    return reply.send({ success: true, data: await buildForexAdminControlsSnapshotWithKyc() });
   });
 
   app.patch<{
@@ -231,6 +235,7 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
       demo_funding?: boolean;
       funding_test_api?: boolean;
       execution_test_api?: boolean;
+      kyc_required?: boolean;
     };
   }>('/forex/controls', async (request, reply) => {
     const admin = await getAdminWithPermission(app, request, reply, 'forex:controls:manage');
@@ -243,7 +248,9 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
       funding_test_api: request.body?.funding_test_api,
       execution_test_api: request.body?.execution_test_api,
     };
-    const hasChange = Object.values(patch).some((v) => typeof v === 'boolean');
+    const kycRequired = request.body?.kyc_required;
+    const hasKycChange = typeof kycRequired === 'boolean';
+    const hasChange = Object.values(patch).some((v) => typeof v === 'boolean') || hasKycChange;
     if (!hasChange) {
       return reply.status(400).send({
         success: false,
@@ -253,10 +260,26 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
     const touchesKill =
       typeof patch.kill_switch === 'boolean' ||
       (typeof patch.demo_funding === 'boolean' && patch.demo_funding);
-    if (touchesKill && reason.length < 8) {
+    if ((touchesKill || hasKycChange) && reason.length < 8) {
       return reply.status(400).send({
         success: false,
         error: { code: 'REASON_REQUIRED', message: 'Reason (min 8 characters) required for this change.' },
+      });
+    }
+
+    let kycPolicyChange: { key: 'kycRequired'; previous: boolean; next: boolean } | null = null;
+    if (typeof kycRequired === 'boolean') {
+      const previous = await getForexKycPolicy();
+      const next = await setForexKycRequired(kycRequired);
+      kycPolicyChange = { key: 'kycRequired', previous: previous.required, next: next.required };
+      await logAuditFromRequest(request, {
+        actorType: 'admin',
+        actorId: admin.adminId,
+        action: 'forex_admin_control_update',
+        resourceType: 'forex_kyc_policy',
+        resourceId: 'forex_kyc_required',
+        oldValue: { value: previous.required, reason },
+        newValue: { value: next.required, reason },
       });
     }
 
@@ -312,12 +335,13 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
           approval_required: true,
           approval_id: approvalReq.id,
           immediate_changes: immediateChanges,
-          snapshot: buildForexAdminControlsSnapshot(),
+          kycPolicy: kycPolicyChange,
+          snapshot: await buildForexAdminControlsSnapshotWithKyc(),
         },
       });
     }
 
-    if (!immediateChanges.length) {
+    if (!immediateChanges.length && !kycPolicyChange) {
       return reply.status(400).send({
         success: false,
         error: { code: 'NO_CHANGES', message: 'Provide at least one boolean control to update.' },
@@ -336,7 +360,14 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
       });
     }
 
-    return reply.send({ success: true, data: { changes: immediateChanges, snapshot: buildForexAdminControlsSnapshot() } });
+    return reply.send({
+      success: true,
+      data: {
+        changes: immediateChanges,
+        kycPolicy: kycPolicyChange,
+        snapshot: await buildForexAdminControlsSnapshotWithKyc(),
+      },
+    });
   });
 
   app.patch<{
@@ -391,7 +422,7 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
           data: {
             approval_required: true,
             approval_id: approvalReq.id,
-            snapshot: buildForexAdminControlsSnapshot(),
+            snapshot: await buildForexAdminControlsSnapshotWithKyc(),
           },
         });
       }
@@ -405,7 +436,7 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
         oldValue: { tradingStatus: result.previous, reason },
         newValue: { tradingStatus: result.next, reason },
       });
-      return reply.send({ success: true, data: { ...result, snapshot: buildForexAdminControlsSnapshot() } });
+      return reply.send({ success: true, data: { ...result, snapshot: await buildForexAdminControlsSnapshotWithKyc() } });
     } catch {
       return reply.status(400).send({
         success: false,
@@ -877,8 +908,8 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
         action: 'forex_real_forex_arm',
         resourceType: 'forex_runtime',
         resourceId: 'real_forex_arm',
-        oldValue: { armRequested: result.previous, effectiveRealForex: false, reason },
-        newValue: { armRequested: result.next, effectiveRealForex: false, reason },
+        oldValue: { armRequested: result.previous, effectiveRealForex: result.previousEffective, reason },
+        newValue: { armRequested: result.next, effectiveRealForex: result.gate.effectiveRealForex, reason },
       });
       const snapshot = await buildForexAdminExecutionSnapshot();
       return reply.send({ success: true, data: { ...result, snapshot } });

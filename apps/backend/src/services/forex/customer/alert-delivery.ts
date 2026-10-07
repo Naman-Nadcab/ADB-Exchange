@@ -95,11 +95,79 @@ export async function deliverForexAlertEvent(args: {
     return { eventId, status: 'NOT_CONFIGURED', detail: st?.reason };
   }
 
-  // Provider hooks would run here; architecture only until URLs are set.
+  const sent = await dispatchConfiguredForexAlert({
+    channel: args.channel,
+    message: args.message,
+    metadata: args.metadata,
+  });
+  const status = sent.ok ? 'DELIVERED' : 'FAILED';
   await db.query(
     `INSERT INTO forex_customer_alert_events (event_id, alert_id, account_id, delivery_channel, status, message, metadata)
-     VALUES ($1,$2,$3,$4,'FAILED',$5,$6)`,
-    [eventId, args.alertId, args.accountId, args.channel, args.message, JSON.stringify({ ...args.metadata, reason: 'ADAPTER_NOT_IMPLEMENTED' })]
+     VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+    [
+      eventId,
+      args.alertId,
+      args.accountId,
+      args.channel,
+      status,
+      args.message,
+      JSON.stringify({ ...args.metadata, reason: sent.ok ? 'SENT' : sent.detail }),
+    ]
   );
-  return { eventId, status: 'FAILED', detail: 'ADAPTER_NOT_IMPLEMENTED' };
+  return { eventId, status, detail: sent.ok ? undefined : sent.detail };
+}
+
+type AlertFetch = (url: string, init: { method: string; headers: Record<string, string>; body: string }) => Promise<{ ok: boolean; status: number }>;
+
+let alertFetchImpl: AlertFetch | null = null;
+
+export function setForexAlertFetchForTests(fetchImpl: AlertFetch | null): void {
+  alertFetchImpl = fetchImpl;
+}
+
+async function postJson(url: string, payload: unknown): Promise<{ ok: boolean; status: number }> {
+  const init = { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) };
+  if (alertFetchImpl) return alertFetchImpl(url, init);
+  const res = await fetch(url, init);
+  return { ok: res.ok, status: res.status };
+}
+
+/** Sends only after the channel is configured. A failed post is not DELIVERED. */
+export async function dispatchConfiguredForexAlert(args: {
+  channel: AlertDeliveryChannel;
+  message: string;
+  metadata: Record<string, unknown>;
+}): Promise<{ ok: true } | { ok: false; detail: string }> {
+  if (args.channel === 'WEB') return { ok: true };
+  if (args.channel === 'PUSH' || args.channel === 'WEBHOOK') {
+    const url = (args.channel === 'PUSH' ? process.env.FOREX_ALERT_PUSH_URL : process.env.FOREX_ALERT_WEBHOOK_URL)?.trim() ?? '';
+    if (!url) return { ok: false, detail: 'NOT_CONFIGURED' };
+    try {
+      const res = await postJson(url, { channel: args.channel, message: args.message, metadata: args.metadata });
+      if (!res.ok) return { ok: false, detail: `HTTP_${res.status}` };
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, detail: err instanceof Error ? err.message : 'SEND_FAILED' };
+    }
+  }
+  const host = process.env.SMTP_HOST?.trim() ?? '';
+  const from = process.env.FOREX_ALERT_EMAIL_FROM?.trim() ?? '';
+  const to = (typeof args.metadata.email === 'string' ? args.metadata.email : process.env.FOREX_ALERT_EMAIL_TO)?.trim() ?? '';
+  if (!host || !from || !to) return { ok: false, detail: 'NOT_CONFIGURED' };
+  try {
+    const nodemailer = await import('nodemailer');
+    const port = Number(process.env.SMTP_PORT ?? '587');
+    const user = process.env.SMTP_USER?.trim();
+    const pass = process.env.SMTP_PASS ?? '';
+    const transport = nodemailer.createTransport({
+      host,
+      port: Number.isFinite(port) ? port : 587,
+      secure: port === 465,
+      auth: user ? { user, pass } : undefined,
+    });
+    await transport.sendMail({ from, to, subject: 'Forex alert', text: args.message });
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, detail: err instanceof Error ? err.message : 'SEND_FAILED' };
+  }
 }

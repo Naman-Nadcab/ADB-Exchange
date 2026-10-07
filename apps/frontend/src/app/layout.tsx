@@ -6,7 +6,7 @@ import './globals.css';
 import { Providers } from '@/components/providers';
 import { DockerUserAppHint } from '@/components/DockerUserAppHint';
 import { Toaster } from '@/components/ui/toaster';
-import { BRAND_NAME, BRAND_NAME_SHORT, BRAND_PRODUCT } from '@/lib/brand';
+import { BRAND_NAME, BRAND_PRODUCT } from '@/lib/brand';
 import { localeToHtmlLang } from '@/i18n/request';
 import { isAppLocale } from '@/i18n/config';
 
@@ -34,18 +34,19 @@ const ibmPlexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_API_URL || 'http://109.123.254.30'),
-  title: `${BRAND_NAME_SHORT} — ${BRAND_NAME}`,
-  description: `${BRAND_NAME} (${BRAND_NAME_SHORT}). ${BRAND_PRODUCT.crypto} and ${BRAND_PRODUCT.forex} on one professional platform.`,
-  keywords: [BRAND_NAME_SHORT, BRAND_NAME, 'crypto', 'forex', 'exchange', 'global markets', 'trading'],
-  applicationName: BRAND_NAME_SHORT,
+  title: BRAND_NAME,
+  description: `${BRAND_NAME}. ${BRAND_PRODUCT.crypto} and ${BRAND_PRODUCT.forex} on one account.`,
+  keywords: [BRAND_NAME, 'crypto', 'forex', 'spot', 'p2p', 'trading'],
+  applicationName: BRAND_NAME,
   openGraph: {
-    title: `${BRAND_NAME_SHORT} — ${BRAND_NAME}`,
+    title: BRAND_NAME,
     description: `${BRAND_PRODUCT.crypto} and ${BRAND_PRODUCT.forex} on ${BRAND_NAME}.`,
-    siteName: BRAND_NAME_SHORT,
+    siteName: BRAND_NAME,
     type: 'website',
   },
   icons: {
     icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
       { url: '/favicon.ico' },
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },

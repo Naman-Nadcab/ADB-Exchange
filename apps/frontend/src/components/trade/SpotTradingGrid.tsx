@@ -8,7 +8,6 @@ import { useAuthStore } from '@/store/auth';
 import { useThemeStore } from '@/store/theme';
 import { useBalancesByAccount } from '@/lib/balances';
 import { useSpotFavorites } from '@/hooks/useSpotFavorites';
-import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { toast } from '@/components/ui/toaster';
 import { useTranslations } from 'next-intl';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
@@ -17,6 +16,7 @@ import { SpotTradingGridTerminal } from './SpotTradingGridTerminal';
 import type { OrderUpdateMessage } from '@/hooks/useSpotWs';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { SPOT_TRADE_HREF } from '@/lib/tier1-canonical-routes';
+import { BrandLogo } from '@/components/brand/BrandLogo';
 import { useAuth } from '@/context/AuthContext';
 
 type Market = {
@@ -643,16 +643,23 @@ export function SpotTradingGrid() {
     }, 45000);
 
     fetchMarkets(ac.signal, { silent: markets.length > 0 }).finally(() => clearTimeout(fallback));
+    const refresh = window.setInterval(() => {
+      void fetchMarkets(undefined, { silent: true });
+    }, 30_000);
 
     return () => {
       ac.abort();
       clearTimeout(fallback);
+      window.clearInterval(refresh);
     };
   }, [symbolParam, fetchMarkets, markets.length, tc]);
 
   if (marketsLoading && markets.length === 0 && !marketsError) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-muted px-4 dark:bg-background">
+      <div className="relative flex h-full w-full flex-col items-center justify-center gap-4 bg-muted px-4 dark:bg-background">
+        <div className="absolute left-4 top-4">
+          <BrandLogo variant="horizontal-gold" size="header" href="/" />
+        </div>
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" aria-hidden />
         <p className="text-sm font-medium text-muted-foreground">{tc('markets.loadingSpot')}</p>
       </div>
@@ -661,22 +668,15 @@ export function SpotTradingGrid() {
 
   if (markets.length === 0) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-5 bg-muted px-4 dark:bg-background">
+      <div className="relative flex h-full w-full flex-col items-center justify-center gap-5 bg-muted px-4 dark:bg-background">
+        <div className="absolute left-4 top-4">
+          <BrandLogo variant="horizontal-gold" size="header" href="/" />
+        </div>
         <div className="max-w-md rounded-xl border border-border bg-card p-6 text-center shadow-sm dark:border-border dark:bg-card">
           <p className="text-sm font-semibold text-foreground">
             {marketsError || tc('markets.noSpotMarkets')}
           </p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Start the backend, ensure Postgres is up, and run migrations/seed if{' '}
-            <code className="rounded bg-accent px-1 dark:bg-accent">spot_markets</code> is empty.
-          </p>
-          {typeof window !== 'undefined' && (
-            <p className="mt-1 terminal-text-label text-muted-foreground">
-              API base: <span className="font-mono">{getApiBaseUrl() || '(same origin)'}</span>
-              {' · '}
-              Override with <span className="font-mono">NEXT_PUBLIC_API_BASE_URL</span>
-            </p>
-          )}
+          <p className="mt-2 text-xs text-muted-foreground">{tc('markets.loadFailedRetry')}</p>
           {(marketsError || marketsLoading) && (
             <button
               type="button"

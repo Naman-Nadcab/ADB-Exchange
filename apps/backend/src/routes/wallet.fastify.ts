@@ -1162,7 +1162,7 @@ export default async function walletRoutes(app: FastifyInstance) {
         SELECT 
           daily_withdrawal_limit,
           monthly_withdrawal_limit,
-          vip_level
+          COALESCE(tier_level, 0) AS vip_level
         FROM users
         WHERE id = $1
       `, [userId]);
@@ -2340,10 +2340,17 @@ export default async function walletRoutes(app: FastifyInstance) {
           error: { code: 'INVALID_TOKEN', message: 'Currency not found for this token' }
         });
       }
-      const chainIdCheck = token.chain_id ?? CHAIN_ID_GLOBAL;
       const withdrawBalances = await readUserBalances(userId, accountType);
-      const withdrawRow = withdrawBalances.find(r => r.currency_id === currencyId);
-      const availableBalance = withdrawRow ? new Decimal(withdrawRow.available_balance || '0').toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN) : new Decimal(0);
+      // readUserBalances can return both the token-chain row and the global funding row.
+      // The lock spends the chain row when it covers the total, otherwise the global row.
+      // The first row may be a zero chain row and must not hide a funded global row.
+      const availableBalance = withdrawBalances
+        .filter((r) => r.currency_id === currencyId)
+        .reduce((max, r) => {
+          const value = new Decimal(r.available_balance || '0');
+          return value.gt(max) ? value : max;
+        }, new Decimal(0))
+        .toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN);
       const totalRequired = withdrawAmountDec.plus(feeDec).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN);
       const netAmount = withdrawAmountDec.minus(feeDec).toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN);
 
@@ -2561,6 +2568,29 @@ export default async function walletRoutes(app: FastifyInstance) {
       });
       if (!sanctionsResult.allowed) {
         logger.warn('Withdrawal creation failed: SANCTIONS_BLOCKED', { ...withdrawalLogContext, reason: sanctionsResult.reason });
+        const { isSanctionsMatch } = await import('../services/sanctions-screening.service.js');
+        if (isSanctionsMatch(sanctionsResult)) {
+          try {
+            const { logSanctionsBlock } = await import('../lib/withdrawal-audit.js');
+            await logSanctionsBlock({
+              userId,
+              asset: token.symbol,
+              amount: withdrawAmountDec.toString(),
+              chainId: token.chain_id ?? null,
+              toAddress: toAddress!,
+              provider: sanctionsResult.provider,
+              reason: sanctionsResult.reason,
+              requestId: req.requestId ?? null,
+              ip: req.clientIp ?? request.ip ?? null,
+              userAgent: typeof request.headers['user-agent'] === 'string' ? request.headers['user-agent'] : null,
+            });
+          } catch (auditErr) {
+            logger.error('Sanctions block audit insert failed', {
+              userId,
+              error: auditErr instanceof Error ? auditErr.message : String(auditErr),
+            });
+          }
+        }
         return reply.status(403).send({
           success: false,
           error: {
@@ -2656,8 +2686,24 @@ export default async function walletRoutes(app: FastifyInstance) {
         requiresWithdrawalApproval(withdrawAmountDec.toString(), {
           is_high_risk: token.is_high_risk,
         });
-      const initialStatus = needsApproval ? 'pending_approval' : 'pending';
+      const { initialOnchainWithdrawalStatus } = await import('../services/withdrawal-email-policy.js');
+      const initialStatus = initialOnchainWithdrawalStatus(needsApproval);
       const initialTreasuryStage = needsApproval ? 'pending' : 'checker_approved';
+
+      if (initialStatus === 'pending') {
+        const { getHotWalletByChainId } = await import('../services/hot-wallet.service.js');
+        const hot = token.chain_id ? await getHotWalletByChainId(token.chain_id) : null;
+        if (!hot) {
+          logger.warn('Withdrawal creation failed: WITHDRAWAL_SIGNING_UNAVAILABLE', withdrawalLogContext);
+          return reply.status(503).send({
+            success: false,
+            error: {
+              code: 'WITHDRAWAL_SIGNING_UNAVAILABLE',
+              message: 'On-chain signing is not available for this network. No balance was locked.',
+            },
+          });
+        }
+      }
 
       // 6. Create withdrawal record and lock balance atomically (on-chain). No record exists if any prior step blocked.
       // Stores amount, fee, net_amount; lock uses amount + fee.
@@ -2839,8 +2885,29 @@ export default async function walletRoutes(app: FastifyInstance) {
       let enqueueCode: string | undefined;
       let enqueueReason: string | undefined;
       if (initialStatus === 'pending') {
-        const { enqueueWithdrawal } = await import('../services/withdrawal-signing.service.js');
+        const { enqueueWithdrawal, NO_HOT_WALLET_REASON, releasePendingWithdrawalWithoutSigner } = await import(
+          '../services/withdrawal-signing.service.js'
+        );
         const enqueueResult = await enqueueWithdrawal(withdrawal.id);
+        if (!enqueueResult.enqueued && enqueueResult.reason === NO_HOT_WALLET_REASON) {
+          const released = await releasePendingWithdrawalWithoutSigner(withdrawal.id, enqueueResult.reason).catch((err) => {
+            logger.error('Unsigned withdrawal release failed', {
+              withdrawalId: withdrawal.id,
+              error: err instanceof Error ? err.message : String(err),
+            });
+            return false;
+          });
+          return reply.status(released ? 503 : 500).send({
+            success: false,
+            error: {
+              code: 'WITHDRAWAL_SIGNING_UNAVAILABLE',
+              message: released
+                ? 'On-chain signing is not available for this network. No balance was locked.'
+                : 'On-chain signing is not available and the balance lock could not be released.',
+              withdrawalId: withdrawal.id,
+            },
+          });
+        }
         if (!enqueueResult.enqueued && enqueueResult.reason) {
           logger.warn('Withdrawal not enqueued for signing', { withdrawalId: withdrawal.id, reason: enqueueResult.reason });
           enqueueCode = enqueueResult.code;
@@ -3004,13 +3071,16 @@ export default async function walletRoutes(app: FastifyInstance) {
       if (!wRow.rows[0]) return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Withdrawal not found' } });
       if (wRow.rows[0].user_id !== userId) return reply.status(403).send({ success: false, error: { code: 'FORBIDDEN', message: 'Not your withdrawal' } });
       if (wRow.rows[0].email_verified) return reply.send({ success: true, data: { message: 'Already verified' } });
-      if (!['pending_email_verify', 'pending'].includes(wRow.rows[0].status)) {
+      if (wRow.rows[0].status !== 'pending_email_verify') {
         return reply.status(400).send({ success: false, error: { code: 'INVALID_STATUS', message: 'Withdrawal is not awaiting email verification' } });
       }
 
-      const userRow = await db.query<{ email: string }>(`SELECT email FROM users WHERE id = $1`, [userId]);
+      const userRow = await db.query<{ email: string | null }>(`SELECT email FROM users WHERE id = $1`, [userId]);
       const email = userRow.rows[0]?.email;
-      if (!email) return reply.status(400).send({ success: false, error: { code: 'NO_EMAIL', message: 'No email on account' } });
+      const { withdrawalCanUseEmailOtp } = await import('../services/withdrawal-email-policy.js');
+      if (!withdrawalCanUseEmailOtp(wRow.rows[0].status, email) || !email) {
+        return reply.status(400).send({ success: false, error: { code: 'NO_EMAIL', message: 'No email on account' } });
+      }
 
       const otpCode = String(Math.floor(100000 + Math.random() * 900000));
       const redisKey = `withdrawal:email:otp:${withdrawalId}`;
@@ -3055,6 +3125,9 @@ export default async function walletRoutes(app: FastifyInstance) {
       if (!wRow.rows[0]) return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Withdrawal not found' } });
       if (wRow.rows[0].user_id !== userId) return reply.status(403).send({ success: false, error: { code: 'FORBIDDEN', message: 'Not your withdrawal' } });
       if (wRow.rows[0].email_verified) return reply.send({ success: true, data: { message: 'Already verified', status: wRow.rows[0].status } });
+      if (wRow.rows[0].status !== 'pending_email_verify') {
+        return reply.status(400).send({ success: false, error: { code: 'INVALID_STATUS', message: 'Withdrawal is not awaiting email verification' } });
+      }
 
       const redisKey = `withdrawal:email:otp:${withdrawalId}`;
       const storedOtp = await redis.get(redisKey);
@@ -3687,7 +3760,13 @@ export default async function walletRoutes(app: FastifyInstance) {
   }, async (request, reply) => {
     try {
       const userId = request.user!.id;
-      const { fromAccount, toAccount, tokenId, amount } = request.body;
+      // The customer-facing "Spot" account is user_balances.account_type = 'trading' (the account the
+      // matching engine debits/credits). The legacy 'spot' enum bucket is not read by any venue, so a
+      // transfer into it would strand funds; alias it to the real Spot account.
+      const normalizeAccount = (v: unknown): string => (v === 'spot' ? 'trading' : String(v ?? ''));
+      const fromAccount = normalizeAccount(request.body?.fromAccount);
+      const toAccount = normalizeAccount(request.body?.toAccount);
+      const { tokenId, amount } = request.body;
 
       // Idempotency: check before balance operations
       const idempotencyKeyRaw = (request.headers[IDEMPOTENCY_KEY_HEADER] ?? request.headers['Idempotency-Key']) as string | undefined;
@@ -3731,8 +3810,8 @@ export default async function walletRoutes(app: FastifyInstance) {
         });
       }
 
-      // Validate accounts (funding, spot, trading only; no unified)
-      const validAccounts = ['funding', 'spot', 'trading'];
+      // Validate accounts (funding and trading only; 'spot' was aliased to trading above)
+      const validAccounts = ['funding', 'trading'];
       if (!validAccounts.includes(fromAccount) || !validAccounts.includes(toAccount)) {
         return reply.status(400).send({
           success: false,
@@ -4776,15 +4855,15 @@ export async function registerAdvancedWalletRoutes(app: FastifyInstance): Promis
         }>(
           `SELECT
              CASE
-               WHEN reference_type = 'deposit' THEN 'Deposit'
-               WHEN reference_type = 'withdrawal' THEN 'Withdrawal'
-               WHEN reference_type = 'internal_transfer' THEN 'Transfer'
-               WHEN reference_type = 'conversion' THEN 'Convert'
-               WHEN reference_type IN ('spot_trade', 'trade') THEN 'Trade'
-               ELSE reference_type
+               WHEN bl.reference_type::text = 'deposit' THEN 'Deposit'
+               WHEN bl.reference_type::text = 'withdrawal' THEN 'Withdrawal'
+               WHEN bl.reference_type::text = 'internal_transfer' THEN 'Transfer'
+               WHEN bl.reference_type::text = 'conversion' THEN 'Convert'
+               WHEN bl.reference_type::text IN ('spot_trade', 'trade', 'trade_buy', 'trade_sell') THEN 'Trade'
+               ELSE bl.reference_type::text
              END AS type,
              c.symbol,
-             bl.amount,
+             (COALESCE(bl.credit, 0) - COALESCE(bl.debit, 0))::text AS amount,
              '0' AS fee,
              'completed' AS status,
              bl.created_at::TEXT AS created_at,

@@ -297,7 +297,7 @@ export interface ConvertBalanceRow {
   available_balance: string;
 }
 
-async function fetchConvertBalances(accountType: 'funding' | 'trading' | 'spot'): Promise<ConvertBalanceRow[]> {
+async function fetchConvertBalances(accountType: 'funding' | 'trading'): Promise<ConvertBalanceRow[]> {
   const res = await api.get<ConvertBalanceRow[]>(`/api/v1/convert/balances?accountType=${accountType}`);
   if (res.success && Array.isArray(res.data)) return res.data;
   if (res.error?.code === 'UNAUTHORIZED' || res.error?.code === 'SESSION_INVALID' || res.error?.code === 'INVALID_TOKEN') {
@@ -306,7 +306,7 @@ async function fetchConvertBalances(accountType: 'funding' | 'trading' | 'spot')
   return [];
 }
 
-export function useConvertBalances(accountType: 'funding' | 'trading' | 'spot', enabled: boolean) {
+export function useConvertBalances(accountType: 'funding' | 'trading', enabled: boolean) {
   return useQuery({
     queryKey: ['balances', 'convert', accountType],
     queryFn: () => fetchConvertBalances(accountType),

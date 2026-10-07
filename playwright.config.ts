@@ -6,6 +6,8 @@ export default defineConfig({
   testDir: './e2e',
   /* Tsx API suites live under e2e/api/*.test.ts — not Playwright tests */
   testMatch: '**/*.spec.ts',
+  /* e2e/full-system needs the isolated backend stack; it has its own config. */
+  testIgnore: '**/full-system/**',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

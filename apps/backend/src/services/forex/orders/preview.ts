@@ -5,6 +5,7 @@
  */
 import { calculateForexCommission } from '../fees/engine.js';
 import { positionMarginSnapshot } from '../margin/engine.js';
+import { ForexConversionError, ForexQuoteConversionSource } from '../pnl/conversion.js';
 import { evaluateAccountRisk } from '../risk/engine.js';
 import { evaluatePreTradeRisk } from '../risk/pretrade.js';
 import type { ForexPricingService } from '../quotes.service.js';
@@ -122,18 +123,37 @@ export function previewForexOrder(
     accountingAvailable: inputs?.accountingAvailable,
   });
 
-  const previewPositions =
-    quote && referencePrice
-      ? deps.positions.previewAfterFill({
-          fillId: `preview-${accountId}-${symbol}`,
-          accountId,
+  const conversionRates = new ForexQuoteConversionSource(deps.pricing);
+  let previewPositions: ReturnType<typeof deps.positions.previewAfterFill>;
+  let required: string | undefined;
+  try {
+    previewPositions =
+      quote && referencePrice
+        ? deps.positions.previewAfterFill({
+            fillId: `preview-${accountId}-${symbol}`,
+            accountId,
+            symbol,
+            side: req.side,
+            volume: req.volume,
+            price: referencePrice,
+            timestamp: new Date().toISOString(),
+          })
+        : current;
+    required = referencePrice
+      ? positionMarginSnapshot({
           symbol,
-          side: req.side,
           volume: req.volume,
-          price: referencePrice,
-          timestamp: new Date().toISOString(),
-        })
-      : current;
+          entryPrice: referencePrice,
+          currentPrice: referencePrice,
+          rates: conversionRates,
+        }).initialMargin
+      : undefined;
+  } catch (e) {
+    // Cross-pair margin needs a USD conversion rate; without one the preview
+    // is not allowed rather than quoting a quote-currency figure as USD.
+    if (e instanceof ForexConversionError) return { ...base, reason: e.reason };
+    throw e;
+  }
 
   const pendingLike = isForexPendingOrderType(req.orderType);
   const openForSymbol = deps.orders
@@ -174,15 +194,6 @@ export function previewForexOrder(
         volume: req.volume,
         price: referencePrice,
       })
-    : undefined;
-
-  const required = referencePrice
-    ? positionMarginSnapshot({
-        symbol,
-        volume: req.volume,
-        entryPrice: referencePrice,
-        currentPrice: referencePrice,
-      }).initialMargin
     : undefined;
 
   return {

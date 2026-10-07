@@ -2,6 +2,9 @@
  * Read-only dealing operational queue (MOCK execution — no manual accept/reject).
  */
 import { db } from '../../../lib/database.js';
+import { isLiveForexAccount, refreshLiveForexAccountIds } from '../broker/account-kind.js';
+import { executableQuoteForAccount } from '../broker/gateway.js';
+import { getForexPricingService } from '../quotes.service.js';
 
 const QUEUE_STATUSES = [
   'NEW',
@@ -29,7 +32,7 @@ export type ForexDealingQueueRow = {
   failure_reason: string | null;
   execution_id: string | null;
   age_sec: number;
-  price_source: 'NOT_AVAILABLE' | 'MOCK';
+  price_source: 'NOT_AVAILABLE' | 'MOCK' | 'BROKER';
 };
 
 export async function listForexDealingQueue(raw: {
@@ -68,29 +71,41 @@ export async function listForexDealingQueue(raw: {
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
   );
+  try {
+    await refreshLiveForexAccountIds();
+  } catch {
+    /* a missing account table still leaves the queue readable */
+  }
+  const pricing = getForexPricingService();
   const now = Date.now();
   const rows: ForexDealingQueueRow[] = res.rows.map((r: Record<string, unknown>) => {
     const created = r.created_at instanceof Date ? r.created_at.getTime() : Date.parse(String(r.created_at));
+    const accountId = String(r.account_id);
+    const symbol = String(r.symbol);
+    const side = String(r.side);
+    const quote = executableQuoteForAccount(pricing, accountId, symbol);
+    const live = isLiveForexAccount(accountId);
+    const current = quote ? (side === 'sell' ? quote.bid : quote.ask) : null;
     return {
       order_id: String(r.order_id),
-      account_id: String(r.account_id),
+      account_id: accountId,
       user_id: r.user_id == null ? null : String(r.user_id),
-      symbol: String(r.symbol),
-      side: String(r.side),
+      symbol,
+      side,
       requested_volume: String(r.requested_volume),
       requested_price: r.requested_price == null ? null : String(r.requested_price),
-      current_price: null,
+      current_price: current,
       status: String(r.status),
       execution_mode: String(r.execution_mode ?? 'MOCK'),
       failure_reason: r.failure_reason == null ? null : String(r.failure_reason),
       execution_id: r.execution_id == null ? null : String(r.execution_id),
       age_sec: Number.isFinite(created) ? Math.max(0, Math.floor((now - created) / 1000)) : 0,
-      price_source: 'NOT_AVAILABLE',
+      price_source: current == null ? 'NOT_AVAILABLE' : live ? 'BROKER' : 'MOCK',
     };
   });
   return {
     rows,
     pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
-    note: 'Read-only queue · MOCK venue · manual dealer actions disabled · current_price not wired to quote stream',
+    note: 'Queue price is the executable quote (broker for a live account, mock for demo). Accept audits only and does not invent a fill.',
   };
 }

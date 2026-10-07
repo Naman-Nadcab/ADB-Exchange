@@ -260,6 +260,94 @@ export class ForexExecutionService {
     return await this.finish(record, 'REJECTED', 'ALL_VENUES_REJECTED', started);
   }
 
+  /**
+   * Book a fill that already happened at the broker. Does not touch MOCK venues
+   * or the mock routing book.
+   */
+  async recordBrokerFill(args: {
+    clientExecId: string;
+    accountId: string;
+    symbol: string;
+    side: 'buy' | 'sell';
+    requestedVolume: string;
+    filledVolume: string;
+    price: string;
+    venueOrderId: string | null;
+  }): Promise<ForexExecutionRecord> {
+    const req: ForexExecutionRequest = {
+      clientExecId: args.clientExecId,
+      symbol: args.symbol,
+      side: args.side,
+      volume: args.requestedVolume,
+      orderType: 'market',
+      requestedPrice: args.price,
+      accountId: args.accountId,
+      timestamp: new Date().toISOString(),
+    };
+    const existing = await this.claim(req);
+    if (existing === 'conflict') {
+      throw new ForexExecutionError('IDEMPOTENCY_CONFLICT', 'clientExecId reused with a different request');
+    }
+    if (existing) return existing;
+
+    const record = this.createRecord(req);
+    record.source = 'LIVE';
+    this.store.put(record);
+    this.emit(record, 'EXECUTION_RECEIVED');
+    this.transition(record, 'VALIDATING');
+    this.transition(record, 'ROUTING');
+    record.selectedProvider = 'BROKER';
+    record.routingReason = 'BROKER_GATEWAY';
+    record.snapshotStatus = 'BROKER';
+    record.expectedPrice = args.price;
+    this.transition(record, 'SUBMITTED');
+
+    const filled = fxDecimal(args.filledVolume);
+    const requested = fxDecimal(args.requestedVolume);
+    if (!filled.isFinite() || !filled.gt(0) || filled.gt(requested)) {
+      return await this.finish(record, 'FAILED', 'MALFORMED_VENUE_RESPONSE', Date.now());
+    }
+
+    const now = new Date().toISOString();
+    record.attempts.push({
+      attemptNo: 1,
+      provider: 'BROKER',
+      status: 'ACK',
+      venueExecId: args.venueOrderId,
+      rejectReason: null,
+      submittedAt: now,
+      completedAt: now,
+    });
+    this.transition(record, 'ACKNOWLEDGED');
+    this.emit(record, 'VENUE_ACK', { provider: 'BROKER', metadata: { venueExecId: args.venueOrderId } });
+
+    const fill: ForexFill = {
+      fillId: randomUUID(),
+      executionId: record.executionId,
+      clientExecId: record.clientExecId,
+      venueExecId: args.venueOrderId,
+      provider: 'BROKER',
+      symbol: record.request.symbol,
+      side: args.side,
+      price: args.price,
+      volume: filled.toFixed(),
+      timestamp: now,
+      liquiditySource: 'BROKER',
+    };
+    record.fills.push(fill);
+    record.filledVolume = filled.toFixed();
+    record.remainingVolume = requested.minus(filled).toFixed();
+    record.executionPrice = args.price;
+    this.emit(record, 'FILL_RECEIVED', { provider: 'BROKER', metadata: { fillId: fill.fillId, volume: fill.volume } });
+    if (fxDecimal(record.remainingVolume).gt(0)) {
+      this.transition(record, 'PARTIALLY_FILLED');
+      this.emit(record, 'PARTIAL_FILL', { provider: 'BROKER', metadata: { remaining: record.remainingVolume } });
+      return await this.finish(record, 'PARTIALLY_FILLED', 'OK', Date.now());
+    }
+    this.emit(record, 'FINAL_FILL', { provider: 'BROKER' });
+    return await this.finish(record, 'FILLED', 'OK', Date.now());
+  }
+
   private orderProviders(codes: string[], preferred: string | null): string[] {
     if (!preferred) return codes;
     return [preferred, ...codes.filter((c) => c !== preferred)];
@@ -464,7 +552,7 @@ export class ForexExecutionService {
     record.events.push(event);
     record.updatedAt = event.timestamp;
     forexWsHub.publishExecution({
-      source: 'SIMULATED',
+      source: record.source,
       eventType,
       executionId: record.executionId,
       clientExecId: record.clientExecId,

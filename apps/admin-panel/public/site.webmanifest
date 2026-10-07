@@ -1,7 +1,7 @@
 {
-  "name": "FDM Admin",
-  "short_name": "FDM",
-  "description": "FDM — secure spot trading, P2P, and institutional-grade exchange infrastructure",
+  "name": "ADB Exchange Administration",
+  "short_name": "ADB Admin",
+  "description": "ADB Exchange administration and operations.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#05070B",

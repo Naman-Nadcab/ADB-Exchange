@@ -154,6 +154,7 @@ const envSchema = z.object({
   RUN_MODE: z.enum(['api', 'workers', 'all']).default('all'),
   PORT: z.coerce.number().default(4000),
   FRONTEND_URL: z.string().default('http://localhost:3000'),
+  WALLET_BROWSER_ORIGINS: z.string().default(''),
   API_VERSION: z.string().default('v1'),
 
   // Rate Limiting
@@ -226,10 +227,11 @@ const envSchema = z.object({
    */
   SPOT_ENGINE_WS_DEDUP_REDIS: z.string().transform((v) => v !== 'false' && v !== '0').default('true'),
   /**
-   * P2P payment proof: `public` = legacy path under frontend/static (discouraged).
-   * `secure` = private directory + authenticated GET /p2p/orders/:id/payment-proof.
+   * P2P payment proof: `secure` (default) = private directory + authenticated GET /p2p/orders/:id/payment-proof
+   * (buyer/seller only). `public` = legacy path under frontend/static: world-readable PII and, when the API
+   * runs in its own container, written to a directory the frontend never serves.
    */
-  P2P_PAYMENT_PROOF_STORAGE: z.enum(['public', 'secure']).default('public'),
+  P2P_PAYMENT_PROOF_STORAGE: z.enum(['public', 'secure']).default('secure'),
   MATCHING_ENGINE_URL: z.string().default('http://localhost:7101'),
   /**
    * Phase 1: route POST /engine/place by market using MATCHING_ENGINE_ROUTES. Match poller + GET /engine/matches
@@ -824,6 +826,7 @@ export const config = {
   env: parsed.data.NODE_ENV,
   port: parsed.data.PORT,
   frontendUrl: parsed.data.FRONTEND_URL,
+  walletBrowserOrigins: parsed.data.WALLET_BROWSER_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean),
   apiVersion: parsed.data.API_VERSION,
   isProduction: parsed.data.NODE_ENV === 'production',
   isDevelopment: parsed.data.NODE_ENV === 'development',

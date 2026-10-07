@@ -97,7 +97,7 @@ function generateBootstrap2FA(email: string): {
     throw new Error('ENCRYPTION_KEY must be set (≥32 chars) to bootstrap admin 2FA secrets');
   }
   const backupCodes = Array.from({ length: 10 }, () => crypto.randomBytes(4).toString('hex').toUpperCase());
-  const issuer = encodeURIComponent('FDM');
+  const issuer = encodeURIComponent('ADB Exchange');
   const account = encodeURIComponent(email);
   return {
     base32,

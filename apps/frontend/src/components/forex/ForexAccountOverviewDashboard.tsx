@@ -169,20 +169,17 @@ export function ForexAccountOverviewDashboard() {
               <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{t('positionModeLabel')}</dt>
               <dd className="mt-0.5">{fxPlain(activeMeta?.positionMode)}</dd>
             </div>
-            <div className="sm:col-span-2">
+            <div>
               <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{t('mode')}</dt>
-              <dd className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{t('modeValue')}</dd>
+              <dd className="mt-0.5">{kindBadge}</dd>
             </div>
           </dl>
-          <p className="mt-3 border-t border-border/80 pt-3 text-[11px] text-muted-foreground">
-            {t.rich('manageAccountsHint', {
-              accountsLink: (chunks) => (
-                <Link href={FOREX_ROUTES.accounts} className="text-primary underline underline-offset-2">
-                  {chunks}
-                </Link>
-              ),
-            })}
-          </p>
+          <Link
+            href={FOREX_ROUTES.accounts}
+            className="mt-3 inline-flex text-[11px] font-semibold text-primary underline-offset-2 hover:underline"
+          >
+            {t('viewAccountDetail')}
+          </Link>
         </ForexPortalModuleCard>
 
         <ForexPortalModuleCard className="lg:col-span-1" title={t('accountHealthHeading')} accent>

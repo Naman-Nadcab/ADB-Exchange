@@ -1,0 +1,73 @@
+# Isolated overlay for release-candidate certification.
+# Use with docker-compose.production.yml. Does not replace that file.
+# Host ports, container names, and the docker socket are isolated from the
+# production compose bindings. Images are the locally built release tags.
+
+services:
+  postgres:
+    container_name: rc20-postgres
+    ports: !override
+      - "127.0.0.1:15432:5432"
+
+  redis:
+    container_name: rc20-redis
+
+  nats:
+    image: rc20-nats:${RC20_SHA}
+    container_name: rc20-nats
+    build: !reset null
+
+  rabbitmq:
+    container_name: rc20-rabbitmq
+
+  indexer:
+    image: rc20-indexer:${RC20_SHA}
+    container_name: rc20-indexer
+    build: !reset null
+
+  matching-engine:
+    image: rc20-matching-engine:${RC20_SHA}
+    container_name: rc20-matching-engine
+    build: !reset null
+
+  backend:
+    image: rc20-backend:${RC20_SHA}
+    container_name: rc20-backend
+    build: !reset null
+    ports: !override
+      - "127.0.0.1:14000:4000"
+    # This host's Docker daemon is TCP-only. Do not mount a missing socket.
+    volumes: !override
+      - ${COMPOSE_PROJECT_DIR:-.}:/opt/m-live:ro
+    group_add: !override []
+
+  frontend:
+    image: rc20-frontend:${RC20_SHA}
+    container_name: rc20-frontend
+    build: !reset null
+
+  admin-panel:
+    image: rc20-admin-panel:${RC20_SHA}
+    container_name: rc20-admin-panel
+    build: !reset null
+
+  nginx:
+    image: rc20-nginx:${RC20_SHA}
+    container_name: rc20-nginx
+    # The Docker daemon cannot bind-mount this workspace. The image copies the
+    # same nginx entrypoint and configs the production compose mounts.
+    volumes: !override []
+    ports: !override
+      - "127.0.0.1:${HTTP_PORT:-18080}:80"
+
+  migrate:
+    image: rc20-backend:${RC20_SHA}
+    container_name: rc20-migrate
+    build: !reset null
+
+networks:
+  default:
+    name: rc20-bridge
+  exchange_network:
+    external: false
+    name: rc20-network

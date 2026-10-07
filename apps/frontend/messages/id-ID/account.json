@@ -38,7 +38,7 @@
   },
   "profile": {
     "title": "Info Akun",
-    "subtitle": "Kelola profil dan pengaturan akun",
+    "subtitle": "Satu akun bursa untuk Kripto dan Forex. Profil, keamanan, dan identitas dipakai bersama. Saldo trading tetap di tempatnya masing-masing.",
     "lastLogin": "Login terakhir:",
     "securityAlert": "Peringatan Keamanan",
     "securityLow": "Tingkat keamanan akun Anda rendah.",
@@ -96,9 +96,79 @@
     },
     "sections": {
       "loginPassword": "Login & kata sandi",
+      "signIn": "Keamanan masuk",
       "twoFactor": "Autentikasi dua faktor",
       "advanced": "Perlindungan lanjutan",
       "withdrawal": "Keamanan penarikan"
+    },
+    "wallets": {
+      "title": "Dompet masuk",
+      "description": "Dompet yang dapat dipakai untuk masuk. Menautkan dompet tidak memindahkan dana.",
+      "add": "Tambah dompet",
+      "empty": "Belum ada dompet masuk.",
+      "loading": "Memuat dompet masuk…",
+      "primary": "Utama",
+      "setPrimary": "Jadikan dompet masuk utama",
+      "remove": "Hapus dari metode masuk",
+      "linked": "Ditautkan",
+      "lastUsed": "Terakhir dipakai",
+      "copy": "Salin alamat",
+      "statusActive": "Aktif",
+      "statusDisabled": "Dinonaktifkan",
+      "statusCompromised": "Tidak tersedia",
+      "fundsNote": "Menghapus dompet login tidak menghapus dana.",
+      "confirmPrimary": "Konfirmasi menjadikan dompet {address} sebagai dompet masuk utama Anda.",
+      "confirmRemove": "Konfirmasi menghapus dompet {address} dari metode masuk Anda.",
+      "cancel": "Batal",
+      "signing": "Menunggu tanda tangan Anda…",
+      "successLinked": "Dompet ditambahkan ke metode masuk Anda.",
+      "successPrimary": "Dompet masuk utama diperbarui.",
+      "successRemoved": "Dompet dihapus dari metode masuk. Dana Anda tidak berubah.",
+      "alreadyLinked": "Dompet ini sudah tertaut ke akun Anda.",
+      "unavailable": "Dompet ini tidak dapat ditautkan.",
+      "lastFactor": "Tambahkan metode masuk lain sebelum menghapus dompet ini.",
+      "primaryRequired": "Jadikan dompet lain sebagai dompet masuk utama sebelum menghapus yang ini.",
+      "mismatch": "Hubungkan dompet yang sedang Anda perbarui.",
+      "rejected": "Tanda tangan dibatalkan.",
+      "failed": "Tidak dapat memperbarui dompet masuk. Coba lagi.",
+      "expired": "Permintaan ini kedaluwarsa. Mulai lagi.",
+      "rateLimit": "Terlalu banyak percobaan. Tunggu dan coba lagi.",
+      "network": "Masalah jaringan. Coba lagi.",
+      "noWallets": "Tidak ada dompet di browser ini.",
+      "namespaceEvm": "EVM",
+      "namespaceSolana": "Solana"
+    },
+    "recovery": {
+      "title": "Pemulihan akun",
+      "description": "Jika dompet masuk hilang, pemulihan tetap memakai akun ini. Tanda tangan dompet bukan verifikasi identitas, dan email saja tidak dapat menambahkan dompet masuk.",
+      "lostWallet": "Kehilangan dompet?",
+      "factors": "Faktor pemulihan",
+      "wallets": "Dompet masuk aktif",
+      "passkey": "Passkey",
+      "totp": "Autentikator",
+      "available": "Tersedia",
+      "notSet": "Belum diatur",
+      "emailNote": "Email hanya saluran kontak. Email tidak dapat mengganti dompet masuk.",
+      "soleFactorWarning": "Anda hanya memiliki satu dompet masuk dan tidak memiliki passkey atau autentikator. Jika dompet itu hilang, Anda tidak dapat memulihkan login sendiri. Tambahkan dompet kedua, passkey, atau autentikator sebelum mengandalkan akun ini.",
+      "status": "Status pemulihan",
+      "none": "Tidak ada",
+      "withdrawalsPaused": "Penarikan dijeda selama perlindungan pemulihan.",
+      "withdrawalsNormal": "Tidak ada penahanan penarikan dari pemulihan.",
+      "cooldownUntil": "Perlindungan sampai",
+      "credentialNote": "Dompet pengganti adalah kredensial masuk. Dompet itu tidak ditambahkan ke penarikan dan tidak memindahkan dana.",
+      "cancel": "Batalkan permintaan pemulihan",
+      "dialogTitle": "Pulihkan akses masuk",
+      "dialogBody": "Ini membuka permintaan pemulihan untuk akun ini. Dompet tidak langsung diganti dan dana tidak dipindahkan.",
+      "confirm": "Buka permintaan pemulihan",
+      "close": "Tutup",
+      "working": "Memproses…",
+      "loading": "Memuat status pemulihan…",
+      "requested": "Permintaan pemulihan dibuka. Verifikasi metode masuk yang tersisa atau tunggu peninjauan.",
+      "cancelled": "Permintaan pemulihan dibatalkan. Dompet tidak berubah.",
+      "alreadyOpen": "Permintaan pemulihan sudah terbuka.",
+      "emailBlocked": "Verifikasi email tidak dapat menambah atau mengganti dompet masuk.",
+      "failed": "Tidak dapat memperbarui pemulihan akun. Coba lagi.",
+      "network": "Masalah jaringan. Coba lagi."
     },
     "level": {
       "high": "Tinggi",
@@ -108,7 +178,10 @@
     "features": {
       "loginPassword": {
         "title": "Kata sandi login",
-        "description": "Digunakan untuk login akun"
+        "description": "Digunakan untuk login akun",
+        "walletOnlyTitle": "Kata sandi akun",
+        "walletOnlyDescription": "Kata sandi bukan metode masuk. Masuk dengan dompet Anda.",
+        "walletOnlyStatus": "Bukan metode masuk"
       },
       "activeSessions": {
         "title": "Sesi aktif",
@@ -117,11 +190,13 @@
       "emailAuth": {
         "title": "Autentikasi email",
         "descriptionPrefix": "Untuk login, penarikan, dan verifikasi keamanan.",
+        "walletOnlyPrefix": "Kontak opsional untuk pemberitahuan keamanan. Email bukan metode masuk.",
         "changeEmail": "Ubah email"
       },
       "phone": {
         "title": "Verifikasi telepon",
-        "description": "Verifikasi nomor ponsel dan gunakan SMS untuk login, reset kata sandi, dan tindakan keamanan"
+        "description": "Verifikasi nomor ponsel dan gunakan SMS untuk login, reset kata sandi, dan tindakan keamanan",
+        "walletOnlyDescription": "Kontak opsional untuk pemberitahuan keamanan. SMS bukan metode masuk."
       },
       "google2fa": {
         "title": "Google 2FA",
@@ -130,6 +205,7 @@
       "passkeys": {
         "title": "Passkey (Touch ID / Face ID)",
         "description": "Gunakan biometrik untuk login cepat dan aman",
+        "walletOnlyDescription": "Passkey dapat menyetujui tindakan sensitif. Passkey bukan metode masuk.",
         "registered": "{count} terdaftar"
       },
       "fundPassword": {
@@ -552,7 +628,7 @@
     "footerTradingFee": "Fee Trading",
     "footerApi": "API",
     "footerHelpCenter": "Pusat Bantuan",
-    "footerCopyright": "© 2026 FDM",
+    "footerCopyright": "© 2026 ADB Exchange",
     "requirements": {
       "spot-volume": {
         "title": "Volume Trading Spot 30 Hari (USD)",
@@ -580,7 +656,7 @@
     "depositCta": "Lakukan deposit",
     "dashboardCta": "Ke dashboard",
     "redirecting": "Mengalihkan ke dashboard dalam 5 detik…",
-    "footerCopyright": "© 2018-2026 FDM. Hak cipta dilindungi.",
+    "footerCopyright": "© 2018-2026 ADB Exchange. Hak cipta dilindungi.",
     "steps": {
       "fund": {
         "title": "Danai akun Anda",
@@ -681,15 +757,15 @@
     "title": "Ringkasan",
     "description": "Portofolio, pasar, dan aktivitas akun — pusat komando trading Anda.",
     "balance": {
-      "estimatedTotal": "Perkiraan total saldo",
-      "estimatedTotalTooltip": "Gabungan saldo akun funding dan trading dalam mata uang tampilan yang Anda pilih.",
+      "estimatedTotal": "Perkiraan kripto & fiat",
+      "estimatedTotalTooltip": "Funding kripto ditambah spot, dalam mata uang tampilan. Ekuitas Forex tidak termasuk.",
       "portfolioPnl24h": "PnL portofolio 24j",
       "portfolioPnlTooltip": "Perubahan portofolio harian belum tersedia dari ringkasan ini.",
       "updated": "Diperbarui {datetime}",
-      "funding": "Funding",
-      "fundingHint": "Deposit & P2P",
-      "trading": "Trading",
-      "tradingHint": "Spot & order terbuka"
+      "funding": "Funding kripto",
+      "fundingHint": "Deposit dan P2P. Bukan Forex.",
+      "trading": "Spot kripto",
+      "tradingHint": "Order spot. Bukan margin Forex."
     },
     "accountCard": {
       "label": "Akun",
@@ -997,6 +1073,7 @@
   "identityPage": {
     "checkingStatus": "Memeriksa status verifikasi...",
     "headerTitle": "Verifikasi Identitas",
+    "accountWideNote": "Verifikasi ini milik akun bursa Anda. Kepatuhan kripto memakai status ini. Forex mewajibkannya hanya saat kebijakan KYC Forex aktif.",
     "verifiedTitle": "Identitas Terverifikasi",
     "verifiedSubtitle": "Identitas Anda berhasil diverifikasi. Anda kini memiliki akses penuh ke semua fitur platform.",
     "verificationLevel": "Level verifikasi",
@@ -1008,6 +1085,8 @@
     "goToAccount": "Ke Akun",
     "pendingTitle": "Verifikasi Sedang Diproses",
     "pendingSubtitle": "Dokumen Anda sedang ditinjau. Biasanya 1–2 hari kerja.",
+    "rejectedTitle": "Verifikasi tidak disetujui",
+    "rejectedSubtitle": "Pengajuan identitas terbaru pada akun ini ditolak. Anda dapat mengajukan ulang. Forex tidak memakai identitas terpisah.",
     "businessVerification": "Verifikasi Bisnis",
     "helpAria": "Bantuan",
     "accountAria": "Pengaturan akun",
@@ -1020,8 +1099,8 @@
     "otherDocuments": "Tidak punya {doc}? Gunakan dokumen lain.",
     "verifyToEarn": "Verifikasi dapat $20",
     "continueOnApp": "Anda juga dapat melanjutkan di",
-    "fdmApp": "📱 Aplikasi FDM",
-    "footerCopyright": "© 2018-2026 FDM. Hak cipta dilindungi.",
+    "fdmApp": "Aplikasi ADB Exchange",
+    "footerCopyright": "© 2018-2026 ADB Exchange. Hak cipta dilindungi.",
     "termsOfService": "Ketentuan Layanan",
     "privacyPolicy": "Kebijakan Privasi",
     "verificationFailed": "Verifikasi gagal",
@@ -1399,17 +1478,17 @@
     "line": "Line",
     "more": "More",
     "loadFailed": "Gagal memuat data referral",
-    "inviteEarn": "Undang teman ke FDM Earn",
-    "inviteCard": "Referensikan teman ke FDM Card",
+    "inviteEarn": "Undang teman ke ADB Exchange Earn",
+    "inviteCard": "Referensikan teman ke ADB Exchange Card",
     "inviteCopyTrading": "Referensikan teman ke Copy Trading",
     "typeWeb3": "web3",
-    "shareTitle": "Gabung FDM dan dapatkan reward kripto!",
-    "shareTextPrefix": "Gabung FDM dengan link referral saya dan ikuti program referral jika reward tersedia: ",
+    "shareTitle": "Gabung ADB Exchange dan dapatkan reward kripto!",
+    "shareTextPrefix": "Gabung ADB Exchange dengan link referral saya dan ikuti program referral jika reward tersedia: ",
     "loadingCode": "MEMUAT…",
     "canvasJoinTitle": "Gabung & Dapatkan Reward!",
-    "canvasReferLine1": "Referensikan teman ke FDM",
+    "canvasReferLine1": "Referensikan teman ke ADB Exchange",
     "canvasReferLine2": "dan dapatkan komisi yang memenuhi syarat.",
-    "canvasScanPrompt": "Pindai QR dan gabung FDM!",
+    "canvasScanPrompt": "Pindai QR dan gabung ADB Exchange!",
     "canvasReferralCode": "Kode Referral: {code}"
   },
   "myReferralsPage": {
@@ -1462,7 +1541,7 @@
     "footerServices": "Services",
     "footerSupport": "Support",
     "footerProducts": "Products",
-    "footerAboutFdm": "About FDM",
+    "footerAboutFdm": "About ADB Exchange",
     "footerAnnouncements": "Announcements",
     "footerFees": "Fees & Transactions Overview",
     "footerP2p": "P2P Trading (0 Fees)",
@@ -1478,7 +1557,7 @@
     "loadFailed": "Gagal memuat data referral"
   },
   "apiManagementPage": {
-    "bannerTitle": "FDM OpenAPI V5",
+    "bannerTitle": "ADB Exchange OpenAPI V5",
     "title": "Manajemen API",
     "createNewKey": "Buat Kunci Baru",
     "securityCardTitle": "Keamanan",

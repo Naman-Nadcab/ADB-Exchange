@@ -67,7 +67,7 @@ async function refreshAccessToken(): Promise<string | null> {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: useCookieOnly ? undefined : JSON.stringify({ refreshToken }),
+      body: useCookieOnly ? '{}' : JSON.stringify({ refreshToken }),
     });
 
     if (response.ok) {
@@ -85,7 +85,7 @@ async function refreshAccessToken(): Promise<string | null> {
       }
     }
     // Only treat definitive auth failure (4xx) as session invalid; do not logout on 5xx/network.
-    if (response.status >= 400 && response.status < 500 && typeof window !== 'undefined' && useAuthStore.getState()._hasHydrated) {
+    if ((response.status === 401 || response.status === 403) && typeof window !== 'undefined' && useAuthStore.getState()._hasHydrated) {
       window.dispatchEvent(new CustomEvent('auth:refresh-failed'));
     }
     return null;

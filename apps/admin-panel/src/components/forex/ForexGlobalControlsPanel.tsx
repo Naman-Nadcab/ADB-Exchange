@@ -108,6 +108,7 @@ export function ForexGlobalControlsPanel() {
   const token = useAdminAuthStore((s) => s.accessToken);
   const qc = useQueryClient();
   const [pendingBool, setPendingBool] = useState<{ key: BoolKey; next: boolean } | null>(null);
+  const [pendingKyc, setPendingKyc] = useState<boolean | null>(null);
   const [killSwitchArm, setKillSwitchArm] = useState(false);
   const [instStatus, setInstStatus] = useState<{ symbol: string; display: string; status: string } | null>(null);
   const [approvalNotice, setApprovalNotice] = useState<ForexApprovalPendingInfo | null>(null);
@@ -134,6 +135,7 @@ export function ForexGlobalControlsPanel() {
       setApprovalNotice(pending);
       if (!pending) void qc.invalidateQueries({ queryKey: ['admin', 'forex'] });
       setPendingBool(null);
+      setPendingKyc(null);
       setKillSwitchArm(false);
     },
   });
@@ -214,6 +216,41 @@ export function ForexGlobalControlsPanel() {
       </ForexPanelShell>
 
       {snap ? (
+        <ForexPanelShell
+          title="Forex KYC policy"
+          description="Persisted setting · survives restart · does not change Crypto KYC, wallet login, or Forex account identity"
+        >
+          <div className="flex flex-col gap-2 rounded-lg border border-admin-border/80 bg-admin-bg/40 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-medium">Forex KYC required</span>
+                <Badge variant={snap.kycPolicy?.required !== false ? 'warning' : 'success'} className="font-normal">
+                  {snap.kycPolicy?.required !== false ? 'ON' : 'OFF'}
+                </Badge>
+                <Badge variant="default" className="text-[10px] font-normal">
+                  {snap.kycPolicy?.source === 'system_settings' ? 'Saved policy' : 'Default ON'}
+                </Badge>
+              </div>
+              <p className="mt-0.5 text-xs text-admin-muted">
+                ON enforces approved platform KYC before a live Forex application. OFF means Forex KYC is not mandatory.
+              </p>
+            </div>
+            <ProtectedAction permission="forex:control" fallback="disabled">
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                disabled={patchM.isPending}
+                onClick={() => setPendingKyc(snap.kycPolicy?.required === false)}
+              >
+                Turn {snap.kycPolicy?.required !== false ? 'OFF' : 'ON'}
+              </Button>
+            </ProtectedAction>
+          </div>
+        </ForexPanelShell>
+      ) : null}
+
+      {snap ? (
         <ForexPanelShell title="Per-instrument trading status" description="Halt or reopen symbols without redeploy" noPadding>
           <div className="overflow-x-auto p-4">
             <table className="w-full min-w-[32rem] text-left text-xs">
@@ -284,6 +321,22 @@ export function ForexGlobalControlsPanel() {
         requiredPermission="forex:control"
         onConfirm={async () => {
           await patchM.mutateAsync({ kill_switch: true, reason: 'Kill switch enabled via admin safe action' });
+        }}
+      />
+
+      <ForexConfirmModal
+        open={pendingKyc !== null}
+        onClose={() => setPendingKyc(null)}
+        title={pendingKyc ? 'Turn Forex KYC ON' : 'Turn Forex KYC OFF'}
+        description={
+          pendingKyc
+            ? 'Live Forex applications will require an approved platform KYC record for the customer user id.'
+            : 'Live Forex applications will no longer require KYC. Crypto withdrawal and trading KYC stay unchanged.'
+        }
+        loading={patchM.isPending}
+        onConfirm={async (reason) => {
+          if (pendingKyc === null) return;
+          await patchM.mutateAsync({ reason, kyc_required: pendingKyc });
         }}
       />
 

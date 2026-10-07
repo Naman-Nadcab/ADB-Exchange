@@ -1,6 +1,7 @@
 /**
  * Admin — multi-broker integration catalog (read-only S2).
  */
+import { isBrokerGatewayConfigured } from '../broker/gateway.js';
 import { buildForexProviderCatalog, defaultBrokerAdapterId, providerTypeLabel } from '../adapters/registry.js';
 import type { ForexProviderCatalogEntry } from '../adapters/types.js';
 import { buildForexAdminExecutionSnapshot, type ForexAdminExecutionSnapshot } from './execution.js';
@@ -32,7 +33,9 @@ export async function buildForexAdminIntegrationsSnapshot(): Promise<ForexAdminI
     realForexGate: execution.realForexGate,
     notes: [
       'Credentials for external brokers are never stored in admin responses — use encrypted integration vault when wired.',
-      'Only Internal FDM is connected today; MT5/MT4/cTrader/FIX rows are integration placeholders.',
+      isBrokerGatewayConfigured()
+        ? 'Broker HTTP gateway is enabled. MT4, MT5, cTrader, and FIX drivers stay out of this catalog until an adapter exists.'
+        : 'Only the internal Forex adapter is connected. Protocol drivers stay out of this catalog until an adapter exists.',
       'MOCK LP rows in execution refer to simulated quote/ fill providers, not live brokerage.',
     ],
   };

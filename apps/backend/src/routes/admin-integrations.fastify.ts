@@ -300,7 +300,7 @@ export default async function adminIntegrationsRoutes(app: FastifyInstance) {
 
       const blockedWithdrawals = await db.query<{ date: string; count: string }>(
         `SELECT date_trunc('day', updated_at) AS date, COUNT(*)::text AS count
-         FROM withdrawals WHERE status = 'failed' AND (failed_reason ILIKE '%sanctions%' OR rejection_reason ILIKE '%sanctions%')
+         FROM withdrawals WHERE status IN ('failed','rejected') AND (failed_reason ILIKE '%sanctions%' OR rejection_reason ILIKE '%sanctions%')
          AND updated_at > NOW() - INTERVAL '30 days'
          GROUP BY 1 ORDER BY 1`
       ).catch(() => ({ rows: [] }));
@@ -314,7 +314,7 @@ export default async function adminIntegrationsRoutes(app: FastifyInstance) {
       const summary = await db.query<{ total_hits: string; blocked_tx: string; flagged_users: string }>(
         `SELECT
           (SELECT COUNT(*) FROM aml_alerts WHERE (alert_type LIKE '%sanctions%' OR details::text ILIKE '%sanctions%') AND created_at > NOW() - INTERVAL '30 days')::text AS total_hits,
-          (SELECT COUNT(*) FROM withdrawals WHERE status = 'failed' AND (failed_reason ILIKE '%sanctions%' OR rejection_reason ILIKE '%sanctions%') AND updated_at > NOW() - INTERVAL '30 days')::text AS blocked_tx,
+          (SELECT COUNT(*) FROM withdrawals WHERE status IN ('failed','rejected') AND (failed_reason ILIKE '%sanctions%' OR rejection_reason ILIKE '%sanctions%') AND updated_at > NOW() - INTERVAL '30 days')::text AS blocked_tx,
           (SELECT COUNT(DISTINCT user_id) FROM aml_alerts WHERE status = 'open' AND (alert_type LIKE '%sanctions%' OR details::text ILIKE '%sanctions%'))::text AS flagged_users`
       ).catch(() => ({ rows: [{ total_hits: '0', blocked_tx: '0', flagged_users: '0' }] }));
 

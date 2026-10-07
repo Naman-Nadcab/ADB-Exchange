@@ -31,7 +31,7 @@ export function orderKindHelp(orderType: ForexOrderType, side: ForexSide): strin
   return orderKindHelpLabel(defaultForexTranslate, orderType, side);
 }
 
-export const FOREX_TIME_IN_FORCE_ALL: ForexTimeInForce[] = ['GTC', 'IOC', 'FOK', 'DAY', 'GTD'];
+export const FOREX_TIME_IN_FORCE_ALL: ForexTimeInForce[] = ['GTC', 'IOC', 'FOK', 'DAY', 'GTD', 'RETURN', 'BOC'];
 
 export const FOREX_TIME_IN_FORCE_LABEL: Record<ForexTimeInForce, string> = {
   GTC: labelForexTimeInForce(defaultForexTranslate, 'GTC'),
@@ -39,6 +39,8 @@ export const FOREX_TIME_IN_FORCE_LABEL: Record<ForexTimeInForce, string> = {
   FOK: labelForexTimeInForce(defaultForexTranslate, 'FOK'),
   DAY: labelForexTimeInForce(defaultForexTranslate, 'DAY'),
   GTD: labelForexTimeInForce(defaultForexTranslate, 'GTD'),
+  RETURN: labelForexTimeInForce(defaultForexTranslate, 'RETURN'),
+  BOC: labelForexTimeInForce(defaultForexTranslate, 'BOC'),
 };
 
 /** limit, stop and stop_limit rest on the book until a quote triggers them. */
@@ -54,10 +56,10 @@ export function requiresTriggerPrice(type: ForexOrderType): boolean {
   return isPendingOrderType(type);
 }
 
-/** IOC/FOK need an immediate execution; DAY needs something that can rest. */
+/** IOC/FOK need an immediate execution. DAY, GTD, and BOC need an order that can rest. RETURN can do either. */
 export function isTimeInForceAllowed(type: ForexOrderType, tif: ForexTimeInForce): boolean {
-  if (tif === 'GTC') return true;
-  if (tif === 'DAY' || tif === 'GTD') return isPendingOrderType(type);
+  if (tif === 'GTC' || tif === 'RETURN') return true;
+  if (tif === 'DAY' || tif === 'GTD' || tif === 'BOC') return isPendingOrderType(type);
   return !isPendingOrderType(type);
 }
 

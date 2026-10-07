@@ -30,6 +30,78 @@ export interface WithdrawalAuditPayload {
  * Insert one withdrawal lifecycle event into audit_logs.
  * All fields are stored as provided; no private keys or secrets must be passed.
  */
+function safeAuditText(value: string | null | undefined, max: number): string | null {
+  if (value == null) return null;
+  const cleaned = value.replace(/[\u0000-\u001f]/g, ' ').trim();
+  if (!cleaned) return null;
+  if (/api[_-]?key|bearer\s|secret|password/i.test(cleaned)) return null;
+  return cleaned.slice(0, max);
+}
+
+/**
+ * Durable compliance record for a sanctions MATCH. There is no withdrawal row yet.
+ * Provider credentials and raw vendor payloads are not stored.
+ */
+export async function logSanctionsBlock(params: {
+  userId: string;
+  asset: string;
+  amount: string;
+  chainId: string | null;
+  toAddress: string;
+  provider?: string;
+  reason?: string;
+  requestId?: string | null;
+  ip?: string | null;
+  userAgent?: string | null;
+}): Promise<void> {
+  const reason = safeAuditText(params.reason, 180);
+  const provider = safeAuditText(params.provider, 40);
+  const toAddress = safeAuditText(params.toAddress, 128);
+  const details = {
+    decision: 'match',
+    provider,
+    reason,
+    asset: params.asset,
+    amount: params.amount,
+    chain_id: params.chainId,
+    to_address: toAddress,
+    request_id: params.requestId ?? null,
+  };
+  await db.query(
+    `INSERT INTO audit_logs (
+       action, user_id, withdrawal_id, chain_id, amount,
+       ip_address, user_agent, resource_type, resource_id, details
+     ) VALUES ('sanctions_blocked', $1, NULL, $2, $3, $4::inet, $5, 'withdrawal', NULL, $6::jsonb)`,
+    [
+      params.userId,
+      params.chainId,
+      params.amount,
+      params.ip ?? null,
+      params.userAgent ?? null,
+      JSON.stringify(details),
+    ]
+  );
+  await logAudit({
+    requestId: params.requestId ?? null,
+    actorType: 'user',
+    actorId: params.userId,
+    action: 'sanctions_blocked',
+    resourceType: 'withdrawal',
+    resourceId: null,
+    newValue: {
+      user_id: params.userId,
+      decision: 'match',
+      provider,
+      reason,
+      asset: params.asset,
+      amount: params.amount,
+      chain_id: params.chainId,
+    },
+    ipAddress: params.ip ?? null,
+    userAgent: params.userAgent ?? null,
+  });
+}
+
 export async function logWithdrawalLifecycle(
   event: WithdrawalAuditEvent,
   payload: WithdrawalAuditPayload

@@ -484,7 +484,7 @@ export default function SupportPage() {
 
   // ============== LIST VIEW ==============
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
+    <div className="space-y-4">
       {Header}
 
       <div className="bg-card border border-border rounded-2xl overflow-hidden">

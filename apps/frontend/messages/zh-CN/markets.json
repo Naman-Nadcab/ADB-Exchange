@@ -18,7 +18,9 @@
     "volume24h": "24H 成交量",
     "btcDominance": "BTC 占比",
     "fearGreed": "恐惧与贪婪",
-    "assetsListed": "上线资产数"
+    "assetsListed": "上线资产数",
+    "noExchangePrints": "暂无成交",
+    "notInFeed": "暂无"
   },
   "trendingDashboard": {
     "title": "趋势仪表盘",

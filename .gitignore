@@ -18,6 +18,7 @@ out/
 *.env
 
 # Encryption keys and secrets
+nginx/acme/.well-known/
 *.pem
 *.key
 *.crt

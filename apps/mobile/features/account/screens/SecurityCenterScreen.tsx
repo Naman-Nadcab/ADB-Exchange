@@ -87,7 +87,11 @@ export function SecurityCenterScreen({ navigation }: Props) {
 
             <ExchangeCard variant="terminal" padded={false}>
               <View style={{ paddingHorizontal: theme.spacing[2] }}>
-                <AccountMenuRow label="Change password" onPress={() => navigation.navigate('ChangePassword')} />
+                <AccountMenuRow
+                  label="Change password"
+                  sub="Not a sign-in method"
+                  onPress={() => navigation.navigate('ChangePassword')}
+                />
                 <AccountMenuRow
                   label="2FA"
                   sub={s?.twoFaEnabled ? 'Enabled' : 'Off'}

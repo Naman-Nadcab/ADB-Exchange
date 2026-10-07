@@ -34,7 +34,7 @@ function EnableBiometricsScreen({ navigation }: NativeStackScreenProps<Onboardin
     <AuthSplitLayout testID="S-120" showMarketingLogo>
       <AuthFormHeading
         title="Enable biometrics"
-        subtitle="Unlock FDM quickly when returning to the app."
+        subtitle="Unlock ADB Exchange quickly when you return to the app."
       />
       <PrimaryButton title="Enable Face ID / Touch ID" size="xl" onPress={() => void finish(true)} />
       <PrimaryButton

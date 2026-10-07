@@ -1,5 +1,5 @@
 import { ethers, WebSocketProvider, JsonRpcProvider, Log, Block, TransactionResponse, zeroPadValue, getAddress } from 'ethers';
-import { getCachedBlockNumber, getEvmRpcProvider } from '../lib/evm-rpc-pool.js';
+import { getCachedBlockNumber, getCachedBlockTimestamp, getEvmRpcProvider } from '../lib/evm-rpc-pool.js';
 import { ChainConfig, ERC20_TRANSFER_TOPIC } from '../config/chains';
 import { query } from '../config/database';
 import { logger } from '../utils/logger';
@@ -334,7 +334,12 @@ export class ChainIndexer {
   private async catchUpIfLagging(): Promise<void> {
     if (this.watchedAddresses.size === 0) return;
     try {
-      const head = await getCachedBlockNumber(this.config.rpcUrl, this.config.id);
+      const head = await Promise.race([
+        getCachedBlockNumber(this.config.rpcUrl, this.config.id),
+        new Promise<number>((_, reject) => {
+          setTimeout(() => reject(new Error('block head timeout')), 8_000);
+        }),
+      ]);
       const target = Math.max(0, head - this.config.confirmations);
       const lag = target - this.lastProcessedBlock;
       if (lag <= ChainIndexer.LAG_CATCHUP_THRESHOLD) return;
@@ -381,13 +386,8 @@ export class ChainIndexer {
       });
       for (const log of logs) {
         const blockNumber = Number(log.blockNumber);
-        let blockTimestamp = Math.floor(Date.now() / 1000);
-        try {
-          const block = await this.httpProvider.getBlock(blockNumber);
-          if (block?.timestamp) blockTimestamp = block.timestamp;
-        } catch {
-          /* use now */
-        }
+        const cachedTs = await getCachedBlockTimestamp(this.config.rpcUrl, blockNumber, this.config.id).catch(() => null);
+        const blockTimestamp = cachedTs ?? Math.floor(Date.now() / 1000);
         await this.processTransferLog(log, blockNumber, blockTimestamp);
       }
       return true;
@@ -925,50 +925,17 @@ export class ChainIndexer {
       const head = await getCachedBlockNumber(this.config.rpcUrl, this.config.id);
       const from = Math.max(1, head - win);
       const to = head;
-      const contracts = [...this.tokenContracts.keys()];
+      // The block poller already reads this window when the chain is caught up.
+      if (head - this.lastProcessedBlock <= win + this.config.confirmations) return 0;
 
-      if (contracts.length === 0) {
-        const logs = await this.httpProvider.getLogs({
-          fromBlock: from,
-          toBlock: to,
-          topics: [ERC20_TRANSFER_TOPIC, null, toTopics.length === 1 ? toTopics[0]! : toTopics],
-        });
-        for (const log of logs) {
-          await this.ingestLogFromScan(log, addressSet);
-          processed += 1;
-        }
-        return processed;
-      }
-
-      const TOPIC_BATCH = 8;
-      for (const tokenAddr of contracts) {
-        for (let i = 0; i < toTopics.length; i += TOPIC_BATCH) {
-          const batch = toTopics.slice(i, i + TOPIC_BATCH);
-          try {
-            const logs = await this.httpProvider.getLogs({
-              address: tokenAddr,
-              fromBlock: from,
-              toBlock: to,
-              topics: [ERC20_TRANSFER_TOPIC, null, batch.length === 1 ? batch[0]! : batch],
-            });
-            for (const log of logs) {
-              await this.ingestLogFromScan(log, addressSet);
-              processed += 1;
-            }
-          } catch (error) {
-            if (this.isRateLimitError(error)) {
-              this.rateLimitedUntil = Date.now() + ChainIndexer.RATE_LIMIT_BACKOFF_MS;
-              return processed;
-            }
-            if (!this.isSkippableRpcError(error)) {
-              logger.warn(`Recent scan batch failed on ${this.config.name}`, {
-                tokenAddr,
-                error: error instanceof Error ? error.message : String(error),
-              });
-            }
-          }
-          await new Promise((r) => setTimeout(r, 80));
-        }
+      const logs = await this.httpProvider.getLogs({
+        fromBlock: from,
+        toBlock: to,
+        topics: [ERC20_TRANSFER_TOPIC, null, toTopics.length === 1 ? toTopics[0]! : toTopics],
+      });
+      for (const log of logs) {
+        await this.ingestLogFromScan(log, addressSet);
+        processed += 1;
       }
 
       if (processed > 0) {
@@ -990,13 +957,8 @@ export class ChainIndexer {
     const toAddress = ('0x' + log.topics[2].slice(26)).toLowerCase();
     if (!allowedRecipients.has(toAddress)) return;
     const blockNumber = Number(log.blockNumber);
-    let blockTimestamp = Math.floor(Date.now() / 1000);
-    try {
-      const block = await this.httpProvider.getBlock(blockNumber);
-      if (block?.timestamp) blockTimestamp = block.timestamp;
-    } catch {
-      /* use now */
-    }
+    const cachedTs = await getCachedBlockTimestamp(this.config.rpcUrl, blockNumber, this.config.id).catch(() => null);
+    const blockTimestamp = cachedTs ?? Math.floor(Date.now() / 1000);
     await this.processTransferLog(log, blockNumber, blockTimestamp);
   }
 

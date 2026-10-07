@@ -136,8 +136,10 @@ export async function registerForexCustomerAccountsRoutes(app: FastifyInstance):
     }
     const { buildLiveForexReadiness } = await import('../services/forex/customer/live-funding-readiness.js');
     const { getPlatformKycSnapshot } = await import('../services/forex/customer/platform-kyc.js');
+    const { isForexKycRequired } = await import('../services/forex/customer/forex-kyc-policy.service.js');
     const readiness = await buildLiveForexReadiness();
     const kyc = await getPlatformKycSnapshot(userId);
+    const kycRequired = await isForexKycRequired();
     const cfg = getForexAdminBackendConfig();
     return reply.send({
       success: true,
@@ -146,7 +148,9 @@ export async function registerForexCustomerAccountsRoutes(app: FastifyInstance):
         realForex: cfg.realForex === true,
         liveAccountOpeningAvailable: readiness.capabilities.liveAccountProvisioning,
         applicationAccepted: readiness.capabilities.liveAccountApplication,
+        kycRequired,
         kycVerified: kyc.verified,
+        kycStatus: kyc.status,
         blockers: readiness.blockers,
         reason: readiness.capabilities.liveAccountProvisioning ? 'PROVIDER_READY' : 'PROVIDER_OR_RAIL_BLOCKED',
         message: readiness.capabilities.liveAccountProvisioning

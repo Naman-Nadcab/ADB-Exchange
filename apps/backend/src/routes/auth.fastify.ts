@@ -21,11 +21,26 @@ import {
   logUserActivity,
   getDeviceIdFromRequest,
 } from '../services/activity-monitor.service.js';
+import { canDisableTotp, canRemoveLastPasskey, loadFactorSnapshot } from '../services/wallet-factor-policy.service.js';
+import {
+  canUseLegacyOtp,
+  canUseLegacyPassword,
+  canUseLegacySignup,
+  canUseCustomerPasskeyLogin,
+  getCutoverMode,
+  legacyDisabledBody,
+  legacyRefreshAllowed,
+  LEGACY_SIGNUP_MESSAGE,
+  logCutoverEvent,
+  normalizeAuthMethod,
+  countWalletCredentials,
+} from '../services/legacy-auth-policy.service.js';
 import { rateLimitByIp, rateLimitByIdentifier } from '../lib/rate-limit-fastify.js';
 import { getClientIp } from '../lib/client-ip.js';
 import { config } from '../config/index.js';
 import { getFeeTierDisplay } from '../services/volume-fee-tier.service.js';
 import { isSessionValid } from '../services/session.service.js';
+import { addAddress as addWhitelistAddress } from '../services/withdrawal-whitelist.service.js';
 import { setAuthCookies, clearAuthCookies, getRefreshTokenFromRequest, getAccessTokenFromRequest } from '../lib/auth-cookies.js';
 import {
   generateRegistrationOptions,
@@ -44,6 +59,7 @@ const DISPLAY_CURRENCIES = new Set(['USDT', 'INR']);
 
 function sanitizePreferencesInput(updates: Record<string, unknown>): { ok: true; value: Record<string, unknown> } | { ok: false; message: string } {
   const normalized: Record<string, unknown> = { ...updates };
+  delete normalized.walletRecovery;
   const rawDisplay =
     typeof updates.displayCurrency === 'string'
       ? updates.displayCurrency
@@ -63,7 +79,7 @@ function sanitizePreferencesInput(updates: Record<string, unknown>): { ok: true;
 }
 
 // WebAuthn configuration
-const RP_NAME = process.env.WEBAUTHN_RP_NAME || 'FDM';
+const RP_NAME = process.env.WEBAUTHN_RP_NAME || 'ADB Exchange';
 const RP_ID = process.env.WEBAUTHN_RP_ID || 'localhost';
 const ORIGIN = process.env.WEBAUTHN_ORIGIN || 'http://localhost:3000';
 const CHALLENGE_TTL = 300; // 5 minutes
@@ -485,6 +501,10 @@ export default async function authRoutes(app: FastifyInstance) {
 
       // For signup purpose, just verify and set flag - don't create user yet
       if (purpose === 'signup') {
+        if (!(await canUseLegacySignup())) {
+          logCutoverEvent('legacy_auth_blocked', { outcome: 'blocked', ip: getClientIp(request) });
+          return reply.status(403).send(legacyDisabledBody(LEGACY_SIGNUP_MESSAGE, 'LEGACY_SIGNUP_CLOSED'));
+        }
         // Set a flag in Redis (fallback: DB has verified_at from verifyOTP above)
         try {
           await redis.set(`otp:verified:${cleanIdentifier}`, 'true', 600); // 10 minutes validity
@@ -536,6 +556,10 @@ export default async function authRoutes(app: FastifyInstance) {
       let isNewUser = false;
 
       if (existingUser.rows.length === 0) {
+        if (!(await canUseLegacySignup())) {
+          logCutoverEvent('legacy_auth_blocked', { outcome: 'blocked', ip: getClientIp(request) });
+          return reply.status(403).send(legacyDisabledBody(LEGACY_SIGNUP_MESSAGE, 'LEGACY_SIGNUP_CLOSED'));
+        }
         // Create new user
         isNewUser = true;
         
@@ -611,6 +635,11 @@ export default async function authRoutes(app: FastifyInstance) {
         }
       }
 
+      if (!(await canUseLegacyOtp(user.id))) {
+        logCutoverEvent('legacy_auth_blocked', { userId: user.id, outcome: 'blocked', ip: getClientIp(request) });
+        return reply.status(403).send(legacyDisabledBody());
+      }
+
       const deviceId = getDeviceIdFromRequest(request.headers as Record<string, string | undefined>);
 
       // Session + clear lock in parallel (saves ~15-30ms)
@@ -622,6 +651,7 @@ export default async function authRoutes(app: FastifyInstance) {
           ipAddress: getClientIp(request),
           userAgent: request.headers['user-agent'],
           ttlSeconds: 7 * 24 * 60 * 60,
+          authMethod: 'otp',
         }),
         clearFailedLoginAttempts(user.id),
       ]);
@@ -708,7 +738,7 @@ export default async function authRoutes(app: FastifyInstance) {
       }
 
       // Check session
-      const session = await redis.getJson<{ userId: string; isActive: boolean }>(`session:${decoded.sessionId}`);
+      const session = await redis.getJson<{ userId: string; isActive: boolean; authMethod?: string }>(`session:${decoded.sessionId}`);
       if (!session || !session.isActive) {
         return reply.status(401).send({
           success: false,
@@ -721,8 +751,12 @@ export default async function authRoutes(app: FastifyInstance) {
         id: string;
         email: string | null;
         phone: string | null;
+        status: string;
+        is_locked: boolean;
       }>(
-        'SELECT id, email, phone FROM users WHERE id = $1 AND deleted_at IS NULL',
+        `SELECT id, email, phone, status,
+                (locked_until IS NOT NULL AND locked_until > NOW()) AS is_locked
+         FROM users WHERE id = $1 AND deleted_at IS NULL`,
         [decoded.userId]
       );
 
@@ -734,6 +768,21 @@ export default async function authRoutes(app: FastifyInstance) {
       }
 
       const user = userResult.rows[0]!;
+      const { customerStatusBlock } = await import('../services/customer-financial-access.js');
+      const statusBlock = customerStatusBlock(user.status, user.is_locked);
+      if (statusBlock) {
+        return reply.status(403).send({ success: false, error: statusBlock });
+      }
+      const walletCounts = await countWalletCredentials(user.id);
+      const refreshAllowed = legacyRefreshAllowed({
+        mode: await getCutoverMode(),
+        walletCredentialCount: walletCounts.credentials,
+        authMethod: session.authMethod,
+      });
+      if (!refreshAllowed) {
+        logCutoverEvent('legacy_auth_blocked', { userId: user.id, outcome: 'blocked', ip: getClientIp(request) });
+        return reply.status(403).send(legacyDisabledBody());
+      }
 
       // Rotate refresh token: create new session, revoke old one, issue tokens for new session (prevents replay).
       const newSession = await createSession({
@@ -741,6 +790,7 @@ export default async function authRoutes(app: FastifyInstance) {
         ipAddress: getClientIp(request) || undefined,
         userAgent: request.headers['user-agent'] ?? undefined,
         deviceType: 'web',
+        authMethod: normalizeAuthMethod(session.authMethod),
       });
       await revokeSession(decoded.sessionId);
 
@@ -1037,6 +1087,10 @@ export default async function authRoutes(app: FastifyInstance) {
     },
   }, async (request, reply) => {
     try {
+      if (!(await canUseLegacySignup())) {
+        logCutoverEvent('legacy_auth_blocked', { outcome: 'blocked', ip: getClientIp(request) });
+        return reply.status(403).send(legacyDisabledBody(LEGACY_SIGNUP_MESSAGE, 'LEGACY_SIGNUP_CLOSED'));
+      }
       const { email, phone, password, referralCode } = request.body;
 
       // Validate password requirements
@@ -1208,6 +1262,7 @@ export default async function authRoutes(app: FastifyInstance) {
           userId: user.id,
           isActive: true,
           createdAt: Date.now(),
+          authMethod: 'password',
         }, 7 * 24 * 60 * 60);
       } catch (redisErr) {
         logger.warn('Session cache (Redis) write failed at signup, continuing', { error: redisErr instanceof Error ? redisErr.message : 'Unknown' });
@@ -1405,6 +1460,12 @@ export default async function authRoutes(app: FastifyInstance) {
         });
       }
 
+      if (!(await canUseLegacyPassword(user.id))) {
+        logCutoverEvent('legacy_auth_blocked', { userId: user.id, outcome: 'blocked', ip: getClientIp(request) });
+        return reply.status(403).send(legacyDisabledBody());
+      }
+      logCutoverEvent('legacy_auth_allowed', { userId: user.id, outcome: 'allowed', ip: getClientIp(request) });
+
       const deviceId = getDeviceIdFromRequest(request.headers as Record<string, string | undefined>);
       const [sessionResult] = await Promise.all([
         createSession({
@@ -1414,6 +1475,7 @@ export default async function authRoutes(app: FastifyInstance) {
           ipAddress: getClientIp(request),
           userAgent: request.headers['user-agent'],
           ttlSeconds: 7 * 24 * 60 * 60,
+          authMethod: 'password',
         }),
         clearFailedLoginAttempts(user.id),
         db.query(`UPDATE users SET last_login_at = NOW() WHERE id = $1`, [user.id]),
@@ -1642,6 +1704,11 @@ export default async function authRoutes(app: FastifyInstance) {
         });
       }
 
+      if (!(await canUseLegacyOtp(user.id))) {
+        logCutoverEvent('legacy_auth_blocked', { userId: user.id, outcome: 'blocked', ip: getClientIp(request) });
+        return reply.status(403).send(legacyDisabledBody());
+      }
+
       // Build required verification steps based on user settings
       const stepsRequired: string[] = [];
       const smsAuthEnabled = user.sms_auth_enabled ?? false;
@@ -1713,6 +1780,7 @@ export default async function authRoutes(app: FastifyInstance) {
           userId: user.id,
           isActive: true,
           createdAt: Date.now(),
+          authMethod: 'otp',
         }, 7 * 24 * 60 * 60);
       } catch (redisErr) {
         logger.warn('Session cache (Redis) write failed, login continues', { error: redisErr instanceof Error ? redisErr.message : 'Unknown' });
@@ -1912,7 +1980,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
           const OTPAuth = await import('otpauth');
           const totp = new OTPAuth.TOTP({
-            issuer: 'FDM',
+            issuer: 'ADB Exchange',
             label: 'user',
             algorithm: 'SHA1',
             digits: 6,
@@ -1971,6 +2039,11 @@ export default async function authRoutes(app: FastifyInstance) {
         });
       }
 
+      if (!(await canUseLegacyOtp(user.id))) {
+        logCutoverEvent('legacy_auth_blocked', { userId: user.id, outcome: 'blocked', ip: getClientIp(request) });
+        return reply.status(403).send(legacyDisabledBody());
+      }
+
       // All steps completed - complete login
       await db.query(
         `UPDATE login_verification_tokens SET completed_at = CURRENT_TIMESTAMP WHERE id = $1`,
@@ -1992,6 +2065,7 @@ export default async function authRoutes(app: FastifyInstance) {
           userId: user.id,
           isActive: true,
           createdAt: Date.now(),
+          authMethod: 'otp',
         }, 7 * 24 * 60 * 60);
       } catch (redisErr) {
         logger.warn('Session cache (Redis) write failed at passkey login, continuing', { error: redisErr instanceof Error ? redisErr.message : 'Unknown' });
@@ -2324,7 +2398,7 @@ export default async function authRoutes(app: FastifyInstance) {
       const userId = (request.user?.userId ?? request.user?.id)!;
 
       // Get user info
-      const userResult = await db.query<{ id: string; email: string; username: string | null }>(
+      const userResult = await db.query<{ id: string; email: string | null; username: string | null }>(
         `SELECT id, email, username FROM users WHERE id = $1 AND deleted_at IS NULL`,
         [userId]
       );
@@ -2359,8 +2433,8 @@ export default async function authRoutes(app: FastifyInstance) {
         rpName: RP_NAME,
         rpID: RP_ID,
         userID: new TextEncoder().encode(userId),
-        userName: user.email,
-        userDisplayName: user.username || user.email,
+        userName: user.email || user.username || `user-${userId}`,
+        userDisplayName: user.username || user.email || `user-${userId}`,
         attestationType: 'none',
         excludeCredentials,
         authenticatorSelection: {
@@ -2711,6 +2785,10 @@ export default async function authRoutes(app: FastifyInstance) {
     preHandler: [rateLimitByIp('auth:passkey', 10, 60, { failClosed: config.rateLimit.failClosed })],
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
+      if (!(await canUseCustomerPasskeyLogin())) {
+        logCutoverEvent('legacy_auth_blocked', { outcome: 'blocked', ip: getClientIp(request) });
+        return reply.status(403).send(legacyDisabledBody());
+      }
       const { credential, challenge } = request.body as { credential: AuthenticationResponseJSON; challenge: string };
 
       if (!credential || !challenge) {
@@ -3000,6 +3078,16 @@ export default async function authRoutes(app: FastifyInstance) {
       if (!(await jwtVerifyWithSession(request, reply))) return;
       const userId = (request.user?.userId ?? request.user?.id)!;
       const { passkeyId } = request.params as { passkeyId: string };
+      const factors = await loadFactorSnapshot(async (sql, params) => {
+        const rows = await db.query(sql, params);
+        return { rows: rows.rows as Array<Record<string, unknown>> };
+      }, userId);
+      if (factors.passkeyCount <= 1 && !canRemoveLastPasskey(factors)) {
+        return reply.status(409).send({
+          success: false,
+          error: { code: 'LAST_FACTOR', message: 'Add another sign-in method before removing this one.' },
+        });
+      }
 
       // Soft delete the passkey
       const result = await db.query(
@@ -3272,6 +3360,10 @@ export default async function authRoutes(app: FastifyInstance) {
         return reply.send({ success: true, data: { message: 'If an account exists, you will receive an OTP shortly.' } });
       }
       const userId = userResult.rows[0]!.id;
+      if (!(await canUseLegacyPassword(userId))) {
+        logCutoverEvent('legacy_auth_blocked', { userId, outcome: 'blocked', ip: getClientIp(request) });
+        return reply.send({ success: true, data: { message: 'If an account exists, you will receive an OTP shortly.' } });
+      }
       const { otp, expiresAt } = await otpService.createOTP(cleanIdentifier, 'password_reset', userId);
       const sent = type === 'email'
         ? await otpService.sendEmailOTP(cleanIdentifier, otp)
@@ -3328,6 +3420,9 @@ export default async function authRoutes(app: FastifyInstance) {
       return reply.send({ success: true, data: { message: 'Password reset successfully' } });
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Unknown';
+      if (msg === 'This account uses wallet sign-in.') {
+        return reply.status(403).send(legacyDisabledBody());
+      }
       return reply.status(400).send({
         success: false,
         error: { code: 'PASSWORD_RESET_FAILED', message: msg },
@@ -3927,7 +4022,7 @@ export default async function authRoutes(app: FastifyInstance) {
       const totpSecret = new OTPAuth.Secret({ size: 20 });
 
       const totp = new OTPAuth.TOTP({
-        issuer: 'FDM',
+        issuer: 'ADB Exchange',
         label: user.email,
         algorithm: 'SHA1',
         digits: 6,
@@ -4011,7 +4106,7 @@ export default async function authRoutes(app: FastifyInstance) {
       const OTPAuth = await import('otpauth');
       
       const totp = new OTPAuth.TOTP({
-        issuer: 'FDM',
+        issuer: 'ADB Exchange',
         label: 'user',
         algorithm: 'SHA1',
         digits: 6,
@@ -4139,7 +4234,7 @@ export default async function authRoutes(app: FastifyInstance) {
       // Verify code
       const OTPAuth = await import('otpauth');
       const totp = new OTPAuth.TOTP({
-        issuer: 'FDM',
+        issuer: 'ADB Exchange',
         label: 'user',
         algorithm: 'SHA1',
         digits: 6,
@@ -4179,12 +4274,12 @@ export default async function authRoutes(app: FastifyInstance) {
     try {
       if (!(await jwtVerifyWithSession(request, reply))) return;
       const userId = (request.user?.userId ?? request.user?.id)!;
-      const { password, code } = request.body as { password: string; code: string };
+      const { password, code } = request.body as { password?: string; code?: string };
 
-      if (!password || !code) {
+      if (!code) {
         return reply.status(400).send({
           success: false,
-          error: { code: 'MISSING_DATA', message: 'Password and 2FA code are required' },
+          error: { code: 'MISSING_DATA', message: 'A 2FA code is required' },
         });
       }
 
@@ -4215,8 +4310,14 @@ export default async function authRoutes(app: FastifyInstance) {
         });
       }
 
-      // Verify password
+      // A login password is required only when the account still has one.
       if (user.password_hash) {
+        if (!password) {
+          return reply.status(400).send({
+            success: false,
+            error: { code: 'MISSING_DATA', message: 'Password and 2FA code are required' },
+          });
+        }
         const passwordValid = await bcrypt.compare(password, user.password_hash);
         if (!passwordValid) {
           return reply.status(400).send({
@@ -4246,7 +4347,7 @@ export default async function authRoutes(app: FastifyInstance) {
       // Verify 2FA code
       const OTPAuth = await import('otpauth');
       const totp = new OTPAuth.TOTP({
-        issuer: 'FDM',
+        issuer: 'ADB Exchange',
         label: 'user',
         algorithm: 'SHA1',
         digits: 6,
@@ -4260,6 +4361,17 @@ export default async function authRoutes(app: FastifyInstance) {
         return reply.status(400).send({
           success: false,
           error: { code: 'INVALID_CODE', message: 'Invalid 2FA code' },
+        });
+      }
+
+      const factors = await loadFactorSnapshot(async (sql, params) => {
+        const rows = await db.query(sql, params);
+        return { rows: rows.rows as Array<Record<string, unknown>> };
+      }, userId);
+      if (!canDisableTotp(factors)) {
+        return reply.status(409).send({
+          success: false,
+          error: { code: 'LAST_FACTOR', message: 'Add another sign-in method before turning off 2FA.' },
         });
       }
 
@@ -4905,7 +5017,8 @@ export default async function authRoutes(app: FastifyInstance) {
         });
       }
 
-      const preferences = result.rows[0]?.preferences || {};
+      const preferences = { ...(result.rows[0]?.preferences || {}) };
+      delete preferences.walletRecovery;
       const legacyDisplay =
         typeof preferences.displayCurrency === 'string'
           ? preferences.displayCurrency
@@ -4972,7 +5085,10 @@ export default async function authRoutes(app: FastifyInstance) {
       }
 
       const currentPreferences = currentResult.rows[0]?.preferences || {};
+      const serverRecovery = currentPreferences.walletRecovery;
       const newPreferences = { ...currentPreferences, ...sanitized.value };
+      if (serverRecovery === undefined) delete newPreferences.walletRecovery;
+      else newPreferences.walletRecovery = serverRecovery;
 
       // Update preferences
       await db.query(
@@ -5005,11 +5121,19 @@ export default async function authRoutes(app: FastifyInstance) {
       if (!(await jwtVerifyWithSession(request, reply))) return;
       const userId = (request.user?.userId ?? request.user?.id)!;
 
+      // users has no *_withdrawal_used columns; usage is derived from the withdrawals table (same rule as
+      // GET /wallet/withdrawal-limits) so the security page and the withdraw page agree.
       const result = await db.query(
-        `SELECT daily_withdrawal_limit, monthly_withdrawal_limit, 
-                COALESCE(daily_withdrawal_used, 0) as daily_withdrawal_used,
-                COALESCE(monthly_withdrawal_used, 0) as monthly_withdrawal_used
-         FROM users WHERE id = $1 AND deleted_at IS NULL`,
+        `SELECT u.daily_withdrawal_limit, u.monthly_withdrawal_limit,
+                COALESCE((SELECT SUM(w.amount) FROM withdrawals w
+                          WHERE w.user_id = u.id
+                            AND w.status IN ('pending_approval', 'pending_email_verify', 'pending_2fa', 'pending_blockchain', 'processing', 'completed')
+                            AND w.created_at >= CURRENT_DATE), 0) AS daily_withdrawal_used,
+                COALESCE((SELECT SUM(w.amount) FROM withdrawals w
+                          WHERE w.user_id = u.id
+                            AND w.status IN ('pending_approval', 'pending_email_verify', 'pending_2fa', 'pending_blockchain', 'processing', 'completed')
+                            AND w.created_at >= DATE_TRUNC('month', CURRENT_DATE)), 0) AS monthly_withdrawal_used
+         FROM users u WHERE u.id = $1 AND u.deleted_at IS NULL`,
         [userId]
       );
 
@@ -5360,12 +5484,19 @@ export default async function authRoutes(app: FastifyInstance) {
       if (!(await jwtVerifyWithSession(request, reply))) return;
       const userId = (request.user?.userId ?? request.user?.id)!;
 
+      // Join the enforced whitelist so the UI can show whether the 24h new-address timelock has expired.
       const result = await db.query(
-        `SELECT id, asset, network, note, address, memo, is_whitelisted, 
-                created_at as last_updated
-         FROM withdrawal_addresses 
-         WHERE user_id = $1 AND deleted_at IS NULL
-         ORDER BY created_at DESC`,
+        `SELECT wa.id, wa.asset, wa.network, wa.note, wa.address, wa.memo, wa.address_type,
+                (wl.id IS NOT NULL AND wl.enabled) AS is_whitelisted,
+                (SELECT MAX(t.unlock_at) FROM withdrawal_address_timelocks t WHERE t.address_id = wl.id) AS unlock_at,
+                wa.created_at as last_updated
+         FROM withdrawal_addresses wa
+         LEFT JOIN withdrawal_address_whitelist wl
+           ON wl.user_id = wa.user_id
+          AND wl.asset = UPPER(wa.asset)
+          AND LOWER(TRIM(wl.address)) = LOWER(TRIM(wa.address))
+         WHERE wa.user_id = $1 AND wa.deleted_at IS NULL
+         ORDER BY wa.created_at DESC`,
         [userId]
       );
 
@@ -5474,11 +5605,26 @@ export default async function authRoutes(app: FastifyInstance) {
         ]
       );
 
-      logger.info('Withdrawal address added', { userId, asset, addressType });
+      // The withdrawal gate checks withdrawal_address_whitelist (+ timelock), not this address book.
+      // Register the on-chain address there too, otherwise a customer could never withdraw to it.
+      let unlockAt: Date | null = null;
+      if (addressType === 'onchain' && asset && address) {
+        const whitelisted = await addWhitelistAddress({ userId, asset, address, label: note ?? null });
+        unlockAt = whitelisted.unlockAt;
+        await db.query(`UPDATE withdrawal_addresses SET is_whitelisted = TRUE WHERE id = $1`, [result.rows[0]!.id]);
+      }
+
+      logger.info('Withdrawal address added', { userId, asset, addressType, unlockAt: unlockAt?.toISOString() ?? null });
 
       return reply.send({
         success: true,
-        data: { id: result.rows[0]!.id, message: 'Address added successfully' },
+        data: {
+          id: result.rows[0]!.id,
+          unlockAt: unlockAt ? unlockAt.toISOString() : null,
+          message: unlockAt && unlockAt.getTime() > Date.now()
+            ? `Address added. Withdrawals to it unlock at ${unlockAt.toISOString()}.`
+            : 'Address added successfully',
+        },
       });
 
     } catch (error) {
@@ -5539,10 +5685,10 @@ export default async function authRoutes(app: FastifyInstance) {
       const userId = (request.user?.userId ?? request.user?.id)!;
       const { id } = request.params as { id: string };
 
-      const result = await db.query(
+      const result = await db.query<{ id: string; asset: string | null; address: string | null }>(
         `UPDATE withdrawal_addresses SET deleted_at = CURRENT_TIMESTAMP
          WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL
-         RETURNING id`,
+         RETURNING id, asset, address`,
         [id, userId]
       );
 
@@ -5551,6 +5697,16 @@ export default async function authRoutes(app: FastifyInstance) {
           success: false,
           error: { code: 'NOT_FOUND', message: 'Address not found' },
         });
+      }
+
+      // Removing it from the address book must also remove it from the enforced whitelist.
+      const removed = result.rows[0]!;
+      if (removed.asset && removed.address) {
+        await db.query(
+          `UPDATE withdrawal_address_whitelist SET enabled = FALSE
+           WHERE user_id = $1 AND asset = UPPER($2) AND LOWER(TRIM(address)) = LOWER(TRIM($3))`,
+          [userId, removed.asset, removed.address]
+        );
       }
 
       logger.info('Withdrawal address deleted', { userId, addressId: id });

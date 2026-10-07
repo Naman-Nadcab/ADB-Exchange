@@ -66,7 +66,7 @@ export function PortfolioSummary({
             },
           ]}
         >
-          TOTAL BALANCE
+          CRYPTO & FIAT
         </Text>
         {onToggleShowBalances ? (
           <Pressable onPress={onToggleShowBalances} hitSlop={10} accessibilityLabel="Toggle balance visibility">
@@ -90,6 +90,9 @@ export function PortfolioSummary({
         ]}
       >
         ${mask(formatUsd(totalUsd))}
+      </Text>
+      <Text style={[theme.typography.bodySm, { color: hsl(theme.colors.foregroundSecondary), marginTop: theme.spacing[1] }]}>
+        Crypto funding and spot. Forex equity is not included.
       </Text>
       {totalBtc ? (
         <Text style={[theme.typography.bodyMd, { color: hsl(theme.colors.foregroundSecondary), marginTop: theme.spacing[0.5] }]}>
@@ -194,7 +197,7 @@ export function PortfolioSummary({
               },
             ]}
           >
-            FUNDING
+            CRYPTO FUNDING
           </Text>
           <Text
             style={[
@@ -209,7 +212,7 @@ export function PortfolioSummary({
             ${mask(formatUsd(fundingUsd ?? '0'))}
           </Text>
           <Text style={[theme.typography.labelSm, { color: hsl(theme.colors.foregroundSecondary) }]}>
-            Deposits & P2P
+            Deposits & P2P. Not Forex.
           </Text>
         </View>
         <View
@@ -234,7 +237,7 @@ export function PortfolioSummary({
               },
             ]}
           >
-            TRADING
+            CRYPTO SPOT
           </Text>
           <Text
             style={[
@@ -249,7 +252,7 @@ export function PortfolioSummary({
             ${mask(formatUsd(tradingUsd ?? '0'))}
           </Text>
           <Text style={[theme.typography.labelSm, { color: hsl(theme.colors.foregroundSecondary) }]}>
-            Spot orders & trades
+            Spot orders. Not Forex margin.
           </Text>
         </View>
       </View>

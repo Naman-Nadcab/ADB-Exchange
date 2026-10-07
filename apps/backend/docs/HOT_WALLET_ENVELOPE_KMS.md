@@ -51,14 +51,14 @@ cd apps/backend && npm run migrate
 
 | Env | Description | Default |
 |-----|-------------|--------|
-| **KMS_TYPE** | `local` \| `aws` | `local` |
-| **KMS_KEY_VERSION** | Key version used for new envelopes (rotation) | `1` |
+| **KMS_TYPE** | `local` \| `aws` | `local` in dev schema; production compose defaults to `aws` |
+| **KMS_KEY_VERSION** | Key version mixed into the local wrapping key (rotation) | `1` |
+| **LOCAL_KMS_MASTER_KEY** | Required when `KMS_TYPE=local`. 64 hex chars, or at least 32 characters | unset |
 | **AWS_KMS_KEY_ID** | KMS key ID (when KMS_TYPE=aws) | - |
 | **AWS_REGION** | AWS region (when KMS_TYPE=aws) | - |
-| **ENCRYPTION_KEY** | Used for local KMS derivation (min 32 chars) | required |
 
-- **local**: Master key = `SHA256(ENCRYPTION_KEY + ':' + keyVersion)`. DEK is encrypted with AES-256-GCM. Suitable for dev/single-node.
-- **aws**: Use AWS KMS `GenerateDataKey` and `Decrypt`. Requires `@aws-sdk/client-kms` when AWS_KMS_KEY_ID and AWS_REGION are set.
+- **local**: Explicit only (`KMS_TYPE=local`). DEKs are wrapped with AES-256-GCM under `LOCAL_KMS_MASTER_KEY`. Startup still runs a generate/decrypt round trip. Not for multi-server production. DEKs wrapped by AWS KMS cannot be decrypted by this provider.
+- **aws**: Unchanged. Uses AWS KMS `GenerateDataKey` (`AES_256`) and `Decrypt`. No silent fallback to the local provider.
 
 ---
 

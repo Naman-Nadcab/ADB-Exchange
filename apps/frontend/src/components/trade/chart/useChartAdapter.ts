@@ -12,7 +12,9 @@ export function useChartAdapter(
   intervalSeconds: number,
   theme: ChartTheme = 'dark',
   viewMode: 'chart' | 'depth' = 'chart',
-  pricePrecision: number = 6
+  pricePrecision: number = 6,
+  /** When the shared trade stream is live, do not poll candles again. */
+  liveStream: boolean = false
 ): {
   adapterRef: RefObject<LightweightChartsAdapter | null>;
   chartError: string | null;
@@ -310,15 +312,24 @@ export function useChartAdapter(
       resyncAc = ac;
       try {
         const now = Math.floor(Date.now() / 1000);
+        const fillingEmpty = (lastCandlesRef.current?.length ?? 0) === 0;
         const fresh = await getChartCandles(activeSymbol, activeInterval, {
           to: now,
-          limit: 5,
+          limit: fillingEmpty ? 500 : 5,
           direction: 'desc',
           signal: ac.signal,
         });
         if (!fresh.length) return;
         if (activeSymbol !== symbol || activeInterval !== intervalSeconds) return;
-        adapter.prependCandles?.(fresh);
+        if ((lastCandlesRef.current?.length ?? 0) === 0) {
+          lastCandlesRef.current = fresh;
+          adapter.setIntervalSeconds(activeInterval);
+          adapter.setCandles(fresh);
+          adapter.fitContent?.();
+          setChartEmpty(false);
+        } else {
+          adapter.prependCandles?.(fresh);
+        }
         // Recover from transient fetch failures: once we have fresh candles again,
         // clear stale banner and refresh "last update" timestamp.
         const newest = fresh[fresh.length - 1];
@@ -333,7 +344,9 @@ export function useChartAdapter(
         if (resyncAc === ac) resyncAc = null;
       }
     };
-    const id = window.setInterval(resync, 15_000);
+    const waitingForHistory = (lastCandlesRef.current?.length ?? 0) === 0;
+    if (liveStream && !waitingForHistory) return;
+    const id = window.setInterval(resync, waitingForHistory ? 5_000 : 15_000);
     return () => {
       window.clearInterval(id);
       if (resyncAc) {
@@ -341,7 +354,7 @@ export function useChartAdapter(
         resyncAc = null;
       }
     };
-  }, [symbol, intervalSeconds, viewMode, chartLoading]);
+  }, [symbol, intervalSeconds, viewMode, chartLoading, liveStream]);
 
   return { adapterRef, chartError, chartLoading, chartEmpty, chartStale, chartStaleReason, chartLastUpdatedAtMs, retryChart };
 }

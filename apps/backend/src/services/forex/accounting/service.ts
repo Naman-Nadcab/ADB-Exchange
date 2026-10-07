@@ -18,6 +18,7 @@ import type { ForexLedgerTransaction } from '../ledger/models.js';
 import { ForexLedgerService } from '../ledger/service.js';
 import { ForexLedgerStore } from '../ledger/store.js';
 import { marginLevel } from '../margin/engine.js';
+import { executableQuoteForAccount } from '../broker/gateway.js';
 import { calculateRealizedPnl, calculateUnrealizedPnl, sumUnrealized, type RealizedPnlResult } from '../pnl/engine.js';
 import { ForexQuoteConversionSource, type ConversionRateSource } from '../pnl/conversion.js';
 import { applyNettingFill, type NettingState } from '../positions/netting.js';
@@ -97,6 +98,7 @@ export class ForexAccountingService {
     idempotencyKey: string;
     type: 'INITIAL_FUNDING' | 'DEPOSIT';
     externalReference?: string;
+    rail?: 'SIMULATED' | 'BROKER';
   }): Promise<ForexLedgerTransaction> {
     this.ensureAccount(args.accountId);
     const amount = requirePositive(args.amount);
@@ -109,7 +111,7 @@ export class ForexAccountingService {
         { ledgerAccount: 'CLEARING', debit: amount, credit: '0', referenceType: args.type, referenceId: args.externalReference },
         { ledgerAccount: 'CUSTOMER_CASH', accountId: args.accountId, debit: '0', credit: amount, referenceType: args.type, referenceId: args.externalReference },
       ],
-      metadata: { rail: 'SIMULATED', externalReference: args.externalReference ?? null },
+      metadata: { rail: args.rail ?? 'SIMULATED', externalReference: args.externalReference ?? null },
     });
     this.pushOutbox(args.accountId, 'LEDGER_TRANSACTION_POSTED', 'POSTED', { transactionId: tx.transactionId });
     this.emitAudit(args.accountId, 'LEDGER_TRANSACTION_CREATED', { transactionId: tx.transactionId });
@@ -173,6 +175,7 @@ export class ForexAccountingService {
     amount: string;
     idempotencyKey: string;
     referenceId: string;
+    externalRail?: 'NOT_CONFIGURED' | 'SETTLED';
   }): Promise<ForexLedgerTransaction> {
     const amount = requirePositive(args.amount);
     const ref = args.referenceId;
@@ -192,7 +195,11 @@ export class ForexAccountingService {
         },
         { ledgerAccount: 'CLEARING', debit: '0', credit: amount, referenceType: 'ADJUSTMENT', referenceId: ref },
       ],
-      metadata: { rail: 'PARTNER_PAYOUT_INTERNAL', partnerId: args.partnerId, external_rail: 'NOT_CONFIGURED' },
+      metadata: {
+        rail: 'PARTNER_PAYOUT_INTERNAL',
+        partnerId: args.partnerId,
+        external_rail: args.externalRail ?? 'NOT_CONFIGURED',
+      },
     });
     return tx;
   }
@@ -202,6 +209,7 @@ export class ForexAccountingService {
     amount: string;
     idempotencyKey: string;
     externalReference?: string;
+    rail?: 'SIMULATED' | 'BROKER';
   }): Promise<ForexWithdrawalRecord> {
     this.ensureAccount(args.accountId);
     const amount = requirePositive(args.amount);
@@ -214,7 +222,7 @@ export class ForexAccountingService {
       status: 'REQUESTED',
       transactionId: null,
       reason: null,
-      source: 'SIMULATED',
+      source: args.rail === 'BROKER' ? 'BROKER' : 'SIMULATED',
       createdAt: now,
       updatedAt: now,
     };
@@ -229,7 +237,7 @@ export class ForexAccountingService {
           { ledgerAccount: 'CUSTOMER_CASH', accountId: args.accountId, debit: amount, credit: '0', referenceType: 'WITHDRAWAL', referenceId: rec.withdrawalId },
           { ledgerAccount: 'CLEARING', debit: '0', credit: amount, referenceType: 'WITHDRAWAL', referenceId: rec.withdrawalId },
         ],
-        metadata: { rail: 'SIMULATED', processor: 'NONE', externalReference: args.externalReference ?? null },
+        metadata: { rail: args.rail ?? 'SIMULATED', processor: args.rail === 'BROKER' ? 'BROKER' : 'NONE', externalReference: args.externalReference ?? null },
       });
       rec.status = 'POSTED';
       rec.transactionId = tx.transactionId;
@@ -365,7 +373,7 @@ export class ForexAccountingService {
     const items = open.map((p) =>
       calculateUnrealizedPnl({
         position: p,
-        quote: this.pricing?.getQuote(p.symbol),
+        quote: executableQuoteForAccount(this.pricing, accountId, p.symbol),
         rates: this.rates,
       })
     );

@@ -32,6 +32,7 @@ interface Passkey {
 
 export default function PasskeysPage() {
   const t = useTranslations('security.passkeysPage');
+  const tCommon = useTranslations('common');
   const ts = useTranslations('security.common');
   const tc = useTranslations('account.common');
   const tn = useTranslations('common.notifications');
@@ -135,8 +136,8 @@ export default function PasskeysPage() {
     verifyCodeRefs.current[focusIndex]?.focus();
   };
 
-  const maskEmail = (email: string) => {
-    if (!email) return '***@****';
+  const maskEmail = (email: string | null | undefined) => {
+    if (email == null || email.trim() === '' || email.toLowerCase() === 'null' || email.toLowerCase() === 'undefined') return tCommon('states.notAdded');
     const [local, domain] = email.split('@');
     if (!domain) return '***@****';
     const maskedLocal = local.slice(0, 3) + '****';
@@ -473,7 +474,7 @@ export default function PasskeysPage() {
   };
 
   return (
-    <div className="p-4 lg:p-6 max-w-5xl">
+    <div>
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
         <Link href="/dashboard/security" className="hover:text-primary">{ts('security')}</Link>

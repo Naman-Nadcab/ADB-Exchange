@@ -60,15 +60,14 @@ class IndexerManager {
       }
     });
 
-    await Promise.all(startPromises);
+    // Tron and Bitcoin must not wait for a slow EVM RPC. A hung chain head
+    // request used to keep USDT-TRC20 from being watched at all.
+    const nonEvmReady = this.startNonEvmIndexers();
+    await Promise.all([...startPromises, nonEvmReady]);
 
     // Live head scanner — detects deposits within ~1 min even when block lag is large.
     this.recentDepositScanner = new RecentDepositScanner(this.indexers);
     this.recentDepositScanner.start();
-
-    // Start non-EVM indexers (Bitcoin / Tron). These are gated internally by
-    // presence of BLOCKCYPHER_TOKEN / TRON_API_KEY + active chain row in DB.
-    await this.startNonEvmIndexers();
 
     // Start confirmation tracker
     await this.confirmationTracker.start();

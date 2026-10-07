@@ -18,7 +18,9 @@
     "volume24h": "24H Volume",
     "btcDominance": "BTC Dominance",
     "fearGreed": "Fear & Greed",
-    "assetsListed": "Assets Listed"
+    "assetsListed": "Assets Listed",
+    "noExchangePrints": "No trades",
+    "notInFeed": "Unavailable"
   },
   "trendingDashboard": {
     "title": "Trending Dashboard",

@@ -9,6 +9,10 @@ import { config } from '../config/index.js';
 import { logger } from '../lib/logger.js';
 import { db } from '../lib/database.js';
 import { resolveProviderSecret } from '../lib/provider-secret.js';
+import {
+  isOfficialPublicListsProvider,
+  screenOfficialPublicLists,
+} from './sanctions/official-public-lists.js';
 
 export interface SanctionsCheckParams {
   /** On-chain address or counterparty identifier */
@@ -35,6 +39,13 @@ export interface SanctionsCheckResult {
 
 const SANCTIONS_UNAVAILABLE = 'Sanctions service unavailable';
 const SANCTIONS_NOT_CONFIGURED = 'Sanctions provider not configured (production requires screening)';
+
+/** Provider explicitly denied the withdrawal. Transport and configuration failures are not matches. */
+export function isSanctionsMatch(result: SanctionsCheckResult): boolean {
+  if (result.allowed) return false;
+  const reason = result.reason ?? '';
+  return reason !== SANCTIONS_UNAVAILABLE && reason !== SANCTIONS_NOT_CONFIGURED;
+}
 
 /** Env/admin values that mean "no provider" — must not block api_settings activation. */
 export function isPlaceholderSanctionsProvider(provider: string): boolean {
@@ -275,6 +286,16 @@ export async function checkSanctions(params: SanctionsCheckParams): Promise<Sanc
     };
   }
 
+  if (isOfficialPublicListsProvider(provider)) {
+    const listed = await screenOfficialPublicLists({ address: params.address });
+    return {
+      allowed: listed.allowed,
+      reason: listed.reason,
+      provider: listed.provider,
+      riskScore: listed.riskScore,
+    };
+  }
+
   if (!provider || !apiKey) {
     if (isProduction) {
       logger.warn('Sanctions check in production without provider — blocking', { userId: params.userId });
@@ -307,4 +328,44 @@ export async function checkSanctions(params: SanctionsCheckParams): Promise<Sanc
     return { allowed: false, reason: SANCTIONS_NOT_CONFIGURED };
   }
   return { allowed: true };
+}
+
+/**
+ * Screen every active wallet on the user. OFAC public lists match addresses only.
+ * No active wallet is the same as no address: production stays fail-closed.
+ * Any listed address blocks the whole user.
+ */
+export async function checkSanctionsForUser(params: {
+  userId: string;
+  amount: string;
+  asset: string;
+}): Promise<SanctionsCheckResult> {
+  const wallets = await db.query<{ address: string }>(
+    `SELECT address
+       FROM user_wallets
+      WHERE user_id = $1::uuid
+        AND status = 'active'
+      ORDER BY is_primary DESC, created_at ASC`,
+    [params.userId]
+  );
+  const addresses = wallets.rows.map((row) => row.address?.trim()).filter((address): address is string => Boolean(address));
+  if (addresses.length === 0) {
+    return checkSanctions({
+      userId: params.userId,
+      amount: params.amount,
+      asset: params.asset,
+    });
+  }
+  let last: SanctionsCheckResult = { allowed: true };
+  for (const address of addresses) {
+    const result = await checkSanctions({
+      userId: params.userId,
+      amount: params.amount,
+      asset: params.asset,
+      address,
+    });
+    if (!result.allowed) return result;
+    last = result;
+  }
+  return last;
 }

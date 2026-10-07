@@ -35,7 +35,7 @@ import { toast } from '@/components/ui/toaster';
 
 interface UserProfile {
   id: string;
-  email: string;
+  email: string | null;
   phone: string | null;
   first_name: string | null;
   last_name: string | null;
@@ -54,6 +54,7 @@ interface UserProfile {
 
 export default function AccountInfoPage() {
   const ta = useTranslations('account');
+  const tCommon = useTranslations('common');
   const tn = useTranslations('common.notifications');
   const tt = useTranslations('account.toasts');
   const router = useRouter();
@@ -277,8 +278,8 @@ export default function AccountInfoPage() {
 
   const kycDisplay = getKycStatusDisplay();
 
-  const maskEmail = (email: string) => {
-    if (!email) return '***@****';
+  const maskEmail = (email: string | null | undefined) => {
+    if (email == null || email.trim() === '' || email.toLowerCase() === 'null' || email.toLowerCase() === 'undefined') return tCommon('states.notAdded');
     const [local, domain] = email.split('@');
     if (!domain) return '***@****';
     const maskedLocal = local.slice(0, 3) + '***';
@@ -346,15 +347,15 @@ export default function AccountInfoPage() {
     actionVariant?: 'default' | 'primary' | 'success';
     badge?: string;
   }) => (
-    <div className="flex items-center justify-between p-5 hover:bg-accent/30 transition-colors">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center">
-          <Icon className="w-6 h-6 text-muted-foreground" />
+    <div className="flex items-center justify-between gap-3 px-3 py-2.5 hover:bg-accent/30 transition-colors">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent">
+          <Icon className="h-4 w-4 text-muted-foreground" />
         </div>
-        <div>
-          <h3 className="font-medium text-foreground">{title}</h3>
+        <div className="min-w-0">
+          <h3 className="text-sm font-medium text-foreground">{title}</h3>
           {description && (
-            <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
+            <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{description}</p>
           )}
         </div>
       </div>
@@ -388,17 +389,17 @@ export default function AccountInfoPage() {
   );
 
   return (
-    <div className="p-4 lg:p-8 bg-background min-h-full">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-full bg-background">
+      <div>
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-3">
           <h1 className="text-xl font-semibold text-foreground">{ta('profile.title')}</h1>
-          <p className="text-muted-foreground mt-2">{ta('profile.subtitle')}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{ta('profile.subtitle')}</p>
         </div>
 
         {/* User Profile Card */}
-        <div className="bg-card rounded-xl border border-border overflow-hidden mb-6">
-          <div className="p-6 lg:p-8">
+        <div className="bg-card rounded-xl border border-border overflow-hidden mb-4">
+          <div className="p-4">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
               {/* Left: Avatar and Info */}
               <div className="flex items-start gap-5">
@@ -523,7 +524,7 @@ export default function AccountInfoPage() {
           </div>
 
           {/* Security Level Bar */}
-          <div className="px-6 lg:px-8 py-4 bg-muted border-t border-border">
+          <div className="border-t border-border bg-muted px-4 py-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-foreground/80">{ta('profile.securityLevel')}</span>
               <span className={`text-sm font-semibold ${
@@ -545,8 +546,8 @@ export default function AccountInfoPage() {
         </div>
 
         {/* Profile Settings */}
-        <div className="bg-card rounded-xl border border-border overflow-hidden mb-6">
-          <div className="px-6 py-4 border-b border-border">
+        <div className="bg-card rounded-xl border border-border overflow-hidden mb-4">
+          <div className="border-b border-border px-4 py-2.5">
             <h2 className="text-lg font-semibold text-foreground">{ta('profile.profileSettings')}</h2>
           </div>
           <div className="divide-y divide-border">
@@ -594,8 +595,8 @@ export default function AccountInfoPage() {
         </div>
 
         {/* Account Integrations */}
-        <div className="bg-card rounded-xl border border-border overflow-hidden mb-6">
-          <div className="px-6 py-4 border-b border-border flex items-center gap-3">
+        <div className="bg-card rounded-xl border border-border overflow-hidden mb-4">
+          <div className="flex items-center gap-3 border-b border-border px-4 py-2.5">
             <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center">
               <Link2 className="w-5 h-5 text-primary" />
             </div>
@@ -620,7 +621,7 @@ export default function AccountInfoPage() {
 
         {/* Account Activities */}
         <div className="bg-card rounded-xl border border-border overflow-hidden">
-          <div className="px-6 py-4 border-b border-border flex items-center gap-3">
+          <div className="flex items-center gap-3 border-b border-border px-4 py-2.5">
             <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
               <Activity className="w-5 h-5 text-primary" />
             </div>
@@ -648,10 +649,10 @@ export default function AccountInfoPage() {
               actionLabel={ta('common.view')}
               action={() => { window.location.href = '/dashboard/account/login-history'; }}
             />
-            <div className="flex items-center justify-between p-5 hover:bg-accent/30 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-sell-light rounded-xl flex items-center justify-center">
-                  <Trash2 className="w-6 h-6 text-sell" />
+            <div className="flex items-center justify-between gap-3 px-3 py-2.5 hover:bg-accent/30 transition-colors">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sell-light">
+                  <Trash2 className="h-4 w-4 text-sell" />
                 </div>
                 <div>
                   <h3 className="font-medium text-foreground">{ta('profile.deleteAccount')}</h3>

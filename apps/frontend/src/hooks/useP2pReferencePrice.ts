@@ -15,7 +15,7 @@ export type P2pReferencePriceState = {
  */
 export function useP2pReferencePrice(asset: string, fiat: string, refetchMs = 4000): P2pReferencePriceState {
   const upperAsset = (asset || 'USDT').toUpperCase();
-  const upperFiat = (fiat || 'INR').toUpperCase();
+  const upperFiat = (fiat || 'USD').toUpperCase();
 
   const q = useQuery({
     queryKey: ['p2p', 'reference-price', upperAsset, upperFiat],

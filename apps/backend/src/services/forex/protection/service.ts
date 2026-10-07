@@ -7,6 +7,8 @@ import {
 } from '../../../lib/forex-prometheus-metrics.js';
 import type { ForexJournalSeverity } from '../journal/models.js';
 import { recordForexJournalEvent } from '../journal/service.js';
+import { isLiveForexAccount } from '../broker/account-kind.js';
+import { executableQuoteForAccount } from '../broker/gateway.js';
 import type { ForexOrderService } from '../orders/service.js';
 import type { ForexPositionService } from '../positions/service.js';
 import type { ForexPricingService } from '../quotes.service.js';
@@ -96,7 +98,10 @@ export class ForexProtectionService {
       forexTriggerRejectTotal.inc({ reason: quote.freshness === 'STALE' || quote.quality === 'STALE' ? 'STALE' : 'INVALID' });
       return;
     }
-    const active = this.store.listActiveBySymbol(quote.symbol);
+    const active = this.store.listActiveBySymbol(quote.symbol).filter((p) => {
+      const live = isLiveForexAccount(p.accountId);
+      return quote.source === 'LIVE' ? live : !live;
+    });
     for (const p of active) {
       await this.store.enqueue(p.accountId, () => this.evaluateOne(p, quote));
     }
@@ -152,7 +157,7 @@ export class ForexProtectionService {
   private async createLocked(accountId: string, raw: ForexProtectionRequest): Promise<ForexProtectionRecord> {
     const existing = this.store.getByClient(accountId, raw.clientProtectionId?.trim() ?? '');
     const position = this.positions.getOwned(accountId, raw.positionId);
-    const quote = this.pricing.getQuote(position.symbol);
+    const quote = executableQuoteForAccount(this.pricing, accountId, position.symbol);
     const validated = validateProtectionCreate({
       clientProtectionId: raw.clientProtectionId,
       type: raw.type,
@@ -219,7 +224,7 @@ export class ForexProtectionService {
       throw new ForexProtectionError('PROTECTION_NOT_ACTIVE', `Cannot modify protection in ${p.status}`, 409);
     }
     const position = this.positions.getOwned(accountId, p.positionId);
-    const quote = this.pricing.getQuote(position.symbol);
+    const quote = executableQuoteForAccount(this.pricing, accountId, position.symbol);
     const nextTrail =
       patch.trailingDistance === null
         ? null
@@ -414,6 +419,10 @@ export function getForexProtectionService(
     });
     positions.attachProtection(singleton);
   }
+  return singleton;
+}
+
+export function peekForexProtectionService(): ForexProtectionService | null {
   return singleton;
 }
 

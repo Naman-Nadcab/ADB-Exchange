@@ -49,8 +49,8 @@ export function resolveForexExecutionCapabilities(): ForexResolvedExecutionCapab
     fillPolicies: [
       { id: 'FOK', customerSelectable: contract.timeInForce.fok.customerExposed, engineActive: contract.timeInForce.fok.engine, note: 'Market-only' },
       { id: 'IOC', customerSelectable: contract.timeInForce.ioc.customerExposed, engineActive: contract.timeInForce.ioc.engine, note: 'Market-only' },
-      { id: 'RETURN', customerSelectable: false, engineActive: false, note: 'Not implemented for MOCK Forex' },
-      { id: 'BOC', customerSelectable: false, engineActive: false, note: 'Not implemented for MOCK Forex' },
+      { id: 'RETURN', customerSelectable: true, engineActive: true, note: 'Partial remainder rests. A market remainder becomes a limit at the fill price.' },
+      { id: 'BOC', customerSelectable: true, engineActive: true, note: 'Rejects a market order or a limit that would take liquidity.' },
     ],
     orderKinds: contract.customer.orderTypes,
     allowedSides: ['buy', 'sell'],

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Forex FDM admin — routes, section metadata, rollout phases.
+ * Forex administration — routes, section metadata, rollout phases.
  * Client-only (Lucide icons). Import from client components only.
  */
 import type { LucideIcon } from 'lucide-react';

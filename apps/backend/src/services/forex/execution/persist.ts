@@ -13,7 +13,7 @@ export async function persistExecution(record: ForexExecutionRecord, client?: Fo
        snapshot_status, expected_price, execution_price, filled_volume, remaining_volume,
        failure_reason, request_json, source
      ) VALUES (
-       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,'SIMULATED'
+       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22
      )
      ON CONFLICT (execution_id) DO UPDATE SET
        status = EXCLUDED.status,
@@ -48,6 +48,7 @@ export async function persistExecution(record: ForexExecutionRecord, client?: Fo
       record.remainingVolume,
       record.failureReason,
       JSON.stringify(record.request),
+      record.source,
     ]
   );
 
@@ -80,7 +81,7 @@ export async function persistFill(fill: ForexFill, client?: ForexQueryable): Pro
     `INSERT INTO forex_fills (
        fill_id, execution_id, client_exec_id, venue_exec_id, provider, symbol, side,
        price, volume, fill_timestamp, liquidity_source
-     ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'MOCK')
+     ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
      ON CONFLICT (fill_id) DO NOTHING`,
     [
       fill.fillId,
@@ -93,6 +94,7 @@ export async function persistFill(fill: ForexFill, client?: ForexQueryable): Pro
       fill.price,
       fill.volume,
       forexIsoTimestamp(fill.timestamp, new Date().toISOString()),
+      fill.liquiditySource === 'BROKER' ? 'BROKER' : 'MOCK',
     ]
   );
 }
@@ -169,7 +171,7 @@ export async function loadAllExecutions(): Promise<ForexExecutionRecord[]> {
       price: str(f.price),
       volume: str(f.volume),
       timestamp: str(f.fill_timestamp),
-      liquiditySource: 'MOCK',
+      liquiditySource: f.liquidity_source === 'BROKER' ? 'BROKER' : 'MOCK',
     });
     fillsByExec.set(eid, list);
   }
@@ -223,7 +225,7 @@ export async function loadAllExecutions(): Promise<ForexExecutionRecord[]> {
       filledVolume: str(row.filled_volume),
       remainingVolume: str(row.remaining_volume),
       failureReason: row.failure_reason == null ? null : (str(row.failure_reason) as ForexExecReason),
-      source: 'SIMULATED' as const,
+      source: row.source === 'LIVE' ? 'LIVE' : 'SIMULATED',
       attempts: attemptsByExec.get(executionId) ?? [],
       fills: fillsByExec.get(executionId) ?? [],
       events: eventsByExec.get(executionId) ?? [],
@@ -285,7 +287,7 @@ export async function loadExecutionByClient(clientExecId: string): Promise<Forex
     price: str(f.price),
     volume: str(f.volume),
     timestamp: str(f.fill_timestamp),
-    liquiditySource: 'MOCK',
+    liquiditySource: f.liquidity_source === 'BROKER' ? 'BROKER' : 'MOCK',
   }));
 
   const events: ForexExecutionEvent[] = (eventsRes.rows as Record<string, unknown>[]).map((e) => ({
@@ -314,7 +316,7 @@ export async function loadExecutionByClient(clientExecId: string): Promise<Forex
     filledVolume: str(row.filled_volume),
     remainingVolume: str(row.remaining_volume),
     failureReason: row.failure_reason == null ? null : (str(row.failure_reason) as ForexExecReason),
-    source: 'SIMULATED',
+    source: row.source === 'LIVE' ? 'LIVE' : 'SIMULATED',
     attempts,
     fills,
     events,

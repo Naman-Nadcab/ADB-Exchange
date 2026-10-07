@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { Decimal, type DecimalInstance } from '../lib/decimal.js';
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { db } from '../lib/database.js';
+import { resolveConvertRate } from '../services/convert-rate.service.js';
 import { redis } from '../lib/redis.js';
 import { getTokenIdsByCurrencyId } from '../lib/currency-resolver.js';
 import { insertBalanceLedger } from '../lib/balance-ledger.js';
@@ -212,64 +213,11 @@ export default async function convertRoutes(app: FastifyInstance) {
         return reply.status(400).send({ success: false, error: 'From and to currencies are required' });
       }
 
-      // Get direct price or calculate through USDT
-      let rate: DecimalInstance | null = null;
-      let priceData: any = null;
+      // Oracle (market_prices) first, then the venue's own Spot last trade. Null = no price anywhere.
+      const resolved = await resolveConvertRate(from, to);
+      const rate: DecimalInstance | null = resolved ? resolved.rate.toDecimalPlaces(RATE_PRECISION, ROUND_DOWN) : null;
 
-      // Try direct pair first
-      const directResult = await db.query<{ price: string }>(`
-        SELECT mp.price::text
-        FROM market_prices mp
-        JOIN currencies bc ON mp.base_currency_id = bc.id
-        JOIN currencies qc ON mp.quote_currency_id = qc.id
-        WHERE UPPER(bc.symbol) = UPPER($1) AND UPPER(qc.symbol) = UPPER($2)
-      `, [from, to]);
-
-      if (directResult.rows.length > 0) {
-        rate = new Decimal(directResult.rows[0]!.price).toDecimalPlaces(RATE_PRECISION, ROUND_DOWN);
-      } else {
-        // Try reverse pair
-        const reverseResult = await db.query<{ price: string }>(`
-          SELECT mp.price::text
-          FROM market_prices mp
-          JOIN currencies bc ON mp.base_currency_id = bc.id
-          JOIN currencies qc ON mp.quote_currency_id = qc.id
-          WHERE UPPER(bc.symbol) = UPPER($1) AND UPPER(qc.symbol) = UPPER($2)
-        `, [to, from]);
-
-        if (reverseResult.rows.length > 0) {
-          rate = new Decimal(1).div(reverseResult.rows[0]!.price).toDecimalPlaces(RATE_PRECISION, ROUND_DOWN);
-        } else {
-          // Calculate through USDT
-          const fromUsdtResult = await db.query<{ price: string }>(`
-            SELECT mp.price::text
-            FROM market_prices mp
-            JOIN currencies bc ON mp.base_currency_id = bc.id
-            JOIN currencies qc ON mp.quote_currency_id = qc.id
-            WHERE UPPER(bc.symbol) = UPPER($1) AND UPPER(qc.symbol) = 'USDT'
-          `, [from]);
-
-          const toUsdtResult = await db.query<{ price: string }>(`
-            SELECT mp.price::text
-            FROM market_prices mp
-            JOIN currencies bc ON mp.base_currency_id = bc.id
-            JOIN currencies qc ON mp.quote_currency_id = qc.id
-            WHERE UPPER(bc.symbol) = UPPER($1) AND UPPER(qc.symbol) = 'USDT'
-          `, [to]);
-
-          if (fromUsdtResult.rows.length > 0 && toUsdtResult.rows.length > 0) {
-            const fromUsdt = new Decimal(fromUsdtResult.rows[0]!.price).toDecimalPlaces(RATE_PRECISION, ROUND_DOWN);
-            const toUsdt = new Decimal(toUsdtResult.rows[0]!.price).toDecimalPlaces(RATE_PRECISION, ROUND_DOWN);
-            rate = fromUsdt.div(toUsdt).toDecimalPlaces(RATE_PRECISION, ROUND_DOWN);
-          } else if (fromUsdtResult.rows.length > 0 && to.toUpperCase() === 'USDT') {
-            rate = new Decimal(fromUsdtResult.rows[0]!.price).toDecimalPlaces(RATE_PRECISION, ROUND_DOWN);
-          } else if (toUsdtResult.rows.length > 0 && from.toUpperCase() === 'USDT') {
-            rate = new Decimal(1).div(toUsdtResult.rows[0]!.price).toDecimalPlaces(RATE_PRECISION, ROUND_DOWN);
-          }
-        }
-      }
-
-      if (rate === null) {
+      if (rate === null || rate.lte(0) || !rate.isFinite()) {
         return reply.status(400).send({ success: false, error: 'Conversion rate not available for this pair' });
       }
 
@@ -302,6 +250,8 @@ export default async function convertRoutes(app: FastifyInstance) {
             amount: toAmount.toDecimalPlaces(AMOUNT_PRECISION, ROUND_DOWN).toString()
           },
           rate: rate.toString(),
+          rateSource: resolved?.source ?? null,
+          rateObservedAt: resolved?.oldestObservedAt?.toISOString() ?? null,
           fee: '0',
           expiresIn: 30 // Quote valid for 30 seconds
         }
@@ -367,7 +317,9 @@ export default async function convertRoutes(app: FastifyInstance) {
       });
     }
 
-    const allowedAccountTypes = ['funding', 'spot', 'trading'];
+    // 'spot' is the legacy bucket name for the customer's Spot account, whose balances live in account_type 'trading'.
+    if (accountType === 'spot') accountType = 'trading';
+    const allowedAccountTypes = ['funding', 'trading'];
     if (!allowedAccountTypes.includes(accountType)) accountType = 'funding';
 
     if (!fromCurrencyId || !toCurrencyId || !fromAmount) {
@@ -414,63 +366,11 @@ export default async function convertRoutes(app: FastifyInstance) {
           throw err;
         }
 
-        let rateDec: DecimalInstance | null = null;
-        // H-5: track the oldest market_prices.updated_at across the leg(s) actually used to derive
-        // the rate, so production can refuse to convert on a stale oracle price.
-        let rateOldestUpdatedAt: Date | null = null;
-        const trackAge = (ts: string | Date | null | undefined): void => {
-          if (ts == null) return;
-          const d = ts instanceof Date ? ts : new Date(ts);
-          if (Number.isNaN(d.getTime())) return;
-          if (rateOldestUpdatedAt === null || d < rateOldestUpdatedAt) rateOldestUpdatedAt = d;
-        };
-
-        const directResult = await client.query<{ price: string; updated_at: string | null }>(`
-          SELECT mp.price::text, mp.updated_at
-          FROM market_prices mp
-          WHERE mp.base_currency_id = $1 AND mp.quote_currency_id = $2
-        `, [fromCurrencyId, toCurrencyId]);
-
-        if (directResult.rows.length > 0) {
-          rateDec = new Decimal(directResult.rows[0]!.price).toDecimalPlaces(RATE_PRECISION, ROUND_DOWN);
-          trackAge(directResult.rows[0]!.updated_at);
-        } else {
-          const reverseResult = await client.query<{ price: string; updated_at: string | null }>(`
-            SELECT mp.price::text, mp.updated_at
-            FROM market_prices mp
-            WHERE mp.base_currency_id = $1 AND mp.quote_currency_id = $2
-          `, [toCurrencyId, fromCurrencyId]);
-
-          if (reverseResult.rows.length > 0) {
-            rateDec = new Decimal(1).div(reverseResult.rows[0]!.price).toDecimalPlaces(RATE_PRECISION, ROUND_DOWN);
-            trackAge(reverseResult.rows[0]!.updated_at);
-          } else {
-            const usdtId = await client.query<{ id: string }>(`SELECT id FROM currencies WHERE UPPER(symbol) = 'USDT' LIMIT 1`);
-            if (usdtId.rows.length > 0) {
-              const usdtCurrencyId = usdtId.rows[0]!.id;
-              const fromUsdtResult = await client.query<{ price: string; updated_at: string | null }>(`
-                SELECT price::text, updated_at FROM market_prices WHERE base_currency_id = $1 AND quote_currency_id = $2
-              `, [fromCurrencyId, usdtCurrencyId]);
-              const toUsdtResult = await client.query<{ price: string; updated_at: string | null }>(`
-                SELECT price::text, updated_at FROM market_prices WHERE base_currency_id = $1 AND quote_currency_id = $2
-              `, [toCurrencyId, usdtCurrencyId]);
-
-              if (fromUsdtResult.rows.length > 0 && toUsdtResult.rows.length > 0) {
-                const fromUsdt = new Decimal(fromUsdtResult.rows[0]!.price).toDecimalPlaces(RATE_PRECISION, ROUND_DOWN);
-                const toUsdt = new Decimal(toUsdtResult.rows[0]!.price).toDecimalPlaces(RATE_PRECISION, ROUND_DOWN);
-                rateDec = fromUsdt.div(toUsdt).toDecimalPlaces(RATE_PRECISION, ROUND_DOWN);
-                trackAge(fromUsdtResult.rows[0]!.updated_at);
-                trackAge(toUsdtResult.rows[0]!.updated_at);
-              } else if (fromCurrencyId === usdtCurrencyId && toUsdtResult.rows.length > 0) {
-                rateDec = new Decimal(1).div(toUsdtResult.rows[0]!.price).toDecimalPlaces(RATE_PRECISION, ROUND_DOWN);
-                trackAge(toUsdtResult.rows[0]!.updated_at);
-              } else if (toCurrencyId === usdtCurrencyId && fromUsdtResult.rows.length > 0) {
-                rateDec = new Decimal(fromUsdtResult.rows[0]!.price).toDecimalPlaces(RATE_PRECISION, ROUND_DOWN);
-                trackAge(fromUsdtResult.rows[0]!.updated_at);
-              }
-            }
-          }
-        }
+        // Oracle (market_prices) first, then the venue's own Spot last trade; the oldest observation
+        // across the legs drives the staleness check below.
+        const resolvedRate = await resolveConvertRate(fromCurrency.symbol, toCurrency.symbol, client);
+        const rateDec: DecimalInstance | null = resolvedRate ? resolvedRate.rate.toDecimalPlaces(RATE_PRECISION, ROUND_DOWN) : null;
+        const rateOldestUpdatedAt: Date | null = resolvedRate?.oldestObservedAt ?? null;
 
         // H-5 FIX: reject missing, non-positive, or non-finite rates (previously only null was caught,
         // so a zero/garbage oracle price would deduct the user's balance for ~nothing in return).
@@ -635,6 +535,17 @@ export default async function convertRoutes(app: FastifyInstance) {
   }>('/limit', {
     preHandler: [app.authenticate]
   }, async (request, reply) => {
+    // No background worker fills or expires limit conversions yet; accepting one would lock customer
+    // funds until a manual cancel. Fail closed unless an operator explicitly enables the feature.
+    if (process.env.CONVERT_LIMIT_ORDERS_ENABLED !== 'true') {
+      return reply.status(503).send({
+        success: false,
+        error: {
+          code: 'CONVERT_LIMIT_UNAVAILABLE',
+          message: 'Limit conversions are not available. Use instant convert.',
+        },
+      });
+    }
     const userId = (request as any).user.id;
     let { fromCurrencyId, toCurrencyId, fromAmount, targetRate, expiresInDays = 30, accountType = 'funding' } = request.body;
 
@@ -679,7 +590,9 @@ export default async function convertRoutes(app: FastifyInstance) {
       });
     }
 
-    const allowedAccountTypes = ['funding', 'spot', 'trading'];
+    // 'spot' is the legacy bucket name for the customer's Spot account, whose balances live in account_type 'trading'.
+    if (accountType === 'spot') accountType = 'trading';
+    const allowedAccountTypes = ['funding', 'trading'];
     if (!allowedAccountTypes.includes(accountType)) accountType = 'funding';
 
     if (!fromCurrencyId || !toCurrencyId || !fromAmount || !targetRate) {
@@ -1015,7 +928,7 @@ export default async function convertRoutes(app: FastifyInstance) {
   }, async (request, reply) => {
     try {
       const userId = (request as any).user.id;
-      const rawAccountType = request.query.accountType || 'funding';
+      const rawAccountType = request.query.accountType === 'spot' ? 'trading' : (request.query.accountType || 'funding');
       const allowedAccountTypes = ['funding', 'spot', 'trading'];
       const accountType = allowedAccountTypes.includes(rawAccountType) ? rawAccountType : 'funding';
 

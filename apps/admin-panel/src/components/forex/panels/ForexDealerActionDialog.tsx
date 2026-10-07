@@ -77,7 +77,7 @@ export function ForexDealerActionDialog(props: {
             {order.age_sec}s
           </p>
           <p className="mt-2 text-admin-muted">
-            MOCK accept records dealer approval only; reject cancels via FDM. No live LP order is sent.
+            MOCK accept records dealer approval only. Reject cancels the simulated order. No live liquidity-provider order is sent.
           </p>
         </div>
         {needsSecondary ? (

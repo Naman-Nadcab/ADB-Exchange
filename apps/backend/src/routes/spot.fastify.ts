@@ -37,7 +37,7 @@ import { addLiquidity, removeLiquidity, snapshotTop } from '../services/spot-in-
 import { getMarketsCached, invalidateMarketsCache } from '../services/spot-markets-cache.service.js';
 import { getMarketIntelligence } from '../services/market-intelligence.service.js';
 import { computeOrderbookDepthPct } from '../services/orderbook-depth.service.js';
-import { resolveSpotLastPrice } from '../lib/spot-ticker-price-resolve.js';
+import { referenceStatNearLast, resolveSpotLastPrice } from '../lib/spot-ticker-price-resolve.js';
 import { markCircuitTripped } from '../services/spot-circuit-auto-recover.service.js';
 import { ensureMemoryBookHydrated } from '../services/spot-memory-hydrate.service.js';
 import {
@@ -68,7 +68,7 @@ import {
   isMmCircuitOrderPlacementBlocked,
 } from '../services/mm-circuit-breaker.service.js';
 import { getSpotMarketsHasLastPrice, getSpotTradesUseMarket, getSpotOrdersUseMarketSync } from '../lib/spot-schema-cache.js';
-import { loadSpotTickerDbStats } from '../lib/spot-ticker-db-load.js';
+import { loadReference24hBySymbol, loadSpotTickerDbStats } from '../lib/spot-ticker-db-load.js';
 import { getSpotTradesShapeSync, loadSpotTradesShape } from '../lib/spot-trades-shape.js';
 import { invalidateTickersCache } from '../services/cache-invalidation.service.js';
 import { isSymbolCircuitOpen } from '../lib/per-symbol-circuit.js';
@@ -217,6 +217,20 @@ async function pushSpotUpdates(symbol: string, userId: string, orderPayload: obj
   const userTradesPayload = filterUserTrades(symbol, userId, 10).map(tradeRowToWirePayload);
   spotWs.sendToUserSerialized(userId, 'user.trades', spotWs.wireEnvelope('trade', 'user.trades', userTradesPayload));
 }
+
+const CUSTOMER_REJECTION_MESSAGES = new Set([
+  'INSUFFICIENT_BALANCE',
+  'INSUFFICIENT_QUOTE_BALANCE',
+  'INSUFFICIENT_BASE_BALANCE',
+  'MARKET_NOT_FOUND',
+  'NO_LIQUIDITY',
+  'FOK_NOT_FILLABLE',
+  'POST_ONLY_REQUIRES_GTC',
+  'POST_ONLY_WOULD_TAKE',
+  'IOC_NOT_FILLABLE',
+  'PRICE_OUT_OF_BAND',
+  'ORDER_TOO_SMALL',
+]);
 
 async function recordCircuitBreaker(symbol: string): Promise<void> {
   const key = `${CIRCUIT_KEY_PREFIX}${symbol}`;
@@ -711,6 +725,14 @@ export default async function spotRoutes(app: FastifyInstance) {
               });
             }
           }
+          let reference24h = new Map<string, { high: string; low: string; open: string }>();
+          try {
+            reference24h = await loadReference24hBySymbol(result.rows.map((row) => row.symbol));
+          } catch (err) {
+            logger.warn('Spot tickers reference 24h skipped', {
+              error: err instanceof Error ? err.message : String(err),
+            });
+          }
           const tickers = result.rows.map((r) => {
             const previous = previousBySymbol.get(r.symbol);
             const resolved = resolveSpotLastPrice({
@@ -725,9 +747,21 @@ export default async function spotRoutes(app: FastifyInstance) {
               previousLastPrice: previous?.last_price ?? null,
             });
             const lastPrice = resolved.last_price;
-            const high = r.high_24h ?? '0';
-            const low = r.low_24h ?? '0';
-            const open24 = r.open_24h ?? null;
+            const exchangeBase = Number(r.base_volume ?? '0');
+            const useReferenceDay = !Number.isFinite(exchangeBase) || exchangeBase <= 0;
+            const ref = reference24h.get(r.symbol);
+            let high = r.high_24h ?? '0';
+            let low = r.low_24h ?? '0';
+            let open24 = r.open_24h ?? null;
+            let quoteVol = r.volume_24h ?? '0';
+            let baseVol = r.base_volume ?? '0';
+            if (useReferenceDay) {
+              high = referenceStatNearLast(ref?.high, lastPrice) ?? referenceStatNearLast(high, lastPrice) ?? '0';
+              low = referenceStatNearLast(ref?.low, lastPrice) ?? referenceStatNearLast(low, lastPrice) ?? '0';
+              open24 = referenceStatNearLast(ref?.open, lastPrice) ?? referenceStatNearLast(open24, lastPrice);
+              quoteVol = '0';
+              baseVol = '0';
+            }
             const changePct = changePctFromOpenAndLast(open24, lastPrice);
             return {
               symbol: r.symbol,
@@ -737,8 +771,8 @@ export default async function spotRoutes(app: FastifyInstance) {
               open_24h: open24 != null && open24 !== '' ? open24 : null,
               high_24h: high !== '0' ? high : null,
               low_24h: low !== '0' ? low : null,
-              volume_24h: r.volume_24h ?? '0',
-              base_volume_24h: r.base_volume ?? '0',
+              volume_24h: quoteVol,
+              base_volume_24h: baseVol,
               change_pct: changePct,
               last_price_source: lastPrice ? resolved.last_price_source : 'none',
               last_price_age_ms: resolved.last_price_age_ms,
@@ -922,7 +956,7 @@ export default async function spotRoutes(app: FastifyInstance) {
           }
           const bid = stats.bid ?? null;
           const ask = stats.ask ?? null;
-          const suppress24h = stats.last_price_stale === true;
+          const suppress24h = stats.last_price_stale === true && stats.last_price_source === 'trade';
           const open24 = suppress24h ? null : (stats.open_24h ?? null);
           const high24 = suppress24h ? null : (stats.high_24h ?? null);
           const low24 = suppress24h ? null : (stats.low_24h ?? null);
@@ -2069,7 +2103,12 @@ export default async function spotRoutes(app: FastifyInstance) {
       });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unknown';
-      void recordCircuitBreaker(marketSymbol).catch(() => {});
+      // Only infrastructure faults count toward the market circuit breaker. Customer-side rejections
+      // (insufficient balance, no liquidity, FOK, post-only, ...) are expected traffic; counting them
+      // would let any customer put a market into maintenance with a handful of bad orders.
+      if (!CUSTOMER_REJECTION_MESSAGES.has(msg) && !(err instanceof MarketEngineRoutingError)) {
+        void recordCircuitBreaker(marketSymbol).catch(() => {});
+      }
       if (err instanceof MarketEngineRoutingError) {
         return reply.status(400).send({
           success: false,

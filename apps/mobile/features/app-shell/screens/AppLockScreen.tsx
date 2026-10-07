@@ -14,7 +14,7 @@ export function AppLockScreen() {
     <ShellStateScreen
       testID="D-900"
       title="App Locked"
-      message="Authenticate to continue using FDM."
+      message="Authenticate to continue using ADB Exchange."
       icon="lock-closed-outline"
       actionLabel="Unlock"
       onAction={() => void unlock()}

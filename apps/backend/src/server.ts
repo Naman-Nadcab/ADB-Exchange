@@ -11,7 +11,7 @@ import jwt from '@fastify/jwt';
 import multipart from '@fastify/multipart';
 import websocket from '@fastify/websocket';
 import { config } from './config/index.js';
-import { ACCESS_COOKIE } from './lib/auth-cookies.js';
+import { ACCESS_COOKIE, COOKIE_SESSION_MARKER } from './lib/auth-cookies.js';
 import { db } from './lib/database.js';
 import { redis } from './lib/redis.js';
 import { logger } from './lib/logger.js';
@@ -48,6 +48,14 @@ import { startSpotWsPubSub } from './services/spot-ws.service.js';
 // Routes
 import authRoutes from './routes/auth.fastify.js';
 import oauthRoutes from './routes/auth.oauth.js';
+import walletChallengeRoutes from './routes/auth-wallet-challenge.fastify.js';
+import walletVerifyRoutes from './routes/auth-wallet-verify.fastify.js';
+import walletLoginRoutes from './routes/auth-wallet-login.fastify.js';
+import walletManagementRoutes from './routes/auth-wallet-management.fastify.js';
+import walletRecoveryRoutes from './routes/auth-wallet-recovery.fastify.js';
+import adminWalletRecoveryRoutes from './routes/admin-wallet-recovery.fastify.js';
+import adminWalletMigrationRoutes from './routes/admin-wallet-migration.fastify.js';
+import authLegacyCutoverRoutes from './routes/auth-legacy-cutover.fastify.js';
 import tradingRoutes from './routes/trading.fastify.js';
 import p2pRoutes from './routes/p2p.fastify.js';
 import fiatRoutes from './routes/fiat.fastify.js';
@@ -213,10 +221,17 @@ export async function buildServer(): Promise<FastifyInstance> {
     const id = (request.headers['x-request-id'] as string)?.trim() || crypto.randomUUID();
     request.requestId = id;
     // Promote httpOnly access cookie to Authorization for JWT decorators (CSRF mitigated via SameSite=Lax + CORS allow-list).
-    if (!request.headers.authorization?.startsWith('Bearer ')) {
+    // A cookie-backed browser session has no JWT in memory; the web client then sends the literal
+    // COOKIE_SESSION_MARKER as the bearer value. Treat that marker (or an empty bearer) as "no header".
+    const bearer = request.headers.authorization?.startsWith('Bearer ')
+      ? request.headers.authorization.slice(7).trim()
+      : '';
+    if (!bearer || bearer === COOKIE_SESSION_MARKER) {
       const cookieToken = request.cookies?.[ACCESS_COOKIE];
       if (typeof cookieToken === 'string' && cookieToken.length > 0) {
         request.headers.authorization = `Bearer ${cookieToken}`;
+      } else if (bearer === COOKIE_SESSION_MARKER) {
+        delete request.headers.authorization;
       }
     }
   });
@@ -441,6 +456,18 @@ export async function buildServer(): Promise<FastifyInstance> {
     if (tradingHalted) warnings.push('trading_halt_active');
     if (settlementCircuitOpen) warnings.push('settlement_circuit_open');
 
+    let sanctionsPublicLists: Record<string, unknown> | null = null;
+    try {
+      const { readOfficialPublicListsHealth, isOfficialPublicListsProvider } = await import('./services/sanctions/official-public-lists.js');
+      const lists = await readOfficialPublicListsHealth();
+      sanctionsPublicLists = { ...lists };
+      if (isOfficialPublicListsProvider(process.env.SANCTIONS_PROVIDER ?? '') && lists.status !== 'ready') {
+        warnings.push('sanctions_public_lists_not_ready');
+      }
+    } catch {
+      sanctionsPublicLists = null;
+    }
+
     let status: 'healthy' | 'degraded' | 'unhealthy';
     if (!coreOk) {
       status = 'unhealthy';
@@ -568,6 +595,7 @@ export async function buildServer(): Promise<FastifyInstance> {
       depth,
       ...(staleMarkets.length > 0 && { stale_markets: staleMarkets }),
       ...(orderbookWriter && { orderbook_writer: orderbookWriter }),
+      ...(sanctionsPublicLists && { sanctions_public_lists: sanctionsPublicLists }),
     };
     const statusCode = status === 'unhealthy' ? 503 : 200;
     const cacheTtlMs = status === 'unhealthy' ? HEALTH_UNHEALTHY_CACHE_TTL_MS : HEALTH_CACHE_TTL_MS;
@@ -966,15 +994,25 @@ export async function buildServer(): Promise<FastifyInstance> {
 
   const { registerAdminZeroTrustHooks } = await import('./middleware/admin-zero-trust.middleware.js');
   registerAdminZeroTrustHooks(app);
+  const { registerCustomerFinancialStatusGuard } = await import('./services/customer-financial-access.js');
+  registerCustomerFinancialStatusGuard(app);
 
   // Register routes
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
+  await app.register(authLegacyCutoverRoutes, { prefix: '/api/v1/auth' });
   await app.register(oauthRoutes, { prefix: '/api/v1/auth' });
+  await app.register(walletChallengeRoutes, { prefix: '/api/v1/auth' });
+  await app.register(walletVerifyRoutes, { prefix: '/api/v1/auth' });
+  await app.register(walletLoginRoutes, { prefix: '/api/v1/auth' });
+  await app.register(walletManagementRoutes, { prefix: '/api/v1/auth' });
+  await app.register(walletRecoveryRoutes, { prefix: '/api/v1/auth' });
   await app.register(tradingRoutes, { prefix: '/api/v1/trading' });
   await app.register(p2pRoutes, { prefix: '/api/v1/p2p' });
   await app.register(fiatRoutes, { prefix: '/api/v1/fiat' });
   await app.register(userRoutes, { prefix: '/api/v1/user' });
   await app.register(adminRoutes, { prefix: '/api/v1/admin' });
+  await app.register(adminWalletRecoveryRoutes, { prefix: '/api/v1/admin' });
+  await app.register(adminWalletMigrationRoutes, { prefix: '/api/v1/admin' });
   await app.register(adminAmlRoutes, { prefix: '/api/v1/admin' });
   await app.register(adminFiatRoutes, { prefix: '/api/v1/admin' });
   await app.register(adminSecurityRoutes, { prefix: '/api/v1/admin' });
@@ -1677,6 +1715,39 @@ async function start() {
       logger.info(`Price oracle scheduled (every ${config.priceOracle.intervalSec}s)`);
     } else {
       logger.info('Price oracle disabled (PRICE_ORACLE_ENABLED=false)');
+    }
+
+    if ((process.env.SANCTIONS_PROVIDER ?? '').trim().toLowerCase() === 'official_public_lists') {
+      const refreshLists = async (): Promise<void> => {
+        const { refreshOfficialPublicLists } = await import('./services/sanctions/official-public-lists.js');
+        let lastError = 'unknown';
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            const manifest = await refreshOfficialPublicLists({ timeoutMs: 180_000 });
+            logger.info('OFAC public sanctions list refreshed', {
+              addressCount: manifest.addressCount,
+              version: manifest.version,
+              attempt,
+            });
+            return;
+          } catch (err) {
+            lastError = err instanceof Error ? err.message : String(err);
+            logger.warn('OFAC public sanctions list refresh failed', { error: lastError, attempt });
+            if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 15_000));
+          }
+        }
+        logger.warn('OFAC public sanctions list remains unavailable', { error: lastError });
+      };
+      void refreshLists();
+      const sanctionsListIntervalMs = 12 * 60 * 60 * 1000;
+      setInterval(() => {
+        void refreshLists().catch((err) => {
+          logger.warn('OFAC public sanctions list refresh failed', {
+            error: err instanceof Error ? err.message : String(err),
+          });
+        });
+      }, sanctionsListIntervalMs);
+      logger.info('OFAC public sanctions list scheduled (startup, then every 12h)');
     }
 
     if (config.liquidityBot.enabled && config.liquidityBot.apiKey) {

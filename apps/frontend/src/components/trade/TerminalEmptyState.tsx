@@ -25,11 +25,28 @@ export function TerminalEmptyState({
   compact?: boolean;
 }) {
   const Icon = ICONS[kind];
+  if (compact) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col" role="status">
+        <div className="mx-1.5 mt-1.5 shrink-0 rounded border border-border bg-muted/40 px-2 py-1.5 text-left">
+          <p className="terminal-text-secondary font-medium text-foreground">{title}</p>
+          {description ? <p className="terminal-text-meta mt-0.5 text-muted-foreground">{description}</p> : null}
+        </div>
+        <div
+          className="mt-1 min-h-[6rem] flex-1"
+          aria-hidden
+          style={{
+            backgroundImage:
+              'repeating-linear-gradient(to bottom, transparent 0, transparent 27px, hsl(var(--primary) / 0.16) 28px)',
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
-      className={`terminal-empty flex flex-col items-center justify-center text-center ${
-        compact ? 'px-3 py-4' : 'px-4 py-8'
-      }`}
+      className="terminal-empty flex flex-col items-center justify-center px-4 py-8 text-center"
       role="status"
     >
       <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-muted/40">

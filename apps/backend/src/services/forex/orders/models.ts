@@ -37,8 +37,10 @@ export interface ForexOrderRecord {
   failureReason: ForexOrderReason | string | null;
   executionId: string | null;
   fillIds: string[];
-  source: 'SIMULATED';
-  executionMode: 'MOCK';
+  source: 'SIMULATED' | 'LIVE';
+  executionMode: 'MOCK' | 'BROKER';
+  /** Broker working-order id. Null while the order is only local. */
+  venueOrderId: string | null;
   events: ForexOrderEvent[];
   version: number;
   lastQuoteKey: string | null;
@@ -82,6 +84,7 @@ export function publicForexOrder(order: ForexOrderRecord) {
     version: order.version,
     source: order.source,
     executionMode: order.executionMode,
+    venueOrderId: order.venueOrderId,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
   };

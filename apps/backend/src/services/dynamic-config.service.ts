@@ -200,7 +200,7 @@ class DynamicConfigService {
 
     if (config.email.user && (config.email.password || process.env.SMTP_PASS)) {
       let fromEmail = config.email.from;
-      let fromName = 'FDM';
+      let fromName = 'ADB Exchange';
       const angleMatch = fromEmail.match(/<([^>]+)>/);
       if (angleMatch) {
         fromName = fromEmail.replace(/<[^>]+>/, '').replace(/^["'\s]+|["'\s]+$/g, '').trim() || fromName;
@@ -600,7 +600,7 @@ class DynamicConfigService {
     const row = rows[0];
     if (!row) return null;
     const key = resolveProviderSecret(row.api_secret, row.secret_encrypted) || row.api_key?.trim() || '';
-    if (!key && row.provider !== 'noop') return null;
+    if (!key && row.provider !== 'noop' && row.provider !== 'official_public_lists') return null;
     return {
       provider: row.provider,
       apiUrl: row.api_url?.trim() || '',
@@ -634,7 +634,7 @@ class DynamicConfigService {
       user: p.apiKey,
       pass,
       fromEmail: extra.from_email || extra.from || config.email.from,
-      fromName: extra.from_name || 'FDM',
+      fromName: extra.from_name || 'ADB Exchange',
     };
   }
 
@@ -649,7 +649,7 @@ class DynamicConfigService {
       user: row.api_key,
       pass,
       fromEmail: extra.from_email || extra.from || config.email.from,
-      fromName: extra.from_name || 'FDM',
+      fromName: extra.from_name || 'ADB Exchange',
     };
   }
 

@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { DollarSign, Users, Coins } from 'lucide-react';
+import { CandlestickChart, LineChart, Shield } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
+import { LocaleLanguageSelector } from '@/components/i18n/LocaleLanguageSelector';
 import { ROUTES } from '@/lib/routes';
+import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { useTranslations } from 'next-intl';
 
@@ -25,39 +27,44 @@ export default function AuthSplitLayout({
   return (
     <div className="min-h-screen flex bg-background">
       {/* Left - Brand panel (desktop) */}
-      <div className="hidden lg:flex lg:w-[48%] relative overflow-hidden bg-gradient-to-br from-muted via-card to-card p-12 flex-col justify-between">
+      <div className="hidden lg:flex lg:w-[44%] relative overflow-hidden bg-gradient-to-br from-muted via-card to-card p-8 xl:p-10 flex-col justify-between">
         <div className="absolute inset-0 opacity-[0.07]" style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
           backgroundSize: '48px 48px',
         }} />
         <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} className="relative" />
-        <div className="relative flex-1 flex flex-col items-center justify-center py-8">
-          <BrandLogo variant="marketing" size="marketing" priority className="relative mb-10" />
-          <h1 className="text-3xl xl:text-4xl font-semibold text-foreground leading-tight mb-3 text-center max-w-md">
+        <div className="relative flex w-full max-w-md flex-col justify-center py-6">
+          <h1 className="text-3xl font-semibold leading-tight text-foreground xl:text-[2rem]">
             {tm('headline', { highlight: tm('headlineHighlight') })}
           </h1>
-          <p className="text-muted-foreground text-lg mb-12 max-w-sm text-center">
+          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
             {tm('subhead')}
           </p>
-          <div className="grid grid-cols-3 gap-6 w-full max-w-lg">
+          <div className="mt-6 grid gap-2.5">
             {[
-              { icon: DollarSign, labelKey: 'fiatLabel' as const, valueKey: 'fiatValue' as const, subKey: 'fiatSub' as const },
-              { icon: Users, labelKey: 'securityLabel' as const, valueKey: 'securityValue' as const, subKey: 'securitySub' as const },
-              { icon: Coins, labelKey: 'spotLabel' as const, valueKey: 'spotValue' as const, subKey: 'spotSub' as const },
-            ].map(({ icon: Icon, labelKey, valueKey, subKey }) => (
-              <div key={labelKey} className="group">
-                <div className="w-11 h-11 rounded-xl bg-card/5 border border-white/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 group-hover:border-primary/30 transition-colors">
-                  <Icon className="w-5 h-5 text-primary" />
+              { href: ROUTES.tradeSpot, icon: CandlestickChart, labelKey: 'spotLabel' as const, valueKey: 'spotValue' as const, subKey: 'spotSub' as const },
+              { href: FOREX_ROUTES.root, icon: LineChart, labelKey: 'forexLabel' as const, valueKey: 'forexValue' as const, subKey: 'forexSub' as const },
+              { href: ROUTES.dashboard.security, icon: Shield, labelKey: 'securityLabel' as const, valueKey: 'securityValue' as const, subKey: 'securitySub' as const },
+            ].map(({ href, icon: Icon, labelKey, valueKey, subKey }) => (
+              <Link
+                key={labelKey}
+                href={href}
+                className="group flex items-center gap-3 rounded-xl border border-border bg-card/70 px-3 py-3 transition-colors hover:border-primary/40 hover:bg-primary/10"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10">
+                  <Icon className="h-5 w-5 text-primary" />
                 </div>
-                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-0.5">{tm(labelKey)}</p>
-                <p className="text-2xl font-bold text-foreground">{tm(valueKey)}</p>
-                <p className="text-muted-foreground text-xs mt-0.5">{tm(subKey)}</p>
-              </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{tm(labelKey)}</p>
+                  <p className="text-sm font-semibold text-foreground">{tm(valueKey)}</p>
+                  <p className="truncate text-xs text-muted-foreground">{tm(subKey)}</p>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
-        <p className="relative text-muted-foreground text-xs">{tm('copyright')}</p>
+        <p className="relative text-xs text-muted-foreground">{tm('copyright')}</p>
       </div>
 
       {/* Right - Form area */}
@@ -65,6 +72,7 @@ export default function AuthSplitLayout({
         <div className="flex items-center justify-between p-5 lg:p-6">
           <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} className="lg:hidden" />
           <div className="ml-auto flex items-center gap-2">
+            <LocaleLanguageSelector variant="compact" />
             <ThemeToggle variant="icon" size="sm" />
           </div>
         </div>

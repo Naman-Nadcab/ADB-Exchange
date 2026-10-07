@@ -20,6 +20,7 @@ import { BrandLogo } from '@/components/brand/BrandLogo';
 import { EdaProductSwitcher } from '@/components/eda/EdaProductSwitcher';
 import { LocaleLanguageSelector } from '@/components/i18n/LocaleLanguageSelector';
 import { useTranslations } from 'next-intl';
+import { maskAccountEmail } from '@/lib/account-email';
 import { cn } from '@/lib/utils';
 
 const MAIN_NAV = [
@@ -49,11 +50,8 @@ function isMainNavActive(pathname: string | null, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function maskEmail(email: string): string {
-  if (!email) return '***@****';
-  const [local, domain] = email.split('@');
-  if (!domain) return '***@****';
-  return `${local.slice(0, 3)}**${local.length > 5 ? local.slice(-1) : ''}@****`;
+function maskEmail(email: string | null | undefined, emptyLabel: string): string {
+  return maskAccountEmail(email, emptyLabel);
 }
 
 interface ExchangeHeaderProps {
@@ -250,7 +248,7 @@ export function ExchangeHeader({
                         <User className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{maskEmail(user?.email || '')}</p>
+                        <p className="text-sm font-medium truncate">{maskEmail(user?.email, tc('states.notAdded'))}</p>
                         <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                           <span>UID: {user?.id?.slice(0, 8) || '******'}</span>
                           <button

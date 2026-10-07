@@ -74,7 +74,7 @@ export function timeInForceBlockedReasonLabel(
   tif: ForexTimeInForce
 ): string | null {
   if (isTimeInForceAllowed(type, tif)) return null;
-  if (tif === 'DAY' || tif === 'GTD') return tf('tifBlocked.pendingOnly', { tif });
+  if (tif === 'DAY' || tif === 'GTD' || tif === 'BOC') return tf('tifBlocked.pendingOnly', { tif });
   return tf('tifBlocked.immediateOnly', { tif });
 }
 

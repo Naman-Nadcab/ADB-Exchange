@@ -1,3 +1,5 @@
+import { BrokerGatewayAccountProvider, BrokerGatewayCredentialsProvider } from '../broker/account-provider.js';
+import { isBrokerGatewayConfigured } from '../broker/gateway.js';
 import type {
   ForexBrokerCredentialsProvider,
   ForexLiveAccountProvider,
@@ -46,11 +48,20 @@ class UnconfiguredCredentialsProvider implements ForexBrokerCredentialsProvider 
 let liveProvider: ForexLiveAccountProvider = new UnconfiguredLiveAccountProvider();
 let credentialsProvider: ForexBrokerCredentialsProvider = new UnconfiguredCredentialsProvider();
 
+/** Swap the stub for the HTTP provider only when a broker URL is configured. */
+export function installBrokerGatewayIfConfigured(): void {
+  if (!isBrokerGatewayConfigured()) return;
+  if (liveProvider.providerId === 'unconfigured') liveProvider = new BrokerGatewayAccountProvider();
+  if (credentialsProvider.providerId === 'unconfigured') credentialsProvider = new BrokerGatewayCredentialsProvider();
+}
+
 export function getForexLiveAccountProvider(): ForexLiveAccountProvider {
+  installBrokerGatewayIfConfigured();
   return liveProvider;
 }
 
 export function getForexBrokerCredentialsProvider(): ForexBrokerCredentialsProvider {
+  installBrokerGatewayIfConfigured();
   return credentialsProvider;
 }
 

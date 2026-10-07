@@ -78,7 +78,7 @@ export function ForexIntegrationsPanel() {
     <div className="admin-stack-lg">
       <ForexPanelShell
         title="Adapter layer"
-        description="Provider-agnostic execution — Internal FDM is active; external brokers are catalog placeholders until adapters are certified."
+        description="The internal Forex adapter is active. A broker HTTP gateway appears here only when its URL is configured. MT4, MT5, cTrader, and FIX are omitted until an adapter exists."
       >
         {q.isLoading ? (
           <p className="text-sm text-admin-muted">Loading integration catalog…</p>

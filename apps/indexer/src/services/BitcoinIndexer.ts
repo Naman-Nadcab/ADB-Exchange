@@ -133,13 +133,13 @@ export class BitcoinIndexer {
   // --- internal -----------------------------------------------------------
 
   private async loadConfig(): Promise<void> {
-    // Required confirmations come from the `blockchains` (UUID-keyed) table to
-    // stay consistent with UI/admin settings.
+    // Confirmations live on chains.confirmations_required. blockchains has no such column.
     const cfgRes = await query(
-      `SELECT required_confirmations FROM blockchains WHERE LOWER(chain_symbol) = 'btc' LIMIT 1`
+      `SELECT confirmations_required FROM chains WHERE id = 'bitcoin' AND is_active = TRUE LIMIT 1`
     );
-    if (cfgRes.rows[0]?.required_confirmations) {
-      this.requiredConfirmations = Number(cfgRes.rows[0].required_confirmations) || 3;
+    const configured = Number(cfgRes.rows[0]?.confirmations_required);
+    if (Number.isFinite(configured) && configured > 0) {
+      this.requiredConfirmations = configured;
     }
 
     const curRes = await query(

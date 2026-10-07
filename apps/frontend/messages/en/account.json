@@ -38,7 +38,7 @@
   },
   "profile": {
     "title": "Account Info",
-    "subtitle": "Manage your profile and account settings",
+    "subtitle": "One exchange account for Crypto and Forex. Profile, security, and identity are shared. Trading balances stay in their own venues.",
     "lastLogin": "Last login:",
     "securityAlert": "Security Alert",
     "securityLow": "Your account security level is low.",
@@ -96,9 +96,79 @@
     },
     "sections": {
       "loginPassword": "Login & password",
+      "signIn": "Sign-in security",
       "twoFactor": "Two-factor authentication",
       "advanced": "Advanced protection",
       "withdrawal": "Withdrawal security"
+    },
+    "wallets": {
+      "title": "Sign-in wallets",
+      "description": "Wallets you can use to sign in. Linking a wallet does not move funds.",
+      "add": "Add wallet",
+      "empty": "No sign-in wallets yet.",
+      "loading": "Loading sign-in wallets…",
+      "primary": "Primary",
+      "setPrimary": "Set as primary sign-in wallet",
+      "remove": "Remove wallet from sign-in",
+      "linked": "Linked",
+      "lastUsed": "Last used",
+      "copy": "Copy address",
+      "statusActive": "Active",
+      "statusDisabled": "Disabled",
+      "statusCompromised": "Unavailable",
+      "fundsNote": "Removing a login wallet does not remove funds.",
+      "confirmPrimary": "Confirm setting wallet {address} as your primary sign-in wallet.",
+      "confirmRemove": "Confirm removing wallet {address} from your sign-in methods.",
+      "cancel": "Cancel",
+      "signing": "Waiting for your signature…",
+      "successLinked": "Wallet added to your sign-in methods.",
+      "successPrimary": "Primary sign-in wallet updated.",
+      "successRemoved": "Wallet removed from sign-in. Your funds are unchanged.",
+      "alreadyLinked": "This wallet is already linked to your account.",
+      "unavailable": "This wallet cannot be linked.",
+      "lastFactor": "Add another sign-in method before removing this wallet.",
+      "primaryRequired": "Set another wallet as your primary sign-in wallet before removing this one.",
+      "mismatch": "Connect the wallet you are updating.",
+      "rejected": "Signature was cancelled.",
+      "failed": "Could not update your sign-in wallets. Try again.",
+      "expired": "This request expired. Start again.",
+      "rateLimit": "Too many attempts. Wait and try again.",
+      "network": "Network problem. Try again.",
+      "noWallets": "No wallet was found in this browser.",
+      "namespaceEvm": "EVM",
+      "namespaceSolana": "Solana"
+    },
+    "recovery": {
+      "title": "Account recovery",
+      "description": "If you lose a sign-in wallet, recovery keeps this account. A wallet signature is not identity verification, and email alone cannot add a sign-in wallet.",
+      "lostWallet": "Lost wallet?",
+      "factors": "Recovery factors",
+      "wallets": "Active sign-in wallets",
+      "passkey": "Passkey",
+      "totp": "Authenticator",
+      "available": "Available",
+      "notSet": "Not set",
+      "emailNote": "Email is a contact channel. It cannot replace a sign-in wallet.",
+      "soleFactorWarning": "You have one sign-in wallet and no passkey or authenticator. If that wallet is lost, you cannot restore login yourself. Add a second wallet, a passkey, or an authenticator before you rely on this account.",
+      "status": "Recovery status",
+      "none": "None",
+      "withdrawalsPaused": "Withdrawals are paused during recovery protection.",
+      "withdrawalsNormal": "No recovery withdrawal hold is active.",
+      "cooldownUntil": "Protection until",
+      "credentialNote": "A replacement wallet is a sign-in credential. It is not added to withdrawals and it does not move funds.",
+      "cancel": "Cancel recovery request",
+      "dialogTitle": "Recover sign-in access",
+      "dialogBody": "This opens a recovery request for this account. It does not replace your wallet immediately and it does not move funds.",
+      "confirm": "Open recovery request",
+      "close": "Close",
+      "working": "Working…",
+      "loading": "Loading recovery status…",
+      "requested": "Recovery request opened. Verify a remaining sign-in method or wait for review.",
+      "cancelled": "Recovery request cancelled. Your wallets are unchanged.",
+      "alreadyOpen": "A recovery request is already open.",
+      "emailBlocked": "Email verification cannot add or replace a sign-in wallet.",
+      "failed": "Could not update account recovery. Try again.",
+      "network": "Network problem. Try again."
     },
     "level": {
       "high": "High",
@@ -108,7 +178,10 @@
     "features": {
       "loginPassword": {
         "title": "Login password",
-        "description": "Used for account login"
+        "description": "Used for account login",
+        "walletOnlyTitle": "Account password",
+        "walletOnlyDescription": "A password is not a sign-in method. Sign in with your wallet.",
+        "walletOnlyStatus": "Not a sign-in method"
       },
       "activeSessions": {
         "title": "Active sessions",
@@ -117,11 +190,13 @@
       "emailAuth": {
         "title": "Email authentication",
         "descriptionPrefix": "For login, withdrawal, and security verification.",
+        "walletOnlyPrefix": "Optional contact for security notices. Email is not a sign-in method.",
         "changeEmail": "Change email"
       },
       "phone": {
         "title": "Phone verification",
-        "description": "Verify your mobile number and use SMS for login, password reset, and security actions"
+        "description": "Verify your mobile number and use SMS for login, password reset, and security actions",
+        "walletOnlyDescription": "Optional contact for security notices. A text message is not a sign-in method."
       },
       "google2fa": {
         "title": "Google 2FA",
@@ -130,6 +205,7 @@
       "passkeys": {
         "title": "Passkeys (Touch ID / Face ID)",
         "description": "Use biometrics for fast and secure login",
+        "walletOnlyDescription": "A passkey can approve a sensitive action. It is not a sign-in method.",
         "registered": "{count} registered"
       },
       "fundPassword": {
@@ -552,7 +628,7 @@
     "footerTradingFee": "Trading Fee",
     "footerApi": "API",
     "footerHelpCenter": "Help Center",
-    "footerCopyright": "© 2026 FDM",
+    "footerCopyright": "© 2026 ADB Exchange",
     "requirements": {
       "spot-volume": {
         "title": "30-Day Spot Trading Volume (USD)",
@@ -580,7 +656,7 @@
     "depositCta": "Make a deposit",
     "dashboardCta": "Go to dashboard",
     "redirecting": "Redirecting to dashboard in 5 seconds…",
-    "footerCopyright": "© 2018-2026 FDM. All rights reserved.",
+    "footerCopyright": "© 2018-2026 ADB Exchange. All rights reserved.",
     "steps": {
       "fund": {
         "title": "Fund your account",
@@ -681,15 +757,15 @@
     "title": "Overview",
     "description": "Portfolio, markets, and account activity — your trading command center.",
     "balance": {
-      "estimatedTotal": "Estimated total balance",
-      "estimatedTotalTooltip": "Combined funding and trading account balance in your selected display currency.",
+      "estimatedTotal": "Estimated crypto & fiat",
+      "estimatedTotalTooltip": "Crypto funding plus spot, in your display currency. Forex equity is not included.",
       "portfolioPnl24h": "24h portfolio PnL",
       "portfolioPnlTooltip": "Day-over-day portfolio change is not available from this summary yet.",
       "updated": "Updated {datetime}",
-      "funding": "Funding",
-      "fundingHint": "Deposits & P2P",
-      "trading": "Trading",
-      "tradingHint": "Spot & open orders"
+      "funding": "Crypto funding",
+      "fundingHint": "Deposits and P2P. Not Forex.",
+      "trading": "Crypto spot",
+      "tradingHint": "Spot orders. Not Forex margin."
     },
     "accountCard": {
       "label": "Account",
@@ -997,6 +1073,7 @@
   "identityPage": {
     "checkingStatus": "Checking verification status...",
     "headerTitle": "Identity Verification",
+    "accountWideNote": "This verification belongs to your exchange account. Crypto compliance uses this status. Forex requires it only when the Forex KYC policy is on.",
     "verifiedTitle": "Identity Verified",
     "verifiedSubtitle": "Your identity has been successfully verified. You now have full access to all platform features.",
     "verificationLevel": "Verification Level",
@@ -1008,6 +1085,8 @@
     "goToAccount": "Go to Account",
     "pendingTitle": "Verification In Progress",
     "pendingSubtitle": "Your documents are being reviewed. This usually takes 1-2 business days.",
+    "rejectedTitle": "Verification was not approved",
+    "rejectedSubtitle": "The latest identity application on this account was rejected. You can submit a new application. Forex does not use a separate identity.",
     "businessVerification": "Business Verification",
     "helpAria": "Help",
     "accountAria": "Account settings",
@@ -1020,8 +1099,8 @@
     "otherDocuments": "No {doc}? Use other documents.",
     "verifyToEarn": "Verify to Earn $20",
     "continueOnApp": "You can also continue on",
-    "fdmApp": "📱 FDM App",
-    "footerCopyright": "© 2018-2026 FDM. All rights reserved.",
+    "fdmApp": "ADB Exchange app",
+    "footerCopyright": "© 2018-2026 ADB Exchange. All rights reserved.",
     "termsOfService": "Terms of Service",
     "privacyPolicy": "Privacy Policy",
     "verificationFailed": "Verification failed",
@@ -1399,17 +1478,17 @@
     "line": "Line",
     "more": "More",
     "loadFailed": "Failed to load referral data",
-    "inviteEarn": "Invite a friend to FDM Earn",
-    "inviteCard": "Refer a friend to FDM Card",
+    "inviteEarn": "Invite a friend to ADB Exchange Earn",
+    "inviteCard": "Refer a friend to ADB Exchange Card",
     "inviteCopyTrading": "Refer a friend to Copy Trading",
     "typeWeb3": "web3",
-    "shareTitle": "Join FDM and earn crypto rewards!",
-    "shareTextPrefix": "Join FDM with my referral link and participate in the referral program when eligible rewards are available: ",
+    "shareTitle": "Join ADB Exchange",
+    "shareTextPrefix": "Join ADB Exchange with my referral link and participate in the referral program when eligible rewards are available: ",
     "loadingCode": "LOADING...",
     "canvasJoinTitle": "Join & Earn Rewards!",
-    "canvasReferLine1": "Refer friends to FDM",
+    "canvasReferLine1": "Refer friends to ADB Exchange",
     "canvasReferLine2": "and earn eligible commissions.",
-    "canvasScanPrompt": "Scan QR code and join me at FDM!",
+    "canvasScanPrompt": "Scan the QR code to join ADB Exchange.",
     "canvasReferralCode": "Referral Code: {code}"
   },
   "myReferralsPage": {
@@ -1462,7 +1541,7 @@
     "footerServices": "Services",
     "footerSupport": "Support",
     "footerProducts": "Products",
-    "footerAboutFdm": "About FDM",
+    "footerAboutFdm": "About ADB Exchange",
     "footerAnnouncements": "Announcements",
     "footerFees": "Fees & Transactions Overview",
     "footerP2p": "P2P Trading (0 Fees)",
@@ -1478,7 +1557,7 @@
     "loadFailed": "Failed to load referral data"
   },
   "apiManagementPage": {
-    "bannerTitle": "FDM OpenAPI V5",
+    "bannerTitle": "ADB Exchange API",
     "title": "API Management",
     "createNewKey": "Create New Key",
     "securityCardTitle": "Security",
