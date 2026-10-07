@@ -334,7 +334,12 @@ export class ChainIndexer {
   private async catchUpIfLagging(): Promise<void> {
     if (this.watchedAddresses.size === 0) return;
     try {
-      const head = await getCachedBlockNumber(this.config.rpcUrl, this.config.id);
+      const head = await Promise.race([
+        getCachedBlockNumber(this.config.rpcUrl, this.config.id),
+        new Promise<number>((_, reject) => {
+          setTimeout(() => reject(new Error('block head timeout')), 8_000);
+        }),
+      ]);
       const target = Math.max(0, head - this.config.confirmations);
       const lag = target - this.lastProcessedBlock;
       if (lag <= ChainIndexer.LAG_CATCHUP_THRESHOLD) return;
