@@ -39,7 +39,6 @@ case "$ACTION" in
       --webroot \
       --webroot-path "$WEBROOT" \
       --ip-address "$IP" \
-      --renew-before-expiry "48 hours" \
       --deploy-hook "bash $ROOT/scripts/renew-ip-tls.sh install"
     install_live
     ;;
