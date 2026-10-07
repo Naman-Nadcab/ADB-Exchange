@@ -20,7 +20,7 @@ function Body({ name, namespace, networkLabel }: Pick<Props, 'name' | 'namespace
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold text-foreground">{name}</span>
         <span className={`mt-0.5 inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-          namespace === 'solana' ? 'bg-violet-500/15 text-violet-700 dark:text-violet-200' : 'bg-primary/15 text-primary'
+          namespace === 'solana' ? 'bg-violet-600 text-white' : 'bg-primary text-primary-foreground'
         }`}>
           {networkLabel}
         </span>

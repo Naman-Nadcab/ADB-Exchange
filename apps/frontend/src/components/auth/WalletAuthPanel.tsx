@@ -133,7 +133,7 @@ export function WalletAuthPanel({ actionLabel, disabled, onSuccess }: Props) {
       )}
 
       <Dialog open={open} onOpenChange={(next) => { if (!busy) setOpen(next); }}>
-        <DialogContent className="max-w-md rounded-2xl border-primary/20 bg-card p-5 shadow-2xl sm:p-6" aria-busy={busy}>
+        <DialogContent className="max-h-[min(36rem,calc(100dvh-1.5rem))] max-w-md overflow-y-auto rounded-2xl border-primary/20 bg-card p-5 shadow-2xl sm:p-6" aria-busy={busy}>
           <DialogHeader className="text-left">
             <DialogTitle className="text-foreground">{t('choose')}</DialogTitle>
             <DialogDescription className="text-muted-foreground">{t('security')}</DialogDescription>

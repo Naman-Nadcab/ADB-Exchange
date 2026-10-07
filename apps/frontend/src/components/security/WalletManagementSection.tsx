@@ -318,7 +318,7 @@ export function WalletManagementSection({ accessToken }: Props) {
       )}
 
       <Dialog open={mode != null} onOpenChange={(next) => { if (!next) close(); }}>
-        <DialogContent className="max-w-md rounded-xl border-border bg-card p-6" aria-busy={busy}>
+        <DialogContent className="max-h-[min(36rem,calc(100dvh-1.5rem))] max-w-md overflow-y-auto rounded-xl border-border bg-card p-6" aria-busy={busy}>
           <DialogHeader>
             <DialogTitle className="text-foreground">
               {mode === 'add' ? t('security.wallets.add') : mode === 'unlink' ? t('security.wallets.remove') : t('security.wallets.setPrimary')}

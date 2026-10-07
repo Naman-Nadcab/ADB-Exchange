@@ -19,9 +19,8 @@ export function WalletBrandMark({ name }: Props) {
   if (key.includes('metamask')) {
     return frame('#F6851B', (
       <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none">
-        <path d="M4 8.5 8.2 4h7.6L20 8.5l-2.2 6.2L12 20l-5.8-5.3L4 8.5Z" fill="#E2761B" />
-        <path d="M8.2 4 12 8.2 15.8 4" stroke="#FFF" strokeWidth="1.2" />
-        <path d="M7.4 12.2 12 20l4.6-7.8" stroke="#FFF" strokeWidth="1.2" strokeLinejoin="round" />
+        <path d="M5 11.2 8.4 4.2 12 8.6 15.6 4.2 19 11.2 12 19.8 5 11.2Z" fill="#fff" />
+        <path d="M8.4 4.2 12 8.6 15.6 4.2M12 8.6v11.2" stroke="#C45C12" strokeWidth="1.15" strokeLinejoin="round" />
       </svg>
     ));
   }
@@ -36,8 +35,7 @@ export function WalletBrandMark({ name }: Props) {
   if (key.includes('coinbase')) {
     return frame('#0052FF', (
       <svg viewBox="0 0 24 24" className="h-6 w-6">
-        <circle cx="12" cy="12" r="7" fill="none" stroke="#FFF" strokeWidth="2.4" />
-        <path d="M12 8.2v7.6" stroke="#FFF" strokeWidth="2.2" strokeLinecap="round" />
+        <circle cx="12" cy="12" r="6.2" fill="none" stroke="#FFF" strokeWidth="2.6" />
       </svg>
     ));
   }
