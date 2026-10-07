@@ -52,8 +52,8 @@ export function PublicHeader() {
   };
 
   return (
-    <header className="mobile-app-topbar sticky top-0 z-50 overflow-x-clip border-b border-[#F5B8001F] bg-[#05070B]/90 backdrop-blur">
-      <div className="mx-auto flex max-w-[1320px] min-w-0 items-center justify-between px-3 py-3.5 sm:px-6 lg:px-8">
+    <header className="mobile-app-topbar sticky top-0 z-50 overflow-visible border-b border-[#F5B8001F] bg-[#05070B]/90 backdrop-blur">
+      <div className="mx-auto flex max-w-[1320px] min-w-0 items-center justify-between gap-2 px-3 py-3.5 sm:px-6 lg:px-8">
         <BrandLogo
           variant="horizontal-gold"
           size="header"
@@ -112,8 +112,8 @@ export function PublicHeader() {
           )}
         </nav>
 
-        <div className="flex items-center gap-3">
-          <LocaleLanguageSelector variant="compact" className="shrink-0" />
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+          <LocaleLanguageSelector variant="compact" className="relative z-20 shrink-0" />
           {authed ? (
             <>
               <Link href={WALLET_HREF} prefetch className="tap-target hidden items-center gap-2 rounded-lg border border-[#F5B8001F] px-3 py-2 text-sm text-[#9CA3AF] transition hover:text-white sm:inline-flex">
@@ -180,7 +180,7 @@ export function PublicHeader() {
               <Link href={ROUTES.login} prefetch className="tap-target hidden rounded-lg border border-[#F5B8001F] px-4 py-2 text-sm text-[#9CA3AF] transition hover:text-white sm:inline-flex items-center">
                 {tn('logIn')}
               </Link>
-              <Link href={ROUTES.signup} prefetch className="tap-target inline-flex items-center rounded-lg bg-[#F5B800] px-4 py-2 text-sm font-semibold text-[#05070B] transition hover:bg-[#FFD54A]">
+              <Link href={ROUTES.signup} prefetch className="tap-target hidden items-center whitespace-nowrap rounded-lg bg-[#F5B800] px-4 py-2 text-sm font-semibold text-[#05070B] transition hover:bg-[#FFD54A] sm:inline-flex">
                 {tn('createAccount')}
               </Link>
             </>
