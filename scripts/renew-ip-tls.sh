@@ -41,6 +41,10 @@ case "$ACTION" in
       --ip-address "$IP" \
       --deploy-hook "bash $ROOT/scripts/renew-ip-tls.sh install"
     install_live
+    conf="/etc/letsencrypt/renewal/${IP}.conf"
+    if [ -f "$conf" ] && ! grep -q '^renew_before_expiry' "$conf"; then
+      sed -i '/^\[renewalparams\]/a renew_before_expiry = 2 days' "$conf"
+    fi
     ;;
   renew)
     "$CERTBOT" renew --quiet --deploy-hook "bash $ROOT/scripts/renew-ip-tls.sh install"
