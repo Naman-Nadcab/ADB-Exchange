@@ -20,6 +20,13 @@ import {
   listForexAccountsForUser,
   userOwnsForexAccount,
 } from '../services/forex/customer/accounts-service.js';
+import {
+  forexWalletFundingQuote,
+  ForexWalletFundingError,
+  moveForexToWallet,
+  moveWalletToForex,
+} from '../services/forex/customer/wallet-funding.js';
+import { getForexActiveAccountFromRequest } from '../services/forex/auth/forex-account-cookie.js';
 
 function userIdFromRequest(request: { user?: { id?: string } }): string | null {
   const id = request.user?.id;
@@ -121,6 +128,53 @@ export async function registerForexCustomerLiveFundingRoutes(app: FastifyInstanc
       });
     }
   );
+
+  app.get('/funding/wallet', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
+    const userId = userIdFromRequest(request);
+    if (!userId) {
+      return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+    }
+    const accountId = String(getForexActiveAccountFromRequest(request) ?? '').trim();
+    if (!accountId || !(await userOwnsForexAccount(userId, accountId))) {
+      return reply.status(404).send({ success: false, error: { code: 'FOREX_ACCOUNT_NOT_FOUND', message: 'Select a Forex account first' } });
+    }
+    const quote = await forexWalletFundingQuote(userId, accountId);
+    return reply.send({ success: true, data: quote });
+  });
+
+  app.post('/funding/wallet', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
+    const userId = userIdFromRequest(request);
+    if (!userId) {
+      return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+    }
+    const body = (request.body ?? {}) as { direction?: string; amount?: string; idempotencyKey?: string; accountId?: string };
+    const accountId = String(body.accountId ?? getForexActiveAccountFromRequest(request) ?? '').trim();
+    const direction = String(body.direction ?? '').toUpperCase();
+    const idempotencyKey = String(body.idempotencyKey ?? request.headers['idempotency-key'] ?? '').trim();
+    if (!accountId || !(await userOwnsForexAccount(userId, accountId))) {
+      return reply.status(404).send({ success: false, error: { code: 'FOREX_ACCOUNT_NOT_FOUND', message: 'Select a Forex account first' } });
+    }
+    if (direction !== 'IN' && direction !== 'OUT') {
+      return reply.status(400).send({ success: false, error: { code: 'INVALID_DIRECTION', message: 'Direction must be IN or OUT' } });
+    }
+    if (idempotencyKey.length < 8 || idempotencyKey.length > 80) {
+      return reply.status(400).send({ success: false, error: { code: 'IDEMPOTENCY_REQUIRED', message: 'idempotencyKey is required' } });
+    }
+    try {
+      const data = direction === 'IN'
+        ? await moveWalletToForex(userId, accountId, String(body.amount ?? ''), idempotencyKey)
+        : await moveForexToWallet(userId, accountId, String(body.amount ?? ''), idempotencyKey);
+      return reply.status(data.replay ? 200 : 201).send({ success: true, data: { source: 'WALLET_USDT', ...data } });
+    } catch (error) {
+      if (error instanceof ForexWalletFundingError) {
+        return reply.status(400).send({ success: false, error: { code: error.code, message: error.message } });
+      }
+      if (error instanceof ForexLedgerError) {
+        return reply.status(error.statusCode).send({ success: false, error: { code: error.reason, message: error.message } });
+      }
+      throw error;
+    }
+  });
 
   app.post('/funding/deposits', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const userId = userIdFromRequest(request);

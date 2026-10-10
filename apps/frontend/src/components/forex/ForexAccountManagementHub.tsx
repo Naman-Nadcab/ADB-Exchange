@@ -377,9 +377,12 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
 
       <ForexAccountSettingsPanel
         isSelected={selected}
+        accountId={accountId}
         positionMode={m.positionMode}
         leverageLabel={lev}
         groupLabel={m.groupLabel}
+        groupCode={m.groupCode}
+        onChanged={() => void reload()}
       />
 
       <ForexTradingCredentialPanel accountId={accountId} />

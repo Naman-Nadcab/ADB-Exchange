@@ -5308,6 +5308,12 @@ const migrations = [
   `INSERT INTO forex_algo_strategies (strategy_id, name, risk_label, summary, status) VALUES
      ('f1000000-0000-4000-8000-0000000000a1', 'Session range', 'LOW', 'Arms the account for a low-risk session strategy. This switch does not send an order by itself.', 'APPROVED')
    ON CONFLICT (strategy_id) DO NOTHING;`,
+  `INSERT INTO forex_account_groups (code, label, leverage_default, position_mode_default)
+   VALUES
+     ('STANDARD', 'Standard', '100', 'NETTING'),
+     ('ECN', 'ECN', '500', 'HEDGING'),
+     ('MICRO', 'Micro', '1000', 'NETTING')
+   ON CONFLICT (code) DO NOTHING;`,
   `INSERT INTO forex_follow_managers (manager_id, display_name, style, summary, fee_percent, min_amount, status) VALUES
      ('f1000000-0000-4000-8000-0000000000c1', 'Atlas Copy', 'COPY', 'Reserve an amount with this manager. Stopping returns the cash. This action does not place an order.', 20, 100, 'APPROVED'),
      ('f1000000-0000-4000-8000-0000000000c2', 'Harbor Pool', 'PAMM', 'Reserve an amount in a pool. The published fee is the share. Stopping returns the cash.', 30, 250, 'APPROVED'),

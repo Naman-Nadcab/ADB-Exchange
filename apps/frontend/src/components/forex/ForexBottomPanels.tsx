@@ -900,12 +900,17 @@ function HistoryPanel(props: {
 }) {
   const tf = useTranslations('forex');
   const [exportBusy, setExportBusy] = useState<string | null>(null);
-  const exportKindKey = { orders: 'exportKindOrders', fills: 'exportKindFills', ledger: 'exportKindLedger' } as const;
+  const exportKindKey = {
+    orders: 'exportKindOrders',
+    fills: 'exportKindFills',
+    ledger: 'exportKindLedger',
+    'closed-trades': 'exportKindClosed',
+  } as const;
   return (
     <div>
       <PeriodBar period={props.period} onPeriod={props.onPeriod} />
       <div className="flex flex-wrap gap-2 border-b border-border px-3 py-1.5">
-        {(['orders', 'fills', 'ledger'] as const).map((kind) => (
+        {(['orders', 'fills', 'ledger', 'closed-trades'] as const).map((kind) => (
           <button
             key={kind}
             type="button"

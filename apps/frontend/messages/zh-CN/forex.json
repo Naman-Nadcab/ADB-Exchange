@@ -370,7 +370,8 @@
       "footer": "{closedOrders} 笔已关闭订单 · {ledgerRows} 条流水 · {currency}",
       "exportKindOrders": "订单",
       "exportKindFills": "成交",
-      "exportKindLedger": "流水"
+      "exportKindLedger": "流水",
+      "exportKindClosed": "已平仓"
     },
     "exposure": {
       "balance": "余额",
@@ -1227,7 +1228,16 @@
     "colType": "Type",
     "colDebit": "Debit",
     "colCredit": "Credit",
-    "colStatus": "Status"
+    "colStatus": "Status",
+    "walletTitle": "从钱包入金",
+    "walletSubtitle": "USDT 资金余额 · 1 USDT = 1 USD",
+    "walletBody": "把资金钱包里的 USDT 划入当前外汇账户，或把可用外汇现金划回。银行和 UPI 入金仍然关闭。这是内部划转，不是经纪商入金。",
+    "walletBalances": "钱包 USDT {wallet} · 可划出外汇现金 {forex}",
+    "walletAmount": "金额",
+    "walletIn": "划入外汇",
+    "walletOut": "划回钱包",
+    "walletMovedIn": "USDT 已划入外汇账户。",
+    "walletMovedOut": "外汇现金已划回 USDT 钱包。"
   },
   "ordersPage": {
     "summaryAria": "各状态订单数量",
@@ -1478,7 +1488,10 @@
     "groupDefault": "默认组",
     "switchToEdit": "请切换到此账户以更改持仓模式。",
     "positionModeHint": "净额/对冲切换要求无持仓且无挂单。",
-    "leverageRequestHint": "杠杆变更需合规审核，本环境不支持自助修改。"
+    "leverageRequestHint": "杠杆变更需合规审核，本环境不支持自助修改。",
+    "groupSave": "应用账户组",
+    "groupSaving": "正在应用…",
+    "groupSaved": "账户组已应用。"
   },
   "fundingHistoryPage": {
     "tableTitle": "资金交易",
@@ -1500,6 +1513,7 @@
     "step2": "在资金页领取模拟演示额度。",
     "step3": "打开终端以 MOCK 执行练习。",
     "simulatedNotice": "演示余额不与加密钱包或真实入金混合。",
+    "groupLegend": "账户组",
     "createCta": "创建演示账户",
     "creating": "创建中…",
     "failed": "无法创建演示账户。",
@@ -1607,7 +1621,14 @@
     "colPrice": "价格",
     "colFillId": "成交 ID",
     "colOrderId": "订单 ID",
-    "statementNote": "此处不生成经纪商对账单。CSV 导出使用当前账户的服务端交易历史。"
+    "statementNote": "此处不生成经纪商对账单。CSV 导出使用当前账户的服务端交易历史。",
+    "closedTitle": "已平仓交易",
+    "closedSubtitle": "每一行是账户账本里的一笔已实现平仓。",
+    "closedEmpty": "还没有已平仓交易。",
+    "exportClosed": "导出已平仓",
+    "colOpen": "开仓",
+    "colClose": "平仓",
+    "colProfit": "盈亏"
   },
   "riskTools": {
     "title": "Pip / R:R calculator",

@@ -1,13 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Download } from 'lucide-react';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalKpiCard, ForexPortalModuleCard } from '@/components/forex/ForexPortalKpiCard';
 import { fxNum, fxPlain } from '@/components/forex/format';
-import { downloadForexHistoryCsv } from '@/lib/forex/api/client';
+import { downloadForexHistoryCsv, forexApi, unwrap } from '@/lib/forex/api/client';
+import { closedTradesFromLedger } from '@/lib/forex/models/history-analytics';
+import type { ForexLedgerRow } from '@/lib/forex/models/types';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
@@ -22,7 +24,19 @@ export default function ForexHistoryPage() {
   const balance = useForexStore((s) => s.balance);
   const currency = account?.currency ?? balance?.currency ?? 'USD';
   const [exportBusy, setExportBusy] = useState(false);
+  const [closedBusy, setClosedBusy] = useState(false);
   const [exportErr, setExportErr] = useState<string | null>(null);
+  const [ledger, setLedger] = useState<ForexLedgerRow[]>([]);
+
+  useEffect(() => {
+    if (!authed) return;
+    void forexApi.ledger().then((raw) => {
+      const res = unwrap(raw);
+      if (res.ok) setLedger(res.data.transactions ?? []);
+    });
+  }, [authed, account?.accountId]);
+
+  const closed = useMemo(() => closedTradesFromLedger(ledger), [ledger]);
 
   const rows = useMemo(
     () => [...fills].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
@@ -54,6 +68,61 @@ export default function ForexHistoryPage() {
             <ForexPortalKpiCard emphasis="secondary" label={t('kpiCurrency')} value={currency} kind="plain" />
             <ForexPortalKpiCard emphasis="secondary" label={t('kpiRealizedPnl')} value={account?.realizedPnl} currency={currency} signed />
           </section>
+
+          <ForexPortalModuleCard
+            title={t('closedTitle')}
+            subtitle={t('closedSubtitle')}
+            actions={
+              <button
+                type="button"
+                disabled={closedBusy}
+                onClick={() => {
+                  setClosedBusy(true);
+                  setExportErr(null);
+                  void downloadForexHistoryCsv('closed-trades')
+                    .catch(() => setExportErr(t('exportFailed')))
+                    .finally(() => setClosedBusy(false));
+                }}
+                className="inline-flex items-center gap-1 rounded border border-border px-2.5 py-1 text-[11px] font-medium disabled:opacity-50"
+              >
+                <Download className="h-3.5 w-3.5" aria-hidden />
+                {closedBusy ? t('exportBusy') : t('exportClosed')}
+              </button>
+            }
+          >
+            {closed.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t('closedEmpty')}</p>
+            ) : (
+              <div className="eda-table-wrap overflow-x-auto">
+                <table className="eda-table min-w-[720px] font-mono text-[12px]">
+                  <thead>
+                    <tr>
+                      <th>{t('colTime')}</th>
+                      <th>{t('colSymbol')}</th>
+                      <th>{t('colSide')}</th>
+                      <th>{t('colVolume')}</th>
+                      <th>{t('colOpen')}</th>
+                      <th>{t('colClose')}</th>
+                      <th>{t('colProfit')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {closed.map((trade) => (
+                      <tr key={trade.ticket}>
+                        <td>{new Date(trade.timestamp).toLocaleString()}</td>
+                        <td>{fxPlain(trade.symbol)}</td>
+                        <td>{fxPlain(trade.side)}</td>
+                        <td>{fxPlain(trade.volume)}</td>
+                        <td>{fxNum(trade.openPrice)}</td>
+                        <td>{fxNum(trade.closePrice)}</td>
+                        <td>{fxNum(trade.net)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </ForexPortalModuleCard>
 
           <ForexPortalModuleCard
             title={t('tableTitle')}

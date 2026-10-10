@@ -200,14 +200,34 @@ export const forexApi = {
       {},
       fxRequestInit()
     ),
-  createDemoAccount: () =>
+  accountGroups: () =>
+    fxGet<{ groups: Array<{ groupId: string; code: string; label: string; leverage: string; positionMode: string }> }>(
+      '/account-groups'
+    ),
+  assignAccountGroup: (accountId: string, groupCode: string) =>
+    api.post<{ account: ForexCustomerAccountSummary }>(
+      `${FOREX_PREFIX}/accounts/${encodeURIComponent(accountId)}/group`,
+      { groupCode },
+      fxRequestInit()
+    ),
+  walletFundingQuote: () =>
+    fxGet<{ currency: string; rate: string; walletAvailable: string; forexAvailable: string; hasOpenPositions: boolean }>(
+      '/funding/wallet'
+    ),
+  moveWalletFunding: (body: { direction: 'IN' | 'OUT'; amount: string; idempotencyKey: string }) =>
+    api.post<{ source: string; transactionId: string; amount: string; direction: string; replay: boolean }>(
+      `${FOREX_PREFIX}/funding/wallet`,
+      body,
+      fxRequestInit()
+    ),
+  createDemoAccount: (groupCode?: string) =>
     api.post<{
       source: string;
       scope: string;
       realForex: boolean;
       account: ForexCustomerAccountSummary & { userId: string; updatedAt: string };
       activeAccountId: string;
-    }>(`${FOREX_PREFIX}/accounts`, { kind: 'DEMO' }, fxRequestInit()),
+    }>(`${FOREX_PREFIX}/accounts`, { kind: 'DEMO', groupCode }, fxRequestInit()),
   createAlert: (body: Record<string, unknown>) =>
     api.post<{ alert: unknown }>(`${FOREX_PREFIX}/alerts`, body, fxRequestInit()),
   deleteAlert: (alertId: string) =>
@@ -389,7 +409,7 @@ export const forexApi = {
       fxRequestInit()
     ),
   /** Authenticated CSV download (same account as session). */
-  historyExportCsvUrl: (kind: 'orders' | 'fills' | 'ledger') =>
+  historyExportCsvUrl: (kind: 'orders' | 'fills' | 'ledger' | 'closed-trades') =>
     `${FOREX_PREFIX}/history/export/${kind}`,
   programsFollow: () => fxGet<Record<string, unknown>>('/programs/follow'),
   programsFollowStart: (body: { managerId: string; amount: number; stopPercent: number }) =>
@@ -417,7 +437,7 @@ export const forexApi = {
     api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/apps/feedback`, { message }, fxRequestInit()),
 };
 
-export async function downloadForexHistoryCsv(kind: 'orders' | 'fills' | 'ledger'): Promise<void> {
+export async function downloadForexHistoryCsv(kind: 'orders' | 'fills' | 'ledger' | 'closed-trades'): Promise<void> {
   const url = `${getApiBaseUrl()}${forexApi.historyExportCsvUrl(kind)}`;
   const headers = getForexActiveAccountHeaders();
   const res = await fetch(url, { credentials: 'include', headers });

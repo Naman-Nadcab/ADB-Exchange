@@ -5,7 +5,10 @@ import type { FastifyInstance } from 'fastify';
 import { forexAuthenticate } from '../services/forex/auth/forex-authenticate.js';
 import { setForexActiveAccountCookie } from '../services/forex/auth/forex-account-cookie.js';
 import {
+  assignForexAccountGroupForUser,
   createForexDemoAccount,
+  ForexAccountGroupError,
+  listCustomerAccountGroups,
   listForexAccountsForUser,
   resolveForexAccountIdForUser,
   setActiveForexAccountForUser,
@@ -68,6 +71,37 @@ export async function registerForexCustomerAccountsRoutes(app: FastifyInstance):
     });
   });
 
+  app.get('/account-groups', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
+    const userId = userIdFromRequest(request);
+    if (!userId) {
+      return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+    }
+    const groups = await listCustomerAccountGroups();
+    return reply.send({ success: true, data: { groups } });
+  });
+
+  app.post<{ Params: { accountId: string } }>(
+    '/accounts/:accountId/group',
+    { preHandler: [forexAuthenticate(app)] },
+    async (request, reply) => {
+      const userId = userIdFromRequest(request);
+      if (!userId) {
+        return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+      }
+      const body = (request.body ?? {}) as { groupCode?: string };
+      try {
+        const account = await assignForexAccountGroupForUser(userId, request.params.accountId, String(body.groupCode ?? ''));
+        return reply.send({ success: true, data: { account } });
+      } catch (error) {
+        if (error instanceof ForexAccountGroupError) {
+          const status = error.code === 'FOREX_ACCOUNT_NOT_FOUND' ? 404 : 400;
+          return reply.status(status).send({ success: false, error: { code: error.code, message: error.message } });
+        }
+        throw error;
+      }
+    }
+  );
+
   app.post('/accounts', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const userId = userIdFromRequest(request);
     if (!userId) {
@@ -79,14 +113,22 @@ export async function registerForexCustomerAccountsRoutes(app: FastifyInstance):
         error: { code: 'FOREX_DEMO_ACCOUNTS_BLOCKED', message: 'Demo account creation blocked when real Forex is enabled' },
       });
     }
-    const body = (request.body ?? {}) as { kind?: string };
+    const body = (request.body ?? {}) as { kind?: string; groupCode?: string };
     if (body.kind && String(body.kind).toUpperCase() !== 'DEMO') {
       return reply.status(400).send({
         success: false,
         error: { code: 'UNSUPPORTED_ACCOUNT_KIND', message: 'Only DEMO accounts can be created by customers' },
       });
     }
-    const account = await createForexDemoAccount(userId);
+    let account;
+    try {
+      account = await createForexDemoAccount(userId, body.groupCode);
+    } catch (error) {
+      if (error instanceof ForexAccountGroupError) {
+        return reply.status(400).send({ success: false, error: { code: error.code, message: error.message } });
+      }
+      throw error;
+    }
     setForexActiveAccountCookie(reply, account.accountId);
     return reply.status(201).send({
       success: true,
