@@ -84,7 +84,7 @@ export const FOREX_NAV_GROUPS: ForexNavGroup[] = [
   {
     id: 'partners',
     label: 'Partners / IB',
-    description: 'IB profiles, commissions, accruals (payout rail NOT_CONFIGURED)',
+    description: 'IB profiles and customer Follow, Partner, Rewards, and Apps. Payouts are requests.',
     routeIds: ['forex-partners', 'forex-programs'],
   },
   {

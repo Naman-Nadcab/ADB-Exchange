@@ -861,6 +861,8 @@ export type ForexAdminLedgerSnapshot = {
     currency: string;
     status: string;
     customer_cash_balance: string;
+    savings_balance: string;
+    follow_reserve_balance: string;
   }>;
   reconciliation: Array<{
     event_id: string;

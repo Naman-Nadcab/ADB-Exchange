@@ -1,7 +1,5 @@
 'use client';
 
-'use client';
-
 import { ForexFollowDesk } from '@/components/forex/ForexPrograms';
 import { ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
