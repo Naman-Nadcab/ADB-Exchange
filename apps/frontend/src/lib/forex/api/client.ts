@@ -391,6 +391,30 @@ export const forexApi = {
   /** Authenticated CSV download (same account as session). */
   historyExportCsvUrl: (kind: 'orders' | 'fills' | 'ledger') =>
     `${FOREX_PREFIX}/history/export/${kind}`,
+  programsFollow: () => fxGet<Record<string, unknown>>('/programs/follow'),
+  programsFollowStart: (body: { managerId: string; amount: number; stopPercent: number }) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/follow`, body, fxRequestInit()),
+  programsFollowStop: (followId: string) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/follow/${encodeURIComponent(followId)}/stop`, {}, fxRequestInit()),
+  programsFollowApply: (body: { name: string; style: string; summary: string; feePercent: number }) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/follow/apply`, body, fxRequestInit()),
+  programsPartner: () => fxGet<Record<string, unknown>>('/programs/partner'),
+  programsPartnerLink: (code: string) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/partner/link`, { code }, fxRequestInit()),
+  programsPartnerPayout: (amount: number) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/partner/payout`, { amount }, fxRequestInit()),
+  programsRewards: () => fxGet<Record<string, unknown>>('/programs/rewards'),
+  programsClaimBonus: (ruleId: string) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/rewards/bonus`, { ruleId }, fxRequestInit()),
+  programsOpenSavings: (amount: number) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/rewards/savings`, { amount }, fxRequestInit()),
+  programsReturnSavings: () =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/rewards/savings/return`, {}, fxRequestInit()),
+  programsApps: () => fxGet<Record<string, unknown>>('/programs/apps'),
+  programsArmAlgo: (body: { strategyId: string; enabled: boolean }) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/apps/algo`, body, fxRequestInit()),
+  programsFeedback: (message: string) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/apps/feedback`, { message }, fxRequestInit()),
 };
 
 export async function downloadForexHistoryCsv(kind: 'orders' | 'fills' | 'ledger'): Promise<void> {

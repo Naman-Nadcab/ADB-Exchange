@@ -5181,6 +5181,138 @@ const migrations = [
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
   );`,
   `CREATE INDEX IF NOT EXISTS idx_forex_compliance_cases_subject ON forex_compliance_cases(subject_type, subject_id);`,
+
+  `INSERT INTO forex_ledger_accounts (ledger_account, purpose) VALUES
+     ('SAVINGS', 'Customer cash held out of the trading balance in Forex savings.'),
+     ('FOLLOW_RESERVE', 'Customer cash reserved for an approved Copy, PAMM, or MAM follow.')
+   ON CONFLICT (ledger_account) DO NOTHING;`,
+  `ALTER TABLE forex_account_groups ADD COLUMN IF NOT EXISTS book VARCHAR(1) CHECK (book IN ('A','B'));`,
+  `ALTER TABLE forex_partner_profiles ADD COLUMN IF NOT EXISTS user_id VARCHAR(64);`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_forex_partner_profiles_user ON forex_partner_profiles(user_id) WHERE user_id IS NOT NULL;`,
+
+  `CREATE TABLE IF NOT EXISTS forex_follow_managers (
+    manager_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_user_id VARCHAR(64),
+    display_name VARCHAR(80) NOT NULL,
+    style VARCHAR(8) NOT NULL CHECK (style IN ('COPY','PAMM','MAM')),
+    summary TEXT NOT NULL DEFAULT '',
+    fee_percent NUMERIC(8,2) NOT NULL DEFAULT 0 CHECK (fee_percent >= 0 AND fee_percent <= 50),
+    min_amount NUMERIC(20,2) NOT NULL DEFAULT 100 CHECK (min_amount >= 0),
+    status VARCHAR(16) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING','APPROVED','SUSPENDED')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE TABLE IF NOT EXISTS forex_follows (
+    follow_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id VARCHAR(64) NOT NULL,
+    account_id VARCHAR(64) NOT NULL,
+    manager_id UUID NOT NULL REFERENCES forex_follow_managers(manager_id),
+    amount NUMERIC(20,2) NOT NULL CHECK (amount > 0),
+    stop_percent NUMERIC(8,2) NOT NULL DEFAULT 20 CHECK (stop_percent > 0 AND stop_percent <= 100),
+    status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','STOPPED')),
+    started_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    stopped_at TIMESTAMPTZ
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_follows_user ON forex_follows(user_id, status);`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_forex_follows_active_manager ON forex_follows(user_id, manager_id) WHERE status = 'ACTIVE';`,
+
+  `CREATE TABLE IF NOT EXISTS forex_program_payout_requests (
+    payout_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id VARCHAR(64) NOT NULL,
+    partner_id UUID NOT NULL REFERENCES forex_partner_profiles(partner_id),
+    amount NUMERIC(20,8) NOT NULL CHECK (amount > 0),
+    status VARCHAR(16) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING','APPROVED','REJECTED')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    decided_at TIMESTAMPTZ
+  );`,
+
+  `CREATE TABLE IF NOT EXISTS forex_reward_rules (
+    rule_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    kind VARCHAR(16) NOT NULL CHECK (kind IN ('BONUS','SAVINGS')),
+    title VARCHAR(80) NOT NULL,
+    body TEXT NOT NULL DEFAULT '',
+    amount NUMERIC(20,2) NOT NULL DEFAULT 0,
+    rate_percent NUMERIC(8,2) NOT NULL DEFAULT 0,
+    withdrawable BOOLEAN NOT NULL DEFAULT FALSE,
+    usable_as_margin BOOLEAN NOT NULL DEFAULT FALSE,
+    enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE TABLE IF NOT EXISTS forex_reward_grants (
+    grant_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id VARCHAR(64) NOT NULL,
+    rule_id UUID NOT NULL REFERENCES forex_reward_rules(rule_id),
+    amount NUMERIC(20,2) NOT NULL,
+    account_id VARCHAR(64) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, rule_id)
+  );`,
+  `CREATE TABLE IF NOT EXISTS forex_savings_positions (
+    position_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id VARCHAR(64) NOT NULL,
+    account_id VARCHAR(64) NOT NULL,
+    principal NUMERIC(20,2) NOT NULL CHECK (principal > 0),
+    rate_percent NUMERIC(8,2) NOT NULL DEFAULT 0,
+    status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','RETURNED')),
+    opened_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    returned_at TIMESTAMPTZ
+  );`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_forex_savings_active_user ON forex_savings_positions(user_id) WHERE status = 'ACTIVE';`,
+
+  `CREATE TABLE IF NOT EXISTS forex_achievements (
+    achievement_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code VARCHAR(32) NOT NULL UNIQUE,
+    title VARCHAR(80) NOT NULL,
+    body TEXT NOT NULL DEFAULT '',
+    enabled BOOLEAN NOT NULL DEFAULT TRUE
+  );`,
+
+  `CREATE TABLE IF NOT EXISTS forex_algo_strategies (
+    strategy_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(80) NOT NULL,
+    risk_label VARCHAR(16) NOT NULL CHECK (risk_label IN ('LOW','MEDIUM')),
+    summary TEXT NOT NULL DEFAULT '',
+    status VARCHAR(16) NOT NULL DEFAULT 'APPROVED' CHECK (status IN ('APPROVED','DISABLED'))
+  );`,
+  `CREATE TABLE IF NOT EXISTS forex_algo_subscriptions (
+    subscription_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id VARCHAR(64) NOT NULL,
+    account_id VARCHAR(64) NOT NULL,
+    strategy_id UUID NOT NULL REFERENCES forex_algo_strategies(strategy_id),
+    enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, account_id, strategy_id)
+  );`,
+  `CREATE TABLE IF NOT EXISTS forex_program_feedback (
+    feedback_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id VARCHAR(64) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE TABLE IF NOT EXISTS forex_app_links (
+    link_id BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (link_id),
+    android_url TEXT NOT NULL DEFAULT '',
+    ios_url TEXT NOT NULL DEFAULT ''
+  );`,
+  `INSERT INTO forex_app_links (link_id) VALUES (TRUE) ON CONFLICT (link_id) DO NOTHING;`,
+  `INSERT INTO forex_reward_rules (rule_id, kind, title, body, amount, rate_percent, withdrawable, usable_as_margin, enabled)
+   VALUES
+     ('f1000000-0000-4000-8000-0000000000b1', 'BONUS', 'Welcome credit', 'A one-time credit on the selected Forex account. It can be used as margin. It cannot be withdrawn.', 50, 0, FALSE, TRUE, TRUE),
+     ('f1000000-0000-4000-8000-0000000000b2', 'SAVINGS', 'Flexible savings', 'Move trading cash aside. Return it, with the published daily rate, whenever you want.', 0, 3, FALSE, FALSE, TRUE)
+   ON CONFLICT (rule_id) DO NOTHING;`,
+  `INSERT INTO forex_achievements (code, title, body) VALUES
+     ('ACCOUNT', 'Forex account open', 'You have a Forex account.'),
+     ('FOLLOW', 'Following a manager', 'You have an active follow.'),
+     ('PARTNER', 'Partner link ready', 'Your partner code is active.')
+   ON CONFLICT (code) DO NOTHING;`,
+  `INSERT INTO forex_algo_strategies (strategy_id, name, risk_label, summary, status) VALUES
+     ('f1000000-0000-4000-8000-0000000000a1', 'Session range', 'LOW', 'Arms the account for a low-risk session strategy. This switch does not send an order by itself.', 'APPROVED')
+   ON CONFLICT (strategy_id) DO NOTHING;`,
+  `INSERT INTO forex_follow_managers (manager_id, display_name, style, summary, fee_percent, min_amount, status) VALUES
+     ('f1000000-0000-4000-8000-0000000000c1', 'Atlas Copy', 'COPY', 'Reserve an amount with this manager. Stopping returns the cash. This action does not place an order.', 20, 100, 'APPROVED'),
+     ('f1000000-0000-4000-8000-0000000000c2', 'Harbor Pool', 'PAMM', 'Reserve an amount in a pool. The published fee is the share. Stopping returns the cash.', 30, 250, 'APPROVED'),
+     ('f1000000-0000-4000-8000-0000000000c3', 'North Allocations', 'MAM', 'Reserve an amount for allocation. Stopping returns the cash. This action does not place an order.', 25, 500, 'APPROVED')
+   ON CONFLICT (manager_id) DO NOTHING;`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */
@@ -5208,6 +5340,13 @@ async function verifyForexCustomerSchema(pool: { query: (sql: string, params?: u
   await col('forex_orders', 'time_in_force');
   await tbl('forex_customer_alerts');
   await tbl('forex_customer_alert_events');
+  await tbl('forex_follows');
+  await tbl('forex_follow_managers');
+  await tbl('forex_reward_rules');
+  await tbl('forex_savings_positions');
+  await tbl('forex_algo_subscriptions');
+  await col('forex_account_groups', 'book');
+  await col('forex_partner_profiles', 'user_id');
 }
 
 async function migrate(direction: 'up' | 'down' = 'up'): Promise<void> {

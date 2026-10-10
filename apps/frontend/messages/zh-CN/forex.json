@@ -26,7 +26,11 @@
     "funds": "资金",
     "ledger": "账户账本",
     "research": "研究",
-    "tools": "工具"
+    "tools": "工具",
+    "follow": "跟单",
+    "partner": "合作",
+    "rewards": "奖励",
+    "apps": "应用"
   },
   "userMenu": {
     "label": "平台菜单",
@@ -138,7 +142,8 @@
       "portfolio": "持仓",
       "yourForexAccount": "您的外汇账户",
       "funds": "资金",
-      "forexAccounts": "外汇账户"
+      "forexAccounts": "外汇账户",
+      "programs": "跟单、合作、奖励和应用"
     }
   },
   "bottomTabs": {

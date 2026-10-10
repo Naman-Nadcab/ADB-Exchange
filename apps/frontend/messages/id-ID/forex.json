@@ -26,7 +26,11 @@
     "funds": "Dana",
     "ledger": "Buku besar akun",
     "research": "Riset",
-    "tools": "Alat"
+    "tools": "Alat",
+    "follow": "Ikuti",
+    "partner": "Partner",
+    "rewards": "Hadiah",
+    "apps": "Aplikasi"
   },
   "userMenu": {
     "label": "Menu platform",
@@ -138,7 +142,8 @@
       "portfolio": "portofolio",
       "yourForexAccount": "akun Forex Anda",
       "funds": "dana",
-      "forexAccounts": "akun Forex"
+      "forexAccounts": "akun Forex",
+      "programs": "Ikuti, Partner, Hadiah, dan Aplikasi"
     }
   },
   "bottomTabs": {

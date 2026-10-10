@@ -26,7 +26,11 @@
     "funds": "Funds",
     "ledger": "Account Ledger",
     "research": "Research",
-    "tools": "Tools"
+    "tools": "Tools",
+    "follow": "Follow",
+    "partner": "Partner",
+    "rewards": "Rewards",
+    "apps": "Apps"
   },
   "userMenu": {
     "label": "Platform menu",
@@ -138,7 +142,8 @@
       "portfolio": "portfolio",
       "yourForexAccount": "your Forex account",
       "funds": "funds",
-      "forexAccounts": "Forex accounts"
+      "forexAccounts": "Forex accounts",
+      "programs": "Follow, Partner, Rewards, and Apps"
     }
   },
   "bottomTabs": {
