@@ -35,10 +35,11 @@ export { FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE as FOREX_CUSTOMER_TIME_IN_FORCE };
 
 export function getForexAdminBackendConfig() {
   const sessions = forexSessionSnapshot();
+  const flags = effectiveForexRuntimeFlags();
   return {
-    source: 'SIMULATED' as const,
-    executionMode: 'MOCK' as const,
-    realForex: false,
+    source: flags.source,
+    executionMode: flags.executionMode,
+    realForex: flags.realForex,
     orderTypes: [...FOREX_CUSTOMER_ORDER_TYPES],
     instruments: FOREX_INSTRUMENT_CATALOG.map((i) => {
       const resolved = getForexInstrumentBySymbol(i.symbol);

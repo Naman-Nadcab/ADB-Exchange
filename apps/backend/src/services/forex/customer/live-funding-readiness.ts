@@ -1,13 +1,13 @@
-import { getForexAdminBackendConfig } from '../admin/config.js';
-import { buildForexProviderCatalog } from '../adapters/registry.js';
 import { effectiveForexRuntimeFlags } from '../admin/runtime-controls.js';
+import { buildForexProviderCatalog } from '../adapters/registry.js';
 import { getForexLiveAccountProvider } from './live-account-provider.registry.js';
+import { lpApiSettings, lpPlugArmed } from '../lp/lp-api-client.js';
 
 export type LiveForexReadiness = {
-  liveForexReady: false;
+  liveForexReady: boolean;
   realForexEffective: boolean;
   executionMode: string;
-  source: 'SIMULATED';
+  source: 'SIMULATED' | 'LP';
   blockers: string[];
   capabilities: {
     liveAccountApplication: boolean;
@@ -28,10 +28,10 @@ export type LiveForexReadiness = {
 
 export async function buildLiveForexReadiness(): Promise<LiveForexReadiness> {
   const flags = effectiveForexRuntimeFlags();
-  const adminCfg = getForexAdminBackendConfig();
-  const runtimeRealForex = flags.realForex as boolean;
-  const realForexEffective = adminCfg.realForex === true && runtimeRealForex === true;
+  const runtimeRealForex = flags.realForex;
+  const realForexEffective = runtimeRealForex;
   const blockers: string[] = [];
+  const armed = lpPlugArmed();
 
   const providerHealth = await getForexLiveAccountProvider().health();
   if (!providerHealth.configured) {
@@ -45,20 +45,25 @@ export async function buildLiveForexReadiness(): Promise<LiveForexReadiness> {
   }
 
   const catalog = await buildForexProviderCatalog();
-  const externalBroker = catalog.some((p) => p.enabled && p.adapterId !== 'internal-fdm');
+  const externalBroker = catalog.some((p) => p.enabled && p.adapterId !== 'internal-fdm' && p.status === 'connected');
   if (!externalBroker) {
     blockers.push('No external broker/LP adapter enabled');
   }
 
-  blockers.push('Payment provider for Forex deposits not configured');
-  blockers.push('Withdrawal payout rail not configured');
-  blockers.push('Funding webhook reconciliation not configured');
+  const settings = lpApiSettings();
+  if (!armed || !providerHealth.provisioningAvailable) {
+    blockers.push('Payment provider for Forex deposits not configured');
+    blockers.push('Withdrawal payout rail not configured');
+  }
+  if (!settings.webhookSecret) {
+    blockers.push('Funding webhook reconciliation not configured');
+  }
 
-  if (runtimeRealForex) {
+  if (runtimeRealForex && blockers.length > 0) {
     blockers.push('REAL_FOREX runtime flag must remain off until readiness passes');
   }
 
-  const liveForexReady = false as const;
+  const liveForexReady = armed && blockers.length === 0;
 
   const internalTransfer =
     flags.executionMode === 'MOCK' && !realForexEffective && !flags.killSwitch;
@@ -67,17 +72,17 @@ export async function buildLiveForexReadiness(): Promise<LiveForexReadiness> {
     liveForexReady,
     realForexEffective,
     executionMode: flags.executionMode,
-    source: 'SIMULATED',
+    source: flags.source,
     blockers,
     capabilities: {
-      liveAccountApplication: !realForexEffective,
-      liveAccountProvisioning: providerHealth.provisioningAvailable && realForexEffective,
-      brokerCredentials: providerHealth.credentialsSupported && realForexEffective,
-      deposit: false,
-      withdrawal: false,
+      liveAccountApplication: !realForexEffective || liveForexReady,
+      liveAccountProvisioning: providerHealth.provisioningAvailable && liveForexReady,
+      brokerCredentials: providerHealth.credentialsSupported && liveForexReady,
+      deposit: liveForexReady,
+      withdrawal: liveForexReady,
       internalTransfer,
-      paymentMethods: false,
-      fundingReconciliation: false,
+      paymentMethods: liveForexReady,
+      fundingReconciliation: liveForexReady,
     },
     identity: {
       platformCustomerIdField: 'user_id',

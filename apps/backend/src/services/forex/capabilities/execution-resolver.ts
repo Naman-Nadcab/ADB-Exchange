@@ -6,14 +6,14 @@ import { getForexCustomerCapabilityContract } from './customer-contract.js';
 import type { ForexCustomerOrderType } from '../orders/request.js';
 import type { ForexTimeInForce } from '../orders/request.js';
 
-export type ForexExecutionModeCapability = 'MOCK';
+export type ForexExecutionModeCapability = 'MOCK' | 'LP';
 export type ForexFillPolicyCapability = 'FOK' | 'IOC';
 export type ForexNormalizedExecutionMode = 'MOCK' | 'INTERNAL' | 'INSTANT' | 'REQUEST' | 'MARKET' | 'EXCHANGE';
 
 export type ForexResolvedExecutionCapabilities = {
-  source: 'SIMULATED';
+  source: 'SIMULATED' | 'LP';
   activeExecutionMode: ForexExecutionModeCapability;
-  realForex: false;
+  realForex: boolean;
   /** Modes the architecture understands; only MOCK is active while REAL_FOREX is off. */
   executionModes: Array<{
     id: ForexNormalizedExecutionMode;
@@ -35,9 +35,9 @@ export type ForexResolvedExecutionCapabilities = {
 export function resolveForexExecutionCapabilities(): ForexResolvedExecutionCapabilities {
   const contract = getForexCustomerCapabilityContract();
   return {
-    source: 'SIMULATED',
-    activeExecutionMode: 'MOCK',
-    realForex: false,
+    source: contract.source,
+    activeExecutionMode: contract.executionMode,
+    realForex: contract.realForex,
     executionModes: [
       { id: 'MOCK', customerSelectable: true, engineActive: true, note: 'Simulated fills at executable quote' },
       { id: 'INTERNAL', customerSelectable: false, engineActive: false, note: 'REAL_FOREX off' },

@@ -3,6 +3,7 @@
  * overrides survive until process restart — not persisted to DB by design (MOCK ops plane).
  */
 import { forexConfig } from '../config.js';
+import { lpPlugArmed } from '../lp/lp-api-client.js';
 import type { ForexTradingStatus } from '../types.js';
 
 function normSymbol(input: string): string {
@@ -24,9 +25,9 @@ export type ForexEffectiveRuntimeFlags = {
   fundingTestApiEnabled: boolean;
   executionTestApiEnabled: boolean;
   marketDataEnabled: boolean;
-  realForex: false;
-  executionMode: 'MOCK';
-  source: 'SIMULATED';
+  realForex: boolean;
+  executionMode: 'MOCK' | 'LP';
+  source: 'SIMULATED' | 'LP';
 };
 
 export function effectiveForexRuntimeFlags(): ForexEffectiveRuntimeFlags {
@@ -36,9 +37,9 @@ export function effectiveForexRuntimeFlags(): ForexEffectiveRuntimeFlags {
     fundingTestApiEnabled: boolOverrides.fundingTestApiEnabled ?? forexConfig.fundingTestApiEnabled,
     executionTestApiEnabled: boolOverrides.executionTestApiEnabled ?? forexConfig.executionTestApiEnabled,
     marketDataEnabled: forexConfig.marketDataEnabled,
-    realForex: false,
-    executionMode: 'MOCK',
-    source: 'SIMULATED',
+    realForex: lpPlugArmed(),
+    executionMode: lpPlugArmed() ? 'LP' : 'MOCK',
+    source: lpPlugArmed() ? 'LP' : 'SIMULATED',
   };
 }
 

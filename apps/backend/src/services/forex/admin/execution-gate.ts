@@ -21,11 +21,11 @@ export type ForexRealForexChecklistItem = {
 };
 
 export type ForexRealForexGateState = {
-  /** Always false in F5 — execution path remains MOCK/simulated. */
-  effectiveRealForex: false;
+  /** True only when the LP plug is armed (base URL, API key, and FOREX_REAL_FOREX_ALLOWED). */
+  effectiveRealForex: boolean;
   armRequested: boolean;
   envRealForexAllowed: boolean;
-  releaseBlocked: true;
+  releaseBlocked: boolean;
   releaseBlockReason: string;
   checklistComplete: boolean;
   checklist: ForexRealForexChecklistItem[];
@@ -105,13 +105,15 @@ export function buildForexRealForexGateState(args: {
   const checklist = buildForexRealForexChecklist(args);
   const checklistComplete = checklist.every((c) => c.pass);
 
+  const flags = effectiveForexRuntimeFlags();
   return {
-    effectiveRealForex: false,
+    effectiveRealForex: flags.realForex,
     armRequested: realForexArmRequested,
     envRealForexAllowed: envRealForexAllowed(),
-    releaseBlocked: true,
-    releaseBlockReason:
-      'F5 release gate: REAL_FOREX effective path remains disabled. Arm records operator intent only.',
+    releaseBlocked: !flags.realForex,
+    releaseBlockReason: flags.realForex
+      ? 'LP plug is armed. Quotes, orders, account provisioning, and funding use the LP client.'
+      : 'REAL_FOREX stays off until FOREX_LP_BASE_URL, FOREX_LP_API_KEY, and FOREX_REAL_FOREX_ALLOWED are set.',
     checklistComplete,
     checklist,
   };

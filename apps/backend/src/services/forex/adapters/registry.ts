@@ -1,4 +1,6 @@
 import { getInternalFdmBrokerAdapter } from './internal-fdm.adapter.js';
+import { getLpBrokerAdapter } from '../lp/lp-broker.adapter.js';
+import { lpHealth, lpPlugArmed } from '../lp/lp-api-client.js';
 import type { BrokerAdapter, ForexProviderCatalogEntry, ForexProviderType } from './types.js';
 
 type CatalogSeed = Omit<ForexProviderCatalogEntry, 'status'> & { status?: ForexProviderCatalogEntry['status'] };
@@ -78,7 +80,7 @@ const PLANNED: CatalogSeed[] = [
   },
 ];
 
-const ADAPTERS: BrokerAdapter[] = [getInternalFdmBrokerAdapter()];
+const ADAPTERS: BrokerAdapter[] = [getInternalFdmBrokerAdapter(), getLpBrokerAdapter()];
 
 export function listRegisteredBrokerAdapters(): BrokerAdapter[] {
   return [...ADAPTERS];
@@ -91,12 +93,25 @@ export function getBrokerAdapterById(adapterId: string): BrokerAdapter | undefin
 export async function buildForexProviderCatalog(): Promise<ForexProviderCatalogEntry[]> {
   const internal = getInternalFdmBrokerAdapter();
   const internalHealth = await internal.healthCheck();
+  const armed = lpPlugArmed();
+  const lp = armed ? await lpHealth() : null;
 
   return PLANNED.map((seed) => {
     if (seed.adapterId === 'internal-fdm') {
       return {
         ...seed,
         status: internalHealth.status,
+      } as ForexProviderCatalogEntry;
+    }
+    if (seed.adapterId === 'direct-lp') {
+      return {
+        ...seed,
+        enabled: armed,
+        isDefault: armed,
+        status: !armed ? 'not_configured' : lp?.connected ? 'connected' : 'disconnected',
+        notes: armed
+          ? 'Orders, quotes, accounts, and funding use lp-api-client.ts.'
+          : 'Set FOREX_LP_BASE_URL, FOREX_LP_API_KEY, FOREX_LP_WEBHOOK_SECRET, and FOREX_REAL_FOREX_ALLOWED.',
       } as ForexProviderCatalogEntry;
     }
     return {
@@ -107,7 +122,7 @@ export async function buildForexProviderCatalog(): Promise<ForexProviderCatalogE
 }
 
 export function defaultBrokerAdapterId(): string {
-  return 'internal-fdm';
+  return lpPlugArmed() ? 'direct-lp' : 'internal-fdm';
 }
 
 export function providerTypeLabel(type: ForexProviderType): string {

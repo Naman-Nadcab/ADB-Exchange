@@ -126,7 +126,7 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     sectionRoute: '/forex/lp-execution',
     controls: [
       { id: 'lp_routing', label: 'LP routing table', description: 'Primary / backup LP', kind: 'table', phase: 'F5', wired: true },
-      { id: 'enable_real_forex', label: 'Enable REAL_FOREX', description: 'Requires certification checklist', kind: 'toggle', phase: 'F5', wired: true, dangerous: true },
+      { id: 'enable_real_forex', label: 'Enable REAL_FOREX', description: 'Arm with FOREX_LP_BASE_URL, FOREX_LP_API_KEY, FOREX_LP_WEBHOOK_SECRET, and FOREX_REAL_FOREX_ALLOWED', kind: 'toggle', phase: 'F5', wired: true, dangerous: true },
       { id: 'fill_recon', label: 'Fill reconciliation', description: 'LP vs internal fills', kind: 'table', phase: 'F5', wired: true },
     ],
   },

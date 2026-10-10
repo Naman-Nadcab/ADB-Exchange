@@ -1,4 +1,6 @@
 import { FOREX_PROVIDER_IDS } from '../instruments.catalog.js';
+import { lpPlugArmed } from '../lp/lp-api-client.js';
+import { LpExecutionVenue } from '../lp/lp-venue.js';
 import { MockForexExecutionVenue } from './mock-venue.js';
 import type { ForexExecutionVenue } from './venue.js';
 
@@ -10,6 +12,7 @@ export function createMockExecutionVenues(): Map<string, ForexExecutionVenue> {
   map.set('MOCK-A', a);
   map.set('MOCK-B', b);
   map.set('MOCK-C', c);
+  if (lpPlugArmed()) map.set('LP-1', new LpExecutionVenue());
   return map;
 }
 
