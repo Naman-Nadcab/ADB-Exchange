@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { CircleDollarSign, Landmark, Wallet } from 'lucide-react';
@@ -9,7 +9,7 @@ import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageF
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { fxPlain } from '@/components/forex/format';
-import { forexApi } from '@/lib/forex/api/client';
+import { forexApi, unwrap } from '@/lib/forex/api/client';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
@@ -29,6 +29,48 @@ export default function ForexFundsPage() {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [walletBusy, setWalletBusy] = useState(false);
+  const [walletNote, setWalletNote] = useState<string | null>(null);
+  const [walletError, setWalletError] = useState<string | null>(null);
+  const [walletAmount, setWalletAmount] = useState('');
+  const [walletQuote, setWalletQuote] = useState<{ walletAvailable: string; forexAvailable: string } | null>(null);
+
+  useEffect(() => {
+    if (!authed) return;
+    void forexApi.walletFundingQuote().then((raw) => {
+      const res = unwrap(raw);
+      if (res.ok) setWalletQuote(res.data);
+    });
+  }, [authed, account?.accountId, account?.ledgerBalance]);
+
+  async function moveWallet(direction: 'IN' | 'OUT') {
+    if (walletBusy) return;
+    setWalletBusy(true);
+    setWalletError(null);
+    setWalletNote(null);
+    try {
+      const res = unwrap(
+        await forexApi.moveWalletFunding({
+          direction,
+          amount: walletAmount,
+          idempotencyKey: `fx-wallet-${direction}-${Date.now()}`,
+        })
+      );
+      if (!res.ok) {
+        setWalletError(res.error.message);
+        return;
+      }
+      setWalletNote(direction === 'IN' ? t('walletMovedIn') : t('walletMovedOut'));
+      setWalletAmount('');
+      await hydrateForexPrivate();
+      const quote = unwrap(await forexApi.walletFundingQuote());
+      if (quote.ok) setWalletQuote(quote.data);
+    } catch (e) {
+      setWalletError(describeForexError(normalizeForexError(e)));
+    } finally {
+      setWalletBusy(false);
+    }
+  }
 
   const ledger = Number(account?.ledgerBalance ?? balance?.ledgerBalance ?? 0);
   const needsDemo = Number.isFinite(ledger) && ledger <= 0;
@@ -140,6 +182,51 @@ export default function ForexFundsPage() {
           </p>
         ) : null}
       </ForexPortalModuleCard>
+
+      {authed ? (
+        <ForexPortalModuleCard title={t('walletTitle')} subtitle={t('walletSubtitle')}>
+          <p className="max-w-2xl text-sm text-muted-foreground">{t('walletBody')}</p>
+          <p className="mt-2 text-[12px] text-muted-foreground">
+            {t('walletBalances', {
+              wallet: fxPlain(walletQuote?.walletAvailable ?? '0'),
+              forex: fxPlain(walletQuote?.forexAvailable ?? account?.ledgerBalance ?? '0'),
+            })}
+          </p>
+          <div className="mt-3 flex flex-wrap items-end gap-2">
+            <label className="text-[11px] text-muted-foreground">
+              {t('walletAmount')}
+              <input
+                className="mt-1 block w-32 rounded border border-border bg-background px-2 py-1.5 text-[12px] text-foreground"
+                inputMode="decimal"
+                value={walletAmount}
+                onChange={(e) => setWalletAmount(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              disabled={walletBusy}
+              onClick={() => void moveWallet('IN')}
+              className="inline-flex min-h-10 items-center rounded border border-primary/45 bg-primary/15 px-3 text-[12px] font-semibold text-primary disabled:opacity-50"
+            >
+              {t('walletIn')}
+            </button>
+            <button
+              type="button"
+              disabled={walletBusy}
+              onClick={() => void moveWallet('OUT')}
+              className="inline-flex min-h-10 items-center rounded border border-border px-3 text-[12px] font-semibold disabled:opacity-50"
+            >
+              {t('walletOut')}
+            </button>
+          </div>
+          {walletNote ? <p className="mt-3 text-sm text-buy">{walletNote}</p> : null}
+          {walletError ? (
+            <p className="mt-3 text-sm text-sell" role="alert">
+              {walletError}
+            </p>
+          ) : null}
+        </ForexPortalModuleCard>
+      ) : null}
 
       <ForexPortalModuleCard title={t('realRailsTitle')} subtitle={t('realRailsBadge')}>
         <ForexPortalStatusBadge tone="warning">{t('realRailsUnavailableBadge')}</ForexPortalStatusBadge>

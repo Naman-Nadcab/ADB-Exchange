@@ -26,7 +26,11 @@
     "funds": "Dana",
     "ledger": "Buku besar akun",
     "research": "Riset",
-    "tools": "Alat"
+    "tools": "Alat",
+    "follow": "Ikuti",
+    "partner": "Partner",
+    "rewards": "Hadiah",
+    "apps": "Aplikasi"
   },
   "userMenu": {
     "label": "Menu platform",
@@ -138,7 +142,8 @@
       "portfolio": "portofolio",
       "yourForexAccount": "akun Forex Anda",
       "funds": "dana",
-      "forexAccounts": "akun Forex"
+      "forexAccounts": "akun Forex",
+      "programs": "Ikuti, Partner, Hadiah, dan Aplikasi"
     }
   },
   "bottomTabs": {
@@ -365,7 +370,8 @@
       "footer": "{closedOrders} order tertutup · {ledgerRows} baris buku besar · {currency}",
       "exportKindOrders": "order",
       "exportKindFills": "fill",
-      "exportKindLedger": "buku besar"
+      "exportKindLedger": "buku besar",
+      "exportKindClosed": "trade tertutup"
     },
     "exposure": {
       "balance": "Saldo",
@@ -1120,6 +1126,10 @@
     "mode": "Mode",
     "modeValue": "Lingkungan latihan · akun aktif mengikuti pilihan server",
     "viewHistory": "Riwayat perdagangan",
+    "viewFollow": "Ikuti",
+    "viewPartner": "Partner",
+    "viewRewards": "Hadiah",
+    "viewApps": "Aplikasi",
     "viewAccountDetail": "Detail akun",
     "manageAccountsHint": "Manage demo accounts on <accountsLink>Forex accounts</accountsLink>. Use the terminal bar switcher for quick changes. Orders, positions, ledger, history, risk, margin, and alerts always follow the server-selected active account.",
     "riskHeading": "Risk",
@@ -1222,7 +1232,16 @@
     "colType": "Type",
     "colDebit": "Debit",
     "colCredit": "Credit",
-    "colStatus": "Status"
+    "colStatus": "Status",
+    "walletTitle": "Danai dari dompet",
+    "walletSubtitle": "Saldo funding USDT · 1 USDT = 1 USD",
+    "walletBody": "Pindahkan USDT dari dompet funding ke akun Forex ini, atau kembalikan kas Forex yang bebas. Deposit bank dan UPI tetap tertutup. Ini pemindahan internal, bukan deposit broker.",
+    "walletBalances": "USDT dompet {wallet} · kas Forex tersedia {forex}",
+    "walletAmount": "Jumlah",
+    "walletIn": "Pindahkan ke Forex",
+    "walletOut": "Kembalikan ke dompet",
+    "walletMovedIn": "USDT dipindahkan ke akun Forex.",
+    "walletMovedOut": "Kas Forex dikembalikan ke dompet USDT."
   },
   "ordersPage": {
     "summaryAria": "Jumlah order per status",
@@ -1473,7 +1492,10 @@
     "groupDefault": "Grup default",
     "switchToEdit": "Ganti ke akun ini untuk mengubah mode posisi.",
     "positionModeHint": "Netting dan hedging memerlukan akun flat (tanpa posisi terbuka atau order aktif).",
-    "leverageRequestHint": "Perubahan leverage memerlukan tinjauan compliance dan bukan self-service di lingkungan ini."
+    "leverageRequestHint": "Perubahan leverage memerlukan tinjauan compliance dan bukan self-service di lingkungan ini.",
+    "groupSave": "Terapkan grup",
+    "groupSaving": "Menerapkan…",
+    "groupSaved": "Grup diterapkan."
   },
   "fundingHistoryPage": {
     "tableTitle": "Transaksi pendanaan",
@@ -1495,6 +1517,7 @@
     "step2": "Klaim kredit demo simulasi dari Dana.",
     "step3": "Buka terminal untuk latihan dengan eksekusi MOCK.",
     "simulatedNotice": "Saldo demo tidak dicampur dengan dompet Crypto atau deposit riil.",
+    "groupLegend": "Grup akun",
     "createCta": "Buat akun demo",
     "creating": "Membuat…",
     "failed": "Tidak dapat membuat akun demo.",
@@ -1602,7 +1625,14 @@
     "colPrice": "Harga",
     "colFillId": "ID fill",
     "colOrderId": "ID order",
-    "statementNote": "Laporan broker tidak dibuat di sini. Ekspor CSV memakai riwayat trade server untuk akun aktif."
+    "statementNote": "Laporan broker tidak dibuat di sini. Ekspor CSV memakai riwayat trade server untuk akun aktif.",
+    "closedTitle": "Trade tertutup",
+    "closedSubtitle": "Setiap baris adalah penutupan terealisasi dari buku besar akun.",
+    "closedEmpty": "Belum ada trade tertutup.",
+    "exportClosed": "Ekspor trade tertutup",
+    "colOpen": "Buka",
+    "colClose": "Tutup",
+    "colProfit": "Laba"
   },
   "riskTools": {
     "title": "Pip / R:R calculator",

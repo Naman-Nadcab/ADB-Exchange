@@ -163,7 +163,7 @@ export async function registerForexAccountingRoutes(app: FastifyInstance): Promi
   /**
    * Customer DEMO funding for SIMULATED / MOCK Forex only.
    * Same ledger credit path as /funding/test. Never touches Crypto.
-   * Disabled unless FOREX_DEMO_FUNDING=true and realForex remains false.
+   * On by default for simulated Forex. Set FOREX_DEMO_FUNDING=false to disable. Blocked when realForex is enabled.
    */
   app.post('/funding/demo', { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
     const accountId = getForexAccountIdFromRequest(request);

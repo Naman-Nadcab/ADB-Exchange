@@ -7,6 +7,8 @@
  * FEE_REVENUE (income): customer commissions when configured.
  * FUNDING (income/expense): swap/rollover funding payments — not deposits.
  * SYSTEM_ADJUSTMENT (equity): compensating adjustments only.
+ * SAVINGS: cash moved out of trading balance into a savings hold.
+ * FOLLOW_RESERVE: cash set aside for an approved Copy, PAMM, or MAM manager.
  */
 export const FOREX_LEDGER_ACCOUNTS = [
   'CUSTOMER_CASH',
@@ -16,6 +18,8 @@ export const FOREX_LEDGER_ACCOUNTS = [
   'FUNDING',
   'SYSTEM_ADJUSTMENT',
   'PARTNER_PAYABLE',
+  'SAVINGS',
+  'FOLLOW_RESERVE',
 ] as const;
 
 export type ForexLedgerAccount = (typeof FOREX_LEDGER_ACCOUNTS)[number];

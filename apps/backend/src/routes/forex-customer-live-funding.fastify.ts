@@ -20,6 +20,14 @@ import {
   listForexAccountsForUser,
   userOwnsForexAccount,
 } from '../services/forex/customer/accounts-service.js';
+import {
+  forexWalletFundingQuote,
+  ForexWalletFundingError,
+  moveForexToWallet,
+  moveWalletToForex,
+} from '../services/forex/customer/wallet-funding.js';
+import { getForexActiveAccountFromRequest } from '../services/forex/auth/forex-account-cookie.js';
+import { applyLpFundingWebhook, LpFundingError, requestLpDeposit, requestLpWithdrawal } from '../services/forex/lp/lp-funding.js';
 
 function userIdFromRequest(request: { user?: { id?: string } }): string | null {
   const id = request.user?.id;
@@ -122,21 +130,91 @@ export async function registerForexCustomerLiveFundingRoutes(app: FastifyInstanc
     }
   );
 
+  app.get('/funding/wallet', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
+    const userId = userIdFromRequest(request);
+    if (!userId) {
+      return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+    }
+    const accountId = String(getForexActiveAccountFromRequest(request) ?? '').trim();
+    if (!accountId || !(await userOwnsForexAccount(userId, accountId))) {
+      return reply.status(404).send({ success: false, error: { code: 'FOREX_ACCOUNT_NOT_FOUND', message: 'Select a Forex account first' } });
+    }
+    const quote = await forexWalletFundingQuote(userId, accountId);
+    return reply.send({ success: true, data: quote });
+  });
+
+  app.post('/funding/wallet', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
+    const userId = userIdFromRequest(request);
+    if (!userId) {
+      return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+    }
+    const body = (request.body ?? {}) as { direction?: string; amount?: string; idempotencyKey?: string; accountId?: string };
+    const accountId = String(body.accountId ?? getForexActiveAccountFromRequest(request) ?? '').trim();
+    const direction = String(body.direction ?? '').toUpperCase();
+    const idempotencyKey = String(body.idempotencyKey ?? request.headers['idempotency-key'] ?? '').trim();
+    if (!accountId || !(await userOwnsForexAccount(userId, accountId))) {
+      return reply.status(404).send({ success: false, error: { code: 'FOREX_ACCOUNT_NOT_FOUND', message: 'Select a Forex account first' } });
+    }
+    if (direction !== 'IN' && direction !== 'OUT') {
+      return reply.status(400).send({ success: false, error: { code: 'INVALID_DIRECTION', message: 'Direction must be IN or OUT' } });
+    }
+    if (idempotencyKey.length < 8 || idempotencyKey.length > 80) {
+      return reply.status(400).send({ success: false, error: { code: 'IDEMPOTENCY_REQUIRED', message: 'idempotencyKey is required' } });
+    }
+    try {
+      const data = direction === 'IN'
+        ? await moveWalletToForex(userId, accountId, String(body.amount ?? ''), idempotencyKey)
+        : await moveForexToWallet(userId, accountId, String(body.amount ?? ''), idempotencyKey);
+      return reply.status(data.replay ? 200 : 201).send({ success: true, data: { source: 'WALLET_USDT', ...data } });
+    } catch (error) {
+      if (error instanceof ForexWalletFundingError) {
+        return reply.status(400).send({ success: false, error: { code: error.code, message: error.message } });
+      }
+      if (error instanceof ForexLedgerError) {
+        return reply.status(error.statusCode).send({ success: false, error: { code: error.reason, message: error.message } });
+      }
+      throw error;
+    }
+  });
+
   app.post('/funding/deposits', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
     const userId = userIdFromRequest(request);
     if (!userId) {
       return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
     const readiness = await buildLiveForexReadiness();
-    return reply.status(503).send({
-      success: false,
-      error: {
-        code: 'FOREX_DEPOSIT_UNAVAILABLE',
-        message: 'Live Forex deposits are not available on this environment.',
-        blockers: readiness.blockers,
-        capabilities: readiness.capabilities,
-      },
-    });
+    if (!readiness.capabilities.deposit) {
+      return reply.status(503).send({
+        success: false,
+        error: {
+          code: 'FOREX_DEPOSIT_UNAVAILABLE',
+          message: 'Live Forex deposits are not available on this environment.',
+          blockers: readiness.blockers,
+          capabilities: readiness.capabilities,
+        },
+      });
+    }
+    const body = (request.body ?? {}) as { accountId?: string; amount?: string; idempotencyKey?: string };
+    const accountId = String(body.accountId ?? getForexActiveAccountFromRequest(request) ?? '').trim();
+    const idempotencyKey = String(body.idempotencyKey ?? request.headers['idempotency-key'] ?? '').trim();
+    if (!accountId || !(await userOwnsForexAccount(userId, accountId))) {
+      return reply.status(404).send({ success: false, error: { code: 'FOREX_ACCOUNT_NOT_FOUND', message: 'Account not found' } });
+    }
+    if (idempotencyKey.length < 8 || idempotencyKey.length > 80) {
+      return reply.status(400).send({ success: false, error: { code: 'IDEMPOTENCY_REQUIRED', message: 'idempotencyKey is required' } });
+    }
+    try {
+      const data = await requestLpDeposit(accountId, String(body.amount ?? ''), idempotencyKey);
+      return reply.status(data.replay ? 200 : 201).send({ success: true, data: { source: 'LP', ...data } });
+    } catch (error) {
+      if (error instanceof LpFundingError) {
+        return reply.status(400).send({ success: false, error: { code: error.code, message: error.message } });
+      }
+      if (error instanceof ForexLedgerError) {
+        return reply.status(error.statusCode).send({ success: false, error: { code: error.reason, message: error.message } });
+      }
+      throw error;
+    }
   });
 
   app.post('/funding/withdrawals', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
@@ -160,7 +238,22 @@ export async function registerForexCustomerLiveFundingRoutes(app: FastifyInstanc
         },
       });
     }
-    return reply.status(503).send({ success: false, error: { code: 'UNREACHABLE', message: 'Withdrawal rail not wired' } });
+    const idempotencyKey = String(body.idempotencyKey ?? request.headers['idempotency-key'] ?? '').trim();
+    if (idempotencyKey.length < 8 || idempotencyKey.length > 80) {
+      return reply.status(400).send({ success: false, error: { code: 'IDEMPOTENCY_REQUIRED', message: 'idempotencyKey is required' } });
+    }
+    try {
+      const data = await requestLpWithdrawal(accountId, String(body.amount ?? ''), idempotencyKey);
+      return reply.status(data.replay ? 200 : 201).send({ success: true, data: { source: 'LP', ...data } });
+    } catch (error) {
+      if (error instanceof LpFundingError) {
+        return reply.status(400).send({ success: false, error: { code: error.code, message: error.message } });
+      }
+      if (error instanceof ForexLedgerError) {
+        return reply.status(error.statusCode).send({ success: false, error: { code: error.reason, message: error.message } });
+      }
+      throw error;
+    }
   });
 
   app.post('/funding/transfers', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
@@ -227,12 +320,35 @@ export async function registerForexCustomerLiveFundingRoutes(app: FastifyInstanc
       success: true,
       data: {
         available: readiness.capabilities.paymentMethods,
-        count: 0,
-        methods: [] as unknown[],
+        count: readiness.capabilities.paymentMethods ? 1 : 0,
+        methods: readiness.capabilities.paymentMethods
+          ? [{ id: 'lp-cashier', type: 'lp', label: 'Broker cashier', currency: 'USD' }]
+          : [],
         reason: readiness.capabilities.paymentMethods ? null : 'FOREX_PAYMENT_PROVIDER_NOT_CONFIGURED',
         blockers: readiness.blockers,
       },
     });
+  });
+
+  app.post('/funding/lp-webhook', async (request, reply) => {
+    const body = (request.body ?? {}) as Record<string, unknown>;
+    const signature = String(request.headers['x-forex-lp-signature'] ?? '');
+    try {
+      const data = await applyLpFundingWebhook(signature, {
+        eventId: String(body.eventId ?? ''),
+        type: String(body.type ?? ''),
+        accountId: String(body.accountId ?? ''),
+        amount: String(body.amount ?? ''),
+        idempotencyKey: String(body.idempotencyKey ?? ''),
+      });
+      return reply.send({ success: true, data });
+    } catch (error) {
+      if (error instanceof LpFundingError) {
+        const status = error.code === 'LP_WEBHOOK_SIGNATURE' || error.code === 'LP_NOT_CONFIGURED' ? 401 : 400;
+        return reply.status(status).send({ success: false, error: { code: error.code, message: error.message } });
+      }
+      throw error;
+    }
   });
 
   app.get('/live/eligibility', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {

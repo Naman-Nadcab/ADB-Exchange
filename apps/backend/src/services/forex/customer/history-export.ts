@@ -73,6 +73,43 @@ export function exportCustomerFillsCsv(accountId: string): string {
   return [header, ...lines].join('\n');
 }
 
+export function exportCustomerClosedTradesCsv(accountId: string): string {
+  const view = accounting().publicLedgerView(accountId);
+  const header = row([
+    'transaction_id',
+    'time',
+    'symbol',
+    'side',
+    'volume',
+    'open_price',
+    'close_price',
+    'profit',
+    'position_id',
+    'fill_id',
+    'currency',
+  ]);
+  const lines = view.transactions
+    .filter((t) => t.type === 'REALIZED_PNL')
+    .map((t) => {
+      const ref = t.reference ?? {};
+      const pnl = ref.pnl && typeof ref.pnl === 'object' ? (ref.pnl as Record<string, unknown>) : {};
+      return row([
+        t.transactionId,
+        t.timestamp,
+        ref.symbol ?? pnl.symbol ?? '',
+        pnl.side ?? '',
+        pnl.closedVolume ?? '',
+        pnl.entryPrice ?? '',
+        pnl.closePrice ?? '',
+        pnl.accountPnl ?? t.net,
+        ref.positionId ?? '',
+        ref.fillId ?? '',
+        t.currency,
+      ]);
+    });
+  return [header, ...lines].join('\n');
+}
+
 export function exportCustomerLedgerCsv(accountId: string): string {
   const view = accounting().publicLedgerView(accountId);
   const header = row(['transaction_id', 'type', 'net', 'currency', 'balance_after', 'reference', 'timestamp', 'status']);

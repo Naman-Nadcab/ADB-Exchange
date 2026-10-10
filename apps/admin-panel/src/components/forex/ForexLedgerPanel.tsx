@@ -17,6 +17,8 @@ type AccountRow = {
   status: string;
   currency: string;
   customer_cash_balance: string;
+  savings_balance: string;
+  follow_reserve_balance: string;
 };
 
 export function ForexLedgerPanel() {
@@ -59,8 +61,18 @@ export function ForexLedgerPanel() {
       { accessorKey: 'currency', header: 'CCY' },
       {
         accessorKey: 'customer_cash_balance',
-        header: 'Balance',
+        header: 'Cash',
         cell: ({ row }) => <span className="font-medium tabular-nums">{row.original.customer_cash_balance}</span>,
+      },
+      {
+        accessorKey: 'savings_balance',
+        header: 'Savings',
+        cell: ({ row }) => <span className="tabular-nums">{row.original.savings_balance}</span>,
+      },
+      {
+        accessorKey: 'follow_reserve_balance',
+        header: 'Follow reserve',
+        cell: ({ row }) => <span className="tabular-nums">{row.original.follow_reserve_balance}</span>,
       },
     ],
     [],
@@ -70,7 +82,7 @@ export function ForexLedgerPanel() {
     <div className="space-y-4">
       <ForexPanelShell
         title="Forex ledger accounts"
-        description="Customer cash (CUSTOMER_CASH) · isolated from crypto wallets"
+        description="Trading cash, savings, and follow reserve · isolated from crypto wallets"
         actions={
           <Button type="button" size="sm" variant="ghost" onClick={() => void q.refetch()}>
             <RefreshCw className={`h-3.5 w-3.5 ${q.isFetching ? 'animate-spin' : ''}`} />

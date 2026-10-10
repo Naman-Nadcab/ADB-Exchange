@@ -4,6 +4,7 @@ import { listForexSymbols } from '../instruments.catalog.js';
 import { getForexPricingService } from '../quotes.service.js';
 import { forexWsHub } from '../ws/hub.js';
 import { forexMockAnchorEnabled, forexMockAnchorRefreshMs, refreshForexMockAnchors } from './anchor.js';
+import { lpPlugArmed } from '../lp/lp-api-client.js';
 
 let timer: ReturnType<typeof setInterval> | null = null;
 let anchorTimer: ReturnType<typeof setInterval> | null = null;
@@ -37,6 +38,15 @@ export function startForexMarketDataWorker(): void {
     try {
       const now = new Date();
       svc.tick(now);
+      if (lpPlugArmed()) {
+        void import('../lp/lp-quotes.js')
+          .then((m) => m.pullLpQuotesIntoBook())
+          .catch((err: unknown) => {
+            logger.warn('Forex LP quote pull failed', {
+              error: err instanceof Error ? err.message : String(err),
+            });
+          });
+      }
       for (const symbol of listForexSymbols()) {
         forexWsHub.publishLiquidity(svc.getRoutingSnapshot(symbol, now));
         void import('../customer/session-alert-watch.js').then((m) => m.evaluateForexSessionTransitionForSymbol(symbol, now));

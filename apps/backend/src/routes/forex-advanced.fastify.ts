@@ -26,6 +26,7 @@ import { getForexRiskService } from '../services/forex/risk/service.js';
 import { forexSessionSnapshot } from '../services/forex/sessions/eligibility.js';
 import { getForexSwapService } from '../services/forex/swap/service.js';
 import {
+  exportCustomerClosedTradesCsv,
   exportCustomerFillsCsv,
   exportCustomerLedgerCsv,
   exportCustomerOrdersCsv,
@@ -212,6 +213,7 @@ export async function registerForexAdvancedRoutes(app: FastifyInstance): Promise
     ['/history/export/orders', exportCustomerOrdersCsv, 'forex-orders.csv'],
     ['/history/export/fills', exportCustomerFillsCsv, 'forex-fills.csv'],
     ['/history/export/ledger', exportCustomerLedgerCsv, 'forex-ledger.csv'],
+    ['/history/export/closed-trades', exportCustomerClosedTradesCsv, 'forex-closed-trades.csv'],
   ] as const) {
     app.get(path, { preHandler: [...forexCustomerPreHandlers(app)] }, async (request, reply) => {
       const accountId = getForexAccountIdFromRequest(request);

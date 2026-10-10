@@ -861,6 +861,8 @@ export type ForexAdminLedgerSnapshot = {
     currency: string;
     status: string;
     customer_cash_balance: string;
+    savings_balance: string;
+    follow_reserve_balance: string;
   }>;
   reconciliation: Array<{
     event_id: string;
@@ -1086,10 +1088,19 @@ export type ForexAdminAccountGroupRow = {
   leverage_default: string;
   position_mode_default: string;
   is_active: boolean;
+  book?: 'A' | 'B' | null;
   account_count: number;
   created_at: string;
   updated_at: string;
 };
+
+export function getForexAdminPrograms(token: string | null) {
+  return adminFetch<Record<string, unknown>>('/forex/programs', { token });
+}
+
+export function postForexAdminProgram(token: string | null, path: string, body: Record<string, unknown>) {
+  return adminFetch<Record<string, unknown>>(path, { token, method: 'POST', body });
+}
 
 export function getForexAdminAccountGroups(token: string | null) {
   return adminFetch<{ groups: ForexAdminAccountGroupRow[] }>('/forex/account-groups', { token });

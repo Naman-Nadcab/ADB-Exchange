@@ -79,7 +79,7 @@ export const forexConfig = {
    * Customer DEMO funding (SIMULATED/MOCK only). Credits Forex ledger only.
    * Never touches Crypto balances. Blocked when realForex would be enabled.
    */
-  demoFundingEnabled: envBool('FOREX_DEMO_FUNDING', false),
+  demoFundingEnabled: envBool('FOREX_DEMO_FUNDING', true),
   demoFundingDefaultAmount: process.env.FOREX_DEMO_FUNDING_AMOUNT?.trim() || '10000',
   /**
    * DEMO / MOCK only. Bid = Ask and spread = 0 at the quote source.

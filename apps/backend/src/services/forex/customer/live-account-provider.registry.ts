@@ -5,6 +5,8 @@ import type {
   ForexLiveProvisionResult,
   ForexLiveAccountApplicationInput,
 } from './live-account-provider.types.js';
+import { lpPlugArmed } from '../lp/lp-api-client.js';
+import { getLpCredentialsProvider, getLpLiveAccountProvider } from '../lp/lp-live-provider.js';
 
 class UnconfiguredLiveAccountProvider implements ForexLiveAccountProvider {
   readonly providerId = 'unconfigured';
@@ -47,10 +49,12 @@ let liveProvider: ForexLiveAccountProvider = new UnconfiguredLiveAccountProvider
 let credentialsProvider: ForexBrokerCredentialsProvider = new UnconfiguredCredentialsProvider();
 
 export function getForexLiveAccountProvider(): ForexLiveAccountProvider {
+  if (liveProvider.providerId === 'unconfigured' && lpPlugArmed()) return getLpLiveAccountProvider();
   return liveProvider;
 }
 
 export function getForexBrokerCredentialsProvider(): ForexBrokerCredentialsProvider {
+  if (credentialsProvider.providerId === 'unconfigured' && lpPlugArmed()) return getLpCredentialsProvider();
   return credentialsProvider;
 }
 
