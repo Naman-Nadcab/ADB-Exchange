@@ -2,7 +2,7 @@
 
 Compared on 10 Oct 2026 by opening `https://trade.aynzenix.com` as the demo client and walking the live screens. No order, deposit, or withdrawal was sent.
 
-This is a layout and UX comparison. It does not copy their balances, bank details, or account secrets.
+This is a layout and UX comparison. It does not copy their balances, bank details, or account secrets. The short findings list is `docs/forex/AYNZENIX-SCREEN-FINDINGS.md`.
 
 ## Short verdict
 
