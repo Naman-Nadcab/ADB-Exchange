@@ -1138,6 +1138,7 @@
     "state": "State",
     "reason": "Reason",
     "liquidationLock": "Liquidation lock",
+    "liquidationClear": "Tidak terkunci",
     "calculation": "Calculation",
     "footerLedger": "Ledger",
     "footerFunds": "Funds",

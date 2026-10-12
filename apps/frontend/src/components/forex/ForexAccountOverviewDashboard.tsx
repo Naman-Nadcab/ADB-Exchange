@@ -4,11 +4,8 @@ import Link from 'next/link';
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import {
-  Activity,
-  ArrowLeftRight,
   CircleDollarSign,
   Gauge,
-  Landmark,
   LayoutGrid,
   LineChart,
   ShieldAlert,
@@ -16,10 +13,18 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ForexAccountSwitcher } from './ForexAccountSwitcher';
-import { fxMoney, fxPlain } from './format';
+import { fxMoney, fxPlain, fxSigned } from './format';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useForexStore } from '@/lib/forex/state/store';
-import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from './ForexPortalKpiCard';
+import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge, type ForexPortalKpiTone } from './ForexPortalKpiCard';
+
+const overviewTitle = 'normal-case tracking-normal text-[13px] font-semibold text-foreground';
+
+function pnlTone(value: string | number | null | undefined): ForexPortalKpiTone {
+  const n = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(n) || n === 0) return 'neutral';
+  return n > 0 ? 'positive' : 'negative';
+}
 
 function riskHealthKind(state: string | undefined, liquidationLock: boolean | undefined): 'normal' | 'warning' | 'locked' {
   if (liquidationLock) return 'locked';
@@ -77,112 +82,141 @@ export function ForexAccountOverviewDashboard() {
   const kindUpper = String(activeMeta?.accountKind ?? '').toUpperCase();
   const kindBadge =
     kindUpper === 'DEMO' ? t('kindDemo') : kindUpper === 'LIVE' || kindUpper === 'REAL' ? t('kindLive') : fxPlain(activeMeta?.accountKind);
+  const balanceValue = account?.ledgerBalance ?? balance?.ledgerBalance;
+  const equityValue = account?.equity ?? balance?.equity;
+  const unrealizedValue = account?.unrealizedPnl ?? pnl?.unrealized;
+  const realized = fxSigned(account?.realizedPnl ?? pnl?.realized);
+  const healthClass =
+    health === 'locked' ? 'forex-overview-health--lock' : health === 'warning' ? 'forex-overview-health--warn' : 'forex-overview-health--ok';
+  const quietLink = 'tap-target inline-flex items-center rounded-md border border-border bg-card px-3 py-2 text-[13px] font-medium text-foreground hover:bg-muted/40';
 
   return (
-    <div className="space-y-3">
-      <section
-        className="eda-card border-primary/25 bg-gradient-to-r from-card via-card to-primary/[0.05] p-3 sm:p-4"
-        aria-label={t('activeAccountContextAria')}
-      >
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0 flex-1 space-y-2">
+    <div className="forex-overview space-y-5">
+      <section className="forex-overview-hero p-4 sm:p-5" aria-label={t('activeAccountContextAria')}>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0 flex-1 space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary/90">{t('activeAccountLabel')}</p>
+              <p className="text-[12px] font-medium text-muted-foreground">{t('activeAccountLabel')}</p>
               <ForexPortalStatusBadge tone={kindUpper === 'DEMO' ? 'primary' : 'neutral'}>{kindBadge}</ForexPortalStatusBadge>
               {activeMeta?.status ? (
                 <ForexPortalStatusBadge tone="success">{fxPlain(activeMeta.status)}</ForexPortalStatusBadge>
               ) : null}
             </div>
             <ForexAccountSwitcher />
-            <p className="font-mono text-[11px] text-muted-foreground">
-              {fxPlain(activeMeta?.currency ?? currency)} · {fxPlain(account?.accountId ?? activeForexAccountId)}
-            </p>
+            <div>
+              <p className="text-[12px] text-muted-foreground">{t('metricBalance')}</p>
+              <p className="mt-1 text-[28px] font-semibold tabular-nums tracking-tight text-foreground sm:text-[32px]">
+                {fxMoney(balanceValue, currency)}
+              </p>
+            </div>
           </div>
           <Link
             href={FOREX_ROUTES.trade}
-            className="tap-target inline-flex shrink-0 items-center justify-center rounded border border-primary/45 bg-primary/12 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="tap-target inline-flex shrink-0 items-center justify-center rounded-md bg-primary px-4 py-2.5 text-[13px] font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {t('openTerminal')}
           </Link>
         </div>
+        {needsDemo ? (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-amber-500/35 bg-amber-500/10 px-3 py-2.5">
+            <p className="text-[13px] text-amber-100">{t('demoFundingHint')}</p>
+            <Link href={FOREX_ROUTES.funds} className="text-[13px] font-semibold text-amber-100 underline-offset-2 hover:underline">
+              {t('demoFundingCta')}
+            </Link>
+          </div>
+        ) : null}
       </section>
 
-      <section className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-5" aria-label={t('accountTotalsAria')}>
-        <ForexPortalKpiCard emphasis="primary" icon={Wallet} label={t('metricBalance')} value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
-        <ForexPortalKpiCard emphasis="primary" icon={CircleDollarSign} label={t('metricEquity')} value={account?.equity ?? balance?.equity} currency={currency} />
-        <ForexPortalKpiCard emphasis="primary" icon={Gauge} label={t('metricFreeMargin')} value={account?.freeMargin ?? margin?.freeMargin} currency={currency} />
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label={t('accountTotalsAria')}>
+        <ForexPortalKpiCard tone="brand" emphasis="primary" icon={Wallet} label={t('metricBalance')} value={balanceValue} currency={currency} />
+        <ForexPortalKpiCard tone="neutral" emphasis="primary" icon={CircleDollarSign} label={t('metricEquity')} value={equityValue} currency={currency} />
+        <ForexPortalKpiCard tone="neutral" emphasis="primary" icon={Gauge} label={t('metricFreeMargin')} value={account?.freeMargin ?? margin?.freeMargin} currency={currency} />
         <ForexPortalKpiCard
-          emphasis="primary"
-          icon={Activity}
-          label={t('metricMarginLevel')}
-          value={marginLevelRaw}
-          kind="plain"
-          hint={marginLevelRaw == null ? t('marginLevelUnavailableHint') : '%'}
-        />
-        <ForexPortalKpiCard
+          tone={pnlTone(unrealizedValue)}
           emphasis="primary"
           icon={LineChart}
           label={t('metricUnrealizedPnl')}
-          value={account?.unrealizedPnl ?? pnl?.unrealized}
+          value={unrealizedValue}
           currency={currency}
           signed
         />
       </section>
 
-      <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" aria-label={t('performanceAria')}>
-        <ForexPortalKpiCard emphasis="secondary" icon={Landmark} label={t('metricUsedMargin')} value={account?.usedMargin ?? margin?.usedMargin} currency={currency} />
-        <ForexPortalKpiCard emphasis="secondary" label={t('metricRealizedPnl')} value={account?.realizedPnl ?? pnl?.realized} currency={currency} signed />
-        <ForexPortalKpiCard emphasis="secondary" label={t('metricFees')} value={fees?.total} currency={fees?.currency ?? currency} />
-        <ForexPortalKpiCard emphasis="secondary" icon={ArrowLeftRight} label={t('metricSwaps')} value={swaps?.total} currency={swaps?.currency ?? currency} />
-        <ForexPortalKpiCard emphasis="secondary" label={t('metricAvailable')} value={account?.availableBalance ?? balance?.availableBalance} currency={currency} />
-      </section>
-
       <div className="grid gap-3 lg:grid-cols-3">
-        <ForexPortalModuleCard className="lg:col-span-1" title={t('positionSummaryHeading')} accent>
-          <dl className="grid grid-cols-2 gap-3 font-mono text-[12px]">
-            <div className="rounded border border-border/70 bg-muted/10 px-2.5 py-2">
-              <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{t('openPositionsLabel')}</dt>
-              <dd className="mt-1 text-[18px] font-semibold tabular-nums text-foreground">{openPositionsCount}</dd>
+        <ForexPortalModuleCard className="lg:col-span-1" title={t('positionSummaryHeading')} titleClassName={overviewTitle}>
+          <dl className="grid grid-cols-2 gap-3">
+            <div className="rounded-md border border-border/70 bg-muted/20 px-3 py-3">
+              <dt className="text-[12px] text-muted-foreground">{t('openPositionsLabel')}</dt>
+              <dd className="mt-1 text-[26px] font-semibold tabular-nums text-foreground">{openPositionsCount}</dd>
             </div>
-            <div className="rounded border border-border/70 bg-muted/10 px-2.5 py-2">
-              <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{t('pendingOrdersLabel')}</dt>
-              <dd className="mt-1 text-[18px] font-semibold tabular-nums text-foreground">{pendingOrdersCount}</dd>
+            <div className="rounded-md border border-border/70 bg-muted/20 px-3 py-3">
+              <dt className="text-[12px] text-muted-foreground">{t('pendingOrdersLabel')}</dt>
+              <dd className="mt-1 text-[26px] font-semibold tabular-nums text-foreground">{pendingOrdersCount}</dd>
             </div>
           </dl>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Link href={FOREX_ROUTES.portfolio} className="text-[11px] font-medium text-primary underline-offset-2 hover:underline">
+          <div className="mt-3 flex flex-wrap gap-3">
+            <Link href={FOREX_ROUTES.portfolio} className="text-[13px] font-medium text-primary underline-offset-2 hover:underline">
               {t('viewPositions', { count: openPositionsCount })}
             </Link>
-            <Link href={FOREX_ROUTES.orders} className="text-[11px] font-medium text-primary underline-offset-2 hover:underline">
+            <Link href={FOREX_ROUTES.orders} className="text-[13px] font-medium text-primary underline-offset-2 hover:underline">
               {t('viewOrders', { count: pendingOrdersCount })}
             </Link>
           </div>
         </ForexPortalModuleCard>
 
-        <ForexPortalModuleCard className="lg:col-span-1" title={t('accountSummaryHeading')}>
-          <dl className="grid grid-cols-1 gap-x-4 gap-y-2.5 font-mono text-[12px] sm:grid-cols-2">
-            <div>
-              <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{t('accountIdServer')}</dt>
-              <dd className="mt-0.5 text-foreground">{fxPlain(account?.accountId ?? activeForexAccountId)}</dd>
+        <ForexPortalModuleCard className="lg:col-span-1" title={t('accountSummaryHeading')} titleClassName={overviewTitle}>
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
+            <div className="col-span-2">
+              <dt className="text-[12px] text-muted-foreground">{t('accountIdServer')}</dt>
+              <dd className="mt-0.5 break-all font-mono text-[12px] text-foreground">{fxPlain(account?.accountId ?? activeForexAccountId)}</dd>
             </div>
             <div>
-              <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{t('positionModeLabel')}</dt>
-              <dd className="mt-0.5">{fxPlain(activeMeta?.positionMode)}</dd>
+              <dt className="text-[12px] text-muted-foreground">{t('mode')}</dt>
+              <dd className="mt-0.5 text-[14px] font-medium">{kindBadge}</dd>
             </div>
             <div>
-              <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{t('mode')}</dt>
-              <dd className="mt-0.5">{kindBadge}</dd>
+              <dt className="text-[12px] text-muted-foreground">{t('positionModeLabel')}</dt>
+              <dd className="mt-0.5 text-[14px] font-medium">{fxPlain(activeMeta?.positionMode)}</dd>
+            </div>
+            <div>
+              <dt className="text-[12px] text-muted-foreground">{t('metricMarginLevel')}</dt>
+              <dd className="mt-0.5 text-[14px] font-medium tabular-nums">
+                {marginLevelRaw == null || marginLevelRaw === '' ? '—' : `${marginLevelRaw}%`}
+              </dd>
+              {marginLevelRaw == null ? <p className="text-[11px] text-muted-foreground">{t('marginLevelUnavailableHint')}</p> : null}
+            </div>
+            <div>
+              <dt className="text-[12px] text-muted-foreground">{t('metricUsedMargin')}</dt>
+              <dd className="mt-0.5 text-[14px] font-medium tabular-nums">{fxMoney(account?.usedMargin ?? margin?.usedMargin, currency)}</dd>
+            </div>
+            <div>
+              <dt className="text-[12px] text-muted-foreground">{t('metricAvailable')}</dt>
+              <dd className="mt-0.5 text-[14px] font-medium tabular-nums">{fxMoney(account?.availableBalance ?? balance?.availableBalance, currency)}</dd>
+            </div>
+            <div>
+              <dt className="text-[12px] text-muted-foreground">{t('metricRealizedPnl')}</dt>
+              <dd className={cn('mt-0.5 text-[14px] font-medium tabular-nums', realized.tone === 'pos' && 'text-buy', realized.tone === 'neg' && 'text-sell')}>
+                {realized.text}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[12px] text-muted-foreground">{t('metricFees')}</dt>
+              <dd className="mt-0.5 text-[14px] font-medium tabular-nums">{fxMoney(fees?.total, fees?.currency ?? currency)}</dd>
+            </div>
+            <div>
+              <dt className="text-[12px] text-muted-foreground">{t('metricSwaps')}</dt>
+              <dd className="mt-0.5 text-[14px] font-medium tabular-nums">{fxMoney(swaps?.total, swaps?.currency ?? currency)}</dd>
             </div>
           </dl>
           <Link
             href={FOREX_ROUTES.accounts}
-            className="mt-3 inline-flex text-[11px] font-semibold text-primary underline-offset-2 hover:underline"
+            className="mt-4 inline-flex text-[13px] font-semibold text-primary underline-offset-2 hover:underline"
           >
             {t('viewAccountDetail')}
           </Link>
         </ForexPortalModuleCard>
 
-        <ForexPortalModuleCard className="lg:col-span-1" title={t('accountHealthHeading')} accent>
+        <ForexPortalModuleCard className={cn('lg:col-span-1', healthClass)} title={t('accountHealthHeading')} titleClassName={overviewTitle}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <ForexPortalStatusBadge
               tone={health === 'normal' ? 'success' : health === 'locked' ? 'danger' : 'warning'}
@@ -190,15 +224,15 @@ export function ForexAccountOverviewDashboard() {
               <ShieldAlert className="h-3 w-3" aria-hidden />
               {healthLabel}
             </ForexPortalStatusBadge>
-            <span className="font-mono text-[11px] text-muted-foreground">{stateLabel}</span>
+            <span className="text-[13px] text-muted-foreground">{stateLabel}</span>
           </div>
           {barPct != null ? (
-            <div className="mt-3">
-              <div className="flex justify-between text-[10px] text-muted-foreground">
+            <div className="mt-4">
+              <div className="flex justify-between text-[12px] text-muted-foreground">
                 <span>{t('metricMarginLevel')}</span>
-                <span className="font-mono tabular-nums text-foreground">{marginLevelNum}%</span>
+                <span className="tabular-nums text-foreground">{marginLevelNum}%</span>
               </div>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-sm bg-muted/50" role="progressbar" aria-valuenow={barPct} aria-valuemin={0} aria-valuemax={100}>
+              <div className="mt-1.5 h-2 overflow-hidden rounded-sm bg-muted/50" role="progressbar" aria-valuenow={barPct} aria-valuemin={0} aria-valuemax={100}>
                 <div
                   className={cn(
                     'h-full transition-all',
@@ -211,65 +245,61 @@ export function ForexAccountOverviewDashboard() {
               </div>
             </div>
           ) : null}
-          <dl className="mt-3 grid grid-cols-2 gap-2 font-mono text-[11px]">
+          <dl className="mt-4 grid grid-cols-2 gap-3">
             <div>
-              <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{t('reason')}</dt>
-              <dd className="mt-0.5">{fxPlain(risk?.reason)}</dd>
+              <dt className="text-[12px] text-muted-foreground">{t('reason')}</dt>
+              <dd className="mt-0.5 text-[14px]">{fxPlain(risk?.reason)}</dd>
             </div>
             <div>
-              <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{t('liquidationLock')}</dt>
-              <dd className="mt-0.5">{risk ? String(risk.liquidationLock) : unavailable}</dd>
+              <dt className="text-[12px] text-muted-foreground">{t('liquidationLock')}</dt>
+              <dd className="mt-0.5 text-[14px]">{risk ? (risk.liquidationLock ? t('healthLocked') : t('liquidationClear')) : unavailable}</dd>
             </div>
             <div className="col-span-2">
-              <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{t('calculation')}</dt>
-              <dd className="mt-0.5">{fxPlain(account?.calculationStatus ?? balance?.calculationStatus)}</dd>
+              <dt className="text-[12px] text-muted-foreground">{t('calculation')}</dt>
+              <dd className="mt-0.5 text-[14px]">{fxPlain(account?.calculationStatus ?? balance?.calculationStatus)}</dd>
             </div>
           </dl>
         </ForexPortalModuleCard>
       </div>
 
-      <ForexPortalModuleCard title={t('quickActionsHeading')}>
-        <div className="flex flex-wrap gap-2">
+      <ForexPortalModuleCard title={t('quickActionsHeading')} titleClassName={overviewTitle}>
+        <div className="flex flex-wrap gap-2" aria-label={t('overviewQuickActionsAria')}>
           <Link
             href={FOREX_ROUTES.trade}
-            className="tap-target inline-flex items-center gap-1.5 rounded border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-medium text-primary"
+            className="tap-target inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-[13px] font-semibold text-primary-foreground"
           >
             <LayoutGrid className="h-3.5 w-3.5" aria-hidden />
             {t('openTerminal')}
           </Link>
-          <Link href={FOREX_ROUTES.portfolio} className="tap-target inline-flex items-center rounded border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted/40">
+          <Link href={FOREX_ROUTES.portfolio} className={quietLink}>
             {t('viewPositions', { count: openPositionsCount })}
           </Link>
-          <Link href={FOREX_ROUTES.orders} className="tap-target inline-flex items-center rounded border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted/40">
+          <Link href={FOREX_ROUTES.orders} className={quietLink}>
             {t('viewOrders', { count: pendingOrdersCount })}
           </Link>
-          <Link href={FOREX_ROUTES.funds} className="tap-target inline-flex items-center rounded border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted/40">
+          <Link href={FOREX_ROUTES.funds} className={quietLink}>
             {t('viewFunds')}
           </Link>
-          <Link href={FOREX_ROUTES.ledger} className="tap-target inline-flex items-center rounded border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted/40">
+          <Link href={FOREX_ROUTES.ledger} className={quietLink}>
             {t('viewLedger')}
           </Link>
-          <Link href={FOREX_ROUTES.history} className="tap-target inline-flex items-center rounded border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted/40">
+          <Link href={FOREX_ROUTES.history} className={quietLink}>
             {t('viewHistory')}
           </Link>
           {activeForexAccountId ? (
-            <Link
-              href={FOREX_ROUTES.accountDetail(activeForexAccountId)}
-              className="tap-target inline-flex items-center rounded border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted/40"
-            >
+            <Link href={FOREX_ROUTES.accountDetail(activeForexAccountId)} className={quietLink}>
               {t('viewAccountDetail')}
             </Link>
           ) : null}
           {needsDemo ? (
             <Link
               href={FOREX_ROUTES.funds}
-              className="tap-target inline-flex items-center rounded border border-amber-500/35 bg-amber-500/10 px-3 py-1.5 text-[11px] font-medium text-amber-100"
+              className="tap-target inline-flex items-center rounded-md border border-amber-500/35 bg-amber-500/10 px-3 py-2 text-[13px] font-medium text-amber-100"
             >
               {t('demoFundingCta')}
             </Link>
           ) : null}
         </div>
-        {needsDemo ? <p className="mt-2 text-[11px] text-muted-foreground">{t('demoFundingHint')}</p> : null}
       </ForexPortalModuleCard>
 
       <footer className="border-t border-border/60 pt-2 text-[11px] text-muted-foreground">
