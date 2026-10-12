@@ -148,7 +148,11 @@ This rollback path is in the script. It has not been executed against production
 
 Production was not mutated.
 
-The live git SHA is still unknown from this agent because the VPS private key is only available to GitHub Actions. The smallest safe next action is to run this workflow with confirmation `INSPECT_ONLY`. That prints `PRODUCTION_HEAD` and container image IDs and stops.
+The live git SHA is still unknown from this agent because the VPS private key is only available to GitHub Actions.
+
+`gh workflow run` returned HTTP 404: GitHub only registers `workflow_dispatch` after the workflow file exists on the default branch `release/exchange-production-baseline`. The file is on `cursor/frontend-only-workflow-fb5f` (`baaa5dc`) and is not on that default branch. Merging that branch does not run `.github/workflows/production.yml`, because that workflow listens only to `main`.
+
+After the workflow file is on the default branch, the smallest safe action is a run with confirmation `INSPECT_ONLY`. That prints `PRODUCTION_HEAD` and container image IDs and stops.
 
 If that HEAD is `4bb8e42a1772e45fcd16bfe8e072accd863cc7d4`, a second run can deploy release `1591905dc047f397a2e764ee81dbeb1a42c6b8d5` with confirmation `DEPLOY_FRONTEND_ONLY`.
 
