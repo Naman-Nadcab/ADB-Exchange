@@ -17,7 +17,7 @@ export default function ForexAccountPage() {
   const balance = useForexStore((s) => s.balance);
 
   return (
-    <ForexPageFrame header="compact" title={tf('pages.account.title')} subtitle={tf('pages.account.subtitle')}>
+    <ForexPageFrame header="none" title={tf('pages.account.title')} subtitle={tf('pages.account.subtitle')}>
       {!authed ? (
         <ForexSignInPrompt href="/login?redirect=/forex/account" sectionKey="yourForexAccount" />
       ) : !account && !balance ? (

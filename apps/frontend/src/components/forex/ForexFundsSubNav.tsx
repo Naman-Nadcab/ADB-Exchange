@@ -20,7 +20,7 @@ export function ForexFundsSubNav() {
   const t = useTranslations('forex.fundsNav');
 
   return (
-    <nav className="flex flex-wrap gap-1.5" aria-label={t('aria')}>
+    <nav className="flex gap-1.5 overflow-x-auto" aria-label={t('aria')}>
       {ITEMS.map((item) => {
         const exact = 'exact' in item && item.exact;
         const active = exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);

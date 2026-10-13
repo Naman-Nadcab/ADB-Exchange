@@ -6,13 +6,11 @@ import { useTranslations } from 'next-intl';
 import {
   CircleDollarSign,
   Gauge,
-  LayoutGrid,
   LineChart,
   ShieldAlert,
   Wallet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ForexAccountSwitcher } from './ForexAccountSwitcher';
 import { fxMoney, fxPlain, fxSigned } from './format';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useForexStore } from '@/lib/forex/state/store';
@@ -102,7 +100,12 @@ export function ForexAccountOverviewDashboard() {
                 <ForexPortalStatusBadge tone="success">{fxPlain(activeMeta.status)}</ForexPortalStatusBadge>
               ) : null}
             </div>
-            <ForexAccountSwitcher />
+            <p className="truncate text-[15px] font-semibold text-foreground">
+              {kindBadge} · {currency}
+              <span className="ml-2 font-mono text-[12px] font-normal text-muted-foreground">
+                #{fxPlain(account?.accountId ?? activeForexAccountId)}
+              </span>
+            </p>
             <div>
               <p className="text-[12px] text-muted-foreground">{t('metricBalance')}</p>
               <p className="mt-1 text-[28px] font-semibold tabular-nums tracking-tight text-foreground sm:text-[32px]">
@@ -264,13 +267,6 @@ export function ForexAccountOverviewDashboard() {
 
       <ForexPortalModuleCard title={t('quickActionsHeading')} titleClassName={overviewTitle}>
         <div className="flex flex-wrap gap-2" aria-label={t('overviewQuickActionsAria')}>
-          <Link
-            href={FOREX_ROUTES.trade}
-            className="tap-target inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-[13px] font-semibold text-primary-foreground"
-          >
-            <LayoutGrid className="h-3.5 w-3.5" aria-hidden />
-            {t('openTerminal')}
-          </Link>
           <Link href={FOREX_ROUTES.portfolio} className={quietLink}>
             {t('viewPositions', { count: openPositionsCount })}
           </Link>
@@ -291,28 +287,12 @@ export function ForexAccountOverviewDashboard() {
               {t('viewAccountDetail')}
             </Link>
           ) : null}
-          {needsDemo ? (
-            <Link
-              href={FOREX_ROUTES.funds}
-              className="tap-target inline-flex items-center rounded-md border border-amber-500/35 bg-amber-500/10 px-3 py-2 text-[13px] font-medium text-amber-100"
-            >
-              {t('demoFundingCta')}
-            </Link>
-          ) : null}
         </div>
       </ForexPortalModuleCard>
 
       <footer className="border-t border-border/60 pt-2 text-[11px] text-muted-foreground">
         {t('footerBalance', { amount: fxMoney(account?.ledgerBalance ?? balance?.ledgerBalance, currency) })}
         {lastHydratedAt ? t('footerUpdated', { time: new Date(lastHydratedAt).toLocaleString() }) : null}
-        {' · '}
-        <Link href={FOREX_ROUTES.ledger} className="text-primary underline underline-offset-2">
-          {t('footerLedger')}
-        </Link>
-        {' · '}
-        <Link href={FOREX_ROUTES.funds} className="text-primary underline underline-offset-2">
-          {t('footerFunds')}
-        </Link>
       </footer>
     </div>
   );

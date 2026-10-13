@@ -31,7 +31,7 @@ export function ForexPortalUserMenu(props?: { compact?: boolean }) {
         type="button"
         className={cn(
           'inline-flex items-center justify-center rounded-md border border-border bg-muted/40 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          props?.compact ? 'h-8 w-8' : 'tap-target h-9 w-9'
+          'h-8 w-8 shrink-0'
         )}
         aria-label={tf('userMenu.label')}
       >

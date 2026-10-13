@@ -21,12 +21,14 @@ export function ForexTopNav(props?: { compact?: boolean }) {
 
   return (
     <header className="mobile-app-topbar sticky top-0 z-40 shrink-0 border-b border-border bg-card/95 backdrop-blur-sm">
-      <div className={cn('flex items-center gap-2 px-2', compact ? 'h-10' : 'h-12 gap-3 px-3')}>
+      <div className={cn('flex min-w-0 items-center gap-2 px-2', compact ? 'h-10' : 'h-12 gap-2 px-3')}>
         <BrandLogo variant="horizontal-gold" size="header" href={ROUTES.home} />
-        <EdaProductSwitcher variant="terminal" />
+        <div className="shrink-0">
+          <EdaProductSwitcher variant="terminal" />
+        </div>
         <nav
           className={cn(
-            'hidden shrink-0 items-center overflow-x-auto md:flex',
+            'hidden min-w-[13rem] flex-1 items-center overflow-x-auto md:flex',
             compact ? 'gap-0.5' : 'gap-1'
           )}
           aria-label={tf('chrome.terminalNavAria')}
@@ -53,11 +55,11 @@ export function ForexTopNav(props?: { compact?: boolean }) {
             );
           })}
         </nav>
-        <div className="ml-auto flex min-w-0 shrink items-center gap-1.5">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5">
           {!compact ? (
             <>
-              <div className="hidden min-w-0 sm:block">
-                <ForexAccountSwitcher />
+              <div className="hidden sm:block">
+                <ForexAccountSwitcher compact />
               </div>
               <ForexPortalUserMenu />
             </>

@@ -5,7 +5,7 @@
     "markets": "Markets",
     "portfolio": "Portfolio",
     "orders": "Orders",
-    "history": "History",
+    "history": "Trade history",
     "analysis": "Analysis",
     "alerts": "Alerts",
     "account": "Account",
@@ -24,7 +24,7 @@
     "overview": "Overview",
     "accounts": "Accounts",
     "funds": "Funds",
-    "ledger": "Account Ledger",
+    "ledger": "Ledger",
     "research": "Research",
     "tools": "Tools"
   },
@@ -109,7 +109,7 @@
       "subtitle": "Live Forex account opening when the platform and provider are enabled."
     },
     "ledger": {
-      "title": "Ledger",
+      "title": "Account ledger",
       "subtitle": "Forex cash movements with backend running balances. Reconciliation uses account values, not frontend math."
     },
     "accounts": {
@@ -141,7 +141,8 @@
       "portfolio": "portfolio",
       "yourForexAccount": "your Forex account",
       "funds": "funds",
-      "forexAccounts": "Forex accounts"
+      "forexAccounts": "Forex accounts",
+      "tradeHistory": "trade history"
     }
   },
   "bottomTabs": {
@@ -1063,7 +1064,11 @@
     "removeShort": "Rm"
   },
   "accountSwitcher": {
-    "activeAccountAria": "Active Forex account"
+    "activeAccountAria": "Active Forex account",
+    "activeSuffix": "Active",
+    "manageAccounts": "Manage accounts",
+    "createDemo": "Create demo account",
+    "simulatedNote": "Simulated · not real money"
   },
   "workspaceSwitch": {
     "profileLabel": "Profile",

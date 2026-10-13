@@ -287,12 +287,6 @@ export default function ForexAnalysisPage() {
           >
             Trade {inst?.displaySymbol ?? symbol}
           </Link>
-          <Link
-            href={FOREX_ROUTES.markets}
-            className="inline-flex h-7 items-center rounded-md border border-border px-2.5 text-[11px] font-semibold hover:border-primary/40"
-          >
-            Markets
-          </Link>
         </div>
       }
     >

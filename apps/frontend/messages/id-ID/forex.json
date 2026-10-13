@@ -5,7 +5,7 @@
     "markets": "Pasar",
     "portfolio": "Portofolio",
     "orders": "Order",
-    "history": "Riwayat",
+    "history": "Riwayat perdagangan",
     "analysis": "Analisis",
     "alerts": "Alert",
     "account": "Akun",
@@ -24,7 +24,7 @@
     "overview": "Ringkasan",
     "accounts": "Akun",
     "funds": "Dana",
-    "ledger": "Buku besar akun",
+    "ledger": "Buku besar",
     "research": "Riset",
     "tools": "Alat"
   },
@@ -109,7 +109,7 @@
       "subtitle": "Periksa kelayakan dan prasyarat sebelum Forex live diaktifkan."
     },
     "ledger": {
-      "title": "Buku besar",
+      "title": "Buku besar akun",
       "subtitle": "Pergerakan kas Forex dengan saldo berjalan backend. Rekonsiliasi memakai nilai akun, bukan perhitungan frontend."
     },
     "accounts": {
@@ -141,7 +141,8 @@
       "portfolio": "portofolio",
       "yourForexAccount": "akun Forex Anda",
       "funds": "dana",
-      "forexAccounts": "akun Forex"
+      "forexAccounts": "akun Forex",
+      "tradeHistory": "riwayat perdagangan"
     }
   },
   "bottomTabs": {
@@ -1063,7 +1064,11 @@
     "removeShort": "Hapus"
   },
   "accountSwitcher": {
-    "activeAccountAria": "Akun Forex aktif"
+    "activeAccountAria": "Akun Forex aktif",
+    "activeSuffix": "Aktif",
+    "manageAccounts": "Kelola akun",
+    "createDemo": "Buat akun demo",
+    "simulatedNote": "Simulasi · bukan uang sungguhan"
   },
   "workspaceSwitch": {
     "profileLabel": "Profil",

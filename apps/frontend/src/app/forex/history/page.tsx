@@ -45,7 +45,7 @@ export default function ForexHistoryPage() {
   return (
     <ForexPageFrame wide title={tf('pages.history.title')} subtitle={tf('pages.history.subtitle')}>
       {!authed ? (
-        <ForexSignInPrompt href="/login?redirect=/forex/history" sectionKey="portfolio" />
+        <ForexSignInPrompt href="/login?redirect=/forex/history" sectionKey="tradeHistory" />
       ) : (
         <>
           <ForexPortalAccountContext />

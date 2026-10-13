@@ -1262,12 +1262,10 @@ input[type="number"] {
 .forex-hub textarea {
   border-radius: 0.5rem;
 }
-.forex-hub .rounded,
-.forex-hub .rounded-md,
-.forex-hub .rounded-lg,
-.forex-hub .rounded-xl,
-.forex-hub .rounded-2xl {
-  border-radius: 0.75rem;
+.terminal-shell header.mobile-app-topbar a,
+.terminal-shell header.mobile-app-topbar button {
+  min-height: 0;
+  min-width: 0;
 }
 .forex-hub .forex-portal-hero,
 .forex-hub .forex-overview .forex-overview-hero {

@@ -5,7 +5,7 @@
     "markets": "市场",
     "portfolio": "持仓",
     "orders": "订单",
-    "history": "历史",
+    "history": "交易历史",
     "analysis": "分析",
     "alerts": "提醒",
     "account": "账户",
@@ -24,7 +24,7 @@
     "overview": "概览",
     "accounts": "账户",
     "funds": "资金",
-    "ledger": "账户账本",
+    "ledger": "账本",
     "research": "研究",
     "tools": "工具"
   },
@@ -109,7 +109,7 @@
       "subtitle": "在平台与服务商启用后开立真实外汇账户。"
     },
     "ledger": {
-      "title": "流水",
+      "title": "账户账本",
       "subtitle": "外汇资金变动及后端余额。对账以后端账户值为准，非前端计算。"
     },
     "accounts": {
@@ -141,7 +141,8 @@
       "portfolio": "持仓",
       "yourForexAccount": "您的外汇账户",
       "funds": "资金",
-      "forexAccounts": "外汇账户"
+      "forexAccounts": "外汇账户",
+      "tradeHistory": "交易历史"
     }
   },
   "bottomTabs": {
@@ -1063,7 +1064,11 @@
     "removeShort": "删"
   },
   "accountSwitcher": {
-    "activeAccountAria": "当前 Forex 账户"
+    "activeAccountAria": "当前 Forex 账户",
+    "activeSuffix": "当前",
+    "manageAccounts": "管理账户",
+    "createDemo": "创建模拟账户",
+    "simulatedNote": "模拟 · 非真实资金"
   },
   "workspaceSwitch": {
     "profileLabel": "配置",
