@@ -9,6 +9,7 @@ import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageF
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { fxPlain } from '@/components/forex/format';
+import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { forexApi } from '@/lib/forex/api/client';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
@@ -21,6 +22,7 @@ import { useAuthStore } from '@/store/auth';
 export default function ForexFundsPage() {
   const tf = useTranslations('forex');
   const t = useTranslations('forex.fundsPage');
+  const te = useTranslations('forex.enums');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const account = useForexStore((s) => s.account);
@@ -49,7 +51,7 @@ export default function ForexFundsPage() {
       }
       setNote(
         t('demoCreditNote', {
-          type: res.data.transaction?.type ?? 'INITIAL_FUNDING',
+          type: forexEnumLabel(te, res.data.transaction?.type ?? 'INITIAL_FUNDING'),
         })
       );
       await hydrateForexPrivate();
@@ -201,10 +203,10 @@ export default function ForexFundsPage() {
                   {funding.map((row) => (
                     <tr key={row.transactionId}>
                       <td>{fxPlain(row.timestamp)}</td>
-                      <td>{fxPlain(row.type)}</td>
+                      <td>{forexEnumLabel(te, row.type)}</td>
                       <td className="text-sell/90">{fxPlain(row.cashDebit ?? row.debit)}</td>
                       <td className="text-buy/90">{fxPlain(row.cashCredit ?? row.credit)}</td>
-                      <td>{fxPlain(row.status)}</td>
+                      <td>{forexEnumLabel(te, row.status)}</td>
                     </tr>
                   ))}
                 </tbody>

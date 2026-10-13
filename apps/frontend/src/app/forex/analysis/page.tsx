@@ -7,6 +7,7 @@ import { ForexChartFoundation } from '@/components/forex/ForexChartFoundation';
 import { ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalKpiCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { fxNum } from '@/components/forex/format';
+import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { latestIndicators } from '@/lib/forex/analysis/indicators';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
 import { deriveStructureLevels } from '@/lib/forex/chart/structure-levels';
@@ -63,6 +64,7 @@ function rsiTone(v: number | null | undefined): string {
 export default function ForexAnalysisPage() {
   const tForex = useTranslations('forex');
   const ta = useTranslations('forex.analysisPage');
+  const te = useTranslations('forex.enums');
   const symbol = useForexWorkspaceStore((s) => s.selectedSymbol);
   const setSymbol = useForexWorkspaceStore((s) => s.setSelectedSymbol);
   const tf = useForexWorkspaceStore((s) => s.chartTimeframe);
@@ -154,7 +156,7 @@ export default function ForexAnalysisPage() {
             const res = await forexApi.candles({ symbol, timeframe, limit: 160 });
             const u = unwrap(res);
             if (!u.ok || u.data.availability !== 'AVAILABLE' || !u.data.candles?.length) {
-              return { tf: timeframe, bias: 'n/a' as const, detail: u.ok ? u.data.reason ?? 'No history' : u.error.message };
+              return { tf: timeframe, bias: 'n/a' as const, detail: u.ok ? u.data.reason ?? ta('noHistory') : u.error.message };
             }
             const bars = u.data.candles
               .map((c) => {
@@ -173,16 +175,16 @@ export default function ForexAnalysisPage() {
             const a = e20[e20.length - 1]?.value;
             const b = e50[e50.length - 1]?.value;
             if (a == null || b == null) {
-              return { tf: timeframe, bias: 'n/a' as const, detail: `Need ≥50 bars (got ${bars.length})` };
+              return { tf: timeframe, bias: 'n/a' as const, detail: ta('needBars', { count: bars.length }) };
             }
-            if (a > b) return { tf: timeframe, bias: 'Bullish' as const, detail: `EMA20 ${a.toFixed(5)} > EMA50 ${b.toFixed(5)}` };
-            if (a < b) return { tf: timeframe, bias: 'Bearish' as const, detail: `EMA20 ${a.toFixed(5)} < EMA50 ${b.toFixed(5)}` };
-            return { tf: timeframe, bias: 'Neutral' as const, detail: 'EMA20 = EMA50' };
+            if (a > b) return { tf: timeframe, bias: 'Bullish' as const, detail: ta('emaAbove', { fast: a.toFixed(5), slow: b.toFixed(5) }) };
+            if (a < b) return { tf: timeframe, bias: 'Bearish' as const, detail: ta('emaBelow', { fast: a.toFixed(5), slow: b.toFixed(5) }) };
+            return { tf: timeframe, bias: 'Neutral' as const, detail: ta('emaEqual') };
           } catch (err) {
             return {
               tf: timeframe,
               bias: 'n/a' as const,
-              detail: err instanceof Error ? err.message : 'Request failed',
+              detail: err instanceof Error ? err.message : ta('requestFailed'),
             };
           }
         })
@@ -195,7 +197,7 @@ export default function ForexAnalysisPage() {
     return () => {
       cancelled = true;
     };
-  }, [symbol]);
+  }, [symbol, ta]);
 
   const calendarData = calendar.status === 'ready' ? calendar.data : null;
   const newsData = news.status === 'ready' ? news.data : null;
@@ -285,7 +287,7 @@ export default function ForexAnalysisPage() {
             href={`${FOREX_ROUTES.trade}?symbol=${encodeURIComponent(symbol)}`}
             className="inline-flex h-7 items-center rounded-md bg-primary px-2.5 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90"
           >
-            Trade {inst?.displaySymbol ?? symbol}
+            {ta('tradeSymbol', { symbol: inst?.displaySymbol ?? symbol })}
           </Link>
         </div>
       }
@@ -307,12 +309,12 @@ export default function ForexAnalysisPage() {
         <div className="flex shrink-0 flex-wrap items-center gap-2 font-mono text-[11px]">
           {quote ? (
             <>
-              <span className="text-buy">BID {fxNum(quote.bid, digits)}</span>
-              <span className="text-sell">ASK {fxNum(quote.ask, digits)}</span>
-              <span className="text-muted-foreground">SPR {quote.spreadPips}</span>
+              <span className="text-buy">{ta('bid')} {fxNum(quote.bid, digits)}</span>
+              <span className="text-sell">{ta('ask')} {fxNum(quote.ask, digits)}</span>
+              <span className="text-muted-foreground">{ta('spreadShort')} {quote.spreadPips}</span>
             </>
           ) : (
-            <span className="text-muted-foreground">Quote…</span>
+            <span className="text-muted-foreground">{ta('quoteLoading')}</span>
           )}
           <span
             className={cn(
@@ -320,7 +322,7 @@ export default function ForexAnalysisPage() {
               sessionOpen ? 'border-buy/30 text-buy' : 'border-sell/30 text-sell'
             )}
           >
-            {sessionOpen ? 'Open' : sessions?.eligibility.reason ?? 'Closed'}
+            {sessionOpen ? ta('sessionOpen') : sessions?.eligibility.reason ?? ta('sessionClosed')}
           </span>
         </div>
       </section>
@@ -353,44 +355,44 @@ export default function ForexAnalysisPage() {
         <section className="eda-card p-3 lg:col-span-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
-              Indicators · {tf || '15m'}
+              {ta('indicatorsHeading', { timeframe: tf || '15m' })}
             </h2>
             <span className="font-mono text-[10px] text-muted-foreground">
               {candles.status === 'READY'
-                ? `${candles.candles.length} bars · ${candles.source ?? '—'}`
-                : candles.status}
+                ? ta('barsMeta', { count: candles.candles.length, source: candles.source ?? '—' })
+                : forexEnumLabel(te, candles.status)}
             </span>
           </div>
           {candles.status === 'LOADING' ? (
-            <p className="mt-2 text-[12px] text-muted-foreground">Loading OHLC for indicators…</p>
+            <p className="mt-2 text-[12px] text-muted-foreground">{ta('loadingIndicators')}</p>
           ) : candles.status !== 'READY' ? (
             <p className="mt-2 text-[12px] text-muted-foreground">
-              Historical data unavailable{candles.reason ? ` · ${candles.reason}` : ''}.
+              {ta('historyUnavailable', { reason: candles.reason ? ` · ${candles.reason}` : '' })}
             </p>
           ) : (
             <dl className="mt-2 grid grid-cols-3 gap-1.5 sm:grid-cols-4">
-              <Metric label="SMA 20" value={fmt(indicators?.sma20)} />
-              <Metric label="EMA 20" value={fmt(indicators?.ema20)} />
-              <Metric label="RSI 14" value={fmt(indicators?.rsi14)} className={rsiTone(indicators?.rsi14)} />
-              <Metric label="Stoch 14" value={fmt(indicators?.stoch14)} />
-              <Metric label="MACD" value={fmt(indicators?.macd)} />
-              <Metric label="MACD sig" value={fmt(indicators?.macdSignal)} />
-              <Metric label="BB mid" value={fmt(indicators?.bollinger?.mid)} />
-              <Metric label="BB upper" value={fmt(indicators?.bollinger?.upper)} />
-              <Metric label="BB lower" value={fmt(indicators?.bollinger?.lower)} />
-              <Metric label="ATR 14" value={fmt(indicators?.atr14)} />
+              <Metric label={ta('sma20')} value={fmt(indicators?.sma20)} />
+              <Metric label={ta('ema20')} value={fmt(indicators?.ema20)} />
+              <Metric label={ta('rsi14')} value={fmt(indicators?.rsi14)} className={rsiTone(indicators?.rsi14)} />
+              <Metric label={ta('stoch')} value={fmt(indicators?.stoch14)} />
+              <Metric label={ta('macd')} value={fmt(indicators?.macd)} />
+              <Metric label={ta('macdSignal')} value={fmt(indicators?.macdSignal)} />
+              <Metric label={ta('bbMid')} value={fmt(indicators?.bollinger?.mid)} />
+              <Metric label={ta('bbUpper')} value={fmt(indicators?.bollinger?.upper)} />
+              <Metric label={ta('bbLower')} value={fmt(indicators?.bollinger?.lower)} />
+              <Metric label={ta('atr14')} value={fmt(indicators?.atr14)} />
               <Metric
-                label="ATR pips"
+                label={ta('atrPips')}
                 value={volatility?.atrPips != null ? volatility.atrPips.toFixed(1) : '—'}
               />
               <Metric
-                label="Day rng"
-                value={volatility?.dayRange != null ? `${volatility.dayRange.toFixed(1)}p` : '—'}
+                label={ta('dayRange')}
+                value={volatility?.dayRange != null ? `${volatility.dayRange.toFixed(1)}` : '—'}
               />
             </dl>
           )}
           <p className="mt-2 text-[10px] text-muted-foreground">
-            Analysis only · ATR/day range from OHLC ÷ pip size · not for margin or execution.
+            {ta('analysisOnlyNote')}
           </p>
         </section>
 
@@ -398,12 +400,12 @@ export default function ForexAnalysisPage() {
         <section className="eda-card p-3 lg:col-span-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
-              Multi-timeframe
+              {ta('multiTimeframe')}
             </h2>
-            <span className="text-[10px] text-muted-foreground">EMA20 vs EMA50 · not AI</span>
+            <span className="text-[10px] text-muted-foreground">{ta('biasNote')}</span>
           </div>
           {mtfStatus === 'loading' && mtf.length === 0 ? (
-            <p className="mt-2 text-[12px] text-muted-foreground">Computing bias across TFs…</p>
+            <p className="mt-2 text-[12px] text-muted-foreground">{ta('computingBias')}</p>
           ) : (
             <ul className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
               {mtf.map((row) => (
@@ -425,7 +427,7 @@ export default function ForexAnalysisPage() {
                           row.bias === 'Bullish' ? 'text-buy' : row.bias === 'Bearish' ? 'text-sell' : 'text-muted-foreground'
                         )}
                       >
-                        {row.bias}
+                        {row.bias === 'n/a' ? te('N_A') : forexEnumLabel(te, row.bias)}
                       </span>
                     </div>
                     <span className="truncate font-mono text-[9px] text-muted-foreground">{row.detail}</span>
@@ -441,10 +443,10 @@ export default function ForexAnalysisPage() {
                 sessionOpen ? 'border-buy/30 text-buy' : 'border-sell/30 text-sell'
               )}
             >
-              {sessionOpen ? 'Open' : 'Closed'}
+              {sessionOpen ? ta('sessionOpen') : ta('sessionClosed')}
             </span>
             <span className="rounded-full border border-border px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
-              {sessions?.eligibility.sessions?.length ? sessions.eligibility.sessions.join(' · ') : 'No session'}
+              {sessions?.eligibility.sessions?.length ? sessions.eligibility.sessions.join(' · ') : ta('noSession')}
             </span>
             <span
               className={cn(
@@ -452,7 +454,7 @@ export default function ForexAnalysisPage() {
                 overlap ? 'border-buy/30 text-buy' : 'border-border text-muted-foreground'
               )}
             >
-              L/NY {overlap ? 'overlap' : 'off'}
+              {ta('overlapRange', { state: overlap ? ta('overlapOn') : ta('overlapOff') })}
             </span>
           </div>
         </section>
@@ -464,7 +466,7 @@ export default function ForexAnalysisPage() {
             <span className="text-[10px] text-muted-foreground">{ta('ohlcDerived')}</span>
           </div>
           {candles.status === 'LOADING' ? (
-            <p className="mt-2 text-[12px] text-muted-foreground">Deriving levels…</p>
+            <p className="mt-2 text-[12px] text-muted-foreground">{ta('derivingLevels')}</p>
           ) : levels.length === 0 ? (
             <p className="mt-2 text-[12px] text-muted-foreground">{ta('waitForChartHistory')}</p>
           ) : (
@@ -492,7 +494,7 @@ export default function ForexAnalysisPage() {
               href={`${FOREX_ROUTES.trade}?symbol=${encodeURIComponent(symbol)}`}
               className="inline-flex h-7 items-center rounded-md bg-primary px-2.5 text-[10px] font-semibold text-primary-foreground"
             >
-              Terminal
+              {ta('openTerminal')}
             </Link>
             <button
               type="button"
@@ -502,7 +504,7 @@ export default function ForexAnalysisPage() {
                 setIntelTab('calendar');
               }}
             >
-              Cal {symbolCcys[0]}
+              {ta('calendarSymbol', { currency: symbolCcys[0] ?? '' })}
             </button>
           </div>
         </section>
@@ -511,16 +513,21 @@ export default function ForexAnalysisPage() {
       {/* Intel tabs — dense calendar / news cards */}
       <section className="eda-card p-3">
         <div className="flex flex-wrap items-center gap-1.5" role="tablist">
-          {(['calendar', 'news', 'levels', 'sessions'] as const).map((t) => (
+          {([
+            ['calendar', 'tabCalendar'],
+            ['news', 'tabNews'],
+            ['levels', 'tabLevels'],
+            ['sessions', 'tabSessions'],
+          ] as const).map(([id, labelKey]) => (
             <button
-              key={t}
+              key={id}
               type="button"
               role="tab"
-              aria-selected={intelTab === t}
-              onClick={() => setIntelTab(t)}
-              className={cn('eda-tab capitalize', intelTab === t && 'eda-tab-active')}
+              aria-selected={intelTab === id}
+              onClick={() => setIntelTab(id)}
+              className={cn('eda-tab', intelTab === id && 'eda-tab-active')}
             >
-              {t}
+              {ta(labelKey)}
             </button>
           ))}
         </div>
@@ -528,23 +535,31 @@ export default function ForexAnalysisPage() {
         {intelTab === 'calendar' ? (
           <div className="mt-3">
             {calendar.status === 'loading' ? (
-              <p className="text-[12px] text-muted-foreground">Loading economic calendar…</p>
+              <p className="text-[12px] text-muted-foreground">{ta('loadingCalendar')}</p>
             ) : calendar.status === 'error' ? (
               <p className="text-[12px] text-muted-foreground">
-                Calendar request failed{calendar.reason ? ` · ${calendar.reason}` : ''}.
+                {ta('calendarFailed', { reason: calendar.reason ? ` · ${calendar.reason}` : '' })}
               </p>
             ) : !calendarData || calendarData.availability === 'UNAVAILABLE' ? (
               <p className="text-[12px] text-muted-foreground">
-                Economic calendar unavailable{calendarData?.reason ? ` (${calendarData.reason})` : ''}.
+                {ta('calendarUnavailable', { reason: calendarData?.reason ? ` (${calendarData.reason})` : '' })}
               </p>
             ) : (
               <>
                 <div className="flex flex-wrap items-center gap-1.5">
                   <p className="mr-auto text-[10px] text-muted-foreground">
-                    {calendarData.provider ?? 'external'} · {calendarRows.length}/{calendarData.events.length} shown · Actual when
-                    supplied
+                    {ta('calendarMeta', {
+                      provider: calendarData.provider ?? te('N_A'),
+                      shown: calendarRows.length,
+                      total: calendarData.events.length,
+                    })}
                   </p>
-                  {(['ALL', 'High', 'Medium', 'Low'] as const).map((level) => (
+                  {([
+                    ['ALL', 'impactAll'],
+                    ['High', 'impactHigh'],
+                    ['Medium', 'impactMedium'],
+                    ['Low', 'impactLow'],
+                  ] as const).map(([level, labelKey]) => (
                     <button
                       key={level}
                       type="button"
@@ -552,7 +567,7 @@ export default function ForexAnalysisPage() {
                       onClick={() => setImpactFilter(level)}
                       className={cn('eda-tab', impactFilter === level && 'eda-tab-active')}
                     >
-                      {level}
+                      {ta(labelKey)}
                     </button>
                   ))}
                   <label className="flex items-center gap-1 text-[11px]">
@@ -564,7 +579,7 @@ export default function ForexAnalysisPage() {
                     >
                       {currencies.map((c) => (
                         <option key={c} value={c}>
-                          {c}
+                          {c === 'ALL' ? te('ALL') : c}
                         </option>
                       ))}
                     </select>
@@ -583,7 +598,7 @@ export default function ForexAnalysisPage() {
                               {ev.event}
                             </p>
                             <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
-                              {ev.time ? new Date(ev.time).toLocaleString() : 'Time n/a'}
+                              {ev.time ? new Date(ev.time).toLocaleString() : ta('timeUnavailable')}
                             </p>
                           </div>
                           <span
@@ -592,15 +607,15 @@ export default function ForexAnalysisPage() {
                               impactTone(ev.impact)
                             )}
                           >
-                            {ev.impact ?? 'n/a'}
+                            {ev.impact ? forexEnumLabel(te, ev.impact) : ta('impactUnavailable')}
                           </span>
                         </div>
                         <p className="mt-1.5 font-mono text-[10px] text-muted-foreground">
-                          P <span className="text-foreground">{ev.previous ?? '—'}</span>
+                          {ta('prevShort')} <span className="text-foreground">{ev.previous ?? '—'}</span>
                           <span className="mx-1.5 text-border">|</span>
-                          F <span className="text-foreground">{ev.forecast ?? '—'}</span>
+                          {ta('forecastShort')} <span className="text-foreground">{ev.forecast ?? '—'}</span>
                           <span className="mx-1.5 text-border">|</span>
-                          A <span className="text-foreground">{ev.actual ?? '—'}</span>
+                          {ta('actualShort')} <span className="text-foreground">{ev.actual ?? '—'}</span>
                         </p>
                       </article>
                     ))}
@@ -614,19 +629,19 @@ export default function ForexAnalysisPage() {
         {intelTab === 'news' ? (
           <div className="mt-3">
             {news.status === 'loading' ? (
-              <p className="text-[12px] text-muted-foreground">Loading news…</p>
+              <p className="text-[12px] text-muted-foreground">{ta('loadingNews')}</p>
             ) : news.status === 'error' ? (
               <p className="text-[12px] text-muted-foreground">
-                News request failed{news.reason ? ` · ${news.reason}` : ''}.
+                {ta('newsFailed', { reason: news.reason ? ` · ${news.reason}` : '' })}
               </p>
             ) : !newsData || newsData.availability === 'UNAVAILABLE' ? (
               <p className="text-[12px] text-muted-foreground">
-                No market news available{newsData?.reason ? ` (${newsData.reason})` : ''}.
+                {ta('newsUnavailable', { reason: newsData?.reason ? ` (${newsData.reason})` : '' })}
               </p>
             ) : (
               <>
                 <p className="text-[10px] text-muted-foreground">
-                  {newsData.provider ?? 'rss'} · {newsData.items.length} headlines · not auto-tagged unless currency provided
+                  {ta('newsMeta', { provider: newsData.provider ?? te('N_A'), count: newsData.items.length })}
                 </p>
                 <ul className="mt-2 grid gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
                   {newsData.items.slice(0, 36).map((item, i) => (
@@ -659,7 +674,7 @@ export default function ForexAnalysisPage() {
         {intelTab === 'levels' ? (
           <div className="mt-3">
             {candles.status === 'LOADING' ? (
-              <p className="text-[12px] text-muted-foreground">Loading OHLC to derive levels…</p>
+              <p className="text-[12px] text-muted-foreground">{ta('loadingLevels')}</p>
             ) : levels.length === 0 ? (
               <p className="text-[12px] text-muted-foreground">{ta('noLevelsYet')}</p>
             ) : (
@@ -688,10 +703,10 @@ export default function ForexAnalysisPage() {
         {intelTab === 'sessions' ? (
           <div className="mt-3 flex flex-wrap gap-1.5">
             <span className="rounded-md border border-border bg-muted/15 px-2.5 py-1.5 font-mono text-[11px]">
-              UTC <span className="text-foreground">{hour}:00</span>
+              {ta('sessionUtc')} <span className="text-foreground">{hour}:00</span>
             </span>
             <span className="rounded-md border border-border bg-muted/15 px-2.5 py-1.5 font-mono text-[11px]">
-              Active{' '}
+              {ta('sessionActive')}{' '}
               <span className="text-foreground">
                 {sessions?.eligibility.sessions?.length ? sessions.eligibility.sessions.join(', ') : '—'}
               </span>
@@ -702,7 +717,7 @@ export default function ForexAnalysisPage() {
                 overlap ? 'border-buy/30 bg-buy/10 text-buy' : 'border-border bg-muted/15 text-muted-foreground'
               )}
             >
-              L/NY {overlap ? 'overlap 12–16' : 'off'}
+              {ta('overlapRange', { state: overlap ? ta('overlapOn') : ta('overlapOff') })}
             </span>
             <span
               className={cn(
@@ -710,20 +725,20 @@ export default function ForexAnalysisPage() {
                 sessionOpen ? 'border-buy/30 bg-buy/10 text-buy' : 'border-sell/30 bg-sell/10 text-sell'
               )}
             >
-              {sessions?.eligibility.reason ?? (sessionOpen ? 'OPEN' : 'CLOSED')}
+              {sessions?.eligibility.reason ?? (sessionOpen ? ta('sessionOpen') : ta('sessionClosed'))}
             </span>
             <span className="rounded-md border border-border bg-muted/15 px-2.5 py-1.5 text-[10px] text-muted-foreground">
-              Overlaps:{' '}
+              {ta('overlapsLabel')}:{' '}
               {sessions?.eligibility.overlaps?.length
                 ? sessions.eligibility.overlaps.map((o) => o.join('/')).join(', ')
-                : 'none'}
+                : ta('overlapsNone')}
             </span>
           </div>
         ) : null}
       </section>
 
       <p className="text-[10px] text-muted-foreground">
-        Analysis only · not used for execution, margin or ledger · demo quotes / simulated execution.
+        {ta('footerNote')}
       </p>
     </ForexPageFrame>
   );

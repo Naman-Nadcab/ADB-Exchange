@@ -15,6 +15,7 @@ import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
 import { fxMoney, fxPlain } from '@/components/forex/format';
+import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import type { ForexLedgerRow } from '@/lib/forex/models/types';
 import { cn } from '@/lib/utils';
 
@@ -35,6 +36,7 @@ function cashCredit(row: ForexLedgerRow): string {
 export default function ForexLedgerPage() {
   const tf = useTranslations('forex');
   const tl = useTranslations('forex.ledgerPage');
+  const te = useTranslations('forex.enums');
   const tc = useTranslations('common.actions');
   const tu = useTranslations('forex.riskStates');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -88,7 +90,7 @@ export default function ForexLedgerPage() {
             <ForexPortalKpiCard
               emphasis="secondary"
               label={tl('kpiReconciliation')}
-              value={reconciliation?.status ?? tl('kpiReconciliationPending')}
+              value={reconciliation?.status ? forexEnumLabel(te, reconciliation.status) : tl('kpiReconciliationPending')}
               kind="plain"
             />
             <ForexPortalKpiCard emphasis="secondary" label={tl('kpiCurrency')} value={currency} kind="plain" />
@@ -105,7 +107,7 @@ export default function ForexLedgerPage() {
                 >
                   {types.map((t) => (
                     <option key={t} value={t}>
-                      {t}
+                      {forexEnumLabel(te, t)}
                     </option>
                   ))}
                 </select>
@@ -143,7 +145,7 @@ export default function ForexLedgerPage() {
                       <span className="text-foreground">{new Date(row.timestamp).toLocaleString()}</span>
                       <ForexPortalStatusBadge tone={ledgerStatusTone(row.status)}>{formatLedgerStatusLabel(row.status)}</ForexPortalStatusBadge>
                     </div>
-                    <p className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">{fxPlain(row.type)}</p>
+                    <p className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">{forexEnumLabel(te, row.type)}</p>
                     <p className="mt-1 truncate text-[10px] text-muted-foreground">{refShort(row)}</p>
                     <div className="mt-2 grid grid-cols-2 gap-2">
                       <span className="text-sell/90">{tl('colDebit')}: {fxPlain(cashDebit(row))}</span>
@@ -180,7 +182,7 @@ export default function ForexLedgerPage() {
                           {new Date(row.timestamp).toLocaleString()}
                         </button>
                       </td>
-                      <td className="px-3 py-2">{fxPlain(row.type)}</td>
+                      <td className="px-3 py-2">{forexEnumLabel(te, row.type)}</td>
                       <td className="max-w-[140px] truncate px-3 py-2 text-muted-foreground" title={refShort(row)}>
                         {refShort(row)}
                       </td>
@@ -206,7 +208,7 @@ export default function ForexLedgerPage() {
 
           {reconciliation ? (
             <section className="eda-card p-4 text-[12px]">
-              <p className="font-medium">{tl('reconciliationTitle', { status: reconciliation.status })}</p>
+              <p className="font-medium">{tl('reconciliationTitle', { status: forexEnumLabel(te, reconciliation.status) })}</p>
               <p className="mt-1 text-muted-foreground">{tl('reconciliationBody')}</p>
               <dl className="mt-3 grid grid-cols-2 gap-2 font-mono md:grid-cols-4">
                 <div>

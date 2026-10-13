@@ -3,12 +3,14 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
+import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { switchForexActiveAccount } from '@/lib/forex/runtime/hydrate';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useForexStore } from '@/lib/forex/state/store';
 
 export function ForexAccountSwitcher(props?: { compact?: boolean }) {
   const t = useTranslations('forex.accountSwitcher');
+  const te = useTranslations('forex.enums');
   const accounts = useForexStore((s) => s.forexAccounts);
   const activeId = useForexStore((s) => s.activeForexAccountId);
   const [busy, setBusy] = useState(false);
@@ -34,10 +36,9 @@ export function ForexAccountSwitcher(props?: { compact?: boolean }) {
     return null;
   }
 
-  const label = active
-    ? `${active.accountKind === 'DEMO' ? 'Demo' : active.accountKind} · ${active.currency}`
-    : 'Account';
-  const status = active?.status ? String(active.status) : null;
+  const kindLabel = active?.accountKind ? forexEnumLabel(te, active.accountKind) : te('ACCOUNT');
+  const label = active ? `${kindLabel} · ${active.currency}` : te('ACCOUNT');
+  const status = active?.status ? forexEnumLabel(te, String(active.status)) : null;
 
   return (
     <div className="relative shrink-0">
@@ -75,13 +76,13 @@ export function ForexAccountSwitcher(props?: { compact?: boolean }) {
               onClick={() => void onSelect(a.accountId)}
             >
               <span className="pointer-events-none font-medium">
-                {a.accountKind === 'DEMO' ? 'Demo' : a.accountKind} · {a.currency}
+                {forexEnumLabel(te, a.accountKind)} · {a.currency}
                 {a.accountId === activeId ? ` · ${t('activeSuffix')}` : ''}
               </span>
               <span className="pointer-events-none font-mono text-[10px] text-muted-foreground">
                 #{a.accountId}
-                {a.status ? ` · ${a.status}` : ''}
-                {a.positionMode ? ` · ${a.positionMode}` : ''}
+                {a.status ? ` · ${forexEnumLabel(te, String(a.status))}` : ''}
+                {a.positionMode ? ` · ${forexEnumLabel(te, a.positionMode)}` : ''}
               </span>
             </button>
           ))}

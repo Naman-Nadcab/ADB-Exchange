@@ -8,6 +8,7 @@ import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccount
 import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { ForexPositionPanel } from '@/components/forex/ForexPositionPanel';
 import { fxMoney, fxNum, fxPlain } from '@/components/forex/format';
+import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { positionUnrealizedPnl } from '@/lib/forex/models/position';
 import { useForexStore } from '@/lib/forex/state/store';
@@ -18,6 +19,7 @@ export default function ForexPortfolioPage() {
   const tf = useTranslations('forex');
   const tp = useTranslations('forex.portfolioPage');
   const tcol = useTranslations('forex.portfolioPage.columns');
+  const te = useTranslations('forex.enums');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const account = useForexStore((s) => s.account);
@@ -81,7 +83,7 @@ export default function ForexPortfolioPage() {
                       return (
                         <tr key={p.positionId}>
                           <td>{p.symbol}</td>
-                          <td className={cn(p.side === 'long' ? 'text-buy' : 'text-sell')}>{p.side}</td>
+                          <td className={cn(p.side === 'long' ? 'text-buy' : 'text-sell')}>{forexEnumLabel(te, p.side)}</td>
                           <td>{fxPlain(p.volume)}</td>
                           <td>{fxMoney(p.exposure, currency)}</td>
                           <td>{fxNum(p.entryPrice, 5)}</td>

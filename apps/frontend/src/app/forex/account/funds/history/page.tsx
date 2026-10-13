@@ -7,6 +7,7 @@ import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageF
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalModuleCard } from '@/components/forex/ForexPortalKpiCard';
 import { fxPlain } from '@/components/forex/format';
+import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
 import type { ForexLedgerRow } from '@/lib/forex/models/types';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
@@ -16,6 +17,7 @@ import { useAuthStore } from '@/store/auth';
 export default function ForexFundingHistoryPage() {
   const tf = useTranslations('forex');
   const t = useTranslations('forex.fundingHistoryPage');
+  const te = useTranslations('forex.enums');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const activeId = useForexStore((s) => s.activeForexAccountId);
@@ -72,10 +74,10 @@ export default function ForexFundingHistoryPage() {
                     {rows.map((row) => (
                       <tr key={row.transactionId}>
                         <td>{fxPlain(row.timestamp)}</td>
-                        <td>{fxPlain(row.type)}</td>
+                        <td>{forexEnumLabel(te, row.type)}</td>
                         <td className="text-sell/90">{fxPlain(row.cashDebit ?? row.debit)}</td>
                         <td className="text-buy/90">{fxPlain(row.cashCredit ?? row.credit)}</td>
-                        <td>{fxPlain(row.status)}</td>
+                        <td>{forexEnumLabel(te, row.status)}</td>
                         <td>{fxPlain(row.transactionId)}</td>
                       </tr>
                     ))}
