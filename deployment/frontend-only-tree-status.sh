@@ -27,7 +27,12 @@ classify_production_tree() {
       return 1
     fi
     marker=$(head -n 1 .deploy-rev | tr -d '\r')
-    if [ "$marker" = "$head_sha" ]; then
+    # A frontend-only checkout keeps this unstaged stamp when the committed
+    # blob does not change. The stamp then names the previous production
+    # HEAD, which is an ancestor of the live HEAD. Any other value is refused.
+    if printf '%s' "$marker" | grep -Eq '^[0-9a-f]{40}$' \
+      && git cat-file -e "${marker}^{commit}" 2>/dev/null \
+      && git merge-base --is-ancestor "$marker" "$head_sha"; then
       echo "PRODUCTION_TREE_STATUS=clean_except_valid_deploy_marker"
       return 0
     fi

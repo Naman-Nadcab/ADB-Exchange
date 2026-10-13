@@ -78,4 +78,22 @@ git reset -q HEAD -- .deploy-rev
 git checkout -q -- .deploy-rev
 expect_ok fully_clean PRODUCTION_TREE_STATUS=clean
 
+parent=$(git rev-parse HEAD)
+branch=$(git rev-parse --abbrev-ref HEAD)
+printf '%s\n' second >> tracked.txt
+git add tracked.txt
+git commit -q -m second
+printf '%s\n' "$parent" > .deploy-rev
+expect_ok marker_is_ancestor PRODUCTION_TREE_STATUS=clean_except_valid_deploy_marker
+
+git checkout -q --orphan unrelated
+git rm -q -rf .
+printf '%s\n' side > side.txt
+git add side.txt
+git commit -q -m side
+side=$(git rev-parse HEAD)
+git checkout -q "$branch"
+printf '%s\n' "$side" > .deploy-rev
+expect_fail marker_not_ancestor PRODUCTION_TREE_STATUS=invalid_deploy_marker
+
 echo "TREE_STATUS_TESTS_OK"
