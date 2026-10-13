@@ -92,7 +92,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          fingerprint: SHA256:LPQv0Wf2i7YpOkuz+UBDw0U244tU/NumiDo4v7zuHGc
+          fingerprint: SHA256:YVQaoV623zFLElU0Y9prysgU7xgigUAKc8a8kclxD7o
           command_timeout: 10m
           script_stop: true
           envs: FE_MODE,FE_APP,FE_EXPECTED,FE_RELEASE
@@ -105,7 +105,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          fingerprint: SHA256:LPQv0Wf2i7YpOkuz+UBDw0U244tU/NumiDo4v7zuHGc
+          fingerprint: SHA256:YVQaoV623zFLElU0Y9prysgU7xgigUAKc8a8kclxD7o
           source: frontend-only.bundle
           target: /tmp
           overwrite: true
@@ -122,7 +122,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          fingerprint: SHA256:LPQv0Wf2i7YpOkuz+UBDw0U244tU/NumiDo4v7zuHGc
+          fingerprint: SHA256:YVQaoV623zFLElU0Y9prysgU7xgigUAKc8a8kclxD7o
           command_timeout: 40m
           script_stop: true
           envs: FE_MODE,FE_APP,FE_EXPECTED,FE_RELEASE
