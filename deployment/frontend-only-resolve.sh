@@ -60,6 +60,35 @@ deploy_checks() {
 }
 
 case "${EVENT_NAME:-}" in
+  push)
+    ref=${EVENT_REF:-}
+    event_sha=${EVENT_SHA:-}
+    default_branch=${DEFAULT_BRANCH:-}
+    parsed=$(sh "$ROOT/deployment/frontend-only-tag.sh" parse "$ref")
+    role=$(field "$parsed" ROLE)
+    release=$(field "$parsed" RELEASE)
+    expected=$(field "$parsed" EXPECTED)
+    if [ "$role" != "run" ]; then
+      die "TAG_MALFORMED"
+    fi
+    if [ -z "$default_branch" ] || [ -z "$event_sha" ]; then
+      die "RUN_TAG_NOT_ON_DEFAULT_BRANCH"
+    fi
+    git fetch origin "$default_branch"
+    tip=$(git rev-parse "origin/$default_branch")
+    if [ "$tip" != "$event_sha" ]; then
+      echo "RUN_TAG_NOT_ON_DEFAULT_BRANCH tip=$tip event=$event_sha" >&2
+      exit 1
+    fi
+    release_ref="refs/tags/frontend-deploy/$release/$expected"
+    if ! git rev-parse --verify --quiet "${release_ref}^{commit}" >/dev/null; then
+      if ! git fetch origin "$release_ref:$release_ref"; then
+        die "TAG_MISSING"
+      fi
+    fi
+    sh "$ROOT/deployment/frontend-only-tag.sh" verify-request "$ref" >/dev/null
+    deploy_checks "$release" "$expected"
+    ;;
   workflow_dispatch)
     confirmation=${INPUT_CONFIRMATION:-}
     case "$confirmation" in

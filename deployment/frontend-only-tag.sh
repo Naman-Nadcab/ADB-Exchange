@@ -24,15 +24,28 @@ is_sha() {
 normalize_ref() {
   ref=$1
   case "$ref" in
-    refs/tags/frontend-deploy/*) printf '%s' "$ref" ;;
-    frontend-deploy/*) printf '%s' "refs/tags/$ref" ;;
+    refs/tags/frontend-deploy-run/*|refs/tags/frontend-deploy/*) printf '%s' "$ref" ;;
+    frontend-deploy-run/*|frontend-deploy/*) printf '%s' "refs/tags/$ref" ;;
+    *) die "TAG_MALFORMED" ;;
+  esac
+}
+
+tag_role() {
+  full=$1
+  case "$full" in
+    refs/tags/frontend-deploy-run/*) printf '%s' run ;;
+    refs/tags/frontend-deploy/*) printf '%s' release ;;
     *) die "TAG_MALFORMED" ;;
   esac
 }
 
 parse_ref() {
   full=$(normalize_ref "$1")
-  rest=${full#refs/tags/frontend-deploy/}
+  role=$(tag_role "$full")
+  case "$role" in
+    run) rest=${full#refs/tags/frontend-deploy-run/} ;;
+    release) rest=${full#refs/tags/frontend-deploy/} ;;
+  esac
   release=${rest%%/*}
   expected=${rest#*/}
   case "$expected" in
@@ -47,6 +60,7 @@ parse_ref() {
   if [ "$release" = "$expected" ]; then
     die "TAG_MALFORMED"
   fi
+  echo "ROLE=$role"
   echo "RELEASE=$release"
   echo "EXPECTED=$expected"
 }
@@ -57,13 +71,17 @@ field() {
 
 cmd=${1:-}
 case "$cmd" in
-  format)
+  format|format-run)
     release=${2:-}
     expected=${3:-}
     if ! is_sha "$release" || ! is_sha "$expected" || [ "$release" = "$expected" ]; then
       die "TAG_MALFORMED"
     fi
-    echo "frontend-deploy/$release/$expected"
+    if [ "$cmd" = "format-run" ]; then
+      echo "frontend-deploy-run/$release/$expected"
+    else
+      echo "frontend-deploy/$release/$expected"
+    fi
     ;;
   parse)
     parse_ref "${2:-}"
@@ -71,6 +89,10 @@ case "$cmd" in
   verify)
     parsed=$(parse_ref "${2:-}")
     release=$(field "$parsed" RELEASE)
+    role=$(field "$parsed" ROLE)
+    if [ "$role" != "release" ]; then
+      die "TAG_MALFORMED"
+    fi
     full=$(normalize_ref "${2:-}")
     if ! git rev-parse --verify --quiet "${full}^{commit}" >/dev/null; then
       die "TAG_MISSING"
@@ -82,6 +104,18 @@ case "$cmd" in
     fi
     printf '%s\n' "$parsed"
     echo "TAG_POINTS_AT_RELEASE"
+    ;;
+  verify-request)
+    parsed=$(parse_ref "${2:-}")
+    role=$(field "$parsed" ROLE)
+    release=$(field "$parsed" RELEASE)
+    expected=$(field "$parsed" EXPECTED)
+    if [ "$role" != "run" ]; then
+      die "TAG_MALFORMED"
+    fi
+    release_ref="refs/tags/frontend-deploy/$release/$expected"
+    sh "$0" verify "$release_ref"
+    echo "RUN_TAG_ACCEPTED"
     ;;
   *)
     die "UNKNOWN_TAG_COMMAND"

@@ -96,6 +96,18 @@ git tag "$non_frontend" "$backend"
 sh "$tag" verify "refs/tags/$non_frontend" >/dev/null
 expect_fail non_frontend_only DISALLOWED_PATHS "$preflight" "$base" "$backend"
 
+run_name=$(sh "$tag" format-run "$release" "$base")
+test "$run_name" = "frontend-deploy-run/$release/$base"
+git tag "$run_name" "$base"
+sh "$tag" verify-request "refs/tags/$run_name" | grep -q '^RUN_TAG_ACCEPTED$'
+expect_fail run_tag_is_not_a_release_pointer TAG_MALFORMED "$tag" verify "refs/tags/$run_name"
+echo "PASS run_tag_requires_release_tag"
+
+absent=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+absent_run=$(sh "$tag" format-run "$absent" "$base")
+git tag "$absent_run" "$base"
+expect_fail run_tag_missing_release_tag TAG_MISSING "$tag" verify-request "refs/tags/$absent_run"
+
 if grep -q 'frontend-deploy' "$root/.github/workflows/production.yml"; then
   echo "FAIL full-stack workflow references the frontend deploy tag" >&2
   exit 1

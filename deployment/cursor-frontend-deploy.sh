@@ -55,6 +55,7 @@ if [ "$MODE" = "request" ]; then
     echo "TAG_CREATED"
   fi
   sh "$ROOT/deployment/frontend-only-tag.sh" verify "refs/tags/$short" >/dev/null
+  run_short=$(sh "$ROOT/deployment/frontend-only-tag.sh" format-run "$RELEASE" "$EXPECTED")
   if [ "${FRONTEND_DEPLOY_PUSH:-}" != "1" ]; then
     echo "DEPLOYMENT_TAG=$short"
     echo "RELEASE=$RELEASE"
@@ -63,8 +64,26 @@ if [ "$MODE" = "request" ]; then
     exit 0
   fi
   git push origin "refs/tags/$short"
+  git fetch origin release/exchange-production-baseline
+  workflow_sha=$(git rev-parse origin/release/exchange-production-baseline)
+  if ! git grep -q 'frontend-deploy-run/\*\*' "$workflow_sha" -- .github/workflows/deploy-frontend-only.yml; then
+    die "WORKFLOW_TRIGGER_MISSING"
+  fi
+  if git rev-parse --verify --quiet "refs/tags/$run_short" >/dev/null; then
+    existing_run=$(git rev-parse "refs/tags/$run_short^{commit}")
+    if [ "$existing_run" != "$workflow_sha" ]; then
+      die "RUN_TAG_EXISTS_ELSEWHERE"
+    fi
+    echo "RUN_TAG_ALREADY_PRESENT"
+  else
+    git tag "$run_short" "$workflow_sha"
+    echo "RUN_TAG_CREATED"
+  fi
+  git push origin "refs/tags/$run_short"
   echo "TAG_PUSHED"
   echo "DEPLOYMENT_TAG=$short"
+  echo "RUN_TAG=$run_short"
+  echo "WORKFLOW_SHA=$workflow_sha"
   echo "RELEASE=$RELEASE"
   echo "EXPECTED=$EXPECTED"
   echo "TAG_REQUEST_OK"
