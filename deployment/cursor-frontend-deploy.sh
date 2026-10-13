@@ -11,6 +11,9 @@
 #     sh deployment/cursor-frontend-deploy.sh deploy
 #   VPS_HOST=... VPS_USER=... VPS_SSH_KEY_PATH=/path/to/key \
 #     sh deployment/cursor-frontend-deploy.sh rollback
+#   EXPECTED_SHA=<production-head> RELEASE_SHA=<frontend-commit> \
+#     sh deployment/cursor-frontend-deploy.sh request
+#   FRONTEND_DEPLOY_PUSH=1 adds: git push origin refs/tags/frontend-deploy/<release>/<expected>
 set -eu
 
 ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
@@ -30,9 +33,43 @@ die() {
 }
 
 case "$MODE" in
-  inspect|deploy|rollback) ;;
+  inspect|deploy|rollback|request) ;;
   *) die "UNKNOWN_MODE" ;;
 esac
+
+if [ "$MODE" = "request" ]; then
+  cd "$ROOT"
+  short=$(sh "$ROOT/deployment/frontend-only-tag.sh" format "$RELEASE" "$EXPECTED")
+  sh "$ROOT/deployment/frontend-only-preflight.sh" "$EXPECTED" "$RELEASE"
+  RELEASE=$(git rev-parse "${RELEASE}^{commit}")
+  EXPECTED=$(git rev-parse "${EXPECTED}^{commit}")
+  short=$(sh "$ROOT/deployment/frontend-only-tag.sh" format "$RELEASE" "$EXPECTED")
+  if git rev-parse --verify --quiet "refs/tags/$short" >/dev/null; then
+    existing=$(git rev-parse "refs/tags/$short^{commit}")
+    if [ "$existing" != "$RELEASE" ]; then
+      die "TAG_EXISTS_ELSEWHERE"
+    fi
+    echo "TAG_ALREADY_PRESENT"
+  else
+    git tag "$short" "$RELEASE"
+    echo "TAG_CREATED"
+  fi
+  sh "$ROOT/deployment/frontend-only-tag.sh" verify "refs/tags/$short" >/dev/null
+  if [ "${FRONTEND_DEPLOY_PUSH:-}" != "1" ]; then
+    echo "DEPLOYMENT_TAG=$short"
+    echo "RELEASE=$RELEASE"
+    echo "EXPECTED=$EXPECTED"
+    echo "TAG_REQUEST_OK"
+    exit 0
+  fi
+  git push origin "refs/tags/$short"
+  echo "TAG_PUSHED"
+  echo "DEPLOYMENT_TAG=$short"
+  echo "RELEASE=$RELEASE"
+  echo "EXPECTED=$EXPECTED"
+  echo "TAG_REQUEST_OK"
+  exit 0
+fi
 
 case "$HOST" in
   ''|*[!A-Za-z0-9._-]*) die "VPS_HOST_UNSAFE" ;;
