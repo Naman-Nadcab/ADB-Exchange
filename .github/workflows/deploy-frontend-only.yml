@@ -4,15 +4,18 @@ name: Deploy frontend only
 # It does not run the full-stack production workflow, migrations, or other services.
 # SSH uses native OpenSSH and accepts only the verified ED25519 host key.
 #
-# Cursor starts a deploy by pushing one lightweight tag. The tag must point at
-# the frontend release commit. Its name is:
+# Cursor records the release with a lightweight tag that points at that commit:
 #   frontend-deploy/<release-sha>/<expected-production-sha>
-# Both values are 40 lowercase hex characters. The create event is required
-# because the release commit does not contain this workflow file; GitHub reads
-# this file from the default branch and the job checks that file out explicitly.
-# Push filters are not used, so ordinary branch pushes and other tags do nothing.
+# GitHub Actions will not run a workflow file that is absent from the tagged
+# commit, and the frontend release does not contain this file. A second tag
+# starts this trusted file. It uses the same two SHAs and points at the
+# default-branch commit that contains this workflow:
+#   frontend-deploy-run/<release-sha>/<expected-production-sha>
+# Only that tag prefix starts a run. Branch pushes and other tags do not.
 on:
-  create:
+  push:
+    tags:
+      - 'frontend-deploy-run/**'
   workflow_dispatch:
     inputs:
       release_sha:
@@ -40,7 +43,7 @@ concurrency:
 
 jobs:
   resolve:
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'create' && github.event.ref_type == 'tag' && startsWith(github.ref, 'refs/tags/frontend-deploy/'))
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/frontend-deploy-run/'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
@@ -59,6 +62,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_REF: ${{ github.ref }}
           EVENT_SHA: ${{ github.sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           INPUT_CONFIRMATION: ${{ github.event.inputs.confirmation }}
           INPUT_RELEASE: ${{ github.event.inputs.release_sha }}
           INPUT_EXPECTED: ${{ github.event.inputs.expected_production_sha }}
@@ -92,15 +96,13 @@ jobs:
           printf '%s' "$expected" | grep -Eq '^[0-9a-f]{40}$'
           printf '%s' "$release" | grep -Eq '^[0-9a-f]{40}$'
           chmod +x deployment/frontend-only-preflight.sh deployment/frontend-only-tag.sh
-          if [ "$EVENT_NAME" = "create" ]; then
+          if [ "$EVENT_NAME" = "push" ]; then
             sh deployment/frontend-only-tag.sh parse "$EVENT_REF" >/dev/null
-            if ! git rev-parse --verify --quiet "${EVENT_REF}^{commit}" >/dev/null; then
-              git fetch origin "$EVENT_REF:$EVENT_REF"
+            release_ref="refs/tags/frontend-deploy/$release/$expected"
+            if ! git rev-parse --verify --quiet "${release_ref}^{commit}" >/dev/null; then
+              git fetch origin "$release_ref:$release_ref"
             fi
-            sh deployment/frontend-only-tag.sh verify "$EVENT_REF"
-            parsed=$(sh deployment/frontend-only-tag.sh parse "$EVENT_REF")
-            test "$(printf '%s\n' "$parsed" | awk -F= '/^RELEASE=/ { print $2; exit }')" = "$release"
-            test "$(printf '%s\n' "$parsed" | awk -F= '/^EXPECTED=/ { print $2; exit }')" = "$expected"
+            sh deployment/frontend-only-tag.sh verify-request "$EVENT_REF" >/dev/null
           fi
           git cat-file -e "${expected}^{commit}" 2>/dev/null || git fetch --no-tags origin "$expected"
           git cat-file -e "${release}^{commit}" 2>/dev/null || git fetch --no-tags origin "$release"

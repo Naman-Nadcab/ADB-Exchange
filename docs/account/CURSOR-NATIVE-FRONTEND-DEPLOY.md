@@ -18,7 +18,15 @@ Both values are the full 40-character lowercase commit IDs. The tag must point a
 frontend-deploy/1591905dc047f397a2e764ee81dbeb1a42c6b8d5/4bb8e42a1772e45fcd16bfe8e072accd863cc7d4
 ```
 
-The workflow uses the `create` event, not a branch-push or a general tag filter. The release commit does not contain the workflow file, so GitHub reads the workflow from the default branch (`release/exchange-production-baseline`). The job checks that branch out and then fetches the release commit. Ordinary branch pushes, other tags, and the full-stack `production.yml` workflow do not deploy the frontend.
+The release commit does not contain `.github/workflows/deploy-frontend-only.yml`. GitHub Actions loads a workflow from the tagged commit, so pushing only `frontend-deploy/...` does not start a run. That was observed: the tag at `1591905dc047f397a2e764ee81dbeb1a42c6b8d5` created no workflow run, while creating the branch that contains this file did (`create` run `38389558142`, jobs skipped).
+
+The command therefore also pushes:
+
+```text
+frontend-deploy-run/<release-sha>/<expected-production-sha>
+```
+
+That tag points at the current tip of `release/exchange-production-baseline`, the commit that contains this workflow. The workflow starts only for that tag prefix. It refuses to continue unless `frontend-deploy/<release-sha>/<expected-production-sha>` still peels to the release commit, and unless the run tag itself is the default-branch tip. Ordinary branch pushes, other tags, and `production.yml` do not deploy the frontend.
 
 Before any production change, the same preflight, host-key, tree-status, bundle, and remote scripts reject the request when any of these are true:
 
@@ -51,7 +59,7 @@ This repository currently has no rulesets, and the `production` environment has 
 
 Add a repository ruleset before relying on this in a wider team:
 
-- Target `refs/tags/frontend-deploy/**`.
+- Target `refs/tags/frontend-deploy/**` and `refs/tags/frontend-deploy-run/**`.
 - Allow creation only for maintainers who are supposed to deploy.
 - Block force-updates and deletion of those tags.
 - Do not grant that bypass to the GitHub App identities that should not deploy.
