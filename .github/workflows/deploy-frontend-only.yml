@@ -1,0 +1,138 @@
+name: Deploy frontend only
+
+# Rebuilds only the customer frontend container on the production VPS.
+# It does not run the full-stack production workflow, migrations, or other services.
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: 'Frontend release commit. Required for DEPLOY_FRONTEND_ONLY.'
+        required: false
+        default: ''
+        type: string
+      expected_production_sha:
+        description: 'Production HEAD that must already be checked out. Required for DEPLOY_FRONTEND_ONLY.'
+        required: false
+        default: ''
+        type: string
+      confirmation:
+        description: 'INSPECT_ONLY, DEPLOY_FRONTEND_ONLY, or ROLLBACK_FRONTEND_ONLY'
+        required: true
+        default: INSPECT_ONLY
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-only-production
+  cancel-in-progress: false
+
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Accept only an explicit operation
+        run: |
+          set -eu
+          case "${{ inputs.confirmation }}" in
+            INSPECT_ONLY|DEPLOY_FRONTEND_ONLY|ROLLBACK_FRONTEND_ONLY) ;;
+            *)
+              echo "Rejected confirmation. Use INSPECT_ONLY, DEPLOY_FRONTEND_ONLY, or ROLLBACK_FRONTEND_ONLY." >&2
+              exit 1
+              ;;
+          esac
+          echo "confirmation=${{ inputs.confirmation }}"
+
+  remote:
+    needs: policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require a frontend-only fast-forward and bundle it
+        if: inputs.confirmation == 'DEPLOY_FRONTEND_ONLY'
+        run: |
+          set -eu
+          expected='${{ inputs.expected_production_sha }}'
+          release='${{ inputs.release_sha }}'
+          case "$expected" in
+            [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*) ;;
+            *) echo "expected_production_sha is not a commit SHA" >&2; exit 1 ;;
+          esac
+          case "$release" in
+            [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*) ;;
+            *) echo "release_sha is not a commit SHA" >&2; exit 1 ;;
+          esac
+          chmod +x deployment/frontend-only-preflight.sh
+          ./deployment/frontend-only-preflight.sh "$expected" "$release"
+          expected=$(git rev-parse "${expected}^{commit}")
+          release=$(git rev-parse "${release}^{commit}")
+          git update-ref refs/frontend-only/release "$release"
+          git bundle create frontend-only.bundle refs/frontend-only/release ^"$expected"
+          git bundle verify frontend-only.bundle >/dev/null
+          tip=$(git bundle list-heads frontend-only.bundle | awk 'NR==1 { print $1 }')
+          test "$tip" = "$release"
+          echo "bundle_tip=$tip"
+
+      - name: Read-only inspection or frontend rollback
+        if: inputs.confirmation != 'DEPLOY_FRONTEND_ONLY'
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          FE_MODE: ${{ inputs.confirmation == 'ROLLBACK_FRONTEND_ONLY' && 'rollback' || 'inspect' }}
+          FE_APP: ${{ secrets.VPS_DEPLOY_PATH }}
+          FE_EXPECTED: ${{ inputs.expected_production_sha }}
+          FE_RELEASE: ${{ inputs.release_sha }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          fingerprint: SHA256:LPQv0Wf2i7YpOkuz+UBDw0U244tU/NumiDo4v7zuHGc
+          command_timeout: 10m
+          script_stop: true
+          envs: FE_MODE,FE_APP,FE_EXPECTED,FE_RELEASE
+          script_path: deployment/frontend-only-remote.sh
+
+      - name: Copy the frontend bundle
+        if: inputs.confirmation == 'DEPLOY_FRONTEND_ONLY'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          fingerprint: SHA256:LPQv0Wf2i7YpOkuz+UBDw0U244tU/NumiDo4v7zuHGc
+          source: frontend-only.bundle
+          target: /tmp
+          overwrite: true
+
+      - name: Rebuild only the frontend container
+        if: inputs.confirmation == 'DEPLOY_FRONTEND_ONLY'
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          FE_MODE: deploy
+          FE_APP: ${{ secrets.VPS_DEPLOY_PATH }}
+          FE_EXPECTED: ${{ inputs.expected_production_sha }}
+          FE_RELEASE: ${{ inputs.release_sha }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          fingerprint: SHA256:LPQv0Wf2i7YpOkuz+UBDw0U244tU/NumiDo4v7zuHGc
+          command_timeout: 40m
+          script_stop: true
+          envs: FE_MODE,FE_APP,FE_EXPECTED,FE_RELEASE
+          script_path: deployment/frontend-only-remote.sh
+
+      - name: Public smoke checks
+        if: inputs.confirmation == 'DEPLOY_FRONTEND_ONLY'
+        run: |
+          set -eu
+          curl -fsSI --max-time 20 https://169.58.39.2/login >/dev/null
+          curl -fsSI --max-time 20 https://169.58.39.2/forex/account >/dev/null
+          curl -fsS --max-time 20 https://169.58.39.2/health | grep -q '"status":"healthy"'
+          echo "public_smoke=ok"
