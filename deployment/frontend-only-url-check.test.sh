@@ -68,4 +68,45 @@ printf '%s\n' "$out" | grep -q 'PUBLIC_API_URL_reason=ok'
 printf '%s\n' 'PUBLIC_API_URL=https://user:password@169.58.39.2/secret' > .env
 expect userinfo 'PUBLIC_API_URL_reason=userinfo'
 
+printf '%s\n' 'PUBLIC_HOST=169.58.39.2' 'PUBLIC_API_URL=http://169.58.39.2' 'PUBLIC_WS_URL=ws://169.58.39.2' > .env
+out=$(
+  FRONTEND_ONLY_URL_LIBRARY=1
+  . "$script"
+  require_frontend_build_urls
+)
+printf '%s\n' "$out" | grep -q '^PUBLIC_API_URL_ok=yes$'
+printf '%s\n' "$out" | grep -q '^PUBLIC_WS_URL_ok=yes$'
+printf '%s\n' "$out" | grep -q '^PUBLIC_API_URL_scheme=http$'
+echo "PASS production_edge_http"
+
+printf '%s\n' 'PUBLIC_HOST=169.58.39.2' 'PUBLIC_API_URL=https://api.example.com' 'PUBLIC_WS_URL=wss://169.58.39.2' > .env
+set +e
+out=$(
+  FRONTEND_ONLY_URL_LIBRARY=1
+  . "$script"
+  require_frontend_build_urls
+)
+code=$?
+set -e
+test "$code" -ne 0
+printf '%s\n' "$out" | grep -q 'PUBLIC_API_URL_reason=placeholder'
+echo "PASS rejects_placeholder"
+
+printf '%s\n' 'PUBLIC_HOST=169.58.39.2' 'PUBLIC_API_URL=https://evil.example' 'PUBLIC_WS_URL=wss://169.58.39.2' > .env
+set +e
+out=$(
+  FRONTEND_ONLY_URL_LIBRARY=1
+  . "$script"
+  require_frontend_build_urls
+)
+code=$?
+set -e
+test "$code" -ne 0
+printf '%s\n' "$out" | grep -q 'PUBLIC_API_URL_reason=host'
+echo "PASS rejects_other_host"
+
+if grep -q 'classify_public_url' "$root/deployment/frontend-only-remote.sh"; then
+  echo "FAIL remote script still has the https-only check" >&2
+  exit 1
+fi
 echo "URL_CHECK_TESTS_OK"

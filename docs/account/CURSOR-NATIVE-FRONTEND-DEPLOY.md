@@ -38,7 +38,7 @@ Before any production change, the same preflight, host-key, tree-status, bundle,
 - The live tree is not `clean` or `clean_except_valid_deploy_marker`.
 - The ED25519 host key does not match `SHA256:LPQv0Wf2i7YpOkuz+UBDw0U244tU/NumiDo4v7zuHGc`.
 - `deployment/frontend-only-remote.sh` no longer contains the frontend rollback procedure.
-- The server `PUBLIC_API_URL` is not HTTPS or `PUBLIC_WS_URL` is not WSS, including the rejected placeholders `api.example.com`, `CHANGE_ME`, and `localhost`.
+- `PUBLIC_API_URL` or `PUBLIC_WS_URL` is empty, a placeholder (`api.example.com`, `CHANGE_ME`, `localhost`), or its host is not the production edge `169.58.39.2`. `http` and `ws` are accepted for that host because Nginx terminates TLS and the browser uses same-origin when the hosts match.
 
 The remote script rebuilds only the frontend service (`docker compose up -d --build --no-deps frontend`). It does not run migrations or restart the other services. On a failed rebuild it restores the previous frontend image.
 

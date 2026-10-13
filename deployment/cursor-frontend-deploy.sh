@@ -170,7 +170,9 @@ run_remote_mode() {
   mode=$1
   remote_sh "FE_MODE=$(printf '%q' "$mode") FE_APP=$(printf '%q' "$APP") FE_EXPECTED=$(printf '%q' "$EXPECTED") FE_RELEASE=$(printf '%q' "$RELEASE") sh -s" <<FE_REMOTE
 FRONTEND_ONLY_TREE_LIBRARY=1
+FRONTEND_ONLY_URL_LIBRARY=1
 $(cat "$ROOT/deployment/frontend-only-tree-status.sh")
+$(cat "$ROOT/deployment/frontend-only-url-check.sh")
 $(cat "$ROOT/deployment/frontend-only-remote.sh")
 FE_REMOTE
 }

@@ -194,6 +194,88 @@ classify_baked_value() {
   echo "${key}_reason=ok"
 }
 
+require_frontend_build_urls() {
+  # The browser uses same-origin when the build URL host matches the page host.
+  # Nginx terminates TLS for that host, so http/ws to the production edge is valid.
+  # Any other host, an empty value, or a placeholder is rejected.
+  prod=$(trim "$(grep -E '^(export[[:space:]]+)?PUBLIC_HOST[[:space:]]*=' .env 2>/dev/null | head -1 | sed 's/^[^=]*=//')")
+  if [ "$prod" != "$edge_host" ]; then
+    echo "PUBLIC_HOST_ok=no"
+    echo "PUBLIC_API_URL_ok=no"
+    echo "PUBLIC_API_URL_reason=production_host"
+    return 1
+  fi
+  echo "PUBLIC_HOST_ok=yes"
+
+  accept_edge_url() {
+    key=$1
+    secure=$2
+    plain=$3
+    raw=$(grep -E "^${key}=" .env 2>/dev/null | head -1 || true)
+    if [ -z "$raw" ]; then
+      echo "${key}_ok=no"
+      echo "${key}_reason=missing"
+      return 1
+    fi
+    val=$(trim "${raw#*=}")
+    if [ -z "$val" ]; then
+      echo "${key}_ok=no"
+      echo "${key}_reason=empty"
+      return 1
+    fi
+    if printf '%s' "$val" | grep -q 'api.example.com\|CHANGE_ME\|localhost'; then
+      echo "${key}_ok=no"
+      echo "${key}_reason=placeholder"
+      return 1
+    fi
+    scheme=$(printf '%s' "$val" | sed -n 's|^\([a-z][a-z0-9+.-]*\)://.*|\1|p')
+    case "$scheme" in
+      "$secure"|"$plain") ;;
+      *)
+        echo "${key}_ok=no"
+        echo "${key}_scheme=${scheme:-none}"
+        echo "${key}_reason=bad_scheme"
+        return 1
+        ;;
+    esac
+    rest=${val#*://}
+    rest=${rest%%/*}
+    rest=${rest%%\?*}
+    case "$rest" in
+      *@*)
+        echo "${key}_ok=no"
+        echo "${key}_reason=userinfo"
+        return 1
+        ;;
+    esac
+    host=${rest%%:*}
+    port=${rest#"$host"}
+    port=${port#:}
+    if ! safe_host "$host" || [ "$host" != "$prod" ]; then
+      echo "${key}_ok=no"
+      echo "${key}_reason=host"
+      return 1
+    fi
+    case "$port" in
+      ''|80|443) ;;
+      *)
+        echo "${key}_ok=no"
+        echo "${key}_reason=port"
+        return 1
+        ;;
+    esac
+    echo "${key}_scheme=$scheme"
+    echo "${key}_host=$host"
+    echo "${key}_ok=yes"
+    return 0
+  }
+
+  ok=0
+  accept_edge_url PUBLIC_API_URL https http || ok=1
+  accept_edge_url PUBLIC_WS_URL wss ws || ok=1
+  return "$ok"
+}
+
 report_frontend_urls() {
   classify_assignment PUBLIC_API_URL https || true
   classify_assignment PUBLIC_WS_URL wss || true
