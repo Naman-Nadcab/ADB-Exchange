@@ -122,10 +122,7 @@ assert_others_unchanged() {
   rm -f "$after"
 }
 
-if [ -n "$(git status --porcelain)" ]; then
-  echo "WORKING_TREE_DIRTY" >&2
-  exit 1
-fi
+classify_production_tree
 
 HEAD=$(git rev-parse HEAD)
 echo "PRODUCTION_HEAD=$HEAD"

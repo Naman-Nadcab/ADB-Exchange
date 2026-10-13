@@ -56,6 +56,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Validate the production-tree rule
+        run: sh deployment/frontend-only-tree-status.test.sh
+
       - name: Require a frontend-only fast-forward and bundle it
         if: inputs.confirmation == 'DEPLOY_FRONTEND_ONLY'
         run: |
@@ -142,29 +145,27 @@ jobs:
             -o BatchMode=yes \
             -o ConnectTimeout=20 \
             "$VPS_USER@$VPS_HOST" \
-            "APP=$(printf '%q' "$app") sh -s" <<'EOF'
+            "APP=$(printf '%q' "$app") sh -s" <<FE_REMOTE
           set -eu
-          cd "$APP"
+          cd "\$APP"
           if [ ! -f docker-compose.production.yml ] || [ ! -d apps/frontend ] || [ ! -d .git ]; then
             echo "APP_PATH_INVALID" >&2
             exit 1
           fi
-          echo "PRODUCTION_HOSTNAME=$(hostname)"
-          echo "PRODUCTION_HEAD=$(git rev-parse HEAD)"
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "PRODUCTION_TREE_STATUS=dirty"
-            exit 1
-          fi
-          echo "PRODUCTION_TREE_STATUS=clean"
+          echo "PRODUCTION_HOSTNAME=\$(hostname)"
+          echo "PRODUCTION_HEAD=\$(git rev-parse HEAD)"
+          FRONTEND_ONLY_TREE_LIBRARY=1
+          $(cat deployment/frontend-only-tree-status.sh)
+          classify_production_tree
           for name in exchange-frontend exchange-backend exchange-postgres exchange-redis exchange-nats exchange-matching-engine exchange-admin exchange-nginx exchange-indexer exchange-rabbitmq; do
-            if docker inspect "$name" >/dev/null 2>&1; then
-              docker inspect -f "$name status={{.State.Status}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}} started={{.State.StartedAt}} image={{.Image}}" "$name"
+            if docker inspect "\$name" >/dev/null 2>&1; then
+              docker inspect -f "\$name status={{.State.Status}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}} started={{.State.StartedAt}} image={{.Image}}" "\$name"
             else
-              echo "$name MISSING"
+              echo "\$name MISSING"
             fi
           done
           echo "INSPECT_ONLY"
-          EOF
+          FE_REMOTE
 
       - name: Roll back only the frontend container
         if: inputs.confirmation == 'ROLLBACK_FRONTEND_ONLY'
@@ -195,7 +196,11 @@ jobs:
             -o BatchMode=yes \
             -o ConnectTimeout=20 \
             "$VPS_USER@$VPS_HOST" \
-            "FE_MODE=rollback FE_APP=$(printf '%q' "$app") sh -s" < deployment/frontend-only-remote.sh
+            "FE_MODE=rollback FE_APP=$(printf '%q' "$app") sh -s" <<FE_REMOTE
+          FRONTEND_ONLY_TREE_LIBRARY=1
+          $(cat deployment/frontend-only-tree-status.sh)
+          $(cat deployment/frontend-only-remote.sh)
+          FE_REMOTE
 
       - name: Copy the frontend bundle
         if: inputs.confirmation == 'DEPLOY_FRONTEND_ONLY'
@@ -262,7 +267,11 @@ jobs:
             -o BatchMode=yes \
             -o ConnectTimeout=20 \
             "$VPS_USER@$VPS_HOST" \
-            "FE_MODE=deploy FE_APP=$(printf '%q' "$app") FE_EXPECTED=$(printf '%q' "$FE_EXPECTED") FE_RELEASE=$(printf '%q' "$FE_RELEASE") sh -s" < deployment/frontend-only-remote.sh
+            "FE_MODE=deploy FE_APP=$(printf '%q' "$app") FE_EXPECTED=$(printf '%q' "$FE_EXPECTED") FE_RELEASE=$(printf '%q' "$FE_RELEASE") sh -s" <<FE_REMOTE
+          FRONTEND_ONLY_TREE_LIBRARY=1
+          $(cat deployment/frontend-only-tree-status.sh)
+          $(cat deployment/frontend-only-remote.sh)
+          FE_REMOTE
 
       - name: Public smoke checks
         if: inputs.confirmation == 'DEPLOY_FRONTEND_ONLY'
