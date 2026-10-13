@@ -48,7 +48,7 @@ export function ForexConnectionStatus() {
           state !== 'CONNECTED' && state !== 'STALE' && state !== 'DEGRADED' && 'bg-muted-foreground'
         )}
       />
-      <span>{label[state] ?? state}</span>
+      <span className="hidden xl:inline">{label[state] ?? state}</span>
       <span className="sr-only">{tc('srOnly', { state })}</span>
     </span>
   );

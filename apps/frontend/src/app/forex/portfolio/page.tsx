@@ -43,10 +43,10 @@ export default function ForexPortfolioPage() {
           </section>
 
           <section className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-6 md:gap-3" aria-label={tp('summaryAria')}>
-            <ForexPortalKpiCard emphasis="primary" icon={Wallet} label={tp('kpiBalance')} value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
-            <ForexPortalKpiCard emphasis="primary" icon={CircleDollarSign} label={tp('kpiEquity')} value={account?.equity ?? balance?.equity} currency={currency} />
-            <ForexPortalKpiCard emphasis="secondary" label={tp('kpiUsedMargin')} value={account?.usedMargin ?? margin?.usedMargin} currency={currency} />
-            <ForexPortalKpiCard emphasis="primary" icon={Gauge} label={tp('kpiFreeMargin')} value={account?.freeMargin ?? margin?.freeMargin} currency={currency} />
+            <ForexPortalKpiCard tone="brand" emphasis="primary" icon={Wallet} label={tp('kpiBalance')} value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
+            <ForexPortalKpiCard tone="neutral" emphasis="primary" icon={CircleDollarSign} label={tp('kpiEquity')} value={account?.equity ?? balance?.equity} currency={currency} />
+            <ForexPortalKpiCard tone="warning" emphasis="secondary" label={tp('kpiUsedMargin')} value={account?.usedMargin ?? margin?.usedMargin} currency={currency} />
+            <ForexPortalKpiCard tone="neutral" emphasis="primary" icon={Gauge} label={tp('kpiFreeMargin')} value={account?.freeMargin ?? margin?.freeMargin} currency={currency} />
             <ForexPortalKpiCard emphasis="primary" icon={LineChart} label={tp('kpiUnrealizedPnl')} value={account?.unrealizedPnl ?? pnl?.unrealized} currency={currency} signed />
             <ForexPortalKpiCard emphasis="secondary" label={tp('kpiGrossExposure')} value={margin?.grossExposure} currency={currency} />
           </section>

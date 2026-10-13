@@ -16,11 +16,11 @@ export function ForexCustomerIdentityStrip() {
     <ForexPortalModuleCard title={t('title')} subtitle={t('subtitle')}>
       <dl className="grid gap-2 text-[12px] sm:grid-cols-2">
         <div>
-          <dt className="text-[10px] uppercase text-muted-foreground">{t('customerId')}</dt>
+          <dt className="text-[12px] text-muted-foreground">{t('customerId')}</dt>
           <dd className="mt-0.5 font-mono">{userId ? String(userId) : t('unknown')}</dd>
         </div>
         <div>
-          <dt className="text-[10px] uppercase text-muted-foreground">{t('displayName')}</dt>
+          <dt className="text-[12px] text-muted-foreground">{t('displayName')}</dt>
           <dd className="mt-0.5">{name ?? t('nameUnset')}</dd>
         </div>
       </dl>

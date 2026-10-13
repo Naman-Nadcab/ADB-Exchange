@@ -19,9 +19,11 @@ type LocaleLanguageSelectorProps = {
   className?: string;
   /** Compact styling for Forex terminal chrome. */
   variant?: 'default' | 'compact';
+  /** Viewport where the compact control switches from a short code to the full language name. */
+  compactFrom?: 'sm' | 'xl';
 };
 
-export function LocaleLanguageSelector({ className = '', variant = 'default' }: LocaleLanguageSelectorProps) {
+export function LocaleLanguageSelector({ className = '', variant = 'default', compactFrom = 'sm' }: LocaleLanguageSelectorProps) {
   const t = useTranslations('common.languageSelector');
   const locale = useLocale();
   const router = useRouter();
@@ -114,9 +116,11 @@ export function LocaleLanguageSelector({ className = '', variant = 'default' }: 
       >
         <Globe className={variant === 'compact' ? 'h-3.5 w-3.5 shrink-0 opacity-80' : 'h-4 w-4 shrink-0 opacity-80'} aria-hidden />
         {variant === 'compact' ? (
-          <span className="font-semibold sm:hidden">{activeLocale === 'zh-CN' ? '中文' : activeLocale === 'id-ID' ? 'ID' : 'EN'}</span>
+          <span className={compactFrom === 'xl' ? 'font-semibold xl:hidden' : 'font-semibold sm:hidden'}>
+            {activeLocale === 'zh-CN' ? '中文' : activeLocale === 'id-ID' ? 'ID' : 'EN'}
+          </span>
         ) : null}
-        <span className={variant === 'compact' ? 'hidden max-w-[9rem] truncate font-medium sm:inline' : 'max-w-[9rem] truncate font-medium'}>{activeLabel}</span>
+        <span className={variant === 'compact' ? (compactFrom === 'xl' ? 'hidden max-w-[9rem] truncate font-medium xl:inline' : 'hidden max-w-[9rem] truncate font-medium sm:inline') : 'max-w-[9rem] truncate font-medium'}>{activeLabel}</span>
         <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 opacity-70 transition-transform', open && 'rotate-180')} aria-hidden />
       </button>
 

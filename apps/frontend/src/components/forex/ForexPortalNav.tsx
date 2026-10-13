@@ -24,7 +24,7 @@ export function ForexPortalNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={cn('eda-tab shrink-0 !normal-case !tracking-normal', active && 'eda-tab-active')}
+              className={cn('eda-tab shrink-0 whitespace-nowrap !normal-case !tracking-normal', active && 'eda-tab-active')}
             >
               {tf(item.labelKey)}
             </Link>

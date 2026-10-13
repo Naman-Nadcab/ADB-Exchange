@@ -340,8 +340,8 @@ export default function ForexAnalysisPage() {
           kind="plain"
         />
         <ForexPortalKpiCard emphasis="secondary" label={ta('kpiSpread')} value={quote?.spreadPips} kind="plain" />
-        <div className="flex min-w-0 flex-col justify-center rounded border border-border/80 bg-card/75 px-2.5 py-2">
-          <span className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground">{ta('kpiSession')}</span>
+        <div className="forex-overview-kpi flex min-w-0 flex-col justify-center border border-border/80 bg-card px-3 py-3">
+          <span className="text-[12px] font-medium text-muted-foreground">{ta('kpiSession')}</span>
           <ForexPortalStatusBadge tone={sessionOpen ? 'success' : 'warning'} className="mt-1.5 w-fit">
             {sessionOpen ? ta('sessionOpen') : sessions?.eligibility.reason ?? ta('sessionClosed')}
           </ForexPortalStatusBadge>

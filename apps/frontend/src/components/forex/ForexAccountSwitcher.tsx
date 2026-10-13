@@ -51,7 +51,7 @@ export function ForexAccountSwitcher(props?: { compact?: boolean }) {
   const status = active?.status ? String(active.status) : null;
 
   return (
-    <div className="relative shrink-0">
+    <div className="relative min-w-0 max-w-[220px] shrink">
       <button
         type="button"
         disabled={busy}

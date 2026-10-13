@@ -15,36 +15,48 @@ export function ForexPageFrame(props: {
   wide?: boolean;
   /** Compact commercial header — less vertical chrome */
   dense?: boolean;
+  /** Overview already has its own hero. Other portal pages use the shared hero. */
+  header?: 'hero' | 'compact';
 }) {
   const tf = useTranslations('forex');
   const dense = props.dense !== false;
+  const hero = props.header !== 'compact';
   return (
     <div
       className={cn(
         'mx-auto w-full max-w-[1480px]',
-        dense ? 'space-y-3 px-3 py-3 sm:px-4' : 'space-y-5 px-4 py-6 sm:px-6',
+        hero ? 'space-y-4 px-3 py-4 sm:px-4 sm:py-5' : dense ? 'space-y-3 px-3 py-3 sm:px-4' : 'space-y-5 px-4 py-6 sm:px-6',
         props.className
       )}
     >
-      <div className={cn('flex flex-wrap items-center justify-between gap-2', !dense && 'items-end gap-3')}>
-        <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{tf('domainLabel')}</p>
-          <h1
-            className={cn(
-              'font-semibold uppercase tracking-[0.08em] text-foreground',
-              dense ? 'text-[13px]' : 'text-2xl normal-case tracking-tight'
-            )}
-          >
-            {props.title}
-          </h1>
-          {props.subtitle ? (
-            <p className={cn('max-w-2xl text-muted-foreground', dense ? 'mt-0.5 text-[11px]' : 'mt-1 text-sm')}>
-              {props.subtitle}
-            </p>
-          ) : null}
+      {hero ? (
+        <header className="forex-portal-hero flex flex-wrap items-end justify-between gap-3 p-4 sm:p-5">
+          <div className="min-w-0">
+            <p className="text-[12px] font-medium text-muted-foreground">{tf('domainLabel')}</p>
+            <h1 className="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{props.title}</h1>
+            {props.subtitle ? <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">{props.subtitle}</p> : null}
+          </div>
+          {props.actions ? <div className="flex flex-wrap items-center gap-2">{props.actions}</div> : null}
+        </header>
+      ) : (
+        <div className={cn('flex flex-wrap items-center justify-between gap-2', !dense && 'items-end gap-3')}>
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{tf('domainLabel')}</p>
+            <h1
+              className={cn(
+                'font-semibold uppercase tracking-[0.08em] text-foreground',
+                dense ? 'text-[13px]' : 'text-2xl normal-case tracking-tight'
+              )}
+            >
+              {props.title}
+            </h1>
+            {props.subtitle ? (
+              <p className={cn('max-w-2xl text-muted-foreground', dense ? 'mt-0.5 text-[11px]' : 'mt-1 text-sm')}>{props.subtitle}</p>
+            ) : null}
+          </div>
+          {props.actions}
         </div>
-        {props.actions}
-      </div>
+      )}
       {props.children}
     </div>
   );

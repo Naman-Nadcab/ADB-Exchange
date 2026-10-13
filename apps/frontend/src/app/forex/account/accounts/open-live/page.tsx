@@ -124,7 +124,7 @@ export default function ForexOpenLiveAccountPage() {
                 type="button"
                 disabled={busy}
                 onClick={() => void onApply()}
-                className="mt-3 inline-flex min-h-10 items-center rounded border border-primary/40 bg-primary/10 px-4 text-[12px] font-semibold text-primary disabled:opacity-50"
+                className="mt-3 inline-flex min-h-10 items-center rounded-md bg-primary px-4 text-[13px] font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
                 {busy ? t('applicationSubmitting') : t('applicationSubmit')}
               </button>

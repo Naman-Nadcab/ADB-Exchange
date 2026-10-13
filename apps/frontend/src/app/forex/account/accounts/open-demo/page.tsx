@@ -54,7 +54,7 @@ export default function ForexOpenDemoAccountPage() {
               type="button"
               disabled={busy}
               onClick={() => void onCreate()}
-              className="rounded border border-primary/45 bg-primary/12 px-4 py-2 text-[12px] font-semibold text-primary disabled:opacity-50"
+              className="rounded-md bg-primary px-4 py-2 text-[13px] font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               {busy ? t('creating') : t('createCta')}
             </button>
