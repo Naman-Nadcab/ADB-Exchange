@@ -114,7 +114,7 @@ export function ForexAccountCenter() {
               type="button"
               disabled={busy != null}
               onClick={() => void onCreateDemo()}
-              className="inline-flex min-h-9 items-center rounded border border-primary/40 bg-primary/10 px-3 text-[11px] font-semibold text-primary hover:bg-primary/15 disabled:opacity-50"
+              className="inline-flex min-h-9 items-center rounded-md bg-primary px-3 text-[13px] font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               {busy === 'create' ? t('createDemoBusy') : t('createDemo')}
             </button>

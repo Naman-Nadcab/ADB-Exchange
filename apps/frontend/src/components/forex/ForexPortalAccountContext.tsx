@@ -29,7 +29,7 @@ export function ForexPortalAccountContext() {
 
   return (
     <section
-      className="eda-card flex flex-wrap items-center justify-between gap-2 border-border/80 bg-muted/10 px-3 py-2"
+      className="forex-portal-context flex flex-wrap items-center justify-between gap-3 px-4 py-3"
       aria-label={t('aria')}
     >
       <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -50,7 +50,7 @@ export function ForexPortalAccountContext() {
         ) : null}
         <Link
           href={FOREX_ROUTES.trade}
-          className="inline-flex items-center gap-1 rounded border border-primary/35 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold text-primary"
+          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-[13px] font-semibold text-primary-foreground"
         >
           <LayoutGrid className="h-3 w-3" aria-hidden />
           {t('openTerminal')}

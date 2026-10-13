@@ -23,7 +23,7 @@ import {
 import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
 import { useForexStore } from '@/lib/forex/state/store';
 import { cn } from '@/lib/utils';
-import { ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
+import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 
 type Props = {
   compact?: boolean;
@@ -184,21 +184,29 @@ export function ForexServerAlertsPanel(props: Props) {
   const enabledCount = alerts.filter((a) => a.enabled).length;
 
   return (
-    <div className={cn('space-y-3', props.compact ? 'text-[10px]' : 'text-[11px]')}>
-      <div className="grid gap-2 sm:grid-cols-3">
-        <div className="rounded border border-border/80 bg-card/80 px-3 py-2">
-          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{tf('statusActiveCount')}</p>
-          <p className="mt-1 font-mono text-[18px] tabular-nums text-foreground">{enabledCount}</p>
+    <div className={cn('space-y-3', props.compact ? 'text-[10px]' : 'text-[13px]')}>
+      {props.compact ? (
+        <div className="grid gap-2 sm:grid-cols-3">
+          <div className="rounded border border-border/80 bg-card/80 px-3 py-2">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{tf('statusActiveCount')}</p>
+            <p className="mt-1 font-mono text-[18px] tabular-nums text-foreground">{enabledCount}</p>
+          </div>
+          <div className="rounded border border-border/80 bg-card/80 px-3 py-2">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{tf('statusTotalCount')}</p>
+            <p className="mt-1 font-mono text-[18px] tabular-nums text-foreground">{alerts.length}</p>
+          </div>
+          <div className="rounded border border-border/80 bg-card/80 px-3 py-2">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{tf('statusEventsCount')}</p>
+            <p className="mt-1 font-mono text-[18px] tabular-nums text-foreground">{events.length}</p>
+          </div>
         </div>
-        <div className="rounded border border-border/80 bg-card/80 px-3 py-2">
-          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{tf('statusTotalCount')}</p>
-          <p className="mt-1 font-mono text-[18px] tabular-nums text-foreground">{alerts.length}</p>
-        </div>
-        <div className="rounded border border-border/80 bg-card/80 px-3 py-2">
-          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{tf('statusEventsCount')}</p>
-          <p className="mt-1 font-mono text-[18px] tabular-nums text-foreground">{events.length}</p>
-        </div>
-      </div>
+      ) : (
+        <section className="grid gap-3 sm:grid-cols-3" aria-label={tf('deliveryHeading')}>
+          <ForexPortalKpiCard tone="brand" emphasis="primary" label={tf('statusActiveCount')} value={enabledCount} kind="plain" />
+          <ForexPortalKpiCard tone="neutral" emphasis="secondary" label={tf('statusTotalCount')} value={alerts.length} kind="plain" />
+          <ForexPortalKpiCard tone="neutral" emphasis="secondary" label={tf('statusEventsCount')} value={events.length} kind="plain" />
+        </section>
+      )}
 
       {err ? (
         <p className="text-destructive" role="alert">
@@ -326,7 +334,10 @@ export function ForexServerAlertsPanel(props: Props) {
         ) : (
           <button
             type="button"
-            className="h-8 rounded bg-primary px-3 text-[11px] font-semibold text-primary-foreground"
+            className={cn(
+              'rounded-md bg-primary font-semibold text-primary-foreground hover:bg-primary/90',
+              props.compact ? 'h-8 px-3 text-[11px]' : 'h-10 px-4 text-[13px]'
+            )}
             onClick={() => void create()}
           >
             {tf('create')}

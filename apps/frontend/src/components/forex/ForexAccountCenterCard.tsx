@@ -33,8 +33,8 @@ export function ForexAccountCenterCard(props: {
   return (
     <article
       className={cn(
-        'flex flex-col rounded-lg border p-3.5 shadow-sm',
-        isActive ? 'border-primary/40 bg-gradient-to-br from-card via-card to-primary/[0.08]' : 'border-border/80 bg-card/85'
+        'flex flex-col rounded-xl border p-4',
+        isActive ? 'border-primary/40 bg-gradient-to-br from-card via-card to-primary/[0.14]' : 'border-border/80 bg-card'
       )}
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -57,31 +57,31 @@ export function ForexAccountCenterCard(props: {
 
       <dl className="mt-3 grid gap-2 border-t border-border/60 pt-3 text-[11px] sm:grid-cols-2">
         <div>
-          <dt className="text-[9px] uppercase tracking-wide text-muted-foreground">{t('colAccountId')}</dt>
+          <dt className="text-[12px] text-muted-foreground">{t('colAccountId')}</dt>
           <dd className="mt-0.5 font-mono font-medium">{fxPlain(a.accountId)}</dd>
         </div>
         <div>
-          <dt className="text-[9px] uppercase tracking-wide text-muted-foreground">{t('cardServer')}</dt>
+          <dt className="text-[12px] text-muted-foreground">{t('cardServer')}</dt>
           <dd className="mt-0.5">{t('cardServerSimulated')}</dd>
         </div>
         <div>
-          <dt className="text-[9px] uppercase tracking-wide text-muted-foreground">{t('cardAccountGroup')}</dt>
+          <dt className="text-[12px] text-muted-foreground">{t('cardAccountGroup')}</dt>
           <dd className="mt-0.5">{groupLabel}</dd>
         </div>
         <div>
-          <dt className="text-[9px] uppercase tracking-wide text-muted-foreground">{t('colCurrency')}</dt>
+          <dt className="text-[12px] text-muted-foreground">{t('colCurrency')}</dt>
           <dd className="mt-0.5">{fxPlain(a.currency)}</dd>
         </div>
         <div>
-          <dt className="text-[9px] uppercase tracking-wide text-muted-foreground">{t('cardPositionMode')}</dt>
+          <dt className="text-[12px] text-muted-foreground">{t('cardPositionMode')}</dt>
           <dd className="mt-0.5">{fxPlain(a.positionMode)}</dd>
         </div>
         <div>
-          <dt className="text-[9px] uppercase tracking-wide text-muted-foreground">{t('colLeverage')}</dt>
+          <dt className="text-[12px] text-muted-foreground">{t('colLeverage')}</dt>
           <dd className="mt-0.5 font-mono">{lev}</dd>
         </div>
         <div className="sm:col-span-2">
-          <dt className="text-[9px] uppercase tracking-wide text-muted-foreground">{t('cardCreated')}</dt>
+          <dt className="text-[12px] text-muted-foreground">{t('cardCreated')}</dt>
           <dd className="mt-0.5 text-muted-foreground">{new Date(a.createdAt).toLocaleString()}</dd>
         </div>
       </dl>
@@ -89,27 +89,27 @@ export function ForexAccountCenterCard(props: {
       {snap ? (
         <dl className="mt-3 grid grid-cols-2 gap-2 border-t border-border/60 pt-3 font-mono text-[11px] xl:grid-cols-3">
           <div>
-            <dt className="text-[9px] uppercase text-muted-foreground">{t('metricBalance')}</dt>
+            <dt className="text-[12px] text-muted-foreground">{t('metricBalance')}</dt>
             <dd className="mt-0.5 tabular-nums">{fxMoney(snap.ledgerBalance, cardCurrency)}</dd>
           </div>
           <div>
-            <dt className="text-[9px] uppercase text-muted-foreground">{t('metricEquity')}</dt>
+            <dt className="text-[12px] text-muted-foreground">{t('metricEquity')}</dt>
             <dd className="mt-0.5 tabular-nums">{fxMoney(snap.equity, cardCurrency)}</dd>
           </div>
           <div>
-            <dt className="text-[9px] uppercase text-muted-foreground">{t('metricMargin')}</dt>
+            <dt className="text-[12px] text-muted-foreground">{t('metricMargin')}</dt>
             <dd className="mt-0.5 tabular-nums">{fxMoney(snap.usedMargin, cardCurrency)}</dd>
           </div>
           <div>
-            <dt className="text-[9px] uppercase text-muted-foreground">{t('metricFreeMargin')}</dt>
+            <dt className="text-[12px] text-muted-foreground">{t('metricFreeMargin')}</dt>
             <dd className="mt-0.5 tabular-nums">{fxMoney(snap.freeMargin, cardCurrency)}</dd>
           </div>
           <div>
-            <dt className="text-[9px] uppercase text-muted-foreground">{t('metricMarginLevel')}</dt>
+            <dt className="text-[12px] text-muted-foreground">{t('metricMarginLevel')}</dt>
             <dd className="mt-0.5 tabular-nums">{snap.marginLevel != null && snap.marginLevel !== '' ? `${snap.marginLevel}%` : unavailable}</dd>
           </div>
           <div>
-            <dt className="text-[9px] uppercase text-muted-foreground">{t('cardOpenPositions')}</dt>
+            <dt className="text-[12px] text-muted-foreground">{t('cardOpenPositions')}</dt>
             <dd className="mt-0.5 tabular-nums">{a.cardSnapshot?.activitySummary.openPositions ?? '—'}</dd>
           </div>
         </dl>
@@ -120,7 +120,7 @@ export function ForexAccountCenterCard(props: {
       <div className="mt-3 flex flex-wrap gap-2 border-t border-border/60 pt-3">
         <Link
           href={detailHref}
-          className="inline-flex min-h-8 items-center rounded border border-primary/40 bg-primary/10 px-2.5 text-[11px] font-semibold text-primary hover:bg-primary/15"
+          className="inline-flex min-h-9 items-center rounded-md bg-primary px-3 text-[13px] font-semibold text-primary-foreground hover:bg-primary/90"
         >
           {t('viewDetail')}
         </Link>

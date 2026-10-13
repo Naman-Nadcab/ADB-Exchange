@@ -70,6 +70,7 @@ export default function ForexFundsPage() {
           <ForexFundsSubNav />
           <section className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3" aria-label={t('summaryAria')}>
           <ForexPortalKpiCard
+            tone="brand"
             emphasis="primary"
             icon={Wallet}
             label={t('metricAvailableBalance')}
@@ -77,6 +78,7 @@ export default function ForexFundsPage() {
             currency={currency}
           />
           <ForexPortalKpiCard
+            tone="neutral"
             emphasis="primary"
             icon={Landmark}
             label={t('metricLedgerBalance')}
@@ -84,6 +86,7 @@ export default function ForexFundsPage() {
             currency={currency}
           />
           <ForexPortalKpiCard
+            tone="neutral"
             emphasis="primary"
             icon={CircleDollarSign}
             label={t('metricEquity')}
@@ -91,6 +94,7 @@ export default function ForexFundsPage() {
             currency={currency}
           />
           <ForexPortalKpiCard
+            tone="warning"
             emphasis="secondary"
             label={t('metricUsedMargin')}
             value={account?.usedMargin}
@@ -114,7 +118,7 @@ export default function ForexFundsPage() {
                 type="button"
                 disabled={busy}
                 onClick={() => void claimDemo()}
-                className="inline-flex min-h-10 items-center rounded border border-primary/45 bg-primary/15 px-4 text-[12px] font-semibold text-primary hover:bg-primary/20 disabled:opacity-50"
+                className="inline-flex min-h-10 items-center rounded-md bg-primary px-4 text-[13px] font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
                 {busy ? t('claimBusy') : t('claimButton')}
               </button>

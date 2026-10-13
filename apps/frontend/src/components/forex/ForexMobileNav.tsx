@@ -28,7 +28,7 @@ export function ForexMobileNav() {
                 type="button"
                 onClick={() => setPortalOpen(true)}
                 className={cn(
-                  'flex min-h-[44px] min-w-0 flex-1 items-center justify-center px-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+                  'flex min-h-[44px] min-w-0 flex-1 items-center justify-center overflow-hidden whitespace-nowrap px-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
                   active ? 'text-primary' : 'text-muted-foreground'
                 )}
               >
@@ -45,7 +45,7 @@ export function ForexMobileNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex min-h-[44px] min-w-0 flex-1 items-center justify-center px-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+                'flex min-h-[44px] min-w-0 flex-1 items-center justify-center overflow-hidden whitespace-nowrap px-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
                 active ? 'text-primary' : 'text-muted-foreground'
               )}
             >

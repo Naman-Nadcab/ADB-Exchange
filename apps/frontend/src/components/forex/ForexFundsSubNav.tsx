@@ -28,7 +28,7 @@ export function ForexFundsSubNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={cn('eda-tab !normal-case !tracking-normal', active && 'eda-tab-active')}
+            className={cn('eda-tab shrink-0 whitespace-nowrap !normal-case !tracking-normal', active && 'eda-tab-active')}
           >
             {t(item.labelKey)}
           </Link>

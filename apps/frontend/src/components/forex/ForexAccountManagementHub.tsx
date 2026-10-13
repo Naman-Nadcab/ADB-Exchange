@@ -269,12 +269,12 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
 
       {/* Financial snapshot */}
       <section aria-label={t('financialTitle')}>
-        <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t('financialTitle')}</h3>
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
-          <ForexPortalKpiCard emphasis="primary" icon={Wallet} label={t('metricBalance')} value={fin?.ledgerBalance} currency={currency} />
-          <ForexPortalKpiCard emphasis="secondary" label={t('metricCredit')} value={undefined} kind="plain" hint={t('metricUnavailable')} />
-          <ForexPortalKpiCard emphasis="primary" icon={CircleDollarSign} label={t('metricEquity')} value={fin?.equity} currency={currency} />
-          <ForexPortalKpiCard emphasis="primary" icon={Gauge} label={t('metricFreeMargin')} value={fin?.freeMargin} currency={currency} />
+        <h3 className="mb-2 text-[13px] font-semibold text-foreground">{t('financialTitle')}</h3>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <ForexPortalKpiCard tone="brand" emphasis="primary" icon={Wallet} label={t('metricBalance')} value={fin?.ledgerBalance} currency={currency} />
+          <ForexPortalKpiCard tone="neutral" emphasis="secondary" label={t('metricCredit')} value={undefined} kind="plain" hint={t('metricUnavailable')} />
+          <ForexPortalKpiCard tone="neutral" emphasis="primary" icon={CircleDollarSign} label={t('metricEquity')} value={fin?.equity} currency={currency} />
+          <ForexPortalKpiCard tone="neutral" emphasis="primary" icon={Gauge} label={t('metricFreeMargin')} value={fin?.freeMargin} currency={currency} />
           <ForexPortalKpiCard emphasis="secondary" label={t('metricUsedMargin')} value={fin?.usedMargin} currency={currency} />
           <ForexPortalKpiCard emphasis="secondary" label={t('metricMarginLevel')} value={fin?.marginLevel ?? undefined} kind="plain" hint={fin?.marginLevel == null ? t('metricUnavailable') : '%'} />
           <ForexPortalKpiCard emphasis="secondary" label={t('metricUnrealizedPnl')} value={fin?.unrealizedPnl} currency={currency} signed />

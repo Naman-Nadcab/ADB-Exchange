@@ -26,7 +26,7 @@ export function ForexTopNav(props?: { compact?: boolean }) {
         <EdaProductSwitcher variant="terminal" />
         <nav
           className={cn(
-            'hidden min-w-0 flex-1 items-center overflow-x-auto md:flex',
+            'hidden shrink-0 items-center overflow-x-auto md:flex',
             compact ? 'gap-0.5' : 'gap-1'
           )}
           aria-label={tf('chrome.terminalNavAria')}
@@ -41,10 +41,10 @@ export function ForexTopNav(props?: { compact?: boolean }) {
                 key={item.href + item.labelKey}
                 href={item.href}
                 className={cn(
-                  'inline-flex items-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  'inline-flex shrink-0 items-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   compact
                     ? 'rounded px-2 py-1 text-[12px]'
-                    : 'tap-target rounded-lg px-2.5 py-1.5 text-sm focus-visible:ring-offset-1',
+                    : 'min-h-9 rounded-lg px-2.5 py-1.5 text-sm focus-visible:ring-offset-1',
                   active ? 'bg-primary/12 text-primary' : 'text-muted-foreground hover:text-foreground'
                 )}
               >
@@ -53,7 +53,7 @@ export function ForexTopNav(props?: { compact?: boolean }) {
             );
           })}
         </nav>
-        <div className="ml-auto flex min-w-0 items-center gap-1.5">
+        <div className="ml-auto flex min-w-0 shrink items-center gap-1.5">
           {!compact ? (
             <>
               <div className="hidden min-w-0 sm:block">
@@ -63,15 +63,15 @@ export function ForexTopNav(props?: { compact?: boolean }) {
             </>
           ) : null}
           {compact ? (
-            <span className="hidden font-mono text-[9px] uppercase tracking-wide text-amber-200/90 sm:inline">
+            <span className="hidden font-mono text-[9px] uppercase tracking-wide text-amber-200/90 xl:inline">
               {tf('chrome.demoSimulated')}
             </span>
           ) : (
-            <span className="hidden font-mono text-[9px] uppercase tracking-wide text-muted-foreground sm:inline">
+            <span className="hidden font-mono text-[9px] uppercase tracking-wide text-muted-foreground xl:inline">
               {tf('chrome.simulated')}
             </span>
           )}
-          <LocaleLanguageSelector variant="compact" />
+          <LocaleLanguageSelector variant="compact" compactFrom="xl" />
           <ForexConnectionStatus />
           {!compact ? <ThemeToggle size="sm" /> : null}
         </div>

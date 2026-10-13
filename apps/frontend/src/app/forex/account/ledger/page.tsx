@@ -83,7 +83,7 @@ export default function ForexLedgerPage() {
         <>
           <ForexPortalAccountContext />
           <section className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3" aria-label={tl('summaryAria')}>
-            <ForexPortalKpiCard emphasis="primary" label={tl('kpiLedgerBalance')} value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
+            <ForexPortalKpiCard tone="brand" emphasis="primary" label={tl('kpiLedgerBalance')} value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
             <ForexPortalKpiCard emphasis="secondary" label={tl('kpiEntryCount')} value={rows.length} kind="plain" />
             <ForexPortalKpiCard
               emphasis="secondary"
