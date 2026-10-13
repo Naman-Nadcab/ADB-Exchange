@@ -64,6 +64,31 @@ case "${EVENT_NAME:-}" in
     ref=${EVENT_REF:-}
     event_sha=${EVENT_SHA:-}
     default_branch=${DEFAULT_BRANCH:-}
+    case "$ref" in
+      refs/tags/frontend-inspect/*)
+        expected=${ref#refs/tags/frontend-inspect/}
+        case "$expected" in
+          */*) die "TAG_MALFORMED" ;;
+        esac
+        if ! is_sha "$expected"; then
+          die "TAG_MALFORMED"
+        fi
+        if [ -z "$default_branch" ] || [ -z "$event_sha" ]; then
+          die "RUN_TAG_NOT_ON_DEFAULT_BRANCH"
+        fi
+        git fetch origin "$default_branch"
+        tip=$(git rev-parse "origin/$default_branch")
+        if [ "$tip" != "$event_sha" ]; then
+          echo "RUN_TAG_NOT_ON_DEFAULT_BRANCH tip=$tip event=$event_sha" >&2
+          exit 1
+        fi
+        require_rollback_procedure
+        emit "confirmation=INSPECT_ONLY"
+        emit "release_sha="
+        emit "expected_sha=$expected"
+        exit 0
+        ;;
+    esac
     parsed=$(sh "$ROOT/deployment/frontend-only-tag.sh" parse "$ref")
     role=$(field "$parsed" ROLE)
     release=$(field "$parsed" RELEASE)
