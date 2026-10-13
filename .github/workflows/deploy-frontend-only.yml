@@ -3,7 +3,16 @@ name: Deploy frontend only
 # Rebuilds only the customer frontend container on the production VPS.
 # It does not run the full-stack production workflow, migrations, or other services.
 # SSH uses native OpenSSH and accepts only the verified ED25519 host key.
+#
+# Cursor starts a deploy by pushing one lightweight tag. The tag must point at
+# the frontend release commit. Its name is:
+#   frontend-deploy/<release-sha>/<expected-production-sha>
+# Both values are 40 lowercase hex characters. The create event is required
+# because the release commit does not contain this workflow file; GitHub reads
+# this file from the default branch and the job checks that file out explicitly.
+# Push filters are not used, so ordinary branch pushes and other tags do nothing.
 on:
+  create:
   workflow_dispatch:
     inputs:
       release_sha:
@@ -30,50 +39,71 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  policy:
+  resolve:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'create' && github.event.ref_type == 'tag' && startsWith(github.ref, 'refs/tags/frontend-deploy/'))
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
+    outputs:
+      confirmation: ${{ steps.decision.outputs.confirmation }}
+      release_sha: ${{ steps.decision.outputs.release_sha }}
+      expected_sha: ${{ steps.decision.outputs.expected_sha }}
     steps:
-      - name: Accept only an explicit operation
-        run: |
-          set -eu
-          case "${{ inputs.confirmation }}" in
-            INSPECT_ONLY|DEPLOY_FRONTEND_ONLY|ROLLBACK_FRONTEND_ONLY) ;;
-            *)
-              echo "Rejected confirmation. Use INSPECT_ONLY, DEPLOY_FRONTEND_ONLY, or ROLLBACK_FRONTEND_ONLY." >&2
-              exit 1
-              ;;
-          esac
-          echo "confirmation=${{ inputs.confirmation }}"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+
+      - name: Resolve the frontend-only operation
+        id: decision
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_REF: ${{ github.ref }}
+          EVENT_SHA: ${{ github.sha }}
+          INPUT_CONFIRMATION: ${{ github.event.inputs.confirmation }}
+          INPUT_RELEASE: ${{ github.event.inputs.release_sha }}
+          INPUT_EXPECTED: ${{ github.event.inputs.expected_production_sha }}
+        run: sh deployment/frontend-only-resolve.sh
 
   remote:
-    needs: policy
+    needs: resolve
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: production
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
 
       - name: Validate the production-tree rule
         run: sh deployment/frontend-only-tree-status.test.sh
 
       - name: Require a frontend-only fast-forward and bundle it
-        if: inputs.confirmation == 'DEPLOY_FRONTEND_ONLY'
+        if: needs.resolve.outputs.confirmation == 'DEPLOY_FRONTEND_ONLY'
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_REF: ${{ github.ref }}
+          FE_EXPECTED: ${{ needs.resolve.outputs.expected_sha }}
+          FE_RELEASE: ${{ needs.resolve.outputs.release_sha }}
         run: |
           set -eu
-          expected='${{ inputs.expected_production_sha }}'
-          release='${{ inputs.release_sha }}'
-          case "$expected" in
-            [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*) ;;
-            *) echo "expected_production_sha is not a commit SHA" >&2; exit 1 ;;
-          esac
-          case "$release" in
-            [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*) ;;
-            *) echo "release_sha is not a commit SHA" >&2; exit 1 ;;
-          esac
-          chmod +x deployment/frontend-only-preflight.sh
+          expected="$FE_EXPECTED"
+          release="$FE_RELEASE"
+          printf '%s' "$expected" | grep -Eq '^[0-9a-f]{40}$'
+          printf '%s' "$release" | grep -Eq '^[0-9a-f]{40}$'
+          chmod +x deployment/frontend-only-preflight.sh deployment/frontend-only-tag.sh
+          if [ "$EVENT_NAME" = "create" ]; then
+            sh deployment/frontend-only-tag.sh parse "$EVENT_REF" >/dev/null
+            if ! git rev-parse --verify --quiet "${EVENT_REF}^{commit}" >/dev/null; then
+              git fetch origin "$EVENT_REF:$EVENT_REF"
+            fi
+            sh deployment/frontend-only-tag.sh verify "$EVENT_REF"
+            parsed=$(sh deployment/frontend-only-tag.sh parse "$EVENT_REF")
+            test "$(printf '%s\n' "$parsed" | awk -F= '/^RELEASE=/ { print $2; exit }')" = "$release"
+            test "$(printf '%s\n' "$parsed" | awk -F= '/^EXPECTED=/ { print $2; exit }')" = "$expected"
+          fi
+          git cat-file -e "${expected}^{commit}" 2>/dev/null || git fetch --no-tags origin "$expected"
+          git cat-file -e "${release}^{commit}" 2>/dev/null || git fetch --no-tags origin "$release"
           ./deployment/frontend-only-preflight.sh "$expected" "$release"
           expected=$(git rev-parse "${expected}^{commit}")
           release=$(git rev-parse "${release}^{commit}")
@@ -115,7 +145,7 @@ jobs:
           fi
 
       - name: Read production state
-        if: inputs.confirmation == 'INSPECT_ONLY'
+        if: needs.resolve.outputs.confirmation == 'INSPECT_ONLY'
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
@@ -168,7 +198,7 @@ jobs:
           FE_REMOTE
 
       - name: Roll back only the frontend container
-        if: inputs.confirmation == 'ROLLBACK_FRONTEND_ONLY'
+        if: needs.resolve.outputs.confirmation == 'ROLLBACK_FRONTEND_ONLY'
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
@@ -203,7 +233,7 @@ jobs:
           FE_REMOTE
 
       - name: Copy the frontend bundle
-        if: inputs.confirmation == 'DEPLOY_FRONTEND_ONLY'
+        if: needs.resolve.outputs.confirmation == 'DEPLOY_FRONTEND_ONLY'
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
@@ -230,14 +260,14 @@ jobs:
             "$VPS_USER@$VPS_HOST:/tmp/frontend-only.bundle"
 
       - name: Rebuild only the frontend container
-        if: inputs.confirmation == 'DEPLOY_FRONTEND_ONLY'
+        if: needs.resolve.outputs.confirmation == 'DEPLOY_FRONTEND_ONLY'
         timeout-minutes: 40
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
           FE_APP: ${{ secrets.VPS_DEPLOY_PATH }}
-          FE_EXPECTED: ${{ inputs.expected_production_sha }}
-          FE_RELEASE: ${{ inputs.release_sha }}
+          FE_EXPECTED: ${{ needs.resolve.outputs.expected_sha }}
+          FE_RELEASE: ${{ needs.resolve.outputs.release_sha }}
         run: |
           set -euo pipefail
           dir="${RUNNER_TEMP}/adb-frontend-ssh"
@@ -247,12 +277,8 @@ jobs:
           case "$VPS_USER" in
             ''|*[!A-Za-z0-9._-]*) echo "VPS_USER_UNSAFE" >&2; exit 1 ;;
           esac
-          case "$FE_EXPECTED" in
-            ''|*[!0-9a-fA-F]*) echo "expected_production_sha is not a commit SHA" >&2; exit 1 ;;
-          esac
-          case "$FE_RELEASE" in
-            ''|*[!0-9a-fA-F]*) echo "release_sha is not a commit SHA" >&2; exit 1 ;;
-          esac
+          printf '%s' "$FE_EXPECTED" | grep -Eq '^[0-9a-f]{40}$' || { echo "expected_production_sha is not a commit SHA" >&2; exit 1; }
+          printf '%s' "$FE_RELEASE" | grep -Eq '^[0-9a-f]{40}$' || { echo "release_sha is not a commit SHA" >&2; exit 1; }
           app="${FE_APP:-/opt/adb-exchange}"
           case "$app" in
             ''|*[!A-Za-z0-9/_.-]*) echo "APP_PATH_UNSAFE" >&2; exit 1 ;;
@@ -274,7 +300,7 @@ jobs:
           FE_REMOTE
 
       - name: Public smoke checks
-        if: inputs.confirmation == 'DEPLOY_FRONTEND_ONLY'
+        if: needs.resolve.outputs.confirmation == 'DEPLOY_FRONTEND_ONLY'
         run: |
           set -eu
           curl -fsSI --max-time 20 https://169.58.39.2/login >/dev/null

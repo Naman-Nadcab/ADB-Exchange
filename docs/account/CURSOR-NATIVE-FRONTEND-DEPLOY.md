@@ -1,6 +1,66 @@
 # Cursor-native frontend-only deploy
 
-GitHub Actions can deploy the customer frontend through `.github/workflows/deploy-frontend-only.yml`. The Cursor Cloud Agent GitHub integration cannot start that workflow: `workflow_dispatch` returns HTTP 403 `Resource not accessible by integration`. The existing workflow stays in place. This document is the path a Cursor session uses when an authorized SSH private key is available on that session.
+GitHub Actions deploys the customer frontend through `.github/workflows/deploy-frontend-only.yml`. The Cursor Cloud Agent GitHub integration cannot start that workflow with `workflow_dispatch`: the call returns HTTP 403 `Resource not accessible by integration`. Do not retry that call.
+
+Cursor starts a deployment by pushing one lightweight tag. GitHub Actions then runs on a hosted runner and reads `VPS_SSH_KEY`, `VPS_HOST`, `VPS_USER`, and `VPS_DEPLOY_PATH` from the `production` environment. The private key stays in that environment. It is not copied to the Cursor VM or into Git.
+
+## Deployment-request tag
+
+The tag name is exactly:
+
+```text
+frontend-deploy/<release-sha>/<expected-production-sha>
+```
+
+Both values are the full 40-character lowercase commit IDs. The tag must point at `<release-sha>`. Example:
+
+```text
+frontend-deploy/1591905dc047f397a2e764ee81dbeb1a42c6b8d5/4bb8e42a1772e45fcd16bfe8e072accd863cc7d4
+```
+
+The workflow uses the `create` event, not a branch-push or a general tag filter. The release commit does not contain the workflow file, so GitHub reads the workflow from the default branch (`release/exchange-production-baseline`). The job checks that branch out and then fetches the release commit. Ordinary branch pushes, other tags, and the full-stack `production.yml` workflow do not deploy the frontend.
+
+Before any production change, the same preflight, host-key, tree-status, bundle, and remote scripts reject the request when any of these are true:
+
+- The tag name is malformed, or either SHA is not 40 lowercase hex characters.
+- The tag does not peel to the release SHA named in the tag.
+- The release is not a descendant of the expected production SHA.
+- The diff touches anything outside `apps/frontend/`.
+- The live production HEAD is not the expected SHA.
+- The live tree is not `clean` or `clean_except_valid_deploy_marker`.
+- The ED25519 host key does not match `SHA256:LPQv0Wf2i7YpOkuz+UBDw0U244tU/NumiDo4v7zuHGc`.
+- `deployment/frontend-only-remote.sh` no longer contains the frontend rollback procedure.
+- The server `PUBLIC_API_URL` is not HTTPS or `PUBLIC_WS_URL` is not WSS, including the rejected placeholders `api.example.com`, `CHANGE_ME`, and `localhost`.
+
+The remote script rebuilds only the frontend service (`docker compose up -d --build --no-deps frontend`). It does not run migrations or restart the other services. On a failed rebuild it restores the previous frontend image.
+
+Create and push the tag only after those local checks pass:
+
+```sh
+EXPECTED_SHA=<current-production-head> \
+RELEASE_SHA=<frontend-only-descendant> \
+FRONTEND_DEPLOY_PUSH=1 \
+  sh deployment/cursor-frontend-deploy.sh request
+```
+
+Omit `FRONTEND_DEPLOY_PUSH=1` to create the local tag without pushing it. The command does not need `VPS_SSH_KEY_PATH`.
+
+## Who may push a deployment tag
+
+This repository currently has no rulesets, and the `production` environment has no required reviewers. Anyone who can push a tag can therefore start a frontend deploy if the release still passes the checks above. That is the explicit deployment request; adding required reviewers on `production` would bring back a manual approval click.
+
+Add a repository ruleset before relying on this in a wider team:
+
+- Target `refs/tags/frontend-deploy/**`.
+- Allow creation only for maintainers who are supposed to deploy.
+- Block force-updates and deletion of those tags.
+- Do not grant that bypass to the GitHub App identities that should not deploy.
+
+The full-stack workflow remains limited to pushes of `main` and its own manual dispatch. It has no `frontend-deploy` trigger.
+
+## SSH entry point
+
+The script below is the path a Cursor session uses when an authorized SSH private key is already available on that session. A Cloud Agent VM does not keep `~/.ssh` across replacement. This VM has no deploy private key, so deploy, inspect, and rollback stop with `SSH_KEY_MISSING` before login. Use the tag above instead.
 
 The entry point is `deployment/cursor-frontend-deploy.sh`. It calls the same host-key, tree-status, preflight, bundle, and remote scripts as the workflow. It does not run database migrations or the full-stack production workflow.
 

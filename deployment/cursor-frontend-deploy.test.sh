@@ -40,6 +40,9 @@ expect_fail() {
 }
 
 expect_fail unknown_mode UNKNOWN_MODE nosuch
+expect_fail malformed_request TAG_MALFORMED request \
+  EXPECTED_SHA=not-a-sha \
+  RELEASE_SHA=also-not-a-sha
 expect_fail missing_key SSH_KEY_MISSING deploy \
   VPS_HOST=169.58.39.2 \
   VPS_USER=root \
