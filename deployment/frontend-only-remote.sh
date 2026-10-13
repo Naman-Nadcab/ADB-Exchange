@@ -45,26 +45,6 @@ record_runtime() {
   stamp exchange-rabbitmq
 }
 
-classify_public_url() {
-  key=$1
-  scheme=$2
-  line=$(grep -E "^${key}=" .env 2>/dev/null | head -1 || true)
-  val=${line#*=}
-  val=$(printf '%s' "$val" | tr -d '\r' | sed 's/^["'\'']//; s/["'\'']$//')
-  if [ -z "$val" ] || printf '%s' "$val" | grep -q 'api.example.com\|CHANGE_ME\|localhost'; then
-    echo "${key}_ok=no"
-    return 1
-  fi
-  case "$val" in
-    ${scheme}://*) ;;
-    *)
-      echo "${key}_ok=no"
-      return 1
-      ;;
-  esac
-  echo "${key}_ok=yes"
-}
-
 restore_previous_frontend() {
   if [ ! -f "$ROLLBACK_FILE" ]; then
     echo "ROLLBACK_RECORD_MISSING" >&2
@@ -154,8 +134,7 @@ if [ "$HEAD" != "$EXPECTED" ]; then
   exit 1
 fi
 
-classify_public_url PUBLIC_API_URL https
-classify_public_url PUBLIC_WS_URL wss
+require_frontend_build_urls
 
 if [ ! -f "$BUNDLE" ]; then
   echo "BUNDLE_MISSING" >&2

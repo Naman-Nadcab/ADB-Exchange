@@ -306,7 +306,9 @@ jobs:
             "$VPS_USER@$VPS_HOST" \
             "FE_MODE=deploy FE_APP=$(printf '%q' "$app") FE_EXPECTED=$(printf '%q' "$FE_EXPECTED") FE_RELEASE=$(printf '%q' "$FE_RELEASE") sh -s" <<FE_REMOTE
           FRONTEND_ONLY_TREE_LIBRARY=1
+          FRONTEND_ONLY_URL_LIBRARY=1
           $(cat deployment/frontend-only-tree-status.sh)
+          $(cat deployment/frontend-only-url-check.sh)
           $(cat deployment/frontend-only-remote.sh)
           FE_REMOTE
 
