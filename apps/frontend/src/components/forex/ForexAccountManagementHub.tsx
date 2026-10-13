@@ -235,15 +235,15 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
               </>
             ) : (
               <>
-                <span className="inline-flex min-h-10 cursor-not-allowed items-center rounded border border-border/50 px-4 text-[12px] text-muted-foreground" title={t('realFundingOffHint')}>
+                <Link href={FOREX_ROUTES.fundsDeposit} title={t('realFundingOffHint')} className="inline-flex min-h-10 items-center justify-center rounded border border-border/50 px-4 text-[12px] text-muted-foreground hover:border-primary/35 hover:text-foreground">
                   {t('depositCta')}
-                </span>
-                <span className="inline-flex min-h-10 cursor-not-allowed items-center rounded border border-border/50 px-4 text-[12px] text-muted-foreground" title={t('realFundingOffHint')}>
+                </Link>
+                <Link href={FOREX_ROUTES.fundsWithdraw} title={t('realFundingOffHint')} className="inline-flex min-h-10 items-center justify-center rounded border border-border/50 px-4 text-[12px] text-muted-foreground hover:border-primary/35 hover:text-foreground">
                   {t('withdrawCta')}
-                </span>
-                <span className="inline-flex min-h-10 cursor-not-allowed items-center rounded border border-border/50 px-4 text-[12px] text-muted-foreground" title={t('realFundingOffHint')}>
+                </Link>
+                <Link href={FOREX_ROUTES.fundsTransfer} title={t('realFundingOffHint')} className="inline-flex min-h-10 items-center justify-center rounded border border-border/50 px-4 text-[12px] text-muted-foreground hover:border-primary/35 hover:text-foreground">
                   {t('transferCta')}
-                </span>
+                </Link>
               </>
             )}
           </div>
@@ -420,15 +420,15 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
             </>
           ) : (
             <>
-              <span className="inline-flex min-h-9 cursor-not-allowed items-center rounded border border-border/50 px-3 text-[11px] text-muted-foreground" title={t('realFundingOffHint')}>
+              <Link href={FOREX_ROUTES.fundsDeposit} title={t('realFundingOffHint')} className="inline-flex min-h-9 items-center rounded border border-border/50 px-3 text-[11px] text-muted-foreground hover:border-primary/35 hover:text-foreground">
                 {t('depositCta')}
-              </span>
-              <span className="inline-flex min-h-9 cursor-not-allowed items-center rounded border border-border/50 px-3 text-[11px] text-muted-foreground" title={t('realFundingOffHint')}>
+              </Link>
+              <Link href={FOREX_ROUTES.fundsWithdraw} title={t('realFundingOffHint')} className="inline-flex min-h-9 items-center rounded border border-border/50 px-3 text-[11px] text-muted-foreground hover:border-primary/35 hover:text-foreground">
                 {t('withdrawCta')}
-              </span>
-              <span className="inline-flex min-h-9 cursor-not-allowed items-center rounded border border-border/50 px-3 text-[11px] text-muted-foreground" title={t('realFundingOffHint')}>
+              </Link>
+              <Link href={FOREX_ROUTES.fundsTransfer} title={t('realFundingOffHint')} className="inline-flex min-h-9 items-center rounded border border-border/50 px-3 text-[11px] text-muted-foreground hover:border-primary/35 hover:text-foreground">
                 {t('transferCta')}
-              </span>
+              </Link>
             </>
           )}
           <Link href={FOREX_ROUTES.fundsPaymentMethods} className="inline-flex min-h-9 items-center rounded border border-border/70 px-3 text-[11px] text-muted-foreground hover:text-foreground">

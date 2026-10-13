@@ -62,10 +62,6 @@ export function ForexAccountCenter() {
     }
   }
 
-  if (!authed) {
-    return <ForexSignInPrompt href={`/login?redirect=${FOREX_ROUTES.accounts}`} sectionKey="forexAccounts" />;
-  }
-
   return (
     <div className="space-y-3">
       {!gates.liveAccountEnabled ? (
@@ -103,14 +99,18 @@ export function ForexAccountCenter() {
           </div>
         }
       >
+        {!authed ? (
+          <ForexSignInPrompt href={`/login?redirect=${FOREX_ROUTES.accounts}`} sectionKey="forexAccounts" />
+        ) : null}
         {note ? <p className="mb-3 text-sm text-buy">{note}</p> : null}
         {err ? <p className="mb-3 text-sm text-sell">{err}</p> : null}
-        {hydratePhase === 'hydrating' && !accounts.length ? (
+        {authed && hydratePhase === 'hydrating' && !accounts.length ? (
           <p className="text-sm text-muted-foreground">{t('loadingAccounts')}</p>
         ) : null}
-        {!accounts.length && hydratePhase !== 'hydrating' ? (
+        {authed && !accounts.length && hydratePhase !== 'hydrating' ? (
           <p className="text-sm text-muted-foreground">{t('empty')}</p>
-        ) : (
+        ) : null}
+        {authed && accounts.length ? (
           <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-2">
             {accounts.map((a) => (
               <ForexAccountCenterCard
@@ -123,7 +123,7 @@ export function ForexAccountCenter() {
               />
             ))}
           </div>
-        )}
+        ) : null}
       </ForexPortalModuleCard>
 
       <p className="text-[11px] text-muted-foreground">

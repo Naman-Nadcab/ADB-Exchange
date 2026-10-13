@@ -1265,7 +1265,9 @@
     "colType": "Jenis",
     "colDebit": "Debit",
     "colCredit": "Kredit",
-    "colStatus": "Status"
+    "colStatus": "Status",
+    "goTransfer": "Transfer",
+    "workflowLead": "Setiap langkah di bawah ini adalah layar yang sebenarnya. Kirim tetap nonaktif sampai rel tersebut terhubung."
   },
   "ordersPage": {
     "summaryAria": "Jumlah order per status",
@@ -1448,7 +1450,7 @@
   "fundingGate": {
     "subtitle": "Pendanaan Forex uang riil",
     "technicalDetailsLabel": "Detail teknis",
-    "technicalDetailsBody": "Alur deposit, penarikan, transfer, dan metode pembayaran riil memerlukan rel provider Forex live, persetujuan compliance, dan endpoint API pelanggan. Lingkungan ini mempertahankan realForex nonaktif.",
+    "technicalDetailsBody": "Alur deposit, penarikan, transfer, dan metode pembayaran riil memerlukan broker yang terhubung, persetujuan kepatuhan, dan API pendanaan pelanggan. Lingkungan ini menjaga rel tersebut tetap tertutup.",
     "verificationHint": "Saat Forex live diaktifkan, <verifyLink>verifikasi</verifyLink> mungkin diperlukan terlebih dahulu.",
     "depositTitle": "Deposit tidak tersedia",
     "depositBadge": "Belum dikonfigurasi",
@@ -1461,7 +1463,23 @@
     "transferBody": "Transfer internal antar akun Forex belum tersedia.",
     "paymentMethodsTitle": "Metode pembayaran tidak tersedia",
     "paymentMethodsBadge": "Belum dikonfigurasi",
-    "paymentMethodsBody": "Metode pembayaran tersimpan tidak didukung hingga provider pendanaan Forex terintegrasi."
+    "paymentMethodsBody": "Metode pembayaran tersimpan tidak didukung hingga provider pendanaan Forex terintegrasi.",
+    "previewLead": "Kolom di bawah adalah layar yang sebenarnya. Kirim tetap mati sampai jalur ini dikonfigurasi.",
+    "depositStep1": "Buka akun forex nyata.",
+    "depositStep2": "Selesaikan verifikasi jika platform memintanya.",
+    "depositStep3": "Pilih akun nyata itu dan isi jumlah. Dompet kripto tidak dipakai.",
+    "depositStep4": "Setelah broker menyelesaikan dana, saldo masuk ke buku besar dan bisa diperdagangkan.",
+    "withdrawStep1": "Gunakan akun nyata yang sudah punya dana terselesaikan.",
+    "withdrawStep2": "Isi jumlah. Tidak boleh melebihi saldo buku besar.",
+    "withdrawStep3": "Broker menyelesaikan penarikan sebelum buku besar didebit.",
+    "withdrawStep4": "Riwayat pendanaan menyimpan nomor referensi.",
+    "transferStep1": "Buat dua akun demo.",
+    "transferStep2": "Pilih akun yang mengirim saldo simulasi dan akun yang menerimanya.",
+    "transferStep3": "Isi jumlah. Ini transfer buku besar, bukan pembayaran bank.",
+    "transferStep4": "Kedua buku besar diperbarui. Periksa di buku besar akun.",
+    "paymentStep1": "Penyedia dana harus terhubung sebelum metode muncul.",
+    "paymentStep2": "Bursa ini tidak menyimpan data kartu atau bank.",
+    "paymentStep3": "Setoran dan penarikan memakai metode yang disediakan broker."
   },
   "accountHub": {
     "heroAria": "Ringkasan akun trading",
@@ -1611,7 +1629,14 @@
     "openLive": "Buka akun live",
     "successDeposit": "Broker menerima deposit. Referensi {ref}.",
     "successWithdraw": "Broker menerima penarikan. Referensi {ref}.",
-    "notice": "Tidak ada kredit sebelum broker mengembalikan status settled. Dompet kripto tidak dipakai."
+    "notice": "Tidak ada kredit sebelum broker mengembalikan status settled. Dompet kripto tidak dipakai.",
+    "amountLabel": "Jumlah ({currency})",
+    "invalidAmount": "Masukkan jumlah yang lebih besar dari nol.",
+    "viewLedger": "Lihat buku besar",
+    "viewHistory": "Riwayat pendanaan",
+    "previewAccount": "Nyata · {currency}",
+    "afterLead": "Setelah broker menyelesaikan settlement, tinjau dana di buku besar, riwayat pendanaan, atau akun trading.",
+    "viewAccounts": "Akun trading"
   },
   "paymentMethodsList": {
     "title": "Kas broker",
@@ -1655,7 +1680,9 @@
     "failed": "Tidak dapat membuat akun demo.",
     "success": "Akun demo dibuat dan diatur sebagai akun aktif Anda.",
     "successGeneric": "created",
-    "backAccounts": "Semua akun"
+    "backAccounts": "Semua akun",
+    "goFunds": "Klaim dana demo",
+    "goTerminal": "Buka terminal"
   },
   "openLive": {
     "eligibilityTitle": "Kelayakan akun live",
@@ -1667,9 +1694,9 @@
     "kycDone": "Verifikasi identitas selesai",
     "kycPending": "Verifikasi identitas diperlukan",
     "kycOptional": "Verifikasi identitas bersifat opsional untuk Forex",
-    "providerPending": "Integrasi broker / LP harus diaktifkan (REAL_FOREX)",
+    "providerPending": "Koneksi broker belum diaktifkan di lingkungan ini.",
     "providerReady": "API akun broker dapat dijangkau",
-    "provisioningPending": "Layanan provisioning akun harus terhubung",
+    "provisioningPending": "Pembukaan akun belum terhubung.",
     "provisioningReady": "Pembukaan akun live tersedia",
     "applicationsTitle": "Aplikasi Anda",
     "applicationsEmpty": "Belum ada aplikasi akun live.",
@@ -1679,7 +1706,9 @@
     "applicationSubmit": "Kirim aplikasi live",
     "applicationSubmitting": "Mengirim…",
     "applicationStatus": "Status aplikasi: {status}",
-    "backAccounts": "Kembali ke akun"
+    "backAccounts": "Kembali ke akun",
+    "signedOutNote": "Masuk untuk memeriksa kelayakan dan mengirim pengajuan. Langkah di bawah adalah alur lengkap.",
+    "submitLocked": "Pengajuan hanya dapat dikirim setelah prasyarat di halaman ini selesai."
   },
   "internalTransfer": {
     "title": "Transfer internal",
@@ -1692,7 +1721,13 @@
     "submitting": "Mentransfer…",
     "success": "Transfer dicatat di buku besar akun.",
     "needTwoDemo": "Perlu dua akun demo",
-    "needTwoDemoBody": "Buat akun demo Forex lain untuk mentransfer dana simulasi antar akun."
+    "needTwoDemoBody": "Buat akun demo Forex lain untuk mentransfer dana simulasi antar akun.",
+    "amountLabel": "Jumlah ({currency})",
+    "invalidAmount": "Masukkan jumlah yang lebih besar dari nol.",
+    "viewLedger": "Lihat buku besar",
+    "createDemo": "Buat akun demo lain",
+    "previewAccount": "Demo · {currency}",
+    "afterLead": "Setelah transfer tercatat, kedua akun menampilkannya di buku besar."
   },
   "accountDetail": {
     "loading": "Memuat akun…",
@@ -1838,6 +1873,25 @@
     "MARKET": "Pasar",
     "LIMIT": "Limit",
     "STOP": "Stop",
-    "STOP_LIMIT": "Stop limit"
+    "STOP_LIMIT": "Stop limit",
+    "UNDER_REVIEW": "Sedang ditinjau",
+    "APPROVED": "Disetujui",
+    "PROVISIONING": "Proses pembukaan"
+  },
+  "serverCopy": {
+    "liveOpeningGated": "Pembukaan akun live tetap tertutup sampai rel broker, pendanaan, dan kepatuhan terhubung.",
+    "liveOpeningReady": "Broker dapat membuka akun setelah prasyarat selesai.",
+    "reasonBlocked": "Rel broker atau pendanaan belum terhubung",
+    "reasonReady": "Broker siap",
+    "blockerBrokerProvisioning": "Pembukaan akun broker belum terhubung.",
+    "blockerProvisioningUnavailable": "Pembukaan akun live belum tersedia.",
+    "blockerCredentials": "Kata sandi trading dan akses baca broker belum tersedia.",
+    "blockerNoAdapter": "Belum ada broker eksternal yang terhubung.",
+    "blockerDepositRail": "Rel deposit belum terhubung.",
+    "blockerWithdrawRail": "Rel penarikan belum terhubung.",
+    "blockerWebhook": "Pembaruan dana dari broker belum terhubung.",
+    "blockerRealForexOff": "Trading live tetap nonaktif sampai pemeriksaan broker lulus.",
+    "liveApplicationNotAccepted": "Pengajuan akun live tidak diterima di lingkungan ini.",
+    "liveApplicationAlreadyOpen": "Anda sudah memiliki pengajuan akun live yang masih terbuka."
   }
 }

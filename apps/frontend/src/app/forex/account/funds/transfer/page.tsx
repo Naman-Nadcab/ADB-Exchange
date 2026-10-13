@@ -16,7 +16,12 @@ export default function ForexFundsTransferPage() {
     <ForexPageFrame title={tf('pages.fundsTransfer.title')} subtitle={tf('pages.fundsTransfer.subtitle')}>
       <ForexPortalAccountContext />
       <ForexFundsSubNav />
-      {gates.internalTransferEnabled ? <ForexInternalTransferForm /> : <ForexFundingUnavailablePanel variant="transfer" />}
+      {gates.internalTransferEnabled ? <ForexInternalTransferForm /> : (
+        <>
+          <ForexFundingUnavailablePanel variant="transfer" />
+          <ForexInternalTransferForm locked />
+        </>
+      )}
     </ForexPageFrame>
   );
 }

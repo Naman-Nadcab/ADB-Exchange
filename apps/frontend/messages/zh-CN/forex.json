@@ -1265,7 +1265,9 @@
     "colType": "类型",
     "colDebit": "借方",
     "colCredit": "贷方",
-    "colStatus": "状态"
+    "colStatus": "状态",
+    "goTransfer": "转账",
+    "workflowLead": "下面每一步都是正式页面。在对应通道接入前，不能提交。"
   },
   "ordersPage": {
     "summaryAria": "各状态订单数量",
@@ -1448,7 +1450,7 @@
   "fundingGate": {
     "subtitle": "真实资金外汇通道",
     "technicalDetailsLabel": "技术详情",
-    "technicalDetailsBody": "真实入金、出金、转账与支付方式需要真实外汇服务商通道、合规审批及客户接口。本环境未开启真实外汇。",
+    "technicalDetailsBody": "真实入金、出金、转账和支付方式需要已接入的经纪商、合规审批，以及客户资金接口。本环境这些通道保持关闭。",
     "verificationHint": "启用真实外汇后，可能需要先<verifyLink>完成验证</verifyLink>。",
     "depositTitle": "入金不可用",
     "depositBadge": "未配置",
@@ -1461,7 +1463,23 @@
     "transferBody": "外汇账户之间的内部转账暂不可用。",
     "paymentMethodsTitle": "支付方式不可用",
     "paymentMethodsBadge": "未配置",
-    "paymentMethodsBody": "在集成外汇资金服务商前不支持保存支付方式。"
+    "paymentMethodsBody": "在集成外汇资金服务商前不支持保存支付方式。",
+    "previewLead": "下面是正式页面。在这条通道配置完成前，不能提交。",
+    "depositStep1": "开通真实外汇账户。",
+    "depositStep2": "如果平台要求，先完成身份验证。",
+    "depositStep3": "选择该真实账户并填写金额。不使用加密钱包。",
+    "depositStep4": "经纪商结算后，资金记入账户账本，即可交易。",
+    "withdrawStep1": "使用已有结算资金的真实账户。",
+    "withdrawStep2": "填写金额。不能超过账本余额。",
+    "withdrawStep3": "经纪商结算后，账本才会扣款。",
+    "withdrawStep4": "资金历史会保留参考号。",
+    "transferStep1": "创建两个演示账户。",
+    "transferStep2": "选择转出模拟余额的账户和接收的账户。",
+    "transferStep3": "填写金额。这是账本转账，不是银行出金。",
+    "transferStep4": "两边账本都会更新。可在账户账本中核对。",
+    "paymentStep1": "接入资金服务商后，支付方式才会出现。",
+    "paymentStep2": "本交易所不保存银行卡或银行账户资料。",
+    "paymentStep3": "入金和出金使用经纪商提供的方式。"
   },
   "accountHub": {
     "heroAria": "交易账户概览",
@@ -1611,7 +1629,14 @@
     "openLive": "开通真实账户",
     "successDeposit": "经纪商已接受入金。参考号 {ref}。",
     "successWithdraw": "经纪商已接受出金。参考号 {ref}。",
-    "notice": "经纪商返回已结算之前不会入账。不使用加密钱包。"
+    "notice": "经纪商返回已结算之前不会入账。不使用加密钱包。",
+    "amountLabel": "金额（{currency}）",
+    "invalidAmount": "请输入大于零的金额。",
+    "viewLedger": "查看账本",
+    "viewHistory": "资金历史",
+    "previewAccount": "实盘 · {currency}",
+    "afterLead": "经纪商结算后，可在账本、资金记录或交易账户中查看这笔资金。",
+    "viewAccounts": "交易账户"
   },
   "paymentMethodsList": {
     "title": "经纪商现金",
@@ -1655,7 +1680,9 @@
     "failed": "无法创建演示账户。",
     "success": "演示账户已创建并设为当前账户。",
     "successGeneric": "已创建",
-    "backAccounts": "全部账户"
+    "backAccounts": "全部账户",
+    "goFunds": "领取演示资金",
+    "goTerminal": "打开终端"
   },
   "openLive": {
     "eligibilityTitle": "真实账户资格",
@@ -1667,9 +1694,9 @@
     "kycDone": "身份验证已完成",
     "kycPending": "需要完成身份验证",
     "kycOptional": "外汇身份验证为可选项",
-    "providerPending": "需启用经纪商/LP 集成（REAL_FOREX）",
+    "providerPending": "本环境未启用经纪商连接。",
     "providerReady": "经纪商账户接口可访问",
-    "provisioningPending": "需连接账户 provisioning 服务",
+    "provisioningPending": "账户开通服务尚未接入。",
     "provisioningReady": "真实账户开通可用",
     "applicationsTitle": "你的申请",
     "applicationsEmpty": "还没有真实账户申请。",
@@ -1679,7 +1706,9 @@
     "applicationSubmit": "提交真实账户申请",
     "applicationSubmitting": "提交中…",
     "applicationStatus": "申请状态：{status}",
-    "backAccounts": "返回账户列表"
+    "backAccounts": "返回账户列表",
+    "signedOutNote": "登录后可检查资格并提交申请。下面是完整流程。",
+    "submitLocked": "本页的前提完成后才能提交申请。"
   },
   "internalTransfer": {
     "title": "内部转账",
@@ -1692,7 +1721,13 @@
     "submitting": "转账中…",
     "success": "转账已记入账户账本。",
     "needTwoDemo": "需要两个演示账户",
-    "needTwoDemoBody": "再创建一个演示外汇账户即可在账户间转移模拟资金。"
+    "needTwoDemoBody": "再创建一个演示外汇账户即可在账户间转移模拟资金。",
+    "amountLabel": "金额（{currency}）",
+    "invalidAmount": "请输入大于零的金额。",
+    "viewLedger": "查看账本",
+    "createDemo": "再创建一个演示账户",
+    "previewAccount": "演示 · {currency}",
+    "afterLead": "转账入账后，两个账户的账本都会显示这笔变动。"
   },
   "accountDetail": {
     "loading": "正在加载账户…",
@@ -1838,6 +1873,25 @@
     "MARKET": "市价",
     "LIMIT": "限价",
     "STOP": "止损",
-    "STOP_LIMIT": "止损限价"
+    "STOP_LIMIT": "止损限价",
+    "UNDER_REVIEW": "审核中",
+    "APPROVED": "已通过",
+    "PROVISIONING": "开通中"
+  },
+  "serverCopy": {
+    "liveOpeningGated": "在经纪商、资金和合规通道接入前，实盘账户开通保持关闭。",
+    "liveOpeningReady": "前提完成后，经纪商可以开通账户。",
+    "reasonBlocked": "经纪商或资金通道尚未接入",
+    "reasonReady": "经纪商已就绪",
+    "blockerBrokerProvisioning": "经纪商开户尚未接入。",
+    "blockerProvisioningUnavailable": "实盘账户开通暂不可用。",
+    "blockerCredentials": "经纪商交易密码和只读密码暂不可用。",
+    "blockerNoAdapter": "尚未接入外部经纪商。",
+    "blockerDepositRail": "入金通道尚未接入。",
+    "blockerWithdrawRail": "出金通道尚未接入。",
+    "blockerWebhook": "经纪商的资金状态回传尚未接入。",
+    "blockerRealForexOff": "在经纪商检查通过前，实盘交易保持关闭。",
+    "liveApplicationNotAccepted": "本环境不接受实盘账户申请。",
+    "liveApplicationAlreadyOpen": "你已有一份未完成的实盘账户申请。"
   }
 }

@@ -16,7 +16,12 @@ export default function ForexFundsPaymentMethodsPage() {
     <ForexPageFrame title={tf('pages.fundsPaymentMethods.title')} subtitle={tf('pages.fundsPaymentMethods.subtitle')}>
       <ForexPortalAccountContext />
       <ForexFundsSubNav />
-      {gates.paymentMethodsEnabled ? <ForexPaymentMethodsList /> : <ForexFundingUnavailablePanel variant="paymentMethods" />}
+      {gates.paymentMethodsEnabled ? <ForexPaymentMethodsList /> : (
+        <>
+          <ForexFundingUnavailablePanel variant="paymentMethods" />
+          <ForexPaymentMethodsList locked />
+        </>
+      )}
     </ForexPageFrame>
   );
 }

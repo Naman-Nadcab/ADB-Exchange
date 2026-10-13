@@ -12,11 +12,21 @@ export function ForexFundingUnavailablePanel(props: {
   const titleKey = `${props.variant}Title` as const;
   const bodyKey = `${props.variant}Body` as const;
   const badgeKey = `${props.variant}Badge` as const;
+  const stepPrefix =
+    props.variant === 'paymentMethods' ? 'paymentStep' : props.variant === 'deposit' ? 'depositStep' : props.variant === 'withdraw' ? 'withdrawStep' : 'transferStep';
+  const stepCount = props.variant === 'paymentMethods' ? 3 : 4;
+  const steps = Array.from({ length: stepCount }, (_, i) => t(`${stepPrefix}${i + 1}` as 'depositStep1'));
 
   return (
     <ForexPortalModuleCard title={t(titleKey)} subtitle={t('subtitle')}>
       <ForexPortalStatusBadge tone="warning">{t(badgeKey)}</ForexPortalStatusBadge>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">{t(bodyKey)}</p>
+      <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-[13px] text-foreground">
+        {steps.map((step) => (
+          <li key={step}>{step}</li>
+        ))}
+      </ol>
+      <p className="mt-3 text-[12px] text-muted-foreground">{t('previewLead')}</p>
       <p className="mt-3 text-[12px] text-muted-foreground">
         {t.rich('verificationHint', {
           verifyLink: (chunks) => (

@@ -7,13 +7,17 @@ import { forexApi, unwrap } from '@/lib/forex/api/client';
 
 type Method = { id: string; label: string; rail: string };
 
-export function ForexPaymentMethodsList() {
+export function ForexPaymentMethodsList(props?: { locked?: boolean }) {
   const t = useTranslations('forex.paymentMethodsList');
   const [methods, setMethods] = useState<Method[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    if (props?.locked) {
+      setLoaded(true);
+      return;
+    }
     void (async () => {
       const res = unwrap(await forexApi.getForexPaymentMethods());
       if (!res.ok) {
@@ -24,7 +28,7 @@ export function ForexPaymentMethodsList() {
       setMethods(res.data.methods ?? []);
       setLoaded(true);
     })();
-  }, []);
+  }, [props?.locked]);
 
   return (
     <ForexPortalModuleCard title={t('title')} subtitle={t('subtitle')}>
