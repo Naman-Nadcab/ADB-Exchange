@@ -89,7 +89,7 @@ export default function ForexOpenLiveAccountPage() {
     const idempotencyKey = `live-app:${Date.now()}`;
     const res = unwrap(await forexApi.submitLiveApplication({
       idempotencyKey,
-      positionMode: 'NETTING',
+      positionMode: 'HEDGING',
       partnerCode: partnerCode.trim() || undefined,
     }));
     setBusy(false);

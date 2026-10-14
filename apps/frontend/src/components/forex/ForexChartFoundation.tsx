@@ -17,7 +17,7 @@ import {
 } from '@/lib/forex/chart/indicator-registry';
 import { loadScopedForexIndicators, saveScopedForexIndicators } from '@/lib/forex/chart/indicator-state';
 import type { OscillatorPaneSpec } from './ForexOscillatorPaneStack';
-import { bollinger, ema, hma, macdSeries, nearestStudy, rsi, sma, supertrend, wma } from '@/lib/forex/chart/studies';
+import { bollinger, ema, hma, macdSeries, rsi, sma, supertrend, wma } from '@/lib/forex/chart/studies';
 import { candleTimeMs } from '@/lib/forex/models/candles';
 import { activeProtectionsFor, chartLinkedOpenPosition } from '@/lib/forex/models/position';
 import { decideQuoteChartOverlay } from '@/lib/forex/market-data/quote-chart-overlay';
@@ -29,14 +29,12 @@ import { hydrateForexPrivate } from '@/lib/forex/runtime/hydrate';
 import {
   ForexLightweightChart,
   type ForexChartApi,
-  type ForexChartCrosshair,
   type ForexChartType,
 } from './ForexLightweightChart';
 import type { ForexAnalysisTool } from './ForexChartToolbar';
 import { ForexMt5ChartChrome } from './mt5-chart/ForexMt5ChartChrome';
 import { ForexMt5DrawingRail } from './mt5-chart/ForexMt5DrawingRail';
 import { ForexMt5EventStrip } from './mt5-chart/ForexMt5EventStrip';
-import { ForexMt5DataWindow } from './mt5-chart/ForexMt5DataWindow';
 import { ForexMt5ObjectsPanel, objectRowsFromApi, type ObjectPanelRow } from './mt5-chart/ForexMt5ObjectsPanel';
 import { ForexIntelDrawer } from './ForexIntelDrawer';
 import { fxNum } from './format';
@@ -163,7 +161,6 @@ export function ForexChartFoundation(props?: {
     );
   }, []);
   const [chartType, setChartType] = useState<ForexChartType>('candle');
-  const [crosshair, setCrosshair] = useState<ForexChartCrosshair | null>(null);
   const [tool, setTool] = useState<ForexAnalysisTool>('none');
   const analysisToolRef = useRef<ForexAnalysisTool>('none');
   analysisToolRef.current = tool;
@@ -175,7 +172,6 @@ export function ForexChartFoundation(props?: {
   const [showIntel, setShowIntel] = useState(false);
   const [showDrawings, setShowDrawings] = useState(true);
   const [objectsPanelOpen, setObjectsPanelOpen] = useState(false);
-  const [dataWindowOpen, setDataWindowOpen] = useState(true);
   const [objectRows, setObjectRows] = useState<ObjectPanelRow[]>([]);
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; price: number; time: number | null } | null>(null);
   const [calendarEvents, setCalendarEvents] = useState<
@@ -339,21 +335,6 @@ export function ForexChartFoundation(props?: {
     return out;
   }, [liveCandles]);
 
-  const lastBar = bars.length ? bars[bars.length - 1] : null;
-  const ohlcDisplay =
-    crosshair?.close != null
-      ? crosshair
-      : lastBar
-        ? {
-            time: lastBar.time,
-            open: lastBar.open,
-            high: lastBar.high,
-            low: lastBar.low,
-            close: lastBar.close,
-            price: lastBar.close,
-          }
-        : null;
-
   const period = Number.isFinite(studyPeriod) && studyPeriod >= 2 ? Math.min(Math.floor(studyPeriod), 400) : 20;
   const slowPeriod = Math.max(period + 1, Math.round(period * 2.5));
 
@@ -460,17 +441,6 @@ export function ForexChartFoundation(props?: {
   const atr = lastAtr(bars);
   const macd = lastMacd(bars);
   const stoch = lastStochastic(bars);
-
-  const hoverIndicators = useMemo(() => {
-    if (crosshair?.time == null) return null;
-    const t = crosshair.time;
-    return {
-      ema20: nearestStudy(overlay, t),
-      ema50: nearestStudy(overlaySecondary, t),
-      rsi: nearestStudy(rsiSeries, t),
-      macd: nearestStudy(macdLine, t),
-    };
-  }, [crosshair, overlay, overlaySecondary, rsiSeries, macdLine]);
 
   const structureLevels = useMemo(() => {
     if (!showLevels || candleView.status !== 'READY') return [];
@@ -601,7 +571,7 @@ export function ForexChartFoundation(props?: {
     return parts.join(' · ') || null;
   }, [measurePoints, pipSize, bars]);
 
-  const positionMode = useForexStore((s) => s.account?.positionMode ?? 'NETTING');
+  const positionMode = useForexStore((s) => s.account?.positionMode ?? 'HEDGING');
   const chartFocusPositionId = useForexWorkspaceStore((s) => s.chartFocusPositionId);
   const openPosition = useMemo(
     () => chartLinkedOpenPosition(positions, selected, positionMode, chartFocusPositionId),
@@ -754,11 +724,6 @@ export function ForexChartFoundation(props?: {
     []
   );
 
-  const ohlcCompact =
-    ohlcDisplay && !props?.compactChrome
-      ? `O ${fxNum(String(ohlcDisplay.open), digits)} H ${fxNum(String(ohlcDisplay.high), digits)} L ${fxNum(String(ohlcDisplay.low), digits)} C ${fxNum(String(ohlcDisplay.close), digits)}`
-      : null;
-
   const onPricePick = useCallback(
     (price: number, time: number | null) => {
       const activeTool = analysisToolRef.current;
@@ -893,8 +858,7 @@ export function ForexChartFoundation(props?: {
   return (
     <section
       className={cn(
-        'flex min-h-0 min-w-0 flex-col bg-background',
-        embedded || props?.instanceId ? 'h-full' : 'flex-1'
+        'flex h-full min-h-0 min-w-0 flex-1 flex-col bg-background'
       )}
       aria-label={tc('marketChartAria')}
       onMouseDown={activate}
@@ -905,10 +869,6 @@ export function ForexChartFoundation(props?: {
           activeTf={activeTf}
           timeframes={timeframes}
           onTf={setTf}
-          digits={digits}
-          bid={quote?.bid}
-          ask={quote?.ask}
-          spreadPips={quote?.spreadPips}
           demoSecondary={quote ? quoteModeLabel : tc('loadingQuote')}
           chartType={chartType}
           onChartType={setChartType}
@@ -940,9 +900,6 @@ export function ForexChartFoundation(props?: {
           oneClickBuy={oneClickBuy}
           oneClickSell={oneClickSell}
           oneClickDisabled={orderEngine.busy || !chartAuthed}
-          ohlcLine={ohlcCompact}
-          showDataWindow={dataWindowOpen}
-          onDataWindow={() => setDataWindowOpen((v) => !v)}
         />
       ) : (
         <div className="flex h-7 shrink-0 items-center gap-2 border-b border-border px-2 font-mono text-[11px]">
@@ -1009,7 +966,6 @@ export function ForexChartFoundation(props?: {
           pendingDrag={pendingDragEnabled}
           draggablePendingLines={draggablePendingLines}
           onDragPendingLine={(p) => commitPendingOrderDrag(p)}
-          onCrosshair={setCrosshair}
           onPricePick={onPricePick}
           onContextMenuPrice={(price, time, x, y) => setCtxMenu({ price, time, x, y })}
           onDrawingsChanged={refreshObjectRows}
@@ -1017,23 +973,6 @@ export function ForexChartFoundation(props?: {
             chartApiRef.current = api;
             if (api && objectsPanelOpen) refreshObjectRows();
           }}
-        />
-        <ForexMt5DataWindow
-          open={dataWindowOpen && !props?.compactChrome && candleView.status === 'READY'}
-          digits={digits}
-          ohlc={
-            ohlcDisplay
-              ? {
-                  open: Number(ohlcDisplay.open),
-                  high: Number(ohlcDisplay.high),
-                  low: Number(ohlcDisplay.low),
-                  close: Number(ohlcDisplay.close),
-                  time: ohlcDisplay.time ?? undefined,
-                }
-              : null
-          }
-          spreadPips={quote?.spreadPips ?? null}
-          indicators={hoverIndicators}
         />
         <ForexMt5ObjectsPanel
           open={objectsPanelOpen && !props?.compactChrome}

@@ -28,7 +28,8 @@ function assert(cond: unknown, msg: string): asserts cond {
   assert(c.timeInForce.gtd.engine === true, 'GTD engine');
   assert(c.timeInForce.gtd.customerExposed === true, 'GTD exposed');
   assert(c.protections.trailing.customerExposed === true, 'trailing customer exposed');
-  assert(c.positionModes.netting.customerExposed === true, 'netting exposed');
+  assert(c.positionModes.netting.customerExposed === false, 'customer does not choose netting');
+  assert(c.positionModes.hedging.customerExposed === true, 'hedging is the customer mode');
   assert(c.positionActions.closeBy.customerExposed === true, 'closeBy exposed when hedging');
   assert(JSON.stringify(c.customer.orderTypes) === JSON.stringify([...FOREX_CUSTOMER_EXPOSED_ORDER_TYPES]), 'customer orderTypes');
   assert(JSON.stringify(c.customer.timeInForce) === JSON.stringify([...FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE]), 'customer tif');

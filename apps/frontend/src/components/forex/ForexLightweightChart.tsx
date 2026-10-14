@@ -93,26 +93,6 @@ function lineOpts(
   return { price, color, lineWidth: 1 as const, axisLabelVisible, title, lineStyle: 2 as const };
 }
 
-/** When bid/ask Y-axis labels would collide, shorten titles and defer to price-only axis labels. */
-function quoteAxisLabels(
-  series: ISeriesApi<'Candlestick'>,
-  bid: number,
-  ask: number
-): { bidTitle: string; askTitle: string; bidAxis: boolean; askAxis: boolean } {
-  const yBid = series.priceToCoordinate(bid);
-  const yAsk = series.priceToCoordinate(ask);
-  const overlap =
-    yBid != null && yAsk != null && Number.isFinite(yBid) && Number.isFinite(yAsk) && Math.abs(yBid - yAsk) < 36;
-  if (!overlap) {
-    return { bidTitle: 'BID', askTitle: 'ASK', bidAxis: true, askAxis: true };
-  }
-  const tight = yBid != null && yAsk != null && Math.abs(yBid - yAsk) < 18;
-  if (tight) {
-    return { bidTitle: '', askTitle: 'ASK', bidAxis: false, askAxis: true };
-  }
-  return { bidTitle: 'Bid', askTitle: 'Ask', bidAxis: true, askAxis: true };
-}
-
 function minMove(digits: number): number {
   return Number(`1e-${Math.max(0, Math.min(digits, 8))}`);
 }
@@ -501,11 +481,7 @@ export function ForexLightweightChart(props: {
 
       applyToolMode(toolRef.current, drawRef.current, extraDrawRef.current, toolRef);
 
-      const q = quoteRef.current;
-      if (q && 'createPriceLine' in series) {
-        bidRef.current = series.createPriceLine(lineOpts(q.bid, colors.up, 'BID'));
-        askRef.current = series.createPriceLine(lineOpts(q.ask, colors.down, 'ASK'));
-      } else if (bars.length && 'createPriceLine' in series) {
+      if (!quoteRef.current && bars.length && 'createPriceLine' in series) {
         const last = bars[bars.length - 1].close;
         lastRef.current = series.createPriceLine(lineOpts(last, 'rgba(245,184,0,0.75)', 'CLOSE'));
       }
@@ -965,42 +941,17 @@ export function ForexLightweightChart(props: {
       if (!ref.current) ref.current = series.createPriceLine(lineOpts(price, color, title));
       else ref.current.applyOptions({ price, color, title });
     };
+    if (bidRef.current) series.removePriceLine(bidRef.current);
+    if (askRef.current) series.removePriceLine(askRef.current);
+    bidRef.current = null;
+    askRef.current = null;
     if (!props.quote) {
-      if (bidRef.current) series.removePriceLine(bidRef.current);
-      if (askRef.current) series.removePriceLine(askRef.current);
-      bidRef.current = null;
-      askRef.current = null;
       const bars = toBars(candlesRef.current);
       const last = bars.length ? bars[bars.length - 1].close : undefined;
       apply(lastRef, last, 'rgba(245,184,0,0.75)', 'CLOSE');
-    } else {
-      if (lastRef.current) series.removePriceLine(lastRef.current);
+    } else if (lastRef.current) {
+      series.removePriceLine(lastRef.current);
       lastRef.current = null;
-      const axis = quoteAxisLabels(series as ISeriesApi<'Candlestick'>, props.quote.bid, props.quote.ask);
-      if (!bidRef.current) {
-        bidRef.current = series.createPriceLine(
-          lineOpts(props.quote.bid, colors.up, axis.bidTitle, axis.bidAxis)
-        );
-      } else {
-        bidRef.current.applyOptions({
-          price: props.quote.bid,
-          color: colors.up,
-          title: axis.bidTitle,
-          axisLabelVisible: axis.bidAxis,
-        });
-      }
-      if (!askRef.current) {
-        askRef.current = series.createPriceLine(
-          lineOpts(props.quote.ask, colors.down, axis.askTitle, axis.askAxis)
-        );
-      } else {
-        askRef.current.applyOptions({
-          price: props.quote.ask,
-          color: colors.down,
-          title: axis.askTitle,
-          axisLabelVisible: axis.askAxis,
-        });
-      }
     }
     const lv = props.levels;
     const ghost = Boolean(props.levelDrag);

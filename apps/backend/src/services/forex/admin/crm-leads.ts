@@ -417,7 +417,7 @@ export async function convertForexCrmLead(args: {
   if (!existingAcct.rows.length) {
     await db.query(
       `INSERT INTO forex_accounts (account_id, user_id, currency, status, position_mode)
-       VALUES ($1, $2, 'USD', 'ACTIVE', 'NETTING')
+       VALUES ($1, $2, 'USD', 'ACTIVE', 'HEDGING')
        ON CONFLICT (account_id) DO NOTHING`,
       [accountId, userId]
     );

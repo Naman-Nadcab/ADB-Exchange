@@ -2,8 +2,8 @@
  * Run: npx tsx apps/frontend/src/lib/forex/models/forex-p0-p1.test.ts
  */
 import { composeAccountMetrics } from './account-metrics';
-import { buildExposureBook } from './exposure-view';
-import { computePerformance, ledgerCashDrawdown, periodBounds } from './history-analytics';
+import { buildCurrencyExposure, buildExposureBook } from './exposure-view';
+import { computePerformance, historyBalanceEntries, ledgerCashDrawdown, periodBounds } from './history-analytics';
 import { formatMarginLevel, livePositionValuation } from './live-valuation';
 import { estimateTicketRisk } from './ticket-risk';
 import type { ForexInstrument, ForexPublicPosition, ForexQuoteDto } from './types';
@@ -172,6 +172,69 @@ function testPeriod(): void {
   assert(b.from === 0, 'all from');
 }
 
+function testCurrencyExposure(): void {
+  const rows = buildCurrencyExposure({
+    positions: [pos({ volume: '0.10', currentPrice: '1.10000', contractSize: '100000' })],
+    instruments: { EURUSD: inst },
+    quotes: { EURUSD: q({ bid: '1.10000', ask: '1.10000', mid: '1.10000' }) },
+    accountCurrency: 'USD',
+  });
+  const eur = rows.find((r) => r.asset === 'EUR');
+  const usd = rows.find((r) => r.asset === 'USD');
+  assert(eur?.volume === 10000, `eur vol ${eur?.volume}`);
+  assert(usd?.volume === -11000, `usd vol ${usd?.volume}`);
+  assert(eur?.rate === 1.1, `eur rate ${eur?.rate}`);
+  assert(eur?.value === 11000, `eur value ${eur?.value}`);
+  assert(usd?.rate === 1 && usd.value === -11000, `usd value ${usd?.value}`);
+  const closed = buildCurrencyExposure({
+    positions: [pos({ status: 'CLOSED', closedAt: '2026-09-02T00:00:00.000Z' })],
+    instruments: { EURUSD: inst },
+    quotes: { EURUSD: q() },
+    accountCurrency: 'USD',
+  });
+  assert(closed.length === 0, 'closed positions are not exposure');
+}
+
+function testHistoryBalance(): void {
+  const rows = historyBalanceEntries([
+    {
+      transactionId: 'd1',
+      type: 'DEPOSIT',
+      debit: '0',
+      credit: '500',
+      net: '500',
+      currency: 'USD',
+      timestamp: '2026-09-01T00:00:00.000Z',
+      status: 'POSTED',
+      source: 'SIMULATED',
+    },
+    {
+      transactionId: 'w1',
+      type: 'WITHDRAWAL',
+      debit: '40',
+      credit: '0',
+      net: '-40',
+      currency: 'USD',
+      timestamp: '2026-09-02T00:00:00.000Z',
+      status: 'POSTED',
+      source: 'SIMULATED',
+    },
+    {
+      transactionId: 'p1',
+      type: 'REALIZED_PNL',
+      debit: '0',
+      credit: '10',
+      currency: 'USD',
+      timestamp: '2026-09-03T00:00:00.000Z',
+      status: 'POSTED',
+      source: 'SIMULATED',
+    },
+  ]);
+  assert(rows.length === 2, 'pnl is not a balance row');
+  assert(rows[0]?.bucket === 'deposit' && rows[0].amount === 500, 'deposit');
+  assert(rows[1]?.bucket === 'withdrawal' && rows[1].amount === -40, 'withdrawal');
+}
+
 testLiveLongBid();
 testLiveShortAsk();
 testMarginNa();
@@ -181,4 +244,6 @@ testPerf();
 testDrawdown();
 testTicketRisk();
 testPeriod();
+testCurrencyExposure();
+testHistoryBalance();
 console.log('forex-p0-p1.test.ts ok');

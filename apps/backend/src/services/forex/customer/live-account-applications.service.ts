@@ -157,7 +157,7 @@ export async function createLiveAccountApplication(args: {
     userId: args.userId,
     status: 'PENDING',
     currency: 'USD',
-    positionMode: args.positionMode ?? 'NETTING',
+    positionMode: args.positionMode ?? 'HEDGING',
     leverage: args.leverage ?? null,
     groupCode: args.groupCode ?? null,
     idempotencyKey: args.idempotencyKey,

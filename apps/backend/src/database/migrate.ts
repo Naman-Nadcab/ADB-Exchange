@@ -5470,6 +5470,28 @@ END $$;`,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
   );`,
   `CREATE INDEX IF NOT EXISTS idx_forex_broker_recon_account ON forex_broker_reconciliation_reports(account_id, created_at DESC);`,
+  `DO $$
+   BEGIN
+     ALTER TABLE forex_accounts ALTER COLUMN position_mode SET DEFAULT 'HEDGING';
+     IF to_regclass('public.forex_account_groups') IS NOT NULL THEN
+       ALTER TABLE forex_account_groups ALTER COLUMN position_mode_default SET DEFAULT 'HEDGING';
+     END IF;
+     IF NOT EXISTS (SELECT 1 FROM system_settings WHERE key = 'forex_customer_hedging_default_v1') THEN
+       UPDATE forex_accounts SET position_mode = 'HEDGING' WHERE position_mode = 'NETTING';
+       IF to_regclass('public.forex_account_groups') IS NOT NULL THEN
+         UPDATE forex_account_groups SET position_mode_default = 'HEDGING' WHERE position_mode_default = 'NETTING';
+       END IF;
+       INSERT INTO system_settings (key, value, description, updated_at)
+       VALUES (
+         'forex_customer_hedging_default_v1',
+         to_jsonb(true),
+         'Customer forex accounts use hedging tickets. Later netting accounts are left alone.',
+         NOW()
+       );
+     END IF;
+   EXCEPTION WHEN OTHERS THEN
+     RAISE NOTICE 'forex hedging default skipped: %', SQLERRM;
+   END $$;`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */
