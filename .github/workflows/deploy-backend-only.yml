@@ -1,0 +1,310 @@
+name: Deploy backend only
+
+# Rebuilds only the API container on the production VPS, after the migration command.
+# It does not run the full-stack production workflow and does not restart other services.
+# SSH uses native OpenSSH and accepts only the verified ED25519 host key.
+#
+# The release tag points at the backend commit:
+#   backend-deploy/<release-sha>/<expected-production-sha>
+# The run tag points at the default-branch commit that contains this workflow:
+#   backend-deploy-run/<release-sha>/<expected-production-sha>
+# Only that tag prefix starts a run. Branch pushes and other tags do not.
+on:
+  push:
+    tags:
+      - 'backend-deploy-run/**'
+      - 'backend-inspect/**'
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: 'Backend release commit. Required for DEPLOY_BACKEND_ONLY.'
+        required: false
+        default: ''
+        type: string
+      expected_production_sha:
+        description: 'Production HEAD that must already be checked out. Required for DEPLOY_BACKEND_ONLY.'
+        required: false
+        default: ''
+        type: string
+      confirmation:
+        description: 'INSPECT_ONLY, DEPLOY_BACKEND_ONLY, or ROLLBACK_BACKEND_ONLY'
+        required: true
+        default: INSPECT_ONLY
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-only-production
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/backend-deploy-run/') || startsWith(github.ref, 'refs/tags/backend-inspect/')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      confirmation: ${{ steps.decision.outputs.confirmation }}
+      release_sha: ${{ steps.decision.outputs.release_sha }}
+      expected_sha: ${{ steps.decision.outputs.expected_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+
+      - name: Resolve the backend-only operation
+        id: decision
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_REF: ${{ github.ref }}
+          EVENT_SHA: ${{ github.sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          INPUT_CONFIRMATION: ${{ github.event.inputs.confirmation }}
+          INPUT_RELEASE: ${{ github.event.inputs.release_sha }}
+          INPUT_EXPECTED: ${{ github.event.inputs.expected_production_sha }}
+        run: sh deployment/backend-only-resolve.sh
+
+  remote:
+    needs: resolve
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+
+      - name: Require a backend-only fast-forward and bundle it
+        if: needs.resolve.outputs.confirmation == 'DEPLOY_BACKEND_ONLY'
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_REF: ${{ github.ref }}
+          BE_EXPECTED: ${{ needs.resolve.outputs.expected_sha }}
+          BE_RELEASE: ${{ needs.resolve.outputs.release_sha }}
+        run: |
+          set -eu
+          expected="$BE_EXPECTED"
+          release="$BE_RELEASE"
+          printf '%s' "$expected" | grep -Eq '^[0-9a-f]{40}$'
+          printf '%s' "$release" | grep -Eq '^[0-9a-f]{40}$'
+          chmod +x deployment/backend-only-preflight.sh deployment/backend-only-tag.sh
+          if [ "$EVENT_NAME" = "push" ]; then
+            sh deployment/backend-only-tag.sh parse "$EVENT_REF" >/dev/null
+            release_ref="refs/tags/backend-deploy/$release/$expected"
+            if ! git rev-parse --verify --quiet "${release_ref}^{commit}" >/dev/null; then
+              git fetch origin "$release_ref:$release_ref"
+            fi
+            sh deployment/backend-only-tag.sh verify-request "$EVENT_REF" >/dev/null
+          fi
+          git cat-file -e "${expected}^{commit}" 2>/dev/null || git fetch --no-tags origin "$expected"
+          git cat-file -e "${release}^{commit}" 2>/dev/null || git fetch --no-tags origin "$release"
+          ./deployment/backend-only-preflight.sh "$expected" "$release"
+          expected=$(git rev-parse "${expected}^{commit}")
+          release=$(git rev-parse "${release}^{commit}")
+          git update-ref refs/backend-only/release "$release"
+          git bundle create backend-only.bundle refs/backend-only/release ^"$expected"
+          git bundle verify backend-only.bundle >/dev/null
+          tip=$(git bundle list-heads backend-only.bundle | awk 'NR==1 { print $1 }')
+          test "$tip" = "$release"
+          echo "bundle_tip=$tip"
+
+      - name: Verify the ED25519 host key before connecting
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -euo pipefail
+          echo "WORKFLOW_REF=${{ github.ref }}"
+          echo "WORKFLOW_SHA=${{ github.sha }}"
+          dir="${RUNNER_TEMP}/adb-backend-ssh"
+          rm -rf "$dir"
+          mkdir -p "$dir"
+          chmod 700 "$dir"
+          chmod +x deployment/frontend-only-hostkey.sh
+          ./deployment/frontend-only-hostkey.sh "$VPS_HOST" "$dir/known_hosts"
+
+      - name: Install the temporary deploy key
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          dir="${RUNNER_TEMP}/adb-backend-ssh"
+          umask 077
+          printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > "$dir/id"
+          chmod 600 "$dir/id"
+          if ! ssh-keygen -lf "$dir/id" >/dev/null; then
+            echo "DEPLOY_KEY_UNREADABLE" >&2
+            exit 1
+          fi
+
+      - name: Read production state
+        if: needs.resolve.outputs.confirmation == 'INSPECT_ONLY'
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          BE_APP: ${{ secrets.VPS_DEPLOY_PATH }}
+          BE_EXPECTED: ${{ needs.resolve.outputs.expected_sha }}
+        run: |
+          set -euo pipefail
+          dir="${RUNNER_TEMP}/adb-backend-ssh"
+          case "$VPS_HOST" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_HOST_UNSAFE" >&2; exit 1 ;;
+          esac
+          case "$VPS_USER" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_USER_UNSAFE" >&2; exit 1 ;;
+          esac
+          app="${BE_APP:-/opt/adb-exchange}"
+          case "$app" in
+            ''|*[!A-Za-z0-9/_.-]*) echo "APP_PATH_UNSAFE" >&2; exit 1 ;;
+          esac
+          ssh \
+            -i "$dir/id" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$dir/known_hosts" \
+            -o GlobalKnownHostsFile=/dev/null \
+            -o HostKeyAlgorithms=ssh-ed25519 \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            "$VPS_USER@$VPS_HOST" \
+            "BE_APP=$(printf '%q' "$app") BE_EXPECTED=$(printf '%q' "${BE_EXPECTED:-}") sh -s" <<BE_REMOTE
+          set -eu
+          cd "\$BE_APP"
+          if [ ! -f docker-compose.production.yml ] || [ ! -d apps/backend ] || [ ! -d .git ]; then
+            echo "APP_PATH_INVALID" >&2
+            exit 1
+          fi
+          echo "PRODUCTION_HOSTNAME=\$(hostname)"
+          echo "PRODUCTION_HEAD=\$(git rev-parse HEAD)"
+          FRONTEND_ONLY_TREE_LIBRARY=1
+          $(cat deployment/frontend-only-tree-status.sh)
+          classify_production_tree
+          if [ -n "\$BE_EXPECTED" ] && [ "\$(git rev-parse HEAD)" != "\$BE_EXPECTED" ]; then
+            echo "HEAD_MISMATCH expected=\$BE_EXPECTED actual=\$(git rev-parse HEAD)" >&2
+            exit 1
+          fi
+          for name in exchange-frontend exchange-backend exchange-postgres exchange-redis exchange-nats exchange-matching-engine exchange-admin exchange-nginx exchange-indexer exchange-rabbitmq; do
+            if docker inspect "\$name" >/dev/null 2>&1; then
+              docker inspect -f "\$name status={{.State.Status}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}} started={{.State.StartedAt}} image={{.Image}}" "\$name"
+            else
+              echo "\$name MISSING"
+            fi
+          done
+          echo "INSPECT_ONLY"
+          BE_REMOTE
+
+      - name: Roll back only the backend container
+        if: needs.resolve.outputs.confirmation == 'ROLLBACK_BACKEND_ONLY'
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          BE_APP: ${{ secrets.VPS_DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          dir="${RUNNER_TEMP}/adb-backend-ssh"
+          case "$VPS_HOST" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_HOST_UNSAFE" >&2; exit 1 ;;
+          esac
+          case "$VPS_USER" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_USER_UNSAFE" >&2; exit 1 ;;
+          esac
+          app="${BE_APP:-/opt/adb-exchange}"
+          case "$app" in
+            ''|*[!A-Za-z0-9/_.-]*) echo "APP_PATH_UNSAFE" >&2; exit 1 ;;
+          esac
+          ssh \
+            -i "$dir/id" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$dir/known_hosts" \
+            -o GlobalKnownHostsFile=/dev/null \
+            -o HostKeyAlgorithms=ssh-ed25519 \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            "$VPS_USER@$VPS_HOST" \
+            "BE_MODE=rollback BE_APP=$(printf '%q' "$app") sh -s" <<BE_REMOTE
+          FRONTEND_ONLY_TREE_LIBRARY=1
+          $(cat deployment/frontend-only-tree-status.sh)
+          $(cat deployment/backend-only-remote.sh)
+          BE_REMOTE
+
+      - name: Copy the backend bundle
+        if: needs.resolve.outputs.confirmation == 'DEPLOY_BACKEND_ONLY'
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          dir="${RUNNER_TEMP}/adb-backend-ssh"
+          case "$VPS_HOST" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_HOST_UNSAFE" >&2; exit 1 ;;
+          esac
+          case "$VPS_USER" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_USER_UNSAFE" >&2; exit 1 ;;
+          esac
+          test -f backend-only.bundle
+          scp \
+            -i "$dir/id" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$dir/known_hosts" \
+            -o GlobalKnownHostsFile=/dev/null \
+            -o HostKeyAlgorithms=ssh-ed25519 \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            backend-only.bundle \
+            "$VPS_USER@$VPS_HOST:/tmp/backend-only.bundle"
+
+      - name: Rebuild only the backend container
+        if: needs.resolve.outputs.confirmation == 'DEPLOY_BACKEND_ONLY'
+        timeout-minutes: 40
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          BE_APP: ${{ secrets.VPS_DEPLOY_PATH }}
+          BE_EXPECTED: ${{ needs.resolve.outputs.expected_sha }}
+          BE_RELEASE: ${{ needs.resolve.outputs.release_sha }}
+        run: |
+          set -euo pipefail
+          dir="${RUNNER_TEMP}/adb-backend-ssh"
+          case "$VPS_HOST" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_HOST_UNSAFE" >&2; exit 1 ;;
+          esac
+          case "$VPS_USER" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_USER_UNSAFE" >&2; exit 1 ;;
+          esac
+          printf '%s' "$BE_EXPECTED" | grep -Eq '^[0-9a-f]{40}$' || { echo "expected_production_sha is not a commit SHA" >&2; exit 1; }
+          printf '%s' "$BE_RELEASE" | grep -Eq '^[0-9a-f]{40}$' || { echo "release_sha is not a commit SHA" >&2; exit 1; }
+          app="${BE_APP:-/opt/adb-exchange}"
+          case "$app" in
+            ''|*[!A-Za-z0-9/_.-]*) echo "APP_PATH_UNSAFE" >&2; exit 1 ;;
+          esac
+          ssh \
+            -i "$dir/id" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$dir/known_hosts" \
+            -o GlobalKnownHostsFile=/dev/null \
+            -o HostKeyAlgorithms=ssh-ed25519 \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            "$VPS_USER@$VPS_HOST" \
+            "BE_MODE=deploy BE_APP=$(printf '%q' "$app") BE_EXPECTED=$(printf '%q' "$BE_EXPECTED") BE_RELEASE=$(printf '%q' "$BE_RELEASE") sh -s" <<BE_REMOTE
+          FRONTEND_ONLY_TREE_LIBRARY=1
+          $(cat deployment/frontend-only-tree-status.sh)
+          $(cat deployment/backend-only-remote.sh)
+          BE_REMOTE
+
+      - name: Public smoke checks
+        if: needs.resolve.outputs.confirmation == 'DEPLOY_BACKEND_ONLY'
+        run: |
+          set -eu
+          curl -fsS --max-time 20 https://169.58.39.2/health | grep -q '"status":"healthy"'
+          curl -fsSI --max-time 20 https://169.58.39.2/forex/signals >/dev/null
+          echo "public_smoke=ok"
+
+      - name: Remove temporary SSH key material
+        if: always()
+        run: rm -rf "${RUNNER_TEMP}/adb-backend-ssh"
