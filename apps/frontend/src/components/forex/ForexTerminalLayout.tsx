@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useMemo, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
 import { isForexTradePath, showForexMarketChrome } from '@/lib/forex/routes';
 import { useForexRuntime } from '@/lib/forex/runtime/useForexRuntime';
 import { useForexStore } from '@/lib/forex/state/store';
@@ -53,17 +52,9 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
     return openPos || openOrd;
   }, [positions, orders]);
 
-  const authed = useForexPrivateSession();
-
   useEffect(() => {
     if (hasTradingData) setBottomCollapsed(false);
   }, [hasTradingData, setBottomCollapsed]);
-
-  // Signed-out: keep toolbox compact so the chart dominates (MT5 workstation feel).
-  useEffect(() => {
-    if (!trade) return;
-    if (!authed && !hasTradingData) setBottomCollapsed(true);
-  }, [trade, authed, hasTradingData, setBottomCollapsed]);
 
   useEffect(() => {
     if (!trade || typeof window === 'undefined') return;
@@ -149,31 +140,32 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
             ) : null}
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
               <ForexChartWorkspace />
-              {/* Toolbox opens under the chart only. The left stack keeps its height. */}
-              {showBottom && bottomH > 0 ? (
-                <>
-                  {!bottomCollapsed && chartMode === 'normal' ? (
-                    <ForexPanelSplit
-                      axis="y"
-                      value={bottomPreferred}
-                      onChange={(n) => {
-                        setBottomCollapsed(false);
-                        setBottomHeight(n);
-                      }}
-                      direction={-1}
-                      label="Resize Toolbox"
-                      className="hidden md:block"
-                    />
-                  ) : null}
-                  <div className="hidden shrink-0 md:flex" style={{ height: bottomH }}>
-                    <div className="min-h-0 min-w-0 flex-1">
-                      <ForexBottomPanels compact={bottomH <= 56} hasTradingData={hasTradingData} />
-                    </div>
-                  </div>
-                </>
-              ) : null}
             </div>
           </div>
+
+          {/* Full-width terminal dock. Switching tabs does not change this height. */}
+          {showBottom && bottomH > 0 ? (
+            <>
+              {!bottomCollapsed && chartMode === 'normal' ? (
+                <ForexPanelSplit
+                  axis="y"
+                  value={bottomPreferred}
+                  onChange={(n) => {
+                    setBottomCollapsed(false);
+                    setBottomHeight(n);
+                  }}
+                  direction={-1}
+                  label="Resize Toolbox"
+                  className="hidden md:block"
+                />
+              ) : null}
+              <div className="hidden shrink-0 md:flex" style={{ height: bottomH }}>
+                <div className="min-h-0 min-w-0 flex-1">
+                  <ForexBottomPanels compact={bottomH <= 56} hasTradingData={hasTradingData} />
+                </div>
+              </div>
+            </>
+          ) : null}
 
           {chartMode === 'expand' || chartMode === 'fullscreen' ? (
             <button

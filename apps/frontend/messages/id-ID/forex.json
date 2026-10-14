@@ -163,7 +163,7 @@
     "positions": "Posisi",
     "orders": "Order",
     "fills": "Eksekusi",
-    "history": "Riwayat",
+    "history": "Riwayat akun",
     "risk": "Eksposur",
     "analytics": "Risiko",
     "alerts": "Peringatan",
@@ -297,6 +297,13 @@
   },
   "bottomPanels": {
     "ariaLabel": "Toolbox trade",
+    "accountLine": {
+      "balance": "Saldo",
+      "equity": "Ekuitas",
+      "margin": "Margin",
+      "freeMargin": "Free margin",
+      "marginLevel": "Level margin"
+    },
     "more": "Lainnya",
     "statusActive": "Aktif",
     "statusIdle": "Idle",

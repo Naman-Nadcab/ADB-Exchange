@@ -163,7 +163,7 @@
     "positions": "Trade",
     "orders": "Orders",
     "fills": "Fills",
-    "history": "History",
+    "history": "Account History",
     "risk": "Exposure",
     "analytics": "Risk",
     "alerts": "Alerts",
@@ -297,6 +297,13 @@
   },
   "bottomPanels": {
     "ariaLabel": "Trade toolbox",
+    "accountLine": {
+      "balance": "Balance",
+      "equity": "Equity",
+      "margin": "Margin",
+      "freeMargin": "Free margin",
+      "marginLevel": "Margin level"
+    },
     "more": "More",
     "statusActive": "Active",
     "statusIdle": "Idle",

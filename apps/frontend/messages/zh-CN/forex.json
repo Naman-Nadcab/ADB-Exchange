@@ -163,7 +163,7 @@
     "positions": "交易",
     "orders": "订单",
     "fills": "成交",
-    "history": "历史",
+    "history": "账户历史",
     "risk": "敞口",
     "analytics": "风险",
     "alerts": "提醒",
@@ -297,6 +297,13 @@
   },
   "bottomPanels": {
     "ariaLabel": "交易工具箱",
+    "accountLine": {
+      "balance": "余额",
+      "equity": "净值",
+      "margin": "保证金",
+      "freeMargin": "可用保证金",
+      "marginLevel": "保证金比例"
+    },
     "more": "更多",
     "statusActive": "活跃",
     "statusIdle": "空闲",
