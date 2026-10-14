@@ -5,7 +5,8 @@
     "titleLine2": "Kripto dan Forex.",
     "description": "Akses aset digital dan FX global melalui platform finansial profesional untuk presisi, transparansi, dan kontrol.",
     "exploreMarkets": "Jelajahi Pasar",
-    "createAccount": "Buat Akun"
+    "createAccount": "Buat Akun",
+    "signIn": "Masuk"
   },
   "liveMarkets": {
     "aria": "Pasar live",
@@ -117,7 +118,8 @@
     "title": "Siap untuk pasar?",
     "desc": "Akses aset digital dan FX global melalui ADB Exchange.",
     "exploreMarkets": "Jelajahi Pasar",
-    "createAccount": "Buat Akun"
+    "createAccount": "Buat Akun",
+    "signIn": "Masuk"
   },
   "customer": {
     "eyebrow": "ADB Exchange Saya",

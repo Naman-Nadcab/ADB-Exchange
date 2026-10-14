@@ -33,7 +33,7 @@ export default function PrivacyPolicyPage() {
       <header className="sticky top-0 z-10 bg-card/80 dark:bg-card/80 backdrop-blur-lg border-b border-border">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <Link
-            href="/signup"
+            href="/login"
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />

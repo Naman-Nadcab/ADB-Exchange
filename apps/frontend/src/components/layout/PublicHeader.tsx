@@ -177,11 +177,8 @@ export function PublicHeader() {
             </>
           ) : (
             <>
-              <Link href={ROUTES.login} prefetch className="tap-target hidden rounded-lg border border-[#F5B8001F] px-4 py-2 text-sm text-[#9CA3AF] transition hover:text-white sm:inline-flex items-center">
+              <Link href={ROUTES.login} prefetch className="tap-target hidden items-center whitespace-nowrap rounded-lg bg-[#F5B800] px-4 py-2 text-sm font-semibold text-[#05070B] transition hover:bg-[#FFD54A] sm:inline-flex">
                 {tn('logIn')}
-              </Link>
-              <Link href={ROUTES.signup} prefetch className="tap-target hidden items-center whitespace-nowrap rounded-lg bg-[#F5B800] px-4 py-2 text-sm font-semibold text-[#05070B] transition hover:bg-[#FFD54A] sm:inline-flex">
-                {tn('createAccount')}
               </Link>
             </>
           )}
@@ -217,8 +214,7 @@ export function PublicHeader() {
                 <Link href={ROUTES.p2p} prefetch className="tap-target inline-flex items-center">{tn('p2p')}</Link>
                 <Link href={ROUTES.earn} prefetch className="tap-target inline-flex items-center">{tn('earn')}</Link>
                 <Link href={ROUTES.dashboard.api} prefetch className="tap-target inline-flex items-center">{tn('api')}</Link>
-                <Link href={ROUTES.login} prefetch className="tap-target inline-flex items-center">{tn('logIn')}</Link>
-                <Link href={ROUTES.signup} prefetch className="tap-target inline-flex items-center text-[#F5B800]">{tn('createAccount')}</Link>
+                <Link href={ROUTES.login} prefetch className="tap-target inline-flex items-center text-[#F5B800]">{tn('logIn')}</Link>
               </>
             )}
           </div>
