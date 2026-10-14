@@ -1364,6 +1364,8 @@ export type ForexPartnerProfileRow = {
   status: string;
   parent_partner_id: string | null;
   commission_plan_id: string | null;
+  user_id?: string | null;
+  commission_per_lot?: string;
   created_at: string;
 };
 
