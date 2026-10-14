@@ -688,6 +688,8 @@
     "colFloat": "Float",
     "colPct": "%",
     "colComm": "Comm",
+    "colCommission": "Komisi",
+    "colTaxes": "Pajak",
     "colSwap": "Swap",
     "colNet": "Net",
     "colSl": "S / L",

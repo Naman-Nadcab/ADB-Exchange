@@ -269,7 +269,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
 
   return (
     <section
-      className="terminal-panel-subtle flex h-full min-h-0 flex-col border-t border-border bg-card"
+      className="fx-dock terminal-panel-subtle flex h-full min-h-0 flex-col border-t border-border"
       aria-label={tf('bottomPanels.ariaLabel')}
     >
       {!compact ? (
@@ -277,9 +277,9 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
           {tab === 'positions' || tab === 'orders' ? (
             <div>
               <ForexPositionPanel />
-              {authed ? (
-                <div className="border-t border-border">
-                  <p className="px-2 py-1 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+              {authed && workingOrders.length > 0 ? (
+                <div className="border-t border-border/70">
+                  <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                     {tf('bottomTabs.orders')}
                   </p>
                   {engine.error ? (
@@ -332,7 +332,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
             </div>
           ) : tab === 'fills' ? (
             fills.length === 0 ? (
-              <p className="px-3 py-3 text-[12px] text-muted-foreground">{tf('bottomPanels.noFills')}</p>
+              <p className="px-3 py-6 text-center text-[12px] text-muted-foreground">{tf('bottomPanels.noFills')}</p>
             ) : (
               <table className="w-full text-left font-mono text-[11px] tabular-nums">
                 <thead className="sticky top-0 bg-card text-[9px] uppercase tracking-wide text-muted-foreground">
@@ -387,13 +387,13 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
           ) : tab === 'alerts' ? (
             <AlertsPanel />
           ) : tab === 'tape' ? (
-            <div className="flex h-full flex-col items-start justify-center gap-1.5 px-3 py-3">
+            <div className="flex h-full flex-col items-center justify-center gap-1.5 px-6 py-6 text-center">
               <p className="text-[12px] font-semibold">{tf('bottomPanels.tape.title')}</p>
               <p className="max-w-lg text-[11px] leading-relaxed text-muted-foreground">{tf('bottomPanels.tape.body')}</p>
               <p className="font-mono text-[10px] text-muted-foreground">{tf('bottomPanels.tape.badge')}</p>
             </div>
           ) : tab === 'dom' ? (
-            <div className="flex h-full flex-col items-start justify-center gap-1.5 px-3 py-3">
+            <div className="flex h-full flex-col items-center justify-center gap-1.5 px-6 py-6 text-center">
               <p className="text-[12px] font-semibold">{tf('bottomPanels.dom.title')}</p>
               <p className="max-w-lg text-[11px] leading-relaxed text-muted-foreground">{tf('bottomPanels.dom.body')}</p>
               <p className="font-mono text-[10px] text-muted-foreground">{tf('bottomPanels.dom.badge')}</p>
@@ -416,7 +416,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
         <p className="sr-only">{tf('bottomPanels.collapsedSr', { tab: TABS.find((t) => t.id === tab)?.label ?? tab })}</p>
       )}
 
-      <div className="mt-auto flex h-7 shrink-0 items-center gap-0.5 overflow-x-auto border-t border-border px-1.5" role="tablist">
+      <div className="fx-dock-tabs mt-auto flex h-8 shrink-0 items-stretch gap-0.5 overflow-x-auto border-t border-border px-1" role="tablist">
         {[
           ...TOOLBOX_TAB_ORDER.map((id) => TABS.find((t) => t.id === id)).filter((t): t is { id: ForexBottomTab; label: string } => Boolean(t)),
           ...TABS.filter((t) => t.id === tab && t.id !== 'orders' && !TOOLBOX_TAB_ORDER.includes(t.id)),
@@ -431,10 +431,10 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
               if (compact) setBottomCollapsed(false);
             }}
             className={cn(
-              'shrink-0 px-2 py-0.5 text-[11px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+              'fx-dock-tab shrink-0 px-2.5 text-[11px] font-medium tracking-wide focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
               tab === t.id || (t.id === 'positions' && tab === 'orders')
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             {t.label}
@@ -495,20 +495,20 @@ const PIE_COLORS = ['#3b82f6', '#22c55e', '#eab308', '#f97316', '#a855f7', '#14b
 
 function DockColumns(props: { columns: string[]; testId?: string; children: ReactNode; footer?: ReactNode }) {
   return (
-    <div data-testid={props.testId}>
-      <table className="w-full border-collapse text-left">
-        <thead className="sticky top-0 bg-card text-[10px] text-muted-foreground">
-          <tr>
-            {props.columns.map((column, index) => (
-              <th key={`${column}-${index}`} className="border-b border-border px-2 py-1 font-medium whitespace-nowrap">
-                {column}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>{props.children}</tbody>
-      </table>
-      {props.footer}
+    <div className="flex min-h-0 flex-1 flex-col" data-testid={props.testId}>
+      <div className="min-h-0 flex-1 overflow-auto">
+        <table className="w-full text-left font-mono text-[11px]">
+          <thead>
+            <tr>
+              {props.columns.map((column, index) => (
+                <th key={`${column}-${index}`}>{column}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>{props.children}</tbody>
+        </table>
+      </div>
+      {props.footer ? <div className="fx-dock-summary">{props.footer}</div> : null}
     </div>
   );
 }
@@ -516,17 +516,17 @@ function DockColumns(props: { columns: string[]; testId?: string; children: Reac
 function IntelNote(props: { status: IntelStatus; reason?: string; empty: string }) {
   const tf = useTranslations('forex');
   if (props.status === 'loading' || props.status === 'idle') {
-    return <p className="px-2 py-2 text-[11px] text-muted-foreground">{tf('bottomPanels.loading')}</p>;
+    return <p className="px-3 py-6 text-center text-[12px] text-muted-foreground">{tf('bottomPanels.loading')}</p>;
   }
   if (props.status === 'error') {
     return (
-      <p className="px-2 py-2 text-[11px] text-sell" role="alert">
+      <p className="px-3 py-6 text-center text-[12px] text-sell" role="alert">
         {props.reason ?? tf('bottomPanels.requestFailed')}
       </p>
     );
   }
   return (
-    <p className="px-2 py-2 text-[11px] text-muted-foreground">
+    <p className="px-3 py-6 text-center text-[12px] text-muted-foreground">
       {props.empty}
       {props.reason ? ` · ${props.reason}` : ''}
     </p>
@@ -601,7 +601,7 @@ function MailboxPanel() {
   return (
     <DockColumns columns={columns} testId="mailbox-table">
       <tr>
-        <td colSpan={3} className="px-2 py-3 text-center text-[11px] text-muted-foreground">
+        <td colSpan={3} className="px-2 py-6 text-center text-[12px] text-muted-foreground">
           {tf('bottomPanels.mt4.noMessages')}
         </td>
       </tr>
@@ -1033,7 +1033,7 @@ function HistoryPanel(props: {
       <DockColumns
         columns={columns}
         footer={
-          <p className="flex flex-wrap gap-x-4 gap-y-1 border-t border-border px-2 py-1.5 font-mono text-[11px]">
+          <p className="flex min-w-0 flex-wrap gap-x-4 gap-y-1 font-mono">
             <span>
               {mk('profitLoss')}: <span className={profitLoss > 0 ? 'text-buy' : profitLoss < 0 ? 'text-sell' : ''}>{fixedNum(profitLoss, 2)}</span>
             </span>
@@ -1166,9 +1166,10 @@ function ExposurePanel(props: {
           </div>
         ) : null}
       </div>
-      <p className="flex flex-wrap gap-x-4 gap-y-1 border-t border-border px-2 py-1.5 font-mono text-[11px]">
+      <p className="fx-dock-summary flex min-w-0 flex-wrap gap-x-4 gap-y-1 font-mono">
         <span>
-          {ek('balance')}: {money(props.account?.ledgerBalance)}
+          <span className="fx-k">{ek('balance')}:</span>
+          {money(props.account?.ledgerBalance)}
         </span>
         <span>
           {ek('equity')}: {money(props.account?.equity)}

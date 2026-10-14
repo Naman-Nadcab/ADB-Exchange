@@ -1295,3 +1295,71 @@ input[type="number"] {
 .forex-hub .forex-overview .forex-overview-health--lock {
   border-color: hsl(var(--exchange-sell) / 0.5);
 }
+
+/* Bottom terminal: one chrome for every dock tab. */
+.fx-dock {
+  background: hsl(var(--card));
+}
+.fx-dock table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+.fx-dock thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 6px 8px;
+  border-bottom: 1px solid hsl(var(--border));
+  white-space: nowrap;
+}
+.dark .fx-dock thead th {
+  background: hsl(220 16% 8%);
+}
+.fx-dock tbody td {
+  padding: 3px 8px;
+  border-bottom: 1px solid hsl(var(--border) / 0.45);
+  font-variant-numeric: tabular-nums;
+}
+.fx-dock tbody tr:hover td {
+  background: hsl(var(--accent) / 0.65);
+}
+.fx-dock-summary {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-top: 1px solid hsl(var(--border));
+  background: hsl(var(--muted) / 0.55);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.dark .fx-dock-summary {
+  background: hsl(220 16% 8%);
+}
+.fx-dock-summary .fx-k {
+  color: hsl(var(--muted-foreground));
+  margin-right: 4px;
+}
+.fx-dock-tabs {
+  background: hsl(var(--card));
+}
+.dark .fx-dock-tabs {
+  background: hsl(220 16% 7%);
+}
+.fx-dock-tab[aria-selected='true'] {
+  color: hsl(var(--foreground));
+  background: transparent;
+  box-shadow: inset 0 -2px 0 hsl(var(--primary));
+}

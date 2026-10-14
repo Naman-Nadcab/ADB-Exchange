@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForexSession } from '@/lib/forex/runtime/useForexSession';
-import { formatPositionAge, livePositionValuation } from '@/lib/forex/models/live-valuation';
+import { formatMarginLevel, formatPositionAge, livePositionValuation } from '@/lib/forex/models/live-valuation';
 import {
   activeProtectionsFor,
   closeReferenceSide,
@@ -48,6 +48,8 @@ export function ForexPositionPanel() {
   const quotes = useForexStore((s) => s.quotes);
   const fees = useForexStore((s) => s.fees);
   const swaps = useForexStore((s) => s.swaps);
+  const account = useForexStore((s) => s.account);
+  const margin = useForexStore((s) => s.margin);
   const actions = useForexPositionActions();
   const selectedSymbol = useForexWorkspaceStore((s) => s.selectedSymbol);
   const focusSymbol = useForexWorkspaceStore((s) => s.focusSymbol);
@@ -75,8 +77,26 @@ export function ForexPositionPanel() {
   const [closeBy, setCloseBy] = useState<CloseByState | null>(null);
   const [customVol, setCustomVol] = useState('');
   const [draft, setDraft] = useState<Record<string, { sl: string; tp: string }>>({});
-  const accountMode = useForexStore((s) => s.account?.positionMode ?? 'NETTING');
+  const accountMode = account?.positionMode ?? 'NETTING';
   const hedging = accountMode === 'HEDGING';
+  const floatingTotal = useMemo(() => {
+    let sum = 0;
+    let any = false;
+    for (const position of openRows) {
+      const live = livePositionValuation({
+        position,
+        quote: quotes[position.symbol],
+        instrument: instruments[position.symbol],
+        accountCommission: openRows.length === 1 ? fees?.total ?? undefined : undefined,
+        accountSwap: openRows.length === 1 ? swaps?.total ?? undefined : undefined,
+      });
+      if (live.status === 'CALCULATED' && live.floating != null) {
+        sum += Number(live.floating);
+        any = true;
+      }
+    }
+    return any ? sum : null;
+  }, [openRows, quotes, instruments, fees?.total, swaps?.total]);
 
   const oppositeCandidates = (p: ForexPublicPosition) =>
     openRows.filter((x) => x.positionId !== p.positionId && x.symbol === p.symbol && x.side !== p.side);
@@ -89,18 +109,16 @@ export function ForexPositionPanel() {
         </div>
       ) : status === 'LOADING' ? (
         <p className="p-3 text-[12px] text-muted-foreground">{tp('loading')}</p>
-      ) : status === 'ERROR' && hydrateError ? (
-        <p className="p-3 text-[12px] text-sell" role="alert">
-          {hydrateError.code}: {hydrateError.message}
-        </p>
-      ) : status === 'DISCONNECTED' ? (
-        <p className="p-3 text-[12px] text-amber-800 dark:text-amber-200">{tp('disconnected')}</p>
       ) : (
         <>
-          <p className="border-b border-border px-3 py-1 text-[10px] text-muted-foreground">
-            {tp('accountMode', { mode: accountMode })}
-            {hedging ? tp('hedgingHint') : tp('nettingHint')}
-          </p>
+          {status === 'ERROR' && hydrateError ? (
+            <p className="px-3 py-1 text-[11px] text-sell" role="alert">
+              {hydrateError.message}
+            </p>
+          ) : null}
+          {status === 'DISCONNECTED' ? (
+            <p className="px-3 py-1 text-[11px] text-amber-800 dark:text-amber-200">{tp('disconnected')}</p>
+          ) : null}
           {hedging &&
           openRows.filter((p) => p.symbol === selectedSymbol).length > 1 &&
           !openRows.some((p) => p.positionId === chartFocusPositionId && p.symbol === selectedSymbol) ? (
@@ -114,17 +132,24 @@ export function ForexPositionPanel() {
               {actions.actionError.code}: {actions.actionError.message}
             </p>
           ) : null}
-          {status === 'EMPTY' && !confirm ? (
+          {(status === 'EMPTY' || openRows.length === 0) && !confirm ? (
             <div className="min-h-0 flex-1 overflow-auto">
-              <table className="hidden w-full text-left font-mono text-[11px] md:table">
+              <table className="fx-trade hidden w-full text-left font-mono text-[11px] md:table">
                 <TradeTableHeader />
+                <tbody>
+                  <tr>
+                    <td colSpan={14} className="px-2 py-3 text-center text-[12px] text-muted-foreground">
+                      {tp('empty')}
+                    </td>
+                  </tr>
+                </tbody>
               </table>
-              <p className="px-2 py-2 text-[12px] text-muted-foreground md:hidden">{tp('empty')}</p>
+              <p className="px-3 py-4 text-center text-[12px] text-muted-foreground md:hidden">{tp('empty')}</p>
             </div>
           ) : (
             <div className="min-h-0 flex-1 overflow-auto">
               <div className="hidden md:block">
-                <table className="w-full text-left font-mono text-[11px]">
+                <table className="fx-trade w-full text-left font-mono text-[11px]">
                   <TradeTableHeader />
                   <tbody>
                     {openRows.map((p) => (
@@ -355,6 +380,9 @@ export function ForexPositionPanel() {
           }}
         />
       ) : null}
+      {status !== 'SIGNED_OUT' && status !== 'LOADING' ? (
+        <TradeSummary currency={account?.currency ?? 'USD'} account={account} margin={margin} floating={floatingTotal} />
+      ) : null}
     </div>
   );
 }
@@ -366,23 +394,78 @@ function formatTicketTime(iso: string): string {
   return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 }
 
+function dockAmount(value: string | number | null | undefined): string {
+  if (value == null || value === '') return '—';
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '—';
+  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function TradeSummary(props: {
+  currency: string;
+  account: {
+    ledgerBalance?: string | null;
+    equity?: string | null;
+    usedMargin?: string | null;
+    freeMargin?: string | null;
+  } | null;
+  margin: { usedMargin?: string | null; freeMargin?: string | null } | null;
+  floating: number | null;
+}) {
+  const tf = useTranslations('forex');
+  const used = props.margin?.usedMargin ?? props.account?.usedMargin;
+  const level = formatMarginLevel(props.account?.equity, used);
+  const tone = props.floating == null ? '' : props.floating > 0 ? 'text-buy' : props.floating < 0 ? 'text-sell' : '';
+  return (
+    <div className="fx-dock-summary" data-testid="trade-summary">
+      <p className="flex min-w-0 flex-wrap gap-x-3 gap-y-0.5">
+        <span>
+          <span className="fx-k">{tf('bottomPanels.exposure.balance')}:</span>
+          {dockAmount(props.account?.ledgerBalance)} {props.currency}
+        </span>
+        <span>
+          <span className="fx-k">{tf('bottomPanels.exposure.equity')}:</span>
+          {dockAmount(props.account?.equity)}
+        </span>
+        <span>
+          <span className="fx-k">{tf('bottomPanels.mt4.margin')}:</span>
+          {dockAmount(used)}
+        </span>
+        <span>
+          <span className="fx-k">{tf('bottomPanels.mt4.freeMargin')}:</span>
+          {dockAmount(props.margin?.freeMargin ?? props.account?.freeMargin)}
+        </span>
+        <span>
+          <span className="fx-k">{tf('bottomPanels.mt4.marginLevel')}:</span>
+          {level}
+        </span>
+      </p>
+      <span className={cn('shrink-0 font-mono font-semibold', tone)}>
+        {props.floating == null ? '' : dockAmount(props.floating)}
+      </span>
+    </div>
+  );
+}
+
 function TradeTableHeader() {
   const tp = useTranslations('forex.positionPanel');
   return (
-    <thead className="text-muted-foreground">
+    <thead>
       <tr>
-        <th className="px-2 py-1 font-medium">{tp('colOrder')}</th>
-        <th className="px-2 py-1 font-medium">{tp('colTime')}</th>
-        <th className="px-2 py-1 font-medium">{tp('colType')}</th>
-        <th className="px-2 py-1 font-medium">{tp('colSize')}</th>
-        <th className="px-2 py-1 font-medium">{tp('colSymbol')}</th>
-        <th className="px-2 py-1 font-medium">{tp('colPrice')}</th>
-        <th className="px-2 py-1 font-medium">{tp('colSl')}</th>
-        <th className="px-2 py-1 font-medium">{tp('colTp')}</th>
-        <th className="px-2 py-1 font-medium">{tp('colPrice')}</th>
-        <th className="px-2 py-1 font-medium">{tp('colSwap')}</th>
-        <th className="px-2 py-1 font-medium">{tp('colProfit')}</th>
-        <th className="px-1 py-1 font-medium"> </th>
+        <th>{tp('colOrder')}</th>
+        <th>{tp('colTime')}</th>
+        <th>{tp('colType')}</th>
+        <th className="text-right">{tp('colSize')}</th>
+        <th>{tp('colSymbol')}</th>
+        <th className="text-right">{tp('colPrice')}</th>
+        <th className="text-right">{tp('colSl')}</th>
+        <th className="text-right">{tp('colTp')}</th>
+        <th className="text-right">{tp('colPrice')}</th>
+        <th className="text-right">{tp('colCommission')}</th>
+        <th className="text-right">{tp('colTaxes')}</th>
+        <th className="text-right">{tp('colSwap')}</th>
+        <th className="text-right">{tp('colProfit')}</th>
+        <th> </th>
       </tr>
     </thead>
   );
@@ -528,10 +611,10 @@ function PositionRow(props: {
         )}
       </td>
       <td className="whitespace-nowrap px-2 py-1">{formatTicketTime(p.openedAt)}</td>
-      <td className="px-2 py-1 lowercase">{sideLabel}</td>
-      <td className="px-2 py-1">{fxNum(p.volume, 2)}</td>
-      <td className="px-2 py-1 lowercase">{p.symbol}</td>
-      <td className="px-2 py-1">{fxNum(p.averageEntryPrice || p.entryPrice, props.digits)}</td>
+      <td className={cn('px-2 py-1 font-medium lowercase', p.side === 'long' ? 'text-buy' : 'text-sell')}>{sideLabel}</td>
+      <td className="px-2 py-1 text-right">{fxNum(p.volume, 2)}</td>
+      <td className="px-2 py-1 font-medium lowercase">{p.symbol}</td>
+      <td className="px-2 py-1 text-right">{fxNum(p.averageEntryPrice || p.entryPrice, props.digits)}</td>
       <td className="px-2 py-1">
         <TicketLevel
           kind="SL"
@@ -560,9 +643,11 @@ function PositionRow(props: {
           busy={props.protBusy || props.closing}
         />
       </td>
-      <td className="px-2 py-1">{current ? fxNum(current, props.digits) : ''}</td>
-      <td className="px-2 py-1">{fxNum(live.swap, 2)}</td>
-      <td className="px-2 py-1">
+      <td className="px-2 py-1 text-right">{current ? fxNum(current, props.digits) : ''}</td>
+      <td className="px-2 py-1 text-right">{live.commission !== '' ? fxNum(live.commission, 2) : ''}</td>
+      <td className="px-2 py-1 text-right">0.00</td>
+      <td className="px-2 py-1 text-right">{fxNum(live.swap, 2)}</td>
+      <td className="px-2 py-1 text-right font-semibold">
         <FloatCell live={live} fallback={props.serverPnl} />
       </td>
       <td className="px-1 py-1 text-center">
@@ -571,7 +656,7 @@ function PositionRow(props: {
           disabled={props.closing}
           onClick={() => props.onClose(p.volume)}
           aria-label={tp('close')}
-          className="h-5 w-5 text-[14px] leading-none text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-4 w-4 items-center justify-center rounded-sm text-[13px] leading-none text-muted-foreground hover:bg-sell/15 hover:text-sell disabled:cursor-not-allowed disabled:opacity-50"
         >
           {props.closing ? '…' : '×'}
         </button>

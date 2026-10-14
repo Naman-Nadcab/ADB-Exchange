@@ -688,6 +688,8 @@
     "colFloat": "浮动",
     "colPct": "%",
     "colComm": "佣金",
+    "colCommission": "佣金",
+    "colTaxes": "税",
     "colSwap": "库存费",
     "colNet": "净额",
     "colSl": "止损",
