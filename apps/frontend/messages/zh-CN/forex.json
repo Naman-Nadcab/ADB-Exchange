@@ -15,7 +15,8 @@
     "simulated": "模拟",
     "demoSimulated": "演示 · 模拟",
     "terminalNavAria": "外汇终端导航",
-    "mobileNavAria": "外汇移动端导航"
+    "mobileNavAria": "外汇移动端导航",
+    "pagesMenu": "页面"
   },
   "portalNav": {
     "portal": "门户",
@@ -501,6 +502,7 @@
     "trading": "交易",
     "tools": "工具",
     "chartLayoutAria": "图表布局",
+    "layoutItem": "布局 {label}",
     "oneClickOnTitle": "已启用一键交易",
     "oneClickOffTitle": "一键交易已关闭（默认）",
     "oneClickLabel": "一键 {state}",

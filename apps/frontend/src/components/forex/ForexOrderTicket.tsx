@@ -199,7 +199,6 @@ export function ForexOrderTicket() {
 
   const orderActionLabel = useMemo(() => describeCustomerOrderLabel(tf, side, type), [side, type, tf]);
   const kindHelp = useMemo(() => orderKindHelpLabel(tf, type, side), [type, side, tf]);
-  const positionMode = account?.positionMode ?? 'NETTING';
 
   const tifNote = timeInForceBlockedReasonLabel(tf, type, tif);
 
@@ -302,31 +301,16 @@ export function ForexOrderTicket() {
 
   return (
     <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-l border-border bg-card" aria-label={tf('ticketPanel.ariaLabel')}>
-      <div className="flex h-6 items-center justify-between border-b border-border px-2">
+      <div className="flex h-6 items-center justify-between gap-2 border-b border-border px-2">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{tf('ticketPanel.newOrder')}</span>
-        <span className="font-mono text-[11px] font-semibold">{inst?.displaySymbol ?? selected}</span>
-      </div>
-      <div className="flex items-center justify-between border-b border-border px-2 py-0.5 text-[9px] text-muted-foreground">
-        <span title={tf('ticketPanel.modeTitle')}>{tf('ticketPanel.modePrefix')} {positionMode}</span>
-        <span className="font-medium text-foreground">{orderActionLabel}</span>
-      </div>
-
-      <div className="grid grid-cols-3 border-b border-border font-mono text-[11px]">
-        <div className="border-r border-border px-2 py-1">
-          <p className="text-[9px] text-muted-foreground">{tf('ticketPanel.bid')}</p>
-          <p className="eda-quote font-semibold text-buy">{quote ? fxNum(quote.bid, digits) : '—'}</p>
-        </div>
-        <div className="border-r border-border px-2 py-1">
-          <p className="text-[9px] text-muted-foreground">{tf('ticketPanel.ask')}</p>
-          <p className="eda-quote font-semibold text-sell">{quote ? fxNum(quote.ask, digits) : '—'}</p>
-        </div>
-        <div className="px-2 py-1">
-          <p className="text-[9px] text-muted-foreground">{tf('ticketPanel.spread')}</p>
-          <p className="font-semibold">{quote?.spreadPips ?? '—'}</p>
-        </div>
+        <span className="truncate font-mono text-[11px] font-semibold">{inst?.displaySymbol ?? selected}</span>
+        <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+          {tf('ticketPanel.spread')} {quote?.spreadPips ?? '—'}
+        </span>
       </div>
 
       <div className="min-h-0 flex-1 space-y-1.5 overflow-auto px-2 py-1.5">
+        {type === 'market' ? null : (
         <div className="grid grid-cols-2 gap-1">
           <button
             type="button"
@@ -351,6 +335,7 @@ export function ForexOrderTicket() {
             {tf('ticketPanel.buy')}
           </button>
         </div>
+        )}
         <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
           <span className="w-14 shrink-0 uppercase">{tf('ticketPanel.kind')}</span>
           <select
@@ -368,6 +353,7 @@ export function ForexOrderTicket() {
           </select>
         </label>
 
+        {tifUnsupported ? null : (
         <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
           <span className="w-14 shrink-0 uppercase">{tf('ticketPanel.tif')}</span>
           <select
@@ -392,6 +378,7 @@ export function ForexOrderTicket() {
             ))}
           </select>
         </label>
+        )}
 
         {tif === 'GTD' && isPendingOrderType(type) ? (
           <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
@@ -599,18 +586,18 @@ export function ForexOrderTicket() {
               </button>
             </dd>
           </dl>
+          {requiresTriggerPrice(type) && price.trim() ? (
+            <button
+              type="button"
+              disabled={demoBusy || !authed}
+              onClick={() => void moveMockToTrigger()}
+              className="mt-1 w-full border border-border px-1.5 py-1 text-left text-[10px] text-muted-foreground hover:border-primary/40 disabled:opacity-50"
+            >
+              {demoBusy ? tf('ticket.demoMoving') : tf('ticket.demoMoveButton')}
+            </button>
+          ) : null}
+          {demoNote ? <p className="mt-1 text-[11px] text-muted-foreground">{demoNote}</p> : null}
         </details>
-        {requiresTriggerPrice(type) && price.trim() ? (
-          <button
-            type="button"
-            disabled={demoBusy || !authed}
-            onClick={() => void moveMockToTrigger()}
-            className="w-full border border-border px-1.5 py-1 text-left text-[10px] text-muted-foreground hover:border-primary/40 disabled:opacity-50"
-          >
-            {demoBusy ? tf('ticket.demoMoving') : tf('ticket.demoMoveButton')}
-          </button>
-        ) : null}
-        {demoNote ? <p className="text-[11px] text-muted-foreground">{demoNote}</p> : null}
         {previewData && !previewData.allowed && previewData.reason ? (
           <p className="border border-rose-900/60 bg-rose-950/30 px-1.5 py-1 text-[11px] text-rose-200" role="status">
             {tf('ticket.previewRejected', { reason: previewData.reason })}

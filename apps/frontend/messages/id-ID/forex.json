@@ -15,7 +15,8 @@
     "simulated": "SIMULASI",
     "demoSimulated": "Demo · simulasi",
     "terminalNavAria": "Navigasi terminal Forex",
-    "mobileNavAria": "Navigasi mobile Forex"
+    "mobileNavAria": "Navigasi mobile Forex",
+    "pagesMenu": "Halaman"
   },
   "portalNav": {
     "portal": "Portal",
@@ -501,6 +502,7 @@
     "trading": "Trading",
     "tools": "Alat",
     "chartLayoutAria": "Layout chart",
+    "layoutItem": "Tata letak {label}",
     "oneClickOnTitle": "One-click trading aktif",
     "oneClickOffTitle": "One-click trading nonaktif (default)",
     "oneClickLabel": "1-Klik {state}",

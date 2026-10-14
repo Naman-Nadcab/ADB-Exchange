@@ -110,10 +110,14 @@ export function ForexAccountBar(props?: { compact?: boolean }) {
       <Item k="Free" v={fxMoney(metrics.freeMargin, currency)} />
       <Item k="Level" v={metrics.marginLevel} />
       <Signed k="Floating" value={u} />
-      <Signed k="Realized" value={realized} />
-      <Item k="Comm" v={fxMoney(metrics.commission, currency)} />
-      <Item k="Swap" v={fxMoney(metrics.swap, currency)} />
-      <Signed k="Net" value={net} />
+      {props?.compact ? null : (
+        <>
+          <Signed k="Realized" value={realized} />
+          <Item k="Comm" v={fxMoney(metrics.commission, currency)} />
+          <Item k="Swap" v={fxMoney(metrics.swap, currency)} />
+          <Signed k="Net" value={net} />
+        </>
+      )}
       {needsDemo ? (
         <Link
           href="/forex/account/funds"
