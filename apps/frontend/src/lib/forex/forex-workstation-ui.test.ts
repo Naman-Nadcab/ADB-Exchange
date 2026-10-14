@@ -95,7 +95,15 @@ function testP0Surfaces(): void {
   assert(positions.includes('onTrailSet'), 'trailing control');
   const ticket = readFileSync(join(root, 'ForexOrderTicket.tsx'), 'utf8');
   assert(ticket.includes('estimateTicketRisk'), 'ticket risk estimates');
+  assert(!ticket.includes('ticketPanel.tif'), 'order ticket hides time in force');
+  assert(!ticket.includes('ticketPanel.free'), 'order ticket hides the free-margin box');
+  assert(ticket.includes('timeInForce: tifUnsupported'), 'orders still send good-till-cancelled');
+  assert(ticket.includes("tf('ticketPanel.kind')"), 'order type keeps the Type label');
   const bottom = readFileSync(join(root, 'ForexBottomPanels.tsx'), 'utf8');
+  const history = bottom.slice(bottom.indexOf('function HistoryPanel'), bottom.indexOf('function ExposurePanel'));
+  assert(history.includes('bottomPanels.history.periodAria'), 'history period is a labelled dropdown');
+  assert(history.includes('fx-dock-toolbar'), 'history period shares the export row');
+  assert(!history.includes('<PeriodBar'), 'history does not spend a row on period chips');
   assert(bottom.includes("id: 'analytics'"), 'risk analytics tab');
   assert(bottom.includes("id: 'alerts'"), 'alerts tab');
 }

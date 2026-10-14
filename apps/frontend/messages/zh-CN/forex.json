@@ -376,6 +376,7 @@
       "periodWeek": "本周",
       "periodMonth": "本月",
       "periodAll": "全部",
+      "periodAria": "周期",
       "periodCustom": "自定义",
       "exportBusy": "导出中…",
       "exportCsv": "CSV {kind}",

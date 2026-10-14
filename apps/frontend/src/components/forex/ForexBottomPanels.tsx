@@ -1006,29 +1006,45 @@ function HistoryPanel(props: {
     mk('colSwap'),
     mk('colProfit'),
   ];
+  const periods = (['today', 'yesterday', 'week', 'month', 'all'] as HistoryPeriod[]).concat(
+    props.period === 'custom' ? (['custom'] as HistoryPeriod[]) : []
+  );
   return (
     <div data-testid="history-table">
-      <PeriodBar period={props.period} onPeriod={props.onPeriod} />
-      <div className="flex flex-wrap gap-2 border-b border-border px-2 py-1">
-        {(['orders', 'fills', 'ledger'] as const).map((kind) => (
-          <button
-            key={kind}
-            type="button"
-            disabled={exportBusy != null}
-            className="rounded border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide hover:border-primary/40 disabled:opacity-50"
-            onClick={() => {
-              setExportBusy(kind);
-              import('@/lib/forex/api/client')
-                .then(({ downloadForexHistoryCsv }) => downloadForexHistoryCsv(kind))
-                .catch(() => undefined)
-                .finally(() => setExportBusy(null));
-            }}
-          >
-            {exportBusy === kind
-              ? tf('bottomPanels.history.exportBusy')
-              : tf('bottomPanels.history.exportCsv', { kind: tf(`bottomPanels.history.${exportKindKey[kind]}`) })}
-          </button>
-        ))}
+      <div className="fx-dock-toolbar">
+        <select
+          value={props.period}
+          onChange={(e) => props.onPeriod(e.target.value as HistoryPeriod)}
+          aria-label={tf('bottomPanels.history.periodAria')}
+          className="fx-dock-select"
+        >
+          {periods.map((p) => (
+            <option key={p} value={p}>
+              {tf(`bottomPanels.history.${HISTORY_PERIOD_KEY[p]}`)}
+            </option>
+          ))}
+        </select>
+        <div className="ml-auto flex min-w-0 items-center justify-end gap-1">
+          {(['orders', 'fills', 'ledger'] as const).map((kind) => (
+            <button
+              key={kind}
+              type="button"
+              disabled={exportBusy != null}
+              className="fx-dock-export disabled:opacity-50"
+              onClick={() => {
+                setExportBusy(kind);
+                import('@/lib/forex/api/client')
+                  .then(({ downloadForexHistoryCsv }) => downloadForexHistoryCsv(kind))
+                  .catch(() => undefined)
+                  .finally(() => setExportBusy(null));
+              }}
+            >
+              {exportBusy === kind
+                ? tf('bottomPanels.history.exportBusy')
+                : tf('bottomPanels.history.exportCsv', { kind: tf(`bottomPanels.history.${exportKindKey[kind]}`) })}
+            </button>
+          ))}
+        </div>
       </div>
       <DockColumns
         columns={columns}
