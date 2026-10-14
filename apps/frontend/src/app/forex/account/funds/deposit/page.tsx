@@ -16,7 +16,12 @@ export default function ForexFundsDepositPage() {
     <ForexPageFrame title={tf('pages.fundsDeposit.title')} subtitle={tf('pages.fundsDeposit.subtitle')}>
       <ForexPortalAccountContext />
       <ForexFundsSubNav />
-      {gates.realFundingEnabled ? <ForexLiveCashForm direction="deposit" /> : <ForexFundingUnavailablePanel variant="deposit" />}
+      {gates.realFundingEnabled ? <ForexLiveCashForm direction="deposit" /> : (
+        <>
+          <ForexFundingUnavailablePanel variant="deposit" />
+          <ForexLiveCashForm direction="deposit" locked />
+        </>
+      )}
     </ForexPageFrame>
   );
 }

@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { CUSTOMER_ACCOUNT_MENU, CUSTOMER_ACCOUNT_ROUTES } from '@/lib/account/customer-account';
+import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { cn } from '@/lib/utils';
 
 const ACCOUNT_LINKS = [
@@ -31,7 +32,7 @@ export function ForexPortalUserMenu(props?: { compact?: boolean }) {
         type="button"
         className={cn(
           'inline-flex items-center justify-center rounded-md border border-border bg-muted/40 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          props?.compact ? 'h-8 w-8' : 'tap-target h-9 w-9'
+          'h-8 w-8 shrink-0'
         )}
         aria-label={tf('userMenu.label')}
       >
@@ -45,6 +46,12 @@ export function ForexPortalUserMenu(props?: { compact?: boolean }) {
             </Link>
           </DropdownMenuItem>
         ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href={FOREX_ROUTES.partner} className="cursor-pointer text-[13px]">
+            {tf('userMenu.partner')}
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href={CUSTOMER_ACCOUNT_ROUTES.dashboard} className="cursor-pointer text-[13px] text-muted-foreground">

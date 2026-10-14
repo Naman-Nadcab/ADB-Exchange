@@ -13,7 +13,7 @@ export default function ForexAlertsPage() {
   return (
     <ForexPageFrame title={tf('pages.alerts.title')} subtitle={tf('pages.alerts.subtitle')} wide>
       <div className="mx-auto max-w-4xl space-y-3">
-        <ForexPortalModuleCard title={tf('pages.alerts.title')} subtitle={ta('intro')}>
+        <ForexPortalModuleCard title={ta('intro')}>
           <p className="text-[12px] text-muted-foreground">
             {ta('manageHere')}{' '}
             <Link href={FOREX_ROUTES.trade} className="text-primary underline underline-offset-2">

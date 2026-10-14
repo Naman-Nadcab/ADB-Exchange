@@ -9,6 +9,7 @@ import { ForexAccountSettingsPanel } from './ForexAccountSettingsPanel';
 import { ForexTradingCredentialPanel } from './ForexTradingCredentialPanel';
 import { ForexSignInPrompt } from './ForexPageFrame';
 import { fxNum, fxPlain } from './format';
+import { forexEnumLabel } from './forex-enum-label';
 import {
   ForexPortalKpiCard,
   ForexPortalModuleCard,
@@ -29,6 +30,7 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
   const t = useTranslations('forex.accountHub');
   const td = useTranslations('forex.accountDetail');
   const tu = useTranslations('forex.riskStates');
+  const te = useTranslations('forex.enums');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const storeFees = useForexStore((s) => s.fees);
@@ -156,14 +158,14 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary/90">{t('tradingAccountLabel')}</p>
             <div className="flex flex-wrap items-center gap-2">
               <ForexPortalStatusBadge tone={isDemo ? 'primary' : 'neutral'}>{kindLabel}</ForexPortalStatusBadge>
-              <ForexPortalStatusBadge tone={statusUpper === 'ACTIVE' ? 'success' : 'warning'}>{fxPlain(m.status)}</ForexPortalStatusBadge>
+              <ForexPortalStatusBadge tone={statusUpper === 'ACTIVE' ? 'success' : 'warning'}>{forexEnumLabel(te, m.status)}</ForexPortalStatusBadge>
               {selected ? (
                 <ForexPortalStatusBadge tone="success">{t('selectedBadge')}</ForexPortalStatusBadge>
               ) : (
                 <ForexPortalStatusBadge tone="neutral">{t('notSelectedBadge')}</ForexPortalStatusBadge>
               )}
             </div>
-            <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{fxPlain(m.label ?? `${m.accountKind} · ${m.currency}`)}</h2>
+            <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{kindLabel} · {fxPlain(m.currency)}</h2>
             <p className="font-mono text-[12px] text-muted-foreground">
               {t('tradingLoginLabel')}: {fxPlain(m.tradingLogin ?? m.accountId)}
             </p>
@@ -233,15 +235,15 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
               </>
             ) : (
               <>
-                <span className="inline-flex min-h-10 cursor-not-allowed items-center rounded border border-border/50 px-4 text-[12px] text-muted-foreground" title={t('realFundingOffHint')}>
+                <Link href={FOREX_ROUTES.fundsDeposit} title={t('realFundingOffHint')} className="inline-flex min-h-10 items-center justify-center rounded border border-border/50 px-4 text-[12px] text-muted-foreground hover:border-primary/35 hover:text-foreground">
                   {t('depositCta')}
-                </span>
-                <span className="inline-flex min-h-10 cursor-not-allowed items-center rounded border border-border/50 px-4 text-[12px] text-muted-foreground" title={t('realFundingOffHint')}>
+                </Link>
+                <Link href={FOREX_ROUTES.fundsWithdraw} title={t('realFundingOffHint')} className="inline-flex min-h-10 items-center justify-center rounded border border-border/50 px-4 text-[12px] text-muted-foreground hover:border-primary/35 hover:text-foreground">
                   {t('withdrawCta')}
-                </span>
-                <span className="inline-flex min-h-10 cursor-not-allowed items-center rounded border border-border/50 px-4 text-[12px] text-muted-foreground" title={t('realFundingOffHint')}>
+                </Link>
+                <Link href={FOREX_ROUTES.fundsTransfer} title={t('realFundingOffHint')} className="inline-flex min-h-10 items-center justify-center rounded border border-border/50 px-4 text-[12px] text-muted-foreground hover:border-primary/35 hover:text-foreground">
                   {t('transferCta')}
-                </span>
+                </Link>
               </>
             )}
           </div>
@@ -315,7 +317,7 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
             </div>
             <div>
               <dt className="text-[10px] uppercase text-muted-foreground">{t('fieldPositionMode')}</dt>
-              <dd className="mt-0.5">{fxPlain(m.positionMode)}</dd>
+              <dd className="mt-0.5">{forexEnumLabel(te, m.positionMode)}</dd>
             </div>
             <div>
               <dt className="text-[10px] uppercase text-muted-foreground">{t('fieldLeverage')}</dt>
@@ -347,7 +349,7 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
               </div>
               <div>
                 <dt className="inline">{t('fieldExecution')}: </dt>
-                <dd className="inline">{hub.executionMode}</dd>
+                <dd className="inline">{forexEnumLabel(te, hub.executionMode)}</dd>
               </div>
             </dl>
           </details>
@@ -370,7 +372,15 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
             </div>
             <div className="rounded border border-border/70 bg-muted/10 p-2.5">
               <p className="text-[10px] uppercase text-muted-foreground">{t('riskStateShort')}</p>
-              <p className="mt-1 text-[12px] font-semibold">{fxPlain(hub.riskSnapshot.state) || unavailable}</p>
+              <p className="mt-1 text-[12px] font-semibold">
+                {(() => {
+                  const stateKey = String(hub.riskSnapshot.state ?? '').toUpperCase();
+                  if (stateKey === 'NORMAL' || stateKey === 'WARNING' || stateKey === 'RESTRICTED' || stateKey === 'LIQUIDATION_ONLY' || stateKey === 'HALTED') {
+                    return tu(stateKey);
+                  }
+                  return forexEnumLabel(te, hub.riskSnapshot.state) || unavailable;
+                })()}
+              </p>
             </div>
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">
@@ -410,15 +420,15 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
             </>
           ) : (
             <>
-              <span className="inline-flex min-h-9 cursor-not-allowed items-center rounded border border-border/50 px-3 text-[11px] text-muted-foreground" title={t('realFundingOffHint')}>
+              <Link href={FOREX_ROUTES.fundsDeposit} title={t('realFundingOffHint')} className="inline-flex min-h-9 items-center rounded border border-border/50 px-3 text-[11px] text-muted-foreground hover:border-primary/35 hover:text-foreground">
                 {t('depositCta')}
-              </span>
-              <span className="inline-flex min-h-9 cursor-not-allowed items-center rounded border border-border/50 px-3 text-[11px] text-muted-foreground" title={t('realFundingOffHint')}>
+              </Link>
+              <Link href={FOREX_ROUTES.fundsWithdraw} title={t('realFundingOffHint')} className="inline-flex min-h-9 items-center rounded border border-border/50 px-3 text-[11px] text-muted-foreground hover:border-primary/35 hover:text-foreground">
                 {t('withdrawCta')}
-              </span>
-              <span className="inline-flex min-h-9 cursor-not-allowed items-center rounded border border-border/50 px-3 text-[11px] text-muted-foreground" title={t('realFundingOffHint')}>
+              </Link>
+              <Link href={FOREX_ROUTES.fundsTransfer} title={t('realFundingOffHint')} className="inline-flex min-h-9 items-center rounded border border-border/50 px-3 text-[11px] text-muted-foreground hover:border-primary/35 hover:text-foreground">
                 {t('transferCta')}
-              </span>
+              </Link>
             </>
           )}
           <Link href={FOREX_ROUTES.fundsPaymentMethods} className="inline-flex min-h-9 items-center rounded border border-border/70 px-3 text-[11px] text-muted-foreground hover:text-foreground">
@@ -435,7 +445,7 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
             <ul className="space-y-1 font-mono text-[11px]">
               {hub.fundingHistoryPreview.map((row) => (
                 <li key={row.transactionId} className="flex flex-wrap justify-between gap-2">
-                  <span>{fxPlain(row.type)}</span>
+                  <span>{forexEnumLabel(te, row.type)}</span>
                   <span className="text-muted-foreground">{fxPlain(row.timestamp)}</span>
                 </li>
               ))}
@@ -465,7 +475,7 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
               <div className="space-y-2 md:hidden">
                 {hub.preview.openPositions.map((p) => (
                   <article key={p.positionId} className="rounded border border-border/70 p-2.5 text-[11px]">
-                    <p className="font-semibold">{fxPlain(p.symbol)} · {fxPlain(p.side)}</p>
+                    <p className="font-semibold">{fxPlain(p.symbol)} · {forexEnumLabel(te, p.side)}</p>
                     <p className="text-muted-foreground">{t('colVolume')}: {fxPlain(p.volume)}</p>
                   </article>
                 ))}
@@ -486,9 +496,9 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
                     {hub.preview.openPositions.map((p) => (
                       <tr key={p.positionId}>
                         <td>{fxPlain(p.symbol)}</td>
-                        <td>{fxPlain(p.side)}</td>
+                        <td>{forexEnumLabel(te, p.side)}</td>
                         <td>{fxPlain(p.volume)}</td>
-                        <td>{fxPlain(p.status)}</td>
+                        <td>{forexEnumLabel(te, p.status)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -517,7 +527,7 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
                       <tr key={f.fillId}>
                         <td>{new Date(f.timestamp).toLocaleString()}</td>
                         <td>{fxPlain(f.symbol)}</td>
-                        <td>{fxPlain(f.side)}</td>
+                        <td>{forexEnumLabel(te, f.side)}</td>
                         <td>{fxPlain(f.volume)}</td>
                         <td>{fxNum(f.price)}</td>
                       </tr>

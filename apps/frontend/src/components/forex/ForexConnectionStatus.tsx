@@ -17,7 +17,7 @@ export function ForexConnectionStatus() {
   const state = deriveDisplayConnection({ socketState, quotes, selectedSymbol, providers, hydratePhase });
 
   const label: Record<string, string> = {
-    CONNECTED: FOREX_PRODUCT.statusConnected,
+    CONNECTED: tc('connected') || FOREX_PRODUCT.statusConnected,
     CONNECTING: tc('connecting'),
     RECONNECTING: tc('reconnecting'),
     DEGRADED: tc('degraded'),
@@ -49,7 +49,7 @@ export function ForexConnectionStatus() {
         )}
       />
       <span className="hidden xl:inline">{label[state] ?? state}</span>
-      <span className="sr-only">{tc('srOnly', { state })}</span>
+      <span className="sr-only">{tc('srOnly', { state: label[state] ?? state })}</span>
     </span>
   );
 }

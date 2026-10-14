@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { fxNum, fxPlain } from '@/components/forex/format';
+import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexErrorMessage } from '@/hooks/useForexErrorMessage';
 import type { ForexOrderState, ForexPublicOrder } from '@/lib/forex/models/types';
@@ -13,7 +14,7 @@ import { useAuthStore } from '@/store/auth';
 import { cn } from '@/lib/utils';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
-import { ForexPortalKpiCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
+import { ForexPortalKpiCard } from '@/components/forex/ForexPortalKpiCard';
 
 const TABS = ['pending', 'open', 'completed', 'cancelled', 'rejected'] as const;
 type Tab = (typeof TABS)[number];
@@ -47,6 +48,7 @@ export default function ForexOrdersPage() {
   const tf = useTranslations('forex');
   const t = useTranslations('forex.ordersPage');
   const to = useTranslations('forex.bottomPanels.orders');
+  const te = useTranslations('forex.enums');
   const tc = useTranslations('common.actions');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
@@ -110,19 +112,7 @@ export default function ForexOrdersPage() {
           ) : null}
           {engine.lastNote ? <p className="text-[12px] text-muted-foreground">{engine.lastNote}</p> : null}
 
-          <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" aria-label={t('summaryAria')}>
-            {TABS.map((key) => (
-              <ForexPortalKpiCard
-                key={key}
-                emphasis={tab === key ? 'primary' : 'secondary'}
-                label={tabLabel(key)}
-                value={tabCounts[key]}
-                kind="plain"
-              />
-            ))}
-          </section>
-
-          <div className="flex flex-wrap gap-1.5" role="tablist" aria-label={t('tabsAria')}>
+          <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" role="tablist" aria-label={t('tabsAria')}>
             {TABS.map((key) => (
               <button
                 key={key}
@@ -130,15 +120,18 @@ export default function ForexOrdersPage() {
                 role="tab"
                 aria-selected={tab === key}
                 onClick={() => setTab(key)}
-                className={`eda-tab ${tab === key ? 'eda-tab-active' : ''}`}
+                className="min-w-0 text-left"
               >
-                {tabLabel(key)}
-                <ForexPortalStatusBadge tone={tabCounts[key] > 0 ? 'primary' : 'neutral'} className="ml-1.5 !py-0">
-                  {tabCounts[key]}
-                </ForexPortalStatusBadge>
+                <ForexPortalKpiCard
+                  emphasis={tab === key ? 'primary' : 'secondary'}
+                  label={tabLabel(key)}
+                  value={tabCounts[key]}
+                  kind="plain"
+                  className={tab === key ? 'ring-2 ring-primary' : undefined}
+                />
               </button>
             ))}
-          </div>
+          </section>
           {filtered.length === 0 ? (
             <p className="eda-card p-4 text-sm text-muted-foreground">{t('noOrdersInTab', { tab: tabLabel(tab) })}</p>
           ) : (
@@ -146,7 +139,7 @@ export default function ForexOrdersPage() {
               <table className="eda-table min-w-[960px] font-mono text-[12px]">
                 <thead>
                   <tr>
-                    <th className="sticky left-0 z-10 bg-card px-3 py-2 font-medium">{t('colAction')}</th>
+                    <th className="sticky left-0 z-10 border-r border-border bg-card px-3 py-2 font-medium">{t('colAction')}</th>
                     <th className="px-3 py-2 font-medium">{t('colTime')}</th>
                     <th className="px-3 py-2 font-medium">{t('colSymbol')}</th>
                     <th className="px-3 py-2 font-medium">{t('colSide')}</th>
@@ -163,7 +156,7 @@ export default function ForexOrdersPage() {
                     const editing = editId === o.orderId;
                     return (
                       <tr key={o.orderId}>
-                        <td className="sticky left-0 z-10 bg-card px-3 py-2">
+                        <td className="sticky left-0 z-10 border-r border-border bg-card px-3 py-2">
                           {canAct ? (
                             editing ? (
                               <span className="inline-flex gap-1">
@@ -221,7 +214,7 @@ export default function ForexOrdersPage() {
                                   className="rounded border border-border px-1.5 py-0.5 text-[10px] hover:border-sell/40 hover:text-sell disabled:opacity-50"
                                   onClick={() => setCancelId(o.orderId)}
                                   data-testid={`cancel-order-${o.orderId.slice(0, 8)}`}
-                                  aria-label={`Cancel order ${o.orderId.slice(0, 8)}`}
+                                  aria-label={t('cancelAria', { id: o.orderId.slice(0, 8) })}
                                 >
                                   {busyId === o.orderId ? '…' : to('cancel')}
                                 </button>
@@ -237,8 +230,8 @@ export default function ForexOrdersPage() {
                           </button>
                         </td>
                         <td className="px-3 py-2">{o.symbol}</td>
-                        <td className={cn('px-3 py-2', o.side === 'buy' ? 'text-buy' : 'text-sell')}>{o.side}</td>
-                        <td className="px-3 py-2">{o.type}</td>
+                        <td className={cn('px-3 py-2', o.side === 'buy' ? 'text-buy' : 'text-sell')}>{forexEnumLabel(te, o.side)}</td>
+                        <td className="px-3 py-2">{forexEnumLabel(te, o.type)}</td>
                         <td className="px-3 py-2">
                           {editing ? (
                             <input
@@ -263,7 +256,7 @@ export default function ForexOrdersPage() {
                             o.requestedPrice ?? '—'
                           )}
                         </td>
-                        <td className="px-3 py-2">{o.status}</td>
+                        <td className="px-3 py-2">{forexEnumLabel(te, o.status)}</td>
                         <td className="px-3 py-2">{o.orderId.slice(0, 8)}</td>
                       </tr>
                     );
@@ -295,7 +288,7 @@ export default function ForexOrdersPage() {
                     <tr key={f.fillId}>
                       <td className="py-1">{new Date(f.timestamp).toLocaleString()}</td>
                       <td className="py-1">{f.symbol}</td>
-                      <td className="py-1">{f.side}</td>
+                      <td className="py-1">{forexEnumLabel(te, f.side)}</td>
                       <td className="py-1">{fxPlain(f.volume)}</td>
                       <td className="py-1">{fxNum(f.price)}</td>
                       <td className="py-1">{f.fillId.slice(0, 8)}</td>
@@ -324,7 +317,7 @@ export default function ForexOrdersPage() {
               <dt className="text-muted-foreground">{t('clientOrderId')}</dt>
               <dd>{detail.clientOrderId}</dd>
               <dt className="text-muted-foreground">{t('colStatus')}</dt>
-              <dd>{detail.status}</dd>
+              <dd>{forexEnumLabel(te, detail.status)}</dd>
               <dt className="text-muted-foreground">{t('reason')}</dt>
               <dd>{detail.failureReason ?? '—'}</dd>
               <dt className="text-muted-foreground">{t('executionId')}</dt>

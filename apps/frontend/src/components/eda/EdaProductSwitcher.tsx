@@ -98,16 +98,20 @@ export function EdaProductSwitcher({ variant = 'marketing' }: { variant?: EdaPro
           }
         }}
       >
-        <>
-          <span className={marketing ? 'text-white/80' : 'font-semibold text-foreground'}>ADB Exchange</span>
-          <span className={marketing ? 'text-[#F5B800]' : 'text-muted-foreground'}>/</span>
-          <span className={marketing ? undefined : 'text-foreground'}>{labelFor(product, variant)}</span>
-          {!marketing ? (
+        {marketing ? (
+          <>
+            <span className="text-white/80">ADB Exchange</span>
+            <span className="text-[#F5B800]">/</span>
+            <span>{labelFor(product, variant)}</span>
+          </>
+        ) : (
+          <>
+            <span className="font-semibold text-foreground">{labelFor(product, variant)}</span>
             <span aria-hidden className={cn('text-[10px] transition-transform duration-150', open && 'rotate-180')}>
               ▼
             </span>
-          ) : null}
-        </>
+          </>
+        )}
       </button>
       {open ? (
         <div id={menuId} role="menu" aria-label={t('productsMenu')} className={menuClass}>

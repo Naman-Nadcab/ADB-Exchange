@@ -9,6 +9,7 @@ import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageF
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { fxPlain } from '@/components/forex/format';
+import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { forexApi } from '@/lib/forex/api/client';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
@@ -21,6 +22,7 @@ import { useAuthStore } from '@/store/auth';
 export default function ForexFundsPage() {
   const tf = useTranslations('forex');
   const t = useTranslations('forex.fundsPage');
+  const te = useTranslations('forex.enums');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const account = useForexStore((s) => s.account);
@@ -49,7 +51,7 @@ export default function ForexFundsPage() {
       }
       setNote(
         t('demoCreditNote', {
-          type: res.data.transaction?.type ?? 'INITIAL_FUNDING',
+          type: forexEnumLabel(te, res.data.transaction?.type ?? 'INITIAL_FUNDING'),
         })
       );
       await hydrateForexPrivate();
@@ -65,9 +67,10 @@ export default function ForexFundsPage() {
       {!authed ? (
         <ForexSignInPrompt href="/login?redirect=/forex/account/funds" sectionKey="funds" />
       ) : (
-        <>
-          <ForexPortalAccountContext />
-          <ForexFundsSubNav />
+        <ForexPortalAccountContext />
+      )}
+      <ForexFundsSubNav />
+      {authed ? (
           <section className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3" aria-label={t('summaryAria')}>
           <ForexPortalKpiCard
             tone="brand"
@@ -101,8 +104,7 @@ export default function ForexFundsPage() {
             currency={currency}
           />
         </section>
-        </>
-      )}
+      ) : null}
 
       <div className="grid gap-3 lg:grid-cols-2">
       <ForexPortalModuleCard title={t('demoTitle')} accent subtitle={t('demoBadge')}>
@@ -111,36 +113,34 @@ export default function ForexFundsPage() {
           <summary className="cursor-pointer font-medium text-foreground">{t('technicalDetailsLabel')}</summary>
           <p className="mt-2 leading-relaxed">{t('demoBody')}</p>
         </details>
-        {authed ? (
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            {needsDemo ? (
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => void claimDemo()}
-                className="inline-flex min-h-10 items-center rounded-md bg-primary px-4 text-[13px] font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-              >
-                {busy ? t('claimBusy') : t('claimButton')}
-              </button>
-            ) : (
-              <p className="rounded border border-buy/40 bg-buy/10 px-3 py-2 text-sm text-buy">
-                {t('fundedNoticeShort', {
-                  balance: fxPlain(account?.ledgerBalance ?? balance?.ledgerBalance),
-                  currency,
-                })}
-              </p>
-            )}
-            <Link
-              href={FOREX_ROUTES.trade}
-              className="inline-flex min-h-10 items-center rounded border border-border px-4 text-[12px] font-semibold hover:border-primary/40"
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {authed && !needsDemo ? (
+            <p className="rounded border border-buy/40 bg-buy/10 px-3 py-2 text-sm text-buy">
+              {t('fundedNoticeShort', {
+                balance: fxPlain(account?.ledgerBalance ?? balance?.ledgerBalance),
+                currency,
+              })}
+            </p>
+          ) : (
+            <button
+              type="button"
+              disabled={!authed || busy}
+              onClick={() => void claimDemo()}
+              className="inline-flex min-h-10 items-center rounded-md bg-primary px-4 text-[13px] font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
-              {t('openTrade')}
-            </Link>
-            <Link href={FOREX_ROUTES.ledger} className="inline-flex min-h-10 items-center px-3 text-[12px] text-primary hover:underline">
-              {t('viewLedger')}
-            </Link>
-          </div>
-        ) : null}
+              {busy ? t('claimBusy') : t('claimButton')}
+            </button>
+          )}
+          <Link
+            href={FOREX_ROUTES.trade}
+            className="inline-flex min-h-10 items-center rounded border border-border px-4 text-[12px] font-semibold hover:border-primary/40"
+          >
+            {t('openTrade')}
+          </Link>
+          <Link href={FOREX_ROUTES.ledger} className="inline-flex min-h-10 items-center px-3 text-[12px] text-primary hover:underline">
+            {t('viewLedger')}
+          </Link>
+        </div>
         {note ? <p className="mt-3 text-sm text-buy">{note}</p> : null}
         {error ? (
           <p className="mt-3 text-sm text-sell" role="alert">
@@ -173,10 +173,27 @@ export default function ForexFundsPage() {
             ) : null}
           </div>
         ) : (
-          <details className="mt-3 text-[11px] text-muted-foreground">
-            <summary className="cursor-pointer text-foreground">{t('technicalDetailsLabel')}</summary>
-            <p className="mt-2">{t('realRailsBody')}</p>
-          </details>
+          <>
+            <p className="mt-3 text-[12px] text-muted-foreground">{t('workflowLead')}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link href={FOREX_ROUTES.fundsDeposit} className="inline-flex min-h-10 items-center rounded border border-border px-4 text-[12px] font-semibold">
+                {t('goDeposit')}
+              </Link>
+              <Link href={FOREX_ROUTES.fundsWithdraw} className="inline-flex min-h-10 items-center rounded border border-border px-4 text-[12px] font-semibold">
+                {t('goWithdraw')}
+              </Link>
+              <Link href={FOREX_ROUTES.fundsTransfer} className="inline-flex min-h-10 items-center rounded border border-border px-4 text-[12px] font-semibold">
+                {t('goTransfer')}
+              </Link>
+              <Link href={FOREX_ROUTES.fundsPaymentMethods} className="inline-flex min-h-10 items-center rounded border border-border px-4 text-[12px] font-semibold">
+                {t('goPaymentMethods')}
+              </Link>
+            </div>
+            <details className="mt-3 text-[11px] text-muted-foreground">
+              <summary className="cursor-pointer text-foreground">{t('technicalDetailsLabel')}</summary>
+              <p className="mt-2">{t('realRailsBody')}</p>
+            </details>
+          </>
         )}
       </ForexPortalModuleCard>
       </div>
@@ -201,10 +218,10 @@ export default function ForexFundsPage() {
                   {funding.map((row) => (
                     <tr key={row.transactionId}>
                       <td>{fxPlain(row.timestamp)}</td>
-                      <td>{fxPlain(row.type)}</td>
+                      <td>{forexEnumLabel(te, row.type)}</td>
                       <td className="text-sell/90">{fxPlain(row.cashDebit ?? row.debit)}</td>
                       <td className="text-buy/90">{fxPlain(row.cashCredit ?? row.credit)}</td>
-                      <td>{fxPlain(row.status)}</td>
+                      <td>{forexEnumLabel(te, row.status)}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -16,7 +16,12 @@ export default function ForexFundsWithdrawPage() {
     <ForexPageFrame title={tf('pages.fundsWithdraw.title')} subtitle={tf('pages.fundsWithdraw.subtitle')}>
       <ForexPortalAccountContext />
       <ForexFundsSubNav />
-      {gates.withdrawalEnabled ? <ForexLiveCashForm direction="withdraw" /> : <ForexFundingUnavailablePanel variant="withdraw" />}
+      {gates.withdrawalEnabled ? <ForexLiveCashForm direction="withdraw" /> : (
+        <>
+          <ForexFundingUnavailablePanel variant="withdraw" />
+          <ForexLiveCashForm direction="withdraw" locked />
+        </>
+      )}
     </ForexPageFrame>
   );
 }

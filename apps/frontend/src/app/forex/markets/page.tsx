@@ -24,9 +24,9 @@ const FILTERS: Array<{ id: Filter; labelKey: string }> = [
   { id: 'watchlist', labelKey: 'markets.filters.watchlist' },
 ];
 
-function metalsNote(symbol: string): string | undefined {
-  if (symbol === 'XAUUSD') return 'COMEX gold futures proxy';
-  if (symbol === 'XAGUSD') return 'COMEX silver futures proxy';
+function metalsNote(symbol: string, label: (key: 'metalsGold' | 'metalsSilver') => string): string | undefined {
+  if (symbol === 'XAUUSD') return label('metalsGold');
+  if (symbol === 'XAGUSD') return label('metalsSilver');
   return undefined;
 }
 
@@ -129,7 +129,7 @@ export default function ForexMarketsPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <label className="sr-only" htmlFor="fx-markets-search">
-            Search symbols
+            {tm('searchPlaceholder')}
           </label>
           <input
             id="fx-markets-search"
@@ -167,7 +167,7 @@ export default function ForexMarketsPage() {
           {rows.map((inst) => {
             const q = quotes[inst.symbol];
             const stale = !q || isQuoteStale(q);
-            const note = metalsNote(inst.symbol);
+            const note = metalsNote(inst.symbol, tm);
             const starred = watchlist.includes(inst.symbol);
             const mid =
               q && Number.isFinite(Number(q.bid)) && Number.isFinite(Number(q.ask))
@@ -188,7 +188,7 @@ export default function ForexMarketsPage() {
                       {inst.displaySymbol ?? inst.symbol}
                     </h2>
                     <p className="mt-0.5 text-[11px] text-muted-foreground">
-                      {classLabel(inst.assetClass)} · {inst.digits} digits
+                      {classLabel(inst.assetClass)} · {tm('digits', { count: inst.digits })}
                     </p>
                   </button>
                   <button
@@ -222,17 +222,17 @@ export default function ForexMarketsPage() {
 
                 <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-muted-foreground">
                   <span>
-                    Spread <span className="text-foreground">{q ? fxPlain(q.spreadPips) : '—'}</span>
+                    {tm('spreadLabel')} <span className="text-foreground">{q ? fxPlain(q.spreadPips) : '—'}</span>
                   </span>
                   {mid != null ? (
                     <span>
-                      Mid <span className="text-foreground">{fxNum(mid, inst.digits)}</span>
+                      {tm('midLabel')} <span className="text-foreground">{fxNum(mid, inst.digits)}</span>
                     </span>
                   ) : null}
                   <span className="inline-flex items-center gap-1">
                     <span className={cn('h-1.5 w-1.5 rounded-full', !stale ? 'bg-buy' : 'bg-muted-foreground')} aria-hidden />
                     <span className={!q ? 'text-muted-foreground' : stale ? 'text-amber-400' : 'text-buy'}>
-                      {!q ? 'Unavailable' : stale ? 'Stale' : 'Live'}
+                      {!q ? tm('quoteUnavailable') : stale ? tm('quoteStale') : tm('quoteLive')}
                     </span>
                   </span>
                 </div>
@@ -242,7 +242,7 @@ export default function ForexMarketsPage() {
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   {!sessionOpen ? (
                     <span className="text-[11px] font-medium uppercase tracking-wide text-amber-400/95">
-                      Session closed
+                      {tm('sessionClosedBadge')}
                     </span>
                   ) : null}
                   <button
@@ -250,14 +250,14 @@ export default function ForexMarketsPage() {
                     onClick={() => openTrade(inst.symbol)}
                     className="ml-auto inline-flex h-7 items-center justify-center border border-border bg-[#1a1f26] px-2.5 text-[11px] font-medium text-foreground hover:border-primary/35 hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    Trade
+                    {tm('trade')}
                   </button>
                   <Link
                     href={`${FOREX_ROUTES.analysis}?symbol=${encodeURIComponent(inst.symbol)}`}
                     onClick={() => setSelected(inst.symbol)}
                     className="inline-flex h-7 items-center justify-center border border-border px-2.5 text-[11px] font-medium text-muted-foreground hover:border-primary/40 hover:text-foreground"
                   >
-                    Analyze
+                    {tm('analyze')}
                   </Link>
                 </div>
               </article>

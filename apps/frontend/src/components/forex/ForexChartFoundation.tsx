@@ -731,12 +731,12 @@ export function ForexChartFoundation(props?: {
 
   const quoteModeLabel =
     quoteFreshness === 'LOADING'
-      ? 'CONNECTING'
+      ? tc('quoteConnecting')
       : quoteFreshness === 'DISCONNECTED'
-        ? 'UNAVAILABLE'
+        ? tc('quoteUnavailable')
         : quoteFreshness === 'STALE'
-          ? 'STALE · DEMO'
-          : 'DEMO · SIMULATED';
+          ? tc('quoteStaleDemo')
+          : tc('quoteDemoSimulated');
 
   const refreshObjectRows = useCallback(() => {
     const list = chartApiRef.current?.listDrawingObjects() ?? [];
@@ -800,18 +800,16 @@ export function ForexChartFoundation(props?: {
 
   const banners: Array<{ tone: 'neutral' | 'warn' | 'error'; text: string }> = [];
   if (candleView.status === 'LOADING') {
-    banners.push({ tone: 'neutral', text: `Loading historical data for ${inst?.displaySymbol ?? selected}…` });
+    banners.push({ tone: 'neutral', text: tc('bannerLoadingHistory', { symbol: inst?.displaySymbol ?? selected }) });
   } else if (candleView.status === 'NO_HISTORY') {
     banners.push({
       tone: 'warn',
-      text: `No historical data available for ${inst?.displaySymbol ?? selected} · ${activeTf}.`,
+      text: tc('bannerNoHistory', { symbol: inst?.displaySymbol ?? selected, timeframe: activeTf }),
     });
   } else if (candleView.status === 'READY') {
     banners.push({
       tone: 'neutral',
-      text: liveBarRef.current
-        ? 'Live · forming candle follows the executable quote.'
-        : 'Historical data available · Waiting for the executable quote.',
+      text: liveBarRef.current ? tc('bannerLiveForming') : tc('bannerWaitingQuote'),
     });
   }
   // The executable quote and the reference candle series must share one price
@@ -820,7 +818,7 @@ export function ForexChartFoundation(props?: {
     const relPct = (Math.abs((quoteOverlay.bid + quoteOverlay.ask) / 2 - lastClose) / lastClose) * 100;
     banners.push({
       tone: 'warn',
-      text: `Live quote is ${relPct.toFixed(2)}% away from the reference candle series. The executable price is the Live quote, not the candle close.`,
+      text: tc('bannerQuoteDrift', { percent: relPct.toFixed(2) }),
     });
   }
   if (tool === 'rr') {
@@ -1106,7 +1104,7 @@ export function ForexChartFoundation(props?: {
           sessionLabel={
             sessions?.eligibility.sessions?.length
               ? sessions.eligibility.sessions.join(', ')
-              : sessions?.eligibility.reason ?? 'Unknown'
+              : sessions?.eligibility.reason ?? tc('sessionUnknown')
           }
         />
         {ctxMenu ? (
@@ -1116,14 +1114,14 @@ export function ForexChartFoundation(props?: {
             role="menu"
           >
             <CtxItem
-              label={`Copy ${fxNum(ctxMenu.price, digits)}`}
+              label={tc('ctxCopy', { price: fxNum(ctxMenu.price, digits) })}
               onClick={() => {
                 void navigator.clipboard?.writeText(String(ctxMenu.price));
                 setCtxMenu(null);
               }}
             />
             <CtxItem
-              label="Add horizontal line"
+              label={tc('ctxHline')}
               onClick={() => {
                 setTool('hline');
                 chartApiRef.current?.setTool('hline');
@@ -1131,7 +1129,7 @@ export function ForexChartFoundation(props?: {
               }}
             />
             <CtxItem
-              label="Measure from here"
+              label={tc('ctxMeasure')}
               onClick={() => {
                 setTool('measure');
                 setMeasurePoints([{ price: ctxMenu.price, time: ctxMenu.time }]);
@@ -1139,7 +1137,7 @@ export function ForexChartFoundation(props?: {
               }}
             />
             <CtxItem
-              label="R:R from here"
+              label={tc('ctxRr')}
               onClick={() => {
                 setTool('rr');
                 setRrPoints([ctxMenu.price]);
@@ -1147,7 +1145,7 @@ export function ForexChartFoundation(props?: {
               }}
             />
             <CtxItem
-              label="Alert at price"
+              label={tc('ctxAlert')}
               onClick={() => {
                 const next = {
                   id: `${Date.now()}`,
@@ -1168,7 +1166,7 @@ export function ForexChartFoundation(props?: {
               }}
             />
             <CtxItem
-              label="Market BUY (ASK)"
+              label={tc('ctxBuy')}
               onClick={() => {
                 setPanel('ticket', true);
                 setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'buy' });
@@ -1176,7 +1174,7 @@ export function ForexChartFoundation(props?: {
               }}
             />
             <CtxItem
-              label="Market SELL (BID)"
+              label={tc('ctxSell')}
               onClick={() => {
                 setPanel('ticket', true);
                 setTicketDraft({ nonce: Date.now(), orderType: 'market', side: 'sell' });
@@ -1184,7 +1182,7 @@ export function ForexChartFoundation(props?: {
               }}
             />
             <CtxItem
-              label="Trade from price (limit)"
+              label={tc('ctxLimit')}
               onClick={() => {
                 setPanel('ticket', true);
                 setTicketDraft({

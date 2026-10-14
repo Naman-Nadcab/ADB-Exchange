@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { cn } from '@/lib/utils';
 
 export function ForexPageFrame(props: {
@@ -16,11 +15,11 @@ export function ForexPageFrame(props: {
   /** Compact commercial header — less vertical chrome */
   dense?: boolean;
   /** Overview already has its own hero. Other portal pages use the shared hero. */
-  header?: 'hero' | 'compact';
+  header?: 'hero' | 'compact' | 'none';
 }) {
   const tf = useTranslations('forex');
   const dense = props.dense !== false;
-  const hero = props.header !== 'compact';
+  const hero = props.header !== 'compact' && props.header !== 'none';
   return (
     <div
       className={cn(
@@ -29,14 +28,13 @@ export function ForexPageFrame(props: {
         props.className
       )}
     >
-      {hero ? (
-        <header className="forex-portal-hero flex flex-wrap items-end justify-between gap-3 p-4 sm:p-5">
-          <div className="min-w-0">
-            <p className="text-[12px] font-medium text-muted-foreground">{tf('domainLabel')}</p>
-            <h1 className="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{props.title}</h1>
-            {props.subtitle ? <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">{props.subtitle}</p> : null}
+      {props.header === 'none' ? null : hero ? (
+        <header className="forex-portal-hero flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-3 py-2">
+          <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3 gap-y-0.5">
+            <h1 className="text-[15px] font-semibold tracking-tight text-foreground">{props.title}</h1>
+            {props.subtitle ? <p className="min-w-0 text-[12px] leading-snug text-muted-foreground">{props.subtitle}</p> : null}
           </div>
-          {props.actions ? <div className="flex flex-wrap items-center gap-2">{props.actions}</div> : null}
+          {props.actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{props.actions}</div> : null}
         </header>
       ) : (
         <div className={cn('flex flex-wrap items-center justify-between gap-2', !dense && 'items-end gap-3')}>
@@ -68,7 +66,9 @@ export type ForexSignInSectionKey =
   | 'portfolio'
   | 'yourForexAccount'
   | 'funds'
-  | 'forexAccounts';
+  | 'forexAccounts'
+  | 'tradeHistory'
+  | 'partner';
 
 export function ForexSignInPrompt({
   href,
@@ -78,55 +78,16 @@ export function ForexSignInPrompt({
   sectionKey: ForexSignInSectionKey;
 }) {
   const tf = useTranslations('forex');
-  const ta = useTranslations('forex.accountPage');
   const section = tf(`signIn.sections.${sectionKey}`);
-  const showBooks = sectionKey === 'yourForexAccount';
-  const books = [
-    ta('metricBalance'),
-    ta('metricEquity'),
-    ta('metricFreeMargin'),
-    ta('openPositionsLabel'),
-  ];
-  const destinations = [
-    { href: FOREX_ROUTES.trade, label: tf('nav.trade') },
-    { href: FOREX_ROUTES.markets, label: tf('nav.markets') },
-    { href: FOREX_ROUTES.portfolio, label: tf('nav.portfolio') },
-    { href: FOREX_ROUTES.accounts, label: tf('portalNav.accounts') },
-    { href: FOREX_ROUTES.funds, label: tf('portalNav.funds') },
-    { href: FOREX_ROUTES.ledger, label: tf('portalNav.ledger') },
-  ];
   return (
-    <div className="space-y-3">
-      <div className="eda-card flex flex-wrap items-center justify-between gap-3 border-primary/30 bg-card px-4 py-3">
-        <p className="text-sm text-foreground">{tf('signIn.prompt', { section })}</p>
-        <Link
-          href={href}
-          className="inline-flex min-h-9 items-center rounded bg-primary px-4 text-sm font-semibold text-primary-foreground"
-        >
-          {tf('signIn.link')}
-        </Link>
-      </div>
-      {showBooks ? (
-        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-          {books.map((label) => (
-            <div key={label} className="eda-card flex min-h-[88px] flex-col justify-between px-3 py-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
-              <p className="font-mono text-2xl font-semibold text-foreground">—</p>
-            </div>
-          ))}
-        </div>
-      ) : null}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {destinations.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="eda-card px-3 py-3 text-sm font-semibold text-foreground hover:border-primary/40"
-          >
-            {item.label}
-          </Link>
-        ))}
-      </div>
+    <div className="eda-card flex flex-wrap items-center justify-between gap-3 border-primary/30 bg-card px-4 py-4">
+      <p className="text-sm text-foreground">{tf('signIn.prompt', { section })}</p>
+      <Link
+        href={href}
+        className="inline-flex min-h-9 items-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground"
+      >
+        {tf('signIn.link')}
+      </Link>
     </div>
   );
 }

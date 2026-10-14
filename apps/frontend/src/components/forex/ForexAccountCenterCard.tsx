@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { LayoutGrid, Settings2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { fxMoney, fxPlain } from '@/components/forex/format';
+import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import type { ForexAccountCardSnapshot, ForexCustomerAccountSummary } from '@/lib/forex/api/client';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
@@ -19,6 +20,7 @@ export function ForexAccountCenterCard(props: {
   onSwitch: (accountId: string) => void;
 }) {
   const t = useTranslations('forex.accountCenter');
+  const te = useTranslations('forex.enums');
   const tu = useTranslations('forex.riskStates');
   const { account: a, isActive, busy, kindLabel, onSwitch } = props;
 
@@ -42,13 +44,15 @@ export function ForexAccountCenterCard(props: {
           <div className="flex flex-wrap items-center gap-1.5">
             <ForexPortalStatusBadge tone={kind === 'DEMO' ? 'primary' : 'neutral'}>{kindLabel(a.accountKind)}</ForexPortalStatusBadge>
             <ForexPortalStatusBadge tone={String(a.status).toUpperCase() === 'ACTIVE' ? 'success' : 'neutral'}>
-              {fxPlain(a.status)}
+              {forexEnumLabel(te, String(a.status))}
             </ForexPortalStatusBadge>
             {isActive ? (
               <ForexPortalStatusBadge tone="success">{t('activeBadge')}</ForexPortalStatusBadge>
             ) : null}
           </div>
-          <p className="text-[13px] font-semibold text-foreground">{fxPlain(a.label)}</p>
+          <p className="text-[13px] font-semibold text-foreground">
+            {kindLabel(a.accountKind)} · {fxPlain(a.currency)}
+          </p>
           <p className="font-mono text-[11px] text-muted-foreground">
             {t('cardTradingLogin')}: {fxPlain(a.accountId)}
           </p>
@@ -74,7 +78,7 @@ export function ForexAccountCenterCard(props: {
         </div>
         <div>
           <dt className="text-[12px] text-muted-foreground">{t('cardPositionMode')}</dt>
-          <dd className="mt-0.5">{fxPlain(a.positionMode)}</dd>
+          <dd className="mt-0.5">{forexEnumLabel(te, a.positionMode)}</dd>
         </div>
         <div>
           <dt className="text-[12px] text-muted-foreground">{t('colLeverage')}</dt>

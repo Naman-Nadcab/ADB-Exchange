@@ -6,14 +6,13 @@ import { useTranslations } from 'next-intl';
 import {
   CircleDollarSign,
   Gauge,
-  LayoutGrid,
   LineChart,
   ShieldAlert,
   Wallet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ForexAccountSwitcher } from './ForexAccountSwitcher';
 import { fxMoney, fxPlain, fxSigned } from './format';
+import { forexEnumLabel } from './forex-enum-label';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useForexStore } from '@/lib/forex/state/store';
 import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge, type ForexPortalKpiTone } from './ForexPortalKpiCard';
@@ -36,6 +35,7 @@ function riskHealthKind(state: string | undefined, liquidationLock: boolean | un
 
 export function ForexAccountOverviewDashboard() {
   const t = useTranslations('forex.accountPage');
+  const te = useTranslations('forex.enums');
   const tu = useTranslations('forex.riskStates');
   const account = useForexStore((s) => s.account);
   const balance = useForexStore((s) => s.balance);
@@ -99,10 +99,15 @@ export function ForexAccountOverviewDashboard() {
               <p className="text-[12px] font-medium text-muted-foreground">{t('activeAccountLabel')}</p>
               <ForexPortalStatusBadge tone={kindUpper === 'DEMO' ? 'primary' : 'neutral'}>{kindBadge}</ForexPortalStatusBadge>
               {activeMeta?.status ? (
-                <ForexPortalStatusBadge tone="success">{fxPlain(activeMeta.status)}</ForexPortalStatusBadge>
+                <ForexPortalStatusBadge tone="success">{forexEnumLabel(te, String(activeMeta.status))}</ForexPortalStatusBadge>
               ) : null}
             </div>
-            <ForexAccountSwitcher />
+            <p className="truncate text-[15px] font-semibold text-foreground">
+              {kindBadge} · {currency}
+              <span className="ml-2 font-mono text-[12px] font-normal text-muted-foreground">
+                #{fxPlain(account?.accountId ?? activeForexAccountId)}
+              </span>
+            </p>
             <div>
               <p className="text-[12px] text-muted-foreground">{t('metricBalance')}</p>
               <p className="mt-1 text-[28px] font-semibold tabular-nums tracking-tight text-foreground sm:text-[32px]">
@@ -176,7 +181,7 @@ export function ForexAccountOverviewDashboard() {
             </div>
             <div>
               <dt className="text-[12px] text-muted-foreground">{t('positionModeLabel')}</dt>
-              <dd className="mt-0.5 text-[14px] font-medium">{fxPlain(activeMeta?.positionMode)}</dd>
+              <dd className="mt-0.5 text-[14px] font-medium">{forexEnumLabel(te, activeMeta?.positionMode)}</dd>
             </div>
             <div>
               <dt className="text-[12px] text-muted-foreground">{t('metricMarginLevel')}</dt>
@@ -248,7 +253,7 @@ export function ForexAccountOverviewDashboard() {
           <dl className="mt-4 grid grid-cols-2 gap-3">
             <div>
               <dt className="text-[12px] text-muted-foreground">{t('reason')}</dt>
-              <dd className="mt-0.5 text-[14px]">{fxPlain(risk?.reason)}</dd>
+              <dd className="mt-0.5 text-[14px]">{risk?.reason ? forexEnumLabel(te, risk.reason) : unavailable}</dd>
             </div>
             <div>
               <dt className="text-[12px] text-muted-foreground">{t('liquidationLock')}</dt>
@@ -256,7 +261,11 @@ export function ForexAccountOverviewDashboard() {
             </div>
             <div className="col-span-2">
               <dt className="text-[12px] text-muted-foreground">{t('calculation')}</dt>
-              <dd className="mt-0.5 text-[14px]">{fxPlain(account?.calculationStatus ?? balance?.calculationStatus)}</dd>
+              <dd className="mt-0.5 text-[14px]">
+                {(account?.calculationStatus ?? balance?.calculationStatus)
+                  ? forexEnumLabel(te, String(account?.calculationStatus ?? balance?.calculationStatus))
+                  : unavailable}
+              </dd>
             </div>
           </dl>
         </ForexPortalModuleCard>
@@ -264,13 +273,6 @@ export function ForexAccountOverviewDashboard() {
 
       <ForexPortalModuleCard title={t('quickActionsHeading')} titleClassName={overviewTitle}>
         <div className="flex flex-wrap gap-2" aria-label={t('overviewQuickActionsAria')}>
-          <Link
-            href={FOREX_ROUTES.trade}
-            className="tap-target inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-[13px] font-semibold text-primary-foreground"
-          >
-            <LayoutGrid className="h-3.5 w-3.5" aria-hidden />
-            {t('openTerminal')}
-          </Link>
           <Link href={FOREX_ROUTES.portfolio} className={quietLink}>
             {t('viewPositions', { count: openPositionsCount })}
           </Link>
@@ -291,28 +293,12 @@ export function ForexAccountOverviewDashboard() {
               {t('viewAccountDetail')}
             </Link>
           ) : null}
-          {needsDemo ? (
-            <Link
-              href={FOREX_ROUTES.funds}
-              className="tap-target inline-flex items-center rounded-md border border-amber-500/35 bg-amber-500/10 px-3 py-2 text-[13px] font-medium text-amber-100"
-            >
-              {t('demoFundingCta')}
-            </Link>
-          ) : null}
         </div>
       </ForexPortalModuleCard>
 
       <footer className="border-t border-border/60 pt-2 text-[11px] text-muted-foreground">
         {t('footerBalance', { amount: fxMoney(account?.ledgerBalance ?? balance?.ledgerBalance, currency) })}
         {lastHydratedAt ? t('footerUpdated', { time: new Date(lastHydratedAt).toLocaleString() }) : null}
-        {' · '}
-        <Link href={FOREX_ROUTES.ledger} className="text-primary underline underline-offset-2">
-          {t('footerLedger')}
-        </Link>
-        {' · '}
-        <Link href={FOREX_ROUTES.funds} className="text-primary underline underline-offset-2">
-          {t('footerFunds')}
-        </Link>
       </footer>
     </div>
   );

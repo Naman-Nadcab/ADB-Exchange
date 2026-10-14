@@ -7,6 +7,7 @@ import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageF
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalKpiCard, ForexPortalModuleCard } from '@/components/forex/ForexPortalKpiCard';
 import { fxNum, fxPlain } from '@/components/forex/format';
+import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { downloadForexHistoryCsv } from '@/lib/forex/api/client';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexStore } from '@/lib/forex/state/store';
@@ -15,6 +16,7 @@ import { useAuthStore } from '@/store/auth';
 export default function ForexHistoryPage() {
   const tf = useTranslations('forex');
   const t = useTranslations('forex.historyPage');
+  const te = useTranslations('forex.enums');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const fills = useForexStore((s) => s.fills);
@@ -45,7 +47,7 @@ export default function ForexHistoryPage() {
   return (
     <ForexPageFrame wide title={tf('pages.history.title')} subtitle={tf('pages.history.subtitle')}>
       {!authed ? (
-        <ForexSignInPrompt href="/login?redirect=/forex/history" sectionKey="portfolio" />
+        <ForexSignInPrompt href="/login?redirect=/forex/history" sectionKey="tradeHistory" />
       ) : (
         <>
           <ForexPortalAccountContext />
@@ -95,7 +97,7 @@ export default function ForexHistoryPage() {
                       <tr key={f.fillId}>
                         <td>{new Date(f.timestamp).toLocaleString()}</td>
                         <td>{fxPlain(f.symbol)}</td>
-                        <td>{fxPlain(f.side)}</td>
+                        <td>{forexEnumLabel(te, f.side)}</td>
                         <td>{fxPlain(f.volume)}</td>
                         <td>{fxNum(f.price)}</td>
                         <td>{f.fillId.slice(0, 10)}</td>

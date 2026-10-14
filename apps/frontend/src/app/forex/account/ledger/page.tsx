@@ -8,13 +8,13 @@ import {
   ForexPortalKpiCard,
   ForexPortalModuleCard,
   ForexPortalStatusBadge,
-  formatLedgerStatusLabel,
   ledgerStatusTone,
 } from '@/components/forex/ForexPortalKpiCard';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
 import { fxMoney, fxPlain } from '@/components/forex/format';
+import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import type { ForexLedgerRow } from '@/lib/forex/models/types';
 import { cn } from '@/lib/utils';
 
@@ -35,6 +35,7 @@ function cashCredit(row: ForexLedgerRow): string {
 export default function ForexLedgerPage() {
   const tf = useTranslations('forex');
   const tl = useTranslations('forex.ledgerPage');
+  const te = useTranslations('forex.enums');
   const tc = useTranslations('common.actions');
   const tu = useTranslations('forex.riskStates');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -79,20 +80,22 @@ export default function ForexLedgerPage() {
     <ForexPageFrame title={tf('pages.ledger.title')} subtitle={tf('pages.ledger.subtitle')}>
       {!authed ? (
         <ForexSignInPrompt href="/login?redirect=/forex/account/ledger" sectionKey="ledger" />
-      ) : (
+      ) : null}
         <>
-          <ForexPortalAccountContext />
+          {authed ? <ForexPortalAccountContext /> : null}
+          {authed ? (
           <section className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3" aria-label={tl('summaryAria')}>
             <ForexPortalKpiCard tone="brand" emphasis="primary" label={tl('kpiLedgerBalance')} value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
             <ForexPortalKpiCard emphasis="secondary" label={tl('kpiEntryCount')} value={rows.length} kind="plain" />
             <ForexPortalKpiCard
               emphasis="secondary"
               label={tl('kpiReconciliation')}
-              value={reconciliation?.status ?? tl('kpiReconciliationPending')}
+              value={reconciliation?.status ? forexEnumLabel(te, reconciliation.status) : tl('kpiReconciliationPending')}
               kind="plain"
             />
             <ForexPortalKpiCard emphasis="secondary" label={tl('kpiCurrency')} value={currency} kind="plain" />
           </section>
+          ) : null}
 
           <ForexPortalModuleCard title={tl('filterHeading')}>
             <div className="flex flex-wrap items-end gap-3 text-[12px]">
@@ -105,7 +108,7 @@ export default function ForexLedgerPage() {
                 >
                   {types.map((t) => (
                     <option key={t} value={t}>
-                      {t}
+                      {forexEnumLabel(te, t)}
                     </option>
                   ))}
                 </select>
@@ -141,9 +144,9 @@ export default function ForexLedgerPage() {
                   <button type="button" className="w-full text-left" onClick={() => setOpen(row)}>
                     <div className="flex items-start justify-between gap-2">
                       <span className="text-foreground">{new Date(row.timestamp).toLocaleString()}</span>
-                      <ForexPortalStatusBadge tone={ledgerStatusTone(row.status)}>{formatLedgerStatusLabel(row.status)}</ForexPortalStatusBadge>
+                      <ForexPortalStatusBadge tone={ledgerStatusTone(row.status)}>{forexEnumLabel(te, row.status)}</ForexPortalStatusBadge>
                     </div>
-                    <p className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">{fxPlain(row.type)}</p>
+                    <p className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">{forexEnumLabel(te, row.type)}</p>
                     <p className="mt-1 truncate text-[10px] text-muted-foreground">{refShort(row)}</p>
                     <div className="mt-2 grid grid-cols-2 gap-2">
                       <span className="text-sell/90">{tl('colDebit')}: {fxPlain(cashDebit(row))}</span>
@@ -180,7 +183,7 @@ export default function ForexLedgerPage() {
                           {new Date(row.timestamp).toLocaleString()}
                         </button>
                       </td>
-                      <td className="px-3 py-2">{fxPlain(row.type)}</td>
+                      <td className="px-3 py-2">{forexEnumLabel(te, row.type)}</td>
                       <td className="max-w-[140px] truncate px-3 py-2 text-muted-foreground" title={refShort(row)}>
                         {refShort(row)}
                       </td>
@@ -188,7 +191,7 @@ export default function ForexLedgerPage() {
                       <td className={cn('px-3 py-2', cashCredit(row) && cashCredit(row) !== '0' && 'text-buy/90')}>{fxPlain(cashCredit(row))}</td>
                       <td className="px-3 py-2">{fxPlain(row.net ?? unavailable)}</td>
                       <td className="px-3 py-2">
-                        <ForexPortalStatusBadge tone={ledgerStatusTone(row.status)}>{formatLedgerStatusLabel(row.status)}</ForexPortalStatusBadge>
+                        <ForexPortalStatusBadge tone={ledgerStatusTone(row.status)}>{forexEnumLabel(te, row.status)}</ForexPortalStatusBadge>
                       </td>
                       <td className="px-3 py-2">
                         {row.balanceBefore != null ? fxMoney(row.balanceBefore, currency) : unavailable}
@@ -204,9 +207,9 @@ export default function ForexLedgerPage() {
             </>
           )}
 
-          {reconciliation ? (
+          {authed && reconciliation ? (
             <section className="eda-card p-4 text-[12px]">
-              <p className="font-medium">{tl('reconciliationTitle', { status: reconciliation.status })}</p>
+              <p className="font-medium">{tl('reconciliationTitle', { status: forexEnumLabel(te, reconciliation.status) })}</p>
               <p className="mt-1 text-muted-foreground">{tl('reconciliationBody')}</p>
               <dl className="mt-3 grid grid-cols-2 gap-2 font-mono md:grid-cols-4">
                 <div>
@@ -251,18 +254,21 @@ export default function ForexLedgerPage() {
                 </p>
               ) : null}
             </section>
-          ) : (
+          ) : authed ? (
             <section className="eda-card border-dashed p-4 text-[12px] text-muted-foreground">
               <p className="font-medium text-foreground">{tl('reconciliationUnavailableTitle')}</p>
               <p className="mt-1">
                 {tl('reconciliationUnavailableBody', {
-                  balance: fxMoney(account?.ledgerBalance ?? balance?.ledgerBalance, currency),
+                  balance: (() => {
+                    const raw = account?.ledgerBalance ?? balance?.ledgerBalance;
+                    if (raw == null || raw === '') return unavailable;
+                    return fxMoney(raw, currency);
+                  })(),
                 })}
               </p>
             </section>
-          )}
+          ) : null}
         </>
-      )}
 
       {open ? (
         <div
@@ -286,7 +292,7 @@ export default function ForexLedgerPage() {
             </div>
             <dl className="grid grid-cols-2 gap-2 font-mono text-[12px]">
               <dt className="text-muted-foreground">{tl('detailWhat')}</dt>
-              <dd>{open.type}</dd>
+              <dd>{forexEnumLabel(te, open.type)}</dd>
               <dt className="text-muted-foreground">{tl('detailWhen')}</dt>
               <dd>{open.timestamp}</dd>
               <dt className="text-muted-foreground">{tl('colDebit')}</dt>
@@ -296,13 +302,13 @@ export default function ForexLedgerPage() {
               <dt className="text-muted-foreground">{tl('colNet')}</dt>
               <dd>{open.net ?? unavailable}</dd>
               <dt className="text-muted-foreground">{tl('detailWhyStatus')}</dt>
-              <dd>{open.status}</dd>
+              <dd>{forexEnumLabel(te, open.status)}</dd>
               <dt className="text-muted-foreground">{tl('detailTransactionId')}</dt>
               <dd>{open.transactionId}</dd>
               <dt className="text-muted-foreground">{tl('detailCurrency')}</dt>
               <dd>{open.currency}</dd>
               <dt className="text-muted-foreground">{tl('detailSource')}</dt>
-              <dd>{open.source}</dd>
+              <dd>{forexEnumLabel(te, open.source)}</dd>
               <dt className="text-muted-foreground">{tl('detailOrder')}</dt>
               <dd>{refField(open.reference, 'orderId') ?? unavailable}</dd>
               <dt className="text-muted-foreground">{tl('detailFill')}</dt>

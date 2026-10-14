@@ -3,12 +3,14 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
-import { createForexDemoAccountAndActivate, switchForexActiveAccount } from '@/lib/forex/runtime/hydrate';
+import { forexEnumLabel } from '@/components/forex/forex-enum-label';
+import { switchForexActiveAccount } from '@/lib/forex/runtime/hydrate';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useForexStore } from '@/lib/forex/state/store';
 
 export function ForexAccountSwitcher(props?: { compact?: boolean }) {
   const t = useTranslations('forex.accountSwitcher');
+  const te = useTranslations('forex.enums');
   const accounts = useForexStore((s) => s.forexAccounts);
   const activeId = useForexStore((s) => s.activeForexAccountId);
   const [busy, setBusy] = useState(false);
@@ -30,48 +32,30 @@ export function ForexAccountSwitcher(props?: { compact?: boolean }) {
     }
   }, [activeId, busy]);
 
-  const onCreate = useCallback(async () => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      await createForexDemoAccountAndActivate();
-    } finally {
-      setBusy(false);
-      setOpen(false);
-    }
-  }, [busy]);
-
   if (!accounts.length && !activeId) {
     return null;
   }
 
-  const label = active
-    ? `${active.accountKind === 'DEMO' ? 'Demo' : active.accountKind} · ${active.currency}`
-    : 'Account';
-  const status = active?.status ? String(active.status) : null;
+  const kindLabel = active?.accountKind ? forexEnumLabel(te, active.accountKind) : te('ACCOUNT');
+  const label = active ? `${kindLabel} · ${active.currency}` : te('ACCOUNT');
+  const status = active?.status ? forexEnumLabel(te, String(active.status)) : null;
 
   return (
-    <div className="relative min-w-0 max-w-[220px] shrink">
+    <div className="relative shrink-0">
       <button
         type="button"
         disabled={busy}
         onClick={() => setOpen((v) => !v)}
-        className={`flex max-w-[260px] items-center gap-2 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${props?.compact ? 'text-[10px]' : 'text-[11px]'}`}
+        className={`flex h-8 max-w-[9rem] items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:max-w-[11rem] ${props?.compact ? 'text-[11px]' : 'text-[12px]'}`}
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-label={t('activeAccountAria')}
       >
-        <span className="min-w-0 truncate">
-          <span className="block truncate font-medium text-foreground">
-            {label}
-            {status ? <span className="ml-1 font-normal text-muted-foreground">· {status}</span> : null}
-          </span>
-          <span className="block truncate font-mono text-[10px] text-muted-foreground">
-            #{active?.accountId ?? activeId}
-            {active?.positionMode ? ` · ${active.positionMode}` : ''}
-          </span>
+        <span className="min-w-0 truncate font-medium text-foreground">
+          {label}
+          {status ? <span className="font-normal text-muted-foreground"> · {status}</span> : null}
         </span>
-        <span className="text-muted-foreground" aria-hidden>
+        <span className="shrink-0 text-muted-foreground" aria-hidden>
           ▼
         </span>
       </button>
@@ -92,13 +76,13 @@ export function ForexAccountSwitcher(props?: { compact?: boolean }) {
               onClick={() => void onSelect(a.accountId)}
             >
               <span className="pointer-events-none font-medium">
-                {a.accountKind === 'DEMO' ? 'Demo' : a.accountKind} · {a.currency}
-                {a.accountId === activeId ? ' · Active' : ''}
+                {forexEnumLabel(te, a.accountKind)} · {a.currency}
+                {a.accountId === activeId ? ` · ${t('activeSuffix')}` : ''}
               </span>
               <span className="pointer-events-none font-mono text-[10px] text-muted-foreground">
                 #{a.accountId}
-                {a.status ? ` · ${a.status}` : ''}
-                {a.positionMode ? ` · ${a.positionMode}` : ''}
+                {a.status ? ` · ${forexEnumLabel(te, String(a.status))}` : ''}
+                {a.positionMode ? ` · ${forexEnumLabel(te, a.positionMode)}` : ''}
               </span>
             </button>
           ))}
@@ -108,17 +92,16 @@ export function ForexAccountSwitcher(props?: { compact?: boolean }) {
             className="block px-3 py-2 text-[11px] text-primary hover:bg-muted/60"
             onClick={() => setOpen(false)}
           >
-            Manage accounts…
+            {t('manageAccounts')}
           </Link>
-          <div className="my-1 border-t border-border" />
-          <button
-            type="button"
-            className="w-full px-3 py-2 text-left text-[11px] font-semibold text-primary hover:bg-muted/60"
-            onClick={() => void onCreate()}
+          <Link
+            href={FOREX_ROUTES.openDemoAccount}
+            className="block border-t border-border px-3 py-2 text-[11px] font-semibold text-primary hover:bg-muted/60"
+            onClick={() => setOpen(false)}
           >
-            + Create demo account
-          </button>
-          <p className="px-3 pb-2 text-[9px] text-muted-foreground">SIMULATED · not real money</p>
+            {t('createDemo')}
+          </Link>
+          <p className="px-3 pb-2 text-[10px] text-muted-foreground">{t('simulatedNote')}</p>
         </div>
       ) : null}
     </div>
