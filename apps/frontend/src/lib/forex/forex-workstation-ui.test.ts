@@ -37,6 +37,12 @@ function testLeftStackKeepsHeight(): void {
   assert(layout.includes('Chart-column terminal dock'), 'dock stays under the chart');
   assert(!layout.includes('Full-width terminal dock'), 'dock does not run under Market Watch');
   assert(!layout.includes('ForexAccountBar'), 'account bar is not on the terminal');
+  const chart = readFileSync(join(root, 'ForexChartFoundation.tsx'), 'utf8');
+  const chrome = readFileSync(join(root, 'mt5-chart/ForexMt5ChartChrome.tsx'), 'utf8');
+  assert(!chart.includes('ForexMt5DataWindow'), 'data window is not on the chart');
+  assert(!chrome.includes('ohlcLine'), 'toolbar does not repeat bar prices');
+  assert(!chrome.includes("t('bid')"), 'chart header does not repeat bid');
+  assert(!chrome.includes("t('ask')"), 'chart header does not repeat ask');
   assert(!layout.includes('!authed && !hasTradingData'), 'guest visits do not collapse the dock');
   assert(!layout.includes('min(420px, 48%)'), 'order ticket is not forced to half the column');
   const bottom = readFileSync(join(root, 'ForexBottomPanels.tsx'), 'utf8');

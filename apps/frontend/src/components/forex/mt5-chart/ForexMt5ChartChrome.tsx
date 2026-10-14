@@ -17,7 +17,6 @@ import {
 import type { ForexChartType } from '../ForexLightweightChart';
 import { FOREX_INDICATOR_REGISTRY, getForexIndicatorDefinition, type StoredForexIndicator } from '@/lib/forex/chart/indicator-registry';
 import { cn } from '@/lib/utils';
-import { fxNum } from '../format';
 
 const PRIMARY_TF = ['1m', '5m', '15m', '30m', '1h', '4h', '1D'] as const;
 
@@ -32,10 +31,6 @@ type Props = {
   activeTf: string;
   timeframes: string[];
   onTf: (tf: string) => void;
-  digits: number;
-  bid?: string;
-  ask?: string;
-  spreadPips?: string;
   demoSecondary?: string;
   chartType: ForexChartType;
   onChartType: (t: ForexChartType) => void;
@@ -58,9 +53,6 @@ type Props = {
   oneClickSell?: () => void;
   oneClickBuy?: () => void;
   oneClickDisabled?: boolean;
-  ohlcLine?: string | null;
-  showDataWindow?: boolean;
-  onDataWindow?: () => void;
 };
 
 export function ForexMt5ChartChrome(props: Props) {
@@ -162,14 +154,6 @@ export function ForexMt5ChartChrome(props: Props) {
           onClick={() => props.onCalendar(!props.showCalendar)}
         />
         <IconBtn title={t('objectsToolbar')} pressed={props.showObjects} icon={<Shapes className="h-3.5 w-3.5" />} onClick={props.onObjects} />
-        {props.onDataWindow ? (
-          <IconBtn
-            title={t('dataWindow.toggle')}
-            pressed={props.showDataWindow}
-            icon={<BarChart3 className="h-3.5 w-3.5 opacity-70" />}
-            onClick={props.onDataWindow}
-          />
-        ) : null}
         {props.onExpand ? (
           <IconBtn title={t('layout')} icon={<Maximize2 className="h-3.5 w-3.5" />} onClick={props.onExpand} pressed={props.expandActive} />
         ) : null}
@@ -195,9 +179,7 @@ export function ForexMt5ChartChrome(props: Props) {
               {t('buy')}
             </button>
           </div>
-        ) : (
-          <span className="ml-auto truncate px-1 font-mono text-[9px] text-muted-foreground">{props.ohlcLine}</span>
-        )}
+        ) : null}
       </div>
 
       <div className="flex h-6 min-w-0 items-center gap-0.5 border-t border-border/50 px-1" role="group" aria-label={t('timeframesAria')}>
@@ -264,19 +246,6 @@ export function ForexMt5ChartChrome(props: Props) {
                 </span>
               );
             })}
-          </div>
-        ) : null}
-        {props.bid != null && props.ask != null ? (
-          <div className="ml-auto hidden shrink-0 items-baseline gap-2 pl-2 font-mono text-[10px] sm:flex">
-            <span className="text-buy">
-              {t('bid')} {fxNum(props.bid, props.digits)}
-            </span>
-            <span className="text-sell">
-              {t('ask')} {fxNum(props.ask, props.digits)}
-            </span>
-            <span className="text-muted-foreground">
-              {t('spr')} {props.spreadPips ?? '—'}
-            </span>
           </div>
         ) : null}
       </div>
