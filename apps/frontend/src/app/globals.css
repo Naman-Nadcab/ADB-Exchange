@@ -1217,6 +1217,19 @@ input[type="number"] {
   border-left-color: #c9a227 !important;
 }
 
+.fx-watch-slot > aside {
+  height: auto;
+  max-height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+.fx-watch-slot > aside > .min-h-0 {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
 .forex-mt5 .fx-ticket {
   background: linear-gradient(180deg, #1c2128 0%, #14171c 88px, #14171c 100%) !important;
 }

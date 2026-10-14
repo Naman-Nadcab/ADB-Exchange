@@ -294,7 +294,7 @@ export function ForexOrderTicket() {
   }
 
   return (
-    <aside className="fx-ticket terminal-panel-subtle flex h-full min-h-0 flex-col border-border bg-card lg:h-auto lg:border-r" aria-label={tf('ticketPanel.ariaLabel')}>
+    <aside className="fx-ticket terminal-panel-subtle flex h-full min-h-0 flex-col border-border bg-card lg:border-r" aria-label={tf('ticketPanel.ariaLabel')}>
       <div className="fx-ticket-head">
         <span className="fx-ticket-kicker">{tf('ticketPanel.newOrder')}</span>
         <span className="fx-ticket-symbol">{inst?.displaySymbol ?? selected}</span>
@@ -303,7 +303,7 @@ export function ForexOrderTicket() {
         </span>
       </div>
 
-      <div className="fx-ticket-body min-h-0 overflow-auto max-lg:flex-1">
+      <div className="fx-ticket-body min-h-0 flex-1 overflow-auto">
         {type === 'market' ? null : (
         <div className="fx-ticket-sides">
           <button

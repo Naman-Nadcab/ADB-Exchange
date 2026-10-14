@@ -49,6 +49,10 @@ function testLeftStackKeepsHeight(): void {
   assert(!chrome.includes("t('ask')"), 'chart header does not repeat ask');
   assert(!layout.includes('!authed && !hasTradingData'), 'guest visits do not collapse the dock');
   assert(!layout.includes('min(420px, 48%)'), 'order ticket is not forced to half the column');
+  assert(!layout.includes('lg:max-h-[min(420px,46%)]'), 'order ticket sits against Market Watch');
+  assert(layout.includes('fx-watch-slot'), 'market watch sizes to its rows');
+  const priceChart = readFileSync(join(root, 'ForexLightweightChart.tsx'), 'utf8');
+  assert(!priceChart.includes("'ASK'") && !priceChart.includes("'BID'"), 'chart does not tag bid or ask');
   const bottom = readFileSync(join(root, 'ForexBottomPanels.tsx'), 'utf8');
   const panelAt = bottom.indexOf('role="tabpanel"');
   const tabsAt = bottom.indexOf('role="tablist"');

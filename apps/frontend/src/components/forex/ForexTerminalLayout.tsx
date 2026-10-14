@@ -116,14 +116,14 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
                 >
                   {!chromeHidden ? <ForexAppToolbar /> : null}
                   {showWatchlist ? (
-                    <div className="min-h-0 flex-1 overflow-hidden">
+                    <div className="fx-watch-slot flex min-h-0 max-h-[58%] shrink flex-col overflow-hidden">
                       <ForexWatchlist />
                     </div>
                   ) : null}
                   {showTicket ? (
                     <div
-                      className={`hidden min-h-0 overflow-y-auto border-border lg:flex lg:max-h-[min(420px,46%)] lg:flex-col ${
-                        showWatchlist ? 'shrink-0 border-t' : 'flex-1'
+                      className={`hidden min-h-0 overflow-hidden border-border lg:flex lg:min-h-[240px] lg:flex-1 lg:flex-col ${
+                        showWatchlist ? 'border-t' : ''
                       }`}
                     >
                       <ForexOrderTicket />
