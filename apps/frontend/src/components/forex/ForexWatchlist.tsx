@@ -28,7 +28,6 @@ export function ForexWatchlist() {
   const focusSymbol = useForexWorkspaceStore((s) => s.focusSymbol);
   const setTicketDraft = useForexWorkspaceStore((s) => s.setTicketDraft);
   const setPanel = useForexWorkspaceStore((s) => s.setPanel);
-  const marketOpen = sessions?.eligibility.open ?? false;
   const [menu, setMenu] = useState<{ x: number; y: number; symbol: string } | null>(null);
   const [specSymbol, setSpecSymbol] = useState<string | null>(null);
 
@@ -42,13 +41,6 @@ export function ForexWatchlist() {
   }, [watchlist, mwFilter, favorites, instruments]);
 
   const changeRefs = useForexChangeReferences(rows);
-  const anyReference = rows.some((s) => changeRefs.references[s] != null);
-
-  const footerSession = marketOpen
-    ? tw('sessionOpen')
-    : sessions?.eligibility.reason ?? '—';
-  const footerStatus = marketOpen ? tw('statusTradable') : tw('statusClosed');
-  const changeNote = anyReference ? tw('changeWithRef') : tw('changeNoRef');
 
   return (
     <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-r border-border bg-card" aria-label={tw('ariaLabel')}>
@@ -56,22 +48,24 @@ export function ForexWatchlist() {
         <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{tw('title')}</span>
         <span className="font-mono text-[9px] text-muted-foreground">{rows.length}/{watchlist.length}</span>
       </div>
-      <ForexSymbolSearch />
-      <div className="forex-chrome-strip flex gap-0.5 overflow-x-auto border-b border-border px-1 py-0.5">
-        {FILTER_IDS.map((id) => (
-          <button
-            key={id}
-            type="button"
-            aria-pressed={mwFilter === id}
-            onClick={() => setMwFilter(id)}
-            className={cn(
-              'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium',
-              mwFilter === id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            {tw(`filters.${id}`)}
-          </button>
-        ))}
+      <div className="forex-chrome-strip flex items-center gap-0.5 border-b border-border px-1 py-0.5">
+        <div className="flex min-w-0 flex-1 gap-0.5 overflow-x-auto">
+          {FILTER_IDS.map((id) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={mwFilter === id}
+              onClick={() => setMwFilter(id)}
+              className={cn(
+                'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium',
+                mwFilter === id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {tw(`filters.${id}`)}
+            </button>
+          ))}
+        </div>
+        <ForexSymbolSearch />
       </div>
       <div className="min-h-0 flex-1 overflow-auto" onClick={() => setMenu(null)}>
         {rows.length === 0 ? (
@@ -173,9 +167,6 @@ export function ForexWatchlist() {
             </div>
           </div>
         )}
-      </div>
-      <div className="border-t border-border px-2 py-1 text-[9px] text-muted-foreground">
-        {tw('footerSession', { session: footerSession, status: footerStatus, changeNote })}
       </div>
       {menu ? (
         <div

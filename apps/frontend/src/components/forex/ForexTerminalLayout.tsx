@@ -127,10 +127,9 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
                   ) : null}
                   {showTicket ? (
                     <div
-                      className={`hidden min-h-0 border-border lg:flex lg:flex-col ${
+                      className={`hidden min-h-0 overflow-y-auto border-border lg:flex lg:max-h-[min(420px,46%)] lg:flex-col ${
                         showWatchlist ? 'shrink-0 border-t' : 'flex-1'
                       }`}
-                      style={showWatchlist ? { height: 'min(420px, 48%)' } : undefined}
                     >
                       <ForexOrderTicket />
                     </div>
@@ -150,31 +149,31 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
             ) : null}
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
               <ForexChartWorkspace />
+              {/* Toolbox opens under the chart only. The left stack keeps its height. */}
+              {showBottom && bottomH > 0 ? (
+                <>
+                  {!bottomCollapsed && chartMode === 'normal' ? (
+                    <ForexPanelSplit
+                      axis="y"
+                      value={bottomPreferred}
+                      onChange={(n) => {
+                        setBottomCollapsed(false);
+                        setBottomHeight(n);
+                      }}
+                      direction={-1}
+                      label="Resize Toolbox"
+                      className="hidden md:block"
+                    />
+                  ) : null}
+                  <div className="hidden shrink-0 md:flex" style={{ height: bottomH }}>
+                    <div className="min-h-0 min-w-0 flex-1">
+                      <ForexBottomPanels compact={bottomH <= 56} hasTradingData={hasTradingData} />
+                    </div>
+                  </div>
+                </>
+              ) : null}
             </div>
           </div>
-
-          {showBottom && bottomH > 0 ? (
-            <>
-              {!bottomCollapsed && chartMode === 'normal' ? (
-                <ForexPanelSplit
-                  axis="y"
-                  value={bottomPreferred}
-                  onChange={(n) => {
-                    setBottomCollapsed(false);
-                    setBottomHeight(n);
-                  }}
-                  direction={-1}
-                  label="Resize Toolbox"
-                  className="hidden md:block"
-                />
-              ) : null}
-              <div className="hidden shrink-0 md:flex" style={{ height: bottomH }}>
-                <div className="min-h-0 min-w-0 flex-1">
-                  <ForexBottomPanels compact={bottomH <= 56} hasTradingData={hasTradingData} />
-                </div>
-              </div>
-            </>
-          ) : null}
 
           {chartMode === 'expand' || chartMode === 'fullscreen' ? (
             <button

@@ -29,6 +29,19 @@ function testEngineUuid(): void {
   assert(!engine.includes('crypto.randomUUID()'), 'no direct randomUUID');
 }
 
+function testLeftStackKeepsHeight(): void {
+  const layout = readFileSync(join(root, 'ForexTerminalLayout.tsx'), 'utf8');
+  const chartAt = layout.indexOf('<ForexChartWorkspace');
+  const bottomAt = layout.indexOf('<ForexBottomPanels');
+  assert(chartAt > 0 && bottomAt > chartAt, 'toolbox sits in the chart column');
+  assert(!layout.includes('min(420px, 48%)'), 'order ticket is not forced to half the column');
+  const watch = readFileSync(join(root, 'ForexWatchlist.tsx'), 'utf8');
+  assert(!watch.includes('footerSession'), 'session line does not sit under the pairs');
+  assert(watch.includes('<ForexSymbolSearch'), 'pair search stays on market watch');
+  const search = readFileSync(join(root, 'ForexSymbolSearch.tsx'), 'utf8');
+  assert(!search.includes('h-8 w-full'), 'search is not a full-width box');
+}
+
 function testMobileTicket(): void {
   const layout = readFileSync(join(root, 'ForexTerminalLayout.tsx'), 'utf8');
   const tradePage = readFileSync(join(__dirname, '../../app/forex/page.tsx'), 'utf8');
@@ -68,6 +81,7 @@ function testPendingCancelSurfaces(): void {
   assert(ordersPage.includes('Modify'), 'Orders page Modify');
 }
 
+testLeftStackKeepsHeight();
 testNoBareLiveLabel();
 testNoLastAsCurrent();
 testEngineUuid();
