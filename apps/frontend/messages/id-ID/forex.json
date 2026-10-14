@@ -27,7 +27,8 @@
     "ledger": "Buku besar",
     "research": "Riset",
     "tools": "Alat",
-    "signals": "Sinyal"
+    "signals": "Sinyal",
+    "partnerHint": "Kode rujukan, atau klien mitra Anda. Ini bukan tempat trading."
   },
   "userMenu": {
     "label": "Akun",
@@ -124,7 +125,7 @@
     },
     "partner": {
       "title": "Mitra",
-      "subtitle": "Kabinet introducing broker untuk login ini. Terpisah dari referral Kripto."
+      "subtitle": "Masukkan kode rujukan, atau lihat kode mitra, klien, dan komisi Anda."
     }
   },
   "markets": {
@@ -1723,7 +1724,8 @@
     "partnerCode": "Kode mitra",
     "partnerCodeHint": "Opsional. Kode yang tidak dikenal tidak menghalangi pengajuan.",
     "partnerLinked": "Kode mitra tertaut.",
-    "partnerUnknown": "Kode mitra tidak dikenali. Pengajuan tidak berubah."
+    "partnerUnknown": "Kode mitra tidak dikenali. Pengajuan tidak berubah.",
+    "partnerCodeMore": "Lihat Mitra"
   },
   "internalTransfer": {
     "title": "Transfer internal",
@@ -1923,7 +1925,14 @@
     "copySlTp": "Salin Stop Loss dan Take Profit",
     "subscribe": "Berlangganan",
     "locked": "Berlangganan tetap mati sampai penyalinan sinyal terhubung. Tidak ada trade yang disalin ke akun.",
-    "positionsNote": "Trade yang disalin akan tampil di tab Trading sebagai posisi biasa, pada akun yang Anda langgani."
+    "positionsNote": "Trade yang disalin akan tampil di tab Trading sebagai posisi biasa, pada akun yang Anda langgani.",
+    "flowTitle": "Cara memakai Sinyal",
+    "step1": "Pilih sinyal dari daftar. Belum ada yang dipublikasikan, jadi tidak ada yang bisa dipilih.",
+    "step2": "Lalu atur berapa banyak deposit yang boleh dipakai, level ekuitas yang menghentikannya, dan slippage yang Anda izinkan. Stop loss dan take profit juga bisa disalin.",
+    "step3": "Trade yang disalin tampil di Trading sebagai posisi biasa. Tutup atau ubah di sana, sama seperti trade yang Anda pasang sendiri.",
+    "goTrade": "Buka Trading",
+    "noneYet": "Belum ada sinyal",
+    "settingsLead": "Pilih sinyal dulu. Pilihan ini tetap mati sampai ada sinyal. Tidak ada trade yang disalin ke akun Anda."
   },
   "partnerPage": {
     "notEnabled": "Belum diaktifkan",
@@ -1945,6 +1954,13 @@
     "payoutLocked": "Pembayaran tetap mati sampai broker mengaktifkan profil IB Anda dan jalur pembayaran.",
     "introducerBody": "Login ini dibuka dengan kode mitra {code}.",
     "notIbBody": "Login ini bukan introducing broker. Trader memasukkan kode mitra saat membuka akun live.",
-    "signedOutNote": "Masuk untuk melihat apakah login ini tertaut ke mitra. Kabinet di bawah adalah alur lengkap. Pembayaran tetap mati."
+    "signedOutNote": "Masuk untuk melihat apakah login ini tertaut ke mitra. Kabinet di bawah adalah alur lengkap. Pembayaran tetap mati.",
+    "traderTitle": "Saya punya kode mitra",
+    "traderBody": "Masukkan kode saat membuka akun live. Jika kode tidak dikenali, pengajuan tetap jalan. Ini tidak berlangganan sinyal.",
+    "traderCta": "Buka akun live",
+    "ibTitle": "Saya mitra",
+    "ibBody": "Kode, tautan rujukan, klien, dan komisi muncul di bawah setelah broker menetapkannya. Anda tidak mengaktifkannya sendiri.",
+    "notAssigned": "Belum ditetapkan",
+    "commissionEmpty": "Belum ada komisi sampai klien yang dirujuk berdagang."
   }
 }

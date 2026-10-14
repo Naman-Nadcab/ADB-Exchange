@@ -69,6 +69,7 @@ export function isForexPortalNavActive(
 
 export function isForexPortalSectionPath(pathname: string): boolean {
   if (isForexTradePath(pathname)) return false;
+  if (pathname === FOREX_ROUTES.partner || pathname.startsWith(`${FOREX_ROUTES.partner}/`)) return true;
   return FOREX_PORTAL_NAV.some((item) =>
     isForexPortalNavActive(pathname, item.href, 'exact' in item ? item.exact : false)
   );

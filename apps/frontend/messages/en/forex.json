@@ -27,7 +27,8 @@
     "ledger": "Ledger",
     "research": "Research",
     "tools": "Tools",
-    "signals": "Signals"
+    "signals": "Signals",
+    "partnerHint": "Referral code, or your own partner clients. This is not a place to trade."
   },
   "userMenu": {
     "label": "Account",
@@ -124,7 +125,7 @@
     },
     "partner": {
       "title": "Partner",
-      "subtitle": "Introducing broker cabinet for this login. Separate from Crypto referral."
+      "subtitle": "Enter a referral code, or view your own partner code, clients, and commission."
     }
   },
   "markets": {
@@ -1723,7 +1724,8 @@
     "partnerCode": "Partner code",
     "partnerCodeHint": "Optional. An unknown code does not block the application.",
     "partnerLinked": "Partner code linked.",
-    "partnerUnknown": "Partner code was not recognized. The application is unchanged."
+    "partnerUnknown": "Partner code was not recognized. The application is unchanged.",
+    "partnerCodeMore": "See Partner"
   },
   "internalTransfer": {
     "title": "Internal transfer",
@@ -1923,7 +1925,14 @@
     "copySlTp": "Copy Stop Loss and Take Profit",
     "subscribe": "Subscribe",
     "locked": "Subscribe stays off until signal copying is connected. No trade is copied onto the account.",
-    "positionsNote": "A copied trade would show on the Trade tab as a normal position, on the account you subscribed."
+    "positionsNote": "A copied trade would show on the Trade tab as a normal position, on the account you subscribed.",
+    "flowTitle": "How to use Signals",
+    "step1": "Choose a signal from the list. None is published yet, so there is nothing to select.",
+    "step2": "Then set how much of your deposit it may use, the equity level that stops it, and the slippage you allow. You can also copy stop loss and take profit.",
+    "step3": "A copied trade shows on Trade as a normal position. Close or change it there, the same as a trade you placed yourself.",
+    "goTrade": "Open Trade",
+    "noneYet": "No signals yet",
+    "settingsLead": "Choose a signal first. These choices stay off until one is listed. Nothing is copied onto your account."
   },
   "partnerPage": {
     "notEnabled": "Not enabled",
@@ -1945,6 +1954,13 @@
     "payoutLocked": "Payout stays off until the broker enables your IB profile and the payout rail.",
     "introducerBody": "This login was opened with partner code {code}.",
     "notIbBody": "This login is not an introducing broker. Traders enter a partner code when they open a live account.",
-    "signedOutNote": "Sign in to see whether this login is linked to a partner. The cabinet below is the full path. Payout stays off."
+    "signedOutNote": "Sign in to see whether this login is linked to a partner. The cabinet below is the full path. Payout stays off.",
+    "traderTitle": "I have a partner code",
+    "traderBody": "Enter the code when you open a live account. If the code is not recognized, the application still goes through. This does not subscribe a signal.",
+    "traderCta": "Open live account",
+    "ibTitle": "I am a partner",
+    "ibBody": "Your code, referral link, clients, and commission appear below after the broker assigns them. You do not turn this on yourself.",
+    "notAssigned": "Not assigned yet",
+    "commissionEmpty": "No commission until referred clients trade."
   }
 }

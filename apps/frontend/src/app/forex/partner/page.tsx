@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
@@ -28,15 +29,28 @@ export default function ForexPartnerPage() {
   return (
     <ForexPageFrame title={tf('pages.partner.title')} subtitle={tf('pages.partner.subtitle')}>
       {!authed ? <ForexSignInPrompt href={`/login?redirect=${FOREX_ROUTES.partner}`} sectionKey="partner" /> : null}
+
       <div className="grid gap-3 lg:grid-cols-2">
-        <ForexPortalModuleCard title={t('codeTitle')} accent>
-          <ForexPortalStatusBadge tone="warning">{t('notEnabled')}</ForexPortalStatusBadge>
-          <p className="mt-3 text-sm text-muted-foreground">{authed ? t('notIbBody') : t('signedOutNote')}</p>
-          <p className="mt-3 text-[12px] text-muted-foreground">{t('codeEmpty')}</p>
+        <ForexPortalModuleCard title={t('traderTitle')} accent>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {introducer ? t('introducerBody', { code: introducer.code }) : t('traderBody')}
+          </p>
+          {introducer?.label ? <p className="mt-2 text-[12px] text-foreground">{introducer.label}</p> : null}
+          <Link href={FOREX_ROUTES.openLiveAccount} className="mt-3 inline-block text-[12px] font-semibold text-primary underline-offset-2 hover:underline">
+            {t('traderCta')}
+          </Link>
+        </ForexPortalModuleCard>
+
+        <ForexPortalModuleCard title={t('ibTitle')}>
+          <ForexPortalStatusBadge tone="warning">{t('notAssigned')}</ForexPortalStatusBadge>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{t('ibBody')}</p>
+        </ForexPortalModuleCard>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-2">
+        <ForexPortalModuleCard title={t('codeTitle')}>
+          <p className="text-[12px] text-muted-foreground">{t('codeEmpty')}</p>
           <p className="mt-2 text-[12px] text-muted-foreground">{t('linkEmpty')}</p>
-          {introducer ? (
-            <p className="mt-3 text-sm text-foreground">{t('introducerBody', { code: introducer.code })}</p>
-          ) : null}
         </ForexPortalModuleCard>
 
         <ForexPortalModuleCard title={t('clientsTitle')}>
@@ -59,6 +73,7 @@ export default function ForexPartnerPage() {
         </ForexPortalModuleCard>
 
         <ForexPortalModuleCard title={t('commissionTitle')}>
+          <p className="mb-3 text-[12px] text-muted-foreground">{t('commissionEmpty')}</p>
           <dl className="grid grid-cols-3 gap-3 text-[12px]">
             <div>
               <dt className="text-muted-foreground">{t('accrued')}</dt>

@@ -148,6 +148,9 @@ export default function ForexOpenLiveAccountPage() {
             onChange={(e) => setPartnerCode(e.target.value)}
           />
           <span className="mt-1 block text-muted-foreground">{t('partnerCodeHint')}</span>
+          <Link href={FOREX_ROUTES.partner} className="mt-1 inline-block font-semibold text-primary underline-offset-2 hover:underline">
+            {t('partnerCodeMore')}
+          </Link>
         </label>
         <button
           type="button"
