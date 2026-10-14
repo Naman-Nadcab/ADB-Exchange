@@ -15,7 +15,8 @@
     "simulated": "SIMULASI",
     "demoSimulated": "Demo · simulasi",
     "terminalNavAria": "Navigasi terminal Forex",
-    "mobileNavAria": "Navigasi mobile Forex"
+    "mobileNavAria": "Navigasi mobile Forex",
+    "pagesMenu": "Halaman"
   },
   "portalNav": {
     "portal": "Portal",
@@ -169,6 +170,7 @@
     "dom": "DOM",
     "tape": "Transaksi",
     "news": "Berita",
+    "mailbox": "Kotak surat",
     "calendar": "Kalender",
     "journal": "Jurnal"
   },
@@ -316,6 +318,10 @@
       "title": "Time & Sales tidak tersedia",
       "body": "Tidak ada tape trade otoritatif dari provider data pasar SIMULATED saat ini. Kutipan tidak ditampilkan sebagai print. Jika provider menyediakan tape, akan muncul di sini.",
       "badge": "TIDAK TERSEDIA · PROVIDER_DEPENDENT"
+    },
+    "mailbox": {
+      "title": "Tidak ada pesan broker",
+      "body": "Kotak surat di MT5 adalah pesan dari broker. Terminal ini tidak menerima surat broker."
     },
     "dom": {
       "title": "Depth of Market tidak tersedia",
@@ -501,6 +507,7 @@
     "trading": "Trading",
     "tools": "Alat",
     "chartLayoutAria": "Layout chart",
+    "layoutItem": "Tata letak {label}",
     "oneClickOnTitle": "One-click trading aktif",
     "oneClickOffTitle": "One-click trading nonaktif (default)",
     "oneClickLabel": "1-Klik {state}",

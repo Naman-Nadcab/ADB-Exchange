@@ -40,7 +40,7 @@ function testMobileTicket(): void {
 function testChartAlwaysUsesQuote(): void {
   const foundation = readFileSync(join(root, 'ForexChartFoundation.tsx'), 'utf8');
   assert(foundation.includes('liveBid'), 'live quote bid');
-  assert(foundation.includes('DEMO · SIMULATED'), 'honest chart status');
+  assert(foundation.includes('quoteDemoSimulated'), 'honest chart status');
 }
 
 function testP0Surfaces(): void {

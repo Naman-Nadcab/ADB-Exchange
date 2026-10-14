@@ -179,6 +179,15 @@ export function ForexAppToolbar() {
 
   const chartsItems = useMemo(
     () => [
+      ...LAYOUTS.map((layout) => ({
+        label:
+          tf('layoutItem', { label: layout.label }) +
+          (!maximizedChartId && chartLayout === layout.id ? ' ✓' : ''),
+        onClick: () => {
+          if (maximizedChartId) restoreMaximizedChart();
+          setChartLayout(layout.id);
+        },
+      })),
       { label: tf('addChart'), onClick: () => addChart(selectedSymbol) },
       { label: tf('duplicateActive'), onClick: () => duplicateChart(activeChartId) },
       { label: tf('removeActive'), onClick: () => removeChart(activeChartId) },
@@ -187,7 +196,20 @@ export function ForexAppToolbar() {
         onClick: () => setLinkTimeframe(!linkTimeframe),
       },
     ],
-    [activeChartId, addChart, duplicateChart, linkTimeframe, removeChart, selectedSymbol, setLinkTimeframe, tf]
+    [
+      activeChartId,
+      addChart,
+      chartLayout,
+      duplicateChart,
+      linkTimeframe,
+      maximizedChartId,
+      removeChart,
+      restoreMaximizedChart,
+      selectedSymbol,
+      setChartLayout,
+      setLinkTimeframe,
+      tf,
+    ]
   );
 
   const tradingItems = useMemo(
@@ -211,7 +233,7 @@ export function ForexAppToolbar() {
         label: tf('workingOrders'),
         onClick: () => {
           setBottomCollapsed(false);
-          setBottomTab('orders');
+          setBottomTab('positions');
         },
       },
     ],
@@ -293,28 +315,6 @@ export function ForexAppToolbar() {
       <Menu id="trading" label={tf('trading')} className="hidden md:block" open={menu} setOpen={setMenu} items={tradingItems} />
       <Menu id="tools" label={tf('tools')} className="hidden md:block" open={menu} setOpen={setMenu} items={toolsItems} />
 
-      <span className="mx-1 hidden h-3.5 w-px bg-border md:inline" aria-hidden />
-      <div className="hidden items-center gap-px sm:flex" role="group" aria-label={tf('chartLayoutAria')}>
-        {LAYOUTS.map((l) => (
-          <button
-            key={l.id}
-            type="button"
-            aria-pressed={chartLayout === l.id && !maximizedChartId}
-            onClick={() => {
-              if (maximizedChartId) restoreMaximizedChart();
-              setChartLayout(l.id);
-            }}
-            className={cn(
-              'rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold',
-              !maximizedChartId && chartLayout === l.id
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            {l.label}
-          </button>
-        ))}
-      </div>
       <button
         type="button"
         aria-pressed={oneClickEnabled}
@@ -329,9 +329,6 @@ export function ForexAppToolbar() {
       >
         {tf('oneClickLabel', { state: oneClickEnabled ? tf('oneClickOn') : tf('oneClickOff') })}
       </button>
-      <span className="ml-auto hidden min-w-0 truncate font-mono text-[9px] uppercase tracking-wide text-amber-200/80 sm:inline">
-        {tf('symbolSimulated', { symbol: selectedSymbol })}
-      </span>
     </div>
   );
 }

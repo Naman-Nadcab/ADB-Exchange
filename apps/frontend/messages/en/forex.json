@@ -15,7 +15,8 @@
     "simulated": "SIMULATED",
     "demoSimulated": "DEMO · SIMULATED",
     "terminalNavAria": "Forex terminal",
-    "mobileNavAria": "Forex mobile"
+    "mobileNavAria": "Forex mobile",
+    "pagesMenu": "Pages"
   },
   "portalNav": {
     "portal": "Portal",
@@ -169,6 +170,7 @@
     "dom": "DOM",
     "tape": "Tape",
     "news": "News",
+    "mailbox": "Mailbox",
     "calendar": "Calendar",
     "journal": "Journal"
   },
@@ -316,6 +318,10 @@
       "title": "Time & Sales unavailable",
       "body": "No authoritative trade tape is available from the current SIMULATED market-data provider. Quotes are not presented as prints. When a provider supplies tape, it will appear here.",
       "badge": "UNAVAILABLE · PROVIDER_DEPENDENT"
+    },
+    "mailbox": {
+      "title": "No broker messages",
+      "body": "Mailbox in MT5 is mail from the broker. This terminal does not receive broker mail."
     },
     "dom": {
       "title": "Depth of Market unavailable",
@@ -501,6 +507,7 @@
     "trading": "Trading",
     "tools": "Tools",
     "chartLayoutAria": "Chart layout",
+    "layoutItem": "Layout {label}",
     "oneClickOnTitle": "One-click trading enabled",
     "oneClickOffTitle": "One-click trading disabled (default)",
     "oneClickLabel": "1-Click {state}",

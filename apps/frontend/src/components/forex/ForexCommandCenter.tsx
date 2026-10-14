@@ -31,7 +31,7 @@ export function ForexCommandCenter() {
       { id: 'tape', label: tc('openTape'), run: () => setBottomTab('tape') },
       { id: 'calendar', label: tc('openCalendar'), run: () => setBottomTab('calendar') },
       { id: 'news', label: tc('openNews'), run: () => setBottomTab('news') },
-      { id: 'orders', label: tc('openOrders'), run: () => setBottomTab('orders') },
+      { id: 'orders', label: tc('openOrders'), run: () => setBottomTab('positions') },
       ...(['buy', 'sell'] as ForexSide[]).flatMap((side) =>
         (['market', 'limit', 'stop', 'stop_limit'] as ForexOrderType[]).map((orderType) => ({
           id: `${side}-${orderType}`,

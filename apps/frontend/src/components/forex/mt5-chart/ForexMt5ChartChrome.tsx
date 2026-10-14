@@ -200,31 +200,13 @@ export function ForexMt5ChartChrome(props: Props) {
         )}
       </div>
 
-      {/* Symbol header — MT5 title row */}
-      <div className="flex h-6 min-w-0 items-baseline gap-2 px-2">
-        <h2 className="truncate font-mono text-[13px] font-semibold tracking-tight text-foreground">
-          {props.symbolLabel}, {tfLabel(props.activeTf)}
-        </h2>
-        {props.bid != null && props.ask != null ? (
-          <div className="hidden items-baseline gap-2 font-mono text-[11px] sm:flex">
-            <span className="text-buy">
-              {t('bid')} {fxNum(props.bid, props.digits)}
-            </span>
-            <span className="text-sell">
-              {t('ask')} {fxNum(props.ask, props.digits)}
-            </span>
-            <span className="text-muted-foreground">
-              {t('spr')} {props.spreadPips ?? '—'}
-            </span>
-          </div>
-        ) : null}
-        {props.demoSecondary ? (
-          <span className="ml-auto truncate text-[9px] uppercase tracking-wide text-muted-foreground">{props.demoSecondary}</span>
-        ) : null}
-      </div>
-
-      {/* Timeframe bar */}
       <div className="flex h-6 min-w-0 items-center gap-0.5 border-t border-border/50 px-1" role="group" aria-label={t('timeframesAria')}>
+        <h2
+          className="mr-1 max-w-[7.5rem] shrink-0 truncate font-mono text-[12px] font-semibold tracking-tight text-foreground"
+          title={props.demoSecondary || `${props.symbolLabel}, ${tfLabel(props.activeTf)}`}
+        >
+          {props.symbolLabel}
+        </h2>
         {primary.map((tf) => (
           <button
             key={tf}
@@ -282,6 +264,19 @@ export function ForexMt5ChartChrome(props: Props) {
                 </span>
               );
             })}
+          </div>
+        ) : null}
+        {props.bid != null && props.ask != null ? (
+          <div className="ml-auto hidden shrink-0 items-baseline gap-2 pl-2 font-mono text-[10px] sm:flex">
+            <span className="text-buy">
+              {t('bid')} {fxNum(props.bid, props.digits)}
+            </span>
+            <span className="text-sell">
+              {t('ask')} {fxNum(props.ask, props.digits)}
+            </span>
+            <span className="text-muted-foreground">
+              {t('spr')} {props.spreadPips ?? '—'}
+            </span>
           </div>
         ) : null}
       </div>

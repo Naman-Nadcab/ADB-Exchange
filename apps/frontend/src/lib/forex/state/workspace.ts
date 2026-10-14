@@ -21,6 +21,7 @@ export type ForexBottomTab =
   | 'dom'
   | 'tape'
   | 'news'
+  | 'mailbox'
   | 'calendar'
   | 'journal';
 export type ForexMwFilter = 'all' | 'favorites' | 'fx_major' | 'fx_cross' | 'metal';
