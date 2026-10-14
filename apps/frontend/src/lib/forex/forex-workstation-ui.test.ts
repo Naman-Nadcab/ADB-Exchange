@@ -64,6 +64,15 @@ function testLeftStackKeepsHeight(): void {
   assert(watch.includes('<ForexSymbolSearch'), 'pair search stays on market watch');
   const search = readFileSync(join(root, 'ForexSymbolSearch.tsx'), 'utf8');
   assert(!search.includes('h-8 w-full'), 'search is not a full-width box');
+  assert(bottom.includes("mk('colAsset')"), 'exposure tab is a currency table');
+  assert(bottom.includes("mk('profitLoss')"), 'account history has the MT4 summary');
+  assert(bottom.includes('bottomPanels.mt4.colHeadline'), 'news is a headline table');
+  assert(bottom.includes('bottomPanels.mt4.colFrom'), 'mailbox has a from column');
+  assert(bottom.includes("mk('colCondition')"), 'alerts tab is a condition table');
+  assert(bottom.includes("mk('colPrevious')"), 'calendar has previous/forecast/actual');
+  assert(bottom.includes('bottomPanels.mt4.colMessage'), 'journal is time and message');
+  assert(!bottom.includes('ForexServerAlertsPanel'), 'the dock alerts tab is not the alert form');
+  assert(!bottom.includes("id: 'signals'"), 'signals shop is not a tab');
 }
 
 function testMobileTicket(): void {

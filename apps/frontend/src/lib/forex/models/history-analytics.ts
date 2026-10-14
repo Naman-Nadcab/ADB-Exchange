@@ -121,6 +121,53 @@ export function closedTradesFromLedger(ledger: ForexLedgerRow[], bounds?: { from
     });
 }
 
+const HISTORY_BALANCE_TYPES = new Set([
+  'DEPOSIT',
+  'WITHDRAWAL',
+  'INITIAL_FUNDING',
+  'CREDIT',
+  'DEBIT',
+  'TRANSFER',
+  'ADJUSTMENT',
+]);
+
+export interface HistoryBalanceEntry {
+  id: string;
+  timestamp: string;
+  /** Signed cash in account currency. Withdrawals and debits are negative. */
+  amount: number;
+  bucket: 'deposit' | 'withdrawal' | 'credit' | 'other';
+}
+
+/** Cash ledger rows that MT4 shows as type "balance" in Account History. Trade P&L is excluded. */
+export function historyBalanceEntries(ledger: ForexLedgerRow[], bounds?: { from: number; to: number }): HistoryBalanceEntry[] {
+  const out: HistoryBalanceEntry[] = [];
+  for (const row of ledger) {
+    const type = String(row.type).toUpperCase();
+    if (!HISTORY_BALANCE_TYPES.has(type)) continue;
+    if (bounds && !inPeriod(row.timestamp, bounds)) continue;
+    const credit = num(row.credit);
+    const debit = num(row.debit);
+    const net = row.net != null && String(row.net) !== '' ? num(row.net) : credit - debit;
+    let bucket: HistoryBalanceEntry['bucket'] = 'other';
+    let amount = net;
+    if (type === 'DEPOSIT' || type === 'INITIAL_FUNDING') {
+      bucket = 'deposit';
+      amount = Math.abs(net !== 0 ? net : credit);
+    } else if (type === 'WITHDRAWAL') {
+      bucket = 'withdrawal';
+      amount = -Math.abs(net !== 0 ? net : debit);
+    } else if (type === 'CREDIT') {
+      bucket = 'credit';
+      amount = Math.abs(net !== 0 ? net : credit);
+    } else if (type === 'DEBIT') {
+      amount = -Math.abs(net !== 0 ? net : debit);
+    }
+    out.push({ id: row.transactionId, timestamp: row.timestamp, amount, bucket });
+  }
+  return out;
+}
+
 export function periodFeeSwap(ledger: ForexLedgerRow[], bounds: { from: number; to: number }): { commission: number; swap: number } {
   let commission = 0;
   let swap = 0;
