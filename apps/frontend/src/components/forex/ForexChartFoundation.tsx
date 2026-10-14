@@ -1289,7 +1289,7 @@ export function ForexChartFoundation(props?: {
                   <CtxItem
                     label={`Pending ${near.orderId.slice(0, 8)} · ${near.type} ${near.requestedVolume}`}
                     onClick={() => {
-                      setBottomTab('orders');
+                      setBottomTab('positions');
                       setCtxMenu(null);
                     }}
                   />

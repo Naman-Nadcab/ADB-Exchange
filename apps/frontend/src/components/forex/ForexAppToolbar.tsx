@@ -233,7 +233,7 @@ export function ForexAppToolbar() {
         label: tf('workingOrders'),
         onClick: () => {
           setBottomCollapsed(false);
-          setBottomTab('orders');
+          setBottomTab('positions');
         },
       },
     ],

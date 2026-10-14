@@ -25,7 +25,16 @@ import { ForexPositionPanel } from './ForexPositionPanel';
 import { ForexServerAlertsPanel } from './ForexServerAlertsPanel';
 import { fxMoney, fxNum, fxPlain, fxSigned } from './format';
 
-const PRIMARY_BOTTOM_TABS = new Set<ForexBottomTab>(['positions', 'orders', 'history']);
+const TOOLBOX_TAB_ORDER: ForexBottomTab[] = [
+  'positions',
+  'risk',
+  'history',
+  'news',
+  'mailbox',
+  'alerts',
+  'calendar',
+  'journal',
+];
 
 const PENDING_STATUSES = new Set(['ACCEPTED', 'PENDING', 'NEW', 'TRIGGERING', 'VALIDATING', 'CANCEL_PENDING', 'WORKING', 'OPEN', 'PARTIAL']);
 const CLOSED_STATUSES = new Set(['FILLED', 'CANCELLED', 'CANCELED', 'REJECTED', 'EXPIRED', 'CLOSED']);
@@ -44,12 +53,12 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
       { id: 'dom', label: tf('bottomTabs.dom') },
       { id: 'tape', label: tf('bottomTabs.tape') },
       { id: 'news', label: tf('bottomTabs.news') },
+      { id: 'mailbox', label: tf('bottomTabs.mailbox') },
       { id: 'calendar', label: tf('bottomTabs.calendar') },
       { id: 'journal', label: tf('bottomTabs.journal') },
     ],
     [tf]
   );
-  const OVERFLOW_BOTTOM_TABS = useMemo(() => TABS.filter((t) => !PRIMARY_BOTTOM_TABS.has(t.id)), [TABS]);
   const tab = useForexWorkspaceStore((s) => s.bottomTab);
   const setTab = useForexWorkspaceStore((s) => s.setBottomTab);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -99,8 +108,6 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
     reason?: string;
   }>({ status: 'idle', events: [] });
   const [journalNonce, setJournalNonce] = useState(0);
-  const [overflowOpen, setOverflowOpen] = useState(false);
-  const tabInOverflow = OVERFLOW_BOTTOM_TABS.some((t) => t.id === tab);
 
   useEffect(() => {
     if (tab !== 'news' || newsState.status === 'loading' || newsState.status === 'ready') return;
@@ -272,68 +279,30 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
       className="terminal-panel-subtle flex h-full min-h-0 flex-col border-t border-border bg-card"
       aria-label={tf('bottomPanels.ariaLabel')}
     >
-      <div className="flex h-8 shrink-0 items-center gap-0.5 border-b border-border px-1.5" role="tablist">
-        {TABS.filter((t) => PRIMARY_BOTTOM_TABS.has(t.id)).map((t) => (
+      <div className="flex h-8 shrink-0 items-center gap-0.5 overflow-x-auto border-b border-border px-1.5" role="tablist">
+        {[
+          ...TOOLBOX_TAB_ORDER.map((id) => TABS.find((t) => t.id === id)).filter((t): t is { id: ForexBottomTab; label: string } => Boolean(t)),
+          ...TABS.filter((t) => t.id === tab && t.id !== 'orders' && !TOOLBOX_TAB_ORDER.includes(t.id)),
+        ].map((t) => (
           <button
             key={t.id}
             type="button"
             role="tab"
-            aria-selected={tab === t.id}
+            aria-selected={tab === t.id || (t.id === 'positions' && tab === 'orders')}
             onClick={() => {
-              setTab(t.id);
-              setOverflowOpen(false);
-              if (compact || t.id === 'orders' || t.id === 'positions') setBottomCollapsed(false);
+              setTab(t.id === 'orders' ? 'positions' : t.id);
+              if (compact || t.id === 'positions' || t.id === 'orders') setBottomCollapsed(false);
             }}
             className={cn(
-              'rounded px-2 py-0.5 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-              tab === t.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+              'shrink-0 rounded px-2 py-0.5 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+              tab === t.id || (t.id === 'positions' && tab === 'orders')
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             {t.label}
           </button>
         ))}
-        <div className="relative">
-          <button
-            type="button"
-            aria-haspopup="menu"
-            aria-expanded={overflowOpen}
-            onClick={() => setOverflowOpen((v) => !v)}
-            className={cn(
-              'rounded px-2 py-0.5 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-              tabInOverflow ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            {tabInOverflow
-              ? `${tf('bottomPanels.more')} · ${TABS.find((x) => x.id === tab)?.label ?? ''}`
-              : tf('bottomPanels.more')}
-          </button>
-          {overflowOpen ? (
-            <div
-              role="menu"
-              className="absolute left-0 top-full z-40 mt-0.5 max-h-[min(60vh,320px)] min-w-[140px] overflow-y-auto border border-border bg-[#1a1f26] py-1 shadow-lg"
-              onMouseLeave={() => setOverflowOpen(false)}
-            >
-              {OVERFLOW_BOTTOM_TABS.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setTab(t.id);
-                    setOverflowOpen(false);
-                    if (compact || t.id === 'orders' || t.id === 'fills') setBottomCollapsed(false);
-                  }}
-                  className={cn(
-                    'block w-full px-2.5 py-1 text-left text-[11px] hover:bg-accent',
-                    tab === t.id ? 'text-primary' : 'text-foreground'
-                  )}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
         <span className="ml-1 hidden text-[9px] text-muted-foreground sm:inline">
           {props.hasTradingData ? tf('bottomPanels.statusActive') : tf('bottomPanels.statusIdle')}
         </span>
@@ -358,8 +327,55 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
 
       {!compact ? (
         <div className="min-h-0 flex-1 overflow-auto" role="tabpanel">
-          {tab === 'positions' ? (
-            <ForexPositionPanel />
+          {tab === 'positions' || tab === 'orders' ? (
+            <div>
+              <ForexPositionPanel />
+              {authed ? (
+                <div className="border-t border-border">
+                  <p className="px-2 py-1 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {tf('bottomTabs.orders')}
+                  </p>
+                  {engine.error ? (
+                    <p className="px-3 py-1.5 text-[11px] text-sell" role="alert">
+                      {describeForexError(engine.error)}
+                    </p>
+                  ) : null}
+                  {workingOrders.length === 0 && orderRows.length === 0 ? (
+                    <p className="px-3 py-2 text-[12px] text-muted-foreground">{tf('bottomPanels.noWorkingOrders')}</p>
+                  ) : (
+                    <OrderTable
+                      rows={workingOrders.length ? workingOrders : orderRows}
+                      focusSymbol={focusSymbol}
+                      editId={editId}
+                      editPrice={editPrice}
+                      editVol={editVol}
+                      editLimit={editLimit}
+                      editSl={editSl}
+                      editTp={editTp}
+                      setEditPrice={setEditPrice}
+                      setEditVol={setEditVol}
+                      setEditLimit={setEditLimit}
+                      setEditSl={setEditSl}
+                      setEditTp={setEditTp}
+                      startEdit={startEdit}
+                      submitEdit={submitEdit}
+                      cancelEdit={() => setEditId(null)}
+                      busyId={busyId}
+                      engineBusy={engine.busy}
+                      quotes={quotes}
+                      cancelId={cancelId}
+                      onCancelAsk={setCancelId}
+                      onCancelConfirm={(id) => {
+                        setBusyId(id);
+                        setCancelId(null);
+                        void engine.cancel(id).finally(() => setBusyId(null));
+                      }}
+                      showActions
+                    />
+                  )}
+                </div>
+              ) : null}
+            </div>
           ) : !authed ? (
             <div className="flex items-center gap-3 px-3 py-2">
               <p className="text-[11px] text-muted-foreground">{tf('bottomPanels.signInPrompt')}</p>
@@ -367,47 +383,6 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
                 {tf('signIn.link')}
               </Link>
             </div>
-          ) : tab === 'orders' ? (
-            workingOrders.length === 0 && orderRows.length === 0 ? (
-              <p className="px-3 py-3 text-[12px] text-muted-foreground">{tf('bottomPanels.noWorkingOrders')}</p>
-            ) : (
-              <div>
-                {engine.error ? (
-                  <p className="px-3 py-1.5 text-[11px] text-sell" role="alert">
-                    {describeForexError(engine.error)}
-                  </p>
-                ) : null}
-                <OrderTable
-                  rows={workingOrders.length ? workingOrders : orderRows}
-                  focusSymbol={focusSymbol}
-                  editId={editId}
-                  editPrice={editPrice}
-                  editVol={editVol}
-                  editLimit={editLimit}
-                  editSl={editSl}
-                  editTp={editTp}
-                  setEditPrice={setEditPrice}
-                  setEditVol={setEditVol}
-                  setEditLimit={setEditLimit}
-                  setEditSl={setEditSl}
-                  setEditTp={setEditTp}
-                  startEdit={startEdit}
-                  submitEdit={submitEdit}
-                  cancelEdit={() => setEditId(null)}
-                  busyId={busyId}
-                  engineBusy={engine.busy}
-                  quotes={quotes}
-                  cancelId={cancelId}
-                  onCancelAsk={setCancelId}
-                  onCancelConfirm={(id) => {
-                    setBusyId(id);
-                    setCancelId(null);
-                    void engine.cancel(id).finally(() => setBusyId(null));
-                  }}
-                  showActions
-                />
-              </div>
-            )
           ) : tab === 'fills' ? (
             fills.length === 0 ? (
               <p className="px-3 py-3 text-[12px] text-muted-foreground">{tf('bottomPanels.noFills')}</p>
@@ -477,6 +452,11 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
               <p className="text-[12px] font-semibold">{tf('bottomPanels.dom.title')}</p>
               <p className="max-w-lg text-[11px] leading-relaxed text-muted-foreground">{tf('bottomPanels.dom.body')}</p>
               <p className="font-mono text-[10px] text-muted-foreground">{tf('bottomPanels.dom.badge')}</p>
+            </div>
+          ) : tab === 'mailbox' ? (
+            <div className="flex h-full flex-col items-start justify-center gap-1.5 px-3 py-3">
+              <p className="text-[12px] font-semibold">{tf('bottomPanels.mailbox.title')}</p>
+              <p className="max-w-lg text-[11px] leading-relaxed text-muted-foreground">{tf('bottomPanels.mailbox.body')}</p>
             </div>
           ) : tab === 'news' ? (
             <IntelList
