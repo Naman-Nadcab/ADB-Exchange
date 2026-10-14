@@ -8,6 +8,7 @@
  *
  * GTD uses server-side expireAt evaluation (orders/service.ts expireGtdOrders).
  */
+import { lpPlugArmed } from '../lp/lp-api-client.js';
 import type { ForexCustomerOrderType } from '../orders/request.js';
 import type { ForexTimeInForce } from '../orders/request.js';
 
@@ -21,9 +22,9 @@ export type ForexCapabilityTriState = {
 
 export type ForexCustomerCapabilityContract = {
   version: 1;
-  executionMode: 'MOCK';
-  source: 'SIMULATED';
-  realForex: false;
+  executionMode: 'MOCK' | 'LP';
+  source: 'SIMULATED' | 'LP';
+  realForex: boolean;
   orderTypes: {
     market: ForexCapabilityTriState;
     limit: ForexCapabilityTriState;
@@ -86,11 +87,12 @@ export function getForexCustomerCapabilityContract(): ForexCustomerCapabilityCon
   const orderCustomer = (t: (typeof FOREX_CUSTOMER_EXPOSED_ORDER_TYPES)[number]) =>
     (FOREX_CUSTOMER_EXPOSED_ORDER_TYPES as readonly string[]).includes(t);
 
+  const armed = lpPlugArmed();
   return {
     version: 1,
-    executionMode: 'MOCK',
-    source: 'SIMULATED',
-    realForex: false,
+    executionMode: armed ? 'LP' : 'MOCK',
+    source: armed ? 'LP' : 'SIMULATED',
+    realForex: armed,
     orderTypes: {
       market: tri(orderEngine, orderCustomer('market'), MOCK_ONLY),
       limit: tri(orderEngine, orderCustomer('limit'), MOCK_ONLY),

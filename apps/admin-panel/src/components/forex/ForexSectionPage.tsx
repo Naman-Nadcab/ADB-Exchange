@@ -24,6 +24,7 @@ import { ForexCrmClientsPanel } from '@/components/forex/panels/ForexCrmClientsP
 import { ForexCrmFinancePanel } from '@/components/forex/panels/ForexCrmFinancePanel';
 import { ForexCrmLeadsPanel } from '@/components/forex/panels/ForexCrmLeadsPanel';
 import { ForexAccountGroupsPanel } from '@/components/forex/panels/ForexAccountGroupsPanel';
+import { ForexCustomerProgramsPanel } from '@/components/forex/panels/ForexCustomerProgramsPanel';
 import { ForexCrmTasksPanel } from '@/components/forex/panels/ForexCrmTasksPanel';
 import { ForexCrmPipelinePanel } from '@/components/forex/panels/ForexCrmPipelinePanel';
 import { ForexReportingPanel } from '@/components/forex/panels/ForexReportingPanel';
@@ -239,6 +240,8 @@ export function ForexSectionPage({ sectionId }: { sectionId: string }) {
         );
       case 'forex-partners':
         return <ForexPartnersPanel />;
+      case 'forex-programs':
+        return <ForexCustomerProgramsPanel />;
       case 'account-groups':
         return <ForexAccountGroupsPanel />;
       case 'liquidity-routing':

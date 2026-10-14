@@ -336,6 +336,15 @@ export const FOREX_ADMIN_ROUTES: ForexAdminRoute[] = [
     sidebar: true,
   },
   {
+    id: 'forex-programs',
+    label: 'Customer programs',
+    href: '/forex/programs',
+    icon: Layers,
+    description: 'Follow, partner payouts, rewards, app links, and A/B book on groups.',
+    phase: 'F6',
+    sidebar: true,
+  },
+  {
     id: 'forex-partners',
     label: 'Partners / IB',
     href: '/forex/partners',

@@ -255,6 +255,18 @@ export function ForexAccountOverviewDashboard() {
           <Link href={FOREX_ROUTES.history} className="tap-target inline-flex items-center rounded border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted/40">
             {t('viewHistory')}
           </Link>
+          <Link href={FOREX_ROUTES.follow} className="tap-target inline-flex items-center rounded border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted/40">
+            {t('viewFollow')}
+          </Link>
+          <Link href={FOREX_ROUTES.partner} className="tap-target inline-flex items-center rounded border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted/40">
+            {t('viewPartner')}
+          </Link>
+          <Link href={FOREX_ROUTES.rewards} className="tap-target inline-flex items-center rounded border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted/40">
+            {t('viewRewards')}
+          </Link>
+          <Link href={FOREX_ROUTES.apps} className="tap-target inline-flex items-center rounded border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted/40">
+            {t('viewApps')}
+          </Link>
           {activeForexAccountId ? (
             <Link
               href={FOREX_ROUTES.accountDetail(activeForexAccountId)}

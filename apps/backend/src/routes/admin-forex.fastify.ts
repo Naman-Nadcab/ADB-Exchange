@@ -94,6 +94,9 @@ type ForexAdminListQuerystring = {
 };
 
 export default async function adminForexRoutes(app: FastifyInstance): Promise<void> {
+  const { registerAdminForexProgramRoutes } = await import('./admin-forex-programs.fastify.js');
+  await registerAdminForexProgramRoutes(app);
+
   app.get('/forex/config', async (request, reply) => {
     const admin = await getAdminFromRequest(app, request, reply, false);
     if (!admin) return;

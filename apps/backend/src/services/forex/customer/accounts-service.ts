@@ -4,6 +4,10 @@
 import { randomBytes } from 'node:crypto';
 import { db } from '../../../lib/database.js';
 import { getForexAccountingService } from '../accounting/service.js';
+import { refreshForexAccountGroupRuntimePolicyForAccount } from '../account/account-group-runtime-policy.js';
+import { refreshForexAccountLeveragePolicyForAccount } from '../account/account-leverage-policy.js';
+import { setAccountPositionModeDurable } from '../positions/account-mode.js';
+import type { ForexPositionMode } from '../positions/mode.js';
 import { getForexPositionService } from '../positions/service.js';
 import { getForexPricingService } from '../quotes.service.js';
 
@@ -120,7 +124,8 @@ function newDemoAccountId(): string {
   return `FX${randomBytes(5).toString('hex').toUpperCase()}`;
 }
 
-export async function createForexDemoAccount(userId: string): Promise<ForexCustomerAccountRow> {
+export async function createForexDemoAccount(userId: string, groupCode?: string): Promise<ForexCustomerAccountRow> {
+  const group = await resolveCustomerGroup(groupCode);
   const accountId = newDemoAccountId();
   let attempts = 0;
   while (attempts < 5) {
@@ -128,13 +133,19 @@ export async function createForexDemoAccount(userId: string): Promise<ForexCusto
     if ((exists.rowCount ?? 0) === 0) break;
     attempts += 1;
   }
+  const mode = group?.positionMode ?? 'NETTING';
   await db.query(
-    `INSERT INTO forex_accounts (account_id, user_id, currency, status, position_mode, account_kind)
-     VALUES ($1, $2, 'USD', 'ACTIVE', 'NETTING', 'DEMO')`,
-    [accountId, userId]
+    `INSERT INTO forex_accounts (account_id, user_id, currency, status, position_mode, account_kind, group_id)
+     VALUES ($1, $2, 'USD', 'ACTIVE', $3, 'DEMO', $4)`,
+    [accountId, userId, mode, group?.groupId ?? null]
   );
   const pricing = getForexPricingService();
   getForexAccountingService(getForexPositionService(pricing), pricing).ensureAccount(accountId);
+  if (group) {
+    await setAccountPositionModeDurable(accountId, group.positionMode);
+    await refreshForexAccountLeveragePolicyForAccount(accountId);
+    await refreshForexAccountGroupRuntimePolicyForAccount(accountId);
+  }
   await setActiveForexAccountForUser(userId, accountId);
   const rows = await listForexAccountsForUser(userId);
   const created = rows.find((a) => a.accountId === accountId);
@@ -151,4 +162,95 @@ export async function resolveForexAccountIdForUser(userId: string, hint?: string
     return id;
   }
   return getDefaultForexAccountIdForUser(userId);
+}
+
+export class ForexAccountGroupError extends Error {
+  constructor(public code: string, message: string) {
+    super(message);
+  }
+}
+
+export type ForexCustomerGroupChoice = {
+  groupId: string;
+  code: string;
+  label: string;
+  leverage: string;
+  positionMode: ForexPositionMode;
+};
+
+function mapChoice(row: Record<string, unknown>): ForexCustomerGroupChoice {
+  const mode = String(row.position_mode_default ?? 'NETTING').toUpperCase() === 'HEDGING' ? 'HEDGING' : 'NETTING';
+  return {
+    groupId: String(row.group_id),
+    code: String(row.code),
+    label: String(row.label),
+    leverage: String(row.leverage_default),
+    positionMode: mode,
+  };
+}
+
+export async function listCustomerAccountGroups(): Promise<ForexCustomerGroupChoice[]> {
+  const res = await db.query(
+    `SELECT group_id, code, label, leverage_default, position_mode_default
+     FROM forex_account_groups
+     WHERE is_active = TRUE
+     ORDER BY code`
+  );
+  return res.rows.map((r) => mapChoice(r as Record<string, unknown>));
+}
+
+async function resolveCustomerGroup(code?: string): Promise<ForexCustomerGroupChoice | null> {
+  const wanted = code?.trim().toUpperCase();
+  if (wanted) {
+    const res = await db.query(
+      `SELECT group_id, code, label, leverage_default, position_mode_default
+       FROM forex_account_groups WHERE code = $1 AND is_active = TRUE LIMIT 1`,
+      [wanted]
+    );
+    const row = res.rows[0];
+    if (!row) throw new ForexAccountGroupError('GROUP_NOT_FOUND', 'That account group is not open');
+    return mapChoice(row as Record<string, unknown>);
+  }
+  const standard = await db.query(
+    `SELECT group_id, code, label, leverage_default, position_mode_default
+     FROM forex_account_groups WHERE code = 'STANDARD' AND is_active = TRUE LIMIT 1`
+  );
+  return standard.rows[0] ? mapChoice(standard.rows[0] as Record<string, unknown>) : null;
+}
+
+async function accountIsFlat(accountId: string): Promise<boolean> {
+  const positions = await db.query(
+    `SELECT 1 FROM forex_positions WHERE account_id = $1 AND status = 'OPEN' LIMIT 1`,
+    [accountId]
+  );
+  if ((positions.rowCount ?? 0) > 0) return false;
+  const orders = await db.query(
+    `SELECT 1 FROM forex_orders
+     WHERE account_id = $1 AND status NOT IN ('FILLED','CANCELLED','REJECTED','FAILED','EXPIRED')
+     LIMIT 1`,
+    [accountId]
+  );
+  return (orders.rowCount ?? 0) === 0;
+}
+
+export async function assignForexAccountGroupForUser(userId: string, accountId: string, groupCode: string): Promise<ForexCustomerAccountRow> {
+  if (!(await userOwnsForexAccount(userId, accountId))) {
+    throw new ForexAccountGroupError('FOREX_ACCOUNT_NOT_FOUND', 'Account not found');
+  }
+  const group = await resolveCustomerGroup(groupCode);
+  if (!group) throw new ForexAccountGroupError('GROUP_NOT_FOUND', 'That account group is not open');
+  if (!(await accountIsFlat(accountId))) {
+    throw new ForexAccountGroupError('OPEN_ACTIVITY', 'Close positions and working orders before changing the group');
+  }
+  await db.query(
+    `UPDATE forex_accounts SET group_id = $2::uuid, position_mode = $3, updated_at = NOW() WHERE account_id = $1`,
+    [accountId, group.groupId, group.positionMode]
+  );
+  await setAccountPositionModeDurable(accountId, group.positionMode);
+  await refreshForexAccountLeveragePolicyForAccount(accountId);
+  await refreshForexAccountGroupRuntimePolicyForAccount(accountId);
+  const rows = await listForexAccountsForUser(userId);
+  const updated = rows.find((a) => a.accountId === accountId);
+  if (!updated) throw new ForexAccountGroupError('FOREX_ACCOUNT_NOT_FOUND', 'Account not found');
+  return updated;
 }

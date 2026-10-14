@@ -20,6 +20,7 @@ export type ForexAccountGroupRow = {
   leverage_default: string;
   position_mode_default: string;
   is_active: boolean;
+  book: 'A' | 'B' | null;
   account_count: number;
   created_at: string;
   updated_at: string;
@@ -33,6 +34,7 @@ function mapGroupRow(r: Record<string, unknown>, accountCount = 0): ForexAccount
     leverage_default: String(r.leverage_default),
     position_mode_default: String(r.position_mode_default),
     is_active: Boolean(r.is_active),
+    book: r.book === 'A' || r.book === 'B' ? r.book : null,
     account_count: accountCount,
     created_at: r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at),
     updated_at: r.updated_at instanceof Date ? r.updated_at.toISOString() : String(r.updated_at),
@@ -77,6 +79,7 @@ export async function updateForexAccountGroup(
     commission_profile?: Record<string, unknown>;
     swap_profile?: Record<string, unknown>;
     risk_profile?: Record<string, unknown>;
+    book?: 'A' | 'B' | null;
   },
 ): Promise<ForexAccountGroupRow> {
   const fields: string[] = [];
@@ -94,6 +97,10 @@ export async function updateForexAccountGroup(
   if (typeof patch.is_active === 'boolean') {
     params.push(patch.is_active);
     fields.push(`is_active = $${params.length}`);
+  }
+  if (patch.book === 'A' || patch.book === 'B' || patch.book === null) {
+    params.push(patch.book);
+    fields.push(`book = $${params.length}`);
   }
   for (const [col, val] of [
     ['spread_profile', patch.spread_profile],

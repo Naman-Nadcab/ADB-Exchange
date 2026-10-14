@@ -2,7 +2,6 @@
  * Admin Forex F6+ — ledger balances & reconciliation event tail (read-only).
  */
 import { db } from '../../../lib/database.js';
-import { customerCashBalanceFromDb } from '../ledger/persist.js';
 
 export type ForexAdminLedgerAccountRow = {
   account_id: string;
@@ -10,6 +9,8 @@ export type ForexAdminLedgerAccountRow = {
   currency: string;
   status: string;
   customer_cash_balance: string;
+  savings_balance: string;
+  follow_reserve_balance: string;
 };
 
 export type ForexAdminReconciliationRow = {
@@ -42,18 +43,47 @@ export async function buildForexAdminLedgerSnapshot(limit = 50): Promise<ForexAd
     `SELECT account_id, user_id, currency, status FROM forex_accounts ORDER BY account_id LIMIT 200`,
   );
 
-  const accounts: ForexAdminLedgerAccountRow[] = [];
-  for (const row of acctRes.rows) {
+  const ids = acctRes.rows.map((row) => String(row.account_id));
+  const balances = new Map<string, { cash: string; savings: string; follow: string }>();
+  if (ids.length > 0) {
+    const balRes = await db.query<{
+      account_id: string;
+      customer_cash_balance: string;
+      savings_balance: string;
+      follow_reserve_balance: string;
+    }>(
+      `SELECT account_id,
+              COALESCE(SUM(credit - debit) FILTER (WHERE ledger_account = 'CUSTOMER_CASH'), 0)::text AS customer_cash_balance,
+              COALESCE(SUM(credit - debit) FILTER (WHERE ledger_account = 'SAVINGS'), 0)::text AS savings_balance,
+              COALESCE(SUM(credit - debit) FILTER (WHERE ledger_account = 'FOLLOW_RESERVE'), 0)::text AS follow_reserve_balance
+       FROM forex_ledger_entries
+       WHERE account_id = ANY($1::text[])
+         AND ledger_account IN ('CUSTOMER_CASH', 'SAVINGS', 'FOLLOW_RESERVE')
+       GROUP BY account_id`,
+      [ids],
+    );
+    for (const row of balRes.rows) {
+      balances.set(String(row.account_id), {
+        cash: String(row.customer_cash_balance),
+        savings: String(row.savings_balance),
+        follow: String(row.follow_reserve_balance),
+      });
+    }
+  }
+
+  const accounts: ForexAdminLedgerAccountRow[] = acctRes.rows.map((row) => {
     const accountId = String(row.account_id);
-    const balance = await customerCashBalanceFromDb(accountId);
-    accounts.push({
+    const held = balances.get(accountId);
+    return {
       account_id: accountId,
       user_id: row.user_id == null ? null : String(row.user_id),
       currency: String(row.currency),
       status: String(row.status),
-      customer_cash_balance: balance,
-    });
-  }
+      customer_cash_balance: held?.cash ?? '0',
+      savings_balance: held?.savings ?? '0',
+      follow_reserve_balance: held?.follow ?? '0',
+    };
+  });
 
   let reconciliation: ForexAdminReconciliationRow[] = [];
   if (await hasTable('forex_reconciliation_events')) {
@@ -79,6 +109,6 @@ export async function buildForexAdminLedgerSnapshot(limit = 50): Promise<ForexAd
     accounts,
     reconciliation,
     totals: { accounts: accounts.length, reconciliationEvents: reconciliation.length },
-    note: 'Forex CUSTOMER_CASH ledger only — crypto wallets excluded. MOCK/simulated reconciliation.',
+    note: 'Forex CUSTOMER_CASH, SAVINGS, and FOLLOW_RESERVE — crypto wallets excluded. MOCK/simulated reconciliation.',
   };
 }

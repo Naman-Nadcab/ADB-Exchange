@@ -200,14 +200,34 @@ export const forexApi = {
       {},
       fxRequestInit()
     ),
-  createDemoAccount: () =>
+  accountGroups: () =>
+    fxGet<{ groups: Array<{ groupId: string; code: string; label: string; leverage: string; positionMode: string }> }>(
+      '/account-groups'
+    ),
+  assignAccountGroup: (accountId: string, groupCode: string) =>
+    api.post<{ account: ForexCustomerAccountSummary }>(
+      `${FOREX_PREFIX}/accounts/${encodeURIComponent(accountId)}/group`,
+      { groupCode },
+      fxRequestInit()
+    ),
+  walletFundingQuote: () =>
+    fxGet<{ currency: string; rate: string; walletAvailable: string; forexAvailable: string; hasOpenPositions: boolean }>(
+      '/funding/wallet'
+    ),
+  moveWalletFunding: (body: { direction: 'IN' | 'OUT'; amount: string; idempotencyKey: string }) =>
+    api.post<{ source: string; transactionId: string; amount: string; direction: string; replay: boolean }>(
+      `${FOREX_PREFIX}/funding/wallet`,
+      body,
+      fxRequestInit()
+    ),
+  createDemoAccount: (groupCode?: string) =>
     api.post<{
       source: string;
       scope: string;
       realForex: boolean;
       account: ForexCustomerAccountSummary & { userId: string; updatedAt: string };
       activeAccountId: string;
-    }>(`${FOREX_PREFIX}/accounts`, { kind: 'DEMO' }, fxRequestInit()),
+    }>(`${FOREX_PREFIX}/accounts`, { kind: 'DEMO', groupCode }, fxRequestInit()),
   createAlert: (body: Record<string, unknown>) =>
     api.post<{ alert: unknown }>(`${FOREX_PREFIX}/alerts`, body, fxRequestInit()),
   deleteAlert: (alertId: string) =>
@@ -389,11 +409,35 @@ export const forexApi = {
       fxRequestInit()
     ),
   /** Authenticated CSV download (same account as session). */
-  historyExportCsvUrl: (kind: 'orders' | 'fills' | 'ledger') =>
+  historyExportCsvUrl: (kind: 'orders' | 'fills' | 'ledger' | 'closed-trades') =>
     `${FOREX_PREFIX}/history/export/${kind}`,
+  programsFollow: () => fxGet<Record<string, unknown>>('/programs/follow'),
+  programsFollowStart: (body: { managerId: string; amount: number; stopPercent: number }) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/follow`, body, fxRequestInit()),
+  programsFollowStop: (followId: string) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/follow/${encodeURIComponent(followId)}/stop`, {}, fxRequestInit()),
+  programsFollowApply: (body: { name: string; style: string; summary: string; feePercent: number }) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/follow/apply`, body, fxRequestInit()),
+  programsPartner: () => fxGet<Record<string, unknown>>('/programs/partner'),
+  programsPartnerLink: (code: string) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/partner/link`, { code }, fxRequestInit()),
+  programsPartnerPayout: (amount: number) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/partner/payout`, { amount }, fxRequestInit()),
+  programsRewards: () => fxGet<Record<string, unknown>>('/programs/rewards'),
+  programsClaimBonus: (ruleId: string) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/rewards/bonus`, { ruleId }, fxRequestInit()),
+  programsOpenSavings: (amount: number) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/rewards/savings`, { amount }, fxRequestInit()),
+  programsReturnSavings: () =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/rewards/savings/return`, {}, fxRequestInit()),
+  programsApps: () => fxGet<Record<string, unknown>>('/programs/apps'),
+  programsArmAlgo: (body: { strategyId: string; enabled: boolean }) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/apps/algo`, body, fxRequestInit()),
+  programsFeedback: (message: string) =>
+    api.post<Record<string, unknown>>(`${FOREX_PREFIX}/programs/apps/feedback`, { message }, fxRequestInit()),
 };
 
-export async function downloadForexHistoryCsv(kind: 'orders' | 'fills' | 'ledger'): Promise<void> {
+export async function downloadForexHistoryCsv(kind: 'orders' | 'fills' | 'ledger' | 'closed-trades'): Promise<void> {
   const url = `${getApiBaseUrl()}${forexApi.historyExportCsvUrl(kind)}`;
   const headers = getForexActiveAccountHeaders();
   const res = await fetch(url, { credentials: 'include', headers });

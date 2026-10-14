@@ -26,7 +26,11 @@
     "funds": "Funds",
     "ledger": "Account Ledger",
     "research": "Research",
-    "tools": "Tools"
+    "tools": "Tools",
+    "follow": "Follow",
+    "partner": "Partner",
+    "rewards": "Rewards",
+    "apps": "Apps"
   },
   "userMenu": {
     "label": "Platform menu",
@@ -138,7 +142,8 @@
       "portfolio": "portfolio",
       "yourForexAccount": "your Forex account",
       "funds": "funds",
-      "forexAccounts": "Forex accounts"
+      "forexAccounts": "Forex accounts",
+      "programs": "Follow, Partner, Rewards, and Apps"
     }
   },
   "bottomTabs": {
@@ -365,7 +370,8 @@
       "footer": "{closedOrders} closed orders · {ledgerRows} ledger rows · {currency}",
       "exportKindOrders": "orders",
       "exportKindFills": "fills",
-      "exportKindLedger": "ledger"
+      "exportKindLedger": "ledger",
+      "exportKindClosed": "closed trades"
     },
     "exposure": {
       "balance": "Balance",
@@ -1120,6 +1126,10 @@
     "mode": "Mode",
     "modeValue": "Practice environment · active account follows server selection",
     "viewHistory": "Trade history",
+    "viewFollow": "Follow",
+    "viewPartner": "Partner",
+    "viewRewards": "Rewards",
+    "viewApps": "Apps",
     "viewAccountDetail": "Account details",
     "manageAccountsHint": "Manage demo accounts on <accountsLink>Forex accounts</accountsLink>. Use the terminal bar switcher for quick changes. Orders, positions, ledger, history, risk, margin, and alerts always follow the server-selected active account.",
     "riskHeading": "Risk",
@@ -1222,7 +1232,16 @@
     "colType": "Type",
     "colDebit": "Debit",
     "colCredit": "Credit",
-    "colStatus": "Status"
+    "colStatus": "Status",
+    "walletTitle": "Fund from wallet",
+    "walletSubtitle": "USDT funding balance · 1 USDT = 1 USD",
+    "walletBody": "Move USDT from the funding wallet into this Forex account, or move free Forex cash back. Bank and UPI deposits stay closed. This is an internal move, not a broker deposit.",
+    "walletBalances": "Wallet USDT {wallet} · Forex cash available {forex}",
+    "walletAmount": "Amount",
+    "walletIn": "Move into Forex",
+    "walletOut": "Move back to wallet",
+    "walletMovedIn": "USDT moved into the Forex account.",
+    "walletMovedOut": "Forex cash moved back to the USDT wallet."
   },
   "ordersPage": {
     "summaryAria": "Order counts by state",
@@ -1473,7 +1492,10 @@
     "groupDefault": "Default group",
     "switchToEdit": "Switch to this account to change position mode.",
     "positionModeHint": "Netting and hedging require a flat account (no open positions or working orders).",
-    "leverageRequestHint": "Leverage changes require compliance review and are not self-service on this environment."
+    "leverageRequestHint": "Leverage changes require compliance review and are not self-service on this environment.",
+    "groupSave": "Apply group",
+    "groupSaving": "Applying…",
+    "groupSaved": "Group applied."
   },
   "fundingHistoryPage": {
     "tableTitle": "Funding transactions",
@@ -1495,6 +1517,7 @@
     "step2": "Claim simulated demo credits from Funds.",
     "step3": "Open the terminal to practice with MOCK execution.",
     "simulatedNotice": "Demo balances never mix with Crypto wallet or real deposits.",
+    "groupLegend": "Account group",
     "createCta": "Create demo account",
     "creating": "Creating…",
     "failed": "Could not create demo account.",
@@ -1602,7 +1625,14 @@
     "colPrice": "Price",
     "colFillId": "Fill ID",
     "colOrderId": "Order ID",
-    "statementNote": "Broker statements are not generated here. CSV export uses server trade history for the active account."
+    "statementNote": "Broker statements are not generated here. CSV export uses server trade history for the active account.",
+    "closedTitle": "Closed trades",
+    "closedSubtitle": "Each row is a realized close from the account ledger.",
+    "closedEmpty": "No closed trades yet.",
+    "exportClosed": "Export closed trades",
+    "colOpen": "Open",
+    "colClose": "Close",
+    "colProfit": "Profit"
   },
   "riskTools": {
     "title": "Pip / R:R calculator",

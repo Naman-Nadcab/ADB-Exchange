@@ -483,6 +483,60 @@ export class ForexAccountingService {
     return tx;
   }
 
+  /**
+   * Move trading cash into a program hold, or return it.
+   * IN debits CUSTOMER_CASH and credits the hold account. OUT reverses that.
+   */
+  async postProgramHold(args: {
+    accountId: string;
+    amount: string;
+    idempotencyKey: string;
+    hold: 'SAVINGS' | 'FOLLOW_RESERVE';
+    direction: 'IN' | 'OUT';
+    referenceId: string;
+  }): Promise<ForexLedgerTransaction> {
+    this.ensureAccount(args.accountId);
+    const amount = requirePositive(args.amount);
+    if (args.direction === 'IN') {
+      const available = fxDecimal(this.ledgerBalance(args.accountId));
+      if (available.lt(amount)) {
+        throw new ForexLedgerError('INSUFFICIENT_FUNDS', 'Insufficient ledger balance for this program');
+      }
+    }
+    const intoHold = args.direction === 'IN';
+    const tx = await this.ledger.post({
+      idempotencyKey: args.idempotencyKey,
+      type: 'TRANSFER',
+      accountId: args.accountId,
+      currency: ACCOUNTING_CURRENCY,
+      entries: [
+        {
+          ledgerAccount: 'CUSTOMER_CASH',
+          accountId: args.accountId,
+          debit: intoHold ? amount.toString() : '0',
+          credit: intoHold ? '0' : amount.toString(),
+          referenceType: args.hold,
+          referenceId: args.referenceId,
+        },
+        {
+          ledgerAccount: args.hold,
+          accountId: args.accountId,
+          debit: intoHold ? '0' : amount.toString(),
+          credit: intoHold ? amount.toString() : '0',
+          referenceType: args.hold,
+          referenceId: args.referenceId,
+        },
+      ],
+      metadata: { kind: 'FOREX_PROGRAM_HOLD', hold: args.hold, direction: args.direction },
+    });
+    this.publishAccount(args.accountId);
+    this.emitAudit(args.accountId, 'PROGRAM_HOLD', {
+      transactionId: tx.transactionId,
+      metadata: { hold: args.hold, direction: args.direction, amount: amount.toString() },
+    });
+    return tx;
+  }
+
   listFunding(accountId: string): ForexLedgerTransaction[] {
     return this.ledger
       .list(accountId)

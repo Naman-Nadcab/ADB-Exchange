@@ -192,6 +192,8 @@ export default async function forexRoutes(app: FastifyInstance) {
   });
 
   await registerForexCustomerAccountsRoutes(app);
+  const { registerForexProgramRoutes } = await import('./forex-programs.fastify.js');
+  await registerForexProgramRoutes(app);
   const { registerForexCustomerLiveFundingRoutes } = await import('./forex-customer-live-funding.fastify.js');
   await registerForexCustomerLiveFundingRoutes(app);
   await registerForexCustomerOrderRoutes(app);

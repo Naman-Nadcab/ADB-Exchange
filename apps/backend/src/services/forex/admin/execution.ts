@@ -36,7 +36,7 @@ export type ForexAdminExecutionSnapshot = {
   posture: {
     source: string;
     executionMode: string;
-    realForex: false;
+    realForex: boolean;
     killSwitch: boolean;
   };
   routing: {
@@ -125,7 +125,7 @@ export async function buildForexAdminExecutionSnapshot(): Promise<ForexAdminExec
     posture: {
       source: flags.source,
       executionMode: flags.executionMode,
-      realForex: false,
+      realForex: flags.realForex,
       killSwitch: flags.killSwitch,
     },
     routing: { rules, mockProvidersOnly },

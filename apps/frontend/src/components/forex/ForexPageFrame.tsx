@@ -55,7 +55,8 @@ export type ForexSignInSectionKey =
   | 'portfolio'
   | 'yourForexAccount'
   | 'funds'
-  | 'forexAccounts';
+  | 'forexAccounts'
+  | 'programs';
 
 export function ForexSignInPrompt({
   href,

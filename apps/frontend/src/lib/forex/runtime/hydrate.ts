@@ -181,8 +181,8 @@ export async function switchForexActiveAccount(accountId: string): Promise<boole
   return ok;
 }
 
-export async function createForexDemoAccountAndActivate(): Promise<boolean> {
-  const created = unwrap(await forexApi.createDemoAccount());
+export async function createForexDemoAccountAndActivate(groupCode?: string): Promise<boolean> {
+  const created = unwrap(await forexApi.createDemoAccount(groupCode));
   if (!created.ok) {
     useForexStore.getState().setLastError(created.error);
     return false;

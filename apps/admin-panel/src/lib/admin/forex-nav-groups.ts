@@ -84,8 +84,8 @@ export const FOREX_NAV_GROUPS: ForexNavGroup[] = [
   {
     id: 'partners',
     label: 'Partners / IB',
-    description: 'IB profiles, commissions, accruals (payout rail NOT_CONFIGURED)',
-    routeIds: ['forex-partners'],
+    description: 'IB profiles and customer Follow, Partner, Rewards, and Apps. Payouts are requests.',
+    routeIds: ['forex-partners', 'forex-programs'],
   },
   {
     id: 'compliance',
@@ -172,6 +172,7 @@ export const FOREX_ROUTE_MATURITY: Record<string, ForexRouteMaturity> = {
   'forex-reporting': 'beta',
   'risk-control': 'beta',
   'forex-partners': 'beta',
+  'forex-programs': 'beta',
   compliance: 'beta',
   automation: 'beta',
 };

@@ -126,7 +126,7 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     sectionRoute: '/forex/lp-execution',
     controls: [
       { id: 'lp_routing', label: 'LP routing table', description: 'Primary / backup LP', kind: 'table', phase: 'F5', wired: true },
-      { id: 'enable_real_forex', label: 'Enable REAL_FOREX', description: 'Requires certification checklist', kind: 'toggle', phase: 'F5', wired: true, dangerous: true },
+      { id: 'enable_real_forex', label: 'Enable REAL_FOREX', description: 'Arm with FOREX_LP_BASE_URL, FOREX_LP_API_KEY, FOREX_LP_WEBHOOK_SECRET, and FOREX_REAL_FOREX_ALLOWED', kind: 'toggle', phase: 'F5', wired: true, dangerous: true },
       { id: 'fill_recon', label: 'Fill reconciliation', description: 'LP vs internal fills', kind: 'table', phase: 'F5', wired: true },
     ],
   },
@@ -140,11 +140,24 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     ],
   },
   {
+    id: 'programs',
+    title: 'Customer programs',
+    sectionRoute: '/forex/programs',
+    controls: [
+      { id: 'follow_managers', label: 'Follow managers', description: 'Approve or suspend Copy, PAMM, and MAM managers', kind: 'table', phase: 'F6', wired: true },
+      { id: 'partner_rate', label: 'Partner rate', description: 'IB rate for one customer', kind: 'number', phase: 'F6', wired: true },
+      { id: 'partner_payouts', label: 'Partner payout requests', description: 'Approve or reject a pending payout request', kind: 'action', phase: 'F6', wired: true },
+      { id: 'reward_rules', label: 'Reward rules', description: 'Enable bonus and savings rules', kind: 'toggle', phase: 'F6', wired: true },
+      { id: 'app_links', label: 'App download links', description: 'Android and iOS URLs shown on Apps', kind: 'action', phase: 'F6', wired: true },
+      { id: 'group_book', label: 'A/B book', description: 'Set on the account group. Customers never choose it.', kind: 'select', phase: 'F6', wired: true },
+    ],
+  },
+  {
     id: 'ledger',
     title: 'Ledger & recon',
     sectionRoute: '/forex/ledger',
     controls: [
-      { id: 'ledger_accounts', label: 'Ledger accounts', description: 'CUSTOMER_CASH balances', kind: 'table', phase: 'F6', wired: true },
+      { id: 'ledger_accounts', label: 'Ledger accounts', description: 'CUSTOMER_CASH, SAVINGS, and FOLLOW_RESERVE balances', kind: 'table', phase: 'F6', wired: true },
       { id: 'recon_events', label: 'Reconciliation events', description: 'Accounting / execution recon tail', kind: 'table', phase: 'F6', wired: true },
     ],
   },

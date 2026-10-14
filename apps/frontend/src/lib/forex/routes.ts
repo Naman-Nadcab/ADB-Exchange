@@ -7,6 +7,10 @@ export const FOREX_ROUTES = {
   history: '/forex/history',
   analysis: '/forex/analysis',
   alerts: '/forex/alerts',
+  follow: '/forex/follow',
+  partner: '/forex/partner',
+  rewards: '/forex/rewards',
+  apps: '/forex/apps',
   account: '/forex/account',
   funds: '/forex/account/funds',
   fundsDeposit: '/forex/account/funds/deposit',
@@ -53,6 +57,10 @@ export const FOREX_PORTAL_NAV = [
   { href: FOREX_ROUTES.ledger, labelKey: 'portalNav.ledger' as const },
   { href: FOREX_ROUTES.analysis, labelKey: 'portalNav.research' as const },
   { href: FOREX_ROUTES.alerts, labelKey: 'portalNav.tools' as const },
+  { href: FOREX_ROUTES.follow, labelKey: 'portalNav.follow' as const },
+  { href: FOREX_ROUTES.partner, labelKey: 'portalNav.partner' as const },
+  { href: FOREX_ROUTES.rewards, labelKey: 'portalNav.rewards' as const },
+  { href: FOREX_ROUTES.apps, labelKey: 'portalNav.apps' as const },
 ] as const;
 
 export function isForexPortalNavActive(
