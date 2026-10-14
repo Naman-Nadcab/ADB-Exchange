@@ -100,6 +100,26 @@ export default function ForexSignalsPage() {
     { n: '3', title: t('step3Title'), body: t('step3') },
   ];
 
+  async function onSave() {
+    if (!canSave) return;
+    setBusy(true);
+    setErr(null);
+    const res = unwrap(await forexApi.saveSignalSubscription({
+      providerId,
+      accountId,
+      depositPct,
+      equityStop: equityStop.trim() || null,
+      slippagePoints: slippage.trim() || null,
+      copySlTp,
+    }));
+    setBusy(false);
+    if (!res.ok) {
+      setErr(res.error.message);
+      return;
+    }
+    setSaved(true);
+  }
+
   return (
     <ForexPageFrame title={tf('pages.signals.title')} subtitle={tf('pages.signals.subtitle')}>
       <div className="grid gap-2 sm:grid-cols-3">
