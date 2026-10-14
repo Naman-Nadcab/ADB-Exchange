@@ -1267,7 +1267,11 @@ input[type="number"] {
   min-height: 0;
   min-width: 0;
 }
-.forex-hub .forex-portal-hero,
+.forex-hub .forex-portal-hero {
+  border: 1px solid hsl(var(--border) / 0.75);
+  border-radius: 0.5rem;
+  background: hsl(var(--card));
+}
 .forex-hub .forex-overview .forex-overview-hero {
   border: 1px solid hsl(var(--border) / 0.9);
   border-radius: 0.75rem;

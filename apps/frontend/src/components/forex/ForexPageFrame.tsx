@@ -29,13 +29,12 @@ export function ForexPageFrame(props: {
       )}
     >
       {props.header === 'none' ? null : hero ? (
-        <header className="forex-portal-hero flex flex-wrap items-end justify-between gap-3 p-4 sm:p-5">
-          <div className="min-w-0">
-            <p className="text-[12px] font-medium text-muted-foreground">{tf('domainLabel')}</p>
-            <h1 className="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{props.title}</h1>
-            {props.subtitle ? <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">{props.subtitle}</p> : null}
+        <header className="forex-portal-hero flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-3 py-2">
+          <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3 gap-y-0.5">
+            <h1 className="text-[15px] font-semibold tracking-tight text-foreground">{props.title}</h1>
+            {props.subtitle ? <p className="min-w-0 text-[12px] leading-snug text-muted-foreground">{props.subtitle}</p> : null}
           </div>
-          {props.actions ? <div className="flex flex-wrap items-center gap-2">{props.actions}</div> : null}
+          {props.actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{props.actions}</div> : null}
         </header>
       ) : (
         <div className={cn('flex flex-wrap items-center justify-between gap-2', !dense && 'items-end gap-3')}>
