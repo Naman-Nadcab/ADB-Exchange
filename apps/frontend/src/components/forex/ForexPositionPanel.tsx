@@ -77,7 +77,7 @@ export function ForexPositionPanel() {
   const [closeBy, setCloseBy] = useState<CloseByState | null>(null);
   const [customVol, setCustomVol] = useState('');
   const [draft, setDraft] = useState<Record<string, { sl: string; tp: string }>>({});
-  const accountMode = account?.positionMode ?? 'NETTING';
+  const accountMode = account?.positionMode ?? 'HEDGING';
   const hedging = accountMode === 'HEDGING';
   const floatingTotal = useMemo(() => {
     let sum = 0;

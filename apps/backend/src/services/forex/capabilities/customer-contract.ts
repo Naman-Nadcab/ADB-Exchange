@@ -109,7 +109,7 @@ export function getForexCustomerCapabilityContract(): ForexCustomerCapabilityCon
       boc: tri(true, true, MOCK_ONLY),
     },
     positionModes: {
-      netting: tri(true, true, MOCK_ONLY),
+      netting: tri(true, false, MOCK_ONLY),
       hedging: tri(true, true, MOCK_ONLY),
     },
     protections: {

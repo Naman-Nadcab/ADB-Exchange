@@ -345,8 +345,7 @@ for (const width of WIDTHS) {
       expect(text).toMatch(/Demo/i);
       const accountRows = await q<{ id: string }>(`SELECT account_id AS id FROM forex_accounts WHERE user_id = $1 AND account_kind = 'DEMO' ORDER BY created_at DESC LIMIT 1`, [session.userId]);
       expect(accountRows[0]?.id, 'forex demo account row').toBeTruthy();
-      // DEMO accounts run in NETTING mode: a second buy on the same symbol nets into the existing
-      // position instead of opening a new row, so assert on net long exposure + the filled order.
+      // One market buy opens its own long ticket. Assert net long exposure plus the filled order.
       const netLongSql = `SELECT COALESCE(SUM(CASE WHEN side = 'long' THEN volume ELSE -volume END), 0)::text AS v
                             FROM forex_positions WHERE account_id = $1 AND symbol = 'EURUSD' AND status = 'OPEN'`;
       const before = Number((await q<{ v: string }>(netLongSql, [accountRows[0]!.id]))[0]!.v);

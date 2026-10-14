@@ -50,8 +50,8 @@ export const forexConfig = {
   /** Default max slippage in price units. */
   defaultMaxSlippage: process.env.FOREX_DEFAULT_MAX_SLIPPAGE?.trim() || '0.00030',
   executionTestApiEnabled: envBool('FOREX_EXECUTION_TEST_API', false),
-  /** Active position mode. HEDGING is reserved; keying stays mode-aware. */
-  positionMode: (process.env.FOREX_POSITION_MODE?.trim().toUpperCase() === 'HEDGING' ? 'HEDGING' : 'NETTING') as
+  /** Customer accounts open in HEDGING. Set FOREX_POSITION_MODE=NETTING for an exchange-style book. */
+  positionMode: (process.env.FOREX_POSITION_MODE?.trim().toUpperCase() === 'NETTING' ? 'NETTING' : 'HEDGING') as
     | 'NETTING'
     | 'HEDGING',
   globalMaxLeverage: process.env.FOREX_GLOBAL_MAX_LEVERAGE?.trim() || '100',

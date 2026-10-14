@@ -61,7 +61,7 @@ export async function createForexAccountGroup(args: {
   const lev = args.leverage_default?.trim() || '100';
   const levDec = fxDecimal(lev);
   if (!levDec.isFinite() || !levDec.gt(0)) throw new Error('INVALID_LEVERAGE');
-  const mode = args.position_mode_default ?? 'NETTING';
+  const mode = args.position_mode_default ?? 'HEDGING';
   const res = await db.query(`INSERT INTO forex_account_groups (code, label, leverage_default, position_mode_default)
      VALUES ($1, $2, $3, $4) RETURNING *`, [code, args.label.trim(), lev, mode]);
   return mapGroupRow(res.rows[0] as Record<string, unknown>, 0);

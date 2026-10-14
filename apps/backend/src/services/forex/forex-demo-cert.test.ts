@@ -160,7 +160,7 @@ async function testSafetyLocks(): Promise<void> {
   assert.equal(cfg.source, 'SIMULATED');
   assert.deepEqual(cfg.orderTypes, ['market', 'limit', 'stop', 'stop_limit']);
   assert.equal(forexConfig.accountingCurrency, 'USD');
-  assert.equal(forexConfig.positionMode, 'NETTING');
+  assert.equal(forexConfig.positionMode, 'HEDGING');
   assert.equal(START, '10000');
 }
 
