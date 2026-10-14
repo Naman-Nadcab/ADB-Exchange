@@ -1941,7 +1941,8 @@
     "noAccount": "No Forex account yet",
     "settingsReady": "Choose the account and the limits. Saving does not copy a trade.",
     "saved": "Subscription saved. Copying is off, so no trade is placed on the account.",
-    "openDemo": "Open a demo account"
+    "openDemo": "Open a demo account",
+    "paused": "This signal is paused. A subscription cannot be saved, and no trade is copied."
   },
   "partnerPage": {
     "notEnabled": "Not enabled",

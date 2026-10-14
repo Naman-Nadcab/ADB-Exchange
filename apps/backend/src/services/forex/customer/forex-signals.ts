@@ -112,6 +112,9 @@ export async function saveForexSignalSubscription(input: {
   );
   const providerRow = provider.rows[0] as Record<string, unknown> | undefined;
   if (!providerRow) return { ok: false, code: 'PROVIDER_NOT_FOUND', message: 'Signal provider not found.' };
+  if (String(providerRow.status) !== 'active') {
+    return { ok: false, code: 'PROVIDER_PAUSED', message: 'This signal is paused. A subscription cannot be saved.' };
+  }
 
   const existing = await db.query(
     `SELECT subscription_id FROM forex_signal_subscriptions

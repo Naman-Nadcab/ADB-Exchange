@@ -81,6 +81,11 @@ export async function createForexPartnerProfile(input: {
   if (!/^[A-Za-z0-9_-]{2,32}$/.test(code)) throw new Error('INVALID_CODE');
   if (label.length < 2 || label.length > 128) throw new Error('INVALID_LABEL');
   if (!Number.isFinite(rate) || rate < 0) throw new Error('INVALID_RATE');
+  const taken = await db.query(
+    `SELECT 1 FROM forex_partner_profiles WHERE upper(code) = upper($1) LIMIT 1`,
+    [code],
+  );
+  if ((taken.rowCount ?? 0) > 0) throw new Error('duplicate key value violates unique constraint');
   const res = await db.query(
     `INSERT INTO forex_partner_profiles (code, label, status, user_id, commission_per_lot)
      VALUES ($1, $2, 'active', $3, $4)
@@ -111,7 +116,8 @@ export async function accrueForexPartnerVolume(partnerId: string, adminId: strin
     `SELECT commission_per_lot FROM forex_partner_profiles WHERE partner_id = $1::uuid LIMIT 1`,
     [partnerId],
   );
-  const rate = Number((profile.rows[0] as { commission_per_lot?: unknown } | undefined)?.commission_per_lot ?? 0);
+  if (!profile.rows[0]) throw new Error('PARTNER_NOT_FOUND');
+  const rate = Number((profile.rows[0] as { commission_per_lot?: unknown }).commission_per_lot ?? 0);
   const traded = await db.query(
     `SELECT COALESCE(SUM(pf.volume), 0) AS lots
        FROM forex_partner_attributions attr

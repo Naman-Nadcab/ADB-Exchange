@@ -37,7 +37,8 @@ export default function ForexSignalsPage() {
       const board = unwrap(await forexApi.getSignalBoard());
       if (!board.ok) return;
       setProviders(board.data.providers);
-      if (board.data.providers[0]) setProviderId(board.data.providers[0].providerId);
+      const firstOpen = board.data.providers.find((provider) => provider.status === 'active') ?? board.data.providers[0];
+      if (firstOpen) setProviderId((current) => current || firstOpen.providerId);
     })();
   }, []);
 
@@ -52,7 +53,7 @@ export default function ForexSignalsPage() {
           accountKind: row.accountKind,
         }));
         setAccounts(rows);
-        if (rows[0]) setAccountId(rows[0].accountId);
+        if (rows[0]) setAccountId((current) => current || rows[0].accountId);
       }
       const mine = unwrap(await forexApi.getMySignalSubscription());
       if (!mine.ok || !mine.data.subscription) return;
@@ -67,9 +68,10 @@ export default function ForexSignalsPage() {
     })();
   }, [authed]);
 
-  const ready = providers != null && providers.length > 0;
+  const ready = providers.length > 0;
+  const selected = providers.find((provider) => provider.providerId === providerId);
   const deposit = Number(depositPct);
-  const canSave = authed && ready && Boolean(providerId) && Boolean(accountId) && Number.isFinite(deposit) && deposit > 0 && deposit <= 100 && !busy;
+  const canSave = authed && selected?.status === 'active' && Boolean(accountId) && Number.isFinite(deposit) && deposit > 0 && deposit <= 100 && !busy;
 
   async function onSave() {
     if (!canSave) return;
@@ -190,6 +192,7 @@ export default function ForexSignalsPage() {
               {t('subscribe')}
             </button>
           </form>
+          {selected?.status === 'paused' ? <p className="mt-3 text-[12px] text-muted-foreground">{t('paused')}</p> : null}
           {saved ? <p className="mt-3 text-[12px] text-foreground">{t('saved')}</p> : null}
           {accounts.length === 0 && ready && authed ? (
             <Link href={FOREX_ROUTES.openDemoAccount} className="mt-2 inline-block text-[12px] font-semibold text-primary underline-offset-2 hover:underline">

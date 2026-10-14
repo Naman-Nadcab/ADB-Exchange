@@ -1941,7 +1941,8 @@
     "noAccount": "Belum ada akun Forex",
     "settingsReady": "Pilih akun dan batasnya. Menyimpan tidak menyalin trade.",
     "saved": "Langganan tersimpan. Penyalinan mati, jadi tidak ada trade yang dipasang.",
-    "openDemo": "Buka akun demo"
+    "openDemo": "Buka akun demo",
+    "paused": "Sinyal ini dijeda. Langganan tidak dapat disimpan, dan tidak ada trade yang disalin."
   },
   "partnerPage": {
     "notEnabled": "Belum diaktifkan",

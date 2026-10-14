@@ -1941,7 +1941,8 @@
     "noAccount": "还没有外汇账户",
     "settingsReady": "选择账户和限制。保存不会复制交易。",
     "saved": "订阅已保存。跟单关闭，所以不会在账户上下单。",
-    "openDemo": "开立演示账户"
+    "openDemo": "开立演示账户",
+    "paused": "此信号已暂停。不能保存订阅，也不会复制交易。"
   },
   "partnerPage": {
     "notEnabled": "未启用",

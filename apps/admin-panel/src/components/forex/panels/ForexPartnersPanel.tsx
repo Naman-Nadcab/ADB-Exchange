@@ -113,6 +113,17 @@ export function ForexPartnersPanel() {
     enabled: !!token,
   });
 
+  const signalStatusM = useMutation({
+    mutationFn: async (provider: { providerId: string; status: string }) => {
+      const status = provider.status === 'active' ? 'paused' : 'active';
+      const res = await adminFetch(`/forex/signals/providers/${provider.providerId}`, { token, method: 'PATCH', body: { status } });
+      if (!res.success) throw new Error(res.error?.message ?? 'Update failed');
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'forex', 'signals'] });
+    },
+  });
+
   const signalM = useMutation({
     mutationFn: async () => {
       const res = await adminFetch('/forex/signals/providers', { token, method: 'POST', body: { name: signalName } });
@@ -128,6 +139,16 @@ export function ForexPartnersPanel() {
     () => [
       { accessorKey: 'code', header: 'Code', cell: ({ row }) => <span className="font-mono text-xs">{row.original.code}</span> },
       { accessorKey: 'display_name', header: 'Name' },
+      {
+        accessorKey: 'user_id',
+        header: 'Login',
+        cell: ({ row }) => <span className="font-mono text-xs">{row.original.user_id || '—'}</span>,
+      },
+      {
+        accessorKey: 'commission_per_lot',
+        header: 'Per lot',
+        cell: ({ row }) => <span className="font-mono text-xs">{row.original.commission_per_lot ?? '0.00'}</span>,
+      },
       {
         accessorKey: 'status',
         header: 'Status',
@@ -199,6 +220,7 @@ export function ForexPartnersPanel() {
                   From traded volume
                 </Button>
               </div>
+              {volumeM.data ? <p className="mt-2 text-xs text-muted-foreground">{volumeM.data.reason} · lots {volumeM.data.volumeLots} · {volumeM.data.commissionAmount}</p> : null}
             </div>
             <div className="rounded-lg border border-admin-border/60 p-3">
               <p className="mb-2 text-sm font-medium">Payout request</p>
@@ -222,12 +244,14 @@ export function ForexPartnersPanel() {
         </div>
         <ul className="admin-stack-sm text-sm">
           {(signalsQ.data ?? []).map((provider) => (
-            <li key={provider.providerId} className="rounded border border-admin-border/60 px-3 py-2 text-xs">
-              {provider.name} · {provider.status} · copying off
+            <li key={provider.providerId} className="flex items-center justify-between gap-2 rounded border border-admin-border/60 px-3 py-2 text-xs">
+              <span>{provider.name} · {provider.status} · copying off</span>
+              <Button size="sm" variant="ghost" disabled={signalStatusM.isPending} onClick={() => signalStatusM.mutate(provider)}>
+                {provider.status === 'active' ? 'Pause listing' : 'Open listing'}
+              </Button>
             </li>
           ))}
         </ul>
-        {volumeM.data ? <p className="mt-2 text-xs text-muted-foreground">{volumeM.data.reason} · lots {volumeM.data.volumeLots} · {volumeM.data.commissionAmount}</p> : null}
       </ForexPanelShell>
 
       <ForexPanelShell title="Payout requests" description="Internal lifecycle status">
