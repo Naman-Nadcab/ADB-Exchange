@@ -4,6 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import { useAuthStore, type User } from '@/store/auth';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { COOKIE_SESSION_MARKER, isCookieSessionMarker } from '@/lib/authSession';
+import { revokeServerSession } from '@/lib/authLogout';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -83,13 +84,30 @@ function hasLikelySession(): boolean {
   return false;
 }
 
-async function tryRefreshSession(): Promise<boolean> {
+async function readAuthErrorCode(res: Response): Promise<string> {
+  try {
+    const body = await res.clone().json();
+    const code = body?.error?.code;
+    return typeof code === 'string' ? code : '';
+  } catch {
+    return '';
+  }
+}
+
+/** A rejected cookie or bearer must be cleared or the next visit looks signed in. */
+function clearRejectedSession(code: string): void {
+  if (code !== 'INVALID_TOKEN' && code !== 'SESSION_EXPIRED') return;
+  void revokeServerSession();
+}
+
+async function tryRefreshSession(signal?: AbortSignal): Promise<boolean> {
   const apiUrl = getApiBaseUrl();
   const storedRefresh = getStoredRefreshToken();
   try {
     const res = await fetch(`${apiUrl}/api/v1/auth/refresh`, {
       method: 'POST',
       credentials: 'include',
+      signal,
       headers: { 'Content-Type': 'application/json' },
       ...(storedRefresh ? { body: JSON.stringify({ refreshToken: storedRefresh }) } : {}),
     });
@@ -202,7 +220,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           },
         });
         if (res.status === 401) {
-          const refreshed = await tryRefreshSession();
+          const refreshed = await tryRefreshSession(controller.signal);
           if (refreshed) {
             const retryToken = useAuthStore.getState().accessToken;
             const bearer = isCookieSessionMarker(retryToken) ? undefined : retryToken;
@@ -218,7 +236,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         if (!isMountedRef.current) return;
         if (res.status === 401 || res.status === 403) {
+          const code = await readAuthErrorCode(res);
           clearAuthTimeout();
+          clearRejectedSession(code);
           safeSet(() => {
             setAuthResolved(true);
             setAuthFlags(0);

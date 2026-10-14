@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Loader2, Mail, ArrowLeft } from 'lucide-react';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { authFetch, loadAuthCutover } from '@/lib/auth/cutover';
 import { ROUTES } from '@/lib/routes';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { useTranslations } from 'next-intl';
@@ -15,7 +16,7 @@ export default function ForgotPasswordPage() {
   const tf = useTranslations('auth.forgot');
   const tw = useTranslations('auth.wallet');
   const { fromApi, networkUnreachable } = useApiErrorMessage();
-  const [legacyEntryAvailable, setLegacyEntryAvailable] = useState<boolean | null>(null);
+  const [legacyEntryAvailable, setLegacyEntryAvailable] = useState(true);
   const [step, setStep] = useState<Step>('request');
   const [identifier, setIdentifier] = useState('');
   const [identifierType, setIdentifierType] = useState<'email' | 'phone'>('email');
@@ -31,18 +32,11 @@ export default function ForgotPasswordPage() {
   const API_URL = getApiBaseUrl();
 
   useEffect(() => {
-    let cancelled = false;
-    fetch(`${API_URL}/api/v1/auth/wallet-cutover`)
-      .then((response) => (response.ok ? response.json() : null))
-      .then((body: { data?: { legacyEntryAvailable?: boolean } } | null) => {
-        if (!cancelled) setLegacyEntryAvailable(body?.data?.legacyEntryAvailable === true);
-      })
-      .catch(() => {
-        if (!cancelled) setLegacyEntryAvailable(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+    const controller = new AbortController();
+    loadAuthCutover(API_URL, controller.signal).then((view) => {
+      if (!controller.signal.aborted) setLegacyEntryAvailable(view.legacyEntryAvailable);
+    });
+    return () => controller.abort();
   }, [API_URL]);
 
   useEffect(() => {
@@ -64,7 +58,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_URL}/api/v1/auth/password/reset/request`, {
+      const res = await authFetch(`${API_URL}/api/v1/auth/password/reset/request`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier: identifier.trim() }),
@@ -134,7 +128,7 @@ export default function ForgotPasswordPage() {
     setSubmitting(true);
     setError('');
     try {
-      const res = await fetch(`${API_URL}/api/v1/auth/password/reset`, {
+      const res = await authFetch(`${API_URL}/api/v1/auth/password/reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -161,7 +155,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_URL}/api/v1/auth/password/reset/request`, {
+      const res = await authFetch(`${API_URL}/api/v1/auth/password/reset/request`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier: identifier.trim() }),

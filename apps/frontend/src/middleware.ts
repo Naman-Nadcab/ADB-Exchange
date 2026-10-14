@@ -14,18 +14,10 @@ import {
   mapLegacyP2pPathToCanonical,
 } from '@/lib/tier1-shell-routes';
 import { isAccessCookieLikelyValid } from '@/lib/auth-cookie-edge';
+import { authGateRedirect } from '@/lib/auth-gate';
 import { applyLocaleCookies } from '@/i18n/middleware-locale';
 
 const ACCESS_COOKIE = 'mlive_at';
-
-const PROTECTED_PREFIXES = [
-  '/dashboard',
-  '/wallet',
-  '/orders',
-  '/p2p',
-];
-
-const AUTH_ROUTES = ['/login', '/signup', '/register', '/forgot-password', '/reset-password'];
 
 /**
  * Canonical redirects are ON by default for Tier-1 URL consistency.
@@ -53,28 +45,11 @@ const EXACT_REDIRECT_MAP: Map<string, { to: string; note?: string }> = (() => {
 function applyAuthGate(request: NextRequest, pathname: string, search: string): NextResponse | null {
   const sessionCookie = request.cookies.get(ACCESS_COOKIE)?.value;
   const sessionValid = isAccessCookieLikelyValid(sessionCookie);
-  const isProtected = PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-  const isAuthPage = AUTH_ROUTES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-  if (isProtected && !sessionValid) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    url.searchParams.set('returnUrl', pathname + search);
-    return NextResponse.redirect(url, 307);
-  }
-  if (isAuthPage && sessionValid) {
-    const returnUrl = request.nextUrl.searchParams.get('returnUrl');
-    const url = request.nextUrl.clone();
-    if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
-      const [destPath, destSearch = ''] = returnUrl.split('?');
-      url.pathname = destPath;
-      url.search = destSearch ? `?${destSearch}` : '';
-    } else {
-      url.pathname = '/dashboard';
-      url.search = '';
-    }
-    return NextResponse.redirect(url, 307);
-  }
-  return null;
+  if (authGateRedirect(pathname, sessionValid) !== 'login') return null;
+  const url = request.nextUrl.clone();
+  url.pathname = '/login';
+  url.searchParams.set('returnUrl', pathname + search);
+  return NextResponse.redirect(url, 307);
 }
 
 export function middleware(request: NextRequest) {

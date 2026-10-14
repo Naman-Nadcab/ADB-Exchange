@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2, Mail, Smartphone } from 'lucide-react';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { authFetch, loadAuthCutover } from '@/lib/auth/cutover';
 import { COOKIE_SESSION_MARKER } from '@/lib/authSession';
 import { resolvePostLoginRedirect } from '@/lib/oauth';
 import { useAuthStore, type User } from '@/store/auth';
@@ -53,7 +54,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [countdown, setCountdown] = useState(0);
-  const [legacyEntryAvailable, setLegacyEntryAvailable] = useState<boolean | null>(null);
+  const [legacyEntryAvailable, setLegacyEntryAvailable] = useState(true);
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
@@ -64,24 +65,13 @@ export default function SignupPage() {
   }, [searchParams]);
 
   useEffect(() => {
-    let cancelled = false;
-    fetch(`${API}/api/v1/auth/wallet-cutover`)
-      .then((response) => (response.ok ? response.json() : null))
-      .then((body: { data?: { legacyEntryAvailable?: boolean } } | null) => {
-        if (cancelled) return;
-        const legacyOpen = body?.data?.legacyEntryAvailable === true;
-        setLegacyEntryAvailable(legacyOpen);
-        if (!legacyOpen) setStep('choose');
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setLegacyEntryAvailable(false);
-          setStep('choose');
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
+    const controller = new AbortController();
+    loadAuthCutover(API, controller.signal).then((view) => {
+      if (controller.signal.aborted) return;
+      setLegacyEntryAvailable(view.legacyEntryAvailable);
+      if (!view.legacyEntryAvailable) setStep('choose');
+    });
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
@@ -98,7 +88,7 @@ export default function SignupPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch(`${API}/api/v1/auth/send-otp`, {
+      const res = await authFetch(`${API}/api/v1/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier, type: idType, purpose: 'signup' }),
@@ -123,7 +113,7 @@ export default function SignupPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API}/api/v1/auth/verify-otp`, {
+      const res = await authFetch(`${API}/api/v1/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier, otp: code, type: idType, purpose: 'signup' }),
@@ -148,7 +138,7 @@ export default function SignupPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API}/api/v1/auth/signup`, {
+      const res = await authFetch(`${API}/api/v1/auth/signup`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -215,7 +205,7 @@ export default function SignupPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API}/api/v1/auth/send-otp`, {
+      const res = await authFetch(`${API}/api/v1/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier, type: idType, purpose: 'signup' }),
