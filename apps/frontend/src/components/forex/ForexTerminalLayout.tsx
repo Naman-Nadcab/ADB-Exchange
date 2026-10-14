@@ -6,7 +6,6 @@ import { isForexTradePath, showForexMarketChrome } from '@/lib/forex/routes';
 import { useForexRuntime } from '@/lib/forex/runtime/useForexRuntime';
 import { useForexStore } from '@/lib/forex/state/store';
 import { resolveForexBottomHeight, useForexWorkspaceStore } from '@/lib/forex/state/workspace';
-import { ForexAccountBar } from './ForexAccountBar';
 import { ForexAppToolbar } from './ForexAppToolbar';
 import { ForexBottomPanels } from './ForexBottomPanels';
 import { ForexChartWorkspace } from './ForexChartWorkspace';
@@ -139,33 +138,34 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
               </>
             ) : null}
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
-              <ForexChartWorkspace />
+              <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
+                <ForexChartWorkspace />
+              </div>
+              {/* Chart-column terminal dock. It stops at the chart, so Market Watch and the order ticket keep their height. */}
+              {showBottom && bottomH > 0 ? (
+                <>
+                  {!bottomCollapsed && chartMode === 'normal' ? (
+                    <ForexPanelSplit
+                      axis="y"
+                      value={bottomPreferred}
+                      onChange={(n) => {
+                        setBottomCollapsed(false);
+                        setBottomHeight(n);
+                      }}
+                      direction={-1}
+                      label="Resize Toolbox"
+                      className="hidden md:block"
+                    />
+                  ) : null}
+                  <div className="hidden shrink-0 md:flex" style={{ height: bottomH }}>
+                    <div className="min-h-0 min-w-0 flex-1">
+                      <ForexBottomPanels compact={bottomH <= 56} hasTradingData={hasTradingData} />
+                    </div>
+                  </div>
+                </>
+              ) : null}
             </div>
           </div>
-
-          {/* Full-width terminal dock. Switching tabs does not change this height. */}
-          {showBottom && bottomH > 0 ? (
-            <>
-              {!bottomCollapsed && chartMode === 'normal' ? (
-                <ForexPanelSplit
-                  axis="y"
-                  value={bottomPreferred}
-                  onChange={(n) => {
-                    setBottomCollapsed(false);
-                    setBottomHeight(n);
-                  }}
-                  direction={-1}
-                  label="Resize Toolbox"
-                  className="hidden md:block"
-                />
-              ) : null}
-              <div className="hidden shrink-0 md:flex" style={{ height: bottomH }}>
-                <div className="min-h-0 min-w-0 flex-1">
-                  <ForexBottomPanels compact={bottomH <= 56} hasTradingData={hasTradingData} />
-                </div>
-              </div>
-            </>
-          ) : null}
 
           {chartMode === 'expand' || chartMode === 'fullscreen' ? (
             <button
@@ -196,7 +196,6 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
       ) : null}
 
       {trade && chartMode === 'normal' ? <ForexRiskBar /> : null}
-      {trade && !chromeHidden ? <ForexAccountBar compact={trade} /> : null}
       {!chromeHidden ? <ForexMobileNav /> : null}
       <ForexCommandCenter />
     </div>

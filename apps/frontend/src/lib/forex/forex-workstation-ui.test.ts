@@ -34,7 +34,9 @@ function testLeftStackKeepsHeight(): void {
   const chartAt = layout.indexOf('<ForexChartWorkspace');
   const bottomAt = layout.indexOf('<ForexBottomPanels');
   assert(chartAt > 0 && bottomAt > chartAt, 'terminal dock follows the chart');
-  assert(layout.includes('Full-width terminal dock'), 'dock spans the terminal');
+  assert(layout.includes('Chart-column terminal dock'), 'dock stays under the chart');
+  assert(!layout.includes('Full-width terminal dock'), 'dock does not run under Market Watch');
+  assert(!layout.includes('ForexAccountBar'), 'account bar is not on the terminal');
   assert(!layout.includes('!authed && !hasTradingData'), 'guest visits do not collapse the dock');
   assert(!layout.includes('min(420px, 48%)'), 'order ticket is not forced to half the column');
   const bottom = readFileSync(join(root, 'ForexBottomPanels.tsx'), 'utf8');
