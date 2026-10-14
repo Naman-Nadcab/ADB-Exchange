@@ -297,13 +297,6 @@
   },
   "bottomPanels": {
     "ariaLabel": "交易工具箱",
-    "accountLine": {
-      "balance": "余额",
-      "equity": "净值",
-      "margin": "保证金",
-      "freeMargin": "可用保证金",
-      "marginLevel": "保证金比例"
-    },
     "more": "更多",
     "statusActive": "活跃",
     "statusIdle": "空闲",
@@ -637,6 +630,12 @@
     "stale": "持仓数据可能已过期。",
     "empty": "无未平外汇持仓。",
     "pnlUnavailable": "盈亏不可用",
+    "colOrder": "订单",
+    "colTime": "时间",
+    "colType": "类型",
+    "colSize": "手数",
+    "colPrice": "价格",
+    "colProfit": "盈亏",
     "colId": "编号",
     "colSymbol": "品种",
     "colSide": "方向",

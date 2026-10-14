@@ -20,8 +20,7 @@ import {
   type HistoryPeriod,
 } from '@/lib/forex/models/history-analytics';
 import { buildForexJournal } from '@/lib/forex/models/journal';
-import { livePositionValuation, sumLiveFloating } from '@/lib/forex/models/live-valuation';
-import { composeAccountMetrics } from '@/lib/forex/models/account-metrics';
+import { livePositionValuation } from '@/lib/forex/models/live-valuation';
 import { ForexPositionPanel } from './ForexPositionPanel';
 import { ForexServerAlertsPanel } from './ForexServerAlertsPanel';
 import { fxMoney, fxNum, fxPlain, fxSigned } from './format';
@@ -453,8 +452,6 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
         <p className="sr-only">{tf('bottomPanels.collapsedSr', { tab: TABS.find((t) => t.id === tab)?.label ?? tab })}</p>
       )}
 
-      {!compact ? <TerminalAccountLine /> : null}
-
       <div className="mt-auto flex h-7 shrink-0 items-center gap-0.5 overflow-x-auto border-t border-border px-1.5" role="tablist">
         {[
           ...TOOLBOX_TAB_ORDER.map((id) => TABS.find((t) => t.id === id)).filter((t): t is { id: ForexBottomTab; label: string } => Boolean(t)),
@@ -498,66 +495,6 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
         )}
       </div>
     </section>
-  );
-}
-
-function TerminalAccountLine() {
-  const tf = useTranslations('forex');
-  const authed = useForexPrivateSession();
-  const account = useForexStore((s) => s.account);
-  const balance = useForexStore((s) => s.balance);
-  const margin = useForexStore((s) => s.margin);
-  const pnl = useForexStore((s) => s.pnl);
-  const quotes = useForexStore((s) => s.quotes);
-  const instruments = useForexStore((s) => s.instruments);
-  const positions = useForexStore((s) => s.positions);
-  const liveFloat = useMemo(() => {
-    const open = Object.values(positions).filter((p) => p.status === 'OPEN');
-    return sumLiveFloating(
-      open.map((p) =>
-        livePositionValuation({
-          position: p,
-          quote: quotes[p.symbol],
-          instrument: instruments[p.symbol],
-        })
-      )
-    );
-  }, [positions, quotes, instruments]);
-
-  if (!authed) {
-    return (
-      <div className="flex h-7 shrink-0 items-center border-t border-border bg-muted/30 px-2 text-[11px] text-muted-foreground">
-        {tf('bottomPanels.signInPrompt')}
-      </div>
-    );
-  }
-
-  const currency = account?.currency ?? balance?.currency ?? 'USD';
-  const metrics = composeAccountMetrics({
-    currency,
-    balance: account?.ledgerBalance ?? balance?.ledgerBalance,
-    equity: account?.equity ?? balance?.equity ?? margin?.equityReference,
-    usedMargin: account?.usedMargin ?? margin?.usedMargin,
-    freeMargin: account?.freeMargin ?? margin?.freeMargin,
-    floating: liveFloat.available ? liveFloat.value : account?.unrealizedPnl ?? pnl?.unrealized,
-  });
-  return (
-    <div className="flex h-7 shrink-0 items-center gap-4 overflow-x-auto border-t border-border bg-muted/30 px-2 font-mono text-[11px] tabular-nums">
-      <AccountFigure label={tf('bottomPanels.accountLine.balance')} value={fxMoney(metrics.balance, currency)} />
-      <AccountFigure label={tf('bottomPanels.accountLine.equity')} value={fxMoney(metrics.equity, currency)} />
-      <AccountFigure label={tf('bottomPanels.accountLine.margin')} value={fxMoney(metrics.usedMargin, currency)} />
-      <AccountFigure label={tf('bottomPanels.accountLine.freeMargin')} value={fxMoney(metrics.freeMargin, currency)} />
-      <AccountFigure label={tf('bottomPanels.accountLine.marginLevel')} value={metrics.marginLevel} />
-    </div>
-  );
-}
-
-function AccountFigure(props: { label: string; value: string }) {
-  return (
-    <span className="inline-flex shrink-0 items-baseline gap-1">
-      <span className="text-muted-foreground">{props.label}:</span>
-      <span className="text-foreground">{props.value}</span>
-    </span>
   );
 }
 

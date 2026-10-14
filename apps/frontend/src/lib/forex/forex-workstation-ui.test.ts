@@ -41,7 +41,11 @@ function testLeftStackKeepsHeight(): void {
   const panelAt = bottom.indexOf('role="tabpanel"');
   const tabsAt = bottom.indexOf('role="tablist"');
   assert(panelAt > 0 && tabsAt > panelAt, 'tabs sit under the table');
-  assert(bottom.includes('TerminalAccountLine'), 'account line sits in the dock');
+  assert(!bottom.includes('TerminalAccountLine'), 'account line is not in the dock');
+  const positionsSrc = readFileSync(join(root, 'ForexPositionPanel.tsx'), 'utf8');
+  for (const key of ['colOrder', 'colTime', 'colType', 'colSize', 'colPrice', 'colSl', 'colTp', 'colSwap', 'colProfit']) {
+    assert(positionsSrc.includes(`tp('${key}')`), `trade table has ${key}`);
+  }
   assert(!bottom.includes("t.id === 'positions' || t.id === 'orders') setBottomCollapsed"), 'switching tabs does not resize the dock');
   const watch = readFileSync(join(root, 'ForexWatchlist.tsx'), 'utf8');
   assert(!watch.includes('footerSession'), 'session line does not sit under the pairs');
