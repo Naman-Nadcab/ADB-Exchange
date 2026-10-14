@@ -300,7 +300,7 @@ export function ForexOrderTicket() {
   }
 
   return (
-    <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-l border-border bg-card" aria-label={tf('ticketPanel.ariaLabel')}>
+    <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-border bg-card lg:border-r" aria-label={tf('ticketPanel.ariaLabel')}>
       <div className="flex h-6 items-center justify-between gap-2 border-b border-border px-2">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{tf('ticketPanel.newOrder')}</span>
         <span className="truncate font-mono text-[11px] font-semibold">{inst?.displaySymbol ?? selected}</span>
