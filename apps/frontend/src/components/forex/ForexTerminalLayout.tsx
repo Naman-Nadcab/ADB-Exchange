@@ -92,7 +92,11 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
           <ForexDeepLinkSync />
         </Suspense>
       ) : null}
-      {trade && !chromeHidden ? <ForexAppToolbar /> : null}
+      {trade && !chromeHidden ? (
+        <div className={showWatchlist || showTicket ? 'md:hidden' : undefined}>
+          <ForexAppToolbar />
+        </div>
+      ) : null}
       {!chromeHidden && marketChrome && !trade ? <ForexMarketStrip /> : null}
       {!chromeHidden && marketChrome && !trade ? <ForexSessionBar /> : null}
       {hydratePhase === 'error' && hydrateError ? (
@@ -107,9 +111,10 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
             {showWatchlist || showTicket ? (
               <>
                 <div
-                  className={`hidden min-h-0 shrink-0 flex-col ${showWatchlist ? 'md:flex' : 'lg:flex'}`}
+                  className={`hidden min-h-0 min-w-0 shrink-0 flex-col ${showWatchlist ? 'md:flex' : 'lg:flex'}`}
                   style={{ width: showWatchlist ? Math.max(wlW, showTicket ? tkW : wlW) : tkW }}
                 >
+                  {!chromeHidden ? <ForexAppToolbar /> : null}
                   {showWatchlist ? (
                     <div className="min-h-0 flex-1 overflow-hidden">
                       <ForexWatchlist />

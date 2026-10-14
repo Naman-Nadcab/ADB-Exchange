@@ -296,7 +296,7 @@ export function ForexAppToolbar() {
   );
 
   return (
-    <div className="relative flex h-7 shrink-0 items-center gap-1 border-b border-border bg-[#15181d] px-1.5 text-[11px]">
+    <div className="relative flex min-h-7 w-full min-w-0 shrink-0 flex-wrap items-center gap-x-0.5 border-b border-border bg-[#15181d] px-1 py-0.5 text-[11px]">
       <Menu
         id="mobile"
         label={tf('menu')}
@@ -320,7 +320,7 @@ export function ForexAppToolbar() {
         aria-pressed={oneClickEnabled}
         onClick={toggleOneClick}
         className={cn(
-          'ml-1 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold',
+          'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold',
           oneClickEnabled
             ? 'bg-sell/25 text-sell ring-1 ring-sell/40'
             : 'border border-border/80 bg-[#1a1f26] text-foreground'
