@@ -46,6 +46,21 @@ export function ForexPortalMobileMenu(props: { open: boolean; onOpenChange: (ope
               </Link>
             );
           })}
+          <div className="mt-1 border-t border-border pt-1">
+            <Link
+              href={FOREX_ROUTES.partner}
+              onClick={() => props.onOpenChange(false)}
+              className={cn(
+                'block rounded-md px-3 py-2.5 text-sm font-medium',
+                isForexPortalNavActive(pathname, FOREX_ROUTES.partner)
+                  ? 'bg-primary/12 text-primary'
+                  : 'text-foreground hover:bg-muted/60'
+              )}
+            >
+              {tf('userMenu.partner')}
+            </Link>
+            <p className="px-3 pb-2 text-[11px] leading-snug text-muted-foreground">{tf('portalNav.partnerHint')}</p>
+          </div>
         </nav>
       </DialogContent>
     </Dialog>

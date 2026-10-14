@@ -32,6 +32,8 @@ export default function ForexOpenLiveAccountPage() {
   const [appStatus, setAppStatus] = useState<string | null>(null);
   const [applications, setApplications] = useState<Array<{ applicationId: string; status: string; createdAt?: string; failureReason?: string | null }>>([]);
   const [err, setErr] = useState<string | null>(null);
+  const [partnerCode, setPartnerCode] = useState('');
+  const [partnerNote, setPartnerNote] = useState<string | null>(null);
 
   function copy(value: string | null | undefined): string {
     return forexServerCopy(ts, value);
@@ -80,7 +82,11 @@ export default function ForexOpenLiveAccountPage() {
     setErr(null);
     setAppStatus(null);
     const idempotencyKey = `live-app:${Date.now()}`;
-    const res = unwrap(await forexApi.submitLiveApplication({ idempotencyKey, positionMode: 'NETTING' }));
+    const res = unwrap(await forexApi.submitLiveApplication({
+      idempotencyKey,
+      positionMode: 'NETTING',
+      partnerCode: partnerCode.trim() || undefined,
+    }));
     setBusy(false);
     if (!res.ok) {
       setErr(copy(res.error.message) || res.error.message);
@@ -88,6 +94,8 @@ export default function ForexOpenLiveAccountPage() {
     }
     const status = String((res.data.application as { status?: string }).status ?? 'PENDING');
     setAppStatus(status);
+    if (res.data.partnerLink === 'linked') setPartnerNote(t('partnerLinked'));
+    else if (res.data.partnerLink === 'unknown' && partnerCode.trim()) setPartnerNote(t('partnerUnknown'));
     await loadApplications();
   }
 
@@ -130,6 +138,20 @@ export default function ForexOpenLiveAccountPage() {
       </ForexPortalModuleCard>
       <ForexPortalModuleCard title={t('applicationTitle')}>
         <p className="text-sm text-muted-foreground">{t('applicationBody')}</p>
+        <label className="mt-3 block max-w-md text-[11px]">
+          <span className="text-muted-foreground">{t('partnerCode')}</span>
+          <input
+            className="mt-1 w-full rounded border border-border bg-background px-2 py-2 text-[12px] disabled:opacity-60"
+            value={partnerCode}
+            maxLength={32}
+            disabled={!canApply}
+            onChange={(e) => setPartnerCode(e.target.value)}
+          />
+          <span className="mt-1 block text-muted-foreground">{t('partnerCodeHint')}</span>
+          <Link href={FOREX_ROUTES.partner} className="mt-1 inline-block font-semibold text-primary underline-offset-2 hover:underline">
+            {t('partnerCodeMore')}
+          </Link>
+        </label>
         <button
           type="button"
           disabled={!canApply || busy}
@@ -142,6 +164,7 @@ export default function ForexOpenLiveAccountPage() {
         {appStatus ? (
           <p className="mt-2 text-sm text-buy">{t('applicationStatus', { status: forexEnumLabel(te, appStatus) })}</p>
         ) : null}
+        {partnerNote ? <p className="mt-2 text-sm text-foreground">{partnerNote}</p> : null}
         {err ? <p className="mt-2 text-sm text-sell">{err}</p> : null}
         <div className="mt-4 border-t border-border/70 pt-3">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t('applicationsTitle')}</p>
