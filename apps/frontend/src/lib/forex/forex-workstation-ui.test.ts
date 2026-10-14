@@ -51,6 +51,11 @@ function testLeftStackKeepsHeight(): void {
   assert(!layout.includes('min(420px, 48%)'), 'order ticket is not forced to half the column');
   assert(!layout.includes('lg:max-h-[min(420px,46%)]'), 'order ticket sits against Market Watch');
   assert(layout.includes('fx-watch-slot'), 'market watch sizes to its rows');
+  const settings = readFileSync(join(root, 'ForexAccountSettingsPanel.tsx'), 'utf8');
+  assert(!settings.includes('ForexPositionModeSwitch'), 'customer settings do not offer a position-mode switch');
+  const accounts = readFileSync(join(__dirname, '../../../../backend/src/services/forex/customer/accounts-service.ts'), 'utf8');
+  assert(accounts.includes("'HEDGING', 'DEMO'"), 'new demo accounts open in hedging');
+  assert(!accounts.includes("'NETTING', 'DEMO'"), 'new demo accounts are not netting');
   const priceChart = readFileSync(join(root, 'ForexLightweightChart.tsx'), 'utf8');
   assert(!priceChart.includes("'ASK'") && !priceChart.includes("'BID'"), 'chart does not tag bid or ask');
   const bottom = readFileSync(join(root, 'ForexBottomPanels.tsx'), 'utf8');

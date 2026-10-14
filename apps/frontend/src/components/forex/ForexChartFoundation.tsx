@@ -571,7 +571,7 @@ export function ForexChartFoundation(props?: {
     return parts.join(' · ') || null;
   }, [measurePoints, pipSize, bars]);
 
-  const positionMode = useForexStore((s) => s.account?.positionMode ?? 'NETTING');
+  const positionMode = useForexStore((s) => s.account?.positionMode ?? 'HEDGING');
   const chartFocusPositionId = useForexWorkspaceStore((s) => s.chartFocusPositionId);
   const openPosition = useMemo(
     () => chartLinkedOpenPosition(positions, selected, positionMode, chartFocusPositionId),

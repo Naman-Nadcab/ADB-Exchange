@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { ForexPortalModuleCard } from './ForexPortalKpiCard';
-import { ForexPositionModeSwitch } from './ForexPositionModeSwitch';
+import { forexEnumLabel } from './forex-enum-label';
 import { fxPlain } from './format';
 
 export function ForexAccountSettingsPanel(props: {
@@ -12,6 +12,7 @@ export function ForexAccountSettingsPanel(props: {
   groupLabel?: string | null;
 }) {
   const t = useTranslations('forex.accountSettings');
+  const te = useTranslations('forex.enums');
 
   return (
     <ForexPortalModuleCard title={t('title')} subtitle={t('subtitle')}>
@@ -27,12 +28,9 @@ export function ForexAccountSettingsPanel(props: {
       </dl>
       {!props.isSelected ? (
         <p className="text-[12px] text-muted-foreground">{t('switchToEdit')}</p>
-      ) : (
-        <>
-          <p className="mb-2 text-[11px] text-muted-foreground">{t('positionModeHint')}</p>
-          <ForexPositionModeSwitch />
-        </>
-      )}
+      ) : props.positionMode ? (
+        <p className="text-[12px] text-foreground">{forexEnumLabel(te, props.positionMode)}</p>
+      ) : null}
       <p className="mt-3 text-[11px] text-muted-foreground">{t('leverageRequestHint')}</p>
     </ForexPortalModuleCard>
   );

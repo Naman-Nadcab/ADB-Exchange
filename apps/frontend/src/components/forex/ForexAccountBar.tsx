@@ -9,7 +9,6 @@ import { composeAccountMetrics } from '@/lib/forex/models/account-metrics';
 import { livePositionValuation, sumLiveFloating } from '@/lib/forex/models/live-valuation';
 import { useForexStore } from '@/lib/forex/state/store';
 import { fxMoney, fxSigned } from './format';
-import { ForexPositionModeSwitch } from './ForexPositionModeSwitch';
 import { ForexAccountSwitcher } from './ForexAccountSwitcher';
 
 export function ForexAccountBar(props?: { compact?: boolean }) {
@@ -101,9 +100,8 @@ export function ForexAccountBar(props?: { compact?: boolean }) {
         className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground"
         title={t('positionModeTitle')}
       >
-        {account?.positionMode === 'HEDGING' ? t('hedging') : t('netting')}
+        {account?.positionMode === 'NETTING' ? t('netting') : t('hedging')}
       </span>
-      <ForexPositionModeSwitch />
       <Item k="Balance" v={fxMoney(metrics.balance, currency)} />
       <Item k="Equity" v={fxMoney(metrics.equity, currency)} />
       <Item k="Used" v={fxMoney(metrics.usedMargin, currency)} />
