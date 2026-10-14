@@ -9,6 +9,7 @@ import { COOKIE_SESSION_MARKER } from '@/lib/authSession';
 import { useAuth } from '@/context/AuthContext';
 import { getPasskeyAssertion, isPlatformAuthenticatorAvailable, isWebAuthnSupported } from '@/lib/webauthn';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { authFetch, loadAuthCutover } from '@/lib/auth/cutover';
 import { consumeOAuthRedirect, getStoredRedirect, resolvePostLoginRedirect } from '@/lib/oauth';
 import AuthSplitLayout from '@/components/auth/AuthSplitLayout';
 import { WalletAuthPanel } from '@/components/auth/WalletAuthPanel';
@@ -57,9 +58,9 @@ export default function LoginPage() {
   const [countdown, setCountdown] = useState(0);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
   const [passkeyAvailable, setPasskeyAvailable] = useState(false);
-  const [showLegacy, setShowLegacy] = useState(false);
+  const [showLegacy, setShowLegacy] = useState(true);
   const [walletPrimary, setWalletPrimary] = useState(false);
-  const [legacyEntryAvailable, setLegacyEntryAvailable] = useState<boolean | null>(null);
+  const [legacyEntryAvailable, setLegacyEntryAvailable] = useState(true);
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
@@ -71,34 +72,20 @@ export default function LoginPage() {
   }, [searchParams]);
 
   useEffect(() => {
-    let cancelled = false;
-    fetch(`${API}/api/v1/auth/wallet-cutover`)
-      .then((response) => (response.ok ? response.json() : null))
-      .then((body: { data?: { walletPrimary?: boolean; legacyEntryAvailable?: boolean } } | null) => {
-        if (cancelled) return;
-        if (!body?.data) {
-          setLegacyEntryAvailable(false);
-          setShowLegacy(false);
-          return;
-        }
-        if (body.data.walletPrimary) setWalletPrimary(true);
-        const legacyOpen = body.data.legacyEntryAvailable === true;
-        setLegacyEntryAvailable(legacyOpen);
-        if (!legacyOpen) {
-          setShowLegacy(false);
-          setMode('password');
-          setStep('identifier');
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setLegacyEntryAvailable(false);
-          setShowLegacy(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
+    const controller = new AbortController();
+    loadAuthCutover(API, controller.signal).then((view) => {
+      if (controller.signal.aborted) return;
+      setWalletPrimary(view.walletPrimary);
+      setLegacyEntryAvailable(view.legacyEntryAvailable);
+      if (!view.legacyEntryAvailable) {
+        setShowLegacy(false);
+        setMode('password');
+        setStep('identifier');
+        return;
+      }
+      if (view.walletPrimary) setShowLegacy(false);
+    });
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
@@ -144,7 +131,8 @@ export default function LoginPage() {
   }, [otp, step, loading, sendingOtp]);
 
   const err = (e: unknown) =>
-    e instanceof TypeError && e.message === 'Failed to fetch'
+    (e instanceof TypeError && e.message === 'Failed to fetch') ||
+    (e instanceof Error && (e.name === 'AbortError' || e.name === 'TimeoutError'))
       ? networkUnreachable()
       : tc('states.somethingWrong');
 
@@ -166,7 +154,7 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API}/api/v1/auth/login/password`, {
+      const res = await authFetch(`${API}/api/v1/auth/login/password`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -199,7 +187,7 @@ export default function LoginPage() {
     setCountdown(120);
     setSendingOtp(true);
     try {
-      const res = await fetch(`${API}/api/v1/auth/send-otp`, {
+      const res = await authFetch(`${API}/api/v1/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier, type, purpose: 'login' }),
@@ -276,7 +264,7 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API}/api/v1/auth/verify-otp`, {
+      const res = await authFetch(`${API}/api/v1/auth/verify-otp`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -321,7 +309,7 @@ export default function LoginPage() {
     setSendingOtp(true);
     setError('');
     try {
-      const res = await fetch(`${API}/api/v1/auth/send-otp`, {
+      const res = await authFetch(`${API}/api/v1/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier, type, purpose: 'login' }),
