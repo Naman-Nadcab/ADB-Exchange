@@ -72,7 +72,7 @@ export const FOREX_NAV_GROUPS: ForexNavGroup[] = [
   {
     id: 'liquidity',
     label: 'Liquidity & execution',
-    description: 'LP posture, routing, and execution (external LP NOT_CONFIGURED)',
+    description: 'LP posture, routing, and the broker gateway when it is configured',
     routeIds: ['lp-execution', 'liquidity-routing', 'integrations'],
   },
   {
@@ -84,7 +84,7 @@ export const FOREX_NAV_GROUPS: ForexNavGroup[] = [
   {
     id: 'partners',
     label: 'Partners / IB',
-    description: 'IB profiles, commissions, accruals (payout rail NOT_CONFIGURED)',
+    description: 'IB profiles, commissions, and accruals. Payout rail status comes from configuration.',
     routeIds: ['forex-partners'],
   },
   {

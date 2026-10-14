@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { ForexPanelShell } from '@/components/forex/primitives/ForexPanelShell';
+import { ForexBrokerReconciliationPanel } from '@/components/forex/panels/ForexBrokerReconciliationPanel';
 import { RefreshCw } from 'lucide-react';
 
 type AccountRow = {
@@ -106,6 +107,8 @@ export function ForexLedgerPanel() {
           </ul>
         )}
       </ForexPanelShell>
+
+      <ForexBrokerReconciliationPanel />
     </div>
   );
 }

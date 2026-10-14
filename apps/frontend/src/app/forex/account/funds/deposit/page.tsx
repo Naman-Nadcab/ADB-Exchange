@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { ForexFundingUnavailablePanel } from '@/components/forex/ForexFundingUnavailablePanel';
+import { ForexLiveCashForm } from '@/components/forex/ForexLiveCashForm';
 import { ForexFundsSubNav } from '@/components/forex/ForexFundsSubNav';
 import { ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
@@ -15,7 +16,7 @@ export default function ForexFundsDepositPage() {
     <ForexPageFrame title={tf('pages.fundsDeposit.title')} subtitle={tf('pages.fundsDeposit.subtitle')}>
       <ForexPortalAccountContext />
       <ForexFundsSubNav />
-      {!gates.realFundingEnabled ? <ForexFundingUnavailablePanel variant="deposit" /> : null}
+      {gates.realFundingEnabled ? <ForexLiveCashForm direction="deposit" /> : <ForexFundingUnavailablePanel variant="deposit" />}
     </ForexPageFrame>
   );
 }

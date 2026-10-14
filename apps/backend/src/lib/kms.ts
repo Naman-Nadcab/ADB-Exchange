@@ -26,9 +26,42 @@ export interface IKeyManagementService {
   decryptDEK(encryptedDEK: string, keyVersion: string): Promise<Buffer>;
 }
 
+const LOCAL_KMS_WARNING =
+  'LOCAL KMS PROVIDER ACTIVE — NOT SUITABLE FOR MULTI-SERVER PRODUCTION DEPLOYMENT';
+
+/**
+ * Explicit local provider master key.
+ * 64 hex chars are used as 32 raw bytes. Any other value of at least 32
+ * characters is hashed with SHA-256. The secret is never logged.
+ */
+export function loadLocalKmsMasterKey(): Buffer {
+  const raw = process.env.LOCAL_KMS_MASTER_KEY?.trim() ?? '';
+  if (!raw) {
+    throw new Error('LOCAL_KMS_MASTER_KEY is required when KMS_TYPE=local');
+  }
+  if (/^[0-9a-fA-F]{64}$/.test(raw)) {
+    return Buffer.from(raw, 'hex');
+  }
+  if (raw.length < 32) {
+    throw new Error('LOCAL_KMS_MASTER_KEY must be at least 32 characters, or 32 bytes encoded as 64 hex characters');
+  }
+  return crypto.createHash('sha256').update(raw, 'utf8').digest();
+}
+
 function deriveMasterKey(keyVersion: string): Buffer {
-  const keyString = config.encryption.key;
-  return crypto.createHash('sha256').update(keyString + ':' + keyVersion).digest();
+  const master = loadLocalKmsMasterKey();
+  try {
+    return crypto.createHash('sha256').update(Buffer.concat([master, Buffer.from(':' + keyVersion, 'utf8')])).digest();
+  } finally {
+    zeroizeBuffer(master);
+  }
+}
+
+export function resolveKmsProviderType(explicit?: string): 'aws' | 'local' {
+  const raw = (explicit ?? process.env.KMS_TYPE ?? 'local').trim().toLowerCase();
+  if (raw === 'aws') return 'aws';
+  if (raw === 'local' || raw === '') return 'local';
+  throw new Error(`Unsupported KMS_TYPE "${raw}". Expected "aws" or "local".`);
 }
 
 function encodeCiphertext(iv: Buffer, authTag: Buffer, ciphertext: Buffer): string {
@@ -46,8 +79,9 @@ function decodeCiphertext(encoded: string): { iv: Buffer; authTag: Buffer; ciphe
 }
 
 /**
- * Local KMS: master key derived from ENCRYPTION_KEY + keyVersion.
- * DEK is encrypted with AES-256-GCM. Suitable for dev/single-node; use real KMS in production.
+ * Explicit local KMS. Selected only when KMS_TYPE=local.
+ * DEKs are wrapped with AES-256-GCM under LOCAL_KMS_MASTER_KEY.
+ * Single-node only. AWS KMS remains the production provider.
  */
 class LocalKMS implements IKeyManagementService {
   async generateDataKey(keyVersion: string): Promise<GenerateDataKeyResult> {
@@ -130,18 +164,26 @@ class AwsKMS implements IKeyManagementService {
   }
 }
 
-const localKMS = new LocalKMS();
+export function createKeyManagementService(explicitType?: string): IKeyManagementService {
+  return resolveKmsProviderType(explicitType) === 'aws' ? new AwsKMS() : new LocalKMS();
+}
 
-function getKMS(): IKeyManagementService {
-  return config.kms.type === 'aws' ? new AwsKMS() : localKMS;
+export function kmsProviderName(service: IKeyManagementService): 'aws' | 'local' {
+  return service instanceof AwsKMS ? 'aws' : 'local';
 }
 
 let kmsInstance: IKeyManagementService | null = null;
 
+export function resetKeyManagementServiceForTests(): void {
+  kmsInstance = null;
+}
+
 export function getKeyManagementService(): IKeyManagementService {
-  if (!kmsInstance) kmsInstance = getKMS();
+  if (!kmsInstance) kmsInstance = createKeyManagementService(config.kms.type);
   return kmsInstance;
 }
+
+export { LOCAL_KMS_WARNING };
 
 /**
  * Encrypt a buffer with a DEK (AES-256-GCM). Format: iv:authTag:ciphertext (base64).

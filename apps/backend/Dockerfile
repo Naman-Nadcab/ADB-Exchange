@@ -35,7 +35,7 @@ COPY --from=builder /app/package*.json ./
 RUN npm install --omit=dev && npm cache clean --force
 
 # Create logs directory
-RUN mkdir -p logs && chown -R exchange:nodejs logs
+RUN mkdir -p logs data && chown -R exchange:nodejs logs data
 
 # Switch to non-root user
 USER exchange

@@ -11,6 +11,7 @@ import { getPasskeyAssertion, isPlatformAuthenticatorAvailable, isWebAuthnSuppor
 import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { consumeOAuthRedirect, getStoredRedirect, resolvePostLoginRedirect } from '@/lib/oauth';
 import AuthSplitLayout from '@/components/auth/AuthSplitLayout';
+import { WalletAuthPanel } from '@/components/auth/WalletAuthPanel';
 import { useTranslations } from 'next-intl';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 
@@ -39,6 +40,7 @@ export default function LoginPage() {
   const { login } = useAuthStore();
   const { setAuthenticated } = useAuth();
   const t = useTranslations('auth.login');
+  const tw = useTranslations('auth.wallet');
   const tc = useTranslations('common');
   const { fromApi, networkUnreachable } = useApiErrorMessage();
 
@@ -55,6 +57,9 @@ export default function LoginPage() {
   const [countdown, setCountdown] = useState(0);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
   const [passkeyAvailable, setPasskeyAvailable] = useState(false);
+  const [showLegacy, setShowLegacy] = useState(false);
+  const [walletPrimary, setWalletPrimary] = useState(false);
+  const [legacyEntryAvailable, setLegacyEntryAvailable] = useState<boolean | null>(null);
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
@@ -64,6 +69,37 @@ export default function LoginPage() {
     const r = searchParams.get('redirect') || searchParams.get('returnUrl');
     if (r?.startsWith('/') && typeof sessionStorage !== 'undefined') sessionStorage.setItem('oauth_redirect', r);
   }, [searchParams]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${API}/api/v1/auth/wallet-cutover`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((body: { data?: { walletPrimary?: boolean; legacyEntryAvailable?: boolean } } | null) => {
+        if (cancelled) return;
+        if (!body?.data) {
+          setLegacyEntryAvailable(false);
+          setShowLegacy(false);
+          return;
+        }
+        if (body.data.walletPrimary) setWalletPrimary(true);
+        const legacyOpen = body.data.legacyEntryAvailable === true;
+        setLegacyEntryAvailable(legacyOpen);
+        if (!legacyOpen) {
+          setShowLegacy(false);
+          setMode('password');
+          setStep('identifier');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setLegacyEntryAvailable(false);
+          setShowLegacy(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -327,12 +363,38 @@ export default function LoginPage() {
       )}
 
       {step === 'identifier' && mode === 'password' && (
-        <form onSubmit={(e) => { e.preventDefault(); passwordLogin(); }} className="space-y-6">
+        <div className="space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{t('subtitlePassword')}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {legacyEntryAvailable === true ? t('subtitlePassword') : tw('walletOnlyNote')}
+            </p>
           </div>
 
+          <WalletAuthPanel actionLabel={tw('signIn')} onSuccess={completeLogin} />
+
+          {legacyEntryAvailable === true && walletPrimary && (
+            <p className="text-sm text-muted-foreground">{tw('walletPrimaryNote')}</p>
+          )}
+
+          {legacyEntryAvailable === true && (
+          <>
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-accent" />
+            <span className="text-xs text-muted-foreground font-medium">{tc('actions.or')}</span>
+            <div className="flex-1 h-px bg-accent" />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => { setShowLegacy((value) => !value); setError(''); }}
+            className="w-full py-3 rounded-xl border border-border text-foreground font-medium hover:bg-accent/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            {showLegacy ? tw('hideLegacy') : tw('useLegacy')}
+          </button>
+
+          {showLegacy && (
+        <form onSubmit={(e) => { e.preventDefault(); passwordLogin(); }} className="space-y-6">
           <div className="space-y-4">
             <input
               type="email"
@@ -408,14 +470,19 @@ export default function LoginPage() {
             {t('signInWithCode')}
           </button>
 
+        </form>
+          )}
+          </>
+          )}
+
           <p className="text-center text-sm text-muted-foreground">
             {t('noAccount')}{' '}
             <Link href="/signup" className="text-primary underline underline-offset-2 font-medium">{t('signUp')}</Link>
           </p>
-        </form>
+        </div>
       )}
 
-      {step === 'identifier' && mode === 'otp' && (
+      {legacyEntryAvailable === true && step === 'identifier' && mode === 'otp' && (
         <form onSubmit={(e) => { e.preventDefault(); sendOtp(); }} className="space-y-6">
           <div>
             <button type="button" onClick={switchToPassword} className="text-primary hover:underline text-sm font-medium mb-3">
@@ -453,7 +520,7 @@ export default function LoginPage() {
         </form>
       )}
 
-      {step === 'otp' && (
+      {legacyEntryAvailable === true && step === 'otp' && (
         <form ref={formRef} onSubmit={(e) => { e.preventDefault(); verifyOtp(otp.join('')); }} className="space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground">{t('verifyTitle')}</h1>

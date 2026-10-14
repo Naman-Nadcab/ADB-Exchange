@@ -58,7 +58,9 @@
       "AUTH_ERROR": "Authentication failed. Please try again.",
       "INVALID_BODY": "Invalid request. Please refresh and try again.",
       "INVALID_INPUT": "Invalid input. Please check your details.",
-      "VALIDATION_ERROR": "Please check your input and try again."
+      "VALIDATION_ERROR": "Please check your input and try again.",
+      "LEGACY_AUTH_DISABLED": "This account uses wallet sign-in.",
+      "LEGACY_SIGNUP_CLOSED": "Connect your wallet to continue."
     }
   },
   "network": {

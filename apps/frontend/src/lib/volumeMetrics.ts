@@ -6,7 +6,7 @@
  *   - `base_volume_24h` = spot_trades base vol only (0 when no exchange trades)
  *
  * When base_volume_24h is zero but volume_24h is positive, volume is reference
- * candle data (external market), not FDM exchange turnover.
+ * candle data (external market), not ADB Exchange turnover.
  */
 
 export type VolumeSource = 'exchange' | 'reference';
@@ -35,7 +35,7 @@ export type AggregateVolumes = {
   referenceQuoteVolume: number;
 };
 
-/** Split summed quote volume by FDM trades vs reference candles. */
+/** Split summed quote volume by ADB Exchange trades vs reference candles. */
 export function splitAggregateVolumes(tickers: TickerVolumeFields[]): AggregateVolumes {
   let exchangeQuoteVolume = 0;
   let referenceQuoteVolume = 0;
@@ -50,7 +50,7 @@ export function splitAggregateVolumes(tickers: TickerVolumeFields[]): AggregateV
 }
 
 export function exchangeVolumeLabel(short = false): string {
-  return short ? 'FDM 24H Vol' : 'FDM 24H Volume';
+  return short ? '24H Vol' : '24H Volume';
 }
 
 export function referenceVolumeLabel(short = false): string {

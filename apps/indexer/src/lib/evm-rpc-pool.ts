@@ -34,6 +34,25 @@ export function getEvmRpcProvider(rpcUrl: string, chainId?: number): JsonRpcProv
   return provider;
 }
 
+const blockTimestampCache = new Map<string, number>();
+
+/** One eth_getBlockByNumber per block, shared by every log in that block. */
+export async function getCachedBlockTimestamp(
+  rpcUrl: string,
+  blockNumber: number,
+  chainId?: number
+): Promise<number | null> {
+  const key = `${rpcUrl}#${chainId ?? 0}#${blockNumber}`;
+  return coalesce(`blkts:${key}`, async () => {
+    const hit = blockTimestampCache.get(key);
+    if (hit != null) return hit;
+    const block = await getEvmRpcProvider(rpcUrl, chainId).getBlock(blockNumber);
+    const ts = block?.timestamp ?? null;
+    if (ts != null) blockTimestampCache.set(key, ts);
+    return ts;
+  });
+}
+
 export async function getCachedBlockNumber(rpcUrl: string, chainId?: number): Promise<number> {
   const key = `${rpcUrl}#${chainId ?? 0}`;
   return coalesce(`block:${key}`, async () => {

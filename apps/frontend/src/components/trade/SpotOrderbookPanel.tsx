@@ -573,16 +573,26 @@ export function SpotOrderbookPanel({
   const bookIsEmpty = !loading && bidRows.length === 0 && askRows.length === 0;
 
   const emptyBookMessage = (
-    <div className="flex flex-1 flex-col items-center justify-center px-3 py-5 text-center">
-      <p className="terminal-text-label font-semibold text-foreground">{tc('empty.noExecutableLiquidity')}</p>
-      <p className="mt-1.5 max-w-[15rem] text-label leading-snug text-muted-foreground">
-        {lastDisplay
-          ? tc('orderbook.emptyLiquidityDescWithRef', {
-              price: formatValueFixedTrim(lastDisplay, effectivePricePrecision),
-              quote: quoteAsset,
-            })
-          : tc('orderbook.emptyLiquidityDescNoRef')}
-      </p>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="mx-1.5 mt-1.5 shrink-0 rounded border border-border bg-muted/40 px-2 py-1.5 text-left">
+        <p className="terminal-text-label font-semibold text-foreground">{tc('empty.noExecutableLiquidity')}</p>
+        <p className="mt-0.5 text-label leading-snug text-muted-foreground">
+          {lastDisplay
+            ? tc('orderbook.emptyLiquidityDescWithRef', {
+                price: formatValueFixedTrim(lastDisplay, effectivePricePrecision),
+                quote: quoteAsset,
+              })
+            : tc('orderbook.emptyLiquidityDescNoRef')}
+        </p>
+      </div>
+      <div
+        className="mt-1 min-h-0 flex-1"
+        aria-hidden
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(to bottom, transparent 0, transparent 27px, hsl(var(--primary) / 0.16) 28px)',
+        }}
+      />
     </div>
   );
 
@@ -614,12 +624,12 @@ export function SpotOrderbookPanel({
   const midContent = (
     <div className="flex flex-col items-center gap-0.5 py-0.5">
       <div
-        className={`flex items-center justify-center gap-1 text-base font-bold leading-tight tracking-tight numeric ${midPriceClass}`}
+        className={`numeric flex items-center justify-center gap-1 text-[15px] font-semibold leading-tight tracking-tight ${midPriceClass}`}
       >
-        {lastMove === 'up' && <ChevronUp className="h-4 w-4 shrink-0 text-buy" strokeWidth={2.5} aria-hidden />}
-        {lastMove === 'down' && <ChevronDown className="h-4 w-4 shrink-0 text-sell" strokeWidth={2.5} aria-hidden />}
+        {lastMove === 'up' && <ChevronUp className="h-3.5 w-3.5 shrink-0 text-buy" strokeWidth={2.5} aria-hidden />}
+        {lastMove === 'down' && <ChevronDown className="h-3.5 w-3.5 shrink-0 text-sell" strokeWidth={2.5} aria-hidden />}
         <span>{formatValueFixedTrim(lastDisplay, effectivePricePrecision)}</span>
-        <span className="text-label font-semibold text-muted-foreground">{quoteAsset}</span>
+        <span className="font-sans text-[10px] font-medium text-muted-foreground">{quoteAsset}</span>
       </div>
       {(spreadAbs > 0 || spreadBps > 0) && (
         <p className="text-center terminal-text-label leading-none numeric text-muted-foreground">
@@ -913,7 +923,7 @@ export function SpotOrderbookPanel({
       {tab === 'ladder' ? (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <div className="border-b border-border bg-muted/50 px-1.5 py-1 dark:bg-muted/35">
-            <div className={`${COL_GRID} items-center numeric terminal-text-label font-semibold uppercase leading-none text-muted-foreground`}>
+            <div className={`${COL_GRID} items-center font-sans text-[10px] font-medium uppercase leading-none tracking-wide text-muted-foreground`}>
               <OrderbookColumnHeaders quoteAsset={quoteAsset} baseAsset={baseAsset} leftLabel={tc('orderbook.asksPriceLabel')} />
             </div>
           </div>
@@ -941,22 +951,32 @@ export function SpotOrderbookPanel({
       ) : tab === 'trades' ? (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <div className="border-b border-border bg-muted/50 px-1.5 py-1 dark:bg-muted/35">
-            <div className={`${COL_GRID} items-center numeric terminal-text-label font-semibold uppercase leading-none text-muted-foreground`}>
+            <div className={`${COL_GRID} items-center font-sans text-[10px] font-medium uppercase leading-none tracking-wide text-muted-foreground`}>
               <OrderbookColumnHeaders quoteAsset={quoteAsset} baseAsset={baseAsset} />
             </div>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain spot-rail-scroll [scrollbar-gutter:stable]">
             {recentTrades.length === 0 ? (
-              <div className="px-3 py-8 text-center">
-                <p className="text-label font-semibold text-muted-foreground">{tc('orderbook.noPublicTrades')}</p>
-                <p className="mx-auto mt-1.5 max-w-[14rem] text-label leading-snug text-muted-foreground/80">
-                  {lastDisplay
-                    ? tc('orderbook.noPublicTradesDescWithRef', {
-                        price: formatValueFixedTrim(lastDisplay, effectivePricePrecision),
-                        quote: quoteAsset,
-                      })
-                    : tc('orderbook.noPublicTradesDescNoRef')}
-                </p>
+              <div className="flex min-h-full flex-col">
+                <div className="mx-1.5 mt-1.5 shrink-0 rounded border border-border bg-muted/40 px-2 py-1.5 text-left">
+                  <p className="text-label font-semibold text-foreground">{tc('orderbook.noPublicTrades')}</p>
+                  <p className="mt-0.5 text-label leading-snug text-muted-foreground">
+                    {lastDisplay
+                      ? tc('orderbook.noPublicTradesDescWithRef', {
+                          price: formatValueFixedTrim(lastDisplay, effectivePricePrecision),
+                          quote: quoteAsset,
+                        })
+                      : tc('orderbook.noPublicTradesDescNoRef')}
+                  </p>
+                </div>
+                <div
+                  className="mt-1 min-h-[8rem] flex-1"
+                  aria-hidden
+                  style={{
+                    backgroundImage:
+                      'repeating-linear-gradient(to bottom, transparent 0, transparent 27px, hsl(var(--primary) / 0.16) 28px)',
+                  }}
+                />
               </div>
             ) : (
               recentTrades.slice(0, 48).map((t) => {
@@ -999,7 +1019,7 @@ export function SpotOrderbookPanel({
       ) : (
         <>
           <div className="border-b border-border bg-muted/60 px-2 py-2 dark:bg-muted/40">
-            <div className={`${COL_GRID} items-center numeric terminal-text-label font-bold uppercase tracking-wide text-muted-foreground`}>
+            <div className={`${COL_GRID} items-center font-sans text-[10px] font-medium uppercase leading-none tracking-wide text-muted-foreground`}>
               <OrderbookColumnHeaders quoteAsset={quoteAsset} baseAsset={baseAsset} />
             </div>
           </div>

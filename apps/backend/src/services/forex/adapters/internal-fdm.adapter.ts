@@ -9,11 +9,11 @@ export class InternalFdmBrokerAdapter implements BrokerAdapter {
   readonly providerType: ForexProviderType = 'INTERNAL_FDM';
 
   async connect(): Promise<void> {
-    /* In-process FDM is always on when the API worker is running. */
+    /* The in-process Forex adapter is on whenever the API worker is running. */
   }
 
   async disconnect(): Promise<void> {
-    /* No-op — shutting down FDM is a platform control, not an adapter toggle. */
+    /* No-op — shutting down Forex is a platform control, not an adapter toggle. */
   }
 
   async healthCheck(): Promise<BrokerAdapterHealth> {
@@ -46,7 +46,7 @@ export class InternalFdmBrokerAdapter implements BrokerAdapter {
 
     return {
       status: 'connected',
-      message: `Internal FDM · ${flags.executionMode} execution · ${md.symbols} symbols`,
+      message: `Internal Forex · ${flags.executionMode} execution · ${md.symbols} symbols`,
       checkedAt,
       latencyMs: md.intervalMs,
     };

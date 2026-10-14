@@ -78,7 +78,7 @@ async function main(): Promise<void> {
   mark(
     'TRADING_CONFIG',
     cfg.json.data?.orderTypes?.includes('stop_limit') === true &&
-      JSON.stringify(cfg.json.data?.timeInForce) === JSON.stringify(['GTC', 'IOC', 'FOK', 'DAY'])
+      JSON.stringify(cfg.json.data?.timeInForce) === JSON.stringify(['GTC', 'IOC', 'FOK', 'DAY', 'GTD', 'RETURN', 'BOC'])
   );
 
   const journal = await req('GET', '/api/v1/forex/journal', token);

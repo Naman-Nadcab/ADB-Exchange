@@ -14,7 +14,7 @@ export function ForexSystemPanel(props: {
 }) {
   const md = props.system?.marketData ?? props.config?.runtime.marketData;
   const ready = props.system?.readiness ?? props.config?.readiness;
-  const realForex = props.config?.runtime.realForex;
+  const realForex = props.config?.runtime.liveReleaseOpen === true;
 
   return (
     <div className="space-y-4">
@@ -52,7 +52,7 @@ export function ForexSystemPanel(props: {
             <InfoCell label="Position mode" value={props.config?.runtime.positionMode ?? '—'} mono />
             <InfoCell
               label="Live money path"
-              value={realForex ? 'Armed — real forex enabled' : 'Blocked — simulated only'}
+              value={realForex ? 'Release open' : 'Release closed — simulated money path'}
               ok={!realForex}
               danger={!!realForex}
             />

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForexCandles } from '@/lib/forex/runtime/useForexCandles';
+import { foldExecutableQuote, mergeLiveBar, type LiveBar } from '@/lib/forex/chart/live-bar';
 import { FOREX_CANDLE_RESERVED_TIMEFRAMES, isReservedForexTimeframe } from '@/lib/forex/models/candles';
 import { isQuoteStale } from '@/lib/forex/models/quotes';
 import { deriveDisplayConnection } from '@/lib/forex/selectors/connection';
@@ -252,6 +253,8 @@ export function ForexChartFoundation(props?: {
         ? storedTf
         : '15m';
   const candleView = useForexCandles(selected, requestedTf);
+  const liveBarRef = useRef<LiveBar | null>(null);
+  const liveKeyRef = useRef('');
   const timeframes = orderedTimeframes(candleView.supportedTimeframes.filter(isReservedForexTimeframe));
   const activeTf = timeframes.includes(requestedTf) ? requestedTf : timeframes[0] ?? requestedTf;
 
@@ -267,11 +270,41 @@ export function ForexChartFoundation(props?: {
   const digits = inst?.digits ?? 5;
   const pipSize = pipSizeFromInstrument({ pipSize: inst?.pipSize, digits });
 
+  const liveCandles = useMemo(() => {
+    if (candleView.status !== 'READY') {
+      liveBarRef.current = null;
+      return [];
+    }
+    const bid = quote ? Number(quote.bid) : NaN;
+    const ask = quote ? Number(quote.ask) : NaN;
+    if (!Number.isFinite(bid) || !Number.isFinite(ask) || ask < bid) {
+      return candleView.candles;
+    }
+    const seriesKey = `${selected}|${activeTf}`;
+    if (liveKeyRef.current !== seriesKey) {
+      liveKeyRef.current = seriesKey;
+      liveBarRef.current = null;
+    }
+    const nowSec = Math.floor((Date.parse(quote.providerTimestamp) || Date.now()) / 1000);
+    const previous = liveBarRef.current;
+    const folded = foldExecutableQuote({
+      history: candleView.candles,
+      previous,
+      bid,
+      ask,
+      timeframe: activeTf,
+      nowSec,
+    });
+    if (!folded) return candleView.candles;
+    liveBarRef.current = folded;
+    return mergeLiveBar(candleView.candles, folded, digits);
+  }, [candleView, quote, activeTf, selected, digits]);
+
   const lastClose = useMemo(() => {
-    if (candleView.status !== 'READY' || candleView.candles.length === 0) return null;
-    const n = Number(candleView.candles[candleView.candles.length - 1].close);
+    if (liveCandles.length === 0) return null;
+    const n = Number(liveCandles[liveCandles.length - 1]!.close);
     return Number.isFinite(n) && n > 0 ? n : null;
-  }, [candleView]);
+  }, [liveCandles]);
 
   const quoteOverlay = useMemo(() => {
     if (!quote) return null;
@@ -291,9 +324,9 @@ export function ForexChartFoundation(props?: {
         : null;
 
   const bars: FxBar[] = useMemo(() => {
-    if (candleView.status !== 'READY') return [];
+    if (liveCandles.length === 0) return [];
     const out: FxBar[] = [];
-    for (const c of candleView.candles) {
+    for (const c of liveCandles) {
       const ms = candleTimeMs(c.timestamp);
       if (ms == null) continue;
       const open = Number(c.open);
@@ -304,7 +337,7 @@ export function ForexChartFoundation(props?: {
       out.push({ time: Math.floor(ms / 1000), open, high, low, close });
     }
     return out;
-  }, [candleView]);
+  }, [liveCandles]);
 
   const lastBar = bars.length ? bars[bars.length - 1] : null;
   const ohlcDisplay =
@@ -776,7 +809,9 @@ export function ForexChartFoundation(props?: {
   } else if (candleView.status === 'READY') {
     banners.push({
       tone: 'neutral',
-      text: 'Historical data available · Live forming candle unavailable · Alerts LOCAL only.',
+      text: liveBarRef.current
+        ? 'Live · forming candle follows the executable quote.'
+        : 'Historical data available · Waiting for the executable quote.',
     });
   }
   // The executable quote and the reference candle series must share one price
@@ -945,7 +980,7 @@ export function ForexChartFoundation(props?: {
         ) : null}
         <div className={cn('relative flex min-h-0 min-w-0 flex-1 flex-col')}>
         <ForexLightweightChart
-          candles={candleView.status === 'READY' ? candleView.candles : []}
+          candles={liveCandles}
           quote={chartQuote}
           dark={dark}
           canvasLight={!embedded}

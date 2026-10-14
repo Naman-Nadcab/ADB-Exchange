@@ -18,7 +18,7 @@ export interface ForexWithdrawalRecord {
   status: 'REQUESTED' | 'POSTED' | 'REJECTED';
   transactionId: string | null;
   reason: string | null;
-  source: 'SIMULATED';
+  source: 'SIMULATED' | 'BROKER';
   createdAt: string;
   updatedAt: string;
 }

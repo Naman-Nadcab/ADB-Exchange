@@ -1,59 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/lib/routes';
-import { getApiBaseUrl } from '@/lib/getApiUrl';
-import { ForexPortalModuleCard, ForexPortalStatusBadge } from './ForexPortalKpiCard';
+import { ForexPortalStatusBadge } from './ForexPortalKpiCard';
 import { useForexProductGates } from '@/lib/forex/hooks/useForexProductGates';
+import { useForexLiveKycPolicy } from '@/lib/forex/hooks/useForexLiveKycPolicy';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
 
-type KycSnapshot = { verified: boolean; status: string } | null;
-
 export function ForexCustomerGuidanceBanner() {
   const t = useTranslations('forex.customerGuidance');
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const accessToken = useAuthStore((s) => s.accessToken);
   const authed = isAuthenticated || hasForexPrivateSession();
   const accounts = useForexStore((s) => s.forexAccounts);
   const account = useForexStore((s) => s.account);
   const balance = useForexStore((s) => s.balance);
   const { gates } = useForexProductGates();
-  const [kyc, setKyc] = useState<KycSnapshot>(null);
-  const [kycLoading, setKycLoading] = useState(false);
-
-  useEffect(() => {
-    if (!authed) {
-      setKyc(null);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      setKycLoading(true);
-      try {
-        const res = await fetch(`${getApiBaseUrl()}/api/v1/wallet/kyc-status`, {
-          credentials: 'include',
-          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-        });
-        if (!res.ok || cancelled) return;
-        const data = await res.json();
-        if (data.success && data.data) {
-          setKyc({ verified: Boolean(data.data.verified), status: String(data.data.status ?? 'unknown') });
-        }
-      } catch {
-        if (!cancelled) setKyc(null);
-      } finally {
-        if (!cancelled) setKycLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [authed, accessToken]);
+  const kycPolicy = useForexLiveKycPolicy();
 
   if (!authed) return null;
 
@@ -92,7 +58,7 @@ export function ForexCustomerGuidanceBanner() {
       title: t('liveUnavailableTitle'),
       body: t('liveUnavailableBody'),
     });
-  } else if (kyc && !kyc.verified && !kycLoading) {
+  } else if (kycPolicy.kycRequired && !kycPolicy.kycVerified && !kycPolicy.loading) {
     items.push({
       key: 'kyc',
       tone: 'warning',
@@ -105,37 +71,34 @@ export function ForexCustomerGuidanceBanner() {
 
   if (items.length === 0) {
     return (
-      <ForexPortalModuleCard title={t('allSetTitle')} accent>
+      <div className="flex flex-wrap items-center gap-2 rounded border border-buy/30 bg-buy/10 px-3 py-2">
         <ForexPortalStatusBadge tone="success">{t('allSetBadge')}</ForexPortalStatusBadge>
-        <p className="mt-2 text-sm text-muted-foreground">{t('allSetBody')}</p>
-      </ForexPortalModuleCard>
+        <p className="min-w-0 text-[12px] text-foreground">{t('allSetTitle')}</p>
+        <p className="hidden text-[11px] text-muted-foreground sm:block">{t('allSetBody')}</p>
+      </div>
     );
   }
 
   return (
-    <ForexPortalModuleCard title={t('checklistTitle')} subtitle={t('checklistSubtitle')} accent>
-      <ul className="space-y-3">
-        {items.map((item) => (
-          <li key={item.key} className="rounded border border-border/70 bg-muted/10 px-3 py-2.5">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div className="min-w-0">
-                <ForexPortalStatusBadge tone={item.tone === 'success' ? 'success' : item.tone === 'warning' ? 'warning' : 'neutral'}>
-                  {item.title}
-                </ForexPortalStatusBadge>
-                <p className="mt-1.5 text-[12px] leading-snug text-muted-foreground">{item.body}</p>
-              </div>
-              {item.href && item.cta ? (
-                <Link
-                  href={item.href}
-                  className="shrink-0 rounded border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold text-primary"
-                >
-                  {item.cta}
-                </Link>
-              ) : null}
-            </div>
-          </li>
-        ))}
-      </ul>
-    </ForexPortalModuleCard>
+    <ul className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+      {items.map((item) => (
+        <li key={item.key} className="flex items-center justify-between gap-2 rounded border border-border bg-card px-3 py-2">
+          <div className="min-w-0">
+            <ForexPortalStatusBadge tone={item.tone === 'success' ? 'success' : item.tone === 'warning' ? 'warning' : 'neutral'}>
+              {item.title}
+            </ForexPortalStatusBadge>
+            <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-muted-foreground">{item.body}</p>
+          </div>
+          {item.href && item.cta ? (
+            <Link
+              href={item.href}
+              className="shrink-0 rounded border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary"
+            >
+              {item.cta}
+            </Link>
+          ) : null}
+        </li>
+      ))}
+    </ul>
   );
 }

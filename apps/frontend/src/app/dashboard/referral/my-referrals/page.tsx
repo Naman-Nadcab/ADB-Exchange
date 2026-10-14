@@ -28,7 +28,7 @@ interface ReferralRow {
   total_commission_earned: string;
   created_at: string;
   username: string | null;
-  email: string;
+  email: string | null;
 }
 
 interface CommissionRow {
@@ -57,6 +57,7 @@ export default function MyReferralsPage() {
   const { fromApi, networkUnreachable } = useApiErrorMessage();
   const tn = useTranslations('common.notifications');
   const tt = useTranslations('account.toasts');
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const { accessToken, _hasHydrated } = useAuthStore();
   const [signupTab, setSignupTab] = useState<SignupTab>('signups');
@@ -480,7 +481,7 @@ export default function MyReferralsPage() {
               <tbody>
                 {referrals.map((r, i) => (
                   <tr key={i} className="border-b border-border/50">
-                    <td className="px-6 py-3 text-foreground">{r.email}</td>
+                    <td className="px-6 py-3 text-foreground">{r.email?.trim() ? r.email : tCommon('states.notAdded')}</td>
                     <td className="px-6 py-3 text-muted-foreground">{r.username || '—'}</td>
                     <td className="px-6 py-3">
                       <span className={`text-xs px-2 py-1 rounded ${r.status === 'active' ? 'bg-green-500/20 text-green-500' : 'bg-amber-500/20 text-amber-500'}`}>{r.status}</span>
@@ -606,7 +607,7 @@ export default function MyReferralsPage() {
 
           {/* Copyright */}
           <div className="pt-6 border-t border-border flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
-            <span>© 2018-2026 FDM. All rights reserved.</span>
+            <span>© 2018-2026 ADB Exchange. All rights reserved.</span>
             <Link href="/terms" className="hover:text-foreground">{t('footerTerms')}</Link>
             <Link href="/privacy" className="hover:text-foreground">{t('footerPrivacy')}</Link>
           </div>

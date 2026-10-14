@@ -198,8 +198,8 @@ export default function ApiPage() {
   };
 
   return (
-    <div className="p-4 lg:p-8 bg-background min-h-full">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-full bg-background">
+      <div>
         {/* Banner */}
         <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 rounded-xl px-6 py-4 mb-8">
           <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10"></div>

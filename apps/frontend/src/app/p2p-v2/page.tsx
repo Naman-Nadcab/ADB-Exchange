@@ -22,6 +22,7 @@ import {
   p2pAdSide,
   formatFiatSymbol,
   formatP2pFiatPrice,
+  formatP2pCryptoQty,
 } from '@/lib/p2p-v2-utils';
 import {
   X, Shield, TrendingUp, TrendingDown,
@@ -125,7 +126,7 @@ function TakeOrderModal({
           <span className="mx-2 text-border/40">·</span>
           {tp('modal.limits')}{' '}
           <span className="numeric font-semibold tabular-nums text-foreground">
-            {sym}{formatP2pFiatPrice(min, fiat)} – {sym}{formatP2pFiatPrice(max, fiat)}
+            {formatP2pCryptoQty(String(min))} – {formatP2pCryptoQty(String(max))} {ad.crypto_symbol}
           </span>
         </div>
 
@@ -191,7 +192,7 @@ export default function P2PV2MarketplacePage() {
   const [filters, setFilters] = useState<P2PFiltersValue>({
     side: 'buy',
     crypto: 'USDT',
-    fiat: 'INR',
+    fiat: 'USD',
     paymentCode: '',
   });
   const [modalAd, setModalAd] = useState<P2PAdRow | null>(null);
@@ -201,7 +202,10 @@ export default function P2PV2MarketplacePage() {
     queryKey: [...P2P_V2_ADS_KEY, filters],
     queryFn: () =>
       fetchP2PAds({
-        type: filters.side,
+        // `filters.side` is the customer's intent; the API's `type` is the advertiser's side.
+        // A customer who wants to BUY must be shown SELL ads (and vice versa) — the ads table
+        // and trade modal already label a sell ad with the "Buy" action.
+        type: filters.side === 'buy' ? 'sell' : 'buy',
         currency: filters.crypto,
         fiat: filters.fiat,
         limit: 50,

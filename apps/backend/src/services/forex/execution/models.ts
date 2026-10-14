@@ -22,7 +22,7 @@ export interface ForexFill {
   price: string;
   volume: string;
   timestamp: string;
-  liquiditySource: 'MOCK';
+  liquiditySource: 'MOCK' | 'BROKER';
 }
 
 export interface ForexExecutionEvent {
@@ -51,7 +51,7 @@ export interface ForexExecutionRecord {
   filledVolume: string;
   remainingVolume: string;
   failureReason: ForexExecReason | null;
-  source: 'SIMULATED';
+  source: 'SIMULATED' | 'LIVE';
   attempts: ForexExecutionAttempt[];
   fills: ForexFill[];
   events: ForexExecutionEvent[];

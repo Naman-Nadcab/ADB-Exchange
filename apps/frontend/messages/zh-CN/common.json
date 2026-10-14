@@ -88,7 +88,8 @@
   "states": {
     "loading": "加载中…",
     "noData": "暂无数据",
-    "somethingWrong": "出现错误"
+    "somethingWrong": "出现错误",
+    "notAdded": "未添加"
   },
   "notifications": {
     "errorTitle": "Error",

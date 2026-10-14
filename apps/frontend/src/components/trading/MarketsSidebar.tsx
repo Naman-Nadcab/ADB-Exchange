@@ -241,9 +241,9 @@ export function MarketsSidebar({
         >
           {isTerminal ? (
             <colgroup>
-              <col className="w-[44%]" />
-              <col className="w-[33%]" />
-              <col className="w-[23%]" />
+              <col className="w-[48%]" />
+              <col className="w-[32%]" />
+              <col className="w-[20%]" />
             </colgroup>
           ) : null}
           <thead
@@ -256,7 +256,7 @@ export function MarketsSidebar({
             <tr
               className={
                 isTerminal
-                  ? 'text-label font-semibold uppercase leading-none text-muted-foreground'
+                  ? 'font-sans text-[10px] font-medium normal-case leading-none tracking-normal text-muted-foreground'
                   : 'font-medium text-muted-foreground'
               }
             >
@@ -396,7 +396,7 @@ export function MarketsSidebar({
                         )}
                         <CoinIcon symbol={m.base_asset} size={16} className="shrink-0" />
                         <span
-                          className="min-w-0 truncate terminal-text-table font-semibold tracking-tight text-foreground"
+                          className="min-w-0 truncate font-mono text-[11px] font-medium tabular-nums tracking-tight text-foreground"
                           title={`${m.base_asset}/${m.quote_asset}`}
                         >
                           {m.base_asset}
@@ -405,7 +405,7 @@ export function MarketsSidebar({
                       </div>
                     </td>
                     <td
-                      className={`numeric whitespace-nowrap text-right font-medium ${cellY} ${pxMid} text-foreground ${isTerminal ? 'text-price' : 'text-label'}`}
+                      className={`numeric whitespace-nowrap text-right font-medium ${cellY} ${pxMid} text-foreground ${isTerminal ? 'text-[11px]' : 'text-label'}`}
                     >
                       {m.last_price != null ? (
                         <>
@@ -424,7 +424,7 @@ export function MarketsSidebar({
                       ) : null}
                     </td>
                     <td
-                      className={`numeric whitespace-nowrap text-right font-semibold ${cellY} ${isTerminal ? 'px-1 text-price' : 'px-2 text-label'} ${changeToneClass}`}
+                      className={`numeric whitespace-nowrap text-right font-medium ${cellY} ${isTerminal ? 'px-1 text-[11px]' : 'px-2 text-label'} ${changeToneClass}`}
                     >
                       {formatMoverChangePct(change)}
                     </td>

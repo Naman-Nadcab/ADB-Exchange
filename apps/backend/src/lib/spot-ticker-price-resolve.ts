@@ -1,7 +1,23 @@
 /**
  * Unified last-price resolution for spot tickers (REST bulk + per-symbol + WS hydrate).
- * External-liquidity model: prefer fresh oracle (market_prices) over stale internal tape.
+ * Display last prefers a fresh oracle. Execution stays on the internal book:
+ * an oracle price is never a fill.
  */
+
+/** Drop a 24h high/low/open that is not a real print near the displayed last. */
+export function referenceStatNearLast(
+  stat: string | null | undefined,
+  last: string | null | undefined,
+  band = 0.25
+): string | null {
+  if (stat == null || stat === '' || stat === '0') return null;
+  const n = Number(stat);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  const l = Number(last ?? '');
+  if (!Number.isFinite(l) || l <= 0) return String(stat);
+  if (Math.abs(n - l) / l > band) return null;
+  return String(stat);
+}
 
 export type SpotLastPriceSource = 'oracle' | 'trade' | 'candle' | 'none';
 
@@ -43,7 +59,7 @@ function validPrice(p: string | null | undefined): string | null {
 
 /**
  * Priority:
- * 1. Fresh oracle (market_prices) — global reference for external-liquidity exchanges
+ * 1. Fresh oracle (market_prices) — display reference, not a fill
  * 2. Fresh internal trade / market last
  * 3. 1m candle close
  * 4. Previous snapshot

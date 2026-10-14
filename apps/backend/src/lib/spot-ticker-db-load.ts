@@ -1,11 +1,39 @@
 /**
  * Shared DB reads for spot ticker (REST + WS subscribe snapshot).
  * Uses same schema branching as GET /spot/ticker/:symbol (market vs trading_pair_id).
- * When no trades: last_price prefers latest 1m candle close (same series as default chart), then oracle, then any candle.
+ * Display last prefers a fresh oracle. 24h high/low/open follow that last:
+ * exchange prints when the tape is fresh, otherwise the 1m reference window.
  */
 import { db } from './database.js';
 import { getSpotMarketsHasLastPrice, getSpotTradesUseMarket } from './spot-schema-cache.js';
 import { resolveSpotLastPrice, type SpotLastPriceSource } from './spot-ticker-price-resolve.js';
+
+export type Reference24h = { high: string; low: string; open: string };
+
+/** Rolling 1m high/low/open for the markets list. Same window as the per-symbol ticker. */
+export async function loadReference24hBySymbol(symbols: string[]): Promise<Map<string, Reference24h>> {
+  const unique = [...new Set(symbols.filter((s) => typeof s === 'string' && s.length > 0))];
+  const out = new Map<string, Reference24h>();
+  if (!unique.length) return out;
+  const r = await db.query<{ symbol: string; high: string; low: string; open: string }>(
+    `SELECT tp.symbol,
+            MAX(oc.high_price)::text AS high,
+            MIN(oc.low_price)::text AS low,
+            (array_agg(oc.open_price ORDER BY oc.open_time ASC))[1]::text AS open
+     FROM ohlcv_candles oc
+     JOIN trading_pairs tp ON tp.id = oc.trading_pair_id
+     WHERE oc.interval_type = '1m'
+       AND oc.open_time >= NOW() - INTERVAL '24 hours'
+       AND tp.symbol = ANY($1::text[])
+     GROUP BY tp.symbol`,
+    [unique]
+  );
+  for (const row of r.rows) {
+    if (!row.symbol) continue;
+    out.set(row.symbol, { high: row.high, low: row.low, open: row.open });
+  }
+  return out;
+}
 
 export type SpotTickerDbStats = {
   last_price: string | null;
@@ -161,7 +189,7 @@ async function fallback24hFrom1mCandles(
   const sane = (n: number) =>
     ref == null || !Number.isFinite(ref) || ref <= 0 || (Math.abs(n - ref) / ref <= 0.25 && n > 0);
 
-  const openRow = r.rows[0]!;
+  const openRow = r.rows.find((row) => sane(Number(row.open_price))) ?? r.rows[0]!;
   const openTimeMs = Date.parse(String(openRow.open_time));
   let high = -Infinity;
   let low = Infinity;
@@ -172,7 +200,7 @@ async function fallback24hFrom1mCandles(
     const v = Number(row.volume);
     if (Number.isFinite(h) && sane(h)) high = Math.max(high, h);
     if (Number.isFinite(l) && sane(l)) low = Math.min(low, l);
-    if (Number.isFinite(v) && v > 0) vol += v;
+    if (Number.isFinite(v) && v > 0 && sane(h) && sane(l)) vol += v;
   }
 
   if (!Number.isFinite(high) || !Number.isFinite(low)) {
@@ -345,16 +373,10 @@ export async function loadSpotTickerDbStats(symbol: string): Promise<SpotTickerD
     if (fb.high) highPrice = fb.high;
     if (fb.low) lowPrice = fb.low;
     if (fb.open) openPrice = fb.open;
-    if (fb.volume) {
-      const base = parseFloat(fb.volume);
-      const px = parseFloat(lastPrice ?? '');
-      if (Number.isFinite(base) && base > 0) {
-        baseVol = fb.volume;
-        volPrice = Number.isFinite(px) && px > 0 ? String(base * px) : fb.volume;
-      }
-    }
   };
 
+  const tapeQuote = s?.quote_volume ?? '0';
+  const tapeBase = s?.base_volume ?? '0';
   const oracleDrivenLast = lastPriceSource === 'oracle' || lastPriceSource === 'candle';
   if (oracleDrivenLast) {
     applyReference24h(await fallback24hStats(symbol, refFor24h));
@@ -362,12 +384,12 @@ export async function loadSpotTickerDbStats(symbol: string): Promise<SpotTickerD
     highPrice = tradeFresh && s?.high && s.high !== '0' ? s.high : null;
     lowPrice = tradeFresh && s?.low && s.low !== '0' ? s.low : null;
     openPrice = tradeFresh ? (s?.open_24h ?? null) : null;
-    volPrice = tradeFresh ? (s?.quote_volume ?? '0') : '0';
-    baseVol = tradeFresh ? (s?.base_volume ?? '0') : '0';
-    if (!highPrice || !openPrice || volPrice === '0' || baseVol === '0') {
+    if (!highPrice || !openPrice) {
       applyReference24h(await fallback24hStats(symbol, refFor24h));
     }
   }
+  volPrice = tapeQuote;
+  baseVol = tapeBase;
 
   // Guard against tiny anomalous prints polluting 24h fields (common in QA/local when
   // a single synthetic fill is far from market). If drift is extreme at very low volume,
@@ -388,8 +410,6 @@ export async function loadSpotTickerDbStats(symbol: string): Promise<SpotTickerD
       openPrice = null;
       highPrice = null;
       lowPrice = null;
-      volPrice = '0';
-      baseVol = '0';
     }
   }
 

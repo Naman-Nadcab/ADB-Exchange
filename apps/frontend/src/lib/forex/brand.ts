@@ -1,5 +1,5 @@
 /**
- * FDM Forex product labels. Master brand lives in `@/lib/brand`.
+ * Forex product labels. Master brand lives in `@/lib/brand`.
  */
 import { BRAND_NAME_SHORT, BRAND_PRODUCT } from '@/lib/brand';
 

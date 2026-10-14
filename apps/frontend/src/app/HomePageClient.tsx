@@ -698,7 +698,7 @@ export default function HomePageClient() {
               <div className="rounded-xl border border-[#F5B8001F] bg-[#05070B] p-3 text-xs text-[#9CA3AF]">
                 <span className="text-white">Market Insight: </span>
                 {topMover?.symbol
-                  ? `${topMover.symbol.replace('_', '/')} leads ${topMover.volumeSource === 'reference' ? 'reference market' : 'FDM'} volume at ${compact(topMover.volume24h)}.`
+                  ? `${topMover.symbol.replace('_', '/')} leads ${topMover.volumeSource === 'reference' ? 'reference market' : 'ADB Exchange'} volume at ${compact(topMover.volume24h)}.`
                   : 'Market feed initializing.'}
               </div>
             </div>
@@ -832,7 +832,7 @@ export default function HomePageClient() {
             { icon: Shield, title: 'Security', text: 'Multi-layer account protection with 2FA, session management, and withdrawal safeguards.' },
             { icon: Zap, title: 'Execution', text: 'Spot order entry with live order book, trades, and chart data on each pair.' },
             { icon: Activity, title: 'Reliability', text: 'Service health checks for core exchange components, shown on this page.' },
-            { icon: Database, title: 'Market Data', text: 'Live spot prices with separate labels for FDM and reference volume.' },
+            { icon: Database, title: 'Market Data', text: 'Live spot prices, with ADB Exchange volume labeled separately from reference volume.' },
             { icon: Sparkles, title: 'User Experience', text: 'Browse markets without an account; sign in to trade, fund, and manage orders.' },
             { icon: Server, title: 'Infrastructure', text: 'Matching engine, database, cache, and messaging monitored continuously.' },
           ].map((f) => (
@@ -901,7 +901,7 @@ export default function HomePageClient() {
         <section className="rounded-2xl border border-[#F5B8001F] bg-[#0D1118] p-6">
           <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
             <div>
-              <p className="text-xs uppercase tracking-[0.12em] text-[#F5B800]">Earn on FDM</p>
+              <p className="text-xs uppercase tracking-[0.12em] text-[#F5B800]">Earn on ADB Exchange</p>
               <h2 className="mt-2 text-2xl font-semibold sm:text-3xl">Yield products in phased rollout.</h2>
               <p className="mt-3 text-sm text-[#9CA3AF]">
                 Earn launches after internal validation with clear rate disclosures and risk controls. Track progress

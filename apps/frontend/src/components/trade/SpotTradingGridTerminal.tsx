@@ -1555,7 +1555,7 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
           </div>
 
           <nav
-            className="spot-terminal-mobile-tabs md:hidden flex shrink-0 items-stretch border-t border-border bg-card"
+            className="spot-terminal-mobile-tabs shrink-0 items-stretch border-t border-border bg-card"
             role="tablist"
             aria-label={tChrome('panelsAria')}
           >

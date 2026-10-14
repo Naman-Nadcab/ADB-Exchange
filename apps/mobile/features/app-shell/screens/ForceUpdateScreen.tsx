@@ -6,7 +6,7 @@ export function ForceUpdateScreen() {
     <ShellStateScreen
       testID="S-001"
       title="Update Required"
-      message="A new version of FDM is required to continue."
+      message="A new version of ADB Exchange is required to continue."
       icon="arrow-up-circle-outline"
       actionLabel="Open App Store"
       onAction={() => Linking.openURL('https://app.metheorium.com')}

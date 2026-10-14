@@ -222,7 +222,7 @@ export default function SecuritySessionsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl p-4 lg:p-6">
+    <div>
       <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
         <Link href="/dashboard/security" className="hover:text-primary">
           {ts('breadcrumbSecurity')}

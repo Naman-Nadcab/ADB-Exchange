@@ -9,9 +9,9 @@ export async function persistOrder(record: ForexOrderRecord, client?: ForexQuery
     `INSERT INTO forex_orders (
        order_id, client_order_id, client_exec_id, account_id, fingerprint, symbol, side, order_type,
        requested_volume, filled_volume, remaining_volume, requested_price, max_slippage, max_deviation,
-       status, failure_reason, execution_id, fill_ids, request_json, limit_price, time_in_force, expire_at, source, execution_mode
+       status, failure_reason, execution_id, fill_ids, request_json, limit_price, time_in_force, expire_at, source, execution_mode, venue_order_id
      ) VALUES (
-       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,'SIMULATED','MOCK'
+       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25
      )
      ON CONFLICT (order_id) DO UPDATE SET
        order_type = EXCLUDED.order_type,
@@ -27,6 +27,9 @@ export async function persistOrder(record: ForexOrderRecord, client?: ForexQuery
        failure_reason = EXCLUDED.failure_reason,
        execution_id = EXCLUDED.execution_id,
        fill_ids = EXCLUDED.fill_ids,
+       source = EXCLUDED.source,
+       execution_mode = EXCLUDED.execution_mode,
+       venue_order_id = EXCLUDED.venue_order_id,
        updated_at = CURRENT_TIMESTAMP`,
     [
       record.orderId,
@@ -51,6 +54,9 @@ export async function persistOrder(record: ForexOrderRecord, client?: ForexQuery
       record.limitPrice,
       record.timeInForce,
       record.expireAt,
+      record.source,
+      record.executionMode,
+      record.venueOrderId,
     ]
   );
 }
@@ -134,8 +140,9 @@ function rowToOrder(row: Record<string, unknown>, events: ForexOrderEvent[] = []
     failureReason: row.failure_reason == null ? null : (str(row.failure_reason) as ForexOrderReason),
     executionId: row.execution_id == null ? null : str(row.execution_id),
     fillIds,
-    source: 'SIMULATED',
-    executionMode: 'MOCK',
+    source: row.source === 'LIVE' ? 'LIVE' : 'SIMULATED',
+    executionMode: row.execution_mode === 'BROKER' ? 'BROKER' : 'MOCK',
+    venueOrderId: row.venue_order_id == null ? null : str(row.venue_order_id),
     events,
     version: Number(row.version ?? 1) || 1,
     lastQuoteKey: row.last_quote_key == null ? null : str(row.last_quote_key),

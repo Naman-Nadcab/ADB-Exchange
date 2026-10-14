@@ -14,6 +14,8 @@ import {
   forexPendingTriggerEvaluationsTotal,
   forexRiskRejectionTotal,
 } from '../../../lib/forex-prometheus-metrics.js';
+import { isLiveForexAccount, loadForexAccountKind } from '../broker/account-kind.js';
+import { brokerOrdersReady, getBrokerGateway, type BrokerOrderResult } from '../broker/gateway.js';
 import { fxDecimal } from '../decimal-fx.js';
 import { ForexExecutionError } from '../execution/models.js';
 import type { ForexExecutionRecord, ForexFill } from '../execution/models.js';
@@ -59,6 +61,7 @@ import { ForexOrderStore } from './store.js';
 import { isForexDemoMockSessionBypassActive } from '../sessions/demo-bypass.js';
 import { isForexTradingEligible } from '../sessions/eligibility.js';
 import { getForexInstrumentBySymbol } from '../instruments.catalog.js';
+import { bocLimitWouldTake } from './fill-policy.js';
 import { validateForexOrderRequest } from './validate.js';
 
 /**
@@ -144,7 +147,7 @@ export class ForexOrderService {
     return this.listOwned(accountId).filter((o) => isPendingWorkingStatus(o.status));
   }
 
-  listFills(accountId: string): Array<{ fillId: string; orderId: string; symbol: string; side: string; volume: string; price: string; timestamp: string; source: 'SIMULATED' }> {
+  listFills(accountId: string): Array<{ fillId: string; orderId: string; symbol: string; side: string; volume: string; price: string; timestamp: string; source: 'SIMULATED' | 'LIVE' }> {
     const out = [];
     for (const order of this.listOwned(accountId)) {
       const exec = this.execution.get(order.clientExecId);
@@ -158,7 +161,7 @@ export class ForexOrderService {
           volume: f.volume,
           price: f.price,
           timestamp: f.timestamp,
-          source: 'SIMULATED' as const,
+          source: f.liquiditySource === 'BROKER' ? ('LIVE' as const) : ('SIMULATED' as const),
         });
       }
     }
@@ -179,9 +182,11 @@ export class ForexOrderService {
       forexPendingTriggerEvaluationsTotal.inc({ result: 'rejected_quote' });
       return;
     }
-    const pending = this.store
-      .listOpen()
-      .filter((o) => o.symbol === quote.symbol && isPendingWorkingStatus(o.status));
+    const pending = this.store.listOpen().filter((o) => {
+      if (o.symbol !== quote.symbol || !isPendingWorkingStatus(o.status)) return false;
+      const live = isLiveForexAccount(o.accountId);
+      return quote.source === 'LIVE' ? live : !live;
+    });
     for (const order of pending) {
       await this.store.enqueue(order.accountId, order.orderId, () => this.evaluateOne(order, quote));
     }
@@ -334,6 +339,22 @@ export class ForexOrderService {
     order.symbol = pre.symbol;
     order.request.symbol = pre.symbol;
 
+    const kind = await loadForexAccountKind(accountId);
+    if (kind === 'LIVE') {
+      order.source = 'LIVE';
+      order.executionMode = 'BROKER';
+      const gateway = getBrokerGateway();
+      const health = await gateway.health();
+      if (!brokerOrdersReady(health)) {
+        return await this.finish(order, 'REJECTED', 'LIVE_BROKER_UNAVAILABLE', started, 'Broker gateway is not ready');
+      }
+      await gateway.refreshQuotes([pre.symbol]);
+      const liveQuote = gateway.getQuote(pre.symbol);
+      if (!quoteUsableForTrigger(liveQuote)) {
+        return await this.finish(order, 'REJECTED', 'STALE_MARKET', started, 'Broker quote is missing or stale');
+      }
+    }
+
     if (this.positions) {
       const gate = this.riskGate(accountId, pre.symbol, req.side, req.volume, req.intent ?? 'CUSTOMER', this.riskRequest(req));
       if (!gate.ok) {
@@ -345,6 +366,42 @@ export class ForexOrderService {
       }
     }
 
+    if (order.timeInForce === 'BOC' && req.orderType === 'limit') {
+      const quote = isLiveForexAccount(accountId)
+        ? getBrokerGateway().getQuote(pre.symbol)
+        : this.pricing?.getQuote(pre.symbol);
+      if (!quoteUsableForTrigger(quote)) {
+        return await this.finish(order, 'REJECTED', 'STALE_MARKET', started, 'BOC needs a fresh executable quote');
+      }
+      if (req.requestedPrice && quote && bocLimitWouldTake(req.side, req.requestedPrice, quote)) {
+        return await this.finish(order, 'REJECTED', 'BOC_WOULD_TAKE', started, 'BOC rejects a limit that would take liquidity');
+      }
+    }
+
+    if (isForexPendingOrderType(req.orderType) && isLiveForexAccount(accountId)) {
+      const placed = await getBrokerGateway().placeOrder({
+        clientOrderId: order.clientExecId,
+        accountId,
+        symbol: pre.symbol,
+        side: req.side,
+        volume: req.volume,
+        price: req.requestedPrice,
+      });
+      if (placed.status === 'filled' && placed.avgPrice) {
+        order.venueOrderId = placed.venueOrderId;
+        this.transition(order, 'ROUTING');
+        this.emit(order, 'ORDER_ROUTING');
+        this.transition(order, 'SUBMITTED');
+        this.emit(order, 'ORDER_SUBMITTED', { metadata: { clientExecId: order.clientExecId } });
+        return this.bookBrokerFill(order, req, pre.symbol, placed, started);
+      }
+      if (placed.status !== 'working' || !placed.venueOrderId) {
+        const reason = placed.reason === 'LIVE_BROKER_UNAVAILABLE' ? 'LIVE_BROKER_UNAVAILABLE' : 'BROKER_REJECTED';
+        return await this.finish(order, 'REJECTED', reason, started, placed.reason ?? 'Broker rejected the order');
+      }
+      order.venueOrderId = placed.venueOrderId;
+    }
+
     if (isForexPendingOrderType(req.orderType)) {
       this.transition(order, 'ACCEPTED');
       this.emit(order, 'ORDER_ACCEPTED');
@@ -354,8 +411,10 @@ export class ForexOrderService {
       await this.persistPending(order);
       this.publish(order, 'fx.order.pending');
       this.refreshPendingGauge();
-      const quote = this.pricing?.getQuote(order.symbol);
-      if (quote) await this.evaluateOne(order, quote, started);
+      const quote = isLiveForexAccount(accountId)
+        ? getBrokerGateway().getQuote(order.symbol)
+        : this.pricing?.getQuote(order.symbol);
+      if (!order.venueOrderId && quote) await this.evaluateOne(order, quote, started);
       return this.store.get(order.orderId) ?? order;
     }
 
@@ -377,6 +436,17 @@ export class ForexOrderService {
       throw new ForexOrderError('CANCEL_NOT_SUPPORTED', 'Order is already terminal', 409);
     }
     if (order.status === 'NEW' || isPendingWorkingStatus(order.status) || order.status === 'TRIGGERING') {
+      if (order.venueOrderId && order.executionMode === 'BROKER') {
+        const venue = await getBrokerGateway().cancelOrder({
+          clientOrderId: order.clientExecId,
+          accountId: order.accountId,
+          venueOrderId: order.venueOrderId,
+        });
+        if (venue.status !== 'cancelled') {
+          forexCancelReplaceTotal.inc({ result: 'rejected' });
+          throw new ForexOrderError('CANCEL_NOT_SUPPORTED', venue.reason ?? 'Broker cancel was not accepted', 409);
+        }
+      }
       this.emit(order, 'ORDER_CANCEL_REQUESTED');
       this.transition(order, 'CANCELLED');
       this.emit(order, 'ORDER_CANCELLED');
@@ -445,6 +515,24 @@ export class ForexOrderService {
         throw new ForexOrderError('RISK_REJECTED', gate.reason ?? 'risk limit', 400);
       }
     }
+    if (order.venueOrderId && order.executionMode === 'BROKER') {
+      const venue = await getBrokerGateway().modifyOrder({
+        clientOrderId: order.clientExecId,
+        accountId: order.accountId,
+        venueOrderId: order.venueOrderId,
+        volume: nextReq.volume,
+        price: nextReq.requestedPrice,
+      });
+      if (venue.status === 'filled' && venue.avgPrice) {
+        order.venueOrderId = venue.venueOrderId ?? order.venueOrderId;
+        return this.adoptBrokerFill(order, nextReq, venue, Date.now());
+      }
+      if (venue.status !== 'working') {
+        forexOrderModifyTotal.inc({ result: 'rejected' });
+        throw new ForexOrderError('MODIFY_NOT_SUPPORTED', venue.reason ?? 'Broker modify was not accepted', 409);
+      }
+      if (venue.venueOrderId) order.venueOrderId = venue.venueOrderId;
+    }
     order.request = { ...nextReq, symbol: pre.symbol };
     order.symbol = pre.symbol;
     order.requestedVolume = nextReq.volume;
@@ -480,6 +568,7 @@ export class ForexOrderService {
   }
 
   private async evaluateOne(order: ForexOrderRecord, quote: ForexQuoteDto, started = Date.now()): Promise<void> {
+    if (order.venueOrderId && order.executionMode === 'BROKER') return;
     if (!isPendingWorkingStatus(order.status)) return;
     const key = quoteKey(quote);
     if (order.lastQuoteKey === key) {
@@ -494,6 +583,10 @@ export class ForexOrderService {
     if (!isPendingTriggered(order, quote)) {
       forexPendingTriggerEvaluationsTotal.inc({ result: 'not_met' });
       await this.persistNow(order);
+      return;
+    }
+    if (order.timeInForce === 'BOC') {
+      await this.cancelBocTake(order);
       return;
     }
     const instrument = getForexInstrumentBySymbol(order.symbol);
@@ -528,7 +621,15 @@ export class ForexOrderService {
     this.refreshPendingGauge();
 
     if (this.positions) {
-      const gate = this.riskGate(order.accountId, order.symbol, order.side, order.requestedVolume, order.request.intent ?? 'CUSTOMER', this.riskRequest(order.request));
+      const gate = this.riskGate(
+        order.accountId,
+        order.symbol,
+        order.side,
+        order.requestedVolume,
+        order.request.intent ?? 'CUSTOMER',
+        this.riskRequest(order.request),
+        isLiveForexAccount(order.accountId) ? quote : undefined
+      );
       if (!gate.ok) {
         forexRiskRejectionTotal.inc({ reason: gate.reason ?? 'RISK_REJECTED' });
         await this.finish(order, 'FAILED', 'RISK_REJECTED', started, gate.reason ?? 'risk limit');
@@ -581,6 +682,10 @@ export class ForexOrderService {
     this.emit(order, 'ORDER_ROUTING');
     this.transition(order, 'SUBMITTED');
     this.emit(order, 'ORDER_SUBMITTED', { metadata: { clientExecId: order.clientExecId } });
+
+    if (isLiveForexAccount(order.accountId)) {
+      return this.executeOnBroker(order, req, symbol, started);
+    }
 
     let exec: ForexExecutionRecord;
     const prevPersist = this.persistEnabled ? 'deferred' : 'off';
@@ -661,6 +766,7 @@ export class ForexOrderService {
       if (canOrderTransition(order.status, 'PARTIALLY_FILLED')) this.transition(order, 'PARTIALLY_FILLED');
       this.emit(order, 'ORDER_PARTIAL_FILL', { executionId: exec.executionId });
       if (this.cancelPartialRemainder(order, exec)) return;
+      if (this.restReturnRemainder(order, exec)) return;
       this.publish(order, 'fx.order.updated');
       return;
     }
@@ -703,11 +809,119 @@ export class ForexOrderService {
   }
 
   /**
+   * RETURN leaves the unfilled size working. A market partial becomes a limit
+   * at the fill price so the remainder is not cancelled the way IOC/FOK are.
+   */
+  private restReturnRemainder(order: ForexOrderRecord, exec: ForexExecutionRecord): boolean {
+    if (order.timeInForce !== 'RETURN') return false;
+    if (!fxDecimal(order.remainingVolume).gt(0)) return false;
+    if (order.orderType === 'market') {
+      const price = exec.fills[exec.fills.length - 1]?.price;
+      if (!price) return false;
+      order.orderType = 'limit';
+      order.request = { ...order.request, orderType: 'limit', requestedPrice: price };
+      order.requestedPrice = price;
+    }
+    if (canOrderTransition(order.status, 'PENDING')) this.transition(order, 'PENDING');
+    order.failureReason = 'RETURN_REMAINDER_RESTING';
+    this.emit(order, 'ORDER_MODIFIED', {
+      reason: 'RETURN_REMAINDER_RESTING',
+      executionId: exec.executionId,
+      metadata: { timeInForce: 'RETURN', remainingVolume: order.remainingVolume, requestedPrice: order.requestedPrice },
+    });
+    this.publish(order, 'fx.order.updated');
+    return true;
+  }
+
+  private async cancelBocTake(order: ForexOrderRecord): Promise<void> {
+    if (!canOrderTransition(order.status, 'CANCELLED')) return;
+    this.transition(order, 'CANCELLED');
+    order.failureReason = 'BOC_WOULD_TAKE';
+    this.emit(order, 'ORDER_CANCELLED', { reason: 'BOC_WOULD_TAKE', metadata: { timeInForce: 'BOC' } });
+    forexOrderCancelledTotal.inc({ symbol: order.symbol });
+    this.publish(order, 'fx.order.cancelled');
+    this.refreshPendingGauge();
+    await this.persistNow(order);
+  }
+
+  /**
+   * LIVE fills are broker prints. MOCK venues are not asked.
+   */
+  private async executeOnBroker(
+    order: ForexOrderRecord,
+    req: ForexOrderRequest,
+    symbol: string,
+    started: number
+  ): Promise<ForexOrderRecord> {
+    const gateway = getBrokerGateway();
+    const health = await gateway.health();
+    if (!brokerOrdersReady(health)) {
+      return await this.finish(order, 'REJECTED', 'LIVE_BROKER_UNAVAILABLE', started, 'Broker gateway is not ready');
+    }
+    await gateway.refreshQuotes([symbol]);
+    if (!quoteUsableForTrigger(gateway.getQuote(symbol))) {
+      return await this.finish(order, 'REJECTED', 'STALE_MARKET', started, 'Broker quote is missing or stale');
+    }
+    const placed = await gateway.placeOrder({
+      clientOrderId: order.clientExecId,
+      accountId: order.accountId,
+      symbol,
+      side: req.side,
+      volume: order.remainingVolume,
+      price: req.requestedPrice,
+    });
+    if (placed.status !== 'filled' || !placed.avgPrice) {
+      const reason = placed.reason === 'LIVE_BROKER_UNAVAILABLE' ? 'LIVE_BROKER_UNAVAILABLE' : 'BROKER_REJECTED';
+      const detail = placed.status === 'working' ? 'market order was not filled' : (placed.reason ?? 'Broker rejected the order');
+      return await this.finish(order, 'REJECTED', reason, started, detail);
+    }
+    if (placed.venueOrderId) order.venueOrderId = placed.venueOrderId;
+    return this.bookBrokerFill(order, req, symbol, placed, started);
+  }
+
+  private async bookBrokerFill(
+    order: ForexOrderRecord,
+    req: ForexOrderRequest,
+    symbol: string,
+    placed: BrokerOrderResult,
+    started: number
+  ): Promise<ForexOrderRecord> {
+    if (!placed.avgPrice) {
+      return await this.finish(order, 'REJECTED', 'BROKER_REJECTED', started, 'Broker fill had no price');
+    }
+    let exec: ForexExecutionRecord;
+    try {
+      exec = await this.execution.recordBrokerFill({
+        clientExecId: order.clientExecId,
+        accountId: order.accountId,
+        symbol,
+        side: req.side,
+        requestedVolume: order.requestedVolume,
+        filledVolume: placed.filledVolume,
+        price: placed.avgPrice,
+        venueOrderId: placed.venueOrderId,
+      });
+    } catch (err) {
+      return await this.finish(order, 'FAILED', 'ORDER_FAILED', started, err instanceof Error ? err.message : 'broker fill failed');
+    }
+    try {
+      await this.commitExecutionLifecycle(order, exec, started);
+    } catch (err) {
+      if (err instanceof ForexOrderError && err.reason === 'OVERFILL') {
+        return await this.finish(order, 'FAILED', 'OVERFILL', started, err.message);
+      }
+      throw err;
+    }
+    return this.store.get(order.orderId) ?? order;
+  }
+
+  /**
    * FOK needs an all-or-nothing decision before routing. MOCK liquidity covers
-   * the full requested volume for any quotable symbol.
+   * the full requested volume for any quotable symbol. LIVE uses the broker quote only.
    */
   private canFillFullVolume(order: ForexOrderRecord, symbol: string): boolean {
     if (!fxDecimal(order.remainingVolume).gt(0)) return false;
+    if (isLiveForexAccount(order.accountId)) return quoteUsableForTrigger(getBrokerGateway().getQuote(symbol));
     if (!this.pricing) return true;
     return this.pricing.getQuote(symbol) != null;
   }
@@ -748,7 +962,8 @@ export class ForexOrderService {
     side: 'buy' | 'sell',
     volume: string,
     intent: import('./request.js').ForexOrderIntent = 'CUSTOMER',
-    req?: import('./request.js').ForexOrderRequest
+    req?: import('./request.js').ForexOrderRequest,
+    quote?: ForexQuoteDto
   ) {
     if (!this.positions) return { ok: true, reason: null };
     const openForSymbol = this.store.listByAccount(accountId).filter((o) => o.symbol === symbol && !['FILLED', 'REJECTED', 'CANCELLED', 'FAILED'].includes(o.status)).length;
@@ -762,6 +977,7 @@ export class ForexOrderService {
       maxDeviation: req?.maxDeviation,
       openOrdersForSymbol: openForSymbol,
       reducePositionId: req?.reducePositionId,
+      ...(quote ? { quote } : {}),
     });
     if (!decision.ok) return { ok: false, reason: decision.reason };
     return { ok: true, reason: null };
@@ -949,6 +1165,7 @@ export class ForexOrderService {
       fillIds: [],
       source: 'SIMULATED',
       executionMode: 'MOCK',
+      venueOrderId: null,
       events: [],
       version: 1,
       lastQuoteKey: null,
@@ -1016,6 +1233,10 @@ export class ForexOrderService {
     live.lastQuoteKey = next.lastQuoteKey;
     live.lastModifyKey = next.lastModifyKey;
     live.version = next.version;
+    live.orderType = next.orderType;
+    live.requestedPrice = next.requestedPrice;
+    live.limitPrice = next.limitPrice;
+    live.venueOrderId = next.venueOrderId;
   }
 
   private transition(order: ForexOrderRecord, to: ForexOrderState): void {
@@ -1084,16 +1305,20 @@ export class ForexOrderService {
     };
     recordForexJournalEvent(entry);
     void (async () => {
-      const { evaluateForexAccountEventAlerts, forexOrderEventToAlertType } = await import('../customer/alert-engine.js');
-      const alertType = forexOrderEventToAlertType(event.eventType);
-      if (!alertType) return;
-      await evaluateForexAccountEventAlerts({
-        accountId: order.accountId,
-        alertType,
-        symbol: order.symbol,
-        message: entry.message,
-        metadata: { orderId: order.orderId, eventType: event.eventType, ...(entry.metadata as Record<string, unknown>) },
-      });
+      try {
+        const { evaluateForexAccountEventAlerts, forexOrderEventToAlertType } = await import('../customer/alert-engine.js');
+        const alertType = forexOrderEventToAlertType(event.eventType);
+        if (!alertType) return;
+        await evaluateForexAccountEventAlerts({
+          accountId: order.accountId,
+          alertType,
+          symbol: order.symbol,
+          message: entry.message,
+          metadata: { orderId: order.orderId, eventType: event.eventType, ...(entry.metadata as Record<string, unknown>) },
+        });
+      } catch {
+        /* alerts are advisory; a missing table must not fail the order */
+      }
     })();
   }
 
@@ -1183,6 +1408,56 @@ export class ForexOrderService {
     const req: ForexOrderRequest = { ...raw, clientOrderId: raw.clientOrderId?.trim() ?? '' };
     return this.store.enqueue(accountId, req.clientOrderId, () => this.placeLocked(accountId, req));
   }
+
+  /** Poll broker working orders. A local pending order with no venue id is not sent. */
+  async syncBrokerWorkingOrders(): Promise<void> {
+    const gateway = getBrokerGateway();
+    const open = this.store
+      .listOpen()
+      .filter((o) => o.venueOrderId && o.executionMode === 'BROKER' && isPendingWorkingStatus(o.status));
+    for (const order of open) {
+      await this.store.enqueue(order.accountId, order.orderId, async () => {
+        const current = this.store.get(order.orderId);
+        if (!current?.venueOrderId || !isPendingWorkingStatus(current.status)) return;
+        const placed = await gateway.orderStatus(current.venueOrderId, current.remainingVolume);
+        if (placed.status === 'working') return;
+        if (placed.status === 'cancelled' || placed.status === 'rejected') {
+          if (!canOrderTransition(current.status, 'CANCELLED')) return;
+          this.transition(current, 'CANCELLED');
+          current.failureReason = placed.status === 'rejected' ? 'BROKER_REJECTED' : null;
+          this.emit(current, 'ORDER_CANCELLED', { reason: current.failureReason ?? undefined });
+          this.publish(current, 'fx.order.cancelled');
+          this.refreshPendingGauge();
+          await this.persistNow(current);
+          return;
+        }
+        if (placed.status === 'filled' && placed.avgPrice) {
+          await this.adoptBrokerFill(current, current.request, placed, Date.now());
+        }
+      });
+    }
+  }
+
+  private async adoptBrokerFill(
+    order: ForexOrderRecord,
+    req: ForexOrderRequest,
+    placed: BrokerOrderResult,
+    started: number
+  ): Promise<ForexOrderRecord> {
+    if ((order.status === 'PENDING' || order.status === 'ACCEPTED') && canOrderTransition(order.status, 'TRIGGERING')) {
+      this.transition(order, 'TRIGGERING');
+    }
+    if (order.status === 'TRIGGERING') {
+      this.transition(order, 'ROUTING');
+      this.emit(order, 'ORDER_ROUTING');
+      this.transition(order, 'SUBMITTED');
+      this.emit(order, 'ORDER_SUBMITTED', { metadata: { clientExecId: order.clientExecId } });
+    }
+    if (order.status !== 'SUBMITTED' && order.status !== 'PARTIALLY_FILLED') {
+      return await this.finish(order, 'FAILED', 'INVALID_STATE_TRANSITION', started, `cannot book broker fill from ${order.status}`);
+    }
+    return this.bookBrokerFill(order, req, order.symbol, placed, started);
+  }
 }
 
 let orderSingleton: ForexOrderService | null = null;
@@ -1203,6 +1478,10 @@ export function getForexOrderService(): ForexOrderService {
       void orderSingleton?.evaluateQuote(q);
     });
   }
+  return orderSingleton;
+}
+
+export function peekForexOrderService(): ForexOrderService | null {
   return orderSingleton;
 }
 

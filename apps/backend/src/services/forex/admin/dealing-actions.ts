@@ -1,5 +1,5 @@
 /**
- * MOCK dealing desk actions — audit + notifications; reject cancels via FDM; accept records dealer approval only.
+ * MOCK dealing desk actions — audit and notifications. Reject cancels the simulated order. Accept records dealer approval only.
  */
 import { randomUUID } from 'node:crypto';
 import { db } from '../../../lib/database.js';
@@ -130,7 +130,7 @@ export async function dealerAcceptForexOrder(input: {
     action_id: actionId,
     order_id: row.order_id,
     status: row.status,
-    note: 'MOCK accept recorded — FDM continues simulated routing/fill; no live LP order sent.',
+    note: 'MOCK accept recorded. Simulated routing continues. No live liquidity-provider order is sent.',
   };
 }
 

@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useMarketDataUxCopy } from '@/hooks/useMarketDataUxCopy';
 import { classifyTickerVolumeSource } from '@/lib/volumeMetrics';
 import type { SpotWsStreamPhase } from '@/hooks/useSpotWs';
-import { formatCompactNumber, formatValueFixedTrim } from './terminalFormat';
+import { formatCompactNumber, formatValueFixedTrim, visualPriceDecimals } from './terminalFormat';
 import { CoinIcon } from '@/components/ui/CoinIcon';
 import { useDisplayCurrency } from '@/context/DisplayCurrencyProvider';
 
@@ -58,11 +58,11 @@ function MiniStat({
       className={`flex min-w-0 max-w-full flex-col items-center justify-center gap-0 px-0.5 py-0 ${className}`}
       title={titleAttr}
     >
-      <span className="w-full truncate text-center terminal-text-label font-semibold uppercase leading-none tracking-[0.04em] text-muted-foreground">
+      <span className="w-full truncate text-center font-sans text-[10px] font-medium normal-case leading-none tracking-normal text-muted-foreground">
         {label}
       </span>
       <div
-        className={`numeric w-full min-w-0 truncate text-center terminal-text-table font-semibold leading-tight text-foreground ${valueClassName}`}
+        className={`numeric w-full min-w-0 truncate text-center text-[12px] font-medium leading-tight text-foreground ${valueClassName}`}
       >
         {children}
       </div>
@@ -120,6 +120,7 @@ export function PairHeader({
     typeof changePct24h === 'number' && Number.isFinite(changePct24h) ? changePct24h : null;
   const changeTone: 'up' | 'down' | 'flat' | 'none' =
     officialChangePct == null ? 'none' : officialChangePct > 0 ? 'up' : officialChangePct < 0 ? 'down' : 'flat';
+  const headerDp = visualPriceDecimals(pricePrecision, lastPrice ?? high24h ?? low24h ?? null);
 
   const spreadTooltip = (() => {
     if (bid == null || bid === '' || ask == null || ask === '') return undefined;
@@ -130,7 +131,7 @@ export function PairHeader({
     const mid = (a + b) / 2;
     const spreadPct = mid > 0 ? (spread / mid) * 100 : 0;
     return t('pairHeader.spreadTooltip', {
-      spread: formatValueFixedTrim(String(spread), pricePrecision),
+      spread: formatValueFixedTrim(String(spread), headerDp),
       pct: spreadPct.toFixed(3),
     });
   })();
@@ -158,18 +159,16 @@ export function PairHeader({
 
   const lastDisplay = !hasLastTrade
     ? md.NO_TRADES_ACTIONABLE
-    : quote === 'USDT'
-      ? `${formatValueFixedTrim(lastPrice, pricePrecision)} USDT`
-      : formatValueFixedTrim(lastPrice, pricePrecision);
+    : formatValueFixedTrim(lastPrice, headerDp);
 
   const lastSub = (() => {
     if (quote === 'USDT') {
       if (displayCurrency === 'INR' && hasLastTrade) {
-        return formatFromUsdt(Number(lastPrice), pricePrecision);
+        return formatFromUsdt(Number(lastPrice), headerDp);
       }
       return undefined;
     }
-    return lastPriceUsd != null && lastPriceUsd !== '' ? `≈ ${formatValueFixedTrim(lastPriceUsd, pricePrecision)} USDT` : undefined;
+    return lastPriceUsd != null && lastPriceUsd !== '' ? `≈ ${formatValueFixedTrim(lastPriceUsd, headerDp)} USDT` : undefined;
   })();
 
   const changeColor =
@@ -202,7 +201,7 @@ export function PairHeader({
               value={sym}
               onChange={(e) => onChange(e.target.value)}
               aria-label={t('pairHeader.tradingPairAria')}
-              className="numeric h-7 max-w-[9.5rem] min-w-[6.5rem] shrink cursor-pointer appearance-none truncate rounded-md border border-border bg-card py-0 pl-2 pr-7 text-book font-bold leading-7 text-foreground outline-none transition-colors hover:border-primary/35 focus:border-primary/50 focus:ring-1 focus:ring-primary/25 sm:max-w-[10.5rem]"
+              className="h-7 max-w-[9.5rem] min-w-[6.5rem] shrink cursor-pointer appearance-none truncate rounded-md border border-border bg-card py-0 pl-2 pr-7 font-mono text-[12px] font-medium leading-7 text-foreground outline-none transition-colors hover:border-primary/35 focus:border-primary/50 focus:ring-1 focus:ring-primary/25 sm:max-w-[10.5rem]"
             >
               {mkt.map((m) => (
                 <option key={m.symbol} value={m.symbol}>
@@ -216,11 +215,11 @@ export function PairHeader({
             />
           </div>
         ) : (
-          <span className="numeric max-w-[9.5rem] truncate text-book font-bold leading-tight tracking-tight text-foreground">
+          <span className="max-w-[9.5rem] truncate font-mono text-[12px] font-medium leading-tight tracking-tight text-foreground">
             {pairLabel}
           </span>
         )}
-        <span className="inline-flex h-[18px] shrink-0 items-center rounded border border-border bg-muted/80 px-1.5 terminal-text-label font-semibold uppercase leading-none text-foreground/85">
+        <span className="inline-flex h-[16px] shrink-0 items-center rounded border border-border bg-muted/80 px-1.5 font-sans text-[10px] font-medium uppercase leading-none tracking-wide text-foreground/80">
           {t('pairHeader.spotBadge')}
         </span>
         {onToggleFavorite && sym && (
@@ -246,13 +245,16 @@ export function PairHeader({
 
       {/* Content-sized columns, centered; dividers only between stats */}
       <div className="flex min-w-0 flex-1 items-stretch justify-evenly divide-x divide-border px-1">
-        <MiniStat label={t('pairHeader.lastPrice')} title={lastSub ?? md.TOOLTIP_LAST_PRICE} valueClassName="text-[22px] sm:text-[26px] font-bold leading-none tracking-tight">
-          <span className={`font-bold ${hasLastTrade ? lastColor : 'text-muted-foreground'}`}>{lastDisplay}</span>
+        <MiniStat label={t('pairHeader.lastShort')} title={lastSub ?? t('pairHeader.lastPrice')} valueClassName="text-[18px] font-semibold leading-none tracking-tight sm:text-[20px]">
+          <span className={hasLastTrade ? lastColor : 'text-muted-foreground'}>{lastDisplay}</span>
+          {hasLastTrade ? (
+            <span className="ml-1 align-baseline font-sans text-[10px] font-medium text-muted-foreground">{quote}</span>
+          ) : null}
         </MiniStat>
         <MiniStat
-          label={t('pairHeader.change24h')}
-          title={officialChangePct != null ? md.TOOLTIP_24H_CHANGE : md.TOOLTIP_CHANGE_UNAVAILABLE}
-          valueClassName="terminal-text-secondary font-semibold"
+          label={t('pairHeader.changeShort')}
+          title={officialChangePct != null ? t('pairHeader.change24h') : md.TOOLTIP_CHANGE_UNAVAILABLE}
+          valueClassName="text-[12px] font-medium"
         >
           <span className={`${changeColor} min-w-0 truncate`}>
             {officialChangePct != null
@@ -260,23 +262,23 @@ export function PairHeader({
               : '—'}
           </span>
         </MiniStat>
-        <MiniStat label={t('pairHeader.high24h')} title={md.TOOLTIP_24H_HIGH} valueClassName="terminal-text-table">
+        <MiniStat label={t('pairHeader.highShort')} title={t('pairHeader.high24h')} valueClassName="text-[12px] font-medium">
           <span className="min-w-0 truncate">
             {(() => {
-              const s = formatValueFixedTrim(high24h, pricePrecision);
+              const s = formatValueFixedTrim(high24h, headerDp);
               return s === '—' ? (hasLastTrade ? md.NO_ACTIVITY_24H : md.NO_TRADES_ACTIONABLE) : s;
             })()}
           </span>
         </MiniStat>
-        <MiniStat label={t('pairHeader.low24h')} title={md.TOOLTIP_24H_LOW} valueClassName="terminal-text-table">
+        <MiniStat label={t('pairHeader.lowShort')} title={t('pairHeader.low24h')} valueClassName="text-[12px] font-medium">
           <span className="min-w-0 truncate">
             {(() => {
-              const s = formatValueFixedTrim(low24h, pricePrecision);
+              const s = formatValueFixedTrim(low24h, headerDp);
               return s === '—' ? (hasLastTrade ? md.NO_ACTIVITY_24H : md.NO_TRADES_ACTIONABLE) : s;
             })()}
           </span>
         </MiniStat>
-        <MiniStat label={t('pairHeader.volumeBase', { base: base.slice(0, 4) })} title={md.TOOLTIP_BASE_VOLUME_24H} valueClassName="terminal-text-table">
+        <MiniStat label={t('pairHeader.volumeShort')} title={t('pairHeader.volumeBase', { base })} valueClassName="text-[12px] font-medium">
           <span className="min-w-0 truncate">
             {(() => {
               const s = formatCompactNumber(volume24h);
@@ -284,7 +286,11 @@ export function PairHeader({
             })()}
           </span>
         </MiniStat>
-        <MiniStat label={turnoverLabel} title={turnoverTooltip} valueClassName="terminal-text-table">
+        <MiniStat
+          label={turnoverSource === 'reference' ? t('pairHeader.turnoverRefShort') : t('pairHeader.turnoverShort')}
+          title={`${turnoverLabel}. ${turnoverTooltip}`}
+          valueClassName="text-[12px] font-medium"
+        >
           <span className="min-w-0 truncate">
             {(() => {
               const s = formatCompactNumber(turnover24h);
@@ -292,11 +298,11 @@ export function PairHeader({
             })()}
           </span>
         </MiniStat>
-        <MiniStat label={t('pairHeader.bidAsk')} title={spreadTooltip} className="max-w-[min(100%,8.5rem)]" valueClassName="terminal-text-table">
+        <MiniStat label={t('pairHeader.bidAskShort')} title={spreadTooltip ?? t('pairHeader.bidAsk')} className="max-w-[min(100%,8.5rem)]" valueClassName="text-[12px] font-medium">
           <div className="min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-center">
-            <span className="text-buy">{formatValueFixedTrim(bid, pricePrecision)}</span>
+            <span className="text-buy">{formatValueFixedTrim(bid, headerDp)}</span>
             <span className="text-muted-foreground">/</span>
-            <span className="text-sell">{formatValueFixedTrim(ask, pricePrecision)}</span>
+            <span className="text-sell">{formatValueFixedTrim(ask, headerDp)}</span>
           </div>
         </MiniStat>
       </div>

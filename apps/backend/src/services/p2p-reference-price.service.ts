@@ -6,7 +6,8 @@
  *   1. Redis cache (short TTL)
  *   2. Stablecoin parity (USDT/USD, USDT/USDT → 1)
  *   3. Last price from internal spot_trades
- *   4. Configured fallback rates (P2P_REFERENCE_FALLBACK_* env or p2p_reference_rates table).
+ *   4. USD reference from the USDT oracle when that fiat has no market (USDT/USDC = 1)
+ *   5. Configured fallback rates (P2P_REFERENCE_FALLBACK_* env or p2p_reference_rates table).
  *      Production should wire a real oracle here; dev uses the fallback map.
  */
 
@@ -48,6 +49,22 @@ function fallbackRate(asset: string, fiat: string): string | null {
   // oracle; otherwise getP2PReferencePrice() throws and the caller surfaces "price unavailable".
   if (process.env.NODE_ENV === 'production') return null;
   return FALLBACK_RATES[k] || null;
+}
+
+/** USD reference is the USDT oracle (stablecoins are 1). Used when the asked fiat has no market. */
+async function usdOracleReference(asset: string): Promise<{ price: string; market: string | null } | null> {
+  if (asset === 'USDT' || asset === 'USDC' || asset === 'USD') {
+    return { price: '1', market: null };
+  }
+  const via = await resolveDirectReferencePrice(asset, 'USDT');
+  if (!via.price) return null;
+  try {
+    const price = new Decimal(via.price).toDecimalPlaces(18, Decimal.ROUND_DOWN).toString();
+    if (!new Decimal(price).greaterThan(0)) return null;
+    return { price, market: via.market };
+  } catch {
+    return null;
+  }
 }
 
 function cacheKey(asset: string, fiat: string): string {
@@ -217,7 +234,7 @@ export type P2PReferencePriceResult = {
   fiat: string;
   reference_price: string;
   market: string | null;
-  source: 'spot_trade' | 'stablecoin_parity' | 'cache' | 'fallback';
+  source: 'spot_trade' | 'stablecoin_parity' | 'cache' | 'fallback' | 'usd_reference';
   updated_at: string;
 };
 
@@ -273,6 +290,19 @@ export async function getP2PReferencePrice(asset: string, fiat: string): Promise
   }
 
   if (!priceStr) {
+    const usd = await usdOracleReference(a);
+    if (usd) {
+      const usdRes: P2PReferencePriceResult = {
+        asset: a,
+        fiat: 'USD',
+        reference_price: usd.price,
+        market: usd.market,
+        source: 'usd_reference',
+        updated_at: new Date().toISOString(),
+      };
+      if (ttl > 0) await redis.setJson(ck, usdRes, ttl);
+      return usdRes;
+    }
     const fb = fallbackRate(a, f);
     if (fb) {
       logger.info('P2P reference price: using configured fallback rate (no internal market)', {

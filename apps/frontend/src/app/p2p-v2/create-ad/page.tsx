@@ -31,7 +31,7 @@ function CreateAdForm() {
   const router = useRouter();
   const [side, setSide] = useState<'buy' | 'sell'>('sell');
   const [crypto, setCrypto] = useState('USDT');
-  const [fiat, setFiat] = useState('INR');
+  const [fiat, setFiat] = useState('USD');
   const [pricing, setPricing] = useState<'fixed' | 'floating'>('fixed');
   const [fixedPrice, setFixedPrice] = useState('');
   const [marginPct, setMarginPct] = useState('0');
@@ -195,7 +195,7 @@ function CreateAdForm() {
               <div>
                 <label className={labelCls}>{t('fiatCurrency')}</label>
                 <select value={fiat} onChange={(e) => setFiat(e.target.value)} className={inputCls}>
-                  {['INR', 'USD', 'EUR', 'GBP'].map((f) => <option key={f} value={f}>{f}</option>)}
+                  {['USD', 'INR', 'EUR', 'GBP'].map((f) => <option key={f} value={f}>{f}</option>)}
                 </select>
               </div>
             </div>
@@ -305,11 +305,11 @@ function CreateAdForm() {
             </h2>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className={labelCls}>{t('minFiat', { fiat })}</label>
+                <label className={labelCls}>{t('minCrypto', { crypto })}</label>
                 <input value={minAmt} onChange={(e) => setMinAmt(e.target.value)} placeholder={t('minPlaceholder')} className={`${inputCls} font-mono`} />
               </div>
               <div>
-                <label className={labelCls}>{t('maxFiat', { fiat })}</label>
+                <label className={labelCls}>{t('maxCrypto', { crypto })}</label>
                 <input value={maxAmt} onChange={(e) => setMaxAmt(e.target.value)} placeholder={t('maxPlaceholder')} className={`${inputCls} font-mono`} />
               </div>
               <div>

@@ -56,19 +56,10 @@ export function validateProductionConfig(): void {
     );
   }
 
-  // P0: Real KMS in production — LocalKMS + ENCRYPTION_KEY is not acceptable for custodial hot wallets
-  const kmsType = (process.env.KMS_TYPE ?? 'local').trim().toLowerCase();
-  if (kmsType !== 'aws') {
-    errors.push(
-      'KMS_TYPE must be "aws" in production with AWS_KMS_KEY_ID and AWS_REGION set. LocalKMS is dev-only.'
-    );
-  }
-  if (!process.env.AWS_KMS_KEY_ID?.trim()) {
-    errors.push('AWS_KMS_KEY_ID is required in production when using envelope-encrypted hot wallets.');
-  }
-  if (!process.env.AWS_REGION?.trim()) {
-    errors.push('AWS_REGION is required in production when using envelope-encrypted hot wallets.');
-  }
+  // Production KMS: aws remains the default. local is explicit and single-node only.
+  const kmsDecision = evaluateProductionKmsConfig();
+  errors.push(...kmsDecision.errors);
+  if (kmsDecision.warning) warnings.push(kmsDecision.warning);
 
   // P1: Warn if ALERT_WEBHOOK_URL empty (circuit breaker alerts)
   const alertUrl = process.env.ALERT_WEBHOOK_URL?.trim();
@@ -94,9 +85,54 @@ export function validateProductionConfig(): void {
   }
 }
 
+export type ProductionKmsDecision = {
+  errors: string[];
+  warning?: string;
+};
+
+/**
+ * Explicit provider rules. Unset KMS_TYPE stays fail-closed in production
+ * (compose defaults it to aws). KMS_TYPE=local is allowed only when set
+ * explicitly and LOCAL_KMS_MASTER_KEY is present.
+ */
+export function evaluateProductionKmsConfig(): ProductionKmsDecision {
+  const errors: string[] = [];
+  const raw = process.env.KMS_TYPE?.trim().toLowerCase() ?? '';
+  if (raw === '' || raw === 'aws') {
+    if (raw === '') {
+      errors.push(
+        'KMS_TYPE must be set in production. Use KMS_TYPE=aws (default) or explicit KMS_TYPE=local for a single-node provider.'
+      );
+    }
+    if (!process.env.AWS_KMS_KEY_ID?.trim()) {
+      errors.push('AWS_KMS_KEY_ID is required in production when KMS_TYPE=aws.');
+    }
+    if (!process.env.AWS_REGION?.trim()) {
+      errors.push('AWS_REGION is required in production when KMS_TYPE=aws.');
+    }
+    return { errors };
+  }
+  if (raw === 'local') {
+    const master = process.env.LOCAL_KMS_MASTER_KEY?.trim() ?? '';
+    const hex32 = /^[0-9a-fA-F]{64}$/.test(master);
+    if (!master || (!hex32 && master.length < 32)) {
+      errors.push(
+        'LOCAL_KMS_MASTER_KEY is required when KMS_TYPE=local. Provide at least 32 characters, or 32 bytes as 64 hex characters. Refusing to start.'
+      );
+    }
+    return {
+      errors,
+      warning: 'LOCAL KMS PROVIDER ACTIVE — NOT SUITABLE FOR MULTI-SERVER PRODUCTION DEPLOYMENT',
+    };
+  }
+  errors.push(`Unsupported KMS_TYPE "${raw}". Expected "aws" or "local".`);
+  return { errors };
+}
+
 /**
  * Verify KMS can encrypt/decrypt DEKs (production or KMS_STARTUP_PROBE=1).
- * Fails closed when KMS_TYPE=aws and probe fails.
+ * Fails closed in production when the selected provider's round trip fails.
+ * KMS_TYPE=local still runs this probe. It does not skip encryption.
  */
 export async function validateKmsConnectivity(): Promise<void> {
   const probe =
@@ -106,10 +142,10 @@ export async function validateKmsConnectivity(): Promise<void> {
   if (!probe) return;
 
   const kmsType = (process.env.KMS_TYPE ?? 'local').trim().toLowerCase();
-  if (kmsType !== 'aws') {
-    if (process.env.NODE_ENV === 'production') return;
-    logger.info('KMS startup probe skipped (KMS_TYPE=local, non-production)');
-    return;
+  if (kmsType === 'local') {
+    logger.warn('LOCAL KMS PROVIDER ACTIVE — NOT SUITABLE FOR MULTI-SERVER PRODUCTION DEPLOYMENT');
+  } else if (kmsType !== 'aws') {
+    throw new Error(`Unsupported KMS_TYPE "${kmsType}". Expected "aws" or "local".`);
   }
 
   const { getKeyManagementService, zeroizeBuffer } = await import('./kms.js');
@@ -123,7 +159,11 @@ export async function validateKmsConnectivity(): Promise<void> {
       throw new Error('KMS DEK roundtrip mismatch');
     }
     zeroizeBuffer(roundtrip);
-    logger.info('KMS startup probe succeeded (AWS GenerateDataKey + Decrypt)');
+    logger.info(
+      kmsType === 'aws'
+        ? 'KMS startup probe succeeded (AWS GenerateDataKey + Decrypt)'
+        : 'KMS startup probe succeeded (local AES-256-GCM GenerateDataKey + Decrypt)'
+    );
   } finally {
     zeroizeBuffer(plaintextDEK);
   }

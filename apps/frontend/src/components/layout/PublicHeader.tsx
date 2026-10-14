@@ -20,6 +20,7 @@ import { useTranslations } from 'next-intl';
  */
 export function PublicHeader() {
   const tn = useTranslations('navigation');
+  const tc = useTranslations('common');
   const tA11y = useTranslations('common.a11y');
   const [menuOpen, setMenuOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
@@ -41,16 +42,18 @@ export function PublicHeader() {
     await performLogout('/');
   };
 
-  const maskEmail = (email: string) => {
-    if (!email) return '***@****';
+  const maskEmail = (email: string | null | undefined) => {
+    if (email == null || email.trim() === '' || email.toLowerCase() === 'null' || email.toLowerCase() === 'undefined') {
+      return tc('states.notAdded');
+    }
     const [local, domain] = email.split('@');
-    if (!domain) return '***@****';
+    if (!local || !domain) return tc('states.notAdded');
     return `${local.slice(0, 3)}**@****`;
   };
 
   return (
-    <header className="mobile-app-topbar sticky top-0 z-50 overflow-x-clip border-b border-[#F5B8001F] bg-[#05070B]/90 backdrop-blur">
-      <div className="mx-auto flex max-w-[1320px] min-w-0 items-center justify-between px-3 py-3.5 sm:px-6 lg:px-8">
+    <header className="mobile-app-topbar sticky top-0 z-50 overflow-visible border-b border-[#F5B8001F] bg-[#05070B]/90 backdrop-blur">
+      <div className="mx-auto flex max-w-[1320px] min-w-0 items-center justify-between gap-2 px-3 py-3.5 sm:px-6 lg:px-8">
         <BrandLogo
           variant="horizontal-gold"
           size="header"
@@ -109,8 +112,8 @@ export function PublicHeader() {
           )}
         </nav>
 
-        <div className="flex items-center gap-3">
-          <LocaleLanguageSelector className="hidden sm:block" />
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+          <LocaleLanguageSelector variant="compact" className="relative z-20 shrink-0" />
           {authed ? (
             <>
               <Link href={WALLET_HREF} prefetch className="tap-target hidden items-center gap-2 rounded-lg border border-[#F5B8001F] px-3 py-2 text-sm text-[#9CA3AF] transition hover:text-white sm:inline-flex">
@@ -137,7 +140,7 @@ export function PublicHeader() {
                 {userOpen ? (
                   <div className="absolute right-0 top-12 w-60 overflow-hidden rounded-xl border border-[#F5B8001F] bg-[#0D1118] shadow-xl">
                     <div className="border-b border-[#F5B8001F] px-4 py-3">
-                      <p className="truncate text-sm font-medium text-white">{maskEmail(user?.email || '')}</p>
+                      <p className="truncate text-sm font-medium text-white">{maskEmail(user?.email)}</p>
                       <p className="mt-0.5 text-[11px] text-[#9CA3AF]">UID: {user?.id?.slice(0, 8) || '******'}</p>
                     </div>
                     <div className="p-1.5">
@@ -177,7 +180,7 @@ export function PublicHeader() {
               <Link href={ROUTES.login} prefetch className="tap-target hidden rounded-lg border border-[#F5B8001F] px-4 py-2 text-sm text-[#9CA3AF] transition hover:text-white sm:inline-flex items-center">
                 {tn('logIn')}
               </Link>
-              <Link href={ROUTES.signup} prefetch className="tap-target inline-flex items-center rounded-lg bg-[#F5B800] px-4 py-2 text-sm font-semibold text-[#05070B] transition hover:bg-[#FFD54A]">
+              <Link href={ROUTES.signup} prefetch className="tap-target hidden items-center whitespace-nowrap rounded-lg bg-[#F5B800] px-4 py-2 text-sm font-semibold text-[#05070B] transition hover:bg-[#FFD54A] sm:inline-flex">
                 {tn('createAccount')}
               </Link>
             </>

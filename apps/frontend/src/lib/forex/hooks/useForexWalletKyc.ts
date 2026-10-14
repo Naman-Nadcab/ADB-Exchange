@@ -5,6 +5,10 @@ import { getApiBaseUrl } from '@/lib/getApiUrl';
 import { hasForexPrivateSession } from '../api/auth-token';
 import { useAuthStore } from '@/store/auth';
 
+/**
+ * Crypto wallet KYC status (`/api/v1/wallet/kyc-status`).
+ * Forex live-account gating uses `useForexLiveKycPolicy`, not this hook.
+ */
 export type ForexWalletKyc = { verified: boolean; status: string; loading: boolean };
 
 export function useForexWalletKyc(): ForexWalletKyc {

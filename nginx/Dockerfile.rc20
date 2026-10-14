@@ -1,0 +1,10 @@
+# Certification packaging of the production nginx config.
+# docker-compose.production.yml mounts these files from the host. This image
+# exists so an isolated daemon that cannot bind-mount the workspace still
+# serves the same entrypoint and configs.
+FROM nginx:alpine
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+COPY nginx.http-only.conf /etc/nginx/nginx.http-only.conf
+COPY nginx.tls.conf /etc/nginx/nginx.tls.conf
+RUN chmod +x /docker-entrypoint.sh && mkdir -p /etc/nginx/ssl
+ENTRYPOINT ["/docker-entrypoint.sh"]

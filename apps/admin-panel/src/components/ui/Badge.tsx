@@ -68,7 +68,9 @@ function Badge({
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </span>
   );
 }
 

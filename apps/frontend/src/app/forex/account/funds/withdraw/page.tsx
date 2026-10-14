@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { ForexFundingUnavailablePanel } from '@/components/forex/ForexFundingUnavailablePanel';
+import { ForexLiveCashForm } from '@/components/forex/ForexLiveCashForm';
 import { ForexFundsSubNav } from '@/components/forex/ForexFundsSubNav';
 import { ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
@@ -15,7 +16,7 @@ export default function ForexFundsWithdrawPage() {
     <ForexPageFrame title={tf('pages.fundsWithdraw.title')} subtitle={tf('pages.fundsWithdraw.subtitle')}>
       <ForexPortalAccountContext />
       <ForexFundsSubNav />
-      {!gates.withdrawalEnabled ? <ForexFundingUnavailablePanel variant="withdraw" /> : null}
+      {gates.withdrawalEnabled ? <ForexLiveCashForm direction="withdraw" /> : <ForexFundingUnavailablePanel variant="withdraw" />}
     </ForexPageFrame>
   );
 }

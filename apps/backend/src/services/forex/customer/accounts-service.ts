@@ -4,6 +4,7 @@
 import { randomBytes } from 'node:crypto';
 import { db } from '../../../lib/database.js';
 import { getForexAccountingService } from '../accounting/service.js';
+import { rememberForexAccountKind } from '../broker/account-kind.js';
 import { getForexPositionService } from '../positions/service.js';
 import { getForexPricingService } from '../quotes.service.js';
 
@@ -54,7 +55,9 @@ export async function listForexAccountsForUser(userId: string): Promise<ForexCus
      ORDER BY a.created_at ASC`,
     [userId]
   );
-  return res.rows.map((r) => rowToAccount(r as Record<string, unknown>));
+  const rows = res.rows.map((r) => rowToAccount(r as Record<string, unknown>));
+  for (const row of rows) rememberForexAccountKind(row.accountId, row.accountKind);
+  return rows;
 }
 
 export async function userOwnsForexAccount(userId: string, accountId: string): Promise<boolean> {
@@ -140,6 +143,39 @@ export async function createForexDemoAccount(userId: string): Promise<ForexCusto
   const created = rows.find((a) => a.accountId === accountId);
   if (!created) throw new Error('FOREX_ACCOUNT_CREATE_FAILED');
   return created;
+}
+
+/** Broker provisioning writes the LIVE row only after the broker returns an account id. */
+export async function ensureLiveForexAccountRow(args: {
+  accountId: string;
+  userId: string;
+  positionMode: 'NETTING' | 'HEDGING';
+  leverage: string | null;
+}): Promise<void> {
+  const accountId = args.accountId.trim();
+  const userId = args.userId.trim();
+  const existing = await db.query<{ user_id: string }>(
+    `SELECT user_id FROM forex_accounts WHERE account_id = $1 LIMIT 1`,
+    [accountId]
+  );
+  const owner = existing.rows[0]?.user_id;
+  if (owner && String(owner) !== userId) {
+    throw new Error('BROKER_ACCOUNT_ID_CONFLICT');
+  }
+  await db.query(
+    `INSERT INTO forex_accounts (account_id, user_id, currency, status, position_mode, account_kind, leverage_override)
+     VALUES ($1, $2, 'USD', 'ACTIVE', $3, 'LIVE', $4)
+     ON CONFLICT (account_id) DO UPDATE SET
+       account_kind = 'LIVE',
+       position_mode = EXCLUDED.position_mode,
+       leverage_override = COALESCE(EXCLUDED.leverage_override, forex_accounts.leverage_override),
+       status = 'ACTIVE',
+       updated_at = CURRENT_TIMESTAMP`,
+    [accountId, userId, args.positionMode, args.leverage]
+  );
+  rememberForexAccountKind(accountId, 'LIVE');
+  const pricing = getForexPricingService();
+  getForexAccountingService(getForexPositionService(pricing), pricing).ensureAccount(accountId);
 }
 
 export async function resolveForexAccountIdForUser(userId: string, hint?: string): Promise<string> {

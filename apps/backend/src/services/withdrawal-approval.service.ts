@@ -187,7 +187,9 @@ export async function approveWithdrawal(
 }
 
 /**
- * Reject a withdrawal: set status to 'failed', record rejector and reason, release locked balance.
+ * Reject a withdrawal: set status to 'rejected', record rejector and reason, release locked balance.
+ * 'rejected' is distinct from 'failed' (a broadcast/signing failure): the customer history, admin
+ * status filter and stats all model it separately, so writing 'failed' here mislabels the decision.
  * Uses SELECT FOR UPDATE inside transaction to avoid race with concurrent approve.
  */
 export async function rejectWithdrawal(
@@ -242,7 +244,7 @@ export async function rejectWithdrawal(
 
     await client.query(
       `UPDATE withdrawals
-       SET status = 'failed', treasury_stage = 'failed', failed_reason = $1, rejected_by = $2, rejected_at = CURRENT_TIMESTAMP,
+       SET status = 'rejected', treasury_stage = 'rejected', failed_reason = $1, rejected_by = $2, rejected_at = CURRENT_TIMESTAMP,
            rejection_reason = $1, processed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
        WHERE id = $3`,
       [reason || 'Rejected by admin', adminId, withdrawalId]

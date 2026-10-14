@@ -1,7 +1,7 @@
 {
   "hero": {
-    "eyebrow": "FDM · Fintech Digital Market",
-    "titleLine1": "Fintech Digital Market.",
+    "eyebrow": "ADB Exchange",
+    "titleLine1": "ADB Exchange.",
     "titleLine2": "Kripto dan Forex.",
     "description": "Akses aset digital dan FX global melalui platform finansial profesional untuk presisi, transparansi, dan kontrol.",
     "exploreMarkets": "Jelajahi Pasar",
@@ -107,7 +107,7 @@
     "title": "Intelijen pasar",
     "desc": "Tetap terinformasi dengan data pasar, event ekonomi, dan berita finansial dalam alur trading Anda.",
     "marketDataTitle": "Data pasar",
-    "marketDataDesc": "Instrumen Kripto dan FX live dari pasar FDM.",
+    "marketDataDesc": "Instrumen Kripto dan FX live dari pasar ADB Exchange.",
     "calendarTitle": "Kalender ekonomi",
     "calendarDesc": "Event terjadwal di workspace analisis Forex.",
     "newsTitle": "Berita finansial",
@@ -115,12 +115,12 @@
   },
   "cta": {
     "title": "Siap untuk pasar?",
-    "desc": "Akses aset digital dan FX global melalui FDM.",
+    "desc": "Akses aset digital dan FX global melalui ADB Exchange.",
     "exploreMarkets": "Jelajahi Pasar",
     "createAccount": "Buat Akun"
   },
   "customer": {
-    "eyebrow": "FDM Saya",
+    "eyebrow": "ADB Exchange Saya",
     "title": "Pusat komando pelanggan",
     "subtitle": "Akun Kripto dan Forex terpisah. Tidak ada total gabungan dihitung di sini.",
     "riskBadge": "Risiko {state}",

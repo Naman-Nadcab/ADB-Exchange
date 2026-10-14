@@ -10,6 +10,18 @@ import { logger } from '../lib/logger.js';
 import { getAdminWithPermission } from './admin.fastify.js';
 import { logAuditFromRequest } from '../services/audit-log.service.js';
 
+/** Same semantics as the customer wallet/fiat routes: no row (or is_enabled=true) means the flow is enabled. */
+async function readWalletStatus(): Promise<{ depositPaused: boolean; withdrawalPaused: boolean }> {
+  const featuresRes = await db.query<{ feature_key: string; is_enabled: boolean }>(
+    `SELECT feature_key, is_enabled FROM feature_toggles WHERE feature_key IN ('deposit.enabled', 'withdrawal.enabled')`
+  );
+  const features = Object.fromEntries((featuresRes.rows ?? []).map((r) => [r.feature_key, r.is_enabled]));
+  return {
+    depositPaused: features['deposit.enabled'] === false,
+    withdrawalPaused: features['withdrawal.enabled'] === false,
+  };
+}
+
 export default async function adminOperationalRoutes(app: FastifyInstance) {
   app.addHook('preHandler', async (request, reply) => {
     const isRead = request.method.toUpperCase() === 'GET';
@@ -28,24 +40,36 @@ export default async function adminOperationalRoutes(app: FastifyInstance) {
     if (!admin) return;
     try {
       const { depositPaused, withdrawalPaused } = request.body ?? {};
-      if (depositPaused != null) {
-        await db.query(
-          `UPDATE feature_toggles SET is_enabled = $1, updated_at = NOW() WHERE feature_key = 'deposit.enabled'`
-        , [!depositPaused]);
+      if (typeof depositPaused !== 'boolean' && typeof withdrawalPaused !== 'boolean') {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'VALIDATION_ERROR', message: 'depositPaused and/or withdrawalPaused (boolean) required' },
+        });
       }
-      if (withdrawalPaused != null) {
+      const before = await readWalletStatus();
+      // The customer routes treat a missing toggle row as "enabled", so a pause
+      // must create the row — a bare UPDATE on a missing row silently did nothing.
+      const upsert = async (key: string, name: string, enabled: boolean) => {
         await db.query(
-          `UPDATE feature_toggles SET is_enabled = $1, updated_at = NOW() WHERE feature_key = 'withdrawal.enabled'`
-        , [!withdrawalPaused]);
-      }
-      logAuditFromRequest(request, {
+          `INSERT INTO feature_toggles (feature_key, name, feature_name, category, description, is_enabled, is_critical)
+           VALUES ($1, $2, $2, 'wallet', $3, $4, TRUE)
+           ON CONFLICT (feature_key) DO UPDATE SET is_enabled = EXCLUDED.is_enabled, updated_at = NOW()`,
+          [key, name, `Operational control: ${name.toLowerCase()} (false pauses the flow for all customers)`, enabled]
+        );
+      };
+      if (typeof depositPaused === 'boolean') await upsert('deposit.enabled', 'Deposits enabled', !depositPaused);
+      if (typeof withdrawalPaused === 'boolean') await upsert('withdrawal.enabled', 'Withdrawals enabled', !withdrawalPaused);
+      const after = await readWalletStatus();
+      await logAuditFromRequest(request, {
         actorType: 'admin',
         actorId: admin.adminId,
         action: 'wallet_status_updated',
         resourceType: 'feature_toggles',
-        newValue: { depositPaused, withdrawalPaused },
-      }).catch(() => {});
-      return reply.send({ success: true, data: { message: 'Updated' } });
+        resourceId: 'wallet-status',
+        oldValue: before,
+        newValue: after,
+      });
+      return reply.send({ success: true, data: { message: 'Updated', ...after } });
     } catch (e) {
       logger.warn('Wallet status update error', { error: e instanceof Error ? e.message : 'Unknown' });
       return reply.status(500).send({ success: false, error: { code: 'UPDATE_FAILED', message: 'Failed to update' } });
@@ -55,19 +79,7 @@ export default async function adminOperationalRoutes(app: FastifyInstance) {
   // GET /operational/wallet-status — deposit/withdrawal toggles
   app.get('/operational/wallet-status', async (request, reply) => {
     try {
-      const featuresRes = await db.query<{ feature_key: string; is_enabled: boolean }>(
-        `SELECT feature_key, is_enabled FROM feature_toggles WHERE feature_key IN ('deposit.enabled', 'withdrawal.enabled')`
-      );
-      const features = Object.fromEntries(
-        (featuresRes.rows ?? []).map((r) => [r.feature_key, r.is_enabled])
-      );
-      return reply.send({
-        success: true,
-        data: {
-          depositPaused: !features['deposit.enabled'],
-          withdrawalPaused: !features['withdrawal.enabled'],
-        },
-      });
+      return reply.send({ success: true, data: await readWalletStatus() });
     } catch (e) {
       logger.warn('Wallet status fetch error', { error: e instanceof Error ? e.message : 'Unknown' });
       return reply.status(500).send({

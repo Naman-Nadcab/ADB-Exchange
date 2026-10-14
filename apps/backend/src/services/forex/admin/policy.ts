@@ -3,6 +3,7 @@
  */
 import { setForexGlobalCommission, listForexCommissionPolicies, type ForexCommissionModel } from '../fees/policy.js';
 import { setForexGlobalSwap, listForexSwapPolicies } from '../swap/policy.js';
+import { fxDecimal } from '../decimal-fx.js';
 import { FOREX_INSTRUMENT_CATALOG, getForexInstrumentBySymbol } from '../instruments.catalog.js';
 import { snapshotForexRiskPolicy } from '../risk/policy.js';
 import {
@@ -152,11 +153,23 @@ export function applyForexInstrumentPolicyPatch(
   symbol: string,
   body: { max_leverage?: string; min_volume?: string; max_volume?: string },
 ): { symbol: string; previous: Record<string, string | undefined>; next: Record<string, string | undefined> } {
+  const base = getForexInstrumentBySymbol(symbol);
+  if (!base) throw new Error('UNKNOWN_INSTRUMENT');
+  // Values feed order validation on every request; a non-numeric or non-positive
+  // override would otherwise turn every order for the instrument into a 500.
+  const positive = (field: string, raw: string): string => {
+    const v = raw.trim();
+    if (!/^\d+(\.\d+)?$/.test(v) || !fxDecimal(v).gt(0)) throw new Error(`INVALID_${field}`);
+    return v;
+  };
   const patch: { maxLeverage?: string; minVolume?: string; maxVolume?: string } = {};
-  if (body.max_leverage != null) patch.maxLeverage = body.max_leverage.trim();
-  if (body.min_volume != null) patch.minVolume = body.min_volume.trim();
-  if (body.max_volume != null) patch.maxVolume = body.max_volume.trim();
+  if (body.max_leverage != null) patch.maxLeverage = positive('MAX_LEVERAGE', String(body.max_leverage));
+  if (body.min_volume != null) patch.minVolume = positive('MIN_VOLUME', String(body.min_volume));
+  if (body.max_volume != null) patch.maxVolume = positive('MAX_VOLUME', String(body.max_volume));
   if (!Object.keys(patch).length) throw new Error('NO_INSTRUMENT_POLICY_FIELDS');
+  const effMin = patch.minVolume ?? base.minVolume;
+  const effMax = patch.maxVolume ?? base.maxVolume;
+  if (fxDecimal(effMin).gt(effMax)) throw new Error('MIN_VOLUME_ABOVE_MAX_VOLUME');
   const { previous, next } = setForexInstrumentPolicyOverride(symbol, patch);
   return {
     symbol: symbol.toUpperCase(),

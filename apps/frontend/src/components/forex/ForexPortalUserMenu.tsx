@@ -10,14 +10,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ROUTES } from '@/lib/routes';
+import { CUSTOMER_ACCOUNT_MENU, CUSTOMER_ACCOUNT_ROUTES } from '@/lib/account/customer-account';
 import { cn } from '@/lib/utils';
 
-const PLATFORM_LINKS = [
-  { href: ROUTES.dashboard.identity, labelKey: 'userMenu.verification' as const },
-  { href: ROUTES.dashboard.security, labelKey: 'userMenu.security' as const },
-  { href: '/dashboard/support', labelKey: 'userMenu.support' as const },
-  { href: ROUTES.dashboard.help, labelKey: 'userMenu.help' as const },
+const ACCOUNT_LINKS = [
+  ...CUSTOMER_ACCOUNT_MENU.map((item) => ({
+    href: item.href,
+    labelKey: `userMenu.${item.key}` as const,
+  })),
+  { href: CUSTOMER_ACCOUNT_ROUTES.support, labelKey: 'userMenu.support' as const },
+  { href: CUSTOMER_ACCOUNT_ROUTES.help, labelKey: 'userMenu.help' as const },
 ] as const;
 
 export function ForexPortalUserMenu(props?: { compact?: boolean }) {
@@ -36,7 +38,7 @@ export function ForexPortalUserMenu(props?: { compact?: boolean }) {
         <UserRound className={props?.compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} aria-hidden />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[200px]">
-        {PLATFORM_LINKS.map((item) => (
+        {ACCOUNT_LINKS.map((item) => (
           <DropdownMenuItem key={item.href} asChild>
             <Link href={item.href} className="cursor-pointer text-[13px]">
               {tf(item.labelKey)}
@@ -45,7 +47,7 @@ export function ForexPortalUserMenu(props?: { compact?: boolean }) {
         ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href={ROUTES.dashboard.root} className="cursor-pointer text-[13px] text-muted-foreground">
+          <Link href={CUSTOMER_ACCOUNT_ROUTES.dashboard} className="cursor-pointer text-[13px] text-muted-foreground">
             {tf('userMenu.platformDashboard')}
           </Link>
         </DropdownMenuItem>

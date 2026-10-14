@@ -10,7 +10,7 @@ export default function P2PLegacyRedirect() {
   const t = useTranslations('p2p');
   const type = (params?.type as string) || 'buy';
   const crypto = (params?.crypto as string) || 'USDT';
-  const fiat = (params?.fiat as string) || 'INR';
+  const fiat = (params?.fiat as string) || 'USD';
   useEffect(() => {
     router.replace('/p2p');
   }, [router, type, crypto, fiat]);

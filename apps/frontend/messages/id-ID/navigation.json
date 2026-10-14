@@ -35,9 +35,9 @@
     "productsMenu": "Produk",
     "productsHeading": "Produk",
     "allMarkets": "Semua Pasar",
-    "allMarketsHint": "Ringkasan FDM",
-    "cryptoHint": "FDM Kripto — aset digital",
-    "forexHint": "FDM Forex — FX global",
+    "allMarketsHint": "Ringkasan ADB Exchange",
+    "cryptoHint": "ADB Exchange Kripto — aset digital",
+    "forexHint": "ADB Exchange Forex — FX global",
     "terminalCrypto": "Kripto",
     "terminalForex": "Forex"
   },

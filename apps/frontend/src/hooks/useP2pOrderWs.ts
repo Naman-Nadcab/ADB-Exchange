@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { getSpotWsUrl } from '@/lib/getApiUrl';
+import { fetchSpotWsTicket } from '@/lib/spotWsTicket';
 import { useAuthStore } from '@/store/auth';
 
 const INITIAL_BACKOFF_MS = 1500;
@@ -70,17 +71,20 @@ export function useP2pOrderWs({ orderId, enabled, onEvent }: UseP2pOrderWsOption
       try {
         const ws = new WebSocket(getSpotWsUrl());
         wsRef.current = ws;
-        const tok = accessToken.trim();
 
         ws.onopen = () => {
           if (stopped) return;
           attemptRef.current = 0;
           setConnected(true);
-          try {
-            ws.send(JSON.stringify({ type: 'auth', data: { token: tok } }));
-          } catch {
-            /* ignore */
-          }
+          // The socket only accepts a one-time ticket (never the bearer token itself).
+          void fetchSpotWsTicket().then((ticket) => {
+            if (stopped || !ticket || ws.readyState !== WebSocket.OPEN) return;
+            try {
+              ws.send(JSON.stringify({ type: 'auth', data: { ticket } }));
+            } catch {
+              /* ignore */
+            }
+          });
           if (pingIv) clearInterval(pingIv);
           pingIv = setInterval(() => {
             try {

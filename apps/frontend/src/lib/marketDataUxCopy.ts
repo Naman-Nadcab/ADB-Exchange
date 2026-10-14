@@ -29,13 +29,13 @@ export const TOOLTIP_24H_LOW =
   'Lowest traded price recorded for this pair during the rolling last 24 hours.';
 
 export const TOOLTIP_QUOTE_VOLUME_24H =
-  'FDM quote volume (turnover): sum of (price × quantity) for all trades on this exchange in the last 24 hours, expressed in the quote currency (e.g. USDT).';
+  'Quote volume (turnover): sum of price × quantity for all trades on ADB Exchange in the last 24 hours, in the quote currency (for example, USDT).';
 
 export const TOOLTIP_BASE_VOLUME_24H =
-  'FDM base volume: total units of the base asset traded on this exchange in the last 24 hours.';
+  'Base volume: total units of the base asset traded on ADB Exchange in the last 24 hours.';
 
 export const TOOLTIP_REFERENCE_VOLUME_24H =
-  'Reference market volume from external OHLCV candle data (not FDM turnover). Shown when this pair has no exchange trades in the last 24 hours.';
+  'Reference market volume from external candle data. This is not ADB Exchange turnover. Shown when this pair has no ADB Exchange trades in the last 24 hours.';
 
 /** Shown when UI cannot show official server 24h % change (missing open/window). */
 export const TOOLTIP_CHANGE_UNAVAILABLE = 'Official 24h change is unavailable for this snapshot (no rolling-window reference).';

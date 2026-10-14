@@ -42,6 +42,13 @@ export function validateForexOrderRequest(req: ForexOrderRequest): OrderValidati
     return { ok: false, reason: 'INVALID_TIME_IN_FORCE', detail: `timeInForce ${String(req.timeInForce)} is not supported` };
   }
   const tif = orderTimeInForce(req);
+  if (tif === 'BOC' && req.orderType === 'market') {
+    return {
+      ok: false,
+      reason: 'BOC_WOULD_TAKE',
+      detail: 'BOC rejects an order that would take liquidity',
+    };
+  }
   if ((tif === 'IOC' || tif === 'FOK') && isForexPendingOrderType(req.orderType)) {
     return {
       ok: false,

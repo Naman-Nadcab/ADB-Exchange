@@ -5,7 +5,7 @@ export function SanctionsBlockedScreen() {
     <ShellStateScreen
       testID="S-004"
       title="Access Restricted"
-      message="FDM is not available in your region due to compliance requirements."
+      message="ADB Exchange is not available in your region because of compliance requirements."
       icon="globe-outline"
     />
   );

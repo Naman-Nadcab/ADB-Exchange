@@ -9,7 +9,7 @@ import { fxPlain } from '@/components/forex/format';
 import { ForexPortalModuleCard } from '@/components/forex/ForexPortalKpiCard';
 import { ForexAccountCenterCard } from '@/components/forex/ForexAccountCenterCard';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
-import { useForexWalletKyc } from '@/lib/forex/hooks/useForexWalletKyc';
+import { useForexLiveKycPolicy } from '@/lib/forex/hooks/useForexLiveKycPolicy';
 import {
   createForexDemoAccountAndActivate,
   switchForexActiveAccount,
@@ -34,7 +34,7 @@ export function ForexAccountCenter() {
   const [note, setNote] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const { gates } = useForexProductGates();
-  const kyc = useForexWalletKyc();
+  const kycPolicy = useForexLiveKycPolicy();
 
   function kindLabel(kind: string): string {
     const k = kind.toUpperCase();
@@ -98,7 +98,7 @@ export function ForexAccountCenter() {
       {!gates.liveAccountEnabled ? (
         <ForexPortalModuleCard title={t('liveUnavailableTitle')} accent>
           <p className="text-sm text-muted-foreground">{t('liveUnavailableBody')}</p>
-          {!kyc.verified && !kyc.loading ? (
+          {kycPolicy.kycRequired && !kycPolicy.kycVerified && !kycPolicy.loading ? (
             <Link href={ROUTES.dashboard.identity} className="mt-2 inline-block text-[12px] font-semibold text-primary underline-offset-2 hover:underline">
               {t('liveUnavailableKycCta')}
             </Link>

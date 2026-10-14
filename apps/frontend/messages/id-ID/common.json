@@ -88,7 +88,8 @@
   "states": {
     "loading": "Memuat…",
     "noData": "Tidak ada data",
-    "somethingWrong": "Terjadi kesalahan"
+    "somethingWrong": "Terjadi kesalahan",
+    "notAdded": "Belum ditambahkan"
   },
   "notifications": {
     "errorTitle": "Error",

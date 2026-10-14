@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sanitizeCandles, sanitizeTradeMarkers } from './lightweightChartsData';
+import { candleSeriesIsSparse, sanitizeCandles, sanitizeTradeMarkers, seriesHasVolume } from './lightweightChartsData';
 
 test('sanitizeCandles enforces ascending unique times and valid OHLC', () => {
   const out = sanitizeCandles([
@@ -35,4 +35,17 @@ test('sanitizeTradeMarkers enforces strict ascending unique marker timestamps', 
       [20, 1.6, 'sell'],
     ]
   );
+});
+
+test('candleSeriesIsSparse detects hourly prints on a 1m axis and ignores dense bars', () => {
+  const hourly = [0, 3600, 7200].map((time) => ({ time }));
+  assert.equal(candleSeriesIsSparse(hourly, 60), true);
+  const minutes = [0, 60, 120, 180].map((time) => ({ time }));
+  assert.equal(candleSeriesIsSparse(minutes, 60), false);
+  assert.equal(candleSeriesIsSparse([{ time: 0 }], 60), false);
+});
+
+test('seriesHasVolume is false when every bar is empty', () => {
+  assert.equal(seriesHasVolume([{ volume: 0 }, { volume: undefined }]), false);
+  assert.equal(seriesHasVolume([{ volume: 0 }, { volume: 1.5 }]), true);
 });

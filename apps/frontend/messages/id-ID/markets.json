@@ -18,7 +18,9 @@
     "volume24h": "Volume 24J",
     "btcDominance": "Dominasi BTC",
     "fearGreed": "Takut & Serakah",
-    "assetsListed": "Aset Terdaftar"
+    "assetsListed": "Aset Terdaftar",
+    "noExchangePrints": "Belum ada transaksi",
+    "notInFeed": "Tidak tersedia"
   },
   "trendingDashboard": {
     "title": "Dasbor Tren",

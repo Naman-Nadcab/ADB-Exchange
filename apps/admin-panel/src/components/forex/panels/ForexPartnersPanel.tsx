@@ -35,12 +35,12 @@ export function ForexPartnersPanel() {
   const payoutsQ = useQuery({
     queryKey: ['admin', 'forex', 'partner-payouts', token],
     queryFn: async () => {
-      const res = await adminFetch<{ rows: Array<{ payout_id: string; partner_id: string; amount: string; status: string; external_rail_status: string }> }>(
-        '/forex/partners/payout-requests',
-        { token },
-      );
+      const res = await adminFetch<{
+        rows: Array<{ payout_id: string; partner_id: string; amount: string; status: string; external_rail_status: string }>;
+        external_rail: string;
+      }>('/forex/partners/payout-requests', { token });
       if (!res.success || !res.data) throw new Error(res.error?.message ?? 'Failed');
-      return res.data.rows;
+      return res.data;
     },
     enabled: !!token,
   });
@@ -100,12 +100,14 @@ export function ForexPartnersPanel() {
   );
 
   const data = qry.data;
+  const payoutRows = payoutsQ.data?.rows ?? [];
+  const externalRail = payoutsQ.data?.external_rail ?? 'NOT_CONFIGURED';
 
   return (
     <div className="admin-stack-lg">
       <ForexPanelShell
         title="Partners / IB"
-        description="Internal commission accrual and payout requests · external rail NOT_CONFIGURED"
+        description="Internal commission accrual and payout requests. The external rail follows FOREX_PARTNER_PAYOUT_URL."
         actions={
           <Button variant="ghost" size="sm" onClick={() => void qry.refetch()} disabled={qry.isFetching}>
             <RefreshCw className={`h-3.5 w-3.5 ${qry.isFetching ? 'animate-spin' : ''}`} />
@@ -115,7 +117,7 @@ export function ForexPartnersPanel() {
         {data ? (
           <div className="mb-3 flex flex-wrap gap-2 text-xs">
             <Badge variant={data.table_present ? 'success' : 'warning'}>Schema: {data.table_present ? 'present' : 'pending'}</Badge>
-            <Badge variant="default">External payout: NOT_CONFIGURED</Badge>
+            <Badge variant={externalRail === 'CONFIGURED' ? 'success' : 'default'}>External payout: {externalRail}</Badge>
           </div>
         ) : null}
         <DataTable columns={columns} data={data?.rows ?? []} loading={qry.isLoading} emptyMessage="No partner profiles." />
@@ -149,7 +151,7 @@ export function ForexPartnersPanel() {
 
       <ForexPanelShell title="Payout requests" description="Internal lifecycle status">
         <ul className="admin-stack-sm text-sm">
-          {(payoutsQ.data ?? []).slice(0, 20).map((p) => (
+          {payoutRows.slice(0, 20).map((p) => (
             <li key={p.payout_id} className="rounded border border-admin-border/60 px-3 py-2 font-mono text-xs">
               {p.payout_id.slice(0, 8)}… · {p.amount} · {p.status} · rail {p.external_rail_status}
             </li>

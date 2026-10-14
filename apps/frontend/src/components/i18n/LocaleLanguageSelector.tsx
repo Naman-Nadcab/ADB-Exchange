@@ -113,7 +113,10 @@ export function LocaleLanguageSelector({ className = '', variant = 'default' }: 
         disabled={pending}
       >
         <Globe className={variant === 'compact' ? 'h-3.5 w-3.5 shrink-0 opacity-80' : 'h-4 w-4 shrink-0 opacity-80'} aria-hidden />
-        <span className="max-w-[9rem] truncate font-medium">{activeLabel}</span>
+        {variant === 'compact' ? (
+          <span className="font-semibold sm:hidden">{activeLocale === 'zh-CN' ? '中文' : activeLocale === 'id-ID' ? 'ID' : 'EN'}</span>
+        ) : null}
+        <span className={variant === 'compact' ? 'hidden max-w-[9rem] truncate font-medium sm:inline' : 'max-w-[9rem] truncate font-medium'}>{activeLabel}</span>
         <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 opacity-70 transition-transform', open && 'rotate-180')} aria-hidden />
       </button>
 

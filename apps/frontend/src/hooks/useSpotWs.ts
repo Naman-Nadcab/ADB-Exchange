@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSpotWsUrl } from '@/lib/getApiUrl';
+import { fetchSpotWsTicket } from '@/lib/spotWsTicket';
 import { useAuthStore } from '@/store/auth';
 import type { OrderbookDeltaPayload } from '@/lib/orderbookDelta';
 
@@ -301,11 +302,20 @@ export function useSpotWs(callbacks: UseSpotWsCallbacks = {}, options: UseSpotWs
           }
         });
         if (tok) {
-          try {
-            ws.send(JSON.stringify({ type: 'auth', data: { token: tok } }));
-          } catch {
-            /* ignore */
-          }
+          // The socket only accepts a one-time ticket (never the bearer token itself).
+          void fetchSpotWsTicket().then((ticket) => {
+            if (closedByCleanup || ws.readyState !== WebSocket.OPEN) return;
+            if (!ticket) {
+              authDoneRef.current = false;
+              setPrivateChannelsReady(false);
+              return;
+            }
+            try {
+              ws.send(JSON.stringify({ type: 'auth', data: { ticket } }));
+            } catch {
+              /* ignore */
+            }
+          });
         }
       };
 

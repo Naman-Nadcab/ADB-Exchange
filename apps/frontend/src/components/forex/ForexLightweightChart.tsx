@@ -211,6 +211,7 @@ export function ForexLightweightChart(props: {
   const orderLinesRef = useRef<IPriceLine[]>([]);
   const quoteRef = useRef(props.quote);
   const candlesRef = useRef(props.candles);
+  const appliedBarsRef = useRef<Array<{ time: UTCTimestamp; open: number; high: number; low: number; close: number }> | null>(null);
   const digitsRef = useRef(props.digits ?? 5);
   const chartTypeRef = useRef<ForexChartType>(props.chartType ?? 'candle');
   const onCrosshairRef = useRef(props.onCrosshair);
@@ -871,6 +872,7 @@ export function ForexLightweightChart(props: {
       upperRef.current = null;
       lowerRef.current = null;
       seriesRef.current = null;
+      appliedBarsRef.current = null;
       chartRef.current?.remove();
       chartRef.current = null;
       setMainChartApi(null);
@@ -889,9 +891,19 @@ export function ForexLightweightChart(props: {
     const chart = chartRef.current;
     if (!series || !chart) return;
     const bars = toBars(props.candles);
-    applySeriesData(series, seriesKindRef.current, bars);
-    applySessionMarkers(series, bars, Boolean(props.showSessions), props.calendarMarkers ?? []);
-    if (bars.length) chart.timeScale().fitContent();
+    const prev = appliedBarsRef.current;
+    const mode = candleApplyMode(prev, bars);
+    if (mode === 'update-last' && bars.length) {
+      updateSeriesBar(series, seriesKindRef.current, bars[bars.length - 1]!);
+    } else if (mode === 'append' && bars.length >= 2) {
+      updateSeriesBar(series, seriesKindRef.current, bars[bars.length - 2]!);
+      updateSeriesBar(series, seriesKindRef.current, bars[bars.length - 1]!);
+    } else {
+      applySeriesData(series, seriesKindRef.current, bars);
+      applySessionMarkers(series, bars, Boolean(props.showSessions), props.calendarMarkers ?? []);
+      if (bars.length) chart.timeScale().fitContent();
+    }
+    appliedBarsRef.current = bars;
   }, [props.candles, props.showSessions, props.calendarMarkers]);
 
   useEffect(() => {
@@ -1306,6 +1318,46 @@ function clearLines(ref: { current: IPriceLine[] }, series: { removePriceLine: (
     }
   }
   ref.current = [];
+}
+
+function sameBar(
+  a: { time: UTCTimestamp; open: number; high: number; low: number; close: number },
+  b: { time: UTCTimestamp; open: number; high: number; low: number; close: number }
+): boolean {
+  return a.time === b.time && a.open === b.open && a.high === b.high && a.low === b.low && a.close === b.close;
+}
+
+/** History reload replaces the series. A quote tick only updates the forming bar. */
+function candleApplyMode(
+  prev: Array<{ time: UTCTimestamp; open: number; high: number; low: number; close: number }> | null,
+  next: Array<{ time: UTCTimestamp; open: number; high: number; low: number; close: number }>
+): 'replace' | 'update-last' | 'append' {
+  if (!prev || prev.length === 0 || next.length === 0) return 'replace';
+  if (next.length === prev.length) {
+    for (let i = 0; i < prev.length - 1; i += 1) {
+      if (!sameBar(prev[i]!, next[i]!)) return 'replace';
+    }
+    return prev[prev.length - 1]!.time === next[next.length - 1]!.time ? 'update-last' : 'replace';
+  }
+  if (next.length === prev.length + 1) {
+    for (let i = 0; i < prev.length - 1; i += 1) {
+      if (!sameBar(prev[i]!, next[i]!)) return 'replace';
+    }
+    return prev[prev.length - 1]!.time === next[prev.length - 1]!.time ? 'append' : 'replace';
+  }
+  return 'replace';
+}
+
+function updateSeriesBar(
+  series: ISeriesApi<'Candlestick'> | ISeriesApi<'Line'> | ISeriesApi<'Area'> | ISeriesApi<'Bar'>,
+  kind: ForexChartType,
+  bar: { time: UTCTimestamp; open: number; high: number; low: number; close: number }
+) {
+  if (kind === 'line' || kind === 'area') {
+    (series as ISeriesApi<'Line'>).update({ time: bar.time, value: bar.close });
+    return;
+  }
+  (series as ISeriesApi<'Candlestick'>).update(bar);
 }
 
 function applySeriesData(

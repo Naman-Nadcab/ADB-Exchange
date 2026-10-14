@@ -58,8 +58,27 @@ export function setForexSessionNowForTests(now: Date | null): void {
   clockOverride = now;
 }
 
+/**
+ * Isolated-runtime hook: pin the session clock so the DEMO venue can be exercised end-to-end
+ * over HTTP outside market hours. Honoured ONLY when the test-only funding API is enabled by
+ * environment (FOREX_FUNDING_TEST_API=true) — the same family of test hooks that production
+ * never turns on. The real wall clock is never affected; only session eligibility reads this.
+ */
+function envSessionClockOverride(): Date | null {
+  const raw = process.env.FOREX_SESSION_CLOCK_OVERRIDE?.trim();
+  if (!raw) return null;
+  if (process.env.FOREX_FUNDING_TEST_API?.trim().toLowerCase() !== 'true') return null;
+  const d = new Date(raw);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+const ENV_CLOCK_OVERRIDE = envSessionClockOverride();
+if (ENV_CLOCK_OVERRIDE) {
+  console.warn(`⚠️  FOREX_SESSION_CLOCK_OVERRIDE active: Forex session eligibility is evaluated at ${ENV_CLOCK_OVERRIDE.toISOString()} (test hook)`);
+}
+
 export function forexSessionNow(): Date {
-  return clockOverride ?? new Date();
+  return clockOverride ?? ENV_CLOCK_OVERRIDE ?? new Date();
 }
 
 function parseHms(time: string): number {

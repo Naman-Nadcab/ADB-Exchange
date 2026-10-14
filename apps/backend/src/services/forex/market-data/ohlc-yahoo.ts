@@ -205,6 +205,48 @@ export function parseYahooChart(payload: unknown): ExternalOhlcBar[] {
   return out;
 }
 
+type YahooRaw = { at: number; bars: ExternalOhlcBar[]; providerSymbol: string; note?: string };
+
+/** One Yahoo response serves the chart, the anchor, and every other reader for this symbol and timeframe. */
+const YAHOO_RAW_TTL_MS = 60_000;
+const yahooRawCache = new Map<string, YahooRaw>();
+const yahooRawInflight = new Map<string, Promise<YahooRaw>>();
+
+async function loadYahooRaw(symbol: string, timeframe: YahooForexTimeframe): Promise<YahooRaw> {
+  const mapped = yahooSymbolFor(symbol);
+  if (!mapped) throw new Error('YAHOO_SYMBOL_UNMAPPED');
+  const key = `${symbol}|${timeframe}`;
+  const hit = yahooRawCache.get(key);
+  if (hit && Date.now() - hit.at < YAHOO_RAW_TTL_MS) return hit;
+  const pending = yahooRawInflight.get(key);
+  if (pending) return pending;
+
+  const request = (async () => {
+    const url = new URL(`https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(mapped.yahoo)}`);
+    url.searchParams.set('interval', YAHOO_INTERVAL[timeframe]);
+    url.searchParams.set('range', YAHOO_RANGE[timeframe]);
+    url.searchParams.set('includePrePost', 'false');
+    url.searchParams.set('events', 'div');
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'EDA-Forex-OHLC/1.0', Accept: 'application/json' },
+      signal: AbortSignal.timeout(12_000),
+    });
+    if (!res.ok) throw new Error(`YAHOO_HTTP_${res.status}`);
+    const raw: YahooRaw = {
+      at: Date.now(),
+      bars: parseYahooChart((await res.json()) as unknown),
+      providerSymbol: mapped.yahoo,
+      note: mapped.note,
+    };
+    yahooRawCache.set(key, raw);
+    return raw;
+  })().finally(() => {
+    if (yahooRawInflight.get(key) === request) yahooRawInflight.delete(key);
+  });
+  yahooRawInflight.set(key, request);
+  return request;
+}
+
 export async function fetchYahooOhlc(args: {
   symbol: string;
   timeframe: YahooForexTimeframe;
@@ -212,25 +254,8 @@ export async function fetchYahooOhlc(args: {
   from?: string;
   to?: string;
 }): Promise<{ bars: ExternalOhlcBar[]; providerSymbol: string; note?: string }> {
-  const mapped = yahooSymbolFor(args.symbol);
-  if (!mapped) {
-    throw new Error('YAHOO_SYMBOL_UNMAPPED');
-  }
-  const url = new URL(`https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(mapped.yahoo)}`);
-  url.searchParams.set('interval', YAHOO_INTERVAL[args.timeframe]);
-  url.searchParams.set('range', YAHOO_RANGE[args.timeframe]);
-  url.searchParams.set('includePrePost', 'false');
-  url.searchParams.set('events', 'div');
-
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'EDA-Forex-OHLC/1.0', Accept: 'application/json' },
-    signal: AbortSignal.timeout(12_000),
-  });
-  if (!res.ok) {
-    throw new Error(`YAHOO_HTTP_${res.status}`);
-  }
-  const json = (await res.json()) as unknown;
-  let bars = parseYahooChart(json);
+  const raw = await loadYahooRaw(args.symbol, args.timeframe);
+  let bars = raw.bars;
   if (args.from) {
     const fromMs = Date.parse(args.from);
     bars = bars.filter((b) => Date.parse(b.timestamp) >= fromMs);
@@ -242,5 +267,5 @@ export async function fetchYahooOhlc(args: {
   if (bars.length > args.limit) {
     bars = bars.slice(bars.length - args.limit);
   }
-  return { bars, providerSymbol: mapped.yahoo, note: mapped.note };
+  return { bars, providerSymbol: raw.providerSymbol, note: raw.note };
 }

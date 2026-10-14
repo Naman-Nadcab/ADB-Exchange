@@ -74,6 +74,8 @@ const AUTH_CODE_TO_KEY: Record<string, string> = {
   INVALID_BODY: 'auth.codes.INVALID_BODY',
   INVALID_INPUT: 'auth.codes.INVALID_INPUT',
   VALIDATION_ERROR: 'auth.codes.VALIDATION_ERROR',
+  LEGACY_AUTH_DISABLED: 'auth.codes.LEGACY_AUTH_DISABLED',
+  LEGACY_SIGNUP_CLOSED: 'auth.codes.LEGACY_SIGNUP_CLOSED',
 };
 
 export function errorCodeToMessageKey(code: string | null | undefined): string | null {

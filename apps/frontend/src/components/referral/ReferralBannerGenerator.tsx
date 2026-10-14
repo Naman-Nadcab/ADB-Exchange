@@ -21,7 +21,7 @@ export interface ReferralBannerGeneratorProps {
 export function ReferralBannerGenerator({
   referralCode,
   referralLink,
-  appName = 'FDM',
+  appName = 'ADB Exchange',
 }: ReferralBannerGeneratorProps) {
   const t = useTranslations('account.referralBannerGenerator');
   const drawBanner = useCallback(

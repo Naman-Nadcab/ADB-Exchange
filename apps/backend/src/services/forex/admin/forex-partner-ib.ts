@@ -1,5 +1,7 @@
 /**
- * Forex IB / Partner internal lifecycle (external payout rail NOT_CONFIGURED).
+ * Forex IB / Partner payout. With no FOREX_PARTNER_PAYOUT_URL the ledger posts
+ * and external_rail_status stays NOT_CONFIGURED. A configured rail must settle
+ * before the ledger moves.
  */
 import { randomUUID } from 'node:crypto';
 import { db } from '../../../lib/database.js';
@@ -85,6 +87,27 @@ export async function listForexPartnerPayoutRequests(partnerId?: string) {
   return res.rows;
 }
 
+export async function settleForexPartnerPayoutRail(args: {
+  payoutId: string;
+  partnerId: string;
+  amount: string;
+}): Promise<'UNSET' | 'SETTLED' | 'REJECTED'> {
+  const url = process.env.FOREX_PARTNER_PAYOUT_URL?.trim() ?? '';
+  if (!url) return 'UNSET';
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify(args),
+    });
+    if (!res.ok) return 'REJECTED';
+    const body = (await res.json()) as { status?: unknown };
+    return String(body?.status ?? '').toLowerCase() === 'settled' ? 'SETTLED' : 'REJECTED';
+  } catch {
+    return 'REJECTED';
+  }
+}
+
 export async function executeForexPartnerPayout(payoutId: string, approvalRequestId: string) {
   const id = payoutId.trim();
   const rowRes = await db.query<{
@@ -107,6 +130,19 @@ export async function executeForexPartnerPayout(payoutId: string, approvalReques
   if (row.status !== 'PENDING' && row.status !== 'PROCESSING') throw new Error('INVALID_PAYOUT_STATUS');
   await db.query(`UPDATE forex_partner_payout_requests SET status = 'PROCESSING', updated_at = NOW() WHERE payout_id = $1::uuid`, [id]);
 
+  const rail = await settleForexPartnerPayoutRail({
+    payoutId: id,
+    partnerId: String(row.partner_id),
+    amount: String(row.amount),
+  });
+  if (rail === 'REJECTED') {
+    await db.query(
+      `UPDATE forex_partner_payout_requests SET status = 'REJECTED', external_rail_status = 'REJECTED', updated_at = NOW() WHERE payout_id = $1::uuid`,
+      [id],
+    );
+    throw new Error('PAYOUT_RAIL_REJECTED');
+  }
+
   const pricing = getForexPricingService();
   const accounting = getForexAccountingService(getForexPositionService(pricing), pricing);
   const fp = `FOREX_PARTNER_PAYOUT:${id}`;
@@ -115,11 +151,17 @@ export async function executeForexPartnerPayout(payoutId: string, approvalReques
     amount: String(row.amount),
     idempotencyKey: fp,
     referenceId: id,
+    externalRail: rail === 'SETTLED' ? 'SETTLED' : 'NOT_CONFIGURED',
   });
 
   await db.query(
-    `UPDATE forex_partner_payout_requests SET status = 'COMPLETED', ledger_transaction_id = $2::uuid, updated_at = NOW() WHERE payout_id = $1::uuid`,
-    [id, tx.transactionId],
+    `UPDATE forex_partner_payout_requests
+        SET status = 'COMPLETED',
+            ledger_transaction_id = $2::uuid,
+            external_rail_status = $3,
+            updated_at = NOW()
+      WHERE payout_id = $1::uuid`,
+    [id, tx.transactionId, rail === 'SETTLED' ? 'SETTLED' : 'NOT_CONFIGURED'],
   );
   await db.query(
     `UPDATE forex_partner_commission_accruals SET status = 'PAID'

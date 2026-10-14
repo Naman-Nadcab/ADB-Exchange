@@ -14,11 +14,23 @@
 - **Retention:** Minimum 7 days; 30 days for production. PITR retention as per provider (e.g. 7 days).
 
 ### Restore
-- **From dump:** `pg_restore -d $DATABASE_URL -c exchange_YYYYMMDD.dump` (use `-c` only when replacing; otherwise restore to new DB).
+Restore a custom-format dump exactly once into an empty database:
+
+```bash
+createdb "$TARGET_DB"
+pg_restore --no-owner --no-privileges -d "$TARGET_DB" exchange_YYYYMMDD.dump
+echo "pg_restore exit: $?"
+```
+
+- A single restore of the 2026-10-02 production dump into an empty database exits 0 with no `ERROR` lines.
+- Do not run `pg_restore` again into a database that already contains that dump. A second restore exits 1. On a verified clone it produced 1114 errors: 875 `already exists`, 207 `multiple primary keys`, 32 `duplicate key`. Row counts and constraint totals stayed the same in that replay, but a separate second restore duplicated `users` and left `users` without its primary key. A non-zero `pg_restore` is not a successful recovery.
+- If restore exits non-zero, drop that database and restore once into a new empty database. Do not ignore errors and continue.
+- Use `-c` / `--clean` only when the target is a database you intend to replace, and still verify the exit code. `--clean` is not a reason to accept errors.
+- After restore, verify `users` has a validated primary key, critical row counts, and `pg_constraint` / `pg_index` have no invalid entries before applying later migrations.
 - **PITR:** Use provider console or `recovery_target_time` to restore to a point in time.
 
 ### Verification
-- Restore to a staging DB at least quarterly; run migrations and smoke tests.
+- Restore to a disposable database, not production. Confirm exit code 0, then compare row counts and primary keys before migrations or smoke tests.
 
 ---
 

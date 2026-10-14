@@ -70,7 +70,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/backups': 'Backups',
   '/system/page-audit': 'Page & API Audit',
   '/system/integrations': 'Integrations Center',
-  '/forex': 'Forex FDM Overview',
+  '/forex': 'Forex Overview',
   '/forex/command': 'Forex Command Desk',
   '/forex/instruments': 'Forex Instruments',
   '/forex/sessions': 'Forex Sessions & Holidays',

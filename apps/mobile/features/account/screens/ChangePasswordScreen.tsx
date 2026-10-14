@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, Text } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenLayout, TextField, PrimaryButton, ErrorBanner, ExchangeCard } from '@shared/ui';
 import { useTheme } from '@shared/theme';
@@ -39,6 +39,9 @@ export function ChangePasswordScreen({ navigation }: Props) {
     <ScreenLayout testID="S-711">
       <ScrollView contentContainerStyle={{ paddingBottom: theme.spacing.pageY }}>
         <ExchangeCard variant="terminal" style={{ gap: theme.spacing[3] }}>
+          <Text style={[theme.typography.bodySm, { color: `hsl(${theme.colors.foregroundSecondary})` }]}>
+            A password is not a sign-in method. Sign in with your wallet.
+          </Text>
           <TextField label="Current password" value={current} onChangeText={setCurrent} secureTextEntry />
           <TextField label="New password" value={next} onChangeText={setNext} secureTextEntry />
           <TextField label="Security OTP (if required)" value={otp} onChangeText={setOtp} keyboardType="number-pad" />

@@ -12,6 +12,8 @@ export function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
     const { hostname, origin } = window.location;
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    // Wallet browsers open the sslip.io alias. Nginx serves this app there, so stay same-origin.
+    if (hostname === '169.58.39.2.sslip.io') return '';
     // Same-origin: nginx proxies /api/ — avoids mixed-content when env URL is http but page is https.
     if (!base || base === origin) {
       return '';

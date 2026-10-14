@@ -29,6 +29,8 @@
     "e2e:forex-admin": "playwright test -c playwright.forex-admin.config.ts --project=forex-admin-api",
     "e2e:forex-drawing": "playwright test -c playwright.forex-drawing.config.ts",
     "test:e2e": "tsx e2e/run-e2e.ts",
+    "test:full-system": "tsx e2e/full-system/run.ts",
+    "test:full-system:browser": "playwright test -c e2e/full-system/playwright.config.ts",
     "test:tier1": "tsx e2e/run-tier1-proof.ts",
     "test:security": "tsx security/run-security-tests.ts",
     "smoke:api": "node scripts/smoke-api.mjs",

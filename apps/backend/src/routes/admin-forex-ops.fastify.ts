@@ -26,6 +26,7 @@ import {
   runForexAutomationWorkflowDryRun,
 } from '../services/forex/admin/automation-workflows.js';
 import { dispatchForexAutomationEvent, setForexAutomationWorkflowEnabled } from '../services/forex/admin/automation-runtime.js';
+import { applyForexBrokerReconciliation, buildForexBrokerReconciliation } from '../services/forex/broker/reconcile.js';
 import {
   accrueForexPartnerCommission,
   createForexPartnerPayoutRequest,
@@ -456,7 +457,8 @@ export default async function adminForexOpsRoutes(app: FastifyInstance): Promise
     const admin = await getAdminWithPermission(app, request, reply, 'forex:view');
     if (!admin) return;
     const rows = await listForexPartnerPayoutRequests();
-    return reply.send({ success: true, data: { rows, external_rail: 'NOT_CONFIGURED' } });
+    const externalRail = process.env.FOREX_PARTNER_PAYOUT_URL?.trim() ? 'CONFIGURED' : 'NOT_CONFIGURED';
+    return reply.send({ success: true, data: { rows, external_rail: externalRail } });
   });
 
   app.get<{ Querystring: { page?: string; limit?: string; status?: string; subject_id?: string } }>(
@@ -570,4 +572,26 @@ export default async function adminForexOpsRoutes(app: FastifyInstance): Promise
       }
     },
   );
+
+  app.post<{ Body: { accountId?: string } }>('/forex/broker/reconciliation', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'forex:view');
+    if (!admin) return;
+    const accountId = String(request.body?.accountId ?? '').trim();
+    if (!accountId) {
+      return reply.status(400).send({ success: false, error: { code: 'INVALID_REQUEST', message: 'accountId is required' } });
+    }
+    const report = await buildForexBrokerReconciliation(accountId);
+    return reply.send({ success: true, data: report });
+  });
+
+  app.post<{ Body: { reportId?: string; confirm?: boolean } }>('/forex/broker/reconciliation/apply', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'forex:controls:manage');
+    if (!admin) return;
+    const reportId = String(request.body?.reportId ?? '').trim();
+    const applied = await applyForexBrokerReconciliation(reportId, request.body?.confirm === true);
+    if (!applied.ok) {
+      return reply.status(409).send({ success: false, error: { code: applied.code, message: applied.message } });
+    }
+    return reply.send({ success: true, data: applied });
+  });
 }

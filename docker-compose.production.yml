@@ -206,6 +206,9 @@ services:
     container_name: exchange-frontend
     environment:
       NODE_ENV: production
+      # Shared .env sets PORT=4000 for the API. Next standalone honors PORT,
+      # while nginx proxies this service on 3000.
+      PORT: "3000"
     depends_on:
       backend:
         condition: service_healthy
@@ -252,8 +255,10 @@ services:
     volumes:
       - ./nginx/docker-entrypoint.sh:/docker-entrypoint.sh:ro
       - ./nginx/nginx.tls.conf:/etc/nginx/nginx.tls.conf:ro
+      - ./nginx/nginx.wallet-browser.conf:/etc/nginx/nginx.wallet-browser.conf:ro
       - ./nginx/nginx.http-only.conf:/etc/nginx/nginx.http-only.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/acme:/var/www/acme:ro
     entrypoint: ["/docker-entrypoint.sh"]
     depends_on:
       frontend:

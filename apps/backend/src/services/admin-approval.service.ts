@@ -16,7 +16,8 @@ export type ApprovalActionType =
   | 'forex_account_group_change'
   | 'forex_leverage_change'
   | 'forex_finance_request'
-  | 'forex_partner_payout';
+  | 'forex_partner_payout'
+  | 'wallet_recovery';
 
 const DEFAULT_APPROVAL_THRESHOLDS: Record<string, number> = {
   withdrawal_approve: 2,
@@ -33,6 +34,7 @@ const DEFAULT_APPROVAL_THRESHOLDS: Record<string, number> = {
   forex_leverage_change: 2,
   forex_finance_request: 2,
   forex_partner_payout: 2,
+  wallet_recovery: 1,
 };
 
 const DEFAULT_EXPIRY_HOURS = 24;
@@ -304,9 +306,11 @@ class AdminApprovalService {
       }
     }
 
+    // Execution must not depend on MAKER_CHECKER_ENABLED: forex/global-control routes always
+    // route through an approval request, so a fully approved request that is never executed
+    // would show as "approved" while the control never changed.
     if (
       isFullyApproved &&
-      config.security.makerCheckerEnabled &&
       (row.action_type === 'withdrawal_approve' ||
         row.action_type === 'manual_credit' ||
         row.action_type === 'global_control_action' ||

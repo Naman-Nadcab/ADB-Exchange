@@ -7,7 +7,8 @@ import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
 import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
 import { isPreviewParamComplete } from '@/lib/forex/models/preview';
 import { executablePrice, isQuoteStale } from '@/lib/forex/models/quotes';
-import { estimateTicketRisk } from '@/lib/forex/models/ticket-risk';
+import { pipSizeFromInstrument, priceDistancePips } from '@/lib/forex/chart/pip-math';
+import { estimateTicketRisk, protectionPriceFromInput, stepLotVolume } from '@/lib/forex/models/ticket-risk';
 import {
   availableOrderTypes,
   availableTimeInForce,
@@ -60,6 +61,7 @@ export function ForexOrderTicket() {
   const [expireAt, setExpireAt] = useState('');
   const [sl, setSl] = useState('');
   const [tp, setTp] = useState('');
+  const [protectMode, setProtectMode] = useState<'price' | 'pips'>('price');
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [demoBusy, setDemoBusy] = useState(false);
   const [demoNote, setDemoNote] = useState<string | null>(null);
@@ -130,21 +132,70 @@ export function ForexOrderTicket() {
   };
   const preview = useForexPreview(authed && isPreviewParamComplete(previewReq) ? previewReq : null, refreshNonce);
   const previewData = preview.data;
+  const pipSize = pipSizeFromInstrument({ pipSize: inst?.pipSize, digits });
+  const entryRaw = !isPendingOrderType(type)
+    ? exec
+    : (requiresLimitPrice(type) ? limitPrice.trim() : price.trim()) || exec;
+  const entryNum = entryRaw != null && entryRaw !== '' ? Number(entryRaw) : NaN;
+  const entry = Number.isFinite(entryNum) && entryNum > 0 ? entryNum : null;
+  const resolvedSl = protectionPriceFromInput({
+    side,
+    kind: 'sl',
+    entry,
+    raw: sl,
+    mode: protectMode,
+    pipSize,
+    digits,
+  });
+  const resolvedTp = protectionPriceFromInput({
+    side,
+    kind: 'tp',
+    entry,
+    raw: tp,
+    mode: protectMode,
+    pipSize,
+    digits,
+  });
   const ticketRisk = useMemo(
     () =>
       estimateTicketRisk({
         instrument: inst,
         side,
-        // stop_limit fills at its limit, so that is the honest entry estimate.
-        entry: !isPendingOrderType(type)
-          ? exec
-          : (requiresLimitPrice(type) ? limitPrice.trim() : price.trim()) || exec,
-        sl,
-        tp,
+        entry,
+        sl: resolvedSl,
+        tp: resolvedTp,
         volume,
       }),
-    [inst, side, type, exec, price, limitPrice, sl, tp, volume]
+    [inst, side, entry, resolvedSl, resolvedTp, volume]
   );
+
+  function switchProtectMode(next: 'price' | 'pips') {
+    if (next === protectMode) return;
+    const convert = (raw: string, kind: 'sl' | 'tp') => {
+      const trimmed = raw.trim();
+      if (!trimmed || entry == null) return trimmed;
+      const n = Number(trimmed);
+      if (!Number.isFinite(n) || n <= 0) return trimmed;
+      if (protectMode === 'price') {
+        const pips = priceDistancePips(entry, n, pipSize);
+        return pips == null ? '' : String(Math.round(pips * 10) / 10);
+      }
+      return (
+        protectionPriceFromInput({
+          side,
+          kind,
+          entry,
+          raw: trimmed,
+          mode: 'pips',
+          pipSize,
+          digits,
+        }) ?? ''
+      );
+    };
+    setSl((cur) => convert(cur, 'sl'));
+    setTp((cur) => convert(cur, 'tp'));
+    setProtectMode(next);
+  }
 
   const orderActionLabel = useMemo(() => describeCustomerOrderLabel(tf, side, type), [side, type, tf]);
   const kindHelp = useMemo(() => orderKindHelpLabel(tf, type, side), [type, side, tf]);
@@ -202,8 +253,8 @@ export function ForexOrderTicket() {
       limitPrice: requiresLimitPrice(type) ? limitPrice.trim() : undefined,
       timeInForce: tifUnsupported ? undefined : tif,
       expireAt: tif === 'GTD' && expireAt ? new Date(expireAt).toISOString() : undefined,
-      stopLoss: sl.trim() || undefined,
-      takeProfit: tp.trim() || undefined,
+      stopLoss: resolvedSl,
+      takeProfit: resolvedTp,
     });
   }
 
@@ -307,6 +358,7 @@ export function ForexOrderTicket() {
             onChange={(e) => setType(e.target.value as ForexOrderType)}
             className="fx-mt5-field h-7 flex-1 px-1.5 text-[11px]"
             aria-label={tf('ticketPanel.kindAria')}
+            title={kindHelp}
           >
             {allowedTypes.map((t) => (
               <option key={t} value={t}>
@@ -315,7 +367,6 @@ export function ForexOrderTicket() {
             ))}
           </select>
         </label>
-        <p className="text-[9px] leading-snug text-muted-foreground">{kindHelp}</p>
 
         <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
           <span className="w-14 shrink-0 uppercase">{tf('ticketPanel.tif')}</span>
@@ -325,6 +376,13 @@ export function ForexOrderTicket() {
             onChange={(e) => setTif(e.target.value as ForexTimeInForce)}
             className="fx-mt5-field h-7 flex-1 px-1.5 text-[11px] disabled:opacity-50"
             aria-label={tf('ticketPanel.tifAria')}
+            title={
+              tifUnsupported
+                ? tf('ticketPanel.tifBackendGtcOnly')
+                : isPendingOrderType(type)
+                  ? tf('ticketPanel.tifPendingHelp')
+                  : tf('ticketPanel.tifMarketHelp')
+            }
           >
             {tifOptions.map((t) => (
               <option key={t} value={t} disabled={!isTimeInForceAllowed(type, t)}>
@@ -334,13 +392,6 @@ export function ForexOrderTicket() {
             ))}
           </select>
         </label>
-        <p className="pl-16 text-[9px] leading-snug text-muted-foreground">
-          {tifUnsupported
-            ? tf('ticketPanel.tifBackendGtcOnly')
-            : isPendingOrderType(type)
-              ? tf('ticketPanel.tifPendingHelp')
-              : tf('ticketPanel.tifMarketHelp')}
-        </p>
 
         {tif === 'GTD' && isPendingOrderType(type) ? (
           <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
@@ -355,24 +406,48 @@ export function ForexOrderTicket() {
           </label>
         ) : null}
 
-        <p className="text-[9px] leading-snug text-muted-foreground">
-          {[...missingFeatures, tf('ticketPanel.simulatedMock')].join(' · ')}
-        </p>
-
-        <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
           <span className="w-14 shrink-0 uppercase">{tf('ticketPanel.volume')}</span>
+          <button
+            type="button"
+            className="fx-mt5-field h-7 w-7 shrink-0 font-mono text-[14px] font-semibold text-foreground"
+            aria-label={tf('ticketPanel.volumeDown')}
+            onClick={() =>
+              setVolume((cur) =>
+                stepLotVolume(cur, -1, {
+                  minVolume: inst?.minVolume,
+                  maxVolume: inst?.maxVolume,
+                  volumeStep: inst?.volumeStep,
+                })
+              )
+            }
+          >
+            −
+          </button>
           <input
             value={volume}
             onChange={(e) => setVolume(e.target.value)}
-            className="fx-mt5-field h-7 flex-1 px-1.5 text-[12px]"
+            className="fx-mt5-field h-7 min-w-0 flex-1 px-1.5 text-center text-[12px]"
             aria-label={tf('ticketPanel.volumeAria')}
+            inputMode="decimal"
           />
-        </label>
-        {inst ? (
-          <p className="pl-16 text-[9px] text-muted-foreground">
-            {tf('ticketPanel.volumeRange', { min: inst.minVolume, max: inst.maxVolume, step: inst.volumeStep })}
-          </p>
-        ) : null}
+          <button
+            type="button"
+            className="fx-mt5-field h-7 w-7 shrink-0 font-mono text-[14px] font-semibold text-foreground"
+            aria-label={tf('ticketPanel.volumeUp')}
+            onClick={() =>
+              setVolume((cur) =>
+                stepLotVolume(cur, 1, {
+                  minVolume: inst?.minVolume,
+                  maxVolume: inst?.maxVolume,
+                  volumeStep: inst?.volumeStep,
+                })
+              )
+            }
+          >
+            +
+          </button>
+        </div>
 
         {requiresTriggerPrice(type) ? (
           <label className="flex items-center gap-2 text-[10px] text-muted-foreground">
@@ -401,17 +476,32 @@ export function ForexOrderTicket() {
               <input
                 value={limitPrice}
                 onChange={(e) => setLimitPrice(e.target.value)}
-                className="fx-mt5-field h-7 flex-1 px-1.5 text-[12px]"
-                aria-label={tf('ticketPanel.limitAria')}
-              />
+              className="fx-mt5-field h-7 flex-1 px-1.5 text-[12px]"
+              aria-label={tf('ticketPanel.limitAria')}
+              title={`${side === 'buy' ? tf('ticket.stopLimitBuyHint') : tf('ticket.stopLimitSellHint')} ${tf('ticketPanel.stopLimitFollowUp')}`}
+            />
             </label>
-            <p className="pl-16 text-[9px] leading-snug text-muted-foreground">
-              {side === 'buy' ? tf('ticket.stopLimitBuyHint') : tf('ticket.stopLimitSellHint')}{' '}
-              {tf('ticketPanel.stopLimitFollowUp')}
-            </p>
           </>
         ) : null}
 
+        <div className="flex items-center justify-end gap-1">
+          <div className="inline-flex rounded border border-border" role="group" aria-label={tf('ticketPanel.protectModeAria')}>
+            {(['price', 'pips'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                aria-pressed={protectMode === mode}
+                onClick={() => switchProtectMode(mode)}
+                className={cn(
+                  'h-5 px-2 text-[9px] font-semibold uppercase',
+                  protectMode === mode ? 'bg-primary/15 text-primary' : 'text-muted-foreground'
+                )}
+              >
+                {mode === 'price' ? tf('ticketPanel.protectPrice') : tf('ticketPanel.protectPips')}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="grid grid-cols-2 gap-1.5">
           <label className="text-[10px] text-muted-foreground" htmlFor="fx-ticket-sl">
             <span className="mb-0.5 block uppercase">{tf('ticketPanel.stopLoss')}</span>
@@ -419,8 +509,10 @@ export function ForexOrderTicket() {
               id="fx-ticket-sl"
               value={sl}
               onChange={(e) => setSl(e.target.value)}
+              placeholder={protectMode === 'pips' ? tf('ticketPanel.pipsPlaceholder') : ''}
               aria-label={tf('ticketPanel.stopLossAria')}
               className="fx-mt5-field h-7 w-full px-1.5 text-[12px]"
+              inputMode="decimal"
             />
           </label>
           <label className="text-[10px] text-muted-foreground" htmlFor="fx-ticket-tp">
@@ -429,67 +521,85 @@ export function ForexOrderTicket() {
               id="fx-ticket-tp"
               value={tp}
               onChange={(e) => setTp(e.target.value)}
+              placeholder={protectMode === 'pips' ? tf('ticketPanel.pipsPlaceholder') : ''}
               aria-label={tf('ticketPanel.takeProfitAria')}
               className="fx-mt5-field h-7 w-full px-1.5 text-[12px]"
+              inputMode="decimal"
             />
           </label>
         </div>
-        <p className="text-[11px] leading-snug text-muted-foreground">{tf('ticketPanel.slTpAttach')}</p>
-
-        <p className="text-[11px] leading-snug text-muted-foreground">{tf('ticketPanel.slTpEstimated')}</p>
-        <dl className="grid grid-cols-2 gap-x-2 gap-y-0.5 border border-border px-2 py-1 font-mono text-[10px] text-muted-foreground">
-          <dt>{tf('ticketPanel.balance')}</dt>
-          <dd className="text-right text-foreground">
-            {hydratePhase === 'hydrating' && !account ? '…' : account ? fxNum(account.ledgerBalance, 2) : '—'}
-          </dd>
-          <dt>{tf('ticketPanel.free')}</dt>
-          <dd className="text-right text-foreground">
-            {hydratePhase === 'hydrating' && !account ? '…' : account ? fxNum(account.freeMargin, 2) : '—'}
-          </dd>
-          <dt>{side === 'buy' ? tf('ticketPanel.execAsk') : tf('ticketPanel.execBid')}</dt>
-          <dd className="text-right text-foreground">{exec ? fxNum(exec, digits) : '—'}</dd>
-          <dt>
-            {tf('ticketPanel.ref')} {previewData?.referenceSide ?? ''}
-          </dt>
-          <dd className="text-right text-foreground">
-            {previewData?.referencePrice ? fxNum(previewData.referencePrice, digits) : '—'}
-          </dd>
-          <dt>{tf('ticketPanel.spreadLabel')}</dt>
-          <dd className="text-right text-foreground">{previewData?.spread ?? quote?.spread ?? previewData?.spreadPips ?? quote?.spreadPips ?? '—'}</dd>
-          <dt>{tf('ticketPanel.ledger')}</dt>
-          <dd className="text-right text-foreground">{previewData?.ledgerBalance ?? account?.ledgerBalance ?? '—'}</dd>
-          <dt>{tf('ticket.margin')}</dt>
-          <dd className="text-right text-foreground">{previewData?.requiredMargin ?? '—'}</dd>
-          <dt>{tf('ticket.fee')}</dt>
-          <dd className="text-right text-foreground">{previewData?.estimatedFee ?? '0'}</dd>
-          <dt>{tf('ticket.estExposure')}</dt>
-          <dd className="text-right text-foreground">
-            {ticketRisk.estimatedExposure != null ? fxNum(ticketRisk.estimatedExposure, 0) : '—'}
-          </dd>
-          <dt>{tf('ticket.estSl')}</dt>
-          <dd className="text-right text-foreground">
-            {ticketRisk.slDistancePips != null ? `${ticketRisk.slDistancePips.toFixed(1)}p` : '—'}
-            {ticketRisk.estimatedRisk != null ? ` · ${fxNum(ticketRisk.estimatedRisk, 2)}` : ''}
-          </dd>
-          <dt>{tf('ticket.estTp')}</dt>
-          <dd className="text-right text-foreground">
-            {ticketRisk.tpDistancePips != null ? `${ticketRisk.tpDistancePips.toFixed(1)}p` : '—'}
-            {ticketRisk.estimatedReward != null ? ` · ${fxNum(ticketRisk.estimatedReward, 2)}` : ''}
-          </dd>
-          <dt>{tf('ticket.estRr')}</dt>
-          <dd className="text-right text-foreground">
-            {ticketRisk.riskReward != null ? ticketRisk.riskReward.toFixed(2) : '—'}
-          </dd>
-          <dt>{tf('ticket.freeAfter')}</dt>
-          <dd className="text-right text-foreground">{previewData?.projectedFreeMargin ?? '—'}</dd>
-          <dt>{tf('ticket.preview')}</dt>
-          <dd className="text-right">
-            <button type="button" className="text-primary hover:underline" onClick={() => setRefreshNonce((n) => n + 1)}>
-              {preview.status}
-              {previewData ? (previewData.allowed ? tf('ticket.previewOkSuffix') : tf('ticket.previewBlockedSuffix')) : ''}
-            </button>
-          </dd>
-        </dl>
+        <div className="grid grid-cols-2 border border-border font-mono text-[11px]">
+          <div className="border-r border-border px-2 py-1">
+            <p className="text-[9px] uppercase text-muted-foreground">{tf('ticket.margin')}</p>
+            <p className="font-semibold text-foreground">{previewData?.requiredMargin ?? '—'}</p>
+          </div>
+          <div className="px-2 py-1">
+            <p className="text-[9px] uppercase text-muted-foreground">{tf('ticketPanel.free')}</p>
+            <p className="font-semibold text-foreground">
+              {hydratePhase === 'hydrating' && !account ? '…' : account ? fxNum(account.freeMargin, 2) : '—'}
+            </p>
+          </div>
+        </div>
+        <details className="text-[10px] text-muted-foreground">
+          <summary className="cursor-pointer font-medium text-foreground" title={missingFeatures.join(' · ') || undefined}>
+            {tf('ticketPanel.details')}
+          </summary>
+          <dl className="mt-1 grid grid-cols-2 gap-x-2 gap-y-0.5 font-mono">
+            <dt>{tf('ticketPanel.balance')}</dt>
+            <dd className="text-right text-foreground">
+              {account ? fxNum(account.ledgerBalance, 2) : '—'}
+            </dd>
+            {previewData?.referencePrice ? (
+              <>
+                <dt>{tf('ticketPanel.ref')} {previewData.referenceSide ?? ''}</dt>
+                <dd className="text-right text-foreground">{fxNum(previewData.referencePrice, digits)}</dd>
+              </>
+            ) : null}
+            {previewData?.estimatedFee != null ? (
+              <>
+                <dt>{tf('ticket.fee')}</dt>
+                <dd className="text-right text-foreground">{previewData.estimatedFee}</dd>
+              </>
+            ) : null}
+            {ticketRisk.estimatedRisk != null ? (
+              <>
+                <dt>{tf('ticket.estSl')}</dt>
+                <dd className="text-right text-foreground">
+                  {ticketRisk.slDistancePips != null ? `${ticketRisk.slDistancePips.toFixed(1)}p · ` : ''}
+                  {fxNum(ticketRisk.estimatedRisk, 2)}
+                </dd>
+              </>
+            ) : null}
+            {ticketRisk.estimatedReward != null ? (
+              <>
+                <dt>{tf('ticket.estTp')}</dt>
+                <dd className="text-right text-foreground">
+                  {ticketRisk.tpDistancePips != null ? `${ticketRisk.tpDistancePips.toFixed(1)}p · ` : ''}
+                  {fxNum(ticketRisk.estimatedReward, 2)}
+                </dd>
+              </>
+            ) : null}
+            {ticketRisk.riskReward != null ? (
+              <>
+                <dt>{tf('ticket.estRr')}</dt>
+                <dd className="text-right text-foreground">{ticketRisk.riskReward.toFixed(2)}</dd>
+              </>
+            ) : null}
+            {previewData?.projectedFreeMargin != null ? (
+              <>
+                <dt>{tf('ticket.freeAfter')}</dt>
+                <dd className="text-right text-foreground">{previewData.projectedFreeMargin}</dd>
+              </>
+            ) : null}
+            <dt>{tf('ticket.preview')}</dt>
+            <dd className="text-right">
+              <button type="button" className="text-primary hover:underline" onClick={() => setRefreshNonce((n) => n + 1)}>
+                {preview.status}
+                {previewData ? (previewData.allowed ? tf('ticket.previewOkSuffix') : tf('ticket.previewBlockedSuffix')) : ''}
+              </button>
+            </dd>
+          </dl>
+        </details>
         {requiresTriggerPrice(type) && price.trim() ? (
           <button
             type="button"

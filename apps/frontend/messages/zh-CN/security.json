@@ -27,7 +27,8 @@
   },
   "changePasswordPage": {
     "title": "修改密码",
-    "securityWarning": "为保障账户安全，修改密码后 24 小时内将暂停链上提现、内部划转、法币提现、FDM 卡交易、P2P 交易及广告相关操作。",
+    "notASignIn": "密码不是登录方式。请使用钱包登录。",
+    "securityWarning": "为保障账户安全，修改密码后 24 小时内将暂停链上提现、内部划转、法币提现、ADB Exchange 卡交易、P2P 交易及广告相关操作。",
     "oldPassword": "原密码",
     "oldPasswordPlaceholder": "请输入当前密码",
     "newPassword": "新密码",

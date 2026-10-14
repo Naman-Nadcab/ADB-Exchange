@@ -56,7 +56,7 @@ export function ReferralShareScreen(_props: Props) {
         </Text>
       </ExchangeCard>
       <View style={{ gap: theme.spacing[3] }}>
-        <PrimaryButton title="Share" onPress={() => void Share.share({ message: `Join FDM: ${link}` })} />
+        <PrimaryButton title="Share" onPress={() => void Share.share({ message: `Join ADB Exchange: ${link}` })} />
       </View>
     </ScreenLayout>
   );

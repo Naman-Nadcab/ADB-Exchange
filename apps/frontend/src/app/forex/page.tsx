@@ -11,7 +11,12 @@ import { cn } from '@/lib/utils';
 
 type MobileTab = 'watch' | 'ticket' | 'toolbox';
 
-/** Mobile companion panels under the chart (desktop uses ForexTerminalLayout docks). */
+/**
+ * Companion panels under the chart for viewports below `lg` (desktop uses ForexTerminalLayout docks).
+ * Below `md` it offers Watch / Order / Trade tabs; between `md` and `lg` the layout already docks the
+ * watchlist and toolbox but not the order ticket, so only the ticket is shown here (FFX-001: never
+ * duplicate a surface that is docked at the current breakpoint).
+ */
 export default function ForexTradePage() {
   const t = useTranslations('forex.mobileTrade');
   const [tab, setTab] = useState<MobileTab>('ticket');
@@ -28,8 +33,8 @@ export default function ForexTradePage() {
   }, [positions, orders]);
 
   return (
-    <div className="grid gap-0 md:hidden">
-      <div className="flex h-8 items-center gap-1 border-b border-border bg-card px-2" role="tablist">
+    <div className="grid gap-0 lg:hidden">
+      <div className="flex h-8 items-center gap-1 border-b border-border bg-card px-2 md:hidden" role="tablist">
         {(
           [
             { id: 'watch' as const, labelKey: 'watch' as const },
@@ -53,10 +58,18 @@ export default function ForexTradePage() {
         ))}
       </div>
       <div className="min-h-[280px] max-h-[42vh] overflow-hidden">
-        {tab === 'watch' ? <ForexWatchlist /> : null}
-        {tab === 'ticket' ? <ForexOrderTicket /> : null}
+        {tab === 'watch' ? (
+          <div className="md:hidden">
+            <ForexWatchlist />
+          </div>
+        ) : null}
+        <div className={cn(tab === 'ticket' ? 'block' : 'hidden md:block')}>
+          <ForexOrderTicket />
+        </div>
         {tab === 'toolbox' ? (
-          <ForexBottomPanels compact={bottomCollapsed} hasTradingData={hasTradingData} />
+          <div className="md:hidden">
+            <ForexBottomPanels compact={bottomCollapsed} hasTradingData={hasTradingData} />
+          </div>
         ) : null}
       </div>
     </div>

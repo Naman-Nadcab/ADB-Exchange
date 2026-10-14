@@ -3,6 +3,8 @@ import { config } from '../config/index.js';
 
 export const ACCESS_COOKIE = 'mlive_at';
 export const REFRESH_COOKIE = 'mlive_rt';
+/** Mirrors apps/frontend/src/lib/authSession.ts: the web client's in-memory placeholder for a cookie-backed session. */
+export const COOKIE_SESSION_MARKER = '__cookie_session__';
 
 /** Browsers ignore Secure cookies on plain HTTP — honor proxy proto / explicit env override. */
 function resolveCookieSecure(request?: FastifyRequest): boolean {
@@ -63,7 +65,7 @@ export function getAccessTokenFromRequest(request: FastifyRequest): string | und
   const auth = request.headers.authorization;
   if (auth?.startsWith('Bearer ')) {
     const token = auth.slice(7).trim();
-    if (token) return token;
+    if (token && token !== COOKIE_SESSION_MARKER) return token;
   }
   const fromCookie = request.cookies?.[ACCESS_COOKIE];
   return typeof fromCookie === 'string' && fromCookie.length > 0 ? fromCookie : undefined;

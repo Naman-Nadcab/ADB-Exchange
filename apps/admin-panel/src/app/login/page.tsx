@@ -6,10 +6,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Mail, Lock, Shield, Loader2 } from 'lucide-react';
 import { useAdminAuthStore } from '@/store/auth';
 import { getDashboardSummary } from '@/lib/api';
+import { ADMIN_SURFACE_LABEL, BRAND_NAME_FULL } from '@/lib/brand';
 import { cn } from '@/lib/cn';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-const BRAND_NAME = process.env.NEXT_PUBLIC_ADMIN_BRAND_NAME || 'Exchange';
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 /** Dev-mode defaults — ALL accounts share this password in local dev. */
@@ -148,10 +148,10 @@ export default function LoginPage() {
             </div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300/90">Admin access only</p>
             <h1 className="mt-2 bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-2xl font-semibold tracking-tight text-transparent">
-              {BRAND_NAME}
+              {BRAND_NAME_FULL}
             </h1>
             <p className="mt-1 text-sm text-slate-400">
-              {needs2FA ? 'Two-factor verification' : 'Admin Control Panel'}
+              {needs2FA ? 'Two-factor verification' : ADMIN_SURFACE_LABEL}
             </p>
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-slate-500">
               All actions are monitored and audited for compliance.

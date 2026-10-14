@@ -71,6 +71,20 @@ export function SignupIdentifierScreen({ navigation, route }: Props) {
               google.mutate();
             }}
           />
+          <PrimaryButton
+            title="Sign up with wallet"
+            accessibilityLabel="Sign up with wallet"
+            size="xl"
+            variant="outline"
+            disabled={!terms}
+            onPress={() => {
+              if (!terms) {
+                setError('Accept Terms & Privacy to continue');
+                return;
+              }
+              navigation.navigate('LoginWallet', { intent: 'signup' });
+            }}
+          />
           <AuthDivider />
           <View style={{ flexDirection: 'row', gap: theme.spacing[3] }}>
             <Pressable

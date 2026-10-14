@@ -58,7 +58,9 @@
       "AUTH_ERROR": "Autentikasi gagal. Silakan coba lagi.",
       "INVALID_BODY": "Permintaan tidak valid. Muat ulang halaman dan coba lagi.",
       "INVALID_INPUT": "Input tidak valid. Periksa data Anda.",
-      "VALIDATION_ERROR": "Periksa input Anda dan coba lagi."
+      "VALIDATION_ERROR": "Periksa input Anda dan coba lagi.",
+      "LEGACY_AUTH_DISABLED": "Akun ini menggunakan masuk dengan dompet.",
+      "LEGACY_SIGNUP_CLOSED": "Hubungkan dompet Anda untuk melanjutkan."
     }
   },
   "network": {

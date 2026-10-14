@@ -98,14 +98,20 @@ export async function fetchP2PAds(params: {
   if (params.limit != null) q.set('limit', String(params.limit));
   if (params.offset != null) q.set('offset', String(params.offset));
   const res = await api.get<{ success: boolean; data?: P2PAdRow[] }>(`${P2P_PREFIX}/ads?${q.toString()}`, { skipAuth: true, notifyOnError: false });
-  if (!res.success || !Array.isArray(res.data)) return [];
+  if (!res.success) {
+    throw new Error(res.error?.message ?? 'Could not load ads');
+  }
+  if (!Array.isArray(res.data)) return [];
   return res.data;
 }
 
 export async function fetchMyOrders(status?: string): Promise<P2POrderRow[]> {
   const q = status ? `?status=${encodeURIComponent(status)}` : '';
   const res = await api.get<{ success: boolean; data?: P2POrderRow[] }>(`${P2P_PREFIX}/my-orders${q}`);
-  if (!res.success || !Array.isArray(res.data)) return [];
+  if (!res.success) {
+    throw new Error(res.error?.message ?? 'Could not load orders');
+  }
+  if (!Array.isArray(res.data)) return [];
   return res.data;
 }
 

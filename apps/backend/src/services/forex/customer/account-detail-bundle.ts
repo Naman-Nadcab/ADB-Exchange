@@ -67,7 +67,7 @@ export function buildForexCustomerAccountHubBundle(account: ForexCustomerAccount
       groupLabel: account.groupLabel,
       tradingLogin: account.accountId,
       brokerTradingLogin: null as string | null,
-      server: 'FDM_FOREX_PRACTICE',
+      server: 'ADB Exchange Practice',
       createdAt: account.createdAt,
       updatedAt: account.updatedAt,
     },

@@ -155,7 +155,8 @@ export interface Wallet {
   userId: string;
   chainId: ChainId;
   address: string;
-  encryptedPrivateKey: string;
+  /** Never selected by the wallet service read paths; only present on legacy raw rows. */
+  encryptedPrivateKey?: string;
   hdPath: string;
   isActive: boolean;
   createdAt: Date;

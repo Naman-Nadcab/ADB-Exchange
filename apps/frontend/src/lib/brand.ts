@@ -1,26 +1,26 @@
 /**
- * Master brand — Fintech Digital Market (FDM).
- * Crypto and Forex are products under this single platform brand.
- * Future rename: update these constants and `/public/brand/*` assets only.
+ * Canonical customer-facing brand for ADB Exchange.
+ * Crypto and Forex are products under this name.
+ * Raster files in /public/brand still contain the previous FDM artwork and are not rendered.
  */
 
-export const BRAND_NAME = 'Fintech Digital Market';
-export const BRAND_NAME_SHORT = 'FDM';
-export const BRAND_NAME_FULL = 'Fintech Digital Market';
-/** @deprecated Use BRAND_NAME_SHORT — kept for older imports. */
-export const BRAND_DISPLAY = BRAND_NAME_SHORT;
+export const BRAND_NAME = 'ADB Exchange';
+export const BRAND_NAME_SHORT = 'ADB Exchange';
+export const BRAND_NAME_FULL = 'ADB Exchange';
+/** @deprecated Use BRAND_NAME — kept for older imports. */
+export const BRAND_DISPLAY = BRAND_NAME;
 
 export const BRAND_PRODUCT = {
-  crypto: 'FDM Crypto',
-  forex: 'FDM Forex',
-  p2p: 'FDM P2P',
-  markets: 'FDM Markets',
-  account: 'FDM Account',
-  api: 'FDM API',
-  wallet: 'FDM Wallet',
+  crypto: 'Crypto',
+  forex: 'Forex',
+  p2p: 'P2P',
+  markets: 'Markets',
+  account: 'Account',
+  api: 'API',
+  wallet: 'Wallet',
 } as const;
 
-export const BRAND_LOGO_ALT = 'FDM — Fintech Digital Market logo';
+export const BRAND_LOGO_ALT = 'ADB Exchange';
 
 /** Canonical brand asset paths (served from /public/brand). */
 export const BRAND = {
@@ -29,7 +29,7 @@ export const BRAND = {
   logoHorizontalCompact: '/brand/logo-horizontal-compact.png',
   logoFooter: '/brand/logo-horizontal-footer.png',
   logoMarketing: '/brand/logo-marketing.png',
-  /** Legacy key aliases — same FDM assets. */
+  /** Legacy key aliases — same historical artwork, not rendered. */
   iconGold: '/brand/icon.png',
   logoHorizontalGold: '/brand/logo-horizontal.png',
   logoHorizontalCompactGold: '/brand/logo-horizontal-compact.png',
@@ -61,7 +61,7 @@ export const BRAND_LOGO_SRC: Record<BrandLogoVariant, string> = {
 };
 
 /**
- * Intrinsic pixel dimensions from the official FDM exports (after black→alpha PNG).
+ * Intrinsic pixel dimensions of the historical artwork files.
  * Measured from file headers — do not invent.
  */
 export const BRAND_LOGO_INTRINSIC: Record<BrandLogoVariant, { width: number; height: number }> = {

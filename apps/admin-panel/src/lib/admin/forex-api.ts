@@ -11,6 +11,7 @@ export type ForexAdminConfigResponse = {
   };
   runtime: {
     realForex: boolean;
+    liveReleaseOpen?: boolean;
     positionMode: string;
     marketData: {
       enabled: boolean;
@@ -404,6 +405,10 @@ export type ForexAdminControlsSnapshot = {
   }>;
   readiness: ForexAdminConfigResponse['readiness'];
   dealing: Record<string, unknown>;
+  kycPolicy?: {
+    required: boolean;
+    source: 'default' | 'system_settings';
+  };
 };
 
 export function getForexAdminControls(token: string | null) {
@@ -418,6 +423,7 @@ export function patchForexAdminControls(
     demo_funding?: boolean;
     funding_test_api?: boolean;
     execution_test_api?: boolean;
+    kyc_required?: boolean;
   },
 ) {
   return adminFetch<{ changes: unknown[]; snapshot: ForexAdminControlsSnapshot }>('/forex/controls', {
@@ -508,7 +514,7 @@ export type ForexAdminExecutionSnapshot = {
   posture: {
     source: string;
     executionMode: string;
-    realForex: false;
+    realForex: boolean;
     killSwitch: boolean;
   };
   routing: { rules: Array<Record<string, unknown>>; mockProvidersOnly: boolean };
@@ -524,7 +530,7 @@ export type ForexAdminExecutionSnapshot = {
   }>;
   marketData: ForexAdminConfigResponse['runtime']['marketData'];
   realForexGate: {
-    effectiveRealForex: false;
+    effectiveRealForex: boolean;
     armRequested: boolean;
     envRealForexAllowed: boolean;
     releaseBlocked: boolean;
@@ -542,6 +548,33 @@ export type ForexAdminExecutionSnapshot = {
 
 export function getForexAdminExecution(token: string | null) {
   return adminFetch<ForexAdminExecutionSnapshot>('/forex/execution', { token });
+}
+
+export type ForexBrokerReconciliationReport = {
+  reportId: string;
+  accountId: string;
+  ledgerBalance: string;
+  brokerBalance: string | null;
+  cashDelta: string | null;
+  positionDrift: Array<{ symbol: string; side: string; localVolume: string; brokerVolume: string }>;
+  status: 'OPEN' | 'APPLIED' | 'UNAVAILABLE';
+  persisted: boolean;
+};
+
+export function postForexBrokerReconciliation(token: string | null, accountId: string) {
+  return adminFetch<ForexBrokerReconciliationReport>('/forex/broker/reconciliation', {
+    token,
+    method: 'POST',
+    body: { accountId },
+  });
+}
+
+export function applyForexBrokerReconciliation(token: string | null, reportId: string, confirm: boolean) {
+  return adminFetch<{ ok: true; applied: boolean; transactionId: string | null }>('/forex/broker/reconciliation/apply', {
+    token,
+    method: 'POST',
+    body: { reportId, confirm },
+  });
 }
 
 export type ForexAdminProviderCatalogRow = {

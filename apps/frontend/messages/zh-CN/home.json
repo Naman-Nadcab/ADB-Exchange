@@ -1,7 +1,7 @@
 {
   "hero": {
-    "eyebrow": "FDM · 金融科技数字市场",
-    "titleLine1": "金融科技数字市场。",
+    "eyebrow": "ADB Exchange",
+    "titleLine1": "ADB Exchange。",
     "titleLine2": "加密与外汇。",
     "description": "通过专为精准、透明与掌控而打造的专业金融平台，访问数字资产与全球外汇。",
     "exploreMarkets": "探索行情",
@@ -107,7 +107,7 @@
     "title": "市场情报",
     "desc": "在交易流程中同步获取行情、经济事件与财经资讯。",
     "marketDataTitle": "行情数据",
-    "marketDataDesc": "来自 FDM 市场的实时加密与外汇品种。",
+    "marketDataDesc": "来自 ADB Exchange 市场的实时加密与外汇品种。",
     "calendarTitle": "经济日历",
     "calendarDesc": "外汇分析工作区内的计划事件。",
     "newsTitle": "财经新闻",
@@ -115,12 +115,12 @@
   },
   "cta": {
     "title": "准备好进入市场的了吗？",
-    "desc": "通过 FDM 访问数字资产与全球外汇。",
+    "desc": "通过 ADB Exchange 访问数字资产与全球外汇。",
     "exploreMarkets": "探索行情",
     "createAccount": "创建账户"
   },
   "customer": {
-    "eyebrow": "我的 FDM",
+    "eyebrow": "我的 ADB Exchange",
     "title": "客户指挥中心",
     "subtitle": "加密与外汇账户相互独立，此处不计算合并总资产。",
     "riskBadge": "风险 {state}",

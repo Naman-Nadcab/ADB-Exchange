@@ -67,7 +67,7 @@ export class EmailService {
     </div>
     <div class="content">
       <p>Hi ${userName},</p>
-      <p>We've detected a deposit to your FDM account!</p>
+      <p>A deposit to your ADB Exchange account has been detected.</p>
       
       <div class="amount-box">
         <div class="amount">${data.amount}</div>
@@ -95,8 +95,8 @@ export class EmailService {
       ${data.explorerUrl ? `<a href="${data.explorerUrl}" class="btn">View on Explorer</a>` : ''}
     </div>
     <div class="footer">
-      <p>This is an automated notification from FDM.</p>
-      <p>© 2026 FDM. All rights reserved.</p>
+      <p>This is an automated notification from ADB Exchange.</p>
+      <p>© 2026 ADB Exchange. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -185,8 +185,8 @@ export class EmailService {
       <a href="/dashboard/assets/funding" class="btn">View Balance</a>
     </div>
     <div class="footer">
-      <p>This is an automated notification from FDM.</p>
-      <p>© 2026 FDM. All rights reserved.</p>
+      <p>This is an automated notification from ADB Exchange.</p>
+      <p>© 2026 ADB Exchange. All rights reserved.</p>
     </div>
   </div>
 </body>

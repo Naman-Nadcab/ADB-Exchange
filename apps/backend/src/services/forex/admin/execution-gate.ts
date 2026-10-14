@@ -2,6 +2,7 @@
  * REAL_FOREX certification gate (F5). Admin may record "arm requested" intent only;
  * effective real-money execution stays OFF until a future certified release enables it.
  */
+import { cachedBrokerLiveReady } from '../broker/gateway.js';
 import { forexReadinessSnapshot } from '../durability/ready.js';
 import { effectiveForexRuntimeFlags } from './runtime-controls.js';
 
@@ -21,15 +22,24 @@ export type ForexRealForexChecklistItem = {
 };
 
 export type ForexRealForexGateState = {
-  /** Always false in F5 — execution path remains MOCK/simulated. */
-  effectiveRealForex: false;
+  /** True only when the broker is healthy, the operator armed it, the env allows it, and the kill switch is off. */
+  effectiveRealForex: boolean;
   armRequested: boolean;
   envRealForexAllowed: boolean;
-  releaseBlocked: true;
+  releaseBlocked: boolean;
   releaseBlockReason: string;
   checklistComplete: boolean;
   checklist: ForexRealForexChecklistItem[];
 };
+
+/**
+ * Demo orders stay on the mock book. This flag only reports that a live release is allowed.
+ * It does not retarget DEMO execution.
+ */
+export function isLiveForexReleaseOpen(): boolean {
+  const flags = effectiveForexRuntimeFlags();
+  return cachedBrokerLiveReady() && realForexArmRequested && envRealForexAllowed() && !flags.killSwitch;
+}
 
 let realForexArmRequested = false;
 
@@ -55,6 +65,7 @@ export function buildForexRealForexChecklist(args: {
   const flags = effectiveForexRuntimeFlags();
   const readiness = forexReadinessSnapshot();
   const envAllowed = envRealForexAllowed();
+  const brokerReady = cachedBrokerLiveReady();
 
   return [
     {
@@ -89,11 +100,17 @@ export function buildForexRealForexChecklist(args: {
     },
     {
       id: 'env_real_forex_allowed',
-      label: 'FOREX_REAL_FOREX_ALLOWED env (must be OFF for F5 arm)',
-      pass: !envAllowed,
-      detail: envAllowed
-        ? 'Env allows real forex — F5 admin arm stays blocked until LP program ships.'
-        : 'FOREX_REAL_FOREX_ALLOWED not set (safe default).',
+      label: brokerReady
+        ? 'FOREX_REAL_FOREX_ALLOWED env (must be ON to arm a healthy broker)'
+        : 'FOREX_REAL_FOREX_ALLOWED env (must be OFF until the broker is healthy)',
+      pass: brokerReady ? envAllowed : !envAllowed,
+      detail: brokerReady
+        ? envAllowed
+          ? 'Env allows the broker release.'
+          : 'Set FOREX_REAL_FOREX_ALLOWED before arming a healthy broker.'
+        : envAllowed
+          ? 'Env allows real forex — arm stays blocked until the broker is healthy.'
+          : 'FOREX_REAL_FOREX_ALLOWED not set (safe default).',
     },
   ];
 }
@@ -104,14 +121,16 @@ export function buildForexRealForexGateState(args: {
 }): ForexRealForexGateState {
   const checklist = buildForexRealForexChecklist(args);
   const checklistComplete = checklist.every((c) => c.pass);
+  const open = isLiveForexReleaseOpen();
 
   return {
-    effectiveRealForex: false,
+    effectiveRealForex: open,
     armRequested: realForexArmRequested,
     envRealForexAllowed: envRealForexAllowed(),
-    releaseBlocked: true,
-    releaseBlockReason:
-      'F5 release gate: REAL_FOREX effective path remains disabled. Arm records operator intent only.',
+    releaseBlocked: !open,
+    releaseBlockReason: open
+      ? 'Broker release is open. Demo orders stay on the mock book.'
+      : 'F5 release gate: REAL_FOREX effective path remains disabled. Arm records operator intent only.',
     checklistComplete,
     checklist,
   };

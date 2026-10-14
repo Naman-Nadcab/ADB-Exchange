@@ -3,7 +3,7 @@ import type { ForexExecSide } from '../execution/venue.js';
 export type ForexCustomerOrderType = 'market' | 'limit' | 'stop' | 'stop_limit';
 export type ForexOrderIntent = 'CUSTOMER' | 'CUSTOMER_CLOSE' | 'PROTECTION_CLOSE' | 'LIQUIDATION_CLOSE';
 
-export const FOREX_TIME_IN_FORCE = ['GTC', 'IOC', 'FOK', 'DAY', 'GTD'] as const;
+export const FOREX_TIME_IN_FORCE = ['GTC', 'IOC', 'FOK', 'DAY', 'GTD', 'RETURN', 'BOC'] as const;
 export type ForexTimeInForce = (typeof FOREX_TIME_IN_FORCE)[number];
 export const FOREX_DEFAULT_TIME_IN_FORCE: ForexTimeInForce = 'GTC';
 
@@ -17,7 +17,7 @@ export interface ForexOrderRequest {
   requestedPrice?: string;
   /** stop_limit only: the LIMIT price the order works at once the stop triggers. */
   limitPrice?: string;
-  /** Defaults to GTC. IOC/FOK are market-only. GTD requires expireAt (UTC ISO). */
+  /** Defaults to GTC. IOC/FOK are market-only. RETURN rests a remainder. BOC rejects a taking order. GTD requires expireAt (UTC ISO). */
   timeInForce?: ForexTimeInForce;
   /** Required when timeInForce is GTD — UTC ISO-8601 instant. */
   expireAt?: string;

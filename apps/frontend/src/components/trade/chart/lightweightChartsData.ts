@@ -35,6 +35,30 @@ export function sanitizeKeyedByTime<T extends { time: number }>(items: readonly 
   return out;
 }
 
+/**
+ * True when stored bars are much coarser than the selected interval
+ * (hourly reference points viewed on a 1m scale). The chart then draws
+ * a close path through the real prints instead of isolated dashes.
+ * No prices are invented.
+ */
+export function candleSeriesIsSparse(candles: readonly { time: number }[], intervalSeconds: number): boolean {
+  if (candles.length < 2) return false;
+  const interval = Math.max(1, Math.floor(intervalSeconds) || 1);
+  const deltas: number[] = [];
+  for (let i = 1; i < candles.length; i++) {
+    const d = candles[i].time - candles[i - 1].time;
+    if (d > 0) deltas.push(d);
+  }
+  if (deltas.length === 0) return false;
+  deltas.sort((a, b) => a - b);
+  const mid = deltas[Math.floor(deltas.length / 2)] ?? 0;
+  return mid > interval * 2;
+}
+
+export function seriesHasVolume(candles: readonly { volume?: number }[]): boolean {
+  return candles.some((c) => (c.volume ?? 0) > 0);
+}
+
 export function sanitizeCandles(data: CandleData[]): CandleData[] {
   const normalized: CandleData[] = data
     .map((c): CandleData | null => {

@@ -34,8 +34,10 @@ function assert(cond: unknown, msg: string): asserts cond {
   assert(JSON.stringify(c.customer.timeInForce) === JSON.stringify([...FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE]), 'customer tif');
   assert(FOREX_ENGINE_ORDER_TYPES.includes('stop_limit'), 'engine list');
   assert(FOREX_CUSTOMER_EXPOSED_ORDER_TYPES.includes('stop_limit'), 'exposed stop_limit');
-  assert(JSON.stringify([...FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE]) === JSON.stringify(['GTC', 'IOC', 'FOK', 'DAY', 'GTD']), 'exposed tif list');
-  assert(JSON.stringify([...FOREX_ENGINE_TIME_IN_FORCE]) === JSON.stringify(['GTC', 'IOC', 'FOK', 'DAY', 'GTD']), 'engine tif');
+  assert(JSON.stringify([...FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE]) === JSON.stringify(['GTC', 'IOC', 'FOK', 'DAY', 'GTD', 'RETURN', 'BOC']), 'exposed tif list');
+  assert(JSON.stringify([...FOREX_ENGINE_TIME_IN_FORCE]) === JSON.stringify(['GTC', 'IOC', 'FOK', 'DAY', 'GTD', 'RETURN', 'BOC']), 'engine tif');
+  assert(c.timeInForce.return.engine === true, 'RETURN engine');
+  assert(c.timeInForce.boc.engine === true, 'BOC engine');
   console.log('  PASS  canonical capability contract tri-state');
 }
 

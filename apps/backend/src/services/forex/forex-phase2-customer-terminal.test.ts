@@ -39,7 +39,7 @@ setForexSessionNowForTests(OPEN_SESSION_CLOCK);
 {
   const cfg = getForexCustomerTradingConfig();
   assert.deepEqual(cfg.orderTypes, ['market', 'limit', 'stop', 'stop_limit']);
-  assert.deepEqual(cfg.timeInForce, ['GTC', 'IOC', 'FOK', 'DAY', 'GTD']);
+  assert.deepEqual(cfg.timeInForce, ['GTC', 'IOC', 'FOK', 'DAY', 'GTD', 'RETURN', 'BOC']);
   assert.equal(cfg.orderModel, 'side_x_kind');
   assert.deepEqual(cfg.orderKinds, ['market', 'limit', 'stop', 'stop_limit']);
   assert.deepEqual(cfg.allowedSides, ['buy', 'sell']);

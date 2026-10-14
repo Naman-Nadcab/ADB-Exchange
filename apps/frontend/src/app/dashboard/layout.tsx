@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { maskAccountEmail } from '@/lib/account-email';
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
@@ -33,6 +34,7 @@ import {
 } from 'lucide-react';
 import SessionManager from '@/components/SessionManager';
 import ThemeToggle from '@/components/ThemeToggle';
+import { LocaleLanguageSelector } from '@/components/i18n/LocaleLanguageSelector';
 import { toast } from '@/components/ui/toaster';
 import { performLogout } from '@/lib/authLogout';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
@@ -41,6 +43,7 @@ import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { UserRouteWarmup } from '@/components/performance/UserRouteWarmup';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { SPOT_TRADE_HREF } from '@/lib/tier1-canonical-routes';
+import { FOREX_ROUTES } from '@/lib/forex/routes';
 import {
   MARKETS_HREF,
   ORDERS_HREF,
@@ -57,6 +60,7 @@ const MOBILE_NAV_PAD = 'pb-[calc(3.75rem+env(safe-area-inset-bottom,0px))] md:pb
 const navItems = [
   { labelKey: 'markets' as const, href: MARKETS_HREF },
   { labelKey: 'trade' as const, href: SPOT_TRADE_HREF },
+  { labelKey: 'forex' as const, href: FOREX_ROUTES.root },
   { labelKey: 'p2p' as const, href: P2P_HREF },
   { labelKey: 'earn' as const, href: ROUTES.earn },
 ];
@@ -95,12 +99,12 @@ function isNavItemActive(pathname: string | null, href: string): boolean {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   const tn = useTranslations('common.notifications');
+  const tc = useTranslations('common');
   const tt = useTranslations('account.toasts');
   const tNav = useTranslations('navigation');
   const tShell = useTranslations('account.shell');
   const tOrders = useTranslations('orders');
   const tw = useTranslations('wallet.nav');
-  const tc = useTranslations('common');
   const tPanel = useTranslations('common.notificationPanel');
   const pathname = usePathname();
   const { user, accessToken, _hasHydrated, isAuthenticated } = useAuthStore();
@@ -225,12 +229,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     await performLogout('/login');
   };
 
-  const maskEmail = (email: string) => {
-    if (!email) return '***@****';
-    const [local, domain] = email.split('@');
-    if (!domain) return '***@****';
-    return `${local.slice(0, 3)}**${local.length > 5 ? local.slice(-1) : ''}@****`;
-  };
+  const maskEmail = (email: string | null | undefined) => maskAccountEmail(email, tc('states.notAdded'));
 
   const copyUID = () => {
     if (user?.id) {
@@ -350,6 +349,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 )}
               </button>
 
+              <LocaleLanguageSelector variant="compact" />
               <ThemeToggle variant="icon" size="sm" />
 
               <button
@@ -604,7 +604,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Main content — no sidebar, full width */}
         <main id="main-content" tabIndex={-1} className={`min-h-[calc(100vh-3.5rem)] ${MOBILE_NAV_PAD}`}>
-          <div className="dashboard-page-wrap mx-auto max-w-[1200px]">
+          <div className="dashboard-page-wrap mx-auto max-w-[1480px]">
             {children}
           </div>
         </main>

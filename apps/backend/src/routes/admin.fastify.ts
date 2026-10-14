@@ -2129,25 +2129,33 @@ export default async function adminRoutes(app: FastifyInstance) {
   // GLOBAL CONFIGURATION & FEATURE FLAGS
   // ===============================
 
+  // system_settings.value is JSONB (migrate.ts). The settings page edits plain strings, so values are
+  // stored as JSON scalars when the text parses as JSON ('true', '10000', '{"a":1}') and as a JSON
+  // string otherwise ('smtp.example.com'). Reads unwrap JSON strings and serialise everything else.
+  const settingValueToJson = (value: string): string => {
+    try {
+      JSON.parse(value);
+      return value;
+    } catch {
+      return JSON.stringify(value);
+    }
+  };
+  const settingValueToString = (value: unknown): string => {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'string') return value;
+    return JSON.stringify(value);
+  };
+
   app.get('/system/settings', async (request, reply) => {
     const admin = await getAdminFromRequest(app, request, reply, false);
     if (!admin) return;
     try {
-      await db.query(`
-        CREATE TABLE IF NOT EXISTS system_settings (
-          key TEXT PRIMARY KEY,
-          value TEXT NOT NULL DEFAULT '',
-          description TEXT,
-          updated_at TIMESTAMPTZ DEFAULT NOW(),
-          updated_by TEXT
-        )
-      `);
-      const rows = await db.query<{ key: string; value: string; description: string | null; updated_at: string | null; updated_by: string | null }>(
+      const rows = await db.query<{ key: string; value: unknown; description: string | null; updated_at: string | null; updated_by: string | null }>(
         'SELECT key, value, description, updated_at::text, updated_by FROM system_settings'
       );
       const settings: Record<string, { value: string; description: string | null; updated_at: string | null; updated_by?: string | null }> = {};
       for (const r of rows.rows) {
-        settings[r.key] = { value: r.value, description: r.description ?? null, updated_at: r.updated_at ?? null, updated_by: r.updated_by ?? null };
+        settings[r.key] = { value: settingValueToString(r.value), description: r.description ?? null, updated_at: r.updated_at ?? null, updated_by: r.updated_by ?? null };
       }
       return reply.send({ success: true, data: { settings } });
     } catch (e) {
@@ -2162,22 +2170,21 @@ export default async function adminRoutes(app: FastifyInstance) {
     if (!requirePermission(admin, 'settings:edit', reply)) return;
     const body = (request.body || {}) as Record<string, unknown>;
     try {
-      await db.query(`
-        CREATE TABLE IF NOT EXISTS system_settings (
-          key TEXT PRIMARY KEY,
-          value TEXT NOT NULL DEFAULT '',
-          description TEXT,
-          updated_at TIMESTAMPTZ DEFAULT NOW(),
-          updated_by TEXT
-        )
-      `);
       const updates = Object.entries(body).filter(([k]) => k !== 'key' && typeof k === 'string' && !k.endsWith('_description'));
       if (updates.length === 0) {
         return reply.send({ success: true, data: { updated: true } });
       }
-      const prevRows = await db.query<{ key: string; value: string }>('SELECT key, value FROM system_settings');
+      for (const [key, v] of updates) {
+        if (!/^[A-Za-z0-9_.:\-]{1,100}$/.test(key) || (v !== null && typeof v === 'object')) {
+          return reply.status(400).send({
+            success: false,
+            error: { code: 'VALIDATION_ERROR', message: `Setting "${key}" must be a scalar keyed by a plain identifier` },
+          });
+        }
+      }
+      const prevRows = await db.query<{ key: string; value: unknown }>('SELECT key, value FROM system_settings');
       const beforeSnapshot: Record<string, string> = {};
-      for (const r of prevRows.rows) beforeSnapshot[r.key] = r.value;
+      for (const r of prevRows.rows) beforeSnapshot[r.key] = settingValueToString(r.value);
       const changes: { key: string; oldValue: string; newValue: string }[] = [];
       for (const [key, v] of updates) {
         const value = v != null ? String(v) : '';
@@ -2185,9 +2192,9 @@ export default async function adminRoutes(app: FastifyInstance) {
         const oldVal = beforeSnapshot[key] ?? '';
         if (oldVal !== value) changes.push({ key, oldValue: oldVal, newValue: value });
         await db.query(
-          `INSERT INTO system_settings (key, value, description, updated_at, updated_by) VALUES ($1, $2, $3, NOW(), $4)
-           ON CONFLICT (key) DO UPDATE SET value = $2, description = COALESCE($3, system_settings.description), updated_at = NOW(), updated_by = $4`,
-          [key, value, desc, admin.adminId]
+          `INSERT INTO system_settings (key, value, description, updated_at, updated_by) VALUES ($1, $2::jsonb, $3, NOW(), $4)
+           ON CONFLICT (key) DO UPDATE SET value = $2::jsonb, description = COALESCE($3, system_settings.description), updated_at = NOW(), updated_by = $4`,
+          [key, settingValueToJson(value), desc, admin.adminId]
         );
         beforeSnapshot[key] = value;
       }
@@ -2201,9 +2208,9 @@ export default async function adminRoutes(app: FastifyInstance) {
           created_at TIMESTAMPTZ DEFAULT NOW()
         )
       `);
-      const afterRows = await db.query<{ key: string; value: string }>('SELECT key, value FROM system_settings');
+      const afterRows = await db.query<{ key: string; value: unknown }>('SELECT key, value FROM system_settings');
       const afterSnapshot: Record<string, string> = {};
-      for (const r of afterRows.rows) afterSnapshot[r.key] = r.value;
+      for (const r of afterRows.rows) afterSnapshot[r.key] = settingValueToString(r.value);
       const changeSummary = changes.length ? changes.map((c) => `${c.key}: ${c.oldValue} → ${c.newValue}`).join('; ') : 'No value changes';
       await db.query(
         `INSERT INTO system_settings_versions (settings_snapshot, change_summary, updated_by) VALUES ($1, $2, $3)`,
@@ -2309,9 +2316,9 @@ export default async function adminRoutes(app: FastifyInstance) {
         return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Version not found' } });
       }
       const before = (verRows.rows[0]!.settings_snapshot as Record<string, string>) || {};
-      const currRows = await db.query<{ key: string; value: string }>('SELECT key, value FROM system_settings');
+      const currRows = await db.query<{ key: string; value: unknown }>('SELECT key, value FROM system_settings');
       const after: Record<string, string> = {};
-      for (const r of currRows.rows) after[r.key] = r.value;
+      for (const r of currRows.rows) after[r.key] = settingValueToString(r.value);
       return reply.send({ success: true, data: { before, after } });
     } catch (e) {
       logger.error('System settings diff error', { error: e instanceof Error ? e.message : 'Unknown' });
@@ -2344,9 +2351,9 @@ export default async function adminRoutes(app: FastifyInstance) {
       }
       for (const [key, value] of Object.entries(snapshot)) {
         await db.query(
-          `INSERT INTO system_settings (key, value, updated_at, updated_by) VALUES ($1, $2, NOW(), $3)
-           ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW(), updated_by = $3`,
-          [key, value, admin.adminId]
+          `INSERT INTO system_settings (key, value, updated_at, updated_by) VALUES ($1, $2::jsonb, NOW(), $3)
+           ON CONFLICT (key) DO UPDATE SET value = $2::jsonb, updated_at = NOW(), updated_by = $3`,
+          [key, settingValueToJson(settingValueToString(value)), admin.adminId]
         );
       }
       await db.query(`
@@ -2789,8 +2796,29 @@ export default async function adminRoutes(app: FastifyInstance) {
 
       const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
+      // Admin mutations are written to audit_logs_immutable via logAuditFromRequest; admin_activity_logs
+      // only holds logins and a few explicit inserts. The activity view must show both or admin actions
+      // (KYC, withdrawals, suspensions, forex controls, ...) silently disappear from the Activity tab.
+      const activitySource = `(
+        SELECT l.id, l.admin_id, l.action, l.details, l.ip_address, l.user_agent, l.created_at
+        FROM admin_activity_logs l
+        UNION ALL
+        SELECT i.id, i.actor_id AS admin_id, i.action,
+               jsonb_strip_nulls(jsonb_build_object(
+                 'source', 'immutable',
+                 'resource_type', i.resource_type,
+                 'resource_id', i.resource_id,
+                 'old_value', i.old_value,
+                 'new_value', i.new_value,
+                 'request_id', i.request_id
+               )) AS details,
+               i.ip_address, i.user_agent, i.created_at
+        FROM audit_logs_immutable i
+        WHERE i.actor_type = 'admin'
+      )`;
+
       const countResult = await db.query<{ count: string }>(
-        `SELECT COUNT(*)::text AS count FROM admin_activity_logs a ${where}`,
+        `SELECT COUNT(*)::text AS count FROM ${activitySource} a ${where}`,
         params
       );
       const total = parseInt(countResult.rows[0]?.count ?? '0', 10);
@@ -2804,7 +2832,7 @@ export default async function adminRoutes(app: FastifyInstance) {
       }>(
         `SELECT a.id, a.admin_id, u.name AS admin_name, u.role AS admin_role,
                 a.action, a.details, a.ip_address::text, a.user_agent, a.created_at::text
-         FROM admin_activity_logs a
+         FROM ${activitySource} a
          LEFT JOIN admin_users u ON u.id = a.admin_id
          ${where}
          ORDER BY a.created_at DESC
@@ -6074,6 +6102,7 @@ export default async function adminRoutes(app: FastifyInstance) {
         token_name: string;
         chain_id: string | null;
         chain_name: string | null;
+        account_type: string;
         available_balance: string;
         locked_balance: string;
         total_balance: string;
@@ -6083,17 +6112,18 @@ export default async function adminRoutes(app: FastifyInstance) {
           c.id AS token_id,
           c.symbol AS token_symbol,
           c.name AS token_name,
-          b.id AS chain_id,
-          b.chain_name AS chain_name,
+          NULLIF(ub.chain_id, '') AS chain_id,
+          ch.name AS chain_name,
+          ub.account_type::text AS account_type,
           ub.available_balance::text AS available_balance,
           COALESCE(ub.locked_balance, 0)::text AS locked_balance,
           (ub.available_balance + COALESCE(ub.locked_balance, 0))::text AS total_balance,
           ub.updated_at::text AS updated_at
         FROM user_balances ub
         JOIN currencies c ON ub.currency_id = c.id
-        LEFT JOIN blockchains b ON c.blockchain_id = b.id
+        LEFT JOIN chains ch ON ch.id = ub.chain_id
         WHERE ub.user_id = $1
-        ORDER BY (ub.available_balance + COALESCE(ub.locked_balance, 0)) DESC NULLS LAST, c.symbol
+        ORDER BY (ub.available_balance + COALESCE(ub.locked_balance, 0)) DESC NULLS LAST, c.symbol, ub.account_type
       `, [id]);
 
       return reply.send({
@@ -6564,11 +6594,31 @@ export default async function adminRoutes(app: FastifyInstance) {
       const { id } = request.params as { id: string };
       const { action, reason } = request.body as { action: 'approve' | 'reject'; reason?: string };
 
+      if (action !== 'approve' && action !== 'reject') {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'VALIDATION_ERROR', message: 'action must be approve or reject' },
+        });
+      }
       const status = action === 'approve' ? 'approved' : 'rejected';
 
       const prevRow = await db.query<{ status: string; user_id: string }>('SELECT status, user_id FROM kyc_applications WHERE id = $1', [id]);
+      if (prevRow.rows.length === 0) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: 'KYC_NOT_FOUND', message: 'KYC application not found' },
+        });
+      }
       const prevStatus = prevRow.rows[0]?.status ?? null;
       const userId = prevRow.rows[0]?.user_id ?? null;
+      // Approved/rejected applications are terminal: a re-review would silently re-run tier
+      // side effects or flip a decision without the customer re-submitting documents.
+      if (prevStatus === 'approved' || prevStatus === 'rejected') {
+        return reply.status(409).send({
+          success: false,
+          error: { code: 'KYC_ALREADY_REVIEWED', message: `KYC application is already ${prevStatus}` },
+        });
+      }
 
       await db.query(`
         UPDATE kyc_applications 
@@ -6727,23 +6777,36 @@ export default async function adminRoutes(app: FastifyInstance) {
    * GET /admin/p2p/disputes
    * Get P2P disputes
    */
-  app.get('/p2p/disputes', async (request, reply) => {
+  app.get<{ Querystring: { status?: string; limit?: string } }>('/p2p/disputes', async (request, reply) => {
     const admin = await getAdminFromRequest(app, request, reply, false);
     if (!admin) return;
     try {
+      const requested = (request.query.status ?? '').trim().toLowerCase();
+      const statuses = requested === 'all'
+        ? null
+        : requested && ['open', 'under_review', 'resolved', 'cancelled'].includes(requested)
+          ? [requested]
+          : ['open', 'under_review'];
+      const limit = Math.min(500, Math.max(1, parseInt(request.query.limit ?? '200', 10) || 200));
+      const params: unknown[] = [limit];
+      if (statuses) params.push(statuses);
       const result = await db.query(`
-        SELECT 
+        SELECT
           d.*,
-          o.buyer_id, o.seller_id, o.crypto_amount, o.fiat_amount, o.fiat_currency,
+          o.buyer_id, o.seller_id, o.quantity, o.quantity AS crypto_amount, o.fiat_amount, o.fiat_currency,
+          o.price, o.status AS order_status, o.escrow_id,
+          t.symbol AS crypto_symbol,
           buyer.email as buyer_email, buyer.username as buyer_username,
           seller.email as seller_email, seller.username as seller_username
         FROM p2p_disputes d
         JOIN p2p_orders o ON d.order_id = o.id
+        LEFT JOIN tokens t ON t.id = o.token_id
         JOIN users buyer ON o.buyer_id = buyer.id
         JOIN users seller ON o.seller_id = seller.id
-        WHERE d.status IN ('open', 'under_review')
+        ${statuses ? 'WHERE d.status = ANY($2::text[])' : ''}
         ORDER BY d.created_at ASC
-      `);
+        LIMIT $1
+      `, params);
 
       return reply.send({
         success: true,
@@ -6751,9 +6814,11 @@ export default async function adminRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      return reply.send({
-        success: true,
-        data: [],
+      // An empty list here used to mask a broken query; disputes must never silently vanish.
+      logger.error('Admin P2P disputes list error', { error: error instanceof Error ? error.message : 'Unknown' });
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'FETCH_FAILED', message: 'Failed to load P2P disputes' },
       });
     }
   });
@@ -6780,7 +6845,24 @@ export default async function adminRoutes(app: FastifyInstance) {
         });
       }
 
-      await p2pService.resolveDispute(id, admin.adminId, resolution as 'favor_buyer' | 'favor_seller' | 'cancelled', notes ?? '');
+      const resolved = await p2pService.resolveDispute(id, admin.adminId, resolution as 'favor_buyer' | 'favor_seller' | 'cancelled', notes ?? '');
+
+      try {
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'p2p_dispute_resolved',
+          resourceType: 'p2p_dispute',
+          resourceId: id,
+          oldValue: { status: 'open' },
+          newValue: {
+            status: 'resolved',
+            resolution,
+            notes: notes ?? null,
+            order_id: (resolved as unknown as { order_id?: string; orderId?: string }).order_id ?? (resolved as { orderId?: string }).orderId ?? null,
+          },
+        });
+      } catch { /* best-effort */ }
 
       return reply.send({
         success: true,
@@ -14278,11 +14360,24 @@ export default async function adminRoutes(app: FastifyInstance) {
       const exists = await db.query('SELECT id FROM admin_users WHERE email = $1', [email]);
       if (exists.rows?.length) return reply.status(409).send({ success: false, error: { code: 'CONFLICT', message: 'Email already in use' } });
       const hash = await bcrypt.hash(password, 10);
-      const perms = role === 'SUPER_ADMIN' ? ['all'] : role === 'RISK_OFFICER' ? ['risk:view', 'risk:edit', 'users:view'] : role === 'COMPLIANCE_OFFICER' ? ['compliance:view', 'compliance:edit'] : ['support:view', 'users:view'];
+      // admin_users.permissions is TEXT[]; explicit permissions mirror the implicit
+      // role grants so the row is self-describing for audit/export.
+      const perms = isSuperAdminRole(role) ? ['all'] : getImplicitRolePermissions(role);
       const result = await db.query(
-        `INSERT INTO admin_users (email, name, role, password_hash, permissions, is_active, two_factor_enabled) VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7) RETURNING id::text, email, name, role, is_active, created_at::text`,
-        [email.toLowerCase(), name, role, hash, JSON.stringify(perms), true, false]
+        `INSERT INTO admin_users (email, name, role, password_hash, permissions, is_active, two_factor_enabled) VALUES ($1, $2, $3, $4, $5::text[], $6, $7) RETURNING id::text, email, name, role, is_active, created_at::text`,
+        [email.toLowerCase(), name, role, hash, perms, true, false]
       );
+      const created = result.rows[0] as { id: string; email: string; role: string };
+      try {
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'admin_user_created',
+          resourceType: 'admin_user',
+          resourceId: created.id,
+          newValue: { email: created.email, role: created.role, permissions: perms },
+        });
+      } catch { /* best-effort */ }
       return reply.status(201).send({ success: true, data: result.rows[0] });
     } catch (e) {
       logger.error('Create admin error', { error: e instanceof Error ? e.message : 'Unknown' });
@@ -16536,6 +16631,19 @@ export default async function adminRoutes(app: FastifyInstance) {
         });
       }
 
+      const toggled = result.rows[0] as { feature_key: string; is_enabled: boolean };
+      try {
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'feature_toggle_updated',
+          resourceType: 'feature_toggles',
+          resourceId: toggled.feature_key,
+          oldValue: { is_enabled: !toggled.is_enabled },
+          newValue: { is_enabled: toggled.is_enabled },
+        });
+      } catch { /* best-effort */ }
+
       return reply.send({
         success: true,
         data: { feature: result.rows[0] },
@@ -17298,6 +17406,12 @@ export default async function adminRoutes(app: FastifyInstance) {
   // API SETTINGS MANAGEMENT
   // ============================================
 
+  function redactApiSettingRow(row: Record<string, unknown> | undefined) {
+    if (!row) return row;
+    const { api_secret, ...rest } = row;
+    return { ...rest, api_secret: null, has_secret: Boolean(api_secret) };
+  }
+
   /**
    * GET /admin/settings/api
    * Get API settings by category
@@ -17437,7 +17551,7 @@ export default async function adminRoutes(app: FastifyInstance) {
 
       return reply.send({
         success: true,
-        data: { setting: result.rows[0] },
+        data: { setting: redactApiSettingRow(result.rows[0] as Record<string, unknown>) },
       });
     } catch (error) {
       logger.error('Error saving API setting', { error: error instanceof Error ? error.message : String(error) });
@@ -17594,7 +17708,7 @@ export default async function adminRoutes(app: FastifyInstance) {
 
       return reply.send({
         success: true,
-        data: { setting: result.rows[0] },
+        data: { setting: redactApiSettingRow(result.rows[0] as Record<string, unknown>) },
       });
     } catch (error) {
       logger.error('Error updating API setting', { error: error instanceof Error ? error.message : String(error) });

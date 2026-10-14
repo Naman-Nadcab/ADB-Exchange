@@ -101,6 +101,8 @@ function recomputePriceChangePct24h(t: LiveTickerFields): void {
   t.price_change_pct_24h = (((l - o) / o) * 100).toFixed(4);
 }
 
+const FILL_NEAR_LAST_BAND = 0.15;
+
 /** Apply fills after DB commit; aggressorSide = taker order side for public tape. */
 export function applyExecutedTrades(symbol: string, executed: ExecutedTrade[], aggressorSide: 'buy' | 'sell'): void {
   if (!executed.length) return;
@@ -114,15 +116,20 @@ export function applyExecutedTrades(symbol: string, executed: ExecutedTrade[], a
     const price = e.price;
     const qty = e.quantity;
     const quoteV = e.quoteValue;
-    tkr.last_price = price;
     const pNum = parseFloat(price);
-    const h = tkr.high_24h ? parseFloat(tkr.high_24h) : NaN;
-    const l = tkr.low_24h ? parseFloat(tkr.low_24h) : NaN;
-    if (Number.isFinite(pNum)) {
+    const lastNum = tkr.last_price ? parseFloat(tkr.last_price) : NaN;
+    const hasLast = Number.isFinite(lastNum) && lastNum > 0;
+    const nearLast = !hasLast || (Number.isFinite(pNum) && Math.abs(pNum - lastNum) / lastNum <= FILL_NEAR_LAST_BAND);
+    // Public last stays on the oracle snapshot. A fill is the tape and the
+    // exchange volume; it becomes last only when nothing is displayed yet.
+    if (!hasLast && nearLast) tkr.last_price = price;
+    if (nearLast && Number.isFinite(pNum)) {
+      const h = tkr.high_24h ? parseFloat(tkr.high_24h) : NaN;
+      const l = tkr.low_24h ? parseFloat(tkr.low_24h) : NaN;
       if (!Number.isFinite(h) || pNum > h) tkr.high_24h = price;
       if (!Number.isFinite(l) || pNum < l) tkr.low_24h = price;
+      if (tkr.open_24h == null || tkr.open_24h === '') tkr.open_24h = price;
     }
-    if (tkr.open_24h == null || tkr.open_24h === '') tkr.open_24h = price;
     const bv = (parseFloat(tkr.base_volume_24h) || 0) + (parseFloat(qty) || 0);
     const qv = (parseFloat(tkr.volume_24h) || 0) + (parseFloat(quoteV) || 0);
     tkr.base_volume_24h = String(bv);

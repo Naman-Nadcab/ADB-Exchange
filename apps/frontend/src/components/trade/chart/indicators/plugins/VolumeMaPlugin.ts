@@ -53,9 +53,14 @@ export class VolumeMaPlugin {
     }
     this.ensureSeries();
     if (!this.volumeMaSeries) return;
-    const rows = computeVolumeSma(candles, VOL_MA_PERIOD).filter((d) => Number.isFinite(d.value));
+    const rows = computeVolumeSma(candles, VOL_MA_PERIOD).filter((d) => Number.isFinite(d.value) && d.value > 0);
     if (rows.length === 0) {
-      this.volumeMaSeries.applyOptions({ visible: false });
+      this.volumeMaSeries.applyOptions({ visible: false, lastValueVisible: false });
+      try {
+        this.volumeMaSeries.setData([]);
+      } catch {
+        /* ignore */
+      }
       return;
     }
     const pts = lineSeriesDataFromRows(rows);

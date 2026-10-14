@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { cn } from '@/lib/utils';
 
 export function ForexPageFrame(props: {
@@ -20,7 +21,7 @@ export function ForexPageFrame(props: {
   return (
     <div
       className={cn(
-        props.wide ? 'mx-auto max-w-[1400px]' : 'mx-auto max-w-6xl',
+        'mx-auto w-full max-w-[1480px]',
         dense ? 'space-y-3 px-3 py-3 sm:px-4' : 'space-y-5 px-4 py-6 sm:px-6',
         props.className
       )}
@@ -65,13 +66,55 @@ export function ForexSignInPrompt({
   sectionKey: ForexSignInSectionKey;
 }) {
   const tf = useTranslations('forex');
+  const ta = useTranslations('forex.accountPage');
   const section = tf(`signIn.sections.${sectionKey}`);
+  const showBooks = sectionKey === 'yourForexAccount';
+  const books = [
+    ta('metricBalance'),
+    ta('metricEquity'),
+    ta('metricFreeMargin'),
+    ta('openPositionsLabel'),
+  ];
+  const destinations = [
+    { href: FOREX_ROUTES.trade, label: tf('nav.trade') },
+    { href: FOREX_ROUTES.markets, label: tf('nav.markets') },
+    { href: FOREX_ROUTES.portfolio, label: tf('nav.portfolio') },
+    { href: FOREX_ROUTES.accounts, label: tf('portalNav.accounts') },
+    { href: FOREX_ROUTES.funds, label: tf('portalNav.funds') },
+    { href: FOREX_ROUTES.ledger, label: tf('portalNav.ledger') },
+  ];
   return (
-    <p className="eda-card p-4 text-sm text-muted-foreground">
-      {tf('signIn.prompt', { section })}{' '}
-      <Link href={href} className="text-primary underline underline-offset-2">
-        {tf('signIn.link')}
-      </Link>
-    </p>
+    <div className="space-y-3">
+      <div className="eda-card flex flex-wrap items-center justify-between gap-3 border-primary/30 bg-card px-4 py-3">
+        <p className="text-sm text-foreground">{tf('signIn.prompt', { section })}</p>
+        <Link
+          href={href}
+          className="inline-flex min-h-9 items-center rounded bg-primary px-4 text-sm font-semibold text-primary-foreground"
+        >
+          {tf('signIn.link')}
+        </Link>
+      </div>
+      {showBooks ? (
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+          {books.map((label) => (
+            <div key={label} className="eda-card flex min-h-[88px] flex-col justify-between px-3 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
+              <p className="font-mono text-2xl font-semibold text-foreground">—</p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {destinations.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="eda-card px-3 py-3 text-sm font-semibold text-foreground hover:border-primary/40"
+          >
+            {item.label}
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 }

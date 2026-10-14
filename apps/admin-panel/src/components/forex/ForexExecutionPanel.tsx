@@ -99,7 +99,7 @@ export function ForexExecutionPanel() {
       <ForexApprovalPendingNotice info={approvalNotice} onDismiss={() => setApprovalNotice(null)} />
       <ForexPanelShell
         title="Live money path gate"
-        description="REAL_FOREX remains blocked in production until certification completes"
+        description="Release opens only when the broker is healthy, arm intent is recorded, FOREX_REAL_FOREX_ALLOWED is on, and the kill switch is off."
         className="border-amber-500/30 bg-amber-500/[0.03]"
       >
         <div className="mb-2 flex items-center gap-2 text-amber-500">
@@ -111,7 +111,9 @@ export function ForexExecutionPanel() {
         ) : gate ? (
           <div className="space-y-3 text-sm">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="success">Effective path OFF</Badge>
+              <Badge variant={gate.effectiveRealForex ? 'danger' : 'success'}>
+                Effective path {gate.effectiveRealForex ? 'ON' : 'OFF'}
+              </Badge>
               <Badge variant={gate.armRequested ? 'warning' : 'default'}>
                 Arm requested: {gate.armRequested ? 'Yes' : 'No'}
               </Badge>

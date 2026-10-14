@@ -1,5 +1,7 @@
 import { BaseRepository } from './BaseRepository';
 import { getHttpClient } from '../api/httpClient';
+import { ApiError } from '../api/errors/ApiError';
+import { walletChallengeRequestBody, walletLoginRequestBody } from '@core/wallet-auth/sessionBoundary';
 import type {
   AuthSessionResponse,
   CaptchaConfig,
@@ -77,6 +79,39 @@ export class AuthRepository extends BaseRepository {
 
   getMe() {
     return this.get<AuthUser>('/auth/me');
+  }
+
+  /**
+   * POST /auth/wallet/challenge. Body is only the CAIP-10 account.
+   * The challenge object is on the envelope, not under data.
+   */
+  async walletChallenge(caip10: string): Promise<WalletChallengeResult> {
+    const envelope = await this.http.request<WalletChallengeEnvelope>('/auth/wallet/challenge', {
+      method: 'POST',
+      body: walletChallengeRequestBody(caip10),
+      skipAuth: true,
+      retainEnvelope: true,
+    });
+    const challenge = envelope.challenge;
+    if (!challenge?.id || !challenge.message || !challenge.expiresAt) {
+      throw new ApiError('Invalid challenge', 400, 'INVALID_CHALLENGE');
+    }
+    return {
+      id: challenge.id,
+      namespace: challenge.namespace ?? '',
+      chainReference: challenge.chainReference ?? '',
+      address: challenge.address ?? '',
+      message: challenge.message,
+      nonce: challenge.nonce ?? '',
+      expiresAt: challenge.expiresAt,
+    };
+  }
+
+  /** POST /auth/wallet/login. Opens the existing application session. */
+  walletLogin(body: { challengeId: string; message: string; signature: string }) {
+    return this.post<AuthSessionResponse>('/auth/wallet/login', walletLoginRequestBody(body), {
+      skipAuth: true,
+    });
   }
 
   passwordResetRequest(body: PasswordResetRequest) {
@@ -322,6 +357,29 @@ export class AuthRepository extends BaseRepository {
     return this.http.request<T>(path, { method: 'POST', body, skipAuth: config?.skipAuth });
   }
 }
+
+type WalletChallengeEnvelope = {
+  success?: boolean;
+  challenge?: {
+    id?: string;
+    namespace?: string;
+    chainReference?: string;
+    address?: string;
+    message?: string;
+    nonce?: string;
+    expiresAt?: string;
+  };
+};
+
+export type WalletChallengeResult = {
+  id: string;
+  namespace: string;
+  chainReference: string;
+  address: string;
+  message: string;
+  nonce: string;
+  expiresAt: string;
+};
 
 let authRepository: AuthRepository | null = null;
 

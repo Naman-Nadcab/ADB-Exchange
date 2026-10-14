@@ -1,8 +1,7 @@
-import Image from 'next/image';
-import { BRAND, BRAND_LOGO_INTRINSIC } from '@/lib/brand';
+import { BRAND_NAME } from '@/lib/brand';
 
 /**
- * Institutional loading state — gold icon with subtle opacity pulse (no spin).
+ * Loading state. Uses the text mark so the previous artwork is not shown.
  */
 export function BrandLoading({ label = 'Loading' }: { label?: string }) {
   return (
@@ -12,16 +11,10 @@ export function BrandLoading({ label = 'Loading' }: { label?: string }) {
       aria-live="polite"
       aria-label={label}
     >
-      <Image
-        src={BRAND.iconGold}
-        alt=""
-        width={BRAND_LOGO_INTRINSIC.icon.width}
-        height={BRAND_LOGO_INTRINSIC.icon.height}
-        priority
-        unoptimized
-        className="brand-logo-img brand-logo--icon brand-loading-pulse bg-transparent object-contain"
-        aria-hidden
-      />
+      <span className="brand-wordmark brand-wordmark--icon brand-loading-pulse" aria-hidden>
+        <span className="brand-wordmark__mark">ADB</span>
+      </span>
+      <span className="text-sm text-muted-foreground">{BRAND_NAME}</span>
       <span className="sr-only">{label}</span>
     </div>
   );

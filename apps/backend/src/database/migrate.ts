@@ -1422,7 +1422,7 @@ const migrations = [
     actor_id UUID,
     action VARCHAR(80) NOT NULL,
     resource_type VARCHAR(50),
-    resource_id UUID,
+    resource_id TEXT,
     old_value TEXT,
     new_value TEXT,
     ip_address INET,
@@ -1802,7 +1802,7 @@ const migrations = [
   `INSERT INTO api_settings (category, provider, name, is_active, is_default, additional_config) VALUES ('sms', 'fast2sms', 'Fast2SMS', FALSE, TRUE, '{"sender_id":"INRXPE","message_id":"181649","route":"dlt"}') ON CONFLICT (category, provider) DO NOTHING;`,
   `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('sms', 'twilio', 'Twilio SMS', FALSE, FALSE) ON CONFLICT (category, provider) DO NOTHING;`,
   `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('sms', 'msg91', 'MSG91', FALSE, FALSE) ON CONFLICT (category, provider) DO NOTHING;`,
-  `INSERT INTO api_settings (category, provider, name, is_active, is_default, additional_config) VALUES ('email', 'smtp', 'SMTP Email', FALSE, TRUE, '{"host":"","port":"465","secure":"true","from_email":"noreply@exchange.com","from_name":"Metherium"}') ON CONFLICT (category, provider) DO NOTHING;`,
+  `INSERT INTO api_settings (category, provider, name, is_active, is_default, additional_config) VALUES ('email', 'smtp', 'SMTP Email', FALSE, TRUE, '{"host":"","port":"465","secure":"true","from_email":"noreply@exchange.com","from_name":"ADB Exchange"}') ON CONFLICT (category, provider) DO NOTHING;`,
   `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('email', 'resend', 'Resend', FALSE, FALSE) ON CONFLICT (category, provider) DO NOTHING;`,
   `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('email', 'sendgrid', 'SendGrid', FALSE, FALSE) ON CONFLICT (category, provider) DO NOTHING;`,
   `INSERT INTO api_settings (category, provider, name, is_active, is_default) VALUES ('kyc', 'hyperverge', 'HyperVerge', FALSE, TRUE) ON CONFLICT (category, provider) DO NOTHING;`,
@@ -3594,6 +3594,19 @@ const migrations = [
   `INSERT INTO audit_chain_state (id, last_entry_hash) VALUES (1, 'genesis') ON CONFLICT (id) DO NOTHING;`,
   `ALTER TABLE audit_logs_immutable ADD COLUMN IF NOT EXISTS prev_hash VARCHAR(64);`,
   `ALTER TABLE audit_logs_immutable ADD COLUMN IF NOT EXISTS entry_hash VARCHAR(64);`,
+  `DO $$
+   BEGIN
+     IF EXISTS (
+       SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND table_name = 'audit_logs_immutable'
+         AND column_name = 'resource_id'
+         AND udt_name = 'uuid'
+     ) THEN
+       ALTER TABLE audit_logs_immutable
+         ALTER COLUMN resource_id TYPE TEXT USING resource_id::text;
+     END IF;
+   END $$;`,
   `CREATE INDEX IF NOT EXISTS idx_audit_immutable_entry_hash ON audit_logs_immutable(entry_hash) WHERE entry_hash IS NOT NULL;`,
   `ALTER TABLE admin_approval_requests ADD COLUMN IF NOT EXISTS maker_unlock_at TIMESTAMPTZ;`,
   `ALTER TABLE admin_approval_requests ADD COLUMN IF NOT EXISTS action_executed BOOLEAN NOT NULL DEFAULT FALSE;`,
@@ -5181,6 +5194,259 @@ const migrations = [
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
   );`,
   `CREATE INDEX IF NOT EXISTS idx_forex_compliance_cases_subject ON forex_compliance_cases(subject_type, subject_id);`,
+  // STEP 2 wallet login identity. Credential for users.id only. Not custodial wallets.
+  `-- Wallet-identity foundation (STEP 2).
+-- Login credentials only. Does not create custodial wallets, deposit addresses,
+-- sessions, or Forex accounts. Idempotent. Safe to re-run.
+-- Applied by apps/backend/src/database/migrate.ts (appended statements).
+-- Do not backfill from wallets, user_master_keys, hot_wallets, or cold_wallets.
+
+-- Existing emails stay as stored. NULL is allowed for a later wallet-native user.
+ALTER TABLE users ALTER COLUMN email DROP NOT NULL;
+
+-- Case-insensitive uniqueness for real emails. Multiple NULLs stay allowed.
+-- users_email_key (UNIQUE (email)) is left in place: PostgreSQL unique indexes
+-- already treat NULL as distinct, so it does not block multiple NULL emails.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_lower_unique
+  ON users (lower(email))
+  WHERE email IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS user_wallets (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  namespace VARCHAR(16) NOT NULL,
+  chain_reference TEXT NOT NULL,
+  address TEXT NOT NULL,
+  normalized_address TEXT NOT NULL,
+  caip10 TEXT NOT NULL,
+  wallet_type VARCHAR(16) NOT NULL,
+  provider TEXT,
+  is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+  is_verified BOOLEAN NOT NULL DEFAULT FALSE,
+  verified_at TIMESTAMP WITH TIME ZONE,
+  linked_at TIMESTAMP WITH TIME ZONE,
+  last_used_at TIMESTAMP WITH TIME ZONE,
+  status VARCHAR(16) NOT NULL DEFAULT 'active',
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT user_wallets_namespace_check CHECK (namespace IN ('eip155', 'solana')),
+  CONSTRAINT user_wallets_wallet_type_check CHECK (wallet_type IN ('eoa', 'contract')),
+  CONSTRAINT user_wallets_status_check CHECK (status IN ('active', 'disabled', 'compromised')),
+  CONSTRAINT user_wallets_chain_reference_nonempty CHECK (length(btrim(chain_reference)) > 0),
+  CONSTRAINT user_wallets_address_nonempty CHECK (length(btrim(address)) > 0),
+  CONSTRAINT user_wallets_normalized_nonempty CHECK (length(btrim(normalized_address)) > 0),
+  CONSTRAINT user_wallets_caip10_nonempty CHECK (length(btrim(caip10)) > 0),
+  CONSTRAINT user_wallets_evm_normalized_lowercase CHECK (
+    namespace <> 'eip155' OR normalized_address = lower(normalized_address)
+  ),
+  CONSTRAINT user_wallets_metadata_no_secrets CHECK (
+    NOT (metadata ?| ARRAY[
+      'private_key', 'privateKey', 'seed', 'seed_phrase', 'mnemonic',
+      'wallet_password', 'password', 'kms_secret', 'access_token', 'refresh_token', 'signature'
+    ])
+  )
+);
+
+-- One login credential per EVM address across chains, and per Solana address.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_wallets_namespace_normalized_address
+  ON user_wallets (namespace, normalized_address);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_wallets_caip10
+  ON user_wallets (caip10);
+
+-- One active primary login wallet per user. Disabled and compromised rows may remain.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_wallets_one_active_primary
+  ON user_wallets (user_id)
+  WHERE is_primary IS TRUE AND status = 'active';
+
+CREATE INDEX IF NOT EXISTS idx_user_wallets_user_id
+  ON user_wallets (user_id);
+
+-- Later login can order a user's active credentials by last use without a full scan.
+CREATE INDEX IF NOT EXISTS idx_user_wallets_user_last_used
+  ON user_wallets (user_id, last_used_at DESC NULLS LAST)
+  WHERE status = 'active';
+
+DROP TRIGGER IF EXISTS update_user_wallets_updated_at ON user_wallets;
+CREATE TRIGGER update_user_wallets_updated_at
+  BEFORE UPDATE ON user_wallets
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+COMMENT ON TABLE user_wallets IS
+  'Login wallet credentials for users.id. Not deposit addresses, not hot/cold custody, not Forex accounts. metadata must not store keys, seeds, passwords, tokens, or reusable signatures.';
+
+CREATE TABLE IF NOT EXISTS wallet_auth_challenges (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  nonce TEXT NOT NULL,
+  namespace VARCHAR(16) NOT NULL,
+  chain_reference TEXT NOT NULL,
+  normalized_address TEXT NOT NULL,
+  domain TEXT NOT NULL,
+  message TEXT NOT NULL,
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  consumed_at TIMESTAMP WITH TIME ZONE,
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT wallet_auth_challenges_namespace_check CHECK (namespace IN ('eip155', 'solana')),
+  CONSTRAINT wallet_auth_challenges_nonce_nonempty CHECK (length(btrim(nonce)) > 0),
+  CONSTRAINT wallet_auth_challenges_chain_reference_nonempty CHECK (length(btrim(chain_reference)) > 0),
+  CONSTRAINT wallet_auth_challenges_address_nonempty CHECK (length(btrim(normalized_address)) > 0),
+  CONSTRAINT wallet_auth_challenges_domain_nonempty CHECK (length(btrim(domain)) > 0),
+  CONSTRAINT wallet_auth_challenges_message_nonempty CHECK (length(btrim(message)) > 0),
+  CONSTRAINT wallet_auth_challenges_nonce_key UNIQUE (nonce)
+);
+
+-- Open challenges for an address. Consumed rows stay for audit but are not the lookup path.
+CREATE INDEX IF NOT EXISTS idx_wallet_auth_challenges_open_address
+  ON wallet_auth_challenges (namespace, normalized_address)
+  WHERE consumed_at IS NULL;
+
+-- Expiry sweep of unused and used challenges.
+CREATE INDEX IF NOT EXISTS idx_wallet_auth_challenges_expires_at
+  ON wallet_auth_challenges (expires_at);
+
+-- Authenticated link challenges only. First-login rows have NULL user_id.
+CREATE INDEX IF NOT EXISTS idx_wallet_auth_challenges_user_id
+  ON wallet_auth_challenges (user_id)
+  WHERE user_id IS NOT NULL;
+
+COMMENT ON TABLE wallet_auth_challenges IS
+  'Single-use SIWE/SIWS challenges. nonce is unique. consumed_at NULL means unused. Not a session and not a bearer token.';
+`,
+
+  // P2P orders store the customer's saved payout method. The application writes
+  // user_p2p_payment_methods.id. Older dumps pointed this foreign key at payment_methods.
+  `DO $$
+BEGIN
+  IF to_regclass('public.p2p_orders') IS NULL OR to_regclass('public.user_p2p_payment_methods') IS NULL THEN
+    RETURN;
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'p2p_orders_payment_method_id_fkey') THEN
+    ALTER TABLE p2p_orders DROP CONSTRAINT p2p_orders_payment_method_id_fkey;
+  END IF;
+  ALTER TABLE p2p_orders
+    ADD CONSTRAINT p2p_orders_payment_method_id_fkey
+    FOREIGN KEY (payment_method_id) REFERENCES user_p2p_payment_methods(id);
+END $$;`,
+
+  // ============================================
+  // CONVERT / SWAP (routes/convert.fastify.ts)
+  // The convert routes have always written to `conversions`, but no migration ever created it,
+  // so instant and limit conversions rolled back with 500 on every migrate.ts-built database.
+  // ============================================
+  `CREATE TABLE IF NOT EXISTS conversions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    conversion_type VARCHAR(16) NOT NULL CHECK (conversion_type IN ('instant', 'limit')),
+    from_currency_id UUID NOT NULL REFERENCES currencies(id),
+    from_amount DECIMAL(36,18) NOT NULL CHECK (from_amount > 0),
+    to_currency_id UUID NOT NULL REFERENCES currencies(id),
+    to_amount DECIMAL(36,18) NOT NULL CHECK (to_amount >= 0),
+    conversion_rate DECIMAL(36,18) NOT NULL,
+    target_rate DECIMAL(36,18),
+    fee_amount DECIMAL(36,18) NOT NULL DEFAULT 0,
+    account_type VARCHAR(20) NOT NULL DEFAULT 'funding',
+    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'cancelled', 'expired', 'failed')),
+    expires_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    cancelled_at TIMESTAMP WITH TIME ZONE,
+    ip_address VARCHAR(64),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_conversions_user_created ON conversions(user_id, created_at DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_conversions_pending_limit ON conversions(status, expires_at) WHERE conversion_type = 'limit' AND status = 'pending';`,
+
+  // system_settings.updated_by was UUID REFERENCES users(id) while every writer stores an
+  // admin_users.id (or a worker name such as 'safety_trigger_worker'), so emergency mode, the
+  // System Settings page and the control routes all failed with an FK violation. Actor ids are
+  // recorded as text; the immutable audit log is the authoritative actor record.
+  `DO $$
+BEGIN
+  IF to_regclass('public.system_settings') IS NULL THEN
+    RETURN;
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'system_settings_updated_by_fkey') THEN
+    ALTER TABLE system_settings DROP CONSTRAINT system_settings_updated_by_fkey;
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'system_settings' AND column_name = 'updated_by' AND data_type = 'uuid'
+  ) THEN
+    ALTER TABLE system_settings ALTER COLUMN updated_by TYPE TEXT USING updated_by::text;
+  END IF;
+END $$;`,
+
+  // ============================================
+  // ADMIN ACTOR FOREIGN KEYS
+  // p2p_disputes.admin_id and fiat_withdrawals.admin_id were declared against users(id) while the
+  // services write admin_users.id, so every admin dispute resolution / fiat decision failed with an
+  // FK violation. Retarget both to admin_users(id); any value that is not an admin id is cleared.
+  // ============================================
+  `DO $$
+BEGIN
+  IF to_regclass('public.p2p_disputes') IS NULL OR to_regclass('public.admin_users') IS NULL THEN
+    RETURN;
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint c
+    WHERE c.conname = 'p2p_disputes_admin_id_fkey' AND c.confrelid = 'public.users'::regclass
+  ) THEN
+    ALTER TABLE p2p_disputes DROP CONSTRAINT p2p_disputes_admin_id_fkey;
+    UPDATE p2p_disputes SET admin_id = NULL
+      WHERE admin_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM admin_users a WHERE a.id = p2p_disputes.admin_id);
+    ALTER TABLE p2p_disputes
+      ADD CONSTRAINT p2p_disputes_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES admin_users(id);
+  END IF;
+END $$;`,
+  `DO $$
+BEGIN
+  IF to_regclass('public.fiat_withdrawals') IS NULL OR to_regclass('public.admin_users') IS NULL THEN
+    RETURN;
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint c
+    WHERE c.conname = 'fiat_withdrawals_admin_id_fkey' AND c.confrelid = 'public.users'::regclass
+  ) THEN
+    ALTER TABLE fiat_withdrawals DROP CONSTRAINT fiat_withdrawals_admin_id_fkey;
+    UPDATE fiat_withdrawals SET admin_id = NULL
+      WHERE admin_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM admin_users a WHERE a.id = fiat_withdrawals.admin_id);
+    ALTER TABLE fiat_withdrawals
+      ADD CONSTRAINT fiat_withdrawals_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES admin_users(id);
+  END IF;
+END $$;`,
+
+  `ALTER TABLE forex_orders ADD COLUMN IF NOT EXISTS venue_order_id VARCHAR(64);`,
+  `CREATE TABLE IF NOT EXISTS forex_live_applications (
+    application_id VARCHAR(64) PRIMARY KEY,
+    user_id VARCHAR(64) NOT NULL,
+    status VARCHAR(24) NOT NULL,
+    currency VARCHAR(8) NOT NULL DEFAULT 'USD',
+    position_mode VARCHAR(16) NOT NULL,
+    leverage VARCHAR(32),
+    group_code VARCHAR(64),
+    idempotency_key VARCHAR(128) NOT NULL,
+    broker_trading_login VARCHAR(128),
+    broker_server VARCHAR(128),
+    internal_account_id VARCHAR(64),
+    failure_reason TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT forex_live_applications_user_key UNIQUE (user_id, idempotency_key)
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_live_applications_user ON forex_live_applications(user_id, created_at DESC);`,
+  `CREATE TABLE IF NOT EXISTS forex_broker_reconciliation_reports (
+    report_id UUID PRIMARY KEY,
+    account_id VARCHAR(64) NOT NULL,
+    ledger_balance VARCHAR(64) NOT NULL,
+    broker_balance VARCHAR(64),
+    cash_delta VARCHAR(64),
+    position_drift JSONB NOT NULL DEFAULT '[]'::jsonb,
+    status VARCHAR(16) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_broker_recon_account ON forex_broker_reconciliation_reports(account_id, created_at DESC);`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */
@@ -5206,6 +5472,9 @@ async function verifyForexCustomerSchema(pool: { query: (sql: string, params?: u
   };
   await col('forex_orders', 'expire_at');
   await col('forex_orders', 'time_in_force');
+  await col('forex_orders', 'venue_order_id');
+  await tbl('forex_live_applications');
+  await tbl('forex_broker_reconciliation_reports');
   await tbl('forex_customer_alerts');
   await tbl('forex_customer_alert_events');
 }

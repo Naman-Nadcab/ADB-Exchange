@@ -70,3 +70,46 @@ export function estimateTicketRisk(args: {
     estimatedExposure,
   };
 }
+
+export function stepLotVolume(
+  current: string,
+  direction: 1 | -1,
+  bounds: { minVolume?: string; maxVolume?: string; volumeStep?: string }
+): string {
+  const stepRaw = bounds.volumeStep ?? '0.01';
+  const step = Number(stepRaw);
+  const min = Number(bounds.minVolume ?? '0.01');
+  const max = Number(bounds.maxVolume ?? '100');
+  const safeStep = Number.isFinite(step) && step > 0 ? step : 0.01;
+  const safeMin = Number.isFinite(min) ? min : 0.01;
+  const safeMax = Number.isFinite(max) && max >= safeMin ? max : safeMin;
+  const cur = Number(current);
+  const base = Number.isFinite(cur) ? cur : safeMin;
+  const next = Math.min(safeMax, Math.max(safeMin, base + direction * safeStep));
+  const decimals = stepRaw.includes('.') ? stepRaw.split('.')[1]?.length ?? 0 : 0;
+  return next.toFixed(decimals);
+}
+
+/** Ticket input → protection price. Pips are a distance from entry, never sent raw. */
+export function protectionPriceFromInput(args: {
+  side: 'buy' | 'sell';
+  kind: 'sl' | 'tp';
+  entry: number | null;
+  raw: string;
+  mode: 'price' | 'pips';
+  pipSize: number;
+  digits: number;
+}): string | undefined {
+  const raw = args.raw.trim();
+  if (!raw) return undefined;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return undefined;
+  const digits = Math.min(8, Math.max(0, args.digits));
+  if (args.mode === 'price') return n.toFixed(digits);
+  if (args.entry == null || !Number.isFinite(args.entry) || args.entry <= 0) return undefined;
+  if (!Number.isFinite(args.pipSize) || args.pipSize <= 0) return undefined;
+  const sign = args.kind === 'sl' ? (args.side === 'buy' ? -1 : 1) : args.side === 'buy' ? 1 : -1;
+  const price = args.entry + sign * n * args.pipSize;
+  if (!Number.isFinite(price) || price <= 0) return undefined;
+  return price.toFixed(digits);
+}

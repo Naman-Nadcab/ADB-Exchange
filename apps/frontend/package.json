@@ -35,6 +35,7 @@
     "@simplewebauthn/browser": "^13.2.2",
     "@tanstack/react-query": "^5.17.0",
     "@tanstack/react-table": "^8.21.3",
+    "@walletconnect/ethereum-provider": "2.15.1",
     "antd": "^5.12.0",
     "axios": "^1.6.2",
     "class-variance-authority": "^0.7.0",

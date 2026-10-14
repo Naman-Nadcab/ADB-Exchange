@@ -1,7 +1,7 @@
 {
   "hero": {
-    "eyebrow": "FDM · Fintech Digital Market",
-    "titleLine1": "Fintech Digital Market.",
+    "eyebrow": "ADB Exchange",
+    "titleLine1": "ADB Exchange.",
     "titleLine2": "Crypto and Forex.",
     "description": "Access digital assets and global FX through one professional financial platform built for precision, transparency and control.",
     "exploreMarkets": "Explore Markets",
@@ -107,7 +107,7 @@
     "title": "Market intelligence",
     "desc": "Stay informed with market data, economic events and financial news alongside your trading workflow.",
     "marketDataTitle": "Market data",
-    "marketDataDesc": "Live Crypto and FX instruments from FDM markets.",
+    "marketDataDesc": "Live Crypto and FX instruments from ADB Exchange markets.",
     "calendarTitle": "Economic calendar",
     "calendarDesc": "Scheduled events inside the Forex analysis workspace.",
     "newsTitle": "Financial news",
@@ -115,12 +115,12 @@
   },
   "cta": {
     "title": "Ready for the markets?",
-    "desc": "Access digital assets and global FX through FDM.",
+    "desc": "Access digital assets and global FX through ADB Exchange.",
     "exploreMarkets": "Explore Markets",
     "createAccount": "Create Account"
   },
   "customer": {
-    "eyebrow": "My FDM",
+    "eyebrow": "My ADB Exchange",
     "title": "Customer command center",
     "subtitle": "Crypto and Forex accounts stay separate. No combined total is calculated here.",
     "riskBadge": "Risk {state}",

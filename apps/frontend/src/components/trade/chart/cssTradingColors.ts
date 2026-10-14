@@ -150,6 +150,18 @@ const FALLBACK_CROSSHAIR = {
   labelBg: 'rgba(37, 99, 235, 0.92)',
 } as const;
 
+/**
+ * Canvas axis font. Lightweight Charts paints labels with `ctx.font`, which
+ * does not resolve CSS variables, so read the loaded Inter family by name.
+ * Forex leaves the chart on the page sans; spot was forcing a system mono.
+ */
+export function chartUiFontFamily(): string {
+  const fallback = 'Inter, system-ui, sans-serif';
+  if (typeof document === 'undefined') return fallback;
+  const raw = getComputedStyle(document.body).getPropertyValue('--font-inter').trim();
+  return raw || fallback;
+}
+
 /** Crosshair line + label pill from `--primary` (matches focus ring / app accent). */
 export function getDomChartCrosshairColors(): { line: string; labelBg: string } {
   if (typeof document === 'undefined') return { ...FALLBACK_CROSSHAIR };

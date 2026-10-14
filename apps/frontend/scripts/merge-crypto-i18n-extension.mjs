@@ -60,11 +60,11 @@ const extension = {
       tooltip24hHigh: 'Highest traded price recorded for this pair during the rolling last 24 hours.',
       tooltip24hLow: 'Lowest traded price recorded for this pair during the rolling last 24 hours.',
       tooltipQuoteVolume24h:
-        'FDM quote volume (turnover): sum of (price × quantity) for all trades on this exchange in the last 24 hours, expressed in the quote currency (e.g. USDT).',
+        'ADB Exchange quote volume (turnover): sum of (price × quantity) for all trades on this exchange in the last 24 hours, expressed in the quote currency (e.g. USDT).',
       tooltipBaseVolume24h:
-        'FDM base volume: total units of the base asset traded on this exchange in the last 24 hours.',
+        'ADB Exchange base volume: total units of the base asset traded on this exchange in the last 24 hours.',
       tooltipReferenceVolume24h:
-        'Reference market volume from external OHLCV candle data (not FDM turnover). Shown when this pair has no exchange trades in the last 24 hours.',
+        'Reference market volume from external OHLCV candle data (not ADB Exchange turnover). Shown when this pair has no exchange trades in the last 24 hours.',
       tooltipChangeUnavailable:
         'Official 24h change is unavailable for this snapshot (no rolling-window reference).',
     },
@@ -266,10 +266,10 @@ const extension = {
       tooltip24hHigh: '滚动近 24 小时内该交易对的最高成交价。',
       tooltip24hLow: '滚动近 24 小时内该交易对的最低成交价。',
       tooltipQuoteVolume24h:
-        'FDM 报价成交量（成交额）：近 24 小时本交易所所有成交的 (价格 × 数量) 之和，以报价货币计（如 USDT）。',
-      tooltipBaseVolume24h: 'FDM 基础成交量：近 24 小时本交易所成交的基础资产总量。',
+        'ADB Exchange 报价成交量（成交额）：近 24 小时本交易所所有成交的 (价格 × 数量) 之和，以报价货币计（如 USDT）。',
+      tooltipBaseVolume24h: 'ADB Exchange 基础成交量：近 24 小时本交易所成交的基础资产总量。',
       tooltipReferenceVolume24h:
-        '来自外部 OHLCV 的参考市场成交量（非 FDM 成交额）。当该交易对近 24 小时无本所成交时显示。',
+        '来自外部 OHLCV 的参考市场成交量（非 ADB Exchange 成交额）。当该交易对近 24 小时无本所成交时显示。',
       tooltipChangeUnavailable: '此快照无法显示官方 24 小时涨跌（缺少滚动窗口参考）。',
     },
     bottomPanel: {
@@ -465,11 +465,11 @@ const extension = {
       tooltip24hHigh: 'Harga trade tertinggi untuk pasangan ini dalam 24 jam bergulir terakhir.',
       tooltip24hLow: 'Harga trade terendah untuk pasangan ini dalam 24 jam bergulir terakhir.',
       tooltipQuoteVolume24h:
-        'Volume quote FDM (turnover): jumlah (harga × kuantitas) semua trade di bursa ini dalam 24 jam, dalam mata uang quote (mis. USDT).',
+        'Volume quote ADB Exchange (turnover): jumlah (harga × kuantitas) semua trade di bursa ini dalam 24 jam, dalam mata uang quote (mis. USDT).',
       tooltipBaseVolume24h:
-        'Volume base FDM: total unit aset dasar yang di-trade di bursa ini dalam 24 jam terakhir.',
+        'Volume base ADB Exchange: total unit aset dasar yang di-trade di bursa ini dalam 24 jam terakhir.',
       tooltipReferenceVolume24h:
-        'Volume pasar referensi dari data OHLCV eksternal (bukan turnover FDM). Ditampilkan jika pasangan tidak punya trade bursa dalam 24 jam.',
+        'Volume pasar referensi dari data OHLCV eksternal (bukan turnover ADB Exchange). Ditampilkan jika pasangan tidak punya trade bursa dalam 24 jam.',
       tooltipChangeUnavailable:
         'Perubahan 24 jam resmi tidak tersedia untuk snapshot ini (tidak ada referensi jendela bergulir).',
     },
