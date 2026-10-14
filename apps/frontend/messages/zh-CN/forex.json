@@ -26,7 +26,8 @@
     "funds": "资金",
     "ledger": "账本",
     "research": "研究",
-    "tools": "工具"
+    "tools": "工具",
+    "signals": "信号"
   },
   "userMenu": {
     "label": "账户",
@@ -37,7 +38,8 @@
     "verification": "身份",
     "support": "支持",
     "help": "帮助中心",
-    "platformDashboard": "加密仪表盘"
+    "platformDashboard": "加密仪表盘",
+    "partner": "代理"
   },
   "mobileTrade": {
     "watch": "自选",
@@ -115,6 +117,14 @@
     "accounts": {
       "title": "外汇账户",
       "subtitle": "管理演示账户、切换当前账户并查看账户详情。"
+    },
+    "signals": {
+      "title": "信号",
+      "subtitle": "在您的外汇账户上订阅信号。跟单会显示为普通持仓。"
+    },
+    "partner": {
+      "title": "代理",
+      "subtitle": "当前登录的介绍经纪商柜台，与加密推荐分开。"
     }
   },
   "markets": {
@@ -142,7 +152,8 @@
       "yourForexAccount": "您的外汇账户",
       "funds": "资金",
       "forexAccounts": "外汇账户",
-      "tradeHistory": "交易历史"
+      "tradeHistory": "交易历史",
+      "partner": "代理柜台"
     }
   },
   "bottomTabs": {
@@ -1708,7 +1719,11 @@
     "applicationStatus": "申请状态：{status}",
     "backAccounts": "返回账户列表",
     "signedOutNote": "登录后可检查资格并提交申请。下面是完整流程。",
-    "submitLocked": "本页的前提完成后才能提交申请。"
+    "submitLocked": "本页的前提完成后才能提交申请。",
+    "partnerCode": "代理代码",
+    "partnerCodeHint": "可选。无法识别的代码不会阻止申请。",
+    "partnerLinked": "已关联代理代码。",
+    "partnerUnknown": "未识别该代理代码。申请本身没有变化。"
   },
   "internalTransfer": {
     "title": "内部转账",
@@ -1893,5 +1908,43 @@
     "blockerRealForexOff": "在经纪商检查通过前，实盘交易保持关闭。",
     "liveApplicationNotAccepted": "本环境不接受实盘账户申请。",
     "liveApplicationAlreadyOpen": "你已有一份未完成的实盘账户申请。"
+  },
+  "signalsPage": {
+    "notConnected": "未连接",
+    "listTitle": "信号提供者",
+    "listSubtitle": "本平台已发布的信号。",
+    "listEmpty": "目前还没有已发布的信号。",
+    "listBody": "提供者接入后会显示在这里，包含增长和订阅人数。您把它订阅到自己的账户。在此之前不会复制任何交易。",
+    "settingsTitle": "订阅",
+    "settingsSubtitle": "与 MT5 信号对话框相同的选项。",
+    "depositPct": "使用不超过（入金的百分比）",
+    "equityStop": "净值低于此时停止",
+    "slippage": "滑点（点）",
+    "copySlTp": "复制止损和止盈",
+    "subscribe": "订阅",
+    "locked": "在信号跟单接入之前，订阅保持关闭。不会把交易复制到账户。",
+    "positionsNote": "跟单会显示在交易页，作为您所订阅账户上的普通持仓。"
+  },
+  "partnerPage": {
+    "notEnabled": "未启用",
+    "codeTitle": "代理代码",
+    "codeEmpty": "经纪商启用您的 IB 资料后会分配此代码。",
+    "linkEmpty": "推荐链接会与代理代码一起出现。",
+    "clientsTitle": "客户",
+    "clientsEmpty": "还没有被推荐的账户。",
+    "colAccount": "账户",
+    "colVolume": "手数",
+    "colSince": "起始",
+    "commissionTitle": "佣金",
+    "accrued": "已计提",
+    "paid": "已支付",
+    "pending": "待支付",
+    "payoutTitle": "支付",
+    "payoutBody": "支付申请会先审核，然后才会入账。外部支付通道尚未连接。",
+    "requestPayout": "申请支付",
+    "payoutLocked": "在经纪商启用您的 IB 资料并接通支付通道之前，支付保持关闭。",
+    "introducerBody": "此登录使用代理代码 {code} 开立。",
+    "notIbBody": "此登录不是介绍经纪商。交易者在开立真实账户时填写代理代码。",
+    "signedOutNote": "登录后可查看此账户是否已关联代理。下方是完整路径。支付保持关闭。"
   }
 }

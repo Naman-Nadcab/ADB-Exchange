@@ -26,7 +26,8 @@
     "funds": "Dana",
     "ledger": "Buku besar",
     "research": "Riset",
-    "tools": "Alat"
+    "tools": "Alat",
+    "signals": "Sinyal"
   },
   "userMenu": {
     "label": "Akun",
@@ -37,7 +38,8 @@
     "verification": "Identitas",
     "support": "Dukungan",
     "help": "Pusat bantuan",
-    "platformDashboard": "Dasbor kripto"
+    "platformDashboard": "Dasbor kripto",
+    "partner": "Mitra"
   },
   "mobileTrade": {
     "watch": "Watchlist",
@@ -115,6 +117,14 @@
     "accounts": {
       "title": "Akun Forex",
       "subtitle": "Kelola akun demo, ganti akun aktif, dan buka detail akun."
+    },
+    "signals": {
+      "title": "Sinyal",
+      "subtitle": "Berlangganan sinyal pada akun Forex Anda. Trade yang disalin muncul sebagai posisi biasa."
+    },
+    "partner": {
+      "title": "Mitra",
+      "subtitle": "Kabinet introducing broker untuk login ini. Terpisah dari referral Kripto."
     }
   },
   "markets": {
@@ -142,7 +152,8 @@
       "yourForexAccount": "akun Forex Anda",
       "funds": "dana",
       "forexAccounts": "akun Forex",
-      "tradeHistory": "riwayat perdagangan"
+      "tradeHistory": "riwayat perdagangan",
+      "partner": "kabinet mitra"
     }
   },
   "bottomTabs": {
@@ -1708,7 +1719,11 @@
     "applicationStatus": "Status aplikasi: {status}",
     "backAccounts": "Kembali ke akun",
     "signedOutNote": "Masuk untuk memeriksa kelayakan dan mengirim pengajuan. Langkah di bawah adalah alur lengkap.",
-    "submitLocked": "Pengajuan hanya dapat dikirim setelah prasyarat di halaman ini selesai."
+    "submitLocked": "Pengajuan hanya dapat dikirim setelah prasyarat di halaman ini selesai.",
+    "partnerCode": "Kode mitra",
+    "partnerCodeHint": "Opsional. Kode yang tidak dikenal tidak menghalangi pengajuan.",
+    "partnerLinked": "Kode mitra tertaut.",
+    "partnerUnknown": "Kode mitra tidak dikenali. Pengajuan tidak berubah."
   },
   "internalTransfer": {
     "title": "Transfer internal",
@@ -1893,5 +1908,43 @@
     "blockerRealForexOff": "Trading live tetap nonaktif sampai pemeriksaan broker lulus.",
     "liveApplicationNotAccepted": "Pengajuan akun live tidak diterima di lingkungan ini.",
     "liveApplicationAlreadyOpen": "Anda sudah memiliki pengajuan akun live yang masih terbuka."
+  },
+  "signalsPage": {
+    "notConnected": "Belum terhubung",
+    "listTitle": "Penyedia sinyal",
+    "listSubtitle": "Sinyal yang dipublikasikan di platform ini.",
+    "listEmpty": "Belum ada sinyal yang dipublikasikan.",
+    "listBody": "Saat penyedia terhubung, sinyal muncul di sini beserta pertumbuhan dan jumlah pelanggan. Anda berlangganan ke akun sendiri. Tidak ada trade yang disalin sebelum itu.",
+    "settingsTitle": "Langganan",
+    "settingsSubtitle": "Pilihan yang sama dengan dialog Signals MT5.",
+    "depositPct": "Gunakan tidak lebih dari (% deposit)",
+    "equityStop": "Berhenti jika ekuitas kurang dari",
+    "slippage": "Slippage (poin)",
+    "copySlTp": "Salin Stop Loss dan Take Profit",
+    "subscribe": "Berlangganan",
+    "locked": "Berlangganan tetap mati sampai penyalinan sinyal terhubung. Tidak ada trade yang disalin ke akun.",
+    "positionsNote": "Trade yang disalin akan tampil di tab Trading sebagai posisi biasa, pada akun yang Anda langgani."
+  },
+  "partnerPage": {
+    "notEnabled": "Belum diaktifkan",
+    "codeTitle": "Kode mitra",
+    "codeEmpty": "Broker menetapkan kode ini saat profil IB Anda diaktifkan.",
+    "linkEmpty": "Tautan rujukan muncul bersama kode mitra.",
+    "clientsTitle": "Klien",
+    "clientsEmpty": "Belum ada akun yang dirujuk.",
+    "colAccount": "Akun",
+    "colVolume": "Volume (lot)",
+    "colSince": "Sejak",
+    "commissionTitle": "Komisi",
+    "accrued": "Terakru",
+    "paid": "Dibayar",
+    "pending": "Menunggu pembayaran",
+    "payoutTitle": "Pembayaran",
+    "payoutBody": "Permintaan pembayaran ditinjau sebelum apa pun dicatat. Jalur pembayaran eksternal belum terhubung.",
+    "requestPayout": "Minta pembayaran",
+    "payoutLocked": "Pembayaran tetap mati sampai broker mengaktifkan profil IB Anda dan jalur pembayaran.",
+    "introducerBody": "Login ini dibuka dengan kode mitra {code}.",
+    "notIbBody": "Login ini bukan introducing broker. Trader memasukkan kode mitra saat membuka akun live.",
+    "signedOutNote": "Masuk untuk melihat apakah login ini tertaut ke mitra. Kabinet di bawah adalah alur lengkap. Pembayaran tetap mati."
   }
 }

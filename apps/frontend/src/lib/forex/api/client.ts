@@ -177,8 +177,14 @@ export const forexApi = {
         fundingReconciliation: boolean;
       };
     }>('/live/readiness'),
-  submitLiveApplication: (body: { idempotencyKey: string; positionMode?: 'NETTING' | 'HEDGING'; leverage?: string | null }) =>
-    api.post<{ application: Record<string, unknown> }>(`${FOREX_PREFIX}/live/applications`, body, fxRequestInit()),
+  submitLiveApplication: (body: { idempotencyKey: string; positionMode?: 'NETTING' | 'HEDGING'; leverage?: string | null; partnerCode?: string }) =>
+    api.post<{ application: Record<string, unknown>; partnerLink?: 'linked' | 'unknown' | 'skipped' }>(`${FOREX_PREFIX}/live/applications`, body, fxRequestInit()),
+  getPartnerCabinet: () =>
+    fxGet<{
+      isPartner: false;
+      introducer: { code: string; label: string } | null;
+      payoutRail: 'NOT_CONFIGURED';
+    }>('/partner'),
   listLiveApplications: () => fxGet<{ count: number; applications: Array<Record<string, unknown>> }>('/live/applications'),
   postInternalTransfer: (body: { fromAccountId: string; toAccountId: string; amount: string; idempotencyKey: string }) =>
     api.post<{ status: string; transaction: ForexLedgerRow }>(`${FOREX_PREFIX}/funding/transfers`, body, fxRequestInit()),

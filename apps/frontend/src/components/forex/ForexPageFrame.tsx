@@ -67,7 +67,8 @@ export type ForexSignInSectionKey =
   | 'yourForexAccount'
   | 'funds'
   | 'forexAccounts'
-  | 'tradeHistory';
+  | 'tradeHistory'
+  | 'partner';
 
 export function ForexSignInPrompt({
   href,
