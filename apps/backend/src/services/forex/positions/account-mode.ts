@@ -1,8 +1,8 @@
 /**
  * Per-account Forex position mode.
  *
- * Default: NETTING (existing accounts unchanged).
- * HEDGING is opt-in and server-authoritative — never inferred from the browser.
+ * Customer default: HEDGING (each fill is its own ticket, MT4-style).
+ * NETTING stays available for a later exchange-style account. The browser cannot choose the mode.
  */
 import type { ForexPositionMode } from './mode.js';
 
@@ -16,9 +16,9 @@ export function parseForexPositionMode(raw: unknown): ForexPositionMode | null {
   return null;
 }
 
-/** Resolve mode for an account. Missing → NETTING (safe default). */
+/** Resolve mode for an account. Missing → HEDGING. */
 export function getAccountPositionMode(accountId: string): ForexPositionMode {
-  return accountModes.get(accountId) ?? 'NETTING';
+  return accountModes.get(accountId) ?? 'HEDGING';
 }
 
 /**

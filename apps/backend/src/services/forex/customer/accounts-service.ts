@@ -30,7 +30,7 @@ function rowToAccount(r: Record<string, unknown>): ForexCustomerAccountRow {
     currency: String(r.currency ?? 'USD'),
     status: String(r.status ?? 'ACTIVE'),
     accountKind: String(r.account_kind ?? 'DEMO'),
-    positionMode: String(r.position_mode ?? 'NETTING'),
+    positionMode: String(r.position_mode ?? 'HEDGING'),
     leverageOverride: r.leverage_override != null ? String(r.leverage_override) : null,
     groupId: r.group_id != null ? String(r.group_id) : null,
     groupCode: r.group_code != null ? String(r.group_code) : null,
@@ -45,7 +45,7 @@ export async function listForexAccountsForUser(userId: string): Promise<ForexCus
   const res = await db.query(
     `SELECT a.account_id, a.user_id, a.currency, a.status,
             COALESCE(a.account_kind, 'DEMO') AS account_kind,
-            COALESCE(a.position_mode, 'NETTING') AS position_mode,
+            COALESCE(a.position_mode, 'HEDGING') AS position_mode,
             a.leverage_override, a.group_id,
             g.code AS group_code, g.label AS group_label,
             a.created_at, a.updated_at
@@ -99,7 +99,7 @@ export async function ensureLegacyForexAccountRow(userId: string): Promise<void>
   if ((any.rowCount ?? 0) > 0) return;
   await db.query(
     `INSERT INTO forex_accounts (account_id, user_id, currency, status, position_mode, account_kind)
-     VALUES ($1, $2, 'USD', 'ACTIVE', 'NETTING', 'DEMO')
+     VALUES ($1, $2, 'USD', 'ACTIVE', 'HEDGING', 'DEMO')
      ON CONFLICT (account_id) DO NOTHING`,
     [userId, userId]
   );
@@ -133,7 +133,7 @@ export async function createForexDemoAccount(userId: string): Promise<ForexCusto
   }
   await db.query(
     `INSERT INTO forex_accounts (account_id, user_id, currency, status, position_mode, account_kind)
-     VALUES ($1, $2, 'USD', 'ACTIVE', 'NETTING', 'DEMO')`,
+     VALUES ($1, $2, 'USD', 'ACTIVE', 'HEDGING', 'DEMO')`,
     [accountId, userId]
   );
   const pricing = getForexPricingService();
