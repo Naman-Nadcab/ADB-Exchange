@@ -170,7 +170,8 @@ async function loadPartnerSummary(accountId: string) {
     `SELECT p.code, p.label
      FROM forex_partner_attributions a
      JOIN forex_partner_profiles p ON p.partner_id = a.partner_id
-     WHERE a.account_id = $1 AND (a.effective_to IS NULL OR a.effective_to > NOW())
+     WHERE (a.account_id = $1 OR a.user_id = (SELECT user_id FROM forex_accounts WHERE account_id = $1 LIMIT 1))
+       AND (a.effective_to IS NULL OR a.effective_to > NOW())
      ORDER BY a.effective_from DESC
      LIMIT 1`,
     [accountId],

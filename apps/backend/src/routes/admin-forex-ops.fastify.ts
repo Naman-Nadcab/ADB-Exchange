@@ -33,6 +33,12 @@ import {
   listForexPartnerAccruals,
   listForexPartnerPayoutRequests,
 } from '../services/forex/admin/forex-partner-ib.js';
+import { accrueForexPartnerVolume, createForexPartnerProfile } from '../services/forex/admin/forex-partners.js';
+import {
+  createForexSignalProvider,
+  listForexSignalProviders,
+  setForexSignalProviderStatus,
+} from '../services/forex/customer/forex-signals.js';
 import {
   assignForexComplianceCase,
   closeForexComplianceCase,
@@ -402,6 +408,74 @@ export default async function adminForexOpsRoutes(app: FastifyInstance): Promise
         return reply.send({ success: true, data });
       } catch (e) {
         return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Workflow not found' } });
+      }
+    },
+  );
+
+  app.post<{ Body: { code?: string; label?: string; user_id?: string | null; commission_per_lot?: string | null } }>(
+    '/forex/partners',
+    async (request, reply) => {
+      const admin = await getAdminWithPermission(app, request, reply, 'forex:controls:manage');
+      if (!admin) return;
+      try {
+        const row = await createForexPartnerProfile({
+          code: String(request.body?.code ?? ''),
+          label: String(request.body?.label ?? ''),
+          userId: request.body?.user_id,
+          commissionPerLot: request.body?.commission_per_lot,
+        });
+        return reply.status(201).send({ success: true, data: row });
+      } catch (e) {
+        const code = e instanceof Error ? e.message : 'CREATE_FAILED';
+        const status = /duplicate|unique/i.test(code) ? 409 : 400;
+        return reply.status(status).send({ success: false, error: { code: status === 409 ? 'CODE_TAKEN' : code, message: 'Partner profile was not created' } });
+      }
+    },
+  );
+
+  app.post<{ Params: { partnerId: string } }>('/forex/partners/:partnerId/accrue-volume', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'forex:controls:manage');
+    if (!admin) return;
+    try {
+      const data = await accrueForexPartnerVolume(request.params.partnerId, admin.adminId);
+      return reply.send({ success: true, data });
+    } catch (e) {
+      return reply.status(400).send({ success: false, error: { code: e instanceof Error ? e.message : 'ACCRUE_FAILED', message: 'Volume accrual failed' } });
+    }
+  });
+
+  app.get('/forex/signals/providers', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'forex:view');
+    if (!admin) return;
+    const rows = await listForexSignalProviders();
+    return reply.send({ success: true, data: { rows, copying: false } });
+  });
+
+  app.post<{ Body: { name?: string } }>('/forex/signals/providers', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'forex:controls:manage');
+    if (!admin) return;
+    try {
+      const row = await createForexSignalProvider(String(request.body?.name ?? ''));
+      return reply.status(201).send({ success: true, data: { ...row, copying: false } });
+    } catch (e) {
+      return reply.status(400).send({ success: false, error: { code: e instanceof Error ? e.message : 'CREATE_FAILED', message: 'Signal provider was not created' } });
+    }
+  });
+
+  app.patch<{ Params: { providerId: string }; Body: { status?: string } }>(
+    '/forex/signals/providers/:providerId',
+    async (request, reply) => {
+      const admin = await getAdminWithPermission(app, request, reply, 'forex:controls:manage');
+      if (!admin) return;
+      const status = request.body?.status === 'active' ? 'active' : request.body?.status === 'paused' ? 'paused' : null;
+      if (!status) {
+        return reply.status(400).send({ success: false, error: { code: 'INVALID_STATUS', message: 'Status must be paused or active' } });
+      }
+      try {
+        const row = await setForexSignalProviderStatus(request.params.providerId, status);
+        return reply.send({ success: true, data: { ...row, copying: false } });
+      } catch (e) {
+        return reply.status(404).send({ success: false, error: { code: e instanceof Error ? e.message : 'NOT_FOUND', message: 'Signal provider not found' } });
       }
     },
   );

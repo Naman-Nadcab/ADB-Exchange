@@ -45,6 +45,7 @@ function isForexPublicReadPath(url: string): boolean {
   const path = (url.split('?')[0] ?? '').replace(/\/+$/, '');
   return (
     path.endsWith('/readiness') ||
+    path.endsWith('/signals') ||
     path.endsWith('/instruments') ||
     path.includes('/quotes') ||
     path.includes('/providers') ||
@@ -194,6 +195,8 @@ export default async function forexRoutes(app: FastifyInstance) {
   await registerForexCustomerAccountsRoutes(app);
   const { registerForexCustomerLiveFundingRoutes } = await import('./forex-customer-live-funding.fastify.js');
   await registerForexCustomerLiveFundingRoutes(app);
+  const { registerForexCustomerSignalRoutes } = await import('./forex-customer-signals.fastify.js');
+  await registerForexCustomerSignalRoutes(app);
   await registerForexCustomerOrderRoutes(app);
   await registerForexPositionRoutes(app);
   await registerForexAccountingRoutes(app);

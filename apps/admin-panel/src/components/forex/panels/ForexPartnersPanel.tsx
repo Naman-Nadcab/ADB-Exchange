@@ -20,6 +20,11 @@ export function ForexPartnersPanel() {
   const [accrualVol, setAccrualVol] = useState('1.0');
   const [accrualAmt, setAccrualAmt] = useState('10.00');
   const [payoutAmt, setPayoutAmt] = useState('10.00');
+  const [code, setCode] = useState('');
+  const [label, setLabel] = useState('');
+  const [ownerId, setOwnerId] = useState('');
+  const [rate, setRate] = useState('0');
+  const [signalName, setSignalName] = useState('');
 
   const qry = useQuery({
     queryKey: ['admin', 'forex', 'partners', token],
@@ -73,10 +78,77 @@ export function ForexPartnersPanel() {
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin', 'forex', 'partner-payouts'] }),
   });
 
+  const createM = useMutation({
+    mutationFn: async () => {
+      const res = await adminFetch('/forex/partners', {
+        token,
+        method: 'POST',
+        body: { code, label, user_id: ownerId.trim() || null, commission_per_lot: rate },
+      });
+      if (!res.success) throw new Error(res.error?.message ?? 'Create failed');
+    },
+    onSuccess: () => {
+      setCode('');
+      setLabel('');
+      setOwnerId('');
+      void qc.invalidateQueries({ queryKey: ['admin', 'forex', 'partners'] });
+    },
+  });
+
+  const volumeM = useMutation({
+    mutationFn: async (partnerId: string) => {
+      const res = await adminFetch(`/forex/partners/${partnerId}/accrue-volume`, { token, method: 'POST', body: {} });
+      if (!res.success) throw new Error(res.error?.message ?? 'Volume accrual failed');
+      return res.data as { reason?: string; volumeLots?: string; commissionAmount?: string };
+    },
+  });
+
+  const signalsQ = useQuery({
+    queryKey: ['admin', 'forex', 'signals', token],
+    queryFn: async () => {
+      const res = await adminFetch<{ rows: Array<{ providerId: string; name: string; status: string }> }>('/forex/signals/providers', { token });
+      if (!res.success || !res.data) throw new Error(res.error?.message ?? 'Failed');
+      return res.data.rows;
+    },
+    enabled: !!token,
+  });
+
+  const signalStatusM = useMutation({
+    mutationFn: async (provider: { providerId: string; status: string }) => {
+      const status = provider.status === 'active' ? 'paused' : 'active';
+      const res = await adminFetch(`/forex/signals/providers/${provider.providerId}`, { token, method: 'PATCH', body: { status } });
+      if (!res.success) throw new Error(res.error?.message ?? 'Update failed');
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'forex', 'signals'] });
+    },
+  });
+
+  const signalM = useMutation({
+    mutationFn: async () => {
+      const res = await adminFetch('/forex/signals/providers', { token, method: 'POST', body: { name: signalName } });
+      if (!res.success) throw new Error(res.error?.message ?? 'Create failed');
+    },
+    onSuccess: () => {
+      setSignalName('');
+      void qc.invalidateQueries({ queryKey: ['admin', 'forex', 'signals'] });
+    },
+  });
+
   const columns = useMemo<ColumnDef<ForexPartnerProfileRow>[]>(
     () => [
       { accessorKey: 'code', header: 'Code', cell: ({ row }) => <span className="font-mono text-xs">{row.original.code}</span> },
       { accessorKey: 'display_name', header: 'Name' },
+      {
+        accessorKey: 'user_id',
+        header: 'Login',
+        cell: ({ row }) => <span className="font-mono text-xs">{row.original.user_id || '—'}</span>,
+      },
+      {
+        accessorKey: 'commission_per_lot',
+        header: 'Per lot',
+        cell: ({ row }) => <span className="font-mono text-xs">{row.original.commission_per_lot ?? '0.00'}</span>,
+      },
       {
         accessorKey: 'status',
         header: 'Status',
@@ -120,6 +192,16 @@ export function ForexPartnersPanel() {
             <Badge variant={externalRail === 'CONFIGURED' ? 'success' : 'default'}>External payout: {externalRail}</Badge>
           </div>
         ) : null}
+        <div className="mb-3 grid gap-2 md:grid-cols-5">
+          <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Code" />
+          <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Name" />
+          <Input value={ownerId} onChange={(e) => setOwnerId(e.target.value)} placeholder="Customer user id" />
+          <Input value={rate} onChange={(e) => setRate(e.target.value)} placeholder="USD per lot" />
+          <Button size="sm" disabled={createM.isPending || code.trim().length < 2 || label.trim().length < 2} onClick={() => createM.mutate()}>
+            Create partner
+          </Button>
+        </div>
+        {createM.isError ? <p className="mb-2 text-xs text-red-400">{createM.error.message}</p> : null}
         <DataTable columns={columns} data={data?.rows ?? []} loading={qry.isLoading} emptyMessage="No partner profiles." />
       </ForexPanelShell>
 
@@ -134,7 +216,11 @@ export function ForexPartnersPanel() {
                 <Button size="sm" disabled={accrueM.isPending} onClick={() => accrueM.mutate(selectedPartner)}>
                   Accrue
                 </Button>
+                <Button size="sm" variant="ghost" disabled={volumeM.isPending} onClick={() => volumeM.mutate(selectedPartner)}>
+                  From traded volume
+                </Button>
               </div>
+              {volumeM.data ? <p className="mt-2 text-xs text-muted-foreground">{volumeM.data.reason} · lots {volumeM.data.volumeLots} · {volumeM.data.commissionAmount}</p> : null}
             </div>
             <div className="rounded-lg border border-admin-border/60 p-3">
               <p className="mb-2 text-sm font-medium">Payout request</p>
@@ -148,6 +234,25 @@ export function ForexPartnersPanel() {
           </div>
         </ForexPanelShell>
       ) : null}
+
+      <ForexPanelShell title="Signal providers" description="A published name can be subscribed. Copying stays off and no order is placed.">
+        <div className="mb-3 flex flex-wrap gap-2">
+          <Input className="w-64" value={signalName} onChange={(e) => setSignalName(e.target.value)} placeholder="Provider name" />
+          <Button size="sm" disabled={signalM.isPending || signalName.trim().length < 2} onClick={() => signalM.mutate()}>
+            Publish paused
+          </Button>
+        </div>
+        <ul className="admin-stack-sm text-sm">
+          {(signalsQ.data ?? []).map((provider) => (
+            <li key={provider.providerId} className="flex items-center justify-between gap-2 rounded border border-admin-border/60 px-3 py-2 text-xs">
+              <span>{provider.name} · {provider.status} · copying off</span>
+              <Button size="sm" variant="ghost" disabled={signalStatusM.isPending} onClick={() => signalStatusM.mutate(provider)}>
+                {provider.status === 'active' ? 'Pause listing' : 'Open listing'}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </ForexPanelShell>
 
       <ForexPanelShell title="Payout requests" description="Internal lifecycle status">
         <ul className="admin-stack-sm text-sm">

@@ -154,7 +154,8 @@
       "funds": "funds",
       "forexAccounts": "Forex accounts",
       "tradeHistory": "trade history",
-      "partner": "the partner cabinet"
+      "partner": "the partner cabinet",
+      "signals": "signals"
     }
   },
   "bottomTabs": {
@@ -1932,7 +1933,16 @@
     "step3": "A copied trade shows on Trade as a normal position. Close or change it there, the same as a trade you placed yourself.",
     "goTrade": "Open Trade",
     "noneYet": "No signals yet",
-    "settingsLead": "Choose a signal first. These choices stay off until one is listed. Nothing is copied onto your account."
+    "settingsLead": "Choose a signal first. These choices stay off until one is listed. Nothing is copied onto your account.",
+    "listed": "Published",
+    "providerActive": "Listed",
+    "providerPaused": "Paused",
+    "account": "Account",
+    "noAccount": "No Forex account yet",
+    "settingsReady": "Choose the account and the limits. Saving does not copy a trade.",
+    "saved": "Subscription saved. Copying is off, so no trade is placed on the account.",
+    "openDemo": "Open a demo account",
+    "paused": "This signal is paused. A subscription cannot be saved, and no trade is copied."
   },
   "partnerPage": {
     "notEnabled": "Not enabled",
@@ -1961,6 +1971,8 @@
     "ibTitle": "I am a partner",
     "ibBody": "Your code, referral link, clients, and commission appear below after the broker assigns them. You do not turn this on yourself.",
     "notAssigned": "Not assigned yet",
-    "commissionEmpty": "No commission until referred clients trade."
+    "commissionEmpty": "No commission until referred clients trade.",
+    "assigned": "Assigned",
+    "assignedBody": "Your partner code is {code}. Traders enter it when they open a live account. Payout stays with the broker desk."
   }
 }

@@ -769,6 +769,8 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
           status: r.status,
           parent_partner_id: null,
           commission_plan_id: r.commission_plan_code,
+          user_id: r.user_id,
+          commission_per_lot: r.commission_per_lot,
           created_at: r.created_at,
         })),
         table_present: data.table_present,

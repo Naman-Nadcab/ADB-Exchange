@@ -5099,6 +5099,29 @@ const migrations = [
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
   );`,
   `CREATE INDEX IF NOT EXISTS idx_forex_partner_payout_partner ON forex_partner_payout_requests(partner_id, status);`,
+  `ALTER TABLE forex_partner_profiles ADD COLUMN IF NOT EXISTS user_id VARCHAR(64);`,
+  `ALTER TABLE forex_partner_profiles ADD COLUMN IF NOT EXISTS commission_per_lot NUMERIC(20,8) NOT NULL DEFAULT 0;`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_forex_partner_profiles_user ON forex_partner_profiles(user_id) WHERE user_id IS NOT NULL;`,
+  `CREATE TABLE IF NOT EXISTS forex_signal_providers (
+    provider_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(128) NOT NULL,
+    status VARCHAR(16) NOT NULL DEFAULT 'paused' CHECK (status IN ('paused','active')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE TABLE IF NOT EXISTS forex_signal_subscriptions (
+    subscription_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    provider_id UUID NOT NULL REFERENCES forex_signal_providers(provider_id),
+    user_id VARCHAR(64) NOT NULL,
+    account_id VARCHAR(64) NOT NULL,
+    deposit_pct NUMERIC(6,2) NOT NULL CHECK (deposit_pct > 0 AND deposit_pct <= 100),
+    equity_stop NUMERIC(20,8),
+    slippage_points NUMERIC(10,2),
+    copy_sl_tp BOOLEAN NOT NULL DEFAULT TRUE,
+    status VARCHAR(16) NOT NULL DEFAULT 'WAITING' CHECK (status IN ('WAITING','STOPPED')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_forex_signal_sub_user ON forex_signal_subscriptions(user_id, created_at DESC);`,
 
   // FOREX MT5-CLASS OPS PLANE (isolated from Crypto; cert-safe)
   `CREATE TABLE IF NOT EXISTS forex_dealing_actions (
