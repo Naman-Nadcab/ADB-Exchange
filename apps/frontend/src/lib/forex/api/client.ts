@@ -181,10 +181,47 @@ export const forexApi = {
     api.post<{ application: Record<string, unknown>; partnerLink?: 'linked' | 'unknown' | 'skipped' }>(`${FOREX_PREFIX}/live/applications`, body, fxRequestInit()),
   getPartnerCabinet: () =>
     fxGet<{
-      isPartner: false;
+      isPartner: boolean;
+      partner: { code: string; label: string; commissionPerLot: string } | null;
       introducer: { code: string; label: string } | null;
+      clients: Array<{ accountId: string | null; volumeLots: string; since: string }>;
+      commission: { accrued: string; paid: string; pending: string };
       payoutRail: 'NOT_CONFIGURED';
     }>('/partner'),
+  getSignalBoard: () =>
+    fxGet<{ providers: Array<{ providerId: string; name: string; status: 'paused' | 'active' }>; copying: false; reason: 'ENGINE_OFF' }>(
+      '/signals',
+      true,
+    ),
+  getMySignalSubscription: () =>
+    fxGet<{
+      subscription: {
+        subscriptionId: string;
+        providerId: string;
+        providerName: string;
+        accountId: string;
+        depositPct: string;
+        equityStop: string | null;
+        slippagePoints: string | null;
+        copySlTp: boolean;
+        status: 'WAITING' | 'STOPPED';
+      } | null;
+      copying: false;
+      reason: 'ENGINE_OFF';
+    }>('/signals/subscription'),
+  saveSignalSubscription: (body: {
+    providerId: string;
+    accountId: string;
+    depositPct: string;
+    equityStop?: string | null;
+    slippagePoints?: string | null;
+    copySlTp: boolean;
+  }) =>
+    api.post<{
+      subscription: { subscriptionId: string; status: 'WAITING' | 'STOPPED' };
+      copying: false;
+      reason: 'ENGINE_OFF';
+    }>(`${FOREX_PREFIX}/signals/subscriptions`, body, fxRequestInit()),
   listLiveApplications: () => fxGet<{ count: number; applications: Array<Record<string, unknown>> }>('/live/applications'),
   postInternalTransfer: (body: { fromAccountId: string; toAccountId: string; amount: string; idempotencyKey: string }) =>
     api.post<{ status: string; transaction: ForexLedgerRow }>(`${FOREX_PREFIX}/funding/transfers`, body, fxRequestInit()),

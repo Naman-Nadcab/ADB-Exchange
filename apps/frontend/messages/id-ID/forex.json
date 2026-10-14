@@ -154,7 +154,8 @@
       "funds": "dana",
       "forexAccounts": "akun Forex",
       "tradeHistory": "riwayat perdagangan",
-      "partner": "kabinet mitra"
+      "partner": "kabinet mitra",
+      "signals": "sinyal"
     }
   },
   "bottomTabs": {
@@ -1932,7 +1933,16 @@
     "step3": "Trade yang disalin tampil di Trading sebagai posisi biasa. Tutup atau ubah di sana, sama seperti trade yang Anda pasang sendiri.",
     "goTrade": "Buka Trading",
     "noneYet": "Belum ada sinyal",
-    "settingsLead": "Pilih sinyal dulu. Pilihan ini tetap mati sampai ada sinyal. Tidak ada trade yang disalin ke akun Anda."
+    "settingsLead": "Pilih sinyal dulu. Pilihan ini tetap mati sampai ada sinyal. Tidak ada trade yang disalin ke akun Anda.",
+    "listed": "Dipublikasikan",
+    "providerActive": "Terdaftar",
+    "providerPaused": "Jeda",
+    "account": "Akun",
+    "noAccount": "Belum ada akun Forex",
+    "settingsReady": "Pilih akun dan batasnya. Menyimpan tidak menyalin trade.",
+    "saved": "Langganan tersimpan. Penyalinan mati, jadi tidak ada trade yang dipasang.",
+    "openDemo": "Buka akun demo",
+    "paused": "Sinyal ini dijeda. Langganan tidak dapat disimpan, dan tidak ada trade yang disalin."
   },
   "partnerPage": {
     "notEnabled": "Belum diaktifkan",
@@ -1961,6 +1971,8 @@
     "ibTitle": "Saya mitra",
     "ibBody": "Kode, tautan rujukan, klien, dan komisi muncul di bawah setelah broker menetapkannya. Anda tidak mengaktifkannya sendiri.",
     "notAssigned": "Belum ditetapkan",
-    "commissionEmpty": "Belum ada komisi sampai klien yang dirujuk berdagang."
+    "commissionEmpty": "Belum ada komisi sampai klien yang dirujuk berdagang.",
+    "assigned": "Ditetapkan",
+    "assignedBody": "Kode mitra Anda adalah {code}. Trader memasukkannya saat membuka akun live. Pembayaran tetap di meja broker."
   }
 }
