@@ -24,6 +24,7 @@ import {
   listForexAccountsForUser,
   userOwnsForexAccount,
 } from '../services/forex/customer/accounts-service.js';
+import { attributeForexPartnerCode, readCustomerPartnerCabinet } from '../services/forex/customer/forex-partner-customer.js';
 
 function userIdFromRequest(request: { user?: { id?: string } }): string | null {
   const id = request.user?.id;
@@ -95,6 +96,7 @@ export async function registerForexCustomerLiveFundingRoutes(app: FastifyInstanc
       positionMode?: 'NETTING' | 'HEDGING';
       leverage?: string | null;
       groupCode?: string | null;
+      partnerCode?: string | null;
     };
     const idempotencyKey = String(body.idempotencyKey ?? request.headers['idempotency-key'] ?? '').trim();
     if (!idempotencyKey) {
@@ -111,7 +113,17 @@ export async function registerForexCustomerLiveFundingRoutes(app: FastifyInstanc
       const status = result.code === 'KYC_REQUIRED' ? 403 : 409;
       return reply.status(status).send({ success: false, error: { code: result.code, message: result.message } });
     }
-    return reply.status(201).send({ success: true, data: { application: result.application } });
+    const partnerLink = await attributeForexPartnerCode(userId, body.partnerCode);
+    return reply.status(201).send({ success: true, data: { application: result.application, partnerLink } });
+  });
+
+  app.get('/partner', { preHandler: [forexAuthenticate(app)] }, async (request, reply) => {
+    const userId = userIdFromRequest(request);
+    if (!userId) {
+      return reply.status(401).send({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
+    }
+    const cabinet = await readCustomerPartnerCabinet(userId);
+    return reply.send({ success: true, data: cabinet });
   });
 
   app.get<{ Params: { accountId: string } }>(
