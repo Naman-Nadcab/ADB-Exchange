@@ -53,6 +53,11 @@ export default function ForexOpenLiveAccountPage() {
   }
 
   useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get('code');
+    if (code) setPartnerCode(code.trim().slice(0, 32));
+  }, []);
+
+  useEffect(() => {
     if (!authed) return;
     void (async () => {
       const res = unwrap(await forexApi.getLiveOpeningEligibility());

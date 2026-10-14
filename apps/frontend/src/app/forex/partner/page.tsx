@@ -16,6 +16,9 @@ export default function ForexPartnerPage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authed = isAuthenticated || hasForexPrivateSession();
   const [introducer, setIntroducer] = useState<{ code: string; label: string } | null>(null);
+  const [partner, setPartner] = useState<{ code: string; label: string; commissionPerLot: string } | null>(null);
+  const [clients, setClients] = useState<Array<{ accountId: string | null; volumeLots: string; since: string }>>([]);
+  const [commission, setCommission] = useState<{ accrued: string; paid: string; pending: string } | null>(null);
 
   useEffect(() => {
     if (!authed) return;
@@ -23,8 +26,15 @@ export default function ForexPartnerPage() {
       const res = unwrap(await forexApi.getPartnerCabinet());
       if (!res.ok) return;
       setIntroducer(res.data.introducer);
+      setPartner(res.data.partner);
+      setClients(res.data.clients ?? []);
+      setCommission(res.data.commission ?? null);
     })();
   }, [authed]);
+
+  const referralLink = partner && typeof window !== 'undefined'
+    ? `${window.location.origin}${FOREX_ROUTES.openLiveAccount}?code=${encodeURIComponent(partner.code)}`
+    : '';
 
   return (
     <ForexPageFrame title={tf('pages.partner.title')} subtitle={tf('pages.partner.subtitle')}>
@@ -42,15 +52,25 @@ export default function ForexPartnerPage() {
         </ForexPortalModuleCard>
 
         <ForexPortalModuleCard title={t('ibTitle')}>
-          <ForexPortalStatusBadge tone="warning">{t('notAssigned')}</ForexPortalStatusBadge>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{t('ibBody')}</p>
+          <ForexPortalStatusBadge tone={partner ? 'success' : 'warning'}>{partner ? t('assigned') : t('notAssigned')}</ForexPortalStatusBadge>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{partner ? t('assignedBody', { code: partner.code }) : t('ibBody')}</p>
         </ForexPortalModuleCard>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-2">
         <ForexPortalModuleCard title={t('codeTitle')}>
-          <p className="text-[12px] text-muted-foreground">{t('codeEmpty')}</p>
-          <p className="mt-2 text-[12px] text-muted-foreground">{t('linkEmpty')}</p>
+          {partner ? (
+            <>
+              <p className="font-mono text-sm text-foreground">{partner.code}</p>
+              <p className="mt-2 text-[12px] text-muted-foreground">{partner.label}</p>
+              {referralLink ? <p className="mt-2 break-all text-[12px] text-foreground">{referralLink}</p> : null}
+            </>
+          ) : (
+            <>
+              <p className="text-[12px] text-muted-foreground">{t('codeEmpty')}</p>
+              <p className="mt-2 text-[12px] text-muted-foreground">{t('linkEmpty')}</p>
+            </>
+          )}
         </ForexPortalModuleCard>
 
         <ForexPortalModuleCard title={t('clientsTitle')}>
@@ -64,28 +84,36 @@ export default function ForexPartnerPage() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td colSpan={3} className="text-muted-foreground">{t('clientsEmpty')}</td>
-                </tr>
+                {clients.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="text-muted-foreground">{t('clientsEmpty')}</td>
+                  </tr>
+                ) : clients.map((client) => (
+                  <tr key={`${client.accountId ?? 'none'}-${client.since}`}>
+                    <td className="font-mono">{client.accountId ?? '—'}</td>
+                    <td className="font-mono">{client.volumeLots}</td>
+                    <td>{client.since.slice(0, 10)}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </ForexPortalModuleCard>
 
         <ForexPortalModuleCard title={t('commissionTitle')}>
-          <p className="mb-3 text-[12px] text-muted-foreground">{t('commissionEmpty')}</p>
+          {commission ? null : <p className="mb-3 text-[12px] text-muted-foreground">{t('commissionEmpty')}</p>}
           <dl className="grid grid-cols-3 gap-3 text-[12px]">
             <div>
               <dt className="text-muted-foreground">{t('accrued')}</dt>
-              <dd className="mt-1 font-mono text-foreground">—</dd>
+              <dd className="mt-1 font-mono text-foreground">{commission?.accrued ?? '—'}</dd>
             </div>
             <div>
               <dt className="text-muted-foreground">{t('paid')}</dt>
-              <dd className="mt-1 font-mono text-foreground">—</dd>
+              <dd className="mt-1 font-mono text-foreground">{commission?.paid ?? '—'}</dd>
             </div>
             <div>
               <dt className="text-muted-foreground">{t('pending')}</dt>
-              <dd className="mt-1 font-mono text-foreground">—</dd>
+              <dd className="mt-1 font-mono text-foreground">{commission?.pending ?? '—'}</dd>
             </div>
           </dl>
         </ForexPortalModuleCard>
