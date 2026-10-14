@@ -5,7 +5,8 @@
     "titleLine2": "Crypto and Forex.",
     "description": "Access digital assets and global FX through one professional financial platform built for precision, transparency and control.",
     "exploreMarkets": "Explore Markets",
-    "createAccount": "Create Account"
+    "createAccount": "Create Account",
+    "signIn": "Sign in"
   },
   "liveMarkets": {
     "aria": "Live markets",
@@ -117,7 +118,8 @@
     "title": "Ready for the markets?",
     "desc": "Access digital assets and global FX through ADB Exchange.",
     "exploreMarkets": "Explore Markets",
-    "createAccount": "Create Account"
+    "createAccount": "Create Account",
+    "signIn": "Sign in"
   },
   "customer": {
     "eyebrow": "My ADB Exchange",

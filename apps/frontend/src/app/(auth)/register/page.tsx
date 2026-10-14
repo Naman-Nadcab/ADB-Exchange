@@ -5,5 +5,5 @@ import { PAGE_METADATA } from '@/lib/seo/pageMetadata';
 export const metadata: Metadata = PAGE_METADATA.register;
 
 export default function RegisterRedirectPage() {
-  redirect('/signup');
+  redirect('/login');
 }

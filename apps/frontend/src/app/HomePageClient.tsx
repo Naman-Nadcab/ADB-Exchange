@@ -990,15 +990,15 @@ export default function HomePageClient() {
           <p className="text-xs uppercase tracking-[0.14em] text-[#F5B800]">Get started</p>
           <h2 className="mt-3 text-3xl font-semibold sm:text-4xl">Browse markets or open a free account.</h2>
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-[#9CA3AF] sm:text-base">
-            View live prices without signing in. Register when you are ready to trade spot, use P2P, or manage your wallet.
+            View live prices without signing in. Sign in with your wallet when you are ready to trade spot, use P2P, or manage your wallet.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link href={ROUTES.markets} className="inline-flex items-center gap-2 rounded-lg bg-[#F5B800] px-6 py-3 text-sm font-semibold text-[#05070B] hover:bg-[#FFD54A]">
               Explore Markets
               <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link href={ROUTES.signup} className="inline-flex items-center rounded-lg border border-[#F5B8001F] bg-[#05070B] px-6 py-3 text-sm font-semibold text-white hover:border-[#F5B80066]">
-              Register
+            <Link href={ROUTES.login} className="inline-flex items-center rounded-lg border border-[#F5B8001F] bg-[#05070B] px-6 py-3 text-sm font-semibold text-white hover:border-[#F5B80066]">
+              Sign in
             </Link>
           </div>
         </section>

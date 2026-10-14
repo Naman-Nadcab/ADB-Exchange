@@ -109,10 +109,10 @@ export function EdaPublicHome() {
                   {t('hero.exploreMarkets')}
                 </Link>
                 <Link
-                  href={ROUTES.signup}
+                  href={ROUTES.login}
                   className="inline-flex min-h-11 items-center rounded-lg border border-border px-5 text-sm font-semibold transition-colors duration-150 hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  {t('hero.createAccount')}
+                  {t('hero.signIn')}
                 </Link>
               </div>
             </div>
@@ -393,8 +393,8 @@ export function EdaPublicHome() {
               <Link href="#global-markets" className="inline-flex min-h-11 items-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
                 {t('cta.exploreMarkets')}
               </Link>
-              <Link href={ROUTES.signup} className="inline-flex min-h-11 items-center rounded-lg border border-border px-5 text-sm font-semibold hover:border-primary/50">
-                {t('cta.createAccount')}
+              <Link href={ROUTES.login} className="inline-flex min-h-11 items-center rounded-lg border border-border px-5 text-sm font-semibold hover:border-primary/50">
+                {t('cta.signIn')}
               </Link>
             </div>
           </div>
