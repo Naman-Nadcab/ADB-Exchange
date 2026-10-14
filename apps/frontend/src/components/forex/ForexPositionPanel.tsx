@@ -115,34 +115,17 @@ export function ForexPositionPanel() {
             </p>
           ) : null}
           {status === 'EMPTY' && !confirm ? (
-            <p className="p-3 text-[12px] text-muted-foreground">{tp('empty')}</p>
+            <div className="min-h-0 flex-1 overflow-auto">
+              <table className="hidden w-full text-left font-mono text-[11px] md:table">
+                <TradeTableHeader />
+              </table>
+              <p className="px-2 py-2 text-[12px] text-muted-foreground md:hidden">{tp('empty')}</p>
+            </div>
           ) : (
             <div className="min-h-0 flex-1 overflow-auto">
               <div className="hidden md:block">
                 <table className="w-full text-left font-mono text-[11px]">
-                  <thead className="text-muted-foreground">
-                    <tr>
-                      <th className="px-2 py-1 font-medium">{tp('colId')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colSymbol')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colSide')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colVol')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colOpen')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colBid')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colAsk')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colMark')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colFloat')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colPct')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colComm')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colSwap')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colNet')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colSl')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colTp')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colTrail')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colMargin')}</th>
-                      <th className="px-2 py-1 font-medium">{tp('colAge')}</th>
-                      <th className="px-2 py-1 font-medium"> </th>
-                    </tr>
-                  </thead>
+                  <TradeTableHeader />
                   <tbody>
                     {openRows.map((p) => (
                       <PositionRow
@@ -376,6 +359,105 @@ export function ForexPositionPanel() {
   );
 }
 
+function formatTicketTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
+function TradeTableHeader() {
+  const tp = useTranslations('forex.positionPanel');
+  return (
+    <thead className="text-muted-foreground">
+      <tr>
+        <th className="px-2 py-1 font-medium">{tp('colOrder')}</th>
+        <th className="px-2 py-1 font-medium">{tp('colTime')}</th>
+        <th className="px-2 py-1 font-medium">{tp('colType')}</th>
+        <th className="px-2 py-1 font-medium">{tp('colSize')}</th>
+        <th className="px-2 py-1 font-medium">{tp('colSymbol')}</th>
+        <th className="px-2 py-1 font-medium">{tp('colPrice')}</th>
+        <th className="px-2 py-1 font-medium">{tp('colSl')}</th>
+        <th className="px-2 py-1 font-medium">{tp('colTp')}</th>
+        <th className="px-2 py-1 font-medium">{tp('colPrice')}</th>
+        <th className="px-2 py-1 font-medium">{tp('colSwap')}</th>
+        <th className="px-2 py-1 font-medium">{tp('colProfit')}</th>
+        <th className="px-1 py-1 font-medium"> </th>
+      </tr>
+    </thead>
+  );
+}
+
+function TicketLevel(props: {
+  kind: 'SL' | 'TP';
+  digits: number;
+  existing: ReturnType<typeof activeProtectionsFor>['sl'];
+  positionVolume: string;
+  value: string;
+  onChange: (v: string) => void;
+  onSet: () => void;
+  onUpdate: () => void;
+  onRemove: () => void;
+  busy: boolean;
+}) {
+  const tp = useTranslations('forex.positionPanel');
+  const [open, setOpen] = useState(false);
+  const price = props.existing?.triggerPrice;
+  const mismatch = props.existing ? protectionVolumeMismatch(props.positionVolume, props.existing.volume) : false;
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        className={cn(
+          'block min-h-[1.1rem] min-w-[3rem] text-left font-mono',
+          props.kind === 'TP' && price && 'bg-buy px-1 text-primary-foreground'
+        )}
+        aria-label={tp('slPriceAria', { kind: props.kind === 'SL' ? 'S / L' : 'T / P' })}
+        title={mismatch ? tp('volumeMismatch') : undefined}
+        onClick={() => setOpen((v) => !v)}
+      >
+        {price ? fxNum(price, props.digits) : ''}
+      </button>
+      {open ? (
+        <div className="absolute left-0 top-full z-20 mt-0.5 flex items-center gap-1 border border-border bg-card p-1 shadow-lg">
+          <input
+            value={props.value}
+            onChange={(e) => props.onChange(e.target.value)}
+            inputMode="decimal"
+            aria-label={tp('slPriceAria', { kind: props.kind })}
+            className="h-6 w-20 border border-border bg-transparent px-1 font-mono text-[11px]"
+          />
+          <button
+            type="button"
+            disabled={props.busy || !protectionInputOk(props.value)}
+            onClick={() => {
+              if (props.existing) props.onUpdate();
+              else props.onSet();
+              setOpen(false);
+            }}
+            className="h-6 px-1 text-[10px] uppercase disabled:opacity-40"
+          >
+            {tp('set')}
+          </button>
+          {props.existing ? (
+            <button
+              type="button"
+              disabled={props.busy}
+              onClick={() => {
+                props.onRemove();
+                setOpen(false);
+              }}
+              className="h-6 px-1 text-[10px] uppercase text-muted-foreground disabled:opacity-40"
+            >
+              {tp('off')}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function PnlCell({ pnl }: { pnl: ReturnType<typeof positionUnrealizedPnl> }) {
   const tp = useTranslations('forex.positionPanel');
   if (!pnl.available) return <span className="text-muted-foreground">{tp('pnlUnavailable')}</span>;
@@ -418,66 +500,42 @@ function PositionRow(props: {
   const tp = useTranslations('forex.positionPanel');
   const ts = useTranslations('forex.sides');
   const p = props.position;
-  const ui = positionUiStatus(p, props.closing, false);
   const live = props.live;
   const sideLabel = p.side === 'long' ? ts('buy') : ts('sell');
+  const current = live.mark || p.currentPrice;
   return (
     <tr
       className={cn(
-        'border-t border-border align-top',
+        'border-t border-border',
         props.chartLinked && 'bg-primary/10',
         props.onSelectChart && 'cursor-pointer hover:bg-muted/40'
       )}
       onContextMenu={props.onContext}
       aria-selected={props.chartLinked}
     >
-      <td className="px-2 py-1.5" title={p.positionId}>
-        <span className="inline-flex items-center gap-1">
-          {props.onSelectChart ? (
-            <button
-              type="button"
-              className={cn(
-                'rounded px-0.5 font-mono text-[11px] underline-offset-2 hover:underline',
-                props.chartLinked ? 'text-primary font-semibold' : 'text-foreground'
-              )}
-              aria-label={tp('selectForChartAria', { id: p.positionId.slice(0, 8) })}
-              onClick={props.onSelectChart}
-            >
-              {p.positionId.slice(0, 8)}
-            </button>
-          ) : (
-            p.positionId.slice(0, 8)
-          )}
-          {props.chartLinked ? (
-            <span className="rounded bg-primary/20 px-1 text-[9px] uppercase text-primary">{tp('chartLinkedBadge')}</span>
-          ) : null}
-        </span>
-      </td>
-      <td className="px-2 py-1.5">{p.symbol}</td>
-      <td className="px-2 py-1.5 uppercase">{sideLabel}</td>
-      <td className="px-2 py-1.5">{p.volume}</td>
-      <td className="px-2 py-1.5">{fxNum(p.averageEntryPrice || p.entryPrice, props.digits)}</td>
-      <td className="px-2 py-1.5">{live.bid ? fxNum(live.bid, props.digits) : '—'}</td>
-      <td className="px-2 py-1.5">{live.ask ? fxNum(live.ask, props.digits) : '—'}</td>
-      <td className="px-2 py-1.5">
-        {live.mark ? (
-          <>
-            {fxNum(live.mark, props.digits)} <span className="text-muted-foreground">{live.markSource}</span>
-          </>
+      <td className="px-2 py-1" title={p.positionId}>
+        {props.onSelectChart ? (
+          <button
+            type="button"
+            className={cn('font-mono hover:underline', props.chartLinked && 'font-semibold text-primary')}
+            aria-label={tp('selectForChartAria', { id: p.positionId.slice(0, 8) })}
+            onClick={props.onSelectChart}
+          >
+            {p.positionId.slice(0, 8)}
+          </button>
         ) : (
-          <span className="text-muted-foreground">{live.reason ?? tp('unavailable')}</span>
+          p.positionId.slice(0, 8)
         )}
       </td>
-      <td className="px-2 py-1.5">
-        <FloatCell live={live} fallback={props.serverPnl} />
-      </td>
-      <td className="px-2 py-1.5">{live.floatingPct != null ? `${live.floatingPct}%` : '—'}</td>
-      <td className="px-2 py-1.5">{fxNum(live.commission, 2)}</td>
-      <td className="px-2 py-1.5">{fxNum(live.swap, 2)}</td>
-      <td className="px-2 py-1.5">{live.net != null ? fxNum(live.net, 2) : '—'}</td>
-      <td className="px-2 py-1.5">
-        <ProtectionCell
+      <td className="whitespace-nowrap px-2 py-1">{formatTicketTime(p.openedAt)}</td>
+      <td className="px-2 py-1 lowercase">{sideLabel}</td>
+      <td className="px-2 py-1">{fxNum(p.volume, 2)}</td>
+      <td className="px-2 py-1 lowercase">{p.symbol}</td>
+      <td className="px-2 py-1">{fxNum(p.averageEntryPrice || p.entryPrice, props.digits)}</td>
+      <td className="px-2 py-1">
+        <TicketLevel
           kind="SL"
+          digits={props.digits}
           existing={props.prot.sl}
           positionVolume={p.volume}
           value={props.draft.sl}
@@ -488,53 +546,34 @@ function PositionRow(props: {
           busy={props.protBusy || props.closing}
         />
       </td>
-      <td className="px-2 py-1.5">
-        <ProtectionCell
+      <td className="px-2 py-1">
+        <TicketLevel
           kind="TP"
+          digits={props.digits}
           existing={props.prot.tp}
           positionVolume={p.volume}
           value={props.draft.tp}
-          onChange={(tp) => props.onDraft({ ...props.draft, tp })}
+          onChange={(tpPrice) => props.onDraft({ ...props.draft, tp: tpPrice })}
           onSet={props.onSetTp}
           onUpdate={() => props.prot.tp && props.onUpdateTp(props.prot.tp.protectionId)}
           onRemove={() => props.prot.tp && props.onRemoveTp(props.prot.tp.protectionId)}
           busy={props.protBusy || props.closing}
         />
       </td>
-      <td className="px-2 py-1.5">
-        <div className="flex items-center gap-1">
-          <input
-            value={props.trail}
-            onChange={(e) => props.onTrail(e.target.value)}
-            placeholder={props.prot.sl?.trailingDistance ?? tp('trailDistPlaceholder')}
-            className="h-7 w-14 rounded border border-border bg-transparent px-1 font-mono text-[10px]"
-            aria-label={tp('trailDistAria')}
-          />
-          <button
-            type="button"
-            disabled={props.protBusy}
-            className="h-7 rounded px-1 text-[10px] uppercase disabled:opacity-40"
-            onClick={() => props.onTrailSet(props.prot.sl?.protectionId ?? null)}
-          >
-            {tp('set')}
-          </button>
-          {props.prot.sl?.trailingDistance ? (
-            <button type="button" disabled={props.protBusy} className="h-7 rounded px-1 text-[10px] uppercase text-muted-foreground" onClick={() => props.onTrailOff(props.prot.sl?.protectionId ?? null)}>
-              {tp('off')}
-            </button>
-          ) : null}
-        </div>
+      <td className="px-2 py-1">{current ? fxNum(current, props.digits) : ''}</td>
+      <td className="px-2 py-1">{fxNum(live.swap, 2)}</td>
+      <td className="px-2 py-1">
+        <FloatCell live={live} fallback={props.serverPnl} />
       </td>
-      <td className="px-2 py-1.5">{p.initialMargin != null && p.initialMargin !== '' ? fxNum(p.initialMargin, 2) : tp('unavailable')}</td>
-      <td className="px-2 py-1.5">{formatPositionAge(live.ageMs)} · {ui}</td>
-      <td className="px-2 py-1.5">
+      <td className="px-1 py-1 text-center">
         <button
           type="button"
           disabled={props.closing}
           onClick={() => props.onClose(p.volume)}
-          className="h-7 rounded border border-border px-2 text-[10px] uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label={tp('close')}
+          className="h-5 w-5 text-[14px] leading-none text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {props.closing ? tp('closing') : tp('close')}
+          {props.closing ? '…' : '×'}
         </button>
       </td>
     </tr>

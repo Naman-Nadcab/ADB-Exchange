@@ -30,8 +30,8 @@ const TOOLBOX_TAB_ORDER: ForexBottomTab[] = [
   'risk',
   'history',
   'news',
-  'mailbox',
   'alerts',
+  'mailbox',
   'calendar',
   'journal',
 ];
@@ -279,52 +279,6 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
       className="terminal-panel-subtle flex h-full min-h-0 flex-col border-t border-border bg-card"
       aria-label={tf('bottomPanels.ariaLabel')}
     >
-      <div className="flex h-8 shrink-0 items-center gap-0.5 overflow-x-auto border-b border-border px-1.5" role="tablist">
-        {[
-          ...TOOLBOX_TAB_ORDER.map((id) => TABS.find((t) => t.id === id)).filter((t): t is { id: ForexBottomTab; label: string } => Boolean(t)),
-          ...TABS.filter((t) => t.id === tab && t.id !== 'orders' && !TOOLBOX_TAB_ORDER.includes(t.id)),
-        ].map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            aria-selected={tab === t.id || (t.id === 'positions' && tab === 'orders')}
-            onClick={() => {
-              setTab(t.id === 'orders' ? 'positions' : t.id);
-              if (compact || t.id === 'positions' || t.id === 'orders') setBottomCollapsed(false);
-            }}
-            className={cn(
-              'shrink-0 rounded px-2 py-0.5 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-              tab === t.id || (t.id === 'positions' && tab === 'orders')
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
-        <span className="ml-1 hidden text-[9px] text-muted-foreground sm:inline">
-          {props.hasTradingData ? tf('bottomPanels.statusActive') : tf('bottomPanels.statusIdle')}
-        </span>
-        {!authed ? (
-          <Link
-            href="/login?redirect=/forex/trade"
-            className="ml-auto text-[10px] text-primary underline-offset-2 hover:underline"
-          >
-            {tf('signIn.link')}
-          </Link>
-        ) : (
-          <button
-            type="button"
-            className="ml-auto rounded px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            onClick={() => toggleBottomCollapsed()}
-            aria-pressed={compact}
-          >
-            {compact ? tf('bottomPanels.expand') : tf('bottomPanels.collapse')}
-          </button>
-        )}
-      </div>
-
       {!compact ? (
         <div className="min-h-0 flex-1 overflow-auto" role="tabpanel">
           {tab === 'positions' || tab === 'orders' ? (
@@ -497,6 +451,49 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
       ) : (
         <p className="sr-only">{tf('bottomPanels.collapsedSr', { tab: TABS.find((t) => t.id === tab)?.label ?? tab })}</p>
       )}
+
+      <div className="mt-auto flex h-7 shrink-0 items-center gap-0.5 overflow-x-auto border-t border-border px-1.5" role="tablist">
+        {[
+          ...TOOLBOX_TAB_ORDER.map((id) => TABS.find((t) => t.id === id)).filter((t): t is { id: ForexBottomTab; label: string } => Boolean(t)),
+          ...TABS.filter((t) => t.id === tab && t.id !== 'orders' && !TOOLBOX_TAB_ORDER.includes(t.id)),
+        ].map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.id || (t.id === 'positions' && tab === 'orders')}
+            onClick={() => {
+              setTab(t.id === 'orders' ? 'positions' : t.id);
+              if (compact) setBottomCollapsed(false);
+            }}
+            className={cn(
+              'shrink-0 px-2 py-0.5 text-[11px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+              tab === t.id || (t.id === 'positions' && tab === 'orders')
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+        {!authed ? (
+          <Link
+            href="/login?redirect=/forex/trade"
+            className="ml-auto text-[10px] text-primary underline-offset-2 hover:underline"
+          >
+            {tf('signIn.link')}
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className="ml-auto rounded px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            onClick={() => toggleBottomCollapsed()}
+            aria-pressed={compact}
+          >
+            {compact ? tf('bottomPanels.expand') : tf('bottomPanels.collapse')}
+          </button>
+        )}
+      </div>
     </section>
   );
 }

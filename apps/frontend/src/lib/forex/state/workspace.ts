@@ -352,8 +352,8 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
       panels: DEFAULT_PANELS,
       watchlistWidth: 228,
       ticketWidth: 236,
-      bottomHeight: 160,
-      bottomCollapsed: true,
+      bottomHeight: 200,
+      bottomCollapsed: false,
       bottomTab: 'positions',
       chartMode: 'normal',
       chartTimeframe: '15m',
@@ -619,6 +619,13 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
     }),
     {
       name: STORAGE_KEY,
+      version: 1,
+      migrate: (persisted) => {
+        if (!persisted || typeof persisted !== 'object') return persisted;
+        const state = persisted as { bottomHeight?: number };
+        const height = typeof state.bottomHeight === 'number' ? state.bottomHeight : 200;
+        return { ...state, bottomCollapsed: false, bottomHeight: Math.max(height, 200) };
+      },
       storage: createJSONStorage(() => {
         if (typeof window === 'undefined') {
           return {
