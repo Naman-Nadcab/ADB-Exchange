@@ -37,7 +37,7 @@ export function ForexChartWorkspace() {
   }, [chartLayout, charts, maximizedChartId]);
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+    <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
       {visible.length > 1 || chartLayout !== '1' ? (
         <div className="flex h-5 shrink-0 items-center gap-1 border-b border-border/60 bg-card/60 px-1.5">
           <button type="button" className="text-[9px] text-muted-foreground hover:text-foreground" onClick={() => addChart(selectedSymbol)} title={tw('workspaceLabel')}>
@@ -65,7 +65,7 @@ export function ForexChartWorkspace() {
           <div
             key={slot.id}
             className={cn(
-              'relative min-h-0 min-w-0 bg-background',
+              'relative h-full min-h-0 min-w-0 bg-background',
               activeChartId === slot.id && 'ring-1 ring-inset ring-primary/45'
             )}
             onMouseDown={() => setActiveChartId(slot.id)}

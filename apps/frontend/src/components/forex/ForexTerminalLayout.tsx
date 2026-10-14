@@ -138,7 +138,7 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
               </>
             ) : null}
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
-              <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
                 <ForexChartWorkspace />
               </div>
               {/* Chart-column terminal dock. It stops at the chart, so Market Watch and the order ticket keep their height. */}
