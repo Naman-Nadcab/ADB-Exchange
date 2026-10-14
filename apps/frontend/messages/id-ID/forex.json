@@ -121,7 +121,7 @@
     },
     "signals": {
       "title": "Sinyal",
-      "subtitle": "Berlangganan sinyal pada akun Forex Anda. Trade yang disalin muncul sebagai posisi biasa."
+      "subtitle": "Ikuti sinyal pada akun Forex Anda sendiri."
     },
     "partner": {
       "title": "Mitra",
@@ -1928,9 +1928,9 @@
     "locked": "Berlangganan tetap mati sampai penyalinan sinyal terhubung. Tidak ada trade yang disalin ke akun.",
     "positionsNote": "Trade yang disalin akan tampil di tab Trading sebagai posisi biasa, pada akun yang Anda langgani.",
     "flowTitle": "Cara memakai Sinyal",
-    "step1": "Pilih sinyal dari daftar. Belum ada yang dipublikasikan, jadi tidak ada yang bisa dipilih.",
-    "step2": "Lalu atur berapa banyak deposit yang boleh dipakai, level ekuitas yang menghentikannya, dan slippage yang Anda izinkan. Stop loss dan take profit juga bisa disalin.",
-    "step3": "Trade yang disalin tampil di Trading sebagai posisi biasa. Tutup atau ubah di sana, sama seperti trade yang Anda pasang sendiri.",
+    "step1": "Sinyal yang dipublikasikan muncul di daftar. Pilih yang akan diikuti akun ini.",
+    "step2": "Pilih bagian deposit, stop ekuitas, slippage, dan apakah stop loss serta take profit disalin.",
+    "step3": "Saat penyalinan terhubung, posisi tampil di Trading seperti order yang Anda pasang sendiri.",
     "goTrade": "Buka Trading",
     "noneYet": "Belum ada sinyal",
     "settingsLead": "Pilih sinyal dulu. Pilihan ini tetap mati sampai ada sinyal. Tidak ada trade yang disalin ke akun Anda.",
@@ -1942,7 +1942,24 @@
     "settingsReady": "Pilih akun dan batasnya. Menyimpan tidak menyalin trade.",
     "saved": "Langganan tersimpan. Penyalinan mati, jadi tidak ada trade yang dipasang.",
     "openDemo": "Buka akun demo",
-    "paused": "Sinyal ini dijeda. Langganan tidak dapat disimpan, dan tidak ada trade yang disalin."
+    "paused": "Sinyal ini dijeda. Langganan tidak dapat disimpan, dan tidak ada trade yang disalin.",
+    "step1Title": "Pilih sinyal",
+    "step2Title": "Atur batas",
+    "step3Title": "Pantau di Trading",
+    "kpiCopying": "Penyalinan",
+    "kpiOff": "Mati",
+    "kpiCopyingHint": "Halaman ini tidak memasang order.",
+    "kpiProviders": "Penyedia",
+    "kpiSubscription": "Langganan",
+    "kpiNone": "Tidak ada",
+    "kpiWaiting": "Menunggu",
+    "kpiSubscriptionHint": "Belum ada yang tersimpan pada login ini.",
+    "emptyTitle": "Menunggu sinyal pertama",
+    "accountHint": "Akun yang akan mengikuti sinyal.",
+    "depositHint": "Bagian deposit yang boleh dipakai sinyal.",
+    "equityHint": "Penyalinan berhenti di bawah ekuitas ini.",
+    "slippageHint": "Selisih harga maksimum, dalam poin.",
+    "copySlTpHint": "Pertahankan stop loss dan take profit penyedia."
   },
   "partnerPage": {
     "notEnabled": "Belum diaktifkan",

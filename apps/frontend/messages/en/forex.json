@@ -121,7 +121,7 @@
     },
     "signals": {
       "title": "Signals",
-      "subtitle": "Subscribe a signal on your Forex account. Copied trades appear as normal positions."
+      "subtitle": "Follow a signal on your own Forex account."
     },
     "partner": {
       "title": "Partner",
@@ -1928,9 +1928,9 @@
     "locked": "Subscribe stays off until signal copying is connected. No trade is copied onto the account.",
     "positionsNote": "A copied trade would show on the Trade tab as a normal position, on the account you subscribed.",
     "flowTitle": "How to use Signals",
-    "step1": "Choose a signal from the list. None is published yet, so there is nothing to select.",
-    "step2": "Then set how much of your deposit it may use, the equity level that stops it, and the slippage you allow. You can also copy stop loss and take profit.",
-    "step3": "A copied trade shows on Trade as a normal position. Close or change it there, the same as a trade you placed yourself.",
+    "step1": "Published signals appear in the list. Select the one this account should follow.",
+    "step2": "Choose the deposit share, the equity stop, the slippage, and whether stop loss and take profit are copied.",
+    "step3": "When copying is connected, the position shows on Trade like an order you placed yourself.",
     "goTrade": "Open Trade",
     "noneYet": "No signals yet",
     "settingsLead": "Choose a signal first. These choices stay off until one is listed. Nothing is copied onto your account.",
@@ -1942,7 +1942,24 @@
     "settingsReady": "Choose the account and the limits. Saving does not copy a trade.",
     "saved": "Subscription saved. Copying is off, so no trade is placed on the account.",
     "openDemo": "Open a demo account",
-    "paused": "This signal is paused. A subscription cannot be saved, and no trade is copied."
+    "paused": "This signal is paused. A subscription cannot be saved, and no trade is copied.",
+    "step1Title": "Choose a signal",
+    "step2Title": "Set the limits",
+    "step3Title": "Watch it on Trade",
+    "kpiCopying": "Copying",
+    "kpiOff": "Off",
+    "kpiCopyingHint": "This page does not place an order.",
+    "kpiProviders": "Providers",
+    "kpiSubscription": "Subscription",
+    "kpiNone": "None",
+    "kpiWaiting": "Waiting",
+    "kpiSubscriptionHint": "Nothing is saved on this login.",
+    "emptyTitle": "Waiting for the first signal",
+    "accountHint": "The account that would follow the signal.",
+    "depositHint": "Share of the deposit the signal may use.",
+    "equityHint": "Copying would stop below this equity.",
+    "slippageHint": "Maximum price difference, in points.",
+    "copySlTpHint": "Keep the provider stop loss and take profit."
   },
   "partnerPage": {
     "notEnabled": "Not enabled",
