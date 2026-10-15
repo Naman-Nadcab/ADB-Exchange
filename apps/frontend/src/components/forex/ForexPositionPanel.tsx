@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { postedSwapByPosition } from '@/lib/forex/models/history-analytics';
@@ -14,6 +14,7 @@ import {
   fractionCloseVolume,
   positionPanelStatus,
   positionUiStatus,
+  tradeActionStripAbove,
   positionUnrealizedPnl,
   protectionInputOk,
   protectionVolumeMismatch,
@@ -109,12 +110,50 @@ export function ForexPositionPanel() {
   const [reverseConfirm, setReverseConfirm] = useState<ForexPublicPosition | null>(null);
   const [closeBy, setCloseBy] = useState<CloseByState | null>(null);
   const [customVol, setCustomVol] = useState('');
-  const actionRef = useRef<HTMLDivElement | null>(null);
-  const actionOpen = Boolean(modify || confirm || reverseConfirm || closeBy);
-  useEffect(() => {
-    if (!actionOpen) return;
-    actionRef.current?.scrollIntoView({ block: 'nearest' });
-  }, [actionOpen, modify, confirm, reverseConfirm, closeBy]);
+  const [stripAbove, setStripAbove] = useState(false);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const rowRefs = useRef(new Map<string, HTMLElement>());
+  const activeId = modify?.positionId ?? confirm?.position.positionId ?? reverseConfirm?.positionId ?? closeBy?.position.positionId ?? null;
+  useLayoutEffect(() => {
+    if (!activeId) return;
+    const scroller = listRef.current;
+    const row = ['d:', 'm:'].map((prefix) => rowRefs.current.get(`${prefix}${activeId}`)).find((el) => el && el.getClientRects().length > 0);
+    if (!scroller || !row) return;
+    const strip = Array.from(scroller.querySelectorAll<HTMLElement>('[data-trade-strip]')).find((el) => el.getClientRects().length > 0);
+    const stripH = strip ? strip.getBoundingClientRect().height : 40;
+    const spaceBelow = scroller.getBoundingClientRect().bottom - row.getBoundingClientRect().bottom;
+    const next = tradeActionStripAbove(spaceBelow, stripH);
+    setStripAbove((cur) => (cur === next ? cur : next));
+  }, [activeId, stripAbove, openRows.length, confirm, modify, reverseConfirm, closeBy]);
+  function showClose(p: ForexPublicPosition, vol: string) {
+    setModify(null);
+    setReverseConfirm(null);
+    setCloseBy(null);
+    setStripAbove(false);
+    setCustomVol(vol);
+    setConfirm({ position: p, volume: vol });
+  }
+  function showModify(p: ForexPublicPosition) {
+    setConfirm(null);
+    setReverseConfirm(null);
+    setCloseBy(null);
+    setStripAbove(false);
+    setModify(p);
+  }
+  function showReverse(p: ForexPublicPosition) {
+    setConfirm(null);
+    setModify(null);
+    setCloseBy(null);
+    setStripAbove(false);
+    setReverseConfirm(p);
+  }
+  function showCloseBy(p: ForexPublicPosition, oppositeId: string) {
+    setConfirm(null);
+    setModify(null);
+    setReverseConfirm(null);
+    setStripAbove(false);
+    setCloseBy({ position: p, oppositeId });
+  }
   const [draft, setDraft] = useState<Record<string, { sl: string; tp: string }>>({});
   const accountMode = account?.positionMode ?? 'HEDGING';
   const hedging = accountMode === 'HEDGING';
@@ -143,6 +182,96 @@ export function ForexPositionPanel() {
 
   const oppositeCandidates = (p: ForexPublicPosition) =>
     openRows.filter((x) => x.positionId !== p.positionId && x.symbol === p.symbol && x.side !== p.side);
+
+  const actionStrip = (id: string) => {
+    if (activeId !== id) return null;
+    return (
+      <div data-trade-strip className="w-full">
+        {modify?.positionId === id ? (
+          <ModifyConfirm
+            position={modify}
+            prot={activeProtectionsFor(protections, modify.positionId)}
+            busy={Boolean(actions.pendingProtection[`${modify.positionId}:STOP_LOSS`] || actions.pendingProtection[`${modify.positionId}:TAKE_PROFIT`])}
+            onCancel={() => setModify(null)}
+            onRemoveSl={() => {
+              const protectionId = activeProtectionsFor(protections, modify.positionId).sl?.protectionId;
+              if (protectionId) void actions.removeProtection(protectionId, modify.positionId, 'STOP_LOSS');
+            }}
+            onRemoveTp={() => {
+              const protectionId = activeProtectionsFor(protections, modify.positionId).tp?.protectionId;
+              if (protectionId) void actions.removeProtection(protectionId, modify.positionId, 'TAKE_PROFIT');
+            }}
+            onSave={async (sl, tpPrice, trail) => {
+              const prot = activeProtectionsFor(useForexStore.getState().protections, modify.positionId);
+              if (protectionInputOk(sl) && sl.trim() !== (prot.sl?.triggerPrice ?? '')) {
+                const ok = prot.sl
+                  ? await actions.updateProtection(modify, 'STOP_LOSS', prot.sl.protectionId, sl)
+                  : await actions.createProtection(modify, 'STOP_LOSS', sl);
+                if (!ok) return;
+              }
+              const afterSl = activeProtectionsFor(useForexStore.getState().protections, modify.positionId);
+              if (protectionInputOk(tpPrice) && tpPrice.trim() !== (afterSl.tp?.triggerPrice ?? '')) {
+                const ok = afterSl.tp
+                  ? await actions.updateProtection(modify, 'TAKE_PROFIT', afterSl.tp.protectionId, tpPrice)
+                  : await actions.createProtection(modify, 'TAKE_PROFIT', tpPrice);
+                if (!ok) return;
+              }
+              const afterTp = activeProtectionsFor(useForexStore.getState().protections, modify.positionId);
+              const prevTrail = afterTp.sl?.trailingDistance ?? '';
+              if (trail.trim() !== String(prevTrail ?? '')) {
+                await actions.setTrailing(modify, trail.trim() ? trail : null, afterTp.sl?.protectionId);
+              }
+              setModify(null);
+            }}
+          />
+        ) : null}
+        {confirm?.position.positionId === id ? (
+          <CloseConfirm
+            position={confirm.position}
+            volume={customVol || confirm.volume}
+            digits={instruments[confirm.position.symbol]?.digits ?? 5}
+            pnl={positionUnrealizedPnl(pnl, confirm.position)}
+            busy={Boolean(actions.pendingClose[confirm.position.positionId])}
+            onVolume={setCustomVol}
+            onCancel={() => setConfirm(null)}
+            onSubmit={() => {
+              const check = closeVolumeAllowed(confirm.position.volume, customVol || confirm.volume);
+              if (!check.ok) return;
+              void actions.closePosition(confirm.position, customVol || confirm.volume).then((ok) => {
+                if (ok) setConfirm(null);
+              });
+            }}
+          />
+        ) : null}
+        {reverseConfirm?.positionId === id ? (
+          <ReverseConfirm
+            position={reverseConfirm}
+            mode={accountMode}
+            busy={Boolean(actions.pendingClose[reverseConfirm.positionId])}
+            onCancel={() => setReverseConfirm(null)}
+            onSubmit={() => {
+              void actions.reversePosition(reverseConfirm).then(() => setReverseConfirm(null));
+            }}
+          />
+        ) : null}
+        {closeBy?.position.positionId === id ? (
+          <CloseByConfirm
+            position={closeBy.position}
+            oppositeId={closeBy.oppositeId}
+            candidates={oppositeCandidates(closeBy.position)}
+            busy={Boolean(actions.pendingClose[closeBy.position.positionId])}
+            onOpposite={(nextId) => setCloseBy({ ...closeBy, oppositeId: nextId })}
+            onCancel={() => setCloseBy(null)}
+            onSubmit={() => {
+              const other = openRows.find((x) => x.positionId === closeBy.oppositeId);
+              if (!other) return;
+              void actions.closeBy(closeBy.position, other).then(() => setCloseBy(null));
+            }}
+          />
+        ) : null}
+      </div>
+    );
+  };
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -190,14 +319,19 @@ export function ForexPositionPanel() {
               <p className="px-3 py-4 text-center text-[12px] text-muted-foreground md:hidden">{tp('empty')}</p>
             </div>
           ) : (
-            <div className="min-h-0 flex-1 overflow-auto">
+            <div ref={listRef} className="min-h-0 flex-1 overflow-auto">
               <div className="hidden md:block">
                 <table className="fx-trade w-full text-left font-mono text-[11px]">
                   <TradeTableHeader />
                   <tbody>
                     {openRows.map((p) => (
+                      <Fragment key={p.positionId}>
+                        {stripAbove && activeId === p.positionId ? (
+                          <tr>
+                            <td colSpan={14} className="p-0">{actionStrip(p.positionId)}</td>
+                          </tr>
+                        ) : null}
                       <PositionRow
-                        key={p.positionId}
                         chartLinked={chartFocusPositionId === p.positionId}
                         onSelectChart={
                           hedging
@@ -224,15 +358,12 @@ export function ForexPositionPanel() {
                         trail={trailDraft[p.positionId] ?? ''}
                         onTrail={(v) => setTrailDraft((s) => ({ ...s, [p.positionId]: v }))}
                         onDraft={(next) => setDraft((s) => ({ ...s, [p.positionId]: next }))}
-                        onClose={(vol) => {
-                          setCustomVol(vol);
-                          setConfirm({ position: p, volume: vol });
-                        }}
+                        onClose={(vol) => showClose(p, vol)}
                         onContext={(e) => {
                           e.preventDefault();
                           setMenu({ x: e.clientX, y: e.clientY, positionId: p.positionId });
                         }}
-                        onModify={() => setModify(p)}
+                        onModify={() => showModify(p)}
                         onSetSl={() => {
                           const v = draft[p.positionId]?.sl ?? '';
                           if (!protectionInputOk(v)) return;
@@ -258,15 +389,27 @@ export function ForexPositionPanel() {
                         onTrailSet={(id) => void actions.setTrailing(p, trailDraft[p.positionId] ?? '', id)}
                         onTrailOff={(id) => void actions.setTrailing(p, null, id)}
                         protBusy={Boolean(actions.pendingProtection[`${p.positionId}:STOP_LOSS`] || actions.pendingProtection[`${p.positionId}:TAKE_PROFIT`])}
+                        rowRef={(el) => {
+                          const key = `d:${p.positionId}`;
+                          if (el) rowRefs.current.set(key, el);
+                          else rowRefs.current.delete(key);
+                        }}
                       />
+                        {!stripAbove && activeId === p.positionId ? (
+                          <tr>
+                            <td colSpan={14} className="p-0">{actionStrip(p.positionId)}</td>
+                          </tr>
+                        ) : null}
+                      </Fragment>
                     ))}
                   </tbody>
                 </table>
               </div>
               <div className="space-y-2 p-2 md:hidden">
                 {openRows.map((p) => (
+                  <Fragment key={p.positionId}>
+                    {stripAbove && activeId === p.positionId ? <div className="w-full">{actionStrip(p.positionId)}</div> : null}
                   <PositionCard
-                    key={p.positionId}
                     position={p}
                     symbolLabel={instruments[p.symbol]?.displaySymbol || formatForexPair(p.symbol)}
                     accountProfit={singleTicketProfit}
@@ -284,15 +427,12 @@ export function ForexPositionPanel() {
                     trail={trailDraft[p.positionId] ?? ''}
                     onTrail={(v) => setTrailDraft((s) => ({ ...s, [p.positionId]: v }))}
                     onDraft={(next) => setDraft((s) => ({ ...s, [p.positionId]: next }))}
-                    onClose={(vol) => {
-                      setCustomVol(vol);
-                      setConfirm({ position: p, volume: vol });
-                    }}
+                    onClose={(vol) => showClose(p, vol)}
                     onContext={(e) => {
                       e.preventDefault();
                       setMenu({ x: e.clientX, y: e.clientY, positionId: p.positionId });
                     }}
-                    onModify={() => setModify(p)}
+                    onModify={() => showModify(p)}
                     onSetSl={() => {
                       const v = draft[p.positionId]?.sl ?? '';
                       if (!protectionInputOk(v)) return;
@@ -318,7 +458,14 @@ export function ForexPositionPanel() {
                     onTrailSet={(id) => void actions.setTrailing(p, trailDraft[p.positionId] ?? '', id)}
                     onTrailOff={(id) => void actions.setTrailing(p, null, id)}
                     protBusy={Boolean(actions.pendingProtection[`${p.positionId}:STOP_LOSS`] || actions.pendingProtection[`${p.positionId}:TAKE_PROFIT`])}
+                    rowRef={(el) => {
+                      const key = `m:${p.positionId}`;
+                      if (el) rowRefs.current.set(key, el);
+                      else rowRefs.current.delete(key);
+                    }}
                   />
+                    {!stripAbove && activeId === p.positionId ? <div className="w-full">{actionStrip(p.positionId)}</div> : null}
+                  </Fragment>
                 ))}
               </div>
             </div>
@@ -338,13 +485,13 @@ export function ForexPositionPanel() {
             const opposites = oppositeCandidates(p);
             return (
               <>
-                <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { setModify(p); setMenu(null); }}>
+                <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { showModify(p); setMenu(null); }}>
                   {tp('menuModify')}
                 </button>
-                <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { setCustomVol(p.volume); setConfirm({ position: p, volume: p.volume }); setMenu(null); }}>
+                <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { showClose(p, p.volume); setMenu(null); }}>
                   {tp('menuClose')}
                 </button>
-                <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { setCustomVol(fractionCloseVolume(p.volume, 0.5) ?? p.volume); setConfirm({ position: p, volume: fractionCloseVolume(p.volume, 0.5) ?? p.volume }); setMenu(null); }}>
+                <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { showClose(p, fractionCloseVolume(p.volume, 0.5) ?? p.volume); setMenu(null); }}>
                   {tp('menuPartial50')}
                 </button>
                 {hedging ? (
@@ -353,7 +500,7 @@ export function ForexPositionPanel() {
                       type="button"
                       className="block w-full px-3 py-1 text-left hover:bg-muted"
                       onClick={() => {
-                        setCloseBy({ position: p, oppositeId: opposites[0]!.positionId });
+                        showCloseBy(p, opposites[0]!.positionId);
                         setMenu(null);
                       }}
                     >
@@ -369,7 +516,7 @@ export function ForexPositionPanel() {
                   type="button"
                   className="block w-full px-3 py-1 text-left hover:bg-muted"
                   onClick={() => {
-                    setReverseConfirm(p);
+                    showReverse(p);
                     setMenu(null);
                   }}
                 >
@@ -388,99 +535,6 @@ export function ForexPositionPanel() {
             );
           })()}
         </div>
-      ) : null}
-      {actionOpen ? (
-      <div ref={actionRef} className="max-h-[58%] shrink-0 overflow-auto border-t border-primary/40 bg-card">
-      {actions.actionError ? (
-        <p className="px-3 pt-2 text-[11px] text-sell" role="alert">
-          {actions.actionError.code}: {actions.actionError.message}
-        </p>
-      ) : null}
-      {modify ? (
-        <ModifyConfirm
-          position={modify}
-          prot={activeProtectionsFor(protections, modify.positionId)}
-          busy={Boolean(actions.pendingProtection[`${modify.positionId}:STOP_LOSS`] || actions.pendingProtection[`${modify.positionId}:TAKE_PROFIT`])}
-          onCancel={() => setModify(null)}
-          onRemoveSl={() => {
-            const id = activeProtectionsFor(protections, modify.positionId).sl?.protectionId;
-            if (id) void actions.removeProtection(id, modify.positionId, 'STOP_LOSS');
-          }}
-          onRemoveTp={() => {
-            const id = activeProtectionsFor(protections, modify.positionId).tp?.protectionId;
-            if (id) void actions.removeProtection(id, modify.positionId, 'TAKE_PROFIT');
-          }}
-          onSave={async (sl, tpPrice, trail) => {
-            const prot = activeProtectionsFor(useForexStore.getState().protections, modify.positionId);
-            if (protectionInputOk(sl) && sl.trim() !== (prot.sl?.triggerPrice ?? '')) {
-              const ok = prot.sl
-                ? await actions.updateProtection(modify, 'STOP_LOSS', prot.sl.protectionId, sl)
-                : await actions.createProtection(modify, 'STOP_LOSS', sl);
-              if (!ok) return;
-            }
-            const afterSl = activeProtectionsFor(useForexStore.getState().protections, modify.positionId);
-            if (protectionInputOk(tpPrice) && tpPrice.trim() !== (afterSl.tp?.triggerPrice ?? '')) {
-              const ok = afterSl.tp
-                ? await actions.updateProtection(modify, 'TAKE_PROFIT', afterSl.tp.protectionId, tpPrice)
-                : await actions.createProtection(modify, 'TAKE_PROFIT', tpPrice);
-              if (!ok) return;
-            }
-            const afterTp = activeProtectionsFor(useForexStore.getState().protections, modify.positionId);
-            const prevTrail = afterTp.sl?.trailingDistance ?? '';
-            if (trail.trim() !== String(prevTrail ?? '')) {
-              await actions.setTrailing(modify, trail.trim() ? trail : null, afterTp.sl?.protectionId);
-            }
-            setModify(null);
-          }}
-        />
-      ) : null}
-      {confirm ? (
-        <CloseConfirm
-          position={confirm.position}
-          volume={customVol || confirm.volume}
-          digits={instruments[confirm.position.symbol]?.digits ?? 5}
-          pnl={positionUnrealizedPnl(pnl, confirm.position)}
-          busy={Boolean(actions.pendingClose[confirm.position.positionId])}
-          onVolume={setCustomVol}
-          onCancel={() => setConfirm(null)}
-          onSubmit={() => {
-            const check = closeVolumeAllowed(confirm.position.volume, customVol || confirm.volume);
-            if (!check.ok) {
-              return;
-            }
-            void actions.closePosition(confirm.position, customVol || confirm.volume).then((ok) => {
-              if (ok) setConfirm(null);
-            });
-          }}
-        />
-      ) : null}
-      {reverseConfirm ? (
-        <ReverseConfirm
-          position={reverseConfirm}
-          mode={accountMode}
-          busy={Boolean(actions.pendingClose[reverseConfirm.positionId])}
-          onCancel={() => setReverseConfirm(null)}
-          onSubmit={() => {
-            void actions.reversePosition(reverseConfirm).then(() => setReverseConfirm(null));
-          }}
-        />
-      ) : null}
-      {closeBy ? (
-        <CloseByConfirm
-          position={closeBy.position}
-          oppositeId={closeBy.oppositeId}
-          candidates={oppositeCandidates(closeBy.position)}
-          busy={Boolean(actions.pendingClose[closeBy.position.positionId])}
-          onOpposite={(id) => setCloseBy({ ...closeBy, oppositeId: id })}
-          onCancel={() => setCloseBy(null)}
-          onSubmit={() => {
-            const other = openRows.find((x) => x.positionId === closeBy.oppositeId);
-            if (!other) return;
-            void actions.closeBy(closeBy.position, other).then(() => setCloseBy(null));
-          }}
-        />
-      ) : null}
-      </div>
       ) : null}
       {status !== 'SIGNED_OUT' && status !== 'LOADING' ? (
         <TradeSummary currency={account?.currency ?? 'USD'} account={account} margin={margin} floating={floatingTotal} />
@@ -652,6 +706,7 @@ function PositionRow(props: {
   protBusy: boolean;
   chartLinked?: boolean;
   onSelectChart?: () => void;
+  rowRef?: (el: HTMLElement | null) => void;
 }) {
   const tp = useTranslations('forex.positionPanel');
   const ts = useTranslations('forex.sides');
@@ -661,6 +716,7 @@ function PositionRow(props: {
   const current = live.mark || p.currentPrice;
   return (
     <tr
+      ref={(el) => props.rowRef?.(el)}
       className={cn(
         'border-t border-border',
         props.chartLinked && 'bg-primary/10',
@@ -738,7 +794,7 @@ function PositionCard(props: Parameters<typeof PositionRow>[0]) {
   const live = props.live;
   const sideLabel = p.side === 'long' ? ts('buy') : ts('sell');
   return (
-    <article className="rounded border border-border bg-card p-3" onContextMenu={props.onContext}>
+    <article ref={props.rowRef} className="rounded border border-border bg-card p-3" onContextMenu={props.onContext}>
       <div className="mb-2 flex items-center justify-between">
         <div className="font-mono text-[13px]">
           {props.symbolLabel} <span className="text-muted-foreground">{sideLabel}</span> {p.volume}
@@ -872,44 +928,39 @@ function ModifyConfirm(props: {
   const [note, setNote] = useState('');
   const side = p.side === 'long' ? ts('buy') : ts('sell');
   return (
-    <div className="border-t border-border bg-muted/40 p-3" role="dialog" aria-label={tp('modifyDialogAria')}>
-      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{tp('modifyTitle')}</h3>
-      <p className="font-mono text-[12px]">
-        {p.symbol} {side} {p.volume}
-      </p>
-      <div className="mt-2 grid gap-2 sm:grid-cols-3">
-        <label className="block text-[10px] uppercase text-muted-foreground">
-          {tp('modifySl')}
-          <input value={sl} onChange={(e) => setSl(e.target.value)} inputMode="decimal" className="mt-1 h-8 w-full rounded border border-border bg-background px-2 font-mono text-[12px]" aria-label={tp('slPriceAria', { kind: 'S / L' })} />
-        </label>
-        <label className="block text-[10px] uppercase text-muted-foreground">
-          {tp('modifyTp')}
-          <input value={take} onChange={(e) => setTake(e.target.value)} inputMode="decimal" className="mt-1 h-8 w-full rounded border border-border bg-background px-2 font-mono text-[12px]" aria-label={tp('slPriceAria', { kind: 'T / P' })} />
-        </label>
-        <label className="block text-[10px] uppercase text-muted-foreground">
-          {tp('modifyTrail')}
-          <input value={trail} onChange={(e) => setTrail(e.target.value)} inputMode="decimal" placeholder={tp('trailDistPlaceholder')} className="mt-1 h-8 w-full rounded border border-border bg-background px-2 font-mono text-[12px]" aria-label={tp('trailDistAria')} />
-        </label>
-      </div>
-      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{tp('modifyHint')}</p>
-      {note ? <p className="mt-1 text-[11px] text-sell">{note}</p> : null}
-      <div className="mt-3 flex flex-wrap gap-2">
-        <button type="button" onClick={props.onCancel} className="h-9 rounded border border-border px-3 text-[12px]">
-          {tp('cancel')}
-        </button>
+    <div className="flex w-full min-w-0 flex-wrap items-center gap-x-2 gap-y-1 border-y border-primary/40 bg-muted/30 px-2 py-1 text-[11px]" role="dialog" aria-label={tp('modifyDialogAria')}>
+      <span className="font-mono">{formatForexPair(p.symbol)} {side} {fxNum(p.volume, 2)}</span>
+      <label className="flex items-center gap-1 text-[10px] uppercase text-muted-foreground">
+        {tp('modifySl')}
+        <input value={sl} onChange={(e) => setSl(e.target.value)} inputMode="decimal" className="h-7 w-28 rounded border border-border bg-background px-2 font-mono text-[11px] normal-case" aria-label={tp('slPriceAria', { kind: 'S / L' })} />
+      </label>
+      <label className="flex items-center gap-1 text-[10px] uppercase text-muted-foreground">
+        {tp('modifyTp')}
+        <input value={take} onChange={(e) => setTake(e.target.value)} inputMode="decimal" className="h-7 w-28 rounded border border-border bg-background px-2 font-mono text-[11px] normal-case" aria-label={tp('slPriceAria', { kind: 'T / P' })} />
+      </label>
+      <label className="flex items-center gap-1 text-[10px] uppercase text-muted-foreground">
+        {tp('modifyTrail')}
+        <input value={trail} onChange={(e) => setTrail(e.target.value)} inputMode="decimal" placeholder={tp('trailDistPlaceholder')} className="h-7 w-24 rounded border border-border bg-background px-2 font-mono text-[11px] normal-case" aria-label={tp('trailDistAria')} />
+      </label>
+      {note ? <span className="text-sell">{note}</span> : null}
+      <span className="ml-auto flex items-center gap-1">
         {props.prot.sl ? (
-          <button type="button" disabled={props.busy} onClick={props.onRemoveSl} className="h-9 rounded border border-border px-3 text-[12px] text-muted-foreground disabled:opacity-40">
+          <button type="button" disabled={props.busy} onClick={props.onRemoveSl} className="h-7 rounded border border-border px-2 text-[11px] text-muted-foreground disabled:opacity-40">
             {tp('modifySl')} {tp('off')}
           </button>
         ) : null}
         {props.prot.tp ? (
-          <button type="button" disabled={props.busy} onClick={props.onRemoveTp} className="h-9 rounded border border-border px-3 text-[12px] text-muted-foreground disabled:opacity-40">
+          <button type="button" disabled={props.busy} onClick={props.onRemoveTp} className="h-7 rounded border border-border px-2 text-[11px] text-muted-foreground disabled:opacity-40">
             {tp('modifyTp')} {tp('off')}
           </button>
         ) : null}
+        <button type="button" onClick={props.onCancel} className="h-7 rounded border border-border px-2 text-[11px]">
+          {tp('cancel')}
+        </button>
         <button
           type="button"
           disabled={props.busy}
+          title={tp('modifyHint')}
           onClick={() => {
             if (sl.trim() && !protectionInputOk(sl)) {
               setNote(tp('modifySl'));
@@ -922,11 +973,11 @@ function ModifyConfirm(props: {
             setNote('');
             void props.onSave(sl, take, trail);
           }}
-          className="h-9 rounded bg-primary px-3 text-[12px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-7 rounded bg-primary px-2 text-[11px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
           {props.busy ? tp('submitting') : tp('modifySave')}
         </button>
-      </div>
+      </span>
     </div>
   );
 }
@@ -942,9 +993,11 @@ function CloseConfirm(props: {
   onSubmit: () => void;
 }) {
   const tp = useTranslations('forex.positionPanel');
+  const ts = useTranslations('forex.sides');
   const p = props.position;
   const ref = closeReferenceSide(p.side);
   const side = closeSideForPosition(p.side);
+  const positionSide = p.side === 'long' ? ts('buy') : ts('sell');
   const allowed = closeVolumeAllowed(p.volume, props.volume);
   const parts = [
     { label: tp('closePct25'), vol: fractionCloseVolume(p.volume, 0.25) },
@@ -955,59 +1008,51 @@ function CloseConfirm(props: {
     ? `${fxNum(props.pnl.value, 2)}${props.pnl.currency ? ` ${props.pnl.currency}` : ''}`
     : tp('unavailable');
   return (
-    <div className="border-t border-border bg-muted/40 p-3" role="dialog" aria-label={tp('closeDialogAria')}>
-      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{tp('closeDialogTitle')}</h3>
-      <p className="font-mono text-[12px]">
-        {p.symbol} {p.side.toUpperCase()} {p.volume}
-      </p>
-      <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+    <div className="flex w-full min-w-0 flex-wrap items-center gap-x-2 gap-y-1 border-y border-primary/40 bg-muted/30 px-2 py-1 text-[11px]" role="dialog" aria-label={tp('closeDialogAria')}>
+      <span className="font-mono">{formatForexPair(p.symbol)} {positionSide} {fxNum(p.volume, 2)}</span>
+      <span className="font-mono text-muted-foreground">
         {tp('closeCurrent', {
           ref,
           price: p.currentPrice ? fxNum(p.currentPrice, props.digits) : tp('unavailable'),
           side: side.toUpperCase(),
         })}
-      </p>
-      <p className="mt-1 font-mono text-[11px] text-muted-foreground">{tp('closePnl', { pnl: pnlText })}</p>
-      <div className="mt-2 flex flex-wrap gap-1">
-        {parts.map((x) =>
-          x.vol ? (
-            <button
-              key={x.label}
-              type="button"
-              onClick={() => props.onVolume(x.vol!)}
-              className={cn(
-                'h-8 rounded border px-2 text-[11px]',
-                props.volume === x.vol ? 'border-primary bg-primary/10' : 'border-border'
-              )}
-            >
-              {x.label}
-            </button>
-          ) : null
-        )}
-      </div>
-      <label className="mt-2 block text-[10px] uppercase text-muted-foreground">
+      </span>
+      <span className="font-mono">{tp('closePnl', { pnl: pnlText })}</span>
+      {parts.map((x) =>
+        x.vol ? (
+          <button
+            key={x.label}
+            type="button"
+            onClick={() => props.onVolume(x.vol!)}
+            className={cn('h-7 rounded border px-2 text-[11px]', props.volume === x.vol ? 'border-primary bg-primary/10' : 'border-border')}
+          >
+            {x.label}
+          </button>
+        ) : null
+      )}
+      <label className="flex items-center gap-1 text-[10px] uppercase text-muted-foreground">
         {tp('volumeLabel')}
         <input
           value={props.volume}
           onChange={(e) => props.onVolume(e.target.value)}
-          className="mt-1 h-8 w-full rounded border border-border bg-background px-2 font-mono text-[12px]"
+          className="h-7 w-24 rounded border border-border bg-background px-2 font-mono text-[11px] normal-case"
         />
       </label>
-      {!allowed.ok ? <p className="mt-1 text-[11px] text-sell">{allowed.reason}</p> : null}
-      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{tp('closeDisclaimer')}</p>
-      <div className="mt-3 flex gap-2">
-        <button type="button" onClick={props.onCancel} className="h-9 flex-1 rounded border border-border text-[12px]">
+      {!allowed.ok ? <span className="text-sell">{allowed.reason}</span> : null}
+      <span className="ml-auto flex items-center gap-1">
+        <button type="button" onClick={props.onCancel} className="h-7 rounded border border-border px-2 text-[11px]">
           {tp('cancel')}
         </button>
         <button
           type="button"
           disabled={props.busy || !allowed.ok}
+          title={tp('closeDisclaimer')}
           onClick={props.onSubmit}
-          className="h-9 flex-1 rounded bg-primary text-[12px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-7 rounded bg-primary px-2 text-[11px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {props.busy ? tp('submitting') : tp('closeSubmit', { volume: props.volume, symbol: p.symbol })}
+          {props.busy ? tp('submitting') : tp('closeSubmit', { volume: props.volume, symbol: formatForexPair(p.symbol) })}
         </button>
-      </div>
+      </span>
     </div>
   );
 }
@@ -1025,28 +1070,27 @@ function ReverseConfirm(props: {
   const currentSide = p.side === 'long' ? ts('buy') : ts('sell');
   const oppositeSide = p.side === 'long' ? ts('sell') : ts('buy');
   return (
-    <div className="border-t border-border bg-muted/40 p-3" role="dialog" aria-label={tp('reverseDialogAria')}>
-      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{tp('reverseTitle')}</h3>
-      <p className="font-mono text-[12px]">{tp('reverseCurrent', { side: currentSide, volume: p.volume, symbol: p.symbol })}</p>
-      <p className="mt-1 font-mono text-[12px] text-foreground">
+    <div className="flex w-full min-w-0 flex-wrap items-center gap-x-2 gap-y-1 border-y border-primary/40 bg-muted/30 px-2 py-1 text-[11px]" role="dialog" aria-label={tp('reverseDialogAria')}>
+      <span className="font-mono">{tp('reverseCurrent', { side: currentSide, volume: fxNum(p.volume, 2), symbol: formatForexPair(p.symbol) })}</span>
+      <span className="font-mono text-muted-foreground">
         {props.mode === 'HEDGING'
-          ? tp('reverseResultHedging', { side: oppositeSide, volume: p.volume })
-          : tp('reverseResultNetting', { side: oppositeSide, volume: p.volume })}
-      </p>
-      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{tp('reverseDisclaimer')}</p>
-      <div className="mt-3 flex gap-2">
-        <button type="button" onClick={props.onCancel} className="h-9 flex-1 rounded border border-border text-[12px]">
+          ? tp('reverseResultHedging', { side: oppositeSide, volume: fxNum(p.volume, 2) })
+          : tp('reverseResultNetting', { side: oppositeSide, volume: fxNum(p.volume, 2) })}
+      </span>
+      <span className="ml-auto flex items-center gap-1">
+        <button type="button" onClick={props.onCancel} className="h-7 rounded border border-border px-2 text-[11px]">
           {tp('cancel')}
         </button>
         <button
           type="button"
           disabled={props.busy}
+          title={tp('reverseDisclaimer')}
           onClick={props.onSubmit}
-          className="h-9 flex-1 rounded bg-primary text-[12px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-7 rounded bg-primary px-2 text-[11px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
           {props.busy ? tp('reversing') : tp('confirmReverse')}
         </button>
-      </div>
+      </span>
     </div>
   );
 }
@@ -1066,17 +1110,14 @@ function CloseByConfirm(props: {
   const other = props.candidates.find((x) => x.positionId === props.oppositeId) ?? props.candidates[0];
   const sideLabel = p.side === 'long' ? ts('buy') : ts('sell');
   return (
-    <div className="border-t border-border bg-muted/40 p-3" role="dialog" aria-label={tp('closeByDialogAria')}>
-      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{tp('closeByTitle')}</h3>
-      <p className="font-mono text-[12px]">
-        {p.symbol} {sideLabel} {p.volume}
-      </p>
-      <label className="mt-2 block text-[10px] uppercase text-muted-foreground">
+    <div className="flex w-full min-w-0 flex-wrap items-center gap-x-2 gap-y-1 border-y border-primary/40 bg-muted/30 px-2 py-1 text-[11px]" role="dialog" aria-label={tp('closeByDialogAria')}>
+      <span className="font-mono">{formatForexPair(p.symbol)} {sideLabel} {fxNum(p.volume, 2)}</span>
+      <label className="flex items-center gap-1 text-[10px] uppercase text-muted-foreground">
         {tp('oppositePosition')}
         <select
           value={other?.positionId ?? ''}
           onChange={(e) => props.onOpposite(e.target.value)}
-          className="mt-1 h-8 w-full rounded border border-border bg-background px-2 font-mono text-[12px]"
+          className="h-7 rounded border border-border bg-background px-2 font-mono text-[11px] normal-case"
         >
           {props.candidates.map((c) => (
             <option key={c.positionId} value={c.positionId}>
@@ -1085,20 +1126,20 @@ function CloseByConfirm(props: {
           ))}
         </select>
       </label>
-      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{tp('closeByDisclaimer')}</p>
-      <div className="mt-3 flex gap-2">
-        <button type="button" onClick={props.onCancel} className="h-9 flex-1 rounded border border-border text-[12px]">
+      <span className="ml-auto flex items-center gap-1">
+        <button type="button" onClick={props.onCancel} className="h-7 rounded border border-border px-2 text-[11px]">
           {tp('cancel')}
         </button>
         <button
           type="button"
           disabled={props.busy || !other}
+          title={tp('closeByDisclaimer')}
           onClick={props.onSubmit}
-          className="h-9 flex-1 rounded bg-primary text-[12px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-7 rounded bg-primary px-2 text-[11px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
           {props.busy ? tp('submitting') : tp('closeBySubmit')}
         </button>
-      </div>
+      </span>
     </div>
   );
 }
