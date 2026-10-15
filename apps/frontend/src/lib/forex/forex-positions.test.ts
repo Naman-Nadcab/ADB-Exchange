@@ -18,6 +18,7 @@ import {
   protectionInputOk,
   protectionVolumeMismatch,
   shouldIgnoreStaleGeneration,
+  tradeActionStripAbove,
 } from './models/position';
 import type { ForexPublicPosition, ForexPublicProtection, ForexPnlView } from './models/types';
 import { useForexStore } from './state/store';
@@ -195,6 +196,13 @@ function testFilledPositionForOrder(): void {
   assert(filledPositionForOrder(book, 'USDJPY', 'buy') === null, 'missing symbol has no ticket');
 }
 
+function testStripSide(): void {
+  assert(!tradeActionStripAbove(80, 36), 'room under the ticket keeps the strip below');
+  assert(tradeActionStripAbove(20, 36), 'a last visible ticket puts the strip above');
+  assert(!tradeActionStripAbove(Number.NaN, 36), 'unknown space stays below');
+}
+
+testStripSide();
 testFilledPositionForOrder();
 testNormalizeAndSides();
 testCloseVolume();

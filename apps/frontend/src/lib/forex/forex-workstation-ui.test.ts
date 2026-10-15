@@ -106,6 +106,9 @@ function testP0Surfaces(): void {
   assert(positions.includes('onTrailSet'), 'trailing control');
   assert(positions.includes('menuModify'), 'trade rows can modify stop loss and take profit');
   assert(positions.includes('accountUnrealizedPnl'), 'one open ticket uses the account profit');
+  assert(positions.includes('data-trade-strip'), 'trade actions sit on the selected ticket');
+  assert(positions.includes('tradeActionStripAbove'), 'a ticket with no room below opens its strip above');
+  assert(!positions.includes('max-h-[58%]'), 'trade actions are not a separate dock block');
   assert(positions.includes('formatForexPair'), 'trade symbols use the market watch pair label');
   assert(positions.includes('modifyTrail'), 'modify dialog includes the trailing stop');
   const ticket = readFileSync(join(root, 'ForexOrderTicket.tsx'), 'utf8');

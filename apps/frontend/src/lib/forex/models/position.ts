@@ -154,6 +154,12 @@ export function positionPanelStatus(args: {
   return 'READY';
 }
 
+/** Put the action strip above the ticket when the space under it cannot show the strip. */
+export function tradeActionStripAbove(spaceBelow: number, stripHeight: number): boolean {
+  if (!Number.isFinite(spaceBelow) || !Number.isFinite(stripHeight) || stripHeight <= 0) return false;
+  return spaceBelow < stripHeight;
+}
+
 export function positionUiStatus(position: ForexPublicPosition, closing: boolean, error: boolean): ForexPositionUiStatus {
   if (error) return 'ERROR';
   if (closing && position.status === 'OPEN') return 'CLOSING';
