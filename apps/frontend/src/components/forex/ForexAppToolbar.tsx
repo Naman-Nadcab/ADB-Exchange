@@ -11,7 +11,9 @@ import {
   type ForexChartLayout,
   useForexWorkspaceStore,
 } from '@/lib/forex/state/workspace';
+import { formatForexPair } from '@/lib/forex/models/pair-label';
 import { cn } from '@/lib/utils';
+import { useForexPhoneScreen } from './ForexPhoneScreen';
 
 const LAYOUTS: Array<{ id: ForexChartLayout; label: string }> = [
   { id: '1', label: '1' },
@@ -38,6 +40,7 @@ export function ForexAppToolbar() {
   const setBottomTab = useForexWorkspaceStore((s) => s.setBottomTab);
   const setTicketDraft = useForexWorkspaceStore((s) => s.setTicketDraft);
   const selectedSymbol = useForexWorkspaceStore((s) => s.selectedSymbol);
+  const setPhoneScreen = useForexPhoneScreen().setScreen;
   const activeChartId = useForexWorkspaceStore((s) => s.activeChartId);
   const addChart = useForexWorkspaceStore((s) => s.addChart);
   const removeChart = useForexWorkspaceStore((s) => s.removeChart);
@@ -315,6 +318,13 @@ export function ForexAppToolbar() {
       <Menu id="trading" label={tf('trading')} className="hidden md:block" open={menu} setOpen={setMenu} items={tradingItems} />
       <Menu id="tools" label={tf('tools')} className="hidden md:block" open={menu} setOpen={setMenu} items={toolsItems} />
 
+      <button
+        type="button"
+        className="shrink-0 rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold text-foreground md:hidden"
+        onClick={() => setPhoneScreen('watch')}
+      >
+        {formatForexPair(selectedSymbol)}
+      </button>
       <button
         type="button"
         aria-pressed={oneClickEnabled}

@@ -92,6 +92,10 @@ function testMobileTicket(): void {
   assert(layout.includes('overflow-x-hidden'), 'no page overflow');
   assert(tradePage.includes('ForexOrderTicket'), 'mobile companion owns order ticket');
   assert(!/lg:hidden[\s\S]*<ForexOrderTicket/.test(layout), 'layout must not duplicate mobile ticket');
+  assert(layout.includes('ForexPhoneTabBar'), 'phones use a full-screen terminal bar');
+  assert(layout.includes("phoneScreen !== 'chart' && 'max-md:hidden'"), 'a phone screen other than the chart hides the chart column');
+  assert(tradePage.includes("screen === 'trade'"), 'the phone trade screen is the order ticket');
+  assert(tradePage.includes("screen === 'book'"), 'phone positions and history use the toolbox');
 }
 
 function testChartAlwaysUsesQuote(): void {

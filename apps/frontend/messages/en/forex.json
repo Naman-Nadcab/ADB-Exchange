@@ -46,7 +46,12 @@
   "mobileTrade": {
     "watch": "Watch",
     "order": "Order",
-    "trade": "Trade"
+    "trade": "Trade",
+    "chart": "Chart",
+    "positions": "Positions",
+    "history": "History",
+    "pairs": "Pairs",
+    "shellAria": "Terminal screens"
   },
   "pages": {
     "markets": {

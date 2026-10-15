@@ -46,7 +46,12 @@
   "mobileTrade": {
     "watch": "Watchlist",
     "order": "Order",
-    "trade": "Trade"
+    "trade": "Trade",
+    "chart": "Chart",
+    "positions": "Posisi",
+    "history": "Riwayat",
+    "pairs": "Pair",
+    "shellAria": "Layar terminal"
   },
   "pages": {
     "markets": {

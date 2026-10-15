@@ -146,7 +146,7 @@ export function ForexWatchlist() {
                       setMenu({ x: e.clientX, y: e.clientY, symbol });
                     }}
                     className={cn(
-                      'fx-mt5-row grid min-w-[320px] w-full grid-cols-[16px_minmax(72px,max-content)_56px_56px_28px_32px] items-center gap-x-1.5 border-l-2 border-t border-border/50 px-1.5 py-0.5 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring',
+                      'fx-mt5-row grid min-w-[320px] w-full grid-cols-[16px_minmax(72px,max-content)_56px_56px_28px_32px] items-center gap-x-1.5 border-l-2 border-t border-border/50 px-1.5 py-0.5 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring max-md:min-w-0 max-md:py-2',
                       active ? 'fx-mt5-row--active border-l-primary' : 'border-l-transparent'
                     )}
                   >
