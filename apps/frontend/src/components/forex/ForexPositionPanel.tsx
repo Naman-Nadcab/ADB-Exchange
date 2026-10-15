@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { postedSwapByPosition } from '@/lib/forex/models/history-analytics';
-import { formatMarginLevel, formatPositionAge, livePositionValuation } from '@/lib/forex/models/live-valuation';
+import { accountUnrealizedPnl, formatMarginLevel, formatPositionAge, livePositionValuation } from '@/lib/forex/models/live-valuation';
+import { formatForexPair } from '@/lib/forex/models/pair-label';
 import {
   activeProtectionsFor,
   closeReferenceSide,
@@ -118,7 +119,8 @@ export function ForexPositionPanel() {
   const accountMode = account?.positionMode ?? 'HEDGING';
   const hedging = accountMode === 'HEDGING';
   const postedSwap = useMemo(() => postedSwapByPosition(ledger), [ledger]);
-  const floatingTotal = useMemo(() => {
+  const accountFloat = accountUnrealizedPnl(account?.equity, account?.ledgerBalance);
+  const quoteFloat = useMemo(() => {
     let sum = 0;
     let any = false;
     for (const position of openRows) {
@@ -136,6 +138,8 @@ export function ForexPositionPanel() {
     }
     return any ? sum : null;
   }, [openRows, quotes, instruments, fees?.total, swaps?.total]);
+  const floatingTotal = accountFloat ?? quoteFloat;
+  const singleTicketProfit = openRows.length === 1 ? accountFloat : null;
 
   const oppositeCandidates = (p: ForexPublicPosition) =>
     openRows.filter((x) => x.positionId !== p.positionId && x.symbol === p.symbol && x.side !== p.side);
@@ -204,6 +208,8 @@ export function ForexPositionPanel() {
                             : undefined
                         }
                         position={p}
+                        symbolLabel={instruments[p.symbol]?.displaySymbol || formatForexPair(p.symbol)}
+                        accountProfit={singleTicketProfit}
                         digits={instruments[p.symbol]?.digits ?? 5}
                         live={livePositionValuation({
                           position: p,
@@ -262,6 +268,8 @@ export function ForexPositionPanel() {
                   <PositionCard
                     key={p.positionId}
                     position={p}
+                    symbolLabel={instruments[p.symbol]?.displaySymbol || formatForexPair(p.symbol)}
+                    accountProfit={singleTicketProfit}
                     digits={instruments[p.symbol]?.digits ?? 5}
                     live={livePositionValuation({
                       position: p,
@@ -600,16 +608,27 @@ function PnlCell({ pnl }: { pnl: ReturnType<typeof positionUnrealizedPnl> }) {
   return <span>{fxNum(pnl.value, 2)}{pnl.currency ? ` ${pnl.currency}` : ''}</span>;
 }
 
-function FloatCell({ live, fallback }: { live: ReturnType<typeof livePositionValuation>; fallback: ReturnType<typeof positionUnrealizedPnl> }) {
+function FloatCell(props: {
+  live: ReturnType<typeof livePositionValuation>;
+  fallback: ReturnType<typeof positionUnrealizedPnl>;
+  accountProfit?: number | null;
+}) {
+  if (props.accountProfit != null && Number.isFinite(props.accountProfit)) {
+    const s = fxSigned(props.accountProfit);
+    return <span className={s.tone === 'pos' ? 'text-buy' : s.tone === 'neg' ? 'text-sell' : ''}>{s.text}</span>;
+  }
+  const live = props.live;
   if (live.status === 'CALCULATED' && live.floating != null) {
     const s = fxSigned(live.floating);
     return <span className={s.tone === 'pos' ? 'text-buy' : s.tone === 'neg' ? 'text-sell' : ''}>{s.text}</span>;
   }
-  return <PnlCell pnl={fallback} />;
+  return <PnlCell pnl={props.fallback} />;
 }
 
 function PositionRow(props: {
   position: ForexPublicPosition;
+  symbolLabel: string;
+  accountProfit: number | null;
   digits: number;
   live: ReturnType<typeof livePositionValuation>;
   serverPnl: ReturnType<typeof positionUnrealizedPnl>;
@@ -666,9 +685,9 @@ function PositionRow(props: {
         )}
       </td>
       <td className="whitespace-nowrap px-2 py-1">{formatTicketTime(p.openedAt)}</td>
-      <td className={cn('px-2 py-1 font-medium lowercase', p.side === 'long' ? 'text-buy' : 'text-sell')}>{sideLabel}</td>
+      <td className={cn('px-2 py-1 font-medium', p.side === 'long' ? 'text-buy' : 'text-sell')}>{sideLabel}</td>
       <td className="px-2 py-1 text-right">{fxNum(p.volume, 2)}</td>
-      <td className="px-2 py-1 font-medium lowercase">{p.symbol}</td>
+      <td className="px-2 py-1 font-medium">{props.symbolLabel}</td>
       <td className="px-2 py-1 text-right">{fxNum(p.averageEntryPrice || p.entryPrice, props.digits)}</td>
       <td className="px-2 py-1">
         <TicketLevel
@@ -693,7 +712,7 @@ function PositionRow(props: {
       <td className="px-2 py-1 text-right">0.00</td>
       <td className="px-2 py-1 text-right">{fxNum(live.swap, 2)}</td>
       <td className="px-2 py-1 text-right font-semibold">
-        <FloatCell live={live} fallback={props.serverPnl} />
+        <FloatCell live={live} fallback={props.serverPnl} accountProfit={props.accountProfit} />
       </td>
       <td className="sticky right-0 bg-card px-1 py-1 text-center">
         <button
@@ -722,7 +741,7 @@ function PositionCard(props: Parameters<typeof PositionRow>[0]) {
     <article className="rounded border border-border bg-card p-3" onContextMenu={props.onContext}>
       <div className="mb-2 flex items-center justify-between">
         <div className="font-mono text-[13px]">
-          {p.symbol} <span className="uppercase text-muted-foreground">{sideLabel}</span> {p.volume}
+          {props.symbolLabel} <span className="text-muted-foreground">{sideLabel}</span> {p.volume}
         </div>
         <span className="text-[10px] uppercase text-muted-foreground">{ui} · {formatPositionAge(live.ageMs)}</span>
       </div>
@@ -737,7 +756,7 @@ function PositionCard(props: Parameters<typeof PositionRow>[0]) {
         <dd className="text-right">{live.mark ? fxNum(live.mark, props.digits) : tp('unavailable')}</dd>
         <dt>{tp('colFloat')}</dt>
         <dd className="text-right">
-          <FloatCell live={live} fallback={props.serverPnl} />
+          <FloatCell live={live} fallback={props.serverPnl} accountProfit={props.accountProfit} />
         </dd>
         <dt>{tp('cardCommSwap')}</dt>
         <dd className="text-right">{fxNum(live.commission, 2)} / {fxNum(live.swap, 2)}</dd>

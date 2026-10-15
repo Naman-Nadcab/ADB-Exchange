@@ -3,7 +3,7 @@
  */
 import { composeAccountMetrics } from './account-metrics';
 import { computePerformance, ledgerCashDrawdown, periodBounds } from './history-analytics';
-import { formatMarginLevel, livePositionValuation } from './live-valuation';
+import { accountUnrealizedPnl, formatMarginLevel, livePositionValuation } from './live-valuation';
 import type { ForexPublicPosition, ForexQuoteDto } from './types';
 
 function assert(cond: unknown, msg: string): asserts cond {
@@ -125,6 +125,13 @@ function testPeriod(): void {
   assert(b.from === 0, 'all from');
 }
 
+function testAccountFloat(): void {
+  assert(accountUnrealizedPnl('10001.41', '10001.36') === 0.05, 'one ticket matches equity minus balance');
+  assert(accountUnrealizedPnl('10000.00', '10000.00') === 0, 'flat account');
+  assert(accountUnrealizedPnl(null, '10000') == null, 'missing equity stays blank');
+}
+
+testAccountFloat();
 testLongBid();
 testShortAsk();
 testStale();

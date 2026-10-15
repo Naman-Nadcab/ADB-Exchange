@@ -489,13 +489,17 @@
       "margin": "Margin",
       "freeMargin": "Free margin",
       "marginLevel": "Margin level",
-      "noMessages": "No messages",
+      "noMessages": "A message appears here when an alert fires.",
       "noAlerts": "No alerts",
       "balanceType": "balance",
       "manageAlerts": "Manage",
       "alertEnable": "On",
       "alertDisable": "Off",
-      "alertDelete": "Delete"
+      "alertDelete": "Delete",
+      "alertCreate": "Create",
+      "alertAbove": "Above",
+      "alertBelow": "Below",
+      "alertPrice": "Price"
     }
   },
   "sides": {

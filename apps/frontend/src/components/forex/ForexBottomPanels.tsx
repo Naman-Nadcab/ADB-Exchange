@@ -12,7 +12,7 @@ import { useForexStore } from '@/lib/forex/state/store';
 import { type ForexBottomTab, useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { cn } from '@/lib/utils';
 import { buildCurrencyExposure, type CurrencyExposureRow } from '@/lib/forex/models/exposure-view';
-import { describeAlertCondition, type ForexServerAlertRow } from '@/lib/forex/models/customer-alerts';
+import { buildAlertCreateBody, describeAlertCondition, validateAlertFormInput, type ForexServerAlertRow } from '@/lib/forex/models/customer-alerts';
 import {
   closedTradesFromLedger,
   computePerformance,
@@ -23,7 +23,8 @@ import {
   postedSwapByPosition,
   type HistoryPeriod,
 } from '@/lib/forex/models/history-analytics';
-import { buildForexJournal } from '@/lib/forex/models/journal';
+import { buildForexJournal, customerJournalLine } from '@/lib/forex/models/journal';
+import { formatForexPair } from '@/lib/forex/models/pair-label';
 import { ForexPositionPanel } from './ForexPositionPanel';
 import { fxNum, fxPlain } from './format';
 
@@ -368,8 +369,10 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
                     <tr key={f.fillId} className="border-t border-border/80 hover:bg-accent/40">
                       <td className="px-2 py-1">{f.fillId.slice(0, 8)}</td>
                       <td className="px-2 py-1">{f.orderId?.slice(0, 8) ?? '—'}</td>
-                      <td className="px-2 py-1">{f.symbol}</td>
-                      <td className={cn('px-2 py-1', f.side === 'buy' ? 'text-buy' : 'text-sell')}>{f.side}</td>
+                      <td className="px-2 py-1">{instruments[f.symbol]?.displaySymbol || formatForexPair(f.symbol)}</td>
+                      <td className={cn('px-2 py-1', f.side === 'buy' ? 'text-buy' : 'text-sell')}>
+                        {f.side === 'buy' ? tf('sides.buy') : f.side === 'sell' ? tf('sides.sell') : f.side}
+                      </td>
                       <td className="px-2 py-1">{fxPlain(f.volume)}</td>
                       <td className="px-2 py-1">{fxNum(f.price)}</td>
                       <td className="px-2 py-1">{feeByFill[f.fillId] != null ? fixedNum(feeByFill[f.fillId], 2) : '0.00'}</td>
@@ -702,13 +705,13 @@ function JournalPanel(props: {
     id: event.id,
     time: event.timestamp,
     severity: event.severity,
-    message: [event.category, event.eventType, event.message].filter(Boolean).join(' · '),
+    message: customerJournalLine(event.message),
   }));
   const clientRows = props.client.map((event) => ({
     id: event.id,
     time: event.timestamp,
     severity: event.severity,
-    message: [event.category, event.message].filter(Boolean).join(' · '),
+    message: customerJournalLine(event.message),
   }));
   const rows = useServer ? serverRows : clientRows;
 
@@ -779,6 +782,7 @@ function OrderTable(props: {
 }) {
   const tf = useTranslations('forex');
   const ok = (key: string) => tf(`bottomPanels.orders.${key}`);
+  const instruments = useForexStore((s) => s.instruments);
   return (
     <div className="overflow-x-auto">
     <table className="w-full min-w-[860px] text-left font-mono text-[11px] tabular-nums">
@@ -885,10 +889,12 @@ function OrderTable(props: {
                   className="text-primary hover:underline"
                   onClick={() => props.focusSymbol(o.symbol)}
                 >
-                  {o.symbol}
+                  {instruments[o.symbol]?.displaySymbol || formatForexPair(o.symbol)}
                 </button>
               </td>
-              <td className={cn('px-2 py-1', o.side === 'buy' ? 'text-buy' : 'text-sell')}>{o.side}</td>
+              <td className={cn('px-2 py-1', o.side === 'buy' ? 'text-buy' : 'text-sell')}>
+                {o.side === 'buy' ? tf('sides.buy') : o.side === 'sell' ? tf('sides.sell') : o.side}
+              </td>
               <td className="px-2 py-1">{o.type}</td>
               <td className="px-2 py-1">
                 {editing ? (
@@ -1023,6 +1029,7 @@ function HistoryPanel(props: {
 }) {
   const tf = useTranslations('forex');
   const mk = (key: string) => tf(`bottomPanels.mt4.${key}`);
+  const instruments = useForexStore((s) => s.instruments);
   const [exportBusy, setExportBusy] = useState<string | null>(null);
   const exportKindKey = { orders: 'exportKindOrders', fills: 'exportKindFills', ledger: 'exportKindLedger' } as const;
   const balance = historyBalanceEntries(props.ledger, props.bounds);
@@ -1037,7 +1044,7 @@ function HistoryPanel(props: {
       openTime: mtTime(trade.positionId ? openedAt.get(trade.positionId) : ''),
       type: historySide(trade.side),
       size: trade.volume ? priceCell(trade.volume, 2) : '',
-      symbol: trade.symbol,
+      symbol: instruments[trade.symbol]?.displaySymbol || formatForexPair(trade.symbol),
       openPrice: priceCell(trade.openPrice),
       sl: historyProtectionPrice(props.protections, trade.positionId, 'STOP_LOSS'),
       tp: historyProtectionPrice(props.protections, trade.positionId, 'TAKE_PROFIT'),
@@ -1167,7 +1174,7 @@ function HistoryPanel(props: {
               </td>
               <td className="whitespace-nowrap px-2 py-0.5">{row.openTime}</td>
               <td className={cn('px-2 py-0.5', row.type === 'buy' ? 'text-buy' : row.type === 'sell' ? 'text-sell' : '')}>
-                {row.type === 'balance' ? mk('balanceType') : row.type}
+                {row.type === 'balance' ? mk('balanceType') : row.type === 'buy' ? tf('sides.buy') : row.type === 'sell' ? tf('sides.sell') : row.type}
               </td>
               <td className="px-2 py-0.5">{row.size}</td>
               <td className="px-2 py-0.5">{row.symbol}</td>
@@ -1342,6 +1349,11 @@ function AlertsPanel() {
   const tf = useTranslations('forex');
   const mk = (key: string) => tf(`bottomPanels.mt4.${key}`);
   const authed = useForexPrivateSession();
+  const selectedSymbol = useForexWorkspaceStore((s) => s.selectedSymbol);
+  const [alertSymbol, setAlertSymbol] = useState<string | null>(null);
+  const [alertSide, setAlertSide] = useState<'above' | 'below'>('above');
+  const [alertPrice, setAlertPrice] = useState('');
+  const [creating, setCreating] = useState(false);
   const [localAlerts, setLocalAlerts] = useState<Array<{ id: string; symbol: string; side: 'above' | 'below'; price: string }>>([]);
   const [serverAlerts, setServerAlerts] = useState<ForexServerAlertRow[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -1421,6 +1433,26 @@ function AlertsPanel() {
     setReload((n) => n + 1);
   }
 
+  async function createPriceAlert() {
+    const symbol = (alertSymbol ?? selectedSymbol).replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    const fields = { alertType: 'BID' as const, symbol, side: alertSide, price: alertPrice, threshold: '' };
+    const check = validateAlertFormInput(fields);
+    if (!check.ok) {
+      setServerError(tf(`serverAlerts.${check.messageKey}`));
+      return;
+    }
+    setCreating(true);
+    const res = unwrap(await forexApi.createAlert(buildAlertCreateBody(fields)));
+    setCreating(false);
+    if (!res.ok) {
+      setServerError(res.error.message);
+      return;
+    }
+    setAlertPrice('');
+    setServerError(null);
+    setReload((n) => n + 1);
+  }
+
   function removeLocal(id: string) {
     setLocalAlerts((cur) => {
       const next = cur.filter((alert) => alert.id !== id);
@@ -1437,7 +1469,7 @@ function AlertsPanel() {
   const localRows = localAlerts.map((alert) => ({
     id: `local-${alert.id}`,
     localId: alert.id,
-    symbol: alert.symbol,
+    symbol: formatForexPair(alert.symbol),
     condition: `Bid ${alert.side === 'below' ? '<' : '>'} ${alert.price}`,
     count: '',
     limit: '',
@@ -1448,7 +1480,7 @@ function AlertsPanel() {
   }));
   const serverRows = serverAlerts.map((alert) => ({
     id: alert.alertId,
-    symbol: alert.symbol ?? '',
+    symbol: formatForexPair(alert.symbol),
     condition: alertConditionLabel(alert),
     count: String(counts[alert.alertId] ?? 0),
     limit: cellText(alert.condition?.limit ?? alert.condition?.maxCount),
@@ -1460,18 +1492,57 @@ function AlertsPanel() {
   }));
   const rows = [...serverRows, ...localRows];
 
+  const draftSymbol = alertSymbol ?? selectedSymbol;
   return (
     <div data-testid="alerts-table">
-      <div className="flex justify-end px-2 py-0.5">
-        <Link href="/forex/alerts" className="text-[10px] text-primary hover:underline">
+      <form
+        className="fx-dock-toolbar"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!authed || creating) return;
+          void createPriceAlert();
+        }}
+      >
+        <input
+          value={draftSymbol}
+          onChange={(e) => setAlertSymbol(e.target.value.toUpperCase())}
+          aria-label={mk('colSymbol')}
+          className="h-[22px] w-[5.5rem] rounded-sm border border-border bg-background px-2 font-mono text-[11px]"
+        />
+        <select
+          value={alertSide}
+          onChange={(e) => setAlertSide(e.target.value === 'below' ? 'below' : 'above')}
+          aria-label={mk('colCondition')}
+          className="fx-dock-select"
+        >
+          <option value="above">{mk('alertAbove')}</option>
+          <option value="below">{mk('alertBelow')}</option>
+        </select>
+        <input
+          value={alertPrice}
+          onChange={(e) => setAlertPrice(e.target.value)}
+          inputMode="decimal"
+          placeholder={mk('alertPrice')}
+          aria-label={mk('alertPrice')}
+          className="h-[22px] w-24 rounded-sm border border-border bg-background px-2 font-mono text-[11px]"
+        />
+        <button type="submit" disabled={!authed || creating} className="fx-dock-export disabled:opacity-50">
+          {mk('alertCreate')}
+        </button>
+        <Link href="/forex/alerts" className="ml-auto text-[10px] text-primary hover:underline">
           {mk('manageAlerts')}
         </Link>
-      </div>
+      </form>
+      {serverError ? (
+        <p className="px-2 py-1 text-[11px] text-sell" role="alert">
+          {serverError}
+        </p>
+      ) : null}
       <DockColumns columns={columns}>
         {rows.length === 0 ? (
           <tr>
             <td colSpan={8} className="px-2 py-2 text-[11px] text-muted-foreground">
-              {serverError ?? mk('noAlerts')}
+              {mk('noAlerts')}
             </td>
           </tr>
         ) : (

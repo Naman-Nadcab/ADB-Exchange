@@ -2,6 +2,7 @@
  * Forming candle from the executable quote already in the forex store.
  * No extra HTTP or RPC: Market Watch, the order ticket, and the chart share one quote.
  */
+import { FOREX_QUOTE_OVERLAY_MAX_REL } from '../market-data/quote-chart-overlay';
 
 export type LiveBar = {
   time: number;
@@ -43,6 +44,13 @@ function num(value: string): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
+/** History may seed the open. A quote that disagrees by more than the overlay gap starts at the quote. */
+function alignedFormingOpen(open: number, mid: number): number {
+  if (!(mid > 0) || !Number.isFinite(open)) return mid;
+  if (Math.abs(open - mid) / mid > FOREX_QUOTE_OVERLAY_MAX_REL) return mid;
+  return open;
+}
+
 /**
  * Fold the current bid/ask into the timeframe bucket.
  * `previous` is the bar accumulated from earlier quotes in this session so
@@ -65,11 +73,13 @@ export function foldExecutableQuote(args: {
 
   if (args.previous && args.previous.time === start) {
     const prev = args.previous;
+    const open = alignedFormingOpen(prev.open, mid);
+    const reset = open !== prev.open;
     return {
       time: start,
-      open: prev.open,
-      high: Math.max(prev.high, bid, ask, mid),
-      low: Math.min(prev.low, bid, ask, mid),
+      open,
+      high: reset ? Math.max(open, bid, ask, mid) : Math.max(prev.high, bid, ask, mid),
+      low: reset ? Math.min(open, bid, ask, mid) : Math.min(prev.low, bid, ask, mid),
       close: mid,
     };
   }
@@ -95,6 +105,7 @@ export function foldExecutableQuote(args: {
       }
     }
   }
+  open = alignedFormingOpen(open, mid);
 
   return {
     time: start,

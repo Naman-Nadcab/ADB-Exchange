@@ -489,13 +489,17 @@
       "margin": "Margin",
       "freeMargin": "Margin bebas",
       "marginLevel": "Level margin",
-      "noMessages": "Tidak ada pesan",
+      "noMessages": "Pesan muncul di sini ketika alert terpicu.",
       "noAlerts": "Tidak ada alert",
       "balanceType": "balance",
       "manageAlerts": "Kelola",
       "alertEnable": "On",
       "alertDisable": "Off",
-      "alertDelete": "Hapus"
+      "alertDelete": "Hapus",
+      "alertCreate": "Buat",
+      "alertAbove": "Di atas",
+      "alertBelow": "Di bawah",
+      "alertPrice": "Harga"
     }
   },
   "sides": {

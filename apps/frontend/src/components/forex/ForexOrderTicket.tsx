@@ -7,7 +7,7 @@ import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
 import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
 import { isPreviewParamComplete } from '@/lib/forex/models/preview';
 import { executablePrice, isQuoteStale } from '@/lib/forex/models/quotes';
-import { pipSizeFromInstrument, priceDistancePips } from '@/lib/forex/chart/pip-math';
+import { pipSizeFromInstrument, priceDistancePips, suggestedProtectionPrice } from '@/lib/forex/chart/pip-math';
 import { estimateTicketRisk, protectionPriceFromInput, stepLotVolume } from '@/lib/forex/models/ticket-risk';
 import {
   availableOrderTypes,
@@ -457,7 +457,11 @@ export function ForexOrderTicket() {
               id="fx-ticket-sl"
               value={sl}
               onChange={(e) => setSl(e.target.value)}
-              placeholder={protectMode === 'pips' ? tf('ticketPanel.pipsPlaceholder') : ''}
+              placeholder={
+                protectMode === 'pips'
+                  ? tf('ticketPanel.pipsPlaceholder')
+                  : suggestedProtectionPrice({ side, kind: 'sl', entry, pipSize, digits })
+              }
               aria-label={tf('ticketPanel.stopLossAria')}
               className="fx-mt5-field w-full px-2"
               inputMode="decimal"
@@ -469,7 +473,11 @@ export function ForexOrderTicket() {
               id="fx-ticket-tp"
               value={tp}
               onChange={(e) => setTp(e.target.value)}
-              placeholder={protectMode === 'pips' ? tf('ticketPanel.pipsPlaceholder') : ''}
+              placeholder={
+                protectMode === 'pips'
+                  ? tf('ticketPanel.pipsPlaceholder')
+                  : suggestedProtectionPrice({ side, kind: 'tp', entry, pipSize, digits })
+              }
               aria-label={tf('ticketPanel.takeProfitAria')}
               className="fx-mt5-field w-full px-2"
               inputMode="decimal"

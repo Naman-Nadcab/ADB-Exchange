@@ -95,3 +95,30 @@ export function suggestPositionSize(args: {
   if (!Number.isFinite(lots) || lots <= 0) return null;
   return { lots, estimatedRisk };
 }
+
+/** Placeholder only. Empty inputs still submit without a protection. */
+export function suggestedProtectionPrice(args: {
+  side: 'buy' | 'sell';
+  kind: 'sl' | 'tp';
+  entry: number | null;
+  pipSize: number;
+  digits: number;
+  pips?: number;
+}): string {
+  const pips = args.pips ?? 20;
+  const entry = args.entry;
+  if (entry == null || !Number.isFinite(entry) || entry <= 0) return '';
+  if (!Number.isFinite(args.pipSize) || args.pipSize <= 0 || !Number.isFinite(pips) || pips <= 0) return '';
+  const dist = args.pipSize * pips;
+  const price =
+    args.kind === 'sl'
+      ? args.side === 'buy'
+        ? entry - dist
+        : entry + dist
+      : args.side === 'buy'
+        ? entry + dist
+        : entry - dist;
+  if (!Number.isFinite(price) || price <= 0) return '';
+  const digits = Math.max(0, Math.min(args.digits, 8));
+  return price.toFixed(digits);
+}
