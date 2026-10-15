@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Download } from 'lucide-react';
+import { ForexHistoryRange } from '@/components/forex/ForexHistoryRange';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalKpiCard, ForexPortalModuleCard } from '@/components/forex/ForexPortalKpiCard';
@@ -10,6 +11,7 @@ import { fxNum, fxPlain } from '@/components/forex/format';
 import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { downloadForexHistoryCsv } from '@/lib/forex/api/client';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { ALL_HISTORY_RANGE, boundsForRange, timestampInBounds, type HistoryRange } from '@/lib/forex/models/history-analytics';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
 
@@ -25,10 +27,15 @@ export default function ForexHistoryPage() {
   const currency = account?.currency ?? balance?.currency ?? 'USD';
   const [exportBusy, setExportBusy] = useState(false);
   const [exportErr, setExportErr] = useState<string | null>(null);
+  const [range, setRange] = useState<HistoryRange>(ALL_HISTORY_RANGE);
+  const bounds = useMemo(() => boundsForRange(range), [range]);
 
   const rows = useMemo(
-    () => [...fills].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
-    [fills]
+    () =>
+      [...fills]
+        .filter((fill) => timestampInBounds(fill.timestamp, bounds))
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    [bounds, fills]
   );
 
   async function onExport() {
@@ -71,13 +78,16 @@ export default function ForexHistoryPage() {
               </button>
             }
           >
+            <div className="mb-3">
+              <ForexHistoryRange value={range} onChange={setRange} />
+            </div>
             {exportErr ? (
               <p className="mb-2 text-sm text-sell" role="alert">
                 {exportErr}
               </p>
             ) : null}
             {rows.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t('empty')}</p>
+              <p className="text-sm text-muted-foreground">{fills.length > 0 ? tf('dateRange.empty') : t('empty')}</p>
             ) : (
               <div className="eda-table-wrap overflow-x-auto">
                 <table className="eda-table min-w-[720px] font-mono text-[12px]">

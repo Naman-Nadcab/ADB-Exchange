@@ -1439,6 +1439,13 @@ input[type="number"] {
   padding: 2px 8px;
   border-bottom: 1px solid hsl(var(--border));
 }
+@media (max-width: 767px) {
+  .fx-dock-toolbar {
+    flex-wrap: wrap;
+    align-items: stretch;
+    padding: 8px;
+  }
+}
 .fx-dock-select {
   height: 22px;
   min-width: 7.5rem;
@@ -1462,6 +1469,17 @@ input[type="number"] {
   outline: 1px solid hsl(var(--primary));
   outline-offset: 0;
 }
+.fx-dock-date {
+  height: 22px;
+  width: 8.25rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 2px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  padding: 0 4px;
+  font-size: 11px;
+  color-scheme: dark;
+}
 .fx-dock-export {
   height: 22px;
   border: 1px solid transparent;
@@ -1473,6 +1491,16 @@ input[type="number"] {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
+}
+@media (max-width: 767px) {
+  .fx-dock-select,
+  .fx-dock-export,
+  .fx-dock-date {
+    height: 44px;
+  }
+  .fx-dock-select {
+    background-position: calc(100% - 12px) 18px, calc(100% - 7px) 18px;
+  }
 }
 .fx-dock-export:hover:not(:disabled) {
   border-color: hsl(var(--border));

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
 import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
 import { describeForexError } from '@/lib/forex/models/errors';
-import type { ForexLedgerReconciliation, ForexLedgerRow, ForexPublicOrder, ForexPublicPosition, ForexPublicProtection, ForexServerJournalEvent } from '@/lib/forex/models/types';
+import type { ForexFillRow, ForexLedgerReconciliation, ForexLedgerRow, ForexPublicOrder, ForexPublicPosition, ForexPublicProtection, ForexServerJournalEvent } from '@/lib/forex/models/types';
 import { useForexOrderEngine } from '@/lib/forex/runtime/useForexOrderEngine';
 import { useForexStore } from '@/lib/forex/state/store';
 import { type ForexBottomTab, useForexWorkspaceStore } from '@/lib/forex/state/workspace';
@@ -14,17 +14,20 @@ import { cn } from '@/lib/utils';
 import { buildCurrencyExposure, type CurrencyExposureRow } from '@/lib/forex/models/exposure-view';
 import { buildAlertCreateBody, describeAlertCondition, validateAlertFormInput, type ForexServerAlertRow } from '@/lib/forex/models/customer-alerts';
 import {
+  ALL_HISTORY_RANGE,
+  boundsForRange,
   closedTradesFromLedger,
   computePerformance,
   historyBalanceEntries,
   ledgerCashDrawdown,
-  periodBounds,
   postedFeeByFill,
   postedSwapByPosition,
-  type HistoryPeriod,
+  timestampInBounds,
+  type HistoryRange,
 } from '@/lib/forex/models/history-analytics';
 import { buildForexJournal, customerJournalLine } from '@/lib/forex/models/journal';
 import { formatForexPair } from '@/lib/forex/models/pair-label';
+import { ForexHistoryRange } from './ForexHistoryRange';
 import { ForexPositionPanel } from './ForexPositionPanel';
 import { fxNum, fxPlain } from './format';
 
@@ -70,7 +73,9 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
   const [editLimit, setEditLimit] = useState('');
   const [editSl, setEditSl] = useState('');
   const [editTp, setEditTp] = useState('');
-  const [histPeriod, setHistPeriod] = useState<HistoryPeriod>('all');
+  const [histRange, setHistRange] = useState<HistoryRange>(ALL_HISTORY_RANGE);
+  const [fillRange, setFillRange] = useState<HistoryRange>(ALL_HISTORY_RANGE);
+  const [journalRange, setJournalRange] = useState<HistoryRange>(ALL_HISTORY_RANGE);
   const [cancelId, setCancelId] = useState<string | null>(null);
   const authed = useForexPrivateSession();
   const orders = useForexStore((s) => s.orders);
@@ -240,7 +245,9 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
     }
   }
 
-  const histBounds = useMemo(() => periodBounds(histPeriod), [histPeriod]);
+  const histBounds = useMemo(() => boundsForRange(histRange), [histRange]);
+  const fillBounds = useMemo(() => boundsForRange(fillRange), [fillRange]);
+  const journalBounds = useMemo(() => boundsForRange(journalRange), [journalRange]);
   const closedTrades = useMemo(() => closedTradesFromLedger(ledger, histBounds), [ledger, histBounds]);
   const feeByFill = useMemo(() => postedFeeByFill(ledger), [ledger]);
   const perf = useMemo(() => computePerformance(closedTrades, {
@@ -286,6 +293,9 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
             <JournalPanel
               server={journalState}
               client={journal}
+              bounds={journalBounds}
+              range={journalRange}
+              onRange={setJournalRange}
               onRefresh={() => setJournalNonce((n) => n + 1)}
             />
           ) : tab === 'positions' || tab === 'orders' ? (
@@ -347,46 +357,11 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
               </Link>
             </div>
           ) : tab === 'fills' ? (
-            fills.length === 0 ? (
-              <p className="px-3 py-6 text-center text-[12px] text-muted-foreground">{tf('bottomPanels.noFills')}</p>
-            ) : (
-              <table className="w-full text-left font-mono text-[11px] tabular-nums">
-                <thead className="sticky top-0 bg-card text-[9px] uppercase tracking-wide text-muted-foreground">
-                  <tr>
-                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.fill')}</th>
-                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.order')}</th>
-                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.symbol')}</th>
-                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.side')}</th>
-                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.vol')}</th>
-                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.price')}</th>
-                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.fee')}</th>
-                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.type')}</th>
-                    <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.time')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {fills.map((f) => (
-                    <tr key={f.fillId} className="border-t border-border/80 hover:bg-accent/40">
-                      <td className="px-2 py-1">{f.fillId.slice(0, 8)}</td>
-                      <td className="px-2 py-1">{f.orderId?.slice(0, 8) ?? '—'}</td>
-                      <td className="px-2 py-1">{instruments[f.symbol]?.displaySymbol || formatForexPair(f.symbol)}</td>
-                      <td className={cn('px-2 py-1', f.side === 'buy' ? 'text-buy' : 'text-sell')}>
-                        {f.side === 'buy' ? tf('sides.buy') : f.side === 'sell' ? tf('sides.sell') : f.side}
-                      </td>
-                      <td className="px-2 py-1">{fxPlain(f.volume)}</td>
-                      <td className="px-2 py-1">{fxNum(f.price)}</td>
-                      <td className="px-2 py-1">{feeByFill[f.fillId] != null ? fixedNum(feeByFill[f.fillId], 2) : '0.00'}</td>
-                      <td className="px-2 py-1">{f.executionId ? tf('chrome.simulated') : '—'}</td>
-                      <td className="px-2 py-1">{new Date(f.timestamp).toLocaleString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )
+            <FillsPanel fills={fills} feeByFill={feeByFill} bounds={fillBounds} range={fillRange} onRange={setFillRange} />
           ) : tab === 'history' ? (
             <HistoryPanel
-              period={histPeriod}
-              onPeriod={setHistPeriod}
+              range={histRange}
+              onRange={setHistRange}
               trades={closedTrades}
               ledger={ledger}
               bounds={histBounds}
@@ -403,7 +378,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
               currency={account?.currency ?? 'USD'}
             />
           ) : tab === 'analytics' ? (
-            <AnalyticsPanel perf={perf} dd={dd} period={histPeriod} onPeriod={setHistPeriod} currency={account?.currency ?? 'USD'} />
+            <AnalyticsPanel perf={perf} dd={dd} range={histRange} onRange={setHistRange} currency={account?.currency ?? 'USD'} />
           ) : tab === 'alerts' ? (
             <AlertsPanel />
           ) : tab === 'tape' ? (
@@ -685,6 +660,9 @@ function severityClass(severity: string): string {
 function JournalPanel(props: {
   server: { status: 'idle' | 'loading' | 'ready' | 'unavailable' | 'error'; events: ForexServerJournalEvent[]; reason?: string };
   client: ReturnType<typeof buildForexJournal>;
+  bounds: { from: number; to: number };
+  range: HistoryRange;
+  onRange: (range: HistoryRange) => void;
   onRefresh: () => void;
 }) {
   const tf = useTranslations('forex');
@@ -713,10 +691,14 @@ function JournalPanel(props: {
     severity: event.severity,
     message: customerJournalLine(event.message),
   }));
-  const rows = useServer ? serverRows : clientRows;
+  const sourceRows = useServer ? serverRows : clientRows;
+  const rows = sourceRows.filter((row) => timestampInBounds(row.time, props.bounds));
 
   return (
     <div data-testid="journal-table">
+      <div className="fx-dock-toolbar">
+        <ForexHistoryRange compact value={props.range} onChange={props.onRange} />
+      </div>
       <div className="flex items-center gap-2 px-2 py-1">
         <span className="text-[10px] text-muted-foreground">{origin}</span>
         <span className="min-w-0 flex-1 truncate text-[10px] text-muted-foreground">{note}</span>
@@ -728,7 +710,7 @@ function JournalPanel(props: {
         {rows.length === 0 ? (
           <tr>
             <td colSpan={2} className="px-2 py-2 text-[11px] text-muted-foreground">
-              {tf('bottomPanels.journal.empty')}
+              {sourceRows.length > 0 ? tf('dateRange.empty') : tf('bottomPanels.journal.empty')}
             </td>
           </tr>
         ) : (
@@ -970,32 +952,60 @@ function OrderTable(props: {
   );
 }
 
-const HISTORY_PERIOD_KEY: Record<HistoryPeriod, string> = {
-  today: 'periodToday',
-  yesterday: 'periodYesterday',
-  week: 'periodWeek',
-  month: 'periodMonth',
-  custom: 'periodCustom',
-  all: 'periodAll',
-};
 
-function PeriodBar(props: { period: HistoryPeriod; onPeriod: (p: HistoryPeriod) => void }) {
+function FillsPanel(props: {
+  fills: ForexFillRow[];
+  feeByFill: Record<string, number>;
+  bounds: { from: number; to: number };
+  range: HistoryRange;
+  onRange: (range: HistoryRange) => void;
+}) {
   const tf = useTranslations('forex');
+  const instruments = useForexStore((s) => s.instruments);
+  const rows = props.fills.filter((fill) => timestampInBounds(fill.timestamp, props.bounds));
   return (
-    <div className="flex flex-wrap gap-1 px-2 py-1">
-      {(['today', 'yesterday', 'week', 'month', 'all'] as HistoryPeriod[]).map((p) => (
-        <button
-          key={p}
-          type="button"
-          onClick={() => props.onPeriod(p)}
-          className={cn(
-            'rounded px-1.5 py-0.5 text-[10px]',
-            props.period === p ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          {tf(`bottomPanels.history.${HISTORY_PERIOD_KEY[p]}`)}
-        </button>
-      ))}
+    <div>
+      <div className="fx-dock-toolbar">
+        <ForexHistoryRange compact value={props.range} onChange={props.onRange} />
+      </div>
+      {props.fills.length === 0 ? (
+        <p className="px-3 py-6 text-center text-[12px] text-muted-foreground">{tf('bottomPanels.noFills')}</p>
+      ) : rows.length === 0 ? (
+        <p className="px-3 py-6 text-center text-[12px] text-muted-foreground">{tf('dateRange.empty')}</p>
+      ) : (
+        <table className="w-full text-left font-mono text-[11px] tabular-nums">
+          <thead className="sticky top-0 bg-card text-[9px] uppercase tracking-wide text-muted-foreground">
+            <tr>
+              <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.fill')}</th>
+              <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.order')}</th>
+              <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.symbol')}</th>
+              <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.side')}</th>
+              <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.vol')}</th>
+              <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.price')}</th>
+              <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.fee')}</th>
+              <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.type')}</th>
+              <th className="px-2 py-1 font-medium">{tf('bottomPanels.fills.time')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((f) => (
+              <tr key={f.fillId} className="border-t border-border/80 hover:bg-accent/40">
+                <td className="px-2 py-1">{f.fillId.slice(0, 8)}</td>
+                <td className="px-2 py-1">{f.orderId?.slice(0, 8) ?? '—'}</td>
+                <td className="px-2 py-1">{instruments[f.symbol]?.displaySymbol || formatForexPair(f.symbol)}</td>
+                <td className={cn('px-2 py-1', f.side === 'buy' ? 'text-buy' : 'text-sell')}>
+                  {f.side === 'buy' ? tf('sides.buy') : f.side === 'sell' ? tf('sides.sell') : f.side}
+                </td>
+                <td className="px-2 py-1">{fxPlain(f.volume)}</td>
+                <td className="px-2 py-1">{fxNum(f.price)}</td>
+                <td className="px-2 py-1">{props.feeByFill[f.fillId] != null ? fixedNum(props.feeByFill[f.fillId], 2) : '0.00'}</td>
+                <td className="px-2 py-1">{f.executionId ? tf('chrome.simulated') : '—'}</td>
+                <td className="px-2 py-1">{new Date(f.timestamp).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
@@ -1017,8 +1027,8 @@ function historyProtectionPrice(protections: ForexPublicProtection[], positionId
 }
 
 function HistoryPanel(props: {
-  period: HistoryPeriod;
-  onPeriod: (p: HistoryPeriod) => void;
+  range: HistoryRange;
+  onRange: (range: HistoryRange) => void;
   trades: ReturnType<typeof closedTradesFromLedger>;
   ledger: ForexLedgerRow[];
   bounds: { from: number; to: number };
@@ -1078,7 +1088,7 @@ function HistoryPanel(props: {
   let deposit = balance.filter((entry) => entry.bucket === 'deposit').reduce((sum, entry) => sum + entry.amount, 0);
   let withdrawal = balance.filter((entry) => entry.bucket === 'withdrawal').reduce((sum, entry) => sum + Math.abs(entry.amount), 0);
   const credit = balance.filter((entry) => entry.bucket === 'credit').reduce((sum, entry) => sum + entry.amount, 0);
-  if (props.period === 'all' && props.reconciliation) {
+  if (props.range.period === 'all' && props.reconciliation) {
     if (props.reconciliation.deposits != null && props.reconciliation.deposits !== '') deposit = Number(props.reconciliation.deposits) || 0;
     if (props.reconciliation.withdrawals != null && props.reconciliation.withdrawals !== '') {
       withdrawal = Number(props.reconciliation.withdrawals) || 0;
@@ -1100,24 +1110,15 @@ function HistoryPanel(props: {
     mk('colSwap'),
     mk('colProfit'),
   ];
-  const periods = (['today', 'yesterday', 'week', 'month', 'all'] as HistoryPeriod[]).concat(
-    props.period === 'custom' ? (['custom'] as HistoryPeriod[]) : []
-  );
   return (
     <div data-testid="history-table">
       <div className="fx-dock-toolbar">
-        <select
-          value={props.period}
-          onChange={(e) => props.onPeriod(e.target.value as HistoryPeriod)}
-          aria-label={tf('bottomPanels.history.periodAria')}
-          className="fx-dock-select"
-        >
-          {periods.map((p) => (
-            <option key={p} value={p}>
-              {tf(`bottomPanels.history.${HISTORY_PERIOD_KEY[p]}`)}
-            </option>
-          ))}
-        </select>
+        <ForexHistoryRange
+          compact
+          presetAria={tf('bottomPanels.history.periodAria')}
+          value={props.range}
+          onChange={props.onRange}
+        />
         <div className="ml-auto flex min-w-0 items-center justify-end gap-1">
           {(['orders', 'fills', 'ledger'] as const).map((kind) => (
             <button
@@ -1303,8 +1304,8 @@ function ExposurePanel(props: {
 function AnalyticsPanel(props: {
   perf: ReturnType<typeof computePerformance>;
   dd: ReturnType<typeof ledgerCashDrawdown>;
-  period: HistoryPeriod;
-  onPeriod: (p: HistoryPeriod) => void;
+  range: HistoryRange;
+  onRange: (range: HistoryRange) => void;
   currency: string;
 }) {
   const tf = useTranslations('forex');
@@ -1312,7 +1313,7 @@ function AnalyticsPanel(props: {
   const p = props.perf;
   return (
     <div className="space-y-2 px-3 py-2">
-      <PeriodBar period={props.period} onPeriod={props.onPeriod} />
+      <ForexHistoryRange value={props.range} onChange={props.onRange} />
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-mono text-[11px] sm:grid-cols-4">
         <RiskLine k={ak('trades')} v={String(p.trades)} />
         <RiskLine k={ak('winRate')} v={p.winRate != null ? `${p.winRate}%` : '—'} />

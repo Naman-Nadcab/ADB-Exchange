@@ -1,14 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ForexFundsSubNav } from '@/components/forex/ForexFundsSubNav';
+import { ForexHistoryRange } from '@/components/forex/ForexHistoryRange';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalModuleCard } from '@/components/forex/ForexPortalKpiCard';
 import { fxPlain } from '@/components/forex/format';
 import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
+import { ALL_HISTORY_RANGE, boundsForRange, timestampInBounds, type HistoryRange } from '@/lib/forex/models/history-analytics';
 import type { ForexLedgerRow } from '@/lib/forex/models/types';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexStore } from '@/lib/forex/state/store';
@@ -24,6 +26,9 @@ export default function ForexFundingHistoryPage() {
   const [rows, setRows] = useState<ForexLedgerRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [range, setRange] = useState<HistoryRange>(ALL_HISTORY_RANGE);
+  const bounds = useMemo(() => boundsForRange(range), [range]);
+  const visible = useMemo(() => rows.filter((row) => timestampInBounds(row.timestamp, bounds)), [bounds, rows]);
 
   const load = useCallback(async () => {
     if (!authed || !activeId) return;
@@ -52,6 +57,9 @@ export default function ForexFundingHistoryPage() {
       )}
       <ForexFundsSubNav />
       <ForexPortalModuleCard title={t('tableTitle')} subtitle={t('tableSubtitle')}>
+        <div className="mb-3">
+          <ForexHistoryRange value={range} onChange={setRange} />
+        </div>
         {loading ? <p className="text-sm text-muted-foreground">{t('loading')}</p> : null}
         {err ? <p className="text-sm text-sell">{err}</p> : null}
         <div className="eda-table-wrap overflow-x-auto">
@@ -67,12 +75,12 @@ export default function ForexFundingHistoryPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.length === 0 ? (
+              {visible.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-muted-foreground">{!loading ? t('empty') : ''}</td>
+                  <td colSpan={6} className="text-muted-foreground">{!loading ? (rows.length > 0 ? tf('dateRange.empty') : t('empty')) : ''}</td>
                 </tr>
               ) : (
-                rows.map((row) => (
+                visible.map((row) => (
                   <tr key={row.transactionId}>
                     <td>{fxPlain(row.timestamp)}</td>
                     <td>{forexEnumLabel(te, row.type)}</td>
