@@ -4,6 +4,7 @@
  */
 import {
   activeProtectionsFor,
+  filledPositionForOrder,
   closeReferenceSide,
   closeSideForPosition,
   closeVolumeAllowed,
@@ -183,6 +184,18 @@ function testProtectionVolumeDisclosure(): void {
   assert(!protectionVolumeMismatch('0.50', undefined), 'missing volume not treated as mismatch');
 }
 
+function testFilledPositionForOrder(): void {
+  const older = pos({ positionId: 'old', side: 'long', updatedAt: '2026-09-01T00:00:00.000Z' });
+  const newer = pos({ positionId: 'new', side: 'long', updatedAt: '2026-09-02T00:00:00.000Z' });
+  const short = pos({ positionId: 'short', side: 'short', updatedAt: '2026-09-03T00:00:00.000Z' });
+  const other = pos({ positionId: 'gbp', symbol: 'GBPUSD', side: 'long', updatedAt: '2026-09-04T00:00:00.000Z' });
+  const book = { old: older, new: newer, short, gbp: other };
+  assert(filledPositionForOrder(book, 'EURUSD', 'buy')?.positionId === 'new', 'buy attaches to the newest long');
+  assert(filledPositionForOrder(book, 'EURUSD', 'sell')?.positionId === 'short', 'sell attaches to the short');
+  assert(filledPositionForOrder(book, 'USDJPY', 'buy') === null, 'missing symbol has no ticket');
+}
+
+testFilledPositionForOrder();
 testNormalizeAndSides();
 testCloseVolume();
 testProtectionVolumeDisclosure();

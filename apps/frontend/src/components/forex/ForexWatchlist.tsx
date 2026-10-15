@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { ForexAssetClass } from '@/lib/forex/models/types';
 import { describeForexChange } from '@/lib/forex/models/change-pct';
@@ -29,7 +29,36 @@ export function ForexWatchlist() {
   const setTicketDraft = useForexWorkspaceStore((s) => s.setTicketDraft);
   const setPanel = useForexWorkspaceStore((s) => s.setPanel);
   const [menu, setMenu] = useState<{ x: number; y: number; symbol: string } | null>(null);
+  const [menuBox, setMenuBox] = useState<{ x: number; y: number } | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const [specSymbol, setSpecSymbol] = useState<string | null>(null);
+  useEffect(() => {
+    if (!menu) {
+      setMenuBox(null);
+      return;
+    }
+    const el = menuRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const pad = 8;
+    setMenuBox({
+      x: Math.max(pad, Math.min(menu.x, window.innerWidth - rect.width - pad)),
+      y: Math.max(pad, Math.min(menu.y, window.innerHeight - rect.height - pad)),
+    });
+    const close = (e: PointerEvent) => {
+      if (menuRef.current?.contains(e.target as Node)) return;
+      setMenu(null);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenu(null);
+    };
+    window.addEventListener('pointerdown', close);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('pointerdown', close);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [menu]);
 
   const rows = useMemo(() => {
     return watchlist.filter((symbol) => {
@@ -170,8 +199,9 @@ export function ForexWatchlist() {
       </div>
       {menu ? (
         <div
+          ref={menuRef}
           className="fixed z-50 min-w-[160px] border border-border bg-card py-1 text-[11px] shadow-lg"
-          style={{ left: menu.x, top: menu.y }}
+          style={{ left: menuBox?.x ?? menu.x, top: menuBox?.y ?? menu.y }}
           role="menu"
         >
           <MenuItem

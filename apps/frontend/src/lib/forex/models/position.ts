@@ -92,6 +92,22 @@ export function protectionVolumeMismatch(positionVolume: string, protectionVolum
   return cmp != null && cmp !== 0;
 }
 
+/** Newest open ticket on the order's side. Hedging keeps every fill as its own position. */
+export function filledPositionForOrder(
+  positions: Record<string, ForexPublicPosition>,
+  symbol: string,
+  orderSide: 'buy' | 'sell'
+): ForexPublicPosition | null {
+  const want = orderSide === 'buy' ? 'long' : 'short';
+  const matches = Object.values(positions).filter(
+    (p) => p.status === 'OPEN' && p.symbol === symbol && p.side === want
+  );
+  if (!matches.length) return null;
+  return (
+    [...matches].sort((a, b) => (b.updatedAt || b.openedAt).localeCompare(a.updatedAt || a.openedAt))[0] ?? null
+  );
+}
+
 export function activeProtectionsFor(
   protections: Record<string, ForexPublicProtection>,
   positionId: string

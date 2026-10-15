@@ -866,13 +866,15 @@ export function ForexChartFoundation(props?: {
       .slice(0, 8);
   }, [showCalendar, calendarEvents, selected]);
 
+  const ticketVolume = useForexStore((s) => s.ticketVolume);
+  const oneClickLot = ticketVolume.trim() || inst?.minVolume || '0.01';
   const oneClickBuy = () => {
     if (!props?.showOneClick || !chartAuthed || orderEngine.busy) return;
     void orderEngine.place({
       symbol: selected,
       side: 'buy',
       orderType: 'market',
-      volume: inst?.minVolume ?? '0.01',
+      volume: oneClickLot,
     });
   };
   const oneClickSell = () => {
@@ -881,7 +883,7 @@ export function ForexChartFoundation(props?: {
       symbol: selected,
       side: 'sell',
       orderType: 'market',
-      volume: inst?.minVolume ?? '0.01',
+      volume: oneClickLot,
     });
   };
 
@@ -1278,44 +1280,14 @@ export function ForexChartFoundation(props?: {
                 <CtxItem
                   label={`Set SL @ ${fxNum(ctxMenu.price, digits)}`}
                   onClick={() => {
-                    const open = Object.values(positions).find((p) => p.status === 'OPEN' && p.symbol === selected);
-                    if (!open) {
-                      setCtxMenu(null);
-                      return;
-                    }
-                    const existing = activeProtectionsFor(protections, open.positionId).sl;
-                    void (async () => {
-                      if (existing) await forexApi.cancelProtection(existing.protectionId);
-                      await forexApi.createProtection({
-                        clientProtectionId: `sl-chart-${Date.now()}`,
-                        positionId: open.positionId,
-                        type: 'STOP_LOSS',
-                        triggerPrice: String(ctxMenu.price),
-                      });
-                      await hydrateForexPrivate();
-                    })();
+                    void commitProtectionDrag('STOP_LOSS', String(ctxMenu.price));
                     setCtxMenu(null);
                   }}
                 />
                 <CtxItem
                   label={`Set TP @ ${fxNum(ctxMenu.price, digits)}`}
                   onClick={() => {
-                    const open = Object.values(positions).find((p) => p.status === 'OPEN' && p.symbol === selected);
-                    if (!open) {
-                      setCtxMenu(null);
-                      return;
-                    }
-                    const existing = activeProtectionsFor(protections, open.positionId).tp;
-                    void (async () => {
-                      if (existing) await forexApi.cancelProtection(existing.protectionId);
-                      await forexApi.createProtection({
-                        clientProtectionId: `tp-chart-${Date.now()}`,
-                        positionId: open.positionId,
-                        type: 'TAKE_PROFIT',
-                        triggerPrice: String(ctxMenu.price),
-                      });
-                      await hydrateForexPrivate();
-                    })();
+                    void commitProtectionDrag('TAKE_PROFIT', String(ctxMenu.price));
                     setCtxMenu(null);
                   }}
                 />

@@ -110,6 +110,16 @@ function testP0Surfaces(): void {
   assert(!ticket.includes('ticketPanel.free'), 'order ticket hides the free-margin box');
   assert(ticket.includes('timeInForce: tifUnsupported'), 'orders still send good-till-cancelled');
   assert(ticket.includes("tf('ticketPanel.kind')"), 'order type keeps the Type label');
+  assert(!ticket.includes("preview.status === 'LOADING'"), 'a slow preview does not disable buy and sell');
+  assert(ticket.includes('setTicketVolume'), 'ticket volume is shared with chart one-click');
+  const engine = readFileSync(join(__dirname, 'runtime/useForexOrderEngine.ts'), 'utf8');
+  assert(engine.includes('filledPositionForOrder'), 'stop loss lands on the filled ticket');
+  assert(engine.includes('activeProtectionsFor'), 'a protection the server already saved is not sent twice');
+  const chart = readFileSync(join(root, 'ForexChartFoundation.tsx'), 'utf8');
+  assert(chart.includes('ticketVolume'), 'chart one-click uses the ticket lot');
+  assert(chart.includes("commitProtectionDrag('STOP_LOSS'"), 'chart stop loss uses the focused ticket');
+  const watch = readFileSync(join(root, 'ForexWatchlist.tsx'), 'utf8');
+  assert(watch.includes('menuRef'), 'market watch menu stays on screen');
   const bottom = readFileSync(join(root, 'ForexBottomPanels.tsx'), 'utf8');
   const history = bottom.slice(bottom.indexOf('function HistoryPanel'), bottom.indexOf('function ExposurePanel'));
   assert(history.includes('bottomPanels.history.periodAria'), 'history period is a labelled dropdown');
