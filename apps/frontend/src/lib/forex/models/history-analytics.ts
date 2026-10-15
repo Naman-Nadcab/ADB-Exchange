@@ -58,6 +58,43 @@ function money(n: number): string {
   return n.toFixed(2);
 }
 
+export interface HistoryRange {
+  period: HistoryPeriod;
+  /** Local calendar day `YYYY-MM-DD`. Empty means the side is open. */
+  from: string;
+  to: string;
+}
+
+export const ALL_HISTORY_RANGE: HistoryRange = { period: 'all', from: '', to: '' };
+
+const DAY_KEY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+export function formatLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+/** A `YYYY-MM-DD` value is the user's local day, not UTC midnight. */
+export function localDayStart(value: string): number {
+  const match = DAY_KEY.exec(value.trim());
+  if (!match) {
+    const parsed = Date.parse(value);
+    return Number.isFinite(parsed) ? parsed : NaN;
+  }
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 0, 0, 0, 0).getTime();
+}
+
+export function localDayEnd(value: string): number {
+  const match = DAY_KEY.exec(value.trim());
+  if (!match) {
+    const parsed = Date.parse(value);
+    return Number.isFinite(parsed) ? parsed : NaN;
+  }
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 23, 59, 59, 999).getTime();
+}
+
 export function periodBounds(period: HistoryPeriod, now = new Date(), custom?: { from?: string; to?: string }): { from: number; to: number } {
   const end = new Date(now);
   end.setHours(23, 59, 59, 999);
@@ -74,13 +111,53 @@ export function periodBounds(period: HistoryPeriod, now = new Date(), custom?: {
   } else if (period === 'month') {
     start.setDate(1);
   } else if (period === 'custom') {
-    const from = custom?.from ? Date.parse(custom.from) : 0;
-    const to = custom?.to ? Date.parse(custom.to) : Date.now();
-    return { from: Number.isFinite(from) ? from : 0, to: Number.isFinite(to) ? to : Date.now() };
+    const fromMs = custom?.from ? localDayStart(custom.from) : 0;
+    const toMs = custom?.to ? localDayEnd(custom.to) : Number.MAX_SAFE_INTEGER;
+    const from = Number.isFinite(fromMs) ? fromMs : 0;
+    const to = Number.isFinite(toMs) ? toMs : Number.MAX_SAFE_INTEGER;
+    if (custom?.from && custom?.to && from > to) {
+      const swappedFrom = localDayStart(custom.to);
+      const swappedTo = localDayEnd(custom.from);
+      return {
+        from: Number.isFinite(swappedFrom) ? swappedFrom : 0,
+        to: Number.isFinite(swappedTo) ? swappedTo : Number.MAX_SAFE_INTEGER,
+      };
+    }
+    return { from, to };
   } else if (period === 'all') {
     return { from: 0, to: Number.MAX_SAFE_INTEGER };
   }
   return { from: start.getTime(), to: end.getTime() };
+}
+
+export function boundsForRange(range: HistoryRange, now = new Date()): { from: number; to: number } {
+  return periodBounds(range.period, now, { from: range.from, to: range.to });
+}
+
+export function boundsAreOpen(bounds: { from: number; to: number }): boolean {
+  return bounds.from <= 0 && bounds.to >= Number.MAX_SAFE_INTEGER;
+}
+
+export function timestampInBounds(ts: string | null | undefined, bounds: { from: number; to: number }): boolean {
+  if (boundsAreOpen(bounds)) return true;
+  if (!ts) return false;
+  return inPeriod(ts, bounds);
+}
+
+export function datesForPreset(period: HistoryPeriod, now = new Date()): { from: string; to: string } {
+  if (period === 'all' || period === 'custom') return { from: '', to: '' };
+  const bounds = periodBounds(period, now);
+  return { from: formatLocalDate(new Date(bounds.from)), to: formatLocalDate(new Date(bounds.to)) };
+}
+
+export function rangeFromPreset(period: HistoryPeriod, current: HistoryRange, now = new Date()): HistoryRange {
+  if (period === 'custom') return { ...current, period: 'custom' };
+  return { period, ...datesForPreset(period, now) };
+}
+
+export function rangeFromDates(from: string, to: string): HistoryRange {
+  if (!from && !to) return ALL_HISTORY_RANGE;
+  return { period: 'custom', from, to };
 }
 
 export function inPeriod(ts: string, bounds: { from: number; to: number }): boolean {
