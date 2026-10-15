@@ -5,7 +5,6 @@ import { ForexOrderTicket } from '@/components/forex/ForexOrderTicket';
 import { ForexWatchlist } from '@/components/forex/ForexWatchlist';
 import { ForexBottomPanels } from '@/components/forex/ForexBottomPanels';
 import { useForexStore } from '@/lib/forex/state/store';
-import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 
@@ -22,7 +21,6 @@ export default function ForexTradePage() {
   const [tab, setTab] = useState<MobileTab>('ticket');
   const positions = useForexStore((s) => s.positions);
   const orders = useForexStore((s) => s.orders);
-  const bottomCollapsed = useForexWorkspaceStore((s) => s.bottomCollapsed);
   const hasTradingData = useMemo(() => {
     const openPos = Object.values(positions).some((p) => p.status === 'OPEN');
     const openOrd = Object.values(orders).some((o) => {
@@ -68,7 +66,7 @@ export default function ForexTradePage() {
         </div>
         {tab === 'toolbox' ? (
           <div className="md:hidden">
-            <ForexBottomPanels compact={bottomCollapsed} hasTradingData={hasTradingData} />
+            <ForexBottomPanels compact={false} hasTradingData={hasTradingData} />
           </div>
         ) : null}
       </div>

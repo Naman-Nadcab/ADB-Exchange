@@ -132,7 +132,7 @@ function testPendingCancelSurfaces(): void {
   assert(bottom.includes('sticky left-0'), 'Cancel sticky discoverable');
   assert(bottom.includes('data-testid={`cancel-order-'), 'Cancel test id');
   const tradePage = readFileSync(join(__dirname, '../../app/forex/page.tsx'), 'utf8');
-  assert(tradePage.includes('compact={bottomCollapsed}'), 'mobile toolbox respects workspace collapse');
+  assert(tradePage.includes('compact={false}'), 'mobile Trade tab keeps the position list open');
   assert(tradePage.includes('ForexBottomPanels'), 'mobile toolbox exposes Cancel surfaces');
   const ordersPage = readFileSync(join(__dirname, '../../app/forex/orders/page.tsx'), 'utf8');
   assert(ordersPage.includes('Cancel'), 'Orders page Cancel');

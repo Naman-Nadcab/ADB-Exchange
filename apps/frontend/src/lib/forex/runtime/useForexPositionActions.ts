@@ -24,7 +24,7 @@ export function useForexPositionActions() {
   }, []);
 
   const closePosition = useCallback(async (position: ForexPublicPosition, volume: string) => {
-    if (closeLock.current[position.positionId]) return;
+    if (closeLock.current[position.positionId]) return false;
     closeLock.current[position.positionId] = true;
     setPendingClose((s) => ({ ...s, [position.positionId]: true }));
     setActionError(null);
@@ -38,12 +38,14 @@ export function useForexPositionActions() {
       if (!u.ok) {
         setActionError(interpretCloseError(u.error));
         await rehydrate();
-        return;
+        return false;
       }
       await rehydrate();
+      return true;
     } catch (e) {
       setActionError(interpretCloseError(normalizeForexError(e, 'Close failed')));
       await rehydrate();
+      return false;
     } finally {
       closeLock.current[position.positionId] = false;
       setPendingClose((s) => {

@@ -108,6 +108,12 @@ export function ForexPositionPanel() {
   const [reverseConfirm, setReverseConfirm] = useState<ForexPublicPosition | null>(null);
   const [closeBy, setCloseBy] = useState<CloseByState | null>(null);
   const [customVol, setCustomVol] = useState('');
+  const actionRef = useRef<HTMLDivElement | null>(null);
+  const actionOpen = Boolean(modify || confirm || reverseConfirm || closeBy);
+  useEffect(() => {
+    if (!actionOpen) return;
+    actionRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [actionOpen, modify, confirm, reverseConfirm, closeBy]);
   const [draft, setDraft] = useState<Record<string, { sl: string; tp: string }>>({});
   const accountMode = account?.positionMode ?? 'HEDGING';
   const hedging = accountMode === 'HEDGING';
@@ -375,6 +381,13 @@ export function ForexPositionPanel() {
           })()}
         </div>
       ) : null}
+      {actionOpen ? (
+      <div ref={actionRef} className="max-h-[58%] shrink-0 overflow-auto border-t border-primary/40 bg-card">
+      {actions.actionError ? (
+        <p className="px-3 pt-2 text-[11px] text-sell" role="alert">
+          {actions.actionError.code}: {actions.actionError.message}
+        </p>
+      ) : null}
       {modify ? (
         <ModifyConfirm
           position={modify}
@@ -427,7 +440,9 @@ export function ForexPositionPanel() {
             if (!check.ok) {
               return;
             }
-            void actions.closePosition(confirm.position, customVol || confirm.volume).then(() => setConfirm(null));
+            void actions.closePosition(confirm.position, customVol || confirm.volume).then((ok) => {
+              if (ok) setConfirm(null);
+            });
           }}
         />
       ) : null}
@@ -456,6 +471,8 @@ export function ForexPositionPanel() {
             void actions.closeBy(closeBy.position, other).then(() => setCloseBy(null));
           }}
         />
+      ) : null}
+      </div>
       ) : null}
       {status !== 'SIGNED_OUT' && status !== 'LOADING' ? (
         <TradeSummary currency={account?.currency ?? 'USD'} account={account} margin={margin} floating={floatingTotal} />
@@ -494,7 +511,7 @@ function TradeSummary(props: {
   const level = formatMarginLevel(props.account?.equity, used);
   const tone = props.floating == null ? '' : props.floating > 0 ? 'text-buy' : props.floating < 0 ? 'text-sell' : '';
   return (
-    <div className="fx-dock-summary" data-testid="trade-summary">
+    <div className="fx-dock-summary shrink-0" data-testid="trade-summary">
       <p className="flex min-w-0 flex-wrap gap-x-3 gap-y-0.5">
         <span>
           <span className="fx-k">{tf('bottomPanels.exposure.balance')}:</span>
@@ -542,7 +559,7 @@ function TradeTableHeader() {
         <th className="text-right">{tp('colTaxes')}</th>
         <th className="text-right">{tp('colSwap')}</th>
         <th className="text-right">{tp('colProfit')}</th>
-        <th> </th>
+        <th className="sticky right-0 bg-card"> </th>
       </tr>
     </thead>
   );
@@ -678,14 +695,14 @@ function PositionRow(props: {
       <td className="px-2 py-1 text-right font-semibold">
         <FloatCell live={live} fallback={props.serverPnl} />
       </td>
-      <td className="px-1 py-1 text-center">
+      <td className="sticky right-0 bg-card px-1 py-1 text-center">
         <button
           type="button"
           disabled={props.closing}
           onClick={() => props.onClose(p.volume)}
           onDoubleClick={(e) => e.stopPropagation()}
           aria-label={tp('close')}
-          className="inline-flex h-4 w-4 items-center justify-center rounded-sm text-[13px] leading-none text-muted-foreground hover:bg-sell/15 hover:text-sell disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-[14px] leading-none text-muted-foreground hover:bg-sell/15 hover:text-sell disabled:cursor-not-allowed disabled:opacity-50"
         >
           {props.closing ? '…' : '×'}
         </button>

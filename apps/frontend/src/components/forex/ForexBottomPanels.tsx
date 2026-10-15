@@ -210,7 +210,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
     () => orderRows.filter((o) => PENDING_STATUSES.has(String(o.status).toUpperCase())),
     [orderRows]
   );
-  const compact = Boolean(props.compact) || bottomCollapsed || chartMode === 'expand';
+  const compact = Boolean(props.compact) || chartMode === 'expand';
 
   function startEdit(o: (typeof orderRows)[number]) {
     setEditId(o.orderId);
@@ -276,7 +276,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
       aria-label={tf('bottomPanels.ariaLabel')}
     >
       {!compact ? (
-        <div className="min-h-0 flex-1 overflow-auto" role="tabpanel">
+        <div className="flex min-h-0 flex-1 flex-col overflow-auto" role="tabpanel">
           {tab === 'news' ? (
             <NewsPanel status={newsState.status} reason={newsState.reason} items={newsState.items} />
           ) : tab === 'calendar' ? (
@@ -288,10 +288,12 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
               onRefresh={() => setJournalNonce((n) => n + 1)}
             />
           ) : tab === 'positions' || tab === 'orders' ? (
-            <div>
-              <ForexPositionPanel />
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-hidden">
+                <ForexPositionPanel />
+              </div>
               {authed && workingOrders.length > 0 ? (
-                <div className="border-t border-border/70">
+                <div className="max-h-[42%] shrink-0 overflow-auto border-t border-border/70">
                   <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                     {tf('bottomTabs.orders')}
                   </p>
