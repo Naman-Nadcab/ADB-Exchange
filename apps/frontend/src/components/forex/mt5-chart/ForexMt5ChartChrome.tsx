@@ -82,7 +82,7 @@ export function ForexMt5ChartChrome(props: Props) {
   return (
     <div className="fx-mt5-chrome shrink-0 border-b border-border bg-card/95">
       {/* Compact top toolbar */}
-      <div className="flex h-7 min-w-0 items-center gap-0.5 border-b border-border/60 px-1">
+      <div className="flex h-7 min-w-0 items-center gap-0.5 border-b border-border/60 px-1 max-md:h-12 max-md:gap-1">
         <div className="relative" ref={menuRef}>
           <IconBtn title={t('menu')} onClick={() => setMenuOpen((v) => !v)} icon={<Menu className="h-3.5 w-3.5" />} />
           {menuOpen ? (
@@ -103,7 +103,7 @@ export function ForexMt5ChartChrome(props: Props) {
             </div>
           ) : null}
         </div>
-        <IconBtn title={t('chartType')} icon={<BarChart3 className="h-3.5 w-3.5" />} onClick={() => setMenuOpen((v) => !v)} />
+        <IconBtn className="max-md:hidden" title={t('chartType')} icon={<BarChart3 className="h-3.5 w-3.5" />} onClick={() => setMenuOpen((v) => !v)} />
         <div className="relative">
           <IconBtn title={t('indicators')} icon={<LayoutGrid className="h-3.5 w-3.5" />} onClick={() => setIndOpen((v) => !v)} />
           {indOpen ? (
@@ -155,10 +155,10 @@ export function ForexMt5ChartChrome(props: Props) {
         />
         <IconBtn title={t('objectsToolbar')} pressed={props.showObjects} icon={<Shapes className="h-3.5 w-3.5" />} onClick={props.onObjects} />
         {props.onExpand ? (
-          <IconBtn title={t('layout')} icon={<Maximize2 className="h-3.5 w-3.5" />} onClick={props.onExpand} pressed={props.expandActive} />
+          <IconBtn className="max-md:hidden" title={t('layout')} icon={<Maximize2 className="h-3.5 w-3.5" />} onClick={props.onExpand} pressed={props.expandActive} />
         ) : null}
         {props.onFullscreen ? (
-          <IconBtn title={t('settings')} icon={<Settings2 className="h-3.5 w-3.5" />} onClick={props.onFullscreen} pressed={props.fullscreenActive} />
+          <IconBtn className="max-md:hidden" title={t('settings')} icon={<Settings2 className="h-3.5 w-3.5" />} onClick={props.onFullscreen} pressed={props.fullscreenActive} />
         ) : null}
         {props.showOneClick ? (
           <div className="ml-auto flex items-center gap-1 pr-1">
@@ -182,9 +182,10 @@ export function ForexMt5ChartChrome(props: Props) {
         ) : null}
       </div>
 
-      <div className="flex h-6 min-w-0 items-center gap-0.5 border-t border-border/50 px-1" role="group" aria-label={t('timeframesAria')}>
+      {primary.length > 0 || more.length > 0 ? (
+      <div className="flex h-6 min-w-0 items-center gap-0.5 border-t border-border/50 px-1 max-md:h-12 max-md:gap-1" role="group" aria-label={t('timeframesAria')}>
         <h2
-          className="mr-1 max-w-[7.5rem] shrink-0 truncate font-mono text-[12px] font-semibold tracking-tight text-foreground"
+          className="mr-1 max-w-[7.5rem] shrink-0 truncate font-mono text-[12px] font-semibold tracking-tight text-foreground max-md:hidden"
           title={props.demoSecondary || `${props.symbolLabel}, ${tfLabel(props.activeTf)}`}
         >
           {props.symbolLabel}
@@ -196,7 +197,7 @@ export function ForexMt5ChartChrome(props: Props) {
             aria-pressed={props.activeTf === tf}
             onClick={() => props.onTf(tf)}
             className={cn(
-              'rounded px-1.5 py-0.5 font-mono text-[10px] font-medium',
+              'rounded px-1.5 py-0.5 font-mono text-[10px] font-medium max-md:px-2.5 max-md:text-[13px]',
               props.activeTf === tf ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             )}
           >
@@ -249,11 +250,12 @@ export function ForexMt5ChartChrome(props: Props) {
           </div>
         ) : null}
       </div>
+      ) : null}
     </div>
   );
 }
 
-function IconBtn(props: { icon: React.ReactNode; title: string; onClick: () => void; pressed?: boolean }) {
+function IconBtn(props: { icon: React.ReactNode; title: string; onClick: () => void; pressed?: boolean; className?: string }) {
   return (
     <button
       type="button"
@@ -261,8 +263,9 @@ function IconBtn(props: { icon: React.ReactNode; title: string; onClick: () => v
       aria-pressed={props.pressed}
       onClick={props.onClick}
       className={cn(
-        'flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-muted-foreground hover:bg-muted hover:text-foreground',
-        props.pressed && 'bg-primary/15 text-primary'
+        'flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-muted-foreground hover:bg-muted hover:text-foreground max-md:h-11 max-md:w-11',
+        props.pressed && 'bg-primary/15 text-primary',
+        props.className
       )}
     >
       {props.icon}

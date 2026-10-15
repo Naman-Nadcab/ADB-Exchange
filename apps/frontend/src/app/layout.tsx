@@ -13,6 +13,7 @@ import { isAppLocale } from '@/i18n/config';
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  viewportFit: 'cover',
   themeColor: '#0b0e11',
 };
 

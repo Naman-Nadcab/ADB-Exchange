@@ -192,7 +192,7 @@ export function ForexPositionPanel() {
   const actionStrip = (id: string) => {
     if (activeId !== id) return null;
     return (
-      <div data-trade-strip className="w-0 min-w-full overflow-x-auto">
+      <div data-trade-strip className="w-0 min-w-full overflow-x-auto max-md:w-full max-md:min-w-0 max-md:overflow-visible">
         {modify?.positionId === id ? (
           <ModifyConfirm
             position={modify}
@@ -913,9 +913,10 @@ function ProtectionCell(props: {
   );
 }
 
-const tradeStripRow = 'flex h-8 w-max min-w-full items-center gap-1.5 whitespace-nowrap border-y px-2 text-[11px]';
-const stripCancel = 'h-6 shrink-0 rounded border border-border px-2 text-[11px] hover:bg-muted';
-const stripInput = 'h-6 rounded border bg-background px-1.5 font-mono text-[11px] normal-case';
+const tradeStripRow = 'flex h-8 w-max min-w-full items-center gap-1.5 whitespace-nowrap border-y px-2 text-[11px] max-md:h-auto max-md:w-full max-md:min-w-0 max-md:max-w-full max-md:flex-wrap max-md:whitespace-normal max-md:gap-2 max-md:py-2 max-md:[&_button]:h-11 max-md:[&_input]:h-11 max-md:[&_select]:h-11';
+const stripCancel = 'h-6 shrink-0 rounded border border-border px-2 text-[11px] hover:bg-muted max-md:h-11';
+const stripInput = 'h-6 rounded border bg-background px-1.5 font-mono text-[11px] normal-case max-md:h-11';
+const stripActions = 'ml-auto flex shrink-0 items-center gap-1 max-md:ml-0 max-md:grid max-md:w-full max-md:grid-cols-2';
 
 function sideTone(buy: boolean): string {
   return buy ? 'font-semibold text-buy' : 'font-semibold text-sell';
@@ -956,7 +957,7 @@ function ModifyConfirm(props: {
         <input value={trail} onChange={(e) => setTrail(e.target.value)} inputMode="decimal" placeholder={tp('trailDistPlaceholder')} className={cn(stripInput, 'w-20 border-warning/40')} aria-label={tp('trailDistAria')} />
       </label>
       {note ? <span className="shrink-0 text-sell">{note}</span> : null}
-      <span className="ml-auto flex shrink-0 items-center gap-1">
+      <span className={stripActions}>
         {props.prot.sl ? (
           <button type="button" disabled={props.busy} onClick={props.onRemoveSl} className="h-6 rounded border border-sell/40 px-2 text-[11px] text-sell disabled:opacity-40">
             {tp('modifySl')} {tp('off')}
@@ -1052,7 +1053,7 @@ function CloseConfirm(props: {
         />
       </label>
       {!allowed.ok ? <span className="shrink-0 text-sell">{allowed.reason}</span> : null}
-      <span className="ml-auto flex shrink-0 items-center gap-1">
+      <span className={stripActions}>
         <button type="button" onClick={props.onCancel} className={stripCancel}>
           {tp('cancel')}
         </button>
@@ -1093,7 +1094,7 @@ function ReverseConfirm(props: {
       <span className="shrink-0 font-mono text-muted-foreground">
         {props.mode === 'HEDGING' ? tp('reverseResultHedging', { side: oppositeSide, volume: fxNum(p.volume, 2) }) : tp('reverseResultNetting', { side: oppositeSide, volume: fxNum(p.volume, 2) })}
       </span>
-      <span className="ml-auto flex shrink-0 items-center gap-1">
+      <span className={stripActions}>
         <button type="button" onClick={props.onCancel} className={stripCancel}>
           {tp('cancel')}
         </button>
@@ -1144,7 +1145,7 @@ function CloseByConfirm(props: {
           ))}
         </select>
       </label>
-      <span className="ml-auto flex shrink-0 items-center gap-1">
+      <span className={stripActions}>
         <button type="button" onClick={props.onCancel} className={stripCancel}>
           {tp('cancel')}
         </button>

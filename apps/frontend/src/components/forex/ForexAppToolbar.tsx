@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import {
   deleteChartTemplate,
@@ -11,7 +12,9 @@ import {
   type ForexChartLayout,
   useForexWorkspaceStore,
 } from '@/lib/forex/state/workspace';
+import { formatForexPair } from '@/lib/forex/models/pair-label';
 import { cn } from '@/lib/utils';
+import { useForexPhoneScreen } from './ForexPhoneScreen';
 
 const LAYOUTS: Array<{ id: ForexChartLayout; label: string }> = [
   { id: '1', label: '1' },
@@ -38,6 +41,7 @@ export function ForexAppToolbar() {
   const setBottomTab = useForexWorkspaceStore((s) => s.setBottomTab);
   const setTicketDraft = useForexWorkspaceStore((s) => s.setTicketDraft);
   const selectedSymbol = useForexWorkspaceStore((s) => s.selectedSymbol);
+  const setPhoneScreen = useForexPhoneScreen().setScreen;
   const activeChartId = useForexWorkspaceStore((s) => s.activeChartId);
   const addChart = useForexWorkspaceStore((s) => s.addChart);
   const removeChart = useForexWorkspaceStore((s) => s.removeChart);
@@ -302,7 +306,7 @@ export function ForexAppToolbar() {
         label={tf('menu')}
         open={menu}
         setOpen={setMenu}
-        className="md:hidden"
+        className="hidden"
         items={mobileOverflowItems.map((item) => ({
           label: tf('mobileMenuItem', { group: item.group, label: item.label }),
           onClick: item.onClick,
@@ -317,10 +321,18 @@ export function ForexAppToolbar() {
 
       <button
         type="button"
+        className="flex h-11 min-w-[7.5rem] shrink-0 items-center gap-1 rounded px-3 font-mono text-[15px] font-semibold text-foreground md:hidden"
+        onClick={() => setPhoneScreen('watch')}
+      >
+        {formatForexPair(selectedSymbol)}
+        <ChevronDown className="h-4 w-4 text-muted-foreground" aria-hidden />
+      </button>
+      <button
+        type="button"
         aria-pressed={oneClickEnabled}
         onClick={toggleOneClick}
         className={cn(
-          'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold',
+          'max-md:hidden shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold',
           oneClickEnabled
             ? 'bg-sell/25 text-sell ring-1 ring-sell/40'
             : 'border border-border/80 bg-[#1a1f26] text-foreground'

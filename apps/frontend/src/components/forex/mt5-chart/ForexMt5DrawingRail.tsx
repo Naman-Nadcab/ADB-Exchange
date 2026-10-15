@@ -97,7 +97,7 @@ export function ForexMt5DrawingRail(props: Props) {
 
   return (
     <div
-      className="fx-mt5-rail flex w-9 shrink-0 flex-col items-center gap-0.5 border-r border-border bg-card/90 py-1"
+      className="fx-mt5-rail flex w-9 shrink-0 flex-col items-center gap-0.5 border-r border-border bg-card/90 py-1 max-md:min-h-0 max-md:w-12 max-md:overflow-y-auto"
       role="toolbar"
       aria-label={t('aria')}
     >
@@ -180,7 +180,7 @@ function RailBtn(props: {
       aria-pressed={props.pressed}
       onClick={props.onClick}
       className={cn(
-        'flex h-7 w-7 items-center justify-center rounded-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'flex h-7 w-7 items-center justify-center rounded-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:h-11 max-md:w-11',
         props.pressed && 'bg-primary/20 text-primary'
       )}
     >

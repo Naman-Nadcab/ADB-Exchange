@@ -73,7 +73,7 @@ export function ForexWatchlist() {
 
   return (
     <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-r border-border bg-card" aria-label={tw('ariaLabel')}>
-      <div className="flex h-6 items-center justify-between border-b border-border px-2">
+      <div className="flex h-6 items-center justify-between border-b border-border px-2 max-md:hidden">
         <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{tw('title')}</span>
         <span className="font-mono text-[9px] text-muted-foreground">{rows.length}/{watchlist.length}</span>
       </div>
@@ -86,7 +86,7 @@ export function ForexWatchlist() {
               aria-pressed={mwFilter === id}
               onClick={() => setMwFilter(id)}
               className={cn(
-                'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium',
+                'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium max-md:px-2.5 max-md:text-[12px]',
                 mwFilter === id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -146,7 +146,7 @@ export function ForexWatchlist() {
                       setMenu({ x: e.clientX, y: e.clientY, symbol });
                     }}
                     className={cn(
-                      'fx-mt5-row grid min-w-[320px] w-full grid-cols-[16px_minmax(72px,max-content)_56px_56px_28px_32px] items-center gap-x-1.5 border-l-2 border-t border-border/50 px-1.5 py-0.5 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring',
+                      'fx-mt5-row grid min-w-[320px] w-full grid-cols-[16px_minmax(72px,max-content)_56px_56px_28px_32px] items-center gap-x-1.5 border-l-2 border-t border-border/50 px-1.5 py-0.5 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring max-md:min-w-0 max-md:py-2',
                       active ? 'fx-mt5-row--active border-l-primary' : 'border-l-transparent'
                     )}
                   >

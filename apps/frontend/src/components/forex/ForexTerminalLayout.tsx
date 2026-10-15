@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense, useEffect, useMemo, type ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import { isForexTradePath, showForexMarketChrome } from '@/lib/forex/routes';
 import { useForexRuntime } from '@/lib/forex/runtime/useForexRuntime';
@@ -12,6 +13,7 @@ import { ForexChartWorkspace } from './ForexChartWorkspace';
 import { ForexDeepLinkSync } from './ForexDeepLinkSync';
 import { ForexMarketStrip } from './ForexMarketStrip';
 import { ForexMobileNav } from './ForexMobileNav';
+import { ForexPhoneScreenProvider, ForexPhoneTabBar, useForexPhoneScreen } from './ForexPhoneScreen';
 import { ForexOrderTicket } from './ForexOrderTicket';
 import { ForexPanelSplit } from './ForexPanelSplit';
 import { ForexRiskBar } from './ForexRiskBar';
@@ -55,11 +57,6 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
     if (hasTradingData) setBottomCollapsed(false);
   }, [hasTradingData, setBottomCollapsed]);
 
-  useEffect(() => {
-    if (!trade || typeof window === 'undefined') return;
-    if (window.matchMedia('(max-width: 767px)').matches) setBottomCollapsed(true);
-  }, [trade, setBottomCollapsed]);
-
   const bottomH = resolveForexBottomHeight({
     chartMode,
     bottomCollapsed,
@@ -81,6 +78,83 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
   }, [chartMode, setChartMode]);
 
   return (
+    <ForexPhoneScreenProvider>
+      <ForexTerminalBody
+        trade={trade}
+        marketChrome={marketChrome}
+        wlW={wlW}
+        tkW={tkW}
+        setWatchlistWidth={setWatchlistWidth}
+        setTicketWidth={setTicketWidth}
+        setBottomHeight={setBottomHeight}
+        bottomPreferred={bottomPreferred}
+        bottomCollapsed={bottomCollapsed}
+        chartMode={chartMode}
+        setChartMode={setChartMode}
+        hydratePhase={hydratePhase}
+        hydrateError={hydrateError}
+        hasTradingData={hasTradingData}
+        showWatchlist={showWatchlist}
+        showTicket={showTicket}
+        showBottom={showBottom}
+        chromeHidden={chromeHidden}
+        bottomH={bottomH}
+        setBottomCollapsed={setBottomCollapsed}
+      >
+        {children}
+      </ForexTerminalBody>
+    </ForexPhoneScreenProvider>
+  );
+}
+
+function ForexTerminalBody(props: {
+  trade: boolean;
+  marketChrome: boolean;
+  wlW: number;
+  tkW: number;
+  setWatchlistWidth: (n: number) => void;
+  setTicketWidth: (n: number) => void;
+  setBottomHeight: (n: number) => void;
+  bottomPreferred: number;
+  bottomCollapsed: boolean;
+  chartMode: 'normal' | 'expand' | 'fullscreen';
+  setChartMode: (mode: 'normal' | 'expand' | 'fullscreen') => void;
+  hydratePhase: string;
+  hydrateError: { message: string } | null;
+  hasTradingData: boolean;
+  showWatchlist: boolean;
+  showTicket: boolean;
+  showBottom: boolean;
+  chromeHidden: boolean;
+  bottomH: number;
+  setBottomCollapsed: (collapsed: boolean) => void;
+  children: ReactNode;
+}) {
+  const phoneScreen = useForexPhoneScreen().screen;
+  const {
+    trade,
+    marketChrome,
+    wlW,
+    tkW,
+    setWatchlistWidth,
+    setTicketWidth,
+    setBottomHeight,
+    bottomPreferred,
+    bottomCollapsed,
+    chartMode,
+    setChartMode,
+    hydratePhase,
+    hydrateError,
+    hasTradingData,
+    showWatchlist,
+    showTicket,
+    showBottom,
+    chromeHidden,
+    bottomH,
+    setBottomCollapsed,
+    children,
+  } = props;
+  return (
     <div
       className={`dark terminal-shell exchange-ui flex h-[100dvh] max-w-[100vw] flex-col overflow-x-hidden bg-background text-foreground antialiased ${
         trade ? 'forex-mt5' : 'forex-hub'
@@ -93,7 +167,7 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
         </Suspense>
       ) : null}
       {trade && !chromeHidden ? (
-        <div className={showWatchlist || showTicket ? 'md:hidden' : undefined}>
+        <div className={cn(showWatchlist || showTicket ? 'md:hidden' : undefined, phoneScreen !== 'chart' && 'max-md:hidden')}>
           <ForexAppToolbar />
         </div>
       ) : null}
@@ -106,7 +180,7 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
       ) : null}
 
       {trade ? (
-        <div className="relative flex min-h-0 flex-1 flex-col">
+        <div className={cn('relative flex min-h-0 flex-1 flex-col', phoneScreen !== 'chart' && 'max-md:hidden')}>
           <div className="flex min-h-0 min-w-0 flex-1 overflow-x-hidden">
             {showWatchlist || showTicket ? (
               <>
@@ -191,9 +265,11 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
 
       {trade && chartMode === 'normal' ? (
         <div
-          className={`flex min-h-0 min-w-0 flex-col overflow-x-hidden border-t border-border lg:hidden ${
-            bottomCollapsed ? 'max-h-[46vh]' : 'max-h-[70vh]'
-          }`}
+          className={cn(
+            'flex min-h-0 min-w-0 flex-col overflow-x-hidden border-t border-border lg:hidden',
+            bottomCollapsed ? 'max-h-[46vh]' : 'max-h-[70vh]',
+            phoneScreen === 'chart' ? 'max-md:hidden' : 'max-md:max-h-none max-md:flex-1 max-md:border-t-0'
+          )}
         >
           {/* Mobile companion (forex/page.tsx) owns order ticket + toolbox — avoid duplicate surfaces (FFX-001). */}
           <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">{children}</div>
@@ -201,7 +277,8 @@ export function ForexTerminalLayout({ children }: { children: ReactNode }) {
       ) : null}
 
       {trade && chartMode === 'normal' ? <ForexRiskBar /> : null}
-      {!chromeHidden ? <ForexMobileNav /> : null}
+      {!chromeHidden && trade ? <ForexPhoneTabBar /> : null}
+      {!chromeHidden && !trade ? <ForexMobileNav /> : null}
       <ForexCommandCenter />
     </div>
   );

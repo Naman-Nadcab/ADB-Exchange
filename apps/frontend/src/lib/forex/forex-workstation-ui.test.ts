@@ -92,6 +92,18 @@ function testMobileTicket(): void {
   assert(layout.includes('overflow-x-hidden'), 'no page overflow');
   assert(tradePage.includes('ForexOrderTicket'), 'mobile companion owns order ticket');
   assert(!/lg:hidden[\s\S]*<ForexOrderTicket/.test(layout), 'layout must not duplicate mobile ticket');
+  assert(layout.includes('ForexPhoneTabBar'), 'phones use a full-screen terminal bar');
+  assert(layout.includes("phoneScreen !== 'chart' && 'max-md:hidden'"), 'a phone screen other than the chart hides the chart column');
+  assert(tradePage.includes("screen === 'trade'"), 'the phone trade screen is the order ticket');
+  assert(tradePage.includes("screen === 'book'"), 'phone positions and history use the toolbox');
+  assert(tradePage.includes('ChevronLeft'), 'the pairs screen has a visible back control');
+  const phone = readFileSync(join(root, 'ForexPhoneScreen.tsx'), 'utf8');
+  assert(phone.includes('pb-[env(safe-area-inset-bottom,0px)]'), 'the phone tab bar clears the home indicator');
+  assert(phone.includes('onTerminalTool'), 'phone More can open toolbox tools');
+  const menu = readFileSync(join(root, 'ForexPortalMobileMenu.tsx'), 'utf8');
+  assert(menu.includes('terminalTools'), 'the portal sheet keeps terminal tools optional');
+  const bottom = readFileSync(join(root, 'ForexBottomPanels.tsx'), 'utf8');
+  assert(bottom.includes('fx-dock-tabs') && bottom.includes('max-md:hidden'), 'phone book does not show a second tab strip');
 }
 
 function testChartAlwaysUsesQuote(): void {

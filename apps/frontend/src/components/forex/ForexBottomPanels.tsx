@@ -273,7 +273,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
 
   return (
     <section
-      className="fx-dock terminal-panel-subtle flex h-full min-h-0 flex-col border-t border-border"
+      className="fx-dock terminal-panel-subtle flex h-full min-h-0 flex-col border-t border-border max-md:border-t-0"
       aria-label={tf('bottomPanels.ariaLabel')}
     >
       {!compact ? (
@@ -426,7 +426,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
         <p className="sr-only">{tf('bottomPanels.collapsedSr', { tab: TABS.find((t) => t.id === tab)?.label ?? tab })}</p>
       )}
 
-      <div className="fx-dock-tabs mt-auto flex h-8 shrink-0 items-stretch gap-0.5 overflow-x-auto border-t border-border px-1" role="tablist">
+      <div className="fx-dock-tabs mt-auto flex h-8 shrink-0 items-stretch gap-0.5 overflow-x-auto border-t border-border px-1 max-md:hidden" role="tablist">
         {[
           ...TOOLBOX_TAB_ORDER.map((id) => TABS.find((t) => t.id === id)).filter((t): t is { id: ForexBottomTab; label: string } => Boolean(t)),
           ...TABS.filter((t) => t.id === tab && t.id !== 'orders' && !TOOLBOX_TAB_ORDER.includes(t.id)),
