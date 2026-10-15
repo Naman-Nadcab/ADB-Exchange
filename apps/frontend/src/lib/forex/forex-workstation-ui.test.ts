@@ -152,7 +152,10 @@ function testP0Surfaces(): void {
   const history = bottom.slice(bottom.indexOf('function HistoryPanel'), bottom.indexOf('function ExposurePanel'));
   assert(history.includes('bottomPanels.history.periodAria'), 'history period is a labelled dropdown');
   assert(history.includes('fx-dock-toolbar'), 'history period shares the export row');
+  assert(history.includes('<ForexHistoryRange'), 'account history can take a custom date range');
   assert(!history.includes('<PeriodBar'), 'history does not spend a row on period chips');
+  assert(bottom.includes('fillRange'), 'execution history has its own date range');
+  assert(bottom.includes('journalRange'), 'the journal has its own date range');
   assert(bottom.includes("id: 'analytics'"), 'risk analytics tab');
   assert(bottom.includes("id: 'alerts'"), 'alerts tab');
   assert(bottom.includes('postedFeeByFill'), 'history commission comes from posted fees');

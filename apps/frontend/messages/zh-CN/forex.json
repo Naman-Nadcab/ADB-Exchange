@@ -18,6 +18,18 @@
     "mobileNavAria": "外汇移动端导航",
     "pagesMenu": "页面"
   },
+  "dateRange": {
+    "presetAria": "日期范围",
+    "from": "从",
+    "to": "到",
+    "today": "今天",
+    "yesterday": "昨天",
+    "week": "本周",
+    "month": "本月",
+    "custom": "自定义",
+    "all": "全部",
+    "empty": "这个日期范围内没有记录。"
+  },
   "portalNav": {
     "portal": "门户",
     "sectionsAria": "外汇门户分区",

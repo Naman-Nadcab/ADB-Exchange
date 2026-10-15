@@ -18,6 +18,18 @@
     "mobileNavAria": "Navigasi mobile Forex",
     "pagesMenu": "Halaman"
   },
+  "dateRange": {
+    "presetAria": "Rentang tanggal",
+    "from": "Dari",
+    "to": "Sampai",
+    "today": "Hari ini",
+    "yesterday": "Kemarin",
+    "week": "Minggu ini",
+    "month": "Bulan ini",
+    "custom": "Kustom",
+    "all": "Semua",
+    "empty": "Tidak ada data pada rentang tanggal ini."
+  },
   "portalNav": {
     "portal": "Portal",
     "sectionsAria": "Bagian portal Forex",

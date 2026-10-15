@@ -7,11 +7,13 @@ import { fxNum, fxPlain } from '@/components/forex/format';
 import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexErrorMessage } from '@/hooks/useForexErrorMessage';
+import { ALL_HISTORY_RANGE, boundsForRange, timestampInBounds, type HistoryRange } from '@/lib/forex/models/history-analytics';
 import type { ForexOrderState, ForexPublicOrder } from '@/lib/forex/models/types';
 import { useForexOrderEngine } from '@/lib/forex/runtime/useForexOrderEngine';
 import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
 import { cn } from '@/lib/utils';
+import { ForexHistoryRange } from '@/components/forex/ForexHistoryRange';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalKpiCard } from '@/components/forex/ForexPortalKpiCard';
@@ -61,11 +63,20 @@ export default function ForexOrdersPage() {
   const [editVol, setEditVol] = useState('');
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [range, setRange] = useState<HistoryRange>(ALL_HISTORY_RANGE);
+  const bounds = useMemo(() => boundsForRange(range), [range]);
   const engine = useForexOrderEngine();
   const engineErrorMsg = useForexErrorMessage(engine.error);
 
-  const rows = useMemo(() => Object.values(orders).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)), [orders]);
+  const rows = useMemo(
+    () =>
+      Object.values(orders)
+        .filter((order) => timestampInBounds(order.createdAt, bounds))
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
+    [bounds, orders]
+  );
   const filtered = rows.filter((o) => classify(o.status) === tab);
+  const datedFills = useMemo(() => fills.filter((fill) => timestampInBounds(fill.timestamp, bounds)), [bounds, fills]);
 
   const tabCounts = useMemo(() => {
     const counts = { pending: 0, open: 0, completed: 0, cancelled: 0, rejected: 0 } as Record<Tab, number>;
@@ -112,6 +123,7 @@ export default function ForexOrdersPage() {
           ) : null}
           {engine.lastNote ? <p className="text-[12px] text-muted-foreground">{engine.lastNote}</p> : null}
 
+          <ForexHistoryRange value={range} onChange={setRange} />
           <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" role="tablist" aria-label={t('tabsAria')}>
             {TABS.map((key) => (
               <button
@@ -133,7 +145,9 @@ export default function ForexOrdersPage() {
             ))}
           </section>
           {filtered.length === 0 ? (
-            <p className="eda-card p-4 text-sm text-muted-foreground">{t('noOrdersInTab', { tab: tabLabel(tab) })}</p>
+            <p className="eda-card p-4 text-sm text-muted-foreground">
+              {Object.keys(orders).length > 0 && rows.length === 0 ? tf('dateRange.empty') : t('noOrdersInTab', { tab: tabLabel(tab) })}
+            </p>
           ) : (
             <div className="eda-table-wrap overflow-x-auto">
               <table className="eda-table min-w-[960px] font-mono text-[12px]">
@@ -268,8 +282,8 @@ export default function ForexOrdersPage() {
 
           <section className="eda-card p-4">
             <h2 className="mb-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">{t('fillsHeading')}</h2>
-            {fills.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t('fillsEmpty')}</p>
+            {datedFills.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{fills.length > 0 ? tf('dateRange.empty') : t('fillsEmpty')}</p>
             ) : (
               <table className="eda-table font-mono text-[12px]">
                 <thead>
@@ -284,7 +298,7 @@ export default function ForexOrdersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {fills.map((f) => (
+                  {datedFills.map((f) => (
                     <tr key={f.fillId}>
                       <td className="py-1">{new Date(f.timestamp).toLocaleString()}</td>
                       <td className="py-1">{f.symbol}</td>

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { ForexHistoryRange } from '@/components/forex/ForexHistoryRange';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import {
@@ -15,6 +16,7 @@ import { useForexStore } from '@/lib/forex/state/store';
 import { useAuthStore } from '@/store/auth';
 import { fxMoney, fxPlain } from '@/components/forex/format';
 import { forexEnumLabel } from '@/components/forex/forex-enum-label';
+import { ALL_HISTORY_RANGE, boundsForRange, timestampInBounds, type HistoryRange } from '@/lib/forex/models/history-analytics';
 import type { ForexLedgerRow } from '@/lib/forex/models/types';
 import { cn } from '@/lib/utils';
 
@@ -46,8 +48,8 @@ export default function ForexLedgerPage() {
   const balance = useForexStore((s) => s.balance);
   const [open, setOpen] = useState<ForexLedgerRow | null>(null);
   const [typeFilter, setTypeFilter] = useState('ALL');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const [range, setRange] = useState<HistoryRange>(ALL_HISTORY_RANGE);
+  const bounds = useMemo(() => boundsForRange(range), [range]);
   const currency = account?.currency ?? balance?.currency ?? reconciliation?.currency ?? 'USD';
   const unavailable = tu('unavailable');
 
@@ -57,18 +59,11 @@ export default function ForexLedgerPage() {
   }, [ledger]);
 
   const rows = useMemo(() => {
-    const fromMs = fromDate ? Date.parse(`${fromDate}T00:00:00.000Z`) : NaN;
-    const toMs = toDate ? Date.parse(`${toDate}T23:59:59.999Z`) : NaN;
     return [...ledger]
       .filter((row) => (typeFilter === 'ALL' ? true : row.type === typeFilter))
-      .filter((row) => {
-        const ms = Date.parse(row.timestamp);
-        if (Number.isFinite(fromMs) && ms < fromMs) return false;
-        if (Number.isFinite(toMs) && ms > toMs) return false;
-        return true;
-      })
+      .filter((row) => timestampInBounds(row.timestamp, bounds))
       .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
-  }, [ledger, typeFilter, fromDate, toDate]);
+  }, [bounds, ledger, typeFilter]);
 
   const refShort = (row: ForexLedgerRow) =>
     refField(row.reference, 'fillId') ??
@@ -113,29 +108,12 @@ export default function ForexLedgerPage() {
                   ))}
                 </select>
               </label>
-              <label className="flex flex-col gap-1">
-                <span className="text-muted-foreground">{tl('filterFrom')}</span>
-                <input
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  className="h-8 rounded border border-border bg-background px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
-              </label>
-              <label className="flex flex-col gap-1">
-                <span className="text-muted-foreground">{tl('filterTo')}</span>
-                <input
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  className="h-8 rounded border border-border bg-background px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
-              </label>
+              <ForexHistoryRange value={range} onChange={setRange} />
             </div>
           </ForexPortalModuleCard>
 
           {rows.length === 0 ? (
-            <p className="eda-card p-4 text-sm text-muted-foreground">{tl('empty')}</p>
+            <p className="eda-card p-4 text-sm text-muted-foreground">{ledger.length > 0 ? tf('dateRange.empty') : tl('empty')}</p>
           ) : (
             <>
             <ul className="space-y-2 md:hidden">

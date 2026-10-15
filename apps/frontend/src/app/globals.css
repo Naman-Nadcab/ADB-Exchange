@@ -1498,6 +1498,17 @@ input[type="number"] {
   outline: 1px solid hsl(var(--primary));
   outline-offset: 0;
 }
+.fx-dock-date {
+  height: 22px;
+  width: 8.25rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 2px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  padding: 0 4px;
+  font-size: 11px;
+  color-scheme: dark;
+}
 .fx-dock-export {
   height: 22px;
   border: 1px solid transparent;
@@ -1512,7 +1523,8 @@ input[type="number"] {
 }
 @media (max-width: 767px) {
   .fx-dock-select,
-  .fx-dock-export {
+  .fx-dock-export,
+  .fx-dock-date {
     height: 44px;
   }
   .fx-dock-select {

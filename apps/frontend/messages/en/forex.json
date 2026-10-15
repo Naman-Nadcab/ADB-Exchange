@@ -18,6 +18,18 @@
     "mobileNavAria": "Forex mobile",
     "pagesMenu": "Pages"
   },
+  "dateRange": {
+    "presetAria": "Date range",
+    "from": "From",
+    "to": "To",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "week": "This week",
+    "month": "This month",
+    "custom": "Custom",
+    "all": "All",
+    "empty": "Nothing in this date range."
+  },
   "portalNav": {
     "portal": "Portal",
     "sectionsAria": "Forex portal sections",

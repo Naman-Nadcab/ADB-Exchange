@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { CircleDollarSign, Landmark, Wallet } from 'lucide-react';
 import { ForexFundsSubNav } from '@/components/forex/ForexFundsSubNav';
+import { ForexHistoryRange } from '@/components/forex/ForexHistoryRange';
 import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
@@ -13,6 +14,7 @@ import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { forexApi } from '@/lib/forex/api/client';
 import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
+import { ALL_HISTORY_RANGE, boundsForRange, timestampInBounds, type HistoryRange } from '@/lib/forex/models/history-analytics';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useForexProductGates } from '@/lib/forex/hooks/useForexProductGates';
 import { hydrateForexPrivate } from '@/lib/forex/runtime/hydrate';
@@ -32,6 +34,11 @@ export default function ForexFundsPage() {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [range, setRange] = useState<HistoryRange>(ALL_HISTORY_RANGE);
+  const activity = useMemo(
+    () => funding.filter((row) => timestampInBounds(row.timestamp, boundsForRange(range))),
+    [funding, range]
+  );
 
   const { gates } = useForexProductGates();
   const railsOn = gates.realFundingEnabled || gates.withdrawalEnabled;
@@ -200,8 +207,11 @@ export default function ForexFundsPage() {
 
       {authed ? (
         <ForexPortalModuleCard title={t('activityHeading')}>
-          {funding.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t('activityEmpty')}</p>
+          <div className="mb-3">
+            <ForexHistoryRange value={range} onChange={setRange} />
+          </div>
+          {activity.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{funding.length > 0 ? tf('dateRange.empty') : t('activityEmpty')}</p>
           ) : (
             <div className="eda-table-wrap -mx-1">
               <table className="eda-table font-mono text-[12px]">
@@ -215,7 +225,7 @@ export default function ForexFundsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {funding.map((row) => (
+                  {activity.map((row) => (
                     <tr key={row.transactionId}>
                       <td>{fxPlain(row.timestamp)}</td>
                       <td>{forexEnumLabel(te, row.type)}</td>
