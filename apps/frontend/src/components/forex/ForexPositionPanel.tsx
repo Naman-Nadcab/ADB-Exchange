@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForexSession } from '@/lib/forex/runtime/useForexSession';
+import { postedSwapByPosition } from '@/lib/forex/models/history-analytics';
 import { formatMarginLevel, formatPositionAge, livePositionValuation } from '@/lib/forex/models/live-valuation';
 import {
   activeProtectionsFor,
@@ -48,6 +49,7 @@ export function ForexPositionPanel() {
   const quotes = useForexStore((s) => s.quotes);
   const fees = useForexStore((s) => s.fees);
   const swaps = useForexStore((s) => s.swaps);
+  const ledger = useForexStore((s) => s.ledger);
   const account = useForexStore((s) => s.account);
   const margin = useForexStore((s) => s.margin);
   const actions = useForexPositionActions();
@@ -57,6 +59,35 @@ export function ForexPositionPanel() {
   const chartFocusPositionId = useForexWorkspaceStore((s) => s.chartFocusPositionId);
   const setChartFocusPositionId = useForexWorkspaceStore((s) => s.setChartFocusPositionId);
   const [menu, setMenu] = useState<{ x: number; y: number; positionId: string } | null>(null);
+  const [menuBox, setMenuBox] = useState<{ x: number; y: number } | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!menu) {
+      setMenuBox(null);
+      return;
+    }
+    const el = menuRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const pad = 8;
+    setMenuBox({
+      x: Math.max(pad, Math.min(menu.x, window.innerWidth - rect.width - pad)),
+      y: Math.max(pad, Math.min(menu.y, window.innerHeight - rect.height - pad)),
+    });
+    const close = (e: PointerEvent) => {
+      if (menuRef.current?.contains(e.target as Node)) return;
+      setMenu(null);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenu(null);
+    };
+    window.addEventListener('pointerdown', close);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('pointerdown', close);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [menu]);
   const [trailDraft, setTrailDraft] = useState<Record<string, string>>({});
 
   const openRows = useMemo(
@@ -80,6 +111,7 @@ export function ForexPositionPanel() {
   const [draft, setDraft] = useState<Record<string, { sl: string; tp: string }>>({});
   const accountMode = account?.positionMode ?? 'HEDGING';
   const hedging = accountMode === 'HEDGING';
+  const postedSwap = useMemo(() => postedSwapByPosition(ledger), [ledger]);
   const floatingTotal = useMemo(() => {
     let sum = 0;
     let any = false;
@@ -171,8 +203,7 @@ export function ForexPositionPanel() {
                           position: p,
                           quote: quotes[p.symbol],
                           instrument: instruments[p.symbol],
-                          accountCommission: openRows.length === 1 ? fees?.total ?? undefined : undefined,
-                          accountSwap: openRows.length === 1 ? swaps?.total ?? undefined : undefined,
+                          accountSwap: postedSwap[p.positionId] != null ? postedSwap[p.positionId].toFixed(2) : '0.00',
                         })}
                         serverPnl={positionUnrealizedPnl(pnl, p)}
                         prot={activeProtectionsFor(protections, p.positionId)}
@@ -230,6 +261,7 @@ export function ForexPositionPanel() {
                       position: p,
                       quote: quotes[p.symbol],
                       instrument: instruments[p.symbol],
+                      accountSwap: postedSwap[p.positionId] != null ? postedSwap[p.positionId].toFixed(2) : '0.00',
                     })}
                     serverPnl={positionUnrealizedPnl(pnl, p)}
                     prot={activeProtectionsFor(protections, p.positionId)}
@@ -281,8 +313,9 @@ export function ForexPositionPanel() {
       )}
       {menu ? (
         <div
+          ref={menuRef}
           className="fixed z-50 min-w-[170px] border border-border bg-card py-1 text-[11px] shadow-lg"
-          style={{ left: menu.x, top: menu.y }}
+          style={{ left: menuBox?.x ?? menu.x, top: menuBox?.y ?? menu.y }}
           role="menu"
         >
           {(() => {

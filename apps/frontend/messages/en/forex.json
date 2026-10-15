@@ -468,6 +468,8 @@
       "colSl": "S/L",
       "colTp": "T/P",
       "colSwap": "Swap",
+      "colCommission": "Commission",
+      "colTaxes": "Taxes",
       "colProfit": "Profit",
       "colCondition": "Condition",
       "colCount": "Count",
@@ -490,7 +492,10 @@
       "noMessages": "No messages",
       "noAlerts": "No alerts",
       "balanceType": "balance",
-      "manageAlerts": "Manage"
+      "manageAlerts": "Manage",
+      "alertEnable": "On",
+      "alertDisable": "Off",
+      "alertDelete": "Delete"
     }
   },
   "sides": {

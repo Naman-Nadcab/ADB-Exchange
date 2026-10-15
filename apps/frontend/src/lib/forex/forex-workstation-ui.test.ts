@@ -117,6 +117,13 @@ function testP0Surfaces(): void {
   assert(!history.includes('<PeriodBar'), 'history does not spend a row on period chips');
   assert(bottom.includes("id: 'analytics'"), 'risk analytics tab');
   assert(bottom.includes("id: 'alerts'"), 'alerts tab');
+  assert(bottom.includes('postedFeeByFill'), 'history commission comes from posted fees');
+  assert(bottom.includes('alertEvents'), 'mailbox reads alert events');
+  assert(bottom.includes('removeLocal'), 'terminal alerts can delete a chart alert');
+  const panel = bottom.slice(bottom.indexOf('role="tabpanel"'), bottom.indexOf('fx-dock-tabs'));
+  const newsAt = panel.indexOf("tab === 'news'");
+  const authAt = panel.indexOf('!authed');
+  assert(newsAt >= 0 && authAt > newsAt, 'news and calendar open without a sign-in wall');
 }
 
 function testPendingCancelSurfaces(): void {
@@ -130,7 +137,7 @@ function testPendingCancelSurfaces(): void {
   const ordersPage = readFileSync(join(__dirname, '../../app/forex/orders/page.tsx'), 'utf8');
   assert(ordersPage.includes('Cancel'), 'Orders page Cancel');
   assert(ordersPage.includes('useForexOrderEngine'), 'Orders page uses order engine');
-  assert(ordersPage.includes('Modify'), 'Orders page Modify');
+  assert(ordersPage.includes("to('modify')"), 'Orders page Modify');
 }
 
 testLeftStackKeepsHeight();

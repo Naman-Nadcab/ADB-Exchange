@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
 import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
 import { describeForexError } from '@/lib/forex/models/errors';
-import type { ForexLedgerReconciliation, ForexLedgerRow, ForexPublicOrder, ForexServerJournalEvent } from '@/lib/forex/models/types';
+import type { ForexLedgerReconciliation, ForexLedgerRow, ForexPublicOrder, ForexPublicPosition, ForexPublicProtection, ForexServerJournalEvent } from '@/lib/forex/models/types';
 import { useForexOrderEngine } from '@/lib/forex/runtime/useForexOrderEngine';
 import { useForexStore } from '@/lib/forex/state/store';
 import { type ForexBottomTab, useForexWorkspaceStore } from '@/lib/forex/state/workspace';
@@ -19,6 +19,8 @@ import {
   historyBalanceEntries,
   ledgerCashDrawdown,
   periodBounds,
+  postedFeeByFill,
+  postedSwapByPosition,
   type HistoryPeriod,
 } from '@/lib/forex/models/history-analytics';
 import { buildForexJournal } from '@/lib/forex/models/journal';
@@ -239,6 +241,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
 
   const histBounds = useMemo(() => periodBounds(histPeriod), [histPeriod]);
   const closedTrades = useMemo(() => closedTradesFromLedger(ledger, histBounds), [ledger, histBounds]);
+  const feeByFill = useMemo(() => postedFeeByFill(ledger), [ledger]);
   const perf = useMemo(() => computePerformance(closedTrades, {
     commission: fees?.total != null ? Number(fees.total) : undefined,
     swap: swaps?.total != null ? Number(swaps.total) : undefined,
@@ -274,7 +277,17 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
     >
       {!compact ? (
         <div className="min-h-0 flex-1 overflow-auto" role="tabpanel">
-          {tab === 'positions' || tab === 'orders' ? (
+          {tab === 'news' ? (
+            <NewsPanel status={newsState.status} reason={newsState.reason} items={newsState.items} />
+          ) : tab === 'calendar' ? (
+            <CalendarPanel status={calState.status} reason={calState.reason} events={calState.events} />
+          ) : tab === 'journal' ? (
+            <JournalPanel
+              server={journalState}
+              client={journal}
+              onRefresh={() => setJournalNonce((n) => n + 1)}
+            />
+          ) : tab === 'positions' || tab === 'orders' ? (
             <div>
               <ForexPositionPanel />
               {authed && workingOrders.length > 0 ? (
@@ -357,7 +370,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
                       <td className={cn('px-2 py-1', f.side === 'buy' ? 'text-buy' : 'text-sell')}>{f.side}</td>
                       <td className="px-2 py-1">{fxPlain(f.volume)}</td>
                       <td className="px-2 py-1">{fxNum(f.price)}</td>
-                      <td className="px-2 py-1">0</td>
+                      <td className="px-2 py-1">{feeByFill[f.fillId] != null ? fixedNum(feeByFill[f.fillId], 2) : '0.00'}</td>
                       <td className="px-2 py-1">{f.executionId ? tf('chrome.simulated') : '—'}</td>
                       <td className="px-2 py-1">{new Date(f.timestamp).toLocaleString()}</td>
                     </tr>
@@ -374,6 +387,8 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
               bounds={histBounds}
               reconciliation={ledgerReconciliation}
               currency={account?.currency ?? 'USD'}
+              positions={Object.values(positions)}
+              protections={Object.values(protections)}
             />
           ) : tab === 'risk' ? (
             <ExposurePanel
@@ -400,17 +415,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
             </div>
           ) : tab === 'mailbox' ? (
             <MailboxPanel />
-          ) : tab === 'news' ? (
-            <NewsPanel status={newsState.status} reason={newsState.reason} items={newsState.items} />
-          ) : tab === 'calendar' ? (
-            <CalendarPanel status={calState.status} reason={calState.reason} events={calState.events} />
-          ) : (
-            <JournalPanel
-              server={journalState}
-              client={journal}
-              onRefresh={() => setJournalNonce((n) => n + 1)}
-            />
-          )}
+          ) : null}
         </div>
       ) : (
         <p className="sr-only">{tf('bottomPanels.collapsedSr', { tab: TABS.find((t) => t.id === tab)?.label ?? tab })}</p>
@@ -546,7 +551,13 @@ function NewsPanel(props: { status: IntelStatus; reason?: string; items: Array<R
               {mtTime(item.time ?? item.publishedAt ?? item.timestamp)}
             </td>
             <td className="px-2 py-0.5 text-[11px]">
-              {cellText(item.headline ?? item.title) || tf('bottomPanels.headlineUnavailable')}
+              {/^https?:\/\//i.test(cellText(item.url)) ? (
+                <a href={cellText(item.url)} target="_blank" rel="noreferrer" className="hover:underline">
+                  {cellText(item.headline ?? item.title) || tf('bottomPanels.headlineUnavailable')}
+                </a>
+              ) : (
+                cellText(item.headline ?? item.title) || tf('bottomPanels.headlineUnavailable')
+              )}
             </td>
           </tr>
         ))
@@ -597,14 +608,62 @@ function CalendarPanel(props: { status: IntelStatus; reason?: string; events: Ar
 
 function MailboxPanel() {
   const tf = useTranslations('forex');
+  const authed = useForexPrivateSession();
+  const [rows, setRows] = useState<Array<{ id: string; time: string; from: string; headline: string }>>([]);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  useEffect(() => {
+    if (!authed) {
+      setRows([]);
+      setStatus('ready');
+      return;
+    }
+    let cancelled = false;
+    setStatus('loading');
+    void forexApi.alertEvents().then((raw) => {
+      if (cancelled) return;
+      const res = unwrap(raw);
+      if (!res.ok) {
+        setStatus('error');
+        setRows([]);
+        return;
+      }
+      const events = Array.isArray(res.data.events) ? res.data.events : [];
+      setRows(
+        events.map((event) => ({
+          id: String(event.eventId ?? event.createdAt ?? ''),
+          time: mtTime(event.createdAt),
+          from: cellText(event.deliveryChannel) || 'Terminal',
+          headline: cellText(event.message),
+        }))
+      );
+      setStatus('ready');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [authed]);
   const columns = [tf('bottomPanels.mt4.colTime'), tf('bottomPanels.mt4.colFrom'), tf('bottomPanels.mt4.colHeadline')];
   return (
     <DockColumns columns={columns} testId="mailbox-table">
-      <tr>
-        <td colSpan={3} className="px-2 py-6 text-center text-[12px] text-muted-foreground">
-          {tf('bottomPanels.mt4.noMessages')}
-        </td>
-      </tr>
+      {rows.length === 0 ? (
+        <tr>
+          <td colSpan={3} className="px-2 py-6 text-center text-[12px] text-muted-foreground">
+            {status === 'loading' || status === 'idle'
+              ? tf('bottomPanels.loading')
+              : status === 'error'
+                ? tf('bottomPanels.requestFailed')
+                : tf('bottomPanels.mt4.noMessages')}
+          </td>
+        </tr>
+      ) : (
+        rows.map((row) => (
+          <tr key={row.id} className="border-b border-border/70">
+            <td className="whitespace-nowrap px-2 py-0.5 font-mono text-[11px]">{row.time}</td>
+            <td className="px-2 py-0.5 text-[11px]">{row.from}</td>
+            <td className="px-2 py-0.5 text-[11px]">{row.headline}</td>
+          </tr>
+        ))
+      )}
     </DockColumns>
   );
 }
@@ -940,6 +999,15 @@ function historySide(side: string | undefined): string {
   return '';
 }
 
+function historyProtectionPrice(protections: ForexPublicProtection[], positionId: string | undefined, type: 'STOP_LOSS' | 'TAKE_PROFIT'): string {
+  if (!positionId) return '';
+  const rank = (status: string) => (status === 'FILLED' ? 3 : status === 'TRIGGERED' || status === 'EXECUTING' ? 2 : status === 'ACTIVE' ? 1 : 0);
+  const hit = protections
+    .filter((p) => p.positionId === positionId && p.type === type)
+    .sort((a, b) => rank(b.status) - rank(a.status))[0];
+  return hit?.triggerPrice ?? '';
+}
+
 function HistoryPanel(props: {
   period: HistoryPeriod;
   onPeriod: (p: HistoryPeriod) => void;
@@ -948,24 +1016,34 @@ function HistoryPanel(props: {
   bounds: { from: number; to: number };
   reconciliation: ForexLedgerReconciliation | null;
   currency: string;
+  positions: ForexPublicPosition[];
+  protections: ForexPublicProtection[];
 }) {
   const tf = useTranslations('forex');
   const mk = (key: string) => tf(`bottomPanels.mt4.${key}`);
   const [exportBusy, setExportBusy] = useState<string | null>(null);
   const exportKindKey = { orders: 'exportKindOrders', fills: 'exportKindFills', ledger: 'exportKindLedger' } as const;
   const balance = historyBalanceEntries(props.ledger, props.bounds);
+  const swaps = postedSwapByPosition(props.ledger);
+  const fees = postedFeeByFill(props.ledger);
+  const openedAt = new Map(props.positions.map((p) => [p.positionId, p.openedAt]));
   const rows = [
     ...props.trades.map((trade) => ({
       id: trade.ticket,
       sort: Date.parse(trade.timestamp) || 0,
       order: trade.ticket.length > 10 ? trade.ticket.slice(0, 8) : trade.ticket,
-      openTime: '',
+      openTime: mtTime(trade.positionId ? openedAt.get(trade.positionId) : ''),
       type: historySide(trade.side),
       size: trade.volume ? priceCell(trade.volume, 2) : '',
       symbol: trade.symbol,
       openPrice: priceCell(trade.openPrice),
+      sl: historyProtectionPrice(props.protections, trade.positionId, 'STOP_LOSS'),
+      tp: historyProtectionPrice(props.protections, trade.positionId, 'TAKE_PROFIT'),
       closeTime: mtTime(trade.timestamp),
       closePrice: priceCell(trade.closePrice),
+      commission: trade.fillId && fees[trade.fillId] != null ? fixedNum(fees[trade.fillId], 2) : '0.00',
+      taxes: '0.00',
+      swap: trade.positionId && swaps[trade.positionId] != null ? fixedNum(swaps[trade.positionId], 2) : '0.00',
       profit: trade.gross,
     })),
     ...balance.map((entry) => ({
@@ -977,8 +1055,13 @@ function HistoryPanel(props: {
       size: '',
       symbol: '',
       openPrice: '',
+      sl: '',
+      tp: '',
       closeTime: '',
       closePrice: '',
+      commission: '',
+      taxes: '',
+      swap: '',
       profit: entry.amount,
     })),
   ].sort((a, b) => b.sort - a.sort);
@@ -1003,6 +1086,8 @@ function HistoryPanel(props: {
     mk('colTp'),
     mk('colTime'),
     mk('colPrice'),
+    mk('colCommission'),
+    mk('colTaxes'),
     mk('colSwap'),
     mk('colProfit'),
   ];
@@ -1068,7 +1153,7 @@ function HistoryPanel(props: {
       >
         {rows.length === 0 ? (
           <tr>
-            <td colSpan={12} className="px-2 py-2 text-[11px] text-muted-foreground">
+            <td colSpan={14} className="px-2 py-2 text-[11px] text-muted-foreground">
               {tf('bottomPanels.history.noPnl')}
             </td>
           </tr>
@@ -1085,11 +1170,13 @@ function HistoryPanel(props: {
               <td className="px-2 py-0.5">{row.size}</td>
               <td className="px-2 py-0.5">{row.symbol}</td>
               <td className="px-2 py-0.5">{row.openPrice}</td>
-              <td className="px-2 py-0.5" />
-              <td className="px-2 py-0.5" />
+              <td className="px-2 py-0.5">{row.sl ? priceCell(row.sl) : ''}</td>
+              <td className="px-2 py-0.5">{row.tp ? priceCell(row.tp) : ''}</td>
               <td className="whitespace-nowrap px-2 py-0.5">{row.closeTime}</td>
               <td className="px-2 py-0.5">{row.closePrice}</td>
-              <td className="px-2 py-0.5" />
+              <td className="px-2 py-0.5">{row.commission}</td>
+              <td className="px-2 py-0.5">{row.taxes}</td>
+              <td className="px-2 py-0.5">{row.swap}</td>
               <td className={cn('px-2 py-0.5', row.profit > 0 ? 'text-buy' : row.profit < 0 ? 'text-sell' : '')}>{fixedNum(row.profit, 2)}</td>
             </tr>
           ))
@@ -1255,7 +1342,11 @@ function AlertsPanel() {
   const authed = useForexPrivateSession();
   const [localAlerts, setLocalAlerts] = useState<Array<{ id: string; symbol: string; side: 'above' | 'below'; price: string }>>([]);
   const [serverAlerts, setServerAlerts] = useState<ForexServerAlertRow[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const [latestEvent, setLatestEvent] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
     try {
@@ -1269,6 +1360,8 @@ function AlertsPanel() {
   useEffect(() => {
     if (!authed) {
       setServerAlerts([]);
+      setCounts({});
+      setLatestEvent({});
       return;
     }
     let cancelled = false;
@@ -1284,27 +1377,84 @@ function AlertsPanel() {
       const alerts = (res.data as { alerts?: ForexServerAlertRow[] }).alerts ?? [];
       setServerAlerts(Array.isArray(alerts) ? alerts : []);
     });
+    void forexApi.alertEvents().then((raw) => {
+      if (cancelled) return;
+      const res = unwrap(raw);
+      if (!res.ok) return;
+      const nextCounts: Record<string, number> = {};
+      const nextLatest: Record<string, string> = {};
+      for (const event of res.data.events ?? []) {
+        const id = String(event.alertId ?? '');
+        if (!id) continue;
+        nextCounts[id] = (nextCounts[id] ?? 0) + 1;
+        if (!nextLatest[id]) nextLatest[id] = cellText(event.message) || mtTime(event.createdAt);
+      }
+      setCounts(nextCounts);
+      setLatestEvent(nextLatest);
+    });
     return () => {
       cancelled = true;
     };
-  }, [authed]);
+  }, [authed, reload]);
 
-  const columns = [mk('colSymbol'), mk('colCondition'), mk('colCount'), mk('colLimit'), mk('colTimeout'), mk('colExpiration'), mk('colEvent')];
+  async function toggleAlert(alert: ForexServerAlertRow) {
+    setBusyId(alert.alertId);
+    const res = unwrap(await forexApi.patchAlert(alert.alertId, { enabled: !alert.enabled }));
+    setBusyId(null);
+    if (!res.ok) {
+      setServerError(res.error.message);
+      return;
+    }
+    setReload((n) => n + 1);
+  }
+
+  async function removeAlert(alertId: string) {
+    setBusyId(alertId);
+    const res = unwrap(await forexApi.deleteAlert(alertId));
+    setBusyId(null);
+    if (!res.ok) {
+      setServerError(res.error.message);
+      return;
+    }
+    setReload((n) => n + 1);
+  }
+
+  function removeLocal(id: string) {
+    setLocalAlerts((cur) => {
+      const next = cur.filter((alert) => alert.id !== id);
+      try {
+        localStorage.setItem('eda-forex-local-alerts-v1', JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }
+
+  const columns = [mk('colSymbol'), mk('colCondition'), mk('colCount'), mk('colLimit'), mk('colTimeout'), mk('colExpiration'), mk('colEvent'), ''];
   const localRows = localAlerts.map((alert) => ({
     id: `local-${alert.id}`,
+    localId: alert.id,
     symbol: alert.symbol,
     condition: `Bid ${alert.side === 'below' ? '<' : '>'} ${alert.price}`,
+    count: '',
+    limit: '',
     timeout: '',
     expiration: '',
     event: '',
+    server: null as ForexServerAlertRow | null,
   }));
   const serverRows = serverAlerts.map((alert) => ({
     id: alert.alertId,
     symbol: alert.symbol ?? '',
     condition: alertConditionLabel(alert),
+    count: String(counts[alert.alertId] ?? 0),
+    limit: cellText(alert.condition?.limit ?? alert.condition?.maxCount),
     timeout: Number.isFinite(alert.cooldownSeconds) ? String(alert.cooldownSeconds) : '',
     expiration: cellText(alert.condition?.expiration ?? alert.condition?.expiresAt),
-    event: cellText(alert.condition?.event),
+    event: latestEvent[alert.alertId] || mtTime(alert.lastTriggeredAt) || '',
+    localId: '',
+    server: alert,
   }));
   const rows = [...serverRows, ...localRows];
 
@@ -1318,7 +1468,7 @@ function AlertsPanel() {
       <DockColumns columns={columns}>
         {rows.length === 0 ? (
           <tr>
-            <td colSpan={7} className="px-2 py-2 text-[11px] text-muted-foreground">
+            <td colSpan={8} className="px-2 py-2 text-[11px] text-muted-foreground">
               {serverError ?? mk('noAlerts')}
             </td>
           </tr>
@@ -1327,11 +1477,41 @@ function AlertsPanel() {
             <tr key={row.id} className="border-b border-border/70 font-mono text-[11px]">
               <td className="px-2 py-0.5">{row.symbol}</td>
               <td className="px-2 py-0.5">{row.condition}</td>
-              <td className="px-2 py-0.5" />
-              <td className="px-2 py-0.5" />
+              <td className="px-2 py-0.5">{row.count}</td>
+              <td className="px-2 py-0.5">{row.limit}</td>
               <td className="px-2 py-0.5">{row.timeout}</td>
               <td className="px-2 py-0.5">{row.expiration}</td>
               <td className="px-2 py-0.5">{row.event}</td>
+              <td className="px-2 py-0.5 whitespace-nowrap">
+                {row.server ? (
+                  <span className="inline-flex gap-1">
+                    <button
+                      type="button"
+                      disabled={busyId === row.server.alertId}
+                      className="rounded border border-border px-1.5 py-0.5 text-[10px] disabled:opacity-50"
+                      onClick={() => void toggleAlert(row.server!)}
+                    >
+                      {row.server.enabled ? mk('alertDisable') : mk('alertEnable')}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busyId === row.server.alertId}
+                      className="rounded border border-border px-1.5 py-0.5 text-[10px] text-sell disabled:opacity-50"
+                      onClick={() => void removeAlert(row.server!.alertId)}
+                    >
+                      {mk('alertDelete')}
+                    </button>
+                  </span>
+                ) : row.localId ? (
+                  <button
+                    type="button"
+                    className="rounded border border-border px-1.5 py-0.5 text-[10px] text-sell"
+                    onClick={() => removeLocal(row.localId)}
+                  >
+                    {mk('alertDelete')}
+                  </button>
+                ) : null}
+              </td>
             </tr>
           ))
         )}

@@ -468,6 +468,8 @@
       "colSl": "止损",
       "colTp": "止盈",
       "colSwap": "库存费",
+      "colCommission": "佣金",
+      "colTaxes": "税",
       "colProfit": "获利",
       "colCondition": "条件",
       "colCount": "计数",
@@ -490,7 +492,10 @@
       "noMessages": "无消息",
       "noAlerts": "无提醒",
       "balanceType": "结余",
-      "manageAlerts": "管理"
+      "manageAlerts": "管理",
+      "alertEnable": "开",
+      "alertDisable": "关",
+      "alertDelete": "删除"
     }
   },
   "sides": {

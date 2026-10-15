@@ -468,6 +468,8 @@
       "colSl": "S/L",
       "colTp": "T/P",
       "colSwap": "Swap",
+      "colCommission": "Komisi",
+      "colTaxes": "Pajak",
       "colProfit": "Profit",
       "colCondition": "Kondisi",
       "colCount": "Hitung",
@@ -490,7 +492,10 @@
       "noMessages": "Tidak ada pesan",
       "noAlerts": "Tidak ada alert",
       "balanceType": "balance",
-      "manageAlerts": "Kelola"
+      "manageAlerts": "Kelola",
+      "alertEnable": "On",
+      "alertDisable": "Off",
+      "alertDelete": "Hapus"
     }
   },
   "sides": {

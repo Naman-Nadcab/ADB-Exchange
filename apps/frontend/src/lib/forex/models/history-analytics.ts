@@ -95,6 +95,36 @@ function refStr(row: ForexLedgerRow, key: string): string | undefined {
   return v == null ? undefined : String(v);
 }
 
+function ledgerRef(row: ForexLedgerRow): Record<string, unknown> | null {
+  return row.reference && typeof row.reference === 'object' ? (row.reference as Record<string, unknown>) : null;
+}
+
+/** Posted swap cash by position. Swap ledger rows are FUNDING with a position id. */
+export function postedSwapByPosition(ledger: ForexLedgerRow[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const row of ledger) {
+    if (String(row.type).toUpperCase() !== 'FUNDING') continue;
+    const positionId = ledgerRef(row)?.positionId;
+    if (positionId == null || positionId === '') continue;
+    const id = String(positionId);
+    out[id] = (out[id] ?? 0) + num(row.net);
+  }
+  return out;
+}
+
+/** Posted commission cash by fill. Fee rows carry the fill id and a negative customer net. */
+export function postedFeeByFill(ledger: ForexLedgerRow[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const row of ledger) {
+    if (String(row.type).toUpperCase() !== 'FEE') continue;
+    const fillId = ledgerRef(row)?.fillId;
+    if (fillId == null || fillId === '') continue;
+    const id = String(fillId);
+    out[id] = (out[id] ?? 0) + num(row.net);
+  }
+  return out;
+}
+
 export function closedTradesFromLedger(ledger: ForexLedgerRow[], bounds?: { from: number; to: number }): ClosedTradeStat[] {
   const rows = ledger.filter((r) => String(r.type).toUpperCase() === 'REALIZED_PNL');
   return rows
