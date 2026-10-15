@@ -57,7 +57,6 @@ export function ForexPositionPanel() {
   const actions = useForexPositionActions();
   const selectedSymbol = useForexWorkspaceStore((s) => s.selectedSymbol);
   const focusSymbol = useForexWorkspaceStore((s) => s.focusSymbol);
-  const setBottomTab = useForexWorkspaceStore((s) => s.setBottomTab);
   const chartFocusPositionId = useForexWorkspaceStore((s) => s.chartFocusPositionId);
   const setChartFocusPositionId = useForexWorkspaceStore((s) => s.setChartFocusPositionId);
   const [menu, setMenu] = useState<{ x: number; y: number; positionId: string } | null>(null);
@@ -154,6 +153,13 @@ export function ForexPositionPanel() {
     setStripAbove(false);
     setCloseBy({ position: p, oppositeId });
   }
+  function closeFull(p: ForexPublicPosition) {
+    setConfirm(null);
+    setModify(null);
+    setReverseConfirm(null);
+    setCloseBy(null);
+    void actions.closePosition(p, p.volume);
+  }
   const [draft, setDraft] = useState<Record<string, { sl: string; tp: string }>>({});
   const accountMode = account?.positionMode ?? 'HEDGING';
   const hedging = accountMode === 'HEDGING';
@@ -186,7 +192,7 @@ export function ForexPositionPanel() {
   const actionStrip = (id: string) => {
     if (activeId !== id) return null;
     return (
-      <div data-trade-strip className="w-full">
+      <div data-trade-strip className="w-0 min-w-full overflow-x-auto">
         {modify?.positionId === id ? (
           <ModifyConfirm
             position={modify}
@@ -358,7 +364,7 @@ export function ForexPositionPanel() {
                         trail={trailDraft[p.positionId] ?? ''}
                         onTrail={(v) => setTrailDraft((s) => ({ ...s, [p.positionId]: v }))}
                         onDraft={(next) => setDraft((s) => ({ ...s, [p.positionId]: next }))}
-                        onClose={(vol) => showClose(p, vol)}
+                        onClose={() => closeFull(p)}
                         onContext={(e) => {
                           e.preventDefault();
                           setMenu({ x: e.clientX, y: e.clientY, positionId: p.positionId });
@@ -427,7 +433,7 @@ export function ForexPositionPanel() {
                     trail={trailDraft[p.positionId] ?? ''}
                     onTrail={(v) => setTrailDraft((s) => ({ ...s, [p.positionId]: v }))}
                     onDraft={(next) => setDraft((s) => ({ ...s, [p.positionId]: next }))}
-                    onClose={(vol) => showClose(p, vol)}
+                    onClose={() => closeFull(p)}
                     onContext={(e) => {
                       e.preventDefault();
                       setMenu({ x: e.clientX, y: e.clientY, positionId: p.positionId });
@@ -488,17 +494,17 @@ export function ForexPositionPanel() {
                 <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { showModify(p); setMenu(null); }}>
                   {tp('menuModify')}
                 </button>
-                <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { showClose(p, p.volume); setMenu(null); }}>
+                <button type="button" className="block w-full px-3 py-1 text-left text-sell hover:bg-sell/10" onClick={() => { showClose(p, p.volume); setMenu(null); }}>
                   {tp('menuClose')}
                 </button>
-                <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { showClose(p, fractionCloseVolume(p.volume, 0.5) ?? p.volume); setMenu(null); }}>
+                <button type="button" className="block w-full px-3 py-1 text-left text-sell hover:bg-sell/10" onClick={() => { showClose(p, fractionCloseVolume(p.volume, 0.5) ?? p.volume); setMenu(null); }}>
                   {tp('menuPartial50')}
                 </button>
                 {hedging ? (
                   opposites.length > 0 ? (
                     <button
                       type="button"
-                      className="block w-full px-3 py-1 text-left hover:bg-muted"
+                      className="block w-full px-3 py-1 text-left text-sell hover:bg-sell/10"
                       onClick={() => {
                         showCloseBy(p, opposites[0]!.positionId);
                         setMenu(null);
@@ -514,22 +520,13 @@ export function ForexPositionPanel() {
                 ) : null}
                 <button
                   type="button"
-                  className="block w-full px-3 py-1 text-left hover:bg-muted"
+                  className="block w-full px-3 py-1 text-left text-warning hover:bg-warning/10"
                   onClick={() => {
                     showReverse(p);
                     setMenu(null);
                   }}
                 >
                   {tp('menuReverse')}
-                </button>
-                <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { focusSymbol(p.symbol); setMenu(null); }}>
-                  {tp('menuViewChart')}
-                </button>
-                <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { setBottomTab('history'); setMenu(null); }}>
-                  {tp('menuHistory')}
-                </button>
-                <button type="button" className="block w-full px-3 py-1 text-left text-muted-foreground" onClick={() => setMenu(null)}>
-                  {tp('dismiss')}
                 </button>
               </>
             );
@@ -659,7 +656,12 @@ function TicketLevel(props: {
 function PnlCell({ pnl }: { pnl: ReturnType<typeof positionUnrealizedPnl> }) {
   const tp = useTranslations('forex.positionPanel');
   if (!pnl.available) return <span className="text-muted-foreground">{tp('pnlUnavailable')}</span>;
-  return <span>{fxNum(pnl.value, 2)}{pnl.currency ? ` ${pnl.currency}` : ''}</span>;
+  const signed = fxSigned(pnl.value);
+  return (
+    <span className={signed.tone === 'pos' ? 'text-buy' : signed.tone === 'neg' ? 'text-sell' : ''}>
+      {signed.text}{pnl.currency ? ` ${pnl.currency}` : ''}
+    </span>
+  );
 }
 
 function FloatCell(props: {
@@ -776,8 +778,9 @@ function PositionRow(props: {
           disabled={props.closing}
           onClick={() => props.onClose(p.volume)}
           onDoubleClick={(e) => e.stopPropagation()}
-          aria-label={tp('close')}
-          className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-[14px] leading-none text-muted-foreground hover:bg-sell/15 hover:text-sell disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label={tp('closePct100')}
+          title={tp('closePct100')}
+          className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-[14px] font-semibold leading-none text-sell hover:bg-sell/15 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {props.closing ? '…' : '×'}
         </button>
@@ -797,7 +800,7 @@ function PositionCard(props: Parameters<typeof PositionRow>[0]) {
     <article ref={props.rowRef} className="rounded border border-border bg-card p-3" onContextMenu={props.onContext}>
       <div className="mb-2 flex items-center justify-between">
         <div className="font-mono text-[13px]">
-          {props.symbolLabel} <span className="text-muted-foreground">{sideLabel}</span> {p.volume}
+          {props.symbolLabel} <span className={p.side === 'long' ? 'text-buy' : 'text-sell'}>{sideLabel}</span> {p.volume}
         </div>
         <span className="text-[10px] uppercase text-muted-foreground">{ui} · {formatPositionAge(live.ageMs)}</span>
       </div>
@@ -850,7 +853,7 @@ function PositionCard(props: Parameters<typeof PositionRow>[0]) {
         type="button"
         disabled={props.closing}
         onClick={() => props.onClose(p.volume)}
-        className="mt-3 h-10 w-full rounded border border-border text-[12px] uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-3 h-10 w-full rounded bg-sell text-[12px] font-semibold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
         {props.closing ? tp('closing') : tp('closeVolume', { volume: p.volume, symbol: p.symbol })}
       </button>
@@ -910,6 +913,14 @@ function ProtectionCell(props: {
   );
 }
 
+const tradeStripRow = 'flex h-8 w-max min-w-full items-center gap-1.5 whitespace-nowrap border-y px-2 text-[11px]';
+const stripCancel = 'h-6 shrink-0 rounded border border-border px-2 text-[11px] hover:bg-muted';
+const stripInput = 'h-6 rounded border bg-background px-1.5 font-mono text-[11px] normal-case';
+
+function sideTone(buy: boolean): string {
+  return buy ? 'font-semibold text-buy' : 'font-semibold text-sell';
+}
+
 function ModifyConfirm(props: {
   position: ForexPublicPosition;
   prot: ReturnType<typeof activeProtectionsFor>;
@@ -928,33 +939,35 @@ function ModifyConfirm(props: {
   const [note, setNote] = useState('');
   const side = p.side === 'long' ? ts('buy') : ts('sell');
   return (
-    <div className="flex w-full min-w-0 flex-wrap items-center gap-x-2 gap-y-1 border-y border-primary/40 bg-muted/30 px-2 py-1 text-[11px]" role="dialog" aria-label={tp('modifyDialogAria')}>
-      <span className="font-mono">{formatForexPair(p.symbol)} {side} {fxNum(p.volume, 2)}</span>
-      <label className="flex items-center gap-1 text-[10px] uppercase text-muted-foreground">
+    <div className={cn(tradeStripRow, 'border-border bg-muted/25')} role="dialog" aria-label={tp('modifyDialogAria')}>
+      <span className="shrink-0 font-mono">{formatForexPair(p.symbol)}</span>
+      <span className={cn('shrink-0', sideTone(p.side === 'long'))}>{side}</span>
+      <span className="shrink-0 font-mono">{fxNum(p.volume, 2)}</span>
+      <label className="flex shrink-0 items-center gap-1 text-[10px] uppercase text-sell">
         {tp('modifySl')}
-        <input value={sl} onChange={(e) => setSl(e.target.value)} inputMode="decimal" className="h-7 w-28 rounded border border-border bg-background px-2 font-mono text-[11px] normal-case" aria-label={tp('slPriceAria', { kind: 'S / L' })} />
+        <input value={sl} onChange={(e) => setSl(e.target.value)} inputMode="decimal" className={cn(stripInput, 'w-24 border-sell/40')} aria-label={tp('slPriceAria', { kind: 'S / L' })} />
       </label>
-      <label className="flex items-center gap-1 text-[10px] uppercase text-muted-foreground">
+      <label className="flex shrink-0 items-center gap-1 text-[10px] uppercase text-buy">
         {tp('modifyTp')}
-        <input value={take} onChange={(e) => setTake(e.target.value)} inputMode="decimal" className="h-7 w-28 rounded border border-border bg-background px-2 font-mono text-[11px] normal-case" aria-label={tp('slPriceAria', { kind: 'T / P' })} />
+        <input value={take} onChange={(e) => setTake(e.target.value)} inputMode="decimal" className={cn(stripInput, 'w-24 border-buy/40')} aria-label={tp('slPriceAria', { kind: 'T / P' })} />
       </label>
-      <label className="flex items-center gap-1 text-[10px] uppercase text-muted-foreground">
+      <label className="flex shrink-0 items-center gap-1 text-[10px] uppercase text-warning">
         {tp('modifyTrail')}
-        <input value={trail} onChange={(e) => setTrail(e.target.value)} inputMode="decimal" placeholder={tp('trailDistPlaceholder')} className="h-7 w-24 rounded border border-border bg-background px-2 font-mono text-[11px] normal-case" aria-label={tp('trailDistAria')} />
+        <input value={trail} onChange={(e) => setTrail(e.target.value)} inputMode="decimal" placeholder={tp('trailDistPlaceholder')} className={cn(stripInput, 'w-20 border-warning/40')} aria-label={tp('trailDistAria')} />
       </label>
-      {note ? <span className="text-sell">{note}</span> : null}
-      <span className="ml-auto flex items-center gap-1">
+      {note ? <span className="shrink-0 text-sell">{note}</span> : null}
+      <span className="ml-auto flex shrink-0 items-center gap-1">
         {props.prot.sl ? (
-          <button type="button" disabled={props.busy} onClick={props.onRemoveSl} className="h-7 rounded border border-border px-2 text-[11px] text-muted-foreground disabled:opacity-40">
+          <button type="button" disabled={props.busy} onClick={props.onRemoveSl} className="h-6 rounded border border-sell/40 px-2 text-[11px] text-sell disabled:opacity-40">
             {tp('modifySl')} {tp('off')}
           </button>
         ) : null}
         {props.prot.tp ? (
-          <button type="button" disabled={props.busy} onClick={props.onRemoveTp} className="h-7 rounded border border-border px-2 text-[11px] text-muted-foreground disabled:opacity-40">
+          <button type="button" disabled={props.busy} onClick={props.onRemoveTp} className="h-6 rounded border border-buy/40 px-2 text-[11px] text-buy disabled:opacity-40">
             {tp('modifyTp')} {tp('off')}
           </button>
         ) : null}
-        <button type="button" onClick={props.onCancel} className="h-7 rounded border border-border px-2 text-[11px]">
+        <button type="button" onClick={props.onCancel} className={stripCancel}>
           {tp('cancel')}
         </button>
         <button
@@ -973,7 +986,7 @@ function ModifyConfirm(props: {
             setNote('');
             void props.onSave(sl, take, trail);
           }}
-          className="h-7 rounded bg-primary px-2 text-[11px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-6 rounded bg-primary px-2 text-[11px] font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
           {props.busy ? tp('submitting') : tp('modifySave')}
         </button>
@@ -1004,53 +1017,53 @@ function CloseConfirm(props: {
     { label: tp('closePct50'), vol: fractionCloseVolume(p.volume, 0.5) },
     { label: tp('closePct100'), vol: fractionCloseVolume(p.volume, 1) },
   ];
-  const pnlText = props.pnl.available
-    ? `${fxNum(props.pnl.value, 2)}${props.pnl.currency ? ` ${props.pnl.currency}` : ''}`
-    : tp('unavailable');
+  const pnlSigned = props.pnl.available ? fxSigned(props.pnl.value) : null;
   return (
-    <div className="flex w-full min-w-0 flex-wrap items-center gap-x-2 gap-y-1 border-y border-primary/40 bg-muted/30 px-2 py-1 text-[11px]" role="dialog" aria-label={tp('closeDialogAria')}>
-      <span className="font-mono">{formatForexPair(p.symbol)} {positionSide} {fxNum(p.volume, 2)}</span>
-      <span className="font-mono text-muted-foreground">
-        {tp('closeCurrent', {
-          ref,
-          price: p.currentPrice ? fxNum(p.currentPrice, props.digits) : tp('unavailable'),
-          side: side.toUpperCase(),
-        })}
+    <div className={cn(tradeStripRow, 'border-sell/40 bg-sell/[0.06]')} role="dialog" aria-label={tp('closeDialogAria')}>
+      <span className="shrink-0 font-mono">{formatForexPair(p.symbol)}</span>
+      <span className={cn('shrink-0', sideTone(p.side === 'long'))}>{positionSide}</span>
+      <span className="shrink-0 font-mono">{fxNum(p.volume, 2)}</span>
+      <span className="shrink-0 font-mono text-muted-foreground">{ref}</span>
+      <span className="shrink-0 font-mono">{p.currentPrice ? fxNum(p.currentPrice, props.digits) : tp('unavailable')}</span>
+      <span className={cn('shrink-0 uppercase', sideTone(side === 'buy'))}>{side}</span>
+      <span className={cn('shrink-0 font-mono font-semibold', pnlSigned?.tone === 'pos' && 'text-buy', pnlSigned?.tone === 'neg' && 'text-sell', !pnlSigned && 'text-muted-foreground')}>
+        {pnlSigned ? pnlSigned.text : tp('unavailable')}
       </span>
-      <span className="font-mono">{tp('closePnl', { pnl: pnlText })}</span>
       {parts.map((x) =>
         x.vol ? (
           <button
             key={x.label}
             type="button"
             onClick={() => props.onVolume(x.vol!)}
-            className={cn('h-7 rounded border px-2 text-[11px]', props.volume === x.vol ? 'border-primary bg-primary/10' : 'border-border')}
+            aria-label={x.label}
+            className={cn('h-6 shrink-0 rounded border px-1.5 text-[11px]', props.volume === x.vol ? 'border-sell bg-sell/15 font-semibold text-sell' : 'border-border text-muted-foreground hover:border-sell/40 hover:text-sell')}
           >
-            {x.label}
+            {x.label.match(/(\d+\s*%)/)?.[1]?.replace(/\s+/g, '') ?? x.label}
           </button>
         ) : null
       )}
-      <label className="flex items-center gap-1 text-[10px] uppercase text-muted-foreground">
+      <label className="flex shrink-0 items-center gap-1 text-[10px] uppercase text-muted-foreground">
         {tp('volumeLabel')}
         <input
           value={props.volume}
           onChange={(e) => props.onVolume(e.target.value)}
-          className="h-7 w-24 rounded border border-border bg-background px-2 font-mono text-[11px] normal-case"
+          aria-label={tp('volumeLabel')}
+          className={cn(stripInput, 'w-[4.75rem] border-border')}
         />
       </label>
-      {!allowed.ok ? <span className="text-sell">{allowed.reason}</span> : null}
-      <span className="ml-auto flex items-center gap-1">
-        <button type="button" onClick={props.onCancel} className="h-7 rounded border border-border px-2 text-[11px]">
+      {!allowed.ok ? <span className="shrink-0 text-sell">{allowed.reason}</span> : null}
+      <span className="ml-auto flex shrink-0 items-center gap-1">
+        <button type="button" onClick={props.onCancel} className={stripCancel}>
           {tp('cancel')}
         </button>
         <button
           type="button"
           disabled={props.busy || !allowed.ok}
-          title={tp('closeDisclaimer')}
+          title={`${tp('closeSubmit', { volume: fxNum(props.volume, 2), symbol: formatForexPair(p.symbol) })}. ${tp('closeDisclaimer')}`}
           onClick={props.onSubmit}
-          className="h-7 rounded bg-primary px-2 text-[11px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-6 rounded bg-sell px-2 text-[11px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {props.busy ? tp('submitting') : tp('closeSubmit', { volume: props.volume, symbol: formatForexPair(p.symbol) })}
+          {props.busy ? tp('submitting') : `${tp('close')} ${fxNum(props.volume, 2)}`}
         </button>
       </span>
     </div>
@@ -1069,16 +1082,19 @@ function ReverseConfirm(props: {
   const p = props.position;
   const currentSide = p.side === 'long' ? ts('buy') : ts('sell');
   const oppositeSide = p.side === 'long' ? ts('sell') : ts('buy');
+  const openingBuy = p.side !== 'long';
   return (
-    <div className="flex w-full min-w-0 flex-wrap items-center gap-x-2 gap-y-1 border-y border-primary/40 bg-muted/30 px-2 py-1 text-[11px]" role="dialog" aria-label={tp('reverseDialogAria')}>
-      <span className="font-mono">{tp('reverseCurrent', { side: currentSide, volume: fxNum(p.volume, 2), symbol: formatForexPair(p.symbol) })}</span>
-      <span className="font-mono text-muted-foreground">
-        {props.mode === 'HEDGING'
-          ? tp('reverseResultHedging', { side: oppositeSide, volume: fxNum(p.volume, 2) })
-          : tp('reverseResultNetting', { side: oppositeSide, volume: fxNum(p.volume, 2) })}
+    <div className={cn(tradeStripRow, 'border-warning/40 bg-warning/10')} role="dialog" aria-label={tp('reverseDialogAria')}>
+      <span className="shrink-0 font-mono">{formatForexPair(p.symbol)}</span>
+      <span className={cn('shrink-0', sideTone(p.side === 'long'))}>{currentSide}</span>
+      <span className="shrink-0 font-mono">{fxNum(p.volume, 2)}</span>
+      <span className="shrink-0 text-muted-foreground">→</span>
+      <span className={cn('shrink-0', sideTone(openingBuy))}>{oppositeSide}</span>
+      <span className="shrink-0 font-mono text-muted-foreground">
+        {props.mode === 'HEDGING' ? tp('reverseResultHedging', { side: oppositeSide, volume: fxNum(p.volume, 2) }) : tp('reverseResultNetting', { side: oppositeSide, volume: fxNum(p.volume, 2) })}
       </span>
-      <span className="ml-auto flex items-center gap-1">
-        <button type="button" onClick={props.onCancel} className="h-7 rounded border border-border px-2 text-[11px]">
+      <span className="ml-auto flex shrink-0 items-center gap-1">
+        <button type="button" onClick={props.onCancel} className={stripCancel}>
           {tp('cancel')}
         </button>
         <button
@@ -1086,7 +1102,7 @@ function ReverseConfirm(props: {
           disabled={props.busy}
           title={tp('reverseDisclaimer')}
           onClick={props.onSubmit}
-          className="h-7 rounded bg-primary px-2 text-[11px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          className={cn('h-6 rounded px-2 text-[11px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50', openingBuy ? 'bg-buy' : 'bg-sell')}
         >
           {props.busy ? tp('reversing') : tp('confirmReverse')}
         </button>
@@ -1110,24 +1126,26 @@ function CloseByConfirm(props: {
   const other = props.candidates.find((x) => x.positionId === props.oppositeId) ?? props.candidates[0];
   const sideLabel = p.side === 'long' ? ts('buy') : ts('sell');
   return (
-    <div className="flex w-full min-w-0 flex-wrap items-center gap-x-2 gap-y-1 border-y border-primary/40 bg-muted/30 px-2 py-1 text-[11px]" role="dialog" aria-label={tp('closeByDialogAria')}>
-      <span className="font-mono">{formatForexPair(p.symbol)} {sideLabel} {fxNum(p.volume, 2)}</span>
-      <label className="flex items-center gap-1 text-[10px] uppercase text-muted-foreground">
+    <div className={cn(tradeStripRow, 'border-sell/40 bg-sell/[0.06]')} role="dialog" aria-label={tp('closeByDialogAria')}>
+      <span className="shrink-0 font-mono">{formatForexPair(p.symbol)}</span>
+      <span className={cn('shrink-0', sideTone(p.side === 'long'))}>{sideLabel}</span>
+      <span className="shrink-0 font-mono">{fxNum(p.volume, 2)}</span>
+      <label className="flex shrink-0 items-center gap-1 text-[10px] uppercase text-muted-foreground">
         {tp('oppositePosition')}
         <select
           value={other?.positionId ?? ''}
           onChange={(e) => props.onOpposite(e.target.value)}
-          className="h-7 rounded border border-border bg-background px-2 font-mono text-[11px] normal-case"
+          className={cn(stripInput, 'border-border')}
         >
           {props.candidates.map((c) => (
             <option key={c.positionId} value={c.positionId}>
-              {(c.side === 'long' ? ts('buy') : ts('sell')) + ` ${c.volume} · ${c.positionId.slice(0, 8)}`}
+              {(c.side === 'long' ? ts('buy') : ts('sell')) + ` ${fxNum(c.volume, 2)} · ${c.positionId.slice(0, 8)}`}
             </option>
           ))}
         </select>
       </label>
-      <span className="ml-auto flex items-center gap-1">
-        <button type="button" onClick={props.onCancel} className="h-7 rounded border border-border px-2 text-[11px]">
+      <span className="ml-auto flex shrink-0 items-center gap-1">
+        <button type="button" onClick={props.onCancel} className={stripCancel}>
           {tp('cancel')}
         </button>
         <button
@@ -1135,7 +1153,7 @@ function CloseByConfirm(props: {
           disabled={props.busy || !other}
           title={tp('closeByDisclaimer')}
           onClick={props.onSubmit}
-          className="h-7 rounded bg-primary px-2 text-[11px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-6 rounded bg-sell px-2 text-[11px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           {props.busy ? tp('submitting') : tp('closeBySubmit')}
         </button>
