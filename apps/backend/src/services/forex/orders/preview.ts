@@ -4,8 +4,8 @@
  * required-margin and commission engines. Does not persist or execute.
  */
 import { calculateForexCommission } from '../fees/engine.js';
-import { positionMarginSnapshot } from '../margin/engine.js';
-import { ForexConversionError, ForexQuoteConversionSource } from '../pnl/conversion.js';
+import { fxDecimal } from '../decimal-fx.js';
+import { ForexConversionError } from '../pnl/conversion.js';
 import { evaluateAccountRisk } from '../risk/engine.js';
 import { evaluatePreTradeRisk } from '../risk/pretrade.js';
 import type { ForexPricingService } from '../quotes.service.js';
@@ -123,7 +123,6 @@ export function previewForexOrder(
     accountingAvailable: inputs?.accountingAvailable,
   });
 
-  const conversionRates = new ForexQuoteConversionSource(deps.pricing);
   let previewPositions: ReturnType<typeof deps.positions.previewAfterFill>;
   let required: string | undefined;
   try {
@@ -139,15 +138,7 @@ export function previewForexOrder(
             timestamp: new Date().toISOString(),
           })
         : current;
-    required = referencePrice
-      ? positionMarginSnapshot({
-          symbol,
-          volume: req.volume,
-          entryPrice: referencePrice,
-          currentPrice: referencePrice,
-          rates: conversionRates,
-        }).initialMargin
-      : undefined;
+    if (!referencePrice) required = undefined;
   } catch (e) {
     // Cross-pair margin needs a USD conversion rate; without one the preview
     // is not allowed rather than quoting a quote-currency figure as USD.
@@ -185,6 +176,10 @@ export function previewForexOrder(
     equity: inputs?.equity,
     accountingAvailable: inputs?.accountingAvailable,
   });
+  if (required !== undefined || referencePrice) {
+    const extra = fxDecimal(projected.usedMargin).minus(currentRisk.usedMargin);
+    required = extra.gt(0) ? extra.toFixed() : '0';
+  }
 
   const fee = referencePrice
     ? calculateForexCommission({

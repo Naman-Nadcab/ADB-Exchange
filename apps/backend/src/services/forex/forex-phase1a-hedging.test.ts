@@ -298,13 +298,13 @@ function assertInvariants(label: string, view: {
   assert.ok(sum.eq(view.unrealizedPnl), 'account unrealized must equal sum of positions');
   assertInvariants('hedge-open', view);
   const usedBoth = view.usedMargin;
-  assert.ok(fxDecimal(usedBoth).gt(0));
+  assert.ok(fxDecimal(usedBoth).eq(0), 'equal hedge uses zero margin');
 
   const buy = h.positions.listOwned('phase1a-pnl', true).find((p) => p.side === 'long')!;
   await closeForexPosition('phase1a-pnl', { positionId: buy.positionId, clientOrderId: 'pnl-close-buy' }, h);
   const afterOne = h.acc.accountView('phase1a-pnl');
   assertInvariants('hedge-one', afterOne);
-  assert.ok(fxDecimal(afterOne.usedMargin).lt(usedBoth));
+  assert.ok(fxDecimal(afterOne.usedMargin).gt(usedBoth), 'the remaining ticket uses margin again');
 
   const sell = h.positions.listOwned('phase1a-pnl', true)[0]!;
   await closeForexPosition('phase1a-pnl', { positionId: sell.positionId, clientOrderId: 'pnl-close-sell' }, h);
