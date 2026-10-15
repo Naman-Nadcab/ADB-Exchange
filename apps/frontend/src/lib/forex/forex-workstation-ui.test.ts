@@ -109,6 +109,14 @@ function testP0Surfaces(): void {
   assert(positions.includes('data-trade-strip'), 'trade actions sit on the selected ticket');
   assert(positions.includes('tradeActionStripAbove'), 'a ticket with no room below opens its strip above');
   assert(!positions.includes('max-h-[58%]'), 'trade actions are not a separate dock block');
+  assert(positions.includes('function closeFull'), 'the row close mark closes the full ticket');
+  assert(positions.includes('actions.closePosition(p, p.volume)'), 'the row close mark sends the full volume');
+  assert(!positions.includes("tp('menuViewChart')"), 'chart is already on screen');
+  assert(!positions.includes("tp('menuHistory')"), 'history is already a tab');
+  assert(!positions.includes("tp('dismiss')"), 'the menu closes without a dismiss row');
+  assert(positions.includes('whitespace-nowrap'), 'a trade strip stays one row');
+  assert(positions.includes('text-sell'), 'close and sell use the sell color');
+  assert(positions.includes('text-buy'), 'buy and profit use the buy color');
   assert(positions.includes('formatForexPair'), 'trade symbols use the market watch pair label');
   assert(positions.includes('modifyTrail'), 'modify dialog includes the trailing stop');
   const ticket = readFileSync(join(root, 'ForexOrderTicket.tsx'), 'utf8');
