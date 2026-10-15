@@ -1,7 +1,7 @@
 /**
  * Run: npx tsx apps/frontend/src/lib/forex/state/workspace-layout.test.ts
  */
-import { FOREX_BOTTOM_COMPACT_H, FOREX_BOTTOM_EXPANDED_MIN, resolveForexBottomHeight } from './workspace';
+import { FOREX_BOTTOM_COMPACT_H, FOREX_BOTTOM_DEFAULT_H, FOREX_BOTTOM_EXPANDED_MIN, migrateForexBottomHeight, resolveForexBottomHeight } from './workspace';
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg);
@@ -45,6 +45,14 @@ function testExpandMode(): void {
   );
 }
 
+function testDockFloor(): void {
+  const raised = migrateForexBottomHeight({ bottomHeight: 200 }) as { bottomHeight: number };
+  const kept = migrateForexBottomHeight({ bottomHeight: 360 }) as { bottomHeight: number };
+  assert(raised.bottomHeight === FOREX_BOTTOM_DEFAULT_H, 'a short saved dock grows to the default');
+  assert(kept.bottomHeight === 360, 'a taller dock stays');
+}
+
+testDockFloor();
 testCollapsedDefault();
 testUserExpanded();
 testExpandMode();

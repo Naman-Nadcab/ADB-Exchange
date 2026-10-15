@@ -180,6 +180,15 @@ const DEFAULT_PANELS: ForexPanelVisibility = {
 export const FOREX_BOTTOM_COMPACT_H = 36;
 export const FOREX_BOTTOM_EXPANDED_MIN = 140;
 export const FOREX_BOTTOM_EXPANDED_MAX = 420;
+export const FOREX_BOTTOM_DEFAULT_H = 280;
+
+/** Raise a saved dock that is shorter than the default. A taller drag stays. */
+export function migrateForexBottomHeight(persisted: unknown): unknown {
+  if (!persisted || typeof persisted !== 'object') return persisted;
+  const state = persisted as { bottomHeight?: number };
+  const height = typeof state.bottomHeight === 'number' ? state.bottomHeight : FOREX_BOTTOM_DEFAULT_H;
+  return { ...state, bottomCollapsed: false, bottomHeight: Math.max(height, FOREX_BOTTOM_DEFAULT_H) };
+}
 export const FOREX_WATCHLIST_MIN = 180;
 export const FOREX_WATCHLIST_MAX = 360;
 export const FOREX_TICKET_MIN = 220;
@@ -352,7 +361,7 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
       panels: DEFAULT_PANELS,
       watchlistWidth: 228,
       ticketWidth: 236,
-      bottomHeight: 200,
+      bottomHeight: FOREX_BOTTOM_DEFAULT_H,
       bottomCollapsed: false,
       bottomTab: 'positions',
       chartMode: 'normal',
@@ -619,13 +628,8 @@ export const useForexWorkspaceStore = create<ForexWorkspaceState>()(
     }),
     {
       name: STORAGE_KEY,
-      version: 1,
-      migrate: (persisted) => {
-        if (!persisted || typeof persisted !== 'object') return persisted;
-        const state = persisted as { bottomHeight?: number };
-        const height = typeof state.bottomHeight === 'number' ? state.bottomHeight : 200;
-        return { ...state, bottomCollapsed: false, bottomHeight: Math.max(height, 200) };
-      },
+      version: 2,
+      migrate: (persisted) => migrateForexBottomHeight(persisted),
       storage: createJSONStorage(() => {
         if (typeof window === 'undefined') {
           return {

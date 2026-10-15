@@ -1,7 +1,7 @@
 /**
  * Run: npx tsx apps/frontend/src/lib/forex/chart/pip-math.test.ts
  */
-import { computeRiskReward, pipSizeFromInstrument, pipValuePerLotFromSpec, priceDistancePips, suggestPositionSize } from './pip-math';
+import { computeRiskReward, pipSizeFromInstrument, pipValuePerLotFromSpec, priceDistancePips, suggestedProtectionPrice, suggestPositionSize } from './pip-math';
 import { ema, rsi } from './studies';
 import { deriveStructureLevels } from './structure-levels';
 
@@ -59,6 +59,13 @@ function testStudies(): void {
   assert(rsi(bars, 14).length > 0, 'rsi');
 }
 
+function testSuggestedProtection(): void {
+  assert(suggestedProtectionPrice({ side: 'sell', kind: 'sl', entry: 1.25, pipSize: 0.0001, digits: 5 }) === '1.25200', 'sell stop is 20 pips above');
+  assert(suggestedProtectionPrice({ side: 'sell', kind: 'tp', entry: 1.25, pipSize: 0.0001, digits: 5 }) === '1.24800', 'sell target is 20 pips below');
+  assert(suggestedProtectionPrice({ side: 'buy', kind: 'sl', entry: null, pipSize: 0.0001, digits: 5 }) === '', 'no price without an entry');
+}
+
+testSuggestedProtection();
 testPips();
 testRr();
 testLevels();

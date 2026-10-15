@@ -80,6 +80,8 @@ function testLeftStackKeepsHeight(): void {
   assert(bottom.includes("mk('colCondition')"), 'alerts tab is a condition table');
   assert(bottom.includes("mk('colPrevious')"), 'calendar has previous/forecast/actual');
   assert(bottom.includes('bottomPanels.mt4.colMessage'), 'journal is time and message');
+  assert(bottom.includes('customerJournalLine'), 'journal speaks in sentences');
+  assert(bottom.includes('buildAlertCreateBody'), 'alerts can be created from the tab');
   assert(!bottom.includes('ForexServerAlertsPanel'), 'the dock alerts tab is not the alert form');
   assert(!bottom.includes("id: 'signals'"), 'signals shop is not a tab');
 }
@@ -103,6 +105,8 @@ function testP0Surfaces(): void {
   assert(positions.includes('livePositionValuation'), 'live quote P&L');
   assert(positions.includes('onTrailSet'), 'trailing control');
   assert(positions.includes('menuModify'), 'trade rows can modify stop loss and take profit');
+  assert(positions.includes('accountUnrealizedPnl'), 'one open ticket uses the account profit');
+  assert(positions.includes('formatForexPair'), 'trade symbols use the market watch pair label');
   assert(positions.includes('modifyTrail'), 'modify dialog includes the trailing stop');
   const ticket = readFileSync(join(root, 'ForexOrderTicket.tsx'), 'utf8');
   assert(ticket.includes('estimateTicketRisk'), 'ticket risk estimates');
@@ -112,6 +116,7 @@ function testP0Surfaces(): void {
   assert(ticket.includes("tf('ticketPanel.kind')"), 'order type keeps the Type label');
   assert(!ticket.includes("preview.status === 'LOADING'"), 'a slow preview does not disable buy and sell');
   assert(ticket.includes('setTicketVolume'), 'ticket volume is shared with chart one-click');
+  assert(ticket.includes('suggestedProtectionPrice'), 'stop and take profit show a suggested price');
   const engine = readFileSync(join(__dirname, 'runtime/useForexOrderEngine.ts'), 'utf8');
   assert(engine.includes('filledPositionForOrder'), 'stop loss lands on the filled ticket');
   assert(engine.includes('activeProtectionsFor'), 'a protection the server already saved is not sent twice');

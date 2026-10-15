@@ -82,6 +82,20 @@ export function formatPositionAge(ms: number | null): string {
   return `${d}d`;
 }
 
+/**
+ * Account equity minus ledger balance. One open ticket shows this figure so
+ * the row matches the balance line. Missing numbers stay null.
+ */
+export function accountUnrealizedPnl(
+  equity: string | number | null | undefined,
+  ledgerBalance: string | number | null | undefined
+): number | null {
+  const e = dec(equity);
+  const b = dec(ledgerBalance);
+  if (e == null || b == null) return null;
+  return Math.round((e - b) * 100) / 100;
+}
+
 export function formatMarginLevel(equity: string | number | null | undefined, used: string | number | null | undefined): string {
   const e = dec(equity);
   const u = dec(used);

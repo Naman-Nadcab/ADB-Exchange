@@ -489,13 +489,17 @@
       "margin": "保证金",
       "freeMargin": "可用保证金",
       "marginLevel": "保证金比例",
-      "noMessages": "无消息",
+      "noMessages": "提醒触发后，消息会显示在这里。",
       "noAlerts": "无提醒",
       "balanceType": "结余",
       "manageAlerts": "管理",
       "alertEnable": "开",
       "alertDisable": "关",
-      "alertDelete": "删除"
+      "alertDelete": "删除",
+      "alertCreate": "创建",
+      "alertAbove": "高于",
+      "alertBelow": "低于",
+      "alertPrice": "价格"
     }
   },
   "sides": {
