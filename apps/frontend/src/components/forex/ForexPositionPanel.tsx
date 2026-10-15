@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForexSession } from '@/lib/forex/runtime/useForexSession';
+import { postedSwapByPosition } from '@/lib/forex/models/history-analytics';
 import { formatMarginLevel, formatPositionAge, livePositionValuation } from '@/lib/forex/models/live-valuation';
 import {
   activeProtectionsFor,
@@ -48,6 +49,7 @@ export function ForexPositionPanel() {
   const quotes = useForexStore((s) => s.quotes);
   const fees = useForexStore((s) => s.fees);
   const swaps = useForexStore((s) => s.swaps);
+  const ledger = useForexStore((s) => s.ledger);
   const account = useForexStore((s) => s.account);
   const margin = useForexStore((s) => s.margin);
   const actions = useForexPositionActions();
@@ -57,6 +59,35 @@ export function ForexPositionPanel() {
   const chartFocusPositionId = useForexWorkspaceStore((s) => s.chartFocusPositionId);
   const setChartFocusPositionId = useForexWorkspaceStore((s) => s.setChartFocusPositionId);
   const [menu, setMenu] = useState<{ x: number; y: number; positionId: string } | null>(null);
+  const [menuBox, setMenuBox] = useState<{ x: number; y: number } | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!menu) {
+      setMenuBox(null);
+      return;
+    }
+    const el = menuRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const pad = 8;
+    setMenuBox({
+      x: Math.max(pad, Math.min(menu.x, window.innerWidth - rect.width - pad)),
+      y: Math.max(pad, Math.min(menu.y, window.innerHeight - rect.height - pad)),
+    });
+    const close = (e: PointerEvent) => {
+      if (menuRef.current?.contains(e.target as Node)) return;
+      setMenu(null);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenu(null);
+    };
+    window.addEventListener('pointerdown', close);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('pointerdown', close);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [menu]);
   const [trailDraft, setTrailDraft] = useState<Record<string, string>>({});
 
   const openRows = useMemo(
@@ -73,12 +104,20 @@ export function ForexPositionPanel() {
     sessionResolving: session.resolving,
   });
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
+  const [modify, setModify] = useState<ForexPublicPosition | null>(null);
   const [reverseConfirm, setReverseConfirm] = useState<ForexPublicPosition | null>(null);
   const [closeBy, setCloseBy] = useState<CloseByState | null>(null);
   const [customVol, setCustomVol] = useState('');
+  const actionRef = useRef<HTMLDivElement | null>(null);
+  const actionOpen = Boolean(modify || confirm || reverseConfirm || closeBy);
+  useEffect(() => {
+    if (!actionOpen) return;
+    actionRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [actionOpen, modify, confirm, reverseConfirm, closeBy]);
   const [draft, setDraft] = useState<Record<string, { sl: string; tp: string }>>({});
   const accountMode = account?.positionMode ?? 'HEDGING';
   const hedging = accountMode === 'HEDGING';
+  const postedSwap = useMemo(() => postedSwapByPosition(ledger), [ledger]);
   const floatingTotal = useMemo(() => {
     let sum = 0;
     let any = false;
@@ -170,8 +209,7 @@ export function ForexPositionPanel() {
                           position: p,
                           quote: quotes[p.symbol],
                           instrument: instruments[p.symbol],
-                          accountCommission: openRows.length === 1 ? fees?.total ?? undefined : undefined,
-                          accountSwap: openRows.length === 1 ? swaps?.total ?? undefined : undefined,
+                          accountSwap: postedSwap[p.positionId] != null ? postedSwap[p.positionId].toFixed(2) : '0.00',
                         })}
                         serverPnl={positionUnrealizedPnl(pnl, p)}
                         prot={activeProtectionsFor(protections, p.positionId)}
@@ -188,6 +226,7 @@ export function ForexPositionPanel() {
                           e.preventDefault();
                           setMenu({ x: e.clientX, y: e.clientY, positionId: p.positionId });
                         }}
+                        onModify={() => setModify(p)}
                         onSetSl={() => {
                           const v = draft[p.positionId]?.sl ?? '';
                           if (!protectionInputOk(v)) return;
@@ -228,6 +267,7 @@ export function ForexPositionPanel() {
                       position: p,
                       quote: quotes[p.symbol],
                       instrument: instruments[p.symbol],
+                      accountSwap: postedSwap[p.positionId] != null ? postedSwap[p.positionId].toFixed(2) : '0.00',
                     })}
                     serverPnl={positionUnrealizedPnl(pnl, p)}
                     prot={activeProtectionsFor(protections, p.positionId)}
@@ -244,6 +284,7 @@ export function ForexPositionPanel() {
                       e.preventDefault();
                       setMenu({ x: e.clientX, y: e.clientY, positionId: p.positionId });
                     }}
+                    onModify={() => setModify(p)}
                     onSetSl={() => {
                       const v = draft[p.positionId]?.sl ?? '';
                       if (!protectionInputOk(v)) return;
@@ -278,8 +319,9 @@ export function ForexPositionPanel() {
       )}
       {menu ? (
         <div
+          ref={menuRef}
           className="fixed z-50 min-w-[170px] border border-border bg-card py-1 text-[11px] shadow-lg"
-          style={{ left: menu.x, top: menu.y }}
+          style={{ left: menuBox?.x ?? menu.x, top: menuBox?.y ?? menu.y }}
           role="menu"
         >
           {(() => {
@@ -288,6 +330,9 @@ export function ForexPositionPanel() {
             const opposites = oppositeCandidates(p);
             return (
               <>
+                <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { setModify(p); setMenu(null); }}>
+                  {tp('menuModify')}
+                </button>
                 <button type="button" className="block w-full px-3 py-1 text-left hover:bg-muted" onClick={() => { setCustomVol(p.volume); setConfirm({ position: p, volume: p.volume }); setMenu(null); }}>
                   {tp('menuClose')}
                 </button>
@@ -336,6 +381,51 @@ export function ForexPositionPanel() {
           })()}
         </div>
       ) : null}
+      {actionOpen ? (
+      <div ref={actionRef} className="max-h-[58%] shrink-0 overflow-auto border-t border-primary/40 bg-card">
+      {actions.actionError ? (
+        <p className="px-3 pt-2 text-[11px] text-sell" role="alert">
+          {actions.actionError.code}: {actions.actionError.message}
+        </p>
+      ) : null}
+      {modify ? (
+        <ModifyConfirm
+          position={modify}
+          prot={activeProtectionsFor(protections, modify.positionId)}
+          busy={Boolean(actions.pendingProtection[`${modify.positionId}:STOP_LOSS`] || actions.pendingProtection[`${modify.positionId}:TAKE_PROFIT`])}
+          onCancel={() => setModify(null)}
+          onRemoveSl={() => {
+            const id = activeProtectionsFor(protections, modify.positionId).sl?.protectionId;
+            if (id) void actions.removeProtection(id, modify.positionId, 'STOP_LOSS');
+          }}
+          onRemoveTp={() => {
+            const id = activeProtectionsFor(protections, modify.positionId).tp?.protectionId;
+            if (id) void actions.removeProtection(id, modify.positionId, 'TAKE_PROFIT');
+          }}
+          onSave={async (sl, tpPrice, trail) => {
+            const prot = activeProtectionsFor(useForexStore.getState().protections, modify.positionId);
+            if (protectionInputOk(sl) && sl.trim() !== (prot.sl?.triggerPrice ?? '')) {
+              const ok = prot.sl
+                ? await actions.updateProtection(modify, 'STOP_LOSS', prot.sl.protectionId, sl)
+                : await actions.createProtection(modify, 'STOP_LOSS', sl);
+              if (!ok) return;
+            }
+            const afterSl = activeProtectionsFor(useForexStore.getState().protections, modify.positionId);
+            if (protectionInputOk(tpPrice) && tpPrice.trim() !== (afterSl.tp?.triggerPrice ?? '')) {
+              const ok = afterSl.tp
+                ? await actions.updateProtection(modify, 'TAKE_PROFIT', afterSl.tp.protectionId, tpPrice)
+                : await actions.createProtection(modify, 'TAKE_PROFIT', tpPrice);
+              if (!ok) return;
+            }
+            const afterTp = activeProtectionsFor(useForexStore.getState().protections, modify.positionId);
+            const prevTrail = afterTp.sl?.trailingDistance ?? '';
+            if (trail.trim() !== String(prevTrail ?? '')) {
+              await actions.setTrailing(modify, trail.trim() ? trail : null, afterTp.sl?.protectionId);
+            }
+            setModify(null);
+          }}
+        />
+      ) : null}
       {confirm ? (
         <CloseConfirm
           position={confirm.position}
@@ -350,7 +440,9 @@ export function ForexPositionPanel() {
             if (!check.ok) {
               return;
             }
-            void actions.closePosition(confirm.position, customVol || confirm.volume).then(() => setConfirm(null));
+            void actions.closePosition(confirm.position, customVol || confirm.volume).then((ok) => {
+              if (ok) setConfirm(null);
+            });
           }}
         />
       ) : null}
@@ -379,6 +471,8 @@ export function ForexPositionPanel() {
             void actions.closeBy(closeBy.position, other).then(() => setCloseBy(null));
           }}
         />
+      ) : null}
+      </div>
       ) : null}
       {status !== 'SIGNED_OUT' && status !== 'LOADING' ? (
         <TradeSummary currency={account?.currency ?? 'USD'} account={account} margin={margin} floating={floatingTotal} />
@@ -417,7 +511,7 @@ function TradeSummary(props: {
   const level = formatMarginLevel(props.account?.equity, used);
   const tone = props.floating == null ? '' : props.floating > 0 ? 'text-buy' : props.floating < 0 ? 'text-sell' : '';
   return (
-    <div className="fx-dock-summary" data-testid="trade-summary">
+    <div className="fx-dock-summary shrink-0" data-testid="trade-summary">
       <p className="flex min-w-0 flex-wrap gap-x-3 gap-y-0.5">
         <span>
           <span className="fx-k">{tf('bottomPanels.exposure.balance')}:</span>
@@ -465,7 +559,7 @@ function TradeTableHeader() {
         <th className="text-right">{tp('colTaxes')}</th>
         <th className="text-right">{tp('colSwap')}</th>
         <th className="text-right">{tp('colProfit')}</th>
-        <th> </th>
+        <th className="sticky right-0 bg-card"> </th>
       </tr>
     </thead>
   );
@@ -476,68 +570,27 @@ function TicketLevel(props: {
   digits: number;
   existing: ReturnType<typeof activeProtectionsFor>['sl'];
   positionVolume: string;
-  value: string;
-  onChange: (v: string) => void;
-  onSet: () => void;
-  onUpdate: () => void;
-  onRemove: () => void;
-  busy: boolean;
+  onEdit: () => void;
 }) {
   const tp = useTranslations('forex.positionPanel');
-  const [open, setOpen] = useState(false);
   const price = props.existing?.triggerPrice;
   const mismatch = props.existing ? protectionVolumeMismatch(props.positionVolume, props.existing.volume) : false;
   return (
-    <div className="relative">
-      <button
-        type="button"
-        className={cn(
-          'block min-h-[1.1rem] min-w-[3rem] text-left font-mono',
-          props.kind === 'TP' && price && 'bg-buy px-1 text-primary-foreground'
-        )}
-        aria-label={tp('slPriceAria', { kind: props.kind === 'SL' ? 'S / L' : 'T / P' })}
-        title={mismatch ? tp('volumeMismatch') : undefined}
-        onClick={() => setOpen((v) => !v)}
-      >
-        {price ? fxNum(price, props.digits) : ''}
-      </button>
-      {open ? (
-        <div className="absolute left-0 top-full z-20 mt-0.5 flex items-center gap-1 border border-border bg-card p-1 shadow-lg">
-          <input
-            value={props.value}
-            onChange={(e) => props.onChange(e.target.value)}
-            inputMode="decimal"
-            aria-label={tp('slPriceAria', { kind: props.kind })}
-            className="h-6 w-20 border border-border bg-transparent px-1 font-mono text-[11px]"
-          />
-          <button
-            type="button"
-            disabled={props.busy || !protectionInputOk(props.value)}
-            onClick={() => {
-              if (props.existing) props.onUpdate();
-              else props.onSet();
-              setOpen(false);
-            }}
-            className="h-6 px-1 text-[10px] uppercase disabled:opacity-40"
-          >
-            {tp('set')}
-          </button>
-          {props.existing ? (
-            <button
-              type="button"
-              disabled={props.busy}
-              onClick={() => {
-                props.onRemove();
-                setOpen(false);
-              }}
-              className="h-6 px-1 text-[10px] uppercase text-muted-foreground disabled:opacity-40"
-            >
-              {tp('off')}
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-    </div>
+    <button
+      type="button"
+      className={cn(
+        'block min-h-[1.1rem] min-w-[3.2rem] text-left font-mono underline decoration-dotted underline-offset-2',
+        props.kind === 'TP' && price && 'bg-buy px-1 text-primary-foreground no-underline'
+      )}
+      aria-label={tp('slPriceAria', { kind: props.kind === 'SL' ? 'S / L' : 'T / P' })}
+      title={mismatch ? tp('volumeMismatch') : tp('menuModify')}
+      onClick={(e) => {
+        e.stopPropagation();
+        props.onEdit();
+      }}
+    >
+      {price ? fxNum(price, props.digits) : '—'}
+    </button>
   );
 }
 
@@ -568,6 +621,7 @@ function PositionRow(props: {
   onDraft: (n: { sl: string; tp: string }) => void;
   onClose: (volume: string) => void;
   onContext: (e: React.MouseEvent) => void;
+  onModify: () => void;
   onSetSl: () => void;
   onSetTp: () => void;
   onUpdateSl: (id: string) => void;
@@ -594,6 +648,7 @@ function PositionRow(props: {
         props.onSelectChart && 'cursor-pointer hover:bg-muted/40'
       )}
       onContextMenu={props.onContext}
+      onDoubleClick={props.onModify}
       aria-selected={props.chartLinked}
     >
       <td className="px-2 py-1" title={p.positionId}>
@@ -621,12 +676,7 @@ function PositionRow(props: {
           digits={props.digits}
           existing={props.prot.sl}
           positionVolume={p.volume}
-          value={props.draft.sl}
-          onChange={(sl) => props.onDraft({ ...props.draft, sl })}
-          onSet={props.onSetSl}
-          onUpdate={() => props.prot.sl && props.onUpdateSl(props.prot.sl.protectionId)}
-          onRemove={() => props.prot.sl && props.onRemoveSl(props.prot.sl.protectionId)}
-          busy={props.protBusy || props.closing}
+          onEdit={props.onModify}
         />
       </td>
       <td className="px-2 py-1">
@@ -635,12 +685,7 @@ function PositionRow(props: {
           digits={props.digits}
           existing={props.prot.tp}
           positionVolume={p.volume}
-          value={props.draft.tp}
-          onChange={(tpPrice) => props.onDraft({ ...props.draft, tp: tpPrice })}
-          onSet={props.onSetTp}
-          onUpdate={() => props.prot.tp && props.onUpdateTp(props.prot.tp.protectionId)}
-          onRemove={() => props.prot.tp && props.onRemoveTp(props.prot.tp.protectionId)}
-          busy={props.protBusy || props.closing}
+          onEdit={props.onModify}
         />
       </td>
       <td className="px-2 py-1 text-right">{current ? fxNum(current, props.digits) : ''}</td>
@@ -650,13 +695,14 @@ function PositionRow(props: {
       <td className="px-2 py-1 text-right font-semibold">
         <FloatCell live={live} fallback={props.serverPnl} />
       </td>
-      <td className="px-1 py-1 text-center">
+      <td className="sticky right-0 bg-card px-1 py-1 text-center">
         <button
           type="button"
           disabled={props.closing}
           onClick={() => props.onClose(p.volume)}
+          onDoubleClick={(e) => e.stopPropagation()}
           aria-label={tp('close')}
-          className="inline-flex h-4 w-4 items-center justify-center rounded-sm text-[13px] leading-none text-muted-foreground hover:bg-sell/15 hover:text-sell disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-[14px] leading-none text-muted-foreground hover:bg-sell/15 hover:text-sell disabled:cursor-not-allowed disabled:opacity-50"
         >
           {props.closing ? '…' : '×'}
         </button>
@@ -699,6 +745,9 @@ function PositionCard(props: Parameters<typeof PositionRow>[0]) {
         <dd className="text-right">{p.initialMargin != null && p.initialMargin !== '' ? fxNum(p.initialMargin, 2) : tp('unavailable')}</dd>
       </dl>
       <div className="mt-2 space-y-2">
+        <button type="button" className="h-7 rounded border border-border px-2 text-[10px] uppercase" onClick={props.onModify}>
+          {tp('menuModify')}
+        </button>
         <ProtectionCell
           kind="SL"
           existing={props.prot.sl}
@@ -781,6 +830,83 @@ function ProtectionCell(props: {
             {tp('set')}
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ModifyConfirm(props: {
+  position: ForexPublicPosition;
+  prot: ReturnType<typeof activeProtectionsFor>;
+  busy: boolean;
+  onCancel: () => void;
+  onSave: (sl: string, tp: string, trail: string) => Promise<void>;
+  onRemoveSl: () => void;
+  onRemoveTp: () => void;
+}) {
+  const tp = useTranslations('forex.positionPanel');
+  const ts = useTranslations('forex.sides');
+  const p = props.position;
+  const [sl, setSl] = useState(props.prot.sl?.triggerPrice ?? '');
+  const [take, setTake] = useState(props.prot.tp?.triggerPrice ?? '');
+  const [trail, setTrail] = useState(props.prot.sl?.trailingDistance ?? '');
+  const [note, setNote] = useState('');
+  const side = p.side === 'long' ? ts('buy') : ts('sell');
+  return (
+    <div className="border-t border-border bg-muted/40 p-3" role="dialog" aria-label={tp('modifyDialogAria')}>
+      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{tp('modifyTitle')}</h3>
+      <p className="font-mono text-[12px]">
+        {p.symbol} {side} {p.volume}
+      </p>
+      <div className="mt-2 grid gap-2 sm:grid-cols-3">
+        <label className="block text-[10px] uppercase text-muted-foreground">
+          {tp('modifySl')}
+          <input value={sl} onChange={(e) => setSl(e.target.value)} inputMode="decimal" className="mt-1 h-8 w-full rounded border border-border bg-background px-2 font-mono text-[12px]" aria-label={tp('slPriceAria', { kind: 'S / L' })} />
+        </label>
+        <label className="block text-[10px] uppercase text-muted-foreground">
+          {tp('modifyTp')}
+          <input value={take} onChange={(e) => setTake(e.target.value)} inputMode="decimal" className="mt-1 h-8 w-full rounded border border-border bg-background px-2 font-mono text-[12px]" aria-label={tp('slPriceAria', { kind: 'T / P' })} />
+        </label>
+        <label className="block text-[10px] uppercase text-muted-foreground">
+          {tp('modifyTrail')}
+          <input value={trail} onChange={(e) => setTrail(e.target.value)} inputMode="decimal" placeholder={tp('trailDistPlaceholder')} className="mt-1 h-8 w-full rounded border border-border bg-background px-2 font-mono text-[12px]" aria-label={tp('trailDistAria')} />
+        </label>
+      </div>
+      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{tp('modifyHint')}</p>
+      {note ? <p className="mt-1 text-[11px] text-sell">{note}</p> : null}
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button type="button" onClick={props.onCancel} className="h-9 rounded border border-border px-3 text-[12px]">
+          {tp('cancel')}
+        </button>
+        {props.prot.sl ? (
+          <button type="button" disabled={props.busy} onClick={props.onRemoveSl} className="h-9 rounded border border-border px-3 text-[12px] text-muted-foreground disabled:opacity-40">
+            {tp('modifySl')} {tp('off')}
+          </button>
+        ) : null}
+        {props.prot.tp ? (
+          <button type="button" disabled={props.busy} onClick={props.onRemoveTp} className="h-9 rounded border border-border px-3 text-[12px] text-muted-foreground disabled:opacity-40">
+            {tp('modifyTp')} {tp('off')}
+          </button>
+        ) : null}
+        <button
+          type="button"
+          disabled={props.busy}
+          onClick={() => {
+            if (sl.trim() && !protectionInputOk(sl)) {
+              setNote(tp('modifySl'));
+              return;
+            }
+            if (take.trim() && !protectionInputOk(take)) {
+              setNote(tp('modifyTp'));
+              return;
+            }
+            setNote('');
+            void props.onSave(sl, take, trail);
+          }}
+          className="h-9 rounded bg-primary px-3 text-[12px] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {props.busy ? tp('submitting') : tp('modifySave')}
+        </button>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForexErrorMessage } from '@/hooks/useForexErrorMessage';
 import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
@@ -61,6 +61,9 @@ export function ForexOrderTicket() {
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [demoBusy, setDemoBusy] = useState(false);
   const [demoNote, setDemoNote] = useState<string | null>(null);
+  const setTicketVolume = useForexStore((s) => s.setTicketVolume);
+  const prevSymbol = useRef(selected);
+  const prevDraftNonce = useRef(ticketDraft?.nonce ?? 0);
 
   useEffect(() => {
     if (!ticketDraft) return;
@@ -77,13 +80,35 @@ export function ForexOrderTicket() {
   }, [ticketDraft]);
 
   useEffect(() => {
+    if (volume.trim()) setTicketVolume(volume.trim());
+  }, [volume, setTicketVolume]);
+
+  useEffect(() => {
     const min = Number(inst?.minVolume ?? 0.01);
     const max = Number(inst?.maxVolume ?? 100);
-    const preferred = 0.1;
-    setVolume(preferred >= min && preferred <= max ? '0.10' : inst?.minVolume ?? '0.01');
-    setPrice('');
-    setLimitPrice('');
-  }, [selected, inst?.minVolume, inst?.maxVolume]);
+    const clamp = (raw: string) => {
+      const n = Number(raw);
+      if (!Number.isFinite(n)) return inst?.minVolume ?? '0.01';
+      if (n < min) return inst?.minVolume ?? '0.01';
+      if (n > max) return inst?.maxVolume ?? String(max);
+      return raw;
+    };
+    const symbolChanged = prevSymbol.current !== selected;
+    const draftNonce = ticketDraft?.nonce ?? 0;
+    const draftArrived = draftNonce !== prevDraftNonce.current && draftNonce !== 0;
+    prevSymbol.current = selected;
+    prevDraftNonce.current = draftNonce;
+    if (!symbolChanged) {
+      setVolume((cur) => clamp(cur));
+      return;
+    }
+    const keep = draftArrived ? ticketDraft : null;
+    setVolume(clamp(keep?.volume ?? '0.10'));
+    setPrice(keep?.price ?? '');
+    setLimitPrice(keep?.limitPrice ?? '');
+    setSl(keep?.sl ?? '');
+    setTp(keep?.tp ?? '');
+  }, [selected, inst?.minVolume, inst?.maxVolume, ticketDraft]);
 
   const allowedTypes = useMemo(() => availableOrderTypes(config), [config]);
   const tifOptions = useMemo(() => availableTimeInForce(config), [config]);
@@ -217,7 +242,6 @@ export function ForexOrderTicket() {
   }, [authed, sessionOpen, sessions?.eligibility.reason, stale, quote, risk, newOrders, sideEnabled, side, type, price, limitPrice, tifNote, tf]);
 
   const previewRejected = preview.status === 'BLOCKED' && previewData?.allowed === false;
-  const previewLoadingNoData = preview.status === 'LOADING' && !previewData;
   const baseBlocked =
     !authed ||
     !sessionOpen ||
@@ -230,8 +254,7 @@ export function ForexOrderTicket() {
     (requiresLimitPrice(type) && !limitPrice.trim()) ||
     Boolean(tifNote) ||
     busy ||
-    previewRejected ||
-    previewLoadingNoData;
+    previewRejected;
 
   async function submit(useSide: ForexSide) {
     setSide(useSide);
@@ -258,9 +281,7 @@ export function ForexOrderTicket() {
   const canSell = !baseBlocked && dealing?.symbol.sellEnabled !== false;
   const actionLabel = busy
     ? tf('ticket.executing')
-    : preview.status === 'LOADING' && !previewData
-      ? tf('ticket.previewing')
-      : lastError
+    : lastError
         ? tf('ticket.rejected')
         : last?.status === 'FILLED'
           ? tf('ticket.filled')
@@ -572,7 +593,7 @@ export function ForexOrderTicket() {
               onClick={() => void submit('sell')}
               className="fx-mt5-sell font-mono font-bold disabled:cursor-not-allowed"
             >
-              <span className="fx-ticket-action">{busy && side === 'sell' ? tf('ticket.executing') : preview.status === 'LOADING' && !previewData && side === 'sell' ? tf('ticket.previewing') : tf('ticket.marketSell')}</span>
+              <span className="fx-ticket-action">{busy && side === 'sell' ? tf('ticket.executing') : tf('ticket.marketSell')}</span>
               <span className="fx-ticket-px">{quote ? fxNum(quote.bid, digits) : '—'}</span>
             </button>
             <button
@@ -581,7 +602,7 @@ export function ForexOrderTicket() {
               onClick={() => void submit('buy')}
               className="fx-mt5-buy font-mono font-bold disabled:cursor-not-allowed"
             >
-              <span className="fx-ticket-action">{busy && side === 'buy' ? tf('ticket.executing') : preview.status === 'LOADING' && !previewData && side === 'buy' ? tf('ticket.previewing') : tf('ticket.marketBuy')}</span>
+              <span className="fx-ticket-action">{busy && side === 'buy' ? tf('ticket.executing') : tf('ticket.marketBuy')}</span>
               <span className="fx-ticket-px">{quote ? fxNum(quote.ask, digits) : '—'}</span>
             </button>
           </div>
@@ -595,7 +616,7 @@ export function ForexOrderTicket() {
               side === 'buy' ? 'fx-mt5-buy' : 'fx-mt5-sell'
             )}
           >
-            {busy ? tf('ticket.submitting') : preview.status === 'LOADING' && !previewData ? tf('ticket.previewing') : tf('ticket.placeOrder', { action: orderActionLabel })}
+            {busy ? tf('ticket.submitting') : tf('ticket.placeOrder', { action: orderActionLabel })}
           </button>
         )}
       </div>

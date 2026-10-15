@@ -468,6 +468,8 @@
       "colSl": "S/L",
       "colTp": "T/P",
       "colSwap": "Swap",
+      "colCommission": "Commission",
+      "colTaxes": "Taxes",
       "colProfit": "Profit",
       "colCondition": "Condition",
       "colCount": "Count",
@@ -490,7 +492,10 @@
       "noMessages": "No messages",
       "noAlerts": "No alerts",
       "balanceType": "balance",
-      "manageAlerts": "Manage"
+      "manageAlerts": "Manage",
+      "alertEnable": "On",
+      "alertDisable": "Off",
+      "alertDelete": "Delete"
     }
   },
   "sides": {
@@ -709,6 +714,7 @@
     "slPriceAria": "{kind} price",
     "coversVolume": "Covers {existing} of {total}",
     "volumeMismatch": " · does not cover remaining volume",
+    "menuModify": "Modify…",
     "menuClose": "Close Position",
     "menuPartial50": "Partial Close 50%",
     "menuCloseBy": "Close By…",
@@ -743,6 +749,13 @@
     "oppositePosition": "Opposite position",
     "closeByDisclaimer": "Matches min volume on both sides. HEDGING only. Atomic reduce — not available in NETTING.",
     "closeBySubmit": "Close By",
+    "modifyDialogAria": "Modify position",
+    "modifyTitle": "Modify",
+    "modifySl": "Stop loss",
+    "modifyTp": "Take profit",
+    "modifyTrail": "Trailing stop",
+    "modifySave": "Modify",
+    "modifyHint": "Type a price and press Modify. Off removes that level. An empty field is left as it is.",
     "cardEntry": "Entry",
     "cardBidAsk": "Bid / Ask",
     "cardCommSwap": "Comm / Swap"

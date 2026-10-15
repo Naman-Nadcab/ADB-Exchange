@@ -25,18 +25,17 @@ export function calculateForexExposure(positions: ForexPositionRecord[]): ForexE
   const symbolShort: Record<string, ReturnType<typeof fxDecimal>> = {};
   let gross = fxDecimal(0);
   let net = fxDecimal(0);
-  let used = fxDecimal(0);
-  let maint = fxDecimal(0);
   for (const p of open) {
     const notional = fxDecimal(p.exposure);
     positionNotionals[p.positionId] = notional.toFixed();
-    used = used.plus(p.initialMargin);
-    maint = maint.plus(p.maintenanceMargin);
     gross = gross.plus(notional);
     net = net.plus(p.side === 'long' ? notional : notional.neg());
     if (p.side === 'long') symbolLong[p.symbol] = (symbolLong[p.symbol] ?? fxDecimal(0)).plus(notional);
     else symbolShort[p.symbol] = (symbolShort[p.symbol] ?? fxDecimal(0)).plus(notional);
   }
+  const charged = hedgedMarginCharge(open);
+  const used = charged.used;
+  const maint = charged.maintenance;
   const symbols = new Set([...Object.keys(symbolLong), ...Object.keys(symbolShort)]);
   const symbolExposure: Record<string, string> = {};
   const symbolGross: Record<string, string> = {};
@@ -60,6 +59,40 @@ export function calculateForexExposure(positions: ForexPositionRecord[]): ForexE
     maintenanceMargin: maint.toFixed(),
     openPositions: open.length,
   };
+}
+
+/**
+ * Hedging margin: locked volume is free.
+ * Equal buy and sell lots on one symbol charge 0. Only the unmatched lots
+ * on the larger side keep their margin. A one-sided book is unchanged.
+ */
+export function hedgedMarginCharge(positions: ForexPositionRecord[]): { used: ReturnType<typeof fxDecimal>; maintenance: ReturnType<typeof fxDecimal> } {
+  type Side = { volume: ReturnType<typeof fxDecimal>; margin: ReturnType<typeof fxDecimal>; maintenance: ReturnType<typeof fxDecimal> };
+  const books = new Map<string, { long: Side; short: Side }>();
+  const empty = (): Side => ({ volume: fxDecimal(0), margin: fxDecimal(0), maintenance: fxDecimal(0) });
+  for (const p of positions) {
+    if (p.status !== 'OPEN' || !fxDecimal(p.volume).gt(0)) continue;
+    const book = books.get(p.symbol) ?? { long: empty(), short: empty() };
+    const side = p.side === 'long' ? book.long : book.short;
+    side.volume = side.volume.plus(p.volume);
+    side.margin = side.margin.plus(p.initialMargin);
+    side.maintenance = side.maintenance.plus(p.maintenanceMargin);
+    books.set(p.symbol, book);
+  }
+  let used = fxDecimal(0);
+  let maintenance = fxDecimal(0);
+  for (const book of books.values()) {
+    const longIsLarger = !book.short.volume.gt(book.long.volume);
+    const larger = longIsLarger ? book.long : book.short;
+    const smallerVol = longIsLarger ? book.short.volume : book.long.volume;
+    if (!larger.volume.gt(0)) continue;
+    const uncovered = larger.volume.minus(smallerVol);
+    if (!uncovered.gt(0)) continue;
+    const ratio = uncovered.div(larger.volume);
+    used = used.plus(larger.margin.times(ratio));
+    maintenance = maintenance.plus(larger.maintenance.times(ratio));
+  }
+  return { used, maintenance };
 }
 
 export function aggregateForexGross(allOpen: ForexPositionRecord[]): string {

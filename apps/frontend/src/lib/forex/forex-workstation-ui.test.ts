@@ -102,12 +102,24 @@ function testP0Surfaces(): void {
   const positions = readFileSync(join(root, 'ForexPositionPanel.tsx'), 'utf8');
   assert(positions.includes('livePositionValuation'), 'live quote P&L');
   assert(positions.includes('onTrailSet'), 'trailing control');
+  assert(positions.includes('menuModify'), 'trade rows can modify stop loss and take profit');
+  assert(positions.includes('modifyTrail'), 'modify dialog includes the trailing stop');
   const ticket = readFileSync(join(root, 'ForexOrderTicket.tsx'), 'utf8');
   assert(ticket.includes('estimateTicketRisk'), 'ticket risk estimates');
   assert(!ticket.includes('ticketPanel.tif'), 'order ticket hides time in force');
   assert(!ticket.includes('ticketPanel.free'), 'order ticket hides the free-margin box');
   assert(ticket.includes('timeInForce: tifUnsupported'), 'orders still send good-till-cancelled');
   assert(ticket.includes("tf('ticketPanel.kind')"), 'order type keeps the Type label');
+  assert(!ticket.includes("preview.status === 'LOADING'"), 'a slow preview does not disable buy and sell');
+  assert(ticket.includes('setTicketVolume'), 'ticket volume is shared with chart one-click');
+  const engine = readFileSync(join(__dirname, 'runtime/useForexOrderEngine.ts'), 'utf8');
+  assert(engine.includes('filledPositionForOrder'), 'stop loss lands on the filled ticket');
+  assert(engine.includes('activeProtectionsFor'), 'a protection the server already saved is not sent twice');
+  const chart = readFileSync(join(root, 'ForexChartFoundation.tsx'), 'utf8');
+  assert(chart.includes('ticketVolume'), 'chart one-click uses the ticket lot');
+  assert(chart.includes("commitProtectionDrag('STOP_LOSS'"), 'chart stop loss uses the focused ticket');
+  const watch = readFileSync(join(root, 'ForexWatchlist.tsx'), 'utf8');
+  assert(watch.includes('menuRef'), 'market watch menu stays on screen');
   const bottom = readFileSync(join(root, 'ForexBottomPanels.tsx'), 'utf8');
   const history = bottom.slice(bottom.indexOf('function HistoryPanel'), bottom.indexOf('function ExposurePanel'));
   assert(history.includes('bottomPanels.history.periodAria'), 'history period is a labelled dropdown');
@@ -115,6 +127,13 @@ function testP0Surfaces(): void {
   assert(!history.includes('<PeriodBar'), 'history does not spend a row on period chips');
   assert(bottom.includes("id: 'analytics'"), 'risk analytics tab');
   assert(bottom.includes("id: 'alerts'"), 'alerts tab');
+  assert(bottom.includes('postedFeeByFill'), 'history commission comes from posted fees');
+  assert(bottom.includes('alertEvents'), 'mailbox reads alert events');
+  assert(bottom.includes('removeLocal'), 'terminal alerts can delete a chart alert');
+  const panel = bottom.slice(bottom.indexOf('role="tabpanel"'), bottom.indexOf('fx-dock-tabs'));
+  const newsAt = panel.indexOf("tab === 'news'");
+  const authAt = panel.indexOf('!authed');
+  assert(newsAt >= 0 && authAt > newsAt, 'news and calendar open without a sign-in wall');
 }
 
 function testPendingCancelSurfaces(): void {
@@ -123,12 +142,12 @@ function testPendingCancelSurfaces(): void {
   assert(bottom.includes('sticky left-0'), 'Cancel sticky discoverable');
   assert(bottom.includes('data-testid={`cancel-order-'), 'Cancel test id');
   const tradePage = readFileSync(join(__dirname, '../../app/forex/page.tsx'), 'utf8');
-  assert(tradePage.includes('compact={bottomCollapsed}'), 'mobile toolbox respects workspace collapse');
+  assert(tradePage.includes('compact={false}'), 'mobile Trade tab keeps the position list open');
   assert(tradePage.includes('ForexBottomPanels'), 'mobile toolbox exposes Cancel surfaces');
   const ordersPage = readFileSync(join(__dirname, '../../app/forex/orders/page.tsx'), 'utf8');
   assert(ordersPage.includes('Cancel'), 'Orders page Cancel');
   assert(ordersPage.includes('useForexOrderEngine'), 'Orders page uses order engine');
-  assert(ordersPage.includes('Modify'), 'Orders page Modify');
+  assert(ordersPage.includes("to('modify')"), 'Orders page Modify');
 }
 
 testLeftStackKeepsHeight();

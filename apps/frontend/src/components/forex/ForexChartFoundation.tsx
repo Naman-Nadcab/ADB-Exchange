@@ -174,6 +174,36 @@ export function ForexChartFoundation(props?: {
   const [objectsPanelOpen, setObjectsPanelOpen] = useState(false);
   const [objectRows, setObjectRows] = useState<ObjectPanelRow[]>([]);
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; price: number; time: number | null } | null>(null);
+  const [ctxBox, setCtxBox] = useState<{ x: number; y: number } | null>(null);
+  const ctxMenuRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!ctxMenu) {
+      setCtxBox(null);
+      return;
+    }
+    const el = ctxMenuRef.current;
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      const pad = 8;
+      setCtxBox({
+        x: Math.max(pad, Math.min(ctxMenu.x, window.innerWidth - rect.width - pad)),
+        y: Math.max(pad, Math.min(ctxMenu.y, window.innerHeight - rect.height - pad)),
+      });
+    }
+    const close = (e: PointerEvent) => {
+      if (ctxMenuRef.current?.contains(e.target as Node)) return;
+      setCtxMenu(null);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setCtxMenu(null);
+    };
+    window.addEventListener('pointerdown', close);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('pointerdown', close);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [ctxMenu]);
   const [calendarEvents, setCalendarEvents] = useState<
     Array<{ time?: string | null; currency?: string | null; event?: string; impact?: string; previous?: string | null; forecast?: string | null; actual?: string | null }>
   >([]);
@@ -836,13 +866,15 @@ export function ForexChartFoundation(props?: {
       .slice(0, 8);
   }, [showCalendar, calendarEvents, selected]);
 
+  const ticketVolume = useForexStore((s) => s.ticketVolume);
+  const oneClickLot = ticketVolume.trim() || inst?.minVolume || '0.01';
   const oneClickBuy = () => {
     if (!props?.showOneClick || !chartAuthed || orderEngine.busy) return;
     void orderEngine.place({
       symbol: selected,
       side: 'buy',
       orderType: 'market',
-      volume: inst?.minVolume ?? '0.01',
+      volume: oneClickLot,
     });
   };
   const oneClickSell = () => {
@@ -851,7 +883,7 @@ export function ForexChartFoundation(props?: {
       symbol: selected,
       side: 'sell',
       orderType: 'market',
-      volume: inst?.minVolume ?? '0.01',
+      volume: oneClickLot,
     });
   };
 
@@ -1048,8 +1080,9 @@ export function ForexChartFoundation(props?: {
         />
         {ctxMenu ? (
           <div
+            ref={ctxMenuRef}
             className="fixed z-40 min-w-[160px] rounded-md border border-border bg-card py-1 text-[11px] shadow-lg"
-            style={{ left: ctxMenu.x, top: ctxMenu.y }}
+            style={{ left: ctxBox?.x ?? ctxMenu.x, top: ctxBox?.y ?? ctxMenu.y }}
             role="menu"
           >
             <CtxItem
@@ -1247,44 +1280,14 @@ export function ForexChartFoundation(props?: {
                 <CtxItem
                   label={`Set SL @ ${fxNum(ctxMenu.price, digits)}`}
                   onClick={() => {
-                    const open = Object.values(positions).find((p) => p.status === 'OPEN' && p.symbol === selected);
-                    if (!open) {
-                      setCtxMenu(null);
-                      return;
-                    }
-                    const existing = activeProtectionsFor(protections, open.positionId).sl;
-                    void (async () => {
-                      if (existing) await forexApi.cancelProtection(existing.protectionId);
-                      await forexApi.createProtection({
-                        clientProtectionId: `sl-chart-${Date.now()}`,
-                        positionId: open.positionId,
-                        type: 'STOP_LOSS',
-                        triggerPrice: String(ctxMenu.price),
-                      });
-                      await hydrateForexPrivate();
-                    })();
+                    void commitProtectionDrag('STOP_LOSS', String(ctxMenu.price));
                     setCtxMenu(null);
                   }}
                 />
                 <CtxItem
                   label={`Set TP @ ${fxNum(ctxMenu.price, digits)}`}
                   onClick={() => {
-                    const open = Object.values(positions).find((p) => p.status === 'OPEN' && p.symbol === selected);
-                    if (!open) {
-                      setCtxMenu(null);
-                      return;
-                    }
-                    const existing = activeProtectionsFor(protections, open.positionId).tp;
-                    void (async () => {
-                      if (existing) await forexApi.cancelProtection(existing.protectionId);
-                      await forexApi.createProtection({
-                        clientProtectionId: `tp-chart-${Date.now()}`,
-                        positionId: open.positionId,
-                        type: 'TAKE_PROFIT',
-                        triggerPrice: String(ctxMenu.price),
-                      });
-                      await hydrateForexPrivate();
-                    })();
+                    void commitProtectionDrag('TAKE_PROFIT', String(ctxMenu.price));
                     setCtxMenu(null);
                   }}
                 />

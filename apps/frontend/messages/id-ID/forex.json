@@ -468,6 +468,8 @@
       "colSl": "S/L",
       "colTp": "T/P",
       "colSwap": "Swap",
+      "colCommission": "Komisi",
+      "colTaxes": "Pajak",
       "colProfit": "Profit",
       "colCondition": "Kondisi",
       "colCount": "Hitung",
@@ -490,7 +492,10 @@
       "noMessages": "Tidak ada pesan",
       "noAlerts": "Tidak ada alert",
       "balanceType": "balance",
-      "manageAlerts": "Kelola"
+      "manageAlerts": "Kelola",
+      "alertEnable": "On",
+      "alertDisable": "Off",
+      "alertDelete": "Hapus"
     }
   },
   "sides": {
@@ -709,6 +714,7 @@
     "slPriceAria": "Harga {kind}",
     "coversVolume": "Mencakup {existing} dari {total}",
     "volumeMismatch": " · tidak mencakup volume tersisa",
+    "menuModify": "Ubah…",
     "menuClose": "Tutup Posisi",
     "menuPartial50": "Tutup Sebagian 50%",
     "menuCloseBy": "Close By…",
@@ -743,6 +749,13 @@
     "oppositePosition": "Posisi berlawanan",
     "closeByDisclaimer": "Cocokkan volume min di kedua sisi. Hanya HEDGING. Reduce atomik — tidak tersedia di NETTING.",
     "closeBySubmit": "Close By",
+    "modifyDialogAria": "Ubah posisi",
+    "modifyTitle": "Ubah",
+    "modifySl": "Stop loss",
+    "modifyTp": "Take profit",
+    "modifyTrail": "Trailing stop",
+    "modifySave": "Ubah",
+    "modifyHint": "Isi harga lalu tekan Ubah. Off menghapus level itu. Kolom kosong dibiarkan seperti semula.",
     "cardEntry": "Entry",
     "cardBidAsk": "Bid / Ask",
     "cardCommSwap": "Comm / Swap"

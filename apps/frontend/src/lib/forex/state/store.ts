@@ -64,6 +64,8 @@ export interface ForexDomainState {
 
   ticketBusy: boolean;
   ticketLastOrder: ForexPublicOrder | null;
+  /** Last volume typed on the order ticket. Chart one-click uses this lot. */
+  ticketVolume: string;
 
   applyPublicHydrate: (p: {
     instruments?: ForexInstrument[];
@@ -99,6 +101,7 @@ export interface ForexDomainState {
   setLastError: (err: ForexError | null) => void;
   setTicketBusy: (busy: boolean) => void;
   setTicketLastOrder: (order: ForexPublicOrder | null) => void;
+  setTicketVolume: (volume: string) => void;
   applyWs: (msg: ForexWsEnvelope) => void;
 }
 
@@ -153,6 +156,7 @@ export const useForexStore = create<ForexDomainState>((set, get) => ({
   liquidation: null,
   ticketBusy: false,
   ticketLastOrder: null,
+  ticketVolume: '0.10',
 
   applyPublicHydrate: (p) =>
     set((s) => ({
@@ -228,6 +232,7 @@ export const useForexStore = create<ForexDomainState>((set, get) => ({
   setLastError: (lastError) => set({ lastError }),
   setTicketBusy: (ticketBusy) => set({ ticketBusy }),
   setTicketLastOrder: (ticketLastOrder) => set({ ticketLastOrder }),
+  setTicketVolume: (ticketVolume) => set({ ticketVolume }),
 
   applyWs: (msg) => {
     if (!msg.type) return;

@@ -14,6 +14,7 @@ import type {
   ForexSide,
   ForexTimeInForce,
 } from '../models/types';
+import { activeProtectionsFor, filledPositionForOrder } from '../models/position';
 import { useForexStore } from '../state/store';
 import { generateClientOrderId } from './client-id';
 import { hydrateForexPrivate } from './hydrate';
@@ -54,7 +55,8 @@ async function attachProtections(
   const notes: string[] = [];
   const sl = stopLoss?.trim();
   const tp = takeProfit?.trim();
-  if (sl) {
+  const existing = activeProtectionsFor(useForexStore.getState().protections, position.positionId);
+  if (sl && !existing.sl) {
     const res = await forexApi.createProtection({
       clientProtectionId: `sl-${position.positionId.slice(0, 8)}-${Date.now()}`,
       positionId: position.positionId,
@@ -64,7 +66,7 @@ async function attachProtections(
     const u = unwrap(res);
     notes.push(u.ok ? `SL set @ ${sl}` : `SL failed: ${describeForexError(u.error)}`);
   }
-  if (tp) {
+  if (tp && !existing.tp) {
     const res = await forexApi.createProtection({
       clientProtectionId: `tp-${position.positionId.slice(0, 8)}-${Date.now()}`,
       positionId: position.positionId,
@@ -132,10 +134,7 @@ export function useForexOrderEngine() {
       const notes: string[] = [`Order ${order.status}`];
       const wantProt = Boolean(input.stopLoss?.trim() || input.takeProfit?.trim());
       if (wantProt && isFilledLike(order.status)) {
-        const positions = Object.values(useForexStore.getState().positions).filter(
-          (p) => p.status === 'OPEN' && p.symbol === input.symbol
-        );
-        const pos = positions[0];
+        const pos = filledPositionForOrder(useForexStore.getState().positions, input.symbol, input.side);
         if (pos) {
           const protNotes = await attachProtections(pos, input.stopLoss, input.takeProfit);
           notes.push(...protNotes);

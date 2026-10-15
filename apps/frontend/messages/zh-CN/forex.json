@@ -468,6 +468,8 @@
       "colSl": "止损",
       "colTp": "止盈",
       "colSwap": "库存费",
+      "colCommission": "佣金",
+      "colTaxes": "税",
       "colProfit": "获利",
       "colCondition": "条件",
       "colCount": "计数",
@@ -490,7 +492,10 @@
       "noMessages": "无消息",
       "noAlerts": "无提醒",
       "balanceType": "结余",
-      "manageAlerts": "管理"
+      "manageAlerts": "管理",
+      "alertEnable": "开",
+      "alertDisable": "关",
+      "alertDelete": "删除"
     }
   },
   "sides": {
@@ -709,6 +714,7 @@
     "slPriceAria": "{kind} 价格",
     "coversVolume": "覆盖 {existing} / {total}",
     "volumeMismatch": " · 未覆盖剩余手数",
+    "menuModify": "修改…",
     "menuClose": "平仓",
     "menuPartial50": "部分平仓 50%",
     "menuCloseBy": "对冲平仓…",
@@ -743,6 +749,13 @@
     "oppositePosition": "反向持仓",
     "closeByDisclaimer": "按两侧较小手数匹配。仅对冲模式可用。净额模式不可用。",
     "closeBySubmit": "对冲平仓",
+    "modifyDialogAria": "修改持仓",
+    "modifyTitle": "修改",
+    "modifySl": "止损",
+    "modifyTp": "止盈",
+    "modifyTrail": "追踪止损",
+    "modifySave": "修改",
+    "modifyHint": "填写价格后点修改。关会去掉该价位。留空则保持原样。",
     "cardEntry": "入场",
     "cardBidAsk": "买价 / 卖价",
     "cardCommSwap": "佣金 / 库存费"
