@@ -102,6 +102,8 @@ function testP0Surfaces(): void {
   const positions = readFileSync(join(root, 'ForexPositionPanel.tsx'), 'utf8');
   assert(positions.includes('livePositionValuation'), 'live quote P&L');
   assert(positions.includes('onTrailSet'), 'trailing control');
+  assert(positions.includes('menuModify'), 'trade rows can modify stop loss and take profit');
+  assert(positions.includes('modifyTrail'), 'modify dialog includes the trailing stop');
   const ticket = readFileSync(join(root, 'ForexOrderTicket.tsx'), 'utf8');
   assert(ticket.includes('estimateTicketRisk'), 'ticket risk estimates');
   assert(!ticket.includes('ticketPanel.tif'), 'order ticket hides time in force');
