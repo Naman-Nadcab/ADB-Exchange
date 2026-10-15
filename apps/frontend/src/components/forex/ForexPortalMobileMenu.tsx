@@ -14,14 +14,20 @@ import {
 } from '@/lib/forex/routes';
 import { cn } from '@/lib/utils';
 
-export function ForexPortalMobileMenu(props: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function ForexPortalMobileMenu(props: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  terminalTools?: Array<{ id: string; label: string }>;
+  activeToolId?: string;
+  onTerminalTool?: (id: string) => void;
+}) {
   const pathname = usePathname() ?? '';
   const tf = useTranslations('forex');
 
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent
-        className="fixed bottom-0 left-0 top-auto max-h-[85dvh] w-full max-w-none translate-x-0 translate-y-0 rounded-b-none rounded-t-xl border-border p-0 sm:max-w-lg sm:left-[50%] sm:translate-x-[-50%]"
+        className="fixed bottom-0 left-0 top-auto max-h-[85dvh] w-full max-w-none translate-x-0 translate-y-0 rounded-b-none rounded-t-xl border-border p-0 pb-[env(safe-area-inset-bottom,0px)] sm:max-w-lg sm:left-[50%] sm:translate-x-[-50%]"
       >
         <DialogHeader className="border-b border-border px-4 py-3 text-left">
           <DialogTitle className="text-base font-semibold">{tf('portalNav.menuTitle')}</DialogTitle>
@@ -30,6 +36,29 @@ export function ForexPortalMobileMenu(props: { open: boolean; onOpenChange: (ope
           </div>
         </DialogHeader>
         <nav className="flex flex-col gap-0.5 overflow-y-auto px-2 py-2" aria-label={tf('portalNav.sectionsAria')}>
+          {props.terminalTools && props.terminalTools.length > 0 ? (
+            <div className="mb-1 border-b border-border pb-1">
+              <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                {tf('portalNav.tools')}
+              </p>
+              {props.terminalTools.map((tool) => (
+                <button
+                  key={tool.id}
+                  type="button"
+                  className={cn(
+                    'block w-full rounded-md px-3 py-2.5 text-left text-sm font-medium',
+                    props.activeToolId === tool.id ? 'bg-primary/12 text-primary' : 'text-foreground hover:bg-muted/60'
+                  )}
+                  onClick={() => {
+                    props.onTerminalTool?.(tool.id);
+                    props.onOpenChange(false);
+                  }}
+                >
+                  {tool.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
           {FOREX_TOP_NAV.filter((item) => item.href !== FOREX_ROUTES.trade).map((item) => (
             <Link
               key={item.href}

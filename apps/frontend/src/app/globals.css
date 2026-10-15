@@ -926,6 +926,11 @@ input[type="number"] {
 .mobile-app-topbar {
   backdrop-filter: saturate(1.1) blur(12px);
 }
+@media (max-width: 767px) {
+  .mobile-app-topbar {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
 .mobile-app-bottom-nav {
   backdrop-filter: saturate(1.1) blur(14px);
 }
@@ -1418,6 +1423,29 @@ input[type="number"] {
 .forex-mt5 .fx-ticket .fx-mt5-buy {
   background: linear-gradient(180deg, #249656, #187443) !important;
 }
+@media (max-width: 767px) {
+  .forex-mt5 .fx-ticket-row {
+    min-height: 44px;
+  }
+  .forex-mt5 .fx-ticket-label {
+    font-size: 11px;
+  }
+  .forex-mt5 .fx-ticket .fx-mt5-field,
+  .forex-mt5 .fx-ticket-stepper .fx-mt5-field,
+  .forex-mt5 .fx-ticket-stepper button {
+    height: 44px;
+  }
+  .forex-mt5 .fx-ticket-stepper button {
+    width: 44px;
+  }
+  .forex-mt5 .fx-ticket-sides button {
+    height: 44px;
+  }
+  .forex-mt5 .fx-ticket .fx-mt5-sell,
+  .forex-mt5 .fx-ticket .fx-mt5-buy {
+    height: 52px;
+  }
+}
 .forex-mt5 .fx-ticket-action {
   font-size: 11px;
   font-weight: 700;
@@ -1438,6 +1466,14 @@ input[type="number"] {
   min-height: 28px;
   padding: 2px 8px;
   border-bottom: 1px solid hsl(var(--border));
+}
+@media (max-width: 767px) {
+  .fx-dock-toolbar {
+    flex-wrap: wrap;
+    align-items: stretch;
+    min-height: 44px;
+    padding: 8px;
+  }
 }
 .fx-dock-select {
   height: 22px;
@@ -1473,6 +1509,15 @@ input[type="number"] {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
+}
+@media (max-width: 767px) {
+  .fx-dock-select,
+  .fx-dock-export {
+    height: 44px;
+  }
+  .fx-dock-select {
+    background-position: calc(100% - 12px) 18px, calc(100% - 7px) 18px;
+  }
 }
 .fx-dock-export:hover:not(:disabled) {
   border-color: hsl(var(--border));

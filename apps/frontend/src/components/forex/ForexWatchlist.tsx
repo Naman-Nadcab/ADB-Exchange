@@ -73,7 +73,7 @@ export function ForexWatchlist() {
 
   return (
     <aside className="terminal-panel-subtle flex h-full min-h-0 flex-col border-r border-border bg-card" aria-label={tw('ariaLabel')}>
-      <div className="flex h-6 items-center justify-between border-b border-border px-2">
+      <div className="flex h-6 items-center justify-between border-b border-border px-2 max-md:hidden">
         <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{tw('title')}</span>
         <span className="font-mono text-[9px] text-muted-foreground">{rows.length}/{watchlist.length}</span>
       </div>
@@ -86,7 +86,7 @@ export function ForexWatchlist() {
               aria-pressed={mwFilter === id}
               onClick={() => setMwFilter(id)}
               className={cn(
-                'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium',
+                'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium max-md:px-2.5 max-md:text-[12px]',
                 mwFilter === id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
               )}
             >

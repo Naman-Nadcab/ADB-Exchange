@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
-import { useForexWorkspaceStore } from '@/lib/forex/state/workspace';
+import { useForexWorkspaceStore, type ForexBottomTab } from '@/lib/forex/state/workspace';
 import { cn } from '@/lib/utils';
 import { ForexPortalMobileMenu } from './ForexPortalMobileMenu';
 
@@ -45,15 +45,21 @@ export function ForexPhoneTabBar() {
   const bottomTab = useForexWorkspaceStore((s) => s.bottomTab);
   const setBottomTab = useForexWorkspaceStore((s) => s.setBottomTab);
   const [moreOpen, setMoreOpen] = useState(false);
+  const toolTabs = ['alerts', 'news', 'journal', 'mailbox', 'calendar', 'risk'] as const satisfies readonly ForexBottomTab[];
+  const terminalTools = toolTabs.map((id) => ({ id, label: tf(`bottomTabs.${id}`) }));
+  const bookTool = screen === 'book' && bottomTab !== 'positions' && bottomTab !== 'orders' && bottomTab !== 'history';
   const items = [
     { id: 'chart' as const, label: t('chart'), active: screen === 'chart' || screen === 'watch' },
     { id: 'trade' as const, label: t('trade'), active: screen === 'trade' },
-    { id: 'positions' as const, label: t('positions'), active: screen === 'book' && bottomTab !== 'history' },
+    { id: 'positions' as const, label: t('positions'), active: screen === 'book' && (bottomTab === 'positions' || bottomTab === 'orders') },
     { id: 'history' as const, label: t('history'), active: screen === 'book' && bottomTab === 'history' },
   ];
   return (
     <>
-      <nav className="flex h-14 shrink-0 items-stretch border-t border-border bg-card md:hidden" aria-label={t('shellAria')}>
+      <nav
+        className="flex min-h-14 shrink-0 items-stretch border-t border-border bg-card pb-[env(safe-area-inset-bottom,0px)] md:hidden"
+        aria-label={t('shellAria')}
+      >
         {items.map((item) => (
           <button
             key={item.id}
@@ -80,13 +86,26 @@ export function ForexPhoneTabBar() {
         ))}
         <button
           type="button"
-          className="flex min-h-11 min-w-0 flex-1 items-center justify-center px-1 text-[11px] font-medium text-muted-foreground"
+          aria-current={bookTool ? 'page' : undefined}
+          className={cn(
+            'flex min-h-11 min-w-0 flex-1 items-center justify-center px-1 text-[11px] font-medium',
+            bookTool ? 'text-primary' : 'text-muted-foreground'
+          )}
           onClick={() => setMoreOpen(true)}
         >
           {tf('nav.more')}
         </button>
       </nav>
-      <ForexPortalMobileMenu open={moreOpen} onOpenChange={setMoreOpen} />
+      <ForexPortalMobileMenu
+        open={moreOpen}
+        onOpenChange={setMoreOpen}
+        terminalTools={terminalTools}
+        activeToolId={bookTool ? bottomTab : undefined}
+        onTerminalTool={(id) => {
+          setBottomTab(id as ForexBottomTab);
+          setScreen('book');
+        }}
+      />
     </>
   );
 }
