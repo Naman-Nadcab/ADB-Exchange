@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuthStore } from '@/store/auth';
 import { forexApi, unwrap } from '../api/client';
-import { hasForexPrivateSession } from '../api/auth-token';
+import { useForexSession } from '../runtime/useForexSession';
 
 export type ForexLiveKycPolicy = {
   loading: boolean;
@@ -17,8 +16,8 @@ export type ForexLiveKycPolicy = {
  * Wallet KYC status is not the source of this flag.
  */
 export function useForexLiveKycPolicy(): ForexLiveKycPolicy {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const session = useForexSession();
+  const authed = session.authed;
   const [state, setState] = useState<ForexLiveKycPolicy>({
     loading: true,
     kycRequired: true,
@@ -26,6 +25,7 @@ export function useForexLiveKycPolicy(): ForexLiveKycPolicy {
   });
 
   useEffect(() => {
+    if (session.resolving) return;
     if (!authed) {
       setState({ loading: false, kycRequired: true, kycVerified: false });
       return;
@@ -48,7 +48,7 @@ export function useForexLiveKycPolicy(): ForexLiveKycPolicy {
     return () => {
       cancelled = true;
     };
-  }, [authed]);
+  }, [authed, session.resolving]);
 
   return state;
 }

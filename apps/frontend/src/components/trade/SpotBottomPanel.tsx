@@ -22,6 +22,7 @@ export type SpotMarketMeta = {
 interface SpotBottomPanelProps {
   symbol: string;
   isAuth: boolean;
+  signedOut?: boolean;
   ordersVersion?: number;
   tradesVersion?: number;
   markets?: SpotMarketMeta[];
@@ -287,6 +288,7 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
   };
 
   if (!isAuth) {
+    const askSignIn = props.signedOut !== false;
     return (
       <div className="flex min-h-[320px] w-full flex-col bg-card">
         <div className="flex min-h-10 items-center gap-1 border-b border-border bg-muted/35 px-2">
@@ -319,9 +321,11 @@ export function SpotBottomPanel(props: SpotBottomPanelProps) {
             </div>
           ))}
         </div>
-        <div className="border-t border-border px-4 py-3 text-center text-[12px] text-muted-foreground">
-          {tc('empty.signInForOrders')}
-        </div>
+        {askSignIn ? (
+          <div className="border-t border-border px-4 py-3 text-center text-[12px] text-muted-foreground">
+            {tc('empty.signInForOrders')}
+          </div>
+        ) : null}
       </div>
     );
   }

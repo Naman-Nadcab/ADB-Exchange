@@ -7,6 +7,7 @@ import { ROUTES, SPOT_TRADE_HREF, WALLET_HREF, ORDERS_HREF, walletPath } from '@
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useAuthStore } from '@/store/auth';
 import { performLogout } from '@/lib/authLogout';
+import { useLoginHref } from '@/lib/useLoginHref';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { EdaProductSwitcher } from '@/components/eda/EdaProductSwitcher';
 import { LocaleLanguageSelector } from '@/components/i18n/LocaleLanguageSelector';
@@ -25,8 +26,10 @@ export function PublicHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
-  const { user, _hasHydrated, isAuthenticated } = useAuthStore();
-  const authed = _hasHydrated && isAuthenticated;
+  const loginHref = useLoginHref();
+  const { user, _hasHydrated, isAuthenticated, authResolved } = useAuthStore();
+  const sessionReady = _hasHydrated && authResolved;
+  const authed = sessionReady && isAuthenticated;
 
   useEffect(() => {
     if (!userOpen) return;
@@ -177,9 +180,13 @@ export function PublicHeader() {
             </>
           ) : (
             <>
-              <Link href={ROUTES.login} prefetch className="tap-target hidden items-center whitespace-nowrap rounded-lg bg-[#F5B800] px-4 py-2 text-sm font-semibold text-[#05070B] transition hover:bg-[#FFD54A] sm:inline-flex">
-                {tn('logIn')}
-              </Link>
+              {sessionReady ? (
+                <Link href={loginHref} prefetch className="tap-target hidden items-center whitespace-nowrap rounded-lg bg-[#F5B800] px-4 py-2 text-sm font-semibold text-[#05070B] transition hover:bg-[#FFD54A] sm:inline-flex">
+                  {tn('logIn')}
+                </Link>
+              ) : (
+                <span className="hidden h-9 w-20 shrink-0 sm:inline-block" aria-hidden />
+              )}
             </>
           )}
 
@@ -214,7 +221,9 @@ export function PublicHeader() {
                 <Link href={ROUTES.p2p} prefetch className="tap-target inline-flex items-center">{tn('p2p')}</Link>
                 <Link href={ROUTES.earn} prefetch className="tap-target inline-flex items-center">{tn('earn')}</Link>
                 <Link href={ROUTES.dashboard.api} prefetch className="tap-target inline-flex items-center">{tn('api')}</Link>
-                <Link href={ROUTES.login} prefetch className="tap-target inline-flex items-center text-[#F5B800]">{tn('logIn')}</Link>
+                {sessionReady ? (
+                  <Link href={loginHref} prefetch className="tap-target inline-flex items-center text-[#F5B800]">{tn('logIn')}</Link>
+                ) : null}
               </>
             )}
           </div>

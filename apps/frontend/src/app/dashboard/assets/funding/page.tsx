@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { loginPathWithRedirect } from '@/lib/authSession';
 import { useAuthStore } from '@/store/auth';
 import { useBalancesFunding, type TokenBalance } from '@/lib/balances';
 import { CoinIcon } from '@/components/ui/CoinIcon';
@@ -120,6 +122,7 @@ function ActionDropdown({ symbol }: { symbol: string }) {
 
 export default function FundingAccountPage() {
   const t = useTranslations('wallet.fundingPage');
+  const pathname = usePathname();
   const { accessToken, _hasHydrated } = useAuthStore();
   const { displayCurrency, formatFromUsdt } = useDisplayCurrency();
 
@@ -253,7 +256,7 @@ export default function FundingAccountPage() {
       {sessionError && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-warning/30 bg-warning/10 p-4">
           <p className="text-sm text-foreground">{sessionError}</p>
-          <Link href="/login" className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
+          <Link href={loginPathWithRedirect(pathname ?? '/wallet')} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
             {t('logInAgain')}
           </Link>
         </div>

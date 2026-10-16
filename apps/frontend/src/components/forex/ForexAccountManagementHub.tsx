@@ -7,7 +7,7 @@ import { ArrowLeftRight, CircleDollarSign, Gauge, LayoutGrid, Wallet } from 'luc
 import { ROUTES } from '@/lib/routes';
 import { ForexAccountSettingsPanel } from './ForexAccountSettingsPanel';
 import { ForexTradingCredentialPanel } from './ForexTradingCredentialPanel';
-import { ForexSignInPrompt } from './ForexPageFrame';
+import { ForexAuthPending } from './ForexPageFrame';
 import { fxNum, fxPlain } from './format';
 import { forexEnumLabel } from './forex-enum-label';
 import {
@@ -16,14 +16,13 @@ import {
   ForexPortalStatusBadge,
 } from './ForexPortalKpiCard';
 import { forexApi, unwrap, type ForexAccountHubPayload } from '@/lib/forex/api/client';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { FOREX_PRODUCT } from '@/lib/forex/brand';
 import { useForexLiveKycPolicy } from '@/lib/forex/hooks/useForexLiveKycPolicy';
 import { useForexProductGates } from '@/lib/forex/hooks/useForexProductGates';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { hydrateForexPrivate, switchForexActiveAccount, syncForexAccountsFromServer } from '@/lib/forex/runtime/hydrate';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { useForexStore } from '@/lib/forex/state/store';
-import { useAuthStore } from '@/store/auth';
 import { cn } from '@/lib/utils';
 
 export function ForexAccountManagementHub({ accountId }: { accountId: string }) {
@@ -31,8 +30,8 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
   const td = useTranslations('forex.accountDetail');
   const tu = useTranslations('forex.riskStates');
   const te = useTranslations('forex.enums');
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const session = useForexSession();
+  const authed = session.authed;
   const storeFees = useForexStore((s) => s.fees);
   const storeSwaps = useForexStore((s) => s.swaps);
   const { gates } = useForexProductGates();
@@ -118,9 +117,9 @@ export function ForexAccountManagementHub({ accountId }: { accountId: string }) 
     }
   }
 
-  if (!authed) {
+  if (session.status !== 'AUTHENTICATED') {
     return (
-      <ForexSignInPrompt href={`/login?redirect=${FOREX_ROUTES.accountDetail(accountId)}`} sectionKey="forexAccounts" />
+      <ForexAuthPending status={session.status} href={`/login?redirect=${FOREX_ROUTES.accountDetail(accountId)}`} sectionKey="forexAccounts" />
     );
   }
 

@@ -20,7 +20,8 @@ import {
   labelDeliveryAdapterStatus,
   validateAlertFormInput,
 } from '@/lib/forex/models/customer-alerts';
-import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
+import { useLoginHref } from '@/lib/useLoginHref';
 import { useForexStore } from '@/lib/forex/state/store';
 import { cn } from '@/lib/utils';
 import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
@@ -32,7 +33,9 @@ type Props = {
 
 export function ForexServerAlertsPanel(props: Props) {
   const tf = useTranslations('forex.serverAlerts');
-  const authed = useForexPrivateSession();
+  const session = useForexSession();
+  const authed = session.authed;
+  const loginHref = useLoginHref();
   const instruments = useForexStore((s) => s.instruments);
   const symbols = useMemo(
     () => props.symbolOptions ?? Object.keys(instruments).slice(0, 24),
@@ -170,10 +173,14 @@ export function ForexServerAlertsPanel(props: Props) {
     await reload();
   };
 
-  if (!authed) {
+  if (session.resolving) {
+    return null;
+  }
+
+  if (session.status === 'SIGNED_OUT') {
     return (
       <p className="text-[11px] text-muted-foreground">
-        <Link href="/login" className="text-primary underline">
+        <Link href={loginHref} className="text-primary underline">
           {tf('signInPrefix')}
         </Link>{' '}
         {tf('signInSuffix')}

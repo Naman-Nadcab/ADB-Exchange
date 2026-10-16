@@ -2,23 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import { forexApi, unwrap } from '../api/client';
-import { hasForexPrivateSession } from '../api/auth-token';
 import {
   deriveForexProductGates,
   FOREX_PRODUCT_GATES_DEFAULT,
   type ForexProductGates,
 } from '../capabilities/product-gates';
+import { useForexSession } from '../runtime/useForexSession';
 import { useForexStore } from '../state/store';
-import { useAuthStore } from '@/store/auth';
 
 export function useForexProductGates(): { gates: ForexProductGates; loading: boolean } {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const session = useForexSession();
+  const authed = session.authed;
   const tradingConfig = useForexStore((s) => s.tradingConfig);
   const [gates, setGates] = useState<ForexProductGates>(FOREX_PRODUCT_GATES_DEFAULT);
-  const [loading, setLoading] = useState(authed);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (session.resolving) {
+      setLoading(true);
+      return;
+    }
     if (!authed) {
       setGates(FOREX_PRODUCT_GATES_DEFAULT);
       setLoading(false);
@@ -46,7 +49,7 @@ export function useForexProductGates(): { gates: ForexProductGates; loading: boo
     return () => {
       cancelled = true;
     };
-  }, [authed, tradingConfig?.executionMode]);
+  }, [authed, session.resolving, tradingConfig?.executionMode]);
 
   return { gates, loading };
 }

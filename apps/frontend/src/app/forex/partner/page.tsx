@@ -3,18 +3,17 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexAuthPending, ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
-import { useAuthStore } from '@/store/auth';
 
 export default function ForexPartnerPage() {
   const tf = useTranslations('forex');
   const t = useTranslations('forex.partnerPage');
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const session = useForexSession();
+  const authed = session.authed;
   const [introducer, setIntroducer] = useState<{ code: string; label: string } | null>(null);
   const [partner, setPartner] = useState<{ code: string; label: string; commissionPerLot: string } | null>(null);
   const [clients, setClients] = useState<Array<{ accountId: string | null; volumeLots: string; since: string }>>([]);
@@ -38,7 +37,9 @@ export default function ForexPartnerPage() {
 
   return (
     <ForexPageFrame title={tf('pages.partner.title')} subtitle={tf('pages.partner.subtitle')}>
-      {!authed ? <ForexSignInPrompt href={`/login?redirect=${FOREX_ROUTES.partner}`} sectionKey="partner" /> : null}
+      {session.status !== 'AUTHENTICATED' ? (
+        <ForexAuthPending status={session.status} href={`/login?redirect=${FOREX_ROUTES.partner}`} sectionKey="partner" />
+      ) : null}
 
       <div className="grid gap-3 lg:grid-cols-2">
         <ForexPortalModuleCard title={t('traderTitle')} accent>

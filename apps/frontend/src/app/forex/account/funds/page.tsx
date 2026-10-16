@@ -6,27 +6,26 @@ import Link from 'next/link';
 import { CircleDollarSign, Landmark, Wallet } from 'lucide-react';
 import { ForexFundsSubNav } from '@/components/forex/ForexFundsSubNav';
 import { ForexHistoryRange } from '@/components/forex/ForexHistoryRange';
-import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexAuthPending, ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { fxPlain } from '@/components/forex/format';
 import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { forexApi } from '@/lib/forex/api/client';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
 import { ALL_HISTORY_RANGE, boundsForRange, timestampInBounds, type HistoryRange } from '@/lib/forex/models/history-analytics';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useForexProductGates } from '@/lib/forex/hooks/useForexProductGates';
 import { hydrateForexPrivate } from '@/lib/forex/runtime/hydrate';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { useForexStore } from '@/lib/forex/state/store';
-import { useAuthStore } from '@/store/auth';
 
 export default function ForexFundsPage() {
   const tf = useTranslations('forex');
   const t = useTranslations('forex.fundsPage');
   const te = useTranslations('forex.enums');
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const session = useForexSession();
+  const authed = session.authed;
   const account = useForexStore((s) => s.account);
   const balance = useForexStore((s) => s.balance);
   const funding = useForexStore((s) => s.funding);
@@ -71,10 +70,10 @@ export default function ForexFundsPage() {
 
   return (
     <ForexPageFrame title={tf('pages.funds.title')} subtitle={tf('pages.funds.subtitle')}>
-      {!authed ? (
-        <ForexSignInPrompt href="/login?redirect=/forex/account/funds" sectionKey="funds" />
-      ) : (
+      {session.status === 'AUTHENTICATED' ? (
         <ForexPortalAccountContext />
+      ) : (
+        <ForexAuthPending status={session.status} href="/login?redirect=/forex/account/funds" sectionKey="funds" />
       )}
       <ForexFundsSubNav />
       {authed ? (

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getApiBaseUrl } from '@/lib/getApiUrl';
-import { hasForexPrivateSession } from '../api/auth-token';
+import { useForexSession } from '../runtime/useForexSession';
 import { useAuthStore } from '@/store/auth';
 
 /**
@@ -12,17 +12,22 @@ import { useAuthStore } from '@/store/auth';
 export type ForexWalletKyc = { verified: boolean; status: string; loading: boolean };
 
 export function useForexWalletKyc(): ForexWalletKyc {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const session = useForexSession();
+  const authed = session.authed;
   const accessToken = useAuthStore((s) => s.accessToken);
-  const authed = isAuthenticated || hasForexPrivateSession();
   const [verified, setVerified] = useState(false);
   const [status, setStatus] = useState('unknown');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (session.resolving) {
+      setLoading(true);
+      return;
+    }
     if (!authed) {
       setVerified(false);
       setStatus('unknown');
+      setLoading(false);
       return;
     }
     let cancelled = false;
@@ -51,7 +56,7 @@ export function useForexWalletKyc(): ForexWalletKyc {
     return () => {
       cancelled = true;
     };
-  }, [authed, accessToken]);
+  }, [authed, accessToken, session.resolving]);
 
   return { verified, status, loading };
 }

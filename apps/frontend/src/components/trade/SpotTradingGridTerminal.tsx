@@ -16,7 +16,7 @@ import { AlertCircle, ChevronDown, ChevronUp, Loader2, Info, TrendingUp } from '
 import { CoinIcon } from '@/components/ui/CoinIcon';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { SPOT_TRADE_HREF, loginWithRedirect } from '@/lib/routes';
+import { useLoginHref } from '@/lib/useLoginHref';
 import { useTranslations } from 'next-intl';
 import { ExchangeHeader } from '@/components/layout/ExchangeHeader';
 import { PairHeader } from './PairHeader';
@@ -653,7 +653,7 @@ function BinanceOrderEntrySection({
   orderType, setOrderType, timeInForce, setTimeInForce, postOnly, setPostOnly,
   price, setPrice, stopPrice, setStopPrice, trailingDelta, setTrailingDelta,
   baseAsset, quoteAsset, pricePrecision, qtyPrecision,
-  isAuth, submitting, handleSubmit, handleSideChange, setQuantity, selectedMarket,
+  isAuth, signedOut, submitting, handleSubmit, handleSideChange, setQuantity, selectedMarket,
   availableBalance, quoteBalance, baseBalance, side,
   requireOrderConfirmation, tradingEnabled,
   marketStatus: _marketStatus,
@@ -675,6 +675,7 @@ function BinanceOrderEntrySection({
   pricePrecision: number;
   qtyPrecision: number;
   isAuth: boolean;
+  signedOut: boolean;
   submitting: boolean;
   handleSubmit: (overrideSide?: 'buy' | 'sell', overrideQty?: string) => Promise<void>;
   handleSideChange: (s: 'buy' | 'sell') => void;
@@ -688,6 +689,7 @@ function BinanceOrderEntrySection({
   tradingEnabled: boolean;
   marketStatus?: string | null;
 }) {
+  const loginHref = useLoginHref();
   const { orderbook } = useSpotMarketOrderbook();
   const { ticker } = useSpotMarketTicker();
   const { recentTrades } = useSpotMarketTrades();
@@ -995,9 +997,9 @@ function BinanceOrderEntrySection({
               {`${executionMode} · ${executionHint}`}
             </span>
           </div>
-          {!isAuth ? (
+          {signedOut ? (
             <Link
-              href={loginWithRedirect(SPOT_TRADE_HREF)}
+              href={loginHref}
               className="flex h-10 min-h-[40px] items-center justify-center rounded-lg border border-buy/30 bg-buy/90 text-price font-semibold tracking-wide text-neutral-950 shadow-sm transition-all hover:bg-buy active:scale-[0.99] active:brightness-95"
             >
               {t('terminal.logIn')}
@@ -1007,7 +1009,7 @@ function BinanceOrderEntrySection({
               type="button"
               data-spot-place-order
               data-spot-side="buy"
-              disabled={submitting || !buyQty.trim() || !tradingEnabled}
+              disabled={!isAuth || submitting || !buyQty.trim() || !tradingEnabled}
               onClick={doBuy}
               className="flex h-10 min-h-[40px] items-center justify-center gap-1.5 rounded-lg border border-buy/30 bg-buy/90 text-price font-semibold tracking-wide text-neutral-950 shadow-sm transition-all hover:bg-buy active:scale-[0.99] active:brightness-95 disabled:pointer-events-none disabled:opacity-40"
             >
@@ -1092,9 +1094,9 @@ function BinanceOrderEntrySection({
               {`${executionMode} · ${executionHint}`}
             </span>
           </div>
-          {!isAuth ? (
+          {signedOut ? (
             <Link
-              href={loginWithRedirect(SPOT_TRADE_HREF)}
+              href={loginHref}
               className="flex h-10 min-h-[40px] items-center justify-center rounded-lg border border-sell/30 bg-sell/90 text-price font-semibold tracking-wide text-neutral-950 shadow-sm transition-all hover:bg-sell active:scale-[0.99] active:brightness-95"
             >
               {t('terminal.logIn')}
@@ -1104,7 +1106,7 @@ function BinanceOrderEntrySection({
               type="button"
               data-spot-place-order
               data-spot-side="sell"
-              disabled={submitting || !sellQty.trim() || !tradingEnabled}
+              disabled={!isAuth || submitting || !sellQty.trim() || !tradingEnabled}
               onClick={doSell}
               className="flex h-10 min-h-[40px] items-center justify-center gap-1.5 rounded-lg border border-sell/30 bg-sell/90 text-price font-semibold tracking-wide text-neutral-950 shadow-sm transition-all hover:bg-sell active:scale-[0.99] active:brightness-95 disabled:pointer-events-none disabled:opacity-40"
             >
@@ -1183,6 +1185,8 @@ export interface SpotTradingGridTerminalProps {
   symbol: string;
   setSymbolAndUrl: (s: string) => void;
   isAuth: boolean;
+  /** True only after the platform session check has finished without a user. */
+  signedOut: boolean;
   userTierLevel?: number;
   chartTheme: 'dark' | 'light';
   chartIntervalSeconds: number;
@@ -1228,6 +1232,7 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
     symbol,
     setSymbolAndUrl,
     isAuth,
+    signedOut,
     userTierLevel,
     chartTheme,
     chartIntervalSeconds,
@@ -1543,7 +1548,7 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
                 postOnly={postOnly} setPostOnly={setPostOnly} price={price} setPrice={setPrice}
                 stopPrice={stopPrice} setStopPrice={setStopPrice} trailingDelta={trailingDelta} setTrailingDelta={setTrailingDelta}
                 baseAsset={baseAsset} quoteAsset={quoteAsset} pricePrecision={pricePrecision} qtyPrecision={qtyPrecision}
-                isAuth={isAuth} submitting={submitting} handleSubmit={handleSubmit} handleSideChange={handleSideChange}
+                isAuth={isAuth} signedOut={signedOut} submitting={submitting} handleSubmit={handleSubmit} handleSideChange={handleSideChange}
                 setQuantity={setQuantity} selectedMarket={selectedMarket} availableBalance={availableBalance}
                 quoteBalance={quoteBalance} baseBalance={baseBalance} side={side}
                 requireOrderConfirmation={requireOrderConfirmation}
@@ -1597,6 +1602,7 @@ export function SpotTradingGridTerminal(props: SpotTradingGridTerminalProps) {
           <SpotBottomPanel
             symbol={symbol}
             isAuth={isAuth}
+            signedOut={signedOut}
             ordersVersion={ordersVersion}
             tradesVersion={tradesVersion}
             promptCancelAllConfirmation={requireCancelAllConfirmation}

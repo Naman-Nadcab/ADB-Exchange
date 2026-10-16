@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useForexErrorMessage } from '@/hooks/useForexErrorMessage';
-import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { describeForexError, normalizeForexError } from '@/lib/forex/models/errors';
 import { isPreviewParamComplete } from '@/lib/forex/models/preview';
 import { executablePrice, isQuoteStale } from '@/lib/forex/models/quotes';
@@ -139,7 +140,8 @@ export function ForexOrderTicket() {
     dealing?.symbol.newOrderEnabled !== false &&
     dealing?.symbol.enabled !== false;
   const sideEnabled = side === 'buy' ? dealing?.symbol.buyEnabled !== false : dealing?.symbol.sellEnabled !== false;
-  const authed = useForexPrivateSession();
+  const session = useForexSession();
+  const authed = session.authed;
   const busy = storeBusy || engine.busy;
   const previewReq = {
     symbol: selected,
@@ -224,7 +226,7 @@ export function ForexOrderTicket() {
 
   const blockReason = useMemo(() => {
     const tail = (r?: string | null) => (r ? ` · ${r}` : '');
-    if (!authed) return tf('ticket.blocks.signIn');
+    if (!authed) return null;
     if (!sessionOpen) return tf('ticket.blocks.marketClosed', { reason: tail(sessions?.eligibility.reason) });
     if (stale) return quote ? tf('ticket.blocks.quoteStale') : tf('ticket.blocks.quoteUnavailable');
     if (risk?.state === 'HALTED') return tf('ticket.blocks.accountHalted', { reason: tail(risk.reason) });
@@ -573,7 +575,13 @@ export function ForexOrderTicket() {
           </p>
         ) : null}
 
-        {blockReason ? (
+        {session.status === 'SIGNED_OUT' ? (
+          <p className="border border-amber-800/60 bg-amber-950/30 px-1.5 py-1 text-[11px] text-amber-200" role="status">
+            <Link href="/login?redirect=/forex/trade" className="font-medium underline underline-offset-2">
+              {tf('ticket.blocks.signIn')}
+            </Link>
+          </p>
+        ) : blockReason ? (
           <p className="border border-amber-800/60 bg-amber-950/30 px-1.5 py-1 text-[11px] text-amber-200" role="status">
             {blockReason}
           </p>

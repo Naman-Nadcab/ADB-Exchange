@@ -4,21 +4,20 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/lib/routes';
-import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexAuthPending, ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { forexEnumLabel, forexServerCopy } from '@/components/forex/forex-enum-label';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
-import { useAuthStore } from '@/store/auth';
 
 export default function ForexOpenLiveAccountPage() {
   const tf = useTranslations('forex');
   const t = useTranslations('forex.openLive');
   const te = useTranslations('forex.enums');
   const ts = useTranslations('forex.serverCopy');
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const session = useForexSession();
+  const authed = session.authed;
   const [eligibility, setEligibility] = useState<{
     available: boolean;
     applicationAccepted?: boolean;
@@ -106,8 +105,8 @@ export default function ForexOpenLiveAccountPage() {
 
   return (
     <ForexPageFrame title={tf('pages.openLive.title')} subtitle={tf('pages.openLive.subtitle')}>
-      {!authed ? (
-        <ForexSignInPrompt href={`/login?redirect=${FOREX_ROUTES.openLiveAccount}`} sectionKey="forexAccounts" />
+      {session.status !== 'AUTHENTICATED' ? (
+        <ForexAuthPending status={session.status} href={`/login?redirect=${FOREX_ROUTES.openLiveAccount}`} sectionKey="forexAccounts" />
       ) : null}
       <ForexPortalModuleCard title={t('eligibilityTitle')} accent>
         <ForexPortalStatusBadge tone={available ? 'success' : 'warning'}>

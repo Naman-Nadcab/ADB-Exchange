@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ForexHistoryRange } from '@/components/forex/ForexHistoryRange';
-import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexAuthPending, ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import {
   ForexPortalKpiCard,
@@ -11,9 +11,8 @@ import {
   ForexPortalStatusBadge,
   ledgerStatusTone,
 } from '@/components/forex/ForexPortalKpiCard';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { useForexStore } from '@/lib/forex/state/store';
-import { useAuthStore } from '@/store/auth';
 import { fxMoney, fxPlain } from '@/components/forex/format';
 import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { ALL_HISTORY_RANGE, boundsForRange, timestampInBounds, type HistoryRange } from '@/lib/forex/models/history-analytics';
@@ -40,8 +39,8 @@ export default function ForexLedgerPage() {
   const te = useTranslations('forex.enums');
   const tc = useTranslations('common.actions');
   const tu = useTranslations('forex.riskStates');
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const session = useForexSession();
+  const authed = session.authed;
   const ledger = useForexStore((s) => s.ledger);
   const reconciliation = useForexStore((s) => s.ledgerReconciliation);
   const account = useForexStore((s) => s.account);
@@ -73,8 +72,8 @@ export default function ForexLedgerPage() {
 
   return (
     <ForexPageFrame title={tf('pages.ledger.title')} subtitle={tf('pages.ledger.subtitle')}>
-      {!authed ? (
-        <ForexSignInPrompt href="/login?redirect=/forex/account/ledger" sectionKey="ledger" />
+      {session.status !== 'AUTHENTICATED' ? (
+        <ForexAuthPending status={session.status} href="/login?redirect=/forex/account/ledger" sectionKey="ledger" />
       ) : null}
         <>
           {authed ? <ForexPortalAccountContext /> : null}

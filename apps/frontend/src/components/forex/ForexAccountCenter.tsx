@@ -3,22 +3,21 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexAuthPending } from '@/components/forex/ForexPageFrame';
 import { ForexPortalModuleCard } from '@/components/forex/ForexPortalKpiCard';
 import { ForexAccountCenterCard } from '@/components/forex/ForexAccountCenterCard';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexLiveKycPolicy } from '@/lib/forex/hooks/useForexLiveKycPolicy';
 import { switchForexActiveAccount, syncForexAccountsFromServer } from '@/lib/forex/runtime/hydrate';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { ROUTES } from '@/lib/routes';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { useForexProductGates } from '@/lib/forex/hooks/useForexProductGates';
 import { useForexStore } from '@/lib/forex/state/store';
-import { useAuthStore } from '@/store/auth';
 
 export function ForexAccountCenter() {
   const t = useTranslations('forex.accountCenter');
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const session = useForexSession();
+  const authed = session.authed;
   const accounts = useForexStore((s) => s.forexAccounts);
   const activeId = useForexStore((s) => s.activeForexAccountId);
   const hydratePhase = useForexStore((s) => s.hydratePhase);
@@ -99,8 +98,8 @@ export function ForexAccountCenter() {
           </div>
         }
       >
-        {!authed ? (
-          <ForexSignInPrompt href={`/login?redirect=${FOREX_ROUTES.accounts}`} sectionKey="forexAccounts" />
+        {session.status !== 'AUTHENTICATED' ? (
+          <ForexAuthPending status={session.status} href={`/login?redirect=${FOREX_ROUTES.accounts}`} sectionKey="forexAccounts" />
         ) : null}
         {note ? <p className="mb-3 text-sm text-buy">{note}</p> : null}
         {err ? <p className="mb-3 text-sm text-sell">{err}</p> : null}

@@ -8,9 +8,10 @@ import { EdaPublicHome } from '@/components/eda/EdaPublicHome';
 export function EdaHomeGate() {
   const tStates = useTranslations('common.states');
   const hydrated = useAuthStore((s) => s._hasHydrated);
+  const authResolved = useAuthStore((s) => s.authResolved);
   const authed = useAuthStore((s) => s.isAuthenticated);
 
-  if (!hydrated) {
+  if (!hydrated || (!authed && !authResolved)) {
     return (
       <div className="min-h-screen bg-[#05070B] text-[#9CA3AF]">
         <p className="px-6 py-10 font-mono text-[12px]">{tStates('loading')}</p>

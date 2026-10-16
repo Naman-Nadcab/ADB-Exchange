@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ForexFundsSubNav } from '@/components/forex/ForexFundsSubNav';
 import { ForexHistoryRange } from '@/components/forex/ForexHistoryRange';
-import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexAuthPending, ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalModuleCard } from '@/components/forex/ForexPortalKpiCard';
 import { fxPlain } from '@/components/forex/format';
@@ -12,16 +12,15 @@ import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
 import { ALL_HISTORY_RANGE, boundsForRange, timestampInBounds, type HistoryRange } from '@/lib/forex/models/history-analytics';
 import type { ForexLedgerRow } from '@/lib/forex/models/types';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { useForexStore } from '@/lib/forex/state/store';
-import { useAuthStore } from '@/store/auth';
 
 export default function ForexFundingHistoryPage() {
   const tf = useTranslations('forex');
   const t = useTranslations('forex.fundingHistoryPage');
   const te = useTranslations('forex.enums');
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const session = useForexSession();
+  const authed = session.authed;
   const activeId = useForexStore((s) => s.activeForexAccountId);
   const [rows, setRows] = useState<ForexLedgerRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -50,10 +49,10 @@ export default function ForexFundingHistoryPage() {
 
   return (
     <ForexPageFrame title={tf('pages.fundsHistory.title')} subtitle={tf('pages.fundsHistory.subtitle')}>
-      {!authed ? (
-        <ForexSignInPrompt href="/login?redirect=/forex/account/funds/history" sectionKey="funds" />
-      ) : (
+      {session.status === 'AUTHENTICATED' ? (
         <ForexPortalAccountContext />
+      ) : (
+        <ForexAuthPending status={session.status} href="/login?redirect=/forex/account/funds/history" sectionKey="funds" />
       )}
       <ForexFundsSubNav />
       <ForexPortalModuleCard title={t('tableTitle')} subtitle={t('tableSubtitle')}>

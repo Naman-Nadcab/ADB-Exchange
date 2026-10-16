@@ -14,7 +14,8 @@ import {
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { SPOT_TRADE_HREF, walletPath, loginWithRedirect } from '@/lib/routes';
+import { walletPath } from '@/lib/routes';
+import { useLoginHref } from '@/lib/useLoginHref';
 
 export type SpotOrderType = 'limit' | 'market' | 'stop_loss' | 'stop_limit' | 'trailing_stop_market';
 export type TimeInForce = 'gtc' | 'ioc' | 'fok';
@@ -38,6 +39,8 @@ interface SpotOrderEntryPanelProps {
   canSubmit: boolean;
   loading: boolean;
   isAuth?: boolean;
+  /** When false, a still-resolving session keeps the order button instead of the sign-in link. */
+  signedOut?: boolean;
   validationMessage?: string;
   estimatedFillPrice?: string | null;
   estimatedSlippagePct?: number | null;
@@ -169,6 +172,7 @@ export function SpotOrderEntryPanel({
   canSubmit,
   loading,
   isAuth = true,
+  signedOut,
   validationMessage,
   estimatedFillPrice,
   estimatedSlippagePct,
@@ -194,6 +198,8 @@ export function SpotOrderEntryPanel({
   maxBuyBaseEstimate,
   maxSellQuoteEstimate,
 }: SpotOrderEntryPanelProps) {
+  const loginHref = useLoginHref();
+  const showSignIn = signedOut ?? !isAuth;
   const tc = useTranslations('crypto');
   const tCommon = useTranslations('common');
   const orderTypes = useMemo(
@@ -721,9 +727,9 @@ export function SpotOrderEntryPanel({
           </p>
         )}
 
-        {!isAuth ? (
+        {showSignIn ? (
           <Link
-            href={loginWithRedirect(SPOT_TRADE_HREF)}
+            href={loginHref}
             className="flex h-9 min-h-9 w-full items-center justify-center rounded-sm bg-primary text-label font-bold text-foreground transition-colors hover:bg-primary/85 max-md:min-h-10 max-md:h-10"
           >
             {tc('orderEntry.signInToTrade')}
@@ -732,7 +738,7 @@ export function SpotOrderEntryPanel({
           <button
             type="button"
             data-spot-place-order
-            disabled={!canSubmit || loading}
+            disabled={!isAuth || !canSubmit || loading}
             onClick={() => setConfirmOpen(true)}
             aria-busy={loading}
             className={`flex h-9 min-h-9 w-full items-center justify-center gap-2 rounded-sm text-label font-semibold tracking-wide text-neutral-950 ring-1 ring-black/10 transition-[transform,opacity,background-color] duration-200 active:scale-[0.99] active:brightness-95 dark:ring-white/10 max-md:min-h-10 max-md:h-10 ${

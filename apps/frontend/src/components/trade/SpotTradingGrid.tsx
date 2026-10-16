@@ -114,6 +114,7 @@ export function SpotTradingGrid() {
   const { authResolved, isAuthenticated } = useAuth();
   const { resolvedTheme } = useThemeStore();
   const isAuth = authResolved && isAuthenticated;
+  const signedOut = authResolved && !isAuthenticated;
   const chartTheme = resolvedTheme === 'dark' ? 'dark' : 'light';
   const tc = useTranslations('crypto');
   const tCommon = useTranslations('common');
@@ -727,6 +728,7 @@ export function SpotTradingGrid() {
         symbol={symbol}
         setSymbolAndUrl={setSymbolAndUrl}
         isAuth={isAuth}
+        signedOut={signedOut}
         userTierLevel={user?.tierLevel}
         chartTheme={chartTheme}
         chartIntervalSeconds={chartIntervalSeconds}

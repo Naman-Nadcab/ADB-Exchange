@@ -4,23 +4,21 @@ import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Download } from 'lucide-react';
 import { ForexHistoryRange } from '@/components/forex/ForexHistoryRange';
-import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexAuthPending, ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalKpiCard, ForexPortalModuleCard } from '@/components/forex/ForexPortalKpiCard';
 import { fxNum, fxPlain } from '@/components/forex/format';
 import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { downloadForexHistoryCsv } from '@/lib/forex/api/client';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { ALL_HISTORY_RANGE, boundsForRange, timestampInBounds, type HistoryRange } from '@/lib/forex/models/history-analytics';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { useForexStore } from '@/lib/forex/state/store';
-import { useAuthStore } from '@/store/auth';
 
 export default function ForexHistoryPage() {
   const tf = useTranslations('forex');
   const t = useTranslations('forex.historyPage');
   const te = useTranslations('forex.enums');
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const session = useForexSession();
   const fills = useForexStore((s) => s.fills);
   const account = useForexStore((s) => s.account);
   const balance = useForexStore((s) => s.balance);
@@ -53,8 +51,8 @@ export default function ForexHistoryPage() {
 
   return (
     <ForexPageFrame wide title={tf('pages.history.title')} subtitle={tf('pages.history.subtitle')}>
-      {!authed ? (
-        <ForexSignInPrompt href="/login?redirect=/forex/history" sectionKey="tradeHistory" />
+      {session.status !== 'AUTHENTICATED' ? (
+        <ForexAuthPending status={session.status} href="/login?redirect=/forex/history" sectionKey="tradeHistory" />
       ) : (
         <>
           <ForexPortalAccountContext />
