@@ -3,18 +3,17 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexAuthPending, ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { createForexDemoAccountAndActivate, syncForexAccountsFromServer } from '@/lib/forex/runtime/hydrate';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
-import { useAuthStore } from '@/store/auth';
 
 export default function ForexOpenDemoAccountPage() {
   const tf = useTranslations('forex');
   const t = useTranslations('forex.openDemo');
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const session = useForexSession();
+  const authed = session.authed;
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [created, setCreated] = useState(false);
@@ -38,8 +37,8 @@ export default function ForexOpenDemoAccountPage() {
 
   return (
     <ForexPageFrame title={tf('pages.openDemo.title')} subtitle={tf('pages.openDemo.subtitle')}>
-      {!authed ? (
-        <ForexSignInPrompt href={`/login?redirect=${FOREX_ROUTES.openDemoAccount}`} sectionKey="forexAccounts" />
+      {session.status !== 'AUTHENTICATED' ? (
+        <ForexAuthPending status={session.status} href={`/login?redirect=${FOREX_ROUTES.openDemoAccount}`} sectionKey="forexAccounts" />
       ) : null}
       <ForexPortalModuleCard title={t('flowTitle')} accent>
         <ForexPortalStatusBadge tone="primary">{t('demoBadge')}</ForexPortalStatusBadge>

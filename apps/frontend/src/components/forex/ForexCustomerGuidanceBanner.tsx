@@ -7,14 +7,12 @@ import { ForexPortalStatusBadge } from './ForexPortalKpiCard';
 import { useForexProductGates } from '@/lib/forex/hooks/useForexProductGates';
 import { useForexLiveKycPolicy } from '@/lib/forex/hooks/useForexLiveKycPolicy';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { useForexStore } from '@/lib/forex/state/store';
-import { useAuthStore } from '@/store/auth';
 
 export function ForexCustomerGuidanceBanner() {
   const t = useTranslations('forex.customerGuidance');
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const authed = useForexSession().authed;
   const accounts = useForexStore((s) => s.forexAccounts);
   const account = useForexStore((s) => s.account);
   const balance = useForexStore((s) => s.balance);

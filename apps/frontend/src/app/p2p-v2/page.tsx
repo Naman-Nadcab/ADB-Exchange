@@ -185,8 +185,9 @@ function TakeOrderModal({
 export default function P2PV2MarketplacePage() {
   const tp = useTranslations('p2p');
   const queryClient = useQueryClient();
-  const { _hasHydrated, isAuthenticated } = useAuthStore();
+  const { _hasHydrated, isAuthenticated, authResolved } = useAuthStore();
   const authed = _hasHydrated && isAuthenticated;
+  const signedOut = _hasHydrated && authResolved && !isAuthenticated;
 
   /* ── Filters state ── */
   const [filters, setFilters] = useState<P2PFiltersValue>({
@@ -409,6 +410,7 @@ export default function P2PV2MarketplacePage() {
         fiat={filters.fiat}
         loading={isLoading}
         authed={authed}
+        signedOut={signedOut}
         paymentFilter={filters.paymentCode}
         isError={isError}
         errorMessage={error instanceof Error ? error.message : undefined}

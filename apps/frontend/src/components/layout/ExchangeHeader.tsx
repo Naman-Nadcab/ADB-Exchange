@@ -13,6 +13,7 @@ import { GlobalSearch } from '@/components/layout/GlobalSearch';
 import { useAuthStore } from '@/store/auth';
 import { useAuth } from '@/context/AuthContext';
 import { isClientAuthed } from '@/lib/authSession';
+import { useLoginHref } from '@/lib/useLoginHref';
 import { SPOT_TRADE_HREF, isSpotTradePath } from '@/lib/tier1-canonical-routes';
 import { MARKETS_HREF, ORDERS_HREF, WALLET_HREF, P2P_HREF, ROUTES, LEGACY_PATH_PREFIXES } from '@/lib/routes';
 import { performLogout } from '@/lib/authLogout';
@@ -76,8 +77,10 @@ export function ExchangeHeader({
   const tA11y = useTranslations('common.a11y');
   const pathname = usePathname();
   const router = useRouter();
+  const loginHref = useLoginHref();
   const { accessToken, user, _hasHydrated, isAuthenticated: storeAuthed } = useAuthStore();
   const { authResolved, isAuthenticated: ctxAuthed } = useAuth();
+  const sessionReady = _hasHydrated && authResolved;
   const isAuthed = isClientAuthed(_hasHydrated, ctxAuthed || storeAuthed, authResolved);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -294,12 +297,14 @@ export function ExchangeHeader({
               )}
             </div>
           </>
-        ) : (
+        ) : sessionReady ? (
           <div className="flex items-center gap-1.5">
-            <Link href="/login" className="tap-target inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
+            <Link href={loginHref} className="tap-target inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
               {tn('logIn')}
             </Link>
           </div>
+        ) : (
+          <span className="inline-block h-8 w-[4.5rem] shrink-0" aria-hidden />
         )}
       </div>
 

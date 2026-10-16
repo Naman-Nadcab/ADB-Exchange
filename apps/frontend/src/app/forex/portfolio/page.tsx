@@ -3,16 +3,15 @@
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { CircleDollarSign, Gauge, LineChart, Wallet } from 'lucide-react';
-import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexAuthPending, ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { ForexPositionPanel } from '@/components/forex/ForexPositionPanel';
 import { fxMoney, fxNum, fxPlain } from '@/components/forex/format';
 import { forexEnumLabel } from '@/components/forex/forex-enum-label';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { positionUnrealizedPnl } from '@/lib/forex/models/position';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { useForexStore } from '@/lib/forex/state/store';
-import { useAuthStore } from '@/store/auth';
 import { cn } from '@/lib/utils';
 
 export default function ForexPortfolioPage() {
@@ -20,8 +19,7 @@ export default function ForexPortfolioPage() {
   const tp = useTranslations('forex.portfolioPage');
   const tcol = useTranslations('forex.portfolioPage.columns');
   const te = useTranslations('forex.enums');
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const session = useForexSession();
   const account = useForexStore((s) => s.account);
   const balance = useForexStore((s) => s.balance);
   const margin = useForexStore((s) => s.margin);
@@ -35,8 +33,8 @@ export default function ForexPortfolioPage() {
 
   return (
     <ForexPageFrame wide title={tf('pages.portfolio.title')} subtitle={tf('pages.portfolio.subtitle')}>
-      {!authed ? (
-        <ForexSignInPrompt href="/login?redirect=/forex/portfolio" sectionKey="portfolio" />
+      {session.status !== 'AUTHENTICATED' ? (
+        <ForexAuthPending status={session.status} href="/login?redirect=/forex/portfolio" sectionKey="portfolio" />
       ) : (
         <>
           <ForexPortalAccountContext />

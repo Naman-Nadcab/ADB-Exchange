@@ -5,15 +5,13 @@ import { useTranslations } from 'next-intl';
 import { ForexPortalStatusBadge } from './ForexPortalKpiCard';
 import { fxPlain } from './format';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { useForexStore } from '@/lib/forex/state/store';
-import { useAuthStore } from '@/store/auth';
 
 /** Compact active-account strip for account-scoped portal pages. */
 export function ForexPortalAccountContext() {
   const t = useTranslations('forex.portalAccountContext');
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const authed = useForexSession().authed;
   const activeId = useForexStore((s) => s.activeForexAccountId);
   const account = useForexStore((s) => s.account);
   const forexAccounts = useForexStore((s) => s.forexAccounts);

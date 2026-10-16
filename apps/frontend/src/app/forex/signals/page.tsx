@@ -4,14 +4,13 @@ import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Bookmark, Radio, Layers } from 'lucide-react';
-import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexAuthPending, ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { forexAccountOptionLabel } from '@/components/forex/forex-enum-label';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
 import { cn } from '@/lib/utils';
-import { useAuthStore } from '@/store/auth';
 
 type Provider = { providerId: string; name: string; status: 'paused' | 'active' };
 type Account = { accountId: string; currency: string; accountKind: string };
@@ -39,8 +38,8 @@ export default function ForexSignalsPage() {
   const tf = useTranslations('forex');
   const t = useTranslations('forex.signalsPage');
   const te = useTranslations('forex.enums');
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const session = useForexSession();
+  const authed = session.authed;
   const [providers, setProviders] = useState<Provider[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [providerId, setProviderId] = useState('');
@@ -166,7 +165,9 @@ export default function ForexSignalsPage() {
         ))}
       </div>
 
-      {!authed && ready ? <ForexSignInPrompt href={`/login?redirect=${FOREX_ROUTES.signals}`} sectionKey="signals" /> : null}
+      {session.status !== 'AUTHENTICATED' && (ready || session.status === 'SIGNED_OUT') ? (
+        <ForexAuthPending status={session.status} href={`/login?redirect=${FOREX_ROUTES.signals}`} sectionKey="signals" />
+      ) : null}
 
       <div className="grid gap-3 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
         <ForexPortalModuleCard

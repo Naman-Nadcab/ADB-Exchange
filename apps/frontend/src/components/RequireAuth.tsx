@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { loginPathWithRedirect } from '@/lib/authSession';
 import { useAuthStore } from '@/store/auth';
 
 /**
@@ -53,7 +54,7 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
           <a href="/dashboard/support" className="text-sm font-medium text-primary underline dark:text-blue-400">
             {t('contactSupport')}
           </a>
-          <a href="/login" className="text-sm font-medium text-primary underline dark:text-blue-400">
+          <a href={loginPathWithRedirect(pathname ?? '/dashboard')} className="text-sm font-medium text-primary underline dark:text-blue-400">
             {t('signInOther')}
           </a>
         </div>

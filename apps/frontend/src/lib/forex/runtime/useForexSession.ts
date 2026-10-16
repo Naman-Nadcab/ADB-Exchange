@@ -11,6 +11,10 @@
  *
  * Authentication itself is unchanged: a signed-out visitor still resolves to
  * SIGNED_OUT and private REST still requires the cookie or Bearer.
+ *
+ * SIGNED_OUT waits for the platform `/me` check (`authResolved`). A persisted
+ * session is AUTHENTICATED immediately. A guest stays RESOLVING until that
+ * check finishes, so the UI does not flash Sign in and then the account.
  */
 import { isCookieSessionMarker } from '@/lib/authSession';
 import { useAuthStore } from '@/store/auth';
@@ -30,6 +34,7 @@ export function useForexSession(): ForexSession {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const accessToken = useAuthStore((s) => s.accessToken);
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
+  const authResolved = useAuthStore((s) => s.authResolved);
   const accountId = useAuthStore((s) => s.user?.id ?? null);
 
   const bearer = Boolean(accessToken && !isCookieSessionMarker(accessToken));
@@ -38,7 +43,7 @@ export function useForexSession(): ForexSession {
   if (authed) {
     return { status: 'AUTHENTICATED', authed: true, resolving: false, accountId };
   }
-  if (!hasHydrated) {
+  if (!hasHydrated || !authResolved) {
     return { status: 'RESOLVING', authed: false, resolving: true, accountId: null };
   }
   return { status: 'SIGNED_OUT', authed: false, resolving: false, accountId: null };

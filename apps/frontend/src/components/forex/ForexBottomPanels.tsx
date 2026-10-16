@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { forexApi, unwrap } from '@/lib/forex/api/client';
-import { useForexPrivateSession } from '@/lib/forex/runtime/useForexSession';
+import { useForexPrivateSession, useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { describeForexError } from '@/lib/forex/models/errors';
 import type { ForexFillRow, ForexLedgerReconciliation, ForexLedgerRow, ForexPublicOrder, ForexPublicPosition, ForexPublicProtection, ForexServerJournalEvent } from '@/lib/forex/models/types';
 import { useForexOrderEngine } from '@/lib/forex/runtime/useForexOrderEngine';
@@ -77,7 +77,9 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
   const [fillRange, setFillRange] = useState<HistoryRange>(ALL_HISTORY_RANGE);
   const [journalRange, setJournalRange] = useState<HistoryRange>(ALL_HISTORY_RANGE);
   const [cancelId, setCancelId] = useState<string | null>(null);
-  const authed = useForexPrivateSession();
+  const session = useForexSession();
+  const authed = session.authed;
+  const signedOut = session.status === 'SIGNED_OUT';
   const orders = useForexStore((s) => s.orders);
   const fills = useForexStore((s) => s.fills);
   const ledger = useForexStore((s) => s.ledger);
@@ -349,7 +351,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
                 </div>
               ) : null}
             </div>
-          ) : !authed ? (
+          ) : signedOut ? (
             <div className="flex items-center gap-3 px-3 py-2">
               <p className="text-[11px] text-muted-foreground">{tf('bottomPanels.signInPrompt')}</p>
               <Link href="/login?redirect=/forex/trade" className="text-[11px] text-primary hover:underline">
@@ -425,7 +427,7 @@ export function ForexBottomPanels(props: { compact?: boolean; hasTradingData?: b
             {t.label}
           </button>
         ))}
-        {!authed ? (
+        {signedOut ? (
           <Link
             href="/login?redirect=/forex/trade"
             className="ml-auto text-[10px] text-primary underline-offset-2 hover:underline"

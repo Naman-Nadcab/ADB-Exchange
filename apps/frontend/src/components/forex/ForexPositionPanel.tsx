@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { postedSwapByPosition } from '@/lib/forex/models/history-analytics';
@@ -38,6 +39,7 @@ type CloseByState = {
 
 export function ForexPositionPanel() {
   const tp = useTranslations('forex.positionPanel');
+  const tf = useTranslations('forex');
   const session = useForexSession();
   const authed = session.authed;
   const hydratePhase = useForexStore((s) => s.hydratePhase);
@@ -284,6 +286,9 @@ export function ForexPositionPanel() {
       {status === 'SIGNED_OUT' ? (
         <div className="flex items-center gap-3 px-3 py-2">
           <p className="text-[11px] text-muted-foreground">{tp('signIn')}</p>
+          <Link href="/login?redirect=/forex/trade" className="text-[11px] text-primary hover:underline">
+            {tf('signIn.link')}
+          </Link>
         </div>
       ) : status === 'LOADING' ? (
         <p className="p-3 text-[12px] text-muted-foreground">{tp('loading')}</p>

@@ -10,7 +10,7 @@ import {
   formatP2pCryptoQty,
   p2pPaymentMethodChipCls,
 } from '@/lib/p2p-v2-utils';
-import { loginWithRedirect, P2P_HREF } from '@/lib/routes';
+import { useLoginHref } from '@/lib/useLoginHref';
 import { ShieldCheck, Store, PlusCircle } from 'lucide-react';
 import { CoinIcon } from '@/components/ui/CoinIcon';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -91,6 +91,8 @@ type Props = {
   fiat: string;
   loading?: boolean;
   authed: boolean;
+  /** Login link appears only after the platform session check says signed out. */
+  signedOut?: boolean;
   onTakeAd: (ad: P2PAdRow) => void;
   paymentFilter: string;
   isError?: boolean;
@@ -103,6 +105,7 @@ export function P2PAdsTable({
   fiat,
   loading,
   authed,
+  signedOut,
   onTakeAd,
   paymentFilter,
   isError,
@@ -110,6 +113,8 @@ export function P2PAdsTable({
   onRetry,
 }: Props) {
   const tp = useTranslations('p2p');
+  const loginHref = useLoginHref();
+  const showLogin = signedOut ?? !authed;
   const sym = formatFiatSymbol(fiat);
 
   const filtered = paymentFilter
@@ -248,9 +253,9 @@ export function P2PAdsTable({
                       symbol: ad.crypto_symbol ?? '',
                     })}
                   </button>
-                  {!authed && (
+                  {showLogin && (
                     <Link
-                      href={loginWithRedirect(P2P_HREF)}
+                      href={loginHref}
                       className="text-center text-xs font-semibold text-primary hover:underline sm:text-right"
                     >
                       {tp('adsTable.loginToTrade')}
@@ -392,9 +397,9 @@ export function P2PAdsTable({
                           symbol: ad.crypto_symbol ?? '',
                         })}
                       </button>
-                      {!authed && (
+                      {showLogin && (
                         <Link
-                          href={loginWithRedirect(P2P_HREF)}
+                          href={loginHref}
                           className="text-xs font-semibold text-primary transition-colors hover:text-primary/80 hover:underline"
                         >
                           {tp('adsTable.loginToTrade')}

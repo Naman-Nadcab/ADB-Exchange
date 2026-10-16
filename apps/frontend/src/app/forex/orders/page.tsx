@@ -5,16 +5,15 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { fxNum, fxPlain } from '@/components/forex/format';
 import { forexEnumLabel } from '@/components/forex/forex-enum-label';
-import { hasForexPrivateSession } from '@/lib/forex/api/auth-token';
 import { useForexErrorMessage } from '@/hooks/useForexErrorMessage';
 import { ALL_HISTORY_RANGE, boundsForRange, timestampInBounds, type HistoryRange } from '@/lib/forex/models/history-analytics';
 import type { ForexOrderState, ForexPublicOrder } from '@/lib/forex/models/types';
 import { useForexOrderEngine } from '@/lib/forex/runtime/useForexOrderEngine';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
 import { useForexStore } from '@/lib/forex/state/store';
-import { useAuthStore } from '@/store/auth';
 import { cn } from '@/lib/utils';
 import { ForexHistoryRange } from '@/components/forex/ForexHistoryRange';
-import { ForexPageFrame, ForexSignInPrompt } from '@/components/forex/ForexPageFrame';
+import { ForexAuthPending, ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
 import { ForexPortalKpiCard } from '@/components/forex/ForexPortalKpiCard';
 
@@ -52,8 +51,7 @@ export default function ForexOrdersPage() {
   const to = useTranslations('forex.bottomPanels.orders');
   const te = useTranslations('forex.enums');
   const tc = useTranslations('common.actions');
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authed = isAuthenticated || hasForexPrivateSession();
+  const session = useForexSession();
   const orders = useForexStore((s) => s.orders);
   const fills = useForexStore((s) => s.fills);
   const [tab, setTab] = useState<Tab>('pending');
@@ -111,8 +109,8 @@ export default function ForexOrdersPage() {
       title={tf('pages.orders.title')}
       subtitle={tf('pages.orders.subtitle')}
     >
-      {!authed ? (
-        <ForexSignInPrompt href="/login?redirect=/forex/orders" sectionKey="orders" />
+      {session.status !== 'AUTHENTICATED' ? (
+        <ForexAuthPending status={session.status} href="/login?redirect=/forex/orders" sectionKey="orders" />
       ) : (
         <>
           <ForexPortalAccountContext />

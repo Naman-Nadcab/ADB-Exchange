@@ -11,7 +11,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { CUSTOMER_ACCOUNT_MENU, CUSTOMER_ACCOUNT_ROUTES } from '@/lib/account/customer-account';
+import { performLogout } from '@/lib/authLogout';
 import { FOREX_ROUTES } from '@/lib/forex/routes';
+import { useForexSession } from '@/lib/forex/runtime/useForexSession';
+import { useLoginHref } from '@/lib/useLoginHref';
 import { cn } from '@/lib/utils';
 
 const ACCOUNT_LINKS = [
@@ -25,6 +28,24 @@ const ACCOUNT_LINKS = [
 
 export function ForexPortalUserMenu(props?: { compact?: boolean }) {
   const tf = useTranslations('forex');
+  const tn = useTranslations('navigation');
+  const session = useForexSession();
+  const loginHref = useLoginHref();
+
+  if (session.resolving) {
+    return <span className="inline-block h-8 w-8 shrink-0" aria-hidden />;
+  }
+
+  if (session.status === 'SIGNED_OUT') {
+    return (
+      <Link
+        href={loginHref}
+        className="inline-flex h-8 shrink-0 items-center justify-center rounded-md bg-primary px-2.5 text-[12px] font-semibold text-primary-foreground hover:bg-primary/90"
+      >
+        {tn('logIn')}
+      </Link>
+    );
+  }
 
   return (
     <DropdownMenu>
@@ -57,6 +78,15 @@ export function ForexPortalUserMenu(props?: { compact?: boolean }) {
           <Link href={CUSTOMER_ACCOUNT_ROUTES.dashboard} className="cursor-pointer text-[13px] text-muted-foreground">
             {tf('userMenu.platformDashboard')}
           </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="cursor-pointer text-[13px] text-destructive focus:text-destructive"
+          onSelect={() => {
+            void performLogout('/login');
+          }}
+        >
+          {tn('logout')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

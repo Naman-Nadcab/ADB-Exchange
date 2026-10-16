@@ -93,9 +93,7 @@ export function ForexTopNav(props?: { compact?: boolean }) {
         )}
         <div className="ml-auto flex shrink-0 items-center gap-1.5">
           {compact ? (
-            <div className="hidden md:block">
-              <ForexPortalUserMenu compact />
-            </div>
+            <ForexPortalUserMenu compact />
           ) : (
             <>
               <div className="hidden sm:block">

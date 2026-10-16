@@ -17,3 +17,27 @@ export function isClientAuthed(
 ): boolean {
   return hasHydrated && authResolved && isAuthenticated;
 }
+
+/**
+ * Login URL that returns the visitor to the page they were on.
+ * Unsafe or auth paths stay on `/login` so the redirect cannot leave the site.
+ */
+export function loginPathWithRedirect(pathname: string, search = ''): string {
+  const path = pathname.trim();
+  const blocked =
+    path.length === 0 ||
+    !path.startsWith('/') ||
+    path.startsWith('//') ||
+    path.startsWith('/\\') ||
+    path.includes('\\') ||
+    path.includes('://') ||
+    path === '/login' ||
+    path.startsWith('/login/') ||
+    path === '/signup' ||
+    path.startsWith('/signup/') ||
+    path === '/register' ||
+    path.startsWith('/register/');
+  if (blocked) return '/login';
+  const query = search.startsWith('?') ? search : search.length > 0 ? `?${search}` : '';
+  return `/login?redirect=${encodeURIComponent(`${path}${query}`)}`;
+}

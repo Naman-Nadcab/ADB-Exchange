@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import type { ForexSessionStatus } from '@/lib/forex/runtime/useForexSession';
 import { cn } from '@/lib/utils';
 
 export function ForexPageFrame(props: {
@@ -91,4 +92,21 @@ export function ForexSignInPrompt({
       </Link>
     </div>
   );
+}
+
+/** Loading while the platform session is still resolving; Sign in only after it is signed out. */
+export function ForexAuthPending({
+  status,
+  href,
+  sectionKey,
+}: {
+  status: ForexSessionStatus;
+  href: string;
+  sectionKey: ForexSignInSectionKey;
+}) {
+  const tc = useTranslations('common.states');
+  if (status === 'SIGNED_OUT') {
+    return <ForexSignInPrompt href={href} sectionKey={sectionKey} />;
+  }
+  return <p className="text-sm text-muted-foreground">{tc('loading')}</p>;
 }
