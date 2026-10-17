@@ -38,6 +38,7 @@ export default function ForexFundsPage() {
     () => funding.filter((row) => timestampInBounds(row.timestamp, boundsForRange(range))),
     [funding, range]
   );
+  const activityPreview = activity.slice(0, 5);
 
   const { gates } = useForexProductGates();
   const railsOn = gates.realFundingEnabled || gates.withdrawalEnabled;
@@ -224,7 +225,7 @@ export default function ForexFundsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {activity.map((row) => (
+                  {activityPreview.map((row) => (
                     <tr key={row.transactionId}>
                       <td>{fxPlain(row.timestamp)}</td>
                       <td>{forexEnumLabel(te, row.type)}</td>
@@ -237,6 +238,11 @@ export default function ForexFundsPage() {
               </table>
             </div>
           )}
+          {activity.length > 5 ? (
+            <Link href={FOREX_ROUTES.fundsHistory} className="mt-3 inline-flex text-[13px] font-medium text-primary underline-offset-2 hover:underline">
+              {tf('pages.fundsHistory.title')}
+            </Link>
+          ) : null}
         </ForexPortalModuleCard>
       ) : null}
     </ForexPageFrame>

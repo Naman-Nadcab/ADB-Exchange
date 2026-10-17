@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LayoutGrid, Settings2 } from 'lucide-react';
+import { LayoutGrid } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { fxMoney, fxPlain } from '@/components/forex/format';
 import { forexEnumLabel } from '@/components/forex/forex-enum-label';
@@ -127,13 +127,6 @@ export function ForexAccountCenterCard(props: {
           className="inline-flex min-h-9 items-center rounded-md bg-primary px-3 text-[13px] font-semibold text-primary-foreground hover:bg-primary/90"
         >
           {t('viewDetail')}
-        </Link>
-        <Link
-          href={detailHref}
-          className="inline-flex min-h-8 items-center gap-1 rounded border border-border px-2.5 text-[11px] font-medium hover:border-primary/40"
-        >
-          <Settings2 className="h-3 w-3" aria-hidden />
-          {t('manage')}
         </Link>
         {isActive ? (
           <span className="inline-flex min-h-8 items-center px-2 text-[11px] text-muted-foreground">{t('current')}</span>

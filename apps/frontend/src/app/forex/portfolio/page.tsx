@@ -5,9 +5,9 @@ import { useTranslations } from 'next-intl';
 import { CircleDollarSign, Gauge, LineChart, Wallet } from 'lucide-react';
 import { ForexAuthPending, ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
-import { ForexPortalKpiCard, ForexPortalModuleCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
+import { ForexPortalKpiCard, ForexPortalModuleCard } from '@/components/forex/ForexPortalKpiCard';
 import { ForexPositionPanel } from '@/components/forex/ForexPositionPanel';
-import { fxMoney, fxNum, fxPlain } from '@/components/forex/format';
+import { fxMoney, fxNum, fxPlain, fxSigned } from '@/components/forex/format';
 import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { positionUnrealizedPnl } from '@/lib/forex/models/position';
 import { useForexSession } from '@/lib/forex/runtime/useForexSession';
@@ -30,6 +30,7 @@ export default function ForexPortfolioPage() {
   const exposure = useForexStore((s) => s.exposure);
   const currency = account?.currency ?? balance?.currency ?? 'USD';
   const rows = useMemo(() => Object.values(positions).filter((p) => p.status === 'OPEN'), [positions]);
+  const realized = fxSigned(account?.realizedPnl ?? pnl?.realized);
 
   return (
     <ForexPageFrame wide title={tf('pages.portfolio.title')} subtitle={tf('pages.portfolio.subtitle')}>
@@ -38,26 +39,29 @@ export default function ForexPortfolioPage() {
       ) : (
         <>
           <ForexPortalAccountContext />
-          <section className="flex flex-wrap items-center justify-between gap-2">
-            <ForexPortalStatusBadge tone="primary">{tp('openPositionsBadge', { count: rows.length })}</ForexPortalStatusBadge>
-          </section>
-
-          <section className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-6 md:gap-3" aria-label={tp('summaryAria')}>
+          <section className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3" aria-label={tp('summaryAria')}>
             <ForexPortalKpiCard tone="brand" emphasis="primary" icon={Wallet} label={tp('kpiBalance')} value={account?.ledgerBalance ?? balance?.ledgerBalance} currency={currency} />
             <ForexPortalKpiCard tone="neutral" emphasis="primary" icon={CircleDollarSign} label={tp('kpiEquity')} value={account?.equity ?? balance?.equity} currency={currency} />
-            <ForexPortalKpiCard tone="warning" emphasis="secondary" label={tp('kpiUsedMargin')} value={account?.usedMargin ?? margin?.usedMargin} currency={currency} />
             <ForexPortalKpiCard tone="neutral" emphasis="primary" icon={Gauge} label={tp('kpiFreeMargin')} value={account?.freeMargin ?? margin?.freeMargin} currency={currency} />
             <ForexPortalKpiCard emphasis="primary" icon={LineChart} label={tp('kpiUnrealizedPnl')} value={account?.unrealizedPnl ?? pnl?.unrealized} currency={currency} signed />
-            <ForexPortalKpiCard emphasis="secondary" label={tp('kpiGrossExposure')} value={margin?.grossExposure} currency={currency} />
           </section>
+          <p className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-[12px]">
+            <PortfolioQuiet label={tp('kpiUsedMargin')} value={fxMoney(account?.usedMargin ?? margin?.usedMargin, currency)} />
+            <PortfolioQuiet label={tp('kpiGrossExposure')} value={fxMoney(margin?.grossExposure, currency)} />
+            <PortfolioQuiet
+              label={tp('kpiRealizedPnl')}
+              value={realized.tone === 'na' ? realized.text : `${currency} ${realized.text}`}
+              tone={realized.tone}
+            />
+            <PortfolioQuiet label={tp('kpiFees')} value={fxMoney(fees?.total, fees?.currency ?? currency)} />
+            <PortfolioQuiet label={tp('kpiSwaps')} value={fxMoney(swaps?.total, swaps?.currency ?? currency)} />
+          </p>
 
-          <section className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3">
-            <ForexPortalKpiCard emphasis="secondary" label={tp('kpiRealizedPnl')} value={account?.realizedPnl ?? pnl?.realized} currency={currency} signed />
-            <ForexPortalKpiCard emphasis="secondary" label={tp('kpiFees')} value={fees?.total} currency={fees?.currency ?? currency} />
-            <ForexPortalKpiCard emphasis="secondary" label={tp('kpiSwaps')} value={swaps?.total} currency={swaps?.currency ?? currency} />
-          </section>
-
-          <ForexPortalModuleCard title={tp('exposureHeading')} accent subtitle={tp('exposureSubtitle')}>
+          <ForexPortalModuleCard
+            title={tp('openPositionsBadge', { count: rows.length })}
+            accent
+            subtitle={tp('exposureSubtitle')}
+          >
             {rows.length === 0 ? (
               <p className="text-sm text-muted-foreground">{tp('noOpenPositions')}</p>
             ) : (
@@ -113,5 +117,22 @@ export default function ForexPortfolioPage() {
         </>
       )}
     </ForexPageFrame>
+  );
+}
+
+function PortfolioQuiet(props: { label: string; value: string; tone?: 'pos' | 'neg' | 'flat' | 'na' }) {
+  return (
+    <span className="inline-flex items-baseline gap-1.5">
+      <span className="text-muted-foreground">{props.label}</span>
+      <span
+        className={cn(
+          'font-mono tabular-nums text-foreground',
+          props.tone === 'pos' && 'text-buy',
+          props.tone === 'neg' && 'text-sell'
+        )}
+      >
+        {props.value}
+      </span>
+    </span>
   );
 }

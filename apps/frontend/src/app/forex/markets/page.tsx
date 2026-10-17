@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ForexPageFrame } from '@/components/forex/ForexPageFrame';
-import { ForexPortalKpiCard, ForexPortalStatusBadge } from '@/components/forex/ForexPortalKpiCard';
 import { fxNum, fxPlain } from '@/components/forex/format';
 import { isQuoteStale } from '@/lib/forex/models/quotes';
 import type { ForexAssetClass } from '@/lib/forex/models/types';
@@ -79,11 +78,6 @@ export default function ForexMarketsPage() {
     return list;
   }, [instruments, filter, query, sort, watchlist, quotes]);
 
-  const liveCount = useMemo(
-    () => rows.filter((inst) => quotes[inst.symbol] && !isQuoteStale(quotes[inst.symbol]!)).length,
-    [rows, quotes]
-  );
-
   const openTrade = (symbol: string) => {
     setSelected(symbol);
     router.push(`${FOREX_ROUTES.trade}?symbol=${encodeURIComponent(symbol)}`);
@@ -95,23 +89,6 @@ export default function ForexMarketsPage() {
       title={tf('pages.markets.title')}
       subtitle={tf('pages.markets.subtitle')}
     >
-      <section className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3" aria-label={tm('summaryAria')}>
-        <ForexPortalKpiCard
-          emphasis="primary"
-          label={tm('kpiInstruments')}
-          value={Object.keys(instruments).length}
-          kind="plain"
-        />
-        <ForexPortalKpiCard emphasis="secondary" label={tm('kpiFiltered')} value={rows.length} kind="plain" />
-        <ForexPortalKpiCard emphasis="secondary" label={tm('kpiLiveQuotes')} value={liveCount} kind="plain" />
-        <div className="forex-overview-kpi flex min-w-0 flex-col justify-center border border-border/80 bg-card px-3 py-3">
-          <span className="text-[12px] font-medium text-muted-foreground">{tm('kpiSession')}</span>
-          <ForexPortalStatusBadge tone={sessionOpen ? 'success' : 'warning'} className="mt-1.5 w-fit">
-            {tm('sessionLabel', { state: sessionOpen ? tm('sessionOpen') : tm('sessionClosed') })}
-          </ForexPortalStatusBadge>
-        </div>
-      </section>
-
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-1.5" role="tablist" aria-label={tm('instrumentClassAria')}>
           {FILTERS.map((f) => (

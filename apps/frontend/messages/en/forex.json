@@ -39,7 +39,7 @@
     "funds": "Funds",
     "ledger": "Ledger",
     "research": "Research",
-    "tools": "Tools",
+    "alerts": "Alerts",
     "signals": "Signals",
     "partnerHint": "Referral code, or your own partner clients. This is not a place to trade."
   },
@@ -1400,7 +1400,8 @@
     "reason": "Reason",
     "executionId": "Execution ID",
     "cancelOrder": "Cancel order",
-    "cancelAria": "Cancel order {id}"
+    "cancelAria": "Cancel order {id}",
+    "rangeLiveNote": "Working and open orders stay listed. The date range filters completed, cancelled, and rejected orders."
   },
   "marketsPage": {
     "summaryAria": "Markets overview",

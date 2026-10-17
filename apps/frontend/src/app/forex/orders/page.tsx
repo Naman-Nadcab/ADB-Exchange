@@ -2,8 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
-import { fxNum, fxPlain } from '@/components/forex/format';
 import { forexEnumLabel } from '@/components/forex/forex-enum-label';
 import { useForexErrorMessage } from '@/hooks/useForexErrorMessage';
 import { ALL_HISTORY_RANGE, boundsForRange, timestampInBounds, type HistoryRange } from '@/lib/forex/models/history-analytics';
@@ -15,7 +13,6 @@ import { cn } from '@/lib/utils';
 import { ForexHistoryRange } from '@/components/forex/ForexHistoryRange';
 import { ForexAuthPending, ForexPageFrame } from '@/components/forex/ForexPageFrame';
 import { ForexPortalAccountContext } from '@/components/forex/ForexPortalAccountContext';
-import { ForexPortalKpiCard } from '@/components/forex/ForexPortalKpiCard';
 
 const TABS = ['pending', 'open', 'completed', 'cancelled', 'rejected'] as const;
 type Tab = (typeof TABS)[number];
@@ -45,6 +42,12 @@ function isCancellable(status: ForexOrderState): boolean {
   return PENDING_STATUSES.has(String(status).toUpperCase()) && String(status).toUpperCase() !== 'CANCEL_PENDING';
 }
 
+function orderListed(status: ForexOrderState, createdAt: string, bounds: ReturnType<typeof boundsForRange>): boolean {
+  const bucket = classify(status);
+  if (bucket === 'pending' || bucket === 'open') return true;
+  return timestampInBounds(createdAt, bounds);
+}
+
 export default function ForexOrdersPage() {
   const tf = useTranslations('forex');
   const t = useTranslations('forex.ordersPage');
@@ -53,7 +56,6 @@ export default function ForexOrdersPage() {
   const tc = useTranslations('common.actions');
   const session = useForexSession();
   const orders = useForexStore((s) => s.orders);
-  const fills = useForexStore((s) => s.fills);
   const [tab, setTab] = useState<Tab>('pending');
   const [detail, setDetail] = useState<ForexPublicOrder | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
@@ -67,20 +69,24 @@ export default function ForexOrdersPage() {
   const engineErrorMsg = useForexErrorMessage(engine.error);
 
   const rows = useMemo(
-    () =>
-      Object.values(orders)
-        .filter((order) => timestampInBounds(order.createdAt, bounds))
-        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
-    [bounds, orders]
+    () => Object.values(orders).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
+    [orders]
   );
-  const filtered = rows.filter((o) => classify(o.status) === tab);
-  const datedFills = useMemo(() => fills.filter((fill) => timestampInBounds(fill.timestamp, bounds)), [bounds, fills]);
+  const visible = useMemo(
+    () => rows.filter((order) => orderListed(order.status, order.createdAt, bounds)),
+    [bounds, rows]
+  );
+  const filtered = visible.filter((o) => classify(o.status) === tab);
+  const tabHasHiddenHistory = useMemo(() => {
+    if (tab === 'pending' || tab === 'open') return false;
+    return rows.some((order) => classify(order.status) === tab && !timestampInBounds(order.createdAt, bounds));
+  }, [bounds, rows, tab]);
 
   const tabCounts = useMemo(() => {
     const counts = { pending: 0, open: 0, completed: 0, cancelled: 0, rejected: 0 } as Record<Tab, number>;
-    for (const o of rows) counts[classify(o.status)] += 1;
+    for (const o of visible) counts[classify(o.status)] += 1;
     return counts;
-  }, [rows]);
+  }, [visible]);
 
   const tabLabel = (key: Tab) => t(`tab.${key}`);
 
@@ -121,30 +127,38 @@ export default function ForexOrdersPage() {
           ) : null}
           {engine.lastNote ? <p className="text-[12px] text-muted-foreground">{engine.lastNote}</p> : null}
 
-          <ForexHistoryRange value={range} onChange={setRange} />
-          <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" role="tablist" aria-label={t('tabsAria')}>
-            {TABS.map((key) => (
-              <button
-                key={key}
-                type="button"
-                role="tab"
-                aria-selected={tab === key}
-                onClick={() => setTab(key)}
-                className="min-w-0 text-left"
-              >
-                <ForexPortalKpiCard
-                  emphasis={tab === key ? 'primary' : 'secondary'}
-                  label={tabLabel(key)}
-                  value={tabCounts[key]}
-                  kind="plain"
-                  className={tab === key ? 'ring-2 ring-primary' : undefined}
-                />
-              </button>
-            ))}
-          </section>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex min-w-0 flex-1 items-stretch overflow-x-auto border-b border-border" role="tablist" aria-label={t('tabsAria')}>
+              {TABS.map((key) => {
+                const active = tab === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setTab(key)}
+                    className={cn(
+                      'inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent px-3 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring max-md:h-11',
+                      active && 'border-primary text-primary'
+                    )}
+                  >
+                    {tabLabel(key)}
+                    <span className={cn('font-mono text-[12px] tabular-nums', active ? 'text-primary' : 'text-muted-foreground')}>
+                      {tabCounts[key]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <ForexHistoryRange value={range} onChange={setRange} />
+          </div>
+          {tab === 'pending' || tab === 'open' ? (
+            <p className="text-[12px] text-muted-foreground">{t('rangeLiveNote')}</p>
+          ) : null}
           {filtered.length === 0 ? (
             <p className="eda-card p-4 text-sm text-muted-foreground">
-              {Object.keys(orders).length > 0 && rows.length === 0 ? tf('dateRange.empty') : t('noOrdersInTab', { tab: tabLabel(tab) })}
+              {tabHasHiddenHistory ? tf('dateRange.empty') : t('noOrdersInTab', { tab: tabLabel(tab) })}
             </p>
           ) : (
             <div className="eda-table-wrap overflow-x-auto">
@@ -277,40 +291,6 @@ export default function ForexOrdersPage() {
               </table>
             </div>
           )}
-
-          <section className="eda-card p-4">
-            <h2 className="mb-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">{t('fillsHeading')}</h2>
-            {datedFills.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{fills.length > 0 ? tf('dateRange.empty') : t('fillsEmpty')}</p>
-            ) : (
-              <table className="eda-table font-mono text-[12px]">
-                <thead>
-                  <tr>
-                    <th className="py-1 font-medium">{t('colTime')}</th>
-                    <th className="py-1 font-medium">{t('colSymbol')}</th>
-                    <th className="py-1 font-medium">{t('colSide')}</th>
-                    <th className="py-1 font-medium">{t('colVolume')}</th>
-                    <th className="py-1 font-medium">{t('colPrice')}</th>
-                    <th className="py-1 font-medium">{t('colFillId')}</th>
-                    <th className="py-1 font-medium">{t('colOrderId')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {datedFills.map((f) => (
-                    <tr key={f.fillId}>
-                      <td className="py-1">{new Date(f.timestamp).toLocaleString()}</td>
-                      <td className="py-1">{f.symbol}</td>
-                      <td className="py-1">{forexEnumLabel(te, f.side)}</td>
-                      <td className="py-1">{fxPlain(f.volume)}</td>
-                      <td className="py-1">{fxNum(f.price)}</td>
-                      <td className="py-1">{f.fillId.slice(0, 8)}</td>
-                      <td className="py-1">{f.orderId.slice(0, 8)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </section>
         </>
       )}
 

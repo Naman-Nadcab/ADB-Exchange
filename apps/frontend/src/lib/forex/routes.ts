@@ -54,7 +54,7 @@ export const FOREX_PORTAL_NAV = [
   { href: FOREX_ROUTES.funds, labelKey: 'portalNav.funds' as const },
   { href: FOREX_ROUTES.ledger, labelKey: 'portalNav.ledger' as const },
   { href: FOREX_ROUTES.analysis, labelKey: 'portalNav.research' as const },
-  { href: FOREX_ROUTES.alerts, labelKey: 'portalNav.tools' as const },
+  { href: FOREX_ROUTES.alerts, labelKey: 'portalNav.alerts' as const },
   { href: FOREX_ROUTES.signals, labelKey: 'portalNav.signals' as const },
 ] as const;
 
