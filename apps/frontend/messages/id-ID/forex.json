@@ -39,7 +39,7 @@
     "funds": "Dana",
     "ledger": "Buku besar",
     "research": "Riset",
-    "tools": "Alat",
+    "alerts": "Peringatan",
     "signals": "Sinyal",
     "partnerHint": "Kode rujukan, atau klien mitra Anda. Ini bukan tempat trading."
   },
@@ -1400,7 +1400,8 @@
     "reason": "Alasan",
     "executionId": "ID eksekusi",
     "cancelOrder": "Batalkan order",
-    "cancelAria": "Batalkan order {id}"
+    "cancelAria": "Batalkan order {id}",
+    "rangeLiveNote": "Order berjalan dan terbuka tetap tampil. Rentang tanggal menyaring order selesai, dibatalkan, dan ditolak."
   },
   "marketsPage": {
     "summaryAria": "Ringkasan pasar",

@@ -93,11 +93,6 @@ export default function ForexSignalsPage() {
   const deposit = Number(depositPct);
   const fieldsOn = ready && authed && selected?.status === 'active';
   const canSave = fieldsOn && Boolean(accountId) && Number.isFinite(deposit) && deposit > 0 && deposit <= 100 && !busy;
-  const steps = [
-    { n: '1', title: t('step1Title'), body: t('step1') },
-    { n: '2', title: t('step2Title'), body: t('step2') },
-    { n: '3', title: t('step3Title'), body: t('step3') },
-  ];
 
   async function onSave() {
     if (!canSave) return;
@@ -149,20 +144,6 @@ export default function ForexSignalsPage() {
           icon={Bookmark}
           hint={saved ? selected?.name : t('kpiSubscriptionHint')}
         />
-      </div>
-
-      <div className="grid gap-2 md:grid-cols-3">
-        {steps.map((step) => (
-          <div key={step.n} className="flex gap-3 rounded-md border border-border/80 bg-card px-3 py-3">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/15 text-[12px] font-semibold text-primary">
-              {step.n}
-            </span>
-            <div className="min-w-0">
-              <div className="text-[13px] font-semibold text-foreground">{step.title}</div>
-              <p className="mt-0.5 text-[12px] leading-snug text-muted-foreground">{step.body}</p>
-            </div>
-          </div>
-        ))}
       </div>
 
       {session.status !== 'AUTHENTICATED' && (ready || session.status === 'SIGNED_OUT') ? (

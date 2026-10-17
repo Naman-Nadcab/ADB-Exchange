@@ -39,7 +39,7 @@
     "funds": "资金",
     "ledger": "账本",
     "research": "研究",
-    "tools": "工具",
+    "alerts": "提醒",
     "signals": "信号",
     "partnerHint": "推荐代码，或您自己的代理客户。这里不能交易。"
   },
@@ -1400,7 +1400,8 @@
     "reason": "原因",
     "executionId": "执行 ID",
     "cancelOrder": "撤销订单",
-    "cancelAria": "撤销订单 {id}"
+    "cancelAria": "撤销订单 {id}",
+    "rangeLiveNote": "进行中和未成交订单始终显示。日期范围只筛选已成交、已取消和已拒绝的订单。"
   },
   "marketsPage": {
     "summaryAria": "市场概览",
