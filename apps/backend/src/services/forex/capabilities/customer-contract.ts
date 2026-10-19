@@ -8,6 +8,7 @@
  *
  * GTD uses server-side expireAt evaluation (orders/service.ts expireGtdOrders).
  */
+import { isForexOrderTypeDeskEnabled, isForexTifDeskEnabled, listDeskEnabledOrderTypes, listDeskEnabledTifs } from '../admin/desk-policy.js';
 import type { ForexCustomerOrderType } from '../orders/request.js';
 import type { ForexTimeInForce } from '../orders/request.js';
 
@@ -85,8 +86,6 @@ export const FOREX_ENGINE_TIME_IN_FORCE = ['GTC', 'IOC', 'FOK', 'DAY', 'GTD', 'R
 
 export function getForexCustomerCapabilityContract(): ForexCustomerCapabilityContract {
   const orderEngine = true;
-  const orderCustomer = (t: (typeof FOREX_CUSTOMER_EXPOSED_ORDER_TYPES)[number]) =>
-    (FOREX_CUSTOMER_EXPOSED_ORDER_TYPES as readonly string[]).includes(t);
 
   return {
     version: 1,
@@ -94,19 +93,19 @@ export function getForexCustomerCapabilityContract(): ForexCustomerCapabilityCon
     source: 'SIMULATED',
     realForex: false,
     orderTypes: {
-      market: tri(orderEngine, orderCustomer('market'), MOCK_ONLY),
-      limit: tri(orderEngine, orderCustomer('limit'), MOCK_ONLY),
-      stop: tri(orderEngine, orderCustomer('stop'), MOCK_ONLY),
-      stopLimit: tri(orderEngine, orderCustomer('stop_limit'), MOCK_ONLY),
+      market: tri(orderEngine, isForexOrderTypeDeskEnabled('market'), MOCK_ONLY),
+      limit: tri(orderEngine, isForexOrderTypeDeskEnabled('limit'), MOCK_ONLY),
+      stop: tri(orderEngine, isForexOrderTypeDeskEnabled('stop'), MOCK_ONLY),
+      stopLimit: tri(orderEngine, isForexOrderTypeDeskEnabled('stop_limit'), MOCK_ONLY),
     },
     timeInForce: {
-      gtc: tri(true, true, MOCK_ONLY),
-      day: tri(true, true, MOCK_ONLY),
-      ioc: tri(true, true, MOCK_ONLY),
-      fok: tri(true, true, MOCK_ONLY),
-      gtd: tri(true, true, MOCK_ONLY),
-      return: tri(true, true, MOCK_ONLY),
-      boc: tri(true, true, MOCK_ONLY),
+      gtc: tri(true, isForexTifDeskEnabled('GTC'), MOCK_ONLY),
+      day: tri(true, isForexTifDeskEnabled('DAY'), MOCK_ONLY),
+      ioc: tri(true, isForexTifDeskEnabled('IOC'), MOCK_ONLY),
+      fok: tri(true, isForexTifDeskEnabled('FOK'), MOCK_ONLY),
+      gtd: tri(true, isForexTifDeskEnabled('GTD'), MOCK_ONLY),
+      return: tri(true, isForexTifDeskEnabled('RETURN'), MOCK_ONLY),
+      boc: tri(true, isForexTifDeskEnabled('BOC'), MOCK_ONLY),
     },
     positionModes: {
       netting: tri(true, false, MOCK_ONLY),
@@ -124,8 +123,8 @@ export function getForexCustomerCapabilityContract(): ForexCustomerCapabilityCon
       reverse: tri(true, false, NOT_CERTIFIED),
     },
     customer: {
-      orderTypes: [...FOREX_CUSTOMER_EXPOSED_ORDER_TYPES],
-      timeInForce: [...FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE],
+      orderTypes: listDeskEnabledOrderTypes(FOREX_CUSTOMER_EXPOSED_ORDER_TYPES),
+      timeInForce: listDeskEnabledTifs(FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE),
     },
     engine: {
       orderTypes: [...FOREX_ENGINE_ORDER_TYPES],

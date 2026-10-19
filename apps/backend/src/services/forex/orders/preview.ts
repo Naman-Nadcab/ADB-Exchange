@@ -12,7 +12,9 @@ import type { ForexPricingService } from '../quotes.service.js';
 import type { ForexPositionService } from '../positions/service.js';
 import type { ForexOrderService } from './service.js';
 import type { ForexCustomerOrderType, ForexOrderRequest, ForexTimeInForce } from './request.js';
-import { isForexPendingOrderType } from './pending.js';
+import { isForexPendingOrderType, quoteUsableForTrigger } from './pending.js';
+import { forexAccountEntryBlock } from '../admin/account-trade-rights.js';
+import { forexSymbolEntryBlock } from '../admin/desk-policy.js';
 import { validateForexOrderRequest } from './validate.js';
 
 export type ForexPreviewRequest = {
@@ -109,6 +111,19 @@ export function previewForexOrder(
   if (!pre.ok) {
     return { ...base, reason: pre.reason };
   }
+  const rights = forexAccountEntryBlock(accountId, false);
+  if (rights) return { ...base, reason: rights.reason };
+  const quoteForDesk = deps.pricing.getQuote(pre.symbol);
+  const usable = quoteForDesk && quoteUsableForTrigger(quoteForDesk) && fxDecimal(quoteForDesk.ask).gt(quoteForDesk.bid) ? quoteForDesk : null;
+  const symbolBlock = forexSymbolEntryBlock({
+    symbol: pre.symbol,
+    side: req.side,
+    orderType: req.orderType,
+    requestedPrice: req.requestedPrice,
+    reduceOnly: false,
+    quote: usable,
+  });
+  if (symbolBlock) return { ...base, reason: symbolBlock.reason };
 
   const symbol = pre.symbol;
   const quote = deps.pricing.getQuote(symbol);

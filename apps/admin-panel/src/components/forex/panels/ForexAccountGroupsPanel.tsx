@@ -82,14 +82,10 @@ export function ForexAccountGroupsPanel() {
         spread_profile: profileSpread.trim() ? { maxSpread: profileSpread.trim() } : undefined,
         ...(profileLeverage.trim() ? { leverage_default: profileLeverage.trim() } : {}),
         ...(profileMode === 'NETTING' || profileMode === 'HEDGING' ? { position_mode_default: profileMode } : {}),
-        ...(profileMaxOrder.trim() || profileMaxPositions.trim()
-          ? {
-              risk_profile: {
-                ...(profileMaxOrder.trim() ? { maxOrderVolume: profileMaxOrder.trim() } : {}),
-                ...(profileMaxPositions.trim() ? { maxOpenPositions: Number(profileMaxPositions.trim()) } : {}),
-              },
-            }
-          : {}),
+        risk_profile: {
+          maxOrderVolume: profileMaxOrder.trim() || null,
+          maxOpenPositions: profileMaxPositions.trim() || null,
+        },
       });
       if (!res.success) throw new Error(res.error?.message ?? 'Profile update failed');
     },
@@ -187,9 +183,10 @@ export function ForexAccountGroupsPanel() {
           </select>
           <Input placeholder="Max order volume" value={profileMaxOrder} onChange={(e) => setProfileMaxOrder(e.target.value)} className="max-w-[150px]" />
           <Input placeholder="Max open positions" value={profileMaxPositions} onChange={(e) => setProfileMaxPositions(e.target.value)} className="max-w-[160px]" />
-          <Button size="sm" disabled={profileMut.isPending || !profileGroup || (!profileRate.trim() && !profileLong.trim() && !profileShort.trim() && !profileSpread.trim() && !profileLeverage.trim() && !profileMode && !profileMaxOrder.trim() && !profileMaxPositions.trim())} onClick={() => void profileMut.mutate()}>
+          <Button size="sm" disabled={profileMut.isPending || !profileGroup} onClick={() => void profileMut.mutate()}>
             Save profile
           </Button>
+          <p className="w-full text-[11px] text-admin-muted">A blank max order volume or max open positions clears that limit on the accounts in this group.</p>
         </div>
       </ProtectedAction>
 

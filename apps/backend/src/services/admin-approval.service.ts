@@ -15,6 +15,7 @@ export type ApprovalActionType =
   | 'forex_routing_patch'
   | 'forex_account_group_change'
   | 'forex_leverage_change'
+  | 'forex_trade_rights'
   | 'forex_finance_request'
   | 'forex_partner_payout'
   | 'wallet_recovery';
@@ -32,6 +33,7 @@ const DEFAULT_APPROVAL_THRESHOLDS: Record<string, number> = {
   forex_routing_patch: 2,
   forex_account_group_change: 2,
   forex_leverage_change: 2,
+  forex_trade_rights: 2,
   forex_finance_request: 2,
   forex_partner_payout: 2,
   wallet_recovery: 1,
@@ -319,6 +321,7 @@ class AdminApprovalService {
         row.action_type === 'forex_routing_patch' ||
         row.action_type === 'forex_account_group_change' ||
         row.action_type === 'forex_leverage_change' ||
+        row.action_type === 'forex_trade_rights' ||
         row.action_type === 'forex_finance_request' ||
         row.action_type === 'forex_partner_payout')
     ) {

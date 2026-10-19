@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAdminAuthStore } from '@/store/auth';
 import { adminFetch } from '@/lib/api';
+import { ForexConfirmModal } from '@/components/forex/primitives/ForexConfirmModal';
 import { ForexPanelShell } from '@/components/forex/primitives/ForexPanelShell';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -16,6 +17,7 @@ export function ForexHolidayCalendarPanel() {
   const qc = useQueryClient();
   const [date, setDate] = useState('');
   const [notes, setNotes] = useState('');
+  const [trustOpen, setTrustOpen] = useState(false);
 
   const q = useQuery({
     queryKey: ['admin', 'forex', 'holidays', token],
@@ -44,11 +46,20 @@ export function ForexHolidayCalendarPanel() {
   });
 
   return (
-    <ForexPanelShell title="Holiday calendar" description="DB-backed dates — coverage CONFIGURED when at least one date exists.">
-      <div className="mb-3 flex flex-wrap gap-2">
+    <ForexPanelShell title="Holiday calendar" description="Dates you add close the market that day. Trust this calendar when the list is complete, including when it is empty.">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
         <Badge variant={q.data?.state.coverage === 'CONFIGURED' ? 'success' : 'warning'}>
           Coverage: {q.data?.state.coverage ?? '…'}
         </Badge>
+        <Button
+          size="sm"
+          variant="secondary"
+          disabled={q.data?.state.coverage === 'CONFIGURED'}
+          onClick={() => setTrustOpen(true)}
+        >
+          Trust this calendar
+        </Button>
+        <span className="text-[11px] text-admin-muted">An empty list stays trusted. This does not add a holiday.</span>
       </div>
       <div className="mb-4 grid max-w-md gap-2 sm:grid-cols-3">
         <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
@@ -76,6 +87,19 @@ export function ForexHolidayCalendarPanel() {
           </li>
         ))}
       </ul>
+      <ForexConfirmModal
+        open={trustOpen}
+        onClose={() => setTrustOpen(false)}
+        title="Trust the holiday calendar"
+        description="The session gate will treat this list as complete. No holiday date is added."
+        onConfirm={async () => {
+          const res = await adminFetch('/forex/holidays/trust', { token, method: 'POST' });
+          if (!res.success) throw new Error(res.error?.message ?? 'Trust failed');
+          setTrustOpen(false);
+          void qc.invalidateQueries({ queryKey: ['admin', 'forex', 'holidays'] });
+          void qc.invalidateQueries({ queryKey: ['admin', 'forex'] });
+        }}
+      />
     </ForexPanelShell>
   );
 }

@@ -14,7 +14,22 @@ export type ForexFinanceRequestKind =
   | 'CREDIT'
   | 'DEBIT'
   | 'FEE'
-  | 'REVERSAL';
+  | 'REVERSAL'
+  | 'CREDIT_LINE'
+  | 'CREDIT_LINE_RECALL';
+
+const FINANCE_KINDS = new Set<string>([
+  'DEPOSIT',
+  'WITHDRAWAL',
+  'TRANSFER',
+  'ADJUSTMENT',
+  'CREDIT',
+  'DEBIT',
+  'FEE',
+  'REVERSAL',
+  'CREDIT_LINE',
+  'CREDIT_LINE_RECALL',
+]);
 
 export async function createForexFinanceRequest(input: {
   accountId: string;
@@ -25,6 +40,7 @@ export async function createForexFinanceRequest(input: {
   currency?: string;
 }): Promise<{ request_id: string; approval_id?: string; status: string }> {
   const reason = input.reason.trim();
+  if (!FINANCE_KINDS.has(input.kind)) throw new Error('UNSUPPORTED_KIND');
   if (reason.length < 8) throw new Error('REASON_REQUIRED');
   if (!(await forexAccountExists(input.accountId))) throw new Error('ACCOUNT_NOT_FOUND');
   const amount = Number.parseFloat(input.amount);

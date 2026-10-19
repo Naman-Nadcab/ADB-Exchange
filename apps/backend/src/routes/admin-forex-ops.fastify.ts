@@ -20,7 +20,7 @@ import {
 import { searchForexAdmin } from '../services/forex/admin/admin-search.js';
 import { createForexFinanceRequest, listForexFinanceRequests } from '../services/forex/admin/finance-requests.js';
 import { getForexBookMode, getForexDeskOrderPolicy, setForexBookMode, setForexDeskOrderPolicy } from '../services/forex/admin/desk-policy.js';
-import { adminCloseForexPosition, adminModifyForexOrder, adminPlaceForexOrder, adminSetForexProtection, forexAccountStatement } from '../services/forex/admin/manager-desk.js';
+import { adminCloseByForexPositions, adminCloseForexPosition, adminModifyForexOrder, adminPlaceForexOrder, adminSetForexProtection, forexAccountStatement } from '../services/forex/admin/manager-desk.js';
 import {
   createForexAutomationWorkflow,
   listForexAutomationRuns,
@@ -372,6 +372,36 @@ export default async function adminForexOpsRoutes(app: FastifyInstance): Promise
       } catch (e) {
         const code = e instanceof Error ? e.message : 'UPDATE_FAILED';
         return reply.status(400).send({ success: false, error: { code, message: 'Desk policy update failed' } });
+      }
+    },
+  );
+
+  app.post<{ Params: { positionId: string }; Body: { reason?: string; opposite_position_id?: string; volume?: string } }>(
+    '/forex/positions/:positionId/close-by',
+    async (request, reply) => {
+      const admin = await getAdminWithPermission(app, request, reply, 'forex:dealing:manage');
+      if (!admin) return;
+      const reason = String(request.body?.reason ?? '').trim();
+      const opposite = String(request.body?.opposite_position_id ?? '').trim();
+      if (reason.length < 8 || !opposite) {
+        return reply.status(400).send({ success: false, error: { code: 'REASON_REQUIRED', message: 'Reason and the opposite position are required' } });
+      }
+      try {
+        const result = await adminCloseByForexPositions(request.params.positionId, opposite, request.body?.volume);
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'forex_manager_close_by',
+          resourceType: 'forex_position',
+          resourceId: request.params.positionId,
+          oldValue: null,
+          newValue: { reason, opposite, volume: request.body?.volume ?? 'matched' },
+        });
+        return reply.send({ success: true, data: result });
+      } catch (e) {
+        const code = deskErrorCode(e);
+        const status = code === 'POSITION_NOT_FOUND' || code === 'POSITION_CLOSED' ? 404 : 400;
+        return reply.status(status).send({ success: false, error: { code, message: 'Close By failed' } });
       }
     },
   );

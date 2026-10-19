@@ -14,19 +14,19 @@ const ROWS = [
     where: 'Markets → Instruments',
     href: '/forex/instruments',
     control: 'Symbol contract',
-    effect: 'Open the eye on a symbol. Digits, pip, size, commission, and swap apply to that symbol only.',
+    effect: 'Open the eye on a symbol. Contract, trade mode, freeze, gap, symbol group, and a news window apply to that symbol.',
   },
   {
     where: 'Markets → Sessions & Holidays',
     href: '/forex/sessions',
     control: 'Symbol hours',
-    effect: 'Blank times keep the 24x5 week. A closed window rejects new orders and leaves bid and ask unchanged.',
+    effect: 'Blank times keep the 24x5 week. Trust the holiday list, even when it is empty, so coverage is no longer missing.',
   },
   {
     where: 'Accounts → Account Groups',
     href: '/forex/account-groups',
     control: 'Group leverage and risk',
-    effect: 'Leverage, hedging or netting, and max size apply to accounts in that group.',
+    effect: 'Leverage, hedging or netting, and max size apply to accounts in that group. A blank max clears that limit.',
   },
   {
     where: 'Trading → Orders',
@@ -37,14 +37,20 @@ const ROWS = [
   {
     where: 'Trading → Positions',
     href: '/forex/positions',
-    control: 'Close, stop, and trail',
-    effect: 'Open a position. Trail distance is saved with Set SL.',
+    control: 'Close, Close By, stop, and trail',
+    effect: 'Open a hedging position. Close By needs the opposite position id. Trail distance is saved with Set SL.',
+  },
+  {
+    where: 'Accounts → Trading accounts',
+    href: '/forex/accounts',
+    control: 'Account leverage and trade rights',
+    effect: 'Set one account’s leverage or ENABLED, CLOSE_ONLY, DISABLED. It waits for approval. The group stays the default.',
   },
   {
     where: 'Finance → CRM Finance',
     href: '/forex/crm/finance',
     control: 'Credit, debit, or fee',
-    effect: 'The request waits for approval. It does not send a withdrawal.',
+    effect: 'Cash posts to customer cash. Credit line is a separate balance and does not send a withdrawal.',
   },
 ] as const;
 

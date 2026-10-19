@@ -126,9 +126,9 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     title: 'LP & execution',
     sectionRoute: '/forex/lp-execution',
     controls: [
-      { id: 'lp_routing', label: 'LP routing table', description: 'Primary / backup LP', kind: 'table', phase: 'F5', wired: true },
-      { id: 'enable_real_forex', label: 'Enable REAL_FOREX', description: 'Requires certification checklist', kind: 'toggle', phase: 'F5', wired: true, dangerous: true },
-      { id: 'fill_recon', label: 'Fill reconciliation', description: 'LP vs internal fills', kind: 'table', phase: 'F5', wired: true },
+      { id: 'lp_routing', label: 'LP routing table', description: 'Simulated providers only. Enabling a row does not send a fill to a broker.', kind: 'table', phase: 'F5', wired: false },
+      { id: 'enable_real_forex', label: 'Enable REAL_FOREX', description: 'Arm intent can be stored. Customer fills stay MOCK.', kind: 'toggle', phase: 'F5', wired: false, dangerous: true },
+      { id: 'fill_recon', label: 'Fill reconciliation', description: 'Internal execution counts. There is no LP statement to match.', kind: 'table', phase: 'F5', wired: false },
     ],
   },
   {
@@ -145,7 +145,7 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     title: 'Ledger & recon',
     sectionRoute: '/forex/ledger',
     controls: [
-      { id: 'ledger_accounts', label: 'Ledger accounts', description: 'CUSTOMER_CASH balances', kind: 'table', phase: 'F6', wired: true },
+      { id: 'ledger_accounts', label: 'Ledger accounts', description: 'CUSTOMER_CASH and the separate CUSTOMER_CREDIT line. Credit is not a withdrawal.', kind: 'table', phase: 'F6', wired: true },
       { id: 'recon_events', label: 'Reconciliation events', description: 'Accounting / execution recon tail', kind: 'table', phase: 'F6', wired: true },
     ],
   },

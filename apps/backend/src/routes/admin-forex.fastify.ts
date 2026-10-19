@@ -69,6 +69,7 @@ import { listForexPartnerProfiles } from '../services/forex/admin/forex-partners
 import {
   deleteForexHolidayDate,
   listForexHolidayDates,
+  trustForexHolidayCalendar,
   upsertForexHolidayDate,
 } from '../services/forex/admin/holiday-calendar-admin.js';
 import {
@@ -512,7 +513,7 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
 
   app.patch<{
     Params: { symbol: string };
-    Body: { reason?: string; max_leverage?: string; min_volume?: string; max_volume?: string; volume_step?: string; swap_long?: string; swap_short?: string; commission?: string; spread_markup_pips?: string; stops_level_pips?: string; digits?: string | number; pip_size?: string; tick_size?: string; contract_size?: string; margin_percent?: string; commission_model?: string; swap_model?: string; trade_session?: { days?: number[]; open?: string; close?: string } | null; quote_session?: { days?: number[]; open?: string; close?: string } | null };
+    Body: { reason?: string; max_leverage?: string; min_volume?: string; max_volume?: string; volume_step?: string; swap_long?: string; swap_short?: string; commission?: string; spread_markup_pips?: string; stops_level_pips?: string; digits?: string | number; pip_size?: string; tick_size?: string; contract_size?: string; margin_percent?: string; commission_model?: string; swap_model?: string; trade_session?: { days?: number[]; open?: string; close?: string } | null; quote_session?: { days?: number[]; open?: string; close?: string } | null; trade_mode?: string | null; freeze_level_pips?: string | null; gap_level_pips?: string | null; symbol_group?: string | null; news_start?: string | null; news_end?: string | null; news_title?: string | null };
   }>('/forex/policy/instruments/:symbol', async (request, reply) => {
     const admin = await getAdminWithPermission(app, request, reply, 'forex:controls:manage');
     if (!admin) return;
@@ -545,6 +546,13 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
         swap_model: request.body?.swap_model,
         trade_session: request.body && 'trade_session' in request.body ? (request.body.trade_session as { days: number[]; open: string; close: string } | null) : undefined,
         quote_session: request.body && 'quote_session' in request.body ? (request.body.quote_session as { days: number[]; open: string; close: string } | null) : undefined,
+        trade_mode: request.body && 'trade_mode' in request.body ? request.body.trade_mode : undefined,
+        freeze_level_pips: request.body && 'freeze_level_pips' in request.body ? request.body.freeze_level_pips : undefined,
+        gap_level_pips: request.body && 'gap_level_pips' in request.body ? request.body.gap_level_pips : undefined,
+        symbol_group: request.body && 'symbol_group' in request.body ? request.body.symbol_group : undefined,
+        news_start: request.body && 'news_start' in request.body ? request.body.news_start : undefined,
+        news_end: request.body && 'news_end' in request.body ? request.body.news_end : undefined,
+        news_title: request.body && 'news_title' in request.body ? request.body.news_title : undefined,
       });
       await logAuditFromRequest(request, {
         actorType: 'admin',
@@ -761,6 +769,22 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
     } catch (e) {
       return reply.status(400).send({ success: false, error: { code: e instanceof Error ? e.message : 'UPSERT_FAILED', message: 'Holiday upsert failed' } });
     }
+  });
+
+  app.post('/forex/holidays/trust', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'forex:controls:manage');
+    if (!admin) return;
+    const row = await trustForexHolidayCalendar();
+    await logAuditFromRequest(request, {
+      actorType: 'admin',
+      actorId: admin.adminId,
+      action: 'forex_holiday_trust',
+      resourceType: 'forex_holiday',
+      resourceId: null,
+      oldValue: null,
+      newValue: row,
+    });
+    return reply.send({ success: true, data: row });
   });
 
   app.delete<{ Params: { date: string } }>('/forex/holidays/:date', async (request, reply) => {

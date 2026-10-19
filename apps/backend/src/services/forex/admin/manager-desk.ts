@@ -3,6 +3,7 @@
  * The same calls run when an LP is connected; this module does not invent prices.
  */
 import { db } from '../../../lib/database.js';
+import { closeByForexPositions } from '../orders/close-by.js';
 import { closeForexPosition } from '../orders/close.js';
 import { publicForexOrder } from '../orders/models.js';
 import type { ForexCustomerOrderType } from '../orders/request.js';
@@ -23,6 +24,24 @@ export async function adminCloseForexPosition(positionId: string, volume?: strin
       positionId,
       volume,
       clientOrderId: `admin-close-${positionId.slice(0, 8)}-${Date.now()}`,
+    },
+    { positions, orders },
+  );
+}
+
+export async function adminCloseByForexPositions(positionIdA: string, positionIdB: string, volume?: string) {
+  const pricing = getForexPricingService();
+  const positions = getForexPositionService(pricing);
+  const position = positions.store.get(positionIdA);
+  if (!position || position.status !== 'OPEN') throw new Error('POSITION_NOT_FOUND');
+  const orders = getForexOrderService();
+  return closeByForexPositions(
+    position.accountId,
+    {
+      clientCloseById: `admin-cb-${Date.now()}`,
+      positionIdA,
+      positionIdB,
+      ...(volume ? { volume } : {}),
     },
     { positions, orders },
   );

@@ -2,15 +2,17 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useAdminAuthStore } from '@/store/auth';
-import { getForexAdminTradingAccounts, type ForexAdminTradingAccountRow } from '@/lib/admin/forex-api';
+import { getForexAdminTradingAccounts, requestForexAccountLeverage, requestForexAccountTradeRights, type ForexAdminTradingAccountRow } from '@/lib/admin/forex-api';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/Input';
+import { ForexConfirmModal } from '@/components/forex/primitives/ForexConfirmModal';
 import { ForexPanelShell } from '@/components/forex/primitives/ForexPanelShell';
+import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { ChevronLeft, ChevronRight, ExternalLink, RefreshCw, Search } from 'lucide-react';
 import { ForexWorkspaceHeader } from '@/components/forex/primitives/ForexWorkspaceHeader';
 
@@ -29,6 +31,12 @@ export function ForexTradingAccountsPanel() {
   const [draftQ, setDraftQ] = useState('');
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('');
+  const [rightsAccount, setRightsAccount] = useState('');
+  const [rightsLeverage, setRightsLeverage] = useState('');
+  const [rightsMode, setRightsMode] = useState('ENABLED');
+  const [rightsMsg, setRightsMsg] = useState<string | null>(null);
+  const [rightsOpen, setRightsOpen] = useState(false);
+  const qc = useQueryClient();
 
   const qry = useQuery({
     queryKey: ['admin', 'forex', 'accounts', 'list', token, page, q, status],
@@ -44,6 +52,25 @@ export function ForexTradingAccountsPanel() {
     },
     enabled: !!token,
     staleTime: 15_000,
+  });
+
+  const rightsM = useMutation({
+    mutationFn: async (reason: string) => {
+      const id = rightsAccount.trim();
+      if (!id) throw new Error('Account id is required');
+      if (rightsLeverage.trim()) {
+        const lev = await requestForexAccountLeverage(token, id, { leverage: rightsLeverage.trim(), reason });
+        if (!lev.success) throw new Error(lev.error?.message ?? 'Leverage request failed');
+      }
+      const rights = await requestForexAccountTradeRights(token, id, { trade_rights: rightsMode, reason });
+      if (!rights.success) throw new Error(rights.error?.message ?? 'Trade rights request failed');
+      return 'Waiting for approval. Close-only and disabled still allow a reduce-only close.';
+    },
+    onSuccess: (msg) => {
+      setRightsMsg(msg);
+      setRightsOpen(false);
+      void qc.invalidateQueries({ queryKey: ['admin', 'forex', 'accounts'] });
+    },
   });
 
   const columns = useMemo<ColumnDef<ForexAdminTradingAccountRow>[]>(
@@ -68,7 +95,17 @@ export function ForexTradingAccountsPanel() {
           </Badge>
         ),
       },
-      { accessorKey: 'customer_cash_balance', header: 'Balance', cell: ({ getValue }) => <span className="tabular-nums font-medium">{String(getValue())}</span> },
+      { accessorKey: 'customer_cash_balance', header: 'Cash', cell: ({ getValue }) => <span className="tabular-nums font-medium">{String(getValue())}</span> },
+      { accessorKey: 'customer_credit_balance', header: 'Credit', cell: ({ getValue }) => <span className="tabular-nums">{String(getValue() ?? '0')}</span> },
+      {
+        id: 'rights',
+        header: 'Rights',
+        cell: ({ row }) => (
+          <span className="text-[10px]">
+            {row.original.leverage_override ? `${row.original.leverage_override}×` : 'group'} · {row.original.trade_rights || 'ENABLED'}
+          </span>
+        ),
+      },
       { accessorKey: 'open_positions', header: 'Positions' },
       { accessorKey: 'open_orders', header: 'Orders' },
       { accessorKey: 'leverage_default', header: 'Lev', cell: ({ getValue }) => (getValue() ? `${getValue()}×` : '—') },
@@ -158,6 +195,32 @@ export function ForexTradingAccountsPanel() {
             Apply
           </Button>
         </div>
+        <ProtectedAction permission="forex:accounts:manage" fallback="hidden">
+          <div className="mb-4 flex flex-wrap items-end gap-2 rounded-md border border-admin-border/60 p-3">
+            <div>
+              <label className="mb-1 block text-xs text-admin-muted">Account</label>
+              <Input className="h-9 w-40 font-mono text-xs" value={rightsAccount} onChange={(e) => setRightsAccount(e.target.value)} placeholder="Account id" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-admin-muted">Leverage</label>
+              <Input className="h-9 w-24 font-mono" value={rightsLeverage} onChange={(e) => setRightsLeverage(e.target.value)} placeholder="Blank keeps" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-admin-muted">Trade rights</label>
+              <select className="h-9 rounded-md border border-admin-border bg-admin-bg px-2 text-sm" value={rightsMode} onChange={(e) => setRightsMode(e.target.value)}>
+                <option value="ENABLED">ENABLED</option>
+                <option value="CLOSE_ONLY">CLOSE_ONLY</option>
+                <option value="DISABLED">DISABLED</option>
+              </select>
+            </div>
+            <Button type="button" className="h-9" variant="secondary" disabled={!rightsAccount.trim()} onClick={() => setRightsOpen(true)}>
+              Save rights
+            </Button>
+            <p className="w-full text-[11px] text-admin-muted">Group leverage stays the default. This account override waits for approval. A blank leverage leaves the stored override alone.</p>
+          </div>
+        </ProtectedAction>
+        {rightsMsg ? <p className="mb-3 text-sm text-admin-muted">{rightsMsg}</p> : null}
+        {rightsM.isError ? <p className="mb-3 text-sm text-red-400">{rightsM.error instanceof Error ? rightsM.error.message : 'Request failed'}</p> : null}
         {qry.isError ? (
           <p className="text-sm text-red-400">{qry.error instanceof Error ? qry.error.message : 'Load failed'}</p>
         ) : (
@@ -181,6 +244,16 @@ export function ForexTradingAccountsPanel() {
         </div>
       ) : null}
 
+      <ForexConfirmModal
+        open={rightsOpen}
+        onClose={() => setRightsOpen(false)}
+        title="Save account rights"
+        description={`${rightsAccount.trim()} · ${rightsMode}${rightsLeverage.trim() ? ` · leverage ${rightsLeverage.trim()}` : ''}. Applies after a second approval.`}
+        loading={rightsM.isPending}
+        onConfirm={async (reason) => {
+          await rightsM.mutateAsync(reason);
+        }}
+      />
       <p className="text-xs text-admin-muted">
         <ExternalLink className="mr-1 inline h-3 w-3" />
         Ledger entries and reconciliation events live under Finance → Ledger.

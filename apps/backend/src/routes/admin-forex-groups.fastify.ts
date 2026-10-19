@@ -214,4 +214,65 @@ export default async function adminForexGroupsRoutes(app: FastifyInstance): Prom
       }
     }
   );
+
+  app.post<{ Params: { accountId: string }; Body: { trade_rights?: string; reason?: string } }>(
+    '/forex/accounts/:accountId/trade-rights',
+    async (request, reply) => {
+      const admin = await getAdminWithPermission(app, request, reply, 'forex:accounts:manage');
+      if (!admin) return;
+      const tradeRights = (request.body?.trade_rights ?? '').trim().toUpperCase();
+      const reason = (request.body?.reason ?? '').trim();
+      if (!['ENABLED', 'CLOSE_ONLY', 'DISABLED'].includes(tradeRights) || reason.length < 8) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'INVALID_BODY', message: 'trade_rights and reason (min 8 chars) required' },
+        });
+      }
+      try {
+        if (!(await forexAccountExists(request.params.accountId))) {
+          return reply.status(404).send({
+            success: false,
+            error: { code: 'ACCOUNT_NOT_FOUND', message: 'Forex account not found' },
+          });
+        }
+        const { request: approvalReq, correlationId } = await createForexAdminApprovalRequest({
+          actionType: 'forex_trade_rights',
+          requestedBy: admin.adminId,
+          payload: {
+            accountId: request.params.accountId,
+            tradeRights,
+            reason,
+            executingAdminId: admin.adminId,
+            targetResource: 'forex_account',
+            targetId: request.params.accountId,
+          },
+        });
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'admin_approval_request_create',
+          resourceType: 'admin_approval_request',
+          resourceId: approvalReq.id,
+          oldValue: null,
+          newValue: { action_type: 'forex_trade_rights', account_id: request.params.accountId, tradeRights, correlationId },
+        });
+        return reply.status(202).send({
+          success: true,
+          data: {
+            approval_required: true,
+            approval_id: approvalReq.id,
+            status: approvalReq.status,
+            correlationId,
+            note: 'Trade rights apply after approval. Close-only and disabled still allow a reduce-only close.',
+          },
+        });
+      } catch (e) {
+        const code = e instanceof Error ? e.message : 'UPDATE_FAILED';
+        return reply.status(code === 'ACCOUNT_NOT_FOUND' ? 404 : 400).send({
+          success: false,
+          error: { code, message: 'Trade rights update failed' },
+        });
+      }
+    },
+  );
 }

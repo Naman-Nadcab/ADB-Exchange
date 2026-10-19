@@ -37,9 +37,17 @@ export class ForexLedgerService {
   }
 
   customerCashBalance(accountId: string): string {
+    return this.balanceOf(accountId, 'CUSTOMER_CASH');
+  }
+
+  customerCreditBalance(accountId: string): string {
+    return this.balanceOf(accountId, 'CUSTOMER_CREDIT');
+  }
+
+  private balanceOf(accountId: string, ledgerAccount: 'CUSTOMER_CASH' | 'CUSTOMER_CREDIT'): string {
     let bal = fxDecimal(0);
     for (const e of this.store.listEntries(accountId)) {
-      if (e.ledgerAccount !== 'CUSTOMER_CASH') continue;
+      if (e.ledgerAccount !== ledgerAccount) continue;
       bal = bal.plus(e.credit).minus(e.debit);
     }
     return bal.toFixed();
@@ -104,7 +112,10 @@ export class ForexLedgerService {
         entryId: randomUUID(),
         transactionId,
         ledgerAccount: raw.ledgerAccount,
-        accountId: raw.ledgerAccount === 'CUSTOMER_CASH' ? (raw.accountId ?? req.accountId) : (raw.accountId ?? null),
+        accountId:
+          raw.ledgerAccount === 'CUSTOMER_CASH' || raw.ledgerAccount === 'CUSTOMER_CREDIT'
+            ? (raw.accountId ?? req.accountId)
+            : (raw.accountId ?? null),
         debit: debit.toFixed(),
         credit: credit.toFixed(),
         currency: req.currency,
@@ -134,21 +145,31 @@ export class ForexLedgerService {
     const cashDebit = entries
       .filter((e) => e.ledgerAccount === 'CUSTOMER_CASH' && e.accountId === req.accountId)
       .reduce((a, e) => a.plus(e.debit), fxDecimal(0));
+    const creditDebit = entries
+      .filter((e) => e.ledgerAccount === 'CUSTOMER_CREDIT' && e.accountId === req.accountId)
+      .reduce((a, e) => a.plus(e.debit), fxDecimal(0));
 
-    const assertCash = async (c?: ForexQueryable): Promise<void> => {
-      if (!cashDebit.gt(0)) return;
-      let bal = fxDecimal(this.customerCashBalance(req.accountId));
+    const assertNamed = async (debit: ReturnType<typeof fxDecimal>, kind: 'CUSTOMER_CASH' | 'CUSTOMER_CREDIT', c?: ForexQueryable): Promise<void> => {
+      if (!debit.gt(0)) return;
+      let bal = fxDecimal(kind === 'CUSTOMER_CASH' ? this.customerCashBalance(req.accountId) : this.customerCreditBalance(req.accountId));
       if (this.persistEnabled) {
-        const { customerCashBalanceFromDb } = await import('./persist.js');
-        bal = fxDecimal(await customerCashBalanceFromDb(req.accountId, c));
+        const persisted = await import('./persist.js');
+        bal = fxDecimal(
+          kind === 'CUSTOMER_CASH'
+            ? await persisted.customerCashBalanceFromDb(req.accountId, c)
+            : await persisted.customerCreditBalanceFromDb(req.accountId, c),
+        );
       }
-      if (bal.minus(cashDebit).lt(0)) {
+      if (bal.minus(debit).lt(0)) {
         forexLedgerRejectedTotal.inc({ reason: 'INSUFFICIENT_FOREX_BALANCE' });
-        throw new ForexLedgerError('INSUFFICIENT_FOREX_BALANCE', 'operation would create a negative Forex cash balance', 409);
+        throw new ForexLedgerError('INSUFFICIENT_FOREX_BALANCE', `operation would create a negative ${kind} balance`, 409);
       }
     };
 
-    if (!this.persistEnabled) await assertCash();
+    if (!this.persistEnabled) {
+      await assertNamed(cashDebit, 'CUSTOMER_CASH');
+      await assertNamed(creditDebit, 'CUSTOMER_CREDIT');
+    }
 
     const tx: ForexLedgerTransaction = {
       transactionId,
@@ -173,7 +194,8 @@ export class ForexLedgerService {
 
     if (this.persistEnabled) {
       const write = async (c: ForexQueryable): Promise<ForexLedgerTransaction> => {
-        await assertCash(c);
+        await assertNamed(cashDebit, 'CUSTOMER_CASH', c);
+        await assertNamed(creditDebit, 'CUSTOMER_CREDIT', c);
         const { persistAccountingEvent, persistLedgerTransaction, loadLedgerByKey } = await import('./persist.js');
         const result = await persistLedgerTransaction(tx, c);
         if (result === 'replay') {

@@ -5492,6 +5492,40 @@ END $$;`,
    EXCEPTION WHEN OTHERS THEN
      RAISE NOTICE 'forex hedging default skipped: %', SQLERRM;
    END $$;`,
+  `ALTER TABLE forex_accounts ADD COLUMN IF NOT EXISTS trade_rights VARCHAR(16) NOT NULL DEFAULT 'ENABLED';`,
+  `DO $$
+   BEGIN
+     IF to_regclass('public.forex_accounts') IS NULL THEN
+       RETURN;
+     END IF;
+     ALTER TABLE forex_accounts DROP CONSTRAINT IF EXISTS forex_accounts_trade_rights_check;
+     ALTER TABLE forex_accounts ADD CONSTRAINT forex_accounts_trade_rights_check
+       CHECK (trade_rights IN ('ENABLED', 'CLOSE_ONLY', 'DISABLED'));
+   EXCEPTION WHEN OTHERS THEN
+     RAISE NOTICE 'forex trade rights check skipped: %', SQLERRM;
+   END $$;`,
+  `INSERT INTO forex_ledger_accounts (ledger_account, purpose) VALUES
+     ('CUSTOMER_CREDIT', 'Customer credit or bonus line. Separate from CUSTOMER_CASH. Not withdrawable and not a chain withdrawal.')
+   ON CONFLICT (ledger_account) DO NOTHING;`,
+  `DO $$
+   DECLARE r record;
+   BEGIN
+     IF to_regclass('public.forex_finance_requests') IS NULL THEN
+       RETURN;
+     END IF;
+     FOR r IN
+       SELECT conname FROM pg_constraint
+       WHERE conrelid = 'public.forex_finance_requests'::regclass
+         AND contype = 'c'
+         AND pg_get_constraintdef(oid) ILIKE '%kind%'
+     LOOP
+       EXECUTE format('ALTER TABLE forex_finance_requests DROP CONSTRAINT %I', r.conname);
+     END LOOP;
+     ALTER TABLE forex_finance_requests ADD CONSTRAINT forex_finance_requests_kind_check
+       CHECK (kind IN ('DEPOSIT','WITHDRAWAL','TRANSFER','ADJUSTMENT','CREDIT','DEBIT','FEE','REVERSAL','CREDIT_LINE','CREDIT_LINE_RECALL'));
+   EXCEPTION WHEN OTHERS THEN
+     RAISE NOTICE 'forex finance kind check skipped: %', SQLERRM;
+   END $$;`,
 ];
 
 /** True if this migration SQL touches the legacy "balances" table (not user_balances). Run such steps via raw pool so runtime guard does not block. */

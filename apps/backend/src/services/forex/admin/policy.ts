@@ -172,6 +172,13 @@ export function applyForexInstrumentPolicyPatch(
     swap_model?: string;
     trade_session?: ForexDeskSessionWindow | null;
     quote_session?: ForexDeskSessionWindow | null;
+    trade_mode?: string | null;
+    freeze_level_pips?: string | null;
+    gap_level_pips?: string | null;
+    symbol_group?: string | null;
+    news_start?: string | null;
+    news_end?: string | null;
+    news_title?: string | null;
   },
 ): { symbol: string; previous: Record<string, string | undefined>; next: Record<string, string | undefined> } {
   const base = getForexInstrumentBySymbol(symbol);
@@ -203,6 +210,20 @@ export function applyForexInstrumentPolicyPatch(
     ...(body.swap_model != null ? { swapModel: body.swap_model as 'points' | 'account_currency' } : {}),
     ...(body.trade_session !== undefined ? { tradeSession: body.trade_session } : {}),
     ...(body.quote_session !== undefined ? { quoteSession: body.quote_session } : {}),
+    ...(body.trade_mode !== undefined
+      ? { tradeMode: body.trade_mode == null || body.trade_mode === '' || body.trade_mode === 'FULL' ? null : (body.trade_mode as 'CLOSE_ONLY' | 'DISABLED' | 'LONG_ONLY' | 'SHORT_ONLY') }
+      : {}),
+    ...(body.freeze_level_pips !== undefined ? { freezeLevelPips: body.freeze_level_pips == null || body.freeze_level_pips.trim() === '' ? null : body.freeze_level_pips } : {}),
+    ...(body.gap_level_pips !== undefined ? { gapLevelPips: body.gap_level_pips == null || body.gap_level_pips.trim() === '' ? null : body.gap_level_pips } : {}),
+    ...(body.symbol_group !== undefined ? { symbolGroup: body.symbol_group } : {}),
+    ...(body.news_start !== undefined || body.news_end !== undefined
+      ? {
+          newsWindow:
+            !body.news_start?.trim() && !body.news_end?.trim()
+              ? null
+              : { start: String(body.news_start ?? ''), end: String(body.news_end ?? ''), title: body.news_title ?? undefined },
+        }
+      : {}),
   };
   if (!Object.keys(patch).length && !Object.keys(extraPatch).length) throw new Error('NO_INSTRUMENT_POLICY_FIELDS');
   const effMin = patch.minVolume ?? base.minVolume;

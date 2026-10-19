@@ -65,6 +65,11 @@ export function getForexAdminBackendConfig() {
         stopsLevelPips: getForexInstrumentDeskExtra(i.symbol)?.stopsLevelPips ?? '0',
         tradeSession: getForexInstrumentDeskExtra(i.symbol)?.tradeSession ?? null,
         quoteSession: getForexInstrumentDeskExtra(i.symbol)?.quoteSession ?? null,
+        tradeMode: getForexInstrumentDeskExtra(i.symbol)?.tradeMode ?? 'FULL',
+        freezeLevelPips: getForexInstrumentDeskExtra(i.symbol)?.freezeLevelPips ?? '0',
+        gapLevelPips: getForexInstrumentDeskExtra(i.symbol)?.gapLevelPips ?? '0',
+        symbolGroup: getForexInstrumentDeskExtra(i.symbol)?.symbolGroup ?? '',
+        newsWindow: getForexInstrumentDeskExtra(i.symbol)?.newsWindow ?? null,
       };
     }),
     sessions,

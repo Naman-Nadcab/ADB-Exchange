@@ -4,7 +4,7 @@
 import { db } from '../../../lib/database.js';
 import { fxDecimal } from '../decimal-fx.js';
 import { setForexAccountCommission, type ForexCommissionModel } from '../fees/policy.js';
-import { setForexAccountLimits } from '../risk/policy.js';
+import { setForexAccountLimits, unsetForexAccountLimitKeys } from '../risk/policy.js';
 import { setForexAccountSwap, type ForexSwapModel } from '../swap/policy.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
@@ -106,13 +106,20 @@ export function applyForexAccountGroupProfilesRuntime(
   if (swap) setForexAccountSwap(accountId, swap);
 
   const spread = parseSpreadProfile(profiles.spread_profile);
-  const risk = parseRiskProfile(profiles.risk_profile);
-  const limits = {
+  const riskRaw = profiles.risk_profile;
+  const limits: { maxSpread?: string; maxOrderVolume?: string; maxOpenPositions?: number } = {
     ...(spread?.maxSpread ? { maxSpread: spread.maxSpread } : {}),
-    ...(risk?.maxOrderVolume ? { maxOrderVolume: risk.maxOrderVolume } : {}),
-    ...(risk?.maxOpenPositions != null ? { maxOpenPositions: risk.maxOpenPositions } : {}),
   };
+  const clear: Array<'maxOrderVolume' | 'maxOpenPositions'> = [];
+  if (riskRaw && typeof riskRaw === 'object' && !Array.isArray(riskRaw)) {
+    const risk = parseRiskProfile(riskRaw);
+    if (risk?.maxOrderVolume) limits.maxOrderVolume = risk.maxOrderVolume;
+    else clear.push('maxOrderVolume');
+    if (risk?.maxOpenPositions != null) limits.maxOpenPositions = risk.maxOpenPositions;
+    else clear.push('maxOpenPositions');
+  }
   if (Object.keys(limits).length) setForexAccountLimits(accountId, limits);
+  if (clear.length) unsetForexAccountLimitKeys(accountId, clear);
 }
 
 export async function refreshForexAccountGroupRuntimePolicyForAccount(accountId: string): Promise<boolean> {

@@ -102,11 +102,39 @@ export async function updateForexAccountGroup(
     params.push(patch.is_active);
     fields.push(`is_active = $${params.length}`);
   }
+  if (patch.risk_profile && typeof patch.risk_profile === 'object') {
+    const current = await db.query<{ risk_profile: unknown }>(
+      `SELECT risk_profile FROM forex_account_groups WHERE group_id = $1::uuid`,
+      [groupId],
+    );
+    const next: Record<string, unknown> =
+      current.rows[0]?.risk_profile && typeof current.rows[0].risk_profile === 'object' && !Array.isArray(current.rows[0].risk_profile)
+        ? { ...(current.rows[0].risk_profile as Record<string, unknown>) }
+        : {};
+    if ('maxOrderVolume' in patch.risk_profile) {
+      const raw = patch.risk_profile.maxOrderVolume;
+      if (raw == null || String(raw).trim() === '') delete next.maxOrderVolume;
+      else {
+        if (!fxDecimal(String(raw)).gt(0)) throw new Error('INVALID_RISK');
+        next.maxOrderVolume = String(raw).trim();
+      }
+    }
+    if ('maxOpenPositions' in patch.risk_profile) {
+      const raw = patch.risk_profile.maxOpenPositions;
+      if (raw == null || String(raw).trim() === '') delete next.maxOpenPositions;
+      else {
+        const n = Number.parseInt(String(raw), 10);
+        if (!Number.isFinite(n) || n <= 0) throw new Error('INVALID_RISK');
+        next.maxOpenPositions = n;
+      }
+    }
+    params.push(JSON.stringify(next));
+    fields.push(`risk_profile = $${params.length}::jsonb`);
+  }
   for (const [col, val] of [
     ['spread_profile', patch.spread_profile],
     ['commission_profile', patch.commission_profile],
     ['swap_profile', patch.swap_profile],
-    ['risk_profile', patch.risk_profile],
   ] as const) {
     if (val && typeof val === 'object') {
       params.push(JSON.stringify(val));
