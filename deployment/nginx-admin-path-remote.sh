@@ -42,11 +42,17 @@ record_runtime() {
 }
 
 apply_nginx_files() {
+  # Git replaces the host file inode. The container's file bind keeps the old inode,
+  # so copy the checkout bytes in instead of reading the mounted file.
+  docker exec -i exchange-nginx sh -c 'cat > /etc/nginx/nginx.conf.new' < nginx/nginx.tls.conf
+  if docker exec exchange-nginx sh -c 'test -s /etc/nginx/conf.d/wallet-browser.conf'; then
+    docker exec -i exchange-nginx sh -c 'cat > /etc/nginx/wallet-browser.conf.new' < nginx/nginx.wallet-browser.conf
+  fi
   docker exec exchange-nginx sh -c '
     set -eu
-    cp /etc/nginx/nginx.tls.conf /etc/nginx/nginx.conf
-    if [ -f /etc/nginx/ssl/wallet-browser/fullchain.pem ] && [ -f /etc/nginx/ssl/wallet-browser/privkey.pem ]; then
-      cp /etc/nginx/nginx.wallet-browser.conf /etc/nginx/conf.d/wallet-browser.conf
+    cp /etc/nginx/nginx.conf.new /etc/nginx/nginx.conf
+    if [ -f /etc/nginx/wallet-browser.conf.new ]; then
+      cp /etc/nginx/wallet-browser.conf.new /etc/nginx/conf.d/wallet-browser.conf
     fi
     nginx -t
   '
@@ -125,8 +131,13 @@ if ! docker exec exchange-nginx nginx -s reload; then
   exit 1
 fi
 
-if docker exec exchange-nginx grep -q '3001/;' /etc/nginx/nginx.conf; then
+if docker exec exchange-nginx grep -q 'proxy_pass http://$upstream_host:3001/;' /etc/nginx/nginx.conf; then
   echo "RUNNING_CONF_STILL_STRIPS" >&2
+  rollback
+  exit 1
+fi
+if ! docker exec exchange-nginx grep -q 'proxy_pass http://$upstream_host:3001;' /etc/nginx/nginx.conf; then
+  echo "RUNNING_CONF_MISSING_KEEP_PREFIX" >&2
   rollback
   exit 1
 fi
