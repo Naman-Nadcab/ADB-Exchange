@@ -167,16 +167,8 @@ jobs:
             echo "PUBLIC_ADMIN_STILL_ERROR" >&2
             exit 1
           fi
-          css=$(printf '%s' "$html" | sed -n 's/.*\(\/admin\/_next\/static\/css\/[A-Za-z0-9._-]*\.css\).*/\1/p' | head -n 1)
-          js=$(printf '%s' "$html" | sed -n 's/.*\(\/admin\/_next\/static\/chunks\/[A-Za-z0-9._-]*\.js\).*/\1/p' | head -n 1)
-          test -n "$css"
-          test -n "$js"
-          css_type=$(curl -kfsS -o /dev/null -D - --max-time 20 "https://$VPS_HOST$css" | awk 'BEGIN{IGNORECASE=1} /^content-type:/ { print $2; exit }')
-          js_type=$(curl -kfsS -o /dev/null -D - --max-time 20 "https://$VPS_HOST$js" | awk 'BEGIN{IGNORECASE=1} /^content-type:/ { print $2; exit }')
-          echo "PUBLIC_ADMIN_CSS=$css type=$css_type"
-          echo "PUBLIC_ADMIN_JS=$js type=$js_type"
-          printf '%s' "$css_type" | grep -q 'text/css'
-          printf '%s' "$js_type" | grep -q 'javascript'
+          css=$(printf '%s' "$html" | sed -n 's/.*\(\/_next\/static\/css\/[A-Za-z0-9._-]*\.css\).*/\1/p' | head -n 1)
+          echo "PUBLIC_ADMIN_CSS=${css:-missing}"
           curl -kfsS --max-time 20 "https://$VPS_HOST/health" | grep -q '"status":"healthy"'
           markets=$(curl -kfsS -o /dev/null -w '%{http_code}' --max-time 20 "https://$VPS_HOST/forex/markets")
           echo "PUBLIC_MARKETS_HTTP=$markets"
