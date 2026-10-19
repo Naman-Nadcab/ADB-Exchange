@@ -1,6 +1,6 @@
 /**
  * In-process Forex runtime overrides (F3). Env baselines from forexConfig;
- * overrides survive until process restart — not persisted to DB by design (MOCK ops plane).
+ * overrides are copied into system_settings by desk-policy so they survive restart.
  */
 import { forexConfig } from '../config.js';
 import type { ForexTradingStatus } from '../types.js';

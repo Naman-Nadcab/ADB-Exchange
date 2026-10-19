@@ -79,6 +79,12 @@ export async function hydrateForexEconomicState(args: {
     }
     args.swaps.hydrate(swaps);
     await hydrateForexHolidayCalendar();
+    try {
+      const { hydrateForexDeskPolicyFromDb } = await import('../admin/desk-policy.js');
+      await hydrateForexDeskPolicyFromDb();
+    } catch {
+      /* desk policy is optional until system_settings is reachable */
+    }
 
     // Journal is audit-class: a cold cache must never block Forex readiness.
     const journal = getForexJournalService();

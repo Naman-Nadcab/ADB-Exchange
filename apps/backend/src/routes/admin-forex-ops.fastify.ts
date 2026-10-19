@@ -19,6 +19,8 @@ import {
 } from '../services/forex/admin/operator-notifications.js';
 import { searchForexAdmin } from '../services/forex/admin/admin-search.js';
 import { createForexFinanceRequest, listForexFinanceRequests } from '../services/forex/admin/finance-requests.js';
+import { getForexBookMode, getForexDeskOrderPolicy, setForexBookMode, setForexDeskOrderPolicy } from '../services/forex/admin/desk-policy.js';
+import { adminCloseForexPosition, adminSetForexProtection, forexAccountStatement } from '../services/forex/admin/manager-desk.js';
 import {
   createForexAutomationWorkflow,
   listForexAutomationRuns,
@@ -48,6 +50,13 @@ import {
 } from '../services/forex/admin/compliance-cases.js';
 import { buildForexRiskHubSnapshot } from '../services/forex/admin/risk-hub.js';
 import { transitionForexAccountStatus } from '../services/forex/admin/account-lifecycle.js';
+
+function deskErrorCode(e: unknown): string {
+  if (e && typeof e === 'object' && 'reason' in e && typeof (e as { reason: unknown }).reason === 'string') {
+    return (e as { reason: string }).reason;
+  }
+  return e instanceof Error ? e.message : 'FAILED';
+}
 
 export default async function adminForexOpsRoutes(app: FastifyInstance): Promise<void> {
   app.get<{ Querystring: { symbol?: string; account_id?: string } }>('/forex/risk/hub', async (request, reply) => {
@@ -321,6 +330,128 @@ export default async function adminForexOpsRoutes(app: FastifyInstance): Promise
       }
     },
   );
+
+  app.get('/forex/desk-policy', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'forex:controls:view');
+    if (!admin) return;
+    return reply.send({
+      success: true,
+      data: {
+        bookMode: getForexBookMode(),
+        orderPolicy: getForexDeskOrderPolicy(),
+        fills: 'MOCK',
+        note: 'Book mode is stored for the LP gateway. Customer fills stay simulated until the broker is healthy.',
+      },
+    });
+  });
+
+  app.patch<{ Body: { reason?: string; bookMode?: string; orderPolicy?: Record<string, boolean> } }>(
+    '/forex/desk-policy',
+    async (request, reply) => {
+      const admin = await getAdminWithPermission(app, request, reply, 'forex:controls:manage');
+      if (!admin) return;
+      const reason = String(request.body?.reason ?? '').trim();
+      if (reason.length < 8) {
+        return reply.status(400).send({ success: false, error: { code: 'REASON_REQUIRED', message: 'Reason min 8 chars' } });
+      }
+      try {
+        const previous = { bookMode: getForexBookMode(), orderPolicy: getForexDeskOrderPolicy() };
+        if (request.body?.bookMode) setForexBookMode(request.body.bookMode);
+        if (request.body?.orderPolicy) setForexDeskOrderPolicy(request.body.orderPolicy);
+        const next = { bookMode: getForexBookMode(), orderPolicy: getForexDeskOrderPolicy() };
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'forex_desk_policy_update',
+          resourceType: 'forex_runtime',
+          resourceId: 'desk-policy',
+          oldValue: previous,
+          newValue: { ...next, reason },
+        });
+        return reply.send({ success: true, data: { ...next, fills: 'MOCK' as const } });
+      } catch (e) {
+        const code = e instanceof Error ? e.message : 'UPDATE_FAILED';
+        return reply.status(400).send({ success: false, error: { code, message: 'Desk policy update failed' } });
+      }
+    },
+  );
+
+  app.post<{ Params: { positionId: string }; Body: { reason?: string; volume?: string } }>(
+    '/forex/positions/:positionId/close',
+    async (request, reply) => {
+      const admin = await getAdminWithPermission(app, request, reply, 'forex:dealing:manage');
+      if (!admin) return;
+      const reason = String(request.body?.reason ?? '').trim();
+      if (reason.length < 8) {
+        return reply.status(400).send({ success: false, error: { code: 'REASON_REQUIRED', message: 'Reason min 8 chars' } });
+      }
+      try {
+        const result = await adminCloseForexPosition(request.params.positionId, request.body?.volume);
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'forex_manager_close',
+          resourceType: 'forex_position',
+          resourceId: request.params.positionId,
+          oldValue: null,
+          newValue: { reason, volume: request.body?.volume ?? 'full' },
+        });
+        return reply.send({ success: true, data: result });
+      } catch (e) {
+        const code = deskErrorCode(e);
+        const status = code === 'POSITION_NOT_FOUND' || code === 'POSITION_CLOSED' ? 404 : 400;
+        return reply.status(status).send({ success: false, error: { code, message: 'Manager close failed' } });
+      }
+    },
+  );
+
+  app.post<{ Params: { positionId: string }; Body: { reason?: string; type?: string; trigger_price?: string } }>(
+    '/forex/positions/:positionId/protection',
+    async (request, reply) => {
+      const admin = await getAdminWithPermission(app, request, reply, 'forex:dealing:manage');
+      if (!admin) return;
+      const reason = String(request.body?.reason ?? '').trim();
+      const type = String(request.body?.type ?? '');
+      if (reason.length < 8) {
+        return reply.status(400).send({ success: false, error: { code: 'REASON_REQUIRED', message: 'Reason min 8 chars' } });
+      }
+      if (type !== 'STOP_LOSS' && type !== 'TAKE_PROFIT') {
+        return reply.status(400).send({ success: false, error: { code: 'INVALID_PROTECTION_TYPE', message: 'type must be STOP_LOSS or TAKE_PROFIT' } });
+      }
+      try {
+        const result = await adminSetForexProtection({
+          positionId: request.params.positionId,
+          type,
+          triggerPrice: String(request.body?.trigger_price ?? ''),
+        });
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'forex_manager_protection',
+          resourceType: 'forex_position',
+          resourceId: request.params.positionId,
+          oldValue: null,
+          newValue: { ...result, reason },
+        });
+        return reply.send({ success: true, data: result });
+      } catch (e) {
+        const code = deskErrorCode(e);
+        return reply.status(400).send({ success: false, error: { code, message: 'Protection update failed' } });
+      }
+    },
+  );
+
+  app.get<{ Params: { accountId: string } }>('/forex/accounts/:accountId/statement', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'forex:finance:view');
+    if (!admin) return;
+    try {
+      const data = await forexAccountStatement(request.params.accountId);
+      return reply.send({ success: true, data });
+    } catch (e) {
+      const code = e instanceof Error ? e.message : 'STATEMENT_FAILED';
+      return reply.status(400).send({ success: false, error: { code, message: 'Statement failed' } });
+    }
+  });
 
   app.get('/forex/automation/workflows', async (request, reply) => {
     const admin = await getAdminWithPermission(app, request, reply, 'forex:controls:view');

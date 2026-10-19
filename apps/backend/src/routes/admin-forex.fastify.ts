@@ -512,7 +512,7 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
 
   app.patch<{
     Params: { symbol: string };
-    Body: { reason?: string; max_leverage?: string; min_volume?: string; max_volume?: string };
+    Body: { reason?: string; max_leverage?: string; min_volume?: string; max_volume?: string; volume_step?: string; swap_long?: string; swap_short?: string; commission?: string; spread_markup_pips?: string; stops_level_pips?: string };
   }>('/forex/policy/instruments/:symbol', async (request, reply) => {
     const admin = await getAdminWithPermission(app, request, reply, 'forex:controls:manage');
     if (!admin) return;
@@ -530,6 +530,12 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
         max_leverage: request.body?.max_leverage,
         min_volume: request.body?.min_volume,
         max_volume: request.body?.max_volume,
+        volume_step: request.body?.volume_step,
+        swap_long: request.body?.swap_long,
+        swap_short: request.body?.swap_short,
+        commission: request.body?.commission,
+        spread_markup_pips: request.body?.spread_markup_pips,
+        stops_level_pips: request.body?.stops_level_pips,
       });
       await logAuditFromRequest(request, {
         actorType: 'admin',

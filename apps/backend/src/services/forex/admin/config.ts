@@ -15,6 +15,7 @@ import { effectiveForexRuntimeFlags } from './runtime-controls.js';
 import { forexConfig } from '../config.js';
 import { listForexCommissionPolicies } from '../fees/policy.js';
 import { FOREX_INSTRUMENT_CATALOG, getForexInstrumentBySymbol } from '../instruments.catalog.js';
+import { getForexInstrumentDeskExtra } from './desk-policy.js';
 import { snapshotForexRiskPolicy } from '../risk/policy.js';
 import { getForexDealingSnapshot } from '../risk/dealing.js';
 import { forexSessionSnapshot } from '../sessions/eligibility.js';
@@ -48,11 +49,14 @@ export function getForexAdminBackendConfig() {
         maxLeverage: resolved?.maxLeverage ?? i.maxLeverage,
         minVolume: resolved?.minVolume ?? i.minVolume,
         maxVolume: resolved?.maxVolume ?? i.maxVolume,
+        volumeStep: resolved?.volumeStep ?? i.volumeStep,
         marginPercent: i.marginPercent,
-        commission: i.commission,
+        commission: getForexInstrumentDeskExtra(i.symbol)?.commission ?? i.commission,
         commissionType: i.commissionType,
-        swapLong: i.swapLong,
-        swapShort: i.swapShort,
+        swapLong: getForexInstrumentDeskExtra(i.symbol)?.swapLong ?? i.swapLong,
+        swapShort: getForexInstrumentDeskExtra(i.symbol)?.swapShort ?? i.swapShort,
+        spreadMarkupPips: getForexInstrumentDeskExtra(i.symbol)?.spreadMarkupPips ?? '0',
+        stopsLevelPips: getForexInstrumentDeskExtra(i.symbol)?.stopsLevelPips ?? '0',
       };
     }),
     sessions,

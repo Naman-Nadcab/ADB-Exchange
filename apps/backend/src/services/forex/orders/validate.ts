@@ -1,3 +1,4 @@
+import { isForexOrderTypeDeskEnabled, isForexTifDeskEnabled } from '../admin/desk-policy.js';
 import { fxDecimal, fxDecimalPlaces, fxPositive } from '../decimal-fx.js';
 import { getForexInstrumentBySymbol, normalizeForexSymbol } from '../instruments.catalog.js';
 import { isForexDemoMockSessionBypassActive } from '../sessions/demo-bypass.js';
@@ -37,11 +38,18 @@ export function validateForexOrderRequest(req: ForexOrderRequest): OrderValidati
   if (req.orderType !== 'market' && !isForexPendingOrderType(req.orderType)) {
     return { ok: false, reason: 'UNSUPPORTED_ORDER_TYPE', detail: `orderType ${String(req.orderType)} is not supported` };
   }
+  const reduceOnly = req.intent === 'CUSTOMER_CLOSE' || req.intent === 'PROTECTION_CLOSE' || req.intent === 'LIQUIDATION_CLOSE';
+  if (!reduceOnly && !isForexOrderTypeDeskEnabled(req.orderType)) {
+    return { ok: false, reason: 'UNSUPPORTED_ORDER_TYPE', detail: `orderType ${req.orderType} is disabled by desk policy` };
+  }
 
   if (normalizeForexTimeInForce(req.timeInForce) == null) {
     return { ok: false, reason: 'INVALID_TIME_IN_FORCE', detail: `timeInForce ${String(req.timeInForce)} is not supported` };
   }
   const tif = orderTimeInForce(req);
+  if (!reduceOnly && !isForexTifDeskEnabled(tif)) {
+    return { ok: false, reason: 'UNSUPPORTED_TIME_IN_FORCE', detail: `timeInForce ${tif} is disabled by desk policy` };
+  }
   if (tif === 'BOC' && req.orderType === 'market') {
     return {
       ok: false,

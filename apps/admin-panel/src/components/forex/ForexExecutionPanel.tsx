@@ -105,6 +105,7 @@ export function ForexExecutionPanel() {
         <div className="mb-2 flex items-center gap-2 text-amber-500">
           <ShieldAlert className="h-4 w-4" />
           <span className="text-xs font-medium uppercase tracking-wide">High impact</span>
+          <Badge variant="info" className="font-normal">Book {data?.posture.bookMode ?? 'B_BOOK'}</Badge>
         </div>
         {execQ.isLoading ? (
           <p className="text-sm text-admin-muted">Loading execution posture…</p>
